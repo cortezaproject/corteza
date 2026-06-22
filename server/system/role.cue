@@ -7,6 +7,7 @@ import (
 role: {
 	features: {
 		projectScoped: true
+		labels:        true
 	}
 
 	types: {
@@ -88,9 +89,16 @@ role: {
 
 		undelete: true
 
+		// lookup: original FindByID = loadRole + proc with NO read-AC and a
+		//   proc-based NotFound/label post-processor whose error handling the
+		//   generated load-error wrapper can't reproduce -> custom body (onLookup).
+		// update/delete/undelete: dispatch eventbus events (cbEvents=true),
+		//   plus IsSystem guards and the undelete-reuses-Update-events quirk -> custom bodies.
 		customBodyOps: ["lookup", "update", "delete", "undelete"]
 
-		events: false
+		cbEvents:       true
+		templateUpdate: true
+		updateFields:   ["Handle", "Name", "Meta"]
 		hooks: {
 			validate:     true
 			beforeCreate: true

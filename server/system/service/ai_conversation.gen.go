@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -83,24 +84,43 @@ func (svc *aiConversation) Create(ctx context.Context, new *types.AiConversation
 func (svc *aiConversation) Update(ctx context.Context, upd *types.AiConversation) (res *types.AiConversation, err error) {
 	var (
 		aProps = &aiConversationActionProps{update: upd}
+		old    *types.AiConversation
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadAiConversation(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setAiConversation(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, AiConversationActionUpdate, err)
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return AiConversationErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, AiConversationActionUpdate, err, old, res)
 }
 
 func (svc *aiConversation) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &aiConversationActionProps{}
+		res    *types.AiConversation
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadAiConversation(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		aProps.setAiConversation(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, AiConversationActionDelete, err)
 }
@@ -108,11 +128,29 @@ func (svc *aiConversation) DeleteByID(ctx context.Context, ID uint64) (err error
 func (svc *aiConversation) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &aiConversationActionProps{}
+		res    *types.AiConversation
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadAiConversation(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, ID, aProps)
-	}()
+		aProps.setAiConversation(res)
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, AiConversationActionUndelete, err)
+}
+
+func loadAiConversation(ctx context.Context, s store.AiConversations, ID uint64) (res *types.AiConversation, err error) {
+	if ID == 0 {
+		return nil, AiConversationErrInvalidID()
+	}
+
+	if res, err = store.LookupAiConversationByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, AiConversationErrNotFound()
+	}
+
+	return
 }

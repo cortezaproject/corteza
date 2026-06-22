@@ -8,8 +8,12 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/store"
 )
 
 func (svc *page) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Page, err error) {
@@ -56,24 +60,55 @@ func (svc *page) Create(ctx context.Context, new *types.Page) (res *types.Page, 
 func (svc *page) Update(ctx context.Context, upd *types.Page) (res *types.Page, err error) {
 	var (
 		aProps = &pageActionProps{changed: upd}
+		old    *types.Page
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadPage(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
 
-	return res, svc.recordAction(ctx, aProps, PageActionUpdate, err)
+		aProps.setPage(res)
+		aProps.setChanged(res)
+		old = res.Clone()
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return PageErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return PageErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, PageActionUpdate, err, old, res)
 }
 
 func (svc *page) DeleteByID(ctx context.Context, namespaceID uint64, ID uint64, strategy types.PageChildrenDeleteStrategy) (err error) {
 	var (
 		aProps = &pageActionProps{}
+		res    *types.Page
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadPage(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, namespaceID, ID, strategy, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setPage(res)
+
+		return svc.onDelete(ctx, s, namespaceID, res, strategy, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, PageActionDelete, err)
 }
@@ -81,13 +116,35 @@ func (svc *page) DeleteByID(ctx context.Context, namespaceID uint64, ID uint64, 
 func (svc *page) UndeleteByID(ctx context.Context, namespaceID uint64, ID uint64) (err error) {
 	var (
 		aProps = &pageActionProps{}
+		res    *types.Page
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadPage(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, namespaceID, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setPage(res)
+
+		return svc.onUndelete(ctx, s, namespaceID, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, PageActionUndelete, err)
+}
+
+func loadPage(ctx context.Context, s store.ComposePages, ID uint64) (res *types.Page, err error) {
+	if ID == 0 {
+		return nil, PageErrInvalidID()
+	}
+
+	if res, err = store.LookupComposePageByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, PageErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledPages converts to []label.LabeledResource

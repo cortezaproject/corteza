@@ -7,6 +7,7 @@ package types
 //
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -16,4 +17,12 @@ type QueueMessage struct {
 	Payload   []byte     `json:"payload"`
 	Created   *time.Time `json:"created"`
 	Processed *time.Time `json:"processed"`
+}
+
+func (r QueueMessage) Clone() *QueueMessage {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
 }

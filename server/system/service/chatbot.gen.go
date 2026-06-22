@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
@@ -87,24 +89,55 @@ func (svc *chatbot) Create(ctx context.Context, new *types.Chatbot) (res *types.
 func (svc *chatbot) Update(ctx context.Context, upd *types.Chatbot) (res *types.Chatbot, err error) {
 	var (
 		aProps = &chatbotActionProps{update: upd}
+		old    *types.Chatbot
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadChatbot(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
 
-	return res, svc.recordAction(ctx, aProps, ChatbotActionUpdate, err)
+		aProps.setChatbot(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return ChatbotErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return ChatbotErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, ChatbotActionUpdate, err, old, res)
 }
 
 func (svc *chatbot) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &chatbotActionProps{}
+		res    *types.Chatbot
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadChatbot(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setChatbot(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ChatbotActionDelete, err)
 }
@@ -112,13 +145,35 @@ func (svc *chatbot) DeleteByID(ctx context.Context, ID uint64) (err error) {
 func (svc *chatbot) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &chatbotActionProps{}
+		res    *types.Chatbot
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadChatbot(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setChatbot(res)
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ChatbotActionUndelete, err)
+}
+
+func loadChatbot(ctx context.Context, s store.Chatbots, ID uint64) (res *types.Chatbot, err error) {
+	if ID == 0 {
+		return nil, ChatbotErrInvalidID()
+	}
+
+	if res, err = store.LookupChatbotByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, ChatbotErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledChatbots converts to []label.LabeledResource

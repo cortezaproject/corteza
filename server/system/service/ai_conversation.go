@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
@@ -36,18 +35,9 @@ func (svc *aiConversation) onCreate(ctx context.Context, new *types.AiConversati
 	return nil
 }
 
-func (svc *aiConversation) onUpdate(ctx context.Context, upd *types.AiConversation, aProps *aiConversationActionProps) (conv *types.AiConversation, err error) {
+func (svc *aiConversation) onUpdate(ctx context.Context, s store.Storer, upd, conv *types.AiConversation, aProps *aiConversationActionProps, _ func() error, _ func() error) error {
 	if !svc.ac.CanUpdateAiConversation(ctx, upd) {
-		return nil, AiConversationErrNotAllowedToUpdate(aProps)
-	}
-
-	conv, err = store.LookupAiConversationByID(ctx, svc.store, upd.ID)
-	if err != nil {
-		return nil, AiConversationErrNotFound(aProps)
-	}
-
-	if isStale(upd.UpdatedAt, conv.UpdatedAt, conv.CreatedAt) {
-		return nil, AiConversationErrStaleData(aProps)
+		return AiConversationErrNotAllowedToUpdate(aProps)
 	}
 
 	conv.AgentID = upd.AgentID
@@ -55,26 +45,7 @@ func (svc *aiConversation) onUpdate(ctx context.Context, upd *types.AiConversati
 	conv.TokenCount = upd.TokenCount
 	conv.UpdatedAt = now()
 
-	if err = store.UpdateAiConversation(ctx, svc.store, conv); err != nil {
-		return nil, err
-	}
-
-	aProps.setAiConversation(conv)
-	return conv, nil
-}
-
-func (svc *aiConversation) onDelete(ctx context.Context, ID uint64, aProps *aiConversationActionProps) (err error) {
-	conv, err := store.LookupAiConversationByID(ctx, svc.store, ID)
-	if err != nil {
-		return err
-	}
-
-	if !svc.ac.CanDeleteAiConversation(ctx, conv) {
-		return AiConversationErrNotAllowedToDelete(aProps)
-	}
-
-	conv.DeletedAt = now()
-	if err = store.UpdateAiConversation(ctx, svc.store, conv); err != nil {
+	if err := store.UpdateAiConversation(ctx, s, conv); err != nil {
 		return err
 	}
 
@@ -82,18 +53,27 @@ func (svc *aiConversation) onDelete(ctx context.Context, ID uint64, aProps *aiCo
 	return nil
 }
 
-func (svc *aiConversation) onUndelete(ctx context.Context, ID uint64, aProps *aiConversationActionProps) (err error) {
-	conv, err := store.LookupAiConversationByID(ctx, svc.store, ID)
-	if err != nil {
+func (svc *aiConversation) onDelete(ctx context.Context, s store.Storer, conv *types.AiConversation, aProps *aiConversationActionProps) error {
+	if !svc.ac.CanDeleteAiConversation(ctx, conv) {
+		return AiConversationErrNotAllowedToDelete(aProps)
+	}
+
+	conv.DeletedAt = now()
+	if err := store.UpdateAiConversation(ctx, s, conv); err != nil {
 		return err
 	}
 
+	aProps.setAiConversation(conv)
+	return nil
+}
+
+func (svc *aiConversation) onUndelete(ctx context.Context, s store.Storer, conv *types.AiConversation, aProps *aiConversationActionProps) error {
 	if !svc.ac.CanDeleteAiConversation(ctx, conv) {
 		return AiConversationErrNotAllowedToDelete(aProps)
 	}
 
 	conv.DeletedAt = nil
-	if err = store.UpdateAiConversation(ctx, svc.store, conv); err != nil {
+	if err := store.UpdateAiConversation(ctx, s, conv); err != nil {
 		return err
 	}
 
@@ -110,14 +90,3 @@ func (svc *aiConversation) onSearch(ctx context.Context, filter types.AiConversa
 	return set, f, err
 }
 
-func loadAiConversation(ctx context.Context, s store.Agents, ID uint64) (res *types.Agent, err error) {
-	if ID == 0 {
-		return nil, AgentErrInvalidID()
-	}
-
-	if res, err = store.LookupAgentByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, AgentErrNotFound()
-	}
-
-	return
-}

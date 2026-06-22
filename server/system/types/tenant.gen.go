@@ -30,6 +30,14 @@ type Tenant struct {
 	Labels      map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r Tenant) Clone() *Tenant {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *TenantConfig) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m TenantConfig) Value() (driver.Value, error) { return json.Marshal(m) }
 

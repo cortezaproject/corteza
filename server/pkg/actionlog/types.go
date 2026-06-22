@@ -3,13 +3,69 @@ package actionlog
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
+
+// RbacResourcer is implemented by resource types that can produce a full RBAC
+// resource identifier (e.g. "corteza::compose:module/42/7").
+type RbacResourcer interface {
+	RbacResource() string
+}
+
+// Delta holds the field-level diff (old→new) for an action on a resource.
+type Delta []*revisions.Change
+
+func (d *Delta) Scan(src any) error {
+	if src == nil {
+		return nil
+	}
+	switch v := src.(type) {
+	case []byte:
+		return json.Unmarshal(v, d)
+	case string:
+		return json.Unmarshal([]byte(v), d)
+	}
+	return fmt.Errorf("unsupported type %T for actionlog.Delta", src)
+}
+
+func (d Delta) Value() (driver.Value, error) {
+	if d == nil {
+		return nil, nil
+	}
+	return json.Marshal(d)
+}
+
+// OldState is the full JSON snapshot of a resource before an update.
+type OldState json.RawMessage
+
+func (s *OldState) Scan(src any) error {
+	if src == nil {
+		return nil
+	}
+	switch v := src.(type) {
+	case []byte:
+		*s = append((*s)[:0], v...)
+		return nil
+	case string:
+		*s = append((*s)[:0], v...)
+		return nil
+	}
+	return fmt.Errorf("unsupported type %T for actionlog.OldState", src)
+}
+
+func (s OldState) Value() (driver.Value, error) {
+	if s == nil {
+		return nil, nil
+	}
+	return []byte(s), nil
+}
 
 type (
 	// Any additional data
@@ -56,6 +112,12 @@ type (
 
 		// Meta data, resource specific values
 		Meta Meta `json:"meta"`
+
+		// Delta holds the field-level old→new diff for update actions
+		Delta Delta `json:"delta,omitempty"`
+
+		// OldState is the full JSON snapshot of the resource before the update
+		OldState OldState `json:"oldState,omitempty"`
 	}
 
 	Filter struct {

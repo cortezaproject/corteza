@@ -91,8 +91,6 @@ configured_connection: {
 	}
 
 	service: {
-		events:   false
-
 		lookup: false
 		search: false
 		update: false

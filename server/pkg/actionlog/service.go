@@ -12,6 +12,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
@@ -26,6 +27,8 @@ type (
 		logger *zap.Logger
 
 		policy policyMatcher
+
+		listeners []func(*Action)
 	}
 
 	Recorder interface {
@@ -52,10 +55,29 @@ func NewService(s actionlogStore, logger, tee *zap.Logger, policy policyMatcher)
 		policy: policy,
 	}
 
+	svc.RegisterListener(func(a *Action) {
+		svc.logger.Info(a.Description,
+			zap.Time("timestamp", a.Timestamp),
+			zap.String("requestOrigin", a.RequestOrigin),
+			zap.String("requestID", a.RequestID),
+			zap.String("actorIPAddr", a.ActorIPAddr),
+			zap.Uint64("actorID", a.ActorID),
+			zap.String("resource", a.Resource),
+			zap.String("action", a.Action),
+			zap.Uint8("severity", uint8(a.Severity)),
+			zap.String("error", a.Error),
+			zap.Any("meta", a.Meta),
+		)
+	})
+
 	return
 }
 
-func (svc service) Record(ctx context.Context, a *Action) {
+func (svc *service) RegisterListener(fn func(*Action)) {
+	svc.listeners = append(svc.listeners, fn)
+}
+
+func (svc *service) Record(ctx context.Context, a *Action) {
 	if a == nil {
 		// nothing to record
 		return
@@ -63,6 +85,10 @@ func (svc service) Record(ctx context.Context, a *Action) {
 
 	a = enrich(ctx, a)
 	a.ID = id.Next()
+
+	for _, fn := range svc.listeners {
+		fn(a)
+	}
 
 	svc.log(a)
 	if !svc.policy.Match(a) {
@@ -80,7 +106,7 @@ func (svc service) Record(ctx context.Context, a *Action) {
 	}
 }
 
-func (svc service) log(a *Action) {
+func (svc *service) log(a *Action) {
 	zlf := []zap.Field{
 		zap.Time("timestamp", a.Timestamp),
 		zap.String("requestOrigin", a.RequestOrigin),
@@ -110,8 +136,24 @@ func (svc service) log(a *Action) {
 		Debug(a.Description)
 }
 
-func (svc service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, error) {
+func (svc *service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, error) {
 	return svc.store.SearchActionlogs(ctx, flt)
+}
+
+// History returns all actions for a resource, ordered oldest-first.
+// resourceID filtering takes effect once the store supports Filter.ResourceID (Gap 1).
+func (svc *service) History(ctx context.Context, resource, resourceID string) (ActionSet, error) {
+	flt := Filter{
+		Resource: resource,
+	}
+
+	var err error
+	if flt.Sorting, err = filter.NewSorting("ts ASC"); err != nil {
+		return nil, err
+	}
+
+	set, _, err := svc.store.SearchActionlogs(ctx, flt)
+	return set, err
 }
 
 // Enriches action with additional info (ip, actor id, request id...)

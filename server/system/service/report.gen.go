@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
@@ -124,14 +125,19 @@ func (svc *report) Create(ctx context.Context, new *types.Report) (res *types.Re
 func (svc *report) Update(ctx context.Context, upd *types.Report) (res *types.Report, err error) {
 	var (
 		aProps = &reportActionProps{update: upd}
+		old    *types.Report
 	)
-
 	err = func() (err error) {
 		if res, err = loadReport(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
+		old = res.Clone()
 		aProps.setReport(res)
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return ReportErrInvalidHandle()
+		}
 
 		if !svc.ac.CanUpdateReport(ctx, res) {
 			return ReportErrNotAllowedToUpdate()
@@ -165,7 +171,7 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (res *types.Re
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, ReportActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, ReportActionUpdate, err, old, res)
 }
 
 func (svc *report) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -173,7 +179,6 @@ func (svc *report) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &reportActionProps{}
 		res    *types.Report
 	)
-
 	err = func() (err error) {
 		if res, err = loadReport(ctx, svc.store, ID); err != nil {
 			return
@@ -200,7 +205,6 @@ func (svc *report) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &reportActionProps{}
 		res    *types.Report
 	)
-
 	err = func() (err error) {
 		if res, err = loadReport(ctx, svc.store, ID); err != nil {
 			return

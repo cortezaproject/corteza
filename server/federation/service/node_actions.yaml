@@ -98,3 +98,7 @@ errors:
   - error: notAllowedToPair
     message: "not allowed to pair this node"
     log: "could not pair {{node}}; insufficient permissions"
+
+  - error: staleData
+    message: "node was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning

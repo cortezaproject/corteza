@@ -30,6 +30,14 @@ type Application struct {
 	Flags     []string                         `json:"flags,omitempty"`
 }
 
+func (r Application) Clone() *Application {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *ApplicationUnify) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ApplicationUnify) Value() (driver.Value, error) { return json.Marshal(m) }
 

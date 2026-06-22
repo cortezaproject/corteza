@@ -109,43 +109,32 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 // owns the action-log scaffold + recordAction; the update access check (on the
 // incoming resource), the stale guard, the Revision bump, optional temperature
 // validation, prepareTCL and the whole-record persistence live here.
-func (svc *agent) onUpdate(ctx context.Context, upd *types.Agent, aProps *agentActionProps) (a *types.Agent, err error) {
+func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Agent, aProps *agentActionProps, _ func() error, _ func() error) error {
 	if !svc.ac.CanUpdateAgent(ctx, upd) {
-		return nil, AgentErrNotAllowedToUpdate()
+		return AgentErrNotAllowedToUpdate()
 	}
 
-	var existing *types.Agent
-	if existing, err = store.LookupAgentByID(ctx, svc.store, upd.ID); err != nil {
-		return nil, AgentErrNotFound()
-	}
-
-	// Test if stale (update has an older version of data)
-	if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
-		return nil, AgentErrStaleData()
-	}
-
-	upd.Revision = existing.Revision + 1
+	upd.Revision = res.Revision + 1
 	upd.UpdatedAt = now()
-	upd.CreatedAt = existing.CreatedAt
-	upd.DeletedAt = existing.DeletedAt
+	upd.CreatedAt = res.CreatedAt
+	upd.DeletedAt = res.DeletedAt
 
 	if upd.Execution.Model.Temperature != nil && svc.llm != nil {
-		if err = svc.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
-			return nil, err
+		if err := svc.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
+			return err
 		}
 	}
 
 	prepareTCL(&upd.Behavior)
 
-	if err = store.UpdateAgent(ctx, svc.store, upd); err != nil {
-		return nil, err
+	if err := store.UpdateAgent(ctx, s, upd); err != nil {
+		return err
 	}
 
-	if err = label.Update(ctx, svc.store, upd); err != nil {
-		return nil, err
-	}
+	// copy fields back so the caller (generated Update) returns the updated record
+	*res = *upd
 
-	return upd, nil
+	return label.Update(ctx, s, upd)
 }
 
 func (svc *agent) UndeleteByID(ctx context.Context, ID uint64) (err error) {

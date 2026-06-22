@@ -7,6 +7,7 @@ package types
 //
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -25,4 +26,12 @@ type SharedModule struct {
 	CreatedBy                  uint64         `json:"createdBy,string"`
 	UpdatedBy                  uint64         `json:"updatedBy,string,omitempty"`
 	DeletedBy                  uint64         `json:"deletedBy,string,omitempty"`
+}
+
+func (r SharedModule) Clone() *SharedModule {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
 }

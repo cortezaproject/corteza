@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new      *types.Template
 		update   *types.Template
 		filter   *types.TemplateFilter
+		diff     []*revisions.Change
+		old      json.RawMessage
 	}
 
 	templateAction struct {
@@ -81,6 +85,22 @@ func (p *templateActionProps) setUpdate(update *types.Template) *templateActionP
 // This function is auto-generated.
 func (p *templateActionProps) setFilter(filter *types.TemplateFilter) *templateActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *templateActionProps) setDiff(diff []*revisions.Change) *templateActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *templateActionProps) setOld(v any) *templateActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -233,12 +253,20 @@ func (a *templateAction) String() string {
 }
 
 func (e *templateAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.template != nil {
+		if r, ok := any(e.props.template).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -855,7 +883,11 @@ func TemplateErrNotAllowedToRender(mm ...*templateActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc template) recordAction(ctx context.Context, props *templateActionProps, actionFn func(...*templateActionProps) *templateAction, err error) error {
+func (svc template) recordAction(ctx context.Context, props *templateActionProps, actionFn func(...*templateActionProps) *templateAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

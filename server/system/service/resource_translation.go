@@ -91,95 +91,40 @@ func (svc *resourceTranslation) onCreate(ctx context.Context, new *types.Resourc
 
 // onUpdate is the custom body for the generated Update. The non-RBAC access
 // check, the lookup of the existing record and the bespoke field copy live here.
-func (svc *resourceTranslation) onUpdate(ctx context.Context, upd *types.ResourceTranslation, tplProps *resourceTranslationActionProps) (cc *types.ResourceTranslation, err error) {
-	if upd.ID == 0 {
-		return nil, ResourceTranslationErrInvalidID()
-	}
-
+func (svc *resourceTranslation) onUpdate(ctx context.Context, s store.Storer, upd, res *types.ResourceTranslation, tplProps *resourceTranslationActionProps, _ func() error, _ func() error) error {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
-		return nil, ResourceTranslationErrNotAllowedToManage()
+		return ResourceTranslationErrNotAllowedToManage()
 	}
 
-	if cc, err = store.LookupResourceTranslationByID(ctx, svc.store, upd.ID); err != nil {
-		return
-	}
+	res.Lang = upd.Lang
+	res.Resource = upd.Resource
+	res.K = upd.K
+	res.Message = upd.Message
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	res.OwnedBy = upd.OwnedBy
+	res.UpdatedAt = now()
 
-	tplProps.setResourceTranslation(cc)
-
-	// @todo corredor?
-	cc.Lang = upd.Lang
-	cc.Resource = upd.Resource
-	cc.K = upd.K
-	cc.Message = upd.Message
-	cc.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-	cc.OwnedBy = upd.OwnedBy
-
-	cc.UpdatedAt = now()
-
-	if err = store.UpdateResourceTranslation(ctx, svc.store, cc); err != nil {
-		return cc, err
-	}
-
-	return cc, nil
+	return store.UpdateResourceTranslation(ctx, s, res)
 }
 
 // onDelete is the custom body for the generated DeleteByID. The non-RBAC access
 // check and the soft-delete via UpdateResourceTranslation live here.
-func (svc *resourceTranslation) onDelete(ctx context.Context, ID uint64, tplProps *resourceTranslationActionProps) (err error) {
-	var (
-		cc *types.ResourceTranslation
-	)
-
-	if ID == 0 {
-		return ResourceTranslationErrInvalidID()
-	}
-
+func (svc *resourceTranslation) onDelete(ctx context.Context, s store.Storer, res *types.ResourceTranslation, tplProps *resourceTranslationActionProps) error {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
 		return ResourceTranslationErrNotAllowedToManage()
 	}
 
-	if cc, err = store.LookupResourceTranslationByID(ctx, svc.store, ID); err != nil {
-		return
-	}
-
-	tplProps.setResourceTranslation(cc)
-
-	// @todo corredor?
-
-	cc.DeletedAt = now()
-	if err = store.UpdateResourceTranslation(ctx, svc.store, cc); err != nil {
-		return
-	}
-
-	return nil
+	res.DeletedAt = now()
+	return store.UpdateResourceTranslation(ctx, s, res)
 }
 
 // onUndelete is the custom body for the generated UndeleteByID. The non-RBAC
 // access check and the clearing of deleted_at live here.
-func (svc *resourceTranslation) onUndelete(ctx context.Context, ID uint64, tplProps *resourceTranslationActionProps) (err error) {
-	var (
-		cc *types.ResourceTranslation
-	)
-
-	if ID == 0 {
-		return ResourceTranslationErrInvalidID()
-	}
-
+func (svc *resourceTranslation) onUndelete(ctx context.Context, s store.Storer, res *types.ResourceTranslation, tplProps *resourceTranslationActionProps) error {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
 		return ResourceTranslationErrNotAllowedToManage()
 	}
 
-	if cc, err = store.LookupResourceTranslationByID(ctx, svc.store, ID); err != nil {
-		return
-	}
-
-	tplProps.setResourceTranslation(cc)
-
-	// @todo corredor?
-	cc.DeletedAt = nil
-	if err = store.UpdateResourceTranslation(ctx, svc.store, cc); err != nil {
-		return
-	}
-
-	return nil
+	res.DeletedAt = nil
+	return store.UpdateResourceTranslation(ctx, s, res)
 }

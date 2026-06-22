@@ -260,12 +260,14 @@ func (svc *connection) beforeUndelete(ctx context.Context, res *types.Connection
 func (svc *connection) Update(ctx context.Context, upd *types.Connection) (res *types.Connection, err error) {
 	var (
 		aProps = &connectionActionProps{update: upd}
+		old    *types.Connection
 	)
 
 	err = func() (err error) {
 		if res, err = loadConnection(ctx, svc.store, upd.ID); err != nil {
 			return err
 		}
+		old = res.Clone()
 
 		aProps.setConnection(res)
 
@@ -312,18 +314,20 @@ func (svc *connection) Update(ctx context.Context, upd *types.Connection) (res *
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err, old, res)
 }
 
 func (svc *connection) Enable(ctx context.Context, ID uint64) (res *types.Connection, err error) {
 	var (
 		aProps = &connectionActionProps{connection: &types.Connection{ID: ID}}
+		old    *types.Connection
 	)
 
 	err = func() (err error) {
 		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
 			return err
 		}
+		old = res.Clone()
 
 		aProps.setConnection(res)
 
@@ -340,10 +344,14 @@ func (svc *connection) Enable(ctx context.Context, ID uint64) (res *types.Connec
 		res.UpdatedAt = n
 		res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		return store.UpdateConnection(ctx, svc.store, res)
+		if err = store.UpdateConnection(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, ConnectionActionUpdate, err, old, res)
 }
 
 // matchesQuery checks if name matches query (case-insensitive substring).

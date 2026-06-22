@@ -52,8 +52,14 @@ reminder: {
 	}
 
 	service: {
-		events: false
-
+		// Reminder access is entirely non-RBAC: it is gated by comparing the
+		// reminder's assigned_to with the current user (checkAssignTo) plus the
+		// custom CanAssignReminder check. There is no RBAC Can{Read,Search,Create,
+		// Update,Delete}Reminder, so every op delegates its body to a hand-written
+		// on<Op> handler and the AC checks the template would otherwise emit
+		// (search/create) are suppressed via customAccessOps.
+		//
+		// The action-log Update prop is named "updated" (not the default "update").
 		updateProp: "updated"
 
 		undelete: false

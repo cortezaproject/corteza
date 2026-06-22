@@ -11,6 +11,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -121,14 +122,31 @@ func (svc *knowledgeBase) Create(ctx context.Context, new *types.KnowledgeBase) 
 func (svc *knowledgeBase) Update(ctx context.Context, upd *types.KnowledgeBase) (res *types.KnowledgeBase, err error) {
 	var (
 		aProps = &knowledgeBaseActionProps{update: upd}
+		old    *types.KnowledgeBase
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadKnowledgeBase(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setKnowledgeBase(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, KnowledgeBaseActionUpdate, err)
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return KnowledgeBaseErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return KnowledgeBaseErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, KnowledgeBaseActionUpdate, err, old, res)
 }
 
 func (svc *knowledgeBase) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -136,7 +154,6 @@ func (svc *knowledgeBase) DeleteByID(ctx context.Context, ID uint64) (err error)
 		aProps = &knowledgeBaseActionProps{}
 		res    *types.KnowledgeBase
 	)
-
 	err = func() (err error) {
 		if res, err = loadKnowledgeBase(ctx, svc.store, ID); err != nil {
 			return
@@ -165,11 +182,17 @@ func (svc *knowledgeBase) DeleteByID(ctx context.Context, ID uint64) (err error)
 func (svc *knowledgeBase) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &knowledgeBaseActionProps{}
+		res    *types.KnowledgeBase
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadKnowledgeBase(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, ID, aProps)
-	}()
+		aProps.setKnowledgeBase(res)
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, KnowledgeBaseActionUndelete, err)
 }

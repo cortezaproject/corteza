@@ -341,6 +341,7 @@ func (svc *userGroup) afterCreate(ctx context.Context, r *types.UserGroup) error
 
 func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *types.UserGroup, err error) {
 	var (
+		old     *types.UserGroup
 		raProps = &userGroupActionProps{update: upd}
 	)
 
@@ -349,6 +350,7 @@ func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *type
 			return
 		}
 
+		old = r.Clone()
 		raProps.setUserGroup(r)
 
 		if !handle.IsValid(upd.Handle) {
@@ -420,7 +422,7 @@ func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *type
 		return nil
 	}()
 
-	return r, svc.recordAction(ctx, raProps, UserGroupActionUpdate, err)
+	return r, svc.recordAction(ctx, raProps, UserGroupActionUpdate, err, old, r)
 }
 
 func (svc *userGroup) UniqueCheck(ctx context.Context, r *types.UserGroup) (err error) {
@@ -522,7 +524,7 @@ func (svc *userGroup) UndeleteByID(ctx context.Context, userGroupID uint64) (err
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, UserGroupActionUndelete, err)
+	return svc.recordAction(ctx, raProps, UserGroupActionUndelete, err, r, upd)
 }
 
 func (svc *userGroup) MemberList(ctx context.Context, userGroupID uint64) (mm types.UserSet, err error) {

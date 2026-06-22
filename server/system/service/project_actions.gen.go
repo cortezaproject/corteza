@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new     *types.Project
 		update  *types.Project
 		filter  *types.ProjectFilter
+		diff    []*revisions.Change
+		old     json.RawMessage
 	}
 
 	projectAction struct {
@@ -81,6 +85,22 @@ func (p *projectActionProps) setUpdate(update *types.Project) *projectActionProp
 // This function is auto-generated.
 func (p *projectActionProps) setFilter(filter *types.ProjectFilter) *projectActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *projectActionProps) setDiff(diff []*revisions.Change) *projectActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *projectActionProps) setOld(v any) *projectActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -205,12 +225,20 @@ func (a *projectAction) String() string {
 }
 
 func (e *projectAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.project != nil {
+		if r, ok := any(e.props.project).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -1038,7 +1066,11 @@ func ProjectErrInvalidGovernanceTransition(mm ...*projectActionProps) *errors.Er
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc project) recordAction(ctx context.Context, props *projectActionProps, actionFn func(...*projectActionProps) *projectAction, err error) error {
+func (svc project) recordAction(ctx context.Context, props *projectActionProps, actionFn func(...*projectActionProps) *projectAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

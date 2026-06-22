@@ -10,11 +10,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/federation/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"strings"
 	"time"
 )
@@ -27,6 +29,8 @@ type (
 		delete *types.ExposedModule
 		filter *types.ExposedModuleFilter
 		node   *types.Node
+		diff   []*revisions.Change
+		old    json.RawMessage
 	}
 
 	exposedModuleAction struct {
@@ -99,6 +103,22 @@ func (p *exposedModuleActionProps) setFilter(filter *types.ExposedModuleFilter) 
 // This function is auto-generated.
 func (p *exposedModuleActionProps) setNode(node *types.Node) *exposedModuleActionProps {
 	p.node = node
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *exposedModuleActionProps) setDiff(diff []*revisions.Change) *exposedModuleActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *exposedModuleActionProps) setOld(v any) *exposedModuleActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -293,12 +313,16 @@ func (a *exposedModuleAction) String() string {
 }
 
 func (e *exposedModuleAction) ToAction() *actionlog.Action {
+	resource := e.resource
+
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -784,6 +808,38 @@ func ExposedModuleErrNotAllowedToManage(mm ...*exposedModuleActionProps) *errors
 	return e
 }
 
+// ExposedModuleErrInvalidHandle returns "federation:exposed_module.invalidHandle" as *errors.Error
+//
+// This function is auto-generated.
+func ExposedModuleErrInvalidHandle(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.invalidHandle"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
@@ -792,7 +848,11 @@ func ExposedModuleErrNotAllowedToManage(mm ...*exposedModuleActionProps) *errors
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc exposedModule) recordAction(ctx context.Context, props *exposedModuleActionProps, actionFn func(...*exposedModuleActionProps) *exposedModuleAction, err error) error {
+func (svc exposedModule) recordAction(ctx context.Context, props *exposedModuleActionProps, actionFn func(...*exposedModuleActionProps) *exposedModuleAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

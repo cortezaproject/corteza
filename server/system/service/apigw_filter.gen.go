@@ -8,6 +8,9 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
@@ -55,24 +58,55 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (res
 func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (res *types.ApigwFilter, err error) {
 	var (
 		aProps = &apigwFilterActionProps{filter: upd}
+		old    *types.ApigwFilter
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadApigwFilter(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setFilter(res)
+		aProps.setFilter(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, ApigwFilterActionUpdate, err)
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return ApigwFilterErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, ApigwFilterActionUpdate, err, old, res)
 }
 
 func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &apigwFilterActionProps{}
+		res    *types.ApigwFilter
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadApigwFilter(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		aProps.setFilter(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ApigwFilterActionDelete, err)
+}
+
+func loadApigwFilter(ctx context.Context, s store.ApigwFilters, ID uint64) (res *types.ApigwFilter, err error) {
+	if ID == 0 {
+		return nil, ApigwFilterErrInvalidID()
+	}
+
+	if res, err = store.LookupApigwFilterByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, ApigwFilterErrNotFound()
+	}
+
+	return
 }

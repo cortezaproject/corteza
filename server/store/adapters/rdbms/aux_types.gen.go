@@ -36,6 +36,8 @@ type (
 		Severity      actionlogType.Severity `db:"severity"`
 		Description   string                 `db:"description"`
 		Meta          actionlogType.Meta     `db:"meta"`
+		Delta         actionlogType.Delta    `db:"delta"`
+		OldState      actionlogType.OldState `db:"old_state"`
 	}
 
 	// auxAgent is an auxiliary structure used for transporting to/from RDBMS store
@@ -1043,6 +1045,8 @@ func (aux *auxActionlog) encode(res *actionlogType.Action) (_ error) {
 	aux.Severity = res.Severity
 	aux.Description = res.Description
 	aux.Meta = res.Meta
+	aux.Delta = res.Delta
+	aux.OldState = res.OldState
 	return
 }
 
@@ -1063,6 +1067,8 @@ func (aux auxActionlog) decode() (res *actionlogType.Action, _ error) {
 	res.Severity = aux.Severity
 	res.Description = aux.Description
 	res.Meta = aux.Meta
+	res.Delta = aux.Delta
+	res.OldState = aux.OldState
 	return
 }
 
@@ -1083,6 +1089,8 @@ func (aux *auxActionlog) scan(row scanner) error {
 		&aux.Severity,
 		&aux.Description,
 		&aux.Meta,
+		&aux.Delta,
+		&aux.OldState,
 	)
 }
 

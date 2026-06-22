@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"strconv"
 
-	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
@@ -53,39 +52,29 @@ func (svc *chatbot) onCreate(ctx context.Context, new *types.Chatbot) (err error
 	return nil
 }
 
-func (svc *chatbot) onUpdate(ctx context.Context, upd *types.Chatbot, aProps *chatbotActionProps) (c *types.Chatbot, err error) {
+func (svc *chatbot) onUpdate(ctx context.Context, s store.Storer, upd, c *types.Chatbot, aProps *chatbotActionProps, _ func() error, _ func() error) error {
 	if !svc.ac.CanUpdateChatbot(ctx, upd) {
-		return nil, ChatbotErrNotAllowedToUpdate()
+		return ChatbotErrNotAllowedToUpdate()
 	}
 
-	var existing *types.Chatbot
-	if existing, err = store.LookupChatbotByID(ctx, svc.store, upd.ID); err != nil {
-		return nil, ChatbotErrNotFound()
-	}
-
-	aProps.setChatbot(existing)
-
-	if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
-		return nil, ChatbotErrStaleData()
-	}
+	aProps.setChatbot(c)
 
 	upd.UpdatedAt = now()
-	upd.CreatedAt = existing.CreatedAt
-	upd.DeletedAt = existing.DeletedAt
+	upd.CreatedAt = c.CreatedAt
+	upd.DeletedAt = c.DeletedAt
 
-	if err = prepareChatbotOnUpdate(upd, existing); err != nil {
-		return nil, err
+	if err := prepareChatbotOnUpdate(upd, c); err != nil {
+		return err
 	}
 
-	if err = store.UpdateChatbot(ctx, svc.store, upd); err != nil {
-		return nil, err
+	if err := store.UpdateChatbot(ctx, s, upd); err != nil {
+		return err
 	}
 
-	if err = label.Update(ctx, svc.store, upd); err != nil {
-		return nil, err
-	}
+	// reflect updated record back into res
+	*c = *upd
 
-	return upd, nil
+	return label.Update(ctx, s, upd)
 }
 
 func (svc *chatbot) RegenerateWidgetKey(ctx context.Context, ID uint64) (c *types.Chatbot, err error) {
@@ -117,12 +106,7 @@ func (svc *chatbot) RegenerateWidgetKey(ctx context.Context, ID uint64) (c *type
 	return c, err
 }
 
-func (svc *chatbot) onDelete(ctx context.Context, ID uint64, aProps *chatbotActionProps) (err error) {
-	var c *types.Chatbot
-	if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
-		return
-	}
-
+func (svc *chatbot) onDelete(ctx context.Context, s store.Storer, c *types.Chatbot, aProps *chatbotActionProps) error {
 	aProps.setChatbot(c)
 
 	if !svc.ac.CanDeleteChatbot(ctx, c) {
@@ -130,11 +114,11 @@ func (svc *chatbot) onDelete(ctx context.Context, ID uint64, aProps *chatbotActi
 	}
 
 	c.DeletedAt = now()
-	if err = store.UpdateChatbot(ctx, svc.store, c); err != nil {
-		return
+	if err := store.UpdateChatbot(ctx, s, c); err != nil {
+		return err
 	}
 
-	svc.softDeleteChatbotAttachments(ctx, ID)
+	svc.softDeleteChatbotAttachments(ctx, c.ID)
 
 	return nil
 }
@@ -159,12 +143,7 @@ func (svc *chatbot) softDeleteChatbotAttachments(ctx context.Context, ID uint64)
 	}
 }
 
-func (svc *chatbot) onUndelete(ctx context.Context, ID uint64, aProps *chatbotActionProps) (err error) {
-	var c *types.Chatbot
-	if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
-		return
-	}
-
+func (svc *chatbot) onUndelete(ctx context.Context, s store.Storer, c *types.Chatbot, aProps *chatbotActionProps) error {
 	aProps.setChatbot(c)
 
 	if !svc.ac.CanDeleteChatbot(ctx, c) {
@@ -172,11 +151,7 @@ func (svc *chatbot) onUndelete(ctx context.Context, ID uint64, aProps *chatbotAc
 	}
 
 	c.DeletedAt = nil
-	if err = store.UpdateChatbot(ctx, svc.store, c); err != nil {
-		return
-	}
-
-	return nil
+	return store.UpdateChatbot(ctx, s, c)
 }
 
 func (svc *chatbot) onSearch(ctx context.Context, filter types.ChatbotFilter, aProps *chatbotActionProps) (set types.ChatbotSet, f types.ChatbotFilter, err error) {
@@ -263,14 +238,3 @@ func generateChatbotWidgetKey() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
 
-func loadChatbot(ctx context.Context, s store.Chatbots, ID uint64) (res *types.Chatbot, err error) {
-	if ID == 0 {
-		return nil, ChatbotErrInvalidID()
-	}
-
-	if res, err = store.LookupChatbotByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, ChatbotErrNotFound()
-	}
-
-	return
-}

@@ -467,6 +467,7 @@ func (svc ngAutomation) uniqueCheck(ctx context.Context, res *types.NgAutomation
 func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, action func(...*ngAutomationActionProps) *ngAutomationAction, fn ngAutomationUpdateHandler) (*types.NgAutomation, error) {
 	var (
 		changes ngAutomationChanges
+		old     *types.NgAutomation
 		res     *types.NgAutomation
 		aProps  = &ngAutomationActionProps{ngAutomation: &types.NgAutomation{ID: ngAutomationID}}
 		err     error
@@ -478,6 +479,8 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 		if err != nil {
 			return
 		}
+
+		old = res.Clone()
 
 		res.Issues = nil
 
@@ -543,7 +546,7 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 		return
 	})
 
-	return res, svc.recordAction(ctx, aProps, action, err)
+	return res, svc.recordAction(ctx, aProps, action, err, old, res)
 }
 
 func (svc ngAutomation) handleUpdate(upd *types.NgAutomation) ngAutomationUpdateHandler {

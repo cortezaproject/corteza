@@ -972,7 +972,7 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 	}
 
 	for _, r := range rr {
-		g := AccessControlActionGrant(&accessControlActionProps{r})
+		g := AccessControlActionGrant(&accessControlActionProps{rule: r})
 		g.log = r.String()
 		g.resource = r.Resource
 

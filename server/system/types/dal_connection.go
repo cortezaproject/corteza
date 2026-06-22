@@ -96,3 +96,4 @@ func (c DalConnection) HasIssues() bool {
 	return len(c.Issues) > 0
 }
 
+

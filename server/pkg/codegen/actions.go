@@ -250,6 +250,31 @@ func (a actionDef) SeverityConstName() string {
 	return severityConstName(a.Severity)
 }
 
+// PrimaryProp returns the prop whose name matches the service name (the resource-typed prop).
+func (d actionsDef) PrimaryProp() *propsDef {
+	for _, p := range d.Props {
+		if p.Name == d.Service {
+			return p
+		}
+	}
+	return nil
+}
+
+// PrimaryPropHasID reports whether the primary prop exposes an ID field,
+// meaning ToAction can build a full resource identifier (type/ID).
+func (d actionsDef) PrimaryPropHasID() bool {
+	p := d.PrimaryProp()
+	if p == nil {
+		return false
+	}
+	for _, f := range p.Fields {
+		if f == "ID" {
+			return true
+		}
+	}
+	return false
+}
+
 func (e errorDef) SeverityConstName() string {
 	return severityConstName(e.Severity)
 }

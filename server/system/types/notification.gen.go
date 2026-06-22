@@ -7,6 +7,7 @@ package types
 //
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -22,4 +23,12 @@ type Notification struct {
 	CreatedAt time.Time          `json:"createdAt,omitempty"`
 	UpdatedAt *time.Time         `json:"updatedAt,omitempty"`
 	DeletedAt *time.Time         `json:"deletedAt,omitempty"`
+}
+
+func (r Notification) Clone() *Notification {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
 }

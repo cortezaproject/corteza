@@ -241,7 +241,7 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 	}
 
 	for _, r := range rr {
-		g := AccessControlActionGrant(&accessControlActionProps{r})
+		g := AccessControlActionGrant(&accessControlActionProps{rule: r})
 		g.log = r.String()
 		g.resource = r.Resource
 
@@ -415,13 +415,13 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 			return rbac.NewResource(types.ExposedModuleRbacResource(ids[0], ids[1])), nil
 		}
 
-		return loadExposedModule(ctx, svc.store, ids[0], ids[1])
+		return loadExposedModuleScoped(ctx, svc.store, ids[0], ids[1])
 	case types.SharedModuleResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.SharedModuleRbacResource(ids[0], ids[1])), nil
 		}
 
-		return loadSharedModule(ctx, svc.store, ids[0], ids[1])
+		return loadSharedModuleScoped(ctx, svc.store, ids[0], ids[1])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}

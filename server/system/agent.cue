@@ -116,8 +116,6 @@ agent: {
 	service: {
 		genAccessController: true
 
-		events: false
-
 		undelete: false
 
 		customBodyOps: ["lookup", "search", "create", "update"]

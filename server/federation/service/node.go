@@ -118,46 +118,29 @@ func (svc node) onCreate(ctx context.Context, new *types.Node) error {
 	})
 }
 
-// onUpdate is the custom body for the generated Update. The generated method
-// owns the action-log scaffold + recordAction; the field copy and the
-// load-mutate-persist bookkeeping run through svc.updateCore.
-func (svc node) onUpdate(ctx context.Context, upd *types.Node, aProps *nodeActionProps) (*types.Node, error) {
-	return svc.updateCore(ctx, upd.ID, aProps, func(ctx context.Context, n *types.Node) error {
-		n.Name = upd.Name
-		n.BaseURL = upd.BaseURL
-		n.Contact = upd.Contact
+// onUpdate is the custom body for the generated Update.
+func (svc node) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Node, aProps *nodeActionProps, _ func() error, _ func() error) error {
+	res.Name = upd.Name
+	res.BaseURL = upd.BaseURL
+	res.Contact = upd.Contact
+	res.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+	res.UpdatedAt = now()
 
-		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
-		n.UpdatedAt = now()
-
-		return nil
-	}, nil)
+	return store.UpdateFederationNode(ctx, s, res)
 }
 
-// onDelete is the custom body for the generated DeleteByID. The generated method
-// owns the action-log scaffold + recordAction; the soft-delete bookkeeping runs
-// through svc.updateCore.
-func (svc node) onDelete(ctx context.Context, ID uint64, aProps *nodeActionProps) error {
-	_, err := svc.updateCore(ctx, ID, aProps, func(ctx context.Context, n *types.Node) error {
-		n.DeletedAt = now()
-		n.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
-
-		return nil
-	}, nil)
-	return err
+// onDelete is the custom body for the generated DeleteByID.
+func (svc node) onDelete(ctx context.Context, s store.Storer, res *types.Node, aProps *nodeActionProps) error {
+	res.DeletedAt = now()
+	res.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
+	return store.UpdateFederationNode(ctx, s, res)
 }
 
-// onUndelete is the custom body for the generated UndeleteByID. The generated
-// method owns the action-log scaffold + recordAction; the undelete bookkeeping
-// runs through svc.updateCore.
-func (svc node) onUndelete(ctx context.Context, ID uint64, aProps *nodeActionProps) error {
-	_, err := svc.updateCore(ctx, ID, aProps, func(ctx context.Context, n *types.Node) error {
-		n.DeletedAt = nil
-		n.DeletedBy = 0
-
-		return nil
-	}, nil)
-	return err
+// onUndelete is the custom body for the generated UndeleteByID.
+func (svc node) onUndelete(ctx context.Context, s store.Storer, res *types.Node, aProps *nodeActionProps) error {
+	res.DeletedAt = nil
+	res.DeletedBy = 0
+	return store.UpdateFederationNode(ctx, s, res)
 }
 
 // Read is used mainly in UI, when retrieving details about the node
@@ -410,20 +393,15 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 		aProps = &nodeActionProps{}
 	)
 
-	n, err := svc.updateCore(ctx, nodeID, aProps, fn, afterFn)
+	old, n, err := svc.updateCore(ctx, nodeID, aProps, fn, afterFn)
 
-	return n, svc.recordAction(ctx, aProps, action, err)
+	return n, svc.recordAction(ctx, aProps, action, err, old, n)
 }
 
 // updateCore loads a node, applies fn (and optional afterFn) and persists it,
 // populating aProps along the way. It does NOT record the action -- the caller
 // (updater, or a generated CRUD op) owns recordAction.
-func (svc node) updateCore(ctx context.Context, nodeID uint64, aProps *nodeActionProps, fn, afterFn nodeUpdateHandler) (*types.Node, error) {
-	var (
-		err error
-		n   *types.Node
-	)
-
+func (svc node) updateCore(ctx context.Context, nodeID uint64, aProps *nodeActionProps, fn, afterFn nodeUpdateHandler) (old, n *types.Node, err error) {
 	aProps.setNode(&types.Node{ID: nodeID})
 
 	err = func() error {
@@ -433,6 +411,7 @@ func (svc node) updateCore(ctx context.Context, nodeID uint64, aProps *nodeActio
 			return err
 		}
 
+		old = n.Clone()
 		aProps.setNode(n)
 
 		if err = fn(ctx, n); err != nil {
@@ -465,7 +444,7 @@ func (svc node) updateCore(ctx context.Context, nodeID uint64, aProps *nodeActio
 		return nil
 	}()
 
-	return n, err
+	return old, n, err
 }
 
 func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*types.Node, error) {
@@ -598,14 +577,3 @@ func (svc node) makePairingURI(n *types.Node) string {
 	return uri.String()
 }
 
-func loadNode(ctx context.Context, s store.FederationNodes, ID uint64) (res *types.Node, err error) {
-	if ID == 0 {
-		return nil, NodeErrInvalidID()
-	}
-
-	if res, err = store.LookupFederationNodeByID(ctx, s, ID); errors.IsNotFound(err) {
-		err = NodeErrNotFound()
-	}
-
-	return
-}

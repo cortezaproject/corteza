@@ -7,6 +7,7 @@ package types
 //
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -16,4 +17,12 @@ type NodeSync struct {
 	SyncType     string    `json:"syncType"`
 	SyncStatus   string    `json:"syncStatus"`
 	TimeOfAction time.Time `json:"timeOfAction"`
+}
+
+func (r NodeSync) Clone() *NodeSync {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
 }

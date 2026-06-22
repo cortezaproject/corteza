@@ -98,3 +98,7 @@ errors:
   - error: invalidConfiguration
     message: "invalid report configuration"
     log: "failed to run {{report}}; invalid configuration"
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

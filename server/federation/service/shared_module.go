@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/errors"
-
 	composeService "github.com/crusttech/human/server/compose/service"
 	"github.com/crusttech/human/server/federation/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
@@ -48,7 +46,7 @@ func SharedModule() *sharedModule {
 // The recordAction wrapper and aProps are owned by the generated
 // shared_module.gen.go.
 func (svc *sharedModule) onLookup(ctx context.Context, nodeID, ID uint64, aProps *sharedModuleActionProps) (module *types.SharedModule, err error) {
-	if module, err = loadSharedModule(ctx, svc.store, nodeID, ID); err != nil {
+	if module, err = loadSharedModuleScoped(ctx, svc.store, nodeID, ID); err != nil {
 		return nil, err
 	}
 
@@ -101,27 +99,21 @@ func (svc *sharedModule) onCreate(ctx context.Context, new *types.SharedModule) 
 
 // onUpdate is the generated Update body handler.
 //
-// The recordAction wrapper and aProps (module) are owned by the generated
-// shared_module.gen.go.
-func (svc *sharedModule) onUpdate(ctx context.Context, updated *types.SharedModule, aProps *sharedModuleActionProps) (*types.SharedModule, error) {
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		updated.UpdatedAt = now()
-		updated.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+// The recordAction wrapper, Tx, load, and old clone are owned by shared_module.gen.go.
+func (svc *sharedModule) onUpdate(ctx context.Context, s store.Storer, upd, res *types.SharedModule, aProps *sharedModuleActionProps, _ func() error, _ func() error) error {
+	if _, err := svc.node.FindByID(ctx, upd.NodeID); err != nil {
+		return SharedModuleErrNodeNotFound()
+	}
 
-		aProps.setModule(updated)
+	res.Fields = upd.Fields
+	res.Handle = upd.Handle
+	res.Name = upd.Name
+	res.UpdatedAt = now()
+	res.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
-		if _, err = svc.node.FindByID(ctx, updated.NodeID); err != nil {
-			return SharedModuleErrNodeNotFound()
-		}
+	aProps.setModule(res)
 
-		if err = store.UpdateFederationSharedModule(ctx, s, updated); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return updated, err
+	return store.UpdateFederationSharedModule(ctx, s, res)
 }
 
 func (svc sharedModule) uniqueCheck(ctx context.Context, m *types.SharedModule) (err error) {
@@ -152,19 +144,10 @@ func (svc *sharedModule) onSearch(ctx context.Context, filter types.SharedModule
 	return set, f, nil
 }
 
-func loadSharedModule(ctx context.Context, s store.FederationSharedModules, nodeID, ID uint64) (res *types.SharedModule, err error) {
-	if ID == 0 || nodeID == 0 {
-		return nil, SharedModuleErrInvalidID()
-	}
-
-	if res, err = store.LookupFederationSharedModuleByID(ctx, s, ID); errors.IsNotFound(err) {
-		err = SharedModuleErrNotFound()
-	}
-
-	if err == nil && nodeID != res.NodeID {
-		// Make sure chart belongs to the right namespace
+func loadSharedModuleScoped(ctx context.Context, s store.Storer, nodeID, moduleID uint64) (res *types.SharedModule, err error) {
+	if res, err = loadSharedModule(ctx, s, moduleID); err == nil && res.NodeID != nodeID {
 		return nil, SharedModuleErrNotFound()
 	}
-
 	return
 }
+

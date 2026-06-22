@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new        *types.DalConnection
 		update     *types.DalConnection
 		search     *types.DalConnectionFilter
+		diff       []*revisions.Change
+		old        json.RawMessage
 	}
 
 	dalConnectionAction struct {
@@ -81,6 +85,22 @@ func (p *dalConnectionActionProps) setUpdate(update *types.DalConnection) *dalCo
 // This function is auto-generated.
 func (p *dalConnectionActionProps) setSearch(search *types.DalConnectionFilter) *dalConnectionActionProps {
 	p.search = search
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *dalConnectionActionProps) setDiff(diff []*revisions.Change) *dalConnectionActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *dalConnectionActionProps) setOld(v any) *dalConnectionActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -205,12 +225,16 @@ func (a *dalConnectionAction) String() string {
 }
 
 func (e *dalConnectionAction) ToAction() *actionlog.Action {
+	resource := e.resource
+
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -832,6 +856,38 @@ func DalConnectionErrNotAllowedToExec(mm ...*dalConnectionActionProps) *errors.E
 	return e
 }
 
+// DalConnectionErrInvalidHandle returns "system:dal-connection.invalidHandle" as *errors.Error
+//
+// This function is auto-generated.
+func DalConnectionErrInvalidHandle(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "system:dal-connection"),
+
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.invalidHandle"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
@@ -840,7 +896,11 @@ func DalConnectionErrNotAllowedToExec(mm ...*dalConnectionActionProps) *errors.E
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc dalConnection) recordAction(ctx context.Context, props *dalConnectionActionProps, actionFn func(...*dalConnectionActionProps) *dalConnectionAction, err error) error {
+func (svc dalConnection) recordAction(ctx context.Context, props *dalConnectionActionProps, actionFn func(...*dalConnectionActionProps) *dalConnectionAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

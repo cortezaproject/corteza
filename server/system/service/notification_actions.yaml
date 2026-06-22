@@ -79,3 +79,7 @@ errors:
 
   - error: notAllowedToAssign
     message: "not allowed to assign notifications to other users"
+
+  - error: staleData
+    message: "notification was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning

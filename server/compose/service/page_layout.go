@@ -285,53 +285,111 @@ func (svc *pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, 
 }
 
 // onUpdate is the generated Update body handler.
-func (svc *pageLayout) onUpdate(ctx context.Context, upd *types.PageLayout, aProps *pageLayoutActionProps) (c *types.PageLayout, err error) {
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, pg, res, err := loadPageLayoutCombo(ctx, s, upd.NamespaceID, upd.PageID, upd.ID)
-		if err != nil {
-			return
+func (svc *pageLayout) onUpdate(ctx context.Context, s store.Storer, upd, res *types.PageLayout, aProps *pageLayoutActionProps, _ func() error, _ func() error) error {
+	ns, err := loadNamespace(ctx, s, res.NamespaceID)
+	if err != nil {
+		return err
+	}
+	pg, err := loadPage(ctx, s, res.PageID)
+	if err != nil {
+		return err
+	}
+
+	aProps.setNamespace(ns)
+
+	old := res.Clone()
+	if err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeUpdate(old, res, ns, nil)); err != nil {
+		return err
+	}
+
+	changes, err := svc.handleUpdate(ctx, upd)(ctx, ns, pg, res)
+	if err != nil {
+		return err
+	}
+
+	if changes&pageLayoutChanged > 0 {
+		if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {
+			return err
 		}
+	}
 
-		c, err = svc.updater(ctx, svc.store, ns, pg, res, PageLayoutActionUpdate, svc.handleUpdate(ctx, upd))
-		return
-	})
+	if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
+		return err
+	}
 
-	return
+	if changes&pageLayoutLabelsChanged > 0 {
+		if err = label.Update(ctx, s, res); err != nil {
+			return err
+		}
+	}
+
+	return svc.eventbus.WaitFor(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
 }
 
-// onDelete is the generated DeleteByID body handler (namespace+page-scoped
-// compound id).
-func (svc *pageLayout) onDelete(ctx context.Context, namespaceID, pageID, pageLayoutID uint64, aProps *pageLayoutActionProps) error {
-	var (
-		ns  *types.Namespace
-		pg  *types.Page
-		res *types.PageLayout
-	)
+// onDelete is the generated DeleteByID body handler (namespace+page-scoped compound id).
+func (svc *pageLayout) onDelete(ctx context.Context, s store.Storer, namespaceID, pageID uint64, res *types.PageLayout, aProps *pageLayoutActionProps) error {
+	ns, err := loadNamespace(ctx, s, namespaceID)
+	if err != nil {
+		return err
+	}
+	pg, err := loadPage(ctx, s, pageID)
+	if err != nil {
+		return err
+	}
 
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// simply delete the pageLayout and ignore the subpageLayouts
-		ns, pg, res, err = loadPageLayoutCombo(ctx, s, namespaceID, pageID, pageLayoutID)
-		if err != nil {
-			return
+	if !svc.ac.CanDeletePageLayout(ctx, res) {
+		if res.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			return PageLayoutErrNotAllowedToDelete()
 		}
+	}
+	if res.DeletedAt != nil {
+		return nil
+	}
 
-		_, err = svc.updater(ctx, svc.store, ns, pg, res, PageLayoutActionDelete, svc.handleDelete)
-		return
-	})
+	old := res.Clone()
+	// res.DeletedAt == nil before delete → fires update-before (matches updater behaviour)
+	if err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeUpdate(old, res, ns, nil)); err != nil {
+		return err
+	}
+	res.DeletedAt = now()
+	if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {
+		return err
+	}
+	// res.DeletedAt != nil after delete → fires delete-after
+	return svc.eventbus.WaitFor(ctx, event.PageLayoutAfterDelete(nil, res, ns, nil))
 }
 
-// onUndelete is the generated UndeleteByID body handler (namespace+page-scoped
-// compound id).
-func (svc *pageLayout) onUndelete(ctx context.Context, namespaceID, pageID, pageLayoutID uint64, aProps *pageLayoutActionProps) error {
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, pg, res, err := loadPageLayoutCombo(ctx, s, namespaceID, pageID, pageLayoutID)
-		if err != nil {
-			return
-		}
+// onUndelete is the generated UndeleteByID body handler (namespace+page-scoped compound id).
+func (svc *pageLayout) onUndelete(ctx context.Context, s store.Storer, namespaceID, pageID uint64, res *types.PageLayout, aProps *pageLayoutActionProps) error {
+	ns, err := loadNamespace(ctx, s, namespaceID)
+	if err != nil {
+		return err
+	}
+	pg, err := loadPage(ctx, s, pageID)
+	if err != nil {
+		return err
+	}
 
-		_, err = svc.updater(ctx, svc.store, ns, pg, res, PageLayoutActionUpdate, svc.handleUndelete)
-		return
-	})
+	if !svc.ac.CanDeletePageLayout(ctx, res) {
+		if res.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			return PageLayoutErrNotAllowedToUndelete()
+		}
+	}
+	if res.DeletedAt == nil {
+		return nil
+	}
+
+	old := res.Clone()
+	// res.DeletedAt != nil before undelete → fires delete-before
+	if err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeDelete(old, res, ns, nil)); err != nil {
+		return err
+	}
+	res.DeletedAt = nil
+	if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {
+		return err
+	}
+	// res.DeletedAt == nil after undelete → fires update-after
+	return svc.eventbus.WaitFor(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
 }
 
 func (svc *pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Namespace, pg *types.Page, res *types.PageLayout, action func(...*pageLayoutActionProps) *pageLayoutAction, fn pageLayoutUpdateHandler) (*types.PageLayout, error) {
@@ -391,7 +449,7 @@ func (svc *pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Na
 		return err
 	})
 
-	return res, svc.recordAction(ctx, aProps, action, err)
+	return res, svc.recordAction(ctx, aProps, action, err, old, res)
 }
 
 // lookup fn() orchestrates pageLayout lookup, namespace preload and check.
@@ -446,10 +504,6 @@ func (svc *pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (er
 
 func (svc *pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) pageLayoutUpdateHandler {
 	return func(ctx context.Context, ns *types.Namespace, pg *types.Page, res *types.PageLayout) (changes pageLayoutChanges, err error) {
-		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
-			return pageLayoutUnchanged, PageLayoutErrStaleData()
-		}
-
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return pageLayoutUnchanged, PageLayoutErrInvalidHandle()
 		}
@@ -610,11 +664,11 @@ func loadPageLayoutCombo(ctx context.Context, s interface {
 		return
 	}
 
-	c, err = loadPageLayout(ctx, s, namespaceID, pageID, pageLayoutID)
+	c, err = loadPageLayoutScoped(ctx, s, namespaceID, pageID, pageLayoutID)
 	return
 }
 
-func loadPageLayout(ctx context.Context, s store.ComposePageLayouts, namespaceID, pageID, pageLayoutID uint64) (res *types.PageLayout, err error) {
+func loadPageLayoutScoped(ctx context.Context, s store.ComposePageLayouts, namespaceID, pageID, pageLayoutID uint64) (res *types.PageLayout, err error) {
 	if pageLayoutID == 0 || namespaceID == 0 {
 		return nil, PageLayoutErrInvalidID()
 	}

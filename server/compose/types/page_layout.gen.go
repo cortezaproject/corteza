@@ -35,6 +35,14 @@ type PageLayout struct {
 	Labels         map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r PageLayout) Clone() *PageLayout {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *PageLayoutMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m PageLayoutMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

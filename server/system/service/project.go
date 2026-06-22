@@ -200,10 +200,12 @@ func (svc *project) Create(ctx context.Context, new *types.Project) (p *types.Pr
 }
 
 func (svc *project) Update(ctx context.Context, upd *types.Project) (p *types.Project, err error) {
-	var paProps = &projectActionProps{update: upd}
+	var (
+		paProps  = &projectActionProps{update: upd}
+		existing *types.Project
+	)
 
 	err = func() (err error) {
-		var existing *types.Project
 		if existing, err = loadProject(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
@@ -263,7 +265,7 @@ func (svc *project) Update(ctx context.Context, upd *types.Project) (p *types.Pr
 		return nil
 	}()
 
-	return p, svc.recordAction(ctx, paProps, ProjectActionUpdate, err)
+	return p, svc.recordAction(ctx, paProps, ProjectActionUpdate, err, existing, upd)
 }
 
 func (svc *project) DeleteByID(ctx context.Context, ID uint64) (err error) {

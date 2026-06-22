@@ -193,6 +193,7 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 
 func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *types.AuthClient, err error) {
 	var (
+		old                    *types.AuthClient
 		aaProps                = &authClientActionProps{update: upd}
 		defaultClientValidator = func(old, upd *types.AuthClient) error {
 			if old.Handle != svc.opt.DefaultClient {
@@ -224,6 +225,7 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 		if res, err = loadAuthClient(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
+		old = res.Clone()
 
 		aaProps.setAuthClient(res)
 
@@ -291,7 +293,7 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aaProps, AuthClientActionUpdate, err)
+	return res, svc.recordAction(ctx, aaProps, AuthClientActionUpdate, err, old, res)
 }
 
 func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {

@@ -59,9 +59,6 @@ type (
 		Unregister(ptrs ...uintptr)
 	}
 
-	triggerUpdateHandler func(ctx context.Context, ns *types.Trigger) (triggerChanges, error)
-	triggerChanges       uint8
-
 	varsEncoder interface {
 		EncodeVars() (*expr.Vars, error)
 	}
@@ -71,11 +68,6 @@ type (
 	}
 )
 
-const (
-	triggerUnchanged     triggerChanges = 0
-	triggerChanged       triggerChanges = 1
-	triggerLabelsChanged triggerChanges = 2
-)
 
 func Trigger(log *zap.Logger, opt options.WorkflowOpt) *trigger {
 	return &trigger{
@@ -235,174 +227,91 @@ func (svc *trigger) onCreate(ctx context.Context, new *types.Trigger) (err error
 	})
 }
 
-// onUpdate is the generated Update body handler.
-//
-// The recordAction wrapper and aProps are owned by the generated trigger.gen.go.
-// Access runs against the loaded workflow (canManageTrigger), so the generated
-// scaffold emits no standard access check (update is in customAccessOps).
-func (svc *trigger) onUpdate(ctx context.Context, upd *types.Trigger, aProps *triggerActionProps) (*types.Trigger, error) {
-	return svc.updater(ctx, upd.ID, aProps, func(ctx context.Context, res *types.Trigger) (triggerChanges, error) {
-		if err := svc.canManageTrigger(ctx, res, TriggerErrNotAllowedToUpdate()); err != nil {
-			return triggerUnchanged, err
-		}
-
-		handler := svc.handleUpdate(upd)
-		return handler(ctx, res)
-	})
-}
-
-// onDelete is the generated DeleteByID body handler.
-func (svc *trigger) onDelete(ctx context.Context, triggerID uint64, aProps *triggerActionProps) error {
-	_, err := svc.updater(ctx, triggerID, aProps, svc.handleDelete)
-	return err
-}
-
-// onUndelete is the generated UndeleteByID body handler.
-func (svc *trigger) onUndelete(ctx context.Context, triggerID uint64, aProps *triggerActionProps) error {
-	_, err := svc.updater(ctx, triggerID, aProps, svc.handleUndelete)
-	return err
-}
-
-func (svc trigger) updater(ctx context.Context, triggerID uint64, aProps *triggerActionProps, fn triggerUpdateHandler) (*types.Trigger, error) {
-	var (
-		changes triggerChanges
-		res     *types.Trigger
-		err     error
-	)
-
-	if aProps.trigger == nil {
-		aProps.trigger = &types.Trigger{ID: triggerID}
-	}
-
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		res, err = loadTrigger(ctx, s, triggerID)
-		if err != nil {
-			return
-		}
-
-		if err = label.Load(ctx, svc.store, res); err != nil {
-			return err
-		}
-
-		aProps.setTrigger(res)
-		aProps.setUpdate(res)
-
-		if changes, err = fn(ctx, res); err != nil {
-			return err
-		}
-
-		if changes&triggerChanged > 0 {
-			if err = store.UpdateAutomationTrigger(ctx, svc.store, res); err != nil {
-				return err
-			}
-		}
-
-		if changes&triggerLabelsChanged > 0 {
-			if err = label.Update(ctx, s, res); err != nil {
-				return
-			}
-		}
-
+// onUpdate receives a pre-loaded res and tx store from the generated Update
+// scaffold. It verifies access, applies field changes, and persists to store.
+func (svc *trigger) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Trigger, aProps *triggerActionProps, _, _ func() error) error {
+	if err := svc.canManageTrigger(ctx, res, TriggerErrNotAllowedToUpdate()); err != nil {
 		return err
-	})
-
-	return res, err
-}
-
-func (svc trigger) handleUpdate(upd *types.Trigger) triggerUpdateHandler {
-	return func(ctx context.Context, res *types.Trigger) (changes triggerChanges, err error) {
-		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
-			return triggerUnchanged, TriggerErrStaleData()
-		}
-
-		if res.Enabled != upd.Enabled {
-			changes |= triggerChanged
-			res.Enabled = upd.Enabled
-		}
-
-		if upd.Labels != nil {
-			if label.Changed(res.Labels, upd.Labels) {
-				changes |= triggerLabelsChanged
-				res.Labels = upd.Labels
-			}
-		}
-
-		if res.StepID != upd.StepID {
-			changes |= triggerChanged
-			res.StepID = upd.StepID
-		}
-
-		if res.EventType != upd.EventType {
-			changes |= triggerChanged
-			res.EventType = upd.EventType
-		}
-
-		if res.ResourceType != upd.ResourceType {
-			changes |= triggerChanged
-			res.ResourceType = upd.ResourceType
-		}
-
-		if upd.Meta != nil {
-			if !reflect.DeepEqual(upd.Meta, res.Meta) {
-				changes |= triggerChanged
-				res.Meta = upd.Meta
-			}
-		}
-
-		if upd.Input != nil {
-			if !reflect.DeepEqual(upd.Input, res.Input) {
-				changes |= triggerChanged
-				res.Input = upd.Input
-			}
-		}
-
-		if upd.Constraints != nil {
-			if !reflect.DeepEqual(upd.Constraints, res.Constraints) {
-				changes |= triggerChanged
-				res.Constraints = upd.Constraints
-			}
-		}
-
-		if res.OwnedBy != upd.OwnedBy {
-			// @todo need to check against access control if current user can modify owner
-			changes |= triggerChanged
-			res.OwnedBy = upd.OwnedBy
-		}
-
-		if changes&triggerChanged > 0 {
-			res.UpdatedAt = now()
-		}
-
-		return
 	}
+
+	changed := false
+
+	if res.Enabled != upd.Enabled {
+		changed = true
+		res.Enabled = upd.Enabled
+	}
+	if res.StepID != upd.StepID {
+		changed = true
+		res.StepID = upd.StepID
+	}
+	if res.EventType != upd.EventType {
+		changed = true
+		res.EventType = upd.EventType
+	}
+	if res.ResourceType != upd.ResourceType {
+		changed = true
+		res.ResourceType = upd.ResourceType
+	}
+	if upd.Meta != nil && !reflect.DeepEqual(upd.Meta, res.Meta) {
+		changed = true
+		res.Meta = upd.Meta
+	}
+	if upd.Input != nil && !reflect.DeepEqual(upd.Input, res.Input) {
+		changed = true
+		res.Input = upd.Input
+	}
+	if upd.Constraints != nil && !reflect.DeepEqual(upd.Constraints, res.Constraints) {
+		changed = true
+		res.Constraints = upd.Constraints
+	}
+	if res.OwnedBy != upd.OwnedBy {
+		changed = true
+		res.OwnedBy = upd.OwnedBy
+	}
+
+	if changed {
+		res.UpdatedAt = now()
+		if err := store.UpdateAutomationTrigger(ctx, s, res); err != nil {
+			return err
+		}
+	}
+
+	if upd.Labels != nil && label.Changed(res.Labels, upd.Labels) {
+		res.Labels = upd.Labels
+		if err := label.Update(ctx, s, res); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (svc trigger) handleDelete(ctx context.Context, res *types.Trigger) (triggerChanges, error) {
+// onDelete receives a pre-loaded res and tx store from the generated DeleteByID scaffold.
+func (svc *trigger) onDelete(ctx context.Context, s store.Storer, res *types.Trigger, aProps *triggerActionProps) error {
 	if err := svc.canManageTrigger(ctx, res, TriggerErrNotAllowedToDelete()); err != nil {
-		return triggerUnchanged, err
+		return err
 	}
 
 	if res.DeletedAt != nil {
-		// trigger already deleted
-		return triggerUnchanged, nil
+		return nil
 	}
 
 	res.DeletedAt = now()
-	return triggerChanged, nil
+	return store.UpdateAutomationTrigger(ctx, s, res)
 }
 
-func (svc trigger) handleUndelete(ctx context.Context, res *types.Trigger) (triggerChanges, error) {
+// onUndelete receives a pre-loaded res and tx store from the generated UndeleteByID scaffold.
+func (svc *trigger) onUndelete(ctx context.Context, s store.Storer, res *types.Trigger, aProps *triggerActionProps) error {
 	if err := svc.canManageTrigger(ctx, res, TriggerErrNotAllowedToUndelete()); err != nil {
-		return triggerUnchanged, err
+		return err
 	}
 
 	if res.DeletedAt == nil {
-		// trigger not deleted
-		return triggerUnchanged, nil
+		return nil
 	}
 
 	res.DeletedAt = nil
-	return triggerChanged, nil
+	return store.UpdateAutomationTrigger(ctx, s, res)
 }
 
 func (svc trigger) canManageTrigger(ctx context.Context, res *types.Trigger, permErr error) error {
@@ -641,18 +550,6 @@ func (svc *trigger) unregisterTriggers(tt ...*types.Trigger) {
 			delete(svc.triggers, t.ID)
 		}
 	}
-}
-
-func loadTrigger(ctx context.Context, s store.Storer, triggerID uint64) (res *types.Trigger, err error) {
-	if triggerID == 0 {
-		return nil, TriggerErrInvalidID()
-	}
-
-	if res, err = store.LookupAutomationTriggerByID(ctx, s, triggerID); errors.IsNotFound(err) {
-		return nil, TriggerErrNotFound()
-	}
-
-	return
 }
 
 func loadWorkflowTriggers(ctx context.Context, s store.Storer, workflowID uint64) (tt types.TriggerSet, err error) {

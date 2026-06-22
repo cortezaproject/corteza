@@ -125,13 +125,14 @@ func (svc *queue) Create(ctx context.Context, new *types.Queue) (res *types.Queu
 func (svc *queue) Update(ctx context.Context, upd *types.Queue) (res *types.Queue, err error) {
 	var (
 		aProps = &queueActionProps{update: upd}
+		old    *types.Queue
 	)
-
 	err = func() (err error) {
 		if res, err = loadQueue(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
+		old = res.Clone()
 		aProps.setQueue(res)
 
 		if !svc.ac.CanUpdateQueue(ctx, res) {
@@ -161,7 +162,7 @@ func (svc *queue) Update(ctx context.Context, upd *types.Queue) (res *types.Queu
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, QueueActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, QueueActionUpdate, err, old, res)
 }
 
 func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -169,7 +170,6 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &queueActionProps{}
 		res    *types.Queue
 	)
-
 	err = func() (err error) {
 		if res, err = loadQueue(ctx, svc.store, ID); err != nil {
 			return
@@ -200,7 +200,6 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &queueActionProps{}
 		res    *types.Queue
 	)
-
 	err = func() (err error) {
 		if res, err = loadQueue(ctx, svc.store, ID); err != nil {
 			return

@@ -17,6 +17,7 @@ _ServiceResource: {
 	_hasDeletedAt: res.model.attributes["deleted_at"] != _|_
 	_hasCreatedAt: res.model.attributes["created_at"] != _|_
 	_hasUpdatedAt: res.model.attributes["updated_at"] != _|_
+	_hasHandle:    res.model.attributes["handle"] != _|_
 
 	// whether the model declares an `id` primary-key attribute. Composite-keyed
 	// mapping resources (e.g. federation module_mapping) have none, so the
@@ -34,7 +35,8 @@ _ServiceResource: {
 
 	// "standard" = generated AND not delegated to a custom on<Op> handler.
 	// loadXxx / toLabeledXxx helpers and the store/errors/label imports are
-	// only emitted when a standard-body op actually uses them.
+	// only emitted when a standard-body op actually uses them, OR when a
+	// customBodyOps update/delete/undelete generates the tx+load scaffold.
 	_cb:          res.service.customBodyOps
 	_stdLookup:   res.service.lookup && !list.Contains(_cb, "lookup")
 	_stdSearch:   res.service.search && !list.Contains(_cb, "search")
@@ -43,9 +45,16 @@ _ServiceResource: {
 	_stdDelete:   _delete && !list.Contains(_cb, "delete")
 	_stdUndelete: _undelete && !list.Contains(_cb, "undelete")
 
-	_load:        _stdLookup || _stdUpdate || _stdDelete || _stdUndelete
-	_usesStore:   _load || _stdCreate || _stdUpdate || _stdDelete || _stdUndelete || _stdSearch
-	_usesErrors:  _load
+	// customBodyOps update/delete/undelete emit a store.Tx+loadXxx scaffold in
+	// the generated method body, so they need the same helpers/imports as their
+	// standard-body counterparts.
+	_cbNeedsLoad: (res.service.update && list.Contains(_cb, "update")) ||
+		(_delete && list.Contains(_cb, "delete")) ||
+		(_undelete && list.Contains(_cb, "undelete"))
+
+	_load:       _stdLookup || _stdUpdate || _stdDelete || _stdUndelete || _cbNeedsLoad
+	_usesStore:  (_load && _hasID) || _stdCreate || _stdUpdate || _stdDelete || _stdUndelete || _stdSearch
+	_usesErrors: _load && _hasID
 	// toLabeledXxx + the label import are emitted for any labelled resource --
 	// companion (manual) Search methods rely on the helper too.
 	_genToLabeled: res.features.labels
@@ -81,8 +90,10 @@ _ServiceResource: {
 		fileBase:       strings.Replace(res.handle, "-", "_", -1)
 
 		// generation mode
-		recv: _recv
-		events: res.service.events
+		recv:           _recv
+		events:         res.service.events
+		cbEvents:       res.service.cbEvents
+		templateUpdate: res.service.templateUpdate
 
 		// public method names (unified across all generated services)
 		lookupIdent:   "FindByID"
@@ -133,6 +144,7 @@ _ServiceResource: {
 		hasCreatedAt: _hasCreatedAt
 		hasUpdatedAt: _hasUpdatedAt
 		stale:        _hasUpdatedAt && _hasCreatedAt
+		handle:       _hasHandle
 
 		// whether the model has an `id` attribute -- gates the {ID: ID} action-prop
 		// initialiser in the generated FindByID body.

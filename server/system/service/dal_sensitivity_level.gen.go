@@ -8,6 +8,10 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
@@ -55,24 +59,47 @@ func (svc *dalSensitivityLevel) Create(ctx context.Context, new *types.DalSensit
 func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensitivityLevel) (res *types.DalSensitivityLevel, err error) {
 	var (
 		aProps = &dalSensitivityLevelActionProps{update: upd}
+		old    *types.DalSensitivityLevel
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadDalSensitivityLevel(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setSensitivityLevel(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, DalSensitivityLevelActionUpdate, err)
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return DalSensitivityLevelErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return DalSensitivityLevelErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, DalSensitivityLevelActionUpdate, err, old, res)
 }
 
 func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &dalSensitivityLevelActionProps{}
+		res    *types.DalSensitivityLevel
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadDalSensitivityLevel(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		aProps.setSensitivityLevel(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, DalSensitivityLevelActionDelete, err)
 }
@@ -80,11 +107,29 @@ func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err 
 func (svc *dalSensitivityLevel) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &dalSensitivityLevelActionProps{}
+		res    *types.DalSensitivityLevel
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadDalSensitivityLevel(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, ID, aProps)
-	}()
+		aProps.setSensitivityLevel(res)
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, DalSensitivityLevelActionUndelete, err)
+}
+
+func loadDalSensitivityLevel(ctx context.Context, s store.DalSensitivityLevels, ID uint64) (res *types.DalSensitivityLevel, err error) {
+	if ID == 0 {
+		return nil, DalSensitivityLevelErrInvalidID()
+	}
+
+	if res, err = store.LookupDalSensitivityLevelByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, DalSensitivityLevelErrNotFound()
+	}
+
+	return
 }

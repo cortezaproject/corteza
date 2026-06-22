@@ -1,9 +1,10 @@
 package types
 
 import (
-	"github.com/crusttech/human/server/pkg/filter"
+	"encoding/json"
 	"time"
 
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -51,3 +52,11 @@ type (
 		filter.Paging
 	}
 )
+
+func (x Reminder) Clone() *Reminder {
+	dup := x
+	if b, err := json.Marshal(x); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}

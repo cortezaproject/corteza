@@ -144,12 +144,15 @@ func (svc *configuredConnection) beforeCreate(ctx context.Context, new *types.Co
 func (svc *configuredConnection) Update(ctx context.Context, upd *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
 	var (
 		uaProps = &configuredConnectionActionProps{update: upd}
+		old     *types.ConfiguredConnection
 	)
 
 	err = func() (err error) {
 		if res, err = loadConfiguredConnection(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
+
+		old = res.Clone()
 
 		if res.Status != "draft" {
 			return ConfiguredConnectionErrCannotUpdateInstalled()
@@ -182,7 +185,7 @@ func (svc *configuredConnection) Update(ctx context.Context, upd *types.Configur
 		return
 	}()
 
-	return res, svc.recordAction(ctx, uaProps, ConfiguredConnectionActionUpdate, err)
+	return res, svc.recordAction(ctx, uaProps, ConfiguredConnectionActionUpdate, err, old, res)
 }
 
 func (svc *configuredConnection) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -192,6 +195,7 @@ func (svc *configuredConnection) DeleteByID(ctx context.Context, ID uint64) (err
 func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *types.ConfiguredConnection, err error) {
 	var (
 		aProps = &configuredConnectionActionProps{connection: &types.ConfiguredConnection{ID: ID}}
+		old    *types.ConfiguredConnection
 	)
 
 	err = func() (err error) {
@@ -203,6 +207,8 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 		if err = svc.liveConnection(ctx, res); err != nil {
 			return err
 		}
+
+		old = res.Clone()
 
 		aProps.setConnection(res)
 
@@ -261,7 +267,7 @@ func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *ty
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, ConfiguredConnectionActionEnable, err)
+	return res, svc.recordAction(ctx, aProps, ConfiguredConnectionActionEnable, err, old, res)
 }
 
 func (svc *configuredConnection) Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter, err error) {

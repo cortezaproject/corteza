@@ -119,7 +119,6 @@ func (svc *tenant) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &tenantActionProps{}
 		res    *types.Tenant
 	)
-
 	err = func() (err error) {
 		if res, err = loadTenant(ctx, svc.store, ID); err != nil {
 			return

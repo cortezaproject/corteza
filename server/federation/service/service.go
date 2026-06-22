@@ -58,6 +58,16 @@ var (
 	}
 )
 
+func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
+	if new == nil {
+		return false
+	}
+	if updatedAt != nil {
+		return !new.Equal(*updatedAt)
+	}
+	return !new.Equal(createdAt)
+}
+
 func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
 	DefaultOptions = c.Federation
 

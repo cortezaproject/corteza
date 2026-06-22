@@ -388,7 +388,7 @@ func (svc record) Search(ctx context.Context, filter types.RecordFilter) (set ty
 	)
 
 	err = func() error {
-		if m, err = loadModule(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
+		if m, err = loadModuleScoped(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
 			return err
 		}
 
@@ -423,7 +423,7 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 	)
 
 	err = func() error {
-		if m, err = loadModule(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
+		if m, err = loadModuleScoped(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
 			return err
 		}
 
@@ -677,7 +677,7 @@ func (svc record) Bulk(ctx context.Context, skipFailed bool, oo ...*types.Record
 
 			case types.OperationTypeUpdate:
 				action = RecordActionUpdate
-				r, dupErrors, err = svc.update(ctx, r)
+				r, _, _, dupErrors, err = svc.update(ctx, r)
 
 			case types.OperationTypeDelete:
 				action = RecordActionDelete
@@ -1176,18 +1176,17 @@ func RecordValueDefaults(m *types.Module, vv types.RecordValueSet) (out types.Re
 
 // Raw update function that is responsible for value validation, event dispatching
 // and update.
-func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
+func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Record, old *types.Record, diff []*revisions.Change, dd *types.RecordValueErrorSet, err error) {
 	var (
 		aProps    = &recordActionProps{record: upd}
 		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 
-		ns  *types.Namespace
-		m   *types.Module
-		old *types.Record
+		ns *types.Namespace
+		m  *types.Module
 	)
 
 	if upd.ID == 0 {
-		return nil, dd, RecordErrInvalidID()
+		return nil, nil, nil, dd, RecordErrInvalidID()
 	}
 
 	ns, m, old, err = loadRecordCombo(ctx, svc.store, svc.dal, upd.NamespaceID, upd.ModuleID, upd.ID)
@@ -1200,12 +1199,12 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	aProps.setRecord(old)
 
 	if !svc.ac.CanUpdateRecord(ctx, old) {
-		return nil, dd, RecordErrNotAllowedToUpdate()
+		return nil, nil, nil, dd, RecordErrNotAllowedToUpdate()
 	}
 
 	// Test if stale (update has an older version of data)
 	if isStale(upd.UpdatedAt, old.UpdatedAt, old.CreatedAt) {
-		return nil, dd, RecordErrStaleData()
+		return nil, nil, nil, dd, RecordErrStaleData()
 	}
 
 	if err = RecordValueSanitization(m, upd.Values); err != nil {
@@ -1226,7 +1225,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 
 		// handle input payload errors
 		if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
-			return nil, dd, RecordErrValueInput().Wrap(rve)
+			return nil, nil, nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 
 		// record value errors from dup detection
@@ -1242,13 +1241,13 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve, nil)); err != nil {
 			return
 		} else if !rve.IsValid() {
-			return nil, dd, RecordErrValueInput().Wrap(rve)
+			return nil, nil, nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 	}
 
 	// Handle payload from automation scripts
 	if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
-		return nil, dd, RecordErrValueInput().Wrap(rve)
+		return nil, nil, nil, dd, RecordErrValueInput().Wrap(rve)
 	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
@@ -1269,7 +1268,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	})
 
 	if err != nil {
-		return nil, dd, err
+		return nil, nil, nil, dd, err
 	}
 
 	// ensure module ref is set before running through records workflows and scripts
@@ -1282,6 +1281,11 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 
 	// At this point we can return the value
 	rec = upd
+
+	rev := &revisions.Revision{}
+	if revErr := rev.CollectChanges(upd, old, svc.revisions.skippedField(m)...); revErr == nil {
+		diff = rev.Changes
+	}
 
 	{
 		// Before we pass values to automation scripts, they should be formatted
@@ -1346,7 +1350,8 @@ func (svc record) patch(ctx context.Context, upd *types.Record, values types.Rec
 	}
 	upd.Values.SetUpdatedFlag(true)
 
-	return svc.update(ctx, upd)
+	rec, _, _, dd, err = svc.update(ctx, upd)
+	return
 }
 
 func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
@@ -1420,15 +1425,16 @@ func (svc record) procCreate(ctx context.Context, invokerID, agentID uint64, m *
 func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
 	var (
 		aProps = &recordActionProps{record: upd}
+		oldRec *types.Record
 	)
 
 	err = func() error {
-		rec, dd, err = svc.update(ctx, upd)
+		rec, oldRec, _, dd, err = svc.update(ctx, upd)
 		aProps.setRecord(rec)
 		return err
 	}()
 
-	return rec, dd, svc.recordAction(ctx, aProps, RecordActionUpdate, err)
+	return rec, dd, svc.recordAction(ctx, aProps, RecordActionUpdate, err, oldRec, rec)
 }
 
 // Runs value sanitization, copies values that should updated
@@ -1924,7 +1930,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 }
 
 func (svc record) Validate(ctx context.Context, rec *types.Record) error {
-	if m, err := loadModule(ctx, svc.store, rec.NamespaceID, rec.ModuleID); err != nil {
+	if m, err := loadModuleScoped(ctx, svc.store, rec.NamespaceID, rec.ModuleID); err != nil {
 		return err
 	} else {
 		rec.Values = values.Sanitizer().Run(m, rec.Values)

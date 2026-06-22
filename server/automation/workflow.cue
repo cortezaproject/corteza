@@ -159,8 +159,6 @@ workflow: {
 	}
 
 	service: {
-		events:   false
-
 		lookup:   false
 		create:   false
 		update:   false

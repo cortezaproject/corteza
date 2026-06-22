@@ -61,26 +61,6 @@ type (
 	}
 )
 
-func (r *Role) Clone() *Role {
-	if r == nil {
-		return nil
-	}
-
-	return &Role{
-		ID:         r.ID,
-		TenantID:   r.TenantID,
-		ProjectID:  r.ProjectID,
-		Name:       r.Name,
-		Handle:     r.Handle,
-		Meta:       r.Meta,
-		Labels:     r.Labels,
-		ArchivedAt: r.ArchivedAt,
-		CreatedAt:  r.CreatedAt,
-		UpdatedAt:  r.UpdatedAt,
-		DeletedAt:  r.DeletedAt,
-	}
-}
-
 // FindByHandle finds role by it's handle
 func (set RoleSet) FindByHandle(handle string) *Role {
 	for i := range set {

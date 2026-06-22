@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new        *types.ConfiguredConnection
 		update     *types.ConfiguredConnection
 		filter     *types.ConfiguredConnectionFilter
+		diff       []*revisions.Change
+		old        json.RawMessage
 	}
 
 	configuredConnectionAction struct {
@@ -81,6 +85,22 @@ func (p *configuredConnectionActionProps) setUpdate(update *types.ConfiguredConn
 // This function is auto-generated.
 func (p *configuredConnectionActionProps) setFilter(filter *types.ConfiguredConnectionFilter) *configuredConnectionActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *configuredConnectionActionProps) setDiff(diff []*revisions.Change) *configuredConnectionActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *configuredConnectionActionProps) setOld(v any) *configuredConnectionActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -215,12 +235,16 @@ func (a *configuredConnectionAction) String() string {
 }
 
 func (e *configuredConnectionAction) ToAction() *actionlog.Action {
+	resource := e.resource
+
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -686,7 +710,11 @@ func ConfiguredConnectionErrNotAllowedToDelete(mm ...*configuredConnectionAction
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc configuredConnection) recordAction(ctx context.Context, props *configuredConnectionActionProps, actionFn func(...*configuredConnectionActionProps) *configuredConnectionAction, err error) error {
+func (svc configuredConnection) recordAction(ctx context.Context, props *configuredConnectionActionProps, actionFn func(...*configuredConnectionActionProps) *configuredConnectionAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

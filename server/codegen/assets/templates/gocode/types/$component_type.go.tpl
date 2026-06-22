@@ -2,24 +2,30 @@ package {{ .package }}
 
 {{ template "gocode/header-gentext.tpl" }}
 
-{{ if or .needsTime .needsLabel .imports .idLists .jsonTypes }}
 import (
 	{{ if .jsonTypes }}"database/sql/driver"
-	{{ end }}{{ if or .idLists .jsonTypes }}"encoding/json"
-	{{ end }}{{ if .idLists }}"strconv"
+	{{ end }}"encoding/json"
+	{{ if .idLists }}"strconv"
 	{{ end }}{{ if .needsTime }}"time"
 	{{ end }}{{ if .jsonTypes }}"github.com/crusttech/human/server/pkg/sql"
 	{{ end }}{{ if .needsLabel }}labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	{{ end }}{{ range .imports }}"{{ . }}"
 	{{ end }}
 )
-{{ end }}
 
 type {{ .expIdent }} struct {
 {{ range .fields }}	{{ .expIdent }} {{ .goType }} `{{ .jsonTag }}`
 {{ end }}{{ if .needsLabel }}	Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 {{ end }}{{ if .flags }}	Flags []string `json:"flags,omitempty"`
 {{ end }}}
+
+func (r {{ .expIdent }}) Clone() *{{ .expIdent }} {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
 {{ range .idLists }}
 // {{ . }} is a []uint64 that serializes each element as a JSON string.
 type {{ . }} []uint64

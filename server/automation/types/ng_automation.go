@@ -178,3 +178,4 @@ func (set NgAutomationIssueSet) Error() string {
 
 	return strings.Join(out, ", ")
 }
+

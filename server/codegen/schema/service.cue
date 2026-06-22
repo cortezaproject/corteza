@@ -14,6 +14,17 @@ package schema
 	// events.yaml entry (event.<Resource>BeforeCreate, ...).
 	events: bool | *false
 
+	// cbEvents: when true, the customBodyOps Update scaffold generates real
+	// Before/After event closures passed to onUpdate; false → noop closures.
+	cbEvents: bool | *false
+
+	// templateUpdate: when true, the customBodyOps Update method generates
+	// field copy (from settable), UpdatedAt, store.Update and label.Update
+	// AFTER calling onUpdate. onUpdate then owns only business logic (ACL,
+	// validation). When false (default), onUpdate receives before/after
+	// func() error callbacks and is responsible for the full update body.
+	templateUpdate: bool | *false
+
 	// Action-log resource prop name from <resource>_actions.yaml. Usually the
 	// ident; some differ (configured_connection uses "connection"). Empty => ident.
 	actionProp: #ident | *""

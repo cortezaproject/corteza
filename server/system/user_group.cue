@@ -98,8 +98,6 @@ user_group: {
 	}
 
 	service: {
-		events:   false
-
 		lookup: false
 
 		search: false

@@ -86,24 +86,43 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (res *
 func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *types.ApigwRoute, err error) {
 	var (
 		aProps = &apigwRouteActionProps{update: upd}
+		old    *types.ApigwRoute
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadApigwRoute(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setRoute(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, ApigwRouteActionUpdate, err)
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return ApigwRouteErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, ApigwRouteActionUpdate, err, old, res)
 }
 
 func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &apigwRouteActionProps{}
+		res    *types.ApigwRoute
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadApigwRoute(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		aProps.setRoute(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ApigwRouteActionDelete, err)
 }
@@ -111,11 +130,17 @@ func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
 func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &apigwRouteActionProps{}
+		res    *types.ApigwRoute
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadApigwRoute(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, ID, aProps)
-	}()
+		aProps.setRoute(res)
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ApigwRouteActionUndelete, err)
 }

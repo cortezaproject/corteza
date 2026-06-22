@@ -88,8 +88,6 @@ knowledge_base: {
 		genAccessController: true
 		genConstructor:      true
 
-		events: false
-
 		undelete: true
 
 		filterProp: "search"

@@ -1251,6 +1251,11 @@ func (r ConnectionConfigure) GetCatalogID() string {
 }
 
 // Auditable returns all auditable/loggable parameters
+func (r ConnectionConfigure) GetCatalogID() string {
+	return r.CatalogID
+}
+
+// Auditable returns all auditable/loggable parameters
 func (r ConnectionConfigure) GetConfig() types.ConfiguredConnectionConfig {
 	return r.Config
 }

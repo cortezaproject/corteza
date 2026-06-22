@@ -37,6 +37,14 @@ type Trigger struct {
 	Labels       map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r Trigger) Clone() *Trigger {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *TriggerMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m TriggerMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

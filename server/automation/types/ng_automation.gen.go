@@ -38,6 +38,14 @@ type NgAutomation struct {
 	Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r NgAutomation) Clone() *NgAutomation {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *NgAutomationMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m NgAutomationMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

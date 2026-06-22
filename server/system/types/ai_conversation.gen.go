@@ -28,6 +28,14 @@ type AiConversation struct {
 	DeletedBy  uint64                 `json:"deletedBy,string,omitempty"`
 }
 
+func (r AiConversation) Clone() *AiConversation {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *AiConversationMessages) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m AiConversationMessages) Value() (driver.Value, error) { return json.Marshal(m) }
 

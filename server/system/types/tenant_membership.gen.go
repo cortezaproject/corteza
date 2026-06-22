@@ -7,6 +7,7 @@ package types
 //
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -20,4 +21,12 @@ type TenantMembership struct {
 	InvitedBy uint64             `json:"invitedBy,string,omitempty"`
 	CreatedAt time.Time          `json:"createdAt,omitempty"`
 	UpdatedAt *time.Time         `json:"updatedAt,omitempty"`
+}
+
+func (r TenantMembership) Clone() *TenantMembership {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
 }

@@ -128,11 +128,6 @@ const (
 	PageChildrenOnDeleteCascade PageChildrenDeleteStrategy = "cascade"
 )
 
-func (m Page) Clone() *Page {
-	c := &m
-	return c
-}
-
 // Dict exposes page attributes for RBAC contextual role evaluation.
 func (p Page) Dict() map[string]interface{} {
 	return map[string]interface{}{

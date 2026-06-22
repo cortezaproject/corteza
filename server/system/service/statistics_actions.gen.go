@@ -10,16 +10,20 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"strings"
 	"time"
 )
 
 type (
 	statisticsActionProps struct {
+		diff []*revisions.Change
+		old  json.RawMessage
 	}
 
 	statisticsAction struct {
@@ -47,6 +51,22 @@ var (
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *statisticsActionProps) setDiff(diff []*revisions.Change) *statisticsActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *statisticsActionProps) setOld(v any) *statisticsActionProps {
+	p.old, _ = json.Marshal(v)
+	return p
+}
 
 // Serialize converts statisticsActionProps to actionlog.Meta
 //
@@ -93,12 +113,16 @@ func (a *statisticsAction) String() string {
 }
 
 func (e *statisticsAction) ToAction() *actionlog.Action {
+	resource := e.resource
+
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -203,7 +227,11 @@ func StatisticsErrNotAllowedToReadStatistics(mm ...*statisticsActionProps) *erro
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc statistics) recordAction(ctx context.Context, props *statisticsActionProps, actionFn func(...*statisticsActionProps) *statisticsAction, err error) error {
+func (svc statistics) recordAction(ctx context.Context, props *statisticsActionProps, actionFn func(...*statisticsActionProps) *statisticsAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

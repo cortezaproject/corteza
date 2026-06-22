@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new          *types.Notification
 		updated      *types.Notification
 		filter       *types.NotificationFilter
+		diff         []*revisions.Change
+		old          json.RawMessage
 	}
 
 	notificationAction struct {
@@ -81,6 +85,22 @@ func (p *notificationActionProps) setUpdated(updated *types.Notification) *notif
 // This function is auto-generated.
 func (p *notificationActionProps) setFilter(filter *types.NotificationFilter) *notificationActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *notificationActionProps) setDiff(diff []*revisions.Change) *notificationActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *notificationActionProps) setOld(v any) *notificationActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -248,12 +268,20 @@ func (a *notificationAction) String() string {
 }
 
 func (e *notificationAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.notification != nil {
+		if r, ok := any(e.props.notification).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -694,6 +722,38 @@ func NotificationErrNotAllowedToAssign(mm ...*notificationActionProps) *errors.E
 	return e
 }
 
+// NotificationErrStaleData returns "system:notification.staleData" as *errors.Error
+//
+// This function is auto-generated.
+func NotificationErrStaleData(mm ...*notificationActionProps) *errors.Error {
+	var p = &notificationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("notification was modified by someone else after you've opened it. Please refresh to see the latest updated version", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:notification"),
+
+		errors.Meta(notificationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "notification.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
@@ -702,7 +762,11 @@ func NotificationErrNotAllowedToAssign(mm ...*notificationActionProps) *errors.E
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc notification) recordAction(ctx context.Context, props *notificationActionProps, actionFn func(...*notificationActionProps) *notificationAction, err error) error {
+func (svc notification) recordAction(ctx context.Context, props *notificationActionProps, actionFn func(...*notificationActionProps) *notificationAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

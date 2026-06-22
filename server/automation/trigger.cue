@@ -144,8 +144,8 @@ trigger: {
 	}
 
 	service: {
-		events: false
-
+		// trigger exposes a bespoke LookupByID (custom name + label load), kept in
+		// the companion file -- do not generate FindByID.
 		lookup: false
 
 		search:   true

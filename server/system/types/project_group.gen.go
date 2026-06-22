@@ -24,6 +24,14 @@ type ProjectGroup struct {
 	DeletedAt *time.Time       `json:"deletedAt,omitempty"`
 }
 
+func (r ProjectGroup) Clone() *ProjectGroup {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *ProjectGroupMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ProjectGroupMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

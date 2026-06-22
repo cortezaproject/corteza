@@ -8,6 +8,9 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
@@ -55,24 +58,55 @@ func (svc *reminder) Create(ctx context.Context, new *types.Reminder) (res *type
 func (svc *reminder) Update(ctx context.Context, upd *types.Reminder) (res *types.Reminder, err error) {
 	var (
 		aProps = &reminderActionProps{updated: upd}
+		old    *types.Reminder
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadReminder(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setReminder(res)
+		aProps.setUpdated(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, ReminderActionUpdate, err)
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return ReminderErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, ReminderActionUpdate, err, old, res)
 }
 
 func (svc *reminder) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &reminderActionProps{}
+		res    *types.Reminder
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadReminder(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		aProps.setReminder(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ReminderActionDelete, err)
+}
+
+func loadReminder(ctx context.Context, s store.Reminders, ID uint64) (res *types.Reminder, err error) {
+	if ID == 0 {
+		return nil, ReminderErrInvalidID()
+	}
+
+	if res, err = store.LookupReminderByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, ReminderErrNotFound()
+	}
+
+	return
 }

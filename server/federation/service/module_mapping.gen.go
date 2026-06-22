@@ -55,12 +55,12 @@ func (svc *moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) 
 func (svc *moduleMapping) Update(ctx context.Context, upd *types.ModuleMapping) (res *types.ModuleMapping, err error) {
 	var (
 		aProps = &moduleMappingActionProps{changed: upd}
+		old    *types.ModuleMapping
 	)
-
 	err = func() (err error) {
 		res, err = svc.onUpdate(ctx, upd, aProps)
 		return err
 	}()
 
-	return res, svc.recordAction(ctx, aProps, ModuleMappingActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, ModuleMappingActionUpdate, err, old, res)
 }

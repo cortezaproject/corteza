@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new         *types.Application
 		update      *types.Application
 		filter      *types.ApplicationFilter
+		diff        []*revisions.Change
+		old         json.RawMessage
 	}
 
 	applicationAction struct {
@@ -81,6 +85,22 @@ func (p *applicationActionProps) setUpdate(update *types.Application) *applicati
 // This function is auto-generated.
 func (p *applicationActionProps) setFilter(filter *types.ApplicationFilter) *applicationActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *applicationActionProps) setDiff(diff []*revisions.Change) *applicationActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *applicationActionProps) setOld(v any) *applicationActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -218,12 +238,20 @@ func (a *applicationAction) String() string {
 }
 
 func (e *applicationAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.application != nil {
+		if r, ok := any(e.props.application).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -816,7 +844,11 @@ func ApplicationErrNotAllowedToManageFlagGlobal(mm ...*applicationActionProps) *
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc application) recordAction(ctx context.Context, props *applicationActionProps, actionFn func(...*applicationActionProps) *applicationAction, err error) error {
+func (svc application) recordAction(ctx context.Context, props *applicationActionProps, actionFn func(...*applicationActionProps) *applicationAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

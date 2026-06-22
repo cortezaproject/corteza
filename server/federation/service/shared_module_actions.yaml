@@ -84,3 +84,7 @@ errors:
   - error: notAllowedToMap
     message: "not allowed to map this module"
     log: "could not map {{module}}; insufficient permissions"
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

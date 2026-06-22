@@ -90,13 +90,14 @@ func (svc *application) Create(ctx context.Context, new *types.Application) (res
 func (svc *application) Update(ctx context.Context, upd *types.Application) (res *types.Application, err error) {
 	var (
 		aProps = &applicationActionProps{update: upd}
+		old    *types.Application
 	)
-
 	err = func() (err error) {
 		if res, err = loadApplication(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
+		old = res.Clone()
 		aProps.setApplication(res)
 
 		if !svc.ac.CanUpdateApplication(ctx, res) {
@@ -129,7 +130,7 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (res
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, ApplicationActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, ApplicationActionUpdate, err, old, res)
 }
 
 func (svc *application) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -137,7 +138,6 @@ func (svc *application) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &applicationActionProps{}
 		res    *types.Application
 	)
-
 	err = func() (err error) {
 		if res, err = loadApplication(ctx, svc.store, ID); err != nil {
 			return
@@ -164,7 +164,6 @@ func (svc *application) UndeleteByID(ctx context.Context, ID uint64) (err error)
 		aProps = &applicationActionProps{}
 		res    *types.Application
 	)
-
 	err = func() (err error) {
 		if res, err = loadApplication(ctx, svc.store, ID); err != nil {
 			return

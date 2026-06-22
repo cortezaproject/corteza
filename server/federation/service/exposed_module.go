@@ -4,8 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/crusttech/human/server/pkg/errors"
-
 	cs "github.com/crusttech/human/server/compose/service"
 	ct "github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/federation/types"
@@ -41,7 +39,6 @@ type (
 		DeleteByID(ctx context.Context, nodeID, moduleID uint64) error
 	}
 
-	moduleUpdateHandler func(ctx context.Context, ns *types.Node, c *types.ExposedModule) (bool, bool, error)
 )
 
 func ExposedModule() *exposedModule {
@@ -82,7 +79,7 @@ func (svc *exposedModule) FindByAny(ctx context.Context, nodeID uint64, identifi
 // The recordAction wrapper and aProps (module) are owned by the generated
 // exposed_module.gen.go.
 func (svc *exposedModule) onLookup(ctx context.Context, nodeID, moduleID uint64, aProps *exposedModuleActionProps) (module *types.ExposedModule, err error) {
-	if module, err = loadExposedModule(ctx, svc.store, nodeID, moduleID); err != nil {
+	if module, err = loadExposedModuleScoped(ctx, svc.store, nodeID, moduleID); err != nil {
 		return nil, err
 	}
 
@@ -95,121 +92,68 @@ func (svc *exposedModule) onLookup(ctx context.Context, nodeID, moduleID uint64,
 
 // onUpdate is the generated Update body handler.
 //
-// The recordAction wrapper and aProps (update) are owned by the generated
-// exposed_module.gen.go.
-func (svc *exposedModule) onUpdate(ctx context.Context, updated *types.ExposedModule, aProps *exposedModuleActionProps) (*types.ExposedModule, error) {
-	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		var (
-			m    *ct.Module
-			node *types.Node
-			old  *types.ExposedModule
-		)
-
-		if node, err = svc.node.FindByID(ctx, updated.NodeID); err != nil {
-			return ExposedModuleErrNodeNotFound()
-		}
-
-		if !svc.ac.CanManageExposedModule(ctx, updated) {
-			return ExposedModuleErrNotAllowedToManage()
-		}
-
-		if _, err := svc.namespace.FindByID(ctx, updated.ComposeNamespaceID); err != nil {
-			return ExposedModuleErrComposeNamespaceNotFound()
-		}
-
-		if m, err = svc.module.FindByID(ctx, updated.ComposeNamespaceID, updated.ComposeModuleID); err != nil {
-			return ExposedModuleErrComposeModuleNotFound()
-		}
-
-		if old, err = svc.FindByID(ctx, updated.NodeID, updated.ID); err != nil {
-			return ExposedModuleErrNotFound()
-		}
-
-		updated.UpdatedAt = now()
-		updated.CreatedAt = old.CreatedAt
-		updated.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
-
-		// set labels
-		AddFederationLabel(m, "federation", node.BaseURL)
-
-		if _, err := svc.module.Update(ctx, m); err != nil {
-			return err
-		}
-
-		aProps.setModule(updated)
-
-		if err = store.UpdateFederationExposedModule(ctx, s, updated); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return updated, err
-}
-
-func (svc *exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, action func(...*exposedModuleActionProps) *exposedModuleAction, fn moduleUpdateHandler) (*types.ExposedModule, error) {
+// The recordAction wrapper, Tx, load, and old clone are owned by exposed_module.gen.go.
+func (svc *exposedModule) onUpdate(ctx context.Context, s store.Storer, upd, res *types.ExposedModule, aProps *exposedModuleActionProps, _ func() error, _ func() error) error {
 	var (
-		moduleChanged, fieldsChanged bool
-
-		n      *types.Node
-		m      *types.ExposedModule
-		aProps = &exposedModuleActionProps{module: &types.ExposedModule{ID: moduleID, NodeID: nodeID}}
-		err    error
+		m    *ct.Module
+		node *types.Node
+		err  error
 	)
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if m, err = loadExposedModule(ctx, svc.store, nodeID, moduleID); err != nil {
-			return err
-		}
+	if node, err = svc.node.FindByID(ctx, upd.NodeID); err != nil {
+		return ExposedModuleErrNodeNotFound()
+	}
 
-		// TODO - handle node id also
-		if moduleChanged, fieldsChanged, err = fn(ctx, n, m); err != nil {
-			return err
-		}
+	if !svc.ac.CanManageExposedModule(ctx, upd) {
+		return ExposedModuleErrNotAllowedToManage()
+	}
 
-		_ = moduleChanged
-		_ = fieldsChanged
+	if _, err = svc.namespace.FindByID(ctx, upd.ComposeNamespaceID); err != nil {
+		return ExposedModuleErrComposeNamespaceNotFound()
+	}
 
+	if m, err = svc.module.FindByID(ctx, upd.ComposeNamespaceID, upd.ComposeModuleID); err != nil {
+		return ExposedModuleErrComposeModuleNotFound()
+	}
+
+	res.ComposeNamespaceID = upd.ComposeNamespaceID
+	res.ComposeModuleID = upd.ComposeModuleID
+	res.Fields = upd.Fields
+	res.UpdatedAt = now()
+	res.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+
+	AddFederationLabel(m, "federation", node.BaseURL)
+
+	if _, err = svc.module.Update(ctx, m); err != nil {
 		return err
-	})
+	}
 
-	return m, svc.recordAction(ctx, aProps, action, err)
+	aProps.setModule(res)
+
+	return store.UpdateFederationExposedModule(ctx, s, res)
 }
 
 // onDelete is the generated DeleteByID body handler (node-scoped compound id).
 //
-// The recordAction wrapper and aProps are owned by the generated
-// exposed_module.gen.go.
-func (svc *exposedModule) onDelete(ctx context.Context, nodeID, moduleID uint64, aProps *exposedModuleActionProps) error {
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		var (
-			m *types.ExposedModule
-		)
+// The recordAction wrapper, Tx, and load are owned by exposed_module.gen.go.
+func (svc *exposedModule) onDelete(ctx context.Context, s store.Storer, nodeID uint64, res *types.ExposedModule, aProps *exposedModuleActionProps) error {
+	if _, err := svc.node.FindByID(ctx, nodeID); err != nil {
+		return ExposedModuleErrNodeNotFound()
+	}
 
-		if _, err = svc.node.FindByID(ctx, nodeID); err != nil {
-			return ExposedModuleErrNodeNotFound()
-		}
+	if !svc.ac.CanManageExposedModule(ctx, res) {
+		return ExposedModuleErrNotAllowedToManage()
+	}
 
-		if m, err = svc.FindByID(ctx, nodeID, moduleID); err != nil {
-			return err
-		}
+	res.DeletedAt = now()
+	res.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
 
-		if !svc.ac.CanManageExposedModule(ctx, m) {
-			return ExposedModuleErrNotAllowedToManage()
-		}
+	if err := store.UpdateFederationExposedModule(ctx, s, res); err != nil {
+		return err
+	}
 
-		m.DeletedAt = now()
-		m.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.UpdateFederationExposedModule(ctx, s, m); err != nil {
-			return err
-		}
-
-		aProps.delete = m
-
-		return nil
-	})
+	aProps.delete = res
+	return nil
 }
 
 // onSearch is the generated Search body handler.
@@ -313,23 +257,10 @@ func (svc *exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModul
 	return nil
 }
 
-func loadExposedModule(ctx context.Context, s store.FederationExposedModules, nodeID, ID uint64) (res *types.ExposedModule, err error) {
-	if ID == 0 || nodeID == 0 {
-		return nil, SharedModuleErrInvalidID()
+func loadExposedModuleScoped(ctx context.Context, s store.Storer, nodeID, moduleID uint64) (res *types.ExposedModule, err error) {
+	if res, err = loadExposedModule(ctx, s, moduleID); err == nil && res.NodeID != nodeID {
+		return nil, ExposedModuleErrNotFound()
 	}
-
-	if res, err = store.LookupFederationExposedModuleByID(ctx, s, ID); errors.IsNotFound(err) {
-		err = SharedModuleErrNotFound()
-	}
-
-	if err != nil {
-		return
-	}
-
-	if nodeID != res.NodeID {
-		// Make sure chart belongs to the right namespace
-		return nil, SharedModuleErrNotFound()
-	}
-
 	return
 }
+

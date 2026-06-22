@@ -7,6 +7,7 @@ package types
 //
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -20,4 +21,12 @@ type ProjectMember struct {
 	CreatedAt  time.Time         `json:"createdAt,omitempty"`
 	UpdatedAt  *time.Time        `json:"updatedAt,omitempty"`
 	DeletedAt  *time.Time        `json:"deletedAt,omitempty"`
+}
+
+func (r ProjectMember) Clone() *ProjectMember {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
 }

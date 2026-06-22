@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -26,6 +28,8 @@ type (
 		contentType    string
 		sinkParams     *SinkRequestUrlParams
 		mailHeader     *types.MailMessageHeader
+		diff           []*revisions.Change
+		old            json.RawMessage
 	}
 
 	sinkAction struct {
@@ -90,6 +94,22 @@ func (p *sinkActionProps) setSinkParams(sinkParams *SinkRequestUrlParams) *sinkA
 // This function is auto-generated.
 func (p *sinkActionProps) setMailHeader(mailHeader *types.MailMessageHeader) *sinkActionProps {
 	p.mailHeader = mailHeader
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *sinkActionProps) setDiff(diff []*revisions.Change) *sinkActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *sinkActionProps) setOld(v any) *sinkActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -187,12 +207,16 @@ func (a *sinkAction) String() string {
 }
 
 func (e *sinkAction) ToAction() *actionlog.Action {
+	resource := e.resource
+
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -815,7 +839,11 @@ func SinkErrProcessingError(mm ...*sinkActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc sink) recordAction(ctx context.Context, props *sinkActionProps, actionFn func(...*sinkActionProps) *sinkAction, err error) error {
+func (svc sink) recordAction(ctx context.Context, props *sinkActionProps, actionFn func(...*sinkActionProps) *sinkAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

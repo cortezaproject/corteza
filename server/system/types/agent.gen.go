@@ -36,6 +36,14 @@ type Agent struct {
 	Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r Agent) Clone() *Agent {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 // AgentAccessIDList is a []uint64 that serializes each element as a JSON string.
 type AgentAccessIDList []uint64
 

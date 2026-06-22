@@ -81,3 +81,7 @@ errors:
   - error: conversationScenarioMissingAgent
     message: "conversation scenario is missing an agent"
     severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

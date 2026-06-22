@@ -413,85 +413,75 @@ func (svc *user) CreateWithAvatar(ctx context.Context, input *types.User, avatar
 }
 
 // onUpdate is the custom body for the generated Update. The generated method
-// owns the action-log scaffold + recordAction; everything below (validation,
-// load, resource-based access, stale check, field copy, events, group-assign)
-// lives here.
-func (svc *user) onUpdate(ctx context.Context, upd *types.User, aProps *userActionProps) (u *types.User, err error) {
+// owns the action-log scaffold + recordAction + load + tx; everything below
+// (validation, resource-based access, stale check, field copy, events,
+// group-assign) lives here.
+func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.User, aProps *userActionProps, _ func() error, _ func() error) (err error) {
 	if !handle.IsValid(upd.Handle) {
-		return nil, UserErrInvalidHandle()
+		return UserErrInvalidHandle()
 	}
 
 	if _, err := mail.ParseAddress(upd.Email); err != nil {
-		return nil, UserErrInvalidEmail()
+		return UserErrInvalidEmail()
 	}
 
-	if u, err = loadUser(ctx, svc.store, upd.ID); err != nil {
-		return
-	}
-
-	aProps.setUser(u)
-
-	if upd.Kind == types.SystemUser || u.Kind == types.SystemUser {
-		return u, UserErrNotAllowedToUpdateSystem()
+	if upd.Kind == types.SystemUser || res.Kind == types.SystemUser {
+		return UserErrNotAllowedToUpdateSystem()
 	}
 
 	if upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
-		if !svc.ac.CanUpdateUser(ctx, u) {
-			return u, UserErrNotAllowedToUpdate()
+		if !svc.ac.CanUpdateUser(ctx, res) {
+			return UserErrNotAllowedToUpdate()
 		}
-	}
-
-	// Test if stale (update has an older version of data)
-	if isStale(upd.UpdatedAt, u.UpdatedAt, u.CreatedAt) {
-		return u, UserErrStaleData()
 	}
 
 	// Assign changed values
-	u.Email = upd.Email
-	u.Username = upd.Username
-	u.Name = upd.Name
-	u.Handle = upd.Handle
-	u.UserGroupID = upd.UserGroupID
-	u.Kind = upd.Kind
-	u.UpdatedAt = now()
+	res.Email = upd.Email
+	res.Username = upd.Username
+	res.Name = upd.Name
+	res.Handle = upd.Handle
+	res.UserGroupID = upd.UserGroupID
+	res.Kind = upd.Kind
+	res.UpdatedAt = now()
 
 	if upd.Meta != nil {
 		// Only update meta when set
-		u.Meta = upd.Meta
+		res.Meta = upd.Meta
 	}
 
-	if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, u)); err != nil {
+	if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, res)); err != nil {
 		return
 	}
 
-	if err = uniqueUserCheck(ctx, svc.store, u); err != nil {
+	if err = uniqueUserCheck(ctx, s, res); err != nil {
 		return
 	}
 
-	if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+	if err = store.UpdateUser(ctx, s, res); err != nil {
 		return
 	}
 
-	if label.Changed(u.Labels, upd.Labels) {
-		if err = label.Update(ctx, svc.store, upd); err != nil {
+	if label.Changed(res.Labels, upd.Labels) {
+		if err = label.Update(ctx, s, upd); err != nil {
 			return
 		}
 
-		u.Labels = upd.Labels
+		res.Labels = upd.Labels
 	}
 
-	err = svc.userGroups.AssignGroupMembers(id.MustNumID(u.UserGroupID), id.MustNumID(u.ID))
+	err = svc.userGroups.AssignGroupMembers(id.MustNumID(res.UserGroupID), id.MustNumID(res.ID))
 	if err != nil {
 		return
 	}
 
-	_ = svc.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, u))
+	_ = svc.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, res))
 	return
 }
 
 func (svc *user) ToggleEmailConfirmation(ctx context.Context, userID uint64, confirmed bool) (err error) {
 	var (
 		u       *types.User
+		old     *types.User
 		uaProps = &userActionProps{}
 	)
 
@@ -501,6 +491,7 @@ func (svc *user) ToggleEmailConfirmation(ctx context.Context, userID uint64, con
 		}
 
 		uaProps.setUser(u)
+		old = u.Clone()
 
 		if userID != internalAuth.GetIdentityFromContext(ctx).Identity() {
 			if !svc.ac.CanUpdateUser(ctx, u) {
@@ -513,10 +504,11 @@ func (svc *user) ToggleEmailConfirmation(ctx context.Context, userID uint64, con
 		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
+
 		return
 	}()
 
-	return svc.recordAction(ctx, uaProps, UserActionUpdate, err)
+	return svc.recordAction(ctx, uaProps, UserActionUpdate, err, old, u)
 }
 
 func (svc *user) UpdateWithAvatar(ctx context.Context, mod *types.User, avatar io.Reader) (out *types.User, err error) {
@@ -525,94 +517,73 @@ func (svc *user) UpdateWithAvatar(ctx context.Context, mod *types.User, avatar i
 }
 
 // onDelete is the custom body for the generated DeleteByID. The generated method
-// owns the action-log scaffold + recordAction; everything below (load,
-// system-user guard, resource-based access, events, soft-delete, group-remove,
+// owns the action-log scaffold + recordAction + load + tx; everything below
+// (system-user guard, resource-based access, events, soft-delete, group-remove,
 // token removal) lives here.
-func (svc *user) onDelete(ctx context.Context, ID uint64, aProps *userActionProps) (err error) {
-	var u *types.User
-
-	// preserve the original action-log prop (ID-only) set at construction time
-	aProps.setUser(&types.User{ID: ID})
-
-	if u, err = loadUser(ctx, svc.store, ID); err != nil {
-		return
-	}
-
-	if u.Kind == types.SystemUser {
+func (svc *user) onDelete(ctx context.Context, s store.Storer, res *types.User, aProps *userActionProps) (err error) {
+	if res.Kind == types.SystemUser {
 		return UserErrNotAllowedToDelete()
 	}
 
-	if !svc.ac.CanDeleteUser(ctx, u) {
+	if !svc.ac.CanDeleteUser(ctx, res) {
 		return UserErrNotAllowedToDelete()
 	}
 
-	if err = svc.eventbus.WaitFor(ctx, event.UserBeforeDelete(nil, u)); err != nil {
+	if err = svc.eventbus.WaitFor(ctx, event.UserBeforeDelete(nil, res)); err != nil {
 		return
 	}
 
-	u.DeletedAt = now()
-	if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+	res.DeletedAt = now()
+	if err = store.UpdateUser(ctx, s, res); err != nil {
 		return
 	}
 
-	err = svc.userGroups.RemoveGroupMembers(id.MustNumID(u.UserGroupID), id.MustNumID(u.ID))
+	err = svc.userGroups.RemoveGroupMembers(id.MustNumID(res.UserGroupID), id.MustNumID(res.ID))
 	if err != nil {
 		return
 	}
 
-	if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
+	if err = svc.auth.RemoveAccessTokens(ctx, res); err != nil {
 		return
 	}
 
-	_ = svc.eventbus.WaitFor(ctx, event.UserAfterDelete(nil, u))
+	_ = svc.eventbus.WaitFor(ctx, event.UserAfterDelete(nil, res))
 	return nil
 }
 
 // onUndelete is the custom body for the generated UndeleteByID. The generated
-// method owns the action-log scaffold + recordAction; everything below (load,
-// unique check, system-user guard, limits, resource-based access, clear
+// method owns the action-log scaffold + recordAction + load + tx; everything
+// below (unique check, system-user guard, limits, resource-based access, clear
 // deleted_at, group-assign) lives here.
-func (svc *user) onUndelete(ctx context.Context, ID uint64, aProps *userActionProps) (err error) {
-	var u *types.User
-
-	if u, err = loadUser(ctx, svc.store, ID); err != nil {
+func (svc *user) onUndelete(ctx context.Context, s store.Storer, res *types.User, aProps *userActionProps) (err error) {
+	if err = uniqueUserCheck(ctx, s, res); err != nil {
 		return
 	}
 
-	aProps.setUser(u)
-
-	if err = uniqueUserCheck(ctx, svc.store, u); err != nil {
-		return err
-	}
-
-	if u.Kind == types.SystemUser {
+	if res.Kind == types.SystemUser {
 		return UserErrNotAllowedToDelete()
 	}
 
 	if err = svc.checkLimits(ctx); err != nil {
-		return err
+		return
 	}
 
-	if !svc.ac.CanDeleteUser(ctx, u) {
+	if !svc.ac.CanDeleteUser(ctx, res) {
 		return UserErrNotAllowedToDelete()
 	}
 
-	u.DeletedAt = nil
-	if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+	res.DeletedAt = nil
+	if err = store.UpdateUser(ctx, s, res); err != nil {
 		return
 	}
 
-	err = svc.userGroups.AssignGroupMembers(id.MustNumID(u.UserGroupID), id.MustNumID(u.ID))
-	if err != nil {
-		return
-	}
-
-	return nil
+	return svc.userGroups.AssignGroupMembers(id.MustNumID(res.UserGroupID), id.MustNumID(res.ID))
 }
 
 func (svc *user) Suspend(ctx context.Context, userID uint64) (err error) {
 	var (
 		u       *types.User
+		old     *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
@@ -622,6 +593,7 @@ func (svc *user) Suspend(ctx context.Context, userID uint64) (err error) {
 		}
 
 		uaProps.setUser(u)
+		old = u.Clone()
 
 		if u.Kind == types.SystemUser {
 			return UserErrNotAllowedToSuspend()
@@ -631,11 +603,9 @@ func (svc *user) Suspend(ctx context.Context, userID uint64) (err error) {
 			return UserErrNotAllowedToSuspend()
 		}
 
-		// Clone u to oldUser
-		oldUser := *u
 		u.SuspendedAt = now()
 
-		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeSuspend(u, &oldUser)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeSuspend(u, old)); err != nil {
 			return
 		}
 
@@ -647,17 +617,17 @@ func (svc *user) Suspend(ctx context.Context, userID uint64) (err error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserAfterSuspend(u, &oldUser))
+		_ = svc.eventbus.WaitFor(ctx, event.UserAfterSuspend(u, old))
 		return nil
 	}()
 
-	return svc.recordAction(ctx, uaProps, UserActionSuspend, err)
-
+	return svc.recordAction(ctx, uaProps, UserActionSuspend, err, old, u)
 }
 
 func (svc *user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 	var (
 		u       *types.User
+		old     *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
@@ -667,6 +637,7 @@ func (svc *user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 		}
 
 		uaProps.setUser(u)
+		old = u.Clone()
 
 		if u.Kind == types.SystemUser {
 			return UserErrNotAllowedToUnsuspend()
@@ -684,10 +655,11 @@ func (svc *user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
+
 		return nil
 	}()
 
-	return svc.recordAction(ctx, uaProps, UserActionUnsuspend, err)
+	return svc.recordAction(ctx, uaProps, UserActionUnsuspend, err, old, u)
 }
 
 // SetPassword sets new password for a user
@@ -954,18 +926,6 @@ func (svc *user) RemoveSynthetic(ctx context.Context) error {
 
 }
 
-func loadUser(ctx context.Context, s store.Users, ID uint64) (res *types.User, err error) {
-	if ID == 0 {
-		return nil, UserErrInvalidID()
-	}
-
-	if res, err = store.LookupUserByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, UserErrNotFound()
-	}
-
-	return
-}
-
 func countValidUsers(ctx context.Context, s store.Users) (c uint, err error) {
 	return store.CountUsers(ctx, s, types.UserFilter{Kind: types.NormalUser})
 }
@@ -1056,6 +1016,7 @@ func createUserHandle(ctx context.Context, s store.Users, u *types.User) {
 func (svc *user) UploadAvatar(ctx context.Context, userID uint64, upload *multipart.FileHeader) (err error) {
 	var (
 		u       *types.User
+		old     *types.User
 		att     *types.Attachment
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
@@ -1064,6 +1025,8 @@ func (svc *user) UploadAvatar(ctx context.Context, userID uint64, upload *multip
 		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
 		}
+
+		old = u.Clone()
 
 		if userID != internalAuth.GetIdentityFromContext(ctx).Identity() {
 			if !svc.ac.CanUpdateUser(ctx, u) {
@@ -1106,13 +1069,14 @@ func (svc *user) UploadAvatar(ctx context.Context, userID uint64, upload *multip
 		return nil
 	}()
 
-	return svc.recordAction(ctx, uaProps, UserActionUploadAvatar, err)
+	return svc.recordAction(ctx, uaProps, UserActionUploadAvatar, err, old, u)
 }
 
 // DeleteAvatar will delete user's avatar
 func (svc *user) DeleteAvatar(ctx context.Context, userID uint64) (err error) {
 	var (
 		u       *types.User
+		old     *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
@@ -1120,6 +1084,8 @@ func (svc *user) DeleteAvatar(ctx context.Context, userID uint64) (err error) {
 		if u, err = svc.FindByID(ctx, userID); err != nil {
 			return
 		}
+
+		old = u.Clone()
 
 		if u.Kind == types.SystemUser {
 			return UserErrNotAllowedToDeleteAvatar()
@@ -1151,7 +1117,7 @@ func (svc *user) DeleteAvatar(ctx context.Context, userID uint64) (err error) {
 		return nil
 	}()
 
-	return svc.recordAction(ctx, uaProps, UserActionDeleteAvatar, err)
+	return svc.recordAction(ctx, uaProps, UserActionDeleteAvatar, err, old, u)
 }
 
 func processAvatarInitials(u *types.User) (initial string) {
@@ -1221,6 +1187,7 @@ func processAvatarInitials(u *types.User) (initial string) {
 func (svc *user) GenerateAvatar(ctx context.Context, userID uint64, bgColor string, initialColor string) (err error) {
 	var (
 		u       *types.User
+		old     *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
@@ -1228,6 +1195,8 @@ func (svc *user) GenerateAvatar(ctx context.Context, userID uint64, bgColor stri
 		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
 		}
+
+		old = u.Clone()
 
 		if userID != internalAuth.GetIdentityFromContext(ctx).Identity() {
 			if !svc.ac.CanUpdateUser(ctx, u) {
@@ -1248,7 +1217,7 @@ func (svc *user) GenerateAvatar(ctx context.Context, userID uint64, bgColor stri
 		return nil
 	}()
 
-	return svc.recordAction(ctx, uaProps, UserActionGenerateAvatar, err)
+	return svc.recordAction(ctx, uaProps, UserActionGenerateAvatar, err, old, u)
 }
 
 func (svc *user) generateUserAvatarInitial(ctx context.Context, u *types.User) (err error) {

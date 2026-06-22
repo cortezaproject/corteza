@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new            *types.AiConversation
 		update         *types.AiConversation
 		filter         *types.AiConversationFilter
+		diff           []*revisions.Change
+		old            json.RawMessage
 	}
 
 	aiConversationAction struct {
@@ -81,6 +85,22 @@ func (p *aiConversationActionProps) setUpdate(update *types.AiConversation) *aiC
 // This function is auto-generated.
 func (p *aiConversationActionProps) setFilter(filter *types.AiConversationFilter) *aiConversationActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *aiConversationActionProps) setDiff(diff []*revisions.Change) *aiConversationActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *aiConversationActionProps) setOld(v any) *aiConversationActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -218,12 +238,20 @@ func (a *aiConversationAction) String() string {
 }
 
 func (e *aiConversationAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.aiConversation != nil {
+		if r, ok := any(e.props.aiConversation).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -657,7 +685,11 @@ func AiConversationErrNotAllowedToDelete(mm ...*aiConversationActionProps) *erro
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc aiConversation) recordAction(ctx context.Context, props *aiConversationActionProps, actionFn func(...*aiConversationActionProps) *aiConversationAction, err error) error {
+func (svc aiConversation) recordAction(ctx context.Context, props *aiConversationActionProps, actionFn func(...*aiConversationActionProps) *aiConversationAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

@@ -127,11 +127,6 @@ type (
 	}
 )
 
-func (m PageLayout) Clone() *PageLayout {
-	c := &m
-	return c
-}
-
 // Dict exposes page layout attributes for RBAC contextual role evaluation.
 func (p PageLayout) Dict() map[string]interface{} {
 	return map[string]interface{}{

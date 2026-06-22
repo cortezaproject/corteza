@@ -8,8 +8,12 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/store"
 )
 
 func (svc *chart) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Chart, err error) {
@@ -56,24 +60,55 @@ func (svc *chart) Create(ctx context.Context, new *types.Chart) (res *types.Char
 func (svc *chart) Update(ctx context.Context, upd *types.Chart) (res *types.Chart, err error) {
 	var (
 		aProps = &chartActionProps{changed: upd}
+		old    *types.Chart
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadChart(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
 
-	return res, svc.recordAction(ctx, aProps, ChartActionUpdate, err)
+		aProps.setChart(res)
+		aProps.setChanged(res)
+		old = res.Clone()
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return ChartErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return ChartErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, ChartActionUpdate, err, old, res)
 }
 
 func (svc *chart) DeleteByID(ctx context.Context, namespaceID uint64, ID uint64) (err error) {
 	var (
 		aProps = &chartActionProps{}
+		res    *types.Chart
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadChart(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, namespaceID, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setChart(res)
+
+		return svc.onDelete(ctx, s, namespaceID, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ChartActionDelete, err)
 }
@@ -81,13 +116,35 @@ func (svc *chart) DeleteByID(ctx context.Context, namespaceID uint64, ID uint64)
 func (svc *chart) UndeleteByID(ctx context.Context, namespaceID uint64, ID uint64) (err error) {
 	var (
 		aProps = &chartActionProps{}
+		res    *types.Chart
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadChart(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, namespaceID, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setChart(res)
+
+		return svc.onUndelete(ctx, s, namespaceID, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ChartActionUndelete, err)
+}
+
+func loadChart(ctx context.Context, s store.ComposeCharts, ID uint64) (res *types.Chart, err error) {
+	if ID == 0 {
+		return nil, ChartErrInvalidID()
+	}
+
+	if res, err = store.LookupComposeChartByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, ChartErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledCharts converts to []label.LabeledResource

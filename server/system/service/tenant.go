@@ -4,7 +4,7 @@ import (
 	"context"
 
 	a "github.com/crusttech/human/server/pkg/auth"
-	"github.com/crusttech/human/server/pkg/errors"
+"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
@@ -122,10 +122,12 @@ func (svc *tenant) beforeCreate(ctx context.Context, new *types.Tenant) (err err
 }
 
 func (svc *tenant) Update(ctx context.Context, upd *types.Tenant) (t *types.Tenant, err error) {
-	var taProps = &tenantActionProps{update: upd}
+	var (
+		taProps  = &tenantActionProps{update: upd}
+		existing *types.Tenant
+	)
 
 	err = func() (err error) {
-		var existing *types.Tenant
 		if existing, err = loadTenant(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
@@ -176,7 +178,7 @@ func (svc *tenant) Update(ctx context.Context, upd *types.Tenant) (t *types.Tena
 		return nil
 	}()
 
-	return t, svc.recordAction(ctx, taProps, TenantActionUpdate, err)
+	return t, svc.recordAction(ctx, taProps, TenantActionUpdate, err, existing, upd)
 }
 
 // beforeDelete runs after the delete RBAC check and before the soft-delete
@@ -188,10 +190,13 @@ func (svc *tenant) beforeDelete(ctx context.Context, t *types.Tenant) error {
 }
 
 func (svc *tenant) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	var taProps = &tenantActionProps{tenant: &types.Tenant{ID: ID}}
+	var (
+		taProps = &tenantActionProps{tenant: &types.Tenant{ID: ID}}
+		t       *types.Tenant
+		old     *types.Tenant
+	)
 
 	err = func() (err error) {
-		var t *types.Tenant
 		if t, err = loadTenant(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -202,6 +207,8 @@ func (svc *tenant) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 			return TenantErrNotAllowedToDelete()
 		}
 
+		old = t.Clone()
+
 		t.DeletedAt = nil
 		t.DeletedBy = 0
 		if err = store.UpdateTenant(ctx, svc.store, t); err != nil {
@@ -211,7 +218,7 @@ func (svc *tenant) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		return nil
 	}()
 
-	return svc.recordAction(ctx, taProps, TenantActionUndelete, err)
+	return svc.recordAction(ctx, taProps, TenantActionUndelete, err, old, t)
 }
 
 func (svc *tenant) Suspend(ctx context.Context, ID uint64) error {
@@ -229,10 +236,13 @@ func (svc *tenant) Archive(ctx context.Context, ID uint64) error {
 // setStatus transitions a tenant to the given status, stamping SuspendedAt when
 // suspending and clearing it otherwise.
 func (svc *tenant) setStatus(ctx context.Context, ID uint64, status types.TenantStatus, action func(...*tenantActionProps) *tenantAction) (err error) {
-	var taProps = &tenantActionProps{tenant: &types.Tenant{ID: ID}}
+	var (
+		taProps = &tenantActionProps{tenant: &types.Tenant{ID: ID}}
+		t       *types.Tenant
+		old     *types.Tenant
+	)
 
 	err = func() (err error) {
-		var t *types.Tenant
 		if t, err = loadTenant(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -243,6 +253,8 @@ func (svc *tenant) setStatus(ctx context.Context, ID uint64, status types.Tenant
 			return TenantErrNotAllowedToSuspend()
 		}
 
+		old = t.Clone()
+
 		t.Status = status
 		if status == types.TenantStatusSuspended {
 			t.SuspendedAt = now()
@@ -252,10 +264,14 @@ func (svc *tenant) setStatus(ctx context.Context, ID uint64, status types.Tenant
 		t.UpdatedAt = now()
 		t.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		return store.UpdateTenant(ctx, svc.store, t)
+		if err = store.UpdateTenant(ctx, svc.store, t); err != nil {
+			return
+		}
+
+		return nil
 	}()
 
-	return svc.recordAction(ctx, taProps, action, err)
+	return svc.recordAction(ctx, taProps, action, err, old, t)
 }
 
 // --- members ---

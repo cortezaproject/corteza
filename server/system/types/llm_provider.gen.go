@@ -31,6 +31,14 @@ type LlmProvider struct {
 	DeletedBy    uint64            `json:"deletedBy,string,omitempty"`
 }
 
+func (r LlmProvider) Clone() *LlmProvider {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *LLMProviderMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m LLMProviderMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

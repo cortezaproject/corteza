@@ -74,3 +74,7 @@ errors:
   - error: notAllowedToDelete
     message: "not allowed to delete this knowledge base"
     log: "failed to delete {{knowledgeBase.handle}}; insufficient permissions"
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

@@ -285,6 +285,14 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 					goType: "types.Meta"
 					dal: { type: "JSON", defaultEmptyObject: true }
 				}
+				delta: {
+					goType: "types.Delta"
+					dal: { type: "JSON" }
+				}
+				old_state: {
+					goType: "types.OldState"
+					dal: { type: "JSON" }
+				}
 			}
 
 			indexes: {

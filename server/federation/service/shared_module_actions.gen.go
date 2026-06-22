@@ -10,11 +10,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/federation/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"strings"
 	"time"
 )
@@ -25,6 +27,8 @@ type (
 		changed *types.SharedModule
 		filter  *types.SharedModuleFilter
 		node    *types.Node
+		diff    []*revisions.Change
+		old     json.RawMessage
 	}
 
 	sharedModuleAction struct {
@@ -81,6 +85,22 @@ func (p *sharedModuleActionProps) setFilter(filter *types.SharedModuleFilter) *s
 // This function is auto-generated.
 func (p *sharedModuleActionProps) setNode(node *types.Node) *sharedModuleActionProps {
 	p.node = node
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *sharedModuleActionProps) setDiff(diff []*revisions.Change) *sharedModuleActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *sharedModuleActionProps) setOld(v any) *sharedModuleActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -209,12 +229,16 @@ func (a *sharedModuleAction) String() string {
 }
 
 func (e *sharedModuleAction) ToAction() *actionlog.Action {
+	resource := e.resource
+
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -672,6 +696,38 @@ func SharedModuleErrNotAllowedToMap(mm ...*sharedModuleActionProps) *errors.Erro
 	return e
 }
 
+// SharedModuleErrInvalidHandle returns "federation:shared_module.invalidHandle" as *errors.Error
+//
+// This function is auto-generated.
+func SharedModuleErrInvalidHandle(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.invalidHandle"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
@@ -680,7 +736,11 @@ func SharedModuleErrNotAllowedToMap(mm ...*sharedModuleActionProps) *errors.Erro
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc sharedModule) recordAction(ctx context.Context, props *sharedModuleActionProps, actionFn func(...*sharedModuleActionProps) *sharedModuleAction, err error) error {
+func (svc sharedModule) recordAction(ctx context.Context, props *sharedModuleActionProps, actionFn func(...*sharedModuleActionProps) *sharedModuleAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

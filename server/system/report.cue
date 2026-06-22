@@ -105,8 +105,6 @@ report: {
 	}
 
 	service: {
-		events:   false
-
 		undelete: true
 
 		updateFields: ["Handle", "Meta", "Scenarios", "Sources", "Blocks"]

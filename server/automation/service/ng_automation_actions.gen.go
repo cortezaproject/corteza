@@ -10,11 +10,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/automation/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"strings"
 	"time"
 )
@@ -26,6 +28,8 @@ type (
 		update       *types.NgAutomation
 		trigger      *types.Trigger
 		filter       *types.NgAutomationFilter
+		diff         []*revisions.Change
+		old          json.RawMessage
 	}
 
 	ngAutomationAction struct {
@@ -90,6 +94,22 @@ func (p *ngAutomationActionProps) setTrigger(trigger *types.Trigger) *ngAutomati
 // This function is auto-generated.
 func (p *ngAutomationActionProps) setFilter(filter *types.NgAutomationFilter) *ngAutomationActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *ngAutomationActionProps) setDiff(diff []*revisions.Change) *ngAutomationActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *ngAutomationActionProps) setOld(v any) *ngAutomationActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -238,12 +258,20 @@ func (a *ngAutomationAction) String() string {
 }
 
 func (e *ngAutomationAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.ngAutomation != nil {
+		if r, ok := any(e.props.ngAutomation).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -996,7 +1024,11 @@ func NgAutomationErrMaximumCallStackSizeExceeded(mm ...*ngAutomationActionProps)
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc ngAutomation) recordAction(ctx context.Context, props *ngAutomationActionProps, actionFn func(...*ngAutomationActionProps) *ngAutomationAction, err error) error {
+func (svc ngAutomation) recordAction(ctx context.Context, props *ngAutomationActionProps, actionFn func(...*ngAutomationActionProps) *ngAutomationAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

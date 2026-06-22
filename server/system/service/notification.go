@@ -134,80 +134,59 @@ func (svc *notification) onCreate(ctx context.Context, new *types.Notification) 
 // onUpdate is the custom body for the generated Update. The generated method
 // owns the action-log scaffold + recordAction; the recipient-ownership check,
 // assignee re-check on recipient change and field copy live here.
-func (svc *notification) onUpdate(ctx context.Context, upd *types.Notification, aProps *notificationActionProps) (n *types.Notification, err error) {
+func (svc *notification) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Notification, aProps *notificationActionProps, _ func() error, _ func() error) error {
 	if upd.ID == 0 {
-		return nil, NotificationErrInvalidID()
-	}
-
-	if n, err = store.LookupNotificationByID(ctx, svc.store, upd.ID); err != nil {
-		return
+		return NotificationErrInvalidID()
 	}
 
 	// Check if the notification belongs to the current user
 	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-	if n.Recipient != currentUserID {
-		return nil, NotificationErrNotFound()
+	if res.Recipient != currentUserID {
+		return NotificationErrNotFound()
 	}
 
 	// Check if the recipient is being changed and if so, check permissions
-	if upd.Recipient != 0 && upd.Recipient != n.Recipient {
-		// Create a temporary notification for the permission check
+	if upd.Recipient != 0 && upd.Recipient != res.Recipient {
 		tempNotification := &types.Notification{
 			Recipient: upd.Recipient,
 		}
 
 		if err := svc.checkAssignee(ctx, tempNotification); err != nil {
-			return n, err
+			return err
 		}
 
-		n.Recipient = upd.Recipient
+		res.Recipient = upd.Recipient
 	}
 
 	// Assign changed values
-	n.Kind = upd.Kind
-	n.Config = upd.Config
-	n.UpdatedAt = now()
+	res.Kind = upd.Kind
+	res.Config = upd.Config
+	res.UpdatedAt = now()
 
-	if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
-		return n, err
-	}
-
-	return n, nil
+	return store.UpdateNotification(ctx, s, res)
 }
 
 // onDelete is the custom body for the generated DeleteByID. The generated
 // method owns the action-log scaffold + recordAction; the recipient-ownership
 // check, soft-delete and websocket delivery live here.
-func (svc *notification) onDelete(ctx context.Context, ID uint64, aProps *notificationActionProps) (err error) {
-	var (
-		n *types.Notification
-	)
-
-	if ID == 0 {
-		return NotificationErrInvalidID()
-	}
-
-	if n, err = svc.FindByID(ctx, ID); err != nil {
-		return NotificationErrNotFound()
-	}
-
+func (svc *notification) onDelete(ctx context.Context, s store.Storer, res *types.Notification, aProps *notificationActionProps) error {
 	// Check if the notification belongs to the current user
 	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-	if n.Recipient != currentUserID {
+	if res.Recipient != currentUserID {
 		return NotificationErrNotFound()
 	}
 
-	aProps.setNotification(n)
+	aProps.setNotification(res)
 
-	n.DeletedAt = now()
+	res.DeletedAt = now()
 
-	if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+	if err := store.UpdateNotification(ctx, s, res); err != nil {
 		return err
 	}
 
 	// Send the deleted notification via websocket so client can update UI
 	if svc.notificationSender != nil {
-		if err = svc.notificationSender.Send("notification.delete", n, n.Recipient); err != nil {
+		if err := svc.notificationSender.Send("notification.delete", res, res.Recipient); err != nil {
 			return err
 		}
 	}
@@ -217,7 +196,8 @@ func (svc *notification) onDelete(ctx context.Context, ID uint64, aProps *notifi
 
 func (svc *notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {
 	var (
-		n *types.Notification
+		n   *types.Notification
+		old *types.Notification
 
 		raProps = &notificationActionProps{notification: &types.Notification{ID: ID}}
 	)
@@ -238,6 +218,8 @@ func (svc *notification) MarkAsRead(ctx context.Context, ID uint64) (err error) 
 		}
 
 		raProps.setNotification(n)
+
+		old = n.Clone()
 
 		// Mark as read
 		now := time.Now()
@@ -258,12 +240,13 @@ func (svc *notification) MarkAsRead(ctx context.Context, ID uint64) (err error) 
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, NotificationActionMarkAsRead, err)
+	return svc.recordAction(ctx, raProps, NotificationActionMarkAsRead, err, old, n)
 }
 
 func (svc *notification) MarkAsUnread(ctx context.Context, ID uint64) (err error) {
 	var (
-		n *types.Notification
+		n   *types.Notification
+		old *types.Notification
 
 		raProps = &notificationActionProps{notification: &types.Notification{ID: ID}}
 	)
@@ -285,6 +268,8 @@ func (svc *notification) MarkAsUnread(ctx context.Context, ID uint64) (err error
 
 		raProps.setNotification(n)
 
+		old = n.Clone()
+
 		// Mark as unread
 		n.ReadAt = nil
 		now := time.Now()
@@ -304,7 +289,7 @@ func (svc *notification) MarkAsUnread(ctx context.Context, ID uint64) (err error
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, NotificationActionMarkAsUnread, err)
+	return svc.recordAction(ctx, raProps, NotificationActionMarkAsUnread, err, old, n)
 }
 
 func (svc *notification) MarkAllAsRead(ctx context.Context) (err error) {

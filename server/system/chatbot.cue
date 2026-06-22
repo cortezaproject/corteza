@@ -126,8 +126,6 @@ chatbot: {
 		genAccessController: true
 		genConstructor:      true
 
-		events:   false
-
 		undelete: true
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]

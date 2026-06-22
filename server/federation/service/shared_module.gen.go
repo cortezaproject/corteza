@@ -8,7 +8,11 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/store"
 )
 
 func (svc *sharedModule) FindByID(ctx context.Context, nodeID uint64, ID uint64) (res *types.SharedModule, err error) {
@@ -55,12 +59,41 @@ func (svc *sharedModule) Create(ctx context.Context, new *types.SharedModule) (r
 func (svc *sharedModule) Update(ctx context.Context, upd *types.SharedModule) (res *types.SharedModule, err error) {
 	var (
 		aProps = &sharedModuleActionProps{module: upd}
+		old    *types.SharedModule
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadSharedModule(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setModule(res)
+		aProps.setModule(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, SharedModuleActionUpdate, err)
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return SharedModuleErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return SharedModuleErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, SharedModuleActionUpdate, err, old, res)
+}
+
+func loadSharedModule(ctx context.Context, s store.FederationSharedModules, ID uint64) (res *types.SharedModule, err error) {
+	if ID == 0 {
+		return nil, SharedModuleErrInvalidID()
+	}
+
+	if res, err = store.LookupFederationSharedModuleByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, SharedModuleErrNotFound()
+	}
+
+	return
 }

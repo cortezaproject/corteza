@@ -30,6 +30,14 @@ type KnowledgeBase struct {
 	DeletedBy   uint64                `json:"deletedBy,string,omitempty"`
 }
 
+func (r KnowledgeBase) Clone() *KnowledgeBase {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 // KnowledgeBaseIDList is a []uint64 that serializes each element as a JSON string.
 type KnowledgeBaseIDList []uint64
 

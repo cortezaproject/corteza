@@ -100,139 +100,88 @@ func (svc *dalSensitivityLevel) onCreate(ctx context.Context, new *types.DalSens
 	})
 }
 
-func (svc *dalSensitivityLevel) onUpdate(ctx context.Context, upd *types.DalSensitivityLevel, qProps *dalSensitivityLevelActionProps) (q *types.DalSensitivityLevel, err error) {
-	var (
-		qq *types.DalSensitivityLevel
-		e  error
-	)
+func (svc *dalSensitivityLevel) onUpdate(ctx context.Context, s store.Storer, upd, res *types.DalSensitivityLevel, qProps *dalSensitivityLevelActionProps, _ func() error, _ func() error) (err error) {
+	if upd.Meta.Name == "" {
+		return DalSensitivityLevelErrMissingName()
+	}
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if qq, e = store.LookupDalSensitivityLevelByID(ctx, s, upd.ID); e != nil {
-			return DalSensitivityLevelErrNotFound(qProps)
-		}
+	if !svc.ac.CanManageDalSensitivityLevel(ctx) {
+		return DalSensitivityLevelErrNotAllowedToManage(qProps)
+	}
 
-		if upd.Meta.Name == "" {
-			return DalSensitivityLevelErrMissingName()
-		}
+	upd.UpdatedAt = now()
+	upd.CreatedAt = res.CreatedAt
+	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if !svc.ac.CanManageDalSensitivityLevel(ctx) {
-			return DalSensitivityLevelErrNotAllowedToManage(qProps)
-		}
+	ups, err := svc.prepare(ctx, s, upd)
+	if err != nil {
+		return
+	}
+	if err = store.UpsertDalSensitivityLevel(ctx, s, ups...); err != nil {
+		return
+	}
 
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
-			return DalSensitivityLevelErrStaleData()
-		}
+	// Reflect updated values back into res so the caller sees the final state.
+	*res = *upd
 
-		upd.UpdatedAt = now()
-		upd.CreatedAt = qq.CreatedAt
-		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		ups, err := svc.prepare(ctx, s, upd)
-		if err != nil {
-			return
-		}
-		err = store.UpsertDalSensitivityLevel(ctx, s, ups...)
-		if err != nil {
-			return
-		}
-
-		q = upd
-
-		return dalSensitivityLevelReplace(ctx, svc.dal, upd)
-	})
-
-	return q, err
+	return dalSensitivityLevelReplace(ctx, svc.dal, upd)
 }
 
-func (svc *dalSensitivityLevel) onDelete(ctx context.Context, ID uint64, qProps *dalSensitivityLevelActionProps) (err error) {
+func (svc *dalSensitivityLevel) onDelete(ctx context.Context, s store.Storer, res *types.DalSensitivityLevel, qProps *dalSensitivityLevelActionProps) (err error) {
+	if !svc.ac.CanManageDalSensitivityLevel(ctx) {
+		return DalSensitivityLevelErrNotAllowedToManage(qProps)
+	}
+
+	if !svc.dal.InUseSensitivityLevel(res.ID).Empty() {
+		return DalSensitivityLevelErrDeleteInUse()
+	}
+
+	res.DeletedAt = now()
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	ups, err := svc.prepare(ctx, s, res)
+	if err != nil {
+		return
+	}
+	if err = store.UpsertDalSensitivityLevel(ctx, s, ups...); err != nil {
+		return
+	}
+
 	var (
-		q *types.DalSensitivityLevel
+		dd = make(types.DalSensitivityLevelSet, 0, len(ups)/2+1)
+		uu = make(types.DalSensitivityLevelSet, 0, len(ups)/2+1)
 	)
 
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if ID == 0 {
-			return DalSensitivityLevelErrInvalidID()
+	for _, l := range ups {
+		if l.DeletedAt != nil {
+			dd = append(dd, l)
+		} else {
+			uu = append(uu, l)
 		}
+	}
 
-		if q, err = store.LookupDalSensitivityLevelByID(ctx, s, ID); err != nil {
-			return
-		}
-
-		if !svc.ac.CanManageDalSensitivityLevel(ctx) {
-			return DalSensitivityLevelErrNotAllowedToManage(qProps)
-		}
-
-		if !svc.dal.InUseSensitivityLevel(ID).Empty() {
-			return DalSensitivityLevelErrDeleteInUse()
-		}
-
-		qProps.setSensitivityLevel(q)
-
-		q.DeletedAt = now()
-		q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		ups, err := svc.prepare(ctx, s, q)
-		if err != nil {
-			return
-		}
-		err = store.UpsertDalSensitivityLevel(ctx, s, ups...)
-		if err != nil {
-			return
-		}
-
-		var (
-			dd = make(types.DalSensitivityLevelSet, 0, len(ups)/2+1)
-			uu = make(types.DalSensitivityLevelSet, 0, len(ups)/2+1)
-		)
-
-		for _, l := range ups {
-			if l.DeletedAt != nil {
-				dd = append(dd, l)
-			} else {
-				uu = append(uu, l)
-			}
-		}
-
-		if err = dalSensitivityLevelReplace(ctx, svc.dal, uu...); err != nil {
-			return err
-		}
-		if err = dalSensitivityLevelRemove(ctx, svc.dal, dd...); err != nil {
-			return err
-		}
-		return nil
-	})
+	if err = dalSensitivityLevelReplace(ctx, svc.dal, uu...); err != nil {
+		return err
+	}
+	if err = dalSensitivityLevelRemove(ctx, svc.dal, dd...); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (svc *dalSensitivityLevel) onUndelete(ctx context.Context, ID uint64, qProps *dalSensitivityLevelActionProps) (err error) {
-	var (
-		q *types.DalSensitivityLevel
-	)
+func (svc *dalSensitivityLevel) onUndelete(ctx context.Context, s store.Storer, res *types.DalSensitivityLevel, qProps *dalSensitivityLevelActionProps) (err error) {
+	if !svc.ac.CanManageDalSensitivityLevel(ctx) {
+		return DalSensitivityLevelErrNotAllowedToManage(qProps)
+	}
 
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if ID == 0 {
-			return DalSensitivityLevelErrInvalidID()
-		}
+	res.DeletedAt = nil
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if q, err = store.LookupDalSensitivityLevelByID(ctx, s, ID); err != nil {
-			return
-		}
+	if err = store.UpdateDalSensitivityLevel(ctx, s, res); err != nil {
+		return
+	}
 
-		if !svc.ac.CanManageDalSensitivityLevel(ctx) {
-			return DalSensitivityLevelErrNotAllowedToManage(qProps)
-		}
-
-		qProps.setSensitivityLevel(q)
-
-		q.DeletedAt = nil
-		q.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		if err = store.UpdateDalSensitivityLevel(ctx, s, q); err != nil {
-			return
-		}
-
-		return dalSensitivityLevelReplace(ctx, svc.dal, q)
-	})
+	return dalSensitivityLevelReplace(ctx, svc.dal, res)
 }
 
 func (svc *dalSensitivityLevel) onSearch(ctx context.Context, filter types.DalSensitivityLevelFilter, aProps *dalSensitivityLevelActionProps) (r types.DalSensitivityLevelSet, f types.DalSensitivityLevelFilter, err error) {

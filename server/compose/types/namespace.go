@@ -55,11 +55,6 @@ type (
 	}
 )
 
-func (n Namespace) Clone() *Namespace {
-	c := &n
-	return c
-}
-
 // Dict exposes namespace attributes for RBAC contextual role evaluation.
 func (n Namespace) Dict() map[string]interface{} {
 	return map[string]interface{}{

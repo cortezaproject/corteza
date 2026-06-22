@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
@@ -123,8 +124,8 @@ func (svc *template) Create(ctx context.Context, new *types.Template) (res *type
 func (svc *template) Update(ctx context.Context, upd *types.Template) (res *types.Template, err error) {
 	var (
 		aProps = &templateActionProps{update: upd}
+		old    *types.Template
 	)
-
 	err = func() (err error) {
 		if err = svc.validate(ctx, upd); err != nil {
 			return err
@@ -133,7 +134,12 @@ func (svc *template) Update(ctx context.Context, upd *types.Template) (res *type
 			return
 		}
 
+		old = res.Clone()
 		aProps.setTemplate(res)
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return TemplateErrInvalidHandle()
+		}
 
 		if !svc.ac.CanUpdateTemplate(ctx, res) {
 			return TemplateErrNotAllowedToUpdate()
@@ -165,7 +171,7 @@ func (svc *template) Update(ctx context.Context, upd *types.Template) (res *type
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, TemplateActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, TemplateActionUpdate, err, old, res)
 }
 
 func (svc *template) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -173,7 +179,6 @@ func (svc *template) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &templateActionProps{}
 		res    *types.Template
 	)
-
 	err = func() (err error) {
 		if res, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return
@@ -200,7 +205,6 @@ func (svc *template) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &templateActionProps{}
 		res    *types.Template
 	)
-
 	err = func() (err error) {
 		if res, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return

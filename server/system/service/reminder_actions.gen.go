@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new      *types.Reminder
 		updated  *types.Reminder
 		filter   *types.ReminderFilter
+		diff     []*revisions.Change
+		old      json.RawMessage
 	}
 
 	reminderAction struct {
@@ -81,6 +85,22 @@ func (p *reminderActionProps) setUpdated(updated *types.Reminder) *reminderActio
 // This function is auto-generated.
 func (p *reminderActionProps) setFilter(filter *types.ReminderFilter) *reminderActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *reminderActionProps) setDiff(diff []*revisions.Change) *reminderActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *reminderActionProps) setOld(v any) *reminderActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -257,12 +277,20 @@ func (a *reminderAction) String() string {
 }
 
 func (e *reminderAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.reminder != nil {
+		if r, ok := any(e.props.reminder).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -652,6 +680,38 @@ func ReminderErrNotAllowedToRead(mm ...*reminderActionProps) *errors.Error {
 	return e
 }
 
+// ReminderErrStaleData returns "system:reminder.staleData" as *errors.Error
+//
+// This function is auto-generated.
+func ReminderErrStaleData(mm ...*reminderActionProps) *errors.Error {
+	var p = &reminderActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("reminder was modified by someone else after you've opened it. Please refresh to see the latest updated version", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:reminder"),
+
+		errors.Meta(reminderPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
@@ -660,7 +720,11 @@ func ReminderErrNotAllowedToRead(mm ...*reminderActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc reminder) recordAction(ctx context.Context, props *reminderActionProps, actionFn func(...*reminderActionProps) *reminderAction, err error) error {
+func (svc reminder) recordAction(ctx context.Context, props *reminderActionProps, actionFn func(...*reminderActionProps) *reminderAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
@@ -73,14 +74,35 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (res *types.Agen
 func (svc *agent) Update(ctx context.Context, upd *types.Agent) (res *types.Agent, err error) {
 	var (
 		aProps = &agentActionProps{update: upd}
+		old    *types.Agent
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadAgent(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
 
-	return res, svc.recordAction(ctx, aProps, AgentActionUpdate, err)
+		aProps.setAgent(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return AgentErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return AgentErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, AgentActionUpdate, err, old, res)
 }
 
 func (svc *agent) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -88,7 +110,6 @@ func (svc *agent) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &agentActionProps{}
 		res    *types.Agent
 	)
-
 	err = func() (err error) {
 		if res, err = loadAgent(ctx, svc.store, ID); err != nil {
 			return

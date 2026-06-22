@@ -125,3 +125,4 @@ func (r *AuthClient) Verify() error {
 
 	return nil
 }
+

@@ -11,6 +11,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -113,14 +114,19 @@ func (svc *projectGroup) Create(ctx context.Context, new *types.ProjectGroup) (r
 func (svc *projectGroup) Update(ctx context.Context, upd *types.ProjectGroup) (res *types.ProjectGroup, err error) {
 	var (
 		aProps = &projectGroupActionProps{update: upd}
+		old    *types.ProjectGroup
 	)
-
 	err = func() (err error) {
 		if res, err = loadProjectGroup(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
+		old = res.Clone()
 		aProps.setProjectGroup(res)
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return ProjectGroupErrInvalidHandle()
+		}
 
 		if !svc.ac.CanUpdateProjectGroup(ctx, res) {
 			return ProjectGroupErrNotAllowedToUpdate()
@@ -142,7 +148,7 @@ func (svc *projectGroup) Update(ctx context.Context, upd *types.ProjectGroup) (r
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aProps, ProjectGroupActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, ProjectGroupActionUpdate, err, old, res)
 }
 
 func (svc *projectGroup) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -150,7 +156,6 @@ func (svc *projectGroup) DeleteByID(ctx context.Context, ID uint64) (err error) 
 		aProps = &projectGroupActionProps{}
 		res    *types.ProjectGroup
 	)
-
 	err = func() (err error) {
 		if res, err = loadProjectGroup(ctx, svc.store, ID); err != nil {
 			return

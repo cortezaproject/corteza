@@ -10,11 +10,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"strings"
 	"time"
 )
@@ -25,6 +27,8 @@ type (
 		changed    *types.PageLayout
 		filter     *types.PageLayoutFilter
 		namespace  *types.Namespace
+		diff       []*revisions.Change
+		old        json.RawMessage
 	}
 
 	pageLayoutAction struct {
@@ -81,6 +85,22 @@ func (p *pageLayoutActionProps) setFilter(filter *types.PageLayoutFilter) *pageL
 // This function is auto-generated.
 func (p *pageLayoutActionProps) setNamespace(namespace *types.Namespace) *pageLayoutActionProps {
 	p.namespace = namespace
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *pageLayoutActionProps) setDiff(diff []*revisions.Change) *pageLayoutActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *pageLayoutActionProps) setOld(v any) *pageLayoutActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -230,12 +250,20 @@ func (a *pageLayoutAction) String() string {
 }
 
 func (e *pageLayoutAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.pageLayout != nil {
+		if r, ok := any(e.props.pageLayout).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -918,7 +946,11 @@ func PageLayoutErrNotAllowedToUndelete(mm ...*pageLayoutActionProps) *errors.Err
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc pageLayout) recordAction(ctx context.Context, props *pageLayoutActionProps, actionFn func(...*pageLayoutActionProps) *pageLayoutAction, err error) error {
+func (svc pageLayout) recordAction(ctx context.Context, props *pageLayoutActionProps, actionFn func(...*pageLayoutActionProps) *pageLayoutAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

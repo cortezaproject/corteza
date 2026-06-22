@@ -47,23 +47,6 @@ type (
 	}
 )
 
-func (r *UserGroup) Clone() *UserGroup {
-	if r == nil {
-		return nil
-	}
-
-	return &UserGroup{
-		ID:         r.ID,
-		Handle:     r.Handle,
-		Meta:       r.Meta,
-		Labels:     r.Labels,
-		ArchivedAt: r.ArchivedAt,
-		CreatedAt:  r.CreatedAt,
-		UpdatedAt:  r.UpdatedAt,
-		DeletedAt:  r.DeletedAt,
-	}
-}
-
 // FindByHandle finds userGroup by it's handle
 func (set UserGroupSet) FindByHandle(handle string) *UserGroup {
 	for i := range set {

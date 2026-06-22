@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -26,6 +28,8 @@ type (
 		credentials *types.Credential
 		role        *types.Role
 		user        *types.User
+		diff        []*revisions.Change
+		old         json.RawMessage
 	}
 
 	authAction struct {
@@ -90,6 +94,22 @@ func (p *authActionProps) setRole(role *types.Role) *authActionProps {
 // This function is auto-generated.
 func (p *authActionProps) setUser(user *types.User) *authActionProps {
 	p.user = user
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *authActionProps) setDiff(diff []*revisions.Change) *authActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *authActionProps) setOld(v any) *authActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -225,12 +245,16 @@ func (a *authAction) String() string {
 }
 
 func (e *authAction) ToAction() *actionlog.Action {
+	resource := e.resource
+
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -1809,7 +1833,11 @@ func AuthErrDisabledSendUserInviteEmail(mm ...*authActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc auth) recordAction(ctx context.Context, props *authActionProps, actionFn func(...*authActionProps) *authAction, err error) error {
+func (svc auth) recordAction(ctx context.Context, props *authActionProps, actionFn func(...*authActionProps) *authAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

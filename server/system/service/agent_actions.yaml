@@ -79,3 +79,7 @@ errors:
   - error: notAllowedToDelete
     message: "not allowed to delete this agent"
     log: "failed to delete {{agent.handle}}; insufficient permissions"
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

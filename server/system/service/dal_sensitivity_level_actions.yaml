@@ -81,3 +81,7 @@ errors:
   - error: notAllowedToManage
     message: "not allowed to Manage a sensitivityLevel"
     log: "failed to Manage a sensitivityLevel; insufficient permissions"
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

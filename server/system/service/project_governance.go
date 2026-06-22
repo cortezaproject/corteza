@@ -17,12 +17,16 @@ import (
 //	approve / request-changes / reopen → CanGrantApproval
 
 func (svc *project) SaveGovernanceStep(ctx context.Context, projectID uint64, stepKey string, values map[string]any) (p *types.Project, err error) {
-	var paProps = &projectActionProps{project: &types.Project{ID: projectID}}
+	var (
+		paProps = &projectActionProps{project: &types.Project{ID: projectID}}
+		old     *types.Project
+	)
 
 	err = func() (err error) {
 		if p, err = loadProject(ctx, svc.store, projectID); err != nil {
 			return
 		}
+		old = p.Clone()
 		paProps.setProject(p)
 
 		caps, err := svc.memberCapabilities(ctx, p)
@@ -39,19 +43,26 @@ func (svc *project) SaveGovernanceStep(ctx context.Context, projectID uint64, st
 		}
 
 		step.Values = values
-		return svc.storeGovernance(ctx, p)
+		if err = svc.storeGovernance(ctx, p); err != nil {
+			return
+		}
+		return
 	}()
 
-	return p, svc.recordAction(ctx, paProps, ProjectActionGovernanceSave, err)
+	return p, svc.recordAction(ctx, paProps, ProjectActionGovernanceSave, err, old, p)
 }
 
 func (svc *project) TransitionGovernanceStep(ctx context.Context, projectID uint64, stepKey string, action types.ProjectGovernanceAction, note string) (p *types.Project, err error) {
-	var paProps = &projectActionProps{project: &types.Project{ID: projectID}}
+	var (
+		paProps = &projectActionProps{project: &types.Project{ID: projectID}}
+		old     *types.Project
+	)
 
 	err = func() (err error) {
 		if p, err = loadProject(ctx, svc.store, projectID); err != nil {
 			return
 		}
+		old = p.Clone()
 		paProps.setProject(p)
 
 		caps, err := svc.memberCapabilities(ctx, p)
@@ -70,10 +81,13 @@ func (svc *project) TransitionGovernanceStep(ctx context.Context, projectID uint
 			return ProjectErrInvalidGovernanceTransition()
 		}
 
-		return svc.storeGovernance(ctx, p)
+		if err = svc.storeGovernance(ctx, p); err != nil {
+			return
+		}
+		return
 	}()
 
-	return p, svc.recordAction(ctx, paProps, ProjectActionGovernanceTransition, err)
+	return p, svc.recordAction(ctx, paProps, ProjectActionGovernanceTransition, err, old, p)
 }
 
 func (svc *project) storeGovernance(ctx context.Context, p *types.Project) error {

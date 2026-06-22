@@ -95,3 +95,7 @@ errors:
     message: "not allowed to manage this module"
     log: "could not manage {{module}}; insufficient permissions"
 
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

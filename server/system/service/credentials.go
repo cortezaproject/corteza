@@ -87,8 +87,10 @@ func (svc *credentials) Create(ctx context.Context, c *types.Credential) (out *t
 
 func (svc *credentials) Update(ctx context.Context, c *types.Credential) (out *types.Credential, err error) {
 	var (
-		u       *types.User
-		caProps = &credentialsActionProps{user: &types.User{ID: c.OwnerID}}
+		u        *types.User
+		old      *types.Credential
+		oldState *types.Credential
+		caProps  = &credentialsActionProps{user: &types.User{ID: c.OwnerID}}
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -104,10 +106,12 @@ func (svc *credentials) Update(ctx context.Context, c *types.Credential) (out *t
 			return CredentialsErrNotAllowedToManage()
 		}
 
-		old, err := store.LookupCredentialByID(ctx, s, c.ID)
+		old, err = store.LookupCredentialByID(ctx, s, c.ID)
 		if err != nil {
 			return
 		}
+
+		oldState = old.Clone()
 
 		old.OwnerID = c.OwnerID
 		old.Label = c.Label
@@ -125,7 +129,7 @@ func (svc *credentials) Update(ctx context.Context, c *types.Credential) (out *t
 		return
 	})
 
-	return c, svc.recordAction(ctx, caProps, CredentialsActionUpdate, err)
+	return c, svc.recordAction(ctx, caProps, CredentialsActionUpdate, err, oldState, old)
 }
 
 func (svc *credentials) Delete(ctx context.Context, userID, credentialsID uint64) (err error) {

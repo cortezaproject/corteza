@@ -34,7 +34,7 @@ type (
 
 		log            *zap.Logger
 		actionlog      actionlog.Recorder
-		store          store.Reminders
+		store          store.Storer
 		reminderSender reminderSender
 		eventbus       eventDispatcher
 	}
@@ -162,27 +162,23 @@ func (svc *reminder) onCreate(ctx context.Context, new *types.Reminder) (err err
 // owns the action-log scaffold + recordAction; the assignment check, the
 // conditional field copy (assignment / snooze reset) and Before/After events
 // live here.
-func (svc *reminder) onUpdate(ctx context.Context, upd *types.Reminder, raProps *reminderActionProps) (r *types.Reminder, err error) {
+func (svc *reminder) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Reminder, aProps *reminderActionProps, _ func() error, _ func() error) error {
 	if upd.ID == 0 {
-		return nil, ReminderErrInvalidID()
-	}
-
-	if r, err = store.LookupReminderByID(ctx, svc.store, upd.ID); err != nil {
-		return
+		return ReminderErrInvalidID()
 	}
 
 	if err := svc.checkAssignee(ctx, upd); err != nil {
-		return r, err
+		return err
 	}
 
 	// Assign changed values
-	if upd.AssignedTo != r.AssignedTo {
-		r.AssignedTo = upd.AssignedTo
-		r.AssignedBy = svc.currentUser(ctx)
-		r.AssignedAt = time.Now()
+	if upd.AssignedTo != res.AssignedTo {
+		res.AssignedTo = upd.AssignedTo
+		res.AssignedBy = svc.currentUser(ctx)
+		res.AssignedAt = time.Now()
 	}
 
-	a := r.RemindAt
+	a := res.RemindAt
 	if a == nil {
 		a = &time.Time{}
 	}
@@ -192,26 +188,27 @@ func (svc *reminder) onUpdate(ctx context.Context, upd *types.Reminder, raProps 
 		b = &time.Time{}
 	}
 	if !a.Equal(*b) {
-		r.SnoozeCount = 0
+		res.SnoozeCount = 0
 	}
 
-	r.RemindAt = upd.RemindAt
-	r.Payload = upd.Payload
-	r.Resource = upd.Resource
-	r.UpdatedAt = now()
-	if err = svc.eventbus.WaitFor(ctx, event.ReminderBeforeUpdate(upd, r)); err != nil {
-		return
+	res.RemindAt = upd.RemindAt
+	res.Payload = upd.Payload
+	res.Resource = upd.Resource
+	res.UpdatedAt = now()
+	if err := svc.eventbus.WaitFor(ctx, event.ReminderBeforeUpdate(upd, res)); err != nil {
+		return err
 	}
-	if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
-		return r, err
+	if err := store.UpdateReminder(ctx, s, res); err != nil {
+		return err
 	}
-	svc.eventbus.Dispatch(ctx, event.ReminderAfterUpdate(upd, r))
-	return r, nil
+	svc.eventbus.Dispatch(ctx, event.ReminderAfterUpdate(upd, res))
+	return nil
 }
 
 func (svc *reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 	var (
-		r *types.Reminder
+		r   *types.Reminder
+		old *types.Reminder
 
 		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID}}
 	)
@@ -224,6 +221,7 @@ func (svc *reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
 			return ReminderErrNotFound()
 		}
+		old = r.Clone()
 
 		if svc.checkAssignTo(ctx, r) {
 			return ReminderErrNotAllowedToDismiss()
@@ -245,12 +243,13 @@ func (svc *reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, ReminderActionDismiss, err)
+	return svc.recordAction(ctx, raProps, ReminderActionDismiss, err, old, r)
 }
 
 func (svc *reminder) Undismiss(ctx context.Context, ID uint64) (err error) {
 	var (
-		r *types.Reminder
+		r   *types.Reminder
+		old *types.Reminder
 
 		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID}}
 	)
@@ -263,6 +262,7 @@ func (svc *reminder) Undismiss(ctx context.Context, ID uint64) (err error) {
 		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
 			return ReminderErrNotFound()
 		}
+		old = r.Clone()
 
 		if svc.checkAssignTo(ctx, r) {
 			return ReminderErrNotAllowedToUndismiss()
@@ -281,12 +281,13 @@ func (svc *reminder) Undismiss(ctx context.Context, ID uint64) (err error) {
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, ReminderActionDismiss, err)
+	return svc.recordAction(ctx, raProps, ReminderActionDismiss, err, old, r)
 }
 
 func (svc *reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) (err error) {
 	var (
-		r *types.Reminder
+		r   *types.Reminder
+		old *types.Reminder
 
 		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID, RemindAt: remindAt}}
 	)
@@ -299,6 +300,7 @@ func (svc *reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time)
 		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
 			return ReminderErrNotFound()
 		}
+		old = r.Clone()
 
 		raProps.setReminder(r)
 
@@ -316,37 +318,23 @@ func (svc *reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time)
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, ReminderActionSnooze, err)
+	return svc.recordAction(ctx, raProps, ReminderActionSnooze, err, old, r)
 }
 
 // onDelete is the custom body for the generated DeleteByID. It performs a
 // soft-delete (UpdatedAt-based) via FindByID (which applies the assignment
 // access check) plus Before/After delete events.
-func (svc *reminder) onDelete(ctx context.Context, ID uint64, raProps *reminderActionProps) (err error) {
-	var (
-		r *types.Reminder
-	)
+func (svc *reminder) onDelete(ctx context.Context, s store.Storer, res *types.Reminder, aProps *reminderActionProps) error {
+	res.DeletedAt = now()
 
-	raProps.reminder = &types.Reminder{ID: ID}
-
-	if ID == 0 {
-		return ReminderErrInvalidID()
-	}
-
-	if r, err = svc.FindByID(ctx, ID); err != nil {
-		return ReminderErrNotFound()
-	}
-
-	r.DeletedAt = now()
-
-	raProps.setReminder(r)
-	if err = svc.eventbus.WaitFor(ctx, event.ReminderBeforeDelete(nil, r)); err != nil {
-		return
-	}
-	if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
+	aProps.setReminder(res)
+	if err := svc.eventbus.WaitFor(ctx, event.ReminderBeforeDelete(nil, res)); err != nil {
 		return err
 	}
-	svc.eventbus.Dispatch(ctx, event.ReminderAfterDelete(nil, r))
+	if err := store.UpdateReminder(ctx, s, res); err != nil {
+		return err
+	}
+	svc.eventbus.Dispatch(ctx, event.ReminderAfterDelete(nil, res))
 	return nil
 }
 

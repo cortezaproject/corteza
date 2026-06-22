@@ -16,7 +16,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 {{- end }}
-{{- if .load }}
+{{- if and .load .hasID }}
 {{- if .genConstructor }}
 	"github.com/crusttech/human/server/pkg/errors"
 {{- else }}
@@ -24,13 +24,16 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 {{- end }}
 {{- end }}
+{{- if and .handle .update }}
+	"github.com/crusttech/human/server/pkg/handle"
+{{- end }}
 {{- if .usesLabel }}
 	"github.com/crusttech/human/server/pkg/label"
 {{- end }}
 {{- if and .genConstructor .events }}
 	"github.com/crusttech/human/server/pkg/eventbus"
 {{- end }}
-{{- if .events }}
+{{- if or .events .cbEvents }}
 	"{{ .eventImport }}"
 {{- end }}
 {{- if or .usesStore .genConstructor }}
@@ -282,13 +285,96 @@ func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }
 func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{{ .goType }}, err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{ {{- .updateProp }}: upd}
+		old    *{{ .goType }}
 	)
 
-	err = func() (err error) {
 {{- if has "update" .customBodyOps }}
+{{- if not .hasID }}
+	err = func() (err error) {
 		res, err = svc.onUpdate(ctx, upd, aProps)
 		return err
+	}()
 {{- else }}
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = load{{ .expIdent }}(ctx, s, upd.ID); err != nil {
+			return
+		}
+{{- if .labels }}
+
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+{{- end }}
+
+		aProps.set{{ .actionPropExp }}(res)
+		aProps.set{{ .updateProp | title }}(res)
+		old = res.Clone()
+{{- if .handle }}
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return {{ .expIdent }}ErrInvalidHandle()
+		}
+{{- end }}
+{{- if .stale }}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return {{ .expIdent }}ErrStaleData()
+		}
+{{- end }}
+{{- if .templateUpdate }}
+{{- if .cbEvents }}
+
+		if err = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}BeforeUpdate(upd, res)); err != nil {
+			return
+		}
+{{- end }}
+
+		if err = svc.onUpdate(ctx, s, upd, res, aProps); err != nil {
+			return
+		}
+{{- range .settable }}
+		res.{{ .expIdent }} = upd.{{ .expIdent }}
+{{- end }}
+{{- if .hasUpdatedAt }}
+		res.UpdatedAt = now()
+{{- end }}
+
+		if err = store.Update{{ .storeExpIdent }}(ctx, s, res); err != nil {
+			return err
+		}
+{{- if .labels }}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+{{- end }}
+{{- if .cbEvents }}
+
+		_ = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}AfterUpdate(upd, res))
+{{- end }}
+
+		return nil
+{{- else }}
+{{- if .cbEvents }}
+		before := func() error { return svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}BeforeUpdate(upd, res)) }
+		after := func() error {
+			_ = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}AfterUpdate(upd, res))
+			return nil
+		}
+{{- else }}
+		before := func() error { return nil }
+		after := func() error { return nil }
+{{- end }}
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+{{- end }}
+	})
+{{- end }}
+{{- else }}
+	err = func() (err error) {
 {{- if .hooks.validate }}
 		if err = svc.validate(ctx, upd); err != nil {
 			return err
@@ -299,7 +385,14 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 			return
 		}
 
+		old = res.Clone()
 		aProps.set{{ .actionPropExp }}(res)
+{{- if .handle }}
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return {{ .expIdent }}ErrInvalidHandle()
+		}
+{{- end }}
 
 		if !svc.ac.{{ .ac.update }}(ctx, res) {
 			return {{ .expIdent }}ErrNotAllowedToUpdate()
@@ -354,10 +447,10 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 		}
 {{- end }}
 		return nil
-{{- end }}
 	}()
+{{- end }}
 
-	return res, svc.recordAction(ctx, aProps, {{ .expIdent }}ActionUpdate, err)
+	return res, svc.recordAction(ctx, aProps, {{ .expIdent }}ActionUpdate, err, old, res)
 }
 {{- end }}
 {{- if .delete }}
@@ -365,15 +458,27 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 func (svc {{ .recv }}{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .deleteParentParamsTyped }}ID uint64{{ .deleteExtraArgsTyped }}) (err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{}
-{{- if not (has "delete" .customBodyOps) }}
 		res    *{{ .goType }}
-{{- end }}
 	)
 
-	err = func() (err error) {
 {{- if has "delete" .customBodyOps }}
-		return svc.onDelete(ctx, {{ .deleteParentParams }}ID, {{ .deleteExtraArgsCall }}aProps)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = load{{ .expIdent }}(ctx, s, ID); err != nil {
+			return
+		}
+{{- if .labels }}
+
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+{{- end }}
+
+		aProps.set{{ .actionPropExp }}(res)
+
+		return svc.onDelete(ctx, s, {{ .deleteParentParams }}res, {{ .deleteExtraArgsCall }}aProps)
+	})
 {{- else }}
+	err = func() (err error) {
 		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -417,8 +522,8 @@ func (svc {{ .recv }}{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .d
 		}
 {{- end }}
 		return nil
-{{- end }}
 	}()
+{{- end }}
 
 	return svc.recordAction(ctx, aProps, {{ .expIdent }}ActionDelete, err)
 }
@@ -428,15 +533,27 @@ func (svc {{ .recv }}{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .d
 func (svc {{ .recv }}{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ .undeleteParentParamsTyped }}ID uint64) (err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{}
-{{- if not (has "undelete" .customBodyOps) }}
 		res    *{{ .goType }}
-{{- end }}
 	)
 
-	err = func() (err error) {
 {{- if has "undelete" .customBodyOps }}
-		return svc.onUndelete(ctx, {{ .undeleteParentParams }}ID, aProps)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = load{{ .expIdent }}(ctx, s, ID); err != nil {
+			return
+		}
+{{- if .labels }}
+
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+{{- end }}
+
+		aProps.set{{ .actionPropExp }}(res)
+
+		return svc.onUndelete(ctx, s, {{ .undeleteParentParams }}res, aProps)
+	})
 {{- else }}
+	err = func() (err error) {
 		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -471,13 +588,13 @@ func (svc {{ .recv }}{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ 
 {{- end }}
 
 		return nil
-{{- end }}
 	}()
+{{- end }}
 
 	return svc.recordAction(ctx, aProps, {{ .expIdent }}ActionUndelete, err)
 }
 {{- end }}
-{{- if .load }}
+{{- if and .load .hasID }}
 
 {{/* load looks up by globally-unique ID only -- scoped (compound-id) resources
      enforce their parent scope via the access check on the loaded record, so the

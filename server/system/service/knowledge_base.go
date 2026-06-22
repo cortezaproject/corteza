@@ -35,53 +35,35 @@ func (svc *knowledgeBase) beforeDelete(ctx context.Context, res *types.Knowledge
 // scaffold (load existing, copy mutable fields onto it, persist the loaded
 // record), the original service checks access on the incoming `upd`, copies the
 // existing audit fields ONTO `upd`, and persists `upd` itself.
-func (svc *knowledgeBase) onUpdate(ctx context.Context, upd *types.KnowledgeBase, aProps *knowledgeBaseActionProps) (kb *types.KnowledgeBase, err error) {
+func (svc *knowledgeBase) onUpdate(ctx context.Context, s store.Storer, upd, res *types.KnowledgeBase, aProps *knowledgeBaseActionProps, _ func() error, _ func() error) error {
 	if !svc.ac.CanUpdateKnowledgeBase(ctx, upd) {
-		return nil, KnowledgeBaseErrNotAllowedToUpdate()
-	}
-
-	var existing *types.KnowledgeBase
-	if existing, err = store.LookupKnowledgeBaseByID(ctx, svc.store, upd.ID); err != nil {
-		return nil, KnowledgeBaseErrNotFound()
-	}
-
-	if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
-		return nil, KnowledgeBaseErrStaleData()
+		return KnowledgeBaseErrNotAllowedToUpdate()
 	}
 
 	upd.UpdatedAt = now()
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-	upd.CreatedAt = existing.CreatedAt
-	upd.CreatedBy = existing.CreatedBy
-	upd.DeletedAt = existing.DeletedAt
+	upd.CreatedAt = res.CreatedAt
+	upd.CreatedBy = res.CreatedBy
+	upd.DeletedAt = res.DeletedAt
 
-	if err = store.UpdateKnowledgeBase(ctx, svc.store, upd); err != nil {
-		return nil, err
+	if err := store.UpdateKnowledgeBase(ctx, s, upd); err != nil {
+		return err
 	}
 
-	kb = upd
-	return kb, nil
+	*res = *upd
+	return nil
 }
 
 // onUndelete is the bespoke body for the generated UndeleteByID. It clears the
 // soft-delete marker while also stamping UpdatedAt / UpdatedBy, and reuses the
 // delete access check (there is no dedicated undelete permission/error).
-func (svc *knowledgeBase) onUndelete(ctx context.Context, ID uint64, aProps *knowledgeBaseActionProps) (err error) {
-	var kb *types.KnowledgeBase
-	if kb, err = loadKnowledgeBase(ctx, svc.store, ID); err != nil {
-		return
-	}
-
-	if !svc.ac.CanDeleteKnowledgeBase(ctx, kb) {
+func (svc *knowledgeBase) onUndelete(ctx context.Context, s store.Storer, res *types.KnowledgeBase, aProps *knowledgeBaseActionProps) error {
+	if !svc.ac.CanDeleteKnowledgeBase(ctx, res) {
 		return KnowledgeBaseErrNotAllowedToDelete()
 	}
 
-	kb.DeletedAt = nil
-	kb.UpdatedAt = now()
-	kb.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-	if err = store.UpdateKnowledgeBase(ctx, svc.store, kb); err != nil {
-		return
-	}
-
-	return nil
+	res.DeletedAt = nil
+	res.UpdatedAt = now()
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return store.UpdateKnowledgeBase(ctx, s, res)
 }

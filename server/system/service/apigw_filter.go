@@ -144,70 +144,47 @@ func (svc *apigwFilter) validateAsyncRoute(ctx context.Context, r *types.ApigwRo
 }
 
 // onUpdate is the custom body for the generated Update. The generated method
-// owns the action-log scaffold + recordAction; access control is enforced on
-// the parent route here.
-func (svc *apigwFilter) onUpdate(ctx context.Context, upd *types.ApigwFilter, qProps *apigwFilterActionProps) (q *types.ApigwFilter, err error) {
-	var (
-		qq *types.ApigwFilter
-		r  *types.ApigwRoute
-		e  error
-	)
-
-	if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e != nil {
-		return nil, ApigwFilterErrNotFound(qProps)
-	}
+// owns the action-log scaffold + recordAction + load + tx; access control is
+// enforced on the parent route here.
+func (svc *apigwFilter) onUpdate(ctx context.Context, s store.Storer, upd, res *types.ApigwFilter, qProps *apigwFilterActionProps, _ func() error, _ func() error) (err error) {
+	var r *types.ApigwRoute
 
 	if r, err = svc.route.FindByID(ctx, upd.Route); err != nil {
-		return nil, err
+		return err
 	}
 
 	if !svc.ac.CanUpdateApigwRoute(ctx, r) {
-		return nil, ApigwRouteErrNotAllowedToUpdate()
-	}
-
-	// Test if stale (update has an older version of data)
-	if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
-		return nil, ApigwFilterErrStaleData()
-	}
-
-	if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e == nil && qq == nil {
-		return nil, ApigwFilterErrNotFound(qProps)
+		return ApigwRouteErrNotAllowedToUpdate()
 	}
 
 	upd.UpdatedAt = now()
-	upd.CreatedAt = qq.CreatedAt
+	upd.CreatedAt = res.CreatedAt
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	if err = store.UpdateApigwFilter(ctx, svc.store, upd); err != nil {
-		return nil, err
+	if err = store.UpdateApigwFilter(ctx, s, upd); err != nil {
+		return err
 	}
 
-	q = upd
+	// Reflect updated values back into res so the caller sees the final state.
+	*res = *upd
 
 	// send the signal to reload current route
 	if r.Enabled {
 		if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return q, nil
+	return nil
 }
 
 // onDelete is the custom body for the generated DeleteByID. The generated
-// method owns the action-log scaffold + recordAction; access control is
-// enforced on the parent route here.
-func (svc *apigwFilter) onDelete(ctx context.Context, ID uint64, qProps *apigwFilterActionProps) (err error) {
-	var (
-		q *types.ApigwFilter
-		r *types.ApigwRoute
-	)
+// method owns the action-log scaffold + recordAction + load + tx; access
+// control is enforced on the parent route here.
+func (svc *apigwFilter) onDelete(ctx context.Context, s store.Storer, res *types.ApigwFilter, qProps *apigwFilterActionProps) (err error) {
+	var r *types.ApigwRoute
 
-	if q, err = store.LookupApigwFilterByID(ctx, svc.store, ID); err != nil {
-		return ApigwFilterErrNotFound(qProps)
-	}
-
-	if r, err = store.LookupApigwRouteByID(ctx, svc.store, q.Route); err == store.ErrNotFound {
+	if r, err = store.LookupApigwRouteByID(ctx, s, res.Route); err == store.ErrNotFound {
 		return ApigwRouteErrNotFound()
 	} else if err != nil {
 		return
@@ -217,12 +194,10 @@ func (svc *apigwFilter) onDelete(ctx context.Context, ID uint64, qProps *apigwFi
 		return ApigwRouteErrNotAllowedToDelete()
 	}
 
-	qProps.setFilter(q)
+	res.DeletedAt = now()
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	q.DeletedAt = now()
-	q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-
-	if err = store.UpdateApigwFilter(ctx, svc.store, q); err != nil {
+	if err = store.UpdateApigwFilter(ctx, s, res); err != nil {
 		return
 	}
 

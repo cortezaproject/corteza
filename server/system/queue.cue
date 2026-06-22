@@ -89,7 +89,6 @@ queue: {
 	}
 
 	service: {
-		events:   false
 		undelete: true
 
 		genAccessController: true

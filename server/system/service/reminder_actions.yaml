@@ -73,3 +73,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read reminders of other users"
+
+  - error: staleData
+    message: "reminder was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning

@@ -173,3 +173,4 @@ func (set WorkflowIssueSet) SetCulprit(name string, pos int) WorkflowIssueSet {
 
 	return set
 }
+

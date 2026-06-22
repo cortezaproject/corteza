@@ -33,6 +33,14 @@ type Report struct {
 	Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r Report) Clone() *Report {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *ReportMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ReportMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

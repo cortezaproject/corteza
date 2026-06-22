@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new     *types.Chatbot
 		update  *types.Chatbot
 		filter  *types.ChatbotFilter
+		diff    []*revisions.Change
+		old     json.RawMessage
 	}
 
 	chatbotAction struct {
@@ -81,6 +85,22 @@ func (p *chatbotActionProps) setUpdate(update *types.Chatbot) *chatbotActionProp
 // This function is auto-generated.
 func (p *chatbotActionProps) setFilter(filter *types.ChatbotFilter) *chatbotActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *chatbotActionProps) setDiff(diff []*revisions.Change) *chatbotActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *chatbotActionProps) setOld(v any) *chatbotActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -205,12 +225,20 @@ func (a *chatbotAction) String() string {
 }
 
 func (e *chatbotAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.chatbot != nil {
+		if r, ok := any(e.props.chatbot).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -668,6 +696,38 @@ func ChatbotErrConversationScenarioMissingAgent(mm ...*chatbotActionProps) *erro
 	return e
 }
 
+// ChatbotErrInvalidHandle returns "system:chatbot.invalidHandle" as *errors.Error
+//
+// This function is auto-generated.
+func ChatbotErrInvalidHandle(mm ...*chatbotActionProps) *errors.Error {
+	var p = &chatbotActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "system:chatbot"),
+
+		errors.Meta(chatbotPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "chatbot.errors.invalidHandle"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
@@ -676,7 +736,11 @@ func ChatbotErrConversationScenarioMissingAgent(mm ...*chatbotActionProps) *erro
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc chatbot) recordAction(ctx context.Context, props *chatbotActionProps, actionFn func(...*chatbotActionProps) *chatbotAction, err error) error {
+func (svc chatbot) recordAction(ctx context.Context, props *chatbotActionProps, actionFn func(...*chatbotActionProps) *chatbotAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err

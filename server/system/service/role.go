@@ -301,82 +301,29 @@ func (svc *role) afterCreate(ctx context.Context, res *types.Role) error {
 	return nil
 }
 
-// onUpdate is the custom body for the generated Update. The generated method
-// owns the action-log scaffold (aProps{update: upd}) + recordAction; everything
-// below is lifted verbatim from the original Update, preserving the eventbus
-// Before/AfterUpdate dispatch (events are off for the standard body), the
-// IsSystem guard with its skip-on-no-change branch, the context validation and
-// the uniqueness check.
-func (svc *role) onUpdate(ctx context.Context, upd *types.Role, raProps *roleActionProps) (r *types.Role, err error) {
-	err = func() (err error) {
-		if r, err = loadRole(ctx, svc.store, upd.ID); err != nil {
+// onUpdate is called by the generated Update after load, stale check, and
+// before event. Field copy, store.Update, label.Update and after event are
+// owned by the generated scaffold (templateUpdate: true).
+func (svc *role) onUpdate(ctx context.Context, s store.Storer, upd, r *types.Role, raProps *roleActionProps) (err error) {
+	if !svc.ac.CanUpdateRole(ctx, upd) {
+		return RoleErrNotAllowedToUpdate()
+	}
+
+	if svc.IsSystem(r) {
+		// prevent system role updates
+		if r.Handle == upd.Handle && r.Name == upd.Name {
+			return nil
+		}
+		return RoleErrNotAllowedToUpdate()
+	}
+
+	if upd.Meta != nil && upd.Meta.Context != nil {
+		if err = svc.validateContext(ctx, upd.Meta.Context); err != nil {
 			return
 		}
+	}
 
-		raProps.setRole(r)
-
-		if !handle.IsValid(upd.Handle) {
-			return RoleErrInvalidHandle()
-		}
-
-		if !svc.ac.CanUpdateRole(ctx, upd) {
-			return RoleErrNotAllowedToUpdate()
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
-			return RoleErrStaleData()
-		}
-
-		if svc.IsSystem(r) {
-			// prevent system role updates
-			// we need this here because of the clumsy way
-			// how rest endpoint handler is implemented ATM
-			if r.Handle == upd.Handle && r.Name == upd.Name {
-				// no change.
-				return nil
-			}
-			return RoleErrNotAllowedToUpdate()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
-			return
-		}
-
-		if upd.Meta != nil && upd.Meta.Context != nil {
-			if err = svc.validateContext(ctx, upd.Meta.Context); err != nil {
-				return
-			}
-		}
-
-		if err = svc.UniqueCheck(ctx, upd); err != nil {
-			return
-		}
-
-		r.Handle = upd.Handle
-		r.Name = upd.Name
-		r.Meta = upd.Meta
-		r.UpdatedAt = now()
-
-		// Assign changed values
-		if err = store.UpdateRole(ctx, svc.store, r); err != nil {
-			return err
-		}
-
-		if label.Changed(r.Labels, upd.Labels) {
-			if err = label.Update(ctx, svc.store, upd); err != nil {
-				return
-			}
-
-			r.Labels = upd.Labels
-		}
-
-		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
-
-		return nil
-	}()
-
-	return r, err
+	return svc.UniqueCheck(ctx, upd)
 }
 
 func (svc *role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
@@ -426,42 +373,27 @@ func (svc *role) validateContext(ctx context.Context, r *types.RoleContext) erro
 // off for the standard body) and the soft-delete stamp. The initial
 // {role: {ID: roleID}} action prop -- not set by the generated empty aProps --
 // is restored here so failure paths log the same props as the original.
-func (svc *role) onDelete(ctx context.Context, roleID uint64, raProps *roleActionProps) (err error) {
-	var r *types.Role
+func (svc *role) onDelete(ctx context.Context, s store.Storer, res *types.Role, raProps *roleActionProps) (err error) {
+	if svc.IsSystem(res) {
+		return RoleErrNotAllowedToDelete()
+	}
 
-	raProps.setRole(&types.Role{ID: roleID})
+	if !svc.ac.CanDeleteRole(ctx, res) {
+		return RoleErrNotAllowedToDelete()
+	}
 
-	err = func() (err error) {
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return err
-		}
-
-		if svc.IsSystem(r) {
-			return RoleErrNotAllowedToDelete()
-		}
-
-		raProps.setRole(r)
-
-		if !svc.ac.CanDeleteRole(ctx, r) {
-			return RoleErrNotAllowedToDelete()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeDelete(nil, r)); err != nil {
-			return
-		}
-
-		r.DeletedAt = now()
-
-		if err = store.UpdateRole(ctx, svc.store, r); err != nil {
-			return
-		}
-
-		svc.eventbus.Dispatch(ctx, event.RoleAfterDelete(nil, r))
-
+	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeDelete(nil, res)); err != nil {
 		return
-	}()
+	}
 
-	return err
+	res.DeletedAt = now()
+
+	if err = store.UpdateRole(ctx, s, res); err != nil {
+		return
+	}
+
+	svc.eventbus.Dispatch(ctx, event.RoleAfterDelete(nil, res))
+	return
 }
 
 // onUndelete is the custom body for the generated UndeleteByID. The generated
@@ -470,41 +402,30 @@ func (svc *role) onDelete(ctx context.Context, roleID uint64, raProps *roleActio
 // the RoleBefore/AfterUpdate events (NOT Undelete events), clones the loaded
 // record, guards system roles and clears the deleted_at stamp. The initial
 // {role: {ID: roleID}} action prop is restored here to match the original.
-func (svc *role) onUndelete(ctx context.Context, roleID uint64, raProps *roleActionProps) (err error) {
-	var r, upd *types.Role
+func (svc *role) onUndelete(ctx context.Context, s store.Storer, res *types.Role, raProps *roleActionProps) (err error) {
+	if svc.IsSystem(res) {
+		return RoleErrNotAllowedToUndelete()
+	}
 
-	raProps.setRole(&types.Role{ID: roleID})
+	upd := res.Clone()
+	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, res)); err != nil {
+		return
+	}
 
-	err = func() (err error) {
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return err
-		}
+	if !svc.ac.CanDeleteRole(ctx, upd) {
+		return RoleErrNotAllowedToDelete()
+	}
 
-		if svc.IsSystem(r) {
-			return RoleErrNotAllowedToUndelete()
-		}
+	upd.DeletedAt = nil
+	if err = store.UpdateRole(ctx, s, upd); err != nil {
+		return
+	}
 
-		upd = r.Clone()
-		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
-			return
-		}
+	// Reflect undelete back onto res so the caller sees the updated state.
+	*res = *upd
 
-		raProps.setRole(upd)
-
-		if !svc.ac.CanDeleteRole(ctx, upd) {
-			return RoleErrNotAllowedToDelete()
-		}
-
-		upd.DeletedAt = nil
-		if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
-		return nil
-	}()
-
-	return err
+	svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, res))
+	return nil
 }
 
 func (svc *role) Archive(ctx context.Context, roleID uint64) (err error) {
@@ -542,7 +463,7 @@ func (svc *role) Archive(ctx context.Context, roleID uint64) (err error) {
 		return
 	}()
 
-	return svc.recordAction(ctx, raProps, RoleActionArchive, err)
+	return svc.recordAction(ctx, raProps, RoleActionArchive, err, r, upd)
 }
 
 func (svc *role) Unarchive(ctx context.Context, roleID uint64) (err error) {
@@ -580,7 +501,7 @@ func (svc *role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 		return nil
 	}()
 
-	return svc.recordAction(ctx, raProps, RoleActionUnarchive, err)
+	return svc.recordAction(ctx, raProps, RoleActionUnarchive, err, r, upd)
 }
 
 func (svc *role) CloneRules(ctx context.Context, roleID uint64, cloneToRoleID ...uint64) (err error) {
@@ -861,18 +782,6 @@ func (svc *role) MemberRemoveGroup(ctx context.Context, roleID, userGroupID uint
 	}()
 
 	return svc.recordAction(ctx, raProps, RoleActionMemberRemove, err)
-}
-
-func loadRole(ctx context.Context, s store.Roles, ID uint64) (res *types.Role, err error) {
-	if ID == 0 {
-		return nil, RoleErrInvalidID()
-	}
-
-	if res, err = store.LookupRoleByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, RoleErrNotFound()
-	}
-
-	return
 }
 
 // Initializes roles to RBAC and default role service

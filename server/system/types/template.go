@@ -44,7 +44,3 @@ const (
 	DocumentTypePDF   DocumentType = "application/pdf"
 )
 
-func (t Template) Clone() *Template {
-	c := &t
-	return c
-}

@@ -76,8 +76,32 @@ var (
 		// didn't exist during the pre phase (fresh or partially-old databases)
 		// are covered here; existing columns make it a no-op.
 		fix_2026_06_00_addTenancyScopeColumns,
+		fix_2026_06_22_addDeltaOnActionlog,
+		fix_2026_06_22_addOldStateOnActionlog,
 	}
 )
+
+func fix_2026_06_22_addDeltaOnActionlog(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s,
+		"actionlog",
+		&dal.Attribute{
+			Ident: "Delta",
+			Type:  &dal.TypeJSON{},
+			Store: &dal.CodecAlias{Ident: "delta"},
+		},
+	)
+}
+
+func fix_2026_06_22_addOldStateOnActionlog(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s,
+		"actionlog",
+		&dal.Attribute{
+			Ident: "OldState",
+			Type:  &dal.TypeJSON{},
+			Store: &dal.CodecAlias{Ident: "old_state"},
+		},
+	)
+}
 
 // fix_2026_06_00_addGovernanceOnProjects adds the JSON `governance` column
 // (per-step build/approval workflow state) to projects created before the

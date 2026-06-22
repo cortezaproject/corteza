@@ -32,6 +32,14 @@ type ConfiguredConnection struct {
 	Labels       map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r ConfiguredConnection) Clone() *ConfiguredConnection {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *Connection) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m Connection) Value() (driver.Value, error) { return json.Marshal(m) }
 

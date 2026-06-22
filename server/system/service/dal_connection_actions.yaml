@@ -103,3 +103,7 @@ errors:
     message: "not allowed to execute this connection"
     log: "failed to exec {{connection.handle}}; insufficient permissions"
 
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning

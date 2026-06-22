@@ -68,10 +68,6 @@ type (
 		ReloadDALModels(ctx context.Context) error
 	}
 
-	moduleUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Module) (moduleChanges, error)
-
-	moduleChanges uint8
-
 	// Model management on DAL Service
 	dalModelManager interface {
 		GetConnectionByID(ID uint64) *dal.ConnectionWrap
@@ -84,11 +80,6 @@ type (
 )
 
 const (
-	moduleUnchanged     moduleChanges = 0
-	moduleChanged       moduleChanges = 1
-	moduleLabelsChanged moduleChanges = 2
-	moduleFieldsChanged moduleChanges = 4
-
 	recordTable            = "compose_record"
 	recordFieldID          = "ID"
 	recordFieldModuleID    = "moduleID"
@@ -437,20 +428,247 @@ func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 }
 
 // onUpdate is the generated Update body handler.
-func (svc *module) onUpdate(ctx context.Context, upd *types.Module, aProps *moduleActionProps) (*types.Module, error) {
-	return svc.updater(ctx, upd.NamespaceID, upd.ID, aProps, svc.handleUpdate(ctx, upd))
+func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Module, aProps *moduleActionProps, _ func() error, _ func() error) error {
+	old := res.Clone()
+	svc.procDal(old)
+
+	ns, err := loadNamespace(ctx, s, res.NamespaceID)
+	if err != nil {
+		return err
+	}
+
+	if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+		return ModuleErrInvalidHandle()
+	}
+
+	if err = svc.uniqueCheck(ctx, upd); err != nil {
+		return err
+	}
+
+	if err = validateModuleDedupRules(ctx, upd); err != nil {
+		return ModuleErrDedupConfigurationInvalidMissingConstraint()
+	}
+
+	if !svc.ac.CanUpdateModule(ctx, res) {
+		return ModuleErrNotAllowedToUpdate()
+	}
+
+	if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(res, old, ns)); err != nil {
+		return err
+	}
+
+	// Get max validatorID for later use
+	vvID := make(map[uint64]uint64)
+	for _, f := range res.Fields {
+		for _, v := range f.Expressions.Validators {
+			if vvID[f.ID] < v.ValidatorID {
+				vvID[f.ID] = v.ValidatorID
+			}
+		}
+	}
+
+	moduleModified := false
+	fieldsModified := false
+
+	if res.Name != upd.Name {
+		res.Name = upd.Name
+		moduleModified = true
+	}
+
+	if res.Handle != upd.Handle {
+		res.Handle = upd.Handle
+		moduleModified = true
+	}
+
+	{
+		oldMeta := res.Meta.String()
+		if oldMeta == "{}" {
+			oldMeta = ""
+		}
+		newMeta := upd.Meta.String()
+		if newMeta == "{}" {
+			newMeta = ""
+		}
+		if oldMeta != newMeta {
+			res.Meta = upd.Meta
+			moduleModified = true
+		}
+	}
+
+	_ = handleDalSysFieldEncodingUpdate(upd)
+
+	if !reflect.DeepEqual(res.Config, upd.Config) {
+		res.Config = upd.Config
+		moduleModified = true
+	}
+
+	if (len(upd.Fields) > 0 || len(res.Fields) > 0) && !reflect.DeepEqual(res.Fields, upd.Fields) {
+		res.Fields = upd.Fields
+		fieldsModified = true
+	}
+
+	// Assure validatorIDs
+	for _, f := range res.Fields {
+		for j, v := range f.Expressions.Validators {
+			if v.ValidatorID == 0 {
+				vvID[f.ID] += 1
+				v.ValidatorID = vvID[f.ID]
+				f.Expressions.Validators[j] = v
+				fieldsModified = true
+			}
+		}
+	}
+
+	if upd.Labels != nil && label.Changed(res.Labels, upd.Labels) {
+		res.Labels = upd.Labels
+		if err = label.Update(ctx, s, res); err != nil {
+			return err
+		}
+	}
+
+	if moduleModified {
+		res.UpdatedAt = now()
+	}
+
+	if moduleModified {
+		var defConn *dal.ConnectionWrap
+		if defConn = svc.dal.GetConnectionByID(0); defConn == nil {
+			return fmt.Errorf("could not find default DAL connection")
+		}
+		if old.Config.DAL.ConnectionID == 0 {
+			old.Config.DAL.ConnectionID = defConn.ID
+		}
+		if res.Config.DAL.ConnectionID == 0 {
+			res.Config.DAL.ConnectionID = defConn.ID
+		}
+
+		if err = store.UpdateComposeModule(ctx, s, res); err != nil {
+			return err
+		}
+	}
+
+	if fieldsModified {
+		var hasRecords bool
+		if modelIssues := svc.dal.SearchModelIssues(res.ID); len(modelIssues) != 0 {
+			hasRecords = false
+		}
+
+		if err = updateModuleFields(ctx, s, res, old, hasRecords); err != nil {
+			return err
+		}
+	}
+
+	tt := res.EncodeTranslations()
+	for _, f := range res.Fields {
+		tt = append(tt, f.EncodeTranslations()...)
+	}
+	if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
+		return err
+	}
+
+	if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(res, old, ns)); err != nil {
+		return err
+	}
+	if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, res); err != nil {
+		return err
+	}
+
+	svc.procDal(res)
+	return nil
 }
 
 // onDelete is the generated DeleteByID body handler (namespace-scoped compound id).
-func (svc *module) onDelete(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps) error {
-	_, err := svc.updater(ctx, namespaceID, moduleID, aProps, svc.handleDelete)
-	return err
+func (svc *module) onDelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Module, aProps *moduleActionProps) error {
+	if !svc.ac.CanDeleteModule(ctx, res) {
+		return ModuleErrNotAllowedToDelete()
+	}
+
+	if res.DeletedAt != nil {
+		return nil
+	}
+
+	ns, err := loadNamespace(ctx, s, namespaceID)
+	if err != nil {
+		return err
+	}
+
+	old := res.Clone()
+	svc.procDal(old)
+
+	if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeDelete(res, old, ns)); err != nil {
+		return err
+	}
+
+	res.DeletedAt = now()
+
+	if err = store.UpdateComposeModule(ctx, s, res); err != nil {
+		return err
+	}
+
+	tt := res.EncodeTranslations()
+	for _, f := range res.Fields {
+		tt = append(tt, f.EncodeTranslations()...)
+	}
+	if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
+		return err
+	}
+
+	if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
+		return err
+	}
+	if err = DalModelRemove(ctx, svc.dal, res); err != nil {
+		return err
+	}
+
+	svc.procDal(res)
+	return nil
 }
 
 // onUndelete is the generated UndeleteByID body handler (namespace-scoped compound id).
-func (svc *module) onUndelete(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps) error {
-	_, err := svc.updater(ctx, namespaceID, moduleID, aProps, svc.handleUndelete)
-	return err
+func (svc *module) onUndelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Module, aProps *moduleActionProps) error {
+	if !svc.ac.CanDeleteModule(ctx, res) {
+		return ModuleErrNotAllowedToUndelete()
+	}
+
+	if res.DeletedAt == nil {
+		return nil
+	}
+
+	ns, err := loadNamespace(ctx, s, namespaceID)
+	if err != nil {
+		return err
+	}
+
+	old := res.Clone()
+	svc.procDal(old)
+
+	if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(res, old, ns)); err != nil {
+		return err
+	}
+
+	res.DeletedAt = nil
+
+	if err = store.UpdateComposeModule(ctx, s, res); err != nil {
+		return err
+	}
+
+	tt := res.EncodeTranslations()
+	for _, f := range res.Fields {
+		tt = append(tt, f.EncodeTranslations()...)
+	}
+	if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
+		return err
+	}
+
+	if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(res, old, ns)); err != nil {
+		return err
+	}
+	if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, res); err != nil {
+		return err
+	}
+
+	svc.procDal(res)
+	return nil
 }
 
 // ReloadDALModels reconstructs the DAL's data model based on the store.Storer
@@ -519,151 +737,6 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 	return set, filter, err
 }
 
-func (svc *module) updater(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps, fn moduleUpdateHandler) (*types.Module, error) {
-	var (
-		changes moduleChanges
-
-		ns     *types.Namespace
-		m, old *types.Module
-		err    error
-
-		defConn *dal.ConnectionWrap
-
-		hasRecords bool
-	)
-
-	if aProps.module == nil {
-		aProps.module = &types.Module{ID: moduleID, NamespaceID: namespaceID}
-	}
-
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, m, err = loadModuleCombo(ctx, s, namespaceID, moduleID)
-		if err != nil {
-			return
-		}
-
-		if err = loadModuleLabels(ctx, svc.store, m); err != nil {
-			return err
-		}
-
-		old = m.Clone()
-		// so we can get issues
-		svc.procDal(old)
-
-		aProps.setNamespace(ns)
-		aProps.setChanged(m)
-
-		if m.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(m, old, ns))
-		} else {
-			err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeDelete(m, old, ns))
-		}
-
-		if err != nil {
-			return
-		}
-
-		if changes, err = fn(ctx, ns, m); err != nil {
-			return err
-		}
-
-		if changes&moduleChanged > 0 {
-			{
-				// properly resolve connection ID 0 to the actual ID of the default connection
-				if defConn = svc.dal.GetConnectionByID(0); defConn == nil {
-					return fmt.Errorf("could not find default DAL connection")
-				}
-
-				if old.Config.DAL.ConnectionID == 0 {
-					old.Config.DAL.ConnectionID = defConn.ID
-				}
-				if m.Config.DAL.ConnectionID == 0 {
-					m.Config.DAL.ConnectionID = defConn.ID
-				}
-			}
-
-			// we'll allow connection change on an existing module for now
-			//
-			//if old.Config.DAL.ConnectionID != m.Config.DAL.ConnectionID {
-			//	return fmt.Errorf("unable to switch connection for existing models: run data migration")
-			//}
-
-			if err = store.UpdateComposeModule(ctx, svc.store, m); err != nil {
-				return err
-			}
-		}
-
-		if changes&moduleFieldsChanged > 0 {
-			var (
-			// set types.RecordSet
-
-			// recFilter = types.RecordFilter{
-			// 	Paging: filter.Paging{Limit: 1},
-			// 	Check:  func(r *types.Record) (bool, error) { return true, nil },
-			// }
-			)
-
-			if modelIssues := svc.dal.SearchModelIssues(m.ID); len(modelIssues) == 0 {
-				// if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, recFilter); err != nil {
-				// 	// we should not really abort the update here.
-				// 	//
-				// 	// if we do, in case of a misconfigured module
-				// 	// a model issue is raised and the module cannot be updated.
-				// 	//
-				// 	// a solution similar to soft(warning)/hard(error) issues that
-				// 	// we introduced on record could be used here.
-				// 	logger.Default().Warn("could not list records due to DAL model issues", zap.Error(err))
-				// 	err = nil
-				// }
-				// hasRecords = len(set) > 0
-			} else {
-				hasRecords = false
-			}
-
-			if err = updateModuleFields(ctx, s, m, old, hasRecords); err != nil {
-				return err
-			}
-		}
-
-		// i18n
-		tt := m.EncodeTranslations()
-		for _, f := range m.Fields {
-			tt = append(tt, f.EncodeTranslations()...)
-		}
-
-		if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
-			return
-		}
-
-		if changes&moduleLabelsChanged > 0 {
-			if err = label.Update(ctx, s, m); err != nil {
-				return
-			}
-		}
-
-		if m.DeletedAt == nil {
-			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
-				return err
-			}
-			if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, m); err != nil {
-				return err
-			}
-		} else {
-			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
-				return
-			}
-			if err = DalModelRemove(ctx, svc.dal, m); err != nil {
-				return err
-			}
-		}
-
-		svc.procDal(m)
-		return err
-	})
-
-	return m, err
-}
-
 // lookup fn() orchestrates module lookup, namespace preload and check, module reading...
 //
 // The recordAction wrapper is owned by the caller (the generated onLookup body
@@ -721,138 +794,6 @@ func (svc module) uniqueCheck(ctx context.Context, m *types.Module) (err error) 
 	}
 
 	return nil
-}
-
-func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpdateHandler {
-	return func(ctx context.Context, ns *types.Namespace, res *types.Module) (changes moduleChanges, err error) {
-		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
-			return moduleUnchanged, ModuleErrStaleData()
-		}
-
-		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
-			return moduleUnchanged, ModuleErrInvalidHandle()
-		}
-
-		if err = svc.uniqueCheck(ctx, upd); err != nil {
-			return moduleUnchanged, err
-		}
-
-		if err = validateModuleDedupRules(ctx, upd); err != nil {
-			return moduleUnchanged, ModuleErrDedupConfigurationInvalidMissingConstraint()
-		}
-
-		if !svc.ac.CanUpdateModule(ctx, res) {
-			return moduleUnchanged, ModuleErrNotAllowedToUpdate()
-		}
-
-		// Get max validatorID for later use
-		vvID := make(map[uint64]uint64)
-		for _, f := range res.Fields {
-			for _, v := range f.Expressions.Validators {
-				if vvID[f.ID] < v.ValidatorID {
-					vvID[f.ID] = v.ValidatorID
-				}
-			}
-		}
-
-		if res.Name != upd.Name {
-			changes |= moduleChanged
-			res.Name = upd.Name
-		}
-
-		if res.Handle != upd.Handle {
-			changes |= moduleChanged
-			res.Handle = upd.Handle
-		}
-
-		{
-			oldMeta := res.Meta.String()
-			if oldMeta == "{}" {
-				oldMeta = ""
-			}
-
-			newMeta := upd.Meta.String()
-			if newMeta == "{}" {
-				newMeta = ""
-			}
-
-			if oldMeta != newMeta {
-				changes |= moduleChanged
-				res.Meta = upd.Meta
-			}
-
-		}
-
-		// Verify dal system field mappings
-		_ = handleDalSysFieldEncodingUpdate(upd)
-
-		if !reflect.DeepEqual(res.Config, upd.Config) {
-			changes |= moduleChanged
-			res.Config = upd.Config
-		}
-
-		// check by size first in case if one is nil and other len(0)
-		// @todo make field-change detection more optimal
-		if (len(upd.Fields) > 0 || len(res.Fields) > 0) && !reflect.DeepEqual(res.Fields, upd.Fields) {
-			changes |= moduleFieldsChanged
-			res.Fields = upd.Fields
-		}
-
-		// Assure validatorIDs
-		for _, f := range res.Fields {
-			for j, v := range f.Expressions.Validators {
-				if v.ValidatorID == 0 {
-					vvID[f.ID] += 1
-					v.ValidatorID = vvID[f.ID]
-					f.Expressions.Validators[j] = v
-
-					changes |= moduleFieldsChanged
-				}
-			}
-		}
-
-		if upd.Labels != nil {
-			if label.Changed(res.Labels, upd.Labels) {
-				changes |= moduleLabelsChanged
-				res.Labels = upd.Labels
-			}
-		}
-
-		if changes&moduleChanged > 0 {
-			res.UpdatedAt = now()
-		}
-
-		// for now, we assume that
-		return
-	}
-}
-
-func (svc module) handleDelete(ctx context.Context, ns *types.Namespace, m *types.Module) (moduleChanges, error) {
-	if !svc.ac.CanDeleteModule(ctx, m) {
-		return moduleUnchanged, ModuleErrNotAllowedToDelete()
-	}
-
-	if m.DeletedAt != nil {
-		// module already deleted
-		return moduleUnchanged, nil
-	}
-
-	m.DeletedAt = now()
-	return moduleChanged, nil
-}
-
-func (svc module) handleUndelete(ctx context.Context, ns *types.Namespace, m *types.Module) (moduleChanges, error) {
-	if !svc.ac.CanDeleteModule(ctx, m) {
-		return moduleUnchanged, ModuleErrNotAllowedToUndelete()
-	}
-
-	if m.DeletedAt == nil {
-		// module not deleted
-		return moduleUnchanged, nil
-	}
-
-	m.DeletedAt = nil
-	return moduleChanged, nil
 }
 
 // updates module fields
@@ -1061,11 +1002,12 @@ func loadModuleCombo(ctx context.Context, s store.Storer, namespaceID, moduleID 
 		return
 	}
 
-	m, err = loadModule(ctx, s, namespaceID, moduleID)
+	m, err = loadModuleWithFields(ctx, s, namespaceID, moduleID)
 	return
 }
 
-func loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (res *types.Module, err error) {
+// loadModuleWithFields loads a module by ID (with namespace scope check) and populates its fields.
+func loadModuleWithFields(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (res *types.Module, err error) {
 	if moduleID == 0 {
 		return nil, ModuleErrInvalidID()
 	}
@@ -1075,7 +1017,6 @@ func loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint6
 	}
 
 	if err == nil && namespaceID != res.NamespaceID {
-		// Make sure chart belongs to the right namespace
 		return nil, ModuleErrNotFound()
 	}
 
@@ -1650,4 +1591,12 @@ func handleDalSysFieldEncodingUpdate(mod *types.Module) error {
 		mod.Config.DAL.SystemFieldEncoding.ID.Omit = false
 	}
 	return nil
+}
+
+// loadModuleScoped loads a module by ID and validates it belongs to the given namespace.
+func loadModuleScoped(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (res *types.Module, err error) {
+	if res, err = loadModule(ctx, s, moduleID); err == nil && res.NamespaceID != namespaceID {
+		return nil, ModuleErrNotFound()
+	}
+	return
 }

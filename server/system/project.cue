@@ -94,8 +94,6 @@ project: {
 	service: {
 		genConstructor: true
 
-		events:   false
-
 		// Only Search (+ the struct/ctor via genConstructor) is generated.
 		// FindByID/FindByHandle, Create, Update, DeleteByID (namespace-cascade),
 		// UndeleteByID and the member ops are bespoke and stay hand-written in

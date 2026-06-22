@@ -57,7 +57,6 @@ func (svc *authClient) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 		aProps = &authClientActionProps{}
 		res    *types.AuthClient
 	)
-
 	err = func() (err error) {
 		if res, err = loadAuthClient(ctx, svc.store, ID); err != nil {
 			return

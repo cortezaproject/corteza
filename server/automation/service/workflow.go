@@ -84,17 +84,7 @@ type (
 		Unregister(ptrs ...uintptr)
 	}
 
-	workflowUpdateHandler func(ctx context.Context, ns *types.Workflow) (workflowChanges, error)
-	workflowChanges       uint8
-
 	workflowInvokerCtxKey struct{}
-)
-
-const (
-	workflowUnchanged     workflowChanges = 0
-	workflowChanged       workflowChanges = 1
-	workflowLabelsChanged workflowChanges = 2
-	workflowDefChanged    workflowChanges = 4
 )
 
 func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt, opt options.WorkflowOpt) *workflow {
@@ -230,45 +220,65 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 }
 
 // Update modifies existing workflow resource in the store
-func (svc *workflow) Update(ctx context.Context, upd *types.Workflow) (*types.Workflow, error) {
-	return svc.updater(ctx, upd.ID, WorkflowActionUpdate, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
-		if upd.Meta.Name == "" {
-			return workflowUnchanged, WorkflowErrMissingName()
+func (svc *workflow) Update(ctx context.Context, upd *types.Workflow) (res *types.Workflow, err error) {
+	var (
+		old    *types.Workflow
+		aProps = &workflowActionProps{workflow: &types.Workflow{ID: upd.ID}}
+	)
+
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadWorkflow(ctx, s, upd.ID); err != nil {
+			return
 		}
 
-		if !svc.ac.CanUpdateWorkflow(ctx, res) {
-			return workflowUnchanged, WorkflowErrNotAllowedToUpdate()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
 		}
 
-		handler := svc.handleUpdate(upd)
-		return handler(ctx, res)
+		old = res.Clone()
+		aProps.setWorkflow(res)
+		aProps.setUpdate(res)
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, nil, nil)
 	})
+
+	return res, svc.recordAction(ctx, aProps, WorkflowActionUpdate, err, old, res)
 }
 
-func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) error {
-	return trim1st(svc.updater(ctx, workflowID, WorkflowActionDelete, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
-		changes, err := svc.handleDelete(ctx, res)
-		if err != nil {
-			return workflowUnchanged, err
+func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) (err error) {
+	var (
+		aProps = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
+		res    *types.Workflow
+	)
+
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadWorkflow(ctx, s, workflowID); err != nil {
+			return
 		}
 
-		return changes, err
-	}))
+		aProps.setWorkflow(res)
+		return svc.onDelete(ctx, s, res, aProps)
+	})
+
+	return svc.recordAction(ctx, aProps, WorkflowActionDelete, err)
 }
 
-func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) error {
-	return trim1st(svc.updater(ctx, workflowID, WorkflowActionUndelete, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
-		var (
-			changes, err = svc.handleUndelete(ctx, res)
-		)
+func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) (err error) {
+	var (
+		aProps = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
+		res    *types.Workflow
+	)
 
-		if err != nil {
-			return workflowUnchanged, err
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadWorkflow(ctx, s, workflowID); err != nil {
+			return
 		}
 
-		return changes, err
+		aProps.setWorkflow(res)
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
-	}))
+	return svc.recordAction(ctx, aProps, WorkflowActionUndelete, err)
 }
 
 func (svc workflow) uniqueCheck(ctx context.Context, res *types.Workflow) (err error) {
@@ -281,190 +291,158 @@ func (svc workflow) uniqueCheck(ctx context.Context, res *types.Workflow) (err e
 	return nil
 }
 
-func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func(...*workflowActionProps) *workflowAction, fn workflowUpdateHandler) (*types.Workflow, error) {
-	var (
-		changes workflowChanges
-		res     *types.Workflow
-		aProps  = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
-		err     error
-		g       *wfexec.Graph
-		runAs   intAuth.Identifiable
-	)
-
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-
-		res, err = loadWorkflow(ctx, s, workflowID)
-		if err != nil {
-			return
-		}
-
-		if err = label.Load(ctx, svc.store, res); err != nil {
-			return err
-		}
-
-		aProps.setWorkflow(res)
-		aProps.setUpdate(res)
-
-		if changes, err = fn(ctx, res); err != nil {
-			return err
-		}
-
-		if g, runAs, err = svc.validateWorkflow(ctx, res); err != nil {
-			return
-		}
-
-		svc.updateCache(res, runAs, g)
-
-		if len(res.Issues) == 0 {
-			if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
-				return err
-			}
-		}
-
-		if changes&workflowChanged > 0 || len(res.Issues) > 0 {
-			if err = store.UpdateAutomationWorkflow(ctx, svc.store, res); err != nil {
-				return err
-			}
-		}
-
-		if changes&workflowLabelsChanged > 0 {
-			if err = label.Update(ctx, s, res); err != nil {
-				return
-			}
-		}
-
-		return
-	})
-
-	return res, svc.recordAction(ctx, aProps, action, err)
-}
-
-func (svc *workflow) handleToID(h string) uint64 {
-	svc.muxWIndex.RLock()
-	defer svc.muxWIndex.RUnlock()
-
-	return svc.wIndex[h]
-}
-
-func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
-	return func(ctx context.Context, res *types.Workflow) (changes workflowChanges, err error) {
-		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
-			return workflowUnchanged, WorkflowErrStaleData()
-		}
-
-		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
-			return workflowUnchanged, WorkflowErrInvalidHandle()
-		}
-
-		if err := svc.uniqueCheck(ctx, upd); err != nil {
-			return workflowUnchanged, err
-		}
-
-		if !svc.ac.CanUpdateWorkflow(ctx, res) {
-			return workflowUnchanged, WorkflowErrNotAllowedToUpdate()
-		}
-
-		if res.Handle != upd.Handle {
-			changes |= workflowChanged
-			res.Handle = upd.Handle
-		}
-
-		if res.Enabled != upd.Enabled {
-			changes |= workflowChanged | workflowDefChanged
-			res.Enabled = upd.Enabled
-		}
-
-		if upd.Labels != nil {
-			if label.Changed(res.Labels, upd.Labels) {
-				changes |= workflowLabelsChanged
-				res.Labels = upd.Labels
-			}
-		}
-
-		if res.Trace != upd.Trace {
-			changes |= workflowChanged | workflowDefChanged
-			res.Trace = upd.Trace
-		}
-
-		if res.KeepSessions != upd.KeepSessions {
-			changes |= workflowChanged | workflowDefChanged
-			res.KeepSessions = upd.KeepSessions
-		}
-
-		if upd.Meta != nil {
-			if !reflect.DeepEqual(upd.Meta, res.Meta) {
-				changes |= workflowChanged
-				res.Meta = upd.Meta
-			}
-		}
-
-		if upd.Scope != nil {
-			if !reflect.DeepEqual(upd.Scope, res.Scope) {
-				changes |= workflowChanged | workflowDefChanged
-				res.Scope = upd.Scope
-			}
-		}
-
-		if upd.Steps != nil {
-			if !reflect.DeepEqual(upd.Steps, res.Steps) {
-				changes |= workflowChanged | workflowDefChanged
-				res.Steps = upd.Steps
-			}
-		}
-
-		if upd.Paths != nil {
-			if !reflect.DeepEqual(upd.Paths, res.Paths) {
-				changes |= workflowChanged | workflowDefChanged
-				res.Paths = upd.Paths
-			}
-		}
-
-		if res.RunAs != upd.RunAs {
-			// @todo need to check against access control if current user can modify security descriptor
-			changes |= workflowChanged | workflowDefChanged
-			res.RunAs = upd.RunAs
-		}
-
-		if res.OwnedBy != upd.OwnedBy {
-			// @todo need to check against access control if current user can modify owner
-			changes |= workflowChanged
-			res.OwnedBy = upd.OwnedBy
-		}
-
-		if changes&workflowChanged > 0 {
-			res.UpdatedAt = now()
-		}
-
-		return
+// onUpdate applies field changes from upd onto res, validates, updates the cache
+// and trigger registrations, then persists.
+func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Workflow, aProps *workflowActionProps, _ func() error, _ func() error) error {
+	if upd.Meta.Name == "" {
+		return WorkflowErrMissingName()
 	}
+
+	if !svc.ac.CanUpdateWorkflow(ctx, res) {
+		return WorkflowErrNotAllowedToUpdate()
+	}
+
+	if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+		return WorkflowErrStaleData()
+	}
+
+	if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+		return WorkflowErrInvalidHandle()
+	}
+
+	if err := svc.uniqueCheck(ctx, upd); err != nil {
+		return err
+	}
+
+	changed := false
+	labelsChanged := false
+
+	if res.Handle != upd.Handle {
+		changed = true
+		res.Handle = upd.Handle
+	}
+	if res.Enabled != upd.Enabled {
+		changed = true
+		res.Enabled = upd.Enabled
+	}
+	if upd.Labels != nil && label.Changed(res.Labels, upd.Labels) {
+		labelsChanged = true
+		res.Labels = upd.Labels
+	}
+	if res.Trace != upd.Trace {
+		changed = true
+		res.Trace = upd.Trace
+	}
+	if res.KeepSessions != upd.KeepSessions {
+		changed = true
+		res.KeepSessions = upd.KeepSessions
+	}
+	if upd.Meta != nil && !reflect.DeepEqual(upd.Meta, res.Meta) {
+		changed = true
+		res.Meta = upd.Meta
+	}
+	if upd.Scope != nil && !reflect.DeepEqual(upd.Scope, res.Scope) {
+		changed = true
+		res.Scope = upd.Scope
+	}
+	if upd.Steps != nil && !reflect.DeepEqual(upd.Steps, res.Steps) {
+		changed = true
+		res.Steps = upd.Steps
+	}
+	if upd.Paths != nil && !reflect.DeepEqual(upd.Paths, res.Paths) {
+		changed = true
+		res.Paths = upd.Paths
+	}
+	if res.RunAs != upd.RunAs {
+		// @todo need to check against access control if current user can modify security descriptor
+		changed = true
+		res.RunAs = upd.RunAs
+	}
+	if res.OwnedBy != upd.OwnedBy {
+		// @todo need to check against access control if current user can modify owner
+		changed = true
+		res.OwnedBy = upd.OwnedBy
+	}
+	if changed {
+		res.UpdatedAt = now()
+	}
+
+	g, runAs, err := svc.validateWorkflow(ctx, res)
+	if err != nil {
+		return err
+	}
+
+	svc.updateCache(res, runAs, g)
+
+	if len(res.Issues) == 0 {
+		if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
+			return err
+		}
+	}
+
+	if changed || len(res.Issues) > 0 {
+		if err = store.UpdateAutomationWorkflow(ctx, s, res); err != nil {
+			return err
+		}
+	}
+
+	if labelsChanged {
+		if err = label.Update(ctx, s, res); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (svc workflow) handleDelete(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
+// onDelete soft-deletes the workflow, updates cache, and persists.
+func (svc *workflow) onDelete(ctx context.Context, s store.Storer, res *types.Workflow, aProps *workflowActionProps) error {
 	if !svc.ac.CanDeleteWorkflow(ctx, res) {
-		return workflowUnchanged, WorkflowErrNotAllowedToDelete()
+		return WorkflowErrNotAllowedToDelete()
 	}
 
 	if res.DeletedAt != nil {
-		// workflow already deleted
-		return workflowUnchanged, nil
+		// already deleted
+		return nil
 	}
 
 	res.DeletedAt = now()
-	return workflowChanged, nil
+
+	g, runAs, err := svc.validateWorkflow(ctx, res)
+	if err != nil {
+		return err
+	}
+	svc.updateCache(res, runAs, g)
+
+	return store.UpdateAutomationWorkflow(ctx, s, res)
 }
 
-func (svc workflow) handleUndelete(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
+// onUndelete reverses a soft-delete, updates cache, and persists.
+func (svc *workflow) onUndelete(ctx context.Context, s store.Storer, res *types.Workflow, aProps *workflowActionProps) error {
 	if !svc.ac.CanUndeleteWorkflow(ctx, res) {
-		return workflowUnchanged, WorkflowErrNotAllowedToUndelete()
+		return WorkflowErrNotAllowedToUndelete()
 	}
 
 	if res.DeletedAt == nil {
-		// workflow not deleted
-		return workflowUnchanged, nil
+		// not deleted
+		return nil
 	}
 
 	res.DeletedAt = nil
-	return workflowChanged, nil
+
+	g, runAs, err := svc.validateWorkflow(ctx, res)
+	if err != nil {
+		return err
+	}
+	svc.updateCache(res, runAs, g)
+
+	if len(res.Issues) == 0 {
+		if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
+			return err
+		}
+	}
+
+	return store.UpdateAutomationWorkflow(ctx, s, res)
 }
 
 func (svc *workflow) Load(ctx context.Context) error {
@@ -754,6 +732,13 @@ func makeWorkflowHandler(svc *workflow, wf *types.Workflow, t *types.Trigger) ev
 
 		return
 	}
+}
+
+func (svc *workflow) handleToID(h string) uint64 {
+	svc.muxWIndex.RLock()
+	defer svc.muxWIndex.RUnlock()
+
+	return svc.wIndex[h]
 }
 
 func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {

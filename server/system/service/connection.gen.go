@@ -58,7 +58,6 @@ func (svc *connection) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		aProps = &connectionActionProps{}
 		res    *types.Connection
 	)
-
 	err = func() (err error) {
 		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
 			return
@@ -89,7 +88,6 @@ func (svc *connection) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 		aProps = &connectionActionProps{}
 		res    *types.Connection
 	)
-
 	err = func() (err error) {
 		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
 			return

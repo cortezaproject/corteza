@@ -42,6 +42,8 @@ var (
 			"severity",
 			"description",
 			"meta",
+			"delta",
+			"old_state",
 		).From(actionlogTable)
 	}
 
@@ -63,6 +65,8 @@ var (
 				"severity":       res.Severity,
 				"description":    res.Description,
 				"meta":           res.Meta,
+				"delta":          res.Delta,
+				"old_state":      res.OldState,
 			})
 	}
 
@@ -87,6 +91,8 @@ var (
 						"severity":       res.Severity,
 						"description":    res.Description,
 						"meta":           res.Meta,
+						"delta":          res.Delta,
+						"old_state":      res.OldState,
 					},
 				),
 			)
@@ -109,6 +115,8 @@ var (
 				"severity":       res.Severity,
 				"description":    res.Description,
 				"meta":           res.Meta,
+				"delta":          res.Delta,
+				"old_state":      res.OldState,
 			}).
 			Where(actionlogPrimaryKeys(res))
 	}

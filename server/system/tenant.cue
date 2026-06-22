@@ -86,8 +86,6 @@ tenant: {
 		genConstructor: true
 		filterProp:     "search"
 
-		events: false
-
 		lookup:   false
 		update:   false
 		undelete: false

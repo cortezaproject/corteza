@@ -32,6 +32,14 @@ type Template struct {
 	Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 }
 
+func (r Template) Clone() *Template {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *TemplateMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m TemplateMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

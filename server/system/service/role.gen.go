@@ -8,8 +8,12 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service/event"
 	types "github.com/crusttech/human/server/system/types"
 )
 
@@ -123,24 +127,78 @@ func (svc *role) Create(ctx context.Context, new *types.Role) (res *types.Role, 
 func (svc *role) Update(ctx context.Context, upd *types.Role) (res *types.Role, err error) {
 	var (
 		aProps = &roleActionProps{update: upd}
+		old    *types.Role
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadRole(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
 
-	return res, svc.recordAction(ctx, aProps, RoleActionUpdate, err)
+		aProps.setRole(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return RoleErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return RoleErrStaleData()
+		}
+
+		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, res)); err != nil {
+			return
+		}
+
+		if err = svc.onUpdate(ctx, s, upd, res, aProps); err != nil {
+			return
+		}
+		res.Handle = upd.Handle
+		res.Name = upd.Name
+		res.Meta = upd.Meta
+		res.UpdatedAt = now()
+
+		if err = store.UpdateRole(ctx, s, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+
+		_ = svc.eventbus.WaitFor(ctx, event.RoleAfterUpdate(upd, res))
+
+		return nil
+	})
+
+	return res, svc.recordAction(ctx, aProps, RoleActionUpdate, err, old, res)
 }
 
 func (svc *role) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &roleActionProps{}
+		res    *types.Role
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadRole(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setRole(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, RoleActionDelete, err)
 }
@@ -148,13 +206,35 @@ func (svc *role) DeleteByID(ctx context.Context, ID uint64) (err error) {
 func (svc *role) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &roleActionProps{}
+		res    *types.Role
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadRole(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setRole(res)
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, RoleActionUndelete, err)
+}
+
+func loadRole(ctx context.Context, s store.Roles, ID uint64) (res *types.Role, err error) {
+	if ID == 0 {
+		return nil, RoleErrInvalidID()
+	}
+
+	if res, err = store.LookupRoleByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, RoleErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledRoles converts to []label.LabeledResource

@@ -8,7 +8,11 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
@@ -62,24 +66,55 @@ func (svc *user) Create(ctx context.Context, new *types.User) (res *types.User, 
 func (svc *user) Update(ctx context.Context, upd *types.User) (res *types.User, err error) {
 	var (
 		aProps = &userActionProps{update: upd}
+		old    *types.User
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadUser(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
 
-	return res, svc.recordAction(ctx, aProps, UserActionUpdate, err)
+		aProps.setUser(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
+
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return UserErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return UserErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, UserActionUpdate, err, old, res)
 }
 
 func (svc *user) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &userActionProps{}
+		res    *types.User
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadUser(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setUser(res)
+
+		return svc.onDelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, UserActionDelete, err)
 }
@@ -87,13 +122,35 @@ func (svc *user) DeleteByID(ctx context.Context, ID uint64) (err error) {
 func (svc *user) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		aProps = &userActionProps{}
+		res    *types.User
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadUser(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onUndelete(ctx, ID, aProps)
-	}()
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setUser(res)
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, UserActionUndelete, err)
+}
+
+func loadUser(ctx context.Context, s store.Users, ID uint64) (res *types.User, err error) {
+	if ID == 0 {
+		return nil, UserErrInvalidID()
+	}
+
+	if res, err = store.LookupUserByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, UserErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledUsers converts to []label.LabeledResource

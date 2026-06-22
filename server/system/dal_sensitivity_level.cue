@@ -89,8 +89,9 @@ dal_sensitivity_level: {
 	}
 
 	service: {
-		events: false
-
+		// Single "Manage" permission gates every op, the action-log message
+		// templates all reference {{sensitivityLevel}} and the filter prop is
+		// named "search" (see dal_sensitivity_level_actions.yaml).
 		actionProp: "sensitivityLevel"
 		filterProp: "search"
 

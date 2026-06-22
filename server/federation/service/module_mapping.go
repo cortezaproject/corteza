@@ -41,7 +41,6 @@ type (
 		Update(ctx context.Context, updated *types.ModuleMapping) (*types.ModuleMapping, error)
 	}
 
-	moduleMappingUpdateHandler func(ctx context.Context, c *types.ModuleMapping) (bool, bool, error)
 )
 
 func ModuleMapping() *moduleMapping {
@@ -167,10 +166,6 @@ func (svc *moduleMapping) onCreate(ctx context.Context, new *types.ModuleMapping
 	})
 }
 
-// onUpdate is the custom body for the generated Update. The generated method
-// owns the action-log scaffold + recordAction; the compose namespace/module
-// validation, shared-module access check, store update and the federation-label
-// sync on the compose module live here.
 func (svc *moduleMapping) onUpdate(ctx context.Context, updated *types.ModuleMapping, aProps *moduleMappingActionProps) (*types.ModuleMapping, error) {
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
@@ -198,7 +193,6 @@ func (svc *moduleMapping) onUpdate(ctx context.Context, updated *types.ModuleMap
 			return err
 		}
 
-		// set labels
 		AddFederationLabel(m, "federation", "")
 
 		if _, err := svc.module.Update(ctx, m); err != nil {

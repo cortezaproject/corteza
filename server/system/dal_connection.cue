@@ -116,8 +116,8 @@ dal_connection: {
 	}
 
 	service: {
-		events: false
-
+		// No undelete in the generated public contract; the hand-written
+		// UndeleteByID lives in the companion file as a custom method.
 		undelete: false
 
 		actionProp: "connection"

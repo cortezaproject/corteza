@@ -202,6 +202,7 @@ func (svc dataPrivacy) CreateRequest(ctx context.Context, new *types.DataPrivacy
 func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataPrivacyRequest) (r *types.DataPrivacyRequest, err error) {
 	var (
 		raProps = &dataPrivacyActionProps{update: upd}
+		old     *types.DataPrivacyRequest
 	)
 
 	err = func() (err error) {
@@ -224,6 +225,7 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 		}
 
 		raProps.setDataPrivacyRequest(r)
+		old = r.Clone()
 
 		if err = svc.eventbus.WaitFor(ctx, event.DataPrivacyRequestBeforeUpdate(upd, r)); err != nil {
 			return
@@ -244,7 +246,7 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 		return nil
 	}()
 
-	return r, svc.recordAction(ctx, raProps, DataPrivacyActionApprove, err)
+	return r, svc.recordAction(ctx, raProps, DataPrivacyActionApprove, err, old, r)
 }
 
 func (svc dataPrivacy) FindRequestComments(ctx context.Context, filter types.DataPrivacyRequestCommentFilter) (rr types.DataPrivacyRequestCommentSet, f types.DataPrivacyRequestCommentFilter, err error) {

@@ -22,6 +22,14 @@ type ModuleMapping struct {
 	FieldMapping       ModuleFieldMappingSet `json:"fields"`
 }
 
+func (r ModuleMapping) Clone() *ModuleMapping {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *ModuleFieldMappingSet) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ModuleFieldMappingSet) Value() (driver.Value, error) { return json.Marshal(m) }
 

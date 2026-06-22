@@ -29,6 +29,14 @@ type DalSensitivityLevel struct {
 	DeletedBy uint64                  `json:"deletedBy,string,omitempty"`
 }
 
+func (r DalSensitivityLevel) Clone() *DalSensitivityLevel {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *DalSensitivityLevelMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m DalSensitivityLevelMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 

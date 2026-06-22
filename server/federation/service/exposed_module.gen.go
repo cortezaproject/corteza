@@ -8,7 +8,11 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/store"
 )
 
 func (svc *exposedModule) FindByID(ctx context.Context, nodeID uint64, ID uint64) (res *types.ExposedModule, err error) {
@@ -55,24 +59,59 @@ func (svc *exposedModule) Create(ctx context.Context, new *types.ExposedModule) 
 func (svc *exposedModule) Update(ctx context.Context, upd *types.ExposedModule) (res *types.ExposedModule, err error) {
 	var (
 		aProps = &exposedModuleActionProps{update: upd}
+		old    *types.ExposedModule
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadExposedModule(ctx, s, upd.ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		res, err = svc.onUpdate(ctx, upd, aProps)
-		return err
-	}()
+		aProps.setModule(res)
+		aProps.setUpdate(res)
+		old = res.Clone()
 
-	return res, svc.recordAction(ctx, aProps, ExposedModuleActionUpdate, err)
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return ExposedModuleErrInvalidHandle()
+		}
+
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return ExposedModuleErrStaleData()
+		}
+		before := func() error { return nil }
+		after := func() error { return nil }
+
+		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+	})
+
+	return res, svc.recordAction(ctx, aProps, ExposedModuleActionUpdate, err, old, res)
 }
 
 func (svc *exposedModule) DeleteByID(ctx context.Context, nodeID uint64, ID uint64) (err error) {
 	var (
 		aProps = &exposedModuleActionProps{}
+		res    *types.ExposedModule
 	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadExposedModule(ctx, s, ID); err != nil {
+			return
+		}
 
-	err = func() (err error) {
-		return svc.onDelete(ctx, nodeID, ID, aProps)
-	}()
+		aProps.setModule(res)
+
+		return svc.onDelete(ctx, s, nodeID, res, aProps)
+	})
 
 	return svc.recordAction(ctx, aProps, ExposedModuleActionDelete, err)
+}
+
+func loadExposedModule(ctx context.Context, s store.FederationExposedModules, ID uint64) (res *types.ExposedModule, err error) {
+	if ID == 0 {
+		return nil, ExposedModuleErrInvalidID()
+	}
+
+	if res, err = store.LookupFederationExposedModuleByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, ExposedModuleErrNotFound()
+	}
+
+	return
 }

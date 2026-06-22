@@ -35,6 +35,14 @@ type DalSchemaAlteration struct {
 	DismissedBy  uint64                     `json:"dismissedBy,string,omitempty"`
 }
 
+func (r DalSchemaAlteration) Clone() *DalSchemaAlteration {
+	dup := r
+	if b, err := json.Marshal(r); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
+}
+
 func (m *DalSchemaAlterationParams) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m DalSchemaAlterationParams) Value() (driver.Value, error) { return json.Marshal(m) }
 

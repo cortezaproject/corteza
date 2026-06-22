@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
@@ -33,4 +34,12 @@ type (
 
 func (u *Credential) Valid() bool {
 	return u.ID > 0 && (u.ExpiresAt == nil || u.ExpiresAt.After(time.Now())) && u.DeletedAt == nil
+}
+
+func (u *Credential) Clone() *Credential {
+	dup := *u
+	if b, err := json.Marshal(u); err == nil {
+		_ = json.Unmarshal(b, &dup)
+	}
+	return &dup
 }

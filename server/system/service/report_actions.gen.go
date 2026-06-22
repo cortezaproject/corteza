@@ -10,10 +10,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/system/types"
 	"strings"
 	"time"
@@ -25,6 +27,8 @@ type (
 		new    *types.Report
 		update *types.Report
 		filter *types.ReportFilter
+		diff   []*revisions.Change
+		old    json.RawMessage
 	}
 
 	reportAction struct {
@@ -81,6 +85,22 @@ func (p *reportActionProps) setUpdate(update *types.Report) *reportActionProps {
 // This function is auto-generated.
 func (p *reportActionProps) setFilter(filter *types.ReportFilter) *reportActionProps {
 	p.filter = filter
+	return p
+}
+
+// setDiff stores the field-level delta of the changed resource for the action log.
+//
+// This function is auto-generated.
+func (p *reportActionProps) setDiff(diff []*revisions.Change) *reportActionProps {
+	p.diff = diff
+	return p
+}
+
+// setOld stores the full JSON snapshot of the resource before the update.
+//
+// This function is auto-generated.
+func (p *reportActionProps) setOld(v any) *reportActionProps {
+	p.old, _ = json.Marshal(v)
 	return p
 }
 
@@ -215,12 +235,20 @@ func (a *reportAction) String() string {
 }
 
 func (e *reportAction) ToAction() *actionlog.Action {
+	resource := e.resource
+	if e.props != nil && e.props.report != nil {
+		if r, ok := any(e.props.report).(actionlog.RbacResourcer); ok {
+			resource = r.RbacResource()
+		}
+	}
 	return &actionlog.Action{
-		Resource:    e.resource,
+		Resource:    resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
 		Meta:        e.props.Serialize(),
+		Delta:       actionlog.Delta(e.props.diff),
+		OldState:    actionlog.OldState(e.props.old),
 	}
 }
 
@@ -801,6 +829,38 @@ func ReportErrInvalidConfiguration(mm ...*reportActionProps) *errors.Error {
 	return e
 }
 
+// ReportErrInvalidHandle returns "system:report.invalidHandle" as *errors.Error
+//
+// This function is auto-generated.
+func ReportErrInvalidHandle(mm ...*reportActionProps) *errors.Error {
+	var p = &reportActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "system:report"),
+
+		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.invalidHandle"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
@@ -809,7 +869,11 @@ func ReportErrInvalidConfiguration(mm ...*reportActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-func (svc report) recordAction(ctx context.Context, props *reportActionProps, actionFn func(...*reportActionProps) *reportAction, err error) error {
+func (svc report) recordAction(ctx context.Context, props *reportActionProps, actionFn func(...*reportActionProps) *reportAction, err error, diff ...any) error {
+	if len(diff) == 2 && diff[0] != nil {
+		props.setDiff(actionlog.DiffResourceState(diff[0], diff[1]))
+		props.setOld(diff[0])
+	}
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err
