@@ -191,6 +191,9 @@ func (h *pageHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		if err != nil {
 			return nil, fmt.Errorf("invalid blocks: %w", err)
 		}
+		if err = resolveBlockRefs(ctx, ns.ID, blocks); err != nil {
+			return nil, err
+		}
 		pg.Blocks = blocks
 	}
 
@@ -292,6 +295,9 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		blocks, err := parsePageBlocks(rawBlocks)
 		if err != nil {
 			return nil, fmt.Errorf("invalid blocks: %w", err)
+		}
+		if err = resolveBlockRefs(ctx, ns.ID, blocks); err != nil {
+			return nil, err
 		}
 		merged, err := mergePageBlocks(pg.Blocks, blocks)
 		if err != nil {
@@ -490,7 +496,98 @@ func mergePageBlocks(existing, incoming cmpTypes.PageBlocks) (cmpTypes.PageBlock
 	return out, nil
 }
 
-// parsePageBlocks unmarshals a JSON string or array into PageBlocks.
+// resolveBlockRefs translates human-readable module/chart references in block
+// options to their uint64 ID strings, which the frontend SDK requires.
+// Handles: RecordList.module, Chart.chart, and any moduleID field that looks
+// like a name rather than an already-numeric ID.
+func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBlocks) error {
+	for i := range blocks {
+		b := &blocks[i]
+		if b.Options == nil {
+			continue
+		}
+
+		// module → module ID (RecordList)
+		if ref, _ := b.Options["module"].(string); ref != "" {
+			if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
+				mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
+				if err != nil {
+					return fmt.Errorf("block %q: module %q not found: %w", b.Title, ref, err)
+				}
+				b.Options["module"] = strconv.FormatUint(mod.ID, 10)
+			}
+		}
+
+		// moduleID → module ID (Metric, Progress, Comment, RecordOrganizer, etc.)
+		if ref, _ := b.Options["moduleID"].(string); ref != "" {
+			if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
+				mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
+				if err != nil {
+					return fmt.Errorf("block %q: moduleID %q not found: %w", b.Title, ref, err)
+				}
+				b.Options["moduleID"] = strconv.FormatUint(mod.ID, 10)
+			}
+		}
+
+		// chart → chart ID (Chart block)
+		if ref, _ := b.Options["chart"].(string); ref != "" {
+			if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
+				ch, err := findChartByAny(ctx, nsID, ref)
+				if err != nil {
+					return fmt.Errorf("block %q: chart %q not found: %w", b.Title, ref, err)
+				}
+				b.Options["chart"] = strconv.FormatUint(ch.ID, 10)
+			}
+		}
+
+		// Calendar feeds[].moduleID and Metric metrics[].moduleID
+		for _, arrayKey := range []string{"feeds", "metrics"} {
+			items, _ := b.Options[arrayKey].([]interface{})
+			for _, item := range items {
+				m, _ := item.(map[string]interface{})
+				if m == nil {
+					continue
+				}
+				if ref, _ := m["moduleID"].(string); ref != "" {
+					if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
+						mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
+						if err != nil {
+							return fmt.Errorf("block %q %s item: moduleID %q not found: %w", b.Title, arrayKey, ref, err)
+						}
+						m["moduleID"] = strconv.FormatUint(mod.ID, 10)
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func findChartByAny(ctx context.Context, nsID uint64, ref string) (*cmpTypes.Chart, error) {
+	if id, err := strconv.ParseUint(ref, 10, 64); err == nil {
+		return cmpService.DefaultChart.FindByID(ctx, nsID, id)
+	}
+	if c, err := cmpService.DefaultChart.FindByHandle(ctx, nsID, ref); err == nil {
+		return c, nil
+	}
+	set, _, err := cmpService.DefaultChart.Find(ctx, cmpTypes.ChartFilter{
+		NamespaceID: nsID,
+		Query:       ref,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("chart lookup failed: %w", err)
+	}
+	for _, c := range set {
+		if strings.EqualFold(c.Name, ref) || strings.EqualFold(c.Handle, ref) {
+			return c, nil
+		}
+	}
+	return nil, fmt.Errorf("chart %q not found", ref)
+}
+
+// parsePageBlocks unmarshals a JSON string or array into PageBlocks and
+// normalizes layout: width defaults to 12 (full grid) and blocks are stacked
+// vertically in the order given, so agents only need to supply kind + options.
 func parsePageBlocks(raw interface{}) (cmpTypes.PageBlocks, error) {
 	var data []byte
 	switch v := raw.(type) {
@@ -506,7 +603,42 @@ func parsePageBlocks(raw interface{}) (cmpTypes.PageBlocks, error) {
 	if err := json.Unmarshal(data, &blocks); err != nil {
 		return nil, fmt.Errorf("blocks must be a JSON array: %w", err)
 	}
-	return blocks, nil
+	return autoLayoutBlocks(blocks), nil
+}
+
+// autoLayoutBlocks stacks blocks top-to-bottom at full grid width (12 columns).
+// This corrects the common agent mistake of passing wrong or missing xywh values.
+// Explicit heights are preserved; missing heights get a per-kind default.
+func autoLayoutBlocks(blocks cmpTypes.PageBlocks) cmpTypes.PageBlocks {
+	y := 0
+	for i := range blocks {
+		b := &blocks[i]
+		b.XYWH[0] = 0  // x: left edge
+		b.XYWH[1] = y  // y: stacked below previous block
+		b.XYWH[2] = 12 // w: full grid width
+		if b.XYWH[3] == 0 {
+			b.XYWH[3] = defaultBlockHeight(b.Kind)
+		}
+		y += b.XYWH[3]
+	}
+	return blocks
+}
+
+func defaultBlockHeight(kind string) int {
+	switch kind {
+	case "RecordList", "Record", "Calendar", "RecordOrganizer", "ChatbotInbox":
+		return 20
+	case "Chart":
+		return 12
+	case "Metric", "Progress":
+		return 6
+	case "Content", "SocialFeed", "Comment":
+		return 10
+	case "Automation":
+		return 8
+	default:
+		return 15
+	}
 }
 
 // parsePageIcon unmarshals a JSON string or object into PageConfigIcon.

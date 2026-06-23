@@ -1,6 +1,6 @@
 ---
 name: page_building
-description: Rules and reference for building Compose pages.
+description: Block options reference and layout rules for Compose pages.
 triggers:
   - compose_page_lookup
   - compose_page_create
@@ -12,60 +12,45 @@ triggers:
 
 # Page Building
 
-A page is a screen in the application's navigation. It can contain blocks that display records, charts, content, and more.
+## Page types
 
-There are two distinct page types:
+- **Module pages** — always a list+detail pair. See the record_list and record page skills.
+- **Dashboard pages** — overview screens with charts, metrics, and summaries. A single page, no module.
+- **Content pages** — informational screens. A single page with Content blocks.
 
-1. **Record list page** — shows all records in a table. Do NOT set the module parameter at page level. Add a RecordList block with moduleID in its options.
-2. **Record detail page** — the form for viewing or editing a single record. Set the module parameter at page level. Add a Record block with the fields to display. Only one record detail page can exist per module.
+## Block options reference
 
-## Record list + detail go together
+Options keys must match exactly — wrong keys are silently ignored.
 
-When you create a list page for a module, also create the matching record detail page:
+**RecordList**: `{"module": "<module name or ID>", "fields": [{"name": "fieldName"}, ...], "perPage": 20}`
+— `module` is required. `fields` filters which columns show (omit for all). `prefilter` and `presort` accept filter/sort expressions.
 
-- Set the detail page's `parent` to the list page (so it's nested under it).
-- Set the detail page's `visible: false` — it should not show up in main navigation; it opens by clicking a record in the list.
-- Reorder so the detail page sits directly under its list page using `compose_page_reorder` if it isn't already.
+**Record**: `{"fields": [{"name": "fieldName"}, ...]}`
+— No `module` here. Module comes from the page. Omit `fields` to show all.
 
-If a record list page exists without a matching detail page, the user can't open individual records. Treat them as a pair.
+**Chart**: `{"chart": "<chart name or ID>"}`
+— Key is `"chart"`, not `"chartID"`.
 
-## Creating a page
+**Content**: `{"body": "<p>HTML here</p>"}`
 
-- Call `compose_page_create` directly. Never suggest that an existing page could serve the same purpose. Never ask if the user wants to use something else instead.
-- Use the title the user specifies directly — do not check whether a similar page already exists before creating.
-- Never ask for a namespace — resolve it with `compose_namespace_lookup`.
+**Metric**: `{"metrics": [{"label": "Total", "moduleID": "<module name or ID>", "field": "fieldName", "reduce": "count"}]}`
 
-## Adding a block to an existing page
+**Calendar**: `{"defaultView": "month", "feeds": [{"moduleID": "<module name or ID>", "startField": "start", "endField": "end", "titleField": "name"}]}`
 
-Follow this sequence — never skip a step:
+**Comment**: `{"moduleID": "<module name or ID>", "commentField": "fieldName", "titleField": "fieldName"}`
 
-1. Call `compose_page_lookup` with the page handle/title. The response is the single source of truth for what's on the page. Treat anything not in this response as not existing.
-2. Compute `nextY = max(block.y + block.h)` across the existing blocks. This is the y for your new block — anything lower will overlap.
-3. Call `compose_page_update` with `blocks` containing only the new block. Do not include `blockID` — that's how the handler knows it's new. Existing blocks you don't pass are kept.
+**Progress**: `{"moduleID": "<module name or ID>", "field": "fieldName", "minValue": 0, "maxValue": 100}`
 
-A typical new full-width block looks like `{"kind": "Content", "xywh": [0, <nextY>, 12, 4], "options": {...}}`.
+**RecordOrganizer**: `{"moduleID": "<module name or ID>", "groupField": "status", "labelField": "name"}`
 
-When the user asks to add a block, ADD IT. Do not claim it already exists unless the lookup response from THIS turn contains a block of the matching kind AND content. Past conversations, your own prior messages, or assumptions are not evidence — only the JSON returned by the most recent `compose_page_lookup` counts.
+**Automation**: `{"buttons": [{"label": "Run", "enabled": true, "workflowID": "<id>"}]}`
 
-## Editing an existing block
+Module and chart references can be names or IDs — the server resolves them automatically.
 
-- Look the page up to get the existing block's `blockID`.
-- Call `compose_page_update` with that block in `blocks`, including the `blockID` exactly as returned by lookup. Never invent or guess a `blockID`.
+## Adding and editing blocks
 
-## Layout
+To add a new block: call `compose_page_update` with only the new block in `blocks`, without a `blockID`. Existing blocks are preserved automatically.
 
-Grid is 12 columns wide. Full-width = `w: 12`. Heights are roughly `h: 4` for a small Content/Metric block, `h: 20` for a list. Blocks must not overlap on the y-axis — overlapping blocks get rendered side-by-side at half-width.
+To edit an existing block: look the page up first, include the block's `blockID` exactly as returned. Never invent a `blockID`.
 
-## Block options
-
-`compose_page_block_schema` returns only the field names. Use these option formats:
-
-- `Content`: `{"body": "<p>HTML content here</p>"}` — body holds raw HTML.
-- `RecordList`: `{"moduleID": "<id>"}` — at minimum the module to list.
-- `Record`: `{"moduleID": "<id>"}` — the module whose record is being shown.
-- `Chart`: `{"chartID": "<id>"}` — references an existing chart definition.
-- `Metric`: `{"moduleID": "<id>", "metrics": [...]}` — see schema for shape.
-
-## Block kinds
-
-`Record`, `RecordList`, `Chart`, `Automation`, `Content`, `Metric`, `Progress`, `Comment`, `Calendar`, `RecordOrganizer`, `SocialFeed`.
+When the user asks to add a block, look the page up first and check what's actually there. Only the response from that lookup counts — not memory, not prior turns.
