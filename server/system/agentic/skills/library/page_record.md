@@ -26,11 +26,12 @@ Call `compose_page_create` with:
 ```json
 [{
   "kind": "Record",
-  "title": "Sleep Log"
+  "title": "Sleep Log",
+  "options": {}
 }]
 ```
 
-Omit `fields` in the Record block options to show all module fields. Set `fields` only if the user asks to show specific fields.
+Do not include `xywh` — the server sets width to 12 and computes height from the number of fields automatically. Omit `fields` in options to show all module fields; set `fields` only if the user asks for specific ones.
 
 ## Record list needs a detail page to be usable
 

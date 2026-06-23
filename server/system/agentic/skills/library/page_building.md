@@ -29,11 +29,12 @@ Options keys must match exactly — wrong keys are silently ignored.
 — No `module` here. Module comes from the page. Omit `fields` to show all.
 
 **Chart**: `{"chart": "<chart name or ID>"}`
-— Key is `"chart"`, not `"chartID"`.
+— Key is `"chart"`, not `"chartID"`. You cannot create charts. If the user asks for a page with charts, tell them you cannot create charts yet and skip the Chart blocks.
 
 **Content**: `{"body": "<p>HTML here</p>"}`
 
-**Metric**: `{"metrics": [{"label": "Total", "moduleID": "<module name or ID>", "field": "fieldName", "reduce": "count"}]}`
+**Metric**: `{"metrics": [{"label": "Total Records", "moduleID": "<module name or ID>", "field": "fieldName", "reduce": "count"}]}`
+— `label` is required on every metric item. Without it the block shows "Unnamed metric".
 
 **Calendar**: `{"defaultView": "month", "feeds": [{"moduleID": "<module name or ID>", "startField": "start", "endField": "end", "titleField": "name"}]}`
 
