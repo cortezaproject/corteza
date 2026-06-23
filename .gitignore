@@ -13,3 +13,4 @@ dist
 .docker-build
 config.js
 .claude
+CLAUDE.md
