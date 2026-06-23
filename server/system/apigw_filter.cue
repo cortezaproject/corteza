@@ -97,17 +97,9 @@ apigw_filter: {
 	}
 
 	service: {
-		// Every CRUD op is bespoke: access control delegates to the parent
-		// ApigwRoute (Can*ApigwRoute), each op loads the route, validates and
-		// fires an endpoint reload side-effect. So all ops are custom-bodied and
-		// custom-access. Undelete is left hand-written: the original records
-		// ApigwFilterActionDelete (not Undelete) which the generated body cannot
-		// reproduce, so it stays out of the generator.
 		customBodyOps:   ["lookup", "search", "create", "update", "delete"]
 		customAccessOps: ["lookup", "search", "create", "update", "delete"]
 
-		// action-log props: resource prop is "filter", search prop is "search",
-		// Create/Update reuse "filter" (no dedicated new/update field on props).
 		actionProp:     "filter"
 		filterProp:     "search"
 		omitCreateProp: true

@@ -186,31 +186,17 @@ page: {
 	}
 
 	service: {
-		// namespace-scoped compound-id resource: FindByID/DeleteByID/UndeleteByID
-		// and their on<Op> hooks take the parent namespaceID as a leading arg.
 		scoped: true
 
 		undelete: true
 
-		// page's CRUD is bespoke (namespace preload, tx, eventbus, block id
-		// generation, subpage cascade on delete) so every op delegates its body to
-		// an on<Op> handler in the companion file.
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
-		// search/create access checks run against the loaded namespace
-		// (CanSearchPagesOnNamespace / CanCreatePageOnNamespace) inside the on<Op>
-		// handlers, so the generated scaffold must not emit a standard check.
 		customAccessOps: ["search", "create"]
 
-		// page's action props expose `page`/`changed`, not the default `new`/
-		// `update`. actionProp already sets `page` in Create, so omit the second
-		// prop; map Update's prop onto `changed`.
 		omitCreateProp: true
 		updateProp:     "changed"
 
-		// public DeleteByID carries the child-delete strategy after the page id:
-		//   DeleteByID(ctx, namespaceID, pageID, strategy types.PageChildrenDeleteStrategy)
-		// forwarded to onDelete after the ID.
 		deleteExtraArgs: [
 			{name: "strategy", goType: "types.PageChildrenDeleteStrategy"},
 		]

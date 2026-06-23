@@ -79,18 +79,6 @@ resource_translation: {
 	}
 
 	service: {
-		// All ops use a single, non-RBAC access check (CanManageResourceTranslations)
-		// and bespoke bodies that differ from the standard CRUD scaffold
-		// (Lookup is exposed as Read, Search as List, no events, no labels, the
-		// lookup wraps store errors as InvalidID rather than NotFound, Create sets
-		// CreatedBy, Update copies a custom field set incl. OwnedBy/UpdatedBy).
-		//
-		// => every op delegates its body to a hand-written svc.on<Op> in the
-		//    companion file, and every op opts out of the generated access check.
-		//
-		// NOTE: the public method names are unified by the generator
-		// (FindByID/Search/Create/Update/DeleteByID/UndeleteByID); the former
-		// Read/List/Delete/Undelete names are gone and all callers were updated.
 		genConstructor: true
 
 		undelete: true

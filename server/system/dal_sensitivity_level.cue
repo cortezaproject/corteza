@@ -89,26 +89,15 @@ dal_sensitivity_level: {
 	}
 
 	service: {
-		// No eventbus events are emitted by this service.
 		events: false
 
-		// Single "Manage" permission gates every op, the action-log message
-		// templates all reference {{sensitivityLevel}} and the filter prop is
-		// named "search" (see dal_sensitivity_level_actions.yaml).
 		actionProp: "sensitivityLevel"
 		filterProp: "search"
 
-		// UndeleteByID exists in the companion file.
 		undelete: true
 
-		// Every CRUD body is bespoke (store.Tx wrapper, svc.prepare normalization,
-		// DAL ReplaceSensitivityLevel / RemoveSensitivityLevel side-effects), so all
-		// bodies delegate to hand-written on<Op> handlers.
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
-		// Access is a single CanManageDalSensitivityLevel check (not the standard
-		// CanSearch* / CanCreate* names), performed inside the on<Op> handlers --
-		// suppress the standard search/create access checks in the scaffold.
 		customAccessOps: ["search", "create"]
 	}
 

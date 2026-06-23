@@ -120,10 +120,6 @@ agent: {
 
 		undelete: false
 
-		// lookup   -> custom body loads labels after the read access check
-		// search   -> label filtering + Check + label load
-		// create   -> Revision/Status defaults, optional temperature validation, prepareTCL
-		// update   -> Revision bump, optional temperature validation, prepareTCL, whole-record store
 		customBodyOps: ["lookup", "search", "create", "update"]
 	}
 

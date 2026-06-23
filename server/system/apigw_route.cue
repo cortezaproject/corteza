@@ -126,17 +126,11 @@ apigw_route: {
 	}
 
 	service: {
-		// action-log resource prop is "route" (not the "apigwRoute" ident)
 		actionProp: "route"
-		// Search records under the "search" action-log prop
 		filterProp: "search"
 
 		undelete: true
 
-		// lookup + search use the standard generated bodies (FindByID/Search);
-		// create/update/delete/undelete carry bespoke logic (CreatedBy/Group
-		// defaulting, endpoint-moved 404 handling, apigw reload/not-found
-		// signalling, soft-delete via UpdateApigwRoute) handled by on<Op>.
 		customBodyOps: ["create", "update", "delete", "undelete"]
 	}
 

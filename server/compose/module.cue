@@ -141,25 +141,14 @@ module: {
 	}
 
 	service: {
-		// namespace-scoped compound-id resource: FindByID/DeleteByID/UndeleteByID
-		// and their on<Op> hooks take the parent namespaceID as a leading arg.
 		scoped: true
 
 		undelete: true
 
-		// module's CRUD is bespoke (namespace preload, tx, field management, DAL
-		// model replace, eventbus events, translations) so every op delegates its
-		// body to an on<Op> handler.
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
-		// search/create access checks run against the loaded namespace
-		// (CanSearchModulesOnNamespace / CanCreateModuleOnNamespace) inside the
-		// on<Op> handlers, so the generated scaffold must not emit a standard check.
 		customAccessOps: ["search", "create"]
 
-		// module's action props expose `module`/`changed`, not the default `new`/
-		// `update`. actionProp already sets `module` in Create, so omit the second
-		// prop; map Update's prop onto `changed`.
 		omitCreateProp: true
 		updateProp:     "changed"
 	}

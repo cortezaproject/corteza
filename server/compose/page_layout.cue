@@ -154,32 +154,19 @@ pageLayout: {
 	}
 
 	service: {
-		// namespace+page-scoped compound-id resource. The by-id methods have
-		// NON-UNIFORM parent arity: FindByID takes only the namespace, while
-		// DeleteByID/UndeleteByID take both namespace and page. opParents.lookup
-		// narrows FindByID to the namespace parent; delete/undelete fall back to the
-		// full [namespace, page] parents list.
+
 		scoped: true
 
 		undelete: true
 
-		// pageLayout's CRUD is bespoke (namespace/page preload, tx, eventbus,
-		// personal-layout RBAC bypass, block id generation) so every op delegates
-		// its body to an on<Op> handler in the companion file.
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
-		// search/create access checks run against the loaded page inside the on<Op>
-		// handlers, so the generated scaffold must not emit a standard check.
 		customAccessOps: ["search", "create"]
 
-		// FindByID emits one parent (namespace); Delete/Undelete emit both.
 		opParents: {
 			lookup: ["namespace"]
 		}
 
-		// pageLayout's action props expose `pageLayout`/`changed`, not the default
-		// `new`/`update`. actionProp already sets `pageLayout` in Create, so omit
-		// the second prop; map Update's prop onto `changed`.
 		omitCreateProp: true
 		updateProp:     "changed"
 	}

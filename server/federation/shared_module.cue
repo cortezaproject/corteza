@@ -101,27 +101,15 @@ sharedModule: {
 	}
 
 	service: {
-		// node-scoped compound-id resource: FindByID takes the parent nodeID as a
-		// leading arg (FindByID(ctx, nodeID, moduleID)).
 		scoped: true
 
-		// no soft-delete: the model has no delete op exposed on the service.
 		delete:   false
 		undelete: false
 
-		// every op's body is bespoke (cross-node federation logic, node preload,
-		// no-access-check lookup/search that the standard scaffold can't express)
-		// so each delegates to a hand-written on<Op> handler.
 		customBodyOps: ["lookup", "search", "create", "update"]
 
-		// search/create do not run a standard RBAC check: search has no access
-		// check at all and create checks CanCreateModuleOnNode against the loaded
-		// node inside onCreate. Keep the generated scaffold from emitting one.
 		customAccessOps: ["search", "create"]
 
-		// action props expose `module`/`changed`, not the default `sharedModule`/
-		// `new`. Lookup/Create reference {{module}}; Create also sets `changed`;
-		// Update sets `module`.
 		actionProp: "module"
 		createProp: "changed"
 		updateProp: "module"

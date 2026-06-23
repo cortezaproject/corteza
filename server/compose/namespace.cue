@@ -84,25 +84,11 @@ namespace: {
 	}
 
 	service: {
-		// single-id (non-compound) resource: FindByID/Search/Create/Update/
-		// DeleteByID. UndeleteByID and the import/clone surface stay hand-written
-		// in the companion file (custom methods), so undelete generation is off.
 
-		// namespace CRUD is bespoke (label load on lookup, i18n decode + label load
-		// on search, tx + translations + uniqueCheck + setChanged on create, the
-		// shared updater for update/delete) so every op delegates its body to an
-		// on<Op> handler.
 		customBodyOps: ["lookup", "search", "create", "update", "delete"]
 
-		// create's access check (CanCreateNamespace) runs INSIDE the tx, after the
-		// handle validation, so the generated scaffold must not emit a standard
-		// check for it. search keeps the standard CanSearchNamespaces check (emitted
-		// by the generated wrapper, like system application), so it is not listed.
 		customAccessOps: ["create"]
 
-		// namespace's action props expose `namespace`/`changed`, not the default
-		// `new`/`update`. actionProp already sets `namespace` in Create, so omit the
-		// second prop; map Update's prop onto `changed`.
 		omitCreateProp: true
 		updateProp:     "changed"
 	}

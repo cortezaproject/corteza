@@ -144,11 +144,8 @@ trigger: {
 	}
 
 	service: {
-		// no eventbus Before/After CRUD events
 		events: false
 
-		// trigger exposes a bespoke LookupByID (custom name + label load), kept in
-		// the companion file -- do not generate FindByID.
 		lookup: false
 
 		search:   true
@@ -157,15 +154,8 @@ trigger: {
 		delete:   true
 		undelete: true
 
-		// every CRUD body is bespoke (workflow preload + registration on Create,
-		// diff-based updater/handleUpdate/handleDelete/handleUndelete) so each op
-		// delegates its body to a hand-written on<Op> handler.
 		customBodyOps: ["search", "create", "update", "delete", "undelete"]
 
-		// create/update/delete/undelete access checks run against the loaded
-		// workflow (CanManageTriggersOnWorkflow), not a standard CanX check, so the
-		// generated scaffold must not emit a standard access check for them. Search
-		// keeps the standard CanSearchTriggers check.
 		customAccessOps: ["create", "update", "delete", "undelete"]
 	}
 

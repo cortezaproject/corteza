@@ -118,24 +118,13 @@ dal_connection: {
 	service: {
 		events: false
 
-		// No undelete in the generated public contract; the hand-written
-		// UndeleteByID lives in the companion file as a custom method.
 		undelete: false
 
-		// Action-log prop is named "connection" (not the resource ident).
 		actionProp: "connection"
 		filterProp: "search"
 
-		// Every CRUD op has a bespoke body (proc enrichment, dal manager
-		// side-effects, primary-connection handling, type/name validation)
-		// so each is delegated to its on<Op> handler.
 		customBodyOps: ["lookup", "search", "create", "update", "delete"]
 
-		// lookup/update/delete already delegate access through customBodyOps.
-		// search and create also need their access check moved into the body
-		// (search builds a filter.Check first; create runs the missing-name
-		// guard before the access check), so they opt out of the generated
-		// access scaffold too.
 		customAccessOps: ["search", "create"]
 	}
 

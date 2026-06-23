@@ -71,24 +71,14 @@ nodeSync: {
 	}
 
 	service: {
-		// node_sync is an internal sync-bookkeeping service with no RBAC or REST
-		// exposure -- only the federation sync workers call it. It implements just
-		// Create + Search (plus the hand-written LookupLastSuccessfulSync). All
-		// absent ops are toggled off.
 		lookup:   false
 		update:   false
 		delete:   false
 		undelete: false
 
-		// Create has a sync-specific body (it verifies the referenced node exists
-		// before storing) and Search is a plain store passthrough. Both ops carry
-		// NO access control, so they are delegated to hand-written on<Op> handlers
-		// and their access checks are suppressed via customAccessOps.
 		customBodyOps:   ["create", "search"]
 		customAccessOps: ["create", "search"]
 
-		// the create action props expose the resource under "nodeSync" with no
-		// separate "new" prop; the filter prop is "nodeSyncFilter".
 		omitCreateProp: true
 		filterProp:     "nodeSyncFilter"
 	}

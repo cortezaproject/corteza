@@ -69,22 +69,13 @@ moduleMapping: {
 	}
 
 	service: {
-		// module mapping has no soft-delete; only lookup/search/create/update
 		delete:   false
 		undelete: false
 
-		// every op is bespoke (federation-specific store funcs, shared-module
-		// access checks, compose module/namespace/node validation, label sync) so
-		// the generator only emits the action-log scaffold and delegates the body
-		// to the hand-written on<Op> handlers.
 		customBodyOps: ["lookup", "search", "create", "update"]
 
-		// access is enforced per shared module (CanMapSharedModule), not the
-		// standard CanSearch/CanCreate RBAC ops, so suppress those checks in the
-		// generated Search/Create wrappers.
 		customAccessOps: ["search", "create"]
 
-		// action-log prop names (match module_mapping_actions.yaml)
 		actionProp: "mapping"
 		createProp: "created"
 		updateProp: "changed"

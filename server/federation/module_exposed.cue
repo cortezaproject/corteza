@@ -98,23 +98,12 @@ exposedModule: {
 	}
 
 	service: {
-		// node-scoped compound-id resource: FindByID/DeleteByID and their on<Op>
-		// hooks take the parent nodeID as a leading arg.
 		scoped: true
 
-		// every op's body is bespoke (node/namespace/compose-module preload, tx,
-		// uniqueness check, role grant, label sync) so each op delegates to an
-		// on<Op> handler. No undelete op exists on this resource.
 		customBodyOps: ["lookup", "search", "create", "update", "delete"]
 
-		// this resource has no standard read/update/delete RBAC ops -- search runs
-		// no access check and create checks CanCreateModuleOnNode inside onCreate,
-		// so the generated scaffold must not emit a standard access check for them.
-		// (lookup/update/delete bodies are fully delegated and emit no check.)
 		customAccessOps: ["search", "create"]
 
-		// action-log props expose `module`/`create` (see exposed_module_actions.yaml),
-		// not the default `exposedModule`/`new`.
 		actionProp: "module"
 		createProp: "create"
 	}

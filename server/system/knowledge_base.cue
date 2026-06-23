@@ -88,24 +88,14 @@ knowledge_base: {
 		genAccessController: true
 		genConstructor:      true
 
-		// no eventbus events: the original service does not emit any and the
-		// struct carries no eventbus dependency
 		events: false
 
 		undelete: true
 
-		// the action-log filter prop is named "search" (not the default "filter")
 		filterProp: "search"
 
-		// Update is bespoke: access is checked on the incoming `upd` (before the
-		// existing record is loaded), the existing audit fields are copied ONTO
-		// `upd`, and `upd` (not the loaded record) is what gets persisted.
-		// Undelete is bespoke too: it sets UpdatedAt/UpdatedBy and there is no
-		// dedicated notAllowedToUndelete error (it reuses notAllowedToDelete).
 		customBodyOps: ["update", "undelete"]
 
-		// audit-author bookkeeping (CreatedBy / DeletedBy) the standard scaffold
-		// does not emit lives in these hooks
 		hooks: {
 			beforeCreate: true
 			beforeDelete: true
