@@ -164,7 +164,6 @@ import { fieldTypeLabelKey } from '@/sections/project/config/fieldTypes'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useConfirmDelete } from '@planetcrust/human-vue'
-import { useToast } from 'primevue/usetoast'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -175,7 +174,7 @@ const props = defineProps({
 
 const { t } = useI18n()
 const store = useProjectsStore()
-const toast = useToast()
+const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 const configureResource = inject('configureResource', null)
 const createResource = inject('createResource', null)
@@ -215,19 +214,9 @@ function removeModule(m) {
 async function handleRemoveModule(m) {
   try {
     await store.removeResource(props.project.id, m.id)
-    toast.add({
-      severity: 'success',
-      summary: t('project.dataModel.toast.removed'),
-      detail: m.name,
-      life: 2500,
-    })
+    $toast.toastSuccess(m.name, t('project.dataModel.toast.removed'))
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: t('project.dataModel.toast.removeFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.dataModel.toast.removeFailed'))(err)
   }
 }
 
@@ -244,19 +233,9 @@ function removeField(m, f) {
 async function handleRemoveField(m, f) {
   try {
     await store.removeField(props.project.id, m.id, f.id)
-    toast.add({
-      severity: 'success',
-      summary: t('project.dataModel.toast.fieldRemoved'),
-      detail: f.name,
-      life: 2500,
-    })
+    $toast.toastSuccess(f.name, t('project.dataModel.toast.fieldRemoved'))
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: t('project.dataModel.toast.fieldRemoveFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.dataModel.toast.fieldRemoveFailed'))(err)
   }
 }
 </script>

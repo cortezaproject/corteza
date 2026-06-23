@@ -64,7 +64,7 @@ func (s *projectGraphService) fetch(ctx context.Context, projectID uint64) (cont
 		return ctx, nil, err
 	}
 
-	sources, err := s.loadSources(ctx, sens)
+	sources, err := s.loadSources(ctx, projectID, sens)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -153,8 +153,27 @@ func (s *projectGraphService) transform(ctx context.Context, sources []*GraphSou
 	return assembleProjectGraph(ctx, sources, s.loadExternal)
 }
 
-func (s *projectGraphService) loadSources(ctx context.Context, sens map[uint64]string) ([]*GraphSource, error) {
+func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64, sens map[uint64]string) ([]*GraphSource, error) {
 	var out []*GraphSource
+
+	// Configured connections are loaded as first-class nodes so a project's
+	// connections appear whether or not anything references them. They are keyed
+	// by KindConfiguredConnection + configurationID — the same identity an
+	// automation step uses (conn_{id}_{op}) — so automation→connection refs
+	// merge onto these nodes instead of resolving to Missing.
+	ccx, _, err := store.SearchConfiguredConnections(ctx, s.store, types.ConfiguredConnectionFilter{ProjectID: projectID})
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range ccx {
+		out = append(out, &GraphSource{
+			ResourceType: resourceref.KindConfiguredConnection,
+			Kind:         "connection",
+			ID:           c.ID,
+			Name:         firstNonEmpty(c.Name, c.Connection.Meta.Short, c.Connection.Handle),
+			Handle:       c.Connection.Handle,
+		})
+	}
 
 	mm, _, err := store.SearchComposeModules(ctx, s.store, composeTypes.ModuleFilter{})
 	if err != nil {

@@ -241,7 +241,6 @@
 import { kindConfig } from '@/sections/project/config/kinds'
 import { SENSITIVITY_OPTIONS, sensitivity } from '@/sections/project/config/sensitivity'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { useToast } from 'primevue/usetoast'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -252,7 +251,7 @@ const props = defineProps({
 
 const { t } = useI18n()
 const store = useProjectsStore()
-const toast = useToast()
+const $toast = inject('$toast')
 const moduleCfg = kindConfig('module')
 const editField = inject('editField', null)
 
@@ -382,12 +381,7 @@ async function setLevel(f, level) {
   try {
     await store.updateField(props.project.id, f.moduleId, f.fieldId, { sensitivity: level || null })
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: t('project.dataSensitivity.toastUpdateFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.dataSensitivity.toastUpdateFailed'))(err)
   }
 }
 </script>

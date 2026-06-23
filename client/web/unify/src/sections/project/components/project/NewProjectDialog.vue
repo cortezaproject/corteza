@@ -139,8 +139,7 @@
 
 <script setup>
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { useToast } from 'primevue/usetoast'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -150,7 +149,7 @@ const emit = defineEmits(['update:visible', 'created'])
 
 const { t } = useI18n()
 const store = useProjectsStore()
-const toast = useToast()
+const $toast = inject('$toast')
 
 // AI Act Deployer categories. Answering "yes" to any makes a Fundamental
 // Rights Impact Assessment (FRIA) required for the project. `labelKey` is an
@@ -232,12 +231,7 @@ async function onCreate() {
     close()
   } catch (err) {
     // Dialog stays open so nothing typed is lost.
-    toast.add({
-      severity: 'error',
-      summary: t('project.newDialog.toastCreateFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.newDialog.toastCreateFailed'))(err)
   } finally {
     creating.value = false
   }

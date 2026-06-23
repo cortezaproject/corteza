@@ -64,7 +64,6 @@ import { GraphChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useToast } from 'primevue/usetoast'
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import VChart from 'vue-echarts'
@@ -83,7 +82,7 @@ const props = defineProps({
 })
 
 const store = useProjectsStore()
-const toast = useToast()
+const $toast = inject('$toast')
 
 // Clicking a module node opens its config dialog (provided by the wizard);
 // other kinds get their own editors as their steps land.
@@ -110,12 +109,7 @@ async function reload() {
   try {
     graph.value = await store.graph(props.project.id)
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: t('project.graph.toastLoadFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.graph.toastLoadFailed'))(err)
   } finally {
     loading.value = false
     if (pending) {

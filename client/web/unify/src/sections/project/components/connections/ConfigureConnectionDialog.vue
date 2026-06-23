@@ -58,9 +58,8 @@
 <script setup>
 import { connector } from '@/sections/project/config/connectors'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useToast } from 'primevue/usetoast'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -74,7 +73,7 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 
 const store = useProjectsStore()
 const { t } = useI18n()
-const toast = useToast()
+const $toast = inject('$toast')
 
 const visible = computed({
   get: () => props.modelValue,
@@ -136,12 +135,7 @@ async function save() {
     emit('saved', entry)
     visible.value = false
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: t('project.configureConnection.toastFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.configureConnection.toastFailed'))(err)
   } finally {
     saving.value = false
   }

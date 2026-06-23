@@ -217,8 +217,7 @@ import ValidationMessage from '@/sections/project/components/ValidationMessage.v
 import { FIELD_TYPES, fieldType, isRecordRef } from '@/sections/project/config/fieldTypes'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { fieldName } from '@/sections/project/utils/fields'
-import { useToast } from 'primevue/usetoast'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -237,7 +236,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const store = useProjectsStore()
-const toast = useToast()
+const $toast = inject('$toast')
 
 const visible = computed({
   get: () => props.modelValue,
@@ -427,12 +426,7 @@ async function onSave() {
     visible.value = false
   } catch (err) {
     // Stay open so the staged edits aren't lost.
-    toast.add({
-      severity: 'error',
-      summary: t('project.field.toast.saveFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.field.toast.saveFailed'))(err)
   } finally {
     saving.value = false
   }

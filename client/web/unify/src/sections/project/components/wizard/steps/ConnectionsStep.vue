@@ -63,9 +63,8 @@ import { connector } from '@/sections/project/config/connectors'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useToast } from 'primevue/usetoast'
 
 const props = defineProps({
   project: { type: Object, required: true },
@@ -74,14 +73,20 @@ const props = defineProps({
 
 const store = useProjectsStore()
 const { t } = useI18n()
-const toast = useToast()
+const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 
 function onRemove(c) {
   confirmDelete({
     header: t('project.connections.removeConfirm.header'),
     message: t('project.connections.removeConfirm.message', { name: c.name }),
-    onConfirm: () => store.removeConnection(props.project.id, c.id),
+    onConfirm: async () => {
+      try {
+        await store.removeConnection(props.project.id, c.id)
+      } catch (err) {
+        $toast.toastErrorHandler(t('project.connections.toastRemoveFailed'))(err)
+      }
+    },
   })
 }
 
@@ -139,23 +144,23 @@ async function openConfigure(item, configured) {
     activeConfigured.value = configured
     dialogOpen.value = true
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: t('project.configureConnection.toastImportFailed'),
-      detail: err.message,
-      life: 4000,
-    })
+    $toast.toastErrorHandler(t('project.configureConnection.toastImportFailed'))(err)
   } finally {
     preparing.value = false
   }
 }
 
-onMounted(() => {
-  store.loadConnectionLibrary()
-  store.loadConnections(props.project.id)
-})
+async function refresh(id) {
+  try {
+    await Promise.all([store.loadConnectionLibrary(), store.loadConnections(id)])
+  } catch (err) {
+    $toast.toastErrorHandler(t('project.connections.toastLoadFailed'))(err)
+  }
+}
+
+onMounted(() => refresh(props.project.id))
 watch(
   () => props.project.id,
-  id => id && store.loadConnections(id),
+  id => id && refresh(id),
 )
 </script>

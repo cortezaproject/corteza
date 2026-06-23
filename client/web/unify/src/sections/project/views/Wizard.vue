@@ -68,7 +68,6 @@
             <ResourceGraph
               :project="project"
               :locked="status === 'submitted'"
-              :filter-kind="stepKind"
             />
           </div>
         </div>
@@ -149,8 +148,7 @@ import { summaryDefaults } from '@/sections/project/config/summaryForm'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { useConfirm } from 'primevue/useconfirm'
-import { useToast } from 'primevue/usetoast'
-import { computed, provide, ref, watch } from 'vue'
+import { computed, inject, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -160,7 +158,7 @@ const router = useRouter()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
 const confirm = useConfirm()
-const toast = useToast()
+const $toast = inject('$toast')
 
 const project = computed(() => store.findById(route.params.projectId))
 
@@ -172,12 +170,7 @@ watch(
     if (!id) return
     store.fetchProject(id).catch(err => {
       console.error('Failed to load project', err)
-      toast.add({
-        severity: 'error',
-        summary: t('project.wizard.toastLoadFailed'),
-        detail: err.message,
-        life: 4000,
-      })
+      $toast.toastErrorHandler(t('project.wizard.toastLoadFailed'))(err)
     })
   },
   { immediate: true },
@@ -219,11 +212,12 @@ const isMembers = computed(() => activeKey.value === 'members')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
 const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
-// On a resource step the graph narrows to that step's kind; form steps show
-// the whole-system overview.
-const stepKind = computed(() =>
-  activeStep.value?.type === 'resource' ? activeStep.value.kind : null,
-)
+// The graph always shows the whole-system overview for now. To narrow it to the
+// active resource step's kind again, restore this computed and pass it back as
+// `:filter-kind="stepKind"` on <ResourceGraph>.
+// const stepKind = computed(() =>
+//   activeStep.value?.type === 'resource' ? activeStep.value.kind : null,
+// )
 
 // --- Module config dialog ----------------------------------------------------
 // Provided to the step components: open an existing module, or stage a new one.
@@ -465,12 +459,10 @@ function onGateClick(gateKey) {
   if (!sec) return
   // Locked gates (previous gate not yet approved) can't be acted on.
   if (gateLocked.value[gateKey]) {
-    toast.add({
-      severity: 'warn',
-      summary: t('project.wizard.gate.lockedToast.summary'),
-      detail: t('project.wizard.gate.lockedToast.detail'),
-      life: 2500,
-    })
+    $toast.toastWarning(
+      t('project.wizard.gate.lockedToast.detail'),
+      t('project.wizard.gate.lockedToast.summary'),
+    )
     return
   }
   const submittable = sec.steps.some(s => stepSubmittable(s.key))
@@ -484,9 +476,9 @@ function onGateClick(gateKey) {
       accept: async () => {
         try {
           await store.submitSection(project.value.id, sec.steps.map(s => s.key))
-          toast.add({ severity: 'success', summary: t('project.wizard.gate.requestedToast'), life: 2000 })
+          $toast.toastSuccess(t('project.wizard.gate.requestedToast'))
         } catch (err) {
-          toast.add({ severity: 'error', summary: t('project.wizard.gate.requestFailed'), detail: err.message, life: 4000 })
+          $toast.toastErrorHandler(t('project.wizard.gate.requestFailed'))(err)
         }
       },
     })
@@ -501,9 +493,9 @@ function onGateClick(gateKey) {
 async function governanceAction(fn, summary) {
   try {
     await fn()
-    toast.add({ severity: 'success', summary, life: 2000 })
+    $toast.toastSuccess(summary)
   } catch (err) {
-    toast.add({ severity: 'error', summary: t('project.wizard.toast.actionFailed'), detail: err.message, life: 4000 })
+    $toast.toastErrorHandler(t('project.wizard.toast.actionFailed'))(err)
   }
 }
 function onSave() {
@@ -542,13 +534,11 @@ async function confirmReason() {
   try {
     await store.transitionStep(project.value.id, activeKey.value, action, note.trim())
     reason.value.visible = false
-    toast.add({
-      severity: 'info',
-      summary: action === 'reopen' ? t('project.wizard.toast.reopened') : t('project.wizard.toast.sentBack'),
-      life: 2000,
-    })
+    $toast.toastInfo(
+      action === 'reopen' ? t('project.wizard.toast.reopened') : t('project.wizard.toast.sentBack'),
+    )
   } catch (err) {
-    toast.add({ severity: 'error', summary: t('project.wizard.toast.actionFailed'), detail: err.message, life: 4000 })
+    $toast.toastErrorHandler(t('project.wizard.toast.actionFailed'))(err)
   }
 }
 </script>

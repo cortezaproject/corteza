@@ -81,8 +81,7 @@ import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components } from '@planetcrust/human-vue'
 import { storeToRefs } from 'pinia'
 import { useConfirm } from 'primevue/useconfirm'
-import { useToast } from 'primevue/usetoast'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -92,7 +91,7 @@ const { t } = useI18n()
 const router = useRouter()
 const store = useProjectsStore()
 const confirm = useConfirm()
-const toast = useToast()
+const $toast = inject('$toast')
 const { projects } = storeToRefs(store)
 
 store.load()
@@ -180,7 +179,7 @@ const onRowClick = ({ data }) => {
 }
 
 const onCreated = project => {
-  toast.add({ severity: 'success', summary: t('project.list.toast.created'), detail: project.name, life: 2500 })
+  $toast.toastSuccess(project.name, t('project.list.toast.created'))
   router.push({ name: 'project.wizard', params: { projectId: project.id } })
 }
 
@@ -189,9 +188,9 @@ const onCreated = project => {
 async function apiCall(fn, success) {
   try {
     await fn()
-    if (success) toast.add({ severity: 'success', life: 2500, ...success })
+    if (success) $toast.toastSuccess(success.detail, success.summary)
   } catch (err) {
-    toast.add({ severity: 'error', summary: t('project.list.toast.actionFailed'), detail: err.message, life: 4000 })
+    $toast.toastErrorHandler(t('project.list.toast.actionFailed'))(err)
   }
 }
 

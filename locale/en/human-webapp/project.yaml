@@ -419,6 +419,8 @@ connections:
   remove: Remove connection
   empty: No connections yet.
   configured: Configured
+  toastLoadFailed: Could not load connections
+  toastRemoveFailed: Could not remove connection
   removeConfirm:
     header: Remove connection
     message: Remove “{name}” from this project? This deletes its configuration.

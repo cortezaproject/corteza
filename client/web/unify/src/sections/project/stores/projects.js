@@ -587,7 +587,7 @@ export const useProjectsStore = defineStore('projects', () => {
   // Load the connection library (catalog + configured), normalised for the
   // picker. Same source as the Admin connection screen.
   async function loadConnectionLibrary() {
-    const { set = [] } = await $SystemAPI.connectionList({}).catch(() => ({ set: [] }))
+    const { set = [] } = await $SystemAPI.connectionList({})
     connectionLibrary.value = set.map(c => ({
       catalogID: c.catalogID || '',
       connectionID: c.connectionID ? String(c.connectionID) : null,
@@ -613,13 +613,10 @@ export const useProjectsStore = defineStore('projects', () => {
   // projectID. Fetched from the backend filtered by projectID.
   async function loadConnections(projectId) {
     const key = String(projectId)
-    const { set = [] } = await $SystemAPI
-      .configuredConnectionList({ projectID: String(projectId), limit: 100 })
-      .catch(() => ({ set: null }))
-    if (set === null) {
-      if (!connectionsByProject.value[key]) connectionsByProject.value[key] = []
-      return connectionsByProject.value[key]
-    }
+    const { set = [] } = await $SystemAPI.configuredConnectionList({
+      projectID: String(projectId),
+      limit: 100,
+    })
     connectionsByProject.value[key] = set.map(c => ({
       id: String(c.configurationID),
       configuredConnectionID: String(c.configurationID),

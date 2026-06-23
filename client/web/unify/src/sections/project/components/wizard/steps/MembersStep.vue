@@ -163,8 +163,7 @@ import { ROLE_PRESETS, rolePreset } from '@/sections/project/config/roles'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { useConfirmDelete } from '@planetcrust/human-vue'
-import { useToast } from 'primevue/usetoast'
-import { computed, reactive, ref } from 'vue'
+import { computed, inject, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -176,7 +175,7 @@ const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
-const toast = useToast()
+const $toast = inject('$toast')
 usersStore.load()
 
 // Localized role choices for the Select inputs (id is the persisted value).
@@ -212,7 +211,7 @@ function openAdd() {
 }
 
 function fail(summary, err) {
-  toast.add({ severity: 'error', summary, detail: err.message, life: 4000 })
+  $toast.toastErrorHandler(summary)(err)
 }
 
 async function add() {
