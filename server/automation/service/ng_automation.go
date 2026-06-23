@@ -202,11 +202,12 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (a
 		}
 
 		automation = &types.NgAutomation{
-			ID:      nextID(),
-			Handle:  new.Handle,
-			Labels:  new.Labels,
-			Meta:    new.Meta,
-			Enabled: new.Enabled,
+			ID:        nextID(),
+			ProjectID: new.ProjectID,
+			Handle:    new.Handle,
+			Labels:    new.Labels,
+			Meta:      new.Meta,
+			Enabled:   new.Enabled,
 
 			Scope:    new.Scope,
 			Triggers: triggers,

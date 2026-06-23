@@ -20,11 +20,15 @@
         />
       </div>
 
-      <div class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden">
+      <div
+        class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden"
+      >
         <!-- Step header -->
         <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
           <div class="min-w-0">
-            <h2 class="text-lg font-medium truncate">{{ activeStep ? $t(activeStep.labelKey) : '' }}</h2>
+            <h2 class="text-lg font-medium truncate">
+              {{ activeStep ? $t(activeStep.labelKey) : '' }}
+            </h2>
             <p class="text-sm text-muted-color mt-0.5 min-h-[1.25rem]">{{ headerHint }}</p>
           </div>
 
@@ -37,20 +41,54 @@
         <div ref="splitRef" class="flex-1 min-h-0 flex">
           <div
             class="min-h-0"
-            :class="isDataModel || isConnections ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
+            :class="isResourceStep ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
             :style="{ width: leftPct + '%' }"
           >
-            <template v-if="isDataModel || isConnections">
-              <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-              <DataModelStep v-if="isDataModel" :project="project" :disabled="locked" class="flex-1 min-h-0" />
-              <ConnectionsStep v-else :project="project" :disabled="locked" class="flex-1 min-h-0" />
+            <template v-if="isResourceStep">
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="m-3 mb-0 shrink-0"
+              />
+              <DataModelStep
+                v-if="isDataModel"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+              <ConnectionsStep
+                v-else-if="isConnections"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+              <AutomationsStep
+                v-else
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
             </template>
             <template v-else>
-              <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="mb-4" />
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="mb-4"
+              />
               <ProjectSummaryStep v-if="isSummary" v-model="working" :disabled="locked" />
-              <ResourceManagementStep v-else-if="isResourceMgmt" v-model="working" :disabled="locked" />
+              <ResourceManagementStep
+                v-else-if="isResourceMgmt"
+                v-model="working"
+                :disabled="locked"
+              />
               <MembersStep v-else-if="isMembers" :project="project" :disabled="membersLocked" />
-              <DataSensitivityStep v-else-if="isSensitivity" :project="project" :disabled="locked" />
+              <DataSensitivityStep
+                v-else-if="isSensitivity"
+                :project="project"
+                :disabled="locked"
+              />
             </template>
           </div>
 
@@ -61,14 +99,14 @@
             @pointerdown="startResize"
           >
             <span class="absolute inset-y-0 -left-1 -right-1" />
-            <span class="h-8 w-0.5 rounded-full bg-surface-400 dark:bg-surface-500 group-hover:bg-primary-contrast" :class="{ '!bg-primary-contrast': resizing }" />
+            <span
+              class="h-8 w-0.5 rounded-full bg-surface-400 dark:bg-surface-500 group-hover:bg-primary-contrast"
+              :class="{ '!bg-primary-contrast': resizing }"
+            />
           </div>
 
           <div class="overflow-hidden p-4 min-h-0 flex-1">
-            <ResourceGraph
-              :project="project"
-              :locked="status === 'submitted'"
-            />
+            <ResourceGraph :project="project" :locked="status === 'submitted'" />
           </div>
         </div>
       </div>
@@ -115,14 +153,36 @@
     />
   </div>
 
-  <Dialog v-model:visible="reason.visible" modal :header="reasonText.header" :style="{ width: '32rem' }">
+  <Dialog
+    v-model:visible="reason.visible"
+    modal
+    :header="reasonText.header"
+    :style="{ width: '32rem' }"
+  >
     <CFormGroup :label="reasonText.label" required>
-      <Textarea v-model="reason.note" rows="3" auto-resize fluid :placeholder="reasonText.placeholder" />
+      <Textarea
+        v-model="reason.note"
+        rows="3"
+        auto-resize
+        fluid
+        :placeholder="reasonText.placeholder"
+      />
     </CFormGroup>
     <template #footer>
       <div class="flex justify-end gap-2">
-        <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="reason.visible = false" />
-        <Button :label="reasonText.confirm" size="small" :disabled="!reason.note.trim()" @click="confirmReason" />
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="reason.visible = false"
+        />
+        <Button
+          :label="reasonText.confirm"
+          size="small"
+          :disabled="!reason.note.trim()"
+          @click="confirmReason"
+        />
       </div>
     </template>
   </Dialog>
@@ -135,6 +195,7 @@ import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
+import AutomationsStep from '@/sections/project/components/wizard/steps/AutomationsStep.vue'
 import ConnectionsStep from '@/sections/project/components/wizard/steps/ConnectionsStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
@@ -193,7 +254,9 @@ const effectiveTab = computed(() =>
   project.value?.mode === 'gated' && canGovern.value ? 'governance' : 'build',
 )
 const navSteps = computed(() => (project.value ? stepsForTab(effectiveTab.value) : []))
-const showGates = computed(() => project.value?.mode === 'gated' && effectiveTab.value === 'governance')
+const showGates = computed(
+  () => project.value?.mode === 'gated' && effectiveTab.value === 'governance',
+)
 
 // --- Active step -----------------------------------------------------------
 const activeKey = computed(() => {
@@ -204,13 +267,18 @@ const activeKey = computed(() => {
   return list[0].key
 })
 const activeStep = computed(
-  () => navSteps.value.find(s => s.key === activeKey.value) || STEPS.find(s => s.key === activeKey.value),
+  () =>
+    navSteps.value.find(s => s.key === activeKey.value) ||
+    STEPS.find(s => s.key === activeKey.value),
 )
 const isSummary = computed(() => activeKey.value === 'summary')
 const isResourceMgmt = computed(() => activeKey.value === 'resource-management')
 const isMembers = computed(() => activeKey.value === 'members')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
+const isAutomations = computed(() => activeKey.value === 'automations')
+// Resource steps render full-height with the live resource graph beside them.
+const isResourceStep = computed(() => isDataModel.value || isConnections.value || isAutomations.value)
 const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
 // The graph always shows the whole-system overview for now. To narrow it to the
 // active resource step's kind again, restore this computed and pass it back as
@@ -260,7 +328,7 @@ watch(fieldOpen, open => {
 
 // --- Resizable split (step | resource graph) ---------------------------------
 const splitRef = ref(null)
-const leftPct = ref(60)
+const leftPct = ref(40)
 const resizing = ref(false)
 const MIN_PCT = 25
 const MAX_PCT = 75
@@ -302,9 +370,7 @@ const locked = computed(
 // preset's write flag; the gate lock still applies once the section is sent.
 const membersLocked = computed(
   () =>
-    !project.value?.canManageMembers ||
-    status.value === 'submitted' ||
-    status.value === 'approved',
+    !project.value?.canManageMembers || status.value === 'submitted' || status.value === 'approved',
 )
 const showStatus = computed(() => project.value?.mode === 'gated' && !!activeStep.value)
 const showToolbar = computed(() => !!activeStep.value)
@@ -333,7 +399,9 @@ const statusLabel = computed(
 )
 const statusSeverity = computed(
   () =>
-    ({ draft: 'secondary', submitted: 'info', approved: 'success', 'changes-requested': 'warn' })[status.value],
+    ({ draft: 'secondary', submitted: 'info', approved: 'success', 'changes-requested': 'warn' })[
+      status.value
+    ],
 )
 
 // --- Gate sections ---------------------------------------------------------
@@ -475,7 +543,10 @@ function onGateClick(gateKey) {
       acceptProps: { label: t('project.wizard.gate.requestConfirm') },
       accept: async () => {
         try {
-          await store.submitSection(project.value.id, sec.steps.map(s => s.key))
+          await store.submitSection(
+            project.value.id,
+            sec.steps.map(s => s.key),
+          )
           $toast.toastSuccess(t('project.wizard.gate.requestedToast'))
         } catch (err) {
           $toast.toastErrorHandler(t('project.wizard.gate.requestFailed'))(err)
@@ -499,13 +570,22 @@ async function governanceAction(fn, summary) {
   }
 }
 function onSave() {
-  governanceAction(() => store.saveStepForm(project.value.id, activeKey.value, working.value), t('project.wizard.toast.saved'))
+  governanceAction(
+    () => store.saveStepForm(project.value.id, activeKey.value, working.value),
+    t('project.wizard.toast.saved'),
+  )
 }
 function onApprove() {
-  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'approve'), t('project.wizard.toast.approved'))
+  governanceAction(
+    () => store.transitionStep(project.value.id, activeKey.value, 'approve'),
+    t('project.wizard.toast.approved'),
+  )
 }
 function onResubmit() {
-  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'submit'), t('project.wizard.toast.resubmitted'))
+  governanceAction(
+    () => store.transitionStep(project.value.id, activeKey.value, 'submit'),
+    t('project.wizard.toast.resubmitted'),
+  )
 }
 
 // Reason dialog, shared by Request changes and Reopen.

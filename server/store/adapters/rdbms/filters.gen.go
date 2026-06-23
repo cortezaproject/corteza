@@ -515,6 +515,10 @@ func AutomationNgAutomationFilter(d drivers.Dialect, f automationType.NgAutomati
 		ee = append(ee, goqu.C("id").In(ss))
 	}
 
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}

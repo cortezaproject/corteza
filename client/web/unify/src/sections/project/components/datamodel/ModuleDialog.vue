@@ -3,7 +3,7 @@
     v-model:visible="visible"
     modal
     :style="{ width: '34rem' }"
-    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-end gap-2' } }"
+    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2' } }"
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
@@ -42,17 +42,32 @@
     </div>
 
     <template #footer>
-      <Button v-if="readonly" :label="$t('general.label.close')" size="small" @click="visible = false" />
-      <template v-else>
-        <Button
-          :label="$t('general.label.cancel')"
-          severity="secondary"
-          outlined
-          size="small"
-          @click="visible = false"
-        />
-        <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
-      </template>
+      <CRouterLinkButton
+        v-if="moduleEditId && project?.namespaceID"
+        :to="{ name: 'admin.modules.edit', params: { slug: project.namespaceID, moduleID: moduleEditId } }"
+        target="_blank"
+        rel="noopener"
+        :label="$t('project.module.openEditor')"
+        icon="pi pi-external-link"
+        severity="secondary"
+        text
+        size="small"
+      />
+      <span v-else />
+
+      <div class="flex gap-2">
+        <Button v-if="readonly" :label="$t('general.label.close')" size="small" @click="visible = false" />
+        <template v-else>
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="visible = false"
+          />
+          <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
+        </template>
+      </div>
     </template>
   </Dialog>
 </template>
@@ -62,8 +77,11 @@ import ValidationMessage from '@/sections/project/components/ValidationMessage.v
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { fieldName } from '@/sections/project/utils/fields'
+import { components } from '@planetcrust/human-vue'
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const { CRouterLinkButton } = components
 
 const { t } = useI18n()
 
@@ -128,6 +146,10 @@ const nameError = computed(() => {
 })
 
 const isValid = computed(() => !nameError.value)
+
+// The module that exists on the backend (saved already, or created during this
+// dialog session) — only then can we link to the full compose module editor.
+const moduleEditId = computed(() => props.moduleId || createdId.value)
 
 watch(
   () => [props.modelValue, props.moduleId],

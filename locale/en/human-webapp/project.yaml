@@ -157,6 +157,8 @@ steps:
     label: Data Model
   connections:
     label: Connections
+  automations:
+    label: Automations
   data-sensitivity:
     label: Data Sensitivity
 summaryForm:
@@ -340,6 +342,7 @@ module:
   unnamed: Unnamed
   fields: Fields
   addField: Add field
+  openEditor: Open editor
   nameRequired: Name is required
   fieldNameRequired: Field name is required
   nameClash: Clashes with “{name}”
@@ -432,6 +435,28 @@ configureConnection:
   noParams: This connection needs no extra configuration.
   toastFailed: Could not save connection
   toastImportFailed: Could not prepare connection
+automations:
+  title: Automations
+  add: Add automation
+  remove: Remove automation
+  empty: No automations yet.
+  enabled: Enabled
+  disabled: Disabled
+  toastLoadFailed: Could not load automations
+  toastRemoveFailed: Could not remove automation
+  removeConfirm:
+    header: Remove automation
+    message: Remove “{name}” from this project? This deletes the automation.
+configureAutomation:
+  createTitle: New automation
+  editTitle: Edit automation
+  blurb: Name your automation, then build its triggers and steps in the automation builder.
+  name: Name
+  namePlaceholder: e.g. Lead scoring
+  description: Description
+  create: Create
+  openBuilder: Open builder
+  toastFailed: Could not save automation
 graph:
   resources: Resources
   reloadTitle: Reload from the backend
@@ -443,6 +468,12 @@ graph:
   toastLoadFailed: Could not load resource graph
   edgeReason:
     moduleFieldRef: Record-field reference
+  layer:
+    data: Data
+    logic: Logic
+    experience: Experience
+  showAccessComingSoon: Access overlay is coming soon
+  allLayersHidden: All layers are hidden — turn one on to see resources.
 kinds:
   module:
     plural: Modules

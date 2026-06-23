@@ -79,10 +79,11 @@ func (ctrl NgAutomation) makeFilter(ctx context.Context, r *request.NgAutomation
 		err error
 		f   = types.NgAutomationFilter{
 			// AutomationID:    r.AutomationID,
-			Query:    r.Query,
-			Labels:   r.Labels,
-			Deleted:  filter.State(r.Deleted),
-			Disabled: filter.State(r.Disabled),
+			ProjectID: r.ProjectID,
+			Query:     r.Query,
+			Labels:    r.Labels,
+			Deleted:   filter.State(r.Deleted),
+			Disabled:  filter.State(r.Disabled),
 		}
 	)
 
@@ -103,6 +104,9 @@ func (ctrl NgAutomation) makeFilter(ctx context.Context, r *request.NgAutomation
 // before it is handed to the service. The generated Create controller
 // already mapped the plain-value params.
 func (ctrl NgAutomation) beforeCreate(ctx context.Context, res *types.NgAutomation, r *request.NgAutomationCreate) error {
+	// TAQs have no parent namespace to inherit the project from (unlike compose
+	// modules), so the owning project is passed explicitly on create.
+	res.ProjectID = r.ProjectID
 	res.Meta = r.Meta
 	res.Scope = r.Scope
 	res.Triggers = r.Triggers

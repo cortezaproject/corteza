@@ -119,7 +119,7 @@ ng_automation: {
 		}
 
 		query: ["handle"]
-		byValue: ["automation_id", "handle"]
+		byValue: ["automation_id", "project_id", "handle"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

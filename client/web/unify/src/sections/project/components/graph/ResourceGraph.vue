@@ -17,12 +17,21 @@
     </div>
 
     <!-- Metric cards — the whole-system overview, one card per resource kind,
-         counted from the backend graph payload. Cards size to their label. -->
+         counted from the backend graph payload. Each card is also a toggle:
+         click to show/hide that kind; hidden kinds dim but keep their count. -->
     <div class="shrink-0 flex flex-wrap gap-2">
-      <div
+      <button
         v-for="m in metrics"
         :key="m.kind"
-        class="rounded-lg border border-surface px-2.5 py-1.5 flex items-center gap-2 whitespace-nowrap"
+        type="button"
+        class="rounded-lg border border-surface px-2.5 py-1.5 flex items-center gap-2 whitespace-nowrap transition-opacity"
+        :class="[
+          m.visible ? 'opacity-100' : 'opacity-40',
+          m.toggleable ? 'cursor-pointer hover:border-primary' : 'cursor-not-allowed',
+        ]"
+        :disabled="!m.toggleable"
+        :title="m.toggleable ? '' : $t('project.graph.showAccessComingSoon')"
+        @click="onChipClick(m)"
       >
         <span
           class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
@@ -32,7 +41,7 @@
         </span>
         <span class="text-base font-semibold leading-none">{{ m.count }}</span>
         <span class="text-xs text-muted-color leading-none">{{ $t(m.cfg.labelKey) }}</span>
-      </div>
+      </button>
     </div>
 
     <!-- Relationship graph -->
@@ -48,7 +57,7 @@
         <div>
           <i class="pi pi-sitemap text-4xl mb-2" />
           <p class="text-sm">
-            {{ $t('project.graph.empty') }}
+            {{ graph.nodes.length ? $t('project.graph.allLayersHidden') : $t('project.graph.empty') }}
           </p>
         </div>
       </div>
@@ -57,7 +66,7 @@
 </template>
 
 <script setup>
-import { OVERVIEW_KINDS, kindConfig } from '@/sections/project/config/kinds'
+import { ACCESS_KINDS, OVERVIEW_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { kindIconDataUri } from '@/sections/project/utils/kindIcons'
 import { GraphChart } from 'echarts/charts'
@@ -76,10 +85,11 @@ const props = defineProps({
   project: { type: Object, default: null },
   // Dimmed while the current section awaits approval.
   locked: { type: Boolean, default: false },
-  // Narrow the graph to one resource kind (the current step's kind); the
-  // metrics strip always shows the whole-system overview. Null = everything.
-  filterKind: { type: String, default: null },
 })
+
+// Phase 2: flip to true once the backend emits role/user nodes and RBAC edges.
+// Until then the access overlay (and the role/user chips) stay disabled.
+const accessReady = false
 
 const store = useProjectsStore()
 const $toast = inject('$toast')
@@ -130,19 +140,35 @@ watch(
   { immediate: true },
 )
 
+// --- Layer selection ---------------------------------------------------------
+// Roles/users are only interactive once the access overlay is wired up.
+const isAccessKind = kind => ACCESS_KINDS.includes(kind)
+
+function onChipClick(m) {
+  if (!m.toggleable) return
+  isAccessKind(m.kind) ? store.graphToggleAccess() : store.graphToggleKind(m.kind)
+}
+
 // --- Derived metrics (straight from the payload) ----------------------------
 // One card per kind across the whole system, PoC-style; kinds without
-// backend-backed steps simply count 0 until they land.
+// backend-backed steps simply count 0 until they land. Each card is also a
+// visibility toggle, so it carries its visible/toggleable state.
 const metrics = computed(() => {
   const counts = {}
   for (const n of graph.value.nodes) counts[n.kind] = (counts[n.kind] || 0) + 1
-  return OVERVIEW_KINDS.map(kind => ({ kind, cfg: kindConfig(kind), count: counts[kind] || 0 }))
+  return OVERVIEW_KINDS.map(kind => ({
+    kind,
+    cfg: kindConfig(kind),
+    count: counts[kind] || 0,
+    visible: store.graphKindVisible(kind),
+    toggleable: isAccessKind(kind) ? accessReady : true,
+  }))
 })
 
-// The graph pane narrows to the current step's kind; edges stay only between
-// visible nodes.
+// The graph pane shows only the kinds the layer selector has enabled; edges
+// stay only between visible nodes (hiding a kind hides its edges too).
 const visibleNodes = computed(() =>
-  props.filterKind ? graph.value.nodes.filter(n => n.kind === props.filterKind) : graph.value.nodes,
+  graph.value.nodes.filter(n => store.graphKindVisible(n.kind)),
 )
 const visibleEdges = computed(() => {
   const ids = new Set(visibleNodes.value.map(n => n.id))

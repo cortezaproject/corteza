@@ -44,6 +44,11 @@ type (
 		// Filter by automation ID
 		AutomationID []string
 
+		// ProjectID GET parameter
+		//
+		// Filter by project ID
+		ProjectID uint64 `json:",string"`
+
 		// Query GET parameter
 		//
 		// Filter automation
@@ -90,6 +95,11 @@ type (
 		//
 		// NgAutomation name
 		Handle string
+
+		// ProjectID POST parameter
+		//
+		// Project this automation belongs to
+		ProjectID uint64 `json:",string"`
 
 		// Labels POST parameter
 		//
@@ -315,6 +325,7 @@ func NewNgAutomationList() *NgAutomationList {
 func (r NgAutomationList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"automationID": r.AutomationID,
+		"projectID":    r.ProjectID,
 		"query":        r.Query,
 		"deleted":      r.Deleted,
 		"disabled":     r.Disabled,
@@ -329,6 +340,11 @@ func (r NgAutomationList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r NgAutomationList) GetAutomationID() []string {
 	return r.AutomationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationList) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -385,6 +401,12 @@ func (r *NgAutomationList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["automationID"]; ok {
 			r.AutomationID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -455,22 +477,28 @@ func NewNgAutomationCreate() *NgAutomationCreate {
 // Auditable returns all auditable/loggable parameters
 func (r NgAutomationCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"handle":   r.Handle,
-		"labels":   r.Labels,
-		"meta":     r.Meta,
-		"enabled":  r.Enabled,
-		"scope":    r.Scope,
-		"triggers": r.Triggers,
-		"steps":    r.Steps,
-		"paths":    r.Paths,
-		"runAs":    r.RunAs,
-		"ownedBy":  r.OwnedBy,
+		"handle":    r.Handle,
+		"projectID": r.ProjectID,
+		"labels":    r.Labels,
+		"meta":      r.Meta,
+		"enabled":   r.Enabled,
+		"scope":     r.Scope,
+		"triggers":  r.Triggers,
+		"steps":     r.Steps,
+		"paths":     r.Paths,
+		"runAs":     r.RunAs,
+		"ownedBy":   r.OwnedBy,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r NgAutomationCreate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationCreate) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -541,6 +569,13 @@ func (r *NgAutomationCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -650,6 +685,13 @@ func (r *NgAutomationCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

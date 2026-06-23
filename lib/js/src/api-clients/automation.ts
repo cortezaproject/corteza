@@ -1418,8 +1418,18 @@ export default class Automation {
 
   // List automations
   async ngAutomationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { automationID, query, deleted, disabled, labels, limit, incTotal, pageCursor, sort } =
-      (a as KV) || {}
+    const {
+      automationID,
+      projectID,
+      query,
+      deleted,
+      disabled,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -1427,6 +1437,7 @@ export default class Automation {
     }
     cfg.params = {
       automationID,
+      projectID,
       query,
       deleted,
       disabled,
@@ -1463,8 +1474,19 @@ export default class Automation {
 
   // Create automation
   async ngAutomationCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, labels, meta, enabled, scope, triggers, steps, paths, runAs, ownedBy } =
-      (a as KV) || {}
+    const {
+      handle,
+      projectID,
+      labels,
+      meta,
+      enabled,
+      scope,
+      triggers,
+      steps,
+      paths,
+      runAs,
+      ownedBy,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -1472,6 +1494,7 @@ export default class Automation {
     }
     cfg.data = {
       handle,
+      projectID,
       labels,
       meta,
       enabled,

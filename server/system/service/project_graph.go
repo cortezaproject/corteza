@@ -230,7 +230,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		})
 	}
 
-	aa, _, err := store.SearchAutomationNgAutomations(ctx, s.store, automationTypes.NgAutomationFilter{})
+	aa, _, err := store.SearchAutomationNgAutomations(ctx, s.store, automationTypes.NgAutomationFilter{ProjectID: projectID})
 	if err != nil {
 		return nil, err
 	}

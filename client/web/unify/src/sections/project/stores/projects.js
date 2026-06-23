@@ -1,3 +1,4 @@
+import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
 import { sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
@@ -12,6 +13,7 @@ import { computed, inject, ref } from 'vue'
 export const useProjectsStore = defineStore('projects', () => {
   const $SystemAPI = inject('$SystemAPI')
   const $ComposeAPI = inject('$ComposeAPI')
+  const $AutomationAPI = inject('$AutomationAPI')
 
   const projects = ref([])
   const loaded = ref(false)
@@ -24,6 +26,30 @@ export const useProjectsStore = defineStore('projects', () => {
   const graphVersion = ref(0)
   const touch = () => {
     graphVersion.value++
+  }
+
+  // --- resource graph view (layer selector) --------------------------------------
+  // Which kinds the graph currently shows. One global selection shared across
+  // projects (it resets on a hard reload — it's deliberately session state, not
+  // persisted). Seeded with every node-layer kind so all layers start on; the
+  // access overlay (roles/users) is a separate flag, off by default.
+  const graphVisibleKinds = ref(new Set(NODE_LAYER_KINDS))
+  const graphShowAccess = ref(false)
+
+  const graphKindVisible = computed(() => kind => {
+    if (ACCESS_KINDS.includes(kind)) return graphShowAccess.value
+    return graphVisibleKinds.value.has(kind)
+  })
+
+  function graphToggleKind(kind) {
+    // Reassign the Set so the ref's dependents re-run (Set mutation alone won't).
+    const next = new Set(graphVisibleKinds.value)
+    next.has(kind) ? next.delete(kind) : next.add(kind)
+    graphVisibleKinds.value = next
+  }
+
+  function graphToggleAccess() {
+    graphShowAccess.value = !graphShowAccess.value
   }
 
   // Resources (compose modules) are deliberately NOT stored on the project
@@ -40,6 +66,12 @@ export const useProjectsStore = defineStore('projects', () => {
   const connectionLibrary = ref([])
   const connectionsByProject = ref({})
   const connectionsFor = computed(() => projectId => connectionsByProject.value[String(projectId)] || [])
+
+  // A project's automations (TAQs) — NgAutomation records stamped with its
+  // projectID. Kept separately, keyed by projectID, and (re)fetched on demand
+  // like connections.
+  const automationsByProject = ref({})
+  const automationsFor = computed(() => projectId => automationsByProject.value[String(projectId)] || [])
 
   // --- payload mapping --------------------------------------------------------
 
@@ -701,6 +733,80 @@ export const useProjectsStore = defineStore('projects', () => {
     touch()
   }
 
+  // --- automations (TAQs) --------------------------------------------------------
+  // A project's automations — NgAutomation records filtered by projectID. TAQs
+  // are created disabled (they have no logic yet), so `disabled: 1` is required
+  // to include them in the listing.
+  async function loadAutomations(projectId) {
+    const key = String(projectId)
+    const { set = [] } = await $AutomationAPI
+      .ngAutomationList({ projectID: key, disabled: 1, limit: 100 })
+      .catch(() => ({ set: [] }))
+    automationsByProject.value[key] = set.map(a => ({
+      id: String(a.automationID),
+      name: a.meta?.short || a.handle || '',
+      description: a.meta?.description || '',
+      enabled: !!a.enabled,
+    }))
+    touch()
+    return automationsByProject.value[key]
+  }
+
+  // Create a project-scoped TAQ. Unlike compose modules (which inherit the
+  // project from their namespace) a TAQ has no parent, so the projectID is
+  // passed explicitly. Created disabled — the user builds its logic in the TAQ
+  // builder afterwards. Returns the new automationID for deep-linking.
+  async function addAutomation(projectId, { name, description } = {}) {
+    const raw = await $AutomationAPI.ngAutomationCreate({
+      projectID: String(projectId),
+      meta: {
+        short: (name || '').trim() || 'Untitled',
+        description: (description || '').trim() || undefined,
+      },
+      enabled: false,
+      triggers: [],
+      steps: [],
+      paths: [],
+    })
+    await loadAutomations(projectId)
+    return String(raw.automationID)
+  }
+
+  // Update a TAQ's name/description. The update endpoint REPLACES triggers,
+  // steps and paths, so we re-fetch the full definition first and resend it
+  // untouched — editing the name here must never wipe the automation's logic.
+  async function updateAutomation(projectId, automationId, { name, description } = {}) {
+    const full = await $AutomationAPI.ngAutomationRead({ automationID: automationId })
+    await $AutomationAPI.ngAutomationUpdate({
+      automationID: automationId,
+      handle: full.handle,
+      labels: full.labels || {},
+      meta: {
+        ...(full.meta || {}),
+        short: (name || '').trim() || 'Untitled',
+        description: (description || '').trim() || undefined,
+      },
+      enabled: full.enabled,
+      scope: full.scope,
+      triggers: full.triggers || [],
+      steps: full.steps || [],
+      paths: full.paths || [],
+      runAs: full.runAs,
+      ownedBy: full.ownedBy,
+      updatedAt: full.updatedAt,
+    })
+    await loadAutomations(projectId)
+  }
+
+  async function removeAutomation(projectId, automationId) {
+    const key = String(projectId)
+    await $AutomationAPI.ngAutomationDelete({ automationID: automationId })
+    automationsByProject.value[key] = (automationsByProject.value[key] || []).filter(
+      a => a.id !== automationId,
+    )
+    touch()
+  }
+
   // --- resource graph ------------------------------------------------------------
   // Single backend endpoint re-derives the project's dependency graph from saved
   // state. We pass nodes through untouched and only rename edge endpoints to the
@@ -743,6 +849,11 @@ export const useProjectsStore = defineStore('projects', () => {
     prepareConnection,
     saveConnection,
     removeConnection,
+    automationsFor,
+    loadAutomations,
+    updateAutomation,
+    addAutomation,
+    removeAutomation,
     updateField,
     addField,
     removeField,
@@ -751,5 +862,10 @@ export const useProjectsStore = defineStore('projects', () => {
     submitSection,
     transitionStep,
     graph,
+    graphVisibleKinds,
+    graphShowAccess,
+    graphKindVisible,
+    graphToggleKind,
+    graphToggleAccess,
   }
 })

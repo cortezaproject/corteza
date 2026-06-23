@@ -556,6 +556,7 @@ endpoints:
         parameters:
           get:
             - { name: automationID, type: '[]string', title: 'Filter by automation ID' }
+            - { name: projectID, type: 'uint64', title: 'Filter by project ID' }
             - { name: query, type: 'string', title: 'Filter automation' }
             - {
                 name: deleted,
@@ -584,6 +585,7 @@ endpoints:
         parameters:
           post:
             - { name: handle, type: string, title: 'NgAutomation name' }
+            - { name: projectID, type: uint64, title: 'Project this automation belongs to' }
             - {
                 name: labels,
                 type: 'map[string]labelTypes.LabelValue',
