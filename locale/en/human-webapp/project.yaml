@@ -163,6 +163,8 @@ steps:
     label: Agents
   chatbots:
     label: Chatbots
+  pages:
+    label: Pages
   data-sensitivity:
     label: Data Sensitivity
 summaryForm:
@@ -516,6 +518,32 @@ configureChatbot:
   createAndOpenBuilder: Create and open builder
   openBuilder: Open builder
   toastFailed: Could not save chatbot
+pages:
+  title: Pages
+  recordSubtitle: Module detail page
+  add: Add page
+  remove: Remove page
+  openBuilder: Open in page builder
+  empty: No pages yet.
+  visible: Visible
+  hidden: Hidden
+  toastLoadFailed: Could not load pages
+  toastRemoveFailed: Could not remove page
+  removeConfirm:
+    header: Remove page
+    message: Remove “{name}” from this project? This deletes the page.
+configurePage:
+  createTitle: New page
+  editTitle: Edit page
+  blurb: Name your page, then build its layout and blocks in the page builder.
+  name: Name
+  namePlaceholder: e.g. Dashboard
+  visible: Visible
+  visibleHint: Show this page in the namespace navigation. Hidden pages are still reachable by link.
+  create: Create
+  createAndOpenBuilder: Create and open builder
+  openBuilder: Open builder
+  toastFailed: Could not save page
 graph:
   resources: Resources
   reloadTitle: Reload from the backend

@@ -18,6 +18,7 @@ export const STEPS = [
   { key: 'automations', labelKey: 'project.steps.automations.label', type: 'resource', kind: 'automation', gatedOnly: false, gate: false },
   { key: 'agents', labelKey: 'project.steps.agents.label', type: 'resource', kind: 'agent', gatedOnly: false, gate: false },
   { key: 'chatbots', labelKey: 'project.steps.chatbots.label', type: 'resource', kind: 'chatbot', gatedOnly: false, gate: false },
+  { key: 'pages', labelKey: 'project.steps.pages.label', type: 'resource', kind: 'page', gatedOnly: false, gate: false },
 ]
 
 // Resolve the pipeline for a project context. Kept as a hook for future

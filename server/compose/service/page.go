@@ -317,6 +317,11 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
+		// Denormalise the owning project from the namespace so project-scoped
+		// pages (e.g. the project wizard's record pages) carry rel_project, the
+		// same way modules do on create.
+		new.ProjectID = ns.ProjectID
+
 		// Ensure page-block IDs
 		for i := range new.Blocks {
 			new.Blocks[i].BlockID = uint64(i) + 1

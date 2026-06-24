@@ -2,6 +2,7 @@ import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
 import { sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
+import { compose } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, inject, ref } from 'vue'
 
@@ -82,6 +83,12 @@ export const useProjectsStore = defineStore('projects', () => {
   // Chatbots carry a top-level name and an `enabled` flag (no description).
   const chatbotsByProject = ref({})
   const chatbotsFor = computed(() => projectId => chatbotsByProject.value[String(projectId)] || [])
+
+  // A project's compose pages, keyed by projectID. These live in the project's
+  // namespace (like modules): record pages (bound to a module, auto-created with
+  // each module) and standalone pages the user adds in the Pages step.
+  const pagesByProject = ref({})
+  const pagesFor = computed(() => projectId => pagesByProject.value[String(projectId)] || [])
 
   // --- payload mapping --------------------------------------------------------
 
@@ -470,6 +477,21 @@ export const useProjectsStore = defineStore('projects', () => {
       fields: [],
       meta: {},
     })
+
+    // Mirror the compose module editor: every new module gets a record page (+
+    // default layout) so it surfaces in the Pages step. Best-effort and
+    // intentionally non-atomic — the module already exists, so a page failure
+    // must not fail the module create.
+    try {
+      await createRecordPageForModule(
+        p.namespaceID,
+        String(raw.moduleID),
+        (name || '').trim() || 'Untitled',
+      )
+    } catch (err) {
+      console.error('Failed to create record page for module:', err)
+    }
+
     await loadResources(projectId)
     return String(raw.moduleID)
   }
@@ -480,6 +502,20 @@ export const useProjectsStore = defineStore('projects', () => {
     if (!r) return
 
     await $ComposeAPI.moduleDelete({ namespaceID: p.namespaceID, moduleID: r.id })
+
+    // Drop any record pages bound to this module so the Pages step shows no
+    // orphans. Best-effort — the module is already gone.
+    try {
+      const { set = [] } = await $ComposeAPI
+        .pageList({ namespaceID: p.namespaceID, moduleID: r.id })
+        .catch(() => ({ set: [] }))
+      for (const pg of set) {
+        await $ComposeAPI.pageDelete({ namespaceID: p.namespaceID, pageID: pg.pageID })
+      }
+    } catch (err) {
+      console.error('Failed to remove record pages for module:', err)
+    }
+
     await loadResources(projectId)
   }
 
@@ -947,6 +983,111 @@ export const useProjectsStore = defineStore('projects', () => {
     touch()
   }
 
+  // --- pages ---------------------------------------------------------------------
+  // Compose pages in the project's namespace. Record pages are bound to a module
+  // (auto-created with it); standalone pages are added in the Pages step. Pages
+  // are stamped with the project via the namespace (backend page onCreate).
+
+  async function loadPages(projectId) {
+    const p = findById.value(projectId)
+    const key = String(projectId)
+    if (!p?.namespaceID) {
+      pagesByProject.value[key] = []
+      return []
+    }
+    const { set = [] } = await $ComposeAPI
+      .pageList({ namespaceID: p.namespaceID, limit: 500 })
+      .catch(() => ({ set: [] }))
+    pagesByProject.value[key] = set.map(pg => {
+      const moduleID = pg.moduleID && String(pg.moduleID) !== '0' ? String(pg.moduleID) : null
+      return {
+        id: String(pg.pageID),
+        name: pg.title || pg.handle || '',
+        visible: !!pg.visible,
+        moduleID,
+        // Record pages are bound to a module; standalone pages are not.
+        isRecordPage: !!moduleID,
+      }
+    })
+    touch()
+    return pagesByProject.value[key]
+  }
+
+  // Seed the layout from the page's blocks (blockID + xywh) so the Builder shows
+  // them — an empty layout would hide every block until the user saves. Mirrors
+  // the compose module editor's default-layout creation.
+  async function createDefaultPageLayout(namespaceID, page) {
+    if (!page?.pageID) return
+    const blocks = (page.blocks || []).map(b => ({ blockID: b.blockID, xywh: b.xywh }))
+    await $ComposeAPI.pageLayoutCreate(
+      new compose.PageLayout({
+        namespaceID,
+        pageID: page.pageID,
+        handle: 'primary',
+        meta: { title: page.title },
+        blocks,
+      }),
+    )
+  }
+
+  // Replicates the compose module editor's "Create record page" button: a page
+  // bound to the module with a single Record block, plus a default layout. Named
+  // "<Module> Details" per the detail-page convention.
+  async function createRecordPageForModule(namespaceID, moduleID, name) {
+    const page = new compose.Page({
+      namespaceID,
+      moduleID,
+      selfID: '0',
+      title: `${name} Details`,
+      blocks: [new compose.PageBlockRecord({ xywh: [0, 0, 48, 36] })],
+    })
+    const created = await $ComposeAPI.pageCreate(page)
+    await createDefaultPageLayout(namespaceID, created)
+    return created
+  }
+
+  // Create a standalone page (no module binding). Visible by default so it shows
+  // in the namespace navigation; the user builds its blocks in the page builder.
+  async function addPage(projectId, { name } = {}) {
+    const p = findById.value(projectId)
+    if (!p?.namespaceID) return null
+    const page = new compose.Page({
+      namespaceID: p.namespaceID,
+      title: (name || '').trim() || 'Untitled',
+      visible: true,
+      blocks: [],
+    })
+    const created = await $ComposeAPI.pageCreate(page)
+    await createDefaultPageLayout(p.namespaceID, created)
+    await loadPages(projectId)
+    return String(created.pageID)
+  }
+
+  // Update a page's title/visibility. pageUpdate REPLACES the page, so we spread
+  // the full record and override only these two fields — never wiping blocks,
+  // layout binding or module link.
+  async function updatePage(projectId, pageId, { name, visible } = {}) {
+    const p = findById.value(projectId)
+    if (!p?.namespaceID) return
+    const full = await $ComposeAPI.pageRead({ namespaceID: p.namespaceID, pageID: pageId })
+    await $ComposeAPI.pageUpdate({
+      ...full,
+      namespaceID: p.namespaceID,
+      pageID: pageId,
+      title: name === undefined ? full.title : (name || '').trim() || 'Untitled',
+      visible: visible === undefined ? full.visible : visible,
+    })
+    await loadPages(projectId)
+  }
+
+  async function removePage(projectId, pageId) {
+    const p = findById.value(projectId)
+    const key = String(projectId)
+    await $ComposeAPI.pageDelete({ namespaceID: p.namespaceID, pageID: pageId })
+    pagesByProject.value[key] = (pagesByProject.value[key] || []).filter(pg => pg.id !== pageId)
+    touch()
+  }
+
   // --- resource graph ------------------------------------------------------------
   // Single backend endpoint re-derives the project's dependency graph from saved
   // state. We pass nodes through untouched and only rename edge endpoints to the
@@ -1004,6 +1145,11 @@ export const useProjectsStore = defineStore('projects', () => {
     addChatbot,
     updateChatbot,
     removeChatbot,
+    pagesFor,
+    loadPages,
+    addPage,
+    updatePage,
+    removePage,
     updateField,
     addField,
     removeField,

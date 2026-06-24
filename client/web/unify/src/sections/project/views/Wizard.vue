@@ -76,6 +76,12 @@
                 class="flex-1 min-h-0"
               />
               <ChatbotsStep
+                v-else-if="isChatbots"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+              <PagesStep
                 v-else
                 :project="project"
                 :disabled="locked"
@@ -211,6 +217,7 @@ import AgentsStep from '@/sections/project/components/wizard/steps/AgentsStep.vu
 import AutomationsStep from '@/sections/project/components/wizard/steps/AutomationsStep.vue'
 import ChatbotsStep from '@/sections/project/components/wizard/steps/ChatbotsStep.vue'
 import ConnectionsStep from '@/sections/project/components/wizard/steps/ConnectionsStep.vue'
+import PagesStep from '@/sections/project/components/wizard/steps/PagesStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
 import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
@@ -293,6 +300,7 @@ const isConnections = computed(() => activeKey.value === 'connections')
 const isAutomations = computed(() => activeKey.value === 'automations')
 const isAgents = computed(() => activeKey.value === 'agents')
 const isChatbots = computed(() => activeKey.value === 'chatbots')
+const isPages = computed(() => activeKey.value === 'pages')
 // Resource steps render full-height with the live resource graph beside them.
 const isResourceStep = computed(
   () =>
@@ -300,7 +308,8 @@ const isResourceStep = computed(
     isConnections.value ||
     isAutomations.value ||
     isAgents.value ||
-    isChatbots.value,
+    isChatbots.value ||
+    isPages.value,
 )
 const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
 // The graph always shows the whole-system overview for now. To narrow it to the
