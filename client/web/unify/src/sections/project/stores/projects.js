@@ -78,6 +78,11 @@ export const useProjectsStore = defineStore('projects', () => {
   const agentsByProject = ref({})
   const agentsFor = computed(() => projectId => agentsByProject.value[String(projectId)] || [])
 
+  // A project's chatbots — system Chatbot records stamped with its projectID.
+  // Chatbots carry a top-level name and an `enabled` flag (no description).
+  const chatbotsByProject = ref({})
+  const chatbotsFor = computed(() => projectId => chatbotsByProject.value[String(projectId)] || [])
+
   // --- payload mapping --------------------------------------------------------
 
   // Approved gates, derived from governance state against the gated pipeline.
@@ -880,6 +885,68 @@ export const useProjectsStore = defineStore('projects', () => {
     touch()
   }
 
+  // --- chatbots ------------------------------------------------------------------
+  // A project's chatbots — system Chatbot records filtered by projectID. Chatbots
+  // have a name and an `enabled` flag; the listing returns both regardless of
+  // state, so no extra filter is needed.
+  async function loadChatbots(projectId) {
+    const key = String(projectId)
+    const { set = [] } = await $SystemAPI
+      .chatbotList({ projectID: key, limit: 100 })
+      .catch(() => ({ set: [] }))
+    chatbotsByProject.value[key] = set.map(c => ({
+      id: String(c.chatbotID),
+      name: c.name || c.handle || '',
+      enabled: !!c.enabled,
+    }))
+    touch()
+    return chatbotsByProject.value[key]
+  }
+
+  // Create a project-scoped chatbot. Created disabled — the user configures its
+  // scenarios, styling and channels in the chatbot builder afterwards. Returns
+  // the new chatbotID for deep-linking.
+  async function addChatbot(projectId, { name } = {}) {
+    const raw = await $SystemAPI.chatbotCreate({
+      projectID: String(projectId),
+      name: (name || '').trim() || 'Untitled',
+      enabled: false,
+    })
+    await loadChatbots(projectId)
+    return String(raw.chatbotID)
+  }
+
+  // Update a chatbot's name/enabled. chatbotUpdate REPLACES the whole definition,
+  // so we re-fetch the full chatbot first and resend it untouched — editing here
+  // must never wipe its scenarios, styling or handoff config. `enabled` falls
+  // back to the stored value when not supplied.
+  async function updateChatbot(projectId, chatbotId, { name, enabled } = {}) {
+    const full = await $SystemAPI.chatbotRead({ chatbotID: chatbotId })
+    await $SystemAPI.chatbotUpdate({
+      chatbotID: chatbotId,
+      handle: full.handle,
+      labels: full.labels || {},
+      name: (name || '').trim() || 'Untitled',
+      enabled: enabled === undefined ? full.enabled : enabled,
+      sessionTTL: full.sessionTTL,
+      allowedOrigins: full.allowedOrigins,
+      handoff: full.handoff,
+      styling: full.styling,
+      scenarios: full.scenarios,
+      updatedAt: full.updatedAt,
+    })
+    await loadChatbots(projectId)
+  }
+
+  async function removeChatbot(projectId, chatbotId) {
+    const key = String(projectId)
+    await $SystemAPI.chatbotDelete({ chatbotID: chatbotId })
+    chatbotsByProject.value[key] = (chatbotsByProject.value[key] || []).filter(
+      c => c.id !== chatbotId,
+    )
+    touch()
+  }
+
   // --- resource graph ------------------------------------------------------------
   // Single backend endpoint re-derives the project's dependency graph from saved
   // state. We pass nodes through untouched and only rename edge endpoints to the
@@ -932,6 +999,11 @@ export const useProjectsStore = defineStore('projects', () => {
     addAgent,
     updateAgent,
     removeAgent,
+    chatbotsFor,
+    loadChatbots,
+    addChatbot,
+    updateChatbot,
+    removeChatbot,
     updateField,
     addField,
     removeField,

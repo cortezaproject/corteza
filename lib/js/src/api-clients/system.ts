@@ -9517,7 +9517,8 @@ export default class System {
 
   // List chatbots
   async chatbotList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, projectID, handle, deleted, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9525,6 +9526,7 @@ export default class System {
     }
     cfg.params = {
       query,
+      projectID,
       handle,
       deleted,
       labels,
@@ -9562,6 +9564,7 @@ export default class System {
   async chatbotCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       handle,
+      projectID,
       name,
       enabled,
       sessionTTL,
@@ -9578,6 +9581,7 @@ export default class System {
     }
     cfg.data = {
       handle,
+      projectID,
       name,
       enabled,
       sessionTTL,

@@ -12,6 +12,7 @@ import (
 type (
 	ChatbotFilter struct {
 		ChatbotID []string `json:"chatbotID"`
+		ProjectID uint64   `json:"projectID,string,omitempty"`
 		Handle    string   `json:"handle"`
 		WidgetKey string   `json:"widgetKey"`
 		Query     string   `json:"query"`

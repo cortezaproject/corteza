@@ -103,7 +103,7 @@ chatbot: {
 		}
 
 		query: ["handle", "name"]
-		byValue: ["chatbot_id", "handle", "widget_key"]
+		byValue: ["chatbot_id", "project_id", "handle", "widget_key"]
 		byNilState: ["deleted"]
 	}
 

@@ -64,10 +64,11 @@ func (ctrl *Chatbot) makeFilter(ctx context.Context, r *request.ChatbotList) (ty
 	var (
 		err error
 		f   = types.ChatbotFilter{
-			Query:   r.Query,
-			Handle:  r.Handle,
-			Labels:  r.Labels,
-			Deleted: filter.State(r.Deleted),
+			Query:     r.Query,
+			ProjectID: r.ProjectID,
+			Handle:    r.Handle,
+			Labels:    r.Labels,
+			Deleted:   filter.State(r.Deleted),
 		}
 	)
 
@@ -88,6 +89,9 @@ func (ctrl *Chatbot) makeFilter(ctx context.Context, r *request.ChatbotList) (ty
 // before it is handed to the service. The generated Create controller
 // already mapped the plain-value params (including Labels).
 func (ctrl *Chatbot) beforeCreate(ctx context.Context, res *types.Chatbot, r *request.ChatbotCreate) error {
+	// Project-scoped: stamp the owning project so the chatbot is created inside it
+	// (the generated controller maps only the simple value params).
+	res.ProjectID = r.ProjectID
 	res.AllowedOrigins = r.AllowedOrigins
 	res.Handoff = r.Handoff
 	res.Styling = r.Styling

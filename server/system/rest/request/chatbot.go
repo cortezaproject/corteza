@@ -43,6 +43,11 @@ type (
 		// Search query
 		Query string
 
+		// ProjectID GET parameter
+		//
+		// Filter by project ID
+		ProjectID uint64 `json:",string"`
+
 		// Handle GET parameter
 		//
 		// Search by handle
@@ -84,6 +89,11 @@ type (
 		//
 		// Chatbot handle
 		Handle string
+
+		// ProjectID POST parameter
+		//
+		// Project this chatbot belongs to
+		ProjectID uint64 `json:",string"`
 
 		// Name POST parameter
 		//
@@ -233,6 +243,7 @@ func NewChatbotList() *ChatbotList {
 func (r ChatbotList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
+		"projectID":  r.ProjectID,
 		"handle":     r.Handle,
 		"deleted":    r.Deleted,
 		"labels":     r.Labels,
@@ -246,6 +257,11 @@ func (r ChatbotList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ChatbotList) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotList) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -292,6 +308,12 @@ func (r *ChatbotList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -357,6 +379,7 @@ func NewChatbotCreate() *ChatbotCreate {
 func (r ChatbotCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"handle":         r.Handle,
+		"projectID":      r.ProjectID,
 		"name":           r.Name,
 		"enabled":        r.Enabled,
 		"sessionTTL":     r.SessionTTL,
@@ -371,6 +394,11 @@ func (r ChatbotCreate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ChatbotCreate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChatbotCreate) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -436,6 +464,13 @@ func (r *ChatbotCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -533,6 +568,13 @@ func (r *ChatbotCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

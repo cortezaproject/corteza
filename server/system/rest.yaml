@@ -3931,6 +3931,7 @@ endpoints:
         parameters:
           get:
             - { type: string, name: query, title: Search query }
+            - { type: uint64, name: projectID, title: Filter by project ID }
             - { type: string, name: handle, title: Search by handle }
             - {
                 type: uint,
@@ -3954,6 +3955,7 @@ endpoints:
         parameters:
           post:
             - { type: string, name: handle, title: Chatbot handle }
+            - { type: uint64, name: projectID, title: Project this chatbot belongs to }
             - { type: string, name: name, title: Chatbot display name }
             - { type: bool, name: enabled, title: Whether the chatbot is enabled }
             - { type: string, name: sessionTTL, title: Session TTL (duration string) }

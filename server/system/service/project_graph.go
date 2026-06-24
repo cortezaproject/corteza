@@ -272,7 +272,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		})
 	}
 
-	cb, _, err := store.SearchChatbots(ctx, s.store, types.ChatbotFilter{})
+	cb, _, err := store.SearchChatbots(ctx, s.store, types.ChatbotFilter{ProjectID: projectID})
 	if err != nil {
 		return nil, err
 	}

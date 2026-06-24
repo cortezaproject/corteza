@@ -161,6 +161,8 @@ steps:
     label: Automations
   agents:
     label: Agents
+  chatbots:
+    label: Chatbots
   data-sensitivity:
     label: Data Sensitivity
 summaryForm:
@@ -489,6 +491,31 @@ configureAgent:
   createAndOpenBuilder: Create and open builder
   openBuilder: Open builder
   toastFailed: Could not save agent
+chatbots:
+  title: Chatbots
+  add: Add chatbot
+  remove: Remove chatbot
+  openBuilder: Open in chatbot builder
+  empty: No chatbots yet.
+  enabled: Enabled
+  disabled: Disabled
+  toastLoadFailed: Could not load chatbots
+  toastRemoveFailed: Could not remove chatbot
+  removeConfirm:
+    header: Remove chatbot
+    message: Remove “{name}” from this project? This deletes the chatbot.
+configureChatbot:
+  createTitle: New chatbot
+  editTitle: Edit chatbot
+  blurb: Name your chatbot, then configure its scenarios, styling and channels in the chatbot builder.
+  name: Name
+  namePlaceholder: e.g. Website assistant
+  enabled: Enabled
+  enabledHint: Turn the chatbot on or off. Configure its scenarios and channels in the builder before enabling.
+  create: Create
+  createAndOpenBuilder: Create and open builder
+  openBuilder: Open builder
+  toastFailed: Could not save chatbot
 graph:
   resources: Resources
   reloadTitle: Reload from the backend
