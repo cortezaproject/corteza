@@ -73,6 +73,11 @@ export const useProjectsStore = defineStore('projects', () => {
   const automationsByProject = ref({})
   const automationsFor = computed(() => projectId => automationsByProject.value[String(projectId)] || [])
 
+  // A project's agents — system Agent records stamped with its projectID. Kept
+  // separately, keyed by projectID, and (re)fetched on demand like automations.
+  const agentsByProject = ref({})
+  const agentsFor = computed(() => projectId => agentsByProject.value[String(projectId)] || [])
+
   // --- payload mapping --------------------------------------------------------
 
   // Approved gates, derived from governance state against the gated pipeline.
@@ -772,10 +777,11 @@ export const useProjectsStore = defineStore('projects', () => {
     return String(raw.automationID)
   }
 
-  // Update a TAQ's name/description. The update endpoint REPLACES triggers,
-  // steps and paths, so we re-fetch the full definition first and resend it
-  // untouched — editing the name here must never wipe the automation's logic.
-  async function updateAutomation(projectId, automationId, { name, description } = {}) {
+  // Update a TAQ's name/description/enabled. The update endpoint REPLACES
+  // triggers, steps and paths, so we re-fetch the full definition first and
+  // resend it untouched — editing here must never wipe the automation's logic.
+  // `enabled` falls back to the stored value when not supplied.
+  async function updateAutomation(projectId, automationId, { name, description, enabled } = {}) {
     const full = await $AutomationAPI.ngAutomationRead({ automationID: automationId })
     await $AutomationAPI.ngAutomationUpdate({
       automationID: automationId,
@@ -786,7 +792,7 @@ export const useProjectsStore = defineStore('projects', () => {
         short: (name || '').trim() || 'Untitled',
         description: (description || '').trim() || undefined,
       },
-      enabled: full.enabled,
+      enabled: enabled === undefined ? full.enabled : enabled,
       scope: full.scope,
       triggers: full.triggers || [],
       steps: full.steps || [],
@@ -804,6 +810,73 @@ export const useProjectsStore = defineStore('projects', () => {
     automationsByProject.value[key] = (automationsByProject.value[key] || []).filter(
       a => a.id !== automationId,
     )
+    touch()
+  }
+
+  // --- agents --------------------------------------------------------------------
+  // A project's agents — system Agent records filtered by projectID. Agents
+  // carry a status (`active`/`inactive`) rather than an enabled flag; the
+  // listing returns both, so no extra filter is needed (unlike TAQs).
+  async function loadAgents(projectId) {
+    const key = String(projectId)
+    const { set = [] } = await $SystemAPI
+      .agentList({ projectID: key, limit: 100 })
+      .catch(() => ({ set: [] }))
+    agentsByProject.value[key] = set.map(a => ({
+      id: String(a.agentID),
+      name: a.meta?.short || a.handle || '',
+      description: a.meta?.description || '',
+      status: a.status || 'inactive',
+    }))
+    touch()
+    return agentsByProject.value[key]
+  }
+
+  // Create a project-scoped agent. Like a TAQ it has no parent, so the projectID
+  // is passed explicitly. Created inactive — the user builds its behaviour in the
+  // agent builder afterwards. Returns the new agentID for deep-linking.
+  async function addAgent(projectId, { name, description } = {}) {
+    const raw = await $SystemAPI.agentCreate({
+      projectID: String(projectId),
+      status: 'inactive',
+      meta: {
+        short: (name || '').trim() || 'Untitled',
+        description: (description || '').trim() || undefined,
+      },
+    })
+    await loadAgents(projectId)
+    return String(raw.agentID)
+  }
+
+  // Update an agent's name/description/status. agentUpdate REPLACES the whole
+  // definition, so we re-fetch the full agent first and resend it untouched —
+  // editing here must never wipe the agent's behaviour, execution or access.
+  // `status` falls back to the stored value when not supplied.
+  async function updateAgent(projectId, agentId, { name, description, status } = {}) {
+    const full = await $SystemAPI.agentRead({ agentID: agentId })
+    await $SystemAPI.agentUpdate({
+      agentID: agentId,
+      handle: full.handle,
+      labels: full.labels || {},
+      status: status === undefined ? full.status : status,
+      meta: {
+        ...(full.meta || {}),
+        short: (name || '').trim() || 'Untitled',
+        description: (description || '').trim() || undefined,
+      },
+      behavior: full.behavior,
+      execution: full.execution,
+      access: full.access,
+      invocation: full.invocation,
+      updatedAt: full.updatedAt,
+    })
+    await loadAgents(projectId)
+  }
+
+  async function removeAgent(projectId, agentId) {
+    const key = String(projectId)
+    await $SystemAPI.agentDelete({ agentID: agentId })
+    agentsByProject.value[key] = (agentsByProject.value[key] || []).filter(a => a.id !== agentId)
     touch()
   }
 
@@ -854,6 +927,11 @@ export const useProjectsStore = defineStore('projects', () => {
     updateAutomation,
     addAutomation,
     removeAutomation,
+    agentsFor,
+    loadAgents,
+    addAgent,
+    updateAgent,
+    removeAgent,
     updateField,
     addField,
     removeField,

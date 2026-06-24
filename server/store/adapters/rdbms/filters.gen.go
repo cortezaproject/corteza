@@ -266,6 +266,10 @@ func AgentFilter(d drivers.Dialect, f systemType.AgentFilter) (ee []goqu.Express
 		ee = append(ee, goqu.C("id").In(f.AgentID))
 	}
 
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}

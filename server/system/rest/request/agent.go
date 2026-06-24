@@ -46,6 +46,11 @@ type (
 		// Search query
 		Query string
 
+		// ProjectID GET parameter
+		//
+		// Filter by project ID
+		ProjectID uint64 `json:",string"`
+
 		// Handle GET parameter
 		//
 		// Search by handle
@@ -92,6 +97,11 @@ type (
 		//
 		// Agent handle
 		Handle string
+
+		// ProjectID POST parameter
+		//
+		// Project this agent belongs to
+		ProjectID uint64 `json:",string"`
 
 		// Status POST parameter
 		//
@@ -250,6 +260,7 @@ func NewAgentList() *AgentList {
 func (r AgentList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
+		"projectID":  r.ProjectID,
 		"handle":     r.Handle,
 		"status":     r.Status,
 		"deleted":    r.Deleted,
@@ -264,6 +275,11 @@ func (r AgentList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r AgentList) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentList) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -315,6 +331,12 @@ func (r *AgentList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -386,6 +408,7 @@ func NewAgentCreate() *AgentCreate {
 func (r AgentCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"handle":     r.Handle,
+		"projectID":  r.ProjectID,
 		"status":     r.Status,
 		"meta":       r.Meta,
 		"behavior":   r.Behavior,
@@ -399,6 +422,11 @@ func (r AgentCreate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r AgentCreate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentCreate) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -459,6 +487,13 @@ func (r *AgentCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -554,6 +589,13 @@ func (r *AgentCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

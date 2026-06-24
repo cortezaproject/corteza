@@ -61,11 +61,12 @@ func (ctrl *Agent) makeFilter(ctx context.Context, r *request.AgentList) (types.
 	var (
 		err error
 		f   = types.AgentFilter{
-			Query:   r.Query,
-			Handle:  r.Handle,
-			Status:  r.Status,
-			Labels:  r.Labels,
-			Deleted: filter.State(r.Deleted),
+			Query:     r.Query,
+			ProjectID: r.ProjectID,
+			Handle:    r.Handle,
+			Status:    r.Status,
+			Labels:    r.Labels,
+			Deleted:   filter.State(r.Deleted),
 		}
 	)
 
@@ -86,6 +87,9 @@ func (ctrl *Agent) makeFilter(ctx context.Context, r *request.AgentList) (types.
 // before it is handed to the service. The generated Create controller
 // already mapped the plain-value params.
 func (ctrl *Agent) beforeCreate(ctx context.Context, res *types.Agent, r *request.AgentCreate) error {
+	// Project-scoped: stamp the owning project so the agent is created inside it
+	// (the generated controller maps only the simple value params).
+	res.ProjectID = r.ProjectID
 	res.Meta = r.Meta
 	res.Behavior = r.Behavior
 	res.Execution = r.Execution

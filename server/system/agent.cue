@@ -101,7 +101,7 @@ agent: {
 		}
 
 		query: ["handle", "status"]
-		byValue: ["agent_id", "handle", "status"]
+		byValue: ["agent_id", "project_id", "handle", "status"]
 		byNilState: ["deleted"]
 	}
 

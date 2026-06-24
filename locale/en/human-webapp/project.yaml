@@ -159,6 +159,8 @@ steps:
     label: Connections
   automations:
     label: Automations
+  agents:
+    label: Agents
   data-sensitivity:
     label: Data Sensitivity
 summaryForm:
@@ -439,6 +441,7 @@ automations:
   title: Automations
   add: Add automation
   remove: Remove automation
+  openBuilder: Open in automation builder
   empty: No automations yet.
   enabled: Enabled
   disabled: Disabled
@@ -454,9 +457,38 @@ configureAutomation:
   name: Name
   namePlaceholder: e.g. Lead scoring
   description: Description
+  enabled: Enabled
+  enabledHint: Turn the automation on or off. It must have at least a trigger and a step to run.
   create: Create
+  createAndOpenBuilder: Create and open builder
   openBuilder: Open builder
   toastFailed: Could not save automation
+agents:
+  title: Agents
+  add: Add agent
+  remove: Remove agent
+  openBuilder: Open in agent builder
+  empty: No agents yet.
+  active: Active
+  inactive: Inactive
+  toastLoadFailed: Could not load agents
+  toastRemoveFailed: Could not remove agent
+  removeConfirm:
+    header: Remove agent
+    message: Remove “{name}” from this project? This deletes the agent.
+configureAgent:
+  createTitle: New agent
+  editTitle: Edit agent
+  blurb: Name your agent, then configure its behaviour, model and access in the agent builder.
+  name: Name
+  namePlaceholder: e.g. Support assistant
+  description: Description
+  active: Active
+  activeHint: Make the agent active or inactive. Configure its behaviour and model in the builder before activating.
+  create: Create
+  createAndOpenBuilder: Create and open builder
+  openBuilder: Open builder
+  toastFailed: Could not save agent
 graph:
   resources: Resources
   reloadTitle: Reload from the backend

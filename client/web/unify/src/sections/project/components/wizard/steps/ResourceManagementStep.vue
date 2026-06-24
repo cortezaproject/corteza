@@ -79,7 +79,7 @@
       </header>
 
       <div v-if="infraProviders.length" class="flex flex-col gap-3">
-        <div v-for="p in infraProviders" :key="p.id" class="rounded-lg border border-surface p-4">
+        <div v-for="p in infraProviders" :key="p.id" class="group rounded-lg border border-surface p-4">
           <div class="flex items-start gap-3">
             <div class="flex flex-col gap-4 flex-1 min-w-0">
               <CInputToggleCard
@@ -141,6 +141,7 @@
               text
               rounded
               size="small"
+              class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
               @click="removeInfra(p.id)"
             />
           </div>
@@ -186,7 +187,7 @@
         <div
           v-for="c in connections"
           :key="c.id"
-          class="rounded-lg border border-surface p-4 flex flex-col gap-4"
+          class="group rounded-lg border border-surface p-4 flex flex-col gap-4"
         >
           <div class="flex items-start gap-3">
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 flex-1 min-w-0">
@@ -261,6 +262,7 @@
               text
               rounded
               size="small"
+              class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
               @click="removeConn(c.id)"
             />
           </div>

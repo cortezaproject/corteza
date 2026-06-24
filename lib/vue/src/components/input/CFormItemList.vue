@@ -16,7 +16,7 @@
       :key="getKey(item, index)"
       :draggable="draggable"
       :class="[
-        'flex items-center gap-2 p-3 border border-surface rounded-border shadow-sm cursor-pointer hover:bg-emphasis transition-colors',
+        'group flex items-center gap-2 p-3 border border-surface rounded-border shadow-sm cursor-pointer hover:bg-emphasis transition-colors',
         isSelected(item, index) ? 'bg-highlight' : '',
         draggable && dropTargetIndex === index && draggedIndex !== index
           ? '!border-t-2 !border-t-primary'
@@ -33,18 +33,42 @@
       <div class="flex-1 min-w-0">
         <slot :item="item" :index="index" />
       </div>
-      <slot name="actions" :item="item" :index="index" />
-      <Button
-        v-if="!hideRemove"
-        icon="pi pi-trash"
-        severity="danger"
-        text
-        size="small"
-        :loading="loadingKey !== null && loadingKey === getKey(item, index)"
-        :aria-label="removeLabel || undefined"
-        :title="removeLabel || undefined"
-        @click.stop="$emit('remove', item, index)"
-      />
+      <!-- Right-side controls. With `reveal-on-hover` the status (`actions`
+           slot) sits at the far right and is swapped for the action buttons
+           (`hover-actions` slot + remove) on hover/focus; otherwise both stay
+           visible side by side (legacy layout via `display: contents`). -->
+      <div :class="revealOnHover ? 'relative flex items-center' : 'contents'">
+        <div
+          :class="
+            revealOnHover
+              ? 'transition-opacity group-hover:opacity-0 group-focus-within:opacity-0'
+              : 'contents'
+          "
+        >
+          <slot name="actions" :item="item" :index="index" />
+        </div>
+        <div
+          class="flex items-center gap-1"
+          :class="
+            revealOnHover
+              ? 'absolute inset-y-0 right-0 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100'
+              : ''
+          "
+        >
+          <slot name="hover-actions" :item="item" :index="index" />
+          <Button
+            v-if="!hideRemove"
+            icon="pi pi-trash"
+            severity="danger"
+            text
+            size="small"
+            :loading="loadingKey !== null && loadingKey === getKey(item, index)"
+            :aria-label="removeLabel || undefined"
+            :title="removeLabel || undefined"
+            @click.stop="$emit('remove', item, index)"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -64,6 +88,11 @@ const props = defineProps({
   // Key of the currently selected item — compared against getKey(item, index).
   // When matched, the row gets bg-highlight styling. Pass null/undefined for no selection.
   selectedKey: { type: [String, Number, null], default: null },
+  // When true, the `actions` slot (e.g. a status tag) sits at the far right and
+  // is swapped for the action buttons (`hover-actions` slot + remove) when the
+  // row is hovered or focused. Default keeps everything visible side by side
+  // (legacy behaviour).
+  revealOnHover: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['remove', 'reorder', 'select'])

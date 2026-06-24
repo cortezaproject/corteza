@@ -64,6 +64,12 @@
                 class="flex-1 min-h-0"
               />
               <AutomationsStep
+                v-else-if="isAutomations"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+              <AgentsStep
                 v-else
                 :project="project"
                 :disabled="locked"
@@ -195,6 +201,7 @@ import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
+import AgentsStep from '@/sections/project/components/wizard/steps/AgentsStep.vue'
 import AutomationsStep from '@/sections/project/components/wizard/steps/AutomationsStep.vue'
 import ConnectionsStep from '@/sections/project/components/wizard/steps/ConnectionsStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
@@ -277,8 +284,11 @@ const isMembers = computed(() => activeKey.value === 'members')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
 const isAutomations = computed(() => activeKey.value === 'automations')
+const isAgents = computed(() => activeKey.value === 'agents')
 // Resource steps render full-height with the live resource graph beside them.
-const isResourceStep = computed(() => isDataModel.value || isConnections.value || isAutomations.value)
+const isResourceStep = computed(
+  () => isDataModel.value || isConnections.value || isAutomations.value || isAgents.value,
+)
 const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
 // The graph always shows the whole-system overview for now. To narrow it to the
 // active resource step's kind again, restore this computed and pass it back as

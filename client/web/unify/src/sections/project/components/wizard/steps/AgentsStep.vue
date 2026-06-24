@@ -1,11 +1,11 @@
 <template>
   <div class="h-full overflow-auto p-4">
-    <CFormGroup :label="$t('project.automations.title')">
+    <CFormGroup :label="$t('project.agents.title')">
       <template #actions>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
-          :label="$t('project.automations.add')"
+          :label="$t('project.agents.add')"
           severity="secondary"
           size="small"
           @click="openCreate"
@@ -13,12 +13,12 @@
       </template>
 
       <CFormItemList
-        :items="automations"
+        :items="agents"
         item-key="id"
-        :reveal-on-hover="!disabled"
-        :empty-message="$t('project.automations.empty')"
+        reveal-on-hover
+        :empty-message="$t('project.agents.empty')"
         :hide-remove="disabled"
-        :remove-label="$t('project.automations.remove')"
+        :remove-label="$t('project.agents.remove')"
         @select="onSelect"
         @remove="onRemove"
       >
@@ -42,41 +42,41 @@
         <template #actions="{ item }">
           <Tag
             :value="
-              item.enabled
-                ? $t('project.automations.enabled')
-                : $t('project.automations.disabled')
+              item.status === 'active'
+                ? $t('project.agents.active')
+                : $t('project.agents.inactive')
             "
-            :severity="item.enabled ? 'success' : 'secondary'"
-            class="!text-xs shrink-0"
+            :severity="item.status === 'active' ? 'success' : 'secondary'"
+            class="!text-xs shrink-0 me-2"
           />
         </template>
 
         <template #hover-actions="{ item }">
           <CRouterLinkButton
-            :to="{ name: 'taq.builder-edit', params: { id: item.id } }"
+            :to="{ name: 'agentic.edit', params: { agentID: item.id } }"
             icon="pi pi-external-link"
             severity="secondary"
             text
             size="small"
-            :aria-label="$t('project.automations.openBuilder')"
-            :title="$t('project.automations.openBuilder')"
+            :aria-label="$t('project.agents.openBuilder')"
+            :title="$t('project.agents.openBuilder')"
             @click.stop
           />
         </template>
       </CFormItemList>
     </CFormGroup>
 
-    <ConfigureAutomationDialog
+    <ConfigureAgentDialog
       v-model="dialogOpen"
       :project-id="project.id"
-      :automation="activeAutomation"
+      :agent="activeAgent"
       @saved="refresh(project.id)"
     />
   </div>
 </template>
 
 <script setup>
-import ConfigureAutomationDialog from '@/sections/project/components/automations/ConfigureAutomationDialog.vue'
+import ConfigureAgentDialog from '@/sections/project/components/agents/ConfigureAgentDialog.vue'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'
@@ -95,33 +95,33 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 
-const cfg = kindConfig('automation')
-const automations = computed(() => store.automationsFor(props.project.id))
+const cfg = kindConfig('agent')
+const agents = computed(() => store.agentsFor(props.project.id))
 
 const dialogOpen = ref(false)
-const activeAutomation = ref(null)
+const activeAgent = ref(null)
 
 function openCreate() {
-  activeAutomation.value = null
+  activeAgent.value = null
   dialogOpen.value = true
 }
 
-// Clicking an automation opens its dialog (name/description + a button to open
-// the full TAQ builder), rather than navigating straight to the builder.
+// Clicking an agent opens its dialog (name/description + a button to open the
+// full agent builder), rather than navigating straight to the builder.
 function onSelect(item) {
-  activeAutomation.value = item
+  activeAgent.value = item
   dialogOpen.value = true
 }
 
 function onRemove(a) {
   confirmDelete({
-    header: t('project.automations.removeConfirm.header'),
-    message: t('project.automations.removeConfirm.message', { name: a.name }),
+    header: t('project.agents.removeConfirm.header'),
+    message: t('project.agents.removeConfirm.message', { name: a.name }),
     onConfirm: async () => {
       try {
-        await store.removeAutomation(props.project.id, a.id)
+        await store.removeAgent(props.project.id, a.id)
       } catch (err) {
-        $toast.toastErrorHandler(t('project.automations.toastRemoveFailed'))(err)
+        $toast.toastErrorHandler(t('project.agents.toastRemoveFailed'))(err)
       }
     },
   })
@@ -129,9 +129,9 @@ function onRemove(a) {
 
 async function refresh(id) {
   try {
-    await store.loadAutomations(id)
+    await store.loadAgents(id)
   } catch (err) {
-    $toast.toastErrorHandler(t('project.automations.toastLoadFailed'))(err)
+    $toast.toastErrorHandler(t('project.agents.toastLoadFailed'))(err)
   }
 }
 

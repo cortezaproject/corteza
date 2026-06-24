@@ -16,6 +16,7 @@ export const STEPS = [
   { key: 'data-sensitivity', labelKey: 'project.steps.data-sensitivity.label', type: 'sensitivity', gatedOnly: true, gate: true },
   { key: 'connections', labelKey: 'project.steps.connections.label', type: 'resource', kind: 'connection', gatedOnly: false, gate: false },
   { key: 'automations', labelKey: 'project.steps.automations.label', type: 'resource', kind: 'automation', gatedOnly: false, gate: false },
+  { key: 'agents', labelKey: 'project.steps.agents.label', type: 'resource', kind: 'agent', gatedOnly: false, gate: false },
 ]
 
 // Resolve the pipeline for a project context. Kept as a hook for future

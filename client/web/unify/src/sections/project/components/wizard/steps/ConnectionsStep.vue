@@ -16,6 +16,7 @@
       <CFormItemList
         :items="connections"
         item-key="id"
+        :reveal-on-hover="!disabled"
         :empty-message="$t('project.connections.empty')"
         :hide-remove="disabled"
         :remove-label="$t('project.connections.remove')"
@@ -31,17 +32,22 @@
               <i :class="[iconForConnector(item.catalogID), cfg.text]" />
             </span>
             <div class="min-w-0">
-              <div class="font-medium truncate flex items-center gap-2">
-                <span class="truncate">{{ item.name }}</span>
-                <Tag :value="$t('project.connections.configured')" severity="secondary" class="!text-xs shrink-0">
-                  <template #icon>
-                    <i class="pi pi-check-circle text-green-500 !text-xs" />
-                  </template>
-                </Tag>
-              </div>
+              <div class="font-medium truncate">{{ item.name }}</div>
               <div class="text-xs text-muted-color">{{ labelForConnector(item.catalogID) }}</div>
             </div>
           </div>
+        </template>
+
+        <template #actions>
+          <Tag
+            :value="$t('project.connections.configured')"
+            severity="secondary"
+            class="!text-xs shrink-0"
+          >
+            <template #icon>
+              <i class="pi pi-check-circle text-green-500 !text-xs" />
+            </template>
+          </Tag>
         </template>
       </CFormItemList>
     </CFormGroup>

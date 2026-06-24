@@ -41,7 +41,8 @@
         >
           <template
             v-if="
-              $Settings.get('discovery.enabled', false) && $Settings.get('ui.topbar.showSearch', true)
+              $Settings.get('discovery.enabled', false) &&
+              $Settings.get('ui.topbar.showSearch', true)
             "
             #right-tools
           >
@@ -122,11 +123,7 @@ import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } fro
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 
-import {
-  useModuleStore,
-  useNamespaceStore,
-  useUserStore,
-} from '@planetcrust/human-vue'
+import { useModuleStore, useNamespaceStore, useUserStore } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
 
 const {
@@ -262,6 +259,7 @@ onMounted(async () => {
     namespaceStore.load(),
     usersStore.load({ limit: 500 }),
   ])
+
   // Brief splash floor so the logo doesn't flash-and-vanish on fast loads,
   // without forcing a long wait when data is ready sooner.
   const delayPromise = new Promise(resolve => setTimeout(resolve, 1000))

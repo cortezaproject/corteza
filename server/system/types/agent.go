@@ -101,10 +101,11 @@ type (
 	}
 
 	AgentFilter struct {
-		AgentID []string `json:"agentID"`
-		Handle  string   `json:"handle"`
-		Status  string   `json:"status"`
-		Query   string   `json:"query"`
+		AgentID   []string `json:"agentID"`
+		ProjectID uint64   `json:"projectID,string,omitempty"`
+		Handle    string   `json:"handle"`
+		Status    string   `json:"status"`
+		Query     string   `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 

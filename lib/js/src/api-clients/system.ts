@@ -8475,7 +8475,7 @@ export default class System {
 
   // List agents
   async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+    const { query, projectID, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =
       (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -8484,6 +8484,7 @@ export default class System {
     }
     cfg.params = {
       query,
+      projectID,
       handle,
       status,
       deleted,
@@ -8520,7 +8521,7 @@ export default class System {
 
   // Create agent
   async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, status, meta, behavior, execution, access, invocation, labels } =
+    const { handle, projectID, status, meta, behavior, execution, access, invocation, labels } =
       (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -8529,6 +8530,7 @@ export default class System {
     }
     cfg.data = {
       handle,
+      projectID,
       status,
       meta,
       behavior,

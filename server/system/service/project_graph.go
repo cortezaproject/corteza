@@ -7,6 +7,7 @@ import (
 	automationTypes "github.com/crusttech/human/server/automation/types"
 	composeTypes "github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/pkg/resourceref"
 	"github.com/crusttech/human/server/pkg/scope"
@@ -230,7 +231,14 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		})
 	}
 
-	aa, _, err := store.SearchAutomationNgAutomations(ctx, s.store, automationTypes.NgAutomationFilter{ProjectID: projectID})
+	// Disabled: StateInclusive — project TAQs are created disabled and only
+	// enabled once their logic is built, so without this the graph would drop
+	// every freshly-created automation (the default StateExcluded means "only
+	// enabled"). Mirrors the listing query the wizard uses.
+	aa, _, err := store.SearchAutomationNgAutomations(ctx, s.store, automationTypes.NgAutomationFilter{
+		ProjectID: projectID,
+		Disabled:  filter.StateInclusive,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +257,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		})
 	}
 
-	ag, _, err := store.SearchAgents(ctx, s.store, types.AgentFilter{})
+	ag, _, err := store.SearchAgents(ctx, s.store, types.AgentFilter{ProjectID: projectID})
 	if err != nil {
 		return nil, err
 	}

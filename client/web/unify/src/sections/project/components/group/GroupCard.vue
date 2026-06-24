@@ -1,5 +1,5 @@
 <template>
-  <article class="bg-surface rounded-xl border border-surface overflow-hidden">
+  <article class="group bg-surface rounded-xl border border-surface overflow-hidden">
     <header class="px-4 py-2 flex items-center gap-2 border-b border-surface">
       <i class="pi pi-folder text-primary" />
       <InputText
@@ -25,6 +25,7 @@
         text
         rounded
         size="small"
+        class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
         @click="emit('remove')"
       />
     </header>
