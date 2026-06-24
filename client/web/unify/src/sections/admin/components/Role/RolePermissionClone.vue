@@ -20,7 +20,7 @@
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
-          outlined
+          text
           size="small"
           :disabled="cloning"
           @click="$emit('update:visible', false)"

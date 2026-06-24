@@ -525,7 +525,7 @@
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
-          outlined
+          text
           size="small"
           @click="layoutConfigVisible = false"
         />
@@ -617,7 +617,7 @@
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="closeIconModal"
           />

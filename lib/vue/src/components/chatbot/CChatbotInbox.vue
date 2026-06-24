@@ -821,7 +821,7 @@ function onAccept() {
     rejectProps: {
       label: l('cancel'),
       severity: 'secondary',
-      outlined: true,
+      text: true,
       size: 'small',
     },
     acceptProps: {
@@ -870,7 +870,7 @@ function onResolve() {
     rejectProps: {
       label: l('cancel'),
       severity: 'secondary',
-      outlined: true,
+      text: true,
       size: 'small',
     },
     acceptProps: {
@@ -903,7 +903,7 @@ function onForceAdvance() {
     rejectProps: {
       label: l('cancel'),
       severity: 'secondary',
-      outlined: true,
+      text: true,
       size: 'small',
     },
     acceptProps: {
@@ -935,7 +935,7 @@ function onForceClose() {
     rejectProps: {
       label: l('cancel'),
       severity: 'secondary',
-      outlined: true,
+      text: true,
       size: 'small',
     },
     acceptProps: {

@@ -31,12 +31,14 @@ export function useConfirmDelete() {
       acceptProps: {
         label: t('general.label.delete'),
         severity: 'danger',
+        size: 'small',
         ...acceptProps,
       },
       rejectProps: {
         label: t('general.label.cancel'),
         severity: 'secondary',
-        outlined: true,
+        text: true,
+        size: 'small',
         ...rejectProps,
       },
       accept: onConfirm,

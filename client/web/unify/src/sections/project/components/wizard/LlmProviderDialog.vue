@@ -42,7 +42,7 @@
     <p v-if="error" class="text-sm text-red-500 mt-3">{{ error }}</p>
 
     <template #footer>
-      <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="visible = false" />
+      <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="visible = false" />
       <Button :label="$t('general.label.create')" size="small" :loading="saving" :disabled="!canSubmit" @click="submit" />
     </template>
   </Dialog>

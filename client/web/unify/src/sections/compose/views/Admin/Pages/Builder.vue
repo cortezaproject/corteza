@@ -174,7 +174,7 @@
           :label="$t('general.label.cancel')"
           severity="secondary"
           size="small"
-          outlined
+          text
           @click="showDeleteLayoutConfirm = false"
         />
         <Button
@@ -431,7 +431,7 @@
           :label="$t('general.label.cancel')"
           severity="secondary"
           size="small"
-          outlined
+          text
           @click="showConfigurator = false"
         />
         <Button :label="$t('general.label.save')" size="small" @click="saveBlockConfig" />

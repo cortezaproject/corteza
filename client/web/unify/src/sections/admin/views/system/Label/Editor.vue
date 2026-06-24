@@ -147,7 +147,7 @@
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="showNsDialog = false"
           />
@@ -183,7 +183,7 @@
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="showAgentDialog = false"
           />
@@ -219,7 +219,7 @@
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="showTaqDialog = false"
           />

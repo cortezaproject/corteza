@@ -165,7 +165,7 @@
             <Button
               :label="cancelLabel"
               severity="secondary"
-              outlined
+              text
               size="small"
               @click="dialogVisible = false"
               :disabled="saving"

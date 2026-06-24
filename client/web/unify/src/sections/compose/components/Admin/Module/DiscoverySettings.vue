@@ -36,7 +36,7 @@
           :label="$t('general.label.cancel')"
           severity="secondary"
           size="small"
-          outlined
+          text
           @click="showModal = false"
         />
         <Button :label="$t('general.label.saveAndClose')" size="small" @click="onSave" />

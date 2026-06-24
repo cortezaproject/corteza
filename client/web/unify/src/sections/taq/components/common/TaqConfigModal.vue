@@ -70,7 +70,7 @@
         <Button
           :label="$t('list.button.cancel')"
           severity="secondary"
-          outlined
+          text
           size="small"
           @click="emit('update:visible', false)"
         />

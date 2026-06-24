@@ -116,9 +116,9 @@
     </div>
 
     <template #footer>
-      <Button v-if="readonly" label="Close" size="small" @click="visible = false" />
+      <Button v-if="readonly" label="Close" severity="secondary" text size="small" @click="visible = false" />
       <template v-else>
-        <Button label="Cancel" severity="secondary" outlined size="small" @click="visible = false" />
+        <Button label="Cancel" severity="secondary" text size="small" @click="visible = false" />
         <Button label="Save" size="small" :disabled="!draft.name.trim()" @click="onSave" />
       </template>
     </template>

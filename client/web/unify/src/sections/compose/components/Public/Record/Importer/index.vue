@@ -219,7 +219,7 @@
           <Button
             :label="$t('general.label.close')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="closeDialog"
           />

@@ -213,7 +213,7 @@
           <Button
             :label="$t('permissions.ui.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="addDialogVisible = false"
           />

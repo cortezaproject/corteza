@@ -113,7 +113,7 @@
           @click="step = step - 1"
         />
         <div class="flex gap-2">
-          <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="close" />
+          <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="close" />
           <Button
             v-if="step === 2 && mode === 'gated'"
             :label="$t('general.label.next')"

@@ -229,8 +229,8 @@ const confirmDelete = project => {
     header: t('project.list.confirmDelete.header'),
     message: t('project.list.confirmDelete.message', { name: project.name }),
     icon: 'pi pi-exclamation-triangle',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true },
-    acceptProps: { label: t('project.list.confirmDelete.accept'), severity: 'danger' },
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+    acceptProps: { label: t('project.list.confirmDelete.accept'), severity: 'danger', size: 'small' },
     accept: () =>
       apiCall(() => store.removeProject(project.id), {
         summary: t('project.list.toast.deleted'),

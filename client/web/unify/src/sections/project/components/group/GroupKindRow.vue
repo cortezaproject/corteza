@@ -79,7 +79,7 @@
         @keydown.enter="create"
       />
       <template #footer>
-        <Button label="Cancel" severity="secondary" outlined size="small" @click="createOpen = false" />
+        <Button label="Cancel" severity="secondary" text size="small" @click="createOpen = false" />
         <Button label="Create & link" size="small" :disabled="!createName.trim()" @click="create" />
       </template>
     </Dialog>

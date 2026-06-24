@@ -39,7 +39,7 @@
     </div>
 
     <template #footer>
-      <Button :label="$t('general.label.cancel')" severity="secondary" outlined size="small" @click="visible = false" />
+      <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="visible = false" />
     </template>
   </Dialog>
 </template>

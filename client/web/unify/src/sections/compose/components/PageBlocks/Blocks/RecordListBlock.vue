@@ -556,7 +556,7 @@
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="cancelFieldPicker"
           />

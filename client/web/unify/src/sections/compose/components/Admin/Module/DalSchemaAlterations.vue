@@ -71,7 +71,7 @@
         <Button
           :label="canResolveAlterations ? $t('general.label.cancel') : $t('general.label.close')"
           severity="secondary"
-          outlined
+          text
           size="small"
           :disabled="processing"
           @click="showModal = false"

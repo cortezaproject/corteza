@@ -392,7 +392,7 @@ function confirmSuspend(event) {
     rejectProps: {
       label: t('general.label.cancel'),
       severity: 'secondary',
-      outlined: true,
+      text: true,
       size: 'small',
     },
     acceptProps: {
@@ -431,7 +431,7 @@ function confirmUnsuspend(event) {
     rejectProps: {
       label: t('general.label.cancel'),
       severity: 'secondary',
-      outlined: true,
+      text: true,
       size: 'small',
     },
     acceptProps: {
@@ -467,7 +467,7 @@ function confirmRevokeSessions(event) {
     rejectProps: {
       label: t('general.label.cancel'),
       severity: 'secondary',
-      outlined: true,
+      text: true,
       size: 'small',
     },
     acceptProps: {

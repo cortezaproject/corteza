@@ -188,6 +188,8 @@
       <Button
         v-if="readonly"
         :label="$t('general.label.close')"
+        severity="secondary"
+        text
         size="small"
         @click="visible = false"
       />
@@ -195,7 +197,7 @@
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
-          outlined
+          text
           size="small"
           @click="visible = false"
         />

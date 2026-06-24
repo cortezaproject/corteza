@@ -53,7 +53,7 @@
           :label="$t('general.label.cancel')"
           severity="secondary"
           size="small"
-          outlined
+          text
           @click="handleCancel"
         />
         <Button :label="$t('general.label.save')" size="small" @click="handleSave" />

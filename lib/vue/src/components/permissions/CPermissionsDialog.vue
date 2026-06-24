@@ -167,7 +167,7 @@
         <Button
           :label="$t('permissions.ui.cancel')"
           severity="secondary"
-          outlined
+          text
           size="small"
           @click="onHide"
         />
@@ -221,7 +221,7 @@
         <Button
           :label="$t('permissions.ui.cancel')"
           severity="secondary"
-          outlined
+          text
           size="small"
           @click="showAddEval = false"
         />

@@ -70,7 +70,7 @@
           <Button
             :label="cancelBtnLabel"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="dialogVisible = false"
           />

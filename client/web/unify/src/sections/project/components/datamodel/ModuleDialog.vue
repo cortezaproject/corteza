@@ -56,12 +56,12 @@
       <span v-else />
 
       <div class="flex gap-2">
-        <Button v-if="readonly" :label="$t('general.label.close')" size="small" @click="visible = false" />
+        <Button v-if="readonly" :label="$t('general.label.close')" severity="secondary" text size="small" @click="visible = false" />
         <template v-else>
           <Button
             :label="$t('general.label.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="visible = false"
           />

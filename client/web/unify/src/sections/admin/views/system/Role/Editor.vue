@@ -395,7 +395,7 @@ function confirmArchive(event) {
     message: t('system.roles.editor.info.archiveConfirm'),
     header: t('system.roles.editor.info.archive'),
     icon: 'pi pi-box',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', outlined: true, size: 'small' },
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
     acceptProps: { label: t('system.roles.editor.info.archive'), severity: 'warn', size: 'small' },
     accept: () => handleArchive(),
   })
@@ -407,7 +407,7 @@ function confirmUnarchive(event) {
     message: t('system.roles.editor.info.unarchiveConfirm'),
     header: t('system.roles.editor.info.unarchive'),
     icon: 'pi pi-box',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', outlined: true, size: 'small' },
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
     acceptProps: { label: t('system.roles.editor.info.unarchive'), severity: 'success', size: 'small' },
     accept: () => handleUnarchive(),
   })

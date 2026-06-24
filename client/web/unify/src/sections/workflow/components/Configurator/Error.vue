@@ -33,7 +33,7 @@
           <Button
             :label="$t('general.cancel')"
             severity="secondary"
-            outlined
+            text
             size="small"
             @click="resetExpression"
           />

@@ -179,7 +179,7 @@
         <Button
           :label="$t('general.label.cancel')"
           severity="secondary"
-          outlined
+          text
           size="small"
           @click="reason.visible = false"
         />
@@ -549,8 +549,8 @@ function onGateClick(gateKey) {
       header: t('project.wizard.gate.requestHeader'),
       message: t('project.wizard.gate.requestMessage'),
       icon: 'pi pi-lock',
-      rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true },
-      acceptProps: { label: t('project.wizard.gate.requestConfirm') },
+      rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+      acceptProps: { label: t('project.wizard.gate.requestConfirm'), size: 'small' },
       accept: async () => {
         try {
           await store.submitSection(
