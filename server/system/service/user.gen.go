@@ -56,8 +56,10 @@ func (svc *user) Create(ctx context.Context, new *types.User) (res *types.User, 
 		if !svc.ac.CanCreateUser(ctx) {
 			return UserErrNotAllowedToCreate()
 		}
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, UserActionCreate, err)
@@ -91,7 +93,29 @@ func (svc *user) Update(ctx context.Context, upd *types.User) (res *types.User, 
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Email = upd.Email
+		res.EmailConfirmed = upd.EmailConfirmed
+		res.UserGroupID = upd.UserGroupID
+		res.Username = upd.Username
+		res.Name = upd.Name
+		res.Handle = upd.Handle
+		res.UpdatedAt = now()
+
+		if err = store.UpdateUser(ctx, s, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, UserActionUpdate, err, old, res)

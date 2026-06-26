@@ -50,8 +50,10 @@ func (svc *module) Create(ctx context.Context, new *types.Module) (res *types.Mo
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ModuleActionCreate, err)
@@ -85,7 +87,27 @@ func (svc *module) Update(ctx context.Context, upd *types.Module) (res *types.Mo
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.NamespaceID = upd.NamespaceID
+		res.Handle = upd.Handle
+		res.Name = upd.Name
+		res.CreatedByAgent = upd.CreatedByAgent
+		res.UpdatedAt = now()
+
+		if err = store.UpdateComposeModule(ctx, s, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, ModuleActionUpdate, err, old, res)

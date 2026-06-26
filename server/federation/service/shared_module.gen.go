@@ -49,8 +49,10 @@ func (svc *sharedModule) Create(ctx context.Context, new *types.SharedModule) (r
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, SharedModuleActionCreate, err)
@@ -80,7 +82,21 @@ func (svc *sharedModule) Update(ctx context.Context, upd *types.SharedModule) (r
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Handle = upd.Handle
+		res.Name = upd.Name
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedBy = upd.UpdatedBy
+		res.DeletedBy = upd.DeletedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateFederationSharedModule(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, SharedModuleActionUpdate, err, old, res)

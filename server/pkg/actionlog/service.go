@@ -142,13 +142,13 @@ func (svc *service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, er
 
 // History returns all actions for a resource, ordered oldest-first.
 // resourceID filtering takes effect once the store supports Filter.ResourceID (Gap 1).
-func (svc *service) History(ctx context.Context, resource, resourceID string) (ActionSet, error) {
+func (svc *service) History(ctx context.Context, resource string) (ActionSet, error) {
 	flt := Filter{
 		Resource: resource,
 	}
 
 	var err error
-	if flt.Sorting, err = filter.NewSorting("ts ASC"); err != nil {
+	if flt.Sorting, err = filter.NewSorting("timestamp ASC"); err != nil {
 		return nil, err
 	}
 
@@ -162,7 +162,9 @@ func enrich(ctx context.Context, a *Action) *Action {
 		a.Timestamp = time.Now()
 	}
 
-	a.RequestOrigin = RequestOriginFromContext(ctx)
+	if a.RequestOrigin == "" {
+		a.RequestOrigin = RequestOriginFromContext(ctx)
+	}
 
 	// Relies on chi's middleware to get to the request ID
 	// This does not hurt us for now.

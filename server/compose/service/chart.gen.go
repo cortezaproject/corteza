@@ -50,8 +50,10 @@ func (svc *chart) Create(ctx context.Context, new *types.Chart) (res *types.Char
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ChartActionCreate, err)
@@ -85,7 +87,26 @@ func (svc *chart) Update(ctx context.Context, upd *types.Chart) (res *types.Char
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Handle = upd.Handle
+		res.NamespaceID = upd.NamespaceID
+		res.Name = upd.Name
+		res.UpdatedAt = now()
+
+		if err = store.UpdateComposeChart(ctx, s, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, ChartActionUpdate, err, old, res)

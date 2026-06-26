@@ -50,8 +50,10 @@ func (svc *page) Create(ctx context.Context, new *types.Page) (res *types.Page, 
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, PageActionCreate, err)
@@ -85,7 +87,32 @@ func (svc *page) Update(ctx context.Context, upd *types.Page) (res *types.Page, 
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Title = upd.Title
+		res.Handle = upd.Handle
+		res.SelfID = upd.SelfID
+		res.ModuleID = upd.ModuleID
+		res.NamespaceID = upd.NamespaceID
+		res.Visible = upd.Visible
+		res.Weight = upd.Weight
+		res.Description = upd.Description
+		res.CreatedByAgent = upd.CreatedByAgent
+		res.UpdatedAt = now()
+
+		if err = store.UpdateComposePage(ctx, s, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, PageActionUpdate, err, old, res)

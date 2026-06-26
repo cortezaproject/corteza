@@ -41,8 +41,10 @@ func (svc *node) Create(ctx context.Context, new *types.Node) (res *types.Node, 
 		if !svc.ac.CanCreateNode(ctx) {
 			return NodeErrNotAllowedToCreate()
 		}
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, NodeActionCreate, err)
@@ -68,7 +70,25 @@ func (svc *node) Update(ctx context.Context, upd *types.Node) (res *types.Node, 
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Name = upd.Name
+		res.BaseURL = upd.BaseURL
+		res.Status = upd.Status
+		res.Contact = upd.Contact
+		res.PairToken = upd.PairToken
+		res.AuthToken = upd.AuthToken
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedBy = upd.UpdatedBy
+		res.DeletedBy = upd.DeletedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateFederationNode(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, NodeActionUpdate, err, old, res)

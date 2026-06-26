@@ -415,13 +415,13 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 			return rbac.NewResource(types.ExposedModuleRbacResource(ids[0], ids[1])), nil
 		}
 
-		return loadExposedModuleScoped(ctx, svc.store, ids[0], ids[1])
+		return loadExposedModule(ctx, svc.store, ids[0], ids[1])
 	case types.SharedModuleResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.SharedModuleRbacResource(ids[0], ids[1])), nil
 		}
 
-		return loadSharedModuleScoped(ctx, svc.store, ids[0], ids[1])
+		return loadSharedModule(ctx, svc.store, ids[0], ids[1])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}

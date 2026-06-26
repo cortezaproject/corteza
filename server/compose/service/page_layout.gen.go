@@ -50,8 +50,10 @@ func (svc *pageLayout) Create(ctx context.Context, new *types.PageLayout) (res *
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, PageLayoutActionCreate, err)
@@ -85,7 +87,30 @@ func (svc *pageLayout) Update(ctx context.Context, upd *types.PageLayout) (res *
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Handle = upd.Handle
+		res.PageID = upd.PageID
+		res.ParentID = upd.ParentID
+		res.NamespaceID = upd.NamespaceID
+		res.Weight = upd.Weight
+		res.OwnedBy = upd.OwnedBy
+		res.CreatedByAgent = upd.CreatedByAgent
+		res.UpdatedAt = now()
+
+		if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, PageLayoutActionUpdate, err, old, res)

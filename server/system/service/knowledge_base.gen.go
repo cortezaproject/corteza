@@ -143,7 +143,22 @@ func (svc *knowledgeBase) Update(ctx context.Context, upd *types.KnowledgeBase) 
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Handle = upd.Handle
+		res.Title = upd.Title
+		res.Description = upd.Description
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedBy = upd.UpdatedBy
+		res.DeletedBy = upd.DeletedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateKnowledgeBase(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, KnowledgeBaseActionUpdate, err, old, res)

@@ -28,9 +28,11 @@ func DefaultFilters() (f *extendedFilters) {
 			return
 		}
 
-		// make sure we always sort ID, descending
-		if f.Sorting, err = filter.NewSorting("id DESC"); err != nil {
-			return
+		// default sort when caller has not specified one
+		if len(f.Sort) == 0 {
+			if f.Sorting, err = filter.NewSorting("id DESC"); err != nil {
+				return
+			}
 		}
 
 		if f.BeforeActionID > 0 {

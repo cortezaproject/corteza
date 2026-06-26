@@ -14,6 +14,13 @@ import (
 	"go.uber.org/zap"
 )
 
+func (s *Store) UpgradeActionlog(ctx context.Context) error {
+	if err := dropTable(ctx, s, systemModels.Action.Ident); err != nil {
+		return err
+	}
+	return createTablesFromModels(ctx, s.log(ctx), s.DataDefiner, dal.ModelSet{systemModels.Action})
+}
+
 func (s *Store) Upgrade(ctx context.Context) (err error) {
 	for _, fix := range fixesPre {
 		if err = fix(ctx, s); err != nil {

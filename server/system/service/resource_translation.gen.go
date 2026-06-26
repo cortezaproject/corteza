@@ -63,8 +63,10 @@ func (svc *resourceTranslation) Create(ctx context.Context, new *types.ResourceT
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ResourceTranslationActionCreate, err)
@@ -90,7 +92,23 @@ func (svc *resourceTranslation) Update(ctx context.Context, upd *types.ResourceT
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Resource = upd.Resource
+		res.K = upd.K
+		res.Message = upd.Message
+		res.OwnedBy = upd.OwnedBy
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedBy = upd.UpdatedBy
+		res.DeletedBy = upd.DeletedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateResourceTranslation(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, ResourceTranslationActionUpdate, err, old, res)

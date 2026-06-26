@@ -76,8 +76,10 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (res *
 		if !svc.ac.CanCreateApigwRoute(ctx) {
 			return ApigwRouteErrNotAllowedToCreate()
 		}
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ApigwRouteActionCreate, err)
@@ -103,7 +105,23 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Endpoint = upd.Endpoint
+		res.Method = upd.Method
+		res.Enabled = upd.Enabled
+		res.Group = upd.Group
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedBy = upd.UpdatedBy
+		res.DeletedBy = upd.DeletedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateApigwRoute(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, ApigwRouteActionUpdate, err, old, res)

@@ -48,8 +48,10 @@ func (svc *reminder) Create(ctx context.Context, new *types.Reminder) (res *type
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ReminderActionCreate, err)
@@ -75,7 +77,22 @@ func (svc *reminder) Update(ctx context.Context, upd *types.Reminder) (res *type
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Resource = upd.Resource
+		res.Payload = upd.Payload
+		res.SnoozeCount = upd.SnoozeCount
+		res.AssignedTo = upd.AssignedTo
+		res.AssignedBy = upd.AssignedBy
+		res.DismissedBy = upd.DismissedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateReminder(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, ReminderActionUpdate, err, old, res)

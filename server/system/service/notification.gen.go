@@ -48,8 +48,10 @@ func (svc *notification) Create(ctx context.Context, new *types.Notification) (r
 	)
 
 	err = func() (err error) {
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, NotificationActionCreate, err)
@@ -75,7 +77,20 @@ func (svc *notification) Update(ctx context.Context, upd *types.Notification) (r
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Kind = upd.Kind
+		res.Config = upd.Config
+		res.Recipient = upd.Recipient
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateNotification(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, NotificationActionUpdate, err, old, res)

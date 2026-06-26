@@ -79,8 +79,10 @@ func (svc *chatbot) Create(ctx context.Context, new *types.Chatbot) (res *types.
 		if !svc.ac.CanCreateChatbot(ctx) {
 			return ChatbotErrNotAllowedToCreate()
 		}
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ChatbotActionCreate, err)
@@ -114,7 +116,31 @@ func (svc *chatbot) Update(ctx context.Context, upd *types.Chatbot) (res *types.
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.Handle = upd.Handle
+		res.Name = upd.Name
+		res.Enabled = upd.Enabled
+		res.WidgetKey = upd.WidgetKey
+		res.SessionTTL = upd.SessionTTL
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedBy = upd.UpdatedBy
+		res.DeletedBy = upd.DeletedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateChatbot(ctx, s, res); err != nil {
+			return err
+		}
+
+		if label.Changed(res.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return
+			}
+			res.Labels = upd.Labels
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, ChatbotActionUpdate, err, old, res)

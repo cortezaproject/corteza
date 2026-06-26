@@ -74,8 +74,10 @@ func (svc *aiConversation) Create(ctx context.Context, new *types.AiConversation
 		if !svc.ac.CanCreateAiConversation(ctx) {
 			return AiConversationErrNotAllowedToCreate()
 		}
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, AiConversationActionCreate, err)
@@ -101,7 +103,21 @@ func (svc *aiConversation) Update(ctx context.Context, upd *types.AiConversation
 		before := func() error { return nil }
 		after := func() error { return nil }
 
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
+			return
+		}
+		res.AgentID = upd.AgentID
+		res.TokenCount = upd.TokenCount
+		res.CreatedBy = upd.CreatedBy
+		res.UpdatedBy = upd.UpdatedBy
+		res.DeletedBy = upd.DeletedBy
+		res.UpdatedAt = now()
+
+		if err = store.UpdateAiConversation(ctx, s, res); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return res, svc.recordAction(ctx, aProps, AiConversationActionUpdate, err, old, res)

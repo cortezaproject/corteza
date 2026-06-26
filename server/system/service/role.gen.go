@@ -149,12 +149,10 @@ func (svc *role) Update(ctx context.Context, upd *types.Role) (res *types.Role, 
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return RoleErrStaleData()
 		}
+		before := func() error { return nil }
+		after := func() error { return nil }
 
-		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, res)); err != nil {
-			return
-		}
-
-		if err = svc.onUpdate(ctx, s, upd, res, aProps); err != nil {
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
 			return
 		}
 		res.Handle = upd.Handle
@@ -172,8 +170,6 @@ func (svc *role) Update(ctx context.Context, upd *types.Role) (res *types.Role, 
 			}
 			res.Labels = upd.Labels
 		}
-
-		_ = svc.eventbus.WaitFor(ctx, event.RoleAfterUpdate(upd, res))
 
 		return nil
 	})

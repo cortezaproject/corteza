@@ -222,8 +222,10 @@ func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }
 			return {{ .expIdent }}ErrNotAllowedToCreate()
 		}
 {{- end }}
+		before := func() error { return nil }
+		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new)
+		return svc.onCreate(ctx, new, before, after)
 {{- else }}
 {{- if .hooks.validate }}
 		if err = svc.validate(ctx, new); err != nil {
@@ -234,12 +236,6 @@ func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }
 		if !svc.ac.{{ .ac.create }}(ctx) {
 			return {{ .expIdent }}ErrNotAllowedToCreate()
 		}
-{{- if .events }}
-
-		if err = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}BeforeCreate(new, nil)); err != nil {
-			return
-		}
-{{- end }}
 {{- if .hooks.beforeCreate }}
 
 		if err = svc.beforeCreate(ctx, new); err != nil {
@@ -263,10 +259,6 @@ func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }
 {{- end }}
 
 		res = new
-{{- if .events }}
-
-		_ = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}AfterCreate(new, nil))
-{{- end }}
 {{- if .hooks.afterCreate }}
 
 		if err = svc.afterCreate(ctx, res); err != nil {
@@ -321,15 +313,10 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 			return {{ .expIdent }}ErrStaleData()
 		}
 {{- end }}
-{{- if .templateUpdate }}
-{{- if .cbEvents }}
+		before := func() error { return nil }
+		after := func() error { return nil }
 
-		if err = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}BeforeUpdate(upd, res)); err != nil {
-			return
-		}
-{{- end }}
-
-		if err = svc.onUpdate(ctx, s, upd, res, aProps); err != nil {
+		if err = svc.onUpdate(ctx, s, upd, res, aProps, before, after); err != nil {
 			return
 		}
 {{- range .settable }}
@@ -351,26 +338,8 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 			res.Labels = upd.Labels
 		}
 {{- end }}
-{{- if .cbEvents }}
-
-		_ = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}AfterUpdate(upd, res))
-{{- end }}
 
 		return nil
-{{- else }}
-{{- if .cbEvents }}
-		before := func() error { return svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}BeforeUpdate(upd, res)) }
-		after := func() error {
-			_ = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}AfterUpdate(upd, res))
-			return nil
-		}
-{{- else }}
-		before := func() error { return nil }
-		after := func() error { return nil }
-{{- end }}
-
-		return svc.onUpdate(ctx, s, upd, res, aProps, before, after)
-{{- end }}
 	})
 {{- end }}
 {{- else }}
@@ -404,12 +373,6 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 			return {{ .expIdent }}ErrStaleData()
 		}
 {{- end }}
-{{- if .events }}
-
-		if err = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}BeforeUpdate(upd, res)); err != nil {
-			return
-		}
-{{- end }}
 {{- if .hooks.beforeUpdate }}
 
 		if err = svc.beforeUpdate(ctx, upd, res); err != nil {
@@ -435,10 +398,6 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 			}
 			res.Labels = upd.Labels
 		}
-{{- end }}
-{{- if .events }}
-
-		_ = svc.eventbus.WaitFor(ctx, event.{{ .expIdent }}AfterUpdate(upd, res))
 {{- end }}
 {{- if .hooks.afterUpdate }}
 
