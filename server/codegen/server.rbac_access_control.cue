@@ -53,11 +53,19 @@ import (
 			]
 
 			// Operation/resource validators, grouped by resource
+			// Resources without parents use the plain load function (globally-unique ID).
+			// Resources with parents use the scoped variant that validates parent scope.
 			loaders: [
-				for res in cmp.resources if res.rbac != _|_ {
+				for res in cmp.resources if res.rbac != _|_ && len(res.parents) == 0 {
 					const:    "types.\(res.expIdent)ResourceType"
 					resFunc:  "types.\(res.expIdent)RbacResource"
 					funcName: "load\(res.expIdent)"
+					refIndex: [ 0 ]
+				},
+				for res in cmp.resources if res.rbac != _|_ && len(res.parents) > 0 {
+					const:    "types.\(res.expIdent)ResourceType"
+					resFunc:  "types.\(res.expIdent)RbacResource"
+					funcName: "load\(res.expIdent)Scoped"
 					refIndex: [ { 0 }, for i, p in res.parents {i + 1} ]
 				},
 			]

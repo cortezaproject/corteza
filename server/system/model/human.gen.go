@@ -104,13 +104,13 @@ var Action = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Delta",
-			Type:  &dal.TypeJSON{Nullable: true},
+			Type:  &dal.TypeJSON{},
 			Store: &dal.CodecAlias{Ident: "delta"},
 		},
 
 		&dal.Attribute{
 			Ident: "OldState",
-			Type:  &dal.TypeJSON{Nullable: true},
+			Type:  &dal.TypeJSON{},
 			Store: &dal.CodecAlias{Ident: "old_state"},
 		},
 	},

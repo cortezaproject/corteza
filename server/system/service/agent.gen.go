@@ -64,10 +64,8 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (res *types.Agen
 		if !svc.ac.CanCreateAgent(ctx) {
 			return AgentErrNotAllowedToCreate()
 		}
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, AgentActionCreate, err)

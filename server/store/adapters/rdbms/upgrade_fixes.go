@@ -86,7 +86,7 @@ func fix_2026_06_22_addDeltaOnActionlog(ctx context.Context, s *Store) error {
 		"actionlog",
 		&dal.Attribute{
 			Ident: "Delta",
-			Type:  &dal.TypeJSON{},
+			Type:  &dal.TypeJSON{Nullable: true},
 			Store: &dal.CodecAlias{Ident: "delta"},
 		},
 	)
@@ -97,7 +97,7 @@ func fix_2026_06_22_addOldStateOnActionlog(ctx context.Context, s *Store) error 
 		"actionlog",
 		&dal.Attribute{
 			Ident: "OldState",
-			Type:  &dal.TypeJSON{},
+			Type:  &dal.TypeJSON{Nullable: true},
 			Store: &dal.CodecAlias{Ident: "old_state"},
 		},
 	)

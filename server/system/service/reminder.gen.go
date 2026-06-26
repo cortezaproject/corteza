@@ -48,10 +48,8 @@ func (svc *reminder) Create(ctx context.Context, new *types.Reminder) (res *type
 	)
 
 	err = func() (err error) {
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ReminderActionCreate, err)

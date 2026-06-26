@@ -41,10 +41,8 @@ func (svc *node) Create(ctx context.Context, new *types.Node) (res *types.Node, 
 		if !svc.ac.CanCreateNode(ctx) {
 			return NodeErrNotAllowedToCreate()
 		}
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, NodeActionCreate, err)

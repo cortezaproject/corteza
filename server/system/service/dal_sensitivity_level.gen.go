@@ -49,10 +49,8 @@ func (svc *dalSensitivityLevel) Create(ctx context.Context, new *types.DalSensit
 	)
 
 	err = func() (err error) {
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, DalSensitivityLevelActionCreate, err)

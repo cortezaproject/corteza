@@ -90,6 +90,7 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 			tee = logger.MakeDebugLogger()
 		}
 
+		// @todo allow configuring a separate store DSN for the actionlog
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 

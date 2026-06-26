@@ -239,7 +239,7 @@ func ActionlogFilter(d drivers.Dialect, f actionlogType.Filter) (ee []goqu.Expre
 	}
 
 	if val := strings.TrimSpace(f.Origin); len(val) > 0 {
-		ee = append(ee, goqu.C("request_origin").Eq(f.Origin))
+		ee = append(ee, goqu.C("origin").Eq(f.Origin))
 	}
 
 	if len(f.ActorID) > 0 {

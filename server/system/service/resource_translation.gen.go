@@ -63,10 +63,8 @@ func (svc *resourceTranslation) Create(ctx context.Context, new *types.ResourceT
 	)
 
 	err = func() (err error) {
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ResourceTranslationActionCreate, err)

@@ -74,10 +74,8 @@ func (svc *aiConversation) Create(ctx context.Context, new *types.AiConversation
 		if !svc.ac.CanCreateAiConversation(ctx) {
 			return AiConversationErrNotAllowedToCreate()
 		}
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, AiConversationActionCreate, err)

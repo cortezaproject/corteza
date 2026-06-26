@@ -355,7 +355,7 @@ func (s *Store) LookupActionlogByID(ctx context.Context, id uint64) (_ *actionlo
 func (Store) sortableActionlogFields() map[string]string {
 	return map[string]string{
 		"id":        "id",
-		"timestamp": "ts",
+		"timestamp": "timestamp",
 	}
 }
 

@@ -33,7 +33,7 @@ import (
 {{- if and .genConstructor .events }}
 	"github.com/crusttech/human/server/pkg/eventbus"
 {{- end }}
-{{- if or .events .cbEvents }}
+{{- if .events }}
 	"{{ .eventImport }}"
 {{- end }}
 {{- if or .usesStore .genConstructor }}
@@ -222,10 +222,8 @@ func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }
 			return {{ .expIdent }}ErrNotAllowedToCreate()
 		}
 {{- end }}
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 {{- else }}
 {{- if .hooks.validate }}
 		if err = svc.validate(ctx, new); err != nil {

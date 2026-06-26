@@ -299,7 +299,7 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 				return rbac.NewResource({{ .resFunc }}({{ range $i := .refIndex }}ids[{{ $i }}],{{ end }})), nil
 			}
 
-			return {{ .funcName }}(ctx, svc.store {{ range $i := .refIndex }}, ids[{{ $i }}]{{ end }})
+			return {{ .funcName }}(ctx, svc.store{{ range $i := .refIndex }}, ids[{{ $i }}]{{ end }})
 	{{- end }}
 	case types.ComponentResourceType:
 		return &types.Component{}, nil

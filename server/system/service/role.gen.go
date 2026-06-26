@@ -13,7 +13,6 @@ import (
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
-	"github.com/crusttech/human/server/system/service/event"
 	types "github.com/crusttech/human/server/system/types"
 )
 

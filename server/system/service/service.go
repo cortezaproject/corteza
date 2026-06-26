@@ -191,6 +191,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 			tee = logger.MakeDebugLogger()
 		}
 
+		// @todo allow configuring a separate store DSN for the actionlog
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 

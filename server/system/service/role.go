@@ -304,7 +304,7 @@ func (svc *role) afterCreate(ctx context.Context, res *types.Role) error {
 // onUpdate is called by the generated Update after load, stale check, and
 // before event. Field copy, store.Update, label.Update and after event are
 // owned by the generated scaffold (templateUpdate: true).
-func (svc *role) onUpdate(ctx context.Context, s store.Storer, upd, r *types.Role, raProps *roleActionProps) (err error) {
+func (svc *role) onUpdate(ctx context.Context, s store.Storer, upd, r *types.Role, raProps *roleActionProps, _, _ func() error) (err error) {
 	if !svc.ac.CanUpdateRole(ctx, upd) {
 		return RoleErrNotAllowedToUpdate()
 	}

@@ -56,10 +56,8 @@ func (svc *user) Create(ctx context.Context, new *types.User) (res *types.User, 
 		if !svc.ac.CanCreateUser(ctx) {
 			return UserErrNotAllowedToCreate()
 		}
-		before := func() error { return nil }
-		after := func() error { return nil }
 		res = new
-		return svc.onCreate(ctx, new, before, after)
+		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, UserActionCreate, err)

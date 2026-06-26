@@ -829,13 +829,13 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 			return rbac.NewResource(types.ChartRbacResource(ids[0], ids[1])), nil
 		}
 
-		return loadChart(ctx, svc.store, ids[0], ids[1])
+		return loadChartScoped(ctx, svc.store, ids[0], ids[1])
 	case types.ModuleResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.ModuleRbacResource(ids[0], ids[1])), nil
 		}
 
-		return loadModule(ctx, svc.store, ids[0], ids[1])
+		return loadModuleScoped(ctx, svc.store, ids[0], ids[1])
 	case types.ModuleFieldResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.ModuleFieldRbacResource(ids[0], ids[1], ids[2])), nil
@@ -853,13 +853,13 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 			return rbac.NewResource(types.PageRbacResource(ids[0], ids[1])), nil
 		}
 
-		return loadPage(ctx, svc.store, ids[0], ids[1])
+		return loadPageScoped(ctx, svc.store, ids[0], ids[1])
 	case types.PageLayoutResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.PageLayoutRbacResource(ids[0], ids[1], ids[2])), nil
 		}
 
-		return loadPageLayout(ctx, svc.store, ids[0], ids[1], ids[2])
+		return loadPageLayoutScoped(ctx, svc.store, ids[0], ids[1], ids[2])
 	case types.RecordResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.RecordRbacResource(ids[0], ids[1], ids[2])), nil
