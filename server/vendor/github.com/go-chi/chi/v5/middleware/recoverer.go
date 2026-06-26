@@ -18,11 +18,16 @@ import (
 // backtrace), and returns a HTTP 500 (Internal Server Error) status if
 // possible. Recoverer prints a request ID if one is provided.
 //
-// Alternatively, look at https://github.com/pressly/lg middleware pkgs.
+// Alternatively, look at https://github.com/go-chi/httplog middleware pkgs.
 func Recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
-			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
+			if rvr := recover(); rvr != nil {
+				if rvr == http.ErrAbortHandler {
+					// we don't recover http.ErrAbortHandler so the response
+					// to the client is aborted, this should not be logged
+					panic(rvr)
+				}
 
 				logEntry := GetLogEntry(r)
 				if logEntry != nil {
@@ -31,7 +36,9 @@ func Recoverer(next http.Handler) http.Handler {
 					PrintPrettyStack(rvr)
 				}
 
-				w.WriteHeader(http.StatusInternalServerError)
+				if r.Header.Get("Connection") != "Upgrade" {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
 			}
 		}()
 
@@ -106,15 +113,14 @@ func (s prettyStack) decorateLine(line string, useColor bool, num int) (string, 
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "\t") || strings.Contains(line, ".go:") {
 		return s.decorateSourceLine(line, useColor, num)
-	} else if strings.HasSuffix(line, ")") {
-		return s.decorateFuncCallLine(line, useColor, num)
-	} else {
-		if strings.HasPrefix(line, "\t") {
-			return strings.Replace(line, "\t", "      ", 1), nil
-		} else {
-			return fmt.Sprintf("    %s\n", line), nil
-		}
 	}
+	if strings.HasSuffix(line, ")") {
+		return s.decorateFuncCallLine(line, useColor, num)
+	}
+	if strings.HasPrefix(line, "\t") {
+		return strings.Replace(line, "\t", "      ", 1), nil
+	}
+	return fmt.Sprintf("    %s\n", line), nil
 }
 
 func (s prettyStack) decorateFuncCallLine(line string, useColor bool, num int) (string, error) {
