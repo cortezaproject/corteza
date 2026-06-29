@@ -56,27 +56,20 @@
     </div>
 
     <!-- Input row -->
-    <div v-if="!readonly" class="p-3 border-t border-surface flex gap-2 shrink-0 bg-surface">
-      <InputText
-        v-model="chatInput"
-        :placeholder="placeholder"
-        class="flex-1"
-        @keydown.enter.exact.prevent="submit"
-        :disabled="disabled || executing"
-      />
-      <Button
-        icon="pi pi-send"
-        @click="submit"
-        :disabled="disabled || executing || !chatInput.trim()"
-        :loading="executing"
-      />
-    </div>
+    <CChatComposer
+      v-if="!readonly"
+      :placeholder="placeholder"
+      :disabled="disabled || executing"
+      :loading="executing"
+      @send="submit"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { renderMarkdown } from '@planetcrust/human-js'
+import CChatComposer from './CChatComposer.vue'
 
 interface ChatMessage {
   role: 'user' | 'agent' | 'assistant' | string
@@ -124,7 +117,6 @@ const emit = defineEmits<{
   (_e: 'trace-select', _traceIndex: number, _type: 'prompt' | 'response'): void
 }>()
 
-const chatInput = ref('')
 const chatContainer = ref<HTMLElement | null>(null)
 const chatMsgRefs = ref<Record<number, HTMLElement>>({})
 const chatPromptRefs = ref<Record<number, HTMLElement>>({})
@@ -150,10 +142,9 @@ function onBubbleClick(msg: ChatMessage) {
   emit('trace-select', msg.traceIndex, type)
 }
 
-function submit() {
-  if (!chatInput.value.trim() || props.executing || props.disabled) return
-  emit('send', chatInput.value)
-  chatInput.value = ''
+function submit(input: string) {
+  if (!input.trim() || props.executing || props.disabled) return
+  emit('send', input)
 }
 
 async function scrollToBottom() {

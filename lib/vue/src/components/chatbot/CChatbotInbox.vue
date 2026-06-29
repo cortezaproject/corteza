@@ -277,20 +277,11 @@
               </div>
             </div>
 
-            <div class="p-3 border-t border-surface flex gap-2 shrink-0 bg-surface">
-              <InputText
-                v-model="composerInput"
-                :placeholder="composerPlaceholder"
-                :disabled="!canSend"
-                class="flex-1"
-                @keydown.enter.exact.prevent="submitComposer"
-              />
-              <Button
-                icon="pi pi-send"
-                :disabled="!canSend || !composerInput.trim()"
-                @click="submitComposer"
-              />
-            </div>
+            <CChatComposer
+              :placeholder="composerPlaceholder"
+              :disabled="!canSend"
+              @send="submitComposer"
+            />
           </template>
         </div>
       </template>
@@ -310,6 +301,7 @@
 // localize, or omit the prop entirely to use defaults.
 import { renderMarkdown } from '@planetcrust/human-js'
 import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import CChatComposer from '../agent/CChatComposer.vue'
 import { useConfirm } from 'primevue/useconfirm'
 
 const props = defineProps({
@@ -456,7 +448,6 @@ const selected = computed(() => sessions.value.find(s => s.id === selectedID.val
 const messages = ref([])
 const loadingMessages = ref(false)
 const acting = ref(false)
-const composerInput = ref('')
 const messagesScrollRef = ref(null)
 const aliasMenu = ref(null)
 const aliasDraft = ref('')
@@ -553,10 +544,9 @@ watch(
   },
 )
 
-function submitComposer() {
-  const txt = composerInput.value.trim()
+function submitComposer(input) {
+  const txt = input.trim()
   if (!txt || !canSend.value) return
-  composerInput.value = ''
   void onSend(txt)
 }
 
