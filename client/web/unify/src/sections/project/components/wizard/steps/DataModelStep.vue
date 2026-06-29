@@ -9,7 +9,7 @@
             :label="$t('project.dataModel.addModule')"
             severity="secondary"
             size="small"
-            @click="createResource?.('module')"
+            @click="openCreate"
           />
         </template>
 
@@ -28,46 +28,46 @@
             :key="m.id"
             class="border border-surface rounded-border shadow-sm overflow-hidden"
           >
-            <div
-              class="group flex items-center gap-3 p-3 cursor-pointer hover:bg-emphasis transition-colors"
-              @click="toggle(m.id)"
-            >
-              <i
-                class="pi pi-chevron-down text-xs text-muted-color shrink-0 transition-transform duration-200"
-                :class="{ '-rotate-90': isCollapsed(m.id) }"
-              />
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-                :class="[cfg.bg, cfg.ring]"
+            <div class="group flex items-center hover:bg-emphasis transition-colors">
+              <button
+                type="button"
+                class="self-stretch flex items-center px-4 shrink-0 cursor-pointer text-muted-color hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
+                :aria-label="$t(isCollapsed(m.id) ? 'general.label.expand' : 'general.label.collapse')"
+                :title="$t(isCollapsed(m.id) ? 'general.label.expand' : 'general.label.collapse')"
+                @click="toggle(m.id)"
               >
-                <i :class="[cfg.icon, cfg.text]" />
-              </span>
-              <div class="min-w-0">
-                <div class="font-medium truncate">{{ m.name }}</div>
-                <div class="text-xs text-muted-color">{{ fieldSummary(m) }}</div>
-              </div>
-              <Button
-                v-if="!disabled"
-                icon="pi pi-pencil"
-                severity="secondary"
-                text
-                size="small"
-                class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
+                <i
+                  class="pi pi-chevron-down text-xs transition-transform duration-200"
+                  :class="{ '-rotate-90': isCollapsed(m.id) }"
+                />
+              </button>
+              <button
+                type="button"
+                class="flex-1 min-w-0 flex items-center gap-3 py-3 pr-3 pl-1 text-left cursor-pointer"
                 :aria-label="$t('general.label.edit')"
-                :title="$t('general.label.edit')"
-                @click.stop="configureResource?.(m.id)"
-              />
-              <div class="flex-1" />
+                @click="configureResource?.(m.id)"
+              >
+                <span
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
+                  :class="[cfg.bg, cfg.ring]"
+                >
+                  <i :class="[cfg.icon, cfg.text]" />
+                </span>
+                <div class="min-w-0">
+                  <div class="font-medium truncate">{{ m.name }}</div>
+                  <div class="text-xs text-muted-color">{{ fieldSummary(m) }}</div>
+                </div>
+              </button>
               <Button
                 v-if="!disabled"
                 icon="pi pi-trash"
                 severity="danger"
                 text
                 size="small"
-                class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
+                class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity mr-2"
                 :aria-label="$t('general.label.remove')"
                 :title="$t('general.label.remove')"
-                @click.stop="removeModule(m)"
+                @click="removeModule(m)"
               />
             </div>
             <!-- Animated collapse via grid-template-rows 0fr <-> 1fr -->
@@ -164,7 +164,7 @@ import { fieldTypeLabelKey } from '@/sections/project/config/fieldTypes'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -184,12 +184,32 @@ const createField = inject('createField', null)
 const cfg = kindConfig('module')
 const modules = computed(() => store.resourcesFor(props.project.id).filter(r => r.kind === 'module'))
 
-// Per-module collapse state (expanded by default); keyed by module id.
-const collapsedModules = ref({})
-const isCollapsed = id => !!collapsedModules.value[id]
+// Modules collapsed by default; the set holds the expanded ones.
+const expandedIds = ref(new Set())
+const isCollapsed = id => !expandedIds.value.has(id)
 const toggle = id => {
-  collapsedModules.value[id] = !collapsedModules.value[id]
+  const next = new Set(expandedIds.value)
+  next.has(id) ? next.delete(id) : next.add(id)
+  expandedIds.value = next
 }
+
+// "Add Module" arms a flag; the module that then appears (diffed against the
+// previous list) starts expanded. Without the flag the initial load — which
+// also fills an empty list — would look like a create.
+const expandNext = ref(false)
+const openCreate = () => {
+  expandNext.value = true
+  createResource?.('module')
+}
+watch(modules, (list, prev) => {
+  if (!expandNext.value) return
+  const known = new Set((prev || []).map(m => m.id))
+  const fresh = list.find(m => !known.has(m.id))
+  if (fresh) {
+    expandedIds.value = new Set(expandedIds.value).add(fresh.id)
+    expandNext.value = false
+  }
+})
 
 // Localized field-type label, falling back to the raw kind for unknown types.
 const fieldTypeText = type => {

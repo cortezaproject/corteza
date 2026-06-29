@@ -118,6 +118,10 @@ func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.
 	upd.UpdatedAt = now()
 	upd.CreatedAt = res.CreatedAt
 	upd.DeletedAt = res.DeletedAt
+	// ProjectID is set at create and isn't part of the update payload; preserve
+	// the existing owning project so an update never unlinks the agent from it
+	// (otherwise it would vanish from the project-scoped resource graph).
+	upd.ProjectID = res.ProjectID
 
 	if upd.Execution.Model.Temperature != nil && svc.llm != nil {
 		if err := svc.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {

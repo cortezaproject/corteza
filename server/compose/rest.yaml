@@ -318,6 +318,10 @@ endpoints:
         name: moduleID
         required: false
         title: Module ID
+      - type: uint64
+        name: projectID
+        required: false
+        title: Project ID
       - type: string
         name: title
         required: true
@@ -956,9 +960,10 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - { type: "string",               name: name,   title: Name,          required: true  }
-      - { type: "string",               name: handle, title: Handle }
-      - { type: "types.ModuleConfig",   name: config, title: Configuration, parser: types.ParseModuleConfig }
+      - { type: "string",               name: name,      title: Name,          required: true  }
+      - { type: "uint64",               name: projectID, title: Project ID }
+      - { type: "string",               name: handle,    title: Handle }
+      - { type: "types.ModuleConfig",   name: config,    title: Configuration, parser: types.ParseModuleConfig }
       - { type: "sqlxTypes.JSONText",   name: meta,   title: Meta data,     required: true }
       - { type: "types.ModuleFieldSet", name: fields, title: Fields,        required: true }
       - { type: "map[string]labelTypes.LabelValue",    name: labels, title: Labels,        parser: label.ParseStrings }

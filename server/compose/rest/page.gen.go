@@ -29,6 +29,7 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 		NamespaceID: r.NamespaceID,
 		SelfID:      r.SelfID,
 		ModuleID:    r.ModuleID,
+		ProjectID:   r.ProjectID,
 		Title:       r.Title,
 		Handle:      r.Handle,
 		Description: r.Description,

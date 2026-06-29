@@ -102,6 +102,11 @@ type (
 		// Name
 		Name string
 
+		// ProjectID POST parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+
 		// Handle POST parameter
 		//
 		// Handle
@@ -415,6 +420,7 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"name":        r.Name,
+		"projectID":   r.ProjectID,
 		"handle":      r.Handle,
 		"config":      r.Config,
 		"meta":        r.Meta,
@@ -431,6 +437,11 @@ func (r ModuleCreate) GetNamespaceID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleCreate) GetName() string {
 	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleCreate) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -486,6 +497,13 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
 				if err != nil {
@@ -535,6 +553,13 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

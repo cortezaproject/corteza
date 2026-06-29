@@ -62,6 +62,10 @@ func (svc *chatbot) onUpdate(ctx context.Context, s store.Storer, upd, c *types.
 	upd.UpdatedAt = now()
 	upd.CreatedAt = c.CreatedAt
 	upd.DeletedAt = c.DeletedAt
+	// ProjectID is set at create and isn't part of the update payload; preserve
+	// the existing owning project so an update never unlinks the chatbot from it
+	// (otherwise it would vanish from the project-scoped resource graph).
+	upd.ProjectID = c.ProjectID
 
 	if err := prepareChatbotOnUpdate(upd, c); err != nil {
 		return err

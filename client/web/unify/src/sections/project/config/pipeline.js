@@ -36,6 +36,20 @@ export const stepsForTab = tab =>
 // Total gates a mode must clear (gates only apply in gated mode).
 export const gateCount = mode => (mode === 'gated' ? STEPS.filter(s => s.gate).length : 0)
 
+// The build is a process: a resource kind only exists once its step is reached.
+// Returns the resource kinds introduced by every step up to and including
+// `stepKey` (inclusive) — drives the resource graph so it shows only what's been
+// built so far. Order is owned here by STEPS; add a resource step and it joins
+// automatically. Steps before any resource step contribute nothing.
+export function kindsThroughStep(stepKey) {
+  const out = new Set()
+  for (const s of STEPS) {
+    if (s.kind) out.add(s.kind)
+    if (s.key === stepKey) break
+  }
+  return out
+}
+
 // Group the pipeline into gated sections; each section ends at a gate step
 // (inclusive). A trailing group with gateKey=null holds any post-final-gate steps.
 export function sections(stepList = STEPS) {

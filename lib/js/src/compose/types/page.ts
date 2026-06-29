@@ -39,6 +39,7 @@ export class Page {
   public selfID = NoID
   public moduleID = NoID
   public namespaceID = NoID
+  public projectID = NoID
 
   public title = ''
   public handle = ''
@@ -88,7 +89,7 @@ export class Page {
   apply(i?: PartialPage): void {
     if (!i) return
 
-    Apply(this, i, HumanID, 'pageID', 'selfID', 'moduleID', 'namespaceID')
+    Apply(this, i, HumanID, 'pageID', 'selfID', 'moduleID', 'namespaceID', 'projectID')
     Apply(this, i, String, 'title', 'handle', 'description')
     Apply(this, i, Number, 'weight')
     Apply(this, i, Boolean, 'visible')

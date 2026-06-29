@@ -354,10 +354,10 @@ func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 		}
 
 		new.ID = nextID()
-		// Resources inherit their project from the namespace they live in;
-		// a project owns exactly one namespace (project_id 0 = tenant-level).
-		// This is what lets resources be listed by projectID.
-		new.ProjectID = ns.ProjectID
+		// ProjectID comes from the caller (the REST create param), not derived
+		// from the namespace: the project flow stamps it explicitly. Callers that
+		// don't send it (e.g. the compose admin editor) create tenant-level
+		// resources (project_id 0). Fields inherit the module's project below.
 		new.CreatedAt = *now()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil

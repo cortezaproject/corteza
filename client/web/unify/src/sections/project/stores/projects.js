@@ -53,6 +53,15 @@ export const useProjectsStore = defineStore('projects', () => {
     graphShowAccess.value = !graphShowAccess.value
   }
 
+  // Reset the visible node-layer kinds to exactly `kinds` (a Set/iterable) —
+  // used to gate the graph to the resources built up to the active step. Access
+  // kinds ride their own overlay and are filtered out here. Manual per-kind
+  // toggles refine the view within the current step; this re-seeds it on a step
+  // change, so a kind from a later step can still be toggled on to peek ahead.
+  function setGraphVisibleKinds(kinds) {
+    graphVisibleKinds.value = new Set([...kinds].filter(k => NODE_LAYER_KINDS.includes(k)))
+  }
+
   // Resources (compose modules) are deliberately NOT stored on the project
   // object. They live here keyed by projectID and are (re)fetched on demand,
   // filtered by projectID — fetching is the only way to get a project's
@@ -470,6 +479,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
     const raw = await $ComposeAPI.moduleCreate({
       namespaceID: p.namespaceID,
+      projectID: String(p.id),
       name: (name || '').trim() || 'Untitled',
       // Handle is the slugified title (no hash). Duplicate titles collide on
       // the unique handle; the create dialog validates against that first.
@@ -487,6 +497,7 @@ export const useProjectsStore = defineStore('projects', () => {
         p.namespaceID,
         String(raw.moduleID),
         (name || '').trim() || 'Untitled',
+        String(p.id),
       )
     } catch (err) {
       console.error('Failed to create record page for module:', err)
@@ -722,9 +733,9 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // Create or update a configured connection (the auth/params) on a base
-  // connection, scoped to the project. `projectID` is sent so the configured
-  // connection is stamped to the project once the backend honours it; extra
-  // params are ignored server-side until then.
+  // connection, scoped to the project. `projectID` is sent and the backend
+  // stamps it onto the configured connection (rel_project), so it shows in the
+  // project-scoped resource graph.
   async function saveConnection(projectId, { connection, configuredConnectionID, name, config }) {
     const projectID = String(projectId)
     let saved
@@ -1033,9 +1044,10 @@ export const useProjectsStore = defineStore('projects', () => {
   // Replicates the compose module editor's "Create record page" button: a page
   // bound to the module with a single Record block, plus a default layout. Named
   // "<Module> Details" per the detail-page convention.
-  async function createRecordPageForModule(namespaceID, moduleID, name) {
+  async function createRecordPageForModule(namespaceID, moduleID, name, projectID) {
     const page = new compose.Page({
       namespaceID,
+      projectID,
       moduleID,
       selfID: '0',
       title: `${name} Details`,
@@ -1053,6 +1065,7 @@ export const useProjectsStore = defineStore('projects', () => {
     if (!p?.namespaceID) return null
     const page = new compose.Page({
       namespaceID: p.namespaceID,
+      projectID: String(p.id),
       title: (name || '').trim() || 'Untitled',
       visible: true,
       blocks: [],
@@ -1163,5 +1176,6 @@ export const useProjectsStore = defineStore('projects', () => {
     graphKindVisible,
     graphToggleKind,
     graphToggleAccess,
+    setGraphVisibleKinds,
   }
 })

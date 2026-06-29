@@ -29,6 +29,7 @@ func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interf
 	res := &types.Module{
 		NamespaceID: r.NamespaceID,
 		Name:        r.Name,
+		ProjectID:   r.ProjectID,
 		Handle:      r.Handle,
 		Labels:      r.Labels,
 	}

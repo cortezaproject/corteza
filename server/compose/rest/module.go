@@ -98,6 +98,8 @@ func (ctrl Module) makeFilter(ctx context.Context, r *request.ModuleList) (types
 // before it is handed to the service. The generated Create controller
 // already mapped the plain-value params and the compound (namespace) id.
 func (ctrl Module) beforeCreate(ctx context.Context, res *types.Module, r *request.ModuleCreate) error {
+	// Project-scoped: stamp the owning project so the module is created inside it.
+	res.ProjectID = r.ProjectID
 	res.Config = r.Config
 	res.Meta = r.Meta
 	res.Fields = r.Fields

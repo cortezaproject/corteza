@@ -6,23 +6,6 @@
           <InputText :model-value="moduleName" disabled class="w-full" />
         </CFormGroup>
 
-        <CInputToggleCard
-          v-model="horizontalLayout"
-          :label="$t('block.record.horizontalFormLayout')"
-          :description="$t('block.record.horizontalFormLayoutDescription')"
-          :disabled="layoutMode === 'noWrap'"
-        />
-
-        <CFormGroup :label="$t('block.record.fieldsLayoutMode.label')">
-          <Select
-            v-model="layoutMode"
-            :options="fieldLayoutOptions"
-            option-label="text"
-            option-value="value"
-            class="w-full"
-          />
-        </CFormGroup>
-
         <CFormGroup
           :label="$t('block.record.referenceRecordField')"
           :description="$t('block.record.referenceRecordFieldDescription')"
@@ -38,6 +21,23 @@
             :disabled="!selectedModule"
           />
         </CFormGroup>
+
+        <CFormGroup :label="$t('block.record.fieldsLayoutMode.label')">
+          <Select
+            v-model="layoutMode"
+            :options="fieldLayoutOptions"
+            option-label="text"
+            option-value="value"
+            class="w-full"
+          />
+        </CFormGroup>
+
+        <CInputToggleCard
+          v-if="layoutMode !== 'noWrap'"
+          v-model="horizontalLayout"
+          :label="$t('block.record.horizontalFormLayout')"
+          :description="$t('block.record.horizontalFormLayoutDescription')"
+        />
       </div>
     </Fieldset>
 

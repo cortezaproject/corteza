@@ -129,6 +129,7 @@ label:
   clear: Clear
   clone: Clone
   close: Close
+  collapse: Collapse
   connection:
     plural: Connections
     single: Connection
@@ -152,6 +153,7 @@ label:
   edit: Edit
   enabled: Enabled
   examples: Examples
+  expand: Expand
   experimental: Experimental
   export: Export
   field: Field

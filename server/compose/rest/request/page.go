@@ -102,6 +102,11 @@ type (
 		// Module ID
 		ModuleID uint64 `json:",string"`
 
+		// ProjectID POST parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+
 		// Title POST parameter
 		//
 		// Title
@@ -522,6 +527,7 @@ func (r PageCreate) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"selfID":      r.SelfID,
 		"moduleID":    r.ModuleID,
+		"projectID":   r.ProjectID,
 		"title":       r.Title,
 		"handle":      r.Handle,
 		"description": r.Description,
@@ -547,6 +553,11 @@ func (r PageCreate) GetSelfID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageCreate) GetModuleID() uint64 {
 	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -624,6 +635,13 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["moduleID"]; ok && len(val) > 0 {
 				r.ModuleID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -720,6 +738,13 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["moduleID"]; ok && len(val) > 0 {
 			r.ModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

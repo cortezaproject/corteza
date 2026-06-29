@@ -103,6 +103,8 @@ func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, e
 }
 
 func (ctrl *Page) beforeCreate(_ context.Context, res *types.Page, r *request.PageCreate) (err error) {
+	// Project-scoped: stamp the owning project so the page is created inside it.
+	res.ProjectID = r.ProjectID
 	res.Meta = r.Meta
 
 	if len(r.Config) > 2 {

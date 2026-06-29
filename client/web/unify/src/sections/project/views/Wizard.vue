@@ -223,7 +223,7 @@ import DataSensitivityStep from '@/sections/project/components/wizard/steps/Data
 import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
-import { STEPS, sections, stepsForTab } from '@/sections/project/config/pipeline'
+import { STEPS, kindsThroughStep, sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
@@ -512,6 +512,15 @@ function loadWorking() {
   }
 }
 watch([activeKey, project], loadWorking, { immediate: true })
+
+// Gate the live resource graph to the process: each step shows only the
+// resources of steps reached so far. Re-seeded on every step change; the graph's
+// own layer chips still refine (or peek past) it within a step.
+watch(
+  activeKey,
+  key => store.setGraphVisibleKinds(kindsThroughStep(key)),
+  { immediate: true },
+)
 
 function goStep(key) {
   router.replace({ query: { ...route.query, step: key } })
