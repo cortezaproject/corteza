@@ -13,43 +13,45 @@
         />
       </template>
 
-      <CFormItemList
-        :items="connections"
-        item-key="id"
-        :reveal-on-hover="!disabled"
-        :empty-message="$t('project.connections.empty')"
-        :hide-remove="disabled"
-        :remove-label="$t('project.connections.remove')"
-        @select="onSelect"
-        @remove="onRemove"
-      >
-        <template #default="{ item }">
-          <div class="flex items-center gap-3 min-w-0">
-            <span
-              class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-              :class="[cfg.bg, cfg.ring]"
-            >
-              <i :class="[iconForConnector(item.catalogID), cfg.text]" />
-            </span>
-            <div class="min-w-0">
-              <div class="font-medium truncate">{{ item.name }}</div>
-              <div class="text-xs text-muted-color">{{ labelForConnector(item.catalogID) }}</div>
+      <div class="mt-1">
+        <CFormItemList
+          :items="connections"
+          item-key="id"
+          :reveal-on-hover="!disabled"
+          :empty-message="$t('project.connections.empty')"
+          :hide-remove="disabled"
+          :remove-label="$t('project.connections.remove')"
+          @select="onSelect"
+          @remove="onRemove"
+        >
+          <template #default="{ item }">
+            <div class="flex items-center gap-3 min-w-0">
+              <span
+                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
+                :class="[cfg.bg, cfg.ring]"
+              >
+                <i :class="[iconForConnector(item.catalogID), cfg.text]" />
+              </span>
+              <div class="min-w-0">
+                <div class="font-medium truncate">{{ item.name }}</div>
+                <div class="text-xs text-muted-color">{{ labelForConnector(item.catalogID) }}</div>
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <template #actions>
-          <Tag
-            :value="$t('project.connections.configured')"
-            severity="secondary"
-            class="!text-xs shrink-0"
-          >
-            <template #icon>
-              <i class="pi pi-check-circle text-green-500 !text-xs" />
-            </template>
-          </Tag>
-        </template>
-      </CFormItemList>
+          <template #actions>
+            <Tag
+              :value="$t('project.connections.configured')"
+              severity="secondary"
+              class="!text-xs shrink-0"
+            >
+              <template #icon>
+                <i class="pi pi-check-circle text-green-500 !text-xs" />
+              </template>
+            </Tag>
+          </template>
+        </CFormItemList>
+      </div>
     </CFormGroup>
 
     <ConnectorPicker v-model="pickerOpen" :items="pickerItems" @pick="onPick" />

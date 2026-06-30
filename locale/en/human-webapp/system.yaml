@@ -248,7 +248,7 @@ applications:
       delete: Delete
       deletedAt: Deleted at
       enabled: Enabled
-      enabledDescription: When disabled, users cannot access this application and it will not appear in the app selector
+      enabledDescription: When disabled, users cannot access this application
       id: ID
       name: Name
       title: Basic information
@@ -586,7 +586,8 @@ data-sources:
       connectivity-issues: Data source issues
       form:
         model-ident:
-          description: 'Identifier can contain placeholders like {{module}} (replaced with module handle) and/or {{namespace}} (replace with namespace handle).
+          description:
+            'Identifier can contain placeholders like {{module}} (replaced with module handle) and/or {{namespace}} (replace with namespace handle).
 
             When set it is used as a default for modules without configure ident.
 

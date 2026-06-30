@@ -169,6 +169,13 @@
       :field-id="fieldId"
       :readonly="locked"
     />
+
+    <ModuleDetailDialog
+      v-model="detailOpen"
+      :project="project"
+      :module-id="detailId"
+      :readonly="locked"
+    />
   </div>
 
   <Dialog
@@ -208,6 +215,7 @@
 
 <script setup>
 import FieldDialog from '@/sections/project/components/datamodel/FieldDialog.vue'
+import ModuleDetailDialog from '@/sections/project/components/datamodel/ModuleDetailDialog.vue'
 import ModuleDialog from '@/sections/project/components/datamodel/ModuleDialog.vue'
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
@@ -333,6 +341,20 @@ provide('createResource', () => {
 })
 watch(configOpen, open => {
   if (!open) configId.value = null
+})
+
+// --- Module detail dialog (graph node click) ---------------------------------
+// Richer module editor (meta + fields) opened by clicking a module node in the
+// resource graph; kept separate from configureResource so the data-model step
+// keeps its lightweight ModuleDialog.
+const detailOpen = ref(false)
+const detailId = ref(null)
+provide('inspectResource', id => {
+  detailId.value = id
+  detailOpen.value = true
+})
+watch(detailOpen, open => {
+  if (!open) detailId.value = null
 })
 
 // --- Single-field edit dialog ------------------------------------------------

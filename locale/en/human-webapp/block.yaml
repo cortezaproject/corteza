@@ -742,6 +742,7 @@ record:
   listLoadFailed: Could not load record list
   moduleMismatch: Module incompatible, module mismatch
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
+  noFields: No fields to display. Add fields to the module, or select fields in this block's settings.
   noModule: No module configured for this block
   noRecord: No record available
   openFullPage: Open full page

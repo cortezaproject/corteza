@@ -121,6 +121,7 @@ edit:
       title: Validation
   create: Create module
   createRecord: Create record
+  createRecordNoFields: This module has no fields yet. Add fields to the module before creating records.
   deleteConfirm: Are you sure you want to delete this module? This action cannot be undone.
   discoverySettings:
     description: Selected fields will be exposed via the Discovery API if the user has correct permissions.

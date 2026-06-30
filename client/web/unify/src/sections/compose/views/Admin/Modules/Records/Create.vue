@@ -29,6 +29,13 @@
     </Message>
   </div>
 
+  <!-- Module has no fields — records can't be created until fields are added -->
+  <div v-else-if="!recordModule.fields?.length" class="flex items-center justify-center h-full">
+    <Message severity="info" :closable="false">
+      {{ $t('module.edit.createRecordNoFields') }}
+    </Message>
+  </div>
+
   <!-- Record create — same layout as public RecordView in create mode -->
   <Form
     ref="formRef"
@@ -140,7 +147,8 @@ const syntheticPage = computed(() => ({
 }))
 
 function initRecord() {
-  if (!recordModule.value) return
+  // A record needs a module WITH fields (compose.Record throws otherwise).
+  if (!recordModule.value?.fields?.length) return
 
   const prefillRefField = record => {
     const refField = route.query.refField

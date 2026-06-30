@@ -94,12 +94,12 @@ const accessReady = false
 const store = useProjectsStore()
 const $toast = inject('$toast')
 
-// Clicking a module node opens its config dialog (provided by the wizard);
-// other kinds get their own editors as their steps land.
-const configureResource = inject('configureResource', null)
+// Clicking a module node opens its detail editor (meta + fields, provided by
+// the wizard); other kinds get their own editors as their steps land.
+const inspectResource = inject('inspectResource', null)
 const onClick = params => {
   if (params.dataType !== 'node' || props.locked) return
-  if (params.data.kind === 'module') configureResource?.(params.data.id)
+  if (params.data.kind === 'module') inspectResource?.(params.data.id)
 }
 
 // --- Data: the backend graph is the single source of truth ------------------

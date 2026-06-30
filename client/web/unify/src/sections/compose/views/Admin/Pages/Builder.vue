@@ -53,8 +53,20 @@
   </div>
 
   <div v-else-if="page" class="flex flex-col h-full">
+    <!-- No layout: the builder can't render a page without one. Offer to add it. -->
+    <div v-if="!pageLayout" class="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
+      <i class="pi pi-table text-4xl text-muted-color" />
+      <p class="text-muted-color">{{ $t('page.build.noLayout') }}</p>
+      <Button
+        :label="$t('page.build.addLayout')"
+        icon="pi pi-plus"
+        :loading="saving"
+        @click="handleCreateLayout"
+      />
+    </div>
+
     <!-- Builder Grid -->
-    <div class="flex-1 overflow-auto">
+    <div v-else class="flex-1 overflow-auto">
       <Grid ref="gridRef" :blocks="blocks" :namespace="namespace" :page="page" editable>
         <template #item-overlay="{ item, block }">
           <div
@@ -91,12 +103,12 @@
                 @click.stop="openBlockTranslation(block)"
               />
               <Button
-                :title="$t('page.tooltip.delete.block')"
-                icon="pi pi-trash"
+                :title="$t('page.tooltip.removeFromLayout')"
+                icon="pi pi-times"
                 text
                 size="small"
-                severity="danger"
-                @click="deleteBlock(item.i)"
+                severity="secondary"
+                @click="confirmRemoveBlock(item.i)"
               />
             </ButtonGroup>
           </div>
@@ -107,6 +119,7 @@
     <CEditorActions :back-to="true" @back="$router.back()">
       <template #center>
         <Button
+          v-if="pageLayout"
           :label="$t('page.build.addBlock')"
           icon="pi pi-plus"
           severity="secondary"
@@ -130,6 +143,7 @@
         @click="handleSaveAsCopy"
       />
       <Button
+        v-if="pageLayout"
         :label="$t('general.label.save')"
         icon="pi pi-save"
         :loading="saving"
@@ -145,18 +159,64 @@
     modal
     :style="{ width: '600px' }"
   >
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-      <template v-for="bt in addableBlockTypes" :key="bt.kind">
-        <Divider v-if="bt.kind === 'divider'" class="col-span-2 md:col-span-3 my-0" />
-        <div
-          v-else
-          class="flex flex-col items-center gap-2 p-4 border border-surface rounded cursor-pointer hover:bg-highlight transition-colors"
-          @click="addBlock(bt.kind)"
-        >
-          <i :class="bt.icon" class="text-2xl text-primary" />
-          <span class="text-sm font-medium text-center">{{ bt.label }}</span>
+    <div class="flex flex-col gap-5">
+      <!-- New block -->
+      <div>
+        <h4 v-if="orphanBlocks.length" class="text-sm font-semibold text-muted-color mb-2">
+          {{ $t('page.build.newBlock') }}
+        </h4>
+        <div class="grid grid-cols-3 md:grid-cols-4 gap-3">
+          <template v-for="bt in addableBlockTypes" :key="bt.kind">
+            <Divider v-if="bt.kind === 'divider'" class="col-span-3 md:col-span-4 my-0" />
+            <div
+              v-else
+              class="flex flex-col items-center justify-center gap-1.5 px-2 py-5 border border-surface rounded cursor-pointer hover:bg-highlight transition-colors"
+              @click="addBlock(bt.kind)"
+            >
+              <i :class="bt.icon" class="text-xl text-primary" />
+              <span class="text-xs font-medium text-center">{{ bt.label }}</span>
+            </div>
+          </template>
         </div>
-      </template>
+      </div>
+
+      <!-- Existing page blocks not yet placed in this layout (as a list) -->
+      <div v-if="orphanBlocks.length">
+        <h4 class="text-sm font-semibold text-muted-color mb-2">
+          {{ $t('page.build.existingBlocks') }}
+        </h4>
+        <div class="flex flex-col gap-1">
+          <div
+            v-for="ob in orphanBlocks"
+            :key="ob.blockID"
+            class="group flex items-center gap-2 pr-1 border border-surface rounded hover:bg-highlight transition-colors"
+          >
+            <button
+              type="button"
+              class="flex items-center gap-3 flex-1 min-w-0 p-2 text-left cursor-pointer"
+              @click="addExistingBlock(ob)"
+            >
+              <i
+                :class="blockTypeMeta[ob.kind]?.icon || 'pi pi-box'"
+                class="text-lg text-primary shrink-0"
+              />
+              <span class="text-sm font-medium truncate">
+                {{ ob.title || blockTypeMeta[ob.kind]?.label || ob.kind }}
+              </span>
+            </button>
+            <Button
+              icon="pi pi-trash"
+              text
+              rounded
+              size="small"
+              severity="danger"
+              class="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+              :title="$t('general.label.delete')"
+              @click="confirmDeletePageBlock(ob)"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </Dialog>
 
@@ -443,6 +503,7 @@
 <script setup>
 import { ref, computed, watch, inject, provide, markRaw, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConfirm } from 'primevue/useconfirm'
 import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@planetcrust/human-js'
 import { usePageStore } from '@planetcrust/human-vue'
@@ -476,6 +537,7 @@ import { useTranslatorStore } from '@/sections/compose/stores/translator'
 import { applyPageTranslations } from '@/sections/compose/lib/resource-translations'
 
 const { t } = useI18n()
+const confirm = useConfirm()
 const route = useRoute()
 const router = useRouter()
 const $toast = inject('$toast')
@@ -614,10 +676,9 @@ watch(showAddBlock, visible => {
 })
 
 watch(showConfigurator, visible => {
+  // Closing the configurator on a staged new block (never saved) discards it —
+  // it was never added to the page, so there's nothing to remove.
   if (!visible && isNewBlock.value) {
-    blocks.value.splice(editingBlockIndex.value, 1)
-    syncTabbedBlockVisibility()
-    gridRef.value?.rebuildLayout()
     isNewBlock.value = false
   }
 })
@@ -742,6 +803,18 @@ function syncTabbedBlockVisibility() {
   }
 }
 
+// First save of a staged new block — add it to the page/layout now.
+function addEditingAsNewBlock() {
+  if (!editingBlock.value) return
+  if (editingBlock.value.options?.magnifyOption === 'disabled') {
+    editingBlock.value.options.magnifyOption = ''
+  }
+  const block = compose.PageBlockMaker(JSON.parse(JSON.stringify(toRaw(editingBlock.value))))
+  blocks.value.push(block)
+  syncTabbedBlockVisibility()
+  gridRef.value?.rebuildLayout()
+}
+
 function commitEditingBlock() {
   if (editingBlockIndex.value < 0 || !editingBlock.value) return null
 
@@ -763,6 +836,24 @@ function commitEditingBlock() {
   editingBlock.value = compose.PageBlockMaker(JSON.parse(JSON.stringify(updated)))
 
   return updated
+}
+
+// Place an existing page block (orphan) into the current layout. It already
+// lives on the page, so this only adds it to the working/layout set.
+function addExistingBlock(pageBlock) {
+  const maxY = blocks.value.reduce((max, b) => {
+    const [, y, , h] = b.xywh || [0, 0, 24, 18]
+    return Math.max(max, y + h)
+  }, 0)
+  const block = compose.PageBlockMaker({
+    ...JSON.parse(JSON.stringify(toRaw(pageBlock))),
+    // Same default footprint as a newly added block.
+    xywh: [0, maxY, 24, 18],
+  })
+  blocks.value.push(block)
+  syncTabbedBlockVisibility()
+  gridRef.value?.rebuildLayout()
+  showAddBlock.value = false
 }
 
 function addBlock(kind) {
@@ -802,15 +893,12 @@ function addBlock(kind) {
       return
     }
 
-    blocks.value.push(block)
-    syncTabbedBlockVisibility()
-    gridRef.value?.rebuildLayout()
     showAddBlock.value = false
 
-    // Open the editor for the newly added block
-    const index = blocks.value.length - 1
+    // Stage the new block in the editor; it's added to the page only on the
+    // first save of its config. Cancelling discards it (nothing was added).
     editingBlock.value = compose.PageBlockMaker(JSON.parse(JSON.stringify(block)))
-    editingBlockIndex.value = index
+    editingBlockIndex.value = -1
     configuratorTab.value = 'block'
     isNewBlock.value = true
     showConfigurator.value = true
@@ -856,6 +944,7 @@ function editBlock(blockId) {
   editingBlock.value = compose.PageBlockMaker(JSON.parse(JSON.stringify(block)))
   editingBlockIndex.value = index
   configuratorTab.value = 'block'
+  isNewBlock.value = false
   showConfigurator.value = true
 }
 
@@ -937,6 +1026,62 @@ function deleteBlock(blockId) {
   }
 }
 
+// Remove from the current layout (the block stays on the page as an orphan).
+function confirmRemoveBlock(blockId) {
+  confirm.require({
+    header: t('page.build.removeBlock.header'),
+    message: t('page.build.removeBlock.message'),
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+    acceptProps: { label: t('page.tooltip.removeFromLayout'), size: 'small' },
+    accept: () => deleteBlock(blockId),
+  })
+}
+
+// Delete a block from the page entirely — removes it from the page and every
+// layout that references it. Used from the Add block dialog's orphan list.
+async function deletePageBlock(pageBlock) {
+  const blockID = String(pageBlock.blockID)
+  saving.value = true
+  try {
+    const updatedPage = await pageStore.update({
+      ...toRaw(page.value),
+      blocks: (page.value.blocks || []).filter(b => String(b.blockID) !== blockID),
+    })
+    page.value = new compose.Page({ ...updatedPage })
+
+    for (const layout of layouts.value) {
+      if ((layout.blocks || []).some(lb => String(lb.blockID) === blockID)) {
+        await pageLayoutStore.update({
+          ...toRaw(layout),
+          blocks: (layout.blocks || []).filter(lb => String(lb.blockID) !== blockID),
+        })
+      }
+    }
+    layouts.value = pageLayoutStore.getByPageID(page.value.pageID)
+    pageLayout.value =
+      layouts.value.find(l => l.pageLayoutID === pageLayout.value?.pageLayoutID) || pageLayout.value
+
+    $toast.toastSuccess(t('notification.page.saved'))
+  } catch (e) {
+    console.error('Failed to delete block:', e)
+    $toast.toastDanger(t('notification.page.saveFailed'))
+  } finally {
+    saving.value = false
+  }
+}
+
+function confirmDeletePageBlock(pageBlock) {
+  confirm.require({
+    header: t('page.build.deleteBlock.header'),
+    message: t('page.build.deleteBlock.message'),
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+    acceptProps: { label: t('general.label.delete'), severity: 'danger', size: 'small' },
+    accept: () => deletePageBlock(pageBlock),
+  })
+}
+
 function syncBlockTranslations(updatedPageBlocks) {
   for (const updatedBlock of updatedPageBlocks || []) {
     const block = blocks.value.find(b => String(getBlockId(b)) === String(updatedBlock.blockID))
@@ -979,29 +1124,84 @@ function openBlockTranslation(block) {
 }
 
 function saveBlockConfig() {
+  if (isNewBlock.value) {
+    addEditingAsNewBlock()
+  } else {
+    commitEditingBlock()
+  }
   isNewBlock.value = false
-  commitEditingBlock()
   showConfigurator.value = false
   editingBlock.value = null
   editingBlockIndex.value = -1
   pendingTabBlockIndex.value = null
 }
 
+// The builder edits one layout at a time. A block is defined on the page; the
+// layout positions a subset of those blocks. buildLayoutBlocks resolves the
+// current layout's block list (with positions) against the page's definitions —
+// mirroring the view, so the builder shows exactly what the view renders.
+function buildLayoutBlocks(pg, layout) {
+  if (!pg?.blocks?.length || !layout?.blocks?.length) return []
+  return layout.blocks
+    .map(lb => {
+      const pb = pg.blocks.find(b => String(b.blockID) === String(lb.blockID))
+      return pb ? compose.PageBlockMaker({ ...pb, xywh: lb.xywh || pb.xywh || [0, 0, 48, 15] }) : null
+    })
+    .filter(Boolean)
+}
+
+// Page blocks not placed in the current layout — offered in the Add block dialog
+// so the user can re-add an existing (orphaned) block instead of creating one.
+const orphanBlocks = computed(() => {
+  if (!page.value?.blocks?.length) return []
+  const placed = new Set(blocks.value.map(b => String(getBlockId(b))))
+  return page.value.blocks.filter(b => b.blockID && !placed.has(String(b.blockID)))
+})
+
+// kind -> { icon, label }, for rendering orphan tiles in the Add block dialog.
+const blockTypeMeta = computed(() => {
+  const map = {}
+  for (const bt of availableBlockTypes.value) {
+    if (bt.kind !== 'divider') map[bt.kind] = bt
+  }
+  return map
+})
+
 function setLayout(layoutID) {
   const layout = layouts.value.find(l => l.pageLayoutID === layoutID)
   if (!layout) return
 
   pageLayout.value = layout
-
-  // Update each block's xywh from the new layout (preserve all other block data)
-  for (const block of blocks.value) {
-    const blockID = getBlockId(block)
-    const layoutBlock = layout.blocks?.find(lb => lb.blockID === blockID)
-    if (layoutBlock?.xywh) {
-      block.xywh = [...layoutBlock.xywh]
-    }
-  }
+  // Each layout positions its own subset of the page's blocks.
+  blocks.value = buildLayoutBlocks(page.value, layout)
   gridRef.value?.rebuildLayout()
+}
+
+async function handleCreateLayout() {
+  if (!page.value) return
+
+  saving.value = true
+  try {
+    // Empty 'primary' layout. PageLayout type carries the default config (record
+    // toolbar buttons enabled); a plain object would persist them disabled.
+    const created = await pageLayoutStore.create(
+      new compose.PageLayout({
+        namespaceID: page.value.namespaceID || props.namespace?.namespaceID,
+        pageID: page.value.pageID,
+        handle: 'primary',
+        meta: { title: page.value.title },
+        blocks: [],
+      }),
+    )
+    layouts.value = pageLayoutStore.getByPageID(page.value.pageID)
+    setLayout(created.pageLayoutID)
+    $toast.toastSuccess(t('notification.page.page-layout.create.success'))
+  } catch (e) {
+    console.error('Failed to create layout:', e)
+    $toast.toastDanger(t('notification.page.page-layout.create.failed'))
+  } finally {
+    saving.value = false
+  }
 }
 
 async function handleDeleteLayout() {
@@ -1018,6 +1218,7 @@ async function handleDeleteLayout() {
       pageLayout.value = layouts.value[0]
       setLayout(layouts.value[0].pageLayoutID)
     } else {
+      // No layouts left — the builder shows its "Add layout" empty state.
       pageLayout.value = null
     }
 
@@ -1115,17 +1316,9 @@ async function loadPage() {
     const keepLayout = currentID && layouts.value.find(l => l.pageLayoutID === currentID)
     pageLayout.value = keepLayout || layouts.value[0] || null
 
-    // Initialize blocks — merge layout positions with page blocks
-    if (page.value?.blocks) {
-      blocks.value = page.value.blocks.map(b => {
-        const layoutBlock = pageLayout.value?.blocks?.find(lb => lb.blockID === b.blockID)
-        const merged = compose.PageBlockMaker({
-          ...b,
-          xywh: layoutBlock?.xywh || b.xywh || [0, 0, 48, 15],
-        })
-        return merged
-      })
-    }
+    // Show only the current layout's blocks (the view does the same); page
+    // blocks not in the layout are orphans, addable via the Add block dialog.
+    blocks.value = buildLayoutBlocks(page.value, pageLayout.value)
   } catch (e) {
     console.error('Failed to load page:', e)
     $toast.toastDanger(t('notification.page.loadFailed'))
@@ -1146,19 +1339,29 @@ async function handleSave() {
   saving.value = true
 
   try {
-    const rawBlocks = blocks.value.map(b => toRaw(b))
+    // Working set = the blocks placed in the current layout (edited/new/added).
+    const working = blocks.value.map(b => toRaw(b))
+    const workingIds = new Set(working.map(b => String(getBlockId(b))))
 
-    // Update page with blocks
+    // Preserve page blocks not in this layout (orphans + blocks owned by other
+    // layouts) so saving a layout never deletes them from the page. They go
+    // first; the working set is the tail, aligned by index with the response.
+    const preserved = (page.value.blocks || [])
+      .map(b => toRaw(b))
+      .filter(b => !workingIds.has(String(b.blockID)))
+
+    const pageBlocks = [...preserved, ...working]
+
     let updatedPage = await pageStore.update({
       ...toRaw(page.value),
-      blocks: rawBlocks,
+      blocks: pageBlocks,
     })
 
-    const savedBlocks = updatedPage?.blocks || []
+    let savedBlocks = updatedPage?.blocks || []
     const blockIdMap = new Map(
-      rawBlocks.map((block, index) => [
+      pageBlocks.map((block, index) => [
         String(getBlockId(block)),
-        String(savedBlocks[index]?.blockID || block.blockID),
+        String(savedBlocks[index]?.blockID || getBlockId(block)),
       ]),
     )
 
@@ -1184,13 +1387,14 @@ async function handleSave() {
         ...toRaw(updatedPage),
         blocks: remappedBlocks,
       })
+      savedBlocks = updatedPage?.blocks || savedBlocks
     }
 
-    // If we have a layout, update it too with block positions
+    // The current layout references only its working blocks (by index against the
+    // saved tail, so multiple new blocks get their right ids) with positions.
     if (pageLayout.value) {
-      const persistedBlocks = updatedPage?.blocks || []
-      const layoutBlocks = rawBlocks.map((b, index) => ({
-        blockID: persistedBlocks[index]?.blockID || b.blockID,
+      const layoutBlocks = working.map((b, i) => ({
+        blockID: savedBlocks[preserved.length + i]?.blockID || String(getBlockId(b)),
         xywh: b.xywh,
       }))
 

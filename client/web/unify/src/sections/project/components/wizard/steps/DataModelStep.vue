@@ -15,7 +15,7 @@
 
         <div
           v-if="!modules.length"
-          class="text-muted-color p-4 border rounded-lg bg-emphasis text-center"
+          class="text-muted-color p-4 border rounded-lg bg-emphasis text-center mt-1"
         >
           {{ $t('project.dataModel.empty') }}
         </div>

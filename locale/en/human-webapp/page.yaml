@@ -12,9 +12,19 @@ block:
     title: Add new block
 build:
   addBlock: Add block
+  addLayout: Add layout
+  deleteBlock:
+    header: Delete block
+    message: Delete this block from the page entirely? It will be removed from every layout. This can't be undone.
+  existingBlocks: Existing blocks
   layout:
     delete: Delete layout
     deleteConfirm: Are you sure you want to delete this layout?
+  newBlock: New block
+  noLayout: This page has no layout yet. Add a layout to start building.
+  removeBlock:
+    header: Remove block from layout
+    message: Remove this block from the current layout? It stays on the page and can be added again.
   saveAsCopy: Save as copy
   selectBlockTitle: Select type of the new block
 changeBlock: Change existing block
@@ -175,6 +185,7 @@ tooltip:
     block: Edit block
     page: Edit page
   preview-link: Preview link
+  removeFromLayout: Remove from layout
   saveAsCopy: Cannot duplicate record page
   view: View page
 url:

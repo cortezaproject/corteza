@@ -403,7 +403,9 @@ async function loadPage() {
       if (moduleID) {
         const mod = moduleStore.getByID(moduleID)
         if (mod) {
-          if (mode.value === 'create') {
+          // A record needs a module WITH fields (compose.Record throws otherwise);
+          // a fieldless module renders the page without an initialized record.
+          if (mode.value === 'create' && mod.fields?.length) {
             // Handle clone
             if (route.query.cloneFromID) {
               try {

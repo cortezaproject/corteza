@@ -12,55 +12,57 @@
         />
       </template>
 
-      <CFormItemList
-        :items="chatbots"
-        item-key="id"
-        reveal-on-hover
-        :empty-message="$t('project.chatbots.empty')"
-        :hide-remove="disabled"
-        :remove-label="$t('project.chatbots.remove')"
-        @select="onSelect"
-        @remove="onRemove"
-      >
-        <template #default="{ item }">
-          <div class="flex items-center gap-3 min-w-0">
-            <span
-              class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-              :class="[cfg.bg, cfg.ring]"
-            >
-              <i :class="[cfg.icon, cfg.text]" />
-            </span>
-            <div class="min-w-0">
-              <div class="font-medium truncate">{{ item.name }}</div>
+      <div class="mt-1">
+        <CFormItemList
+          :items="chatbots"
+          item-key="id"
+          reveal-on-hover
+          :empty-message="$t('project.chatbots.empty')"
+          :hide-remove="disabled"
+          :remove-label="$t('project.chatbots.remove')"
+          @select="onSelect"
+          @remove="onRemove"
+        >
+          <template #default="{ item }">
+            <div class="flex items-center gap-3 min-w-0">
+              <span
+                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
+                :class="[cfg.bg, cfg.ring]"
+              >
+                <i :class="[cfg.icon, cfg.text]" />
+              </span>
+              <div class="min-w-0">
+                <div class="font-medium truncate">{{ item.name }}</div>
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <template #actions="{ item }">
-          <Tag
-            :value="
-              item.enabled
-                ? $t('project.chatbots.enabled')
-                : $t('project.chatbots.disabled')
-            "
-            :severity="item.enabled ? 'success' : 'secondary'"
-            class="!text-xs shrink-0 me-2"
-          />
-        </template>
+          <template #actions="{ item }">
+            <Tag
+              :value="
+                item.enabled
+                  ? $t('project.chatbots.enabled')
+                  : $t('project.chatbots.disabled')
+              "
+              :severity="item.enabled ? 'success' : 'secondary'"
+              class="!text-xs shrink-0 me-2"
+            />
+          </template>
 
-        <template #hover-actions="{ item }">
-          <CRouterLinkButton
-            :to="{ name: 'chatbot.edit', params: { chatbotID: item.id } }"
-            icon="pi pi-external-link"
-            severity="secondary"
-            text
-            size="small"
-            :aria-label="$t('project.chatbots.openBuilder')"
-            :title="$t('project.chatbots.openBuilder')"
-            @click.stop
-          />
-        </template>
-      </CFormItemList>
+          <template #hover-actions="{ item }">
+            <CRouterLinkButton
+              :to="{ name: 'chatbot.edit', params: { chatbotID: item.id } }"
+              icon="pi pi-external-link"
+              severity="secondary"
+              text
+              size="small"
+              :aria-label="$t('project.chatbots.openBuilder')"
+              :title="$t('project.chatbots.openBuilder')"
+              @click.stop
+            />
+          </template>
+        </CFormItemList>
+      </div>
     </CFormGroup>
 
     <ConfigureChatbotDialog

@@ -35,7 +35,14 @@
         />
       </div>
 
-      <div ref="fieldContainer" class="p-4 overflow-y-auto flex-1" :class="layoutClass">
+      <div
+        v-if="!displayedFields.length"
+        class="flex items-center justify-center h-full p-6 text-center text-muted-color italic"
+      >
+        {{ $t('block.record.noFields') }}
+      </div>
+
+      <div v-else ref="fieldContainer" class="p-4 overflow-y-auto flex-1" :class="layoutClass">
         <div
           v-for="field in displayedFields"
           :key="field.fieldID || field.name"
@@ -754,13 +761,14 @@ function applyColumnClasses(width) {
 
 // --- Watchers ---
 
-// Create dummy record for builder preview
+// Create dummy record for builder preview. A record needs a module WITH fields
+// (compose.Record throws otherwise), so wait until the module's fields are
+// loaded/present — guards both a freshly created fieldless module and the brief
+// window before fields arrive in the store.
 watch(
   () => [isBuilder.value, fieldModule.value],
   ([builder, mod]) => {
-    if (builder && mod) {
-      builderRecord.value = new compose.Record(mod)
-    }
+    builderRecord.value = builder && mod?.fields?.length ? new compose.Record(mod) : null
   },
   { immediate: true },
 )

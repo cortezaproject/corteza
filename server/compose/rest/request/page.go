@@ -188,11 +188,6 @@ type (
 		// Parent Page ID
 		SelfID uint64 `json:",string"`
 
-		// ModuleID POST parameter
-		//
-		// Module ID (optional)
-		ModuleID uint64 `json:",string"`
-
 		// Title POST parameter
 		//
 		// Title
@@ -932,7 +927,6 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"pageID":      r.PageID,
 		"selfID":      r.SelfID,
-		"moduleID":    r.ModuleID,
 		"title":       r.Title,
 		"handle":      r.Handle,
 		"description": r.Description,
@@ -959,11 +953,6 @@ func (r PageUpdate) GetPageID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageUpdate) GetSelfID() uint64 {
 	return r.SelfID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r PageUpdate) GetModuleID() uint64 {
-	return r.ModuleID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1039,13 +1028,6 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["selfID"]; ok && len(val) > 0 {
 				r.SelfID, err = payload.ParseUint64(val[0]), nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["moduleID"]; ok && len(val) > 0 {
-				r.ModuleID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -1142,13 +1124,6 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["selfID"]; ok && len(val) > 0 {
 			r.SelfID, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["moduleID"]; ok && len(val) > 0 {
-			r.ModuleID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

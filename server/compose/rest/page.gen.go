@@ -56,7 +56,6 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 		ID:          r.PageID,
 		NamespaceID: r.NamespaceID,
 		SelfID:      r.SelfID,
-		ModuleID:    r.ModuleID,
 		Title:       r.Title,
 		Handle:      r.Handle,
 		Description: r.Description,

@@ -30,7 +30,7 @@
       @dragend="draggable && onDragEnd()"
     >
       <i v-if="draggable" class="pi pi-bars text-muted-color cursor-grab shrink-0 mx-2" />
-      <div class="flex-1 min-w-0">
+      <div class="flex-1 min-w-0 min-h-10 flex flex-col justify-center">
         <slot :item="item" :index="index" />
       </div>
       <!-- Right-side controls. With `reveal-on-hover` the status (`actions`

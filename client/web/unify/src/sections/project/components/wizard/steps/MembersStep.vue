@@ -12,7 +12,7 @@
         />
       </template>
 
-      <div class="rounded-lg border border-surface overflow-x-auto">
+      <div class="rounded-lg border border-surface overflow-x-auto mt-1">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-emphasis text-muted-color text-xs uppercase tracking-wider">

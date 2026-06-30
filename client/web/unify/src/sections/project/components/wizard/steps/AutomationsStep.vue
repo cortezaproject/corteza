@@ -12,58 +12,60 @@
         />
       </template>
 
-      <CFormItemList
-        :items="automations"
-        item-key="id"
-        :reveal-on-hover="!disabled"
-        :empty-message="$t('project.automations.empty')"
-        :hide-remove="disabled"
-        :remove-label="$t('project.automations.remove')"
-        @select="onSelect"
-        @remove="onRemove"
-      >
-        <template #default="{ item }">
-          <div class="flex items-center gap-3 min-w-0">
-            <span
-              class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-              :class="[cfg.bg, cfg.ring]"
-            >
-              <i :class="[cfg.icon, cfg.text]" />
-            </span>
-            <div class="min-w-0">
-              <div class="font-medium truncate">{{ item.name }}</div>
-              <div v-if="item.description" class="text-xs text-muted-color truncate">
-                {{ item.description }}
+      <div class="mt-1">
+        <CFormItemList
+          :items="automations"
+          item-key="id"
+          :reveal-on-hover="!disabled"
+          :empty-message="$t('project.automations.empty')"
+          :hide-remove="disabled"
+          :remove-label="$t('project.automations.remove')"
+          @select="onSelect"
+          @remove="onRemove"
+        >
+          <template #default="{ item }">
+            <div class="flex items-center gap-3 min-w-0">
+              <span
+                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
+                :class="[cfg.bg, cfg.ring]"
+              >
+                <i :class="[cfg.icon, cfg.text]" />
+              </span>
+              <div class="min-w-0">
+                <div class="font-medium truncate">{{ item.name }}</div>
+                <div v-if="item.description" class="text-xs text-muted-color truncate">
+                  {{ item.description }}
+                </div>
               </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <template #actions="{ item }">
-          <Tag
-            :value="
-              item.enabled
-                ? $t('project.automations.enabled')
-                : $t('project.automations.disabled')
-            "
-            :severity="item.enabled ? 'success' : 'secondary'"
-            class="!text-xs shrink-0"
-          />
-        </template>
+          <template #actions="{ item }">
+            <Tag
+              :value="
+                item.enabled
+                  ? $t('project.automations.enabled')
+                  : $t('project.automations.disabled')
+              "
+              :severity="item.enabled ? 'success' : 'secondary'"
+              class="!text-xs shrink-0"
+            />
+          </template>
 
-        <template #hover-actions="{ item }">
-          <CRouterLinkButton
-            :to="{ name: 'taq.builder-edit', params: { id: item.id } }"
-            icon="pi pi-external-link"
-            severity="secondary"
-            text
-            size="small"
-            :aria-label="$t('project.automations.openBuilder')"
-            :title="$t('project.automations.openBuilder')"
-            @click.stop
-          />
-        </template>
-      </CFormItemList>
+          <template #hover-actions="{ item }">
+            <CRouterLinkButton
+              :to="{ name: 'taq.builder-edit', params: { id: item.id } }"
+              icon="pi pi-external-link"
+              severity="secondary"
+              text
+              size="small"
+              :aria-label="$t('project.automations.openBuilder')"
+              :title="$t('project.automations.openBuilder')"
+              @click.stop
+            />
+          </template>
+        </CFormItemList>
+      </div>
     </CFormGroup>
 
     <ConfigureAutomationDialog

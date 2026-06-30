@@ -348,6 +348,12 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 
 // onUpdate is the generated Update body handler.
 func (svc *page) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Page, aProps *pageActionProps, _ func() error, _ func() error) error {
+	// ModuleID is the page's record binding, set at create and immutable on
+	// update; preserve the existing value so a caller that doesn't resend it
+	// (e.g. the page builder save) can't wipe the binding. res is the loaded
+	// record; the generated Update copies upd onto it after this hook.
+	upd.ModuleID = res.ModuleID
+
 	ns, err := loadNamespace(ctx, s, res.NamespaceID)
 	if err != nil {
 		return err

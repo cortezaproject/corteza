@@ -15,68 +15,70 @@
       <!-- Record (module detail) pages and standalone pages share one list. The
            built-in remove is disabled (hide-remove) so we can render a delete
            button only for standalone pages — detail pages go with their module. -->
-      <CFormItemList
-        :items="pages"
-        item-key="id"
-        reveal-on-hover
-        hide-remove
-        :empty-message="$t('project.pages.empty')"
-        @select="onSelect"
-      >
-        <template #default="{ item }">
-          <div class="flex items-center gap-3 min-w-0">
-            <span
-              class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-              :class="[cfg.bg, cfg.ring]"
-            >
-              <i :class="[cfg.icon, cfg.text]" />
-            </span>
-            <div class="min-w-0">
-              <div class="font-medium truncate">{{ item.name }}</div>
-              <div
-                v-if="item.isRecordPage"
-                class="text-xs text-muted-color truncate flex items-center gap-1"
+      <div class="mt-1">
+        <CFormItemList
+          :items="pages"
+          item-key="id"
+          reveal-on-hover
+          hide-remove
+          :empty-message="$t('project.pages.empty')"
+          @select="onSelect"
+        >
+          <template #default="{ item }">
+            <div class="flex items-center gap-3 min-w-0">
+              <span
+                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
+                :class="[cfg.bg, cfg.ring]"
               >
-                <i class="pi pi-database text-[10px]" />
-                {{ $t('project.pages.recordSubtitle') }}
+                <i :class="[cfg.icon, cfg.text]" />
+              </span>
+              <div class="min-w-0">
+                <div class="font-medium truncate">{{ item.name }}</div>
+                <div
+                  v-if="item.isRecordPage"
+                  class="text-xs text-muted-color truncate flex items-center gap-1"
+                >
+                  <i class="pi pi-database text-[10px]" />
+                  {{ $t('project.pages.recordSubtitle') }}
+                </div>
               </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <template #actions="{ item }">
-          <Tag
-            :value="item.visible ? $t('project.pages.visible') : $t('project.pages.hidden')"
-            :severity="item.visible ? 'success' : 'secondary'"
-            class="!text-xs shrink-0 me-2"
-          />
-        </template>
+          <template #actions="{ item }">
+            <Tag
+              :value="item.visible ? $t('project.pages.visible') : $t('project.pages.hidden')"
+              :severity="item.visible ? 'success' : 'secondary'"
+              class="!text-xs shrink-0 me-2"
+            />
+          </template>
 
-        <template #hover-actions="{ item }">
-          <CRouterLinkButton
-            :to="{ name: 'admin.pages.builder', params: { slug: project.namespaceID, pageID: item.id } }"
-            icon="pi pi-external-link"
-            severity="secondary"
-            text
-            size="small"
-            :aria-label="$t('project.pages.openBuilder')"
-            :title="$t('project.pages.openBuilder')"
-            @click.stop
-          />
-          <!-- Detail pages are tied to their module; only standalone pages can be
-               removed from here. -->
-          <Button
-            v-if="!disabled && !item.isRecordPage"
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            size="small"
-            :aria-label="$t('project.pages.remove')"
-            :title="$t('project.pages.remove')"
-            @click.stop="onRemove(item)"
-          />
-        </template>
-      </CFormItemList>
+          <template #hover-actions="{ item }">
+            <CRouterLinkButton
+              :to="{ name: 'admin.pages.builder', params: { slug: project.namespaceID, pageID: item.id } }"
+              icon="pi pi-external-link"
+              severity="secondary"
+              text
+              size="small"
+              :aria-label="$t('project.pages.openBuilder')"
+              :title="$t('project.pages.openBuilder')"
+              @click.stop
+            />
+            <!-- Detail pages are tied to their module; only standalone pages can be
+                 removed from here. -->
+            <Button
+              v-if="!disabled && !item.isRecordPage"
+              icon="pi pi-trash"
+              severity="danger"
+              text
+              size="small"
+              :aria-label="$t('project.pages.remove')"
+              :title="$t('project.pages.remove')"
+              @click.stop="onRemove(item)"
+            />
+          </template>
+        </CFormItemList>
+      </div>
     </CFormGroup>
 
     <ConfigurePageDialog

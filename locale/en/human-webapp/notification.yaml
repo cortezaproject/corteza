@@ -344,6 +344,9 @@ page:
     clone:
       failed: Failed to clone layout
       success: Layout cloned and selected
+    create:
+      failed: Failed to create layout
+      success: Layout created
     delete:
       failed: Failed to delete layout
       success: Layout deleted

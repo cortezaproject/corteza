@@ -389,10 +389,9 @@ endpoints:
         name: selfID
         required: false
         title: Parent Page ID
-      - type: uint64
-        name: moduleID
-        required: false
-        title: Module ID (optional)
+      # moduleID is the page's record binding, set at create and immutable on
+      # update — omitting it here keeps the service from overwriting (wiping) it
+      # when a caller (e.g. the page builder save) doesn't resend it.
       - type: string
         name: title
         required: true

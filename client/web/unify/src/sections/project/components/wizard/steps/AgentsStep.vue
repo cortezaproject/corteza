@@ -12,58 +12,60 @@
         />
       </template>
 
-      <CFormItemList
-        :items="agents"
-        item-key="id"
-        reveal-on-hover
-        :empty-message="$t('project.agents.empty')"
-        :hide-remove="disabled"
-        :remove-label="$t('project.agents.remove')"
-        @select="onSelect"
-        @remove="onRemove"
-      >
-        <template #default="{ item }">
-          <div class="flex items-center gap-3 min-w-0">
-            <span
-              class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-              :class="[cfg.bg, cfg.ring]"
-            >
-              <i :class="[cfg.icon, cfg.text]" />
-            </span>
-            <div class="min-w-0">
-              <div class="font-medium truncate">{{ item.name }}</div>
-              <div v-if="item.description" class="text-xs text-muted-color truncate">
-                {{ item.description }}
+      <div class="mt-1">
+        <CFormItemList
+          :items="agents"
+          item-key="id"
+          reveal-on-hover
+          :empty-message="$t('project.agents.empty')"
+          :hide-remove="disabled"
+          :remove-label="$t('project.agents.remove')"
+          @select="onSelect"
+          @remove="onRemove"
+        >
+          <template #default="{ item }">
+            <div class="flex items-center gap-3 min-w-0">
+              <span
+                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
+                :class="[cfg.bg, cfg.ring]"
+              >
+                <i :class="[cfg.icon, cfg.text]" />
+              </span>
+              <div class="min-w-0">
+                <div class="font-medium truncate">{{ item.name }}</div>
+                <div v-if="item.description" class="text-xs text-muted-color truncate">
+                  {{ item.description }}
+                </div>
               </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <template #actions="{ item }">
-          <Tag
-            :value="
-              item.status === 'active'
-                ? $t('project.agents.active')
-                : $t('project.agents.inactive')
-            "
-            :severity="item.status === 'active' ? 'success' : 'secondary'"
-            class="!text-xs shrink-0 me-2"
-          />
-        </template>
+          <template #actions="{ item }">
+            <Tag
+              :value="
+                item.status === 'active'
+                  ? $t('project.agents.active')
+                  : $t('project.agents.inactive')
+              "
+              :severity="item.status === 'active' ? 'success' : 'secondary'"
+              class="!text-xs shrink-0 me-2"
+            />
+          </template>
 
-        <template #hover-actions="{ item }">
-          <CRouterLinkButton
-            :to="{ name: 'agentic.edit', params: { agentID: item.id } }"
-            icon="pi pi-external-link"
-            severity="secondary"
-            text
-            size="small"
-            :aria-label="$t('project.agents.openBuilder')"
-            :title="$t('project.agents.openBuilder')"
-            @click.stop
-          />
-        </template>
-      </CFormItemList>
+          <template #hover-actions="{ item }">
+            <CRouterLinkButton
+              :to="{ name: 'agentic.edit', params: { agentID: item.id } }"
+              icon="pi pi-external-link"
+              severity="secondary"
+              text
+              size="small"
+              :aria-label="$t('project.agents.openBuilder')"
+              :title="$t('project.agents.openBuilder')"
+              @click.stop
+            />
+          </template>
+        </CFormItemList>
+      </div>
     </CFormGroup>
 
     <ConfigureAgentDialog
