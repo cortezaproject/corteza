@@ -2471,6 +2471,13 @@ func loadRecord(ctx context.Context, s store.Storer, namespaceID, moduleID, reco
 	return
 }
 
+func loadRecordScoped(ctx context.Context, s store.Storer, namespaceID, moduleID, recordID uint64) (res *types.Record, err error) {
+	if res, err = loadRecord(ctx, s, namespaceID, moduleID, recordID); err == nil && res.ModuleID != moduleID {
+		return nil, RecordErrNotFound()
+	}
+	return
+}
+
 func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (pp dal.Pipeline, _ *dal.Aggregate, err error) {
 	// Map dimension to the aggregate group
 	// @note we only ever used a single dimension so this is ok

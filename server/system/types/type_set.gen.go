@@ -130,6 +130,26 @@ type (
 	// This type is auto-generated.
 	DataPrivacyRequestCommentSet []*DataPrivacyRequestComment
 
+	// DmlColumnMapSet slice of DmlColumnMap
+	//
+	// This type is auto-generated.
+	DmlColumnMapSet []*DmlColumnMap
+
+	// DmlConnectionSet slice of DmlConnection
+	//
+	// This type is auto-generated.
+	DmlConnectionSet []*DmlConnection
+
+	// DmlImportRunSet slice of DmlImportRun
+	//
+	// This type is auto-generated.
+	DmlImportRunSet []*DmlImportRun
+
+	// DmlMappingSet slice of DmlMapping
+	//
+	// This type is auto-generated.
+	DmlMappingSet []*DmlMapping
+
 	// KnowledgeBaseSet slice of KnowledgeBase
 	//
 	// This type is auto-generated.
@@ -1467,6 +1487,204 @@ func (set DataPrivacyRequestCommentSet) FindByID(ID uint64) *DataPrivacyRequestC
 //
 // This function is auto-generated.
 func (set DataPrivacyRequestCommentSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(DmlColumnMap) err
+//
+// This function is auto-generated.
+func (set DmlColumnMapSet) Walk(w func(*DmlColumnMap) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(DmlColumnMap) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set DmlColumnMapSet) Filter(f func(*DmlColumnMap) (bool, error)) (out DmlColumnMapSet, err error) {
+	var ok bool
+	out = DmlColumnMapSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(DmlConnection) err
+//
+// This function is auto-generated.
+func (set DmlConnectionSet) Walk(w func(*DmlConnection) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(DmlConnection) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set DmlConnectionSet) Filter(f func(*DmlConnection) (bool, error)) (out DmlConnectionSet, err error) {
+	var ok bool
+	out = DmlConnectionSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set DmlConnectionSet) FindByID(ID uint64) *DmlConnection {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set DmlConnectionSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(DmlImportRun) err
+//
+// This function is auto-generated.
+func (set DmlImportRunSet) Walk(w func(*DmlImportRun) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(DmlImportRun) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set DmlImportRunSet) Filter(f func(*DmlImportRun) (bool, error)) (out DmlImportRunSet, err error) {
+	var ok bool
+	out = DmlImportRunSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set DmlImportRunSet) FindByID(ID uint64) *DmlImportRun {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set DmlImportRunSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(DmlMapping) err
+//
+// This function is auto-generated.
+func (set DmlMappingSet) Walk(w func(*DmlMapping) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(DmlMapping) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set DmlMappingSet) Filter(f func(*DmlMapping) (bool, error)) (out DmlMappingSet, err error) {
+	var ok bool
+	out = DmlMappingSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set DmlMappingSet) FindByID(ID uint64) *DmlMapping {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set DmlMappingSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

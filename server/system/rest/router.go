@@ -76,7 +76,7 @@ func MountRoutes() func(r chi.Router) {
 			//
 			// @todo can/should we pipe this via our standard approach instead?
 			NewChatbotPreviewController().MountRoutes(r)
-			NewDmlController().MountRoutes(r)
+			handlers.NewDml(Dml{}.New()).MountRoutes(r)
 		})
 	}
 }

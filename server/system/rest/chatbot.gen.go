@@ -28,6 +28,7 @@ func (ctrl *Chatbot) List(ctx context.Context, r *request.ChatbotList) (interfac
 func (ctrl *Chatbot) Create(ctx context.Context, r *request.ChatbotCreate) (interface{}, error) {
 	res := &types.Chatbot{
 		Handle:     r.Handle,
+		ProjectID:  r.ProjectID,
 		Name:       r.Name,
 		Enabled:    r.Enabled,
 		SessionTTL: r.SessionTTL,

@@ -2038,6 +2038,332 @@ func TestDataPrivacyRequestCommentSetIDs(t *testing.T) {
 	}
 }
 
+func TestDmlColumnMapSetWalk(t *testing.T) {
+	var (
+		value = make(DmlColumnMapSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*DmlColumnMap) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*DmlColumnMap) error { return fmt.Errorf("walk error") }))
+}
+
+func TestDmlColumnMapSetFilter(t *testing.T) {
+	var (
+		value = make(DmlColumnMapSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*DmlColumnMap) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*DmlColumnMap) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*DmlColumnMap) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestDmlConnectionSetWalk(t *testing.T) {
+	var (
+		value = make(DmlConnectionSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*DmlConnection) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*DmlConnection) error { return fmt.Errorf("walk error") }))
+}
+
+func TestDmlConnectionSetFilter(t *testing.T) {
+	var (
+		value = make(DmlConnectionSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*DmlConnection) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*DmlConnection) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*DmlConnection) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestDmlConnectionSetIDs(t *testing.T) {
+	var (
+		value = make(DmlConnectionSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(DmlConnection)
+	value[1] = new(DmlConnection)
+	value[2] = new(DmlConnection)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestDmlImportRunSetWalk(t *testing.T) {
+	var (
+		value = make(DmlImportRunSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*DmlImportRun) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*DmlImportRun) error { return fmt.Errorf("walk error") }))
+}
+
+func TestDmlImportRunSetFilter(t *testing.T) {
+	var (
+		value = make(DmlImportRunSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*DmlImportRun) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*DmlImportRun) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*DmlImportRun) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestDmlImportRunSetIDs(t *testing.T) {
+	var (
+		value = make(DmlImportRunSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(DmlImportRun)
+	value[1] = new(DmlImportRun)
+	value[2] = new(DmlImportRun)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestDmlMappingSetWalk(t *testing.T) {
+	var (
+		value = make(DmlMappingSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*DmlMapping) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*DmlMapping) error { return fmt.Errorf("walk error") }))
+}
+
+func TestDmlMappingSetFilter(t *testing.T) {
+	var (
+		value = make(DmlMappingSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*DmlMapping) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*DmlMapping) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*DmlMapping) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestDmlMappingSetIDs(t *testing.T) {
+	var (
+		value = make(DmlMappingSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(DmlMapping)
+	value[1] = new(DmlMapping)
+	value[2] = new(DmlMapping)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
 func TestKnowledgeBaseSetWalk(t *testing.T) {
 	var (
 		value = make(KnowledgeBaseSet, 3)

@@ -64,3 +64,8 @@ types:
   Tenant:
     labelResourceType: tenant
   TenantMembership: {}
+  DmlConnection: {}
+  DmlMapping: {}
+  DmlImportRun: {}
+  DmlColumnMap:
+    noIdField: true

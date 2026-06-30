@@ -2231,3 +2231,167 @@ func (r *ProjectGroupEntry) SetValue(name string, pos uint, value any) (err erro
 	}
 	return nil
 }
+
+func (r DmlConnection) GetID() uint64 { return r.ID }
+
+func (r *DmlConnection) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "handle", "Handle":
+		return r.Handle, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "label", "Label":
+		return r.Label, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+
+	}
+	return nil, nil
+}
+
+func (r *DmlConnection) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &DmlConnection{}
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "handle", "Handle":
+		return cast2.String(value, &r.Handle)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "label", "Label":
+		return cast2.String(value, &r.Label)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+
+	}
+	return nil
+}
+
+func (r DmlMapping) GetID() uint64 { return r.ID }
+
+func (r *DmlMapping) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "connectionID", "ConnectionID":
+		return r.ConnectionID, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "identifier", "Identifier":
+		return r.Identifier, nil
+	case "moduleHandle", "ModuleHandle":
+		return r.ModuleHandle, nil
+	case "moduleName", "ModuleName":
+		return r.ModuleName, nil
+	case "namespaceHandle", "NamespaceHandle":
+		return r.NamespaceHandle, nil
+	case "skip", "Skip":
+		return r.Skip, nil
+	case "sourceIdent", "SourceIdent":
+		return r.SourceIdent, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+
+	}
+	return nil, nil
+}
+
+func (r *DmlMapping) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &DmlMapping{}
+	}
+
+	switch name {
+	case "connectionID", "ConnectionID":
+		return cast2.Uint64(value, &r.ConnectionID)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "identifier", "Identifier":
+		return cast2.String(value, &r.Identifier)
+	case "moduleHandle", "ModuleHandle":
+		return cast2.String(value, &r.ModuleHandle)
+	case "moduleName", "ModuleName":
+		return cast2.String(value, &r.ModuleName)
+	case "namespaceHandle", "NamespaceHandle":
+		return cast2.String(value, &r.NamespaceHandle)
+	case "skip", "Skip":
+		return cast2.Bool(value, &r.Skip)
+	case "sourceIdent", "SourceIdent":
+		return cast2.String(value, &r.SourceIdent)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+
+	}
+	return nil
+}
+
+func (r DmlImportRun) GetID() uint64 { return r.ID }
+
+func (r *DmlImportRun) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "connectionID", "ConnectionID":
+		return r.ConnectionID, nil
+	case "failed", "Failed":
+		return r.Failed, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "mappingID", "MappingID":
+		return r.MappingID, nil
+	case "processed", "Processed":
+		return r.Processed, nil
+	case "status", "Status":
+		return r.Status, nil
+
+	}
+	return nil, nil
+}
+
+func (r *DmlImportRun) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &DmlImportRun{}
+	}
+
+	switch name {
+	case "connectionID", "ConnectionID":
+		return cast2.Uint64(value, &r.ConnectionID)
+	case "failed", "Failed":
+		return cast2.Uint64(value, &r.Failed)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "mappingID", "MappingID":
+		return cast2.Uint64(value, &r.MappingID)
+	case "processed", "Processed":
+		return cast2.Uint64(value, &r.Processed)
+	case "status", "Status":
+		return cast2.String(value, &r.Status)
+
+	}
+	return nil
+}

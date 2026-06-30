@@ -27,11 +27,12 @@ func (ctrl *NgAutomation) List(ctx context.Context, r *request.NgAutomationList)
 
 func (ctrl *NgAutomation) Create(ctx context.Context, r *request.NgAutomationCreate) (interface{}, error) {
 	res := &types.NgAutomation{
-		Handle:  r.Handle,
-		Labels:  r.Labels,
-		Enabled: r.Enabled,
-		RunAs:   r.RunAs,
-		OwnedBy: r.OwnedBy,
+		Handle:    r.Handle,
+		ProjectID: r.ProjectID,
+		Labels:    r.Labels,
+		Enabled:   r.Enabled,
+		RunAs:     r.RunAs,
+		OwnedBy:   r.OwnedBy,
 	}
 
 	if err := ctrl.beforeCreate(ctx, res, r); err != nil {

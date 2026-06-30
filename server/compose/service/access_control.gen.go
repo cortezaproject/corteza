@@ -824,6 +824,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 	}
 
 	switch rbac.ResourceType(resourceType) {
+	case types.NamespaceResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.NamespaceRbacResource(ids[0])), nil
+		}
+
+		return loadNamespace(ctx, svc.store, ids[0])
 	case types.ChartResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.ChartRbacResource(ids[0], ids[1])), nil
@@ -841,13 +847,7 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 			return rbac.NewResource(types.ModuleFieldRbacResource(ids[0], ids[1], ids[2])), nil
 		}
 
-		return loadModuleField(ctx, svc.store, ids[0], ids[1], ids[2])
-	case types.NamespaceResourceType:
-		if hasWildcard {
-			return rbac.NewResource(types.NamespaceRbacResource(ids[0])), nil
-		}
-
-		return loadNamespace(ctx, svc.store, ids[0])
+		return loadModuleFieldScoped(ctx, svc.store, ids[0], ids[1], ids[2])
 	case types.PageResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.PageRbacResource(ids[0], ids[1])), nil
@@ -865,7 +865,7 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 			return rbac.NewResource(types.RecordRbacResource(ids[0], ids[1], ids[2])), nil
 		}
 
-		return loadRecord(ctx, svc.store, ids[0], ids[1], ids[2])
+		return loadRecordScoped(ctx, svc.store, ids[0], ids[1], ids[2])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}

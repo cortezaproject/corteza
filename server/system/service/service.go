@@ -26,6 +26,7 @@ import (
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
 	"github.com/crusttech/human/server/system/service/appstore"
+	"github.com/crusttech/human/server/system/service/dml"
 	agenticGuard "github.com/crusttech/human/server/system/agentic/guard"
 	agenticKnowledge "github.com/crusttech/human/server/system/agentic/knowledge"
 	agenticMcp "github.com/crusttech/human/server/system/agentic/mcp"
@@ -152,10 +153,10 @@ var (
 	DefaultStatistics *statistics
 
 	// DML services
-	DefaultDmlConnection *dmlConnectionSvc
-	DefaultDmlMapping    *dmlMappingSvc
-	DefaultDmlApplier    *dmlApplierSvc
-	DefaultDmlImporter   *dmlImporterSvc
+	DefaultDmlConnection *DmlConnectionSvc
+	DefaultDmlMapping    *DmlMappingSvc
+	DefaultDmlApplier    *dml.Applier
+	DefaultDmlImporter   *dml.Importer
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {

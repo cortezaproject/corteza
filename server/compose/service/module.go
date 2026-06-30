@@ -1600,3 +1600,10 @@ func loadModuleScoped(ctx context.Context, s store.Storer, namespaceID, moduleID
 	}
 	return
 }
+
+func loadModuleFieldScoped(ctx context.Context, s store.Storer, namespaceID, moduleID, fieldID uint64) (res *types.ModuleField, err error) {
+	if res, err = loadModuleField(ctx, s, namespaceID, moduleID, fieldID); err == nil && res.ModuleID != moduleID {
+		return nil, ModuleErrNotFound()
+	}
+	return
+}

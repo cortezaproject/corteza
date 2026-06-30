@@ -184,6 +184,7 @@ func defaultUserGroup(ctx context.Context, log *zap.Logger, s store.UserGroups, 
 			Short:       "Default User Group",
 			Description: "The default user group",
 		},
+		Config:    &types.UserGroupConfig{},
 		CreatedAt: *now(),
 	}
 

@@ -78,6 +78,9 @@ type (
 		DalSensitivityLevels
 		DataPrivacyRequests
 		DataPrivacyRequestComments
+		DmlConnections
+		DmlImportRuns
+		DmlMappings
 		FederationExposedModules
 		FederationModuleMappings
 		FederationNodes
@@ -552,6 +555,45 @@ type (
 
 		DeleteDataPrivacyRequestCommentByID(ctx context.Context, id uint64) error
 		TruncateDataPrivacyRequestComments(ctx context.Context) error
+	}
+
+	DmlConnections interface {
+		SearchDmlConnections(ctx context.Context, f systemType.DmlConnectionFilter) (systemType.DmlConnectionSet, systemType.DmlConnectionFilter, error)
+		CreateDmlConnection(ctx context.Context, rr ...*systemType.DmlConnection) error
+		UpdateDmlConnection(ctx context.Context, rr ...*systemType.DmlConnection) error
+		UpsertDmlConnection(ctx context.Context, rr ...*systemType.DmlConnection) error
+		DeleteDmlConnection(ctx context.Context, rr ...*systemType.DmlConnection) error
+
+		DeleteDmlConnectionByID(ctx context.Context, id uint64) error
+		TruncateDmlConnections(ctx context.Context) error
+		LookupDmlConnectionByID(ctx context.Context, id uint64) (*systemType.DmlConnection, error)
+		LookupDmlConnectionByHandle(ctx context.Context, handle string) (*systemType.DmlConnection, error)
+	}
+
+	DmlImportRuns interface {
+		SearchDmlImportRuns(ctx context.Context, f systemType.DmlImportRunFilter) (systemType.DmlImportRunSet, systemType.DmlImportRunFilter, error)
+		CreateDmlImportRun(ctx context.Context, rr ...*systemType.DmlImportRun) error
+		UpdateDmlImportRun(ctx context.Context, rr ...*systemType.DmlImportRun) error
+		UpsertDmlImportRun(ctx context.Context, rr ...*systemType.DmlImportRun) error
+		DeleteDmlImportRun(ctx context.Context, rr ...*systemType.DmlImportRun) error
+
+		DeleteDmlImportRunByID(ctx context.Context, id uint64) error
+		TruncateDmlImportRuns(ctx context.Context) error
+		LookupDmlImportRunByID(ctx context.Context, id uint64) (*systemType.DmlImportRun, error)
+		LookupDmlImportRunByMappingID(ctx context.Context, mappingID uint64) (*systemType.DmlImportRun, error)
+	}
+
+	DmlMappings interface {
+		SearchDmlMappings(ctx context.Context, f systemType.DmlMappingFilter) (systemType.DmlMappingSet, systemType.DmlMappingFilter, error)
+		CreateDmlMapping(ctx context.Context, rr ...*systemType.DmlMapping) error
+		UpdateDmlMapping(ctx context.Context, rr ...*systemType.DmlMapping) error
+		UpsertDmlMapping(ctx context.Context, rr ...*systemType.DmlMapping) error
+		DeleteDmlMapping(ctx context.Context, rr ...*systemType.DmlMapping) error
+
+		DeleteDmlMappingByID(ctx context.Context, id uint64) error
+		TruncateDmlMappings(ctx context.Context) error
+		LookupDmlMappingByID(ctx context.Context, id uint64) (*systemType.DmlMapping, error)
+		LookupDmlMappingByConnectionIDSourceIdent(ctx context.Context, connectionID uint64, sourceIdent string) (*systemType.DmlMapping, error)
 	}
 
 	FederationExposedModules interface {
@@ -3153,6 +3195,195 @@ func DeleteDataPrivacyRequestCommentByID(ctx context.Context, s DataPrivacyReque
 // This function is auto-generated
 func TruncateDataPrivacyRequestComments(ctx context.Context, s DataPrivacyRequestComments) error {
 	return s.TruncateDataPrivacyRequestComments(ctx)
+}
+
+// SearchDmlConnections returns all matching DmlConnections from store
+//
+// This function is auto-generated
+func SearchDmlConnections(ctx context.Context, s DmlConnections, f systemType.DmlConnectionFilter) (systemType.DmlConnectionSet, systemType.DmlConnectionFilter, error) {
+	return s.SearchDmlConnections(ctx, f)
+}
+
+// CreateDmlConnection creates one or more DmlConnections in store
+//
+// This function is auto-generated
+func CreateDmlConnection(ctx context.Context, s DmlConnections, rr ...*systemType.DmlConnection) error {
+	return s.CreateDmlConnection(ctx, rr...)
+}
+
+// UpdateDmlConnection updates one or more (existing) DmlConnections in store
+//
+// This function is auto-generated
+func UpdateDmlConnection(ctx context.Context, s DmlConnections, rr ...*systemType.DmlConnection) error {
+	return s.UpdateDmlConnection(ctx, rr...)
+}
+
+// UpsertDmlConnection creates new or updates existing one or more DmlConnections in store
+//
+// This function is auto-generated
+func UpsertDmlConnection(ctx context.Context, s DmlConnections, rr ...*systemType.DmlConnection) error {
+	return s.UpsertDmlConnection(ctx, rr...)
+}
+
+// DeleteDmlConnection deletes one or more DmlConnections from store
+//
+// This function is auto-generated
+func DeleteDmlConnection(ctx context.Context, s DmlConnections, rr ...*systemType.DmlConnection) error {
+	return s.DeleteDmlConnection(ctx, rr...)
+}
+
+// DeleteDmlConnectionByID deletes one or more DmlConnections from store
+//
+// This function is auto-generated
+func DeleteDmlConnectionByID(ctx context.Context, s DmlConnections, id uint64) error {
+	return s.DeleteDmlConnectionByID(ctx, id)
+}
+
+// TruncateDmlConnections Deletes all DmlConnections from store
+//
+// This function is auto-generated
+func TruncateDmlConnections(ctx context.Context, s DmlConnections) error {
+	return s.TruncateDmlConnections(ctx)
+}
+
+// LookupDmlConnectionByID searches for DML connection by ID
+//
+// This function is auto-generated
+func LookupDmlConnectionByID(ctx context.Context, s DmlConnections, id uint64) (*systemType.DmlConnection, error) {
+	return s.LookupDmlConnectionByID(ctx, id)
+}
+
+// LookupDmlConnectionByHandle searches for DML connection by handle
+//
+// This function is auto-generated
+func LookupDmlConnectionByHandle(ctx context.Context, s DmlConnections, handle string) (*systemType.DmlConnection, error) {
+	return s.LookupDmlConnectionByHandle(ctx, handle)
+}
+
+// SearchDmlImportRuns returns all matching DmlImportRuns from store
+//
+// This function is auto-generated
+func SearchDmlImportRuns(ctx context.Context, s DmlImportRuns, f systemType.DmlImportRunFilter) (systemType.DmlImportRunSet, systemType.DmlImportRunFilter, error) {
+	return s.SearchDmlImportRuns(ctx, f)
+}
+
+// CreateDmlImportRun creates one or more DmlImportRuns in store
+//
+// This function is auto-generated
+func CreateDmlImportRun(ctx context.Context, s DmlImportRuns, rr ...*systemType.DmlImportRun) error {
+	return s.CreateDmlImportRun(ctx, rr...)
+}
+
+// UpdateDmlImportRun updates one or more (existing) DmlImportRuns in store
+//
+// This function is auto-generated
+func UpdateDmlImportRun(ctx context.Context, s DmlImportRuns, rr ...*systemType.DmlImportRun) error {
+	return s.UpdateDmlImportRun(ctx, rr...)
+}
+
+// UpsertDmlImportRun creates new or updates existing one or more DmlImportRuns in store
+//
+// This function is auto-generated
+func UpsertDmlImportRun(ctx context.Context, s DmlImportRuns, rr ...*systemType.DmlImportRun) error {
+	return s.UpsertDmlImportRun(ctx, rr...)
+}
+
+// DeleteDmlImportRun deletes one or more DmlImportRuns from store
+//
+// This function is auto-generated
+func DeleteDmlImportRun(ctx context.Context, s DmlImportRuns, rr ...*systemType.DmlImportRun) error {
+	return s.DeleteDmlImportRun(ctx, rr...)
+}
+
+// DeleteDmlImportRunByID deletes one or more DmlImportRuns from store
+//
+// This function is auto-generated
+func DeleteDmlImportRunByID(ctx context.Context, s DmlImportRuns, id uint64) error {
+	return s.DeleteDmlImportRunByID(ctx, id)
+}
+
+// TruncateDmlImportRuns Deletes all DmlImportRuns from store
+//
+// This function is auto-generated
+func TruncateDmlImportRuns(ctx context.Context, s DmlImportRuns) error {
+	return s.TruncateDmlImportRuns(ctx)
+}
+
+// LookupDmlImportRunByID searches for DML import run by ID
+//
+// This function is auto-generated
+func LookupDmlImportRunByID(ctx context.Context, s DmlImportRuns, id uint64) (*systemType.DmlImportRun, error) {
+	return s.LookupDmlImportRunByID(ctx, id)
+}
+
+// LookupDmlImportRunByMappingID searches for DML import runs by mapping ID
+//
+// This function is auto-generated
+func LookupDmlImportRunByMappingID(ctx context.Context, s DmlImportRuns, mappingID uint64) (*systemType.DmlImportRun, error) {
+	return s.LookupDmlImportRunByMappingID(ctx, mappingID)
+}
+
+// SearchDmlMappings returns all matching DmlMappings from store
+//
+// This function is auto-generated
+func SearchDmlMappings(ctx context.Context, s DmlMappings, f systemType.DmlMappingFilter) (systemType.DmlMappingSet, systemType.DmlMappingFilter, error) {
+	return s.SearchDmlMappings(ctx, f)
+}
+
+// CreateDmlMapping creates one or more DmlMappings in store
+//
+// This function is auto-generated
+func CreateDmlMapping(ctx context.Context, s DmlMappings, rr ...*systemType.DmlMapping) error {
+	return s.CreateDmlMapping(ctx, rr...)
+}
+
+// UpdateDmlMapping updates one or more (existing) DmlMappings in store
+//
+// This function is auto-generated
+func UpdateDmlMapping(ctx context.Context, s DmlMappings, rr ...*systemType.DmlMapping) error {
+	return s.UpdateDmlMapping(ctx, rr...)
+}
+
+// UpsertDmlMapping creates new or updates existing one or more DmlMappings in store
+//
+// This function is auto-generated
+func UpsertDmlMapping(ctx context.Context, s DmlMappings, rr ...*systemType.DmlMapping) error {
+	return s.UpsertDmlMapping(ctx, rr...)
+}
+
+// DeleteDmlMapping deletes one or more DmlMappings from store
+//
+// This function is auto-generated
+func DeleteDmlMapping(ctx context.Context, s DmlMappings, rr ...*systemType.DmlMapping) error {
+	return s.DeleteDmlMapping(ctx, rr...)
+}
+
+// DeleteDmlMappingByID deletes one or more DmlMappings from store
+//
+// This function is auto-generated
+func DeleteDmlMappingByID(ctx context.Context, s DmlMappings, id uint64) error {
+	return s.DeleteDmlMappingByID(ctx, id)
+}
+
+// TruncateDmlMappings Deletes all DmlMappings from store
+//
+// This function is auto-generated
+func TruncateDmlMappings(ctx context.Context, s DmlMappings) error {
+	return s.TruncateDmlMappings(ctx)
+}
+
+// LookupDmlMappingByID searches for DML mapping by ID
+//
+// This function is auto-generated
+func LookupDmlMappingByID(ctx context.Context, s DmlMappings, id uint64) (*systemType.DmlMapping, error) {
+	return s.LookupDmlMappingByID(ctx, id)
+}
+
+// LookupDmlMappingByConnectionIDSourceIdent searches for DML mapping by connection and source table
+//
+// This function is auto-generated
+func LookupDmlMappingByConnectionIDSourceIdent(ctx context.Context, s DmlMappings, connectionID uint64, sourceIdent string) (*systemType.DmlMapping, error) {
+	return s.LookupDmlMappingByConnectionIDSourceIdent(ctx, connectionID, sourceIdent)
 }
 
 // SearchFederationExposedModules returns all matching FederationExposedModules from store

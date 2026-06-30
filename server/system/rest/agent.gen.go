@@ -27,9 +27,10 @@ func (ctrl *Agent) List(ctx context.Context, r *request.AgentList) (interface{},
 
 func (ctrl *Agent) Create(ctx context.Context, r *request.AgentCreate) (interface{}, error) {
 	res := &types.Agent{
-		Handle: r.Handle,
-		Status: r.Status,
-		Labels: r.Labels,
+		Handle:    r.Handle,
+		ProjectID: r.ProjectID,
+		Status:    r.Status,
+		Labels:    r.Labels,
 	}
 
 	if err := ctrl.beforeCreate(ctx, res, r); err != nil {

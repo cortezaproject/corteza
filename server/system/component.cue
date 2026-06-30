@@ -50,6 +50,9 @@ component: schema.#component & {
     "project-member":                 project_member
     "project-group":                  project_group
     "project-group-entry":            project_group_entry
+    "dml-connection":                 dml_connection
+    "dml-mapping":                    dml_mapping
+    "dml-import-run":                 dml_import_run
 	}
 
 	rbac: operations: {

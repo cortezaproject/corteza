@@ -1,243 +1,96 @@
 package rest
 
 import (
-	"encoding/json"
-	"net/http"
+	"context"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
-
-	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/types"
 )
 
-// DmlController exposes the DML feature over HTTP.
-// Routes are mounted directly (no codegen required).
-type DmlController struct{}
+type Dml struct{}
 
-func NewDmlController() *DmlController { return &DmlController{} }
+func (Dml) New() *Dml { return &Dml{} }
 
-func (c *DmlController) MountRoutes(r chi.Router) {
-	r.Route("/dml", func(r chi.Router) {
-		// Reject anonymous callers — the surrounding HttpTokenValidator only
-		// enforces token validity, it lets requests with no token through as
-		// anonymous. requireDmlRead then gates every route on the DAL-connection
-		// search permission so external connections/schemas are not enumerable
-		// by any authenticated user. Mutating routes add manage rights below.
-		r.Use(requireAuthenticated)
-		r.Use(requireDmlRead)
-
-		r.Get("/connections", c.listConnections)
-		r.Get("/connections/{connectionID}", c.getConnection)
-		r.Get("/connections/{connectionID}/models", c.getConnectionModels)
-
-		r.Post("/connections/{connectionID}/mapping", c.generateMapping)
-		r.Get("/mappings/{mappingID}", c.getMapping)
-		r.Put("/mappings/{mappingID}", c.updateMapping)
-
-		r.Post("/mappings/{mappingID}/apply", c.applyMapping)
-		r.Post("/mappings/{mappingID}/import", c.startImport)
-		r.Get("/runs/{runID}", c.getRun)
-	})
-}
-
-// requireAuthenticated blocks anonymous requests.
-func requireAuthenticated(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !auth.GetIdentityFromContext(r.Context()).Valid() {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-			return
+func (ctrl Dml) ConnectionList(ctx context.Context, r *request.DmlConnectionList) (interface{}, error) {
+	f := types.DmlConnectionFilter{Handle: r.Handle}
+	for _, id := range r.ConnectionID {
+		if v, err := strconv.ParseUint(id, 10, 64); err == nil {
+			f.ConnectionID = append(f.ConnectionID, v)
 		}
-		next.ServeHTTP(w, r)
+	}
+	set, err := service.DefaultDmlConnection.Find(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	return &struct {
+		Set []*types.DmlConnection `json:"set"`
+	}{set}, nil
+}
+
+func (ctrl Dml) ConnectionCreate(ctx context.Context, r *request.DmlConnectionCreate) (interface{}, error) {
+	return service.DefaultDmlConnection.Create(ctx, types.DmlConnectionInput{
+		Handle: r.Handle,
+		Label:  r.Label,
+		Params: &r.Params,
 	})
 }
 
-// requireDmlRead gates read access to DML routes on the DAL-connection search
-// permission — DML exposes external connection metadata and introspected
-// schemas, which should not be enumerable by every authenticated user.
-func requireDmlRead(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !service.DefaultAccessControl.CanSearchDalConnections(r.Context()) {
-			http.Error(w, "forbidden", http.StatusForbidden)
-			return
-		}
-		next.ServeHTTP(w, r)
+func (ctrl Dml) ConnectionRead(ctx context.Context, r *request.DmlConnectionRead) (interface{}, error) {
+	return service.DefaultDmlConnection.FindByID(ctx, r.ConnectionID)
+}
+
+func (ctrl Dml) ConnectionModels(ctx context.Context, r *request.DmlConnectionModels) (interface{}, error) {
+	set, err := service.DefaultDmlConnection.FindModels(ctx, r.ConnectionID, types.DmlModelFilter{Ident: r.Ident})
+	if err != nil {
+		return nil, err
+	}
+	return &struct {
+		Set []*types.DmlModel `json:"set"`
+	}{set}, nil
+}
+
+func (ctrl Dml) MappingCreate(ctx context.Context, r *request.DmlMappingCreate) (interface{}, error) {
+	return service.DefaultDmlMapping.Create(ctx, &types.DmlMapping{
+		ConnectionID:    r.ConnectionID,
+		NamespaceHandle: r.NamespaceHandle,
+		SourceIdent:     r.SourceIdent,
+		ModuleHandle:    r.ModuleHandle,
+		ModuleName:      r.ModuleName,
+		Skip:            r.Skip,
+		Identifier:      r.Identifier,
+		Columns:         r.Columns,
 	})
 }
 
-// canManage gates mutating DML operations (generate mapping, update, apply,
-// import). Reuse the DAL-connection create permission: orchestrating external
-// connections + provisioning modules from them is at least as privileged.
-//
-// @todo replace with a first-class corteza::system:dml-* RBAC resource
-//
-//	(read/manage) once it's added to the codegen rbac blocks.
-func canManage(r *http.Request) bool {
-	return service.DefaultAccessControl.CanCreateDalConnection(r.Context())
+func (ctrl Dml) MappingRead(ctx context.Context, r *request.DmlMappingRead) (interface{}, error) {
+	return service.DefaultDmlMapping.FindByID(ctx, r.MappingID)
 }
 
-func (c *DmlController) listConnections(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	f := types.DmlConnectionFilter{
-		Handle: q.Get("handle"),
-		Type:   q.Get("type"),
-	}
-	if ids, ok := q["connectionID"]; ok {
-		f.ConnectionID = ids
-	}
-
-	set, err := service.DefaultDmlConnection.Find(r.Context(), f)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusOK, map[string]interface{}{"set": set})
+func (ctrl Dml) MappingUpdate(ctx context.Context, r *request.DmlMappingUpdate) (interface{}, error) {
+	return service.DefaultDmlMapping.Update(ctx, &types.DmlMapping{
+		ID:              r.MappingID,
+		ConnectionID:    r.ConnectionID,
+		NamespaceHandle: r.NamespaceHandle,
+		SourceIdent:     r.SourceIdent,
+		ModuleHandle:    r.ModuleHandle,
+		ModuleName:      r.ModuleName,
+		Skip:            r.Skip,
+		Identifier:      r.Identifier,
+		Columns:         r.Columns,
+	})
 }
 
-func (c *DmlController) getConnection(w http.ResponseWriter, r *http.Request) {
-	id, err := parseUint64(chi.URLParam(r, "connectionID"))
-	if err != nil {
-		http.Error(w, "bad connectionID", http.StatusBadRequest)
-		return
-	}
-	conn, err := service.DefaultDmlConnection.FindByID(r.Context(), id)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusOK, conn)
+func (ctrl Dml) MappingDelete(ctx context.Context, r *request.DmlMappingDelete) (interface{}, error) {
+	return api.OK(), service.DefaultDmlMapping.DeleteByID(ctx, r.MappingID)
 }
 
-func (c *DmlController) getConnectionModels(w http.ResponseWriter, r *http.Request) {
-	id, err := parseUint64(chi.URLParam(r, "connectionID"))
-	if err != nil {
-		http.Error(w, "bad connectionID", http.StatusBadRequest)
-		return
-	}
-	models, err := service.DefaultDmlConnection.FindModels(r.Context(), id)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusOK, map[string]interface{}{"set": models})
+func (ctrl Dml) ImportRun(ctx context.Context, r *request.DmlImportRun) (interface{}, error) {
+	return service.DefaultDmlImporter.RunImport(ctx, r.MappingID, r.Method)
 }
 
-func (c *DmlController) generateMapping(w http.ResponseWriter, r *http.Request) {
-	if !canManage(r) {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-	id, err := parseUint64(chi.URLParam(r, "connectionID"))
-	if err != nil {
-		http.Error(w, "bad connectionID", http.StatusBadRequest)
-		return
-	}
-	mp, err := service.DefaultDmlMapping.GenerateMapping(r.Context(), id)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusCreated, mp)
-}
-
-func (c *DmlController) getMapping(w http.ResponseWriter, r *http.Request) {
-	id, err := parseUint64(chi.URLParam(r, "mappingID"))
-	if err != nil {
-		http.Error(w, "bad mappingID", http.StatusBadRequest)
-		return
-	}
-	mp, err := service.DefaultDmlMapping.FindByID(r.Context(), id)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusOK, mp)
-}
-
-func (c *DmlController) updateMapping(w http.ResponseWriter, r *http.Request) {
-	if !canManage(r) {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-	id, err := parseUint64(chi.URLParam(r, "mappingID"))
-	if err != nil {
-		http.Error(w, "bad mappingID", http.StatusBadRequest)
-		return
-	}
-	var mp types.DmlMapping
-	if err := json.NewDecoder(r.Body).Decode(&mp); err != nil {
-		http.Error(w, "bad body: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-	mp.ID = id
-	updated, err := service.DefaultDmlMapping.Update(r.Context(), &mp)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusOK, updated)
-}
-
-func (c *DmlController) applyMapping(w http.ResponseWriter, r *http.Request) {
-	if !canManage(r) {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-	id, err := parseUint64(chi.URLParam(r, "mappingID"))
-	if err != nil {
-		http.Error(w, "bad mappingID", http.StatusBadRequest)
-		return
-	}
-	if err := service.DefaultDmlApplier.Apply(r.Context(), id); err != nil {
-		dmlError(w, err)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func (c *DmlController) startImport(w http.ResponseWriter, r *http.Request) {
-	if !canManage(r) {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-	id, err := parseUint64(chi.URLParam(r, "mappingID"))
-	if err != nil {
-		http.Error(w, "bad mappingID", http.StatusBadRequest)
-		return
-	}
-	run, err := service.DefaultDmlImporter.RunImport(r.Context(), id)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusAccepted, run)
-}
-
-func (c *DmlController) getRun(w http.ResponseWriter, r *http.Request) {
-	id, err := parseUint64(chi.URLParam(r, "runID"))
-	if err != nil {
-		http.Error(w, "bad runID", http.StatusBadRequest)
-		return
-	}
-	run, err := service.DefaultDmlImporter.GetRun(r.Context(), id)
-	if err != nil {
-		dmlError(w, err)
-		return
-	}
-	dmlJSON(w, http.StatusOK, run)
-}
-
-func dmlJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
-}
-
-func dmlError(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), http.StatusInternalServerError)
-}
-
-func parseUint64(s string) (uint64, error) {
-	return strconv.ParseUint(s, 10, 64)
+func (ctrl Dml) ImportRunRead(ctx context.Context, r *request.DmlImportRunRead) (interface{}, error) {
+	return service.DefaultDmlImporter.GetRun(ctx, r.RunID)
 }

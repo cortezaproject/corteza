@@ -627,6 +627,45 @@ type (
 		DeletedBy uint64     `db:"deleted_by"`
 	}
 
+	// auxDmlConnection is an auxiliary structure used for transporting to/from RDBMS store
+	auxDmlConnection struct {
+		ID        uint64                         `db:"id"`
+		Handle    string                         `db:"handle"`
+		Label     string                         `db:"label"`
+		Params    systemType.DmlConnectionParams `db:"params"`
+		CreatedAt time.Time                      `db:"created_at"`
+		UpdatedAt *time.Time                     `db:"updated_at"`
+		DeletedAt *time.Time                     `db:"deleted_at"`
+	}
+
+	// auxDmlImportRun is an auxiliary structure used for transporting to/from RDBMS store
+	auxDmlImportRun struct {
+		ID           uint64                     `db:"id"`
+		ConnectionID uint64                     `db:"connection_id"`
+		MappingID    uint64                     `db:"mapping_id"`
+		Method       systemType.DmlImportMethod `db:"method"`
+		Status       string                     `db:"status"`
+		Processed    uint64                     `db:"processed"`
+		Failed       uint64                     `db:"failed"`
+		Error        string                     `db:"error"`
+	}
+
+	// auxDmlMapping is an auxiliary structure used for transporting to/from RDBMS store
+	auxDmlMapping struct {
+		ID              uint64                     `db:"id"`
+		ConnectionID    uint64                     `db:"connection_id"`
+		NamespaceHandle string                     `db:"namespace_handle"`
+		SourceIdent     string                     `db:"source_ident"`
+		ModuleHandle    string                     `db:"module_handle"`
+		ModuleName      string                     `db:"module_name"`
+		Skip            bool                       `db:"skip"`
+		Identifier      string                     `db:"identifier"`
+		Columns         systemType.DmlColumnMapSet `db:"columns"`
+		CreatedAt       time.Time                  `db:"created_at"`
+		UpdatedAt       *time.Time                 `db:"updated_at"`
+		DeletedAt       *time.Time                 `db:"deleted_at"`
+	}
+
 	// auxFederationExposedModule is an auxiliary structure used for transporting to/from RDBMS store
 	auxFederationExposedModule struct {
 		ID                 uint64                        `db:"id"`
@@ -3215,6 +3254,156 @@ func (aux *auxDataPrivacyRequestComment) scan(row scanner) error {
 		&aux.CreatedBy,
 		&aux.UpdatedBy,
 		&aux.DeletedBy,
+	)
+}
+
+// encodes DmlConnection to auxDmlConnection
+//
+// This function is auto-generated
+func (aux *auxDmlConnection) encode(res *systemType.DmlConnection) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Label = res.Label
+	aux.Params = res.Params
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	return
+}
+
+// decodes DmlConnection from auxDmlConnection
+//
+// This function is auto-generated
+func (aux auxDmlConnection) decode() (res *systemType.DmlConnection, _ error) {
+	res = new(systemType.DmlConnection)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Label = aux.Label
+	res.Params = aux.Params
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	return
+}
+
+// scans row and fills auxDmlConnection fields
+//
+// This function is auto-generated
+func (aux *auxDmlConnection) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Label,
+		&aux.Params,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+	)
+}
+
+// encodes DmlImportRun to auxDmlImportRun
+//
+// This function is auto-generated
+func (aux *auxDmlImportRun) encode(res *systemType.DmlImportRun) (_ error) {
+	aux.ID = res.ID
+	aux.ConnectionID = res.ConnectionID
+	aux.MappingID = res.MappingID
+	aux.Method = res.Method
+	aux.Status = res.Status
+	aux.Processed = res.Processed
+	aux.Failed = res.Failed
+	aux.Error = res.Error
+	return
+}
+
+// decodes DmlImportRun from auxDmlImportRun
+//
+// This function is auto-generated
+func (aux auxDmlImportRun) decode() (res *systemType.DmlImportRun, _ error) {
+	res = new(systemType.DmlImportRun)
+	res.ID = aux.ID
+	res.ConnectionID = aux.ConnectionID
+	res.MappingID = aux.MappingID
+	res.Method = aux.Method
+	res.Status = aux.Status
+	res.Processed = aux.Processed
+	res.Failed = aux.Failed
+	res.Error = aux.Error
+	return
+}
+
+// scans row and fills auxDmlImportRun fields
+//
+// This function is auto-generated
+func (aux *auxDmlImportRun) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.ConnectionID,
+		&aux.MappingID,
+		&aux.Method,
+		&aux.Status,
+		&aux.Processed,
+		&aux.Failed,
+		&aux.Error,
+	)
+}
+
+// encodes DmlMapping to auxDmlMapping
+//
+// This function is auto-generated
+func (aux *auxDmlMapping) encode(res *systemType.DmlMapping) (_ error) {
+	aux.ID = res.ID
+	aux.ConnectionID = res.ConnectionID
+	aux.NamespaceHandle = res.NamespaceHandle
+	aux.SourceIdent = res.SourceIdent
+	aux.ModuleHandle = res.ModuleHandle
+	aux.ModuleName = res.ModuleName
+	aux.Skip = res.Skip
+	aux.Identifier = res.Identifier
+	aux.Columns = res.Columns
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	return
+}
+
+// decodes DmlMapping from auxDmlMapping
+//
+// This function is auto-generated
+func (aux auxDmlMapping) decode() (res *systemType.DmlMapping, _ error) {
+	res = new(systemType.DmlMapping)
+	res.ID = aux.ID
+	res.ConnectionID = aux.ConnectionID
+	res.NamespaceHandle = aux.NamespaceHandle
+	res.SourceIdent = aux.SourceIdent
+	res.ModuleHandle = aux.ModuleHandle
+	res.ModuleName = aux.ModuleName
+	res.Skip = aux.Skip
+	res.Identifier = aux.Identifier
+	res.Columns = aux.Columns
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	return
+}
+
+// scans row and fills auxDmlMapping fields
+//
+// This function is auto-generated
+func (aux *auxDmlMapping) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.ConnectionID,
+		&aux.NamespaceHandle,
+		&aux.SourceIdent,
+		&aux.ModuleHandle,
+		&aux.ModuleName,
+		&aux.Skip,
+		&aux.Identifier,
+		&aux.Columns,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
 	)
 }
 

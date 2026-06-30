@@ -4207,6 +4207,318 @@ var (
 		}
 	}
 
+	// dmlConnectionTable represents dmlConnections store table
+	//
+	// This value is auto-generated
+	dmlConnectionTable = goqu.T("dml_connections")
+
+	// dmlConnectionSelectQuery assembles select query for fetching dmlConnections
+	//
+	// This function is auto-generated
+	dmlConnectionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"label",
+			"params",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+		).From(dmlConnectionTable)
+	}
+
+	// dmlConnectionInsertQuery assembles query inserting dmlConnections
+	//
+	// This function is auto-generated
+	dmlConnectionInsertQuery = func(d goqu.DialectWrapper, res *systemType.DmlConnection) *goqu.InsertDataset {
+		return d.Insert(dmlConnectionTable).
+			Rows(goqu.Record{
+				"id":         res.ID,
+				"handle":     res.Handle,
+				"label":      res.Label,
+				"params":     res.Params,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+			})
+	}
+
+	// dmlConnectionUpsertQuery assembles (insert+on-conflict) query for replacing dmlConnections
+	//
+	// This function is auto-generated
+	dmlConnectionUpsertQuery = func(d goqu.DialectWrapper, res *systemType.DmlConnection) *goqu.InsertDataset {
+		var target = `,id`
+
+		return dmlConnectionInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":     res.Handle,
+						"label":      res.Label,
+						"params":     res.Params,
+						"created_at": res.CreatedAt,
+						"updated_at": res.UpdatedAt,
+						"deleted_at": res.DeletedAt,
+					},
+				),
+			)
+	}
+
+	// dmlConnectionUpdateQuery assembles query for updating dmlConnections
+	//
+	// This function is auto-generated
+	dmlConnectionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DmlConnection) *goqu.UpdateDataset {
+		return d.Update(dmlConnectionTable).
+			Set(goqu.Record{
+				"handle":     res.Handle,
+				"label":      res.Label,
+				"params":     res.Params,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+			}).
+			Where(dmlConnectionPrimaryKeys(res))
+	}
+
+	// dmlConnectionDeleteQuery assembles delete query for removing dmlConnections
+	//
+	// This function is auto-generated
+	dmlConnectionDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(dmlConnectionTable).Where(ee...)
+	}
+
+	// dmlConnectionDeleteQuery assembles delete query for removing dmlConnections
+	//
+	// This function is auto-generated
+	dmlConnectionTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(dmlConnectionTable)
+	}
+
+	// dmlConnectionPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	dmlConnectionPrimaryKeys = func(res *systemType.DmlConnection) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// dmlImportRunTable represents dmlImportRuns store table
+	//
+	// This value is auto-generated
+	dmlImportRunTable = goqu.T("dml_import_runs")
+
+	// dmlImportRunSelectQuery assembles select query for fetching dmlImportRuns
+	//
+	// This function is auto-generated
+	dmlImportRunSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_connection",
+			"rel_mapping",
+			"method",
+			"status",
+			"processed",
+			"failed",
+			"error",
+		).From(dmlImportRunTable)
+	}
+
+	// dmlImportRunInsertQuery assembles query inserting dmlImportRuns
+	//
+	// This function is auto-generated
+	dmlImportRunInsertQuery = func(d goqu.DialectWrapper, res *systemType.DmlImportRun) *goqu.InsertDataset {
+		return d.Insert(dmlImportRunTable).
+			Rows(goqu.Record{
+				"id":             res.ID,
+				"rel_connection": res.ConnectionID,
+				"rel_mapping":    res.MappingID,
+				"method":         res.Method,
+				"status":         res.Status,
+				"processed":      res.Processed,
+				"failed":         res.Failed,
+				"error":          res.Error,
+			})
+	}
+
+	// dmlImportRunUpsertQuery assembles (insert+on-conflict) query for replacing dmlImportRuns
+	//
+	// This function is auto-generated
+	dmlImportRunUpsertQuery = func(d goqu.DialectWrapper, res *systemType.DmlImportRun) *goqu.InsertDataset {
+		var target = `,id`
+
+		return dmlImportRunInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_connection": res.ConnectionID,
+						"rel_mapping":    res.MappingID,
+						"method":         res.Method,
+						"status":         res.Status,
+						"processed":      res.Processed,
+						"failed":         res.Failed,
+						"error":          res.Error,
+					},
+				),
+			)
+	}
+
+	// dmlImportRunUpdateQuery assembles query for updating dmlImportRuns
+	//
+	// This function is auto-generated
+	dmlImportRunUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DmlImportRun) *goqu.UpdateDataset {
+		return d.Update(dmlImportRunTable).
+			Set(goqu.Record{
+				"rel_connection": res.ConnectionID,
+				"rel_mapping":    res.MappingID,
+				"method":         res.Method,
+				"status":         res.Status,
+				"processed":      res.Processed,
+				"failed":         res.Failed,
+				"error":          res.Error,
+			}).
+			Where(dmlImportRunPrimaryKeys(res))
+	}
+
+	// dmlImportRunDeleteQuery assembles delete query for removing dmlImportRuns
+	//
+	// This function is auto-generated
+	dmlImportRunDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(dmlImportRunTable).Where(ee...)
+	}
+
+	// dmlImportRunDeleteQuery assembles delete query for removing dmlImportRuns
+	//
+	// This function is auto-generated
+	dmlImportRunTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(dmlImportRunTable)
+	}
+
+	// dmlImportRunPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	dmlImportRunPrimaryKeys = func(res *systemType.DmlImportRun) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// dmlMappingTable represents dmlMappings store table
+	//
+	// This value is auto-generated
+	dmlMappingTable = goqu.T("dml_mappings")
+
+	// dmlMappingSelectQuery assembles select query for fetching dmlMappings
+	//
+	// This function is auto-generated
+	dmlMappingSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_connection",
+			"namespace_handle",
+			"source_ident",
+			"module_handle",
+			"module_name",
+			"skip",
+			"identifier",
+			"columns",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+		).From(dmlMappingTable)
+	}
+
+	// dmlMappingInsertQuery assembles query inserting dmlMappings
+	//
+	// This function is auto-generated
+	dmlMappingInsertQuery = func(d goqu.DialectWrapper, res *systemType.DmlMapping) *goqu.InsertDataset {
+		return d.Insert(dmlMappingTable).
+			Rows(goqu.Record{
+				"id":               res.ID,
+				"rel_connection":   res.ConnectionID,
+				"namespace_handle": res.NamespaceHandle,
+				"source_ident":     res.SourceIdent,
+				"module_handle":    res.ModuleHandle,
+				"module_name":      res.ModuleName,
+				"skip":             res.Skip,
+				"identifier":       res.Identifier,
+				"columns":          res.Columns,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+			})
+	}
+
+	// dmlMappingUpsertQuery assembles (insert+on-conflict) query for replacing dmlMappings
+	//
+	// This function is auto-generated
+	dmlMappingUpsertQuery = func(d goqu.DialectWrapper, res *systemType.DmlMapping) *goqu.InsertDataset {
+		var target = `,id`
+
+		return dmlMappingInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_connection":   res.ConnectionID,
+						"namespace_handle": res.NamespaceHandle,
+						"source_ident":     res.SourceIdent,
+						"module_handle":    res.ModuleHandle,
+						"module_name":      res.ModuleName,
+						"skip":             res.Skip,
+						"identifier":       res.Identifier,
+						"columns":          res.Columns,
+						"created_at":       res.CreatedAt,
+						"updated_at":       res.UpdatedAt,
+						"deleted_at":       res.DeletedAt,
+					},
+				),
+			)
+	}
+
+	// dmlMappingUpdateQuery assembles query for updating dmlMappings
+	//
+	// This function is auto-generated
+	dmlMappingUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DmlMapping) *goqu.UpdateDataset {
+		return d.Update(dmlMappingTable).
+			Set(goqu.Record{
+				"rel_connection":   res.ConnectionID,
+				"namespace_handle": res.NamespaceHandle,
+				"source_ident":     res.SourceIdent,
+				"module_handle":    res.ModuleHandle,
+				"module_name":      res.ModuleName,
+				"skip":             res.Skip,
+				"identifier":       res.Identifier,
+				"columns":          res.Columns,
+				"created_at":       res.CreatedAt,
+				"updated_at":       res.UpdatedAt,
+				"deleted_at":       res.DeletedAt,
+			}).
+			Where(dmlMappingPrimaryKeys(res))
+	}
+
+	// dmlMappingDeleteQuery assembles delete query for removing dmlMappings
+	//
+	// This function is auto-generated
+	dmlMappingDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(dmlMappingTable).Where(ee...)
+	}
+
+	// dmlMappingDeleteQuery assembles delete query for removing dmlMappings
+	//
+	// This function is auto-generated
+	dmlMappingTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(dmlMappingTable)
+	}
+
+	// dmlMappingPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	dmlMappingPrimaryKeys = func(res *systemType.DmlMapping) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// federationExposedModuleTable represents federationExposedModules store table
 	//
 	// This value is auto-generated

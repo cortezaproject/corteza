@@ -49,5 +49,8 @@ const (
 	ProjectMemberResourceType             = "corteza::system:project-member"
 	ProjectGroupResourceType              = "corteza::system:project-group"
 	ProjectGroupEntryResourceType         = "corteza::system:project-group-entry"
+	DmlConnectionResourceType             = "corteza::system:dml-connection"
+	DmlMappingResourceType                = "corteza::system:dml-mapping"
+	DmlImportRunResourceType              = "corteza::system:dml-import-run"
 	ComponentResourceType                 = "corteza::system"
 )

@@ -2992,6 +2992,318 @@ var DataPrivacyRequestComment = &dal.Model{
 	},
 }
 
+var DmlConnection = &dal.Model{
+	Ident:        "dml_connections",
+	ResourceType: types.DmlConnectionResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "Label",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "label"},
+		},
+
+		&dal.Attribute{
+			Ident: "Params",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "params"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "dml_connections_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Handle",
+				},
+			},
+		},
+	},
+}
+
+var DmlImportRun = &dal.Model{
+	Ident:        "dml_import_runs",
+	ResourceType: types.DmlImportRunResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "ConnectionID",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:dal-connection",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_connection"},
+		},
+
+		&dal.Attribute{
+			Ident: "MappingID",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:dml-mapping",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_mapping"},
+		},
+
+		&dal.Attribute{
+			Ident: "Method",
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "method"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "Processed",
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "bigint"}},
+			Store: &dal.CodecAlias{Ident: "processed"},
+		},
+
+		&dal.Attribute{
+			Ident: "Failed",
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "bigint"}},
+			Store: &dal.CodecAlias{Ident: "failed"},
+		},
+
+		&dal.Attribute{
+			Ident: "Error",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "error"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "dml_import_runs_idxMapping",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "MappingID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "dml_import_runs_idxStatus",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Status",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
+var DmlMapping = &dal.Model{
+	Ident:        "dml_mappings",
+	ResourceType: types.DmlMappingResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "ConnectionID",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:dml-connection",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_connection"},
+		},
+
+		&dal.Attribute{
+			Ident: "NamespaceHandle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "namespace_handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "SourceIdent", Sortable: true,
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "source_ident"},
+		},
+
+		&dal.Attribute{
+			Ident: "ModuleHandle", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "module_handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "ModuleName",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "module_name"},
+		},
+
+		&dal.Attribute{
+			Ident: "Skip",
+			Type: &dal.TypeBoolean{HasDefault: true,
+				DefaultValue: false,
+			},
+			Store: &dal.CodecAlias{Ident: "skip"},
+		},
+
+		&dal.Attribute{
+			Ident: "Identifier",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "identifier"},
+		},
+
+		&dal.Attribute{
+			Ident: "Columns",
+			Type:  &dal.TypeJSON{},
+			Store: &dal.CodecAlias{Ident: "columns"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "dml_mappings_idxConnection",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ConnectionID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "dml_mappings_uniqueSourcePerConnection",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ConnectionID",
+				},
+
+				{
+					AttributeIdent: "SourceIdent",
+				},
+			},
+		},
+	},
+}
+
 var KnowledgeBase = &dal.Model{
 	Ident:        "knowledge_bases",
 	ResourceType: types.KnowledgeBaseResourceType,
@@ -5296,6 +5608,9 @@ func init() {
 		DalSensitivityLevel,
 		DataPrivacyRequest,
 		DataPrivacyRequestComment,
+		DmlConnection,
+		DmlImportRun,
+		DmlMapping,
 		KnowledgeBase,
 		LlmProvider,
 		Notification,

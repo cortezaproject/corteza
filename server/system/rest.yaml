@@ -4632,3 +4632,122 @@ endpoints:
           path:
             - { type: uint64, name: tenantID, required: true, title: Tenant ID }
             - { type: uint64, name: userID, required: true, title: User ID }
+
+  - title: Data migration layer
+    path: '/dml'
+    entrypoint: dml
+    authentication:
+      - Client ID
+      - Session ID
+    imports:
+      - github.com/crusttech/human/server/system/types
+    apis:
+      - name: connectionList
+        method: GET
+        title: List DML connections
+        path: '/connections'
+        parameters:
+          get:
+            - { type: string, name: handle }
+            - { type: string, name: type }
+            - { type: '[]string', name: connectionID }
+
+      - name: connectionCreate
+        method: POST
+        title: Create DML connection
+        path: '/connections'
+        parameters:
+          post:
+            - { type: string, name: handle }
+            - { type: string, name: label }
+            - { name: params, type: 'types.DmlConnectionParams', parser: 'types.ParseDmlConnectionParams' }
+
+      - name: connectionRead
+        method: GET
+        title: Read DML connection
+        path: '/connections/{connectionID}'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+
+      - name: connectionModels
+        method: GET
+        title: List external models for a DML connection
+        path: '/connections/{connectionID}/models'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+          get:
+            - { type: '[]string', name: ident }
+
+      - name: mappingCreate
+        method: POST
+        title: Create DML mapping
+        path: '/connections/{connectionID}/mapping'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+          post:
+            - { type: string, name: namespaceHandle }
+            - { type: string, name: sourceIdent, required: true }
+            - { type: string, name: moduleHandle, required: true }
+            - { type: string, name: moduleName }
+            - { type: bool, name: skip }
+            - { type: string, name: identifier }
+            - { name: columns, type: 'types.DmlColumnMapSet', parser: 'types.ParseDmlColumnMapSet' }
+
+      - name: mappingRead
+        method: GET
+        title: Read DML mapping
+        path: '/connections/{connectionID}/mapping/{mappingID}'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+            - { type: uint64, name: mappingID, required: true }
+
+      - name: mappingUpdate
+        method: PUT
+        title: Update DML mapping
+        path: '/connections/{connectionID}/mapping/{mappingID}'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+            - { type: uint64, name: mappingID, required: true }
+          post:
+            - { type: string, name: namespaceHandle }
+            - { type: string, name: sourceIdent }
+            - { type: string, name: moduleHandle }
+            - { type: string, name: moduleName }
+            - { type: bool, name: skip }
+            - { type: string, name: identifier }
+            - { name: columns, type: 'types.DmlColumnMapSet', parser: 'types.ParseDmlColumnMapSet' }
+
+      - name: mappingDelete
+        method: DELETE
+        title: Delete DML mapping
+        path: '/connections/{connectionID}/mapping/{mappingID}'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+            - { type: uint64, name: mappingID, required: true }
+
+      - name: importRun
+        method: POST
+        title: Start DML import run (applies schema then imports data)
+        path: '/connections/{connectionID}/mapping/{mappingID}/import'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+            - { type: uint64, name: mappingID, required: true }
+          post:
+            - { type: 'types.DmlImportMethod', name: method }
+
+      - name: importRunRead
+        method: GET
+        title: Read DML import run status
+        path: '/connections/{connectionID}/mapping/{mappingID}/import/{runID}'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true }
+            - { type: uint64, name: mappingID, required: true }
+            - { type: uint64, name: runID, required: true }

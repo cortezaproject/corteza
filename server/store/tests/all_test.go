@@ -116,6 +116,15 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("dataPrivacyRequestComment", func(t *testing.T) {
 		testDataPrivacyRequestComments(t, s)
 	})
+	t.Run("dmlConnection", func(t *testing.T) {
+		testDmlConnections(t, s)
+	})
+	t.Run("dmlImportRun", func(t *testing.T) {
+		testDmlImportRuns(t, s)
+	})
+	t.Run("dmlMapping", func(t *testing.T) {
+		testDmlMappings(t, s)
+	})
 	t.Run("federationExposedModule", func(t *testing.T) {
 		testFederationExposedModules(t, s)
 	})

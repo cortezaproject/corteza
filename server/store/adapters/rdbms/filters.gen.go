@@ -132,6 +132,15 @@ type (
 		// optional dataPrivacyRequestComment filter function called after the generated function
 		DataPrivacyRequestComment func(*Store, systemType.DataPrivacyRequestCommentFilter) ([]goqu.Expression, systemType.DataPrivacyRequestCommentFilter, error)
 
+		// optional dmlConnection filter function called after the generated function
+		DmlConnection func(*Store, systemType.DmlConnectionFilter) ([]goqu.Expression, systemType.DmlConnectionFilter, error)
+
+		// optional dmlImportRun filter function called after the generated function
+		DmlImportRun func(*Store, systemType.DmlImportRunFilter) ([]goqu.Expression, systemType.DmlImportRunFilter, error)
+
+		// optional dmlMapping filter function called after the generated function
+		DmlMapping func(*Store, systemType.DmlMappingFilter) ([]goqu.Expression, systemType.DmlMappingFilter, error)
+
 		// optional federationExposedModule filter function called after the generated function
 		FederationExposedModule func(*Store, federationType.ExposedModuleFilter) ([]goqu.Expression, federationType.ExposedModuleFilter, error)
 
@@ -1281,6 +1290,82 @@ func DataPrivacyRequestCommentFilter(d drivers.Dialect, f systemType.DataPrivacy
 
 	if len(f.RequestID) > 0 {
 		ee = append(ee, goqu.C("rel_request").In(f.RequestID))
+	}
+
+	return ee, f, err
+}
+
+// DmlConnectionFilter returns logical expressions
+//
+// This function is called from Store.QueryDmlConnections() and can be extended
+// by setting Store.Filters.DmlConnection. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DmlConnectionFilter(d drivers.Dialect, f systemType.DmlConnectionFilter) (ee []goqu.Expression, _ systemType.DmlConnectionFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ConnectionID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ConnectionID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	return ee, f, err
+}
+
+// DmlImportRunFilter returns logical expressions
+//
+// This function is called from Store.QueryDmlImportRuns() and can be extended
+// by setting Store.Filters.DmlImportRun. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DmlImportRunFilter(d drivers.Dialect, f systemType.DmlImportRunFilter) (ee []goqu.Expression, _ systemType.DmlImportRunFilter, err error) {
+
+	if len(f.ImportRunID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ImportRunID))
+	}
+
+	if f.MappingID > 0 {
+		ee = append(ee, goqu.C("rel_mapping").Eq(f.MappingID))
+	}
+
+	if ss := trimStringSlice(f.Status); len(ss) > 0 {
+		ee = append(ee, goqu.C("status").In(ss))
+	}
+
+	return ee, f, err
+}
+
+// DmlMappingFilter returns logical expressions
+//
+// This function is called from Store.QueryDmlMappings() and can be extended
+// by setting Store.Filters.DmlMapping. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DmlMappingFilter(d drivers.Dialect, f systemType.DmlMappingFilter) (ee []goqu.Expression, _ systemType.DmlMappingFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.MappingID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.MappingID))
+	}
+
+	if f.ConnectionID > 0 {
+		ee = append(ee, goqu.C("rel_connection").Eq(f.ConnectionID))
+	}
+
+	if val := strings.TrimSpace(f.SourceIdent); len(val) > 0 {
+		ee = append(ee, goqu.C("source_ident").Eq(f.SourceIdent))
 	}
 
 	return ee, f, err

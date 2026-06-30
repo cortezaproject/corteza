@@ -57,7 +57,7 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 	}
 
 	if res.Config.DAL == nil {
-		res.Config.DAL = &types.ConnectionConfigDAL{
+		res.Config.DAL = &types.DalConnectionConfigDAL{
 			Type: "corteza::dal:connection:dsn",
 			Params: map[string]any{
 				"dsn": "sqlite3://file::memory:?cache=shared&mode=memory",

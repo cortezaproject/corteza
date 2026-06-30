@@ -64,6 +64,8 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
 		fix_2024_9_7_migrateLabelsValueToJsonb,
+		fix_2026_06_29_addDeletedAtOnDmlTables,
+		fix_2026_06_29_addSourceIdentOnDmlMappings,
 	}
 
 	fixesPost = []func(context.Context, *Store) error{
@@ -101,6 +103,28 @@ func fix_2026_06_22_addOldStateOnActionlog(ctx context.Context, s *Store) error 
 			Store: &dal.CodecAlias{Ident: "old_state"},
 		},
 	)
+}
+
+func fix_2026_06_29_addSourceIdentOnDmlMappings(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s, "dml_mappings", &dal.Attribute{
+		Ident: "SourceIdent",
+		Type:  &dal.TypeText{Length: 256},
+		Store: &dal.CodecAlias{Ident: "source_ident"},
+	})
+}
+
+func fix_2026_06_29_addDeletedAtOnDmlTables(ctx context.Context, s *Store) error {
+	attr := &dal.Attribute{
+		Ident: "DeletedAt",
+		Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+		Store: &dal.CodecAlias{Ident: "deleted_at"},
+	}
+	for _, table := range []string{"dml_connections", "dml_mappings", "dml_import_runs"} {
+		if err := addColumn(ctx, s, table, attr); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // fix_2026_06_00_addGovernanceOnProjects adds the JSON `governance` column

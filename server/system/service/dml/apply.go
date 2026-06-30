@@ -9,37 +9,41 @@ import (
 )
 
 type (
-	// ComposeModuleSvc is the subset of compose module service that Applier needs.
 	ComposeModuleSvc interface {
 		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*composeTypes.Module, error)
 		Create(ctx context.Context, mod *composeTypes.Module) (*composeTypes.Module, error)
 		Update(ctx context.Context, mod *composeTypes.Module) (*composeTypes.Module, error)
 	}
 
-	// ComposeNamespaceSvc is the subset of compose namespace service that Applier and Importer need.
 	ComposeNamespaceSvc interface {
 		FindByHandle(ctx context.Context, handle string) (*composeTypes.Namespace, error)
 		Create(ctx context.Context, ns *composeTypes.Namespace) (*composeTypes.Namespace, error)
 	}
 
-	// Applier creates or updates compose namespaces + modules from a DmlMapping.
+	mappingReader interface {
+		FindByID(ctx context.Context, id uint64) (*types.DmlMapping, error)
+	}
+
 	Applier struct {
-		mapping   *Mapping
+		mapping   mappingReader
 		moduleSvc ComposeModuleSvc
 		nsSvc     ComposeNamespaceSvc
 	}
 )
 
-func NewApplier(m *Mapping, mod ComposeModuleSvc, ns ComposeNamespaceSvc) *Applier {
+func NewApplier(m mappingReader, mod ComposeModuleSvc, ns ComposeNamespaceSvc) *Applier {
 	return &Applier{mapping: m, moduleSvc: mod, nsSvc: ns}
 }
 
-// Apply translates a persisted mapping into real compose namespaces + modules.
-// Idempotent: existing modules (matched by handle) are updated in-place.
+// Apply creates or updates the compose namespace + module for a single DmlMapping.
+// Idempotent: existing module (matched by handle) is updated in-place.
 func (a *Applier) Apply(ctx context.Context, mappingID uint64) error {
 	mp, err := a.mapping.FindByID(ctx, mappingID)
 	if err != nil {
 		return err
+	}
+	if mp.Skip {
+		return nil
 	}
 
 	ns, err := a.ensureNamespace(ctx, mp)
@@ -47,16 +51,7 @@ func (a *Applier) Apply(ctx context.Context, mappingID uint64) error {
 		return fmt.Errorf("dml apply: namespace: %w", err)
 	}
 
-	for _, tbl := range mp.Tables {
-		if tbl.Skip {
-			continue
-		}
-		if err := a.applyTable(ctx, ns, tbl, mp); err != nil {
-			return fmt.Errorf("dml apply: table %q: %w", tbl.SourceIdent, err)
-		}
-	}
-
-	return nil
+	return a.applyMapping(ctx, ns, mp)
 }
 
 func (a *Applier) ensureNamespace(ctx context.Context, mp *types.DmlMapping) (*composeTypes.Namespace, error) {
@@ -64,12 +59,10 @@ func (a *Applier) ensureNamespace(ctx context.Context, mp *types.DmlMapping) (*c
 	if handle == "" {
 		handle = fmt.Sprintf("dml_%d", mp.ConnectionID)
 	}
-
 	ns, err := a.nsSvc.FindByHandle(ctx, handle)
 	if err == nil {
 		return ns, nil
 	}
-
 	return a.nsSvc.Create(ctx, &composeTypes.Namespace{
 		Slug:    handle,
 		Name:    handle,
@@ -77,39 +70,41 @@ func (a *Applier) ensureNamespace(ctx context.Context, mp *types.DmlMapping) (*c
 	})
 }
 
-func (a *Applier) applyTable(ctx context.Context, ns *composeTypes.Namespace, tbl *types.DmlTableMap, mp *types.DmlMapping) error {
-	fields := make(composeTypes.ModuleFieldSet, 0, len(tbl.Columns))
-	for _, col := range tbl.Columns {
+func (a *Applier) applyMapping(ctx context.Context, ns *composeTypes.Namespace, mp *types.DmlMapping) error {
+	fields := make(composeTypes.ModuleFieldSet, 0, len(mp.Columns))
+	for _, col := range mp.Columns {
 		if col.Skip {
 			continue
+		}
+		label := col.Label
+		if label == "" {
+			label = col.FieldName
 		}
 		fields = append(fields, &composeTypes.ModuleField{
 			NamespaceID: ns.ID,
 			Name:        col.FieldName,
-			Label:       col.FieldName,
+			Label:       label,
 			Kind:        col.FieldKind,
 		})
 	}
 
-	existing, err := a.moduleSvc.FindByHandle(ctx, ns.ID, tbl.ModuleHandle)
+	existing, err := a.moduleSvc.FindByHandle(ctx, ns.ID, mp.ModuleHandle)
 	if err == nil {
-		// update
 		existing.Fields = fields
-		existing.Name = tbl.ModuleName
+		existing.Name = mp.ModuleName
 		if existing.Name == "" {
-			existing.Name = tbl.ModuleHandle
+			existing.Name = mp.ModuleHandle
 		}
 		_, err = a.moduleSvc.Update(ctx, existing)
 		return err
 	}
 
-	name := tbl.ModuleName
+	name := mp.ModuleName
 	if name == "" {
-		name = tbl.ModuleHandle
+		name = mp.ModuleHandle
 	}
-
 	_, err = a.moduleSvc.Create(ctx, &composeTypes.Module{
-		Handle:      tbl.ModuleHandle,
+		Handle:      mp.ModuleHandle,
 		Name:        name,
 		NamespaceID: ns.ID,
 		Fields:      fields,
