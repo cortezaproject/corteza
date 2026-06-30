@@ -67,6 +67,7 @@ func (ctrl Role) makeFilter(ctx context.Context, r *request.RoleList) (types.Rol
 
 			MemberID:    r.MemberID,
 			UserGroupID: r.UserGroupID,
+			ProjectID:   r.ProjectID,
 
 			Archived: filter.State(r.Archived),
 			Deleted:  filter.State(r.Deleted),
@@ -90,10 +91,11 @@ func (ctrl Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}
 	var (
 		err  error
 		role = &types.Role{
-			Name:   r.Name,
-			Handle: r.Handle,
-			Labels: r.Labels,
-			Meta:   r.Meta,
+			Name:      r.Name,
+			Handle:    r.Handle,
+			ProjectID: r.ProjectID,
+			Labels:    r.Labels,
+			Meta:      r.Meta,
 		}
 	)
 

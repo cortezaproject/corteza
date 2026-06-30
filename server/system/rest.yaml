@@ -329,6 +329,7 @@ endpoints:
             - { type: 'string', name: 'query', title: 'Search query' }
             - { type: 'uint64', name: 'memberID', title: 'Search roles for member' }
             - { type: 'uint64', name: 'userGroupID', title: 'Search roles for user group' }
+            - { type: 'uint64', name: 'projectID', title: 'Filter by project ID' }
             - { type: '[]string', name: 'roleID', title: 'Search roles by ID' }
             - {
                 type: 'uint',
@@ -359,6 +360,7 @@ endpoints:
           post:
             - { type: 'string', name: 'name', required: true, title: 'Name of role' }
             - { type: 'string', name: 'handle', title: 'Handle for role' }
+            - { type: 'uint64', name: 'projectID', title: 'Project this role belongs to' }
             - { type: '[]string', name: 'members', title: 'role member IDs' }
             - {
                 type: '*types.RoleMeta',

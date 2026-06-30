@@ -69,6 +69,7 @@ const (
 	ReasonStepArgument        = "step-argument"
 	ReasonStepConnection      = "step-connection"
 	ReasonRoleRbac            = "role-rbac"
+	ReasonUserRole            = "user-role"
 )
 
 func Make(kind string, id uint64, reason string) Ref {

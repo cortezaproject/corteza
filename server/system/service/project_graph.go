@@ -83,6 +83,8 @@ var graphNodeKinds = map[string]bool{
 	"automation": true,
 	"agent":      true,
 	"chatbot":    true,
+	"role":       true,
+	"user":       true,
 }
 
 // graphTargetKind maps a ref's target resource type to its displayed node kind.
@@ -97,6 +99,8 @@ var graphTargetKind = map[string]string{
 	resourceref.KindChatbot:              "chatbot",
 	resourceref.KindDalConnection:        "connection",
 	resourceref.KindConfiguredConnection: "connection",
+	// Users reference the access roles they belong to.
+	resourceref.KindRole: "role",
 }
 
 // graphEdgeKinds is the allowed set of unordered node-kind pairs, mirroring the
@@ -115,6 +119,12 @@ var graphEdgeKinds = map[[2]string]bool{
 	{"agent", "automation"}:      true,
 	{"automation", "chatbot"}:    true,
 	{"agent", "chatbot"}:         true,
+	// Access roles grant on the deployed app's pages and the records behind
+	// them; their RBAC edges land on page/module nodes.
+	{"module", "role"}: true,
+	{"page", "role"}:   true,
+	// Project users belong to access roles (user → role membership edges).
+	{"role", "user"}: true,
 }
 
 func filterSources(sources []*GraphSource) []*GraphSource {
@@ -303,10 +313,10 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 	}
 
 	// roles: their edges come from RBAC rules, not a ResourceRefs() extractor.
-	// Roles are project-scoped so the scoped search returns this project's
-	// roles; rules carry no project scope and the store filter can't narrow by
-	// role, so load all rules once and group them by role in memory.
-	rr, _, err := store.SearchRoles(ctx, s.store, types.RoleFilter{})
+	// Roles are project-scoped, so narrow the search by projectID to this
+	// project's roles; rules carry no project scope and the store filter can't
+	// narrow by role, so load all rules once and group them by role in memory.
+	rr, _, err := store.SearchRoles(ctx, s.store, types.RoleFilter{ProjectID: projectID})
 	if err != nil {
 		return nil, err
 	}
@@ -322,17 +332,53 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		}
 
 		for _, r := range rr {
-			refs := roleRuleRefs(byRole[r.ID])
-			if len(refs) == 0 {
-				// role grants nothing on graph resources; omit the node
-				continue
-			}
+			// Show every project role as a node; its edges come from whatever
+			// RBAC grants it has on graph resources (none yet → standalone node,
+			// until the Permissions step wires its grants).
 			out = append(out, &GraphSource{
 				ResourceType: resourceref.KindRole,
 				Kind:         "role",
 				ID:           r.ID,
 				Name:         firstNonEmpty(r.Name, r.Handle),
 				Handle:       r.Handle,
+				Refs:         roleRuleRefs(byRole[r.ID]),
+			})
+		}
+
+		// users: a project user is a member of one or more project roles. Emit a
+		// node per user with an edge to each role they hold (user → role).
+		userRoleIDs := make(map[uint64][]uint64)
+		for _, r := range rr {
+			mm, _, err := store.SearchRoleMembers(ctx, s.store, types.RoleMemberFilter{RoleID: r.ID})
+			if err != nil {
+				return nil, err
+			}
+			for _, m := range mm {
+				if uid := rbac.ResourceID(m.Resource); uid > 0 {
+					userRoleIDs[uid] = append(userRoleIDs[uid], r.ID)
+				}
+			}
+		}
+		// Users are looked up with the project scope stripped: end-users are
+		// global (rel_project = 0), so the ambient project scope on ctx — which
+		// correctly narrows modules/pages — would filter them all out.
+		userCtx := scope.SetScopeToContext(ctx, scope.Scope{TenantID: scope.GetScopeFromContext(ctx).TenantID})
+		for uid, roleIDs := range userRoleIDs {
+			u, err := store.LookupUserByID(userCtx, s.store, uid)
+			if err != nil {
+				// skip users that can't be resolved (deleted, cross-tenant, …)
+				continue
+			}
+			refs := make([]resourceref.Ref, 0, len(roleIDs))
+			for _, rid := range roleIDs {
+				refs = append(refs, resourceref.Make(resourceref.KindRole, rid, resourceref.ReasonUserRole))
+			}
+			out = append(out, &GraphSource{
+				ResourceType: types.UserResourceType,
+				Kind:         "user",
+				ID:           uid,
+				Name:         firstNonEmpty(u.Name, u.Email, u.Handle, u.Username),
+				Handle:       u.Handle,
 				Refs:         refs,
 			})
 		}

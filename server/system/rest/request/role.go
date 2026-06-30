@@ -53,6 +53,11 @@ type (
 		// Search roles for user group
 		UserGroupID uint64 `json:",string"`
 
+		// ProjectID GET parameter
+		//
+		// Filter by project ID
+		ProjectID uint64 `json:",string"`
+
 		// RoleID GET parameter
 		//
 		// Search roles by ID
@@ -104,6 +109,11 @@ type (
 		//
 		// Handle for role
 		Handle string
+
+		// ProjectID POST parameter
+		//
+		// Project this role belongs to
+		ProjectID uint64 `json:",string"`
 
 		// Members POST parameter
 		//
@@ -313,6 +323,7 @@ func (r RoleList) Auditable() map[string]interface{} {
 		"query":       r.Query,
 		"memberID":    r.MemberID,
 		"userGroupID": r.UserGroupID,
+		"projectID":   r.ProjectID,
 		"roleID":      r.RoleID,
 		"deleted":     r.Deleted,
 		"archived":    r.Archived,
@@ -337,6 +348,11 @@ func (r RoleList) GetMemberID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r RoleList) GetUserGroupID() uint64 {
 	return r.UserGroupID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleList) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -400,6 +416,12 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["userGroupID"]; ok && len(val) > 0 {
 			r.UserGroupID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -475,11 +497,12 @@ func NewRoleCreate() *RoleCreate {
 // Auditable returns all auditable/loggable parameters
 func (r RoleCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"name":    r.Name,
-		"handle":  r.Handle,
-		"members": r.Members,
-		"meta":    r.Meta,
-		"labels":  r.Labels,
+		"name":      r.Name,
+		"handle":    r.Handle,
+		"projectID": r.ProjectID,
+		"members":   r.Members,
+		"meta":      r.Meta,
+		"labels":    r.Labels,
 	}
 }
 
@@ -491,6 +514,11 @@ func (r RoleCreate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r RoleCreate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleCreate) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -543,6 +571,13 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
+				r.ProjectID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
 				r.Meta, err = types.ParseRoleMeta(val)
 				if err != nil {
@@ -585,6 +620,13 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

@@ -15,6 +15,7 @@
           :gate-statuses="gateStatuses"
           :gate-locked="gateLocked"
           :show-gates="showGates"
+          :gated="project.mode === 'gated'"
           @select="goStep"
           @gate-click="onGateClick"
         />
@@ -82,6 +83,24 @@
                 class="flex-1 min-h-0"
               />
               <PagesStep
+                v-else-if="isPages"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+              <RolesStep
+                v-else-if="isRoles"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+              <PermissionsStep
+                v-else-if="isPermissions"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+              <UsersStep
                 v-else
                 :project="project"
                 :disabled="locked"
@@ -226,11 +245,15 @@ import AutomationsStep from '@/sections/project/components/wizard/steps/Automati
 import ChatbotsStep from '@/sections/project/components/wizard/steps/ChatbotsStep.vue'
 import ConnectionsStep from '@/sections/project/components/wizard/steps/ConnectionsStep.vue'
 import PagesStep from '@/sections/project/components/wizard/steps/PagesStep.vue'
+import RolesStep from '@/sections/project/components/wizard/steps/RolesStep.vue'
+import PermissionsStep from '@/sections/project/components/wizard/steps/PermissionsStep.vue'
+import UsersStep from '@/sections/project/components/wizard/steps/UsersStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
 import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
+import { ACCESS_KINDS } from '@/sections/project/config/kinds'
 import { STEPS, kindsThroughStep, sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
@@ -309,6 +332,9 @@ const isAutomations = computed(() => activeKey.value === 'automations')
 const isAgents = computed(() => activeKey.value === 'agents')
 const isChatbots = computed(() => activeKey.value === 'chatbots')
 const isPages = computed(() => activeKey.value === 'pages')
+const isRoles = computed(() => activeKey.value === 'roles')
+const isPermissions = computed(() => activeKey.value === 'permissions')
+const isUsers = computed(() => activeKey.value === 'users')
 // Resource steps render full-height with the live resource graph beside them.
 const isResourceStep = computed(
   () =>
@@ -317,7 +343,10 @@ const isResourceStep = computed(
     isAutomations.value ||
     isAgents.value ||
     isChatbots.value ||
-    isPages.value,
+    isPages.value ||
+    isRoles.value ||
+    isPermissions.value ||
+    isUsers.value,
 )
 const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
 // The graph always shows the whole-system overview for now. To narrow it to the
@@ -540,7 +569,14 @@ watch([activeKey, project], loadWorking, { immediate: true })
 // own layer chips still refine (or peek past) it within a step.
 watch(
   activeKey,
-  key => store.setGraphVisibleKinds(kindsThroughStep(key)),
+  key => {
+    store.setGraphVisibleKinds(kindsThroughStep(key))
+    // Auto-reveal the role/user access overlay while on the access steps (roles,
+    // permissions, users), so the roles you're managing — and the grant edges
+    // you're drawing — show up in the graph beside the form.
+    const step = STEPS.find(s => s.key === key)
+    store.setGraphShowAccess(ACCESS_KINDS.includes(step?.kind) || key === 'permissions')
+  },
   { immediate: true },
 )
 

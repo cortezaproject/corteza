@@ -8,17 +8,23 @@
 // + Data Sensitivity section. Free mode skips the governance steps entirely and
 // starts at the Data Model.
 // `labelKey` is an i18n key; components resolve it with $t for display.
+// `icon` (PrimeIcons class) is shown in the step nav for steps without a resource
+// `kind`; resource steps take their icon from config/kinds so the sidebar matches
+// the metrics strip and resource graph exactly.
 export const STEPS = [
-  { key: 'summary', labelKey: 'project.steps.summary.label', type: 'form', gatedOnly: true, gate: false },
-  { key: 'resource-management', labelKey: 'project.steps.resource-management.label', type: 'form', gatedOnly: true, gate: false },
-  { key: 'members', labelKey: 'project.steps.members.label', type: 'members', gatedOnly: true, gate: true },
+  { key: 'summary', labelKey: 'project.steps.summary.label', type: 'form', icon: 'pi-file', gatedOnly: true, gate: false },
+  { key: 'resource-management', labelKey: 'project.steps.resource-management.label', type: 'form', icon: 'pi-sliders-h', gatedOnly: true, gate: false },
+  { key: 'members', labelKey: 'project.steps.members.label', type: 'members', icon: 'pi-users', gatedOnly: true, gate: true },
   { key: 'data-model', labelKey: 'project.steps.data-model.label', type: 'resource', kind: 'module', gatedOnly: false, gate: false },
-  { key: 'data-sensitivity', labelKey: 'project.steps.data-sensitivity.label', type: 'sensitivity', gatedOnly: true, gate: true },
+  { key: 'data-sensitivity', labelKey: 'project.steps.data-sensitivity.label', type: 'sensitivity', icon: 'pi-eye-slash', gatedOnly: true, gate: true },
   { key: 'connections', labelKey: 'project.steps.connections.label', type: 'resource', kind: 'connection', gatedOnly: false, gate: false },
   { key: 'automations', labelKey: 'project.steps.automations.label', type: 'resource', kind: 'automation', gatedOnly: false, gate: false },
   { key: 'agents', labelKey: 'project.steps.agents.label', type: 'resource', kind: 'agent', gatedOnly: false, gate: false },
   { key: 'chatbots', labelKey: 'project.steps.chatbots.label', type: 'resource', kind: 'chatbot', gatedOnly: false, gate: false },
   { key: 'pages', labelKey: 'project.steps.pages.label', type: 'resource', kind: 'page', gatedOnly: false, gate: false },
+  { key: 'roles', labelKey: 'project.steps.roles.label', type: 'resource', kind: 'role', gatedOnly: false, gate: false },
+  { key: 'permissions', labelKey: 'project.steps.permissions.label', type: 'permissions', icon: 'pi-lock', gatedOnly: false, gate: false },
+  { key: 'users', labelKey: 'project.steps.users.label', type: 'resource', kind: 'user', gatedOnly: false, gate: false },
 ]
 
 // Resolve the pipeline for a project context. Kept as a hook for future

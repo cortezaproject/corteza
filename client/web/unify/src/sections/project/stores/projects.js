@@ -53,6 +53,12 @@ export const useProjectsStore = defineStore('projects', () => {
     graphShowAccess.value = !graphShowAccess.value
   }
 
+  // Force the access overlay on/off — used to auto-reveal it on the access-kind
+  // steps (roles/users), the same way setGraphVisibleKinds re-seeds node layers.
+  function setGraphShowAccess(on) {
+    graphShowAccess.value = !!on
+  }
+
   // Reset the visible node-layer kinds to exactly `kinds` (a Set/iterable) —
   // used to gate the graph to the resources built up to the active step. Access
   // kinds ride their own overlay and are filtered out here. Manual per-kind
@@ -92,6 +98,21 @@ export const useProjectsStore = defineStore('projects', () => {
   // Chatbots carry a top-level name and an `enabled` flag (no description).
   const chatbotsByProject = ref({})
   const chatbotsFor = computed(() => projectId => chatbotsByProject.value[String(projectId)] || [])
+
+  // A project's end-user access roles — system Role records stamped with its
+  // projectID (scoped server-side). Distinct from project *members* (the build
+  // team): these are the roles end-users get on the deployed app's pages and
+  // records. Description lives in role meta.
+  const rolesByProject = ref({})
+  const rolesFor = computed(() => projectId => rolesByProject.value[String(projectId)] || [])
+
+  // A project's end-users — system users who are members of one or more of the
+  // project's access roles. Derived from role membership (there is no separate
+  // project-user record); each entry carries the role IDs the user holds.
+  const projectUsersByProject = ref({})
+  const projectUsersFor = computed(
+    () => projectId => projectUsersByProject.value[String(projectId)] || [],
+  )
 
   // A project's compose pages, keyed by projectID. These live in the project's
   // namespace (like modules): record pages (bound to a module, auto-created with
@@ -994,6 +1015,142 @@ export const useProjectsStore = defineStore('projects', () => {
     touch()
   }
 
+  // --- access roles --------------------------------------------------------------
+  // End-user access roles scoped to the project via projectID. roleList filters
+  // server-side; description is carried in role meta.
+  async function loadRoles(projectId) {
+    const key = String(projectId)
+    const { set = [] } = await $SystemAPI
+      .roleList({ projectID: key, limit: 100 })
+      .catch(() => ({ set: [] }))
+    rolesByProject.value[key] = set.map(r => ({
+      id: String(r.roleID),
+      name: r.name || r.handle || '',
+      description: r.meta?.description || '',
+    }))
+    touch()
+    return rolesByProject.value[key]
+  }
+
+  // Create a project-scoped access role. The handle is project-prefixed so two
+  // projects can each define e.g. "Customer" without colliding on the global
+  // unique handle.
+  async function addRole(projectId, { name, description = '' } = {}) {
+    const title = (name || '').trim() || 'Untitled'
+    const raw = await $SystemAPI.roleCreate({
+      projectID: String(projectId),
+      name: title,
+      handle: `proj_${projectId}_${fieldName(title).toLowerCase()}`,
+      meta: { description: description.trim() },
+    })
+    await loadRoles(projectId)
+    return String(raw.roleID)
+  }
+
+  async function removeRole(projectId, roleId) {
+    const key = String(projectId)
+    await $SystemAPI.roleDelete({ roleID: roleId })
+    rolesByProject.value[key] = (rolesByProject.value[key] || []).filter(r => r.id !== roleId)
+    touch()
+  }
+
+  // --- access permissions (compose RBAC) -----------------------------------------
+  // A role's compose RBAC rules for the given resource strings. Returns the raw
+  // rules ([{ resource, operation, access }]); the Permissions step maps them to
+  // its page/record matrix cells.
+  async function readRolePermissions(roleId, resources) {
+    const rules = await $ComposeAPI
+      .permissionsRead({ roleID: roleId, resource: resources })
+      .catch(() => [])
+    return rules || []
+  }
+
+  // Patch a role's compose RBAC rules. `rules` is [{ resource, operation, access }]
+  // (access 'allow' to grant, 'inherit' to clear). Only the rules passed are
+  // touched, so this leaves the role's other permissions untouched. Bumps the
+  // graph so the role→resource edges refresh.
+  async function updateRolePermissions(roleId, rules) {
+    await $ComposeAPI.permissionsUpdate({ roleID: roleId, rules })
+    touch()
+  }
+
+  // --- project users -------------------------------------------------------------
+  // Build the project-user list by collecting each access role's members and
+  // grouping by user (a user may hold several roles).
+  async function loadProjectUsers(projectId) {
+    const key = String(projectId)
+    await loadRoles(projectId)
+    const roles = rolesFor.value(projectId)
+    const byUser = {}
+    await Promise.all(
+      roles.map(async role => {
+        const ids = await $SystemAPI.roleMemberList({ roleID: role.id }).catch(() => [])
+        for (const uid of ids || []) {
+          const u = String(uid)
+          ;(byUser[u] || (byUser[u] = new Set())).add(role.id)
+        }
+      }),
+    )
+    projectUsersByProject.value[key] = Object.entries(byUser).map(([userId, set]) => ({
+      userId,
+      roleIds: [...set],
+    }))
+    touch()
+    return projectUsersByProject.value[key]
+  }
+
+  // Add/remove a user's membership in one access role, then refresh the list.
+  async function setProjectUserRole(projectId, userId, roleId, on) {
+    if (on) await $SystemAPI.roleMemberAdd({ roleID: roleId, userID: userId })
+    else await $SystemAPI.roleMemberRemove({ roleID: roleId, userID: userId })
+    await loadProjectUsers(projectId)
+  }
+
+  // Assign a user to several access roles at once (used when adding a user), then
+  // refresh once rather than per role.
+  async function assignProjectUserRoles(projectId, userId, roleIds = []) {
+    await Promise.all(
+      roleIds.map(roleId => $SystemAPI.roleMemberAdd({ roleID: roleId, userID: userId })),
+    )
+    await loadProjectUsers(projectId)
+  }
+
+  // Remove a user from the project entirely — drop them from every project role.
+  async function removeProjectUser(projectId, userId, roleIds = []) {
+    await Promise.all(
+      roleIds.map(roleId =>
+        $SystemAPI.roleMemberRemove({ roleID: roleId, userID: userId }).catch(() => {}),
+      ),
+    )
+    await loadProjectUsers(projectId)
+  }
+
+  // The default user group new users join — userCreate requires one. Resolved
+  // once (preferring the well-known default handles) and cached.
+  let defaultUserGroupID = null
+  async function ensureDefaultUserGroup() {
+    if (defaultUserGroupID) return defaultUserGroupID
+    const { set = [] } = await $SystemAPI.userGroupList({ limit: 100 }).catch(() => ({ set: [] }))
+    const g =
+      set.find(
+        x => x.handle === 'default-root' || x.handle === 'users' || x.meta?.short?.includes('Default'),
+      ) || set[0]
+    defaultUserGroupID = g ? String(g.userGroupID) : null
+    return defaultUserGroupID
+  }
+
+  // Create a brand-new platform user (email + name) to assign to project roles.
+  // Returns the new userID; the caller assigns the role membership.
+  async function addProjectUser(_projectId, { email, name } = {}) {
+    const userGroupID = await ensureDefaultUserGroup()
+    const raw = await $SystemAPI.userCreate({
+      email: (email || '').trim(),
+      name: (name || '').trim(),
+      userGroupID,
+    })
+    return String(raw.userID)
+  }
+
   // --- pages ---------------------------------------------------------------------
   // Compose pages in the project's namespace. Record pages are bound to a module
   // (auto-created with it); standalone pages are added in the Pages step. Pages
@@ -1158,6 +1315,18 @@ export const useProjectsStore = defineStore('projects', () => {
     addChatbot,
     updateChatbot,
     removeChatbot,
+    rolesFor,
+    loadRoles,
+    addRole,
+    removeRole,
+    readRolePermissions,
+    updateRolePermissions,
+    projectUsersFor,
+    loadProjectUsers,
+    setProjectUserRole,
+    assignProjectUserRoles,
+    removeProjectUser,
+    addProjectUser,
     pagesFor,
     loadPages,
     addPage,
@@ -1176,6 +1345,7 @@ export const useProjectsStore = defineStore('projects', () => {
     graphKindVisible,
     graphToggleKind,
     graphToggleAccess,
+    setGraphShowAccess,
     setGraphVisibleKinds,
   }
 })

@@ -248,6 +248,10 @@ func DefaultFilters() (f *extendedFilters) {
 			return
 		}
 
+		if f.ProjectID > 0 {
+			ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+		}
+
 		if len(f.Resource) > 0 {
 			memberships := roleMemberSelectQuery(s.Dialect.GOQU()).
 				Select("rel_role").

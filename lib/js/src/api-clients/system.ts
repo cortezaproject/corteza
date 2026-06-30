@@ -717,6 +717,7 @@ export default class System {
       query,
       memberID,
       userGroupID,
+      projectID,
       roleID,
       deleted,
       archived,
@@ -735,6 +736,7 @@ export default class System {
       query,
       memberID,
       userGroupID,
+      projectID,
       roleID,
       deleted,
       archived,
@@ -771,7 +773,7 @@ export default class System {
 
   // Update role details
   async roleCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { name, handle, members, meta, labels } = (a as KV) || {}
+    const { name, handle, projectID, members, meta, labels } = (a as KV) || {}
     if (!name) {
       throw Error('field name is empty')
     }
@@ -783,6 +785,7 @@ export default class System {
     cfg.data = {
       name,
       handle,
+      projectID,
       members,
       meta,
       labels,

@@ -35,6 +35,13 @@ export const useProjectUsersStore = defineStore('project-users', () => {
     return loading
   }
 
+  // Force a re-fetch of the directory (e.g. after creating a new user) so newly
+  // added users resolve to a name/email instead of a bare ID.
+  async function reload() {
+    loaded.value = false
+    return load()
+  }
+
   const findUser = id => users.value.find(u => u.id === String(id))
 
   const userName = id => findUser(id)?.name || String(id || '')
@@ -51,5 +58,5 @@ export const useProjectUsersStore = defineStore('project-users', () => {
     )
   }
 
-  return { users, loaded, load, currentUserID, findUser, userName, userInitials }
+  return { users, loaded, load, reload, currentUserID, findUser, userName, userInitials }
 })

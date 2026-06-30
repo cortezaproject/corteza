@@ -165,6 +165,12 @@ steps:
     label: Chatbots
   pages:
     label: Pages
+  roles:
+    label: Roles
+  permissions:
+    label: Permissions
+  users:
+    label: Users
   data-sensitivity:
     label: Data Sensitivity
 summaryForm:
@@ -518,6 +524,66 @@ configureChatbot:
   createAndOpenBuilder: Create and open builder
   openBuilder: Open builder
   toastFailed: Could not save chatbot
+accessRoles:
+  title: Roles
+  add: Add role
+  remove: Remove role
+  empty: No access roles yet.
+  toastLoadFailed: Could not load access roles
+  toastAddFailed: Could not create access role
+  toastRemoveFailed: Could not remove access role
+  addDialog:
+    header: New access role
+    name: Name
+    namePlaceholder: e.g. Customer
+    description: Description
+    descriptionPlaceholder: What this role can do on the project's pages and records
+  removeConfirm:
+    header: Remove access role
+    message: Remove “{name}” from this project? This deletes the role.
+permissions:
+  hint: Grant each role access to the project's resources. Click a lock to edit a role's permissions on that resource.
+  noRoles: Add roles first — there's nothing to grant permissions to yet.
+  noResources: No resources to grant access on yet.
+  allOf: All {kind}
+  editFor: Edit permissions for {role}
+  toastLoadFailed: Could not load resources
+  toastSaved: Permissions saved
+  toastSaveFailed: Could not save permissions
+  dialog:
+    header: 'Permissions: {target}'
+    resource: this resource
+    operation: Operation
+    noOps: No operations available for this resource.
+    save: Save
+    legend: Click a cell to allow or clear (inherit) the operation for that role.
+accessUsers:
+  title: Users
+  add: Add user
+  noRoles: Add roles first — users are added by assigning them a role.
+  empty: No users yet.
+  toastLoadFailed: Could not load users
+  toastAddFailed: Could not add user
+  toastUpdateFailed: Could not update user roles
+  toastRemoveFailed: Could not remove user
+  columns:
+    user: User
+    roles: Roles
+  mode:
+    existing: Existing user
+    new: New user
+  addDialog:
+    header: Add user
+    userPlaceholder: Search users…
+    name: Name
+    namePlaceholder: e.g. Jane Doe
+    email: Email
+    emailPlaceholder: e.g. jane@example.com
+    roles: Roles
+    rolePlaceholder: Assign one or more roles
+  removeConfirm:
+    header: Remove user
+    message: Remove “{name}” from this project? They lose all roles on it.
 pages:
   title: Pages
   recordSubtitle: Module detail page
@@ -555,6 +621,8 @@ graph:
   toastLoadFailed: Could not load resource graph
   edgeReason:
     moduleFieldRef: Record-field reference
+    roleRbac: Permission grant
+    userRole: Role membership
   layer:
     data: Data
     logic: Logic

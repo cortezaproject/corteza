@@ -87,9 +87,11 @@ const props = defineProps({
   locked: { type: Boolean, default: false },
 })
 
-// Phase 2: flip to true once the backend emits role/user nodes and RBAC edges.
-// Until then the access overlay (and the role/user chips) stay disabled.
-const accessReady = false
+// The backend emits project-scoped role nodes with their RBAC edges to the
+// resources each role grants on (roles that grant nothing are omitted). The
+// access overlay is a single toggle covering both role and user chips; user
+// nodes join once the Users step lands (until then that chip counts 0).
+const accessReady = true
 
 const store = useProjectsStore()
 const $toast = inject('$toast')
@@ -180,6 +182,8 @@ const visibleEdges = computed(() => {
 // Human wording for the backend's edge reasons (i18n keys).
 const EDGE_REASONS = {
   'module-field-ref': 'project.graph.edgeReason.moduleFieldRef',
+  'role-rbac': 'project.graph.edgeReason.roleRbac',
+  'user-role': 'project.graph.edgeReason.userRole',
 }
 
 const nameById = computed(() => new Map(graph.value.nodes.map(n => [n.id, n.name])))

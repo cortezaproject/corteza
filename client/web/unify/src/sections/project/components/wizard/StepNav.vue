@@ -13,7 +13,20 @@
             "
             @click="$emit('select', step.key)"
           >
-            <i :class="['pi', icon(statuses[step.key]).name, icon(statuses[step.key]).class]" />
+            <!-- Gated projects show governance status; free build shows each
+                 step's own icon in the same badge used by the metrics strip and
+                 resource item lists (resource steps reuse the kind icon/colour). -->
+            <i
+              v-if="gated"
+              :class="['pi', icon(statuses[step.key]).name, icon(statuses[step.key]).class]"
+            />
+            <span
+              v-else
+              class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
+              :class="stepBadge(step)"
+            >
+              <i :class="[...stepIconClass(step), 'text-xs']" />
+            </span>
             <span class="flex-1 min-w-0 truncate">{{ $t(step.labelKey) }}</span>
             <i v-if="step.gatedOnly" class="pi pi-shield text-[10px] text-amber-500" :title="$t('project.wizard.gate.gatedOnlyStep')" />
           </button>
@@ -52,6 +65,7 @@
 </template>
 
 <script setup>
+import { kindConfig } from '@/sections/project/config/kinds'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -61,6 +75,8 @@ const props = defineProps({
   gateStatuses: { type: Object, default: () => ({}) },
   gateLocked: { type: Object, default: () => ({}) },
   showGates: { type: Boolean, default: false },
+  // Gated projects render governance-status icons; free build renders per-step icons.
+  gated: { type: Boolean, default: false },
 })
 defineEmits(['select', 'gate-click'])
 
@@ -73,6 +89,24 @@ const gateNumber = computed(() => {
   }
   return out
 })
+
+// Free-build leading icon — rendered in the same rounded badge the metrics strip
+// and resource item lists use. Resource steps borrow the kind's icon, colour, bg
+// and ring; other steps fall back to a neutral badge with their step icon.
+function stepBadge(step) {
+  if (step.kind) {
+    const cfg = kindConfig(step.kind)
+    return [cfg.bg, cfg.ring]
+  }
+  return ['bg-emphasis', 'ring-surface']
+}
+function stepIconClass(step) {
+  if (step.kind) {
+    const cfg = kindConfig(step.kind)
+    return [cfg.icon, cfg.text]
+  }
+  return ['pi', step.icon || 'pi-circle', 'text-muted-color']
+}
 
 function icon(status) {
   switch (status) {
