@@ -27,6 +27,10 @@ type (
 		// if it needs to do an insert.
 		TwoStepUpsert bool
 
+		// TextCastType is the SQL type used when casting a value to text.
+		// MySQL rejects CAST(... AS TEXT); it needs CHAR. Postgres/SQLite use TEXT.
+		TextCastType string
+
 		// @todo change this around; temporary fix as not sure how I'd rewrite
 		ExpandedJsonColumnSelector func(ident string) exp.Expression
 	}

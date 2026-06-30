@@ -30,6 +30,7 @@ var (
 
 	nuances = drivers.Nuances{
 		HavingClauseMustUseAlias: true,
+		TextCastType:             "TEXT",
 	}
 )
 

@@ -29,6 +29,7 @@ var (
 
 	nuances = drivers.Nuances{
 		HavingClauseMustUseAlias: true,
+		TextCastType:             "TEXT",
 
 		ExpandedJsonColumnSelector: func(ident string) exp.Expression {
 			return exp.NewLiteralExpression(fmt.Sprintf(`%s.value`, ident))

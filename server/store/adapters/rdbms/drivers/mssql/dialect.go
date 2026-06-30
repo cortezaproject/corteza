@@ -32,6 +32,7 @@ var (
 	nuances = drivers.Nuances{
 		HavingClauseMustUseAlias: true,
 		TwoStepUpsert:            true,
+		TextCastType:             "VARCHAR(MAX)",
 	}
 )
 

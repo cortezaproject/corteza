@@ -277,9 +277,14 @@ func DefaultFilters() (f *extendedFilters) {
 					goqu.C("rel_resource").Like(userResourcePrefix+"%"),
 				)
 
+			id := goqu.Expression(goqu.C("id"))
+			if castType := s.Dialect.Nuances().TextCastType; castType != "" {
+				id = goqu.Cast(goqu.C("id"), castType)
+			}
+
 			ee = append(ee, goqu.Func("concat",
 				goqu.L("'"+userResourcePrefix+"'"),
-				goqu.Cast(goqu.C("id"), "TEXT"),
+				id,
 			).In(members))
 		}
 
