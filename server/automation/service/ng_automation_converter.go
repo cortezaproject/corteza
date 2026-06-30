@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/crusttech/human/server/automation/types"
@@ -23,7 +24,7 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 
 	if a == nil {
 		return execTypes.Executable{}, automationTypes.NgAutomationIssueSet{
-			issue("nil automation", nil),
+			issue(automationTypes.IssueCodeAutomationNil, automationTypes.NgAutomationSeverityError),
 		}
 	}
 
@@ -32,6 +33,8 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 
 	stepIdx, stepIssues := indexSteps(a.Steps, triggerIdx)
 	issues = append(issues, stepIssues...)
+
+	issues = append(issues, validateScopeRefs(a.Steps, a.Triggers)...)
 
 	exSteps, idMap, buildIssues := buildExecSteps(svc, stepIdx)
 	issues = append(issues, buildIssues...)
@@ -50,11 +53,15 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 	exSteps = ensureTermination(exSteps, exByID)
 
 	if !hasEntry(exByID) {
-		issues = append(issues, issue("no entry steps (every step has at least one parent)", nil))
+		issues = append(issues, issue(automationTypes.IssueCodeGraphNoEntry, automationTypes.NgAutomationSeverityError))
 	}
 
-	if err := detectCycle(exByID); err != nil {
-		issues = append(issues, issue(err.Error(), nil))
+	if ring, err := detectCycle(exByID); err != nil {
+		ids := make([]uint64, len(ring))
+		for i, n := range ring {
+			ids[i] = n.Num()
+		}
+		issues = append(issues, issue(automationTypes.IssueCodeGraphCycle, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailCycle(ids...)))
 	}
 
 	return execTypes.Executable{
@@ -71,21 +78,23 @@ func indexTriggers(triggers automationTypes.NgAutomationTriggerSet) (
 ) {
 	idx = make(map[uint64]*automationTypes.NgAutomationTrigger, len(triggers))
 	pathCount = make(map[uint64]int, len(triggers))
+	firstIdx := make(map[uint64]int, len(triggers))
 
 	for i := range triggers {
 		t := triggers[i]
 
 		if t.ID == 0 {
-			issues = append(issues, issue("trigger has empty ID", map[string]int{"trigger": i}))
+			issues = append(issues, issue(automationTypes.IssueCodeTriggerEmptyID, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailEmptyField("trigger", i, "")))
 			continue
 		}
 
 		if _, exists := idx[t.ID]; exists {
-			issues = append(issues, issue(fmt.Sprintf("duplicate trigger ID %d", t.ID), map[string]int{"trigger": i}))
+			issues = append(issues, issue(automationTypes.IssueCodeTriggerDuplicateID, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailDuplicateID("trigger", t.ID, firstIdx[t.ID], i)))
 			continue
 		}
 
 		idx[t.ID] = t
+		firstIdx[t.ID] = i
 		pathCount[t.ID] = 0
 	}
 
@@ -100,26 +109,28 @@ func indexSteps(
 	issues automationTypes.NgAutomationIssueSet,
 ) {
 	idx = make(map[uint64]*automationTypes.NgAutomationStep, len(steps))
+	firstIdx := make(map[uint64]int, len(steps))
 
 	for i := range steps {
 		s := steps[i]
 
 		if s.ID == 0 {
-			issues = append(issues, issue("step has empty ID", map[string]int{"step": i}))
+			issues = append(issues, issue(automationTypes.IssueCodeStepEmptyID, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailEmptyField("step", i, "")))
 			continue
 		}
 
 		if _, exists := idx[s.ID]; exists {
-			issues = append(issues, issue(fmt.Sprintf("duplicate step ID %d", s.ID), map[string]int{"step": i}))
+			issues = append(issues, issue(automationTypes.IssueCodeStepDuplicateID, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailDuplicateID("step", s.ID, firstIdx[s.ID], i)))
 			continue
 		}
 
 		if _, exists := triggerIdx[s.ID]; exists {
-			issues = append(issues, issue(fmt.Sprintf("step ID %d collides with trigger ID", s.ID), map[string]int{"step": i}))
+			issues = append(issues, issue(automationTypes.IssueCodeStepIDCollision, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailResourceRef("step", s.ID, i)))
 			continue
 		}
 
 		idx[s.ID] = s
+		firstIdx[s.ID] = i
 	}
 
 	return
@@ -167,7 +178,7 @@ func buildExecSteps(
 			reg := ConstructLibrary()
 			def, ok := reg.Function(step.Ref)
 			if !ok {
-				issues = append(issues, issue(fmt.Sprintf("unknown function %q", step.Ref), map[string]int{}))
+				issues = append(issues, issue(automationTypes.IssueCodeFunctionUnknown, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailMissingReference("function", step.Ref, uiID, "", 0)))
 				continue
 			}
 
@@ -253,25 +264,25 @@ func wirePaths(
 		p := paths[i]
 
 		if p.ParentID == 0 || p.ChildID == 0 {
-			issues = append(issues, issue("path has empty parent or child", map[string]int{"path": i}))
+			issues = append(issues, issue(automationTypes.IssueCodePathEmpty, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailResourceRef("path", 0, i)))
 			continue
 		}
 
 		if p.ParentID == p.ChildID {
-			issues = append(issues, issue("path is a self-loop", map[string]int{"path": i}))
+			issues = append(issues, issue(automationTypes.IssueCodePathSelfLoop, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailResourceRef("path", 0, i)))
 			continue
 		}
 
 		if _, isTrigger := triggerIdx[p.ParentID]; isTrigger {
 			childExecID, ok := idMap[p.ChildID]
 			if !ok {
-				issues = append(issues, issue(fmt.Sprintf("unknown child step %d for trigger path", p.ChildID), map[string]int{"path": i}))
+				issues = append(issues, issue(automationTypes.IssueCodePathUnknownChild, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailMissingReference("step", strconv.FormatUint(p.ChildID, 10), 0, "", 0)))
 				continue
 			}
 
 			triggerPathCount[p.ParentID]++
 			if triggerPathCount[p.ParentID] > 1 {
-				issues = append(issues, issue(fmt.Sprintf("trigger %d has multiple outbound paths (only one allowed)", p.ParentID), map[string]int{"path": i}))
+				issues = append(issues, issue(automationTypes.IssueCodeTriggerMultiPaths, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailResourceRef("path", 0, i)))
 				continue
 			}
 
@@ -282,20 +293,20 @@ func wirePaths(
 
 		parentExecID, ok := idMap[p.ParentID]
 		if !ok {
-			issues = append(issues, issue(fmt.Sprintf("unknown parent step %d", p.ParentID), map[string]int{"path": i}))
+			issues = append(issues, issue(automationTypes.IssueCodePathUnknownParent, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailMissingReference("step", strconv.FormatUint(p.ParentID, 10), 0, "", 0)))
 			continue
 		}
 
 		childExecID, ok := idMap[p.ChildID]
 		if !ok {
-			issues = append(issues, issue(fmt.Sprintf("unknown child step %d", p.ChildID), map[string]int{"path": i}))
+			issues = append(issues, issue(automationTypes.IssueCodePathUnknownChild, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailMissingReference("step", strconv.FormatUint(p.ChildID, 10), 0, "", 0)))
 			continue
 		}
 
 		parent := exByID[parentExecID]
 		child := exByID[childExecID]
 		if parent == nil || child == nil {
-			issues = append(issues, issue("internal step index missing", map[string]int{"path": i}))
+			issues = append(issues, issue(automationTypes.IssueCodeInternal, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailResourceRef("path", 0, i)))
 			continue
 		}
 
@@ -386,11 +397,53 @@ func wirePaths(
 			triggerPathCount[orphanTriggers[0]] = 1
 		} else {
 			issues = append(issues, issue(
-				fmt.Sprintf("cannot infer trigger-to-step paths: %d triggers and %d entry steps without explicit paths",
-					len(orphanTriggers), len(orphanSteps)),
-				nil,
+				automationTypes.IssueCodeGraphAmbiguousEntry,
+				automationTypes.NgAutomationSeverityError,
 			))
 		}
+	}
+
+	return
+}
+
+// validateScopeRefs checks that every expression's Scope points to an existing
+// step/trigger handle (or the global scope). A dangling Scope means the
+// referenced step was removed while a downstream step still pulls from it.
+func validateScopeRefs(
+	steps automationTypes.NgAutomationStepSet,
+	triggers automationTypes.NgAutomationTriggerSet,
+) (issues automationTypes.NgAutomationIssueSet) {
+	validScopes := map[string]bool{
+		"":       true,
+		"global": true,
+	}
+	for _, s := range steps {
+		if s.Handle != "" {
+			validScopes[s.Handle] = true
+		}
+	}
+	for _, t := range triggers {
+		if t.Handle != "" {
+			validScopes[t.Handle] = true
+		}
+	}
+
+	check := func(stepI int, field string, ee []*automationTypes.Expr) {
+		for exprI, e := range ee {
+			if e == nil || validScopes[e.Scope] {
+				continue
+			}
+			issues = append(issues, issue(
+				automationTypes.IssueCodeScopeUnknown,
+				automationTypes.NgAutomationSeverityError,
+				automationTypes.NewDetailMissingReference("scope", e.Scope, steps[stepI].ID, field, exprI),
+			))
+		}
+	}
+
+	for i := range steps {
+		check(i, "arguments", steps[i].Arguments)
+		check(i, "results", steps[i].Results)
 	}
 
 	return
@@ -399,7 +452,7 @@ func wirePaths(
 func validateGatewayPaths(gwPaths map[uint64][]gatewayPath) (issues automationTypes.NgAutomationIssueSet) {
 	for parentID, gps := range gwPaths {
 		if len(gps) < 2 {
-			issues = append(issues, issue(fmt.Sprintf("gateway step %d must have at least 2 outbound paths, got %d", parentID, len(gps)), nil))
+			issues = append(issues, issue(automationTypes.IssueCodeGatewayTooFewPaths, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailGatewayPaths(parentID, "tooFew", len(gps), 2)))
 		}
 
 		nilCount := 0
@@ -410,9 +463,9 @@ func validateGatewayPaths(gwPaths map[uint64][]gatewayPath) (issues automationTy
 		}
 
 		if nilCount > 1 {
-			issues = append(issues, issue(fmt.Sprintf("gateway step %d has %d else paths (exactly one allowed)", parentID, nilCount), nil))
+			issues = append(issues, issue(automationTypes.IssueCodeGatewayMultiElse, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailGatewayPaths(parentID, "multipleElse", nilCount, 1)))
 		} else if nilCount == 0 {
-			issues = append(issues, issue(fmt.Sprintf("gateway step %d has no else path", parentID), nil))
+			issues = append(issues, issue(automationTypes.IssueCodeGatewayNoElse, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailGatewayPaths(parentID, "noElse", 0, 1)))
 		}
 	}
 
@@ -455,9 +508,10 @@ func hasEntry(exByID map[id.ID]*execTypes.Step) bool {
 	return false
 }
 
-// detectCycle runs a DFS cycle check using only IDs.
-// Uses step.Children slice (value-copies) but depends only on child IDs.
-func detectCycle(exByID map[id.ID]*execTypes.Step) error {
+// detectCycle runs a DFS cycle check using only IDs and, on detection, returns
+// the loop ring (the gray-path slice from the re-entered node to the current
+// node). Uses step.Children slice (value-copies) but depends only on child IDs.
+func detectCycle(exByID map[id.ID]*execTypes.Step) (ring []id.ID, err error) {
 	const (
 		white = 0
 		gray  = 1
@@ -465,45 +519,55 @@ func detectCycle(exByID map[id.ID]*execTypes.Step) error {
 	)
 
 	color := make(map[id.ID]uint8, len(exByID))
+	var path []id.ID
 
-	var visit func(n id.ID) error
-	visit = func(n id.ID) error {
+	var visit func(n id.ID) (id.ID, bool)
+	visit = func(n id.ID) (id.ID, bool) {
 		switch color[n] {
 		case gray:
-			return fmt.Errorf("cycle detected at step %v", n)
+			return n, true
 		case black:
-			return nil
+			return id.Zero(), false
 		}
 
 		color[n] = gray
-		s := exByID[n]
-		if s != nil {
+		path = append(path, n)
+
+		if s := exByID[n]; s != nil {
 			for _, c := range s.Children {
-				if err := visit(c.ID); err != nil {
-					return err
+				if hit, found := visit(c.ID); found {
+					return hit, true
 				}
 			}
 		}
+
 		color[n] = black
-		return nil
+		path = path[:len(path)-1]
+		return id.Zero(), false
 	}
 
 	for sid := range exByID {
-		if color[sid] == white {
-			if err := visit(sid); err != nil {
-				return err
+		if color[sid] != white {
+			continue
+		}
+		if hit, found := visit(sid); found {
+			start := 0
+			for i, n := range path {
+				if n == hit {
+					start = i
+					break
+				}
 			}
+			ring = append(ring, path[start:]...)
+			return ring, fmt.Errorf("cycle detected at step %v", hit)
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
-func issue(desc string, culprit map[string]int) *automationTypes.NgAutomationIssue {
-	return &automationTypes.NgAutomationIssue{
-		Description: desc,
-		Culprit:     culprit,
-	}
+func issue(code, severity string, details ...*automationTypes.NgAutomationIssueDetail) *automationTypes.NgAutomationIssue {
+	return automationTypes.NewIssue(code, severity, details...)
 }
 
 // ensureTermination auto-wires a single synthetic termination step to all leaf

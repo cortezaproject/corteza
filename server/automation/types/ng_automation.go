@@ -36,10 +36,14 @@ type (
 		filter.Paging
 	}
 
+	// NgAutomationIssue is a structured validation problem. Code is the stable
+	// machine identity, Message a system-generated English line, and Details a
+	// list of typed, location-bearing payloads the builder UI renders per problem.
 	NgAutomationIssue struct {
-		// url encoded location of the error:
-		Culprit     map[string]int `json:"culprit"`
-		Description string         `json:"description"`
+		Code     string                     `json:"code"`
+		Severity string                     `json:"severity"`
+		Message  string                     `json:"message"`
+		Details  []*NgAutomationIssueDetail `json:"details,omitempty"`
 	}
 
 	NgAutomationTrigger struct {
@@ -170,10 +174,52 @@ type (
 	}
 )
 
+const (
+	NgAutomationSeverityError   = "error"
+	NgAutomationSeverityWarning = "warning"
+	NgAutomationSeverityInfo    = "info"
+)
+
+const (
+	IssueCodeScopeUnknown        = "scope.unknown"
+	IssueCodeTypeMismatch        = "type.mismatch"
+	IssueCodeStepDuplicateID     = "step.duplicateID"
+	IssueCodeStepEmptyID         = "step.emptyID"
+	IssueCodeStepIDCollision     = "step.idCollision"
+	IssueCodeTriggerDuplicateID  = "trigger.duplicateID"
+	IssueCodeTriggerEmptyID      = "trigger.emptyID"
+	IssueCodeTriggerMultiPaths   = "trigger.multiplePaths"
+	IssueCodeFunctionUnknown     = "function.unknown"
+	IssueCodePathEmpty           = "path.empty"
+	IssueCodePathSelfLoop        = "path.selfLoop"
+	IssueCodePathUnknownChild    = "path.unknownChild"
+	IssueCodePathUnknownParent   = "path.unknownParent"
+	IssueCodeGatewayTooFewPaths  = "gateway.tooFewPaths"
+	IssueCodeGatewayNoElse       = "gateway.noElse"
+	IssueCodeGatewayMultiElse    = "gateway.multipleElse"
+	IssueCodeGraphNoEntry        = "graph.noEntry"
+	IssueCodeGraphCycle          = "graph.cycle"
+	IssueCodeGraphAmbiguousEntry = "graph.ambiguousEntry"
+	IssueCodeAutomationNil       = "automation.nil"
+	IssueCodeInternal            = "internal"
+	IssueCodeRunAsLoadFailed     = "runAs.loadFailed"
+	IssueCodeRunAsInvalid        = "runAs.invalid"
+)
+
+const (
+	IssueDetailMissingReference = "missingReference"
+	IssueDetailInvalidType      = "invalidType"
+	IssueDetailDuplicateID      = "duplicateID"
+	IssueDetailCycle            = "cycle"
+	IssueDetailResourceRef      = "resourceRef"
+	IssueDetailGatewayPaths     = "gatewayPaths"
+	IssueDetailEmptyField       = "emptyField"
+)
+
 func (set NgAutomationIssueSet) Error() string {
 	out := make([]string, 0, 4)
 	for _, s := range set {
-		out = append(out, s.Description)
+		out = append(out, s.Message)
 	}
 
 	return strings.Join(out, ", ")
