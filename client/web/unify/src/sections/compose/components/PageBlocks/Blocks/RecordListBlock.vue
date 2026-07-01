@@ -17,7 +17,7 @@
 
       <!-- Import button -->
       <RecordImporter
-        v-if="!options.hideImportButton && recordListModule?.canCreateRecord && !options.editable"
+        v-if="!options.hideImportButton && recordListModule?.canCreateRecord"
         :module="recordListModule"
         :namespace="namespace"
         @import-successful="fetchRecords(true)"
