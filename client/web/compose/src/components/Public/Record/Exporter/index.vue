@@ -655,19 +655,20 @@ export default {
 
       let dateRangeQuery = ''
 
-      if (date.start && date.end) {
-        // If dates are the same, set range to that date
-        date = { ...date }
-        if (date.start === date.end) {
-          date.start = moment(date.start, 'YYYY-MM-DD HH:mm').utc().format()
-          date.end = moment(date.end, 'YYYY-MM-DD HH:mm').add(1, 'days').utc().format()
-        }
+      // Normalize date-only boundaries to cover the whole selected days: start from
+      // the beginning of the start day and up to the end of the end day. Without the
+      // end-of-day adjustment the end date resolves to midnight and records logged
+      // during the end day itself are excluded from the export.
+      const startOfDay = d => moment(d, 'YYYY-MM-DD HH:mm').utc().format()
+      const endOfDay = d => moment(d, 'YYYY-MM-DD HH:mm').endOf('day').utc().format()
 
+      if (date.start && date.end) {
+        date = { start: startOfDay(date.start), end: endOfDay(date.end) }
         dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', date, 'BETWEEN')
       } else if (date.start) {
-        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', date.start, '>=')
+        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', startOfDay(date.start), '>=')
       } else if (date.end) {
-        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', date.end, '<=')
+        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', endOfDay(date.end), '<=')
       }
 
       return filter && dateRangeQuery ? `(${filter}) AND ${dateRangeQuery}` : dateRangeQuery

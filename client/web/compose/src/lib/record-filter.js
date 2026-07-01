@@ -135,7 +135,10 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
       const endDate = moment(query.end, 'YYYY-MM-DD', true)
 
       if (startDate.isValid() && endDate.isValid()) {
-        return build(operator, name, `DATE('${query.start}') DATE('${query.end}')`)
+        // Compare on the field's date part so a date-only range is inclusive of the
+        // whole end day; otherwise DATE('end') resolves to midnight and records
+        // logged during the end day itself are excluded.
+        return build(operator, `DATE(${name})`, `DATE('${query.start}') DATE('${query.end}')`)
       }
 
       const startTime = moment(query.start, 'HH:mm', true)
@@ -160,7 +163,9 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
       if (dateTime.isValid()) {
         return build(operator, `TIMESTAMP(DATE_FORMAT(${name}, '%Y-%m-%dT%H:%i:%s.%f+00:00'))`, dataFmtEntry(dateTime))
       } else if (date.isValid()) {
-        return build(operator, name, `DATE('${query}')`)
+        // Compare on the field's date part so date-only operators (e.g. <=) include
+        // the whole day instead of resolving the value to midnight.
+        return build(operator, `DATE(${name})`, `DATE('${query}')`)
       } else if (time.isValid()) {
         return build(operator, name, `TIME('${query}')`)
       }

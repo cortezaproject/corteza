@@ -46,6 +46,24 @@ describe('lib/record-filter', () => {
       expect(getFieldFilter('Name', 'String', '', '=')).to.equal('(Name IS NULL)')
       expect(getFieldFilter('Name', 'String', '', '!=')).to.equal('(Name IS NOT NULL)')
     })
+
+    // Date-only comparisons must be inclusive of the whole day: comparing a datetime
+    // field against DATE('YYYY-MM-DD') resolves the value to midnight, which drops
+    // records logged later that same day. Comparing on DATE(field) keeps it day-level.
+    it('compares date-only upper bounds on the field date so the end day is inclusive', () => {
+      expect(getFieldFilter('created_at', 'DateTime', '2024-06-29', '<='))
+        .to.equal("(DATE(created_at) <= DATE('2024-06-29'))")
+    })
+
+    it('compares date-only lower bounds on the field date', () => {
+      expect(getFieldFilter('created_at', 'DateTime', '2024-06-26', '>='))
+        .to.equal("(DATE(created_at) >= DATE('2024-06-26'))")
+    })
+
+    it('builds an inclusive date-only BETWEEN range on the field date', () => {
+      expect(getFieldFilter('created_at', 'DateTime', { start: '2024-06-26', end: '2024-06-29' }, 'BETWEEN'))
+        .to.equal("(DATE(created_at) BETWEEN DATE('2024-06-26') DATE('2024-06-29'))")
+    })
   })
 
   describe('getRecordListFilterSql', () => {
