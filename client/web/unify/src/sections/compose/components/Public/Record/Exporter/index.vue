@@ -379,18 +379,20 @@ function makeFilter() {
   const end = endDate.value ? fmt(endDate.value) : null
 
   let dateRangeQuery = ''
+
+  // Normalize date-only boundaries to cover the whole selected days: start from the
+  // beginning of the start day and up to the end of the end day. Without the
+  // end-of-day adjustment the end date resolves to midnight and records logged
+  // during the end day itself are excluded from the export.
+  const startOfDay = d => moment(d, 'YYYY-MM-DD').utc().format()
+  const endOfDay = d => moment(d, 'YYYY-MM-DD').endOf('day').utc().format()
+
   if (start && end) {
-    let s = start
-    let e = end
-    if (s === e) {
-      s = moment(start, 'YYYY-MM-DD').utc().format()
-      e = moment(end, 'YYYY-MM-DD').add(1, 'days').utc().format()
-    }
-    dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', { start: s, end: e }, 'BETWEEN') || ''
+    dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', { start: startOfDay(start), end: endOfDay(end) }, 'BETWEEN') || ''
   } else if (start) {
-    dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', start, '>=') || ''
+    dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', startOfDay(start), '>=') || ''
   } else if (end) {
-    dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', end, '<=') || ''
+    dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', endOfDay(end), '<=') || ''
   }
 
   return base && dateRangeQuery ? `(${base}) AND ${dateRangeQuery}` : (dateRangeQuery || base)
