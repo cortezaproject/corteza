@@ -429,6 +429,15 @@ func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 
 // onUpdate is the generated Update body handler.
 func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Module, aProps *moduleActionProps, _ func() error, _ func() error) error {
+	// loadModule (generated) fetches only the module row, not its fields.
+	// updateModuleFields diffs the incoming fields against res.Fields to decide
+	// what to create/update/delete, so without this the existing fields are
+	// invisible: nothing gets deleted and every incoming field is treated as new,
+	// colliding with the still-present rows ("not unique").
+	if err := loadModuleFields(ctx, s, res); err != nil {
+		return err
+	}
+
 	old := res.Clone()
 	svc.procDal(old)
 
