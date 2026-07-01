@@ -29,41 +29,37 @@
           class="d-flex align-items-center justify-content-between gap-1"
         >
           <div class="d-flex align-items-center flex-grow-1 flex-wrap flex-fill-child gap-1">
-            <template v-if="recordListModule.canCreateRecord">
-              <template v-if="inlineEditing">
-                <b-button
-                  v-if="!options.hideAddButton"
-                  data-test-id="button-add-record"
-                  variant="primary"
-                  size="lg"
-                  @click="addInlineRecord()"
-                >
-                  + {{ $t('recordList.addRecord') }}
-                </b-button>
-              </template>
+            <template v-if="recordListModule.canCreateRecord && !options.hideAddButton">
+              <b-button
+                v-if="inlineEditing"
+                data-test-id="button-add-record"
+                variant="primary"
+                size="lg"
+                @click="addInlineRecord()"
+              >
+                + {{ $t('recordList.addRecord') }}
+              </b-button>
 
-              <template v-else-if="!inlineEditing && (recordPageID || options.allRecords)">
-                <b-button
-                  v-if="!options.hideAddButton"
-                  data-test-id="button-add-record"
-                  variant="primary"
-                  size="lg"
-                  @click="handleAddRecord()"
-                >
-                  + {{ $t('recordList.addRecord') }}
-                </b-button>
-
-                <importer-modal
-                  v-if="!options.hideImportButton"
-                  :module="recordListModule"
-                  :namespace="namespace"
-                  @importSuccessful="onImportSuccessful"
-                />
-              </template>
+              <b-button
+                v-else-if="recordPageID || options.allRecords"
+                data-test-id="button-add-record"
+                variant="primary"
+                size="lg"
+                @click="handleAddRecord()"
+              >
+                + {{ $t('recordList.addRecord') }}
+              </b-button>
             </template>
 
+            <importer-modal
+              v-if="recordListModule.canCreateRecord && !options.hideImportButton"
+              :module="recordListModule"
+              :namespace="namespace"
+              @importSuccessful="onImportSuccessful"
+            />
+
             <exporter-modal
-              v-if="options.allowExport && !inlineEditing"
+              v-if="options.allowExport"
               :module="recordListModule"
               :filter="filter.query"
               :selection="selected"
