@@ -38,6 +38,19 @@
               </div>
             </div>
           </template>
+
+          <template #hover-actions="{ item }">
+            <CRouterLinkButton
+              :to="{ name: 'system.roles.edit', params: { roleID: item.id } }"
+              icon="pi pi-external-link"
+              severity="secondary"
+              text
+              size="small"
+              :aria-label="$t('project.accessRoles.openEditor')"
+              :title="$t('project.accessRoles.openEditor')"
+              @click.stop
+            />
+          </template>
         </CFormItemList>
       </div>
     </CFormGroup>
@@ -85,9 +98,11 @@
 <script setup>
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { useConfirmDelete } from '@planetcrust/human-vue'
+import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const { CRouterLinkButton } = components
 
 const props = defineProps({
   project: { type: Object, required: true },

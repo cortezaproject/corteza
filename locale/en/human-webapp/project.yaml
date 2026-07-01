@@ -320,6 +320,7 @@ members:
     message: Remove “{name}” from this project?
 dataModel:
   label: Modules
+  openEditor: Open in module builder
   addModule: Add module
   addField: Add field
   empty: No modules yet.
@@ -528,6 +529,7 @@ accessRoles:
   title: Roles
   add: Add role
   remove: Remove role
+  openEditor: Open in role editor
   empty: No access roles yet.
   toastLoadFailed: Could not load access roles
   toastAddFailed: Could not create access role
@@ -560,6 +562,7 @@ permissions:
 accessUsers:
   title: Users
   add: Add user
+  openEditor: Open in user editor
   noRoles: Add roles first — users are added by assigning them a role.
   empty: No users yet.
   toastLoadFailed: Could not load users

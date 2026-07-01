@@ -57,6 +57,18 @@
                 </div>
               </td>
               <td class="text-right px-3 py-2 align-top">
+                <CRouterLinkButton
+                  :to="{ name: 'system.users.edit', params: { userID: row.userId } }"
+                  icon="pi pi-external-link"
+                  severity="secondary"
+                  text
+                  rounded
+                  size="small"
+                  class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity mr-1"
+                  :aria-label="$t('project.accessUsers.openEditor')"
+                  :title="$t('project.accessUsers.openEditor')"
+                  @click.stop
+                />
                 <Button
                   v-if="!disabled"
                   icon="pi pi-times"
@@ -160,9 +172,11 @@
 <script setup>
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
-import { useConfirmDelete } from '@planetcrust/human-vue'
+import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const { CRouterLinkButton } = components
 
 const props = defineProps({
   project: { type: Object, required: true },

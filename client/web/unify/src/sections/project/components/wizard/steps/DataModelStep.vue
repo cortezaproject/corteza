@@ -58,6 +58,17 @@
                   <div class="text-xs text-muted-color">{{ fieldSummary(m) }}</div>
                 </div>
               </button>
+              <CRouterLinkButton
+                :to="{ name: 'admin.modules.edit', params: { slug: project.namespaceID, moduleID: m.id } }"
+                icon="pi pi-external-link"
+                severity="secondary"
+                text
+                size="small"
+                class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity mr-1"
+                :aria-label="$t('project.dataModel.openEditor')"
+                :title="$t('project.dataModel.openEditor')"
+                @click.stop
+              />
               <Button
                 v-if="!disabled"
                 icon="pi pi-trash"
@@ -163,9 +174,11 @@
 import { fieldTypeLabelKey } from '@/sections/project/config/fieldTypes'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { useConfirmDelete } from '@planetcrust/human-vue'
+import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const { CRouterLinkButton } = components
 
 const props = defineProps({
   project: { type: Object, required: true },
