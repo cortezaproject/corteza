@@ -580,10 +580,15 @@ async function handleSave({ valid }) {
 
     if (props.inModal) {
       if (isNew.value) {
-        // Update query to new recordID instead of '0'
+        // Update query to new recordID instead of '0'; drop the clone/prefill
+        // params so the resulting view URL doesn't leak them into later actions.
+        const q = { ...route.query }
+        delete q.cloneFromID
+        delete q.refField
+        delete q.refValue
         router.replace({
           query: {
-            ...route.query,
+            ...q,
             recordID: saved.recordID,
             edit: undefined,
           },
@@ -654,9 +659,16 @@ function handleClone() {
 
 function handleNew() {
   if (props.inModal) {
+    // Strip clone/prefill params so Add always opens a blank record,
+    // even when the current record was reached via clone (cloneFromID lingers in the query).
+    const q = { ...route.query }
+    delete q.cloneFromID
+    delete q.refField
+    delete q.refValue
+    delete q.edit
     router.push({
       query: {
-        ...route.query,
+        ...q,
         recordID: '0',
       },
     })
@@ -664,6 +676,8 @@ function handleNew() {
     router.push({
       name: 'page.record',
       params: { slug: route.params.slug, pageID: route.params.pageID, recordID: '0' },
+      // Explicit empty query drops any lingering cloneFromID/refField/refValue.
+      query: {},
     })
   }
 }
@@ -800,11 +814,16 @@ watch(
     route.query.refValue,
   ],
   ([newPageID, newRecordID, newCloneFromID, newRefField, newRefValue], old) => {
-    const [oldPageID, , oldCloneFromID, oldRefField, oldRefValue] = old || []
-    // If only the recordID changed (same page, no clone transition, no change in prefill params), just swap the record
+    const [oldPageID, oldRecordID, oldCloneFromID, oldRefField, oldRefValue] = old || []
+    // Fast-swap only when moving between two existing records on the same page.
+    // Transitions to/from create mode ('0') must go through loadPage() so the
+    // blank/clone record is (re)built — loadRecord() no-ops on '0' and would
+    // otherwise leave the previously viewed record's values on screen.
     if (
       old &&
       newPageID === oldPageID &&
+      newRecordID !== '0' &&
+      oldRecordID !== '0' &&
       newCloneFromID === oldCloneFromID &&
       newRefField === oldRefField &&
       newRefValue === oldRefValue &&
