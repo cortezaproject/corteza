@@ -388,7 +388,7 @@ func (svc record) Search(ctx context.Context, filter types.RecordFilter) (set ty
 	)
 
 	err = func() error {
-		if m, err = loadModuleScoped(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
+		if m, err = loadModuleWithFields(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
 			return err
 		}
 
@@ -423,7 +423,7 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 	)
 
 	err = func() error {
-		if m, err = loadModuleScoped(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
+		if m, err = loadModuleWithFields(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
 			return err
 		}
 
@@ -1930,7 +1930,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 }
 
 func (svc record) Validate(ctx context.Context, rec *types.Record) error {
-	if m, err := loadModuleScoped(ctx, svc.store, rec.NamespaceID, rec.ModuleID); err != nil {
+	if m, err := loadModuleWithFields(ctx, svc.store, rec.NamespaceID, rec.ModuleID); err != nil {
 		return err
 	} else {
 		rec.Values = values.Sanitizer().Run(m, rec.Values)
