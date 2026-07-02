@@ -109,7 +109,7 @@ export default {
     formattedValue () {
       const value = Array.isArray(this.value) ? this.value : [this.value]
       return value.map(recordID => {
-        let record = this.findRecordByID(recordID)
+        let record = this.findRecordByID(recordID, this.field.options.moduleID)
 
         if (record) {
           record = new compose.Record(this.recordModule, record)
@@ -218,7 +218,7 @@ export default {
         }, 300)
       }
 
-      const records = this.findRecordsByIDs(recordIDs).map(r => new compose.Record(this.recordModule, r))
+      const records = this.findRecordsByIDs(recordIDs, this.field.options.moduleID).map(r => new compose.Record(this.recordModule, r))
 
       if (this.labelField.kind === 'Record' && recordLabelField) {
         this.processing = true

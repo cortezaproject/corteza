@@ -492,7 +492,7 @@ export default {
     },
 
     getRecordByID (recordID) {
-      return new compose.Record(this.module, this.findRecordByID(recordID))
+      return new compose.Record(this.module, this.findRecordByID(recordID, this.field.options.moduleID))
     },
 
     getRecord (index = undefined) {
