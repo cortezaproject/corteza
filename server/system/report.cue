@@ -4,9 +4,101 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_reportDefs: {
+			ReportMeta: { name: "ReportMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Description", type: "string", json: "description" },
+			]}
+
+			ReportScenarioSet: { name: "ReportScenarioSet", elem: _reportDefs.ReportScenario, elemPtr: true }
+			ReportScenario: { name: "ReportScenario", fields: [
+				{ name: "ScenarioID", type: "uint64", json: "scenarioID,string,omitempty" },
+				{ name: "Label", type: "string", json: "label" },
+				{ name: "Filters", type: _reportDefs.ScenarioFilterMap, json: "filters,omitempty" },
+			]}
+			ScenarioFilterMap: { name: "ScenarioFilterMap", key: "string", value: _reportDefs.ReportFilterExpr }
+
+			ReportDataSourceSet: { name: "ReportDataSourceSet", elem: _reportDefs.ReportDataSource, elemPtr: true }
+			ReportDataSource: { name: "ReportDataSource", fields: [
+				{ name: "Meta", goType: "interface{}", json: "meta,omitempty" },
+				{ name: "Step", type: _reportDefs.ReportStep, ptr: true, json: "step" },
+			]}
+
+			ReportBlockSet: { name: "ReportBlockSet", elem: _reportDefs.ReportBlock, elemPtr: true }
+			ReportBlock: { name: "ReportBlock", fields: [
+				{ name: "BlockID", type: "uint64", json: "blockID,string" },
+				{ name: "Title", type: "string", json: "title" },
+				{ name: "Description", type: "string", json: "description" },
+				{ name: "Key", type: "string", json: "key" },
+				{ name: "Kind", type: "string", json: "kind" },
+				{ name: "Options", goType: "map[string]interface{}", json: "options,omitempty" },
+				{ name: "Elements", goType: "[]interface{}", json: "elements" },
+				{ name: "Sources", type: _reportDefs.ReportStepSet, json: "sources" },
+				{ name: "XYWH", goType: "[4]int", json: "xywh" },
+				{ name: "Layout", type: "string", json: "layout" },
+			]}
+
+			ReportStepSet: { name: "ReportStepSet", elem: _reportDefs.ReportStep, elemPtr: true }
+			ReportStep: { name: "ReportStep", fields: [
+				{ name: "Kind", type: "string", json: "kind,omitempty" },
+				{ name: "Load", type: _reportDefs.ReportStepLoad, ptr: true, json: "load,omitempty" },
+				{ name: "Join", type: _reportDefs.ReportStepJoin, ptr: true, json: "join,omitempty" },
+				{ name: "Link", type: _reportDefs.ReportStepLink, ptr: true, json: "link,omitempty" },
+				{ name: "Aggregate", type: _reportDefs.ReportStepAggregate, ptr: true, json: "aggregate,omitempty" },
+				{ name: "Group_legacy", type: _reportDefs.ReportLegacyStepGroup, ptr: true, json: "group,omitempty" },
+			]}
+			ReportStepLoad: { name: "ReportStepLoad", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Source", type: "string", json: "source" },
+				{ name: "Definition", goType: "map[string]interface{}", json: "definition" },
+				{ name: "Filter", type: _reportDefs.ReportFilterExpr, ptr: true, json: "filter,omitempty" },
+			]}
+			ReportStepJoin: { name: "ReportStepJoin", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "LocalSource", type: "string", json: "localSource" },
+				{ name: "LocalColumn", type: "string", json: "localColumn" },
+				{ name: "ForeignSource", type: "string", json: "foreignSource" },
+				{ name: "ForeignColumn", type: "string", json: "foreignColumn" },
+				{ name: "Filter", type: _reportDefs.ReportFilterExpr, ptr: true, json: "filter,omitempty" },
+			]}
+			ReportStepLink: { name: "ReportStepLink", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "LocalSource", type: "string", json: "localSource" },
+				{ name: "LocalColumn", type: "string", json: "localColumn" },
+				{ name: "ForeignSource", type: "string", json: "foreignSource" },
+				{ name: "ForeignColumn", type: "string", json: "foreignColumn" },
+				{ name: "Filter", type: _reportDefs.ReportFilterExpr, ptr: true, json: "filter,omitempty" },
+			]}
+			ReportLegacyStepGroup: { name: "ReportLegacyStepGroup", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Source", type: "string", json: "source" },
+				{ name: "Keys", type: _reportDefs.ReportAggregateColumnSet, json: "keys" },
+				{ name: "Columns", type: _reportDefs.ReportAggregateColumnSet, json: "columns" },
+				{ name: "Filter", type: _reportDefs.ReportFilterExpr, ptr: true, json: "filter,omitempty" },
+			]}
+			ReportStepAggregate: { name: "ReportStepAggregate", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Source", type: "string", json: "source" },
+				{ name: "Keys", type: _reportDefs.ReportAggregateColumnSet, json: "keys" },
+				{ name: "Columns", type: _reportDefs.ReportAggregateColumnSet, json: "columns" },
+				{ name: "Filter", type: _reportDefs.ReportFilterExpr, ptr: true, json: "filter,omitempty" },
+			]}
+
+			ReportAggregateColumnSet: { name: "ReportAggregateColumnSet", elem: _reportDefs.ReportAggregateColumn, elemPtr: true }
+			ReportAggregateColumn: { name: "ReportAggregateColumn", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Label", type: "string", json: "label" },
+				{ name: "Def", type: _reportDefs.ReportFilterExpr, ptr: true, json: "def" },
+			]}
+
+			ReportFilterExpr: { name: "ReportFilterExpr", fields: [
+				{ name: "ASTNode", goType: "*ast.ASTNode", json: ",omitempty" },
+				{ name: "Error", type: "string", json: "error,omitempty" },
+			]}
+		}
+
 report: {
 	features: {
-		projectScoped: true
 	}
 	types: {
 		gen: true
@@ -15,6 +107,8 @@ report: {
 		// the value-returning generated version, so it is excluded from JSON helper
 		// generation.
 		jsonTypesPtr: ["ReportMeta"]
+		imports: ["github.com/crusttech/human/server/pkg/ast"]
+		defs: _reportDefs
 	}
 	model: {
 		attributes: {
@@ -23,7 +117,8 @@ report: {
 			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			meta: {
-				goType: "*types.ReportMeta"
+				type: _reportDefs.ReportMeta
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				json: { field: "meta", omitEmpty: true }
 				omitSetter: true
@@ -39,20 +134,20 @@ report: {
 				envoy: { yaml: { omitEncoder: true } }
 			}
 			scenarios: {
-				goType: "types.ReportScenarioSet"
+				type: _reportDefs.ReportScenarioSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				json: { field: "scenarios", omitEmpty: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			sources: {
-				goType: "types.ReportDataSourceSet"
+				type: _reportDefs.ReportDataSourceSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			blocks: {
-				goType: "types.ReportBlockSet"
+				type: _reportDefs.ReportBlockSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -105,6 +200,38 @@ report: {
 	}
 
 	service: {
+		customFunctions: [
+			{
+				name:  "Describe"
+				cap:   "read"
+				ac:    "CanCreateReport"
+				acErr: "ErrNotAllowedToCreate"
+				args: [
+					{name: "src", goType: "types.ReportDataSourceSet"},
+					{name: "st", goType: "types.ReportStepSet"},
+					{name: "sources", goType: "...string"},
+				]
+				results: [
+					{name: "out", goType: "[]reporting.FrameDescription"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name:   "Run"
+				cap:    "read"
+				action: "Run"
+				args: [
+					{name: "reportID", goType: "uint64"},
+					{name: "dd", goType: "reporting.FrameDefinitionSet"},
+				]
+				results: [
+					{name: "out", goType: "[]*reporting.Frame"},
+					{name: "err", goType: "error"},
+				]
+			},
+		]
+		customFunctionImports: ["\"github.com/crusttech/human/server/system/reporting\""]
+
 		undelete: true
 
 		updateFields: ["Handle", "Meta", "Scenarios", "Sources", "Blocks"]

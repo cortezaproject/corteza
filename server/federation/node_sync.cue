@@ -79,6 +79,8 @@ nodeSync: {
 		customBodyOps:   ["create", "search"]
 		customAccessOps: ["create", "search"]
 
+		customFunctions: []
+
 		omitCreateProp: true
 		filterProp:     "nodeSyncFilter"
 	}

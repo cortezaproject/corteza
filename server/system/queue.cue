@@ -4,13 +4,22 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_queueDefs: {
+			QueueMeta: { name: "QueueMeta", fields: [
+				{ name: "PollDelay", goType: "*time.Duration", json: "poll_delay" },
+				{ name: "DispatchEvents", type: "bool", json: "dispatch_events" },
+			]}
+		}
+
 queue: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
-	types: { gen: true }
+	types: {
+		gen: true
+		defs: _queueDefs
+	}
 
 	model: {
 		ident: "queue_settings"
@@ -32,7 +41,7 @@ queue: {
 				}
 			}
 			meta: {
-				goType: "types.QueueMeta"
+				type: _queueDefs.QueueMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

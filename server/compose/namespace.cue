@@ -4,12 +4,27 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_namespaceDefs: {
+			NamespaceMeta: { name: "NamespaceMeta", fields: [
+				{ name: "Icon", type: "string", json: "icon,omitempty" },
+				{ name: "IconID", type: "uint64", json: "iconID,string" },
+				{ name: "Logo", type: "string", json: "logo,omitempty" },
+				{ name: "LogoID", type: "uint64", json: "logoID,string" },
+				{ name: "LogoEnabled", type: "bool", json: "logoEnabled,omitempty" },
+				{ name: "HideSidebar", type: "bool", json: "hideSidebar" },
+				{ name: "Subtitle", type: "string", json: "subtitle,omitempty" },
+				{ name: "Description", type: "string", json: "description,omitempty" },
+			]}
+		}
+
 namespace: {
 	features: {
-		projectScoped: true
 	}
 
-	types: { gen: true }
+	types: {
+		gen: true
+		defs: _namespaceDefs
+	}
 
 	model: {
 		ident: "compose_namespace"
@@ -30,7 +45,7 @@ namespace: {
 				dal: { type: "Boolean" }
 			}
 			meta: {
-				goType: "types.NamespaceMeta"
+				type: _namespaceDefs.NamespaceMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

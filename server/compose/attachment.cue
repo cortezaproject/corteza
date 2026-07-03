@@ -4,14 +4,41 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_attachmentDefs: {
+			AttachmentMeta: { name: "AttachmentMeta", fields: [
+				{ name: "Original", type: _attachmentDefs.AttachmentFileMeta, json: "original" },
+				{ name: "Preview", ptr: true, type: _attachmentDefs.AttachmentFileMeta, json: "preview,omitempty" },
+				{ name: "Icon", ptr: true, type: _attachmentDefs.AttachmentIconMeta, json: "icon,omitempty" },
+				{ name: "IconSvg", ptr: true, type: _attachmentDefs.AttachmentIconSvgMeta, json: "iconSvg,omitempty" },
+			]}
+			AttachmentFileMeta: { name: "AttachmentFileMeta", fields: [
+				{ name: "Size", type: "int64", json: "size" },
+				{ name: "Extension", type: "string", json: "ext" },
+				{ name: "Mimetype", type: "string", json: "mimetype" },
+				{ name: "Image", ptr: true, type: _attachmentDefs.AttachmentImageMeta, json: "image,omitempty" },
+			]}
+			AttachmentImageMeta: { name: "AttachmentImageMeta", fields: [
+				{ name: "Width", type: "int", json: "width,omitempty" },
+				{ name: "Height", type: "int", json: "height,omitempty" },
+				{ name: "Animated", type: "bool", json: "animated" },
+			]}
+			AttachmentIconMeta: { name: "AttachmentIconMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Library", type: "string", json: "library" },
+			]}
+			AttachmentIconSvgMeta: { name: "AttachmentIconSvgMeta", fields: [
+				{ name: "Src", type: "string", json: "src" },
+			]}
+		}
+
 attachment: {
 	features: {
-		projectScoped: true
 		labels: false
 	}
 
 	types: {
 		gen: true
+		defs: _attachmentDefs
 	}
 
 	model: {
@@ -54,7 +81,7 @@ attachment: {
 				dal: {}
 			}
 			meta:        {
-				goType: "types.AttachmentMeta"
+				type: _attachmentDefs.AttachmentMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

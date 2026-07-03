@@ -4,13 +4,25 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_templateDefs: {
+			TemplateMeta: { name: "TemplateMeta", fields: [
+				{ name: "Short", type: "string", json: "short" },
+				{ name: "Description", type: "string", json: "description,omitempty" },
+			]}
+			DocumentType: { name: "DocumentType", values: [
+				{ ident: "DocumentTypePlain", value: "text/plain" },
+				{ ident: "DocumentTypeHTML", value: "text/html" },
+				{ ident: "DocumentTypePDF", value: "application/pdf" },
+			]}
+		}
+
 template: {
 	features: {
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _templateDefs
 	}
 
 	model: {
@@ -35,7 +47,7 @@ template: {
 			}
 			type: {
 				sortable: true,
-				goType: "types.DocumentType"
+				type: _templateDefs.DocumentType
 				dal: {}
 				omitSetter: true
 				omitGetter: true
@@ -45,7 +57,7 @@ template: {
 				dal: { type: "Boolean" }
 			}
 			meta: {
-				goType: "types.TemplateMeta"
+				type: _templateDefs.TemplateMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -119,6 +131,25 @@ template: {
 	}
 
 	service: {
+
+		customFunctions: [
+			{
+				name:   "Render"
+				cap:    "read"
+				action: "Render"
+				args: [
+					{name: "templateID", goType: "uint64"},
+					{name: "dstType", goType: "string"},
+					{name: "variables", goType: "map[string]interface{}"},
+					{name: "options", goType: "map[string]string"},
+				]
+				results: [
+					{name: "document", goType: "io.ReadSeeker"},
+					{name: "err", goType: "error"},
+				]
+			},
+		]
+		customFunctionImports: ["\"io\""]
 
 		undelete: true
 

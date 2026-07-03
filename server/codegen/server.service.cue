@@ -83,6 +83,38 @@ _ServiceResource: {
 		},
 	]
 
+	// per-custom-function scaffold data consumed by the template. Each generated
+	// wrapper owns checkScope + optional access-control + optional action-log and
+	// delegates the body to a hand-written svc.on<Name>.
+	_customFunctions: [
+		for f in res.service.customFunctions {
+			let hasResults = f.results != _|_
+			let argsTyped = strings.Join([ if f.args != _|_ for a in f.args {"\(a.name) \(a.goType)"} ], ", ")
+			let argsCallFixed = strings.Join([ if f.args != _|_ for a in f.args if !strings.HasPrefix(a.goType, "...") {a.name} ], ", ")
+			let _variadicCallArg = strings.Join([ if f.args != _|_ for a in f.args if strings.HasPrefix(a.goType, "...") {a.name + "..."} ], "")
+			let resultNames = [ if hasResults for r in list.Slice(f.results, 0, len(f.results)-1) {r.name} ]
+
+			name:     f.name
+			handler:  "on" + strings.ToTitle(f.name)
+			capConst: "Cap" + strings.ToTitle(f.cap)
+
+			sigParams: [ if argsTyped != "" {"ctx context.Context, " + argsTyped}, if argsTyped == "" {"ctx context.Context"} ][0]
+			callArgs:        [ if argsCallFixed != "" {", " + argsCallFixed}, if argsCallFixed == "" {""}][0]
+			variadicCallArg: [ if _variadicCallArg != "" {", " + _variadicCallArg}, if _variadicCallArg == "" {""}][0]
+
+			resultsSig: [
+				if hasResults {"(" + strings.Join([ for r in f.results {[ if r.name != _|_ {"\(r.name) \(r.goType)"}, if r.name == _|_ {r.goType} ][0]} ], ", ") + ")"},
+				if !hasResults {"(err error)"},
+			][0]
+			resultPrefix: [ if len(resultNames) > 0 {strings.Join(resultNames, ", ") + ", "}, if len(resultNames) == 0 {""} ][0]
+
+			action: [ if f.action != _|_ {f.action}, if f.action == _|_ {strings.ToTitle(f.name)} ][0]
+			hasAc:     f.ac != _|_
+			ac:        [ if f.ac != _|_ {f.ac}, if f.ac == _|_ {""} ][0]
+			acErr:     [ if f.acErr != _|_ {f.acErr}, if f.acErr == _|_ {"ErrNotAllowedTo" + strings.ToTitle(f.name)} ][0]
+		},
+	]
+
 	result: {
 		ident:          res.ident
 		expIdent:       res.expIdent
@@ -228,6 +260,10 @@ _ServiceResource: {
 		// per-op custom handler overrides
 		customAccessOps: res.service.customAccessOps
 		customBodyOps:   res.service.customBodyOps
+
+		// non-CRUD wrapper methods (scaffold + on<Name> delegation)
+		customFunctions:       _customFunctions
+		customFunctionImports: res.service.customFunctionImports
 
 		// access-control interface methods this service depends on.
 		// Standard CRUD names are fixed; everything else (e.g. members.manage)

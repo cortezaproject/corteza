@@ -4,15 +4,82 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_agentDefs: {
+			AgentMeta: { name: "AgentMeta", fields: [
+				{ name: "Short", type: "string", json: "short" },
+				{ name: "Description", type: "string", json: "description,omitempty" },
+				{ name: "SidebarRoles", slice: true, type: "string", json: "sidebarRoles,omitempty" },
+			]}
+
+			AgentBehavior: { name: "AgentBehavior", fields: [
+				{ name: "SystemPrompt", type: "string", json: "systemPrompt,omitempty" },
+				{ name: "Guardrails", slice: true, type: "string", json: "guardrails,omitempty" },
+				{ name: "InjectSystemContext", type: "bool", json: "injectSystemContext" },
+				{ name: "KnowledgeBases", goType: "KnowledgeBaseIDList", json: "knowledgeBases,omitempty" },
+				{ name: "TreatyCLEnabled", ptr: true, type: "bool", json: "treatyCLEnabled" },
+				{ name: "TreatyCLTemperature", type: "int", json: "tclTemperature,omitempty" },
+				{ name: "TreatyCLArticles", slice: true, type: "string", json: "tclArticles,omitempty" },
+			]}
+
+			AgentExecution: { name: "AgentExecution", fields: [
+				{ name: "Model", type: _agentDefs.AgentExecutionModel, json: "model" },
+				{ name: "Limits", type: _agentDefs.AgentExecutionLimits, json: "limits" },
+			]}
+
+			AgentExecutionModel: { name: "AgentExecutionModel", fields: [
+				{ name: "LLMProviderID", type: "uint64", json: "llmProviderID,string,omitempty" },
+				{ name: "Model", type: "string", json: "model,omitempty" },
+				{ name: "Temperature", ptr: true, type: "float64", json: "temperature,omitempty" },
+			]}
+
+			AgentExecutionLimits: { name: "AgentExecutionLimits", fields: [
+				{ name: "MaxIterations", type: "int", json: "maxIterations,omitempty" },
+				{ name: "Timeout", type: "string", json: "timeout" },
+				{ name: "SoftLimitRatio", type: "float64", json: "softLimitRatio,omitempty" },
+				{ name: "ContextWindow", type: "int", json: "contextWindow" },
+				{ name: "OutputTokens", type: "int", json: "outputTokens" },
+			]}
+
+			AgentAccess: { name: "AgentAccess", fields: [
+				{ name: "Context", type: _agentDefs.AgentAccessContext, json: "context" },
+				{ name: "Tools", goType: "[]AgentAccessTool", json: "tools,omitempty" },
+				{ name: "TAQs", goType: "[]AgentAccessTAQ", json: "taqs,omitempty" },
+				{ name: "Workflows", goType: "[]AgentAccessWorkflow", json: "workflows,omitempty" },
+			]}
+
+			AgentAccessContext: { name: "AgentAccessContext", fields: [
+				{ name: "Namespace", type: "string", json: "namespace,omitempty" },
+				{ name: "Module", type: "string", json: "module,omitempty" },
+				{ name: "Defaults", goType: "map[string]any", json: "defaults,omitempty" },
+			]}
+
+			AgentInvocation: { name: "AgentInvocation", fields: [
+				{ name: "User", type: _agentDefs.AgentInvocationUser, json: "user" },
+				{ name: "System", type: _agentDefs.AgentInvocationSystem, json: "system" },
+			]}
+
+			AgentInvocationUser: { name: "AgentInvocationUser", fields: [
+				{ name: "Enabled", type: "bool", json: "enabled" },
+			]}
+
+			AgentInvocationSystem: { name: "AgentInvocationSystem", fields: [
+				{ name: "Enabled", type: "bool", json: "enabled" },
+				{ name: "ServiceAccount", type: "uint64", json: "serviceAccount,string,omitempty" },
+				{ name: "InputSchema", goType: "json.RawMessage", json: "inputSchema,omitempty" },
+				{ name: "OutputFormat", type: "string", json: "outputFormat,omitempty" },
+			]}
+		}
+
 agent: {
 	types: {
 		gen:     true
 		idLists: ["AgentAccessIDList"]
+
+		defs: _agentDefs
 	}
 
 	features: {
 		labels: true
-		projectScoped: true
 	}
 
 	model: {
@@ -31,7 +98,7 @@ agent: {
 				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			meta: {
-				goType: "types.AgentMeta"
+				type: _agentDefs.AgentMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -46,25 +113,25 @@ agent: {
 				envoy: { yaml: { omitEncoder: true } }
 			}
 			behavior: {
-				goType: "types.AgentBehavior"
+				type: _agentDefs.AgentBehavior
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			execution: {
-				goType: "types.AgentExecution"
+				type: _agentDefs.AgentExecution
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			access: {
-				goType: "types.AgentAccess"
+				type: _agentDefs.AgentAccess
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			invocation: {
-				goType: "types.AgentInvocation"
+				type: _agentDefs.AgentInvocation
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -119,6 +186,8 @@ agent: {
 		undelete: false
 
 		customBodyOps: ["lookup", "search", "create", "update"]
+
+		customFunctions: []
 	}
 
 	refs: {

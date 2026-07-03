@@ -4,14 +4,29 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_data_privacy_requestDefs: {
+			RequestKind: { name: "RequestKind", values: [
+				{ident: "RequestKindCorrect", value: "correct", doc: "RequestKindCorrect to correct module fields"},
+				{ident: "RequestKindDelete", value: "delete", doc: "RequestKindDelete to delete module fields"},
+				{ident: "RequestKindExport", value: "export", doc: "RequestKindExport to export module fields"},
+			]}
+			RequestStatus: { name: "RequestStatus", values: [
+				{ident: "RequestStatusPending", value: "pending", doc: "RequestStatusPending initially request will be in pending status"},
+				{ident: "RequestStatusCanceled", value: "canceled", doc: "RequestStatusCanceled owner of request has cancelled the request"},
+				{ident: "RequestStatusApproved", value: "approved", doc: "RequestStatusApproved data officer has of request has cancelled the request"},
+				{ident: "RequestStatusRejected", value: "rejected", doc: "RequestStatusRejected data officer has denied the request"},
+			]}
+			DataPrivacyRequestPayloadSet: { name: "DataPrivacyRequestPayloadSet", elemGoType: "map[string]any" }
+		}
+
 data_privacy_request: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _data_privacy_requestDefs
 	}
 
 	model: {
@@ -22,19 +37,19 @@ data_privacy_request: {
 			project_id: schema.ProjectRefField
 
 			kind: {
-				goType: "types.RequestKind",
+				type: _data_privacy_requestDefs.RequestKind,
 				sortable: true
 				dal: {}
 			}
 
 			status: {
-				goType: "types.RequestStatus",
+				type: _data_privacy_requestDefs.RequestStatus,
 				sortable: true
 				dal: { type: "Text", length: 64 }
 
 			}
 			payload: {
-				goType: "types.DataPrivacyRequestPayloadSet"
+				type: _data_privacy_requestDefs.DataPrivacyRequestPayloadSet
 				json: "payload,omitempty"
 				dal: { type: "JSON" }
 			}

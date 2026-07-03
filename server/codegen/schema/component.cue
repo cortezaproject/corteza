@@ -15,6 +15,14 @@ import (
 		[key=_]: {"handle": key, "component": handle, "platform": platform} & #Resource
 	}
 
+	// component-scoped merge of every resource's type registry -> one types pkg.
+	// Same-named entries across resources unify (matching shapes) or conflict (error).
+	_typeDefs: {
+		for _, r in resources if r.types != _|_ {
+			for tn, t in r.types.defs {(tn): t}
+		}
+	}
+
 	fqrt: platform + "::" + handle
 
 	envoy: {

@@ -4,9 +4,19 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_roleDefs: {
+			RoleMeta: { name: "RoleMeta", fields: [
+				{ name: "Description", type: "string", json: "description,omitempty" },
+				{ name: "Context", type: _roleDefs.RoleContext, ptr: true, json: "context,omitempty" },
+			]}
+			RoleContext: { name: "RoleContext", fields: [
+				{ name: "Resource", type: "string", slice: true, json: "resourceTypes,omitempty" },
+				{ name: "Expr", type: "string", json: "expr,omitempty" },
+			]}
+		}
+
 role: {
 	features: {
-		projectScoped: true
 		labels:        true
 	}
 
@@ -17,6 +27,8 @@ role: {
 		// the value-returning generated version, so it is excluded from JSON helper
 		// generation.
 		jsonTypesPtr: ["RoleMeta"]
+
+		defs: _roleDefs
 	}
 
 	model: {
@@ -30,7 +42,8 @@ role: {
 			}
 			handle: schema.HandleField
 			meta: {
-				goType: "*types.RoleMeta"
+				type: _roleDefs.RoleMeta
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -95,6 +108,72 @@ role: {
 		// update/delete/undelete: dispatch eventbus events (cbEvents=true),
 		//   plus IsSystem guards and the undelete-reuses-Update-events quirk -> custom bodies.
 		customBodyOps: ["lookup", "update", "delete", "undelete"]
+
+		customFunctions: [
+			{
+				name:   "Archive"
+				cap:    "write"
+				action: "Archive"
+				args: [{name: "roleID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:   "Unarchive"
+				cap:    "write"
+				action: "Unarchive"
+				args: [{name: "roleID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:  "CloneRules"
+				cap:   "write"
+				ac:    "CanGrant"
+				acErr: "ErrNotAllowedToCloneRules"
+				args: [{name: "roleID", goType: "uint64"}, {name: "cloneToRoleID", goType: "...uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name: "Membership"
+				cap:  "read"
+				args: [{name: "userID", goType: "uint64"}]
+				results: [{name: "mm", goType: "types.RoleMemberSet"}, {name: "err", goType: "error"}]
+			},
+			{
+				name:   "MemberList"
+				cap:    "read"
+				action: "Members"
+				args: [{name: "roleID", goType: "uint64"}]
+				results: [{name: "mm", goType: "types.RoleMemberSet"}, {name: "err", goType: "error"}]
+			},
+			{
+				name:   "MemberAdd"
+				cap:    "write"
+				action: "MemberAdd"
+				args: [{name: "roleID", goType: "uint64"}, {name: "memberID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:   "MemberAddGroup"
+				cap:    "write"
+				action: "MemberAdd"
+				args: [{name: "roleID", goType: "uint64"}, {name: "userGroupID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:   "MemberRemove"
+				cap:    "write"
+				action: "MemberRemove"
+				args: [{name: "roleID", goType: "uint64"}, {name: "memberID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:   "MemberRemoveGroup"
+				cap:    "write"
+				action: "MemberRemove"
+				args: [{name: "roleID", goType: "uint64"}, {name: "userGroupID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+		]
 
 		cbEvents:       true
 		templateUpdate: true

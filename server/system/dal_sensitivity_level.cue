@@ -4,6 +4,13 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_dal_sensitivity_levelDefs: {
+			DalSensitivityLevelMeta: { name: "DalSensitivityLevelMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Description", type: "string", json: "description" },
+			]}
+		}
+
 dal_sensitivity_level: {
 	model: {
 		attributes: {
@@ -22,7 +29,7 @@ dal_sensitivity_level: {
 			}
 
 			meta: {
-				goType: "types.DalSensitivityLevelMeta"
+				type: _dal_sensitivity_levelDefs.DalSensitivityLevelMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -81,11 +88,11 @@ dal_sensitivity_level: {
 
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _dal_sensitivity_levelDefs
 	}
 
 	service: {
@@ -98,6 +105,10 @@ dal_sensitivity_level: {
 		undelete: true
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
+		customFunctions: [
+			{name: "ReloadSensitivityLevels", cap: "write", args: [{name: "s", goType: "store.Storer"}]},
+		]
 
 		customAccessOps: ["search", "create"]
 	}

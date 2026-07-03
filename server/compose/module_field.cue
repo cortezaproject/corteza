@@ -4,6 +4,49 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_moduleFieldDefs: {
+			ModuleFieldConfig: { name: "ModuleFieldConfig", fields: [
+				{ name: "DAL", type: _moduleFieldDefs.ModuleFieldConfigDAL, json: "dal" },
+				{ name: "Privacy", type: _moduleFieldDefs.ModuleFieldConfigDataPrivacy, json: "privacy" },
+				{ name: "RecordRevisions", type: _moduleFieldDefs.ModuleFieldConfigRecordRevisions, json: "recordRevisions" },
+			]}
+			ModuleFieldConfigDAL: { name: "ModuleFieldConfigDAL", fields: [
+				{ name: "EncodingStrategy", goType: "*EncodingStrategy", json: "encodingStrategy" },
+			]}
+			ModuleFieldConfigDataPrivacy: { name: "ModuleFieldConfigDataPrivacy", fields: [
+				{ name: "SensitivityLevelID", type: "uint64", json: "sensitivityLevelID,string,omitempty" },
+				{ name: "UsageDisclosure", type: "string", json: "usageDisclosure" },
+			]}
+			ModuleFieldConfigRecordRevisions: { name: "ModuleFieldConfigRecordRevisions", fields: [
+				{ name: "Skip", type: "bool", json: "enabled" },
+			]}
+			ModuleFieldExpr: { name: "ModuleFieldExpr", fields: [
+				{ name: "ValueExpr", type: "string", json: "value,omitempty" },
+				{ name: "Sanitizers", slice: true, type: "string", json: "sanitizers,omitempty" },
+				{ name: "Validators", slice: true, type: _moduleFieldDefs.ModuleFieldValidator, json: "validators,omitempty" },
+				{ name: "DisableDefaultValidators", type: "bool", json: "disableDefaultValidators,omitempty" },
+				{ name: "Formatters", slice: true, type: "string", json: "formatters,omitempty" },
+				{ name: "DisableDefaultFormatters", type: "bool", json: "disableDefaultFormatters,omitempty" },
+			]}
+			ModuleFieldValidator: { name: "ModuleFieldValidator", fields: [
+				{ name: "ValidatorID", type: "uint64", json: "validatorID,string,omitempty" },
+				{ name: "Test", type: "string", json: "test,omitempty" },
+				{ name: "Error", type: "string", json: "error,omitempty" },
+			]}
+			ModuleFieldOptions: { name: "ModuleFieldOptions", key: "string", valueGoType: "interface{}" }
+			RecordValueSet: { name: "RecordValueSet", elem: _moduleFieldDefs.RecordValue, elemPtr: true }
+			RecordValue: { name: "RecordValue", fields: [
+				{ name: "RecordID", type: "uint64", json: "-" },
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Value", type: "string", json: "value,omitempty" },
+				{ name: "Ref", type: "uint64", json: "-" },
+				{ name: "Place", goType: "uint", json: "place,omitempty" },
+				{ name: "DeletedAt", type: "time.Time", ptr: true, json: "deletedAt,omitempty" },
+				{ name: "Updated", type: "bool", json: "-" },
+				{ name: "OldValue", type: "string", json: "-" },
+			]}
+		}
+
 moduleField: {
 	parents: [
 		{handle: "namespace"},
@@ -39,7 +82,7 @@ moduleField: {
 				dal: {}
 			}
 			options: {
-				goType: "types.ModuleFieldOptions"
+				type: _moduleFieldDefs.ModuleFieldOptions
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -63,7 +106,7 @@ moduleField: {
 				dal: {}
 			}
 			config: {
-				goType: "types.ModuleFieldConfig"
+				type: _moduleFieldDefs.ModuleFieldConfig
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -79,7 +122,7 @@ moduleField: {
 				dal: { type: "Boolean" }
 			}
 			default_value: {
-				goType: "types.RecordValueSet"
+				type: _moduleFieldDefs.RecordValueSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -90,7 +133,7 @@ moduleField: {
 				}
 			}
 			expressions: {
-				goType: "types.ModuleFieldExpr"
+				type: _moduleFieldDefs.ModuleFieldExpr
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -116,6 +159,10 @@ moduleField: {
 		}
 	}
 
+	types: {
+		defs: _moduleFieldDefs
+	}
+
 	refs: {
 		extended: true
 	}
@@ -133,7 +180,6 @@ moduleField: {
 	}
 
 	features: {
-		projectScoped: true
 		labels: false
 		paging: false
 		sorting: false

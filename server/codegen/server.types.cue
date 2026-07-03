@@ -34,6 +34,15 @@ _TypeResource: {
 	// derived + any manual extras, minus skips
 	_jsonTypes: [ for t in (_jsonDerived + [ for t in res.types.jsonTypes if !list.Contains(_jsonDerived, t) {t} ]) {t} ]
 
+	// types.defs split by kind. #StructType/#EnumType are closed definitions, so
+	// unifying with {kind: string} succeeds only for enums (they declare kind);
+	// structs violate closedness and collapse to _|_.
+	// discriminate registry entries by shape: structs have fields, enums have
+	// values. #SliceType/#MapType have neither and are excluded here (their decls
+	// aren't generated yet — Sets still come from the legacy type_set.gen.go).
+	_structDefs: [ for d in res.types.defs if (d & {fields: _}) != _|_ {d} ]
+	_enumDefs:   [ for d in res.types.defs if (d & {values: _}) != _|_ {d} ]
+
 	result: {
 		expIdent: res.expIdent
 		fileBase: strings.Replace(res.handle, "-", "_", -1)
@@ -85,6 +94,46 @@ _TypeResource: {
 		// (auto-derived from JSON dal attributes, minus jsonTypesSkip). ptr marks
 		// types whose Parse returns *name.
 		jsonTypes: [ for t in _jsonTypes {{name: t, ptr: list.Contains(res.types.jsonTypesPtr, t)}} ]
+
+		// complex-field registry (types.defs): struct + enum decls authored in .cue,
+		// generated into this component's types pkg. A struct stored in a JSON dal
+		// column also gets Scan/Value/Parse via jsonTypes above (decl here, methods there).
+		structDefs: [ for d in _structDefs {
+			name: d.name
+			doc:  [ if d.doc != _|_ {d.doc}, "" ][0]
+			fields: [ for f in d.fields {
+				// schema's _goType/_base are package-hidden (unreadable here), so the
+				// in-package Go type is recomputed: the verbatim goType escape hatch
+				// wins; otherwise a builtin token verbatim or the referenced def's
+				// name, with ptr/slice prefixes.
+				let _base = [ if f.type == _|_ {""}, if (f.type & string) != _|_ {f.type}, if (f.type & string) == _|_ {f.type.name} ][0]
+				let _ptr = [ if f.ptr {"*"}, "" ][0]
+				let _slice = [ if f.slice {"[]"}, "" ][0]
+				name: f.name
+				goType: [ if f.goType != _|_ {f.goType}, if f.goType == _|_ {"\(_ptr)\(_slice)\(_base)"} ][0]
+				jsonTag: [
+					if f.json != _|_ {"json:\"\(f.json)\""},
+					if f.json == _|_ {"json:\"\(strings.ToCamel(f.name))\""},
+				][0]
+				doc: [ if f.doc != _|_ {f.doc}, "" ][0]
+			}]
+		}]
+
+		enumDefs: [ for d in _enumDefs {
+			name:   d.name
+			goKind: d.kind
+			doc:    [ if d.doc != _|_ {d.doc}, "" ][0]
+			values: [ for v in d.values {
+				// idents authored bare ("NormalUser") get the type name prepended;
+				// idents authored already-qualified ("RequestKindCorrect") are kept
+				// as-is. Both converge on the single-prefixed const the doc strings
+				// assume, so mixed authoring across resources stays valid.
+				constIdent: [ if strings.HasPrefix(v.ident, d.name) {v.ident}, d.name + v.ident ][0]
+				constType:  d.name
+				lit: [ if d.kind == "string" {"\"\(v.value)\""}, if d.kind == "int" {"\(v.value)"} ][0]
+				doc: [ if v.doc != _|_ {v.doc}, "" ][0]
+			}]
+		}]
 	}
 }
 

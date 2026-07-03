@@ -4,6 +4,16 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_exposedModuleDefs: {
+	ModuleFieldSet: { name: "ModuleFieldSet", elem: _exposedModuleDefs.ModuleField, elemPtr: true }
+	ModuleField: { name: "ModuleField", fields: [
+		{ name: "Kind", type: "string", json: "kind" },
+		{ name: "Name", type: "string", json: "name" },
+		{ name: "Label", type: "string", json: "label" },
+		{ name: "IsMulti", type: "bool", json: "isMulti" },
+	]}
+}
+
 exposedModule: {
 	parents: [
 		{handle: "node"},
@@ -11,11 +21,11 @@ exposedModule: {
 
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _exposedModuleDefs
 	}
 
 	model: {
@@ -54,7 +64,7 @@ exposedModule: {
 				json: {field: "composeNamespaceID", string: true}
 			}
 			fields: {
-				goType: "types.ModuleFieldSet"
+				type: _exposedModuleDefs.ModuleFieldSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -101,6 +111,8 @@ exposedModule: {
 		scoped: true
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete"]
+
+		customFunctions: []
 
 		customAccessOps: ["search", "create"]
 

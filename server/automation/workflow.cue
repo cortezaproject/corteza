@@ -4,9 +4,72 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_workflowDefs: {
+			WorkflowMeta: { name: "WorkflowMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Description", type: "string", json: "description" },
+				{ name: "Visual", goType: "map[string]interface{}", json: "visual" },
+				{ name: "SubWorkflow", type: "bool", json: "subWorkflow,omitempty" },
+			]}
+
+			WorkflowStepSet: { name: "WorkflowStepSet", elem: _workflowDefs.WorkflowStep, elemPtr: true }
+			WorkflowPathSet: { name: "WorkflowPathSet", elem: _workflowDefs.WorkflowPath, elemPtr: true }
+			WorkflowIssueSet: { name: "WorkflowIssueSet", elem: _workflowDefs.WorkflowIssue, elemPtr: true }
+
+			WorkflowStepKind: { name: "WorkflowStepKind", kind: "string", values: [
+				{ ident: "WorkflowStepKindExpressions", value: "expressions" },
+				{ ident: "WorkflowStepKindGateway", value: "gateway" },
+				{ ident: "WorkflowStepKindFunction", value: "function" },
+				{ ident: "WorkflowStepKindIterator", value: "iterator" },
+				{ ident: "WorkflowStepKindError", value: "error" },
+				{ ident: "WorkflowStepKindTermination", value: "termination" },
+				{ ident: "WorkflowStepKindPrompt", value: "prompt" },
+				{ ident: "WorkflowStepKindDelay", value: "delay" },
+				{ ident: "WorkflowStepKindErrHandler", value: "error-handler" },
+				{ ident: "WorkflowStepKindVisual", value: "visual" },
+				{ ident: "WorkflowStepKindDebug", value: "debug" },
+				{ ident: "WorkflowStepKindBreak", value: "break" },
+				{ ident: "WorkflowStepKindContinue", value: "continue" },
+				{ ident: "WorkflowStepKindExecWorkflow", value: "exec-workflow" },
+			]}
+
+			WorkflowStep: { name: "WorkflowStep", fields: [
+				{ name: "ID", type: "uint64", json: "stepID,string" },
+				{ name: "Kind", type: _workflowDefs.WorkflowStepKind, json: "kind" },
+				{ name: "Ref", type: "string", json: "ref" },
+				{ name: "Arguments", goType: "[]*Expr", json: "arguments" },
+				{ name: "Results", goType: "[]*Expr", json: "results" },
+				{ name: "Meta", type: _workflowDefs.WorkflowStepMeta, json: "meta,omitempty" },
+				{ name: "Labels", goType: "map[string]string", json: "labels,omitempty" },
+			]}
+
+			WorkflowStepMeta: { name: "WorkflowStepMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Description", type: "string", json: "description" },
+				{ name: "Visual", goType: "map[string]interface{}", json: "visual" },
+			]}
+
+			WorkflowPath: { name: "WorkflowPath", fields: [
+				{ name: "Expr", type: "string", json: "expr,omitempty" },
+				{ name: "ParentID", type: "uint64", json: "parentID,string" },
+				{ name: "ChildID", type: "uint64", json: "childID,string" },
+				{ name: "Meta", type: _workflowDefs.WorkflowPathMeta, json: "meta,omitempty" },
+			]}
+
+			WorkflowPathMeta: { name: "WorkflowPathMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Description", type: "string", json: "description" },
+				{ name: "Visual", goType: "map[string]interface{}", json: "visual" },
+			]}
+
+			WorkflowIssue: { name: "WorkflowIssue", fields: [
+				{ name: "Culprit", goType: "map[string]int", json: "culprit" },
+				{ name: "Description", type: "string", json: "description" },
+			]}
+		}
+
 workflow: {
 	features: {
-		projectScoped: true
 	}
 	types: {
 		gen: true
@@ -18,6 +81,7 @@ workflow: {
 		imports: [
 			"github.com/crusttech/human/server/pkg/expr",
 		]
+		defs: _workflowDefs
 	}
 	model: {
 		ident: "automation_workflows"
@@ -27,7 +91,8 @@ workflow: {
 			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			meta: {
-				goType: "*types.WorkflowMeta"
+				type: _workflowDefs.WorkflowMeta
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				json: { field: "meta", omitEmpty: true }
 				omitSetter: true
@@ -62,19 +127,19 @@ workflow: {
 				omitGetter: true
 			}
 			steps: {
-				goType: "types.WorkflowStepSet"
+				type: _workflowDefs.WorkflowStepSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			paths: {
-				goType: "types.WorkflowPathSet"
+				type: _workflowDefs.WorkflowPathSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			issues: {
-				goType: "types.WorkflowIssueSet"
+				type: _workflowDefs.WorkflowIssueSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				json: { field: "issues", omitEmpty: true }
 				omitSetter: true
@@ -159,6 +224,26 @@ workflow: {
 	}
 
 	service: {
+		customFunctions: [
+			{
+				name: "Exec"
+				cap:  "write"
+				action: "Execute"
+				args: [
+					{name: "workflowID", goType: "uint64"},
+					{name: "p", goType: "types.WorkflowExecParams"},
+				]
+				results: [
+					{name: "results", goType: "*expr.Vars"},
+					{name: "sessionID", goType: "uint64"},
+					{name: "stacktrace", goType: "types.Stacktrace"},
+					{name: "err", goType: "error"},
+				]
+			},
+		]
+		customFunctionImports: [
+			"\"github.com/crusttech/human/server/pkg/expr\"",
+		]
 		lookup:   false
 		create:   false
 		update:   false

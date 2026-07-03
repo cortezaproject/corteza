@@ -4,9 +4,21 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_triggerDefs: {
+			TriggerMeta: { name: "TriggerMeta", fields: [
+				{ name: "Description", type: "string", json: "description" },
+				{ name: "Visual", goType: "map[string]interface{}", json: "visual" },
+			]}
+			TriggerConstraint: { name: "TriggerConstraint", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Op", type: "string", json: "op,omitempty" },
+				{ name: "Values", type: "string", slice: true, json: "values,omitempty" },
+			]}
+			TriggerConstraintSet: { name: "TriggerConstraintSet", elem: _triggerDefs.TriggerConstraint, elemPtr: true }
+		}
+
 trigger: {
 	features: {
-		projectScoped: true
 	}
 	types: {
 		// generate the Trigger struct from the model into types/trigger.gen.go
@@ -18,6 +30,7 @@ trigger: {
 		// incompatible with the value-returning generated version, so it is
 		// excluded from JSON helper generation.
 		jsonTypesPtr: ["TriggerMeta"]
+		defs: _triggerDefs
 	}
 	model: {
 		ident: "automation_triggers"
@@ -53,7 +66,8 @@ trigger: {
 				dal: { type: "Boolean", default: true }
 			}
 			meta: {
-				goType: "*types.TriggerMeta"
+				type: _triggerDefs.TriggerMeta
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -81,7 +95,7 @@ trigger: {
 				}
 			}
 			constraints: {
-				goType: "types.TriggerConstraintSet"
+				type: _triggerDefs.TriggerConstraintSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -155,6 +169,21 @@ trigger: {
 		undelete: true
 
 		customBodyOps: ["search", "create", "update", "delete", "undelete"]
+
+		customFunctions: [
+			{
+				name: "SearchOnManual"
+				cap:  "read"
+				args: [
+					{name: "workflowID", goType: "uint64"},
+					{name: "stepID", goType: "uint64"},
+				]
+				results: [
+					{name: "res", goType: "*types.Trigger"},
+					{name: "err", goType: "error"},
+				]
+			},
+		]
 
 		customAccessOps: ["create", "update", "delete", "undelete"]
 	}

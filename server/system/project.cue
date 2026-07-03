@@ -4,14 +4,90 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_projectDefs: {
+			ProjectStatus: { name: "ProjectStatus", values: [
+				{ident: "ProjectStatusDraft", value: "draft"},
+				{ident: "ProjectStatusActive", value: "active"},
+				{ident: "ProjectStatusPublished", value: "published"},
+				{ident: "ProjectStatusArchived", value: "archived"},
+				{ident: "ProjectStatusSuspended", value: "suspended"},
+			]}
+
+			ProjectVisibility: { name: "ProjectVisibility", values: [
+				{ident: "ProjectVisibilityOpen", value: "open"},
+				{ident: "ProjectVisibilityInviteOnly", value: "invite-only"},
+			]}
+
+			ProjectMode: { name: "ProjectMode", values: [
+				{ident: "ProjectModeFree", value: "free"},
+				{ident: "ProjectModeGated", value: "gated"},
+			]}
+
+			ProjectMemberRole: { name: "ProjectMemberRole", values: [
+				{ident: "ProjectRoleGovernanceOwner", value: "governance-owner"},
+				{ident: "ProjectRoleSecurityOwner", value: "security-owner"},
+				{ident: "ProjectRoleDeveloper", value: "developer"},
+				{ident: "ProjectRoleJuniorDeveloper", value: "junior-developer"},
+				{ident: "ProjectRoleMember", value: "member"},
+				{ident: "ProjectRoleExecutiveAuthority", value: "executive-authority"},
+				{ident: "ProjectRoleInfrastructureAdministrator", value: "infrastructure-administrator"},
+			]}
+
+			ProjectConfig: { name: "ProjectConfig", fields: [
+				{name: "Visibility", type: _projectDefs.ProjectVisibility, json: "visibility,omitempty"},
+				{name: "DefaultMemberRole", type: _projectDefs.ProjectMemberRole, json: "defaultMemberRole,omitempty"},
+				{name: "FeatureFlags", goType: "map[string]bool", json: "featureFlags,omitempty"},
+				{name: "Mode", type: _projectDefs.ProjectMode, json: "mode,omitempty"},
+				{name: "NamespaceID", type: "uint64", json: "namespaceID,string,omitempty"},
+				{name: "DeployerCategories", type: _projectDefs.ProjectDeployerCategories, json: "deployerCategories,omitempty"},
+				{name: "FriaRequired", type: "bool", json: "friaRequired,omitempty"},
+				{name: "ResourceManagement", type: _projectDefs.ProjectResourceManagement, json: "resourceManagement,omitempty"},
+			]}
+
+			ProjectDeployerCategories: { name: "ProjectDeployerCategories", fields: [
+				{name: "PublicAuthorityAnnex3", type: "bool", json: "publicAuthorityAnnex3,omitempty"},
+				{name: "PrivateEssentialServices", type: "bool", json: "privateEssentialServices,omitempty"},
+				{name: "InsuranceBanking", type: "bool", json: "insuranceBanking,omitempty"},
+			]}
+
+			ProjectResourceManagement: { name: "ProjectResourceManagement", fields: [
+				{name: "AI", goType: "map[string]any", json: "ai,omitempty"},
+				{name: "Infra", goType: "map[string]any", json: "infra,omitempty"},
+				{name: "Connections", goType: "[]*ProjectPermittedConnection", json: "connections,omitempty"},
+			]}
+
+			ProjectMeta: { name: "ProjectMeta", fields: [
+				{name: "Short", type: "string", json: "short,omitempty"},
+				{name: "Description", type: "string", json: "description,omitempty"},
+				{name: "Icon", type: "string", json: "icon,omitempty"},
+				{name: "Color", type: "string", json: "color,omitempty"},
+				{name: "Tags", slice: true, type: "string", json: "tags,omitempty"},
+			]}
+
+			ProjectGovernanceStatus: { name: "ProjectGovernanceStatus", values: [
+				{ident: "ProjectGovernanceStatusDraft", value: "draft"},
+				{ident: "ProjectGovernanceStatusSubmitted", value: "submitted"},
+				{ident: "ProjectGovernanceStatusApproved", value: "approved"},
+				{ident: "ProjectGovernanceStatusChangesRequested", value: "changes-requested"},
+			]}
+
+			ProjectGovernanceStep: { name: "ProjectGovernanceStep", fields: [
+				{name: "Values", goType: "map[string]any", json: "values,omitempty"},
+				{name: "Status", type: _projectDefs.ProjectGovernanceStatus, json: "status"},
+				{name: "ReviewNote", type: "string", json: "reviewNote,omitempty"},
+			]}
+
+			ProjectGovernance: { name: "ProjectGovernance", key: "string", value: _projectDefs.ProjectGovernanceStep, valuePtr: true }
+		}
+
 project: {
 	features: {
 		labels:       true
-		tenantScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _projectDefs
 	}
 
 	model: {
@@ -21,25 +97,25 @@ project: {
 			handle:    schema.HandleField
 			status: {
 				sortable: true
-				goType:   "types.ProjectStatus"
+				type:     _projectDefs.ProjectStatus
 				dal: {length: 32}
 				omitSetter: true
 				omitGetter: true
 			}
 			config: {
-				goType: "types.ProjectConfig"
+				type: _projectDefs.ProjectConfig
 				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 			meta: {
-				goType: "types.ProjectMeta"
+				type: _projectDefs.ProjectMeta
 				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 			governance: {
-				goType: "types.ProjectGovernance"
+				type: _projectDefs.ProjectGovernance
 				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
@@ -92,6 +168,48 @@ project: {
 	}
 
 	service: {
+		customFunctions: [
+			{
+				name: "SearchMembers"
+				cap:  "read"
+				args: [{name: "filter", goType: "types.ProjectMemberFilter"}]
+				results: [
+					{name: "set", goType: "types.ProjectMemberSet"},
+					{name: "f", goType: "types.ProjectMemberFilter"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "AddMember"
+				cap:  "write"
+				args: [{name: "m", goType: "*types.ProjectMember"}]
+				results: [
+					{name: "res", goType: "*types.ProjectMember"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "UpdateMember"
+				cap:  "write"
+				args: [{name: "m", goType: "*types.ProjectMember"}]
+				results: [
+					{name: "res", goType: "*types.ProjectMember"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "RemoveMember"
+				cap:  "write"
+				args: [
+					{name: "projectID", goType: "uint64"},
+					{name: "userID", goType: "uint64"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+		]
+
 		genConstructor: true
 
 		// Only Search (+ the struct/ctor via genConstructor) is generated.

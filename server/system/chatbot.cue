@@ -4,16 +4,93 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_chatbotDefs: {
+			ChatbotHandoff: { name: "ChatbotHandoff", fields: [
+				{ name: "Enabled", type: "bool", json: "enabled" },
+				{ name: "Automation", type: _chatbotDefs.ChatbotHandoffAutomation, json: "automation" },
+			]}
+			ChatbotHandoffAutomation: { name: "ChatbotHandoffAutomation", fields: [
+				{ name: "OnRequested", type: _chatbotDefs.ChatbotAutomationHook, json: "onRequested" },
+				{ name: "OnAccepted", type: _chatbotDefs.ChatbotAutomationHook, json: "onAccepted" },
+			]}
+			ChatbotAutomationHook: { name: "ChatbotAutomationHook", fields: [
+				{ name: "Automation", type: "string", json: "automation" },
+				{ name: "Async", type: "bool", json: "async" },
+				{ name: "Mappings", slice: true, type: _chatbotDefs.ChatbotHookMapping, json: "mappings,omitempty" },
+			]}
+			ChatbotHookMapping: { name: "ChatbotHookMapping", fields: [
+				{ name: "StateExpression", type: _chatbotDefs.ChatbotStateExpression, json: "stateExpression" },
+				{ name: "TriggerParam", type: "string", json: "triggerParam" },
+			]}
+			ChatbotStateExpression: { name: "ChatbotStateExpression", fields: [
+				{ name: "Source", type: "string", json: "source,omitempty" },
+				{ name: "Expr", type: "string", json: "expr,omitempty" },
+				{ name: "Value", type: "any", json: "value,omitempty" },
+				{ name: "Type", type: "string", json: "type,omitempty" },
+			]}
+
+			ChatbotScenario: { name: "ChatbotScenario", fields: [
+				{ name: "ID", type: "string", json: "id" },
+				{ name: "Name", type: "string", json: "name,omitempty" },
+				{ name: "Type", type: "string", json: "type" },
+				{ name: "AgentID", type: "uint64", json: "agentID,string,omitempty" },
+				{ name: "Config", goType: "json.RawMessage", json: "config,omitempty" },
+				{ name: "Automation", type: _chatbotDefs.ChatbotScenarioAutomation, json: "automation" },
+			]}
+			ChatbotScenarioAutomation: { name: "ChatbotScenarioAutomation", fields: [
+				{ name: "Before", type: _chatbotDefs.ChatbotAutomationHook, json: "before" },
+				{ name: "After", type: _chatbotDefs.ChatbotAutomationHook, json: "after" },
+			]}
+			ChatbotScenarios: { name: "ChatbotScenarios", elem: _chatbotDefs.ChatbotScenario }
+			ChatbotAllowedOrigins: { name: "ChatbotAllowedOrigins", elem: "string" }
+
+			ChatbotStyling: { name: "ChatbotStyling", fields: [
+				{ name: "LogoAttachmentID", type: "uint64", json: "logoAttachmentID,string,omitempty" },
+				{ name: "LogoURL", type: "string", json: "logoURL,omitempty" },
+				{ name: "FontFamily", type: "string", json: "fontFamily,omitempty" },
+				{ name: "FontSizes", type: _chatbotDefs.ChatbotFontSizes, json: "fontSizes,omitempty" },
+				{ name: "Colors", type: _chatbotDefs.ChatbotColors, json: "colors,omitempty" },
+				{ name: "Launcher", type: _chatbotDefs.ChatbotLauncher, json: "launcher,omitempty" },
+			]}
+			ChatbotFontSizes: { name: "ChatbotFontSizes", fields: [
+				{ name: "Base", type: "string", json: "base,omitempty" },
+				{ name: "Small", type: "string", json: "small,omitempty" },
+				{ name: "Heading", type: "string", json: "heading,omitempty" },
+			]}
+			ChatbotColors: { name: "ChatbotColors", fields: [
+				{ name: "Primary", type: "string", json: "primary,omitempty" },
+				{ name: "PrimaryText", type: "string", json: "primaryText,omitempty" },
+				{ name: "Header", type: "string", json: "header,omitempty" },
+				{ name: "HeaderText", type: "string", json: "headerText,omitempty" },
+				{ name: "Background", type: "string", json: "background,omitempty" },
+				{ name: "Text", type: "string", json: "text,omitempty" },
+				{ name: "UserBubble", type: "string", json: "userBubble,omitempty" },
+				{ name: "AgentBubble", type: "string", json: "agentBubble,omitempty" },
+			]}
+			ChatbotLauncher: { name: "ChatbotLauncher", fields: [
+				{ name: "IconURL", type: "string", json: "iconURL,omitempty" },
+				{ name: "IconAttachmentID", type: "uint64", json: "iconAttachmentID,string,omitempty" },
+				{ name: "IconVisible", type: "bool", json: "iconVisible" },
+				{ name: "Label", type: "string", json: "label,omitempty" },
+				{ name: "ButtonLabel", type: "string", json: "buttonLabel,omitempty" },
+				{ name: "Size", type: "string", json: "size,omitempty" },
+				{ name: "Shape", type: "string", json: "shape,omitempty" },
+				{ name: "Position", type: "string", json: "position,omitempty" },
+				{ name: "StartOpen", type: "bool", json: "startOpen,omitempty" },
+			]}
+		}
+
 chatbot: {
 	features: {
 		labels: true
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
 		// ChatbotStyling has a custom Value (kept hand-written)
 		jsonTypesSkip: ["ChatbotStyling"]
+
+		defs: _chatbotDefs
 	}
 
 	model: {
@@ -38,7 +115,7 @@ chatbot: {
 				json: { field: "widgetKey", omitEmpty: true }
 			}
 			allowed_origins: {
-				goType: "types.ChatbotAllowedOrigins"
+				type: _chatbotDefs.ChatbotAllowedOrigins
 				storeIdent: "allowed_origins"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
@@ -53,19 +130,19 @@ chatbot: {
 				json: { field: "sessionTTL", omitEmpty: true }
 			}
 			handoff: {
-				goType: "types.ChatbotHandoff"
+				type: _chatbotDefs.ChatbotHandoff
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			styling: {
-				goType: "types.ChatbotStyling"
+				type: _chatbotDefs.ChatbotStyling
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			scenarios: {
-				goType: "types.ChatbotScenarios"
+				type: _chatbotDefs.ChatbotScenarios
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -129,6 +206,15 @@ chatbot: {
 		undelete: true
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
+		customFunctions: [
+			{
+				name: "RegenerateWidgetKey"
+				cap:  "write"
+				args: [{name: "ID", goType: "uint64"}]
+				results: [{name: "c", goType: "*types.Chatbot"}, {name: "err", goType: "error"}]
+			},
+		]
 
 	}
 

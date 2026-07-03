@@ -4,13 +4,23 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_chartDefs: {
+			ChartConfig: { name: "ChartConfig", fields: [
+				{name: "Reports", goType: "[]*ChartConfigReport", json: "reports,omitempty"},
+				{name: "ColorScheme", type: "string", json: "colorScheme,omitempty"},
+				{name: "NoAnimation", type: "bool", json: "noAnimation,omitempty"},
+				{name: "Toolbox", goType: "map[string]interface{}", json: "toolbox,omitempty"},
+			]}
+		}
+
 chart: {
 	features: {
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+
+		defs: _chartDefs
 	}
 
 	parents: [
@@ -50,7 +60,7 @@ chart: {
 				dal: {}
 		  }
 			config: {
-				goType: "types.ChartConfig"
+				type: _chartDefs.ChartConfig
 				dal: {}
 				omitSetter: true
 				omitGetter: true
@@ -118,6 +128,8 @@ chart: {
 		undelete: true
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
+		customFunctions: []
 
 		customAccessOps: ["search", "create"]
 

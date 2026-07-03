@@ -4,9 +4,23 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_applicationDefs: {
+			ApplicationUnify: { name: "ApplicationUnify", fields: [
+				{ name: "Name", type: "string", json: "name,omitempty" },
+				{ name: "Listed", type: "bool", json: "listed" },
+				{ name: "Url", type: "string", json: "url" },
+				{ name: "Config", type: "string", json: "config" },
+				{ name: "Icon", type: "string", json: "icon,omitempty" },
+				{ name: "IconID", type: "uint64", json: "iconID,string" },
+				{ name: "Logo", type: "string", json: "logo,omitempty" },
+				{ name: "LogoID", type: "uint64", json: "logoID,string" },
+			]}
+		}
+
 application: {
 	types: {
 		gen: true
+		defs: _applicationDefs
 	}
 
 	model: {
@@ -32,7 +46,8 @@ application: {
 				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
 			}
 			unify: {
-				goType: "*types.ApplicationUnify"
+				type: _applicationDefs.ApplicationUnify
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -81,7 +96,6 @@ application: {
 
 	features: {
 		flags: true
-		projectScoped: true
 	}
 
 	envoy: {
@@ -111,6 +125,44 @@ application: {
 		undelete: true
 
 		customBodyOps: ["search"]
+
+		customFunctions: [
+			{
+				name: "Flag"
+				cap:  "write"
+				args: [
+					{name: "app", goType: "*types.Application"},
+					{name: "ownedBy", goType: "uint64"},
+					{name: "f", goType: "string"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "Unflag"
+				cap:  "write"
+				args: [
+					{name: "app", goType: "*types.Application"},
+					{name: "ownedBy", goType: "uint64"},
+					{name: "f", goType: "string"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name:   "Reorder"
+				cap:    "write"
+				action: "Reorder"
+				args: [
+					{name: "order", goType: "[]uint64"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+		]
 
 		updateFields: ["Name", "Enabled", "Weight"]
 

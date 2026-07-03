@@ -4,6 +4,20 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_moduleMappingDefs: {
+			ModuleFieldMappingSet: { name: "ModuleFieldMappingSet", elem: _moduleMappingDefs.ModuleFieldMapping, elemPtr: true }
+			ModuleFieldMapping: { name: "ModuleFieldMapping", fields: [
+				{ name: "Origin", type: _moduleMappingDefs.ModuleField, json: "origin" },
+				{ name: "Destination", type: _moduleMappingDefs.ModuleField, json: "destination" },
+			]}
+			ModuleField: { name: "ModuleField", fields: [
+				{ name: "Kind", type: "string", json: "kind" },
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Label", type: "string", json: "label" },
+				{ name: "IsMulti", type: "bool", json: "isMulti" },
+			]}
+		}
+
 moduleMapping: {
 	parents: [
 		{handle: "node"},
@@ -11,10 +25,12 @@ moduleMapping: {
 
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
-	types: { gen: true }
+	types: {
+		gen: true
+		defs: _moduleMappingDefs
+	}
 
 	model: {
 		ident: "federation_module_mapping"
@@ -53,7 +69,7 @@ moduleMapping: {
 				json: { field: "composeNamespaceID", string: true }
 			}
 			field_mapping: {
-				goType: "types.ModuleFieldMappingSet"
+				type: _moduleMappingDefs.ModuleFieldMappingSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

@@ -4,6 +4,21 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_configured_connectionDefs: {
+			ConfiguredConnectionConfig: { name: "ConfiguredConnectionConfig", fields: [
+				{ name: "NamespaceID", type: "uint64", json: "namespaceID,string" },
+				{ name: "DalConnectionID", type: "uint64", json: "dalConnectionID,string" },
+				{ name: "CredentialID", type: "uint64", json: "credentialID,string" },
+				{ name: "Params", slice: true, type: _configured_connectionDefs.ConfiguredConnectionParam, json: "params,omitempty" },
+				{ name: "Discovery", goType: "map[string]json.RawMessage", json: "discovery,omitempty" },
+			]}
+			ConfiguredConnectionParam: { name: "ConfiguredConnectionParam", fields: [
+				{ name: "Scope", slice: true, type: "string", json: "scope" },
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Value", type: "string", json: "value" },
+			]}
+		}
+
 configured_connection: {
 	model: {
 		attributes: {
@@ -35,7 +50,7 @@ configured_connection: {
 				omitGetter: true
 			}
 			config: {
-				goType: "types.ConfiguredConnectionConfig"
+				type: _configured_connectionDefs.ConfiguredConnectionConfig
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -71,11 +86,11 @@ configured_connection: {
 
 	features: {
 		labels: true
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _configured_connectionDefs
 	}
 
 	envoy: {
@@ -91,6 +106,28 @@ configured_connection: {
 	}
 
 	service: {
+		customFunctions: [
+			{
+				name:   "Enable"
+				cap:    "write"
+				action: "Enable"
+				args: [{name: "ID", goType: "uint64"}]
+				results: [{name: "res", goType: "*types.ConfiguredConnection"}, {name: "err", goType: "error"}]
+			},
+			{
+				name: "Check"
+				cap:  "read"
+				args: [{name: "ID", goType: "uint64"}]
+				results: [{name: "res", goType: "*types.ConfiguredConnectionCheckResult"}, {name: "err", goType: "error"}]
+			},
+			{
+				name: "RefreshDiscovery"
+				cap:  "write"
+				args: [{name: "ID", goType: "uint64"}]
+				results: [{name: "res", goType: "map[string]any"}, {name: "err", goType: "error"}]
+			},
+		]
+
 		lookup: false
 		search: false
 		update: false

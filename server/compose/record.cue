@@ -4,9 +4,26 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_recordDefs: {
+			RecordValueSet: { name: "RecordValueSet", elem: _recordDefs.RecordValue, elemPtr: true }
+			RecordValue: { name: "RecordValue", fields: [
+				{ name: "RecordID", type: "uint64", json: "-" },
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Value", type: "string", json: "value,omitempty" },
+				{ name: "Ref", type: "uint64", json: "-" },
+				{ name: "Place", goType: "uint", json: "place,omitempty" },
+				{ name: "DeletedAt", type: "time.Time", ptr: true, json: "deletedAt,omitempty" },
+				{ name: "Updated", type: "bool", json: "-" },
+				{ name: "OldValue", type: "string", json: "-" },
+			]}
+		}
+
 record: {
 	features: {
-		projectScoped: true
+	}
+
+	types: {
+		defs: _recordDefs
 	}
 
 	parents: [
@@ -41,7 +58,7 @@ record: {
 				omitGetter: true
 			}
 			values: {
-				goType: "types.RecordValueSet",
+				type: _recordDefs.RecordValueSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

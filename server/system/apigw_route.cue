@@ -4,14 +4,23 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_apigw_routeDefs: {
+			ApigwRouteMeta: { name: "ApigwRouteMeta", fields: [
+				{ name: "Debug", type: "bool", json: "debug" },
+				{ name: "Async", type: "bool", json: "async" },
+				{ name: "Desc", type: "string", json: "description" },
+				{ name: "Labels", goType: "map[string]labelTypes.LabelValue", json: "labels,omitempty" },
+			]}
+		}
+
 apigw_route: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _apigw_routeDefs
 	}
 
 	model: {
@@ -36,7 +45,7 @@ apigw_route: {
 				dal: { type: "Boolean" }
 			}
 			meta: {
-				goType: "types.ApigwRouteMeta"
+				type: _apigw_routeDefs.ApigwRouteMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

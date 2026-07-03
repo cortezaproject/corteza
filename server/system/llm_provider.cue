@@ -4,6 +4,26 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_llm_providerDefs: {
+			LLMProviderMeta: { name: "LLMProviderMeta", fields: [
+				{ name: "Short", type: "string", json: "short" },
+				{ name: "Description", type: "string", json: "description" },
+			]}
+			LLMProviderConfig: { name: "LLMProviderConfig", fields: [
+				{ name: "PromptURL", type: "string", json: "promptURL" },
+				{ name: "Model", type: "string", json: "model" },
+				{ name: "Temperature", type: "float64", ptr: true, json: "temperature,omitempty" },
+				{ name: "Timeout", type: "string", json: "timeout" },
+				{ name: "Guard", type: _llm_providerDefs.LLMProviderGuardConfig, ptr: true, json: "guard,omitempty" },
+			]}
+			LLMProviderGuardConfig: { name: "LLMProviderGuardConfig", fields: [
+				{ name: "Enabled", type: "bool", json: "enabled" },
+				{ name: "Provider", type: "string", json: "provider" },
+				{ name: "Model", type: "string", json: "model" },
+				{ name: "Thresholds", goType: "map[string]float64", json: "thresholds,omitempty" },
+			]}
+		}
+
 llm_provider: {
 	model: {
 		attributes: {
@@ -27,7 +47,7 @@ llm_provider: {
 				dal: { type: "Ref", refModelResType: "corteza::system:credential", default: 0 }
 			}
 			meta: {
-				goType: "types.LLMProviderMeta"
+				type: _llm_providerDefs.LLMProviderMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -42,7 +62,7 @@ llm_provider: {
 				envoy: { yaml: { omitEncoder: true } }
 			}
 			config: {
-				goType: "types.LLMProviderConfig"
+				type: _llm_providerDefs.LLMProviderConfig
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -86,11 +106,11 @@ llm_provider: {
 
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _llm_providerDefs
 	}
 
 	envoy: {

@@ -4,14 +4,24 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_sharedModuleDefs: {
+	ModuleFieldSet: { name: "ModuleFieldSet", elem: _sharedModuleDefs.ModuleField, elemPtr: true }
+	ModuleField: { name: "ModuleField", fields: [
+		{ name: "Kind", type: "string", json: "kind" },
+		{ name: "Name", type: "string", json: "name" },
+		{ name: "Label", type: "string", json: "label" },
+		{ name: "IsMulti", type: "bool", json: "isMulti" },
+	]}
+}
+
 sharedModule: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _sharedModuleDefs
 		// ModuleFieldSet's Scan/Value/Parse are generated via exposed_module (same pkg)
 		jsonTypesSkip: ["ModuleFieldSet"]
 	}
@@ -54,7 +64,7 @@ sharedModule: {
 				json: { field: "externalFederationModuleID", string: true }
 			}
 			fields: {
-				goType: "types.ModuleFieldSet"
+				type: _sharedModuleDefs.ModuleFieldSet
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

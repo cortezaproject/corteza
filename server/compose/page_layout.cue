@@ -4,13 +4,72 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_pageLayoutDefs: {
+			PageLayoutMeta: { name: "PageLayoutMeta", fields: [
+				{ name: "Title", type: "string", json: "title" },
+				{ name: "Description", type: "string", json: "description" },
+				{ name: "Style", goType: "map[string]any", json: "style,omitempty" },
+			]}
+
+			PageLayoutConfig: { name: "PageLayoutConfig", fields: [
+				{ name: "Visibility", type: _pageLayoutDefs.PageLayoutVisibility, json: "visibility" },
+				{ name: "Buttons", type: _pageLayoutDefs.PageLayoutButtonConfig, json: "buttons" },
+				{ name: "Actions", slice: true, type: _pageLayoutDefs.PageLayoutAction, json: "actions,omitempty" },
+				{ name: "Validation", type: _pageLayoutDefs.PageLayoutValidation, json: "validation" },
+				{ name: "UseTitle", type: "bool", json: "useTitle" },
+			]}
+
+			PageLayoutVisibility: { name: "PageLayoutVisibility", fields: [
+				{ name: "Expression", type: "string", json: "expression" },
+				{ name: "Roles", slice: true, type: "string", json: "roles,omitempty" },
+			]}
+
+			PageLayoutButtonConfig: { name: "PageLayoutButtonConfig", fields: [
+				{ name: "New", type: _pageLayoutDefs.PageLayoutButton, json: "new" },
+				{ name: "Edit", type: _pageLayoutDefs.PageLayoutButton, json: "edit" },
+				{ name: "Submit", type: _pageLayoutDefs.PageLayoutButton, json: "submit" },
+				{ name: "Delete", type: _pageLayoutDefs.PageLayoutButton, json: "delete" },
+				{ name: "Clone", type: _pageLayoutDefs.PageLayoutButton, json: "clone" },
+				{ name: "Back", type: _pageLayoutDefs.PageLayoutButton, json: "back" },
+			]}
+
+			PageLayoutButton: { name: "PageLayoutButton", fields: [
+				{ name: "Enabled", type: "bool", json: "enabled" },
+				{ name: "Label", type: "string", json: "label" },
+			]}
+
+			PageLayoutAction: { name: "PageLayoutAction", fields: [
+				{ name: "ActionID", type: "uint64", json: "actionID,string" },
+				{ name: "Placement", type: "string", json: "placement" },
+				{ name: "Meta", type: _pageLayoutDefs.PageLayoutActionMeta, json: "meta" },
+				{ name: "Enabled", type: "bool", json: "enabled" },
+				{ name: "Kind", type: "string", json: "kind" },
+				{ name: "Params", type: "any", json: "params" },
+			]}
+
+			PageLayoutActionMeta: { name: "PageLayoutActionMeta", fields: [
+				{ name: "Label", type: "string", json: "label" },
+				{ name: "Style", goType: "map[string]any", json: "style,omitempty" },
+			]}
+
+			PageLayoutValidation: { name: "PageLayoutValidation", fields: [
+				{ name: "RequiredFields", slice: true, type: _pageLayoutDefs.PageLayoutRequiredField, json: "requiredFields,omitempty" },
+			]}
+
+			PageLayoutRequiredField: { name: "PageLayoutRequiredField", fields: [
+				{ name: "Field", type: "string", json: "field" },
+				{ name: "Condition", type: "string", json: "condition" },
+			]}
+		}
+
 pageLayout: {
 	features: {
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+
+		defs: _pageLayoutDefs
 	}
 
 	parents: [
@@ -84,7 +143,7 @@ pageLayout: {
 			}
 
 			meta: {
-				goType: "types.PageLayoutMeta"
+				type: _pageLayoutDefs.PageLayoutMeta
 				json: { field: "meta", omitEmpty: true }
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
@@ -92,7 +151,7 @@ pageLayout: {
 			}
 
 			config: {
-				goType: "types.PageLayoutConfig"
+				type: _pageLayoutDefs.PageLayoutConfig
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -160,6 +219,48 @@ pageLayout: {
 		undelete: true
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
+		customFunctions: [
+			{
+				name: "FindByHandle"
+				cap:  "read"
+				action: "Lookup"
+				args: [
+					{name: "namespaceID", goType: "uint64"},
+					{name: "h", goType: "string"},
+				]
+				results: [
+					{name: "c", goType: "*types.PageLayout"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "FindByPageLayoutID"
+				cap:  "read"
+				action: "Lookup"
+				args: [
+					{name: "namespaceID", goType: "uint64"},
+					{name: "pageLayoutID", goType: "uint64"},
+				]
+				results: [
+					{name: "p", goType: "*types.PageLayout"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "Reorder"
+				cap:  "write"
+				action: "Reorder"
+				args: [
+					{name: "namespaceID", goType: "uint64"},
+					{name: "pageID", goType: "uint64"},
+					{name: "pageLayoutIDs", goType: "[]uint64"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+		]
 
 		customAccessOps: ["search", "create"]
 

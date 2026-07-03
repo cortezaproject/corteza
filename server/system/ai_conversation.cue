@@ -4,13 +4,36 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_ai_conversationDefs: {
+	AiConversationMessages: { name: "AiConversationMessages", elem: _ai_conversationDefs.AiConversationMessage }
+	AiConversationMessage: { name: "AiConversationMessage", fields: [
+		{ name: "Role", type: "string", json: "role" },
+		{ name: "Content", type: "string", json: "content" },
+		{ name: "Operator", type: "string", json: "operator,omitempty" },
+		{ name: "ToolCalls", slice: true, type: _ai_conversationDefs.AiConversationToolCall, json: "toolCalls,omitempty" },
+		{ name: "ToolResults", slice: true, type: _ai_conversationDefs.AiConversationToolResult, json: "toolResults,omitempty" },
+	]}
+	AiConversationToolCall: { name: "AiConversationToolCall", fields: [
+		{ name: "CallID", type: "string", json: "callID" },
+		{ name: "Name", type: "string", json: "name" },
+		{ name: "Data", type: "string", json: "data" },
+	]}
+	AiConversationToolResult: { name: "AiConversationToolResult", fields: [
+		{ name: "CallID", type: "string", json: "callID" },
+		{ name: "Data", type: "string", json: "data" },
+		{ name: "Error", type: "string", json: "error,omitempty" },
+	]}
+}
+
 ai_conversation: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
-	types: { gen: true }
+	types: {
+		gen: true
+		defs: _ai_conversationDefs
+	}
 
 	model: {
 		ident: "ai_conversations"
@@ -26,7 +49,7 @@ ai_conversation: {
 				json: {field: "agentID", string: true}
 			}
 			messages: {
-				goType: "types.AiConversationMessages"
+				type: _ai_conversationDefs.AiConversationMessages
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

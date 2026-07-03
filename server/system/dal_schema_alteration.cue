@@ -4,6 +4,17 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_dal_schema_alterationDefs: {
+			DalSchemaAlterationParams: { name: "DalSchemaAlterationParams", fields: [
+				{ name: "AttributeAdd", goType: "*dal.AttributeAdd", json: "attributeAdd,omitempty" },
+				{ name: "AttributeDelete", goType: "*dal.AttributeDelete", json: "attributeDelete,omitempty" },
+				{ name: "AttributeReType", goType: "*dal.AttributeReType", json: "attributeReType,omitempty" },
+				{ name: "AttributeReEncode", goType: "*dal.AttributeReEncode", json: "attributeReEncode,omitempty" },
+				{ name: "ModelAdd", goType: "*dal.ModelAdd", json: "modelAdd,omitempty" },
+				{ name: "ModelDelete", goType: "*dal.ModelDelete", json: "modelDelete,omitempty" },
+			]}
+		}
+
 dal_schema_alteration: {
 	features: {
 		labels: false
@@ -12,6 +23,7 @@ dal_schema_alteration: {
 
 	types: {
 		gen: true
+		defs: _dal_schema_alterationDefs
 	}
 
 	model: {
@@ -51,7 +63,8 @@ dal_schema_alteration: {
 				dal: { type: "Text", length: 256 }
 			}
 			params: {
-				goType: "*types.DalSchemaAlterationParams"
+				type: _dal_schema_alterationDefs.DalSchemaAlterationParams
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

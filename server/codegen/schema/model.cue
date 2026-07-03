@@ -31,8 +31,25 @@ import (
 
 	_ident: strings.ToCamel(strings.Replace(strings.ToTitle(_words), " ", "", -1))
 
+	// type references a registry entry (#StructType/#EnumType) authored under
+	// <resource>.types.defs. When set, goType is derived as `types.<Name>` (with
+	// ptr/slice prefixes) so store/dal/rbac/getter gen — all of which walk goType —
+	// stay unchanged, while enabling type-decl gen + reference existence enforcement.
+	type?:  {name: #expIdent, ...}
+	ptr:    bool | *false
+	slice:  bool | *false
+
+	// goType default derives from `type` when set. MUST stay a single default
+	// expression (not a conditional `if type != _|_ { goType: ... }` field add) —
+	// a conditional re-add trips CUE's "field goType was already used" error the
+	// moment any consumer (store/dal/rbac/getter gen, snapshots) reads goType.
+	_defaultGoType: [
+		if type != _|_ {[ if ptr {"*"}, "" ][0] + [ if slice {"[]"}, "" ][0] + "types." + type.name},
+		"string",
+	][0]
+
 	// Golang type (built-in or other)
-	goType: string | *"string"
+	goType: string | *_defaultGoType
 
 	goCastFnc: string | *strings.ToTitle(goType)
 
@@ -275,7 +292,7 @@ AttributeAgentRef: {
 	}
 }
 
-// TenantRefField denormalises the owning tenant onto a scoped resource.
+// TenantRefField denormalises the owning tenant onto a resource.
 // Paired with features.tenantScoped, the store guard appends
 // `rel_tenant = <ctx tenant>` to every query/lookup.
 TenantRefField: {
@@ -286,8 +303,7 @@ TenantRefField: {
 	dal: { type: "ID", default: 0 }
 }
 
-// ProjectRefField denormalises the owning project onto a project-scoped
-// resource. Paired with features.projectScoped.
+// ProjectRefField denormalises the owning project onto a resource.
 ProjectRefField: {
 	ident: "projectID"
 	expIdent: "ProjectID"

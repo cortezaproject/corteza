@@ -4,16 +4,25 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_resource_translationDefs: {
+			Lang: { name: "Lang", fields: [
+				{ name: "Tag", goType: "language.Tag" },
+			]}
+		}
+
 resource_translation: {
 	features: {
 		labels: false
 		checkFn: false
 		// project-scoped, but project_id may be 0 for tenant-wide translations;
 		// the store guard only constrains project when ProjectID != 0.
-		projectScoped: true
 	}
 
-	types: { gen: true, jsonTypesSkip: ["Lang"] }
+	types: {
+		gen: true
+		jsonTypesSkip: ["Lang"]
+		defs: _resource_translationDefs
+	}
 
 	model: {
 		defaultSetter: true
@@ -29,7 +38,7 @@ resource_translation: {
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			lang: {
-		 		goType: "types.Lang"
+		 		type: _resource_translationDefs.Lang
 				dal: { type: "Text", length: 32 }
 				omitSetter: true
 				omitGetter: true

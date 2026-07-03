@@ -65,14 +65,15 @@ _StoreResource: {
 		auxIdent:  "aux\(expIdent)"
 		auxStruct: struct
 
-		features: {
-			paging: res.features.paging
-			sorting: res.features.sorting
-			checkFn: res.features.checkFn
+		_tenantAttrs:  [ for _, a in res.model.attributes if a.storeIdent == "rel_tenant"  { a }]
+		_projectAttrs: [ for _, a in res.model.attributes if a.storeIdent == "rel_project" { a }]
 
-			// tenancy scope guard; projectScoped implies tenantScoped
-			tenantScoped: res.features.tenantScoped || res.features.projectScoped
-			projectScoped: res.features.projectScoped
+		features: {
+			paging:          res.features.paging
+			sorting:         res.features.sorting
+			checkFn:         res.features.checkFn
+			tenantScoped:    len(_tenantAttrs) > 0
+			projectUnscoped: len(_projectAttrs) == 0
 		}
 
 		api: {
@@ -84,7 +85,7 @@ _StoreResource: {
 					"goFilterType":  goFilterType
 					"auxIdent":      auxIdent
 					"expIdent":      expIdent
-					"tenantScoped":  res.features.tenantScoped || res.features.projectScoped
+					"tenantScoped":  len(_tenantAttrs) > 0
 				}
 
 				if hasPrimaryKey {

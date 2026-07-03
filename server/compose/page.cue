@@ -4,13 +4,88 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_pageDefs: {
+			PageBlocks: {
+				name: "PageBlocks"
+				elem: _pageDefs.PageBlock
+			}
+			PageBlock: {
+				name: "PageBlock"
+				fields: [
+					{name: "BlockID", type: "uint64", json: "blockID,string,omitempty"},
+					{name: "Options", goType: "map[string]interface{}", json: "options,omitempty"},
+					{name: "Style", type: _pageDefs.PageBlockStyle, json: "style,omitempty"},
+					{name: "Kind", type: "string", json: "kind"},
+					{name: "XYWH", goType: "[4]int", json: "xywh"},
+					{name: "Meta", goType: "map[string]any", json: "meta,omitempty"},
+					{name: "Title", type: "string", json: "title,omitempty"},
+					{name: "Description", type: "string", json: "description,omitempty"},
+				]
+			}
+			PageBlockStyle: {
+				name: "PageBlockStyle"
+				fields: [
+					{name: "Variants", goType: "map[string]string", json: "variants,omitempty"},
+					{name: "Wrap", goType: "map[string]string", json: "wrap,omitempty"},
+					{name: "Border", goType: "map[string]interface{}", json: "border,omitempty"},
+				]
+			}
+			PageChildrenDeleteStrategy: {
+				name: "PageChildrenDeleteStrategy"
+				doc: "how child pages are handled on delete"
+				kind: "string"
+				values: [
+					{ident: "Abort", value: "abort"},
+					{ident: "Rebase", value: "rebase", doc: "reattach children to parent"},
+				]
+			}
+			PageMeta: {
+				name: "PageMeta"
+				fields: [
+					{name: "AllowPersonalLayouts", type: "bool", json: "allowPersonalLayouts"},
+					{name: "Notifications", goType: "map[string]any", json: "notifications,omitempty"},
+				]
+			}
+			PageConfig: {
+				name: "PageConfig"
+				fields: [
+					{name: "NavItem", type: _pageDefs.PageConfigNavItem, json: "navItem"},
+				]
+			}
+			PageConfigNavItem: {
+				name: "PageConfigNavItem"
+				fields: [
+					{name: "Expanded", type: "bool", json: "expanded"},
+					{name: "Icon", type: _pageDefs.PageConfigIcon, ptr: true, json: "icon,omitempty"},
+				]
+			}
+			PageConfigIcon: {
+				name: "PageConfigIcon"
+				fields: [
+					{name: "Type", type: _pageDefs.IconType, json: "type,omitempty"},
+					{name: "Src", type: "string", json: "src"},
+					{name: "Style", goType: "map[string]string", json: "style,omitempty"},
+				]
+			}
+			IconType: {
+				name: "IconType"
+				kind: "string"
+				values: [
+					{ident: "IconTypeLink", value: "link"},
+					{ident: "IconTypeLibrary", value: "library"},
+					{ident: "IconTypeInlineSvg", value: "inline-svg"},
+					{ident: "IconTypeAttachment", value: "attachment"},
+				]
+			}
+		}
+
 page: {
 	features: {
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _pageDefs
 	}
 
 	parents: [
@@ -72,19 +147,19 @@ page: {
 			}
 
 			meta: {
-				goType: "types.PageMeta"
+				type: _pageDefs.PageMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			config: {
-				goType: "types.PageConfig"
+				type: _pageDefs.PageConfig
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			blocks: {
-				goType: "types.PageBlocks"
+				type: _pageDefs.PageBlocks
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -191,6 +266,46 @@ page: {
 		undelete: true
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
+
+		customFunctions: [
+			{
+				name: "Tree"
+				cap:  "read"
+				args: [
+					{name: "namespaceID", goType: "uint64"},
+				]
+				results: [
+					{name: "tree", goType: "types.PageSet"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name:   "Reorder"
+				cap:    "write"
+				action: "Reorder"
+				args: [
+					{name: "namespaceID", goType: "uint64"},
+					{name: "parentID", goType: "uint64"},
+					{name: "pageIDs", goType: "[]uint64"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "UpdateIcon"
+				cap:  "write"
+				args: [
+					{name: "namespaceID", goType: "uint64"},
+					{name: "pageID", goType: "uint64"},
+					{name: "icon", goType: "*types.PageConfigIcon"},
+				]
+				results: [
+					{name: "out", goType: "*types.PageConfigIcon"},
+					{name: "err", goType: "error"},
+				]
+			},
+		]
 
 		customAccessOps: ["search", "create"]
 

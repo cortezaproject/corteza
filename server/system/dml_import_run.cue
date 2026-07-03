@@ -4,9 +4,19 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_dml_import_runDefs: {
+			DmlImportMethod: {
+				name: "DmlImportMethod"
+				values: [
+					{ident: "DmlImportMethodBackground", value: "background"},
+				]
+			}
+		}
+
 dml_import_run: {
 	types: {
 		gen: true
+		defs: _dml_import_runDefs
 	}
 
 	features: {
@@ -32,7 +42,7 @@ dml_import_run: {
 				json: "mappingID,string"
 			}
 			method: {
-				goType: "types.DmlImportMethod"
+				type: _dml_import_runDefs.DmlImportMethod
 				dal: { type: "Text", length: 32 }
 				omitSetter: true
 				omitGetter: true

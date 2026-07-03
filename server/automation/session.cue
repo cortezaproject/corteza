@@ -4,10 +4,25 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_sessionDefs: {
+			SessionStatus: {
+				name: "SessionStatus"
+				kind: "int"
+				values: [
+					{ ident: "SessionStarted", value: 0 },
+					{ ident: "SessionPrompted", value: 1 },
+					{ ident: "SessionSuspended", value: 2 },
+					{ ident: "SessionFailed", value: 3 },
+					{ ident: "SessionCompleted", value: 4 },
+					{ ident: "SessionCanceled", value: 5 },
+				]
+			}
+			Stacktrace: { name: "Stacktrace", elemGoType: "wfexec.Frame", elemPtr: true }
+		}
+
 session: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	model: {
@@ -27,7 +42,7 @@ session: {
 			}
 			status: {
 				sortable: true,
-				goType: "types.SessionStatus"
+				type: _sessionDefs.SessionStatus
 				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
 				omitSetter: true
 				omitGetter: true
@@ -55,7 +70,7 @@ session: {
 				omitGetter: true
 			}
 			stacktrace: {
-				goType: "types.Stacktrace"
+				type: _sessionDefs.Stacktrace
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -81,6 +96,10 @@ session: {
 			"suspended_at": { attribute: "suspended_at" }
 			"resource_type": { attribute: "resource_type" }
 		}
+	}
+
+	types: {
+		defs: _sessionDefs
 	}
 
 	envoy: {

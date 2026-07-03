@@ -7,7 +7,6 @@ import (
 reminder: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	model: {
@@ -66,6 +65,37 @@ reminder: {
 
 		customBodyOps:   ["lookup", "search", "create", "update", "delete"]
 		customAccessOps: ["search", "create"]
+
+		customFunctions: [
+			{
+				name: "FindByIDs"
+				cap:  "read"
+				args: [{name: "IDs", goType: "[]uint64"}]
+				results: [{name: "rr", goType: "types.ReminderSet"}, {name: "err", goType: "error"}]
+			},
+			{
+				name:   "Dismiss"
+				cap:    "write"
+				action: "Dismiss"
+				args: [{name: "ID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:   "Undismiss"
+				cap:    "write"
+				action: "Dismiss"
+				args: [{name: "ID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:   "Snooze"
+				cap:    "write"
+				action: "Snooze"
+				args: [{name: "ID", goType: "uint64"}, {name: "remindAt", goType: "*time.Time"}]
+				results: [{name: "err", goType: "error"}]
+			},
+		]
+		customFunctionImports: ["\"time\""]
 	}
 
 	filter: {

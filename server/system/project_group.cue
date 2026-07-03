@@ -4,14 +4,21 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_project_groupDefs: {
+			ProjectGroupMeta: { name: "ProjectGroupMeta", fields: [
+				{name: "Short", type: "string", json: "short"},
+				{name: "Description", type: "string", json: "description,omitempty"},
+			]}
+		}
+
 project_group: {
 	features: {
 		labels:        false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _project_groupDefs
 	}
 
 	model: {
@@ -24,7 +31,7 @@ project_group: {
 			}
 			handle: schema.HandleField
 			meta: {
-				goType: "types.ProjectGroupMeta"
+				type: _project_groupDefs.ProjectGroupMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -68,6 +75,40 @@ project_group: {
 	envoy: {omit: true}
 
 	service: {
+
+		customFunctions: [
+			{
+				name: "MemberList"
+				cap:  "read"
+				args: [{name: "projectGroupID", goType: "uint64"}]
+				results: [
+					{name: "set", goType: "types.ProjectGroupEntrySet"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "MemberAdd"
+				cap:  "write"
+				args: [
+					{name: "projectGroupID", goType: "uint64"},
+					{name: "resourceRef", goType: "string"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name: "MemberRemove"
+				cap:  "write"
+				args: [
+					{name: "projectGroupID", goType: "uint64"},
+					{name: "resourceRef", goType: "string"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+		]
 
 		genConstructor: true
 

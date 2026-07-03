@@ -9,7 +9,6 @@ node: {
 		labels: false
 		paging: true
 		sorting: true
-		tenantScoped: true
 	}
 
 	types: {
@@ -79,6 +78,61 @@ node: {
 		updateProp:     "node"
 
 		customBodyOps: ["search", "create", "update", "delete", "undelete"]
+
+		customFunctions: [
+			{
+				name:   "Read"
+				cap:    "read"
+				action: "Create"
+				args: [{name: "ID", goType: "uint64"}]
+				results: [{name: "res", goType: "*types.Node"}, {name: "err", goType: "error"}]
+			},
+			{
+				name:   "CreateFromPairingURI"
+				cap:    "write"
+				ac:     "CanPair"
+				acErr:  "ErrNotAllowedToPair"
+				action: "CreateFromPairingURI"
+				args: [{name: "uri", goType: "string"}]
+				results: [{name: "n", goType: "*types.Node"}, {name: "err", goType: "error"}]
+			},
+			{
+				name: "RegenerateNodeURI"
+				cap:  "write"
+				args: [{name: "nodeID", goType: "uint64"}]
+				results: [{name: "uri", goType: "string"}, {name: "err", goType: "error"}]
+			},
+			{
+				name:  "Pair"
+				cap:   "write"
+				ac:    "CanPair"
+				acErr: "ErrNotAllowedToPair"
+				args: [{name: "nodeID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name: "HandshakeInit"
+				cap:  "write"
+				args: [{name: "nodeID", goType: "uint64"}, {name: "pairToken", goType: "string"}, {name: "sharedNodeID", goType: "uint64"}, {name: "authToken", goType: "string"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:  "HandshakeConfirm"
+				cap:   "write"
+				ac:    "CanPair"
+				acErr: "ErrNotAllowedToPair"
+				args: [{name: "nodeID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name:  "HandshakeComplete"
+				cap:   "write"
+				ac:    "CanPair"
+				acErr: "ErrNotAllowedToPair"
+				args: [{name: "sharedNodeID", goType: "uint64"}, {name: "token", goType: "string"}]
+				results: [{name: "err", goType: "error"}]
+			},
+		]
 	}
 
 	filter: {

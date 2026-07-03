@@ -4,9 +4,18 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_user_groupDefs: {
+			UserGroupConfig: { name: "UserGroupConfig", fields: [
+				{ name: "Paths", goType: "[]UserGroupPath", json: "path" },
+			]}
+			UserGroupMeta: { name: "UserGroupMeta", fields: [
+				{ name: "Description", type: "string", json: "description" },
+				{ name: "Short", type: "string", json: "short" },
+			]}
+		}
+
 user_group: {
 	features: {
-		projectScoped: true
 	}
 
 	types: {
@@ -16,6 +25,8 @@ user_group: {
 		// on the *T return), incompatible with the value-returning generated
 		// versions, so they are excluded from JSON helper generation.
 		jsonTypesPtr: ["UserGroupMeta", "UserGroupConfig"]
+
+		defs: _user_groupDefs
 	}
 
 	model: {
@@ -25,7 +36,8 @@ user_group: {
 			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			meta: {
-				goType: "*types.UserGroupMeta"
+				type: _user_groupDefs.UserGroupMeta
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -41,7 +53,8 @@ user_group: {
 			}
 
 			config: {
-				goType: "*types.UserGroupConfig"
+				type: _user_groupDefs.UserGroupConfig
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -98,6 +111,28 @@ user_group: {
 	}
 
 	service: {
+		customFunctions: [
+			{
+				name: "Activate"
+				cap: "write"
+				results: [{name: "err", goType: "error"}]
+			},
+			{
+				name: "MemberList"
+				cap: "read"
+				action: "Members"
+				args: [{name: "userGroupID", goType: "uint64"}]
+				results: [{name: "mm", goType: "types.UserSet"}, {name: "err", goType: "error"}]
+			},
+			{
+				name: "MemberAdd"
+				cap: "write"
+				action: "MemberAdd"
+				args: [{name: "userGroupID", goType: "uint64"}, {name: "memberID", goType: "uint64"}]
+				results: [{name: "err", goType: "error"}]
+			},
+		]
+
 		lookup: false
 
 		search: false

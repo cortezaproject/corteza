@@ -4,12 +4,45 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_dal_connectionDefs: {
+			DalConnectionConfig: { name: "DalConnectionConfig", fields: [
+				{ name: "DAL", ptr: true, type: _dal_connectionDefs.DalConnectionConfigDAL, json: "dal,omitempty" },
+				{ name: "Privacy", type: _dal_connectionDefs.DalConnectionConfigPrivacy, json: "privacy" },
+			]}
+			DalConnectionConfigPrivacy: { name: "DalConnectionConfigPrivacy", fields: [
+				{ name: "SensitivityLevelID", type: "uint64", json: "sensitivityLevelID,string,omitempty" },
+			]}
+			DalConnectionConfigDAL: { name: "DalConnectionConfigDAL", fields: [
+				{ name: "Type", type: "string", json: "type" },
+				{ name: "Params", goType: "map[string]any", json: "params" },
+				{ name: "ModelIdent", type: "string", json: "modelIdent" },
+				{ name: "ModelIdentCheck", slice: true, type: "string", json: "modelIdentCheck" },
+			]}
+			DalConnectionMeta: { name: "DalConnectionMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Ownership", type: "string", json: "ownership" },
+				{ name: "Location", goType: "geolocation.Full", json: "location" },
+				{ name: "Properties", type: _dal_connectionDefs.DalConnectionMetaProperties, json: "properties" },
+			]}
+			DalConnectionMetaProperties: { name: "DalConnectionMetaProperties", fields: [
+				{ name: "DataAtRestEncryption", type: _dal_connectionDefs.DalConnectionMetaProperty, json: "dataAtRestEncryption" },
+				{ name: "DataAtRestProtection", type: _dal_connectionDefs.DalConnectionMetaProperty, json: "dataAtRestProtection" },
+				{ name: "DataAtTransitEncryption", type: _dal_connectionDefs.DalConnectionMetaProperty, json: "dataAtTransitEncryption" },
+				{ name: "DataRestoration", type: _dal_connectionDefs.DalConnectionMetaProperty, json: "dataRestoration" },
+			]}
+			DalConnectionMetaProperty: { name: "DalConnectionMetaProperty", fields: [
+				{ name: "Enabled", type: "bool", json: "enabled" },
+				{ name: "Notes", type: "string", json: "notes" },
+			]}
+		}
+
 dal_connection: {
 	types: {
 		// generate the DalConnection struct into types/dal_connection.gen.go
 		gen: true
 		// []dal.Issue (struct-only Issues field) needs the dal package qualifier
 		imports: ["github.com/crusttech/human/server/pkg/dal"]
+		defs: _dal_connectionDefs
 	}
 	model: {
 		attributes: {
@@ -23,13 +56,13 @@ dal_connection: {
 			}
 
 			config: {
-				goType: "types.DalConnectionConfig"
+				type: _dal_connectionDefs.DalConnectionConfig
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
 			meta: {
-				goType: "types.DalConnectionMeta"
+				type: _dal_connectionDefs.DalConnectionMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -124,6 +157,10 @@ dal_connection: {
 		filterProp: "search"
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete"]
+
+		customFunctions: [
+			{name: "ReloadConnections", cap: "write"},
+		]
 
 		customAccessOps: ["search", "create"]
 	}

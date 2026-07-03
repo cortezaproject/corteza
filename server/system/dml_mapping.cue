@@ -4,9 +4,21 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_dml_mappingDefs: {
+			DmlColumnMapSet: { name: "DmlColumnMapSet", elem: _dml_mappingDefs.DmlColumnMap, elemPtr: true }
+			DmlColumnMap: { name: "DmlColumnMap", fields: [
+				{ name: "SourceIdent", type: "string", json: "sourceIdent" },
+				{ name: "FieldName", type: "string", json: "fieldName" },
+				{ name: "Label", type: "string", json: "label,omitempty" },
+				{ name: "FieldKind", type: "string", json: "fieldKind" },
+				{ name: "Skip", type: "bool", json: "skip" },
+			]}
+		}
+
 dml_mapping: {
 	types: {
 		gen: true
+		defs: _dml_mappingDefs
 	}
 
 	features: {
@@ -65,7 +77,7 @@ dml_mapping: {
 				json: "identifier"
 			}
 			columns: {
-				goType: "types.DmlColumnMapSet"
+				type: _dml_mappingDefs.DmlColumnMapSet
 				dal: { type: "JSON" }
 				omitSetter: true
 				omitGetter: true

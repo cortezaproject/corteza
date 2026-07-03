@@ -4,9 +4,22 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_auth_clientDefs: {
+			AuthClientMeta: { name: "AuthClientMeta", fields: [
+				{ name: "Name", type: "string", json: "name" },
+				{ name: "Description", type: "string", json: "description" },
+			]}
+			AuthClientSecurity: { name: "AuthClientSecurity", fields: [
+				{ name: "ImpersonateUser", type: "uint64", json: "impersonateUser,string,omitempty" },
+				{ name: "UserGroup", type: "uint64", json: "userGroup,string,omitempty" },
+				{ name: "PermittedRoles", slice: true, type: "string", json: "permittedRoles,omitempty" },
+				{ name: "ProhibitedRoles", slice: true, type: "string", json: "prohibitedRoles,omitempty" },
+				{ name: "ForcedRoles", slice: true, type: "string", json: "forcedRoles,omitempty" },
+			]}
+		}
+
 auth_client: {
 	features: {
-		projectScoped: true
 	}
 	types: {
 		gen: true
@@ -15,6 +28,7 @@ auth_client: {
 		// depend on the *T return), incompatible with the value-returning
 		// generated versions, so they are excluded from JSON helper generation.
 		jsonTypesPtr: ["AuthClientMeta", "AuthClientSecurity"]
+		defs: _auth_clientDefs
 	}
 	model: {
 		attributes: {
@@ -23,7 +37,8 @@ auth_client: {
 			project_id: schema.ProjectRefField
 			handle: schema.HandleField
 			meta: {
-				goType: "*types.AuthClientMeta"
+				type: _auth_clientDefs.AuthClientMeta
+				ptr: true
 				json: { field: "meta", omitEmpty: true }
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
@@ -75,7 +90,8 @@ auth_client: {
 			valid_from: schema.SortableTimestampNilField
 			expires_at: schema.SortableTimestampNilField
 			security: {
-				goType: "*types.AuthClientSecurity"
+				type: _auth_clientDefs.AuthClientSecurity
+				ptr: true
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -144,6 +160,20 @@ auth_client: {
 	}
 
 	service: {
+		customFunctions: [
+			{
+				name: "RegenerateSecret"
+				cap: "write"
+				action: "RegenerateSecret"
+				args: [
+					{name: "ID", goType: "uint64"},
+				]
+				results: [
+					{name: "secret", goType: "string"},
+					{name: "err", goType: "error"},
+				]
+			},
+		]
 
 
 		lookup:   false

@@ -4,14 +4,60 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_chatbotSessionDefs: {
+	ChatbotSessionState: { name: "ChatbotSessionState", elem: _chatbotSessionDefs.ChatbotSessionStepState }
+	ChatbotSessionStepState: { name: "ChatbotSessionStepState", fields: [
+		{ name: "ScenarioID", type: "string", json: "scenarioID" },
+		{ name: "Type", type: "string", json: "type" },
+		{ name: "Conversation", ptr: true, type: _chatbotSessionDefs.ChatbotConversationStepState, json: "conversation,omitempty" },
+		{ name: "Form", ptr: true, type: _chatbotSessionDefs.ChatbotFormStepState, json: "form,omitempty" },
+		{ name: "Consent", ptr: true, type: _chatbotSessionDefs.ChatbotConsentStepState, json: "consent,omitempty" },
+	]}
+	ChatbotConsentStepState: { name: "ChatbotConsentStepState", fields: [
+		{ name: "Accepted", type: "bool", json: "accepted" },
+		{ name: "At", type: "time.Time", json: "at" },
+	]}
+	ChatbotConversationStepState: { name: "ChatbotConversationStepState", fields: [
+		{ name: "ConversationID", type: "uint64", json: "conversationID,string,omitempty" },
+		{ name: "History", slice: true, type: _chatbotSessionDefs.AiConversationMessage, json: "history,omitempty" },
+		{ name: "Handoff", ptr: true, type: _chatbotSessionDefs.ChatbotConversationHandoffState, json: "handoff,omitempty" },
+	]}
+	ChatbotConversationHandoffState: { name: "ChatbotConversationHandoffState", fields: [
+		{ name: "OperatorID", type: "uint64", json: "operatorID,string,omitempty" },
+		{ name: "OperatorName", type: "string", json: "operatorName,omitempty" },
+	]}
+	ChatbotFormStepState: { name: "ChatbotFormStepState", fields: [
+		{ name: "Fields", goType: "map[string]string", json: "fields,omitempty" },
+		{ name: "Submitted", type: "bool", json: "submitted,omitempty" },
+	]}
+	AiConversationMessage: { name: "AiConversationMessage", fields: [
+		{ name: "Role", type: "string", json: "role" },
+		{ name: "Content", type: "string", json: "content" },
+		{ name: "Operator", type: "string", json: "operator,omitempty" },
+		{ name: "ToolCalls", slice: true, type: _chatbotSessionDefs.AiConversationToolCall, json: "toolCalls,omitempty" },
+		{ name: "ToolResults", slice: true, type: _chatbotSessionDefs.AiConversationToolResult, json: "toolResults,omitempty" },
+	]}
+	AiConversationToolCall: { name: "AiConversationToolCall", fields: [
+		{ name: "CallID", type: "string", json: "callID" },
+		{ name: "Name", type: "string", json: "name" },
+		{ name: "Data", type: "string", json: "data" },
+	]}
+	AiConversationToolResult: { name: "AiConversationToolResult", fields: [
+		{ name: "CallID", type: "string", json: "callID" },
+		{ name: "Data", type: "string", json: "data" },
+		{ name: "Error", type: "string", json: "error,omitempty" },
+	]}
+}
+
 chatbot_session: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+
+		defs: _chatbotSessionDefs
 	}
 
 	model: {
@@ -40,7 +86,7 @@ chatbot_session: {
 				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			state: {
-				goType: "types.ChatbotSessionState"
+				type: _chatbotSessionDefs.ChatbotSessionState
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

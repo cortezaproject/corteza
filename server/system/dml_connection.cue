@@ -4,9 +4,19 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_dml_connectionDefs: {
+			DmlConnectionParams: { name: "DmlConnectionParams", fields: [
+				{ name: "Type", type: "string", json: "type" },
+				{ name: "Params", goType: "map[string]any", json: "params" },
+				{ name: "ModelIdent", type: "string", json: "modelIdent" },
+				{ name: "ModelIdentCheck", slice: true, type: "string", json: "modelIdentCheck" },
+			]}
+		}
+
 dml_connection: {
 	types: {
 		gen: true
+		defs: _dml_connectionDefs
 	}
 
 	features: {
@@ -24,7 +34,7 @@ dml_connection: {
 				json: "label"
 			}
 			params: {
-				goType: "types.DmlConnectionParams"
+				type: _dml_connectionDefs.DmlConnectionParams
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

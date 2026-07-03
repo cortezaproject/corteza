@@ -4,13 +4,37 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_attachmentDefs: {
+			AttachmentMeta: { name: "AttachmentMeta", fields: [
+				{ name: "Original", type: _attachmentDefs.AttachmentFileMeta, json: "original" },
+				{ name: "Preview", ptr: true, type: _attachmentDefs.AttachmentFileMeta, json: "preview,omitempty" },
+				{ name: "Labels", goType: "map[string]string", json: "labels,omitempty" },
+			]}
+			AttachmentFileMeta: { name: "AttachmentFileMeta", fields: [
+				{ name: "Size", type: "int64", json: "size" },
+				{ name: "Extension", type: "string", json: "ext" },
+				{ name: "Mimetype", type: "string", json: "mimetype" },
+				{ name: "Image", ptr: true, type: _attachmentDefs.AttachmentImageMeta, json: "image,omitempty" },
+			]}
+			AttachmentImageMeta: { name: "AttachmentImageMeta", fields: [
+				{ name: "Width", type: "int", json: "width,omitempty" },
+				{ name: "Height", type: "int", json: "height,omitempty" },
+				{ name: "Animated", type: "bool", json: "animated" },
+				{ name: "Initial", type: "string", json: "initial,omitempty" },
+				{ name: "InitialColor", type: "string", json: "initial-color,omitempty" },
+				{ name: "BackgroundColor", type: "string", json: "background-color,omitempty" },
+			]}
+		}
+
 attachment: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
-	types: { gen: true, jsonTypesSkip: ["AttachmentMeta"] }
+	types: {
+		gen: true, jsonTypesSkip: ["AttachmentMeta"]
+		defs: _attachmentDefs
+	}
 
 	model: {
 		attributes: {
@@ -42,7 +66,7 @@ attachment: {
 				json: { field: "name", omitEmpty: true }
 			}
 			meta: {
-				goType: "types.AttachmentMeta"
+				type: _attachmentDefs.AttachmentMeta
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

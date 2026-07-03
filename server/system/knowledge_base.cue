@@ -4,13 +4,26 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_knowledge_baseDefs: {
+			KnowledgeBaseContext: { name: "KnowledgeBaseContext", fields: [
+				{ name: "Namespaces", slice: true, type: _knowledge_baseDefs.KnowledgeBaseNamespaceContext, json: "namespaces" },
+			]}
+			KnowledgeBaseNamespaceContext: { name: "KnowledgeBaseNamespaceContext", fields: [
+				{ name: "NamespaceID", type: "uint64", json: "namespaceID,string" },
+				{ name: "ModuleIDs", goType: "KnowledgeBaseIDList", json: "moduleIDs" },
+			]}
+		}
+
 knowledge_base: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
-	types: { gen: true, idLists: ["KnowledgeBaseIDList"] }
+	types: {
+		gen: true
+		idLists: ["KnowledgeBaseIDList"]
+		defs: _knowledge_baseDefs
+	}
 
 	model: {
 		attributes: {
@@ -30,7 +43,8 @@ knowledge_base: {
 				json: { field: "description", omitEmpty: true }
 			}
 			context: {
-				goType: "*types.KnowledgeBaseContext"
+				type: _knowledge_baseDefs.KnowledgeBaseContext
+				ptr: true
 				dal: { type: "JSON", nullable: true }
 				omitSetter: true
 				omitGetter: true

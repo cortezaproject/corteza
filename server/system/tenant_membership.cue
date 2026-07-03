@@ -4,15 +4,27 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_tenant_membershipDefs: {
+			TenantMemberRole: { name: "TenantMemberRole", values: [
+				{ident: "TenantRoleAdmin", value: "admin"},
+				{ident: "TenantRoleMember", value: "member"},
+			]}
+			TenantMemberStatus: { name: "TenantMemberStatus", values: [
+				{ident: "TenantMemberStatusActive", value: "active"},
+				{ident: "TenantMemberStatusSuspended", value: "suspended"},
+				{ident: "TenantMemberStatusInvited", value: "invited"},
+			]}
+		}
+
 tenant_membership: {
 	features: {
-		tenantScoped: true
 		// hand-written TenantMembership struct has no Labels field
 		labels: false
 	}
 
 	types: {
 		gen: true
+		defs: _tenant_membershipDefs
 	}
 
 	model: {
@@ -32,7 +44,7 @@ tenant_membership: {
 				json: {field: "userID", string: true}
 			}
 			role: {
-				goType:     "types.TenantMemberRole"
+				type:       _tenant_membershipDefs.TenantMemberRole
 				storeIdent: "role"
 				dal: {length: 64}
 				omitSetter: true
@@ -40,7 +52,7 @@ tenant_membership: {
 			}
 			status: {
 				sortable:   true
-				goType:     "types.TenantMemberStatus"
+				type:       _tenant_membershipDefs.TenantMemberStatus
 				storeIdent: "status"
 				dal: {length: 32}
 				omitSetter: true

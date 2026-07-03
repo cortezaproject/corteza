@@ -4,14 +4,18 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
+_apigw_filterDefs: {
+	ApigwFilterParams: { name: "ApigwFilterParams", key: "string", valueGoType: "interface{}" }
+}
+
 apigw_filter: {
 	features: {
 		labels: false
-		projectScoped: true
 	}
 
 	types: {
 		gen: true
+		defs: _apigw_filterDefs
 	}
 
 	model: {
@@ -52,7 +56,7 @@ apigw_filter: {
 				json: { field: "enabled", omitEmpty: true }
 			}
 			params: {
-				goType: "types.ApigwFilterParams"
+				type: _apigw_filterDefs.ApigwFilterParams
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -98,6 +102,29 @@ apigw_filter: {
 
 	service: {
 		customBodyOps:   ["lookup", "search", "create", "update", "delete"]
+		customFunctions: [
+			{
+				name:   "DefFilter"
+				cap:    "read"
+				action: "Search"
+				args: [
+					{name: "kind", goType: "string"},
+				]
+				results: [
+					{name: "l", goType: "interface{}"},
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name:   "DefProxyAuth"
+				cap:    "read"
+				action: "Search"
+				results: [
+					{name: "l", goType: "interface{}"},
+					{name: "err", goType: "error"},
+				]
+			},
+		]
 		customAccessOps: ["lookup", "search", "create", "update", "delete"]
 
 		actionProp:     "filter"

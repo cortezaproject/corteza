@@ -61,6 +61,39 @@ package schema
 	customAccessOps: [...string] | *[]
 	customBodyOps:   [...string] | *[]
 
+	// customFunctions generates, per entry, a wrapper method that owns the standard
+	// boilerplate -- tenant+project scope check, optional access-control guard and
+	// optional action-log -- and delegates the actual body to a hand-written
+	// svc.on<Name>(...) handler. Use for bespoke ops (Reorder, MarkAsRead,
+	// Impersonate, ...) that still want the CRUD scaffold. The companion keeps only
+	// the on<Name> handler; the public method itself is generated.
+	customFunctions: [...{
+		// method name; exported or unexported Go identifier. Delegates to svc.on<Name>.
+		name: =~"^[a-zA-Z_][a-zA-Z0-9_]*$"
+
+		// scope capability enforced by checkScope (tenant membership + capability).
+		cap: *"write" | "read"
+
+		// optional access-control guard: `if !svc.ac.<ac>(ctx) { return <Resource><acErr>() }`.
+		// acErr is the error constructor (defaults to ErrNotAllowedTo<Name>).
+		ac?:    #expIdent
+		acErr?: #expIdent
+
+		// action-log action stem -> <Resource>Action<action>. Defaults to the
+		// title-cased function name. Override when the action name differs.
+		action?: #expIdent
+
+		// method signature after ctx. results' last entry must be the error return.
+		// arg/result names are Go identifiers (may be exported-looking, e.g. ID).
+		args?: [...{name: =~"^[a-zA-Z_][a-zA-Z0-9_]*$", goType: string}]
+		results?: [...{name?: =~"^[a-zA-Z_][a-zA-Z0-9_]*$", goType: string}]
+	}] | *[]
+
+	// extra import specs the customFunctions signatures need beyond the service's
+	// own types pkg (which is imported implicitly). Each entry is a full Go import
+	// spec, optionally aliased, e.g. "expr \"github.com/.../pkg/expr\"".
+	customFunctionImports: [...string] | *[]
+
 	// Exported attr idents copied verbatim by Update (e.g. ["Handle","Type"]).
 	// Set explicitly when non-trivial -- omitSetter is a DAL flag and unreliable
 	// here. Empty => loader derives (stored, !omitSetter, non-ID/Timestamp, minus
