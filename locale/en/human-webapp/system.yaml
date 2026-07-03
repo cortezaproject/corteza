@@ -778,7 +778,7 @@ llmProviders:
       delete: Delete
       description: Description
       handle: Handle
-      handle.invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+      invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       provider: Provider
       providerOther: Other (Custom URL)
       short: Name
@@ -981,7 +981,8 @@ sensitivityLevel:
       createdAt: Created
       handle: Handle
       level: Level
-      meta.name: Name
+      meta:
+        name: Name
       name: Name
       state: State
     delete: Delete

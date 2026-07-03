@@ -508,6 +508,7 @@ const permissionsMenuItems = computed(() => {
           resource: `corteza::compose:module-field/${module.value.namespaceID}/${module.value.moduleID}/*`,
           title: module.value.name || module.value.handle || module.value.moduleID,
           target: module.value.name || module.value.handle || module.value.moduleID,
+          allSpecific: true,
         })
       },
     },
@@ -518,6 +519,7 @@ const permissionsMenuItems = computed(() => {
           resource: `corteza::compose:record/${module.value.namespaceID}/${module.value.moduleID}/*`,
           title: module.value.name || module.value.handle || module.value.moduleID,
           target: module.value.name || module.value.handle || module.value.moduleID,
+          allSpecific: true,
         })
       },
     },

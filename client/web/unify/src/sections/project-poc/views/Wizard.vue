@@ -5,100 +5,149 @@
 
   <div v-if="project" class="h-full flex flex-col min-h-0">
     <div class="flex-1 flex gap-4 p-4 min-h-0">
-    <!-- Left: step nav -->
-    <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
-      <StepNav
-        class="flex-1 min-h-0"
-        :steps="navSteps"
-        :active-key="activeKey"
-        :statuses="statuses"
-        :gate-statuses="gateStatuses"
-        :gate-locked="gateLocked"
-        :show-gates="showGates"
-        @select="goStep"
-        @gate-click="onGateClick"
-      />
-    </div>
-
-    <div class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden">
-      <!-- Step header -->
-      <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
-        <div class="min-w-0">
-          <h2 class="text-lg font-medium truncate">{{ activeStep?.title || activeStep?.label }}</h2>
-          <p class="text-sm text-muted-color mt-0.5 min-h-[1.25rem]">{{ headerHint }}</p>
-        </div>
-
-        <div class="ml-auto flex items-center gap-3">
-          <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
-        </div>
+      <!-- Left: step nav -->
+      <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
+        <StepNav
+          class="flex-1 min-h-0"
+          :steps="navSteps"
+          :active-key="activeKey"
+          :statuses="statuses"
+          :gate-statuses="gateStatuses"
+          :gate-locked="gateLocked"
+          :show-gates="showGates"
+          @select="goStep"
+          @gate-click="onGateClick"
+        />
       </div>
 
-      <!-- Step content + dashboard -->
-      <div ref="splitRef" class="flex-1 min-h-0 flex">
-        <div
-          class="min-h-0"
-          :class="isArchitecture || isDataModel || isConnections || isDataSensitivity || isResourceManagement ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
-          :style="{ width: leftPct + '%' }"
-        >
-          <template v-if="isArchitecture">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <ArchitectureStep
-              v-model="selectedGroupId"
-              :project="project"
-              :disabled="locked"
-              class="flex-1 min-h-0"
+      <div
+        class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden"
+      >
+        <!-- Step header -->
+        <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
+          <div class="min-w-0">
+            <h2 class="text-lg font-medium truncate">
+              {{ activeStep?.title || activeStep?.label }}
+            </h2>
+            <p class="text-sm text-muted-color">{{ headerHint }}</p>
+          </div>
+
+          <div class="ml-auto flex items-center gap-3">
+            <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
+          </div>
+        </div>
+
+        <!-- Step content + dashboard -->
+        <div ref="splitRef" class="flex-1 min-h-0 flex">
+          <div
+            class="min-h-0"
+            :class="
+              isArchitecture ||
+              isDataModel ||
+              isConnections ||
+              isDataSensitivity ||
+              isResourceManagement
+                ? 'overflow-hidden flex flex-col'
+                : 'overflow-y-auto p-4'
+            "
+            :style="{ width: leftPct + '%' }"
+          >
+            <template v-if="isArchitecture">
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="m-3 mb-0 shrink-0"
+              />
+              <ArchitectureStep
+                v-model="selectedGroupId"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+            </template>
+            <template v-else-if="isDataModel">
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="m-3 mb-0 shrink-0"
+              />
+              <DataModelStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
+            </template>
+            <template v-else-if="isConnections">
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="m-3 mb-0 shrink-0"
+              />
+              <ConnectionsStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
+            </template>
+            <template v-else-if="isDataSensitivity">
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="m-3 mb-0 shrink-0"
+              />
+              <DataSensitivityStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
+            </template>
+            <template v-else-if="isResourceManagement">
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="m-3 mb-0 shrink-0"
+              />
+              <ResourceManagementStep
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
+            </template>
+            <template v-else>
+              <StepStatusBanner
+                v-if="showStatus"
+                :status="status"
+                :review-note="reviewNote"
+                class="mb-4"
+              />
+              <ProjectSummaryStep v-if="isSummary" v-model="working" :disabled="locked" />
+              <MembersStep v-else-if="isMembers" :project="project" :disabled="locked" />
+              <div
+                v-else
+                class="h-full flex flex-col items-center justify-center gap-2 text-muted-color text-center"
+              >
+                <i :class="['text-3xl', placeholderIcon]" />
+                <p class="text-sm">This step isn't built yet.</p>
+              </div>
+            </template>
+          </div>
+
+          <!-- Drag handle -->
+          <div
+            class="shrink-0 w-1.5 bg-surface-200 dark:bg-surface-700 hover:bg-primary relative cursor-col-resize group select-none flex items-center justify-center transition-colors"
+            :class="{ '!bg-primary': resizing }"
+            @pointerdown="startResize"
+          >
+            <span class="absolute inset-y-0 -left-1 -right-1" />
+            <span
+              class="h-8 w-0.5 rounded-full bg-surface-400 dark:bg-surface-500 group-hover:bg-primary-contrast"
+              :class="{ '!bg-primary-contrast': resizing }"
             />
-          </template>
-          <template v-else-if="isDataModel">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <DataModelStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else-if="isConnections">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <ConnectionsStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else-if="isDataSensitivity">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <DataSensitivityStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else-if="isResourceManagement">
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="m-3 mb-0 shrink-0" />
-            <ResourceManagementStep :project="project" :disabled="locked" class="flex-1 min-h-0" />
-          </template>
-          <template v-else>
-            <StepStatusBanner v-if="showStatus" :status="status" :review-note="reviewNote" class="mb-4" />
-            <ProjectSummaryStep v-if="isSummary" v-model="working" :disabled="locked" />
-            <MembersStep v-else-if="isMembers" :project="project" :disabled="locked" />
-            <div
-              v-else
-              class="h-full flex flex-col items-center justify-center gap-2 text-muted-color text-center"
-            >
-              <i :class="['text-3xl', placeholderIcon]" />
-              <p class="text-sm">This step isn't built yet.</p>
-            </div>
-          </template>
-        </div>
+          </div>
 
-        <!-- Drag handle -->
-        <div
-          class="shrink-0 w-1.5 bg-surface-200 dark:bg-surface-700 hover:bg-primary relative cursor-col-resize group select-none flex items-center justify-center transition-colors"
-          :class="{ '!bg-primary': resizing }"
-          @pointerdown="startResize"
-        >
-          <span class="absolute inset-y-0 -left-1 -right-1" />
-          <span class="h-8 w-0.5 rounded-full bg-surface-400 dark:bg-surface-500 group-hover:bg-primary-contrast" :class="{ '!bg-primary-contrast': resizing }" />
-        </div>
-
-        <div class="overflow-hidden p-4 min-h-0 flex-1">
-          <ResourcePanel
-            :project="project"
-            :locked="status === 'submitted'"
-            :selected-group-id="isArchitecture ? selectedGroupId : '__all__'"
-            :emphasize-kind="emphasizeKind"
-          />
+          <div class="overflow-hidden p-4 min-h-0 flex-1">
+            <ResourcePanel
+              :project="project"
+              :locked="status === 'submitted'"
+              :selected-group-id="isArchitecture ? selectedGroupId : '__all__'"
+              :emphasize-kind="emphasizeKind"
+            />
+          </div>
         </div>
       </div>
-    </div>
     </div>
 
     <WizardToolbar
@@ -137,14 +186,36 @@
     />
   </div>
 
-  <Dialog v-model:visible="reason.visible" modal :header="reasonText.header" :style="{ width: '32rem' }">
+  <Dialog
+    v-model:visible="reason.visible"
+    modal
+    :header="reasonText.header"
+    :style="{ width: '32rem' }"
+  >
     <CFormGroup :label="reasonText.label" required>
-      <Textarea v-model="reason.note" rows="3" auto-resize fluid :placeholder="reasonText.placeholder" />
+      <Textarea
+        v-model="reason.note"
+        rows="3"
+        auto-resize
+        fluid
+        :placeholder="reasonText.placeholder"
+      />
     </CFormGroup>
     <template #footer>
       <div class="flex justify-end gap-2">
-        <Button label="Cancel" severity="secondary" outlined size="small" @click="reason.visible = false" />
-        <Button :label="reasonText.confirm" size="small" :disabled="!reason.note.trim()" @click="confirmReason" />
+        <Button
+          label="Cancel"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="reason.visible = false"
+        />
+        <Button
+          :label="reasonText.confirm"
+          size="small"
+          :disabled="!reason.note.trim()"
+          @click="confirmReason"
+        />
       </div>
     </template>
   </Dialog>
@@ -283,7 +354,9 @@ const friaCtx = computed(() => ({ friaRequired: !!project.value?.friaRequired })
 const navSteps = computed(() =>
   project.value ? stepsForTab(effectiveTab.value, friaCtx.value) : [],
 )
-const showGates = computed(() => project.value?.mode === 'gated' && effectiveTab.value === 'governance')
+const showGates = computed(
+  () => project.value?.mode === 'gated' && effectiveTab.value === 'governance',
+)
 
 // --- Active step -----------------------------------------------------------
 const activeKey = computed(() => {
@@ -294,7 +367,9 @@ const activeKey = computed(() => {
   return list[0].key
 })
 const activeStep = computed(
-  () => navSteps.value.find(s => s.key === activeKey.value) || STEPS.find(s => s.key === activeKey.value),
+  () =>
+    navSteps.value.find(s => s.key === activeKey.value) ||
+    STEPS.find(s => s.key === activeKey.value),
 )
 const isSummary = computed(() => activeKey.value === 'summary')
 const isMembers = computed(() => activeKey.value === 'members')
@@ -346,13 +421,18 @@ const statuses = computed(() => {
 
 const statusLabel = computed(
   () =>
-    ({ draft: 'Draft', submitted: 'Submitted', approved: 'Approved', 'changes-requested': 'Changes requested' })[
-      status.value
-    ],
+    ({
+      draft: 'Draft',
+      submitted: 'Submitted',
+      approved: 'Approved',
+      'changes-requested': 'Changes requested',
+    })[status.value],
 )
 const statusSeverity = computed(
   () =>
-    ({ draft: 'secondary', submitted: 'info', approved: 'success', 'changes-requested': 'warn' })[status.value],
+    ({ draft: 'secondary', submitted: 'info', approved: 'success', 'changes-requested': 'warn' })[
+      status.value
+    ],
 )
 
 // --- Gate sections ---------------------------------------------------------
@@ -400,7 +480,8 @@ function statusHint(draftText) {
   if (canGrant.value) {
     if (status.value === 'submitted') return 'Review this step, then approve or request changes.'
     if (status.value === 'approved') return 'Approved.'
-    if (status.value === 'changes-requested') return 'Changes requested — waiting for the developer.'
+    if (status.value === 'changes-requested')
+      return 'Changes requested — waiting for the developer.'
     return 'Nothing to review yet.'
   }
   if (status.value === 'submitted') return 'Submitted — waiting for an approver.'
@@ -413,8 +494,10 @@ const STEP_BLURB = {
   summary: 'Fill in the form, then submit the section for approval at the gate.',
   members: 'Assign people to roles. The approval flags decide who works in Build vs Governance.',
   architecture: 'Group the roles and resources that work together.',
-  'data-model': 'Define the modules (data tables) and their fields. A Record field links one module to another.',
-  'resource-management': 'Whitelist the permitted AI providers, infrastructure and third-party connections, with continuity options.',
+  'data-model':
+    'Define the modules (data tables) and their fields. A Record field links one module to another.',
+  'resource-management':
+    'Whitelist the permitted AI providers, infrastructure and third-party connections, with continuity options.',
 }
 const headerHint = computed(() => {
   if (isMilestone.value) return activeStep.value?.description || ''
@@ -494,16 +577,25 @@ function onGateClick(gateKey) {
   if (canRequest.value && submittable) {
     confirm.require({
       header: 'Request approval',
-      message: 'This submits every step in this section for approval and locks them until reviewed. Continue?',
+      message:
+        'This submits every step in this section for approval and locks them until reviewed. Continue?',
       icon: 'pi pi-lock',
       rejectProps: { label: 'Cancel', severity: 'secondary', text: true },
       acceptProps: { label: 'Request approval' },
       accept: async () => {
         try {
-          await store.submitSection(project.value.id, sec.steps.map(s => s.key))
+          await store.submitSection(
+            project.value.id,
+            sec.steps.map(s => s.key),
+          )
           toast.add({ severity: 'success', summary: 'Requested approval', life: 2000 })
         } catch (err) {
-          toast.add({ severity: 'error', summary: 'Request failed', detail: err.message, life: 4000 })
+          toast.add({
+            severity: 'error',
+            summary: 'Request failed',
+            detail: err.message,
+            life: 4000,
+          })
         }
       },
     })
@@ -528,10 +620,16 @@ function onSave() {
   governanceAction(() => store.saveStepForm(project.value.id, activeKey.value, values), 'Saved')
 }
 function onApprove() {
-  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'approve'), 'Approved')
+  governanceAction(
+    () => store.transitionStep(project.value.id, activeKey.value, 'approve'),
+    'Approved',
+  )
 }
 function onResubmit() {
-  governanceAction(() => store.transitionStep(project.value.id, activeKey.value, 'submit'), 'Resubmitted')
+  governanceAction(
+    () => store.transitionStep(project.value.id, activeKey.value, 'submit'),
+    'Resubmitted',
+  )
 }
 
 // Reason dialog, shared by Request changes and Reopen.

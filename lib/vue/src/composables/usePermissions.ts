@@ -9,6 +9,10 @@ export interface PermissionDialogOptions {
   target?: string
   /** If true, use 'all-specific' i18n pattern instead of 'all/specific' */
   allSpecific?: boolean
+  /** Preselect this role (roleID) in the editor. Defaults to the first available role. */
+  roleID?: string
+  /** Called after a successful save — use to refresh views that depend on the rules. */
+  onSaved?: () => void
 }
 
 export interface PermissionsContext {

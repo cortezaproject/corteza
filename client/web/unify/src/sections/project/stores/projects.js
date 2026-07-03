@@ -33,30 +33,30 @@ export const useProjectsStore = defineStore('projects', () => {
   // Which kinds the graph currently shows. One global selection shared across
   // projects (it resets on a hard reload — it's deliberately session state, not
   // persisted). Seeded with every node-layer kind so all layers start on; the
-  // access overlay (roles/users) is a separate flag, off by default.
+  // access overlay (roles/users) rides its own set so each chip toggles
+  // independently, both off by default.
   const graphVisibleKinds = ref(new Set(NODE_LAYER_KINDS))
-  const graphShowAccess = ref(false)
+  const graphVisibleAccessKinds = ref(new Set())
 
   const graphKindVisible = computed(() => kind => {
-    if (ACCESS_KINDS.includes(kind)) return graphShowAccess.value
+    if (ACCESS_KINDS.includes(kind)) return graphVisibleAccessKinds.value.has(kind)
     return graphVisibleKinds.value.has(kind)
   })
 
   function graphToggleKind(kind) {
-    // Reassign the Set so the ref's dependents re-run (Set mutation alone won't).
-    const next = new Set(graphVisibleKinds.value)
+    // Access kinds ride their own set; node-layer kinds the main one. Reassign
+    // the Set so the ref's dependents re-run (Set mutation alone won't).
+    const target = ACCESS_KINDS.includes(kind) ? graphVisibleAccessKinds : graphVisibleKinds
+    const next = new Set(target.value)
     next.has(kind) ? next.delete(kind) : next.add(kind)
-    graphVisibleKinds.value = next
-  }
-
-  function graphToggleAccess() {
-    graphShowAccess.value = !graphShowAccess.value
+    target.value = next
   }
 
   // Force the access overlay on/off — used to auto-reveal it on the access-kind
   // steps (roles/users), the same way setGraphVisibleKinds re-seeds node layers.
+  // Reveals both role and user chips; each can then be toggled independently.
   function setGraphShowAccess(on) {
-    graphShowAccess.value = !!on
+    graphVisibleAccessKinds.value = on ? new Set(ACCESS_KINDS) : new Set()
   }
 
   // Reset the visible node-layer kinds to exactly `kinds` (a Set/iterable) —
@@ -1047,6 +1047,27 @@ export const useProjectsStore = defineStore('projects', () => {
     return String(raw.roleID)
   }
 
+  // Update an access role's name/description. roleUpdate REPLACES the role, so we
+  // re-fetch it first and resend it untouched — editing here must never wipe the
+  // role's members, handle or archived state. The handle is kept as-is (renaming
+  // a role never re-slugs it, so it can't collide with a sibling).
+  async function updateRole(projectId, roleId, { name, description } = {}) {
+    const full = await $SystemAPI.roleRead({ roleID: roleId })
+    await $SystemAPI.roleUpdate({
+      ...full,
+      roleID: roleId,
+      handle: full.handle,
+      name: name === undefined ? full.name : (name || '').trim() || 'Untitled',
+      meta: {
+        ...(full.meta || {}),
+        description:
+          description === undefined ? full.meta?.description : (description || '').trim(),
+      },
+      updatedAt: full.updatedAt,
+    })
+    await loadRoles(projectId)
+  }
+
   async function removeRole(projectId, roleId) {
     const key = String(projectId)
     await $SystemAPI.roleDelete({ roleID: roleId })
@@ -1054,24 +1075,190 @@ export const useProjectsStore = defineStore('projects', () => {
     touch()
   }
 
-  // --- access permissions (compose RBAC) -----------------------------------------
-  // A role's compose RBAC rules for the given resource strings. Returns the raw
-  // rules ([{ resource, operation, access }]); the Permissions step maps them to
-  // its page/record matrix cells.
-  async function readRolePermissions(roleId, resources) {
-    const rules = await $ComposeAPI
-      .permissionsRead({ roleID: roleId, resource: resources })
-      .catch(() => [])
-    return rules || []
+  // Access permissions (compose/system/automation RBAC) are edited through the
+  // shared permissions modal (CPermissionsDialog), which reads/writes the rules
+  // directly against the matching API. The Permissions step opens it per
+  // resource+role and passes `onSaved: touch` so the graph refetches the updated
+  // role→resource edges — so no role-permission read/write lives on the store.
+
+  // --- effective access evaluation -----------------------------------------------
+  // Per-project cache of each role's effective access on each resource, across
+  // ALL operations (read/create/update/delete/…), computed via permissionsTrace,
+  // so the Permissions matrix can tint each cell for the selected op. Keyed
+  // `${roleId}::${resource}` → { [operation]: 'allow' | 'deny' | 'unknown' }.
+  // Versioned to graphVersion, so touch() (fired on every permission save +
+  // resource/role mutation) invalidates it and the matrix recomputes.
+  const effectiveAccessByProject = ref({}) // { [pid]: { version, map: Map } }
+  const effectiveAccessLoading = ref({}) // { [pid]: bool }
+
+  // Route a resource to the API client that owns it (mirrors CPermissionsDialog).
+  // Handles both object resources (corteza::compose:module/…) and component-level
+  // resources (corteza::automation/), where the service is followed by "/" not ":".
+  function apiForResource(resource) {
+    switch (resource.match(/^corteza::(\w+)[:/]/)?.[1]) {
+      case 'compose':
+        return $ComposeAPI
+      case 'automation':
+        return $AutomationAPI
+      default:
+        return $SystemAPI
+    }
   }
 
-  // Patch a role's compose RBAC rules. `rules` is [{ resource, operation, access }]
-  // (access 'allow' to grant, 'inherit' to clear). Only the rules passed are
-  // touched, so this leaves the role's other permissions untouched. Bumps the
-  // graph so the role→resource edges refresh.
-  async function updateRolePermissions(roleId, rules) {
-    await $ComposeAPI.permissionsUpdate({ roleID: roleId, rules })
-    touch()
+  // Effective access for one (role, resource, operation): 'allow' | 'deny' |
+  // 'unknown', or undefined when not evaluated / the op wasn't returned.
+  function effectiveAccess(projectId, roleId, resource, operation) {
+    return effectiveAccessByProject.value[String(projectId)]?.map.get(`${roleId}::${resource}`)?.[
+      operation
+    ]
+  }
+
+  function isEffectiveAccessLoading(projectId) {
+    return !!effectiveAccessLoading.value[String(projectId)]
+  }
+
+  // Quick-toggle: set a single role's direct rule for one (resource, operation)
+  // and refresh. Optimistically patches the cache so the cell flips instantly;
+  // touch() then re-traces so the tint reflects the true effective access.
+  async function setAccess(projectId, roleId, resource, operation, access) {
+    const key = String(projectId)
+    const entry = effectiveAccessByProject.value[key]
+    if (entry) {
+      const cell = `${roleId}::${resource}`
+      const map = new Map(entry.map)
+      map.set(cell, { ...(map.get(cell) || {}), [operation]: access })
+      effectiveAccessByProject.value = {
+        ...effectiveAccessByProject.value,
+        [key]: { version: entry.version, map },
+      }
+    }
+    try {
+      await apiForResource(resource).permissionsUpdate({
+        roleID: roleId,
+        rules: [{ resource, operation, access }],
+      })
+    } finally {
+      touch() // re-trace effective access (and refresh the resource graph)
+    }
+  }
+
+  // Set a *capability* — a user-facing action that may map to several RBAC ops on
+  // possibly different resources (e.g. "view records" = record.read on the record
+  // wildcard + records.search on the module). Writes them all to one `access` in a
+  // single pass: optimistically patches every affected cell, groups the rules by
+  // the API component that owns each resource, and issues one permissionsUpdate
+  // per component, then re-traces. `ops` is [{ resource, op }].
+  async function setCapabilityAccess(projectId, roleId, ops = [], access) {
+    if (!ops.length) return
+    const key = String(projectId)
+    const entry = effectiveAccessByProject.value[key]
+    if (entry) {
+      const map = new Map(entry.map)
+      for (const { resource, op } of ops) {
+        const cell = `${roleId}::${resource}`
+        map.set(cell, { ...(map.get(cell) || {}), [op]: access })
+      }
+      effectiveAccessByProject.value = {
+        ...effectiveAccessByProject.value,
+        [key]: { version: entry.version, map },
+      }
+    }
+    try {
+      // permissionsUpdate is per API component; a component's rules may span
+      // several of its resources, so group by client and send one call each.
+      const byApi = new Map()
+      for (const { resource, op } of ops) {
+        const api = apiForResource(resource)
+        if (!byApi.has(api)) byApi.set(api, [])
+        byApi.get(api).push({ resource, operation: op, access })
+      }
+      await Promise.all(
+        [...byApi.entries()].map(([api, rules]) => api.permissionsUpdate({ roleID: roleId, rules })),
+      )
+    } finally {
+      touch() // re-trace effective access (and refresh the resource graph)
+    }
+  }
+
+  const accessLoadingVersion = {} // pid → the graphVersion currently being fetched
+  const accessSeqByProject = {} // pid → monotonic run token; per-project stale-write guard
+
+  // Compute effective access for every (role, resource). One permissionsTrace
+  // call per (role, API-component), passing that component's whole resource list
+  // as a `resource[]` array (chunked to keep the GET query string sane) — the
+  // server returns one trace per resource×op, so we keep ALL operations and N
+  // resources cost O(roles × components) calls, not O(roles × N). Results survive
+  // expand/collapse and axis switches (cached by pid, all ops present).
+  async function loadEffectiveAccess(projectId, resources = []) {
+    const key = String(projectId)
+    const version = graphVersion.value
+    const cached = effectiveAccessByProject.value[key]
+    if (cached && cached.version === version) return
+    if (accessLoadingVersion[key] === version) return // already fetching this version
+    accessLoadingVersion[key] = version
+
+    // Per-project run token: a newer run for THIS project supersedes this one.
+    // Keyed by pid so a concurrent load for another project can't invalidate it.
+    const seq = (accessSeqByProject[key] = (accessSeqByProject[key] || 0) + 1)
+    const isLatest = () => seq === accessSeqByProject[key]
+    effectiveAccessLoading.value = { ...effectiveAccessLoading.value, [key]: true }
+
+    const map = new Map()
+    try {
+      const roles = rolesFor.value(projectId)
+      if (roles.length && resources.length) {
+        // Group resources by API client, chunked (~60 → GET query stays well
+        // under proxy/URL limits at ~50 chars/resource).
+        const byApi = new Map()
+        for (const r of resources) {
+          const api = apiForResource(r)
+          if (!byApi.has(api)) byApi.set(api, [])
+          byApi.get(api).push(r)
+        }
+        const CHUNK = 60
+        await Promise.all(
+          roles.flatMap(role =>
+            [...byApi.entries()].flatMap(([api, list]) => {
+              const chunks = []
+              for (let i = 0; i < list.length; i += CHUNK) chunks.push(list.slice(i, i + CHUNK))
+              return chunks.map(chunk =>
+                api
+                  .permissionsTrace({ resource: chunk, roleID: [role.id] })
+                  .then(traces => {
+                    for (const tr of traces || []) {
+                      if (!tr?.resource || !tr.operation) continue
+                      const state =
+                        tr.resolution === 'unknown-context'
+                          ? 'unknown'
+                          : tr.access === 'allow'
+                            ? 'allow'
+                            : 'deny'
+                      const cell = `${role.id}::${tr.resource}`
+                      let ops = map.get(cell)
+                      if (!ops) map.set(cell, (ops = {}))
+                      ops[tr.operation] = state
+                    }
+                  })
+                  // No grant (4xx) or transient failure → leave those cells unset
+                  // so the matrix dims them rather than erroring.
+                  .catch(() => {}),
+              )
+            }),
+          ),
+        )
+      }
+      // Only the latest run for this project writes (empty map = no roles/resources).
+      if (isLatest()) {
+        effectiveAccessByProject.value = { ...effectiveAccessByProject.value, [key]: { version, map } }
+      }
+    } finally {
+      // Only the latest run clears the flags — a superseded run must not hide the
+      // spinner or unpin the version while a newer fetch is still in flight.
+      if (isLatest()) {
+        if (accessLoadingVersion[key] === version) accessLoadingVersion[key] = null
+        effectiveAccessLoading.value = { ...effectiveAccessLoading.value, [key]: false }
+      }
+    }
   }
 
   // --- project users -------------------------------------------------------------
@@ -1278,6 +1465,7 @@ export const useProjectsStore = defineStore('projects', () => {
     projects,
     loaded,
     graphVersion,
+    touch,
     load,
     fetchProject,
     findById,
@@ -1318,9 +1506,13 @@ export const useProjectsStore = defineStore('projects', () => {
     rolesFor,
     loadRoles,
     addRole,
+    updateRole,
     removeRole,
-    readRolePermissions,
-    updateRolePermissions,
+    effectiveAccess,
+    isEffectiveAccessLoading,
+    loadEffectiveAccess,
+    setAccess,
+    setCapabilityAccess,
     projectUsersFor,
     loadProjectUsers,
     setProjectUserRole,
@@ -1341,10 +1533,9 @@ export const useProjectsStore = defineStore('projects', () => {
     transitionStep,
     graph,
     graphVisibleKinds,
-    graphShowAccess,
+    graphVisibleAccessKinds,
     graphKindVisible,
     graphToggleKind,
-    graphToggleAccess,
     setGraphShowAccess,
     setGraphVisibleKinds,
   }

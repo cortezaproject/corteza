@@ -89,19 +89,31 @@ const props = defineProps({
 
 // The backend emits project-scoped role nodes with their RBAC edges to the
 // resources each role grants on (roles that grant nothing are omitted). The
-// access overlay is a single toggle covering both role and user chips; user
+// role and user chips each toggle their own visibility independently; user
 // nodes join once the Users step lands (until then that chip counts 0).
 const accessReady = true
 
 const store = useProjectsStore()
 const $toast = inject('$toast')
 
-// Clicking a module node opens its detail editor (meta + fields, provided by
-// the wizard); other kinds get their own editors as their steps land.
+// Clicking a resource node opens its Detail dialog (editable, provided by the
+// wizard). Every kind with a detail dialog participates; chart nodes stay inert
+// (no editor exists). The `locked` guard still blocks all node clicks.
 const inspectResource = inject('inspectResource', null)
+const INSPECTABLE_KINDS = new Set([
+  'module',
+  'connection',
+  'automation',
+  'agent',
+  'chatbot',
+  'page',
+  'role',
+  'user',
+])
 const onClick = params => {
   if (params.dataType !== 'node' || props.locked) return
-  if (params.data.kind === 'module') inspectResource?.(params.data.id)
+  const kind = params.data.kind
+  if (INSPECTABLE_KINDS.has(kind)) inspectResource?.(kind, params.data.id)
 }
 
 // --- Data: the backend graph is the single source of truth ------------------
@@ -148,7 +160,9 @@ const isAccessKind = kind => ACCESS_KINDS.includes(kind)
 
 function onChipClick(m) {
   if (!m.toggleable) return
-  isAccessKind(m.kind) ? store.graphToggleAccess() : store.graphToggleKind(m.kind)
+  // Every kind (including role/user) toggles independently; the store routes
+  // access kinds to their own visibility set.
+  store.graphToggleKind(m.kind)
 }
 
 // --- Derived metrics (straight from the payload) ----------------------------

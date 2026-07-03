@@ -1,17 +1,16 @@
 <template>
   <div class="h-full overflow-auto p-4">
-    <CFormGroup :label="$t('project.connections.title')">
-      <template #actions>
+    <div class="flex flex-col gap-2">
+      <div>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.connections.add')"
           severity="secondary"
           size="small"
-          :loading="preparing"
-          @click="pickerOpen = true"
+          @click="createResource?.('connection')"
         />
-      </template>
+      </div>
 
       <div class="mt-1">
         <CFormItemList
@@ -25,18 +24,7 @@
           @remove="onRemove"
         >
           <template #default="{ item }">
-            <div class="flex items-center gap-3 min-w-0">
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-                :class="[cfg.bg, cfg.ring]"
-              >
-                <i :class="[iconForConnector(item.catalogID), cfg.text]" />
-              </span>
-              <div class="min-w-0">
-                <div class="font-medium truncate">{{ item.name }}</div>
-                <div class="text-xs text-muted-color">{{ labelForConnector(item.catalogID) }}</div>
-              </div>
-            </div>
+            <CFormItemContent :title="item.name" :subtitle="labelForConnector(item.catalogID)" />
           </template>
 
           <template #actions>
@@ -52,26 +40,15 @@
           </template>
         </CFormItemList>
       </div>
-    </CFormGroup>
-
-    <ConnectorPicker v-model="pickerOpen" :items="pickerItems" @pick="onPick" />
-    <ConfigureConnectionDialog
-      v-model="dialogOpen"
-      :connection="activeConnection"
-      :project-id="project.id"
-      :configured="activeConfigured"
-    />
+    </div>
   </div>
 </template>
 
 <script setup>
-import ConfigureConnectionDialog from '@/sections/project/components/connections/ConfigureConnectionDialog.vue'
-import ConnectorPicker from '@/sections/project/components/connections/ConnectorPicker.vue'
 import { connector } from '@/sections/project/config/connectors'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -83,6 +60,23 @@ const store = useProjectsStore()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
+
+// Detail/create dialogs are mounted once by the wizard and opened via these
+// injected helpers; the step never mounts them itself.
+const inspectResource = inject('inspectResource', null)
+const createResource = inject('createResource', null)
+
+// The library carries no UI icon; resolve a display label from the static
+// catalog by catalogID, falling back to the raw catalogID.
+const labelForConnector = id => connector(id)?.label || id || ''
+
+const connections = computed(() => store.connectionsFor(props.project.id))
+
+// Clicking a configured connection opens its detail dialog for editing.
+function onSelect(item) {
+  if (props.disabled) return
+  inspectResource?.('connection', item.id)
+}
 
 function onRemove(c) {
   confirmDelete({
@@ -96,66 +90,6 @@ function onRemove(c) {
       }
     },
   })
-}
-
-const cfg = kindConfig('connection')
-// The library carries no UI icon; resolve one from the static catalog by
-// catalogID, falling back to the generic connection icon.
-const iconForConnector = id => connector(id)?.icon || cfg.icon
-const labelForConnector = id => connector(id)?.label || id || ''
-
-const connections = computed(() => store.connectionsFor(props.project.id))
-
-// Picker offers the live library, mapped to the picker's item shape and
-// filtered to the Resource Management whitelist. With no whitelist (Free mode)
-// the full library is offered.
-const pickerItems = computed(() => {
-  const allowed = store.allowedConnectorIds(props.project.id)
-  return store.connectionLibrary
-    .filter(c => !allowed || allowed.has(c.catalogID))
-    .map(c => ({
-      id: c.catalogID,
-      catalogID: c.catalogID,
-      connectionID: c.connectionID,
-      label: c.label,
-      description: c.description,
-      icon: iconForConnector(c.catalogID),
-    }))
-})
-
-const pickerOpen = ref(false)
-const dialogOpen = ref(false)
-const preparing = ref(false)
-const activeConnection = ref(null)
-const activeConfigured = ref(null)
-
-// Picking imports the real connection (so we have its auth-field schema), then
-// opens the configure dialog to create the configured connection.
-async function onPick(item) {
-  pickerOpen.value = false
-  await openConfigure(item, null)
-}
-
-// Clicking a configured connection re-opens the dialog to edit it.
-function onSelect(item) {
-  if (props.disabled) return
-  openConfigure(
-    { connectionID: item.connectionID, catalogID: item.catalogID },
-    { configuredConnectionID: item.configuredConnectionID, name: item.name, config: item.config },
-  )
-}
-
-async function openConfigure(item, configured) {
-  preparing.value = true
-  try {
-    activeConnection.value = await store.prepareConnection(item)
-    activeConfigured.value = configured
-    dialogOpen.value = true
-  } catch (err) {
-    $toast.toastErrorHandler(t('project.configureConnection.toastImportFailed'))(err)
-  } finally {
-    preparing.value = false
-  }
 }
 
 async function refresh(id) {

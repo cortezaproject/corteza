@@ -124,8 +124,16 @@ wizard:
     summary: Fill in the form, then submit the section for approval at the gate.
     resourceManagement: Declare the permitted AI providers, infrastructure and third-party connections, then save. Later steps choose from these.
     members: Assign people to project roles. Changes save as you go; the section locks at the gate.
-    dataModel: Define the modules (data tables) and their fields.
-    dataSensitivity: Classify each field by its data sensitivity level.
+    dataModel: Define the modules (data tables) that hold your project's data, and the fields on each.
+    dataSensitivity: Classify every field by its data sensitivity level so governance and access controls can protect it appropriately.
+    connections: Connect the external systems and data sources this project draws on — pick one from the catalogue and enter its credentials for later steps to reuse.
+    automations: Automate record actions and background jobs — each automation runs a trigger-action-query flow you can build out in the full automation builder.
+    agents: Add the AI agents that act within this project; name each one here, then configure its behaviour, model and access in the agent builder.
+    chatbots: Add the conversational chatbots for this project; name each one here, then design its scenarios, styling and channels in the chatbot builder.
+    pages: Design the pages people see — record detail pages and standalone pages — then lay out their blocks in the page builder.
+    roles: Define the access roles for this project and the people in each; you grant every role its resource permissions in the next step.
+    permissions: Grant each role access to the project's resources — pick a capability, then toggle it per role, using the gear for finer-grained permissions.
+    users: Add people to the project and assign them roles; a user's effective access is the sum of the roles they hold.
   hint:
     grant:
       submitted: Review this step, then approve or request changes.
@@ -279,7 +287,7 @@ resourceManagement:
   connections:
     title: Permitted Third-Party Connections
     description: The whitelist of connections the Connections step may later choose from.
-    add: Add connection
+    add: Add Connection
     empty: No permitted connections yet.
     removeConfirm:
       header: Remove permitted connection
@@ -321,7 +329,7 @@ members:
 dataModel:
   label: Modules
   openEditor: Open in module builder
-  addModule: Add module
+  addModule: New module
   addField: Add field
   empty: No modules yet.
   untitledField: Untitled field
@@ -361,6 +369,10 @@ module:
   nameClash: Clashes with “{name}”
   toast:
     saveFailed: Could not save module
+moduleCreate:
+  title: New module
+  create: Create module
+  toastCreateFailed: Could not create the module
 field:
   label: Field
   unnamed: Unnamed
@@ -431,7 +443,7 @@ connectorPicker:
   noResults: No connections match “{query}”.
 connections:
   title: Connections
-  add: Add connection
+  add: New Connection
   remove: Remove connection
   empty: No connections yet.
   configured: Configured
@@ -441,17 +453,25 @@ connections:
     header: Remove connection
     message: Remove “{name}” from this project? This deletes its configuration.
 configureConnection:
-  createTitle: Configure connection
-  editTitle: Edit connection
   blurb: Enter the credentials and settings for {connector}.
   name: Name
   noParams: This connection needs no extra configuration.
-  toastFailed: Could not save connection
   toastImportFailed: Could not prepare connection
+connectionCreate:
+  title: Add a connection to this project
+  pickBlurb: Pick a connection your system needs. Its credentials and settings are configured on the next screen.
+  create: Add connection
+  nameRequired: Please enter a name for this connection.
+  toastCreateFailed: Could not create the connection
+connectionDetail:
+  unnamed: Untitled connection
+  nameRequired: Please enter a name for this connection.
+  toastLoadFailed: Could not load the connection configuration
+  toastSaveFailed: Could not save the connection
 automations:
   title: Automations
-  add: Add automation
-  remove: Remove automation
+  add: New Automation
+  remove: Remove Automation
   openBuilder: Open in automation builder
   empty: No automations yet.
   enabled: Enabled
@@ -461,23 +481,25 @@ automations:
   removeConfirm:
     header: Remove automation
     message: Remove “{name}” from this project? This deletes the automation.
-configureAutomation:
-  createTitle: New automation
-  editTitle: Edit automation
+automationCreate:
+  title: New automation
   blurb: Name your automation, then build its triggers and steps in the automation builder.
-  name: Name
   namePlaceholder: e.g. Lead scoring
-  description: Description
-  enabled: Enabled
-  enabledHint: Turn the automation on or off. It must have at least a trigger and a step to run.
   create: Create
   createAndOpenBuilder: Create and open builder
-  openBuilder: Open builder
-  toastFailed: Could not save automation
+  nameRequired: Please enter a name for the automation.
+  toastCreateFailed: Could not create the automation. Please try again.
+automationDetail:
+  unnamed: Untitled automation
+  enabled: Enabled
+  enabledHint: Turn the automation on or off. It must have at least a trigger and a step to run.
+  nameRequired: Please enter a name for the automation.
+  openEditor: Open in automation builder
+  toastSaveFailed: Could not save the automation. Please try again.
 agents:
   title: Agents
-  add: Add agent
-  remove: Remove agent
+  add: New Agent
+  remove: Remove Agent
   openBuilder: Open in agent builder
   empty: No agents yet.
   active: Active
@@ -487,23 +509,26 @@ agents:
   removeConfirm:
     header: Remove agent
     message: Remove “{name}” from this project? This deletes the agent.
-configureAgent:
-  createTitle: New agent
-  editTitle: Edit agent
+agentCreate:
+  title: New Agent
   blurb: Name your agent, then configure its behaviour, model and access in the agent builder.
-  name: Name
   namePlaceholder: e.g. Support assistant
-  description: Description
-  active: Active
-  activeHint: Make the agent active or inactive. Configure its behaviour and model in the builder before activating.
+  nameRequired: Please enter a name for the agent.
   create: Create
   createAndOpenBuilder: Create and open builder
-  openBuilder: Open builder
-  toastFailed: Could not save agent
+  toastCreateFailed: Could not create agent
+agentDetail:
+  unnamed: Untitled agent
+  namePlaceholder: e.g. Support assistant
+  nameRequired: Please enter a name for the agent.
+  active: Active
+  activeHint: Make the agent active or inactive. Configure its behaviour and model in the builder before activating.
+  openEditor: Open builder
+  toastSaveFailed: Could not save agent
 chatbots:
   title: Chatbots
-  add: Add chatbot
-  remove: Remove chatbot
+  add: New Chatbot
+  remove: Remove Chatbot
   openBuilder: Open in chatbot builder
   empty: No chatbots yet.
   enabled: Enabled
@@ -513,85 +538,169 @@ chatbots:
   removeConfirm:
     header: Remove chatbot
     message: Remove “{name}” from this project? This deletes the chatbot.
-configureChatbot:
-  createTitle: New chatbot
-  editTitle: Edit chatbot
+chatbotCreate:
+  title: New Chatbot
   blurb: Name your chatbot, then configure its scenarios, styling and channels in the chatbot builder.
-  name: Name
   namePlaceholder: e.g. Website assistant
-  enabled: Enabled
-  enabledHint: Turn the chatbot on or off. Configure its scenarios and channels in the builder before enabling.
+  nameRequired: A chatbot name is required.
   create: Create
   createAndOpenBuilder: Create and open builder
-  openBuilder: Open builder
-  toastFailed: Could not save chatbot
+  toastCreateFailed: Could not create the chatbot
+chatbotDetail:
+  unnamed: Untitled chatbot
+  namePlaceholder: e.g. Website assistant
+  nameRequired: A chatbot name is required.
+  enabled: Enabled
+  enabledHint: Turn the chatbot on or off. Configure its scenarios and channels in the builder before enabling.
+  openEditor: Open in chatbot builder
+  toastSaveFailed: Could not save the chatbot
 accessRoles:
   title: Roles
-  add: Add role
-  remove: Remove role
+  add: New Role
+  remove: Remove Role
   openEditor: Open in role editor
   empty: No access roles yet.
   toastLoadFailed: Could not load access roles
-  toastAddFailed: Could not create access role
   toastRemoveFailed: Could not remove access role
-  addDialog:
-    header: New access role
-    name: Name
-    namePlaceholder: e.g. Customer
-    description: Description
-    descriptionPlaceholder: What this role can do on the project's pages and records
   removeConfirm:
     header: Remove access role
     message: Remove “{name}” from this project? This deletes the role.
+roleCreate:
+  title: New access role
+  namePlaceholder: e.g. Customer
+  descriptionPlaceholder: What this role can do on the project's pages and records
+  nameRequired: Name is required
+  create: Create role
+  toastCreateFailed: Could not create access role
+roleMembers:
+  remove: Remove from role
+  empty: No members yet.
+  none: No members
+  one: 1 member
+  many: '{count} members'
+  addPlaceholder: Add a member…
+  noneToAdd: Everyone is already a member.
+  toastAddFailed: Could not add member
+  toastRemoveFailed: Could not remove member
+roleDetail:
+  unnamed: Unnamed role
+  members: Members
+  permissions: Permissions
+  permissionsHint: This role's access to the project's resources. Click a lock to edit permissions for that resource.
+  openEditor: Open in role editor
+  nameRequired: Name is required
+  toastLoadFailed: Could not load role details
+  toastSaveFailed: Could not save role
 permissions:
-  hint: Grant each role access to the project's resources. Click a lock to edit a role's permissions on that resource.
+  hint: Grant each role access to the project's resources. Pick a capability, then toggle it per role; use the gear to edit rarer permissions in full.
   noRoles: Add roles first — there's nothing to grant permissions to yet.
   noResources: No resources to grant access on yet.
-  allOf: All {kind}
-  editFor: Edit permissions for {role}
+  records: Records
+  recordsOf: records of "{target}"
+  fields: Fields
+  fieldsOf: fields of "{target}"
+  layouts: Layouts
+  advancedFor: More permissions for {target}
+  advancedForOn: Edit {role} permissions for {target} in full
+  appAccess: App access
+  caps:
+    create: Create
+    read: Read
+    update: Update
+    delete: Delete
+    write: Write
+    access: Access
+    view: View
+    use: Use
+  access:
+    allowed: Allowed
+    denied: Denied
+    partial: Partial
+    unknown: Unknown
+    loading: Checking access
+    naSimple: '{desc} does not apply here'
+    confirm:
+      header: Update permission
+      allow: 'Allow {role} to {desc}?'
+      deny: 'Deny {role} the ability to {desc}?'
+      onlyThis: Only this
+      includeNested: This and everything nested
+      save: Save
+  capState:
+    allow: 'Allowed: can {desc}'
+    deny: 'Denied: cannot {desc}'
+    partial: 'Partly granted: {desc} — some underlying permissions disagree; click to allow all'
+    unknown: 'Undetermined: {desc}'
+    none: 'Not granted: cannot {desc}'
+    clickTo:
+      allow: click to allow
+      deny: click to deny
+  capDesc:
+    appAccess:
+      read: access and use the app
+    module:
+      read: see the "{target}" module
+    records:
+      create: create records in "{target}"
+      read: view records in "{target}" and their field values (read and list)
+      update: update records in "{target}"
+      delete: delete records in "{target}"
+    fields:
+      read: read all field values in "{target}"
+      update: change all field values in "{target}"
+    field:
+      read: read the "{target}" field value
+      update: change the "{target}" field value
+    page:
+      read: view the "{target}" page
+    agent:
+      read: use the "{target}" agent (starting a conversation also needs a platform-wide grant)
+    chatbot:
+      read: use the "{target}" chatbot (starting a session also needs a platform-wide grant)
   toastLoadFailed: Could not load resources
   toastSaved: Permissions saved
   toastSaveFailed: Could not save permissions
-  dialog:
-    header: 'Permissions: {target}'
-    resource: this resource
-    operation: Operation
-    noOps: No operations available for this resource.
-    save: Save
-    legend: Click a cell to allow or clear (inherit) the operation for that role.
 accessUsers:
   title: Users
-  add: Add user
+  add: New User
+  remove: Remove user
   openEditor: Open in user editor
   noRoles: Add roles first — users are added by assigning them a role.
+  noRolesAssigned: No roles assigned
   empty: No users yet.
   toastLoadFailed: Could not load users
-  toastAddFailed: Could not add user
-  toastUpdateFailed: Could not update user roles
   toastRemoveFailed: Could not remove user
-  columns:
-    user: User
-    roles: Roles
-  mode:
-    existing: Existing user
-    new: New user
-  addDialog:
-    header: Add user
-    userPlaceholder: Search users…
-    name: Name
-    namePlaceholder: e.g. Jane Doe
-    email: Email
-    emailPlaceholder: e.g. jane@example.com
-    roles: Roles
-    rolePlaceholder: Assign one or more roles
   removeConfirm:
     header: Remove user
     message: Remove “{name}” from this project? They lose all roles on it.
+userCreate:
+  title: Add a user to the project
+  blurb: Add an existing platform user or create a brand-new one, then assign the project roles they should hold.
+  modeExisting: Existing user
+  modeNew: New user
+  userPlaceholder: Search users…
+  name: Name
+  namePlaceholder: e.g. Jane Doe
+  email: Email
+  emailPlaceholder: e.g. jane@example.com
+  roles: Roles
+  rolePlaceholder: Assign one or more roles
+  toastCreateFailed: Could not add the user to the project
+userDetail:
+  unnamed: Unnamed user
+  name: Name
+  email: Email
+  roles: Project roles
+  rolesHint: Toggle the access roles this user holds on the project. Changes are applied when you save.
+  noRoles: No roles have been created for this project yet.
+  openEditor: Open in user editor
+  toastLoadFailed: Could not load the user's project roles
+  toastSaveFailed: Could not update the user's project roles
 pages:
   title: Pages
   recordSubtitle: Module detail page
-  add: Add page
-  remove: Remove page
+  add: New Page
+  remove: Remove Page
   openBuilder: Open in page builder
   empty: No pages yet.
   visible: Visible
@@ -601,18 +710,22 @@ pages:
   removeConfirm:
     header: Remove page
     message: Remove “{name}” from this project? This deletes the page.
-configurePage:
-  createTitle: New page
-  editTitle: Edit page
+pageCreate:
+  title: New Page
   blurb: Name your page, then build its layout and blocks in the page builder.
-  name: Name
   namePlaceholder: e.g. Dashboard
-  visible: Visible
-  visibleHint: Show this page in the namespace navigation. Hidden pages are still reachable by link.
+  nameRequired: A name is required
   create: Create
   createAndOpenBuilder: Create and open builder
-  openBuilder: Open builder
-  toastFailed: Could not save page
+  toastCreateFailed: Could not create page
+pageDetail:
+  unnamed: Untitled page
+  namePlaceholder: e.g. Dashboard
+  nameRequired: A name is required
+  visible: Visible
+  visibleHint: Show this page in the namespace navigation. Hidden pages are still reachable by link.
+  openEditor: Open builder
+  toastSaveFailed: Could not save page
 graph:
   resources: Resources
   reloadTitle: Reload from the backend

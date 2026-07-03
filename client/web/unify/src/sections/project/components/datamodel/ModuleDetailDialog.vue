@@ -31,7 +31,6 @@
               v-model="draft.name"
               size="small"
               fluid
-              :disabled="readonly"
               :invalid="submitted && !!nameError"
               autofocus
             />
@@ -39,7 +38,7 @@
           </div>
         </CFormGroup>
         <CFormGroup :label="$t('general.label.description')">
-          <Textarea v-model="draft.description" rows="3" auto-resize fluid :disabled="readonly" />
+          <Textarea v-model="draft.description" rows="3" auto-resize fluid />
         </CFormGroup>
       </div>
 
@@ -47,12 +46,11 @@
       <CFormGroup :label="$t('project.module.fields')">
         <template #actions>
           <Button
-            v-if="!readonly"
             icon="pi pi-plus"
             :label="$t('project.dataModel.addField')"
             severity="secondary"
             size="small"
-            @click="createField?.(moduleId)"
+            @click="createField?.(resourceId)"
           />
         </template>
 
@@ -62,7 +60,7 @@
               v-for="f in fields"
               :key="f.id"
               class="group flex items-center gap-3 px-3 min-h-[2.75rem] hover:bg-emphasis transition-colors cursor-pointer"
-              @click="editField?.(moduleId, f.id)"
+              @click="editField?.(resourceId, f.id)"
             >
               <div class="min-w-0 flex-1 flex items-center gap-2">
                 <span class="text-sm truncate">
@@ -87,7 +85,6 @@
                 </template>
               </div>
               <Button
-                v-if="!readonly"
                 icon="pi pi-trash"
                 severity="danger"
                 text
@@ -108,8 +105,8 @@
 
     <template #footer>
       <CRouterLinkButton
-        v-if="moduleId && project?.namespaceID"
-        :to="{ name: 'admin.modules.edit', params: { slug: project.namespaceID, moduleID: moduleId } }"
+        v-if="resourceId && project?.namespaceID"
+        :to="{ name: 'admin.modules.edit', params: { slug: project.namespaceID, moduleID: resourceId } }"
         target="_blank"
         rel="noopener"
         :label="$t('project.module.openEditor')"
@@ -121,17 +118,14 @@
       <span v-else />
 
       <div class="flex gap-2">
-        <Button v-if="readonly" :label="$t('general.label.close')" severity="secondary" text size="small" @click="visible = false" />
-        <template v-else>
-          <Button
-            :label="$t('general.label.cancel')"
-            severity="secondary"
-            text
-            size="small"
-            @click="visible = false"
-          />
-          <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
-        </template>
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          text
+          size="small"
+          @click="visible = false"
+        />
+        <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
       </div>
     </template>
   </Dialog>
@@ -154,13 +148,12 @@ const { t } = useI18n()
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   project: { type: Object, required: true },
-  // Module to inspect; this dialog only opens for existing modules (graph nodes).
-  moduleId: { type: String, default: null },
-  // Open as read-only (e.g. a locked/approved step).
-  readonly: { type: Boolean, default: false },
+  // Module to inspect; this dialog only opens for existing modules (step rows +
+  // graph nodes). `resourceId` is the shared detail-dialog contract prop name.
+  resourceId: { type: String, default: null },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'saved'])
 
 const store = useProjectsStore()
 const $toast = inject('$toast')
@@ -179,7 +172,7 @@ const visible = computed({
 const cfg = kindConfig('module')
 
 const module = computed(() =>
-  props.moduleId ? store.resourcesFor(props.project?.id).find(r => r.id === props.moduleId) : null,
+  props.resourceId ? store.resourcesFor(props.project?.id).find(r => r.id === props.resourceId) : null,
 )
 // Live field list — reflects immediate field mutations without closing.
 const fields = computed(() => module.value?.fields || [])
@@ -205,7 +198,7 @@ const nameError = computed(() => {
   const key = fieldName(name).toLowerCase()
   const clash = store.resourcesFor(props.project?.id).find(m => {
     if (m.kind !== 'module') return false
-    if (m.id === props.moduleId) return false
+    if (m.id === props.resourceId) return false
     return fieldName(m.name).toLowerCase() === key
   })
   return clash ? t('project.module.nameClash', { name: clash.name }) : ''
@@ -214,7 +207,7 @@ const nameError = computed(() => {
 const isValid = computed(() => !nameError.value)
 
 watch(
-  () => [props.modelValue, props.moduleId],
+  () => [props.modelValue, props.resourceId],
   () => {
     if (props.modelValue) initDraft()
   },
@@ -240,7 +233,7 @@ function removeField(f) {
 
 async function handleRemoveField(f) {
   try {
-    await store.removeField(props.project.id, props.moduleId, f.id)
+    await store.removeField(props.project.id, props.resourceId, f.id)
     $toast.toastSuccess(f.name, t('project.dataModel.toast.fieldRemoved'))
   } catch (err) {
     $toast.toastErrorHandler(t('project.dataModel.toast.fieldRemoveFailed'))(err)
@@ -256,10 +249,11 @@ async function onSave() {
   if (!isValid.value) return
   saving.value = true
   try {
-    await store.updateResource(props.project.id, props.moduleId, {
+    await store.updateResource(props.project.id, props.resourceId, {
       name: draft.name,
       description: draft.description,
     })
+    emit('saved')
     visible.value = false
   } catch (err) {
     $toast.toastErrorHandler(t('project.module.toast.saveFailed'))(err)

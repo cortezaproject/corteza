@@ -209,7 +209,7 @@ const resolver = ref(({ values }) => {
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
     errors.handle = [
-      { message: t('system.llmProviders.editor.info.handle.invalid-handle-characters') },
+      { message: t('system.llmProviders.editor.info.invalid-handle-characters') },
     ]
   }
 

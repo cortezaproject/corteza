@@ -323,11 +323,12 @@ const addEvalEnabled = computed(() => {
   return addEval.value.roleIDs?.length > 0 || addEval.value.userID
 })
 
-// Watch for resource changes to fetch permissions
+// Re-run on every open — options is a fresh object each time, so opening the
+// same resource for a different preselected role still refreshes the editor.
 watch(
-  () => options.value?.resource,
-  async resource => {
-    if (resource && api.value) {
+  () => options.value,
+  async opts => {
+    if (opts?.resource && api.value) {
       processing.value = true
       currentRoleID.value = null
       rules.value = []
@@ -335,7 +336,12 @@ watch(
       evaluate.value = []
       try {
         await fetchPermissions()
-        await autoSelectFirstRole()
+        if (opts.roleID) {
+          currentRoleID.value = String(opts.roleID)
+          await fetchRules(currentRoleID.value)
+        } else {
+          await autoSelectFirstRole()
+        }
       } finally {
         processing.value = false
       }
@@ -583,6 +589,9 @@ async function onSubmit() {
 
     // Re-evaluate all columns after save
     await reEvaluateAll()
+
+    // Notify the opener so dependent views (e.g. a resource graph) can refresh.
+    options.value?.onSaved?.()
   } catch (e) {
     $toast.toastErrorHandler(t('permissions.ui.notification.save.failed'))(e)
   } finally {

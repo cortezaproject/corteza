@@ -3,6 +3,7 @@ import CEditorActions from '../components/input/CEditorActions.vue'
 import CFormGroup from '../components/input/CFormGroup.vue'
 import CFormList from '../components/input/CFormList.vue'
 import CFormItemList from '../components/input/CFormItemList.vue'
+import CFormItemContent from '../components/input/CFormItemContent.vue'
 import CInputSwitch from '../components/input/CInputSwitch.vue'
 import CInputRole from '../components/input/CInputRole.vue'
 import CInputToggleCard from '../components/input/CInputToggleCard.vue'
@@ -144,6 +145,7 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('CFormGroup', CFormGroup)
     app.component('CFormList', CFormList)
     app.component('CFormItemList', CFormItemList)
+    app.component('CFormItemContent', CFormItemContent)
     app.component('CInputSwitch', CInputSwitch)
     app.component('CInputRole', CInputRole)
     app.component('CInputToggleCard', CInputToggleCard)

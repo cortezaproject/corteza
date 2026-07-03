@@ -1,16 +1,16 @@
 <template>
   <div class="h-full overflow-auto p-4">
-    <CFormGroup :label="$t('project.agents.title')">
-      <template #actions>
+    <div class="flex flex-col gap-2">
+      <div>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.agents.add')"
           severity="secondary"
           size="small"
-          @click="openCreate"
+          @click="createResource?.('agent')"
         />
-      </template>
+      </div>
 
       <div class="mt-1">
         <CFormItemList
@@ -20,24 +20,11 @@
           :empty-message="$t('project.agents.empty')"
           :hide-remove="disabled"
           :remove-label="$t('project.agents.remove')"
-          @select="onSelect"
+          @select="item => inspectResource?.('agent', item.id)"
           @remove="onRemove"
         >
           <template #default="{ item }">
-            <div class="flex items-center gap-3 min-w-0">
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-                :class="[cfg.bg, cfg.ring]"
-              >
-                <i :class="[cfg.icon, cfg.text]" />
-              </span>
-              <div class="min-w-0">
-                <div class="font-medium truncate">{{ item.name }}</div>
-                <div v-if="item.description" class="text-xs text-muted-color truncate">
-                  {{ item.description }}
-                </div>
-              </div>
-            </div>
+            <CFormItemContent :title="item.name" :subtitle="item.description || ''" />
           </template>
 
           <template #actions="{ item }">
@@ -66,23 +53,14 @@
           </template>
         </CFormItemList>
       </div>
-    </CFormGroup>
-
-    <ConfigureAgentDialog
-      v-model="dialogOpen"
-      :project-id="project.id"
-      :agent="activeAgent"
-      @saved="refresh(project.id)"
-    />
+    </div>
   </div>
 </template>
 
 <script setup>
-import ConfigureAgentDialog from '@/sections/project/components/agents/ConfigureAgentDialog.vue'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { CRouterLinkButton } = components
@@ -97,23 +75,12 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 
-const cfg = kindConfig('agent')
+// Detail/create dialogs are mounted once by the wizard and opened through these
+// injected openers; the step never mounts them itself.
+const inspectResource = inject('inspectResource', null)
+const createResource = inject('createResource', null)
+
 const agents = computed(() => store.agentsFor(props.project.id))
-
-const dialogOpen = ref(false)
-const activeAgent = ref(null)
-
-function openCreate() {
-  activeAgent.value = null
-  dialogOpen.value = true
-}
-
-// Clicking an agent opens its dialog (name/description + a button to open the
-// full agent builder), rather than navigating straight to the builder.
-function onSelect(item) {
-  activeAgent.value = item
-  dialogOpen.value = true
-}
 
 function onRemove(a) {
   confirmDelete({

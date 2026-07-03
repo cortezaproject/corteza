@@ -1,16 +1,16 @@
 <template>
   <div class="h-full overflow-auto p-4">
-    <CFormGroup :label="$t('project.chatbots.title')">
-      <template #actions>
+    <div class="flex flex-col gap-2">
+      <div>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.chatbots.add')"
           severity="secondary"
           size="small"
-          @click="openCreate"
+          @click="createResource?.('chatbot')"
         />
-      </template>
+      </div>
 
       <div class="mt-1">
         <CFormItemList
@@ -20,21 +20,11 @@
           :empty-message="$t('project.chatbots.empty')"
           :hide-remove="disabled"
           :remove-label="$t('project.chatbots.remove')"
-          @select="onSelect"
+          @select="item => inspectResource?.('chatbot', item.id)"
           @remove="onRemove"
         >
           <template #default="{ item }">
-            <div class="flex items-center gap-3 min-w-0">
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-                :class="[cfg.bg, cfg.ring]"
-              >
-                <i :class="[cfg.icon, cfg.text]" />
-              </span>
-              <div class="min-w-0">
-                <div class="font-medium truncate">{{ item.name }}</div>
-              </div>
-            </div>
+            <CFormItemContent :title="item.name" />
           </template>
 
           <template #actions="{ item }">
@@ -63,23 +53,14 @@
           </template>
         </CFormItemList>
       </div>
-    </CFormGroup>
-
-    <ConfigureChatbotDialog
-      v-model="dialogOpen"
-      :project-id="project.id"
-      :chatbot="activeChatbot"
-      @saved="refresh(project.id)"
-    />
+    </div>
   </div>
 </template>
 
 <script setup>
-import ConfigureChatbotDialog from '@/sections/project/components/chatbots/ConfigureChatbotDialog.vue'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { CRouterLinkButton } = components
@@ -94,23 +75,12 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 
-const cfg = kindConfig('chatbot')
+// Detail/create dialogs are mounted once in Wizard.vue and opened through these
+// injected helpers; the step never mounts them itself.
+const inspectResource = inject('inspectResource', null)
+const createResource = inject('createResource', null)
+
 const chatbots = computed(() => store.chatbotsFor(props.project.id))
-
-const dialogOpen = ref(false)
-const activeChatbot = ref(null)
-
-function openCreate() {
-  activeChatbot.value = null
-  dialogOpen.value = true
-}
-
-// Clicking a chatbot opens its dialog (name + a button to open the full chatbot
-// builder), rather than navigating straight to the builder.
-function onSelect(item) {
-  activeChatbot.value = item
-  dialogOpen.value = true
-}
 
 function onRemove(c) {
   confirmDelete({

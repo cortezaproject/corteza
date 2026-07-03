@@ -64,7 +64,7 @@
     <CEditorActions :back-to="{ name: 'federation.nodes' }">
       <CInputDelete
         v-if="isEdit && !node.deletedAt"
-        :label="$t('federation.nodes.editor.delete')"
+        :label="$t('federation.nodes.editor.delete.label')"
         :message="$t('general.confirm.delete')"
         :header="node.name || node.nodeID"
         :disabled="deleting"
@@ -72,7 +72,7 @@
       />
       <Button
         v-if="isEdit"
-        :label="$t('federation.nodes.editor.generateURI')"
+        :label="$t('federation.nodes.editor.generateURI.label')"
         icon="pi pi-qrcode"
         severity="secondary"
         outlined

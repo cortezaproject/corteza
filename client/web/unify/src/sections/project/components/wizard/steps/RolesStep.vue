@@ -1,105 +1,106 @@
 <template>
   <div class="h-full overflow-auto p-4">
-    <CFormGroup :label="$t('project.accessRoles.title')">
-      <template #actions>
+    <div class="flex flex-col gap-2">
+      <div>
         <Button
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.accessRoles.add')"
           severity="secondary"
           size="small"
-          @click="openCreate"
+          @click="createResource?.('role')"
         />
-      </template>
+      </div>
 
-      <div class="mt-1">
-        <CFormItemList
-          :items="roles"
-          item-key="id"
-          reveal-on-hover
-          :empty-message="$t('project.accessRoles.empty')"
-          :hide-remove="disabled"
-          :remove-label="$t('project.accessRoles.remove')"
-          @remove="onRemove"
+      <div
+        v-if="!roles.length"
+        class="text-muted-color p-4 border rounded-lg bg-emphasis text-center mt-1"
+      >
+        {{ $t('project.accessRoles.empty') }}
+      </div>
+
+      <!-- One card per role — click the header to configure it; each card lists
+           the role's members. Mirrors the data-model step's module cards. -->
+      <div v-else class="flex flex-col gap-4 mt-1">
+        <div
+          v-for="r in roles"
+          :key="r.id"
+          class="border border-surface rounded-border shadow-sm overflow-hidden"
         >
-          <template #default="{ item }">
-            <div class="flex items-center gap-3 min-w-0">
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-                :class="[cfg.bg, cfg.ring]"
-              >
-                <i :class="[cfg.icon, cfg.text]" />
-              </span>
-              <div class="min-w-0">
-                <div class="font-medium truncate">{{ item.name }}</div>
-                <div v-if="item.description" class="text-xs text-muted-color truncate">
-                  {{ item.description }}
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <template #hover-actions="{ item }">
+          <div class="group flex items-center hover:bg-emphasis transition-colors">
+            <button
+              type="button"
+              class="self-stretch flex items-center px-4 shrink-0 cursor-pointer text-muted-color hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
+              :aria-label="$t(isCollapsed(r.id) ? 'general.label.expand' : 'general.label.collapse')"
+              :title="$t(isCollapsed(r.id) ? 'general.label.expand' : 'general.label.collapse')"
+              @click="toggle(r.id)"
+            >
+              <i
+                class="pi pi-chevron-down text-xs transition-transform duration-200"
+                :class="{ '-rotate-90': isCollapsed(r.id) }"
+              />
+            </button>
+            <button
+              type="button"
+              class="flex-1 min-w-0 flex items-center gap-3 py-3 pr-3 pl-1 text-left cursor-pointer"
+              :aria-label="$t('general.label.edit')"
+              @click="inspectResource?.('role', r.id)"
+            >
+              <CFormItemContent :title="r.name">
+                <template #subtitle>
+                  <div class="text-xs text-muted-color truncate">
+                    <template v-if="r.description">{{ r.description }} · </template>
+                    {{ memberSummary(r) }}
+                  </div>
+                </template>
+              </CFormItemContent>
+            </button>
             <CRouterLinkButton
-              :to="{ name: 'system.roles.edit', params: { roleID: item.id } }"
+              :to="{ name: 'system.roles.edit', params: { roleID: r.id } }"
               icon="pi pi-external-link"
               severity="secondary"
               text
               size="small"
+              class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity mr-1"
               :aria-label="$t('project.accessRoles.openEditor')"
               :title="$t('project.accessRoles.openEditor')"
               @click.stop
             />
-          </template>
-        </CFormItemList>
+            <Button
+              v-if="!disabled"
+              icon="pi pi-trash"
+              severity="danger"
+              text
+              size="small"
+              class="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity mr-2"
+              :aria-label="$t('project.accessRoles.remove')"
+              :title="$t('project.accessRoles.remove')"
+              @click="onRemove(r)"
+            />
+          </div>
+          <!-- Animated collapse via grid-template-rows 0fr <-> 1fr -->
+          <div
+            class="grid transition-[grid-template-rows] duration-200 ease-in-out"
+            :class="isCollapsed(r.id) ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'"
+          >
+            <div class="overflow-hidden min-h-0">
+              <div class="border-t border-surface p-3">
+                <RoleMemberList :project="project" :role="r" :disabled="disabled" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </CFormGroup>
-
-    <Dialog
-      v-model:visible="dialogOpen"
-      modal
-      :header="$t('project.accessRoles.addDialog.header')"
-      :style="{ width: '30rem' }"
-      :pt="{ footer: { class: 'flex justify-end gap-2' } }"
-    >
-      <div class="flex flex-col gap-4">
-        <CFormGroup :label="$t('project.accessRoles.addDialog.name')" required>
-          <InputText v-model="draft.name" fluid :placeholder="$t('project.accessRoles.addDialog.namePlaceholder')" />
-        </CFormGroup>
-        <CFormGroup :label="$t('project.accessRoles.addDialog.description')">
-          <Textarea
-            v-model="draft.description"
-            rows="3"
-            auto-resize
-            fluid
-            :placeholder="$t('project.accessRoles.addDialog.descriptionPlaceholder')"
-          />
-        </CFormGroup>
-      </div>
-      <template #footer>
-        <Button
-          :label="$t('general.label.cancel')"
-          severity="secondary"
-          text
-          size="small"
-          @click="dialogOpen = false"
-        />
-        <Button
-          :label="$t('general.label.add')"
-          size="small"
-          :disabled="!draft.name.trim() || saving"
-          @click="add"
-        />
-      </template>
-    </Dialog>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { kindConfig } from '@/sections/project/config/kinds'
+import RoleMemberList from '@/sections/project/components/roles/RoleMemberList.vue'
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
+import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { CRouterLinkButton } = components
@@ -110,36 +111,45 @@ const props = defineProps({
 })
 
 const store = useProjectsStore()
+const usersStore = useProjectUsersStore()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 
-const cfg = kindConfig('role')
+// The Wizard mounts the create/detail dialogs once and hands these openers down.
+const inspectResource = inject('inspectResource', null)
+const createResource = inject('createResource', null)
+
 const roles = computed(() => store.rolesFor(props.project.id))
+const projectUsers = computed(() => store.projectUsersFor(props.project.id))
 
-const dialogOpen = ref(false)
-const saving = ref(false)
-const draft = reactive({ name: '', description: '' })
-
-function openCreate() {
-  draft.name = ''
-  draft.description = ''
-  dialogOpen.value = true
+// Roles collapsed by default; the set holds the expanded ones.
+const expandedIds = ref(new Set())
+const isCollapsed = id => !expandedIds.value.has(id)
+const toggle = id => {
+  const next = new Set(expandedIds.value)
+  next.has(id) ? next.delete(id) : next.add(id)
+  expandedIds.value = next
 }
 
-async function add() {
-  if (!draft.name.trim()) return
-  saving.value = true
-  try {
-    await store.addRole(props.project.id, { name: draft.name, description: draft.description })
-    dialogOpen.value = false
-  } catch (err) {
-    $toast.toastErrorHandler(t('project.accessRoles.toastAddFailed'))(err)
-  } finally {
-    saving.value = false
-  }
+const memberCount = role => projectUsers.value.filter(u => u.roleIds.includes(role.id)).length
+const memberSummary = role => {
+  const n = memberCount(role)
+  if (!n) return t('project.roleMembers.none')
+  return n === 1 ? t('project.roleMembers.one') : t('project.roleMembers.many', { count: n })
 }
 
+// A freshly created role (diffed against the previous list) starts expanded,
+// matching the data-model step's create behaviour. The create dialog is owned by
+// the Wizard now; we watch the store list for the new entry rather than owning it.
+watch(roles, (list, prev) => {
+  if (!prev || !prev.length) return // ignore the initial hydration burst
+  const known = new Set(prev.map(r => r.id))
+  const fresh = list.find(r => !known.has(r.id))
+  if (fresh) expandedIds.value = new Set(expandedIds.value).add(fresh.id)
+})
+
+// --- remove ------------------------------------------------------------------
 function onRemove(r) {
   confirmDelete({
     header: t('project.accessRoles.removeConfirm.header'),
@@ -154,9 +164,12 @@ function onRemove(r) {
   })
 }
 
+// loadProjectUsers loads the roles too (member resolution needs them), so the
+// member summaries and lists have data. The directory resolves names/emails.
 async function refresh(id) {
+  if (!id) return
   try {
-    await store.loadRoles(id)
+    await Promise.all([store.loadProjectUsers(id), usersStore.load()])
   } catch (err) {
     $toast.toastErrorHandler(t('project.accessRoles.toastLoadFailed'))(err)
   }

@@ -26,11 +26,20 @@
       >
         <!-- Step header -->
         <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
+          <!-- Leading badge mirrors the sidebar/metrics strip: resource steps take
+               their kind's icon and colour, other steps a neutral badge + step icon. -->
+          <span
+            v-if="activeStep"
+            class="inline-flex items-center justify-center w-9 h-9 rounded-md ring-1 shrink-0"
+            :class="activeBadge.wrap"
+          >
+            <i :class="activeBadge.icon" />
+          </span>
           <div class="min-w-0">
             <h2 class="text-lg font-medium truncate">
               {{ activeStep ? $t(activeStep.labelKey) : '' }}
             </h2>
-            <p class="text-sm text-muted-color mt-0.5 min-h-[1.25rem]">{{ headerHint }}</p>
+            <p class="text-sm text-muted-color">{{ headerHint }}</p>
           </div>
 
           <div class="ml-auto flex items-center gap-3">
@@ -100,12 +109,7 @@
                 :disabled="locked"
                 class="flex-1 min-h-0"
               />
-              <UsersStep
-                v-else
-                :project="project"
-                :disabled="locked"
-                class="flex-1 min-h-0"
-              />
+              <UsersStep v-else :project="project" :disabled="locked" class="flex-1 min-h-0" />
             </template>
             <template v-else>
               <StepStatusBanner
@@ -174,25 +178,137 @@
       @back="onBack"
     />
 
-    <ModuleDialog
-      v-model="configOpen"
+    <!-- Per-resource dialogs — every kind's Create + Detail dialog is mounted
+         here exactly once and opened through the inspectResource/createResource
+         provides. Steps and the resource graph never mount their own. -->
+
+    <!-- Module -->
+    <ModuleCreateDialog
+      :model-value="createKind === 'module'"
       :project="project"
-      :module-id="configId"
-      :readonly="locked"
+      @update:model-value="onCreateToggle('module', $event)"
+      @created="onMutated"
+    />
+    <ModuleDetailDialog
+      :model-value="detailKind === 'module'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('module', $event)"
+      @saved="onMutated"
     />
 
+    <!-- Connection -->
+    <ConnectionCreateDialog
+      :model-value="createKind === 'connection'"
+      :project="project"
+      @update:model-value="onCreateToggle('connection', $event)"
+      @created="onMutated"
+    />
+    <ConnectionDetailDialog
+      :model-value="detailKind === 'connection'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('connection', $event)"
+      @saved="onMutated"
+    />
+
+    <!-- Automation -->
+    <AutomationCreateDialog
+      :model-value="createKind === 'automation'"
+      :project="project"
+      @update:model-value="onCreateToggle('automation', $event)"
+      @created="onMutated"
+    />
+    <AutomationDetailDialog
+      :model-value="detailKind === 'automation'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('automation', $event)"
+      @saved="onMutated"
+    />
+
+    <!-- Agent -->
+    <AgentCreateDialog
+      :model-value="createKind === 'agent'"
+      :project="project"
+      @update:model-value="onCreateToggle('agent', $event)"
+      @created="onMutated"
+    />
+    <AgentDetailDialog
+      :model-value="detailKind === 'agent'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('agent', $event)"
+      @saved="onMutated"
+    />
+
+    <!-- Chatbot -->
+    <ChatbotCreateDialog
+      :model-value="createKind === 'chatbot'"
+      :project="project"
+      @update:model-value="onCreateToggle('chatbot', $event)"
+      @created="onMutated"
+    />
+    <ChatbotDetailDialog
+      :model-value="detailKind === 'chatbot'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('chatbot', $event)"
+      @saved="onMutated"
+    />
+
+    <!-- Page -->
+    <PageCreateDialog
+      :model-value="createKind === 'page'"
+      :project="project"
+      @update:model-value="onCreateToggle('page', $event)"
+      @created="onMutated"
+    />
+    <PageDetailDialog
+      :model-value="detailKind === 'page'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('page', $event)"
+      @saved="onMutated"
+    />
+
+    <!-- Role -->
+    <RoleCreateDialog
+      :model-value="createKind === 'role'"
+      :project="project"
+      @update:model-value="onCreateToggle('role', $event)"
+      @created="onMutated"
+    />
+    <RoleDetailDialog
+      :model-value="detailKind === 'role'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('role', $event)"
+      @saved="onMutated"
+    />
+
+    <!-- User -->
+    <UserCreateDialog
+      :model-value="createKind === 'user'"
+      :project="project"
+      @update:model-value="onCreateToggle('user', $event)"
+      @created="onMutated"
+    />
+    <UserDetailDialog
+      :model-value="detailKind === 'user'"
+      :project="project"
+      :resource-id="detailId"
+      @update:model-value="onDetailToggle('user', $event)"
+      @saved="onMutated"
+    />
+
+    <!-- Single-field editor — a Wizard-level sub-dialog stacked over the module
+         detail dialog; opened via the editField/createField provides. -->
     <FieldDialog
       v-model="fieldOpen"
       :project="project"
       :module-id="fieldModuleId"
       :field-id="fieldId"
-      :readonly="locked"
-    />
-
-    <ModuleDetailDialog
-      v-model="detailOpen"
-      :project="project"
-      :module-id="detailId"
       :readonly="locked"
     />
   </div>
@@ -234,8 +350,22 @@
 
 <script setup>
 import FieldDialog from '@/sections/project/components/datamodel/FieldDialog.vue'
+import ModuleCreateDialog from '@/sections/project/components/datamodel/ModuleCreateDialog.vue'
 import ModuleDetailDialog from '@/sections/project/components/datamodel/ModuleDetailDialog.vue'
-import ModuleDialog from '@/sections/project/components/datamodel/ModuleDialog.vue'
+import ConnectionCreateDialog from '@/sections/project/components/connections/ConnectionCreateDialog.vue'
+import ConnectionDetailDialog from '@/sections/project/components/connections/ConnectionDetailDialog.vue'
+import AutomationCreateDialog from '@/sections/project/components/automations/AutomationCreateDialog.vue'
+import AutomationDetailDialog from '@/sections/project/components/automations/AutomationDetailDialog.vue'
+import AgentCreateDialog from '@/sections/project/components/agents/AgentCreateDialog.vue'
+import AgentDetailDialog from '@/sections/project/components/agents/AgentDetailDialog.vue'
+import ChatbotCreateDialog from '@/sections/project/components/chatbots/ChatbotCreateDialog.vue'
+import ChatbotDetailDialog from '@/sections/project/components/chatbots/ChatbotDetailDialog.vue'
+import PageCreateDialog from '@/sections/project/components/pages/PageCreateDialog.vue'
+import PageDetailDialog from '@/sections/project/components/pages/PageDetailDialog.vue'
+import RoleCreateDialog from '@/sections/project/components/roles/RoleCreateDialog.vue'
+import RoleDetailDialog from '@/sections/project/components/roles/RoleDetailDialog.vue'
+import UserCreateDialog from '@/sections/project/components/users/UserCreateDialog.vue'
+import UserDetailDialog from '@/sections/project/components/users/UserDetailDialog.vue'
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
@@ -253,7 +383,7 @@ import DataSensitivityStep from '@/sections/project/components/wizard/steps/Data
 import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
-import { ACCESS_KINDS } from '@/sections/project/config/kinds'
+import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { STEPS, kindsThroughStep, sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
@@ -356,35 +486,48 @@ const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
 //   activeStep.value?.type === 'resource' ? activeStep.value.kind : null,
 // )
 
-// --- Module config dialog ----------------------------------------------------
-// Provided to the step components: open an existing module, or stage a new one.
-const configOpen = ref(false)
-const configId = ref(null)
-provide('configureResource', id => {
-  configId.value = id
-  configOpen.value = true
+// --- Per-resource Create / Detail dialogs ------------------------------------
+// One shared contract: every resource kind owns a Create dialog (minimal new-
+// resource form) and a Detail dialog (full edit of an existing resource), all
+// mounted once above. Steps and the resource graph open them through these two
+// provides; only one create dialog and one detail dialog are ever open at a
+// time, keyed by the active kind.
+const createKind = ref(null)
+const detailKind = ref(null)
+const detailId = ref(null)
+
+// createResource(kind) — open the Create dialog for that kind.
+provide('createResource', kind => {
+  detailKind.value = null
+  createKind.value = kind
 })
-provide('createResource', () => {
-  configId.value = null
-  configOpen.value = true
-})
-watch(configOpen, open => {
-  if (!open) configId.value = null
+// inspectResource(kind, id) — open the Detail dialog for an existing resource.
+// Graph node clicks and step-row clicks both route here; every kind opens
+// editable (no readonly mode).
+provide('inspectResource', (kind, id) => {
+  createKind.value = null
+  detailId.value = id
+  detailKind.value = kind
 })
 
-// --- Module detail dialog (graph node click) ---------------------------------
-// Richer module editor (meta + fields) opened by clicking a module node in the
-// resource graph; kept separate from configureResource so the data-model step
-// keeps its lightweight ModuleDialog.
-const detailOpen = ref(false)
-const detailId = ref(null)
-provide('inspectResource', id => {
-  detailId.value = id
-  detailOpen.value = true
-})
-watch(detailOpen, open => {
-  if (!open) detailId.value = null
-})
+// Dialog v-model close handlers: clear the active kind when a dialog closes.
+function onCreateToggle(kind, open) {
+  if (!open && createKind.value === kind) createKind.value = null
+}
+function onDetailToggle(kind, open) {
+  if (!open && detailKind.value === kind) {
+    detailKind.value = null
+    detailId.value = null
+  }
+}
+
+// Both create and detail dialogs already refetch their list inside the store
+// action (which touch()es), so the graph refreshes on its own. Bumping the
+// graph version again on the emit keeps the refresh loop driven from one place
+// regardless of which action ran.
+function onMutated() {
+  store.touch()
+}
 
 // --- Single-field edit dialog ------------------------------------------------
 // Provided to the step components: open the editor for one field.
@@ -533,6 +676,21 @@ function statusHint(draftText) {
   if (status.value === 'changes-requested') return t('project.wizard.hint.changesRequested')
   return draftText
 }
+// Leading icon badge for the active step's header — resolved exactly like the
+// sidebar (StepNav): resource steps borrow their kind's icon/colour, other steps
+// fall back to a neutral badge carrying the step's own icon.
+const activeBadge = computed(() => {
+  const s = activeStep.value
+  if (s?.kind) {
+    const cfg = kindConfig(s.kind)
+    return { wrap: [cfg.bg, cfg.ring], icon: [cfg.icon, cfg.text] }
+  }
+  return {
+    wrap: ['bg-emphasis', 'ring-surface'],
+    icon: ['pi', s?.icon || 'pi-circle', 'text-muted-color'],
+  }
+})
+
 // Short per-step blurb shown in the header (so steps don't repeat it in-body).
 const STEP_BLURB = {
   summary: 'project.wizard.blurb.summary',
@@ -540,6 +698,14 @@ const STEP_BLURB = {
   members: 'project.wizard.blurb.members',
   'data-model': 'project.wizard.blurb.dataModel',
   'data-sensitivity': 'project.wizard.blurb.dataSensitivity',
+  connections: 'project.wizard.blurb.connections',
+  automations: 'project.wizard.blurb.automations',
+  agents: 'project.wizard.blurb.agents',
+  chatbots: 'project.wizard.blurb.chatbots',
+  pages: 'project.wizard.blurb.pages',
+  roles: 'project.wizard.blurb.roles',
+  permissions: 'project.wizard.blurb.permissions',
+  users: 'project.wizard.blurb.users',
 }
 const headerHint = computed(() => {
   const blurbKey = STEP_BLURB[activeKey.value]
@@ -638,7 +804,12 @@ function onGateClick(gateKey) {
       header: t('project.wizard.gate.requestHeader'),
       message: t('project.wizard.gate.requestMessage'),
       icon: 'pi pi-lock',
-      rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+      rejectProps: {
+        label: t('general.label.cancel'),
+        severity: 'secondary',
+        text: true,
+        size: 'small',
+      },
       acceptProps: { label: t('project.wizard.gate.requestConfirm'), size: 'small' },
       accept: async () => {
         try {
