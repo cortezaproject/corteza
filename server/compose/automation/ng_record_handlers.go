@@ -46,7 +46,7 @@ func NgRecordsHandler(reg constructSvc, tReg typeRegistry, ns namespaceService, 
 
 func (h ngRecordsHandler) register() {
 	h.reg.AddFunctions(
-		// h.Lookup(),
+		h.Lookup(),
 		h.Create(),
 		h.Each(),
 		h.Delete(),
