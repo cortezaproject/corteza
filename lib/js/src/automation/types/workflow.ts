@@ -95,7 +95,7 @@ export class Workflow {
     }
 
     if (IsOf(w, 'issues')) {
-      this.issues = [...w.issues]
+      this.issues = Array.isArray(w.issues) ? [...w.issues] : []
     }
   }
 
