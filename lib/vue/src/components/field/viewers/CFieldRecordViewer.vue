@@ -5,7 +5,7 @@
       :key="getRecordID(rec) || index"
       :class="[
         { block: isNewlineDelimiter, 'mt-1': isNewlineDelimiter && index !== 0 },
-        canNavigate(rec) ? 'record-link' : '',
+        canNavigate(rec) ? 'text-primary font-medium cursor-pointer hover:underline' : '',
       ]"
       @click="navigateToRecord(rec)"
     >
@@ -163,14 +163,3 @@ watch(
   { immediate: true },
 )
 </script>
-
-<style scoped>
-.record-link {
-  color: var(--p-primary-color);
-  cursor: pointer;
-}
-
-.record-link:hover {
-  text-decoration: underline;
-}
-</style>

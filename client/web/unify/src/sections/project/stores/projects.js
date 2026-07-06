@@ -1261,6 +1261,98 @@ export const useProjectsStore = defineStore('projects', () => {
     }
   }
 
+  // --- per-user effective access -------------------------------------------------
+  // A user's *resolved* effective access across ALL the roles they hold, traced
+  // per resource (all ops). Distinct from the per-role cache above: the server
+  // resolves the user's whole role set, so this is the read-only "Evaluated"
+  // column in the per-user permissions view. Keyed `${pid}::${userId}`, mapped
+  // `resource` → { [operation]: 'allow' | 'deny' | 'unknown' }. Versioned to
+  // graphVersion so touch() (fired on every permission/membership change)
+  // invalidates it and the column re-traces.
+  const userEffectiveAccessByPU = ref({}) // { [`${pid}::${uid}`]: { version, map: Map } }
+  const userEffectiveAccessLoading = ref({}) // { [`${pid}::${uid}`]: bool }
+
+  function userEffectiveAccess(projectId, userId, resource, operation) {
+    return userEffectiveAccessByPU.value[`${projectId}::${userId}`]?.map.get(resource)?.[operation]
+  }
+
+  function isUserEffectiveAccessLoading(projectId, userId) {
+    return !!userEffectiveAccessLoading.value[`${projectId}::${userId}`]
+  }
+
+  const userAccessLoadingVersion = {} // `${pid}::${uid}` → graphVersion being fetched
+  const userAccessSeq = {} // `${pid}::${uid}` → monotonic run token; stale-write guard
+
+  // Trace one user's effective access over every resource (mirrors
+  // loadEffectiveAccess but passes userID instead of roleID, so the platform
+  // resolves the user's full role set into one allow/deny per resource×op).
+  async function loadUserEffectiveAccess(projectId, userId, resources = []) {
+    if (!userId) return
+    const key = `${projectId}::${userId}`
+    const version = graphVersion.value
+    const cached = userEffectiveAccessByPU.value[key]
+    if (cached && cached.version === version) return
+    if (userAccessLoadingVersion[key] === version) return // already fetching this version
+    userAccessLoadingVersion[key] = version
+
+    const seq = (userAccessSeq[key] = (userAccessSeq[key] || 0) + 1)
+    const isLatest = () => seq === userAccessSeq[key]
+    userEffectiveAccessLoading.value = { ...userEffectiveAccessLoading.value, [key]: true }
+
+    const map = new Map()
+    try {
+      if (resources.length) {
+        const byApi = new Map()
+        for (const r of resources) {
+          const api = apiForResource(r)
+          if (!byApi.has(api)) byApi.set(api, [])
+          byApi.get(api).push(r)
+        }
+        const CHUNK = 60
+        await Promise.all(
+          [...byApi.entries()].flatMap(([api, list]) => {
+            const chunks = []
+            for (let i = 0; i < list.length; i += CHUNK) chunks.push(list.slice(i, i + CHUNK))
+            return chunks.map(chunk =>
+              api
+                // userID is a scalar here (roleID stays an empty array) — the
+                // trace endpoint resolves the user's whole role set server-side.
+                // Mirrors the admin permissions grid; passing userID as an array
+                // yields no resolution.
+                .permissionsTrace({ resource: chunk, userID: userId, roleID: [] })
+                .then(traces => {
+                  for (const tr of traces || []) {
+                    if (!tr?.resource || !tr.operation) continue
+                    const state =
+                      tr.resolution === 'unknown-context'
+                        ? 'unknown'
+                        : tr.access === 'allow'
+                          ? 'allow'
+                          : 'deny'
+                    let ops = map.get(tr.resource)
+                    if (!ops) map.set(tr.resource, (ops = {}))
+                    ops[tr.operation] = state
+                  }
+                })
+                .catch(() => {}),
+            )
+          }),
+        )
+      }
+      if (isLatest()) {
+        userEffectiveAccessByPU.value = {
+          ...userEffectiveAccessByPU.value,
+          [key]: { version, map },
+        }
+      }
+    } finally {
+      if (isLatest()) {
+        if (userAccessLoadingVersion[key] === version) userAccessLoadingVersion[key] = null
+        userEffectiveAccessLoading.value = { ...userEffectiveAccessLoading.value, [key]: false }
+      }
+    }
+  }
+
   // --- project users -------------------------------------------------------------
   // Build the project-user list by collecting each access role's members and
   // grouping by user (a user may hold several roles).
@@ -1353,15 +1445,54 @@ export const useProjectsStore = defineStore('projects', () => {
     const { set = [] } = await $ComposeAPI
       .pageList({ namespaceID: p.namespaceID, limit: 500 })
       .catch(() => ({ set: [] }))
+    // Layouts live as a separate compose resource (pageList doesn't return them).
+    // One namespace-wide call — every layout carries its pageID — then group by
+    // page, so the permissions matrix can nest layout rows the way modules nest
+    // fields. limit:500 doesn't page the cursor (same cap as pageList above).
+    const { set: layoutSet = [] } = await $ComposeAPI
+      .pageLayoutListNamespace({ namespaceID: p.namespaceID, limit: 500 })
+      .catch(() => ({ set: [] }))
+    const layoutsByPage = new Map()
+    for (const pl of layoutSet) {
+      const pid = String(pl.pageID)
+      const list = layoutsByPage.get(pid) || []
+      list.push({
+        id: String(pl.pageLayoutID),
+        handle: pl.handle || '',
+        title: pl.meta?.title || '',
+        primary: pl.handle === 'primary',
+      })
+      layoutsByPage.set(pid, list)
+    }
+    const capitalize = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
     pagesByProject.value[key] = set.map(pg => {
       const moduleID = pg.moduleID && String(pg.moduleID) !== '0' ? String(pg.moduleID) : null
+      const pageName = pg.title || pg.handle || ''
+      const rawLayouts = layoutsByPage.get(String(pg.pageID)) || []
+      const soleLayout = rawLayouts.length === 1
       return {
         id: String(pg.pageID),
-        name: pg.title || pg.handle || '',
+        name: pageName,
         visible: !!pg.visible,
         moduleID,
         // Record pages are bound to a module; standalone pages are not.
         isRecordPage: !!moduleID,
+        // Matrix row label: a custom title that isn't just a copy of the page
+        // name always wins. Otherwise, when the page has a single layout whose
+        // title merely mirrors the page (the auto-created default via
+        // createDefaultPageLayout), show "Primary" (capitalized handle) rather
+        // than a child row identical to its parent page.
+        layouts: rawLayouts.map(l => {
+          let name
+          if (l.title && l.title !== pageName) {
+            name = l.title
+          } else if (soleLayout) {
+            name = capitalize(l.handle) || 'Primary'
+          } else {
+            name = l.handle || l.title || 'layout'
+          }
+          return { ...l, name }
+        }),
       }
     })
     touch()
@@ -1511,6 +1642,9 @@ export const useProjectsStore = defineStore('projects', () => {
     effectiveAccess,
     isEffectiveAccessLoading,
     loadEffectiveAccess,
+    userEffectiveAccess,
+    isUserEffectiveAccessLoading,
+    loadUserEffectiveAccess,
     setAccess,
     setCapabilityAccess,
     projectUsersFor,

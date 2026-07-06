@@ -10,7 +10,7 @@
         :href="fixUrl(v)"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-primary hover:underline"
+        class="text-primary font-medium hover:underline"
         @click.stop
       >
         {{ fixUrl(v) }}{{ index !== formattedValues.length - 1 ? delimiter : '' }}

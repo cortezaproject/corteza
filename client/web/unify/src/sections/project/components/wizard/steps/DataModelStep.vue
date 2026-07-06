@@ -89,11 +89,7 @@
                       <span class="text-sm truncate">
                         {{ f.name || $t('project.dataModel.untitledField') }}
                       </span>
-                      <span
-                        class="shrink-0 text-[11px] font-medium px-1.5 py-0.5 rounded bg-emphasis text-muted-color border border-surface"
-                      >
-                        {{ fieldTypeText(f.type) }}
-                      </span>
+                      <FieldKindTag :type="f.type" />
                       <template v-if="f.required">
                         <span class="shrink-0 text-muted-color/50 text-[11px]">·</span>
                         <span
@@ -162,7 +158,7 @@
 </template>
 
 <script setup>
-import { fieldTypeLabelKey } from '@/sections/project/config/fieldTypes'
+import FieldKindTag from '@/sections/project/components/datamodel/FieldKindTag.vue'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, ref, watch } from 'vue'
@@ -212,12 +208,6 @@ watch(modules, (list, prev) => {
     expandNext.value = false
   }
 })
-
-// Localized field-type label, falling back to the raw kind for unknown types.
-const fieldTypeText = type => {
-  const key = fieldTypeLabelKey(type)
-  return key ? t(key) : type
-}
 
 const fieldSummary = m => {
   const n = (m.fields || []).length

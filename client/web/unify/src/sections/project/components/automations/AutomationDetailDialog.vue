@@ -2,8 +2,8 @@
   <Dialog
     v-model:visible="visible"
     modal
-    :style="{ width: '40rem' }"
-    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2' } }"
+    :style="{ width: '52rem' }"
+    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2 p-3' } }"
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
@@ -47,6 +47,8 @@
         :label="$t('project.automationDetail.enabled')"
         :description="$t('project.automationDetail.enabledHint')"
       />
+
+      <ResourcePermissionsSection :project="project" kind="automation" :resource-id="resourceId" />
     </div>
 
     <template #footer>
@@ -83,6 +85,7 @@
 </template>
 
 <script setup>
+import ResourcePermissionsSection from '@/sections/project/components/permissions/ResourcePermissionsSection.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'

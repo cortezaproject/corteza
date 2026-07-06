@@ -92,6 +92,7 @@ type (
 	}
 
 	rbacRuleService interface {
+		Grant(ctx context.Context, rr ...*rbac.Rule) error
 		CloneRulesByRoleID(ctx context.Context, roleID uint64, toRoleID ...uint64) error
 
 		AddGroupRole(group id.ID, roles ...id.ID) (err error)
@@ -298,7 +299,60 @@ func (svc *role) beforeCreate(ctx context.Context, new *types.Role) (err error) 
 // original Dispatch (not WaitFor) behavior.
 func (svc *role) afterCreate(ctx context.Context, res *types.Role) error {
 	svc.eventbus.Dispatch(ctx, event.RoleAfterCreate(res, res))
+
+	// Project roles need a baseline grant to their project's namespace so members
+	// can actually open the project. Best-effort: a grant hiccup must not fail the
+	// (already persisted) role, but it is logged for follow-up.
+	if err := svc.grantProjectNamespaceAccess(ctx, res); err != nil {
+		logger.ContextValue(ctx).Warn(
+			"could not grant project namespace access to new project role",
+			logger.Uint64("roleID", res.ID),
+			logger.Uint64("projectID", res.ProjectID),
+			zap.Error(err),
+		)
+	}
+
 	return nil
+}
+
+// grantProjectNamespaceAccess seeds the baseline RBAC a project role needs so
+// its members can reach the project: read the project's compose namespace, list
+// its modules/pages/charts, and read page layouts so pages render. Per-resource
+// data access (module/record/field/page read) stays governed explicitly through
+// the project's permission matrix. Non-project roles (ProjectID == 0) — including
+// every system/provisioned role — are left untouched.
+//
+// This is what lets the platform-wide "authenticated" role stay near-zero: a
+// plain logged-in user gets no compose access by default and only reaches a
+// project's namespace through a role they've been assigned.
+func (svc *role) grantProjectNamespaceAccess(ctx context.Context, res *types.Role) error {
+	if res == nil || res.ProjectID == 0 {
+		return nil
+	}
+
+	p, err := store.LookupProjectByID(ctx, svc.store, res.ProjectID)
+	if err != nil {
+		return err
+	}
+
+	nsID := p.Config.NamespaceID
+	if nsID == 0 {
+		// Older projects may predate the auto-created namespace; nothing to grant.
+		return nil
+	}
+
+	var (
+		nsRes     = fmt.Sprintf("corteza::compose:namespace/%d", nsID)
+		layoutRes = fmt.Sprintf("corteza::compose:page-layout/%d/*/*", nsID)
+	)
+
+	return svc.rbac.Grant(ctx,
+		rbac.AllowRule(res.ID, nsRes, "read"),
+		rbac.AllowRule(res.ID, nsRes, "modules.search"),
+		rbac.AllowRule(res.ID, nsRes, "pages.search"),
+		rbac.AllowRule(res.ID, nsRes, "charts.search"),
+		rbac.AllowRule(res.ID, layoutRes, "read"),
+	)
 }
 
 // onUpdate is called by the generated Update after load, stale check, and

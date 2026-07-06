@@ -1,23 +1,10 @@
 allow:
+  # Near-zero baseline: a plain logged-in user gets nothing by default beyond
+  # what login itself needs. Everything else (seeing users, roles, apps, and any
+  # compose data) must be granted explicitly through a role — e.g. project roles,
+  # which are auto-granted access to their own project's namespace on creation.
   authenticated:
-    corteza::system/:
-      - applications.search
-      - auth-clients.search
-      - users.search
-      - roles.search
-
-    corteza::system:user/*:
-      - read
-      - email.unmask
-      - name.unmask
-
-    corteza::system:application/*:
-      - read
-      - application.flag.self
-
-    corteza::system:role/*:
-      - read
-
+    # Required for the OAuth2/OIDC login flow to authorize the web client.
     corteza::system:auth-client/*:
       - authorize
 

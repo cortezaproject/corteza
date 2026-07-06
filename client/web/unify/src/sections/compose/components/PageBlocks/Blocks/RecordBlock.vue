@@ -58,7 +58,7 @@
             <div class="grid grid-cols-[auto_1fr] gap-x-4 items-start">
               <div class="flex flex-col min-w-[8rem]">
                 <div class="flex items-center gap-1.5">
-                  <label class="text-sm font-semibold text-primary">
+                  <label class="text-sm font-medium text-muted-color uppercase tracking-wide">
                     {{ fieldLabel(field) }}
                   </label>
                   <span v-if="field.isRequired && isAnyEditing(field)" class="text-red-500">*</span>
@@ -128,7 +128,7 @@
             <div class="flex items-center gap-1.5 mb-1">
               <label
                 v-if="field.kind !== 'Bool' || field.options?.switch || !isEditing"
-                class="text-sm font-semibold text-primary block"
+                class="text-sm font-medium text-muted-color uppercase tracking-wide block"
               >
                 {{ fieldLabel(field) }}
               </label>

@@ -124,24 +124,24 @@ describe('CFieldRecordViewer', () => {
   })
 
   describe('disableClick', () => {
-    it('does not add record-link class when disableClick is true', () => {
+    it('does not add link styling when disableClick is true', () => {
       getByID.mockReturnValue({ recordID: 'r1', values: { title: 'T' } })
       const wrapper = mountViewer({
         field: field(),
         record: record({ ref: 'r1' }),
         disableClick: true,
       })
-      expect(wrapper.find('span').classes()).not.toContain('record-link')
+      expect(wrapper.find('span').classes()).not.toContain('cursor-pointer')
     })
 
-    it('adds record-link class when disableClick is false and record has ID', () => {
+    it('adds link styling when disableClick is false and record has ID', () => {
       getByID.mockReturnValue({ recordID: 'r1', values: { title: 'T' } })
       const wrapper = mountViewer({
         field: field(),
         record: record({ ref: 'r1' }),
         disableClick: false,
       })
-      expect(wrapper.find('span').classes()).toContain('record-link')
+      expect(wrapper.find('span').classes()).toContain('cursor-pointer')
     })
   })
 

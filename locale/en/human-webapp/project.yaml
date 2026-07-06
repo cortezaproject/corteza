@@ -595,6 +595,9 @@ permissions:
   hint: Grant each role access to the project's resources. Pick a capability, then toggle it per role; use the gear to edit rarer permissions in full.
   noRoles: Add roles first — there's nothing to grant permissions to yet.
   noResources: No resources to grant access on yet.
+  resourceLabel: Permissions
+  resourceHint: Which of the project's roles can access this resource, and how. Toggle per role, or use the gear for the full permission editor.
+  resourceNoRoles: This project has no access roles yet. Add a role to manage access to this resource.
   records: Records
   recordsOf: records of "{target}"
   fields: Fields
@@ -612,6 +615,7 @@ permissions:
     access: Access
     view: View
     use: Use
+    run: Run
   access:
     allowed: Allowed
     denied: Denied
@@ -624,7 +628,7 @@ permissions:
       allow: 'Allow {role} to {desc}?'
       deny: 'Deny {role} the ability to {desc}?'
       onlyThis: Only this
-      includeNested: This and everything nested
+      includeNested: This and everything inside it
       save: Save
   capState:
     allow: 'Allowed: can {desc}'
@@ -653,10 +657,14 @@ permissions:
       update: change the "{target}" field value
     page:
       read: view the "{target}" page
+    pageLayout:
+      read: view the "{target}" layout
     agent:
-      read: use the "{target}" agent (starting a conversation also needs a platform-wide grant)
+      read: use the "{target}" agent
     chatbot:
-      read: use the "{target}" chatbot (starting a session also needs a platform-wide grant)
+      read: use the "{target}" chatbot
+    automation:
+      read: run the "{target}" automation
   toastLoadFailed: Could not load resources
   toastSaved: Permissions saved
   toastSaveFailed: Could not save permissions
@@ -688,11 +696,14 @@ userCreate:
   toastCreateFailed: Could not add the user to the project
 userDetail:
   unnamed: Unnamed user
-  name: Name
-  email: Email
   roles: Project roles
-  rolesHint: Toggle the access roles this user holds on the project. Changes are applied when you save.
+  rolesHint: Toggle the access roles this user holds on the project. Changes apply immediately.
   noRoles: No roles have been created for this project yet.
+  permissions:
+    label: Permissions
+    hint: The first column shows this user's resolved access across all their roles and cannot be changed here; the remaining columns are the roles they hold — toggle a cell to change that role's permissions for everyone who holds it.
+    evaluated: Evaluated
+    evaluatedHint: Read-only — resolved from all the user's roles. Change access in the role columns.
   openEditor: Open in user editor
   toastLoadFailed: Could not load the user's project roles
   toastSaveFailed: Could not update the user's project roles

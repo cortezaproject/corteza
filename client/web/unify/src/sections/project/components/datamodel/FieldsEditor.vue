@@ -24,7 +24,24 @@
         fluid
         :disabled="disabled"
         @update:model-value="onType(f)"
-      />
+      >
+        <template #value="{ value, placeholder }">
+          <span v-if="findFieldTypeOption(value)" class="inline-flex items-center gap-2">
+            <i
+              v-if="findFieldTypeOption(value).icon"
+              :class="[findFieldTypeOption(value).icon, 'text-xs text-muted-color']"
+            />
+            {{ findFieldTypeOption(value).label }}
+          </span>
+          <span v-else>{{ placeholder }}</span>
+        </template>
+        <template #option="{ option }">
+          <span class="inline-flex items-center gap-2">
+            <i v-if="option.icon" :class="[option.icon, 'text-xs text-muted-color']" />
+            {{ option.label }}
+          </span>
+        </template>
+      </Select>
       <!-- Unclassified is value null; the placeholder renders it as the
            selected-looking default since Select shows nothing for null. -->
       <Select
@@ -128,7 +145,11 @@ const { t } = useI18n()
 const fields = defineModel({ type: Array, required: true })
 
 // Localized option lists for the Selects (id/value is the persisted value).
-const fieldTypeOptions = computed(() => FIELD_TYPES.map(ft => ({ id: ft.id, label: t(ft.labelKey) })))
+const fieldTypeOptions = computed(() =>
+  FIELD_TYPES.map(ft => ({ id: ft.id, label: t(ft.labelKey), icon: ft.icon })),
+)
+// Resolve a selected field-type id back to its option (icon + label) for the Select's value slot.
+const findFieldTypeOption = id => fieldTypeOptions.value.find(o => o.id === id)
 const sensitivityOptions = computed(() =>
   SENSITIVITY_OPTIONS.map(o => ({ id: o.id, label: t(o.labelKey) })),
 )

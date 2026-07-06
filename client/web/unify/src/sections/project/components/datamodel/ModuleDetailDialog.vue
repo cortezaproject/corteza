@@ -2,8 +2,8 @@
   <Dialog
     v-model:visible="visible"
     modal
-    :style="{ width: '48rem' }"
-    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2' } }"
+    :style="{ width: '56rem' }"
+    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2 p-3' } }"
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
@@ -66,11 +66,7 @@
                 <span class="text-sm truncate">
                   {{ f.name || $t('project.dataModel.untitledField') }}
                 </span>
-                <span
-                  class="shrink-0 text-[11px] font-medium px-1.5 py-0.5 rounded bg-emphasis text-muted-color border border-surface"
-                >
-                  {{ fieldTypeText(f.type) }}
-                </span>
+                <FieldKindTag :type="f.type" />
                 <template v-if="f.required">
                   <span class="shrink-0 text-muted-color/50 text-[11px]">·</span>
                   <span class="shrink-0 text-[11px] font-medium text-amber-600 dark:text-amber-400">
@@ -101,6 +97,8 @@
           </div>
         </div>
       </CFormGroup>
+
+      <ResourcePermissionsSection :project="project" kind="module" :resource-id="resourceId" />
     </div>
 
     <template #footer>
@@ -132,8 +130,9 @@
 </template>
 
 <script setup>
+import FieldKindTag from '@/sections/project/components/datamodel/FieldKindTag.vue'
+import ResourcePermissionsSection from '@/sections/project/components/permissions/ResourcePermissionsSection.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
-import { fieldTypeLabelKey } from '@/sections/project/config/fieldTypes'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { fieldName } from '@/sections/project/utils/fields'
@@ -213,12 +212,6 @@ watch(
   },
   { immediate: true },
 )
-
-// Localized field-type label, falling back to the raw kind for unknown types.
-const fieldTypeText = type => {
-  const key = fieldTypeLabelKey(type)
-  return key ? t(key) : type
-}
 
 // --- Field removal (immediate) ------------------------------------------------
 function removeField(f) {

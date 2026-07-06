@@ -3,7 +3,7 @@
     v-model:visible="visible"
     modal
     :style="{ width: '52rem' }"
-    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2' } }"
+    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2 p-3' } }"
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">

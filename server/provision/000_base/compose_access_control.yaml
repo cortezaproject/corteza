@@ -1,40 +1,10 @@
 allow:
-  authenticated:
-    corteza::compose/:
-      - namespaces.search
-
-    corteza::compose:namespace/*:
-      - read
-      - export
-      - modules.export
-      - charts.export
-      - pages.export
-      - pages.search
-      - modules.search
-      - charts.search
-
-    corteza::compose:module/*/*:
-      - read
-      - export
-      - records.search
-
-    corteza::compose:module-field/*/*/*:
-      - record.value.read
-
-    corteza::compose:page/*/*:
-      - read
-      - export
-
-    corteza::compose:page-layout/*/*/*:
-      - read
-
-    corteza::compose:chart/*/*:
-      - read
-      - export
-
-    corteza::compose:record/*/*/*:
-      - read
-
+  # No compose access is granted to the platform-wide "authenticated" role: a
+  # plain logged-in user can't read any namespace, module, record, page or chart
+  # by default. All data access is governed per project — project roles are
+  # auto-granted their own namespace baseline on creation (see the role service's
+  # grantProjectNamespaceAccess), and per-resource read/write is toggled in the
+  # project permission matrix.
   admin:
     corteza::compose/:
       - grant

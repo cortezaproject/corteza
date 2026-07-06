@@ -4,7 +4,7 @@
     modal
     :header="phase === 'pick' ? $t('project.connectionCreate.title') : configureHeader"
     :style="{ width: phase === 'pick' ? '60rem' : '40rem' }"
-    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2' } }"
+    :pt="{ content: { class: '!pt-2' }, footer: { class: 'flex justify-between gap-2 p-3' } }"
   >
     <!-- Phase 1: pick a connector from the live library ---------------------- -->
     <template v-if="phase === 'pick'">

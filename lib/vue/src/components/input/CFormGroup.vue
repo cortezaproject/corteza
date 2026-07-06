@@ -4,7 +4,7 @@
       <label
         v-if="label || $slots.label"
         :for="inputId || name"
-        class="font-medium text-primary text-sm"
+        class="font-medium text-muted-color text-sm uppercase tracking-wide"
       >
         <slot name="label">{{ label }}</slot>
         <span v-if="required" class="text-red-500">*</span>
@@ -25,7 +25,7 @@
       <label
         v-if="label || $slots.label"
         :for="inputId || undefined"
-        class="font-medium text-primary text-sm"
+        class="font-medium text-muted-color text-sm uppercase tracking-wide"
       >
         <slot name="label">{{ label }}</slot>
         <span v-if="required" class="text-red-500">*</span>
