@@ -10,6 +10,7 @@ import {
   CInputAgent,
   CInputSwitch,
   CInputCron,
+  CInputWorkflow,
 } from '@planetcrust/human-vue/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
 import CInputArray from './CInputArray.vue'
@@ -38,6 +39,10 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   // Record selectors
   RecordSelector: CInputRecord,
   Record: CInputRecord,
+
+  // Workflow selectors
+  WorkflowSelector: CInputWorkflow,
+  Workflow: CInputWorkflow,
 
   // Text inputs
   Text: InputText,

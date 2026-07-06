@@ -86,7 +86,7 @@ func (h ngWorkflowHandler) Exec() atypes.ConstructFunction {
 			Sections: []atypes.ConstructSection{{
 				Meta: atypes.ConstructSectionMeta{},
 				Elements: []atypes.SectionElement{
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Workflow", Argument: "workflow", Required: true}},
+					{Input: atypes.SectionElementInput{Type: "WorkflowSelector", Label: "Workflow", Argument: "workflow", Required: true}},
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Input", Argument: "input"}},
 				},
 			}},
