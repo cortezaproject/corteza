@@ -6,7 +6,7 @@ require (
 	github.com/crusttech/human/server v0.0.0-00010101000000-000000000000
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
-	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-chi/chi/v5 v5.3.0
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/go-oauth2/oauth2/v4 v4.4.3
