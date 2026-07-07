@@ -1,27 +1,16 @@
 <template>
   <div class="flex flex-col min-h-0">
-    <!-- Legend + capability selector: only the multi-role step view. The
-         single-role detail view (role dialog) shows neither. -->
+    <!-- Legend above the matrix. Mirrors the cell icons exactly (same stateIcon),
+         so the key always matches what's rendered in the grid. Only the multi-role
+         step view; the single-role detail view (role dialog) shows none. -->
     <div
       v-if="(roles.length || evalUserId) && !hideRoleHeader"
-      class="shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2 mb-3"
+      class="shrink-0 flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 text-xs text-muted-color"
     >
-      <SelectButton
-        v-if="!hideRoleHeader"
-        v-model="capability"
-        :options="capOptions"
-        option-label="label"
-        option-value="value"
-        :allow-empty="false"
-      />
-      <!-- Legend mirrors the cell icons exactly (same stateIcon), so the key
-           always matches what's rendered in the grid. -->
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-color">
-        <span v-for="l in LEGEND" :key="l.state" class="inline-flex items-center gap-1.5">
-          <i :class="stateIcon(l.state)" />
-          {{ $t(`project.permissions.access.${l.labelKey}`) }}
-        </span>
-      </div>
+      <span v-for="l in LEGEND" :key="l.state" class="inline-flex items-center gap-1.5">
+        <i :class="stateIcon(l.state)" />
+        {{ $t(`project.permissions.access.${l.labelKey}`) }}
+      </span>
     </div>
 
     <div
@@ -90,14 +79,16 @@
                   </p>
                 </div>
                 <!-- Full permissions editor: same outlined secondary button as
-                 CPermissionsButton elsewhere; right-aligned and hover-revealed. -->
+                 CPermissionsButton elsewhere; right-aligned and hover-revealed.
+                 Opaque highlight background so it masks the (non-truncated) row
+                 description text it overlaps when revealed on hover. -->
                 <Button
                   v-if="row.advancedResource"
                   icon="pi pi-lock"
                   severity="secondary"
                   outlined
                   size="small"
-                  class="shrink-0 ml-auto opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
+                  class="shrink-0 ml-auto !bg-highlight opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
                   :disabled="disabled"
                   v-tooltip.bottom="{
                     value: $t('project.permissions.advancedFor', { target: row.tipTarget }),
@@ -148,7 +139,18 @@
       <div class="w-max min-w-full rounded-lg border border-surface overflow-clip">
         <!-- Header row: same column template as every data row. -->
         <div class="grid min-w-max bg-surface" :style="gridStyle">
-          <div class="sticky left-0 z-10 bg-surface px-3 py-2" />
+          <!-- Corner cell: the capability lens lives here (instead of a separate
+               header strip) so the matrix carries its own capability selector. -->
+          <div class="sticky left-0 z-10 bg-surface px-3 py-2 flex items-center">
+            <SelectButton
+              v-model="capability"
+              :options="capOptions"
+              option-label="label"
+              option-value="value"
+              :allow-empty="false"
+              size="small"
+            />
+          </div>
           <!-- Read-only "Evaluated" column: the user's resolved access. The tinted
                band + lock icon mark it non-editable (changed via the role columns). -->
           <div
