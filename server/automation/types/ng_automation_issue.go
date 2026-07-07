@@ -7,72 +7,7 @@ import (
 	"strings"
 )
 
-type (
-	// NgAutomationIssueDetail wraps exactly one variant payload and marshals it as
-	// {type, parameters}. The wrapper is the only thing that injects the discriminator,
-	// so details never serialize as a bare variant struct.
-	NgAutomationIssueDetail struct {
-		MissingReference *DetailMissingReference
-		InvalidType      *DetailInvalidType
-		DuplicateID      *DetailDuplicateID
-		Cycle            *DetailCycle
-		ResourceRef      *DetailResourceRef
-		GatewayPaths     *DetailGatewayPaths
-		EmptyField       *DetailEmptyField
-
-		Details []*NgAutomationIssueDetail // reserved; nil for now
-	}
-
-	DetailMissingReference struct {
-		RefKind    string `json:"refKind"` // scope|step|trigger|function
-		Ref        string `json:"ref"`
-		StepID     uint64 `json:"stepID,string,omitempty"`
-		Field      string `json:"field,omitempty"` // arguments|results
-		FieldIndex int    `json:"fieldIndex,omitempty"`
-	}
-
-	DetailInvalidType struct {
-		StepID     uint64 `json:"stepID,string"`
-		Field      string `json:"field,omitempty"`
-		FieldIndex int    `json:"fieldIndex,omitempty"`
-		Target     string `json:"target,omitempty"`
-		Expected   string `json:"expected"`
-		Actual     string `json:"actual"`
-	}
-
-	DetailDuplicateID struct {
-		Resource string `json:"resource"` // step|trigger
-		ID       uint64 `json:"id,string"`
-		Indices  []int  `json:"indices,omitempty"`
-	}
-
-	DetailCycle struct {
-		StepIDs IssueIDs `json:"stepIDs"` // serialized as ["3","5"]
-	}
-
-	DetailResourceRef struct {
-		Resource   string `json:"resource"` // step|trigger|path
-		ID         uint64 `json:"id,string,omitempty"`
-		Index      int    `json:"index,omitempty"`
-		Field      string `json:"field,omitempty"`
-		FieldIndex int    `json:"fieldIndex,omitempty"`
-	}
-
-	DetailGatewayPaths struct {
-		StepID    uint64 `json:"stepID,string"`
-		Violation string `json:"violation"` // tooFew|noElse|multipleElse
-		Got       int    `json:"got"`
-		Want      int    `json:"want,omitempty"`
-	}
-
-	DetailEmptyField struct {
-		Resource string `json:"resource"` // step|trigger|path
-		Index    int    `json:"index"`
-		Field    string `json:"field,omitempty"`
-	}
-
-	issueDetailPayload interface{ issueDetailType() string }
-)
+type issueDetailPayload interface{ issueDetailType() string }
 
 func (*DetailMissingReference) issueDetailType() string { return IssueDetailMissingReference }
 func (*DetailInvalidType) issueDetailType() string      { return IssueDetailInvalidType }

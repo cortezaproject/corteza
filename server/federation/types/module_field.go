@@ -6,13 +6,6 @@ import (
 
 type (
 	ModuleFieldSet []*ModuleField
-
-	ModuleField struct {
-		Kind    string `json:"kind"`
-		Name    string `json:"name"`
-		Label   string `json:"label"`
-		IsMulti bool   `json:"isMulti"`
-	}
 )
 
 // HasField checks if the fieldset has a value by name

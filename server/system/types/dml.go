@@ -4,20 +4,7 @@ import (
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
-type DmlImportMethod string
-
-const (
-	DmlImportMethodBackground DmlImportMethod = "background"
-)
-
 type (
-	DmlConnectionParams struct {
-		Type            string         `json:"type"`
-		Params          map[string]any `json:"params"`
-		ModelIdent      string         `json:"modelIdent"`
-		ModelIdentCheck []string       `json:"modelIdentCheck"`
-	}
-
 	DmlConnectionInput struct {
 		Handle string               `json:"handle"`
 		Label  string               `json:"label"`
@@ -79,13 +66,5 @@ type (
 		Filterable bool   `json:"filterable"`
 		Type       string `json:"type"`
 		Store      string `json:"store"`
-	}
-
-	DmlColumnMap struct {
-		SourceIdent string `json:"sourceIdent"`
-		FieldName   string `json:"fieldName"`
-		Label       string `json:"label,omitempty"`
-		FieldKind   string `json:"fieldKind"`
-		Skip        bool   `json:"skip"`
 	}
 )

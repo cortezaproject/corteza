@@ -6,70 +6,17 @@ import (
 	"github.com/crusttech/human/server/pkg/expr"
 )
 
-type (
-	// WorkflowStep describes one workflow step
-	WorkflowStep struct {
-		ID   uint64           `json:"stepID,string"`
-		Kind WorkflowStepKind `json:"kind"`
+// WorkflowPath defines connection between two workflow steps
+type WorkflowPath struct {
+	// Expression to evaluate over the input variables; results will be set to scope under variable Name
+	Expr string `json:"expr,omitempty"`
 
-		// reference to function or subprocess (workflow)
-		Ref string `json:"ref"`
+	eval expr.Evaluable
 
-		// set of expressions to evaluate, test or pass to function
-		// invalid for for kind=~gateway:*
-		Arguments []*Expr `json:"arguments"`
-
-		// only valid when kind=function
-		Results []*Expr `json:"results"`
-
-		Meta WorkflowStepMeta `json:"meta,omitempty"`
-
-		Labels map[string]string `json:"labels,omitempty"`
-	}
-
-	WorkflowStepMeta struct {
-		Name        string                 `json:"name"`
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
-	}
-
-	// WorkflowPath defines connection between two workflow steps
-	WorkflowPath struct {
-		// Expression to evaluate over the input variables; results will be set to scope under variable Name
-		Expr string `json:"expr,omitempty"`
-
-		eval expr.Evaluable
-
-		ParentID uint64           `json:"parentID,string"`
-		ChildID  uint64           `json:"childID,string"`
-		Meta     WorkflowPathMeta `json:"meta,omitempty"`
-	}
-
-	WorkflowPathMeta struct {
-		Name        string                 `json:"name"`
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
-	}
-
-	WorkflowStepKind string
-)
-
-const (
-	WorkflowStepKindExpressions  WorkflowStepKind = "expressions"   // no ref
-	WorkflowStepKindGateway      WorkflowStepKind = "gateway"       // ref = join|fork|excl|incl
-	WorkflowStepKindFunction     WorkflowStepKind = "function"      // ref = <function ref>
-	WorkflowStepKindIterator     WorkflowStepKind = "iterator"      // ref = <iterator function ref>
-	WorkflowStepKindError        WorkflowStepKind = "error"         // no ref
-	WorkflowStepKindTermination  WorkflowStepKind = "termination"   // no ref
-	WorkflowStepKindPrompt       WorkflowStepKind = "prompt"        // ref = <client function>
-	WorkflowStepKindDelay        WorkflowStepKind = "delay"         // no ref
-	WorkflowStepKindErrHandler   WorkflowStepKind = "error-handler" // no ref
-	WorkflowStepKindVisual       WorkflowStepKind = "visual"        // ref = <*>
-	WorkflowStepKindDebug        WorkflowStepKind = "debug"         // ref = <*>
-	WorkflowStepKindBreak        WorkflowStepKind = "break"         // ref = <*>
-	WorkflowStepKindContinue     WorkflowStepKind = "continue"      // ref = <*>
-	WorkflowStepKindExecWorkflow WorkflowStepKind = "exec-workflow" // no ref
-)
+	ParentID uint64           `json:"parentID,string"`
+	ChildID  uint64           `json:"childID,string"`
+	Meta     WorkflowPathMeta `json:"meta,omitempty"`
+}
 
 // IsDeferred fn returns true if type of step is delay or prompt
 func (s WorkflowStep) IsDeferred() (is bool) {

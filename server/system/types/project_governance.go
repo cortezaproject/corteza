@@ -7,23 +7,10 @@ type (
 	// the server only stores and transitions step state.
 	ProjectGovernance map[string]*ProjectGovernanceStep
 
-	// ProjectGovernanceStep is one step's form values plus its approval state.
-	ProjectGovernanceStep struct {
-		Values     map[string]any          `json:"values,omitempty"`
-		Status     ProjectGovernanceStatus `json:"status"`
-		ReviewNote string                  `json:"reviewNote,omitempty"`
-	}
-
-	ProjectGovernanceStatus string
 	ProjectGovernanceAction string
 )
 
 const (
-	ProjectGovernanceStatusDraft            ProjectGovernanceStatus = "draft"
-	ProjectGovernanceStatusSubmitted        ProjectGovernanceStatus = "submitted"
-	ProjectGovernanceStatusApproved         ProjectGovernanceStatus = "approved"
-	ProjectGovernanceStatusChangesRequested ProjectGovernanceStatus = "changes-requested"
-
 	// ProjectGovernanceActionSubmit sends a draft/changes-requested step for approval.
 	ProjectGovernanceActionSubmit ProjectGovernanceAction = "submit"
 	// ProjectGovernanceActionApprove approves a submitted step.

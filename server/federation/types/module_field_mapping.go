@@ -8,11 +8,6 @@ const (
 type (
 	ModuleFieldMappingSet []*ModuleFieldMapping
 
-	ModuleFieldMapping struct {
-		Origin      ModuleField `json:"origin"`
-		Destination ModuleField `json:"destination"`
-	}
-
 	ModuleFieldMappingSetFindType int
 )
 
