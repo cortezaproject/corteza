@@ -48,6 +48,10 @@ actions:
   - action: undelete
     log: "undeleted {{trigger}}"
 
+  - action: searchOnManual
+    log: "searched for manual trigger"
+    severity: info
+
 errors:
   - error: notFound
     message: "trigger not found"

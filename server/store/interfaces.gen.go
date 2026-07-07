@@ -122,6 +122,7 @@ type (
 		DeleteActionlogByID(ctx context.Context, id uint64) error
 		TruncateActionlogs(ctx context.Context) error
 		LookupActionlogByID(ctx context.Context, id uint64) (*actionlogType.Action, error)
+		ActionlogReport(ctx context.Context, rr actionlogType.ReportRequest) (actionlogType.ReportRowSet, error)
 	}
 
 	Agents interface {
@@ -1021,6 +1022,13 @@ func TruncateActionlogs(ctx context.Context, s Actionlogs) error {
 // This function is auto-generated
 func LookupActionlogByID(ctx context.Context, s Actionlogs, id uint64) (*actionlogType.Action, error) {
 	return s.LookupActionlogByID(ctx, id)
+}
+
+// ActionlogReport
+//
+// This function is auto-generated
+func ActionlogReport(ctx context.Context, s Actionlogs, rr actionlogType.ReportRequest) (actionlogType.ReportRowSet, error) {
+	return s.ActionlogReport(ctx, rr)
 }
 
 // SearchAgents returns all matching Agents from store

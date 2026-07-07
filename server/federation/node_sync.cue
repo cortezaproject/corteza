@@ -6,7 +6,8 @@ import (
 
 nodeSync: {
 	features: {
-		labels: false
+		labels:    false
+		noIdField: true
 	}
 
 	types: {

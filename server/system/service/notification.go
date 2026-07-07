@@ -194,224 +194,192 @@ func (svc *notification) onDelete(ctx context.Context, s store.Storer, res *type
 	return nil
 }
 
-func (svc *notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {
-	var (
-		n   *types.Notification
-		old *types.Notification
+func (svc *notification) onMarkAsRead(ctx context.Context, aProps *notificationActionProps, ID uint64) (err error) {
+	var n *types.Notification
 
-		raProps = &notificationActionProps{notification: &types.Notification{ID: ID}}
-	)
+	if ID == 0 {
+		return NotificationErrInvalidID()
+	}
 
-	err = func() (err error) {
-		if ID == 0 {
-			return NotificationErrInvalidID()
-		}
+	if n, err = store.LookupNotificationByID(ctx, svc.store, ID); err != nil {
+		return NotificationErrNotFound()
+	}
 
-		if n, err = store.LookupNotificationByID(ctx, svc.store, ID); err != nil {
-			return NotificationErrNotFound()
-		}
+	// Check if the notification belongs to the current user
+	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
+	if n.Recipient != currentUserID {
+		return NotificationErrNotAllowedToRead()
+	}
 
-		// Check if the notification belongs to the current user
-		currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-		if n.Recipient != currentUserID {
-			return NotificationErrNotAllowedToRead()
-		}
+	aProps.setNotification(n)
 
-		raProps.setNotification(n)
+	// Mark as read
+	now := time.Now()
+	n.ReadAt = &now
+	n.UpdatedAt = &now
 
-		old = n.Clone()
+	if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+		return err
+	}
 
-		// Mark as read
-		now := time.Now()
-		n.ReadAt = &now
-		n.UpdatedAt = &now
-
-		if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+	// Send the updated notification via websocket so client can update UI
+	if svc.notificationSender != nil {
+		if err = svc.notificationSender.Send("notification.read", n, n.Recipient); err != nil {
 			return err
 		}
+	}
 
-		// Send the updated notification via websocket so client can update UI
-		if svc.notificationSender != nil {
-			if err = svc.notificationSender.Send("notification.read", n, n.Recipient); err != nil {
+	return nil
+}
+
+func (svc *notification) onMarkAsUnread(ctx context.Context, aProps *notificationActionProps, ID uint64) (err error) {
+	var n *types.Notification
+
+	if ID == 0 {
+		return NotificationErrInvalidID()
+	}
+
+	if n, err = store.LookupNotificationByID(ctx, svc.store, ID); err != nil {
+		return NotificationErrNotFound()
+	}
+
+	// Check if the notification belongs to the current user
+	currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
+	if n.Recipient != currentUserID {
+		return NotificationErrNotAllowedToRead()
+	}
+
+	aProps.setNotification(n)
+
+	// Mark as unread
+	n.ReadAt = nil
+	now := time.Now()
+	n.UpdatedAt = &now
+
+	if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+		return err
+	}
+
+	// Send the updated notification via websocket so client can update UI
+	if svc.notificationSender != nil {
+		if err = svc.notificationSender.Send("notification.unread", n, n.Recipient); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (svc *notification) onMarkAllAsRead(ctx context.Context, aProps *notificationActionProps) (err error) {
+	var (
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
+
+		cursor *filter.PagingCursor
+		nn     types.NotificationSet
+		f      types.NotificationFilter
+		now    = time.Now()
+	)
+
+	aProps.setNotification(&types.Notification{Recipient: currentUserID})
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		// Process unread notifications in batches
+		for {
+			// Query unread notifications with pagination
+			f = types.NotificationFilter{
+				Recipient: currentUserID,
+				Read:      filter.StateExcluded,
+				Paging: filter.Paging{
+					Limit:      100,
+					PageCursor: cursor,
+				},
+			}
+
+			nn, f, err = store.SearchNotifications(ctx, svc.store, f)
+			if err != nil {
 				return err
+			}
+
+			// Mark all notifications in this batch as read
+			for _, n := range nn {
+				n.ReadAt = &now
+				n.UpdatedAt = &now
+			}
+
+			err = store.UpdateNotification(ctx, svc.store, nn...)
+			if err != nil {
+				return err
+			}
+
+			// Send the updated notifications via websocket so client can update UI
+			if svc.notificationSender != nil && len(nn) > 0 {
+				if err = svc.notificationSender.Send("notification.read.all", nn, currentUserID); err != nil {
+					return err
+				}
+			}
+
+			// Update cursor for next page or break if no more pages
+			cursor = f.PageCursor
+			if cursor == nil {
+				break
 			}
 		}
 
 		return nil
-	}()
-
-	return svc.recordAction(ctx, raProps, NotificationActionMarkAsRead, err, old, n)
+	})
 }
 
-func (svc *notification) MarkAsUnread(ctx context.Context, ID uint64) (err error) {
+func (svc *notification) onMarkAllAsUnread(ctx context.Context, aProps *notificationActionProps) (err error) {
 	var (
-		n   *types.Notification
-		old *types.Notification
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
 
-		raProps = &notificationActionProps{notification: &types.Notification{ID: ID}}
+		cursor *filter.PagingCursor
+		nn     types.NotificationSet
+		f      types.NotificationFilter
+		now    = time.Now()
 	)
 
-	err = func() (err error) {
-		if ID == 0 {
-			return NotificationErrInvalidID()
-		}
+	aProps.setNotification(&types.Notification{Recipient: currentUserID})
 
-		if n, err = store.LookupNotificationByID(ctx, svc.store, ID); err != nil {
-			return NotificationErrNotFound()
-		}
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		for {
+			f = types.NotificationFilter{
+				Recipient: currentUserID,
+				Read:      filter.StateExclusive, // only read notifications
+				Paging: filter.Paging{
+					Limit:      100,
+					PageCursor: cursor,
+				},
+			}
 
-		// Check if the notification belongs to the current user
-		currentUserID := intAuth.GetIdentityFromContext(ctx).Identity()
-		if n.Recipient != currentUserID {
-			return NotificationErrNotAllowedToRead()
-		}
-
-		raProps.setNotification(n)
-
-		old = n.Clone()
-
-		// Mark as unread
-		n.ReadAt = nil
-		now := time.Now()
-		n.UpdatedAt = &now
-
-		if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
-			return err
-		}
-
-		// Send the updated notification via websocket so client can update UI
-		if svc.notificationSender != nil {
-			if err = svc.notificationSender.Send("notification.unread", n, n.Recipient); err != nil {
+			nn, f, err = store.SearchNotifications(ctx, svc.store, f)
+			if err != nil {
 				return err
+			}
+
+			for _, n := range nn {
+				n.ReadAt = nil
+				n.UpdatedAt = &now
+			}
+
+			if err = store.UpdateNotification(ctx, svc.store, nn...); err != nil {
+				return err
+			}
+
+			if svc.notificationSender != nil && len(nn) > 0 {
+				if err = svc.notificationSender.Send("notification.unread.all", nn, currentUserID); err != nil {
+					return err
+				}
+			}
+
+			cursor = f.PageCursor
+			if cursor == nil {
+				break
 			}
 		}
 
 		return nil
-	}()
-
-	return svc.recordAction(ctx, raProps, NotificationActionMarkAsUnread, err, old, n)
-}
-
-func (svc *notification) MarkAllAsRead(ctx context.Context) (err error) {
-	var (
-		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
-		raProps       = &notificationActionProps{notification: &types.Notification{Recipient: currentUserID}}
-	)
-
-	err = func() (err error) {
-		var (
-			cursor *filter.PagingCursor
-			nn     types.NotificationSet
-			f      types.NotificationFilter
-			now    = time.Now()
-		)
-
-		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-			// Process unread notifications in batches
-			for {
-				// Query unread notifications with pagination
-				f = types.NotificationFilter{
-					Recipient: currentUserID,
-					Read:      filter.StateExcluded,
-					Paging: filter.Paging{
-						Limit:      100,
-						PageCursor: cursor,
-					},
-				}
-
-				nn, f, err = store.SearchNotifications(ctx, svc.store, f)
-				if err != nil {
-					return err
-				}
-
-				// Mark all notifications in this batch as read
-				for _, n := range nn {
-					n.ReadAt = &now
-					n.UpdatedAt = &now
-				}
-
-				err = store.UpdateNotification(ctx, svc.store, nn...)
-				if err != nil {
-					return err
-				}
-
-				// Send the updated notifications via websocket so client can update UI
-				if svc.notificationSender != nil && len(nn) > 0 {
-					if err = svc.notificationSender.Send("notification.read.all", nn, currentUserID); err != nil {
-						return err
-					}
-				}
-
-				// Update cursor for next page or break if no more pages
-				cursor = f.PageCursor
-				if cursor == nil {
-					break
-				}
-			}
-
-			return nil
-		})
-	}()
-
-	return svc.recordAction(ctx, raProps, NotificationActionMarkAllAsRead, err)
-}
-
-func (svc *notification) MarkAllAsUnread(ctx context.Context) (err error) {
-	var (
-		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
-		raProps       = &notificationActionProps{notification: &types.Notification{Recipient: currentUserID}}
-	)
-
-	err = func() (err error) {
-		var (
-			cursor *filter.PagingCursor
-			nn     types.NotificationSet
-			f      types.NotificationFilter
-			now    = time.Now()
-		)
-
-		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-			for {
-				f = types.NotificationFilter{
-					Recipient: currentUserID,
-					Read:      filter.StateExclusive, // only read notifications
-					Paging: filter.Paging{
-						Limit:      100,
-						PageCursor: cursor,
-					},
-				}
-
-				nn, f, err = store.SearchNotifications(ctx, svc.store, f)
-				if err != nil {
-					return err
-				}
-
-				for _, n := range nn {
-					n.ReadAt = nil
-					n.UpdatedAt = &now
-				}
-
-				if err = store.UpdateNotification(ctx, svc.store, nn...); err != nil {
-					return err
-				}
-
-				if svc.notificationSender != nil && len(nn) > 0 {
-					if err = svc.notificationSender.Send("notification.unread.all", nn, currentUserID); err != nil {
-						return err
-					}
-				}
-
-				cursor = f.PageCursor
-				if cursor == nil {
-					break
-				}
-			}
-
-			return nil
-		})
-	}()
-
-	return svc.recordAction(ctx, raProps, NotificationActionMarkAllAsUnread, err)
+	})
 }
 
 func (svc *notification) checkAssignee(ctx context.Context, n *types.Notification) (err error) {

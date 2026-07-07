@@ -24,8 +24,7 @@ import (
 // access check for them).
 //
 // This file owns the struct, access-controller interface, constructor, the
-// on<Op> handlers and the resource-specific methods (ReloadSensitivityLevels,
-// prepare and the package-level reload/replace/remove helpers).
+// on<Op> handlers, prepare and the package-level reload/replace/remove helpers.
 
 type (
 	dalSensitivityLevel struct {
@@ -205,7 +204,7 @@ func (svc *dalSensitivityLevel) onSearch(ctx context.Context, filter types.DalSe
 	return r, f, nil
 }
 
-func (svc *dalSensitivityLevel) ReloadSensitivityLevels(ctx context.Context, s store.Storer) (err error) {
+func (svc *dalSensitivityLevel) onReloadSensitivityLevels(ctx context.Context, _ *dalSensitivityLevelActionProps, s store.Storer) (err error) {
 	return dalSensitivityLevelReload(ctx, svc.store, svc.dal)
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -30,6 +31,11 @@ func Tenant() *tenant {
 	}
 }
 
+type tenantServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *tenant) Search(ctx context.Context, filter types.TenantFilter) (set types.TenantSet, f types.TenantFilter, err error) {
 	var (
 		aProps = &tenantActionProps{search: &filter}
@@ -45,6 +51,9 @@ func (svc *tenant) Search(ctx context.Context, filter types.TenantFilter) (set t
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchTenants(ctx) {
 			return TenantErrNotAllowedToSearch()
 		}
@@ -88,6 +97,9 @@ func (svc *tenant) Create(ctx context.Context, new *types.Tenant) (res *types.Te
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateTenant(ctx) {
 			return TenantErrNotAllowedToCreate()
 		}
@@ -120,6 +132,10 @@ func (svc *tenant) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Tenant
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadTenant(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -168,4 +184,188 @@ func toLabeledTenants(set []*types.Tenant) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *tenant) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *tenant) scopeServices(ctx context.Context) *tenantServices {
+	return &tenantServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *tenant) Suspend(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onSuspend(ctx, aProps, ID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionSuspend, err)
+}
+
+func (svc *tenant) Activate(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onActivate(ctx, aProps, ID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionActivate, err)
+}
+
+func (svc *tenant) Archive(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onArchive(ctx, aProps, ID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionArchive, err)
+}
+
+func (svc *tenant) SearchMembers(ctx context.Context, filter types.TenantMembershipFilter) (set types.TenantMembershipSet, f types.TenantMembershipFilter, err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		set, f, err = svc.onSearchMembers(ctx, aProps, filter)
+		return err
+	}()
+
+	return set, f, svc.recordAction(ctx, aProps, TenantActionSearchMembers, err)
+}
+
+func (svc *tenant) Invite(ctx context.Context, m *types.TenantMembership) (res *types.TenantMembership, err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		res, err = svc.onInvite(ctx, aProps, m)
+		return err
+	}()
+
+	return res, svc.recordAction(ctx, aProps, TenantActionInvite, err)
+}
+
+func (svc *tenant) AcceptInvite(ctx context.Context, tenantID uint64, userID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onAcceptInvite(ctx, aProps, tenantID, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionAcceptInvite, err)
+}
+
+func (svc *tenant) UpdateMember(ctx context.Context, m *types.TenantMembership) (res *types.TenantMembership, err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		res, err = svc.onUpdateMember(ctx, aProps, m)
+		return err
+	}()
+
+	return res, svc.recordAction(ctx, aProps, TenantActionUpdateMember, err)
+}
+
+func (svc *tenant) RemoveMember(ctx context.Context, tenantID uint64, userID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onRemoveMember(ctx, aProps, tenantID, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionRemoveMember, err)
+}
+
+func (svc *tenant) SuspendMember(ctx context.Context, tenantID uint64, userID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onSuspendMember(ctx, aProps, tenantID, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionSuspendMember, err)
+}
+
+func (svc *tenant) ActivateMember(ctx context.Context, tenantID uint64, userID uint64) (err error) {
+	var (
+		aProps = &tenantActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onActivateMember(ctx, aProps, tenantID, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, TenantActionActivateMember, err)
 }

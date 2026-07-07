@@ -356,6 +356,25 @@ func DalConnectionActionUndelete(props ...*dalConnectionActionProps) *dalConnect
 	return a
 }
 
+// DalConnectionActionReloadConnections returns "system:dal-connection.reloadConnections" action
+//
+// This function is auto-generated.
+func DalConnectionActionReloadConnections(props ...*dalConnectionActionProps) *dalConnectionAction {
+	a := &dalConnectionAction{
+		timestamp: time.Now(),
+		resource:  "system:dal-connection",
+		action:    "reloadConnections",
+		log:       "reloaded DAL connections",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

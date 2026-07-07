@@ -398,6 +398,82 @@ func ProjectActionGovernanceTransition(props ...*projectActionProps) *projectAct
 	return a
 }
 
+// ProjectActionSearchMembers returns "system:project.searchMembers" action
+//
+// This function is auto-generated.
+func ProjectActionSearchMembers(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "searchMembers",
+		log:       "searched members of {{project}}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectActionAddMember returns "system:project.addMember" action
+//
+// This function is auto-generated.
+func ProjectActionAddMember(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "addMember",
+		log:       "added member to {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectActionUpdateMember returns "system:project.updateMember" action
+//
+// This function is auto-generated.
+func ProjectActionUpdateMember(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "updateMember",
+		log:       "updated member of {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectActionRemoveMember returns "system:project.removeMember" action
+//
+// This function is auto-generated.
+func ProjectActionRemoveMember(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "removeMember",
+		log:       "removed member from {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

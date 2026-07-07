@@ -10,6 +10,7 @@ auth_confirmed_client: {
 		paging: false
 		sorting: false
 		checkFn: false
+		noIdField: true
 	}
 
 	model: {

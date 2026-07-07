@@ -39,10 +39,6 @@ type (
 
 		reg map[uint64]map[uint64]uintptr
 
-		// registry yields one execution engine per tenant/project scope; the
-		// engine is resolved per call from the scope on the request context.
-		registry *scope.ScopeRegistry
-
 		log *zap.Logger
 
 		parser expr.Parsable
@@ -93,7 +89,7 @@ const (
 	ngAutomationDefChanged    ngAutomationChanges = 4
 )
 
-func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, registry *scope.ScopeRegistry) *ngAutomation {
+func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt) *ngAutomation {
 	return &ngAutomation{
 		log: log,
 
@@ -102,8 +98,6 @@ func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, registry *sc
 		// some reference/identifier?
 		mux: &sync.RWMutex{},
 		reg: map[uint64]map[uint64]uintptr{},
-
-		registry: registry,
 
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
@@ -120,9 +114,9 @@ func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, registry *sc
 func (svc *ngAutomation) engine(ctx context.Context) (executionEngine, error) {
 	sc := scope.GetScopeFromContext(ctx)
 
-	rt, err := svc.registry.Project(sc.TenantID, sc.ProjectID)
-	if err != nil {
-		return nil, err
+	rt, ok := scope.Default.Get(sc)
+	if !ok {
+		return nil, fmt.Errorf("automation runtime missing for tenant %d project %d", sc.TenantID, sc.ProjectID)
 	}
 
 	eng, ok := scope.Get[executionEngine](rt.Container())
@@ -303,7 +297,7 @@ func (svc *ngAutomation) UndeleteByID(ctx context.Context, ngAutomationID uint64
 	}))
 }
 
-func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {
+func (svc *ngAutomation) onExec(ctx context.Context, _ *ngAutomationActionProps, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {
 	atm, loadErr := loadNgAutomation(ctx, svc.store, automationID)
 	if loadErr != nil {
 		return id.Zero(), loadErr
@@ -332,7 +326,7 @@ func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.
 	return
 }
 
-func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error) {
+func (svc *ngAutomation) onExecAndWait(ctx context.Context, _ *ngAutomationActionProps, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error) {
 	entryPoint := p.EntryPoint
 	atm, loadErr := loadNgAutomation(ctx, svc.store, automationID)
 	if loadErr != nil {
@@ -348,7 +342,7 @@ func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p
 
 	// Validate input against embedded schema if the trigger corresponds to the entrypoint
 	for _, t := range atm.Triggers {
-		if (t.Handle == entryPoint || (entryPoint == "" && t.ID == atm.Triggers[0].ID)) {
+		if t.Handle == entryPoint || (entryPoint == "" && t.ID == atm.Triggers[0].ID) {
 			if err := validateAgenticInput(t.InputSchema, p.Input); err != nil {
 				return nil, err
 			}
@@ -417,13 +411,13 @@ func (svc *ngAutomation) injectIdentities(ctx context.Context, runAsID uint64, i
 	return input, nil
 }
 
-func (svc *ngAutomation) GetExecutions(ctx context.Context, automationID uint64) ([]*execTypes.ExecutionResult, error) {
+func (svc *ngAutomation) onGetExecutions(ctx context.Context, _ *ngAutomationActionProps, automationID uint64) (out []*execTypes.ExecutionResult, err error) {
 	eng, err := svc.engine(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := eng.ListExecutions(ctx, id.MustNumID(automationID), 0)
+	out, err = eng.ListExecutions(ctx, id.MustNumID(automationID), 0)
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +425,7 @@ func (svc *ngAutomation) GetExecutions(ctx context.Context, automationID uint64)
 	return out, nil
 }
 
-func (svc *ngAutomation) GetExecutionTrace(ctx context.Context, exeID, executionID uint64, rev int) (out []execTypes.StackFrame, err error) {
+func (svc *ngAutomation) onGetExecutionTrace(ctx context.Context, _ *ngAutomationActionProps, exeID, executionID uint64, rev int) (out []execTypes.StackFrame, err error) {
 	eng, err := svc.engine(ctx)
 	if err != nil {
 		return
@@ -445,7 +439,7 @@ func (svc *ngAutomation) GetExecutionTrace(ctx context.Context, exeID, execution
 	return
 }
 
-func (svc *ngAutomation) GetAllExecutions(ctx context.Context, f execTypes.ExecutionFilter) ([]*execTypes.ExecutionResult, error) {
+func (svc *ngAutomation) onGetAllExecutions(ctx context.Context, _ *ngAutomationActionProps, f execTypes.ExecutionFilter) (out []*execTypes.ExecutionResult, err error) {
 	eng, err := svc.engine(ctx)
 	if err != nil {
 		return nil, err
@@ -667,7 +661,7 @@ func (svc ngAutomation) handleUndelete(ctx context.Context, res *types.NgAutomat
 	return ngAutomationChanged, nil
 }
 
-func (svc *ngAutomation) Load(ctx context.Context) error {
+func (svc *ngAutomation) onLoad(ctx context.Context, _ *ngAutomationActionProps) error {
 	var (
 		set, _, err = store.SearchAutomationNgAutomations(ctx, svc.store, types.NgAutomationFilter{
 			Deleted:  filter.StateExcluded,
@@ -929,4 +923,3 @@ func validateAgenticInput(schema types.NgAutomationTriggerSchema, input *expr.Va
 	}
 	return nil
 }
-

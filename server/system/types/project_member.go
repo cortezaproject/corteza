@@ -21,11 +21,6 @@ type (
 		filter.Paging
 	}
 
-	// ProjectMemberRole is a fixed named preset (not freeform). Stored by value
-	// on the membership record. Capabilities are derived at runtime from the
-	// preset definition — never stored per-member.
-	ProjectMemberRole string
-
 	// ProjectCapabilities is derived at runtime from a member's RolePreset.
 	// It is never persisted.
 	ProjectCapabilities struct {
@@ -66,17 +61,6 @@ func (r ProjectMemberRole) Valid() bool {
 }
 
 // Capabilities resolves the runtime capabilities for the preset.
-//
-//	preset                 read write request grant
-//	governance-owner        ✓    ✓     ✓      ✓
-//	security-owner          ✓    ✓     ✓      ✓
-//	developer               ✓    ✓     ✓      ✗
-//	junior-developer        ✓    ✓     ✗      ✗
-//	executive-authority     ✓    ✗     ✗      ✓
-//	infrastructure-admin.   ✗    ✗     ✗      ✗
-//	member (fallback)       ✓    ✗     ✗      ✗
-//
-// Unknown presets fall back to member.
 func (r ProjectMemberRole) Capabilities() ProjectCapabilities {
 	switch r {
 	case ProjectRoleGovernanceOwner, ProjectRoleSecurityOwner:
@@ -89,7 +73,7 @@ func (r ProjectMemberRole) Capabilities() ProjectCapabilities {
 		return ProjectCapabilities{CanRead: true, CanGrantApproval: true}
 	case ProjectRoleInfrastructureAdministrator:
 		return ProjectCapabilities{}
-	default: // member + unknown
+	default:
 		return ProjectCapabilities{CanRead: true}
 	}
 }

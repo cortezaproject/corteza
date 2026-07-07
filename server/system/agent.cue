@@ -79,7 +79,8 @@ agent: {
 	}
 
 	features: {
-		labels: true
+		labels:            true
+		labelResourceType: "agent"
 	}
 
 	model: {

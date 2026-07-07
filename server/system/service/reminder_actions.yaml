@@ -53,6 +53,10 @@ actions:
   - action: snooze
     log: "snoozed {{reminder}}"
 
+  - action: findByIDs
+    log: "found reminders by IDs"
+    severity: info
+
 errors:
   - error: notFound
     message: "reminder not found"

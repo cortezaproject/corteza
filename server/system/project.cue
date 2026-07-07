@@ -82,7 +82,8 @@ _projectDefs: {
 
 project: {
 	features: {
-		labels:       true
+		labels:            true
+		labelResourceType: "project"
 	}
 
 	types: {

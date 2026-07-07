@@ -47,6 +47,9 @@ actions:
   - action: undelete
     log: "undeleted {{sensitivityLevel}}"
 
+  - action: reloadSensitivityLevels
+    log: "reloaded DAL sensitivity levels"
+
 errors:
   - error: notFound
     message: "sensitivityLevel not found"

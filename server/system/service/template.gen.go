@@ -12,9 +12,16 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
+	"io"
 )
+
+type templateServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *template) FindByID(ctx context.Context, ID uint64) (res *types.Template, err error) {
 	var (
@@ -22,6 +29,9 @@ func (svc *template) FindByID(ctx context.Context, ID uint64) (res *types.Templa
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if res, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return TemplateErrInvalidID().Wrap(err)
 		}
@@ -53,6 +63,9 @@ func (svc *template) Search(ctx context.Context, filter types.TemplateFilter) (s
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchTemplates(ctx) {
 			return TemplateErrNotAllowedToSearch()
 		}
@@ -96,6 +109,9 @@ func (svc *template) Create(ctx context.Context, new *types.Template) (res *type
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if err = svc.validate(ctx, new); err != nil {
 			return err
 		}
@@ -127,6 +143,9 @@ func (svc *template) Update(ctx context.Context, upd *types.Template) (res *type
 		old    *types.Template
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if err = svc.validate(ctx, upd); err != nil {
 			return err
 		}
@@ -180,6 +199,10 @@ func (svc *template) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Template
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -206,6 +229,10 @@ func (svc *template) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Template
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -251,4 +278,35 @@ func toLabeledTemplates(set []*types.Template) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *template) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *template) scopeServices(ctx context.Context) *templateServices {
+	return &templateServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {
+	var (
+		aProps = &templateActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		document, err = svc.onRender(ctx, aProps, templateID, dstType, variables, options)
+		return err
+	}()
+
+	return document, svc.recordAction(ctx, aProps, TemplateActionRender, err)
 }

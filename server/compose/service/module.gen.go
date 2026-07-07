@@ -13,8 +13,14 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type moduleServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *module) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Module, err error) {
 	var (
@@ -22,6 +28,9 @@ func (svc *module) FindByID(ctx context.Context, namespaceID uint64, ID uint64) 
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, namespaceID, ID, aProps)
 		return err
 	}()
@@ -35,6 +44,9 @@ func (svc *module) Search(ctx context.Context, filter types.ModuleFilter) (set t
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -50,6 +62,9 @@ func (svc *module) Create(ctx context.Context, new *types.Module) (res *types.Mo
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -179,4 +194,35 @@ func toLabeledModules(set []*types.Module) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *module) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *module) scopeServices(ctx context.Context) *moduleServices {
+	return &moduleServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
+	var (
+		aProps = &moduleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onReloadDALModels(ctx, aProps)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ModuleActionReloadDALModels, err)
 }

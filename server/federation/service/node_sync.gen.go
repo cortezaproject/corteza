@@ -9,7 +9,13 @@ package service
 import (
 	"context"
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/scope"
 )
+
+type nodeSyncServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *nodeSync) Search(ctx context.Context, filter types.NodeSyncFilter) (set types.NodeSyncSet, f types.NodeSyncFilter, err error) {
 	var (
@@ -17,6 +23,9 @@ func (svc *nodeSync) Search(ctx context.Context, filter types.NodeSyncFilter) (s
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -32,9 +41,26 @@ func (svc *nodeSync) Create(ctx context.Context, new *types.NodeSync) (res *type
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
 
 	return res, svc.recordAction(ctx, aProps, NodeSyncActionCreate, err)
+}
+
+func (svc *nodeSync) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *nodeSync) scopeServices(ctx context.Context) *nodeSyncServices {
+	return &nodeSyncServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

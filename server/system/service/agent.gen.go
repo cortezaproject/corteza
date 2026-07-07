@@ -12,6 +12,7 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -24,12 +25,20 @@ type agentAccessController interface {
 	CanDeleteAgent(context.Context, *types.Agent) bool
 }
 
+type agentServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *agent) FindByID(ctx context.Context, ID uint64) (res *types.Agent, err error) {
 	var (
 		aProps = &agentActionProps{agent: &types.Agent{ID: ID}}
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -43,6 +52,9 @@ func (svc *agent) Search(ctx context.Context, filter types.AgentFilter) (set typ
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchAgents(ctx) {
 			return AgentErrNotAllowedToSearch()
 		}
@@ -61,6 +73,9 @@ func (svc *agent) Create(ctx context.Context, new *types.Agent) (res *types.Agen
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateAgent(ctx) {
 			return AgentErrNotAllowedToCreate()
 		}
@@ -133,6 +148,10 @@ func (svc *agent) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Agent
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadAgent(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -177,4 +196,18 @@ func toLabeledAgents(set []*types.Agent) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *agent) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *agent) scopeServices(ctx context.Context) *agentServices {
+	return &agentServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

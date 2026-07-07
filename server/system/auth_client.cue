@@ -20,6 +20,7 @@ _auth_clientDefs: {
 
 auth_client: {
 	features: {
+		labelResourceType: "authClient"
 	}
 	types: {
 		gen: true

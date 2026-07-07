@@ -45,6 +45,9 @@ actions:
   - action: undelete
     log: "undeleted {{chatbot}}"
 
+  - action: regenerateWidgetKey
+    log: "regenerated widget key for {{chatbot}}"
+
 errors:
   - error: notFound
     message: "chatbot not found"

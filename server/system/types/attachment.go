@@ -25,27 +25,6 @@ type (
 		filter.Paging
 	}
 
-	AttachmentImageMeta struct {
-		Width           int    `json:"width,omitempty"`
-		Height          int    `json:"height,omitempty"`
-		Animated        bool   `json:"animated"`
-		Initial         string `json:"initial,omitempty"`
-		InitialColor    string `json:"initial-color,omitempty"`
-		BackgroundColor string `json:"background-color,omitempty"`
-	}
-
-	AttachmentFileMeta struct {
-		Size      int64                `json:"size"`
-		Extension string               `json:"ext"`
-		Mimetype  string               `json:"mimetype"`
-		Image     *AttachmentImageMeta `json:"image,omitempty"`
-	}
-
-	AttachmentMeta struct {
-		Original AttachmentFileMeta  `json:"original"`
-		Preview  *AttachmentFileMeta `json:"preview,omitempty"`
-		Labels   map[string]string   `json:"labels,omitempty"`
-	}
 )
 
 const (

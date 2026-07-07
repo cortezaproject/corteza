@@ -51,6 +51,19 @@ actions:
   - action: governanceTransition
     log: "transitioned governance step on {{project}}"
 
+  - action: searchMembers
+    log: "searched members of {{project}}"
+    severity: info
+
+  - action: addMember
+    log: "added member to {{project}}"
+
+  - action: updateMember
+    log: "updated member of {{project}}"
+
+  - action: removeMember
+    log: "removed member from {{project}}"
+
 errors:
   - error: notFound
     message: "project not found"

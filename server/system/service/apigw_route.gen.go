@@ -10,9 +10,15 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type apigwRouteServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (res *types.ApigwRoute, err error) {
 	var (
@@ -20,6 +26,9 @@ func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (res *types.Apig
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if res, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
 			return ApigwRouteErrInvalidID().Wrap(err)
 		}
@@ -51,6 +60,9 @@ func (svc *apigwRoute) Search(ctx context.Context, filter types.ApigwRouteFilter
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchApigwRoutes(ctx) {
 			return ApigwRouteErrNotAllowedToSearch()
 		}
@@ -73,6 +85,9 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (res *
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateApigwRoute(ctx) {
 			return ApigwRouteErrNotAllowedToCreate()
 		}
@@ -171,4 +186,18 @@ func loadApigwRoute(ctx context.Context, s store.ApigwRoutes, ID uint64) (res *t
 	}
 
 	return
+}
+
+func (svc *apigwRoute) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *apigwRoute) scopeServices(ctx context.Context) *apigwRouteServices {
+	return &apigwRouteServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

@@ -43,13 +43,6 @@ func Proc() {
 
 		// workaround because
 		// filepath.Join merges "*","*" into "**" instead of "*/*"
-		pkgTypeSrcPath = filepath.Join("*"+string(filepath.Separator)+"*"+string(filepath.Separator)+"*", "types.yaml")
-		typeSrcPath    = filepath.Join("*"+string(filepath.Separator)+"*", "types.yaml")
-		typeSrc        []string
-		typeDefs       []*typesDef
-
-		// workaround because
-		// filepath.Join merges "*","*" into "**" instead of "*/*"
 		exprTypeSrcPath = filepath.Join("*"+string(filepath.Separator)+"*", "expr_types.yaml")
 		exprTypeSrc     []string
 		exprTypeDefs    []*exprTypesDef
@@ -145,10 +138,6 @@ func Proc() {
 		eventSrc = glob(eventSrcPath)
 		output("loaded %d event definitions from %s\n", len(eventSrc), eventSrcPath)
 
-		typeSrc = glob(typeSrcPath)
-		typeSrc = append(typeSrc, glob(pkgTypeSrcPath)...)
-		output("loaded %d type definitions from %s\n", len(typeSrc), typeSrcPath)
-
 		exprTypeSrc = glob(exprTypeSrcPath)
 		output("loaded %d exprType definitions from %s\n", len(exprTypeSrc), exprTypeSrcPath)
 
@@ -169,7 +158,6 @@ func Proc() {
 			fileList = append(fileList, templatesSrc...)
 			fileList = append(fileList, actionSrc...)
 			fileList = append(fileList, eventSrc...)
-			fileList = append(fileList, typeSrc...)
 			fileList = append(fileList, exprTypeSrc...)
 			fileList = append(fileList, restSrc...)
 			fileList = append(fileList, aFuncsSrc...)
@@ -219,16 +207,6 @@ func Proc() {
 			}
 
 			if outputErr(err, "failed to process events:\n") {
-				return
-			}
-
-			if typeDefs, err = procTypes(typeSrc...); err == nil {
-				if genCode {
-					err = genTypes(tpls, typeDefs...)
-				}
-			}
-
-			if outputErr(err, "failed to process types:\n") {
 				return
 			}
 

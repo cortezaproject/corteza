@@ -482,360 +482,321 @@ func (svc *role) onUndelete(ctx context.Context, s store.Storer, res *types.Role
 	return nil
 }
 
-func (svc *role) Archive(ctx context.Context, roleID uint64) (err error) {
+func (svc *role) onArchive(ctx context.Context, raProps *roleActionProps, roleID uint64) (err error) {
 	var (
-		r, upd  *types.Role
-		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
+		r, upd *types.Role
 	)
 
-	err = func() (err error) {
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return err
-		}
+	raProps.setRole(&types.Role{ID: roleID})
 
-		if svc.IsSystem(r) {
-			return RoleErrNotAllowedToArchive()
-		}
-
-		upd = r.Clone()
-		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
-			return
-		}
-
-		raProps.setRole(upd)
-
-		if !svc.ac.CanUpdateRole(ctx, upd) {
-			return RoleErrNotAllowedToArchive()
-		}
-
-		upd.ArchivedAt = now()
-		if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
-		return
-	}()
-
-	return svc.recordAction(ctx, raProps, RoleActionArchive, err, r, upd)
-}
-
-func (svc *role) Unarchive(ctx context.Context, roleID uint64) (err error) {
-	var (
-		r, upd  *types.Role
-		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
-	)
-
-	err = func() (err error) {
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return err
-		}
-
-		if svc.IsSystem(r) {
-			return RoleErrNotAllowedToUnarchive()
-		}
-
-		upd = r.Clone()
-		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
-			return
-		}
-
-		raProps.setRole(upd)
-
-		if !svc.ac.CanDeleteRole(ctx, upd) {
-			return RoleErrNotAllowedToUndelete()
-		}
-
-		upd.ArchivedAt = nil
-		if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, raProps, RoleActionUnarchive, err, r, upd)
-}
-
-func (svc *role) CloneRules(ctx context.Context, roleID uint64, cloneToRoleID ...uint64) (err error) {
-	if !svc.ac.CanGrant(ctx) {
-		return RoleErrNotAllowedToCloneRules()
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return err
 	}
 
+	if svc.IsSystem(r) {
+		return RoleErrNotAllowedToArchive()
+	}
+
+	upd = r.Clone()
+	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
+		return
+	}
+
+	raProps.setRole(upd)
+
+	if !svc.ac.CanUpdateRole(ctx, upd) {
+		return RoleErrNotAllowedToArchive()
+	}
+
+	upd.ArchivedAt = now()
+	if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
+		return
+	}
+
+	svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
+	return
+}
+
+func (svc *role) onUnarchive(ctx context.Context, raProps *roleActionProps, roleID uint64) (err error) {
+	var (
+		r, upd *types.Role
+	)
+
+	raProps.setRole(&types.Role{ID: roleID})
+
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return err
+	}
+
+	if svc.IsSystem(r) {
+		return RoleErrNotAllowedToUnarchive()
+	}
+
+	upd = r.Clone()
+	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
+		return
+	}
+
+	raProps.setRole(upd)
+
+	if !svc.ac.CanDeleteRole(ctx, upd) {
+		return RoleErrNotAllowedToUndelete()
+	}
+
+	upd.ArchivedAt = nil
+	if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
+		return
+	}
+
+	svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
+	return nil
+}
+
+func (svc *role) onCloneRules(ctx context.Context, _ *roleActionProps, roleID uint64, cloneToRoleID ...uint64) (err error) {
 	return svc.rbac.CloneRulesByRoleID(ctx, roleID, cloneToRoleID...)
 }
 
-func (svc *role) Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error) {
-	mm, _, err := store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{Resource: fmt.Sprintf("corteza::system:user/%d", userID)})
+func (svc *role) onMembership(ctx context.Context, _ *roleActionProps, userID uint64) (mm types.RoleMemberSet, err error) {
+	mm, _, err = store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{Resource: fmt.Sprintf("corteza::system:user/%d", userID)})
 	return mm, err
 }
 
-func (svc *role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMemberSet, err error) {
+func (svc *role) onMemberList(ctx context.Context, raProps *roleActionProps, roleID uint64) (mm types.RoleMemberSet, err error) {
 	var (
 		r *types.Role
-
-		raProps = &roleActionProps{
-			role: &types.Role{ID: roleID},
-		}
 	)
 
-	err = func() error {
-		if roleID == 0 {
-			return RoleErrInvalidID()
-		}
+	raProps.setRole(&types.Role{ID: roleID})
 
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return err
-		}
+	if roleID == 0 {
+		return nil, RoleErrInvalidID()
+	}
 
-		if svc.IsClosed(r) || svc.IsContextual(r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return nil, err
+	}
 
-		if !svc.ac.CanReadRole(ctx, r) {
-			return RoleErrNotAllowedToRead()
-		}
+	if svc.IsClosed(r) || svc.IsContextual(r) {
+		return nil, RoleErrNotAllowedToManageMembers()
+	}
 
-		mm, _, err = store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{RoleID: roleID})
-		return err
-	}()
+	if !svc.ac.CanReadRole(ctx, r) {
+		return nil, RoleErrNotAllowedToRead()
+	}
 
-	return mm, svc.recordAction(ctx, raProps, RoleActionMembers, err)
+	mm, _, err = store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{RoleID: roleID})
+	return mm, err
 }
 
-// MemberAdd adds member (user) to a role
-func (svc *role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err error) {
+// onMemberAdd adds member (user) to a role
+func (svc *role) onMemberAdd(ctx context.Context, raProps *roleActionProps, roleID, memberID uint64) (err error) {
 	var (
 		r *types.Role
 		m *types.User
-
-		raProps = &roleActionProps{
-			role:   &types.Role{ID: roleID},
-			member: &types.User{ID: memberID},
-		}
 	)
 
-	err = func() (err error) {
-		if roleID == 0 || memberID == 0 {
-			return RoleErrInvalidID()
-		}
+	raProps.setRole(&types.Role{ID: roleID})
+	raProps.setMember(&types.User{ID: memberID})
 
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return
-		}
+	if roleID == 0 || memberID == 0 {
+		return RoleErrInvalidID()
+	}
 
-		raProps.setRole(r)
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return
+	}
 
-		if svc.IsClosed(r) || svc.IsContextual(r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
+	raProps.setRole(r)
 
-		if m, err = svc.user.FindByID(ctx, memberID); err != nil {
-			return
-		}
+	if svc.IsClosed(r) || svc.IsContextual(r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
 
-		raProps.setMember(m)
+	if m, err = svc.user.FindByID(ctx, memberID); err != nil {
+		return
+	}
 
-		if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeAdd(m, r)); err != nil {
-			return
-		}
+	raProps.setMember(m)
 
-		if !svc.ac.CanManageMembersOnRole(ctx, r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
+	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeAdd(m, r)); err != nil {
+		return
+	}
 
-		if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user/%d", m.ID)}); err != nil {
-			return
-		}
+	if !svc.ac.CanManageMembersOnRole(ctx, r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(m, r))
-		return nil
-	}()
+	if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user/%d", m.ID)}); err != nil {
+		return
+	}
 
-	return svc.recordAction(ctx, raProps, RoleActionMemberAdd, err)
+	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(m, r))
+	return nil
 }
 
-func (svc *role) MemberAddGroup(ctx context.Context, roleID, userGroupID uint64) (err error) {
+func (svc *role) onMemberAddGroup(ctx context.Context, raProps *roleActionProps, roleID, userGroupID uint64) (err error) {
+	var (
+		r  *types.Role
+		ug *types.UserGroup
+	)
+
+	raProps.setRole(&types.Role{ID: roleID})
+	raProps.setGroup(&types.UserGroup{ID: userGroupID})
+
+	if roleID == 0 || userGroupID == 0 {
+		return RoleErrInvalidID()
+	}
+
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return
+	}
+
+	raProps.setRole(r)
+
+	if svc.IsClosed(r) || svc.IsContextual(r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
+
+	if ug, err = DefaultUserGroup.FindByID(ctx, userGroupID); err != nil {
+		return
+	}
+
+	raProps.setGroup(ug)
+
+	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeAdd(nil, r)); err != nil {
+		return
+	}
+
+	if !svc.ac.CanManageMembersOnRole(ctx, r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
+
+	if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user-group/%d", ug.ID)}); err != nil {
+		return
+	}
+
+	if err = svc.rbac.AddGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
+		return
+	}
+
+	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(nil, r))
+	return nil
+}
+
+// onMemberRemove removes member (user) from a role
+func (svc *role) onMemberRemove(ctx context.Context, raProps *roleActionProps, roleID, memberID uint64) (err error) {
 	var (
 		r *types.Role
+		m *types.User
+	)
 
+	raProps.setRole(&types.Role{ID: roleID})
+	raProps.setMember(&types.User{ID: memberID})
+
+	if roleID == 0 || memberID == 0 {
+		return RoleErrInvalidID()
+	}
+
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return
+	}
+
+	if svc.IsClosed(r) || svc.IsContextual(r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
+
+	raProps.setRole(r)
+
+	if m, err = svc.user.FindByID(ctx, memberID); err != nil {
+		return
+	}
+
+	raProps.setMember(m)
+
+	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeRemove(m, r)); err != nil {
+		return
+	}
+
+	if !svc.ac.CanManageMembersOnRole(ctx, r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
+
+	if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user/%d", m.ID)}); err != nil {
+		return
+	}
+
+	// @todo skipping this for now,
+	//			AS per now PUT `/role/{roleID}` endpoint updates role and it's member with it but
+	//			only if one or more members are included in request otherwise we ignore it,
+	//			which causes issue in admin when we remove all the members from role.
+	//			we have to rework the role membership management logic in admin,
+	//			and use the dedicated endpoints for POST, DELETE role member.
+	// if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
+	//	 return
+	// }
+
+	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(m, r))
+	return nil
+}
+
+// onMemberRemoveGroup removes user group from a role
+func (svc *role) onMemberRemoveGroup(ctx context.Context, raProps *roleActionProps, roleID, userGroupID uint64) (err error) {
+	var (
+		r  *types.Role
 		ug *types.UserGroup
-
-		raProps = &roleActionProps{
-			role:  &types.Role{ID: roleID},
-			group: &types.UserGroup{ID: userGroupID},
-		}
 	)
 
-	err = func() (err error) {
-		if roleID == 0 || userGroupID == 0 {
-			return RoleErrInvalidID()
-		}
+	raProps.setRole(&types.Role{ID: roleID})
+	raProps.setGroup(&types.UserGroup{ID: userGroupID})
 
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return
-		}
+	if roleID == 0 || userGroupID == 0 {
+		return RoleErrInvalidID()
+	}
 
-		raProps.setRole(r)
+	if r, err = svc.findByID(ctx, roleID); err != nil {
+		return
+	}
 
-		if svc.IsClosed(r) || svc.IsContextual(r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
+	if svc.IsClosed(r) || svc.IsContextual(r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
 
-		if ug, err = DefaultUserGroup.FindByID(ctx, userGroupID); err != nil {
-			return
-		}
+	raProps.setRole(r)
 
-		raProps.setGroup(ug)
+	if ug, err = DefaultUserGroup.FindByID(ctx, userGroupID); err != nil {
+		return
+	}
 
-		if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeAdd(nil, r)); err != nil {
-			return
-		}
+	raProps.setGroup(ug)
 
-		if !svc.ac.CanManageMembersOnRole(ctx, r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
+	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeRemove(nil, r)); err != nil {
+		return
+	}
 
-		if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user-group/%d", ug.ID)}); err != nil {
-			return
-		}
+	if !svc.ac.CanManageMembersOnRole(ctx, r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
 
-		if err = svc.rbac.AddGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
-			return
-		}
+	if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user-group/%d", ug.ID)}); err != nil {
+		return
+	}
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(nil, r))
-		return nil
-	}()
+	if err = svc.rbac.RemoveGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
+		return
+	}
 
-	return svc.recordAction(ctx, raProps, RoleActionMemberAdd, err)
-}
+	// @todo skipping this for now,
+	//			AS per now PUT `/role/{roleID}` endpoint updates role and it's member with it but
+	//			only if one or more members are included in request otherwise we ignore it,
+	//			which causes issue in admin when we remove all the members from role.
+	//			we have to rework the role membership management logic in admin,
+	//			and use the dedicated endpoints for POST, DELETE role member.
+	// if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
+	//	 return
+	// }
 
-// MemberRemove removes member (user) from a role
-func (svc *role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err error) {
-	var (
-		r       *types.Role
-		m       *types.User
-		raProps = &roleActionProps{
-			role:   &types.Role{ID: roleID},
-			member: &types.User{ID: memberID},
-		}
-	)
-
-	err = func() (err error) {
-		if roleID == 0 || memberID == 0 {
-			return RoleErrInvalidID()
-		}
-
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return
-		}
-
-		if svc.IsClosed(r) || svc.IsContextual(r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
-
-		raProps.setRole(r)
-
-		if m, err = svc.user.FindByID(ctx, memberID); err != nil {
-			return
-		}
-
-		raProps.setMember(m)
-
-		if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeRemove(m, r)); err != nil {
-			return
-		}
-
-		if !svc.ac.CanManageMembersOnRole(ctx, r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
-
-		if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user/%d", m.ID)}); err != nil {
-			return
-		}
-
-		// @todo skipping this for now,
-		//			AS per now PUT `/role/{roleID}` endpoint updates role and it's member with it but
-		//			only if one or more members are included in request otherwise we ignore it,
-		//			which causes issue in admin when we remove all the members from role.
-		//			we have to rework the role membership management logic in admin,
-		//			and use the dedicated endpoints for POST, DELETE role member.
-		// if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
-		//	 return
-		// }
-
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(m, r))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, raProps, RoleActionMemberRemove, err)
-}
-
-// MemberRemove removes user group from a role
-func (svc *role) MemberRemoveGroup(ctx context.Context, roleID, userGroupID uint64) (err error) {
-	var (
-		r       *types.Role
-		ug      *types.UserGroup
-		raProps = &roleActionProps{
-			role:  &types.Role{ID: roleID},
-			group: &types.UserGroup{ID: userGroupID},
-		}
-	)
-
-	err = func() (err error) {
-		if roleID == 0 || userGroupID == 0 {
-			return RoleErrInvalidID()
-		}
-
-		if r, err = svc.findByID(ctx, roleID); err != nil {
-			return
-		}
-
-		if svc.IsClosed(r) || svc.IsContextual(r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
-
-		raProps.setRole(r)
-
-		if ug, err = DefaultUserGroup.FindByID(ctx, userGroupID); err != nil {
-			return
-		}
-
-		raProps.setGroup(ug)
-
-		if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeRemove(nil, r)); err != nil {
-			return
-		}
-
-		if !svc.ac.CanManageMembersOnRole(ctx, r) {
-			return RoleErrNotAllowedToManageMembers()
-		}
-
-		if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user-group/%d", ug.ID)}); err != nil {
-			return
-		}
-
-		if err = svc.rbac.RemoveGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
-			return
-		}
-
-		// @todo skipping this for now,
-		//			AS per now PUT `/role/{roleID}` endpoint updates role and it's member with it but
-		//			only if one or more members are included in request otherwise we ignore it,
-		//			which causes issue in admin when we remove all the members from role.
-		//			we have to rework the role membership management logic in admin,
-		//			and use the dedicated endpoints for POST, DELETE role member.
-		// if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
-		//	 return
-		// }
-
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(nil, r))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, raProps, RoleActionMemberRemove, err)
+	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(nil, r))
+	return nil
 }
 
 // Initializes roles to RBAC and default role service

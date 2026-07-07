@@ -487,6 +487,25 @@ func UserGroupActionMemberRemove(props ...*userGroupActionProps) *userGroupActio
 	return a
 }
 
+// UserGroupActionActivate returns "system:user-group.activate" action
+//
+// This function is auto-generated.
+func UserGroupActionActivate(props ...*userGroupActionProps) *userGroupAction {
+	a := &userGroupAction{
+		timestamp: time.Now(),
+		resource:  "system:user-group",
+		action:    "activate",
+		log:       "activated user groups",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

@@ -81,33 +81,28 @@ func (svc *chatbot) onUpdate(ctx context.Context, s store.Storer, upd, c *types.
 	return label.Update(ctx, s, upd)
 }
 
-func (svc *chatbot) RegenerateWidgetKey(ctx context.Context, ID uint64) (c *types.Chatbot, err error) {
-	err = func() (err error) {
-		var existing *types.Chatbot
-		if existing, err = loadChatbot(ctx, svc.store, ID); err != nil {
-			return
-		}
+func (svc *chatbot) onRegenerateWidgetKey(ctx context.Context, _ *chatbotActionProps, ID uint64) (c *types.Chatbot, err error) {
+	var existing *types.Chatbot
+	if existing, err = loadChatbot(ctx, svc.store, ID); err != nil {
+		return
+	}
 
-		if !svc.ac.CanUpdateChatbot(ctx, existing) {
-			return ChatbotErrNotAllowedToUpdate()
-		}
+	if !svc.ac.CanUpdateChatbot(ctx, existing) {
+		return nil, ChatbotErrNotAllowedToUpdate()
+	}
 
-		key, err := generateChatbotWidgetKey()
-		if err != nil {
-			return err
-		}
-		existing.WidgetKey = key
-		existing.UpdatedAt = now()
+	key, err := generateChatbotWidgetKey()
+	if err != nil {
+		return nil, err
+	}
+	existing.WidgetKey = key
+	existing.UpdatedAt = now()
 
-		if err = store.UpdateChatbot(ctx, svc.store, existing); err != nil {
-			return
-		}
+	if err = store.UpdateChatbot(ctx, svc.store, existing); err != nil {
+		return
+	}
 
-		c = existing
-		return nil
-	}()
-
-	return c, err
+	return existing, nil
 }
 
 func (svc *chatbot) onDelete(ctx context.Context, s store.Storer, c *types.Chatbot, aProps *chatbotActionProps) error {
@@ -241,4 +236,3 @@ func generateChatbotWidgetKey() (string, error) {
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
-

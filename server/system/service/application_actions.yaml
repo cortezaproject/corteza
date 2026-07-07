@@ -56,6 +56,12 @@ actions:
   - action: flagManageGlobal
     log: "managed global flags for application {{application}}"
 
+  - action: flag
+    log: "flagged application {{application}}"
+
+  - action: unflag
+    log: "unflagged application {{application}}"
+
 errors:
   - error: notFound
     message: "application not found"

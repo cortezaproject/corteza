@@ -62,6 +62,9 @@ actions:
   - action: memberRemove
     log: "removed {{member.email}} from {{userGroup}}"
 
+  - action: activate
+    log: "activated user groups"
+
 errors:
   - error: notFound
     message: "userGroup not found"

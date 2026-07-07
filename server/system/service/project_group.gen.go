@@ -12,6 +12,7 @@ import (
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -30,12 +31,20 @@ func ProjectGroup() *projectGroup {
 	}
 }
 
+type projectGroupServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *projectGroup) FindByID(ctx context.Context, ID uint64) (res *types.ProjectGroup, err error) {
 	var (
 		aProps = &projectGroupActionProps{projectGroup: &types.ProjectGroup{ID: ID}}
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if res, err = loadProjectGroup(ctx, svc.store, ID); err != nil {
 			return ProjectGroupErrInvalidID().Wrap(err)
 		}
@@ -67,6 +76,9 @@ func (svc *projectGroup) Search(ctx context.Context, filter types.ProjectGroupFi
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchProjectGroups(ctx) {
 			return ProjectGroupErrNotAllowedToSearch()
 		}
@@ -89,6 +101,9 @@ func (svc *projectGroup) Create(ctx context.Context, new *types.ProjectGroup) (r
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateProjectGroup(ctx) {
 			return ProjectGroupErrNotAllowedToCreate()
 		}
@@ -117,6 +132,9 @@ func (svc *projectGroup) Update(ctx context.Context, upd *types.ProjectGroup) (r
 		old    *types.ProjectGroup
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if res, err = loadProjectGroup(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
@@ -157,6 +175,10 @@ func (svc *projectGroup) DeleteByID(ctx context.Context, ID uint64) (err error) 
 		res    *types.ProjectGroup
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadProjectGroup(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -187,4 +209,69 @@ func loadProjectGroup(ctx context.Context, s store.ProjectGroups, ID uint64) (re
 	}
 
 	return
+}
+
+func (svc *projectGroup) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *projectGroup) scopeServices(ctx context.Context) *projectGroupServices {
+	return &projectGroupServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *projectGroup) MemberList(ctx context.Context, projectGroupID uint64) (set types.ProjectGroupEntrySet, err error) {
+	var (
+		aProps = &projectGroupActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		set, err = svc.onMemberList(ctx, aProps, projectGroupID)
+		return err
+	}()
+
+	return set, svc.recordAction(ctx, aProps, ProjectGroupActionMemberList, err)
+}
+
+func (svc *projectGroup) MemberAdd(ctx context.Context, projectGroupID uint64, resourceRef string) (err error) {
+	var (
+		aProps = &projectGroupActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMemberAdd(ctx, aProps, projectGroupID, resourceRef)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ProjectGroupActionMemberAdd, err)
+}
+
+func (svc *projectGroup) MemberRemove(ctx context.Context, projectGroupID uint64, resourceRef string) (err error) {
+	var (
+		aProps = &projectGroupActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMemberRemove(ctx, aProps, projectGroupID, resourceRef)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ProjectGroupActionMemberRemove, err)
 }

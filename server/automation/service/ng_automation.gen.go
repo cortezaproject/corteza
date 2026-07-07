@@ -9,9 +9,17 @@ package service
 import (
 	"context"
 	types "github.com/crusttech/human/server/automation/types"
+	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type ngAutomationServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *ngAutomation) Search(ctx context.Context, filter types.NgAutomationFilter) (set types.NgAutomationSet, f types.NgAutomationFilter, err error) {
 	var (
@@ -28,6 +36,9 @@ func (svc *ngAutomation) Search(ctx context.Context, filter types.NgAutomationFi
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchNgAutomations(ctx) {
 			return NgAutomationErrNotAllowedToSearch()
 		}
@@ -75,4 +86,120 @@ func toLabeledNgAutomations(set []*types.NgAutomation) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *ngAutomation) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *ngAutomation) scopeServices(ctx context.Context) *ngAutomationServices {
+	return &ngAutomationServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {
+	var (
+		aProps = &ngAutomationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		executionID, err = svc.onExec(ctx, aProps, automationID, p)
+		return err
+	}()
+
+	return executionID, svc.recordAction(ctx, aProps, NgAutomationActionExec, err)
+}
+
+func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error) {
+	var (
+		aProps = &ngAutomationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		out, err = svc.onExecAndWait(ctx, aProps, automationID, p)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, NgAutomationActionExecAndWait, err)
+}
+
+func (svc *ngAutomation) GetExecutions(ctx context.Context, automationID uint64) (out []*execTypes.ExecutionResult, err error) {
+	var (
+		aProps = &ngAutomationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		out, err = svc.onGetExecutions(ctx, aProps, automationID)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, NgAutomationActionGetExecutions, err)
+}
+
+func (svc *ngAutomation) GetExecutionTrace(ctx context.Context, exeID uint64, executionID uint64, rev int) (out []execTypes.StackFrame, err error) {
+	var (
+		aProps = &ngAutomationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		out, err = svc.onGetExecutionTrace(ctx, aProps, exeID, executionID, rev)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, NgAutomationActionGetExecutionTrace, err)
+}
+
+func (svc *ngAutomation) GetAllExecutions(ctx context.Context, f execTypes.ExecutionFilter) (out []*execTypes.ExecutionResult, err error) {
+	var (
+		aProps = &ngAutomationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		out, err = svc.onGetAllExecutions(ctx, aProps, f)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, NgAutomationActionGetAllExecutions, err)
+}
+
+func (svc *ngAutomation) Load(ctx context.Context) (err error) {
+	var (
+		aProps = &ngAutomationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onLoad(ctx, aProps)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NgAutomationActionLoad, err)
 }

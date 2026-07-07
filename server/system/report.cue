@@ -99,6 +99,7 @@ _reportDefs: {
 
 report: {
 	features: {
+		labelResourceType: "report"
 	}
 	types: {
 		gen: true
@@ -107,7 +108,8 @@ report: {
 		// the value-returning generated version, so it is excluded from JSON helper
 		// generation.
 		jsonTypesPtr: ["ReportMeta"]
-		imports: ["github.com/crusttech/human/server/pkg/ast"]
+		// ReportFilterExpr uses *ast.ASTNode embedding — hand-written; skip struct gen.
+		structTypesSkip: ["ReportFilterExpr"]
 		defs: _reportDefs
 	}
 	model: {

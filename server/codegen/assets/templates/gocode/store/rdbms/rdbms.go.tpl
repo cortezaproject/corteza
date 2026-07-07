@@ -13,7 +13,6 @@ import (
 	"github.com/modern-go/reflect2"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 {{- range $path, $alias :=  .imports }}
     {{ $alias }} {{ printf "%q" $path }}
@@ -42,8 +41,6 @@ var (
 func (s *Store) Create{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
 		{{- if .features.tenantScoped }}
-		// tenancy scope stamp: denormalise the caller's tenant (and project) onto
-		// the new row so the read guard can resolve it. No-op at system scope.
 		stampScope{{ .expIdent }}(ctx, rr[i])
 		{{- end }}
 
@@ -70,7 +67,6 @@ func (s *Store) Update{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 		}
 
 		{{- if .features.tenantScoped }}
-		// tenancy scope guard: cannot update a row outside the caller's scope.
 		if err = s.Exec(ctx, {{ .ident }}UpdateQuery(s.Dialect.GOQU(), rr[i]).Where(scopeGuard{{ .expIdent }}(ctx)...)); err != nil {
 			return
 		}
@@ -128,15 +124,12 @@ func (s *Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
 		{{- if .features.tenantScoped }}
-		// tenancy scope guard: cannot delete a row outside the caller's scope.
 		if err = s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{ {{ .ident }}PrimaryKeys(rr[i]) }, scopeGuard{{ .expIdent }}(ctx)...)...)); err != nil {
-			return
-		}
 		{{- else }}
 		if err = s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), {{ .ident }}PrimaryKeys(rr[i]))); err != nil {
+		{{- end }}
 			return
 		}
-		{{- end }}
 	}
 
 	return nil
@@ -148,7 +141,6 @@ func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 // This function is auto-generated
 func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.attributes }}{{ .ident }} {{ .goType }},{{ end }}) error {
 	{{- if .features.tenantScoped }}
-	// tenancy scope guard: an ID from another tenant/project must not be deletable.
 	return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), append([]goqu.Expression{goqu.Ex{
 	{{- range .api.deleteByPK.attributes }}
 		{{ printf "%q" .storeIdent }}: {{ .ident }},
@@ -167,10 +159,6 @@ func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ templat
 // Truncate{{ .expIdentPlural }} Deletes all rows from the {{ .ident }} collection
 func (s *Store) Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error {
 	{{- if .features.tenantScoped }}
-	// tenancy scope guard: under a tenant/project scope, truncate must only
-	// remove the caller's rows. TRUNCATE cannot carry a WHERE clause, so a
-	// scoped request is downgraded to a scoped DELETE. System scope (tenant 0)
-	// keeps the fast unconditional TRUNCATE.
 	if guard := scopeGuard{{ .expIdent }}(ctx); len(guard) > 0 {
 		return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), guard...))
 	}
@@ -395,46 +383,18 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 {{ end }}
 
 {{- if .features.tenantScoped }}
-// scopeGuard{{ .expIdent }} builds the tenancy WHERE conditions for {{ .expIdent }}
-// from the scope carried in ctx.
-//
-// Each scope dimension is applied independently of the others: a set tenant
-// constrains rel_tenant and a set project constrains rel_project, so a project
-// still narrows the query even at tenant 0 (single-tenant deployments). A fully
-// empty scope (tenant 0, project 0) produces no conditions, leaving the query
-// unrestricted. This function is auto-generated.
 func scopeGuard{{ .expIdent }}(ctx context.Context) []goqu.Expression {
 	sc := scope.GetScopeFromContext(ctx)
-
-	var ee []goqu.Expression
-	if sc.TenantID != 0 {
-		ee = append(ee, goqu.I("rel_tenant").Eq(sc.TenantID))
+	return []goqu.Expression{
+		goqu.I("rel_tenant").Eq(sc.TenantID),
+		goqu.I("rel_project").Eq(sc.ProjectID),
 	}
-	{{- if .features.projectScoped }}
-	if sc.ProjectID != 0 {
-		ee = append(ee, goqu.I("rel_project").Eq(sc.ProjectID))
-	}
-	{{- end }}
-	return ee
 }
 
-// stampScope{{ .expIdent }} denormalises the request scope onto a {{ .expIdent }}
-// before insert so the read guard can later resolve the row.
-//
-// System scope (tenant 0) leaves the row untouched. This function is
-// auto-generated.
 func stampScope{{ .expIdent }}(ctx context.Context, res *{{ .goType }}) {
 	sc := scope.GetScopeFromContext(ctx)
-	if sc.TenantID == 0 {
-		return
-	}
-
 	res.TenantID = sc.TenantID
-	{{- if .features.projectScoped }}
-	if sc.ProjectID != 0 {
-		res.ProjectID = sc.ProjectID
-	}
-	{{- end }}
+	res.ProjectID = sc.ProjectID
 }
 {{- end }}
 
@@ -479,8 +439,6 @@ func (s *Store) Query{{ .expIdentPlural }}(
 	expr = append(expr, tExpr...)
 
 	{{- if .features.tenantScoped }}
-	// tenancy scope guard: restrict to the caller's tenant/project unless the
-	// request runs at system scope (tenant 0).
 	expr = append(expr, scopeGuard{{ .expIdent }}(ctx)...)
 	{{- end }}
 
@@ -600,9 +558,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 			}
 		)
 
-		{{- if .tenantScoped }}
-		// tenancy scope guard: a valid ID from another tenant/project must not be
-		// resolvable (returns ErrNotFound below, no existence leak).
+		{{- if .features.tenantScoped }}
 		lookupExpr = append(lookupExpr, scopeGuard{{ .expIdent }}(ctx)...)
 		{{- end }}
 

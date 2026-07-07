@@ -412,6 +412,120 @@ func NgAutomationActionExecute(props ...*ngAutomationActionProps) *ngAutomationA
 	return a
 }
 
+// NgAutomationActionExec returns "automation:ng-automation.exec" action
+//
+// This function is auto-generated.
+func NgAutomationActionExec(props ...*ngAutomationActionProps) *ngAutomationAction {
+	a := &ngAutomationAction{
+		timestamp: time.Now(),
+		resource:  "automation:ng-automation",
+		action:    "exec",
+		log:       "{{ngAutomation}} execution started",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NgAutomationActionExecAndWait returns "automation:ng-automation.execAndWait" action
+//
+// This function is auto-generated.
+func NgAutomationActionExecAndWait(props ...*ngAutomationActionProps) *ngAutomationAction {
+	a := &ngAutomationAction{
+		timestamp: time.Now(),
+		resource:  "automation:ng-automation",
+		action:    "execAndWait",
+		log:       "{{ngAutomation}} executed synchronously",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NgAutomationActionGetExecutions returns "automation:ng-automation.getExecutions" action
+//
+// This function is auto-generated.
+func NgAutomationActionGetExecutions(props ...*ngAutomationActionProps) *ngAutomationAction {
+	a := &ngAutomationAction{
+		timestamp: time.Now(),
+		resource:  "automation:ng-automation",
+		action:    "getExecutions",
+		log:       "retrieved executions for {{ngAutomation}}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NgAutomationActionGetExecutionTrace returns "automation:ng-automation.getExecutionTrace" action
+//
+// This function is auto-generated.
+func NgAutomationActionGetExecutionTrace(props ...*ngAutomationActionProps) *ngAutomationAction {
+	a := &ngAutomationAction{
+		timestamp: time.Now(),
+		resource:  "automation:ng-automation",
+		action:    "getExecutionTrace",
+		log:       "retrieved execution trace",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NgAutomationActionGetAllExecutions returns "automation:ng-automation.getAllExecutions" action
+//
+// This function is auto-generated.
+func NgAutomationActionGetAllExecutions(props ...*ngAutomationActionProps) *ngAutomationAction {
+	a := &ngAutomationAction{
+		timestamp: time.Now(),
+		resource:  "automation:ng-automation",
+		action:    "getAllExecutions",
+		log:       "retrieved all executions",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NgAutomationActionLoad returns "automation:ng-automation.load" action
+//
+// This function is auto-generated.
+func NgAutomationActionLoad(props ...*ngAutomationActionProps) *ngAutomationAction {
+	a := &ngAutomationAction{
+		timestamp: time.Now(),
+		resource:  "automation:ng-automation",
+		action:    "load",
+		log:       "loaded automations",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

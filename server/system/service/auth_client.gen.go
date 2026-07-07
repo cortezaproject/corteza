@@ -11,9 +11,15 @@ import (
 
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type authClientServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *types.AuthClient, err error) {
 	var (
@@ -23,6 +29,9 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if err = svc.validate(ctx, new); err != nil {
 			return err
 		}
@@ -58,6 +67,10 @@ func (svc *authClient) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 		res    *types.AuthClient
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadAuthClient(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -103,4 +116,35 @@ func toLabeledAuthClients(set []*types.AuthClient) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *authClient) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *authClient) scopeServices(ctx context.Context) *authClientServices {
+	return &authClientServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *authClient) RegenerateSecret(ctx context.Context, ID uint64) (secret string, err error) {
+	var (
+		aProps = &authClientActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		secret, err = svc.onRegenerateSecret(ctx, aProps, ID)
+		return err
+	}()
+
+	return secret, svc.recordAction(ctx, aProps, AuthClientActionRegenerateSecret, err)
 }

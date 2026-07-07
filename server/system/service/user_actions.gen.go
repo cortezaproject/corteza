@@ -622,6 +622,44 @@ func UserActionDeleteAvatar(props ...*userActionProps) *userAction {
 	return a
 }
 
+// UserActionCreateSynthetic returns "system:user.createSynthetic" action
+//
+// This function is auto-generated.
+func UserActionCreateSynthetic(props ...*userActionProps) *userAction {
+	a := &userAction{
+		timestamp: time.Now(),
+		resource:  "system:user",
+		action:    "createSynthetic",
+		log:       "created synthetic users",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// UserActionRemoveSynthetic returns "system:user.removeSynthetic" action
+//
+// This function is auto-generated.
+func UserActionRemoveSynthetic(props ...*userActionProps) *userAction {
+	a := &userAction{
+		timestamp: time.Now(),
+		resource:  "system:user",
+		action:    "removeSynthetic",
+		log:       "removed synthetic users",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

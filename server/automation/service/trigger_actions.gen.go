@@ -351,6 +351,25 @@ func TriggerActionUndelete(props ...*triggerActionProps) *triggerAction {
 	return a
 }
 
+// TriggerActionSearchOnManual returns "automation:trigger.searchOnManual" action
+//
+// This function is auto-generated.
+func TriggerActionSearchOnManual(props ...*triggerActionProps) *triggerAction {
+	a := &triggerAction{
+		timestamp: time.Now(),
+		resource:  "automation:trigger",
+		action:    "searchOnManual",
+		log:       "searched for manual trigger",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

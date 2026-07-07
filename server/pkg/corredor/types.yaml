@@ -1,4 +1,0 @@
-package: corredor
-types:
-  Script:
-    noIdField: true

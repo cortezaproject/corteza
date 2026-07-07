@@ -62,25 +62,16 @@ _pageDefs: {
 			PageConfigIcon: {
 				name: "PageConfigIcon"
 				fields: [
-					{name: "Type", type: _pageDefs.IconType, json: "type,omitempty"},
+					{name: "Type", goType: "IconType", json: "type,omitempty"},
 					{name: "Src", type: "string", json: "src"},
 					{name: "Style", goType: "map[string]string", json: "style,omitempty"},
-				]
-			}
-			IconType: {
-				name: "IconType"
-				kind: "string"
-				values: [
-					{ident: "IconTypeLink", value: "link"},
-					{ident: "IconTypeLibrary", value: "library"},
-					{ident: "IconTypeInlineSvg", value: "inline-svg"},
-					{ident: "IconTypeAttachment", value: "attachment"},
 				]
 			}
 		}
 
 page: {
 	features: {
+		labelResourceType: "compose:page"
 	}
 
 	types: {

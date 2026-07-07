@@ -36,32 +36,12 @@ type (
 		filter.Paging
 	}
 
-	WorkflowMeta struct {
-		Name        string                 `json:"name"`
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
-
-		// list as one of the sub-workflows, when set to true
-		// there should be no enabled triggers on this workflow
-		SubWorkflow bool `json:"subWorkflow,omitempty"`
-
-		// Named input/output contract, read by the "Run Workflow" step
-		Input  []WorkflowIODef `json:"input,omitempty"`
-		Output []WorkflowIODef `json:"output,omitempty"`
-	}
-
 	// WorkflowIODef declares a single named input or output field of a workflow
 	WorkflowIODef struct {
 		Name     string   `json:"name"`
 		Label    string   `json:"label,omitempty"`
 		Types    []string `json:"types,omitempty"`
 		Required bool     `json:"required,omitempty"`
-	}
-
-	WorkflowIssue struct {
-		// url encoded location of the error:
-		Culprit     map[string]int `json:"culprit"`
-		Description string         `json:"description"`
 	}
 
 	WorkflowExecParams struct {
@@ -173,4 +153,3 @@ func (set WorkflowIssueSet) SetCulprit(name string, pos int) WorkflowIssueSet {
 
 	return set
 }
-

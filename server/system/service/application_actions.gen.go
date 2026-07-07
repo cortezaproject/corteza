@@ -430,6 +430,44 @@ func ApplicationActionFlagManageGlobal(props ...*applicationActionProps) *applic
 	return a
 }
 
+// ApplicationActionFlag returns "system:application.flag" action
+//
+// This function is auto-generated.
+func ApplicationActionFlag(props ...*applicationActionProps) *applicationAction {
+	a := &applicationAction{
+		timestamp: time.Now(),
+		resource:  "system:application",
+		action:    "flag",
+		log:       "flagged application {{application}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ApplicationActionUnflag returns "system:application.unflag" action
+//
+// This function is auto-generated.
+func ApplicationActionUnflag(props ...*applicationActionProps) *applicationAction {
+	a := &applicationAction{
+		timestamp: time.Now(),
+		resource:  "system:application",
+		action:    "unflag",
+		log:       "unflagged application {{application}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

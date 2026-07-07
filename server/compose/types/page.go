@@ -18,78 +18,6 @@ type (
 
 	PageBlocks []PageBlock
 
-	PageBlock struct {
-		BlockID uint64 `json:"blockID,string,omitempty"`
-
-		Options map[string]interface{} `json:"options,omitempty"`
-		Style   PageBlockStyle         `json:"style,omitempty"`
-		Kind    string                 `json:"kind"`
-		XYWH    [4]int                 `json:"xywh"` // x,y,w,h
-		Meta    map[string]any         `json:"meta,omitempty"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Title string `json:"title,omitempty"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Description string `json:"description,omitempty"`
-	}
-
-	PageMeta struct {
-		AllowPersonalLayouts bool           `json:"allowPersonalLayouts"`
-		Notifications        map[string]any `json:"notifications,omitempty"`
-	}
-
-	PageBlockStyle struct {
-		Variants map[string]string      `json:"variants,omitempty"`
-		Wrap     map[string]string      `json:"wrap,omitempty"`
-		Border   map[string]interface{} `json:"border,omitempty"`
-	}
-
-	PageConfig struct {
-		// How page is presented in the navigation
-		NavItem struct {
-			// Expanded menu
-			Expanded bool            `json:"expanded"`
-			Icon     *PageConfigIcon `json:"icon,omitempty"`
-		} `json:"navItem"`
-	}
-
-	PageConfigIcon struct {
-		// Icon types and sources
-		//
-		// Note that backed does not enforce or validate all src value (types due to a limited
-		// awareness of capabilities and
-		//
-		// Type: empty or "link" (default):
-		// Indicate that src will contain an absolute or relative link to an icon.
-		// Can also be used for inline images (storing "base64:" prefixed string in source).
-		// This type and reference is not validated by the backend.
-		//
-		// Type: "library"
-		// Source references an icon from a library. Ref's value should be in the following
-		// notation: "font-awesome://<icon-identifier>".
-		// This type and source is not validated by the backend.
-		//
-		// Type: "svg"
-		// SRC contains raw SVG document
-
-		// //////////////////////////////////////////////////////////////////////////////////////////////////////
-		// Other types that might be implemented in the future:
-		// "attachment"
-		// Reference (ID) to an existing attachment in local Human instance is expected
-		// This type and reference must be validated by the backend.
-
-		Type IconType `json:"type,omitempty"`
-		Src  string   `json:"src"`
-
-		// Any custom styling that should be applied to the icon
-		Style map[string]string `json:"style,omitempty"`
-	}
-
 	PageFilter struct {
 		TenantID    uint64   `json:"tenantID,string,omitempty"`
 		ProjectID   uint64   `json:"projectID,string,omitempty"`
@@ -118,7 +46,6 @@ type (
 		filter.Paging
 	}
 
-	PageChildrenDeleteStrategy string
 )
 
 const (

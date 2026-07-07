@@ -12,39 +12,6 @@ type (
 	// blob on the chatbot_sessions row.
 	ChatbotSessionState []ChatbotSessionStepState
 
-	ChatbotSessionStepState struct {
-		ScenarioID string `json:"scenarioID"`
-		Type       string `json:"type"`
-
-		Conversation *ChatbotConversationStepState `json:"conversation,omitempty"`
-		Form         *ChatbotFormStepState         `json:"form,omitempty"`
-		Consent      *ChatbotConsentStepState      `json:"consent,omitempty"`
-	}
-
-	// ChatbotConsentStepState captures the visitor's response to a consent
-	// step (e.g. TOS acceptance) for audit purposes. Decision is final per
-	// step; At is set to the server-side timestamp at submit time.
-	ChatbotConsentStepState struct {
-		Accepted bool      `json:"accepted"`
-		At       time.Time `json:"at"`
-	}
-
-	ChatbotConversationStepState struct {
-		ConversationID uint64                           `json:"conversationID,string,omitempty"`
-		History        []AiConversationMessage          `json:"history,omitempty"`
-		Handoff        *ChatbotConversationHandoffState `json:"handoff,omitempty"`
-	}
-
-	ChatbotConversationHandoffState struct {
-		OperatorID   uint64 `json:"operatorID,string,omitempty"`
-		OperatorName string `json:"operatorName,omitempty"`
-	}
-
-	ChatbotFormStepState struct {
-		Fields    map[string]string `json:"fields,omitempty"`
-		Submitted bool              `json:"submitted,omitempty"`
-	}
-
 	ChatbotSessionFilter struct {
 		ChatbotSessionID []uint64 `json:"chatbotSessionID"`
 		ChatbotID        uint64   `json:"chatbotID"`

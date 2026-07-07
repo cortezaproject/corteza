@@ -13,8 +13,14 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type pageServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *page) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Page, err error) {
 	var (
@@ -22,6 +28,9 @@ func (svc *page) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (r
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, namespaceID, ID, aProps)
 		return err
 	}()
@@ -35,6 +44,9 @@ func (svc *page) Search(ctx context.Context, filter types.PageFilter) (set types
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -50,6 +62,9 @@ func (svc *page) Create(ctx context.Context, new *types.Page) (res *types.Page, 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -184,4 +199,69 @@ func toLabeledPages(set []*types.Page) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *page) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *page) scopeServices(ctx context.Context) *pageServices {
+	return &pageServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSet, err error) {
+	var (
+		aProps = &pageActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		tree, err = svc.onTree(ctx, aProps, namespaceID)
+		return err
+	}()
+
+	return tree, svc.recordAction(ctx, aProps, PageActionTree, err)
+}
+
+func (svc *page) Reorder(ctx context.Context, namespaceID uint64, parentID uint64, pageIDs []uint64) (err error) {
+	var (
+		aProps = &pageActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onReorder(ctx, aProps, namespaceID, parentID, pageIDs)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, PageActionReorder, err)
+}
+
+func (svc *page) UpdateIcon(ctx context.Context, namespaceID uint64, pageID uint64, icon *types.PageConfigIcon) (out *types.PageConfigIcon, err error) {
+	var (
+		aProps = &pageActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		out, err = svc.onUpdateIcon(ctx, aProps, namespaceID, pageID, icon)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, PageActionUpdateIcon, err)
 }

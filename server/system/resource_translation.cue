@@ -21,6 +21,7 @@ resource_translation: {
 	types: {
 		gen: true
 		jsonTypesSkip: ["Lang"]
+		structTypesSkip: ["Lang"]
 		defs: _resource_translationDefs
 	}
 

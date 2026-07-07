@@ -12,8 +12,14 @@ import (
 	types "github.com/crusttech/human/server/automation/types"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type triggerServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error) {
 	var (
@@ -21,6 +27,9 @@ func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (set
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchTriggers(ctx) {
 			return TriggerErrNotAllowedToSearch()
 		}
@@ -39,6 +48,9 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -168,4 +180,35 @@ func toLabeledTriggers(set []*types.Trigger) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *trigger) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *trigger) scopeServices(ctx context.Context) *triggerServices {
+	return &triggerServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *trigger) SearchOnManual(ctx context.Context, workflowID uint64, stepID uint64) (res *types.Trigger, err error) {
+	var (
+		aProps = &triggerActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		res, err = svc.onSearchOnManual(ctx, aProps, workflowID, stepID)
+		return err
+	}()
+
+	return res, svc.recordAction(ctx, aProps, TriggerActionSearchOnManual, err)
 }

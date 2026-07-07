@@ -66,6 +66,13 @@ import (
 		// support resource check function
 		checkFn:   bool | *true
 
+		// type has no ID field (join tables, session types, etc.)
+		noIdField: bool | *false
+
+		// label resource kind string; non-empty generates Labeler interface methods
+		// (SetLabel, GetLabels, LabelResourceKind, LabelResourceID).
+		// Distinct from features.labels (which controls store/filter/struct generation).
+		labelResourceType: string | *""
 	}
 
 	// All parent resources
@@ -135,6 +142,10 @@ import (
 		jsonTypes: [...string] | *[]
 		// jsonTypesSkip excludes types whose Scan/Value is custom (kept hand-written).
 		jsonTypesSkip: [...string] | *[]
+		// structTypesSkip excludes named struct types from the generated type block
+		// (struct declaration stays hand-written in the companion file). Fields that
+		// reference these types still generate correctly via their resolved goType.
+		structTypesSkip: [...string] | *[]
 		// jsonTypesPtr lists JSON types whose Parse<name> must return *name (the
 		// pointer convention some REST request controllers depend on) instead of
 		// the default value-returning Parse. Scan/Value are unchanged.

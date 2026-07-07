@@ -5,15 +5,6 @@ import (
 )
 
 type (
-	KnowledgeBaseContext struct {
-		Namespaces []KnowledgeBaseNamespaceContext `json:"namespaces"`
-	}
-
-	KnowledgeBaseNamespaceContext struct {
-		NamespaceID uint64              `json:"namespaceID,string"`
-		ModuleIDs   KnowledgeBaseIDList `json:"moduleIDs"`
-	}
-
 	KnowledgeBaseFilter struct {
 		KnowledgeBaseID []uint64     `json:"knowledgeBaseID"`
 		Handle          string       `json:"handle"`

@@ -38,10 +38,12 @@ _TypeResource: {
 	// unifying with {kind: string} succeeds only for enums (they declare kind);
 	// structs violate closedness and collapse to _|_.
 	// discriminate registry entries by shape: structs have fields, enums have
-	// values. #SliceType/#MapType have neither and are excluded here (their decls
-	// aren't generated yet — Sets still come from the legacy type_set.gen.go).
-	_structDefs: [ for d in res.types.defs if (d & {fields: _}) != _|_ {d} ]
+		// values. #SliceType/#MapType have neither and are excluded here BY DESIGN:
+		// their decls stay owned by the legacy type_set.gen.go generator; the registry
+		// entries are reference-only targets for model-attribute `type:` refs.
+	_structDefs: [ for d in res.types.defs if (d & {fields: _}) != _|_ if !list.Contains(res.types.structTypesSkip, d.name) {d} ]
 	_enumDefs:   [ for d in res.types.defs if (d & {values: _}) != _|_ {d} ]
+	_sliceDefs:  [ for d in res.types.defs if (d & {elem: _}) != _|_ {d.name} ]
 
 	result: {
 		expIdent: res.expIdent
@@ -80,9 +82,16 @@ _TypeResource: {
 			][0]
 		}]
 
-		// import gating
-		needsTime:  len([ for attr in _attrs if attr.goType == "time.Time" || attr.goType == "*time.Time" {attr} ]) > 0
-		needsLabel: res.features.labels
+		// import gating. Also scan the generated decl fields (structDefs) so nested
+		// types pull in time/label imports even when the resource struct itself
+		// doesn't use them.
+		_declGoTypes: [ for d in _structDefs for f in d.fields {
+			[ if f.goType != _|_ {f.goType}, if (f.type & string) != _|_ {f.type}, "" ][0]
+		}]
+		needsTime:  len([ for attr in _attrs if attr.goType == "time.Time" || attr.goType == "*time.Time" {attr} ]) > 0 ||
+			len([ for g in _declGoTypes if strings.Contains(g, "time.Time") {g} ]) > 0
+		needsLabel: res.features.labels ||
+			len([ for g in _declGoTypes if strings.Contains(g, "labelTypes") {g} ]) > 0
 		// feature-injected struct fields (not model attributes), mirroring Labels
 		flags:   res.features.flags
 		imports: res.types.imports
@@ -94,6 +103,14 @@ _TypeResource: {
 		// (auto-derived from JSON dal attributes, minus jsonTypesSkip). ptr marks
 		// types whose Parse returns *name.
 		jsonTypes: [ for t in _jsonTypes {{name: t, ptr: list.Contains(res.types.jsonTypesPtr, t)}} ]
+
+		// structDefs whose Scan/Value stay hand-written (custom marshaling); the
+		// types template skips generating Scan/Value for these names.
+		jsonTypesSkip: res.types.jsonTypesSkip
+
+		// names of named slice types defined in types.defs (elem entries). Used by
+		// the diff-field template to detect named slice types that need reflect.DeepEqual.
+		sliceTypes: _sliceDefs
 
 		// complex-field registry (types.defs): struct + enum decls authored in .cue,
 		// generated into this component's types pkg. A struct stored in a JSON dal

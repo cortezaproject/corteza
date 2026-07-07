@@ -9,7 +9,13 @@ package service
 import (
 	"context"
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/scope"
 )
+
+type moduleMappingServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *moduleMapping) FindByID(ctx context.Context, ID uint64) (res *types.ModuleMapping, err error) {
 	var (
@@ -17,6 +23,9 @@ func (svc *moduleMapping) FindByID(ctx context.Context, ID uint64) (res *types.M
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -30,6 +39,9 @@ func (svc *moduleMapping) Search(ctx context.Context, filter types.ModuleMapping
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -45,6 +57,9 @@ func (svc *moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -63,4 +78,18 @@ func (svc *moduleMapping) Update(ctx context.Context, upd *types.ModuleMapping) 
 	}()
 
 	return res, svc.recordAction(ctx, aProps, ModuleMappingActionUpdate, err, old, res)
+}
+
+func (svc *moduleMapping) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *moduleMapping) scopeServices(ctx context.Context) *moduleMappingServices {
+	return &moduleMappingServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

@@ -91,89 +91,69 @@ func (svc *report) beforeUpdate(ctx context.Context, upd, existing *types.Report
 	return nil
 }
 
-// @todo actionlog?
-func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error) {
+func (svc *report) onDescribe(ctx context.Context, _ *reportActionProps, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error) {
 	out = make([]reporting.FrameDescription, 0, len(sources)*2)
 
-	err = func() (err error) {
-		if !svc.ac.CanCreateReport(ctx) {
-			return ReportErrNotAllowedToCreate()
-		}
+	ss := src.ReportSteps()
+	ss = append(ss, st...)
 
-		ss := src.ReportSteps()
-		ss = append(ss, st...)
-
-		out, err = reporting.Describe(ctx, svc.pipelineRunner, ss, sources)
-		return err
-	}()
-
+	out, err = reporting.Describe(ctx, svc.pipelineRunner, ss, sources)
 	return out, err
 }
 
-func (svc *report) Run(ctx context.Context, reportID uint64, dd reporting.FrameDefinitionSet) (_ []*reporting.Frame, err error) {
+func (svc *report) onRun(ctx context.Context, aProps *reportActionProps, reportID uint64, dd reporting.FrameDefinitionSet) (out []*reporting.Frame, err error) {
 	var (
-		aaProps = &reportActionProps{}
-
 		iter dal.Iterator
 		ff   []*reporting.Frame
-		out  = make([]*reporting.Frame, 0, 4)
 	)
+	out = make([]*reporting.Frame, 0, 4)
 
-	err = func() (err error) {
-		// Load the report
-		r, err := loadReport(ctx, svc.store, reportID)
-		if err != nil {
-			return err
-		}
+	r, err := loadReport(ctx, svc.store, reportID)
+	if err != nil {
+		return out, err
+	}
 
-		// Access control
-		if !svc.ac.CanRunReport(ctx, r) {
-			return ReportErrNotAllowedToRun()
-		}
+	if !svc.ac.CanRunReport(ctx, r) {
+		return out, ReportErrNotAllowedToRun()
+	}
 
-		// Get all of the steps
-		ss := r.Sources.ReportSteps()
-		ss = append(ss, r.Blocks.ReportSteps()...)
+	ss := r.Sources.ReportSteps()
+	ss = append(ss, r.Blocks.ReportSteps()...)
 
-		// Prepare a set of runs for the provided definitions
-		runs, err := reporting.Runs(svc.pipelineRunner, ss, dd)
-		if err != nil {
-			return
-		}
+	runs, err := reporting.Runs(svc.pipelineRunner, ss, dd)
+	if err != nil {
+		return out, err
+	}
 
-		// Run the reports and produce the frames
-		// @todo this can be ran in paralel
-		for _, run := range runs {
-			err = func() (err error) {
-				iter, err = svc.pipelineRunner.Run(ctx, run.Pipeline)
-				if err != nil {
-					return
-				}
-				defer iter.Close()
-
-				ff, err = reporting.Frames(ctx, iter, run)
-				if err != nil {
-					return
-				}
-
-				err = svc.enhance(ctx, ff)
-				if err != nil {
-					return
-				}
-
-				out = append(out, ff...)
-				return
-			}()
-
+	// @todo this can be ran in paralel
+	for _, run := range runs {
+		err = func() (err error) {
+			iter, err = svc.pipelineRunner.Run(ctx, run.Pipeline)
 			if err != nil {
 				return
 			}
+			defer iter.Close()
+
+			ff, err = reporting.Frames(ctx, iter, run)
+			if err != nil {
+				return
+			}
+
+			err = svc.enhance(ctx, ff)
+			if err != nil {
+				return
+			}
+
+			out = append(out, ff...)
+			return
+		}()
+
+		if err != nil {
+			return out, err
 		}
+	}
 
-		return nil
-	}()
-
-	return out, svc.recordAction(ctx, aaProps, ReportActionRun, err)
+	return out, nil
 }
 
 // enhance is a temporary function that enriches the output to satisfy some current requirements.

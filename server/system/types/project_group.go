@@ -5,11 +5,6 @@ import (
 )
 
 type (
-	ProjectGroupMeta struct {
-		Short       string `json:"short"`
-		Description string `json:"description,omitempty"`
-	}
-
 	ProjectGroupFilter struct {
 		ProjectGroupID []uint64     `json:"projectGroupID"`
 		TenantID       uint64       `json:"tenantID,string,omitempty"`

@@ -68,7 +68,6 @@ type (
 	}
 )
 
-
 func Trigger(log *zap.Logger, opt options.WorkflowOpt) *trigger {
 	return &trigger{
 		log:       log,
@@ -120,10 +119,10 @@ func (svc *trigger) onSearch(ctx context.Context, filter types.TriggerFilter, wa
 	return rr, filter, nil
 }
 
-// SearchOnManual finds first matching onManual trigger and returns it
+// onSearchOnManual finds first matching onManual trigger and returns it
 //
 // In case stepID is 0, first trigger is returned
-func (svc *trigger) SearchOnManual(ctx context.Context, workflowID, stepID uint64) (*types.Trigger, error) {
+func (svc *trigger) onSearchOnManual(ctx context.Context, _ *triggerActionProps, workflowID, stepID uint64) (res *types.Trigger, err error) {
 	tt, _, err := svc.Search(ctx, types.TriggerFilter{
 		WorkflowID: id.Strings(workflowID),
 		EventType:  "onManual",

@@ -198,7 +198,7 @@ func (svc *page) FindBySelfID(ctx context.Context, namespaceID, parentID uint64)
 	})
 }
 
-func (svc *page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSet, err error) {
+func (svc *page) onTree(ctx context.Context, _ *pageActionProps, namespaceID uint64) (tree types.PageSet, err error) {
 	var (
 		pages  types.PageSet
 		filter = types.PageFilter{
@@ -237,15 +237,15 @@ func (svc *page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageS
 	return tree, nil
 }
 
-// Reorder pages
-func (svc *page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageIDs []uint64) (err error) {
+func (svc *page) onReorder(ctx context.Context, aProps *pageActionProps, namespaceID, parentID uint64, pageIDs []uint64) (err error) {
 	var (
-		aProps = &pageActionProps{page: &types.Page{ID: parentID}}
-		ns     *types.Namespace
-		p      *types.Page
+		ns *types.Namespace
+		p  *types.Page
 	)
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	aProps.setPage(&types.Page{ID: parentID})
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if ns, err = loadNamespace(ctx, s, namespaceID); err != nil {
 			return err
 		}
@@ -272,9 +272,6 @@ func (svc *page) Reorder(ctx context.Context, namespaceID, parentID uint64, page
 
 		return store.ReorderComposePages(ctx, s, namespaceID, parentID, pageIDs)
 	})
-
-	return svc.recordAction(ctx, aProps, PageActionReorder, err)
-
 }
 
 // onCreate is the generated Create body handler.
@@ -529,7 +526,7 @@ func (svc *page) deleteOne(ctx context.Context, s store.Storer, ns *types.Namesp
 	return svc.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, res, ns, nil))
 }
 
-func (svc *page) UpdateIcon(ctx context.Context, namespaceID, pageID uint64, icon *types.PageConfigIcon) (out *types.PageConfigIcon, err error) {
+func (svc *page) onUpdateIcon(ctx context.Context, _ *pageActionProps, namespaceID, pageID uint64, icon *types.PageConfigIcon) (out *types.PageConfigIcon, err error) {
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, p, err := loadPageCombo(ctx, s, namespaceID, pageID)
 		if err != nil {

@@ -366,6 +366,44 @@ func ConfiguredConnectionActionEnable(props ...*configuredConnectionActionProps)
 	return a
 }
 
+// ConfiguredConnectionActionCheck returns "system:configured-connection.check" action
+//
+// This function is auto-generated.
+func ConfiguredConnectionActionCheck(props ...*configuredConnectionActionProps) *configuredConnectionAction {
+	a := &configuredConnectionAction{
+		timestamp: time.Now(),
+		resource:  "system:configured-connection",
+		action:    "check",
+		log:       "checked connectivity for {{connection}}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ConfiguredConnectionActionRefreshDiscovery returns "system:configured-connection.refreshDiscovery" action
+//
+// This function is auto-generated.
+func ConfiguredConnectionActionRefreshDiscovery(props ...*configuredConnectionActionProps) *configuredConnectionAction {
+	a := &configuredConnectionAction{
+		timestamp: time.Now(),
+		resource:  "system:configured-connection",
+		action:    "refreshDiscovery",
+		log:       "refreshed discovery for {{connection}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

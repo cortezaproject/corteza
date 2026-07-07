@@ -13,8 +13,14 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type chartServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *chart) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Chart, err error) {
 	var (
@@ -22,6 +28,9 @@ func (svc *chart) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, namespaceID, ID, aProps)
 		return err
 	}()
@@ -35,6 +44,9 @@ func (svc *chart) Search(ctx context.Context, filter types.ChartFilter) (set typ
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -50,6 +62,9 @@ func (svc *chart) Create(ctx context.Context, new *types.Chart) (res *types.Char
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -178,4 +193,18 @@ func toLabeledCharts(set []*types.Chart) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *chart) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *chart) scopeServices(ctx context.Context) *chartServices {
+	return &chartServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

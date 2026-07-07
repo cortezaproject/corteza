@@ -434,6 +434,44 @@ func PageActionReorder(props ...*pageActionProps) *pageAction {
 	return a
 }
 
+// PageActionTree returns "compose:page.tree" action
+//
+// This function is auto-generated.
+func PageActionTree(props ...*pageActionProps) *pageAction {
+	a := &pageAction{
+		timestamp: time.Now(),
+		resource:  "compose:page",
+		action:    "tree",
+		log:       "fetched page tree",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// PageActionUpdateIcon returns "compose:page.updateIcon" action
+//
+// This function is auto-generated.
+func PageActionUpdateIcon(props ...*pageActionProps) *pageAction {
+	a := &pageAction{
+		timestamp: time.Now(),
+		resource:  "compose:page",
+		action:    "updateIcon",
+		log:       "updated icon for {{page}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

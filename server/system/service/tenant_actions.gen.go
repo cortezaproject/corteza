@@ -417,6 +417,139 @@ func TenantActionArchive(props ...*tenantActionProps) *tenantAction {
 	return a
 }
 
+// TenantActionSearchMembers returns "system:tenant.searchMembers" action
+//
+// This function is auto-generated.
+func TenantActionSearchMembers(props ...*tenantActionProps) *tenantAction {
+	a := &tenantAction{
+		timestamp: time.Now(),
+		resource:  "system:tenant",
+		action:    "searchMembers",
+		log:       "searched members of {{tenant}}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// TenantActionInvite returns "system:tenant.invite" action
+//
+// This function is auto-generated.
+func TenantActionInvite(props ...*tenantActionProps) *tenantAction {
+	a := &tenantAction{
+		timestamp: time.Now(),
+		resource:  "system:tenant",
+		action:    "invite",
+		log:       "invited member to {{tenant}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// TenantActionAcceptInvite returns "system:tenant.acceptInvite" action
+//
+// This function is auto-generated.
+func TenantActionAcceptInvite(props ...*tenantActionProps) *tenantAction {
+	a := &tenantAction{
+		timestamp: time.Now(),
+		resource:  "system:tenant",
+		action:    "acceptInvite",
+		log:       "accepted invite to {{tenant}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// TenantActionUpdateMember returns "system:tenant.updateMember" action
+//
+// This function is auto-generated.
+func TenantActionUpdateMember(props ...*tenantActionProps) *tenantAction {
+	a := &tenantAction{
+		timestamp: time.Now(),
+		resource:  "system:tenant",
+		action:    "updateMember",
+		log:       "updated member of {{tenant}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// TenantActionRemoveMember returns "system:tenant.removeMember" action
+//
+// This function is auto-generated.
+func TenantActionRemoveMember(props ...*tenantActionProps) *tenantAction {
+	a := &tenantAction{
+		timestamp: time.Now(),
+		resource:  "system:tenant",
+		action:    "removeMember",
+		log:       "removed member from {{tenant}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// TenantActionSuspendMember returns "system:tenant.suspendMember" action
+//
+// This function is auto-generated.
+func TenantActionSuspendMember(props ...*tenantActionProps) *tenantAction {
+	a := &tenantAction{
+		timestamp: time.Now(),
+		resource:  "system:tenant",
+		action:    "suspendMember",
+		log:       "suspended member of {{tenant}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// TenantActionActivateMember returns "system:tenant.activateMember" action
+//
+// This function is auto-generated.
+func TenantActionActivateMember(props ...*tenantActionProps) *tenantAction {
+	a := &tenantAction{
+		timestamp: time.Now(),
+		resource:  "system:tenant",
+		action:    "activateMember",
+		log:       "activated member of {{tenant}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

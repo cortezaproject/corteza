@@ -10,9 +10,16 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
+	"time"
 )
+
+type reminderServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *reminder) FindByID(ctx context.Context, ID uint64) (res *types.Reminder, err error) {
 	var (
@@ -20,6 +27,9 @@ func (svc *reminder) FindByID(ctx context.Context, ID uint64) (res *types.Remind
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -33,6 +43,9 @@ func (svc *reminder) Search(ctx context.Context, filter types.ReminderFilter) (s
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -48,6 +61,9 @@ func (svc *reminder) Create(ctx context.Context, new *types.Reminder) (res *type
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -124,4 +140,86 @@ func loadReminder(ctx context.Context, s store.Reminders, ID uint64) (res *types
 	}
 
 	return
+}
+
+func (svc *reminder) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *reminder) scopeServices(ctx context.Context) *reminderServices {
+	return &reminderServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *reminder) FindByIDs(ctx context.Context, IDs []uint64) (rr types.ReminderSet, err error) {
+	var (
+		aProps = &reminderActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		rr, err = svc.onFindByIDs(ctx, aProps, IDs)
+		return err
+	}()
+
+	return rr, svc.recordAction(ctx, aProps, ReminderActionFindByIDs, err)
+}
+
+func (svc *reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &reminderActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onDismiss(ctx, aProps, ID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ReminderActionDismiss, err)
+}
+
+func (svc *reminder) Undismiss(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &reminderActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onUndismiss(ctx, aProps, ID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ReminderActionDismiss, err)
+}
+
+func (svc *reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) (err error) {
+	var (
+		aProps = &reminderActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onSnooze(ctx, aProps, ID, remindAt)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ReminderActionSnooze, err)
 }

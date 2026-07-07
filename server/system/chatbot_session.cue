@@ -19,7 +19,7 @@ _chatbotSessionDefs: {
 	]}
 	ChatbotConversationStepState: { name: "ChatbotConversationStepState", fields: [
 		{ name: "ConversationID", type: "uint64", json: "conversationID,string,omitempty" },
-		{ name: "History", slice: true, type: _chatbotSessionDefs.AiConversationMessage, json: "history,omitempty" },
+		{ name: "History", goType: "[]AiConversationMessage", json: "history,omitempty" },
 		{ name: "Handoff", ptr: true, type: _chatbotSessionDefs.ChatbotConversationHandoffState, json: "handoff,omitempty" },
 	]}
 	ChatbotConversationHandoffState: { name: "ChatbotConversationHandoffState", fields: [
@@ -29,23 +29,6 @@ _chatbotSessionDefs: {
 	ChatbotFormStepState: { name: "ChatbotFormStepState", fields: [
 		{ name: "Fields", goType: "map[string]string", json: "fields,omitempty" },
 		{ name: "Submitted", type: "bool", json: "submitted,omitempty" },
-	]}
-	AiConversationMessage: { name: "AiConversationMessage", fields: [
-		{ name: "Role", type: "string", json: "role" },
-		{ name: "Content", type: "string", json: "content" },
-		{ name: "Operator", type: "string", json: "operator,omitempty" },
-		{ name: "ToolCalls", slice: true, type: _chatbotSessionDefs.AiConversationToolCall, json: "toolCalls,omitempty" },
-		{ name: "ToolResults", slice: true, type: _chatbotSessionDefs.AiConversationToolResult, json: "toolResults,omitempty" },
-	]}
-	AiConversationToolCall: { name: "AiConversationToolCall", fields: [
-		{ name: "CallID", type: "string", json: "callID" },
-		{ name: "Name", type: "string", json: "name" },
-		{ name: "Data", type: "string", json: "data" },
-	]}
-	AiConversationToolResult: { name: "AiConversationToolResult", fields: [
-		{ name: "CallID", type: "string", json: "callID" },
-		{ name: "Data", type: "string", json: "data" },
-		{ name: "Error", type: "string", json: "error,omitempty" },
 	]}
 }
 

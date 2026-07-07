@@ -12,9 +12,15 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type roleServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *role) FindByID(ctx context.Context, ID uint64) (res *types.Role, err error) {
 	var (
@@ -22,6 +28,9 @@ func (svc *role) FindByID(ctx context.Context, ID uint64) (res *types.Role, err 
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -44,6 +53,9 @@ func (svc *role) Search(ctx context.Context, filter types.RoleFilter) (set types
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if err = svc.beforeSearch(ctx, &filter); err != nil {
 			return err
 		}
@@ -90,6 +102,9 @@ func (svc *role) Create(ctx context.Context, new *types.Role) (res *types.Role, 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if err = svc.validate(ctx, new); err != nil {
 			return err
 		}
@@ -244,4 +259,175 @@ func toLabeledRoles(set []*types.Role) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *role) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *role) scopeServices(ctx context.Context) *roleServices {
+	return &roleServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *role) Archive(ctx context.Context, roleID uint64) (err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onArchive(ctx, aProps, roleID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, RoleActionArchive, err)
+}
+
+func (svc *role) Unarchive(ctx context.Context, roleID uint64) (err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onUnarchive(ctx, aProps, roleID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, RoleActionUnarchive, err)
+}
+
+func (svc *role) CloneRules(ctx context.Context, roleID uint64, cloneToRoleID ...uint64) (err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanGrant(ctx) {
+			return RoleErrNotAllowedToCloneRules()
+		}
+
+		err = svc.onCloneRules(ctx, aProps, roleID, cloneToRoleID...)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, RoleActionCloneRules, err)
+}
+
+func (svc *role) Membership(ctx context.Context, userID uint64) (mm types.RoleMemberSet, err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		mm, err = svc.onMembership(ctx, aProps, userID)
+		return err
+	}()
+
+	return mm, svc.recordAction(ctx, aProps, RoleActionMembership, err)
+}
+
+func (svc *role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMemberSet, err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		mm, err = svc.onMemberList(ctx, aProps, roleID)
+		return err
+	}()
+
+	return mm, svc.recordAction(ctx, aProps, RoleActionMembers, err)
+}
+
+func (svc *role) MemberAdd(ctx context.Context, roleID uint64, memberID uint64) (err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMemberAdd(ctx, aProps, roleID, memberID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, RoleActionMemberAdd, err)
+}
+
+func (svc *role) MemberAddGroup(ctx context.Context, roleID uint64, userGroupID uint64) (err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMemberAddGroup(ctx, aProps, roleID, userGroupID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, RoleActionMemberAdd, err)
+}
+
+func (svc *role) MemberRemove(ctx context.Context, roleID uint64, memberID uint64) (err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMemberRemove(ctx, aProps, roleID, memberID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, RoleActionMemberRemove, err)
+}
+
+func (svc *role) MemberRemoveGroup(ctx context.Context, roleID uint64, userGroupID uint64) (err error) {
+	var (
+		aProps = &roleActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMemberRemoveGroup(ctx, aProps, roleID, userGroupID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, RoleActionMemberRemove, err)
 }

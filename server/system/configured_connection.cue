@@ -85,11 +85,14 @@ configured_connection: {
 	}
 
 	features: {
-		labels: true
+		labels:            true
+		labelResourceType: "configuredConnection"
 	}
 
 	types: {
 		gen: true
+		// ConfiguredConnectionParam has a field named Value — Scan/Value would conflict
+		jsonTypesSkip: ["ConfiguredConnectionParam"]
 		defs: _configured_connectionDefs
 	}
 

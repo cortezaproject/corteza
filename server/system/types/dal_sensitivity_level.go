@@ -5,11 +5,6 @@ import (
 )
 
 type (
-	DalSensitivityLevelMeta struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-	}
-
 	DalSensitivityLevelFilter struct {
 		DalSensitivityLevelID []string `json:"sensitivityLevelID"`
 		Handle                string   `json:"handle"`

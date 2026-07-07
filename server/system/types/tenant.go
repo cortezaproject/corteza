@@ -22,44 +22,4 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
-	// TenantConfig holds behavioral settings. System acts on these.
-	TenantConfig struct {
-		// DALConnectionID points at the tenant's data store.
-		DALConnectionID uint64 `json:"dalConnectionID,string,omitempty"`
-		// AuthProviders are the allowed auth provider handles.
-		AuthProviders []string `json:"authProviders,omitempty"`
-		// FeatureFlags are tenant-specific feature overrides.
-		FeatureFlags map[string]bool `json:"featureFlags,omitempty"`
-		// Quotas cap tenant resource usage.
-		Quotas TenantQuotas `json:"quotas,omitempty"`
-		// Locale is the default tenant locale (BCP 47).
-		Locale string `json:"locale,omitempty"`
-		// Timezone is the default tenant timezone (IANA).
-		Timezone string `json:"timezone,omitempty"`
-	}
-
-	// TenantQuotas are per-tenant resource caps. 0 = unlimited.
-	TenantQuotas struct {
-		MaxUsers    int   `json:"maxUsers,omitempty"`
-		MaxProjects int   `json:"maxProjects,omitempty"`
-		MaxStorage  int64 `json:"maxStorage,omitempty"`
-	}
-
-	// TenantMeta is display-only. System does not act on these.
-	TenantMeta struct {
-		Short       string   `json:"short,omitempty"`
-		Description string   `json:"description,omitempty"`
-		LogoID      uint64   `json:"logoID,string,omitempty"`
-		Color       string   `json:"color,omitempty"`
-		Tags        []string `json:"tags,omitempty"`
-	}
-
-	TenantStatus string
-)
-
-const (
-	TenantStatusActive    TenantStatus = "active"
-	TenantStatusSuspended TenantStatus = "suspended"
-	TenantStatusArchived  TenantStatus = "archived"
 )

@@ -50,6 +50,13 @@ actions:
   - action: reorder
     log: "reordered {{page}}"
 
+  - action: tree
+    log: "fetched page tree"
+    severity: info
+
+  - action: updateIcon
+    log: "updated icon for {{page}}"
+
 errors:
   - error: notFound
     message: "page does not exist"

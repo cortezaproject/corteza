@@ -349,134 +349,112 @@ func (svc *project) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 
 // --- members ---
 
-func (svc *project) SearchMembers(ctx context.Context, filter types.ProjectMemberFilter) (set types.ProjectMemberSet, f types.ProjectMemberFilter, err error) {
-	err = func() error {
-		var p *types.Project
-		if p, err = loadProject(ctx, svc.store, filter.ProjectID); err != nil {
-			return err
-		}
+func (svc *project) onSearchMembers(ctx context.Context, _ *projectActionProps, filter types.ProjectMemberFilter) (set types.ProjectMemberSet, f types.ProjectMemberFilter, err error) {
+	var p *types.Project
+	if p, err = loadProject(ctx, svc.store, filter.ProjectID); err != nil {
+		return
+	}
 
-		if !svc.ac.CanReadProject(ctx, p) {
-			return ProjectErrNotAllowedToRead()
-		}
+	if !svc.ac.CanReadProject(ctx, p) {
+		return set, f, ProjectErrNotAllowedToRead()
+	}
 
-		if set, f, err = store.SearchProjectMembers(ctx, svc.store, filter); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return set, f, err
+	return store.SearchProjectMembers(ctx, svc.store, filter)
 }
 
-func (svc *project) AddMember(ctx context.Context, m *types.ProjectMember) (res *types.ProjectMember, err error) {
-	err = func() (err error) {
-		var p *types.Project
-		if p, err = loadProject(ctx, svc.store, m.ProjectID); err != nil {
-			return
-		}
+func (svc *project) onAddMember(ctx context.Context, _ *projectActionProps, m *types.ProjectMember) (res *types.ProjectMember, err error) {
+	var p *types.Project
+	if p, err = loadProject(ctx, svc.store, m.ProjectID); err != nil {
+		return
+	}
 
-		if !svc.ac.CanManageMembersOnProject(ctx, p) {
-			return ProjectErrNotAllowedToManageMembers()
-		}
+	if !svc.ac.CanManageMembersOnProject(ctx, p) {
+		return nil, ProjectErrNotAllowedToManageMembers()
+	}
 
-		if m.UserID == 0 {
-			return ProjectErrMemberNotFound()
-		}
+	if m.UserID == 0 {
+		return nil, ProjectErrMemberNotFound()
+	}
 
-		if m.RolePreset == "" {
-			m.RolePreset = p.Config.DefaultMemberRole
-		}
-		if m.RolePreset == "" {
-			m.RolePreset = types.ProjectRoleMember
-		}
-		if !m.RolePreset.Valid() {
-			return ProjectErrInvalidRolePreset()
-		}
+	if m.RolePreset == "" {
+		m.RolePreset = p.Config.DefaultMemberRole
+	}
+	if m.RolePreset == "" {
+		m.RolePreset = types.ProjectRoleMember
+	}
+	if !m.RolePreset.Valid() {
+		return nil, ProjectErrInvalidRolePreset()
+	}
 
-		// one membership record per user per project
-		if existing, e := store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, m.ProjectID, m.UserID); e == nil && existing != nil {
-			return ProjectErrMemberAlreadyExists()
-		} else if e != nil && !errors.IsNotFound(e) {
-			return e
-		}
+	// one membership record per user per project
+	if existing, e := store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, m.ProjectID, m.UserID); e == nil && existing != nil {
+		return nil, ProjectErrMemberAlreadyExists()
+	} else if e != nil && !errors.IsNotFound(e) {
+		return nil, e
+	}
 
-		m.ID = nextID()
-		m.TenantID = p.TenantID
-		m.CreatedAt = *now()
-		m.InvitedBy = a.GetIdentityFromContext(ctx).Identity()
+	m.ID = nextID()
+	m.TenantID = p.TenantID
+	m.CreatedAt = *now()
+	m.InvitedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.CreateProjectMember(ctx, svc.store, m); err != nil {
-			return
-		}
+	if err = store.CreateProjectMember(ctx, svc.store, m); err != nil {
+		return
+	}
 
-		res = m
-		return nil
-	}()
-
-	return res, err
+	return m, nil
 }
 
-func (svc *project) UpdateMember(ctx context.Context, m *types.ProjectMember) (res *types.ProjectMember, err error) {
-	err = func() (err error) {
-		var p *types.Project
-		if p, err = loadProject(ctx, svc.store, m.ProjectID); err != nil {
-			return
-		}
+func (svc *project) onUpdateMember(ctx context.Context, _ *projectActionProps, m *types.ProjectMember) (res *types.ProjectMember, err error) {
+	var p *types.Project
+	if p, err = loadProject(ctx, svc.store, m.ProjectID); err != nil {
+		return
+	}
 
-		if !svc.ac.CanManageMembersOnProject(ctx, p) {
-			return ProjectErrNotAllowedToManageMembers()
-		}
+	if !svc.ac.CanManageMembersOnProject(ctx, p) {
+		return nil, ProjectErrNotAllowedToManageMembers()
+	}
 
-		var existing *types.ProjectMember
-		if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, m.ProjectID, m.UserID); errors.IsNotFound(err) {
-			return ProjectErrMemberNotFound()
-		} else if err != nil {
-			return err
-		}
+	var existing *types.ProjectMember
+	if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, m.ProjectID, m.UserID); errors.IsNotFound(err) {
+		return nil, ProjectErrMemberNotFound()
+	} else if err != nil {
+		return nil, err
+	}
 
-		if !m.RolePreset.Valid() {
-			return ProjectErrInvalidRolePreset()
-		}
+	if !m.RolePreset.Valid() {
+		return nil, ProjectErrInvalidRolePreset()
+	}
 
-		existing.RolePreset = m.RolePreset
-		existing.UpdatedAt = now()
+	existing.RolePreset = m.RolePreset
+	existing.UpdatedAt = now()
 
-		if err = store.UpdateProjectMember(ctx, svc.store, existing); err != nil {
-			return
-		}
+	if err = store.UpdateProjectMember(ctx, svc.store, existing); err != nil {
+		return
+	}
 
-		res = existing
-		return nil
-	}()
-
-	return res, err
+	return existing, nil
 }
 
-func (svc *project) RemoveMember(ctx context.Context, projectID, userID uint64) (err error) {
-	err = func() (err error) {
-		var p *types.Project
-		if p, err = loadProject(ctx, svc.store, projectID); err != nil {
-			return
-		}
+func (svc *project) onRemoveMember(ctx context.Context, _ *projectActionProps, projectID, userID uint64) (err error) {
+	var p *types.Project
+	if p, err = loadProject(ctx, svc.store, projectID); err != nil {
+		return
+	}
 
-		if !svc.ac.CanManageMembersOnProject(ctx, p) {
-			return ProjectErrNotAllowedToManageMembers()
-		}
+	if !svc.ac.CanManageMembersOnProject(ctx, p) {
+		return ProjectErrNotAllowedToManageMembers()
+	}
 
-		var existing *types.ProjectMember
-		if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, projectID, userID); errors.IsNotFound(err) {
-			return ProjectErrMemberNotFound()
-		} else if err != nil {
-			return err
-		}
+	var existing *types.ProjectMember
+	if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, projectID, userID); errors.IsNotFound(err) {
+		return ProjectErrMemberNotFound()
+	} else if err != nil {
+		return err
+	}
 
-		existing.DeletedAt = now()
-		return store.UpdateProjectMember(ctx, svc.store, existing)
-	}()
-
-	return err
+	existing.DeletedAt = now()
+	return store.UpdateProjectMember(ctx, svc.store, existing)
 }
 
 // --- helpers ---

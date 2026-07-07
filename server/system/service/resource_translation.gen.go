@@ -11,6 +11,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -29,12 +30,20 @@ func ResourceTranslation() *resourceTranslation {
 	}
 }
 
+type resourceTranslationServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *resourceTranslation) FindByID(ctx context.Context, ID uint64) (res *types.ResourceTranslation, err error) {
 	var (
 		aProps = &resourceTranslationActionProps{resourceTranslation: &types.ResourceTranslation{ID: ID}}
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -48,6 +57,9 @@ func (svc *resourceTranslation) Search(ctx context.Context, filter types.Resourc
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -63,6 +75,9 @@ func (svc *resourceTranslation) Create(ctx context.Context, new *types.ResourceT
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -158,4 +173,18 @@ func loadResourceTranslation(ctx context.Context, s store.ResourceTranslations, 
 	}
 
 	return
+}
+
+func (svc *resourceTranslation) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *resourceTranslation) scopeServices(ctx context.Context) *resourceTranslationServices {
+	return &resourceTranslationServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

@@ -12,8 +12,14 @@ import (
 	types "github.com/crusttech/human/server/federation/types"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type exposedModuleServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *exposedModule) FindByID(ctx context.Context, nodeID uint64, ID uint64) (res *types.ExposedModule, err error) {
 	var (
@@ -21,6 +27,9 @@ func (svc *exposedModule) FindByID(ctx context.Context, nodeID uint64, ID uint64
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, nodeID, ID, aProps)
 		return err
 	}()
@@ -34,6 +43,9 @@ func (svc *exposedModule) Search(ctx context.Context, filter types.ExposedModule
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -49,6 +61,9 @@ func (svc *exposedModule) Create(ctx context.Context, new *types.ExposedModule) 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -129,4 +144,18 @@ func loadExposedModule(ctx context.Context, s store.FederationExposedModules, ID
 	}
 
 	return
+}
+
+func (svc *exposedModule) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *exposedModule) scopeServices(ctx context.Context) *exposedModuleServices {
+	return &exposedModuleServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

@@ -292,40 +292,20 @@ func (svc *apigwFilter) onSearch(ctx context.Context, f types.ApigwFilterFilter,
 	return r, outFilter, nil
 }
 
-func (svc *apigwFilter) DefFilter(ctx context.Context, kind string) (l interface{}, err error) {
-	var (
-		qProps = &apigwFilterActionProps{}
-	)
+func (svc *apigwFilter) onDefFilter(ctx context.Context, aProps *apigwFilterActionProps, kind string) (l interface{}, err error) {
+	// Access control is enforced on the parent ApigwRoute, not the filter.
+	if !svc.ac.CanSearchApigwRoutes(ctx) {
+		return nil, ApigwRouteErrNotAllowedToRead()
+	}
 
-	err = func() error {
-		if !svc.ac.CanSearchApigwRoutes(ctx) {
-			return ApigwRouteErrNotAllowedToRead()
-		}
-		// get the definitions from registry
-		l = apigw.Service().Funcs(kind)
-
-		return nil
-	}()
-
-	return l, svc.recordAction(ctx, qProps, ApigwFilterActionSearch, err)
-
+	return apigw.Service().Funcs(kind), nil
 }
 
-func (svc *apigwFilter) DefProxyAuth(ctx context.Context) (l interface{}, err error) {
-	var (
-		qProps = &apigwFilterActionProps{}
-	)
+func (svc *apigwFilter) onDefProxyAuth(ctx context.Context, aProps *apigwFilterActionProps) (l interface{}, err error) {
+	// Access control is enforced on the parent ApigwRoute, not the filter.
+	if !svc.ac.CanSearchApigwRoutes(ctx) {
+		return nil, ApigwRouteErrNotAllowedToRead()
+	}
 
-	err = func() error {
-		if !svc.ac.CanSearchApigwRoutes(ctx) {
-			return ApigwRouteErrNotAllowedToRead()
-		}
-		// get the definitions from registry
-		l = apigw.Service().ProxyAuthDef()
-
-		return nil
-	}()
-
-	return l, svc.recordAction(ctx, qProps, ApigwFilterActionSearch, err)
-
+	return apigw.Service().ProxyAuthDef(), nil
 }

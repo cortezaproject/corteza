@@ -8,6 +8,7 @@ queue_message: {
 	features: {
 		labels: false
 		checkFn: false
+		noIdField: true
 	}
 
 	types: {

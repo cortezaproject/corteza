@@ -17,7 +17,8 @@ _roleDefs: {
 
 role: {
 	features: {
-		labels:        true
+		labels:            true
+		labelResourceType: "role"
 	}
 
 	types: {

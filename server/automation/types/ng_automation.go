@@ -3,7 +3,6 @@ package types
 import (
 	"strings"
 
-	"github.com/crusttech/human/server/pkg/ast"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
@@ -36,82 +35,7 @@ type (
 		filter.Paging
 	}
 
-	// NgAutomationIssue is a structured validation problem. Code is the stable
-	// machine identity, Message a system-generated English line, and Details a
-	// list of typed, location-bearing payloads the builder UI renders per problem.
-	NgAutomationIssue struct {
-		Code     string                     `json:"code"`
-		Severity string                     `json:"severity"`
-		Message  string                     `json:"message"`
-		Details  []*NgAutomationIssueDetail `json:"details,omitempty"`
-	}
-
-	NgAutomationTrigger struct {
-		ID      uint64                           `json:"triggerID,string"`
-		Labels  map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Handle  string                           `json:"handle"`
-		Meta    *NgTriggerMeta                   `json:"meta,omitempty"`
-		Enabled bool                             `json:"enabled"`
-
-		// Resource type that can trigger the automation
-		ResourceType string `json:"resourceType"`
-
-		// Event type that can trigger the automation
-		EventType string `json:"eventType"`
-
-		// Trigger constraints
-		Constraints []NgTriggerConstraint `json:"constraints"`
-
-		// Initial input scope,
-		// will be merged merged with automation variables
-		Input *expr.Vars `json:"input"`
-
-		// Input parameter schema this trigger accepts from callers
-		InputSchema NgAutomationTriggerSchema `json:"inputSchema,omitempty"`
-	}
-
 	NgAutomationTriggerSchema []NgAutomationTriggerParam
-
-	NgAutomationTriggerParam struct {
-		Name        string `json:"name"`
-		Type        string `json:"type"`
-		Required    bool   `json:"required"`
-		Description string `json:"description"`
-	}
-
-	NgTriggerConstraint struct {
-		Name   string                     `json:"name"`
-		Op     string                     `json:"op,omitempty"`
-		Values []NgTriggerConstraintValue `json:"values,omitempty"`
-	}
-
-	NgTriggerConstraintValue struct {
-		Type  string `json:"@type"`
-		Value string `json:"@value"`
-	}
-
-	NgTriggerMeta struct {
-		Short       string             `json:"short"`
-		Description string             `json:"description"`
-		Visual      NgAutomationVisual `json:"visual"`
-		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
-	}
-
-	NgAutomationMeta struct {
-		Short       string             `json:"short"`
-		Description string             `json:"description"`
-		Visual      NgAutomationVisual `json:"visual"`
-		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
-	}
-
-	NgAutomationIcon struct {
-		Type  string `json:"type"`
-		Value string `json:"value"`
-	}
-
-	NgAutomationVisual struct {
-		// @todo...
-	}
 
 	NgAutomationExecParams struct {
 		EntryPoint string `json:"entryPoint"`
@@ -126,52 +50,6 @@ type (
 		Input *expr.Vars `json:"input"`
 	}
 
-	NgAutomationStep struct {
-		ID     uint64               `json:"stepID,string"`
-		Handle string               `json:"handle"`
-		Meta   NgAutomationStepMeta `json:"meta"`
-
-		Kind string `json:"kind"`
-		Ref  string `json:"ref"`
-
-		Arguments []*Expr `json:"arguments"`
-		Results   []*Expr `json:"results"`
-
-		// Recoverable enables pause-and-retry on RecoverableError.
-		Recoverable bool `json:"recoverable,omitempty"`
-
-		// MaxRetries is the per-phase retry limit (0 = unlimited pause).
-		MaxRetries int `json:"maxRetries,omitempty"`
-	}
-
-	NgAutomationPath struct {
-		ParentID  uint64       `json:"parentID,string"`
-		ChildID   uint64       `json:"childID,string"`
-		Condition *ast.ASTNode `json:"condition,omitempty"`
-
-		// Kind distinguishes special paths.
-		// "error" marks the catch handler path; empty = normal flow.
-		Kind string `json:"kind,omitempty"`
-
-		Meta NgAutomationPathMeta `json:"meta"`
-	}
-
-	NgAutomationStepMeta struct {
-		Short       string             `json:"short"`
-		Description string             `json:"description"`
-		Visual      NgAutomationVisual `json:"visual"`
-		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
-
-		// Extra holds step-kind-specific metadata (e.g. "message" and "recoverable" for error steps).
-		Extra map[string]any `json:"extra,omitempty"`
-	}
-
-	NgAutomationPathMeta struct {
-		Short       string             `json:"short"`
-		Description string             `json:"description"`
-		Visual      NgAutomationVisual `json:"visual"`
-		Icon        *NgAutomationIcon  `json:"icon,omitempty"`
-	}
 )
 
 const (

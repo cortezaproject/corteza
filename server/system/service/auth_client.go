@@ -82,11 +82,12 @@ func (svc *authClient) ExposeSecret(ctx context.Context, ID uint64) (secret stri
 	return secret, svc.recordAction(ctx, aaProps, AuthClientActionExposeSecret, err)
 }
 
-func (svc *authClient) RegenerateSecret(ctx context.Context, ID uint64) (secret string, err error) {
+func (svc *authClient) onRegenerateSecret(ctx context.Context, aProps *authClientActionProps, ID uint64) (secret string, err error) {
 	var (
-		client  *types.AuthClient
-		aaProps = &authClientActionProps{authClient: &types.AuthClient{ID: ID}}
+		client *types.AuthClient
 	)
+
+	aProps.setAuthClient(&types.AuthClient{ID: ID})
 
 	client, err = svc.lookupByID(ctx, ID)
 	if client != nil {
@@ -95,7 +96,7 @@ func (svc *authClient) RegenerateSecret(ctx context.Context, ID uint64) (secret 
 		err = store.UpdateAuthClient(ctx, svc.store, client)
 	}
 
-	return secret, svc.recordAction(ctx, aaProps, AuthClientActionRegenerateSecret, err)
+	return secret, err
 }
 
 func (svc *authClient) IsDefaultClient(c *types.AuthClient) bool {

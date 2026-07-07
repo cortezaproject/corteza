@@ -10,9 +10,15 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type notificationServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *notification) FindByID(ctx context.Context, ID uint64) (res *types.Notification, err error) {
 	var (
@@ -20,6 +26,9 @@ func (svc *notification) FindByID(ctx context.Context, ID uint64) (res *types.No
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -33,6 +42,9 @@ func (svc *notification) Search(ctx context.Context, filter types.NotificationFi
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -48,6 +60,9 @@ func (svc *notification) Create(ctx context.Context, new *types.Notification) (r
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -122,4 +137,86 @@ func loadNotification(ctx context.Context, s store.Notifications, ID uint64) (re
 	}
 
 	return
+}
+
+func (svc *notification) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *notification) scopeServices(ctx context.Context) *notificationServices {
+	return &notificationServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &notificationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMarkAsRead(ctx, aProps, ID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NotificationActionMarkAsRead, err)
+}
+
+func (svc *notification) MarkAsUnread(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &notificationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMarkAsUnread(ctx, aProps, ID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NotificationActionMarkAsUnread, err)
+}
+
+func (svc *notification) MarkAllAsRead(ctx context.Context) (err error) {
+	var (
+		aProps = &notificationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMarkAllAsRead(ctx, aProps)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NotificationActionMarkAllAsRead, err)
+}
+
+func (svc *notification) MarkAllAsUnread(ctx context.Context) (err error) {
+	var (
+		aProps = &notificationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMarkAllAsUnread(ctx, aProps)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NotificationActionMarkAllAsUnread, err)
 }

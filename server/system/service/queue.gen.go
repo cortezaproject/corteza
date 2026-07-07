@@ -11,6 +11,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -37,12 +38,20 @@ func Queue() *queue {
 	}
 }
 
+type queueServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *queue) FindByID(ctx context.Context, ID uint64) (res *types.Queue, err error) {
 	var (
 		aProps = &queueActionProps{queue: &types.Queue{ID: ID}}
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if res, err = loadQueue(ctx, svc.store, ID); err != nil {
 			return QueueErrInvalidID().Wrap(err)
 		}
@@ -74,6 +83,9 @@ func (svc *queue) Search(ctx context.Context, filter types.QueueFilter) (set typ
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchQueues(ctx) {
 			return QueueErrNotAllowedToSearch()
 		}
@@ -96,6 +108,9 @@ func (svc *queue) Create(ctx context.Context, new *types.Queue) (res *types.Queu
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateQueue(ctx) {
 			return QueueErrNotAllowedToCreate()
 		}
@@ -128,6 +143,9 @@ func (svc *queue) Update(ctx context.Context, upd *types.Queue) (res *types.Queu
 		old    *types.Queue
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if res, err = loadQueue(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
@@ -171,6 +189,10 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Queue
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadQueue(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -201,6 +223,10 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Queue
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadQueue(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -236,4 +262,18 @@ func loadQueue(ctx context.Context, s store.Queues, ID uint64) (res *types.Queue
 	}
 
 	return
+}
+
+func (svc *queue) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *queue) scopeServices(ctx context.Context) *queueServices {
+	return &queueServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

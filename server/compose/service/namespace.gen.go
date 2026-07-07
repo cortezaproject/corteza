@@ -12,8 +12,14 @@ import (
 	types "github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type namespaceServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *namespace) FindByID(ctx context.Context, ID uint64) (res *types.Namespace, err error) {
 	var (
@@ -21,6 +27,9 @@ func (svc *namespace) FindByID(ctx context.Context, ID uint64) (res *types.Names
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -34,6 +43,9 @@ func (svc *namespace) Search(ctx context.Context, filter types.NamespaceFilter) 
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchNamespaces(ctx) {
 			return NamespaceErrNotAllowedToSearch()
 		}
@@ -52,6 +64,9 @@ func (svc *namespace) Create(ctx context.Context, new *types.Namespace) (res *ty
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -155,4 +170,18 @@ func toLabeledNamespaces(set []*types.Namespace) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *namespace) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *namespace) scopeServices(ctx context.Context) *namespaceServices {
+	return &namespaceServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

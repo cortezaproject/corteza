@@ -30,6 +30,7 @@ import (
 {{- if .usesLabel }}
 	"github.com/crusttech/human/server/pkg/label"
 {{- end }}
+	"github.com/crusttech/human/server/pkg/scope"
 {{- if and .genConstructor .events }}
 	"github.com/crusttech/human/server/pkg/eventbus"
 {{- end }}
@@ -40,6 +41,9 @@ import (
 	"github.com/crusttech/human/server/store"
 {{- end }}
 	types "{{ .typesImport }}"
+{{- range .customFunctionImports }}
+	{{ . }}
+{{- end }}
 )
 {{- if .genAccessController }}
 
@@ -83,14 +87,23 @@ func {{ .expIdent }}() *{{ .ident }} {
 	}
 }
 {{- end }}
+
+type {{ .ident }}Services struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 {{- if .lookup }}
 
-func (svc {{ .recv }}{{ .ident }}) {{ .lookupIdent }}(ctx context.Context, {{ .lookupParentParamsTyped }}ID uint64) (res *{{ .goType }}, err error) {
+func (svc *{{ .ident }}) {{ .lookupIdent }}(ctx context.Context, {{ .lookupParentParamsTyped }}ID uint64) (res *{{ .goType }}, err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{ {{ .actionProp }}: &{{ .goType }}{ {{- if .hasID }}ID: ID{{- end }}} }
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
 {{- if has "lookup" .customBodyOps }}
 		res, err = svc.onLookup(ctx, {{ .lookupParentParams }}ID, aProps)
 		return err
@@ -128,7 +141,7 @@ func (svc {{ .recv }}{{ .ident }}) {{ .lookupIdent }}(ctx context.Context, {{ .l
 {{- end }}
 {{- if .search }}
 
-func (svc {{ .recv }}{{ .ident }}) Search(ctx context.Context, filter {{ .goFilterType }}) (set {{ .goSetType }}, f {{ .goFilterType }}, err error) {
+func (svc *{{ .ident }}) Search(ctx context.Context, filter {{ .goFilterType }}) (set {{ .goSetType }}, f {{ .goFilterType }}, err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{ {{ .filterProp }}: &filter }
 	)
@@ -145,6 +158,10 @@ func (svc {{ .recv }}{{ .ident }}) Search(ctx context.Context, filter {{ .goFilt
 {{- end }}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
 {{- if has "search" .customBodyOps }}
 {{- if not (has "search" .customAccessOps) }}
 		if !svc.ac.{{ .ac.search }}(ctx) {
@@ -208,7 +225,7 @@ func (svc {{ .recv }}{{ .ident }}) Search(ctx context.Context, filter {{ .goFilt
 {{- end }}
 {{- if .create }}
 
-func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }}) (res *{{ .goType }}, err error) {
+func (svc *{{ .ident }}) Create(ctx context.Context, new *{{ .goType }}) (res *{{ .goType }}, err error) {
 	var (
 		// set both the resource-named prop (action-log message templates
 		// reference it by resource name) and the new prop
@@ -216,6 +233,10 @@ func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 {{- if has "create" .customBodyOps }}
 {{- if not (has "create" .customAccessOps) }}
 		if !svc.ac.{{ .ac.create }}(ctx) {
@@ -272,7 +293,7 @@ func (svc {{ .recv }}{{ .ident }}) Create(ctx context.Context, new *{{ .goType }
 {{- end }}
 {{- if .update }}
 
-func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{{ .goType }}, err error) {
+func (svc *{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{{ .goType }}, err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{ {{- .updateProp }}: upd}
 		old    *{{ .goType }}
@@ -342,6 +363,10 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 {{- end }}
 {{- else }}
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 {{- if .hooks.validate }}
 		if err = svc.validate(ctx, upd); err != nil {
 			return err
@@ -412,7 +437,7 @@ func (svc {{ .recv }}{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }
 {{- end }}
 {{- if .delete }}
 
-func (svc {{ .recv }}{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .deleteParentParamsTyped }}ID uint64{{ .deleteExtraArgsTyped }}) (err error) {
+func (svc *{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .deleteParentParamsTyped }}ID uint64{{ .deleteExtraArgsTyped }}) (err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{}
 		res    *{{ .goType }}
@@ -436,6 +461,10 @@ func (svc {{ .recv }}{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .d
 	})
 {{- else }}
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -487,7 +516,7 @@ func (svc {{ .recv }}{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .d
 {{- end }}
 {{- if .undelete }}
 
-func (svc {{ .recv }}{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ .undeleteParentParamsTyped }}ID uint64) (err error) {
+func (svc *{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ .undeleteParentParamsTyped }}ID uint64) (err error) {
 	var (
 		aProps = &{{ .ident }}ActionProps{}
 		res    *{{ .goType }}
@@ -511,6 +540,10 @@ func (svc {{ .recv }}{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ 
 	})
 {{- else }}
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -582,5 +615,45 @@ func toLabeled{{ .expIdentPlural }}(set []*{{ .goType }}) []label.LabeledResourc
 	}
 
 	return ll
+}
+{{- end }}
+
+
+func (svc *{{ .ident }}) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *{{ .ident }}) scopeServices(ctx context.Context) *{{ .ident }}Services {
+	return &{{ .ident }}Services{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+{{- range .customFunctions }}
+
+func (svc *{{ $.ident }}) {{ .name }}({{ .sigParams }}) {{ .resultsSig }} {
+	var (
+		aProps = &{{ $.ident }}ActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.{{ .capConst }}); err != nil {
+			return err
+		}
+{{- if .hasAc }}
+
+		if !svc.ac.{{ .ac }}(ctx) {
+			return {{ $.expIdent }}{{ .acErr }}()
+		}
+{{- end }}
+
+		{{ .resultPrefix }}err = svc.{{ .handler }}(ctx, aProps{{ .callArgs }}{{ .variadicCallArg }})
+		return err
+	}()
+
+	return {{ .resultPrefix }}svc.recordAction(ctx, aProps, {{ $.expIdent }}Action{{ .action }}, err)
 }
 {{- end }}

@@ -41,6 +41,7 @@ _userDefs: {
 
 user: {
 	features: {
+		labelResourceType: "user"
 	}
 
 	model: {

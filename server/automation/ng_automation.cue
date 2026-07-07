@@ -166,6 +166,7 @@ _ng_automationDefs: {
 
 ng_automation: {
 	features: {
+		labelResourceType: "executable"
 	}
 
 	types: {
@@ -174,11 +175,13 @@ ng_automation: {
 		imports: [
 			"github.com/crusttech/human/server/pkg/expr",
 			"github.com/crusttech/human/server/pkg/ast",
-			"labelTypes \"github.com/crusttech/human/server/pkg/label/types\"",
 		]
 		// NgAutomationMeta has a custom ParseNgAutomationMeta (returns *NgAutomationMeta,
 		// required by generated REST request decoders); keep hand-written Scan/Value/Parse.
 		jsonTypesPtr: ["NgAutomationMeta"]
+		// NgAutomationIcon.Value and NgTriggerConstraintValue.Value are string fields —
+		// generated Value() (driver.Value, error) method would conflict.
+		jsonTypesSkip: ["NgAutomationIcon", "NgTriggerConstraintValue"]
 
 		defs: _ng_automationDefs
 	}

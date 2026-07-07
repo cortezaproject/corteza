@@ -12,6 +12,7 @@ import (
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -38,12 +39,20 @@ func KnowledgeBase() *knowledgeBase {
 	}
 }
 
+type knowledgeBaseServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *knowledgeBase) FindByID(ctx context.Context, ID uint64) (res *types.KnowledgeBase, err error) {
 	var (
 		aProps = &knowledgeBaseActionProps{knowledgeBase: &types.KnowledgeBase{ID: ID}}
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if res, err = loadKnowledgeBase(ctx, svc.store, ID); err != nil {
 			return KnowledgeBaseErrInvalidID().Wrap(err)
 		}
@@ -75,6 +84,9 @@ func (svc *knowledgeBase) Search(ctx context.Context, filter types.KnowledgeBase
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchKnowledgeBases(ctx) {
 			return KnowledgeBaseErrNotAllowedToSearch()
 		}
@@ -97,6 +109,9 @@ func (svc *knowledgeBase) Create(ctx context.Context, new *types.KnowledgeBase) 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateKnowledgeBase(ctx) {
 			return KnowledgeBaseErrNotAllowedToCreate()
 		}
@@ -170,6 +185,10 @@ func (svc *knowledgeBase) DeleteByID(ctx context.Context, ID uint64) (err error)
 		res    *types.KnowledgeBase
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadKnowledgeBase(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -222,4 +241,18 @@ func loadKnowledgeBase(ctx context.Context, s store.KnowledgeBases, ID uint64) (
 	}
 
 	return
+}
+
+func (svc *knowledgeBase) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *knowledgeBase) scopeServices(ctx context.Context) *knowledgeBaseServices {
+	return &knowledgeBaseServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

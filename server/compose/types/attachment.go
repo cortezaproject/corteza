@@ -29,36 +29,6 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
-	AttachmentImageMeta struct {
-		Width    int  `json:"width,omitempty"`
-		Height   int  `json:"height,omitempty"`
-		Animated bool `json:"animated"`
-	}
-
-	AttachmentFileMeta struct {
-		Size      int64                `json:"size"`
-		Extension string               `json:"ext"`
-		Mimetype  string               `json:"mimetype"`
-		Image     *AttachmentImageMeta `json:"image,omitempty"`
-	}
-
-	AttachmentIconMeta struct {
-		Name    string `json:"name"`
-		Library string `json:"library"`
-	}
-
-	AttachmentIconSvgMeta struct {
-		Src string `json:"src"`
-	}
-
-	AttachmentMeta struct {
-		Original AttachmentFileMeta  `json:"original"`
-		Preview  *AttachmentFileMeta `json:"preview,omitempty"`
-
-		Icon    *AttachmentIconMeta    `json:"icon,omitempty"`
-		IconSvg *AttachmentIconSvgMeta `json:"iconSvg,omitempty"`
-	}
 )
 
 const (

@@ -2683,6 +2683,47 @@ endpoints:
             - type: uint
               name: limit
               title: Limit
+      - name: report
+        method: GET
+        title: Aggregated action log report
+        path: '/report'
+        parameters:
+          get:
+            - name: dimensions
+              type: '[]string'
+              required: false
+              title: Group rows by one or more dimensions
+            - name: metrics
+              type: '[]string'
+              required: false
+              title: Metrics to compute per group
+            - name: from
+              type: '*time.Time'
+              required: true
+              title: From
+            - name: to
+              type: '*time.Time'
+              required: true
+              title: To
+            - name: resource
+              required: false
+              title: Resource
+              type: string
+            - name: action
+              required: false
+              title: Action
+              type: string
+            - name: actorID
+              required: false
+              title: Filter by one or more actors
+              type: '[]string'
+            - name: origin
+              required: false
+              title: Origin
+              type: string
+            - type: uint
+              name: limit
+              title: Limit
 
   - title: Messaging queues
     entrypoint: queues

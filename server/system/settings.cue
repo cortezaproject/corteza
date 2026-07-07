@@ -13,6 +13,7 @@ settings: {
 		paging: false
 		sorting: false
 		checkFn: false
+		noIdField: true
 	}
 
 	model: {

@@ -244,11 +244,14 @@ connection: {
 	}
 
 	features: {
-		labels: true
+		labels:            true
+		labelResourceType: "connection"
 	}
 
 	types: {
 		gen: true
+		// ConnectionTemplate and ConnectionIcon have a field named Value — Scan/Value would conflict
+		jsonTypesSkip: ["ConnectionTemplate", "ConnectionIcon"]
 		defs: _connectionDefs
 	}
 

@@ -341,6 +341,63 @@ func ProjectGroupActionDelete(props ...*projectGroupActionProps) *projectGroupAc
 	return a
 }
 
+// ProjectGroupActionMemberList returns "system:project-group.memberList" action
+//
+// This function is auto-generated.
+func ProjectGroupActionMemberList(props ...*projectGroupActionProps) *projectGroupAction {
+	a := &projectGroupAction{
+		timestamp: time.Now(),
+		resource:  "system:project-group",
+		action:    "memberList",
+		log:       "listed members of {{projectGroup}}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectGroupActionMemberAdd returns "system:project-group.memberAdd" action
+//
+// This function is auto-generated.
+func ProjectGroupActionMemberAdd(props ...*projectGroupActionProps) *projectGroupAction {
+	a := &projectGroupAction{
+		timestamp: time.Now(),
+		resource:  "system:project-group",
+		action:    "memberAdd",
+		log:       "added member to {{projectGroup}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectGroupActionMemberRemove returns "system:project-group.memberRemove" action
+//
+// This function is auto-generated.
+func ProjectGroupActionMemberRemove(props ...*projectGroupActionProps) *projectGroupAction {
+	a := &projectGroupAction{
+		timestamp: time.Now(),
+		resource:  "system:project-group",
+		action:    "memberRemove",
+		log:       "removed member from {{projectGroup}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

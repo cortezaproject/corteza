@@ -10,6 +10,10 @@ _workflowDefs: {
 				{ name: "Description", type: "string", json: "description" },
 				{ name: "Visual", goType: "map[string]interface{}", json: "visual" },
 				{ name: "SubWorkflow", type: "bool", json: "subWorkflow,omitempty" },
+
+				// Named input/output contract, read by the "Run Workflow" step
+				{ name: "Input", goType: "[]WorkflowIODef", json: "input,omitempty" },
+				{ name: "Output", goType: "[]WorkflowIODef", json: "output,omitempty" },
 			]}
 
 			WorkflowStepSet: { name: "WorkflowStepSet", elem: _workflowDefs.WorkflowStep, elemPtr: true }
@@ -70,6 +74,7 @@ _workflowDefs: {
 
 workflow: {
 	features: {
+		labelResourceType: "workflow"
 	}
 	types: {
 		gen: true
@@ -78,6 +83,8 @@ workflow: {
 		// which is incompatible with the value-returning generated version, so
 		// it is excluded from JSON helper generation.
 		jsonTypesPtr: ["WorkflowMeta"]
+		// WorkflowPath has an unexported eval field — hand-written; skip struct gen.
+		structTypesSkip: ["WorkflowPath"]
 		imports: [
 			"github.com/crusttech/human/server/pkg/expr",
 		]

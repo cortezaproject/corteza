@@ -356,6 +356,25 @@ func DalSensitivityLevelActionUndelete(props ...*dalSensitivityLevelActionProps)
 	return a
 }
 
+// DalSensitivityLevelActionReloadSensitivityLevels returns "system:dal-sensitivity-level.reloadSensitivityLevels" action
+//
+// This function is auto-generated.
+func DalSensitivityLevelActionReloadSensitivityLevels(props ...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction {
+	a := &dalSensitivityLevelAction{
+		timestamp: time.Now(),
+		resource:  "system:dal-sensitivity-level",
+		action:    "reloadSensitivityLevels",
+		log:       "reloaded DAL sensitivity levels",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

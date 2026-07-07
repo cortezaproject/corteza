@@ -6,16 +6,6 @@ import (
 )
 
 type (
-	RoleMeta struct {
-		Description string       `json:"description,omitempty"`
-		Context     *RoleContext `json:"context,omitempty"`
-	}
-
-	RoleContext struct {
-		Resource []string `json:"resourceTypes,omitempty" yaml:"resourceType"`
-		Expr     string   `json:"expr,omitempty"`
-	}
-
 	RoleFilter struct {
 		RoleID      []string `json:"roleID"`
 		TenantID    uint64   `json:"tenantID,string,omitempty"`
@@ -38,13 +28,8 @@ type (
 		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
-		// Check fn is called by store backend for each resource found function can
-		// modify the resource and return false if store should not return it
-		//
-		// Store then loads additional resources to satisfy the paging parameters
 		Check func(*Role) (bool, error) `json:"-"`
 
-		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
 	}

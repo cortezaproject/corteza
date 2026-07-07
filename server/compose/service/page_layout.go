@@ -81,10 +81,10 @@ func (svc *pageLayout) onLookup(ctx context.Context, namespaceID, pageLayoutID u
 	})
 }
 
-func (svc *pageLayout) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.PageLayout, err error) {
-	var aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{NamespaceID: namespaceID}}
+func (svc *pageLayout) onFindByHandle(ctx context.Context, aProps *pageLayoutActionProps, namespaceID uint64, h string) (c *types.PageLayout, err error) {
+	aProps.pageLayout = &types.PageLayout{NamespaceID: namespaceID}
 
-	c, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
+	return svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
 		if !handle.IsValid(h) {
 			return nil, PageLayoutErrInvalidHandle()
 		}
@@ -92,14 +92,12 @@ func (svc *pageLayout) FindByHandle(ctx context.Context, namespaceID uint64, h s
 		aProps.pageLayout.Handle = h
 		return store.LookupComposePageLayoutByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
-
-	return c, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
 }
 
-func (svc *pageLayout) FindByPageLayoutID(ctx context.Context, namespaceID, pageLayoutID uint64) (p *types.PageLayout, err error) {
-	var aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{NamespaceID: namespaceID}}
+func (svc *pageLayout) onFindByPageLayoutID(ctx context.Context, aProps *pageLayoutActionProps, namespaceID, pageLayoutID uint64) (p *types.PageLayout, err error) {
+	aProps.pageLayout = &types.PageLayout{NamespaceID: namespaceID}
 
-	p, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
+	return svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
 		if pageLayoutID == 0 {
 			return nil, PageLayoutErrInvalidID()
 		}
@@ -107,8 +105,6 @@ func (svc *pageLayout) FindByPageLayoutID(ctx context.Context, namespaceID, page
 		aProps.pageLayout.ID = pageLayoutID
 		return store.LookupComposePageLayoutByID(ctx, svc.store, pageLayoutID)
 	})
-
-	return p, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
 }
 
 func checkPageLayout(ctx context.Context, ac pageLayoutAccessController) func(res *types.PageLayout) (bool, error) {
@@ -256,13 +252,12 @@ func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) erro
 	})
 }
 
-func (svc *pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, pageLayoutIDs []uint64) (err error) {
-	var (
-		aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{ID: pageID}}
-		p      *types.Page
-	)
+func (svc *pageLayout) onReorder(ctx context.Context, aProps *pageLayoutActionProps, namespaceID, pageID uint64, pageLayoutIDs []uint64) (err error) {
+	var p *types.Page
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	aProps.pageLayout = &types.PageLayout{ID: pageID}
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		// Get the page
 		if p, err = store.LookupComposePageByID(ctx, svc.store, pageID); errors.IsNotFound(err) {
 			return PageLayoutErrNotFound()
@@ -279,9 +274,6 @@ func (svc *pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, 
 
 		return store.ReorderComposePageLayouts(ctx, s, namespaceID, pageID, pageLayoutIDs)
 	})
-
-	return svc.recordAction(ctx, aProps, PageLayoutActionReorder, err)
-
 }
 
 // onUpdate is the generated Update body handler.

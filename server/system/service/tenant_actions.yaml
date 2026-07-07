@@ -54,6 +54,28 @@ actions:
   - action: archive
     log: "archived {{tenant}}"
 
+  - action: searchMembers
+    log: "searched members of {{tenant}}"
+    severity: info
+
+  - action: invite
+    log: "invited member to {{tenant}}"
+
+  - action: acceptInvite
+    log: "accepted invite to {{tenant}}"
+
+  - action: updateMember
+    log: "updated member of {{tenant}}"
+
+  - action: removeMember
+    log: "removed member from {{tenant}}"
+
+  - action: suspendMember
+    log: "suspended member of {{tenant}}"
+
+  - action: activateMember
+    log: "activated member of {{tenant}}"
+
 errors:
   - error: notFound
     message: "tenant not found"

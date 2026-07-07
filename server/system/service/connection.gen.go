@@ -11,9 +11,15 @@ import (
 
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type connectionServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *types.Connection, err error) {
 	var (
@@ -23,6 +29,9 @@ func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateConnection(ctx) {
 			return ConnectionErrNotAllowedToCreate()
 		}
@@ -59,6 +68,10 @@ func (svc *connection) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Connection
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -89,6 +102,10 @@ func (svc *connection) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 		res    *types.Connection
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -138,4 +155,18 @@ func toLabeledConnections(set []*types.Connection) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *connection) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *connection) scopeServices(ctx context.Context) *connectionServices {
+	return &connectionServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

@@ -61,6 +61,7 @@ _moduleDefs: {
 module: {
 	handle: "module"
 	features: {
+		labelResourceType: "compose:module"
 	}
 
 	parents: [

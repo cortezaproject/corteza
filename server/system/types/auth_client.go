@@ -9,32 +9,6 @@ import (
 )
 
 type (
-	AuthClientMeta struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-	}
-
-	AuthClientSecurity struct {
-		// Impersonates a specific user;
-		// ignored when non client-credentials grant is used
-		ImpersonateUser uint64 `json:"impersonateUser,string,omitempty"`
-
-		// The default user group the user falls into
-		UserGroup uint64 `json:"userGroup,string,omitempty"`
-
-		// Subset of roles, permitted to be used with this client
-		// IDs are intentionally stored as strings to support JS (int64 only)
-		PermittedRoles []string `json:"permittedRoles,omitempty"`
-
-		// Subset of roles, prohibited to be used with this client
-		// IDs are intentionally stored as strings to support JS (int64 only)
-		ProhibitedRoles []string `json:"prohibitedRoles,omitempty"`
-
-		// Set of additional roles that are forced on this user
-		// IDs are intentionally stored as strings to support JS (int64 only)
-		ForcedRoles []string `json:"forcedRoles,omitempty"`
-	}
-
 	AuthClientFilter struct {
 		AuthClientID []string `json:"authClientID"`
 

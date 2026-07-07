@@ -463,6 +463,25 @@ func NodeActionHandshakeComplete(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
+// NodeActionRegenerateNodeURI returns "federation:node.regenerateNodeURI" action
+//
+// This function is auto-generated.
+func NodeActionRegenerateNodeURI(props ...*nodeActionProps) *nodeAction {
+	a := &nodeAction{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		action:    "regenerateNodeURI",
+		log:       "regenerated URI for {{node}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

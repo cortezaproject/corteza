@@ -22,29 +22,6 @@ type (
 		Meta    map[string]any `json:"meta,omitempty"`
 	}
 
-	PageLayoutMeta struct {
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Title string `json:"title"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Description string `json:"description"`
-
-		Style map[string]any `json:"style,omitempty"`
-	}
-
-	PageLayoutButton struct {
-		Enabled bool `json:"enabled"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Label string `json:"label"`
-	}
-
 	PageLayoutButtonConfig struct {
 		New    PageLayoutButton `json:"new"`
 		Edit   PageLayoutButton `json:"edit"`
@@ -52,51 +29,6 @@ type (
 		Delete PageLayoutButton `json:"delete"`
 		Clone  PageLayoutButton `json:"clone"`
 		Back   PageLayoutButton `json:"back"`
-	}
-
-	PageLayoutConfig struct {
-		Visibility PageLayoutVisibility `json:"visibility"`
-
-		Buttons    PageLayoutButtonConfig `json:"buttons"`
-		Actions    []PageLayoutAction     `json:"actions,omitempty"`
-		Validation PageLayoutValidation   `json:"validation"`
-
-		UseTitle bool `json:"useTitle"`
-	}
-
-	PageLayoutValidation struct {
-		RequiredFields []PageLayoutRequiredField `json:"requiredFields,omitempty"`
-	}
-
-	PageLayoutRequiredField struct {
-		Field     string `json:"field"`
-		Condition string `json:"condition"`
-	}
-
-	PageLayoutVisibility struct {
-		Expression string   `json:"expression"`
-		Roles      []string `json:"roles,omitempty"`
-	}
-
-	PageLayoutAction struct {
-		ActionID  uint64               `json:"actionID,string"`
-		Placement string               `json:"placement"`
-		Meta      PageLayoutActionMeta `json:"meta"`
-		Enabled   bool                 `json:"enabled"`
-
-		// Kind and Params specify the action's behavior and the parameters it
-		// can use for execution
-		Kind   string `json:"kind"`
-		Params any    `json:"params"`
-	}
-
-	PageLayoutActionMeta struct {
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Label string `json:"label"`
-
-		Style map[string]any `json:"style,omitempty"`
 	}
 
 	PageLayoutFilter struct {

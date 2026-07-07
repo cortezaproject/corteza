@@ -41,7 +41,7 @@ dal_connection: {
 		// generate the DalConnection struct into types/dal_connection.gen.go
 		gen: true
 		// []dal.Issue (struct-only Issues field) needs the dal package qualifier
-		imports: ["github.com/crusttech/human/server/pkg/dal"]
+		imports: ["github.com/crusttech/human/server/pkg/dal", "github.com/crusttech/human/server/pkg/geolocation"]
 		defs: _dal_connectionDefs
 	}
 	model: {

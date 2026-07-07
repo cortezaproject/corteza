@@ -13,8 +13,14 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type pageLayoutServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *pageLayout) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.PageLayout, err error) {
 	var (
@@ -22,6 +28,9 @@ func (svc *pageLayout) FindByID(ctx context.Context, namespaceID uint64, ID uint
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, namespaceID, ID, aProps)
 		return err
 	}()
@@ -35,6 +44,9 @@ func (svc *pageLayout) Search(ctx context.Context, filter types.PageLayoutFilter
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -50,6 +62,9 @@ func (svc *pageLayout) Create(ctx context.Context, new *types.PageLayout) (res *
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -182,4 +197,69 @@ func toLabeledPageLayouts(set []*types.PageLayout) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *pageLayout) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *pageLayout) scopeServices(ctx context.Context) *pageLayoutServices {
+	return &pageLayoutServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *pageLayout) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.PageLayout, err error) {
+	var (
+		aProps = &pageLayoutActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		c, err = svc.onFindByHandle(ctx, aProps, namespaceID, h)
+		return err
+	}()
+
+	return c, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
+}
+
+func (svc *pageLayout) FindByPageLayoutID(ctx context.Context, namespaceID uint64, pageLayoutID uint64) (p *types.PageLayout, err error) {
+	var (
+		aProps = &pageLayoutActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		p, err = svc.onFindByPageLayoutID(ctx, aProps, namespaceID, pageLayoutID)
+		return err
+	}()
+
+	return p, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
+}
+
+func (svc *pageLayout) Reorder(ctx context.Context, namespaceID uint64, pageID uint64, pageLayoutIDs []uint64) (err error) {
+	var (
+		aProps = &pageLayoutActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onReorder(ctx, aProps, namespaceID, pageID, pageLayoutIDs)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, PageLayoutActionReorder, err)
 }

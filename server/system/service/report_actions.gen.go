@@ -389,6 +389,25 @@ func ReportActionRun(props ...*reportActionProps) *reportAction {
 	return a
 }
 
+// ReportActionDescribe returns "system:report.describe" action
+//
+// This function is auto-generated.
+func ReportActionDescribe(props ...*reportActionProps) *reportAction {
+	a := &reportAction{
+		timestamp: time.Now(),
+		resource:  "system:report",
+		action:    "describe",
+		log:       "described report sources",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

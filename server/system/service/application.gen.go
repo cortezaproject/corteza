@@ -11,9 +11,15 @@ import (
 
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type applicationServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *application) FindByID(ctx context.Context, ID uint64) (res *types.Application, err error) {
 	var (
@@ -21,6 +27,9 @@ func (svc *application) FindByID(ctx context.Context, ID uint64) (res *types.App
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if res, err = loadApplication(ctx, svc.store, ID); err != nil {
 			return ApplicationErrInvalidID().Wrap(err)
 		}
@@ -43,6 +52,9 @@ func (svc *application) Search(ctx context.Context, filter types.ApplicationFilt
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchApplications(ctx) {
 			return ApplicationErrNotAllowedToSearch()
 		}
@@ -61,6 +73,9 @@ func (svc *application) Create(ctx context.Context, new *types.Application) (res
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateApplication(ctx) {
 			return ApplicationErrNotAllowedToCreate()
 		}
@@ -93,6 +108,9 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (res
 		old    *types.Application
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if res, err = loadApplication(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
@@ -139,6 +157,10 @@ func (svc *application) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Application
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadApplication(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -165,6 +187,10 @@ func (svc *application) UndeleteByID(ctx context.Context, ID uint64) (err error)
 		res    *types.Application
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadApplication(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -210,4 +236,69 @@ func toLabeledApplications(set []*types.Application) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *application) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *application) scopeServices(ctx context.Context) *applicationServices {
+	return &applicationServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *application) Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) (err error) {
+	var (
+		aProps = &applicationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onFlag(ctx, aProps, app, ownedBy, f)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ApplicationActionFlag, err)
+}
+
+func (svc *application) Unflag(ctx context.Context, app *types.Application, ownedBy uint64, f string) (err error) {
+	var (
+		aProps = &applicationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onUnflag(ctx, aProps, app, ownedBy, f)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ApplicationActionUnflag, err)
+}
+
+func (svc *application) Reorder(ctx context.Context, order []uint64) (err error) {
+	var (
+		aProps = &applicationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onReorder(ctx, aProps, order)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ApplicationActionReorder, err)
 }

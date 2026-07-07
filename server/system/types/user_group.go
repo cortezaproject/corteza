@@ -6,18 +6,9 @@ import (
 )
 
 type (
-	UserGroupConfig struct {
-		Paths []UserGroupPath `json:"path"`
-	}
-
 	UserGroupPath struct {
 		SelfID uint64 `json:"selfID,string"`
 		Name   string `json:"name"`
-	}
-
-	UserGroupMeta struct {
-		Description string `json:"description"`
-		Short       string `json:"short"`
 	}
 
 	UserGroupFilter struct {
@@ -35,13 +26,8 @@ type (
 		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
-		// Check fn is called by store backend for each resource found function can
-		// modify the resource and return false if store should not return it
-		//
-		// Store then loads additional resources to satisfy the paging parameters
 		Check func(*UserGroup) (bool, error) `json:"-"`
 
-		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
 	}

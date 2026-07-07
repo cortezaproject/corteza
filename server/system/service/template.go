@@ -138,64 +138,54 @@ func (svc *template) Drivers() []renderer.DriverDefinition {
 	return svc.renderer.Drivers()
 }
 
-func (svc *template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {
-	var (
-		tplProps = &templateActionProps{}
-		tpl      *types.Template
-	)
+func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {
+	tpl, err := svc.FindByID(ctx, templateID)
+	if err != nil {
+		return nil, err
+	}
+	if tpl == nil {
+		return nil, TemplateErrNotFound()
+	}
+	if tpl.Partial {
+		return nil, TemplateErrCannotRenderPartial()
+	}
 
-	err = func() (err error) {
-		tpl, err = svc.FindByID(ctx, templateID)
-		if err != nil {
-			return err
-		}
-		if tpl == nil {
-			return TemplateErrNotFound()
-		}
-		if tpl.Partial {
-			return TemplateErrCannotRenderPartial()
-		}
+	aProps.setTemplate(tpl)
 
-		tplProps.setTemplate(tpl)
+	if !svc.ac.CanRenderTemplate(ctx, tpl) {
+		return nil, TemplateErrNotAllowedToRender()
+	}
 
-		if !svc.ac.CanRenderTemplate(ctx, tpl) {
-			return TemplateErrNotAllowedToRender()
-		}
+	// Prepare partials
+	//
+	// @todo Make this more sophisticated by inspecting the template or
+	//       by requiring users to "import" (specify) what partials to use.
+	pp, err := svc.getPartials(ctx, tpl)
+	if err != nil {
+		return nil, err
+	}
 
-		// Prepare partials
-		//
-		// @todo Make this more sophisticated by inspecting the template or
-		//       by requiring users to "import" (specify) what partials to use.
-		pp, err := svc.getPartials(ctx, tpl)
-		if err != nil {
-			return err
-		}
+	att, err := svc.getAttachments(ctx, tpl)
+	if err != nil {
+		return nil, err
+	}
 
-		att, err := svc.getAttachments(ctx, tpl)
-		if err != nil {
-			return err
-		}
+	p := &renderer.RendererPayload{
+		Template:     svc.getSource(tpl),
+		TemplateType: tpl.Type,
+		TargetType:   types.DocumentType(dstType),
+		Variables:    variables,
+		Options:      options,
+		Partials:     pp,
+		Attachments:  att,
+	}
 
-		// Prepare payload
-		p := &renderer.RendererPayload{
-			Template:     svc.getSource(tpl),
-			TemplateType: tpl.Type,
-			TargetType:   types.DocumentType(dstType),
-			Variables:    variables,
-			Options:      options,
-			Partials:     pp,
-			Attachments:  att,
-		}
+	document, err = svc.renderer.Render(ctx, p)
+	if err != nil {
+		return nil, err
+	}
 
-		// Render the doc
-		document, err = svc.renderer.Render(ctx, p)
-		if err != nil {
-			return err
-		}
-		return nil
-	}()
-
-	return document, svc.recordAction(ctx, tplProps, TemplateActionRender, err)
+	return document, nil
 }
 
 // Util things

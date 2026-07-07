@@ -34,7 +34,8 @@ _tenantDefs: {
 
 tenant: {
 	features: {
-		labels: true
+		labels:            true
+		labelResourceType: "tenant"
 	}
 
 	types: {

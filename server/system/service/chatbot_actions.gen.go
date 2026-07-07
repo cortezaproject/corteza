@@ -360,6 +360,25 @@ func ChatbotActionUndelete(props ...*chatbotActionProps) *chatbotAction {
 	return a
 }
 
+// ChatbotActionRegenerateWidgetKey returns "system:chatbot.regenerateWidgetKey" action
+//
+// This function is auto-generated.
+func ChatbotActionRegenerateWidgetKey(props ...*chatbotActionProps) *chatbotAction {
+	a := &chatbotAction{
+		timestamp: time.Now(),
+		resource:  "system:chatbot",
+		action:    "regenerateWidgetKey",
+		log:       "regenerated widget key for {{chatbot}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

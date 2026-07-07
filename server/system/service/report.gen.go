@@ -12,9 +12,16 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/reporting"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type reportServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *report) FindByID(ctx context.Context, ID uint64) (res *types.Report, err error) {
 	var (
@@ -22,6 +29,9 @@ func (svc *report) FindByID(ctx context.Context, ID uint64) (res *types.Report, 
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if res, err = loadReport(ctx, svc.store, ID); err != nil {
 			return ReportErrInvalidID().Wrap(err)
 		}
@@ -53,6 +63,9 @@ func (svc *report) Search(ctx context.Context, filter types.ReportFilter) (set t
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchReports(ctx) {
 			return ReportErrNotAllowedToSearch()
 		}
@@ -96,6 +109,9 @@ func (svc *report) Create(ctx context.Context, new *types.Report) (res *types.Re
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateReport(ctx) {
 			return ReportErrNotAllowedToCreate()
 		}
@@ -128,6 +144,9 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (res *types.Re
 		old    *types.Report
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if res, err = loadReport(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
@@ -180,6 +199,10 @@ func (svc *report) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Report
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadReport(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -206,6 +229,10 @@ func (svc *report) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		res    *types.Report
 	)
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
 		if res, err = loadReport(ctx, svc.store, ID); err != nil {
 			return
 		}
@@ -251,4 +278,56 @@ func toLabeledReports(set []*types.Report) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *report) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *report) scopeServices(ctx context.Context) *reportServices {
+	return &reportServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error) {
+	var (
+		aProps = &reportActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanCreateReport(ctx) {
+			return ReportErrNotAllowedToCreate()
+		}
+
+		out, err = svc.onDescribe(ctx, aProps, src, st, sources...)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, ReportActionDescribe, err)
+}
+
+func (svc *report) Run(ctx context.Context, reportID uint64, dd reporting.FrameDefinitionSet) (out []*reporting.Frame, err error) {
+	var (
+		aProps = &reportActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		out, err = svc.onRun(ctx, aProps, reportID, dd)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, ReportActionRun, err)
 }

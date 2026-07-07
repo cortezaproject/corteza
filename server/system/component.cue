@@ -55,6 +55,13 @@ component: schema.#component & {
     "dml-import-run":                 dml_import_run
 	}
 
+	types: {
+		"apigw-profiler-hit":         { noIdField: true }
+		"apigw-profiler-aggregation": { noIdField: true }
+		"privacy-dal-connection":     {}
+		"dml-column-map":             { noIdField: true }
+	}
+
 	rbac: operations: {
 		"action-log.read": description: "Access to action log"
 

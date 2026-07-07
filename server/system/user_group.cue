@@ -16,6 +16,7 @@ _user_groupDefs: {
 
 user_group: {
 	features: {
+		labelResourceType: "userGroup"
 	}
 
 	types: {

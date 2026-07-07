@@ -143,40 +143,29 @@ func (svc node) onUndelete(ctx context.Context, s store.Storer, res *types.Node,
 	return store.UpdateFederationNode(ctx, s, res)
 }
 
-// Read is used mainly in UI, when retrieving details about the node
-func (svc node) Read(ctx context.Context, ID uint64) (*types.Node, error) {
-	var (
-		n, err = loadNode(ctx, svc.store, ID)
-		aProps = &nodeActionProps{node: n}
-	)
+// onRead is used mainly in UI, when retrieving details about the node
+func (svc node) onRead(ctx context.Context, aProps *nodeActionProps, ID uint64) (res *types.Node, err error) {
+	res, err = loadNode(ctx, svc.store, ID)
+	aProps.setNode(res)
 
 	// permission takes precedence over any db error
-	if n != nil && !svc.ac.CanManageNode(ctx, n) {
+	if res != nil && !svc.ac.CanManageNode(ctx, res) {
 		err = NodeErrNotAllowedToManage()
 	}
 
-	return n, svc.recordAction(ctx, aProps, NodeActionCreate, err)
+	return res, err
 }
 
-// CreateFromURI is used on server B to create federation with server A
-func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.Node, err error) {
+// onCreateFromPairingURI is used on server B to create federation with server A
+func (svc node) onCreateFromPairingURI(ctx context.Context, aProps *nodeActionProps, uri string) (n *types.Node, err error) {
 	var (
 		existing *types.Node
-		aProps   = &nodeActionProps{pairingURI: uri}
 	)
 
-	err = func(ctx context.Context) error {
-		if !svc.ac.CanPair(ctx) {
-			return NodeErrNotAllowedToPair()
-		}
+	aProps.setPairingURI(uri)
 
-		n, err = svc.decodePairingURI(uri)
-
-		return err
-	}(ctx)
-
-	if err != nil {
-		return nil, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
+	if n, err = svc.decodePairingURI(uri); err != nil {
+		return nil, err
 	}
 
 	existing, err = store.LookupFederationNodeByBaseURLSharedNodeID(ctx, svc.store, n.BaseURL, n.SharedNodeID)
@@ -184,7 +173,7 @@ func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.
 
 	if errors.Is(err, store.ErrNotFound) {
 		if !svc.ac.CanCreateNode(ctx) {
-			return n, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, NodeErrNotAllowedToCreate())
+			return n, NodeErrNotAllowedToCreate()
 		}
 
 		n.ID = nextID()
@@ -192,14 +181,13 @@ func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.
 		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		n.Status = types.NodeStatusPending
 
-		err = store.CreateFederationNode(ctx, svc.store, n)
-		return n, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
+		return n, store.CreateFederationNode(ctx, svc.store, n)
 
 	} else if err != nil {
-		return nil, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
+		return nil, err
 	} else {
 		if !svc.ac.CanManageNode(ctx, n) {
-			return n, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, NodeErrNotAllowedToManage())
+			return n, NodeErrNotAllowedToManage()
 		}
 
 		// Node with the same sharing ID and domain already exists
@@ -214,18 +202,13 @@ func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.
 		existing.PairToken = n.PairToken
 		existing.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		existing.UpdatedAt = now()
-		err = store.UpdateFederationNode(ctx, svc.store, n)
-		return n, svc.recordAction(ctx, aProps, NodeActionRecreateFromPairingURI, err)
+		return n, store.UpdateFederationNode(ctx, svc.store, n)
 	}
 }
 
-// RegenerateNodeURI loads and updates node with the new OTT and returns sharable link
-func (svc node) RegenerateNodeURI(ctx context.Context, nodeID uint64) (string, error) {
-	var (
-		uri string
-	)
-
-	_, err := svc.updater(
+// onRegenerateNodeURI loads and updates node with the new OTT and returns sharable link
+func (svc node) onRegenerateNodeURI(ctx context.Context, _ *nodeActionProps, nodeID uint64) (uri string, err error) {
+	_, err = svc.updater(
 		ctx,
 		nodeID,
 		NodeActionOttRegenerated,
@@ -246,16 +229,12 @@ func (svc node) RegenerateNodeURI(ctx context.Context, nodeID uint64) (string, e
 	return uri, nil
 }
 
-// Pair is used on server B to send request to server A
-func (svc node) Pair(ctx context.Context, nodeID uint64) error {
-	if !svc.ac.CanPair(ctx) {
-		return NodeErrNotAllowedToPair()
-	}
-
+// onPair is used on server B to send request to server A
+func (svc node) onPair(ctx context.Context, _ *nodeActionProps, nodeID uint64) (err error) {
 	// elevate permissions for user lookup & creation!
 	ctx = auth.SetIdentityToContext(ctx, auth.FederationUser())
 
-	_, err := svc.updater(
+	_, err = svc.updater(
 		ctx,
 		nodeID,
 		NodeActionPair,
@@ -290,13 +269,9 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 	return err
 }
 
-// HandshakeInit is used on server A to handle pairing request (see Pair fn above) from server B
-func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken string, sharedNodeID uint64, authToken string) error {
-	// if !svc.ac.CanPair(ctx) {
-	// 	return NodeErrNotAllowedToPair()
-	// }
-
-	_, err := svc.updater(
+// onHandshakeInit is used on server A to handle pairing request (see Pair fn above) from server B
+func (svc node) onHandshakeInit(ctx context.Context, _ *nodeActionProps, nodeID uint64, pairToken string, sharedNodeID uint64, authToken string) (err error) {
+	_, err = svc.updater(
 		ctx,
 		sharedNodeID,
 		NodeActionHandshakeInit,
@@ -324,13 +299,9 @@ func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken stri
 	return err
 }
 
-// HandshakeConfirm is used by server A to manually confirm the handshake
-func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
-	if !svc.ac.CanPair(ctx) {
-		return NodeErrNotAllowedToPair()
-	}
-
-	_, err := svc.updater(ctx, nodeID, NodeActionHandshakeConfirm, func(ctx context.Context, n *types.Node) error {
+// onHandshakeConfirm is used by server A to manually confirm the handshake
+func (svc node) onHandshakeConfirm(ctx context.Context, _ *nodeActionProps, nodeID uint64) (err error) {
+	_, err = svc.updater(ctx, nodeID, NodeActionHandshakeConfirm, func(ctx context.Context, n *types.Node) error {
 		// Handle federated user
 		u, err := svc.fetchFederatedUser(ctx, n)
 		if err != nil {
@@ -357,16 +328,11 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 	return err
 }
 
-// HandshakeComplete is used by server B to handle handshake confirmation
-func (svc node) HandshakeComplete(ctx context.Context, sharedNodeID uint64, token string) error {
+// onHandshakeComplete is used by server B to handle handshake confirmation
+func (svc node) onHandshakeComplete(ctx context.Context, _ *nodeActionProps, sharedNodeID uint64, token string) (err error) {
 	var (
-		n   *types.Node
-		err error
+		n *types.Node
 	)
-
-	if !svc.ac.CanPair(ctx) {
-		return NodeErrNotAllowedToPair()
-	}
 
 	if n, err = store.LookupFederationNodeBySharedNodeID(ctx, svc.store, sharedNodeID); err != nil {
 		return err
@@ -576,4 +542,3 @@ func (svc node) makePairingURI(n *types.Node) string {
 
 	return uri.String()
 }
-

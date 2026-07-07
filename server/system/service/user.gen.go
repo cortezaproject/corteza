@@ -12,9 +12,16 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
+	"mime/multipart"
 )
+
+type userServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *user) FindByID(ctx context.Context, ID uint64) (res *types.User, err error) {
 	var (
@@ -22,6 +29,9 @@ func (svc *user) FindByID(ctx context.Context, ID uint64) (res *types.User, err 
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -35,6 +45,9 @@ func (svc *user) Search(ctx context.Context, filter types.UserFilter) (set types
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchUsers(ctx) {
 			return UserErrNotAllowedToSearch()
 		}
@@ -53,6 +66,9 @@ func (svc *user) Create(ctx context.Context, new *types.User) (res *types.User, 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateUser(ctx) {
 			return UserErrNotAllowedToCreate()
 		}
@@ -187,4 +203,247 @@ func toLabeledUsers(set []*types.User) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *user) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *user) scopeServices(ctx context.Context) *userServices {
+	return &userServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *user) FindByEmail(ctx context.Context, email string) (u *types.User, err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		u, err = svc.onFindByEmail(ctx, aProps, email)
+		return err
+	}()
+
+	return u, svc.recordAction(ctx, aProps, UserActionLookup, err)
+}
+
+func (svc *user) FindByHandle(ctx context.Context, handle string) (u *types.User, err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		u, err = svc.onFindByHandle(ctx, aProps, handle)
+		return err
+	}()
+
+	return u, svc.recordAction(ctx, aProps, UserActionLookup, err)
+}
+
+func (svc *user) ToggleEmailConfirmation(ctx context.Context, userID uint64, confirmed bool) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onToggleEmailConfirmation(ctx, aProps, userID, confirmed)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionUpdate, err)
+}
+
+func (svc *user) Suspend(ctx context.Context, userID uint64) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onSuspend(ctx, aProps, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionSuspend, err)
+}
+
+func (svc *user) Unsuspend(ctx context.Context, userID uint64) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onUnsuspend(ctx, aProps, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionUnsuspend, err)
+}
+
+func (svc *user) SetPassword(ctx context.Context, userID uint64, newPassword string) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onSetPassword(ctx, aProps, userID, newPassword)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionSetPassword, err)
+}
+
+func (svc *user) DeleteAuthTokensByUserID(ctx context.Context, userID uint64) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onDeleteAuthTokensByUserID(ctx, aProps, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionDeleteAuthTokens, err)
+}
+
+func (svc *user) DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onDeleteAuthSessionsByUserID(ctx, aProps, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionDeleteAuthSessions, err)
+}
+
+func (svc *user) CreateSynthetic(ctx context.Context, src synteticUserDataGen, total uint) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanCreateUser(ctx) {
+			return UserErrNotAllowedToCreate()
+		}
+
+		err = svc.onCreateSynthetic(ctx, aProps, src, total)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionCreateSynthetic, err)
+}
+
+func (svc *user) RemoveSynthetic(ctx context.Context) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanCreateUser(ctx) {
+			return UserErrNotAllowedToCreate()
+		}
+
+		err = svc.onRemoveSynthetic(ctx, aProps)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionRemoveSynthetic, err)
+}
+
+func (svc *user) UploadAvatar(ctx context.Context, userID uint64, upload *multipart.FileHeader) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onUploadAvatar(ctx, aProps, userID, upload)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionUploadAvatar, err)
+}
+
+func (svc *user) DeleteAvatar(ctx context.Context, userID uint64) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onDeleteAvatar(ctx, aProps, userID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionDeleteAvatar, err)
+}
+
+func (svc *user) GenerateAvatar(ctx context.Context, userID uint64, bgColor string, initialColor string) (err error) {
+	var (
+		aProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onGenerateAvatar(ctx, aProps, userID, bgColor, initialColor)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserActionGenerateAvatar, err)
 }

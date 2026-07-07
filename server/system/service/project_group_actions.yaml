@@ -42,6 +42,16 @@ actions:
   - action: delete
     log: "deleted {{projectGroup}}"
 
+  - action: memberList
+    log: "listed members of {{projectGroup}}"
+    severity: info
+
+  - action: memberAdd
+    log: "added member to {{projectGroup}}"
+
+  - action: memberRemove
+    log: "removed member from {{projectGroup}}"
+
 errors:
   - error: notFound
     message: "project group not found"

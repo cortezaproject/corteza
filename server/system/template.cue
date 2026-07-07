@@ -18,6 +18,7 @@ _templateDefs: {
 
 template: {
 	features: {
+		labelResourceType: "template"
 	}
 
 	types: {

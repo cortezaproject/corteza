@@ -628,6 +628,44 @@ func RoleActionMemberRemove(props ...*roleActionProps) *roleAction {
 	return a
 }
 
+// RoleActionCloneRules returns "system:role.cloneRules" action
+//
+// This function is auto-generated.
+func RoleActionCloneRules(props ...*roleActionProps) *roleAction {
+	a := &roleAction{
+		timestamp: time.Now(),
+		resource:  "system:role",
+		action:    "cloneRules",
+		log:       "cloned rules from {{role}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// RoleActionMembership returns "system:role.membership" action
+//
+// This function is auto-generated.
+func RoleActionMembership(props ...*roleActionProps) *roleAction {
+	a := &roleAction{
+		timestamp: time.Now(),
+		resource:  "system:role",
+		action:    "membership",
+		log:       "listed membership for user",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

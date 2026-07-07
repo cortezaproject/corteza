@@ -47,6 +47,9 @@ actions:
   - action: undelete
     log: "undeleted {{module}}"
 
+  - action: reloadDALModels
+    log: "reloaded DAL models"
+
 errors:
   - error: notFound
     message: "module does not exist"

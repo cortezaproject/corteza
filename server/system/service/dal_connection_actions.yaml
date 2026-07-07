@@ -47,6 +47,9 @@ actions:
   - action: undelete
     log: "undeleted {{connection}}"
 
+  - action: reloadConnections
+    log: "reloaded DAL connections"
+
 errors:
   - error: notFound
     message: "connection not found"

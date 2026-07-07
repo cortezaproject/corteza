@@ -20,18 +20,11 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
-	TenantMemberRole   string
-	TenantMemberStatus string
 )
 
 const (
 	TenantRoleAdmin  TenantMemberRole = "admin"
 	TenantRoleMember TenantMemberRole = "member"
-
-	TenantMemberStatusActive    TenantMemberStatus = "active"
-	TenantMemberStatusSuspended TenantMemberStatus = "suspended"
-	TenantMemberStatusInvited   TenantMemberStatus = "invited"
 )
 
 // Valid reports whether r is one of the known roles.

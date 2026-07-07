@@ -7,6 +7,10 @@ import (
 	"github.com/crusttech/human/server/compose"
 	"github.com/crusttech/human/server/automation"
 	"github.com/crusttech/human/server/federation"
+	"github.com/crusttech/human/server/pkg/actionlog"
+	"github.com/crusttech/human/server/pkg/corredor"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	discoveryTypes "github.com/crusttech/human/server/discovery/types"
 )
 
 human: schema.#platform & {
@@ -54,5 +58,12 @@ human: schema.#platform & {
 		compose.component,
 		automation.component,
 		federation.component,
+	]
+
+	"bundles": [
+		actionlog.bundle,
+		corredor.bundle,
+		labelTypes.bundle,
+		discoveryTypes.bundle,
 	]
 }

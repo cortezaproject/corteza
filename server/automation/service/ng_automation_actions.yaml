@@ -55,6 +55,28 @@ actions:
     # NOTE: only explicitly triggered ngAutomation execution is logged
     log: "{{ngAutomation}} executed"
 
+  - action: exec
+    log: "{{ngAutomation}} execution started"
+
+  - action: execAndWait
+    log: "{{ngAutomation}} executed synchronously"
+
+  - action: getExecutions
+    log: "retrieved executions for {{ngAutomation}}"
+    severity: info
+
+  - action: getExecutionTrace
+    log: "retrieved execution trace"
+    severity: info
+
+  - action: getAllExecutions
+    log: "retrieved all executions"
+    severity: info
+
+  - action: load
+    log: "loaded automations"
+    severity: info
+
 errors:
   - error: notFound
     message: "ngAutomation not found"

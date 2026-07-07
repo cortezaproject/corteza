@@ -5,26 +5,6 @@ import (
 )
 
 type (
-	AiConversationMessage struct {
-		Role        string                     `json:"role"`
-		Content     string                     `json:"content"`
-		Operator    string                     `json:"operator,omitempty"`
-		ToolCalls   []AiConversationToolCall   `json:"toolCalls,omitempty"`
-		ToolResults []AiConversationToolResult `json:"toolResults,omitempty"`
-	}
-
-	AiConversationToolCall struct {
-		CallID string `json:"callID"`
-		Name   string `json:"name"`
-		Data   string `json:"data"`
-	}
-
-	AiConversationToolResult struct {
-		CallID string `json:"callID"`
-		Data   string `json:"data"`
-		Error  string `json:"error,omitempty"`
-	}
-
 	AiConversationMessages []AiConversationMessage
 
 	AiConversationFilter struct {

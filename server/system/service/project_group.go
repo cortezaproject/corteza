@@ -88,7 +88,7 @@ func (svc *projectGroup) beforeUpdate(ctx context.Context, upd, existing *types.
 
 // --- members ---
 
-func (svc *projectGroup) MemberList(ctx context.Context, projectGroupID uint64) (types.ProjectGroupEntrySet, error) {
+func (svc *projectGroup) onMemberList(ctx context.Context, _ *projectGroupActionProps, projectGroupID uint64) (set types.ProjectGroupEntrySet, err error) {
 	g, err := loadProjectGroup(ctx, svc.store, projectGroupID)
 	if err != nil {
 		return nil, err
@@ -98,13 +98,13 @@ func (svc *projectGroup) MemberList(ctx context.Context, projectGroupID uint64) 
 		return nil, ProjectGroupErrNotAllowedToRead()
 	}
 
-	set, _, err := store.SearchProjectGroupEntrys(ctx, svc.store, types.ProjectGroupEntryFilter{
+	set, _, err = store.SearchProjectGroupEntrys(ctx, svc.store, types.ProjectGroupEntryFilter{
 		ProjectGroupID: projectGroupID,
 	})
 	return set, err
 }
 
-func (svc *projectGroup) MemberAdd(ctx context.Context, projectGroupID uint64, resourceRef string) error {
+func (svc *projectGroup) onMemberAdd(ctx context.Context, _ *projectGroupActionProps, projectGroupID uint64, resourceRef string) error {
 	g, err := loadProjectGroup(ctx, svc.store, projectGroupID)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (svc *projectGroup) MemberAdd(ctx context.Context, projectGroupID uint64, r
 	})
 }
 
-func (svc *projectGroup) MemberRemove(ctx context.Context, projectGroupID uint64, resourceRef string) error {
+func (svc *projectGroup) onMemberRemove(ctx context.Context, _ *projectGroupActionProps, projectGroupID uint64, resourceRef string) error {
 	g, err := loadProjectGroup(ctx, svc.store, projectGroupID)
 	if err != nil {
 		return err

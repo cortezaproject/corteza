@@ -11,9 +11,15 @@ import (
 
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type dalConnectionServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (res *types.DalConnection, err error) {
 	var (
@@ -21,6 +27,9 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (res *types.D
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -34,6 +43,9 @@ func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnection
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -49,6 +61,9 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -128,4 +143,35 @@ func loadDalConnection(ctx context.Context, s store.DalConnections, ID uint64) (
 	}
 
 	return
+}
+
+func (svc *dalConnection) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *dalConnection) scopeServices(ctx context.Context) *dalConnectionServices {
+	return &dalConnectionServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {
+	var (
+		aProps = &dalConnectionActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onReloadConnections(ctx, aProps)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, DalConnectionActionReloadConnections, err)
 }

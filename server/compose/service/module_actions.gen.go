@@ -403,6 +403,25 @@ func ModuleActionUndelete(props ...*moduleActionProps) *moduleAction {
 	return a
 }
 
+// ModuleActionReloadDALModels returns "compose:module.reloadDALModels" action
+//
+// This function is auto-generated.
+func ModuleActionReloadDALModels(props ...*moduleActionProps) *moduleAction {
+	a := &moduleAction{
+		timestamp: time.Now(),
+		resource:  "compose:module",
+		action:    "reloadDALModels",
+		log:       "reloaded DAL models",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

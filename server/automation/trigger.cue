@@ -19,6 +19,7 @@ _triggerDefs: {
 
 trigger: {
 	features: {
+		labelResourceType: "trigger"
 	}
 	types: {
 		// generate the Trigger struct from the model into types/trigger.gen.go

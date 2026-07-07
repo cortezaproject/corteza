@@ -7,14 +7,8 @@ import (
 _moduleMappingDefs: {
 			ModuleFieldMappingSet: { name: "ModuleFieldMappingSet", elem: _moduleMappingDefs.ModuleFieldMapping, elemPtr: true }
 			ModuleFieldMapping: { name: "ModuleFieldMapping", fields: [
-				{ name: "Origin", type: _moduleMappingDefs.ModuleField, json: "origin" },
-				{ name: "Destination", type: _moduleMappingDefs.ModuleField, json: "destination" },
-			]}
-			ModuleField: { name: "ModuleField", fields: [
-				{ name: "Kind", type: "string", json: "kind" },
-				{ name: "Name", type: "string", json: "name" },
-				{ name: "Label", type: "string", json: "label" },
-				{ name: "IsMulti", type: "bool", json: "isMulti" },
+				{ name: "Origin", goType: "ModuleField", json: "origin" },
+				{ name: "Destination", goType: "ModuleField", json: "destination" },
 			]}
 		}
 
@@ -24,7 +18,8 @@ moduleMapping: {
 	]
 
 	features: {
-		labels: false
+		labels:    false
+		noIdField: true
 	}
 
 	types: {

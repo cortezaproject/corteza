@@ -96,6 +96,7 @@ application: {
 
 	features: {
 		flags: true
+		labelResourceType: "application"
 	}
 
 	envoy: {

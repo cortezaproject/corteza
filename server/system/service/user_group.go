@@ -91,7 +91,7 @@ func UserGroup(rbac rbacUserGroupService) *userGroup {
 	}
 }
 
-func (svc *userGroup) Activate(ctx context.Context) (err error) {
+func (svc *userGroup) onActivate(ctx context.Context, _ *userGroupActionProps) (err error) {
 	gMembers := []rbac.GroupMembers{}
 
 	groups, _, err := svc.Search(ctx, types.UserGroupFilter{})
@@ -527,91 +527,79 @@ func (svc *userGroup) UndeleteByID(ctx context.Context, userGroupID uint64) (err
 	return svc.recordAction(ctx, raProps, UserGroupActionUndelete, err, r, upd)
 }
 
-func (svc *userGroup) MemberList(ctx context.Context, userGroupID uint64) (mm types.UserSet, err error) {
+func (svc *userGroup) onMemberList(ctx context.Context, aProps *userGroupActionProps, userGroupID uint64) (mm types.UserSet, err error) {
 	var (
 		r *types.UserGroup
-
-		raProps = &userGroupActionProps{
-			userGroup: &types.UserGroup{ID: userGroupID},
-		}
 	)
 
-	err = func() error {
-		if userGroupID == 0 {
-			return UserGroupErrInvalidID()
-		}
+	aProps.userGroup = &types.UserGroup{ID: userGroupID}
 
-		if r, err = svc.findByID(ctx, userGroupID); err != nil {
-			return err
-		}
+	if userGroupID == 0 {
+		return nil, UserGroupErrInvalidID()
+	}
 
-		if !svc.ac.CanReadUserGroup(ctx, r) {
-			return UserGroupErrNotAllowedToRead()
-		}
+	if r, err = svc.findByID(ctx, userGroupID); err != nil {
+		return nil, err
+	}
 
-		mm, _, err = store.SearchUsers(ctx, svc.store, types.UserFilter{
-			UserGroupID: userGroupID,
-		})
+	if !svc.ac.CanReadUserGroup(ctx, r) {
+		return nil, UserGroupErrNotAllowedToRead()
+	}
 
-		return err
-	}()
+	mm, _, err = store.SearchUsers(ctx, svc.store, types.UserFilter{
+		UserGroupID: userGroupID,
+	})
 
-	return mm, svc.recordAction(ctx, raProps, UserGroupActionMembers, err)
+	return mm, err
 }
 
-// MemberAdd adds member (user) to a userGroup
-func (svc *userGroup) MemberAdd(ctx context.Context, userGroupID, memberID uint64) (err error) {
+// onMemberAdd adds member (user) to a userGroup
+func (svc *userGroup) onMemberAdd(ctx context.Context, aProps *userGroupActionProps, userGroupID, memberID uint64) (err error) {
 	var (
 		g *types.UserGroup
 		m *types.User
-
-		raProps = &userGroupActionProps{
-			userGroup: &types.UserGroup{ID: userGroupID},
-			member:    &types.User{ID: memberID},
-		}
 	)
 
-	err = func() (err error) {
-		if userGroupID == 0 || memberID == 0 {
-			return UserGroupErrInvalidID()
-		}
+	aProps.userGroup = &types.UserGroup{ID: userGroupID}
+	aProps.member = &types.User{ID: memberID}
 
-		if g, err = svc.findByID(ctx, userGroupID); err != nil {
-			return
-		}
+	if userGroupID == 0 || memberID == 0 {
+		return UserGroupErrInvalidID()
+	}
 
-		raProps.setUserGroup(g)
+	if g, err = svc.findByID(ctx, userGroupID); err != nil {
+		return
+	}
 
-		if m, err = svc.user.FindByID(ctx, memberID); err != nil {
-			return
-		}
+	aProps.setUserGroup(g)
 
-		raProps.setMember(m)
+	if m, err = svc.user.FindByID(ctx, memberID); err != nil {
+		return
+	}
 
-		m.UserGroupID = g.ID
+	aProps.setMember(m)
 
-		if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeMemberAdd(g, g)); err != nil {
-			return
-		}
+	m.UserGroupID = g.ID
 
-		if !svc.ac.CanManageMembersOnUserGroup(ctx, g) {
-			return UserGroupErrNotAllowedToManageMembers()
-		}
+	if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeMemberAdd(g, g)); err != nil {
+		return
+	}
 
-		if err = store.UpdateUser(ctx, svc.store, m); err != nil {
-			return
-		}
+	if !svc.ac.CanManageMembersOnUserGroup(ctx, g) {
+		return UserGroupErrNotAllowedToManageMembers()
+	}
 
-		err = svc.rbac.AssignGroupMembers(id.MustNumID(m.UserGroupID), id.MustNumID(m.ID))
-		if err != nil {
-			return
-		}
+	if err = store.UpdateUser(ctx, svc.store, m); err != nil {
+		return
+	}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserGroupAfterMemberAdd(g, g))
-		return nil
-	}()
+	err = svc.rbac.AssignGroupMembers(id.MustNumID(m.UserGroupID), id.MustNumID(m.ID))
+	if err != nil {
+		return
+	}
 
-	return svc.recordAction(ctx, raProps, UserGroupActionMemberAdd, err)
+	_ = svc.eventbus.WaitFor(ctx, event.UserGroupAfterMemberAdd(g, g))
+	return nil
 }
 
 func loadUserGroup(ctx context.Context, s store.UserGroups, ID uint64) (res *types.UserGroup, err error) {

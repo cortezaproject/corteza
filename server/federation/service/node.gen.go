@@ -11,8 +11,14 @@ import (
 
 	types "github.com/crusttech/human/server/federation/types"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type nodeServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *node) Search(ctx context.Context, filter types.NodeFilter) (set types.NodeSet, f types.NodeFilter, err error) {
 	var (
@@ -20,6 +26,9 @@ func (svc *node) Search(ctx context.Context, filter types.NodeFilter) (set types
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchNodes(ctx) {
 			return NodeErrNotAllowedToSearch()
 		}
@@ -38,6 +47,9 @@ func (svc *node) Create(ctx context.Context, new *types.Node) (res *types.Node, 
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateNode(ctx) {
 			return NodeErrNotAllowedToCreate()
 		}
@@ -138,4 +150,153 @@ func loadNode(ctx context.Context, s store.FederationNodes, ID uint64) (res *typ
 	}
 
 	return
+}
+
+func (svc *node) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *node) scopeServices(ctx context.Context) *nodeServices {
+	return &nodeServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *node) Read(ctx context.Context, ID uint64) (res *types.Node, err error) {
+	var (
+		aProps = &nodeActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		res, err = svc.onRead(ctx, aProps, ID)
+		return err
+	}()
+
+	return res, svc.recordAction(ctx, aProps, NodeActionCreate, err)
+}
+
+func (svc *node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.Node, err error) {
+	var (
+		aProps = &nodeActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanPair(ctx) {
+			return NodeErrNotAllowedToPair()
+		}
+
+		n, err = svc.onCreateFromPairingURI(ctx, aProps, uri)
+		return err
+	}()
+
+	return n, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
+}
+
+func (svc *node) RegenerateNodeURI(ctx context.Context, nodeID uint64) (uri string, err error) {
+	var (
+		aProps = &nodeActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		uri, err = svc.onRegenerateNodeURI(ctx, aProps, nodeID)
+		return err
+	}()
+
+	return uri, svc.recordAction(ctx, aProps, NodeActionRegenerateNodeURI, err)
+}
+
+func (svc *node) Pair(ctx context.Context, nodeID uint64) (err error) {
+	var (
+		aProps = &nodeActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanPair(ctx) {
+			return NodeErrNotAllowedToPair()
+		}
+
+		err = svc.onPair(ctx, aProps, nodeID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NodeActionPair, err)
+}
+
+func (svc *node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken string, sharedNodeID uint64, authToken string) (err error) {
+	var (
+		aProps = &nodeActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onHandshakeInit(ctx, aProps, nodeID, pairToken, sharedNodeID, authToken)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NodeActionHandshakeInit, err)
+}
+
+func (svc *node) HandshakeConfirm(ctx context.Context, nodeID uint64) (err error) {
+	var (
+		aProps = &nodeActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanPair(ctx) {
+			return NodeErrNotAllowedToPair()
+		}
+
+		err = svc.onHandshakeConfirm(ctx, aProps, nodeID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NodeActionHandshakeConfirm, err)
+}
+
+func (svc *node) HandshakeComplete(ctx context.Context, sharedNodeID uint64, token string) (err error) {
+	var (
+		aProps = &nodeActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanPair(ctx) {
+			return NodeErrNotAllowedToPair()
+		}
+
+		err = svc.onHandshakeComplete(ctx, aProps, sharedNodeID, token)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, NodeActionHandshakeComplete, err)
 }

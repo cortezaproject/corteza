@@ -10,9 +10,15 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type apigwFilterServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *apigwFilter) FindByID(ctx context.Context, ID uint64) (res *types.ApigwFilter, err error) {
 	var (
@@ -20,6 +26,9 @@ func (svc *apigwFilter) FindByID(ctx context.Context, ID uint64) (res *types.Api
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -33,6 +42,9 @@ func (svc *apigwFilter) Search(ctx context.Context, filter types.ApigwFilterFilt
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -48,6 +60,9 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (res
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -126,4 +141,52 @@ func loadApigwFilter(ctx context.Context, s store.ApigwFilters, ID uint64) (res 
 	}
 
 	return
+}
+
+func (svc *apigwFilter) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *apigwFilter) scopeServices(ctx context.Context) *apigwFilterServices {
+	return &apigwFilterServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *apigwFilter) DefFilter(ctx context.Context, kind string) (l interface{}, err error) {
+	var (
+		aProps = &apigwFilterActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		l, err = svc.onDefFilter(ctx, aProps, kind)
+		return err
+	}()
+
+	return l, svc.recordAction(ctx, aProps, ApigwFilterActionSearch, err)
+}
+
+func (svc *apigwFilter) DefProxyAuth(ctx context.Context) (l interface{}, err error) {
+	var (
+		aProps = &apigwFilterActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		l, err = svc.onDefProxyAuth(ctx, aProps)
+		return err
+	}()
+
+	return l, svc.recordAction(ctx, aProps, ApigwFilterActionSearch, err)
 }

@@ -18,8 +18,8 @@ import (
 //
 // This file owns the struct, access-controller interface, constructor, the
 // before-create / before-update hooks the generated Create / Update call into,
-// and the resource-specific methods: Search (flag filtering + enrichment),
-// Flag / Unflag / checkFlag and Reorder.
+// and the custom bodies the generated wrappers delegate to: onSearch (flag
+// filtering + enrichment), onFlag / onUnflag (via checkFlag) and onReorder.
 
 type (
 	application struct {
@@ -143,16 +143,16 @@ func (svc *application) onSearch(ctx context.Context, af types.ApplicationFilter
 	return
 }
 
-func (svc *application) Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error {
-	if err := svc.checkFlag(ctx, ownedBy); err != nil {
+func (svc *application) onFlag(ctx context.Context, _ *applicationActionProps, app *types.Application, ownedBy uint64, f string) (err error) {
+	if err = svc.checkFlag(ctx, ownedBy); err != nil {
 		return err
 	}
 
 	return flag.Create(ctx, svc.store, app, ownedBy, f)
 }
 
-func (svc *application) Unflag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error {
-	if err := svc.checkFlag(ctx, ownedBy); err != nil {
+func (svc *application) onUnflag(ctx context.Context, _ *applicationActionProps, app *types.Application, ownedBy uint64, f string) (err error) {
+	if err = svc.checkFlag(ctx, ownedBy); err != nil {
 		return err
 	}
 
@@ -173,12 +173,8 @@ func (svc *application) checkFlag(ctx context.Context, ownedBy uint64) error {
 	return nil
 }
 
-func (svc *application) Reorder(ctx context.Context, order []uint64) (err error) {
-	var (
-		aProps = &applicationActionProps{}
-	)
-
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+func (svc *application) onReorder(ctx context.Context, aProps *applicationActionProps, order []uint64) (err error) {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		for _, id := range order {
 			// This access control creates an aux application so we don't have to fetch them
 			// from the store; the ID is the only thing that matters...
@@ -194,8 +190,6 @@ func (svc *application) Reorder(ctx context.Context, order []uint64) (err error)
 
 		return store.ReorderApplications(ctx, s, order)
 	})
-
-	return svc.recordAction(ctx, aProps, ApplicationActionReorder, err)
 }
 
 // toFlaggedApplications converts to []flag.FlaggedResource

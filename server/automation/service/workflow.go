@@ -492,118 +492,110 @@ func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable,
 	return
 }
 
-func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, uint64, types.Stacktrace, error) {
+func (svc *workflow) onExec(ctx context.Context, aProps *workflowActionProps, workflowID uint64, p types.WorkflowExecParams) (results *expr.Vars, sessionID uint64, stacktrace types.Stacktrace, err error) {
 	var (
-		wap        = &workflowActionProps{}
-		t          *types.Trigger
-		results    *expr.Vars
-		wait       WaitFn
-		stacktrace types.Stacktrace
-		sessionID  uint64
+		t    *types.Trigger
+		wait WaitFn
 	)
 
-	err := func() (err error) {
-		svc.muxCache.Lock()
-		if nil == svc.cache[workflowID] || nil == svc.cache[workflowID].wf {
-			svc.muxCache.Unlock()
-			return WorkflowErrNotFound()
-		}
-
-		wf := svc.cache[workflowID].wf
+	svc.muxCache.Lock()
+	if nil == svc.cache[workflowID] || nil == svc.cache[workflowID].wf {
 		svc.muxCache.Unlock()
+		return nil, 0, nil, WorkflowErrNotFound()
+	}
 
-		wap.setWorkflow(wf)
+	wf := svc.cache[workflowID].wf
+	svc.muxCache.Unlock()
 
-		if !svc.ac.CanExecuteWorkflow(ctx, wf) {
-			return WorkflowErrNotAllowedToExecute()
-		}
+	aProps.setWorkflow(wf)
 
-		if !wf.Enabled && !p.Trace {
-			return WorkflowErrDisabled()
-		}
+	if !svc.ac.CanExecuteWorkflow(ctx, wf) {
+		return nil, 0, nil, WorkflowErrNotAllowedToExecute()
+	}
 
-		// Find the trigger.
-		// @todo can we cache this as well?
-		t, err = func() (*types.Trigger, error) {
-			if p.CallerWorkflowID > 0 {
-				// skip triggers checking when executed as sub-workflow
-				// @todo be more strict and allow this ONLY when workflow is flagged as a sub-workflow
-				return nil, nil
-			}
+	if !wf.Enabled && !p.Trace {
+		return nil, 0, nil, WorkflowErrDisabled()
+	}
 
-			var tt types.TriggerSet
-			// Load triggers directly from the store. At this point we do not care
-			// about trigger search or read permissions
-			tt, err = loadWorkflowTriggers(ctx, svc.store, workflowID)
-			if err != nil {
-				return nil, err
-			}
-
-			if len(tt) == 0 {
-				return nil, nil
-			}
-
-			if p.StepID == 0 && len(tt) > 0 {
-				return tt[0], nil
-			} else {
-				for _, tMatch := range tt {
-					if tMatch.StepID == p.StepID {
-						return tMatch, nil
-					}
-				}
-			}
-
-			if !p.Trace {
-				// when not doing a trace (designing the workflow)
-				// we need to be more strict and disallow execution of
-				// the misconfigured workflows and use of disabled triggers
-				if t == nil {
-					return nil, WorkflowErrUnknownWorkflowStep()
-				} else if !t.Enabled {
-					return nil, WorkflowErrDisabled()
-				}
-			}
-
-			if t != nil {
-				wap.setTrigger(t)
-				p.StepID = t.StepID
-				p.EventType = t.EventType
-				p.ResourceType = t.ResourceType
-
-				// merge with input from trigger
-				// with trigger input vars are overwritten by input vars
-				p.Input = t.Input.MustMerge(p.Input)
-			} else {
-				p.EventType = "onTrace"
-			}
-
+	// Find the trigger.
+	// @todo can we cache this as well?
+	t, err = func() (*types.Trigger, error) {
+		if p.CallerWorkflowID > 0 {
+			// skip triggers checking when executed as sub-workflow
+			// @todo be more strict and allow this ONLY when workflow is flagged as a sub-workflow
 			return nil, nil
-		}()
+		}
 
+		var tt types.TriggerSet
+		// Load triggers directly from the store. At this point we do not care
+		// about trigger search or read permissions
+		tt, err = loadWorkflowTriggers(ctx, svc.store, workflowID)
 		if err != nil {
-			return
+			return nil, err
 		}
 
-		wait, sessionID, err = svc.exec(ctx, wf, p)
-
-		if err != nil {
-			return err
+		if len(tt) == 0 {
+			return nil, nil
 		}
 
-		if p.Async && !p.Wait && wf.CheckDeferred() {
-			// deferred workflow, return right away and keep the workflow session
-			// running without waiting for the execution
-			return nil
+		if p.StepID == 0 && len(tt) > 0 {
+			return tt[0], nil
+		} else {
+			for _, tMatch := range tt {
+				if tMatch.StepID == p.StepID {
+					return tMatch, nil
+				}
+			}
 		}
 
-		// wait for the workflow to complete
-		// reuse scope for results
-		// this will be decoded back to event properties
-		results, sessionID, _, stacktrace, err = wait(ctx)
-		return err
+		if !p.Trace {
+			// when not doing a trace (designing the workflow)
+			// we need to be more strict and disallow execution of
+			// the misconfigured workflows and use of disabled triggers
+			if t == nil {
+				return nil, WorkflowErrUnknownWorkflowStep()
+			} else if !t.Enabled {
+				return nil, WorkflowErrDisabled()
+			}
+		}
+
+		if t != nil {
+			aProps.setTrigger(t)
+			p.StepID = t.StepID
+			p.EventType = t.EventType
+			p.ResourceType = t.ResourceType
+
+			// merge with input from trigger
+			// with trigger input vars are overwritten by input vars
+			p.Input = t.Input.MustMerge(p.Input)
+		} else {
+			p.EventType = "onTrace"
+		}
+
+		return nil, nil
 	}()
 
-	return results, sessionID, stacktrace, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
+	if err != nil {
+		return
+	}
+
+	wait, sessionID, err = svc.exec(ctx, wf, p)
+
+	if err != nil {
+		return
+	}
+
+	if p.Async && !p.Wait && wf.CheckDeferred() {
+		// deferred workflow, return right away and keep the workflow session
+		// running without waiting for the execution
+		return
+	}
+
+	// wait for the workflow to complete
+	// reuse scope for results
+	// this will be decoded back to event properties
+	results, sessionID, _, stacktrace, err = wait(ctx)
+	return
 }
 
 // validates workflow by trying to convert it to graph and checking assigned triggers

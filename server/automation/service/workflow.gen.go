@@ -9,9 +9,16 @@ package service
 import (
 	"context"
 	types "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
+
+type workflowServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *workflow) Search(ctx context.Context, filter types.WorkflowFilter) (set types.WorkflowSet, f types.WorkflowFilter, err error) {
 	var (
@@ -28,6 +35,9 @@ func (svc *workflow) Search(ctx context.Context, filter types.WorkflowFilter) (s
 	}
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchWorkflows(ctx) {
 			return WorkflowErrNotAllowedToSearch()
 		}
@@ -75,4 +85,35 @@ func toLabeledWorkflows(set []*types.Workflow) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *workflow) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *workflow) scopeServices(ctx context.Context) *workflowServices {
+	return &workflowServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (results *expr.Vars, sessionID uint64, stacktrace types.Stacktrace, err error) {
+	var (
+		aProps = &workflowActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		results, sessionID, stacktrace, err = svc.onExec(ctx, aProps, workflowID, p)
+		return err
+	}()
+
+	return results, sessionID, stacktrace, svc.recordAction(ctx, aProps, WorkflowActionExecute, err)
 }

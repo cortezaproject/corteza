@@ -50,6 +50,10 @@ actions:
   - action: run
     log: report ran
 
+  - action: describe
+    log: "described report sources"
+    severity: info
+
 errors:
   - error: notFound
     message: "report not found"

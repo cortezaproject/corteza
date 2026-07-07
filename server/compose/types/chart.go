@@ -1,13 +1,10 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"strconv"
 	"strings"
 
 	"github.com/crusttech/human/server/pkg/locale"
-	"github.com/crusttech/human/server/pkg/sql"
 	"github.com/spf13/cast"
 
 	"github.com/crusttech/human/server/pkg/filter"
@@ -15,13 +12,6 @@ import (
 )
 
 type (
-	ChartConfig struct {
-		Reports     []*ChartConfigReport   `json:"reports,omitempty"`
-		ColorScheme string                 `json:"colorScheme,omitempty"`
-		NoAnimation bool                   `json:"noAnimation,omitempty"`
-		Toolbox     map[string]interface{} `json:"toolbox,omitempty"`
-	}
-
 	ChartConfigReport struct {
 		ReportID   uint64                   `json:"reportID,string,omitempty"`
 		Filter     string                   `json:"filter"`
@@ -185,9 +175,6 @@ func (set ChartSet) FindByHandle(handle string) *Chart {
 
 	return nil
 }
-
-func (cc *ChartConfig) Scan(src any) error          { return sql.ParseJSON(src, cc) }
-func (cc ChartConfig) Value() (driver.Value, error) { return json.Marshal(cc) }
 
 func (r *ChartConfigReport) WalkMetrics(fn func(string, map[string]interface{})) {
 	for m := range r.Metrics {

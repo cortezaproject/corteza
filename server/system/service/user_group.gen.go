@@ -9,9 +9,15 @@ package service
 import (
 	"context"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type userGroupServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *userGroup) Create(ctx context.Context, new *types.UserGroup) (res *types.UserGroup, err error) {
 	var (
@@ -21,6 +27,9 @@ func (svc *userGroup) Create(ctx context.Context, new *types.UserGroup) (res *ty
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if err = svc.validate(ctx, new); err != nil {
 			return err
 		}
@@ -66,4 +75,69 @@ func toLabeledUserGroups(set []*types.UserGroup) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *userGroup) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *userGroup) scopeServices(ctx context.Context) *userGroupServices {
+	return &userGroupServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *userGroup) Activate(ctx context.Context) (err error) {
+	var (
+		aProps = &userGroupActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onActivate(ctx, aProps)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserGroupActionActivate, err)
+}
+
+func (svc *userGroup) MemberList(ctx context.Context, userGroupID uint64) (mm types.UserSet, err error) {
+	var (
+		aProps = &userGroupActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
+
+		mm, err = svc.onMemberList(ctx, aProps, userGroupID)
+		return err
+	}()
+
+	return mm, svc.recordAction(ctx, aProps, UserGroupActionMembers, err)
+}
+
+func (svc *userGroup) MemberAdd(ctx context.Context, userGroupID uint64, memberID uint64) (err error) {
+	var (
+		aProps = &userGroupActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onMemberAdd(ctx, aProps, userGroupID, memberID)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, UserGroupActionMemberAdd, err)
 }

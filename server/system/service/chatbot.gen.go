@@ -13,6 +13,7 @@ import (
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -39,12 +40,20 @@ func Chatbot() *chatbot {
 	}
 }
 
+type chatbotServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *chatbot) FindByID(ctx context.Context, ID uint64) (res *types.Chatbot, err error) {
 	var (
 		aProps = &chatbotActionProps{chatbot: &types.Chatbot{ID: ID}}
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -58,6 +67,9 @@ func (svc *chatbot) Search(ctx context.Context, filter types.ChatbotFilter) (set
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchChatbots(ctx) {
 			return ChatbotErrNotAllowedToSearch()
 		}
@@ -76,6 +88,9 @@ func (svc *chatbot) Create(ctx context.Context, new *types.Chatbot) (res *types.
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateChatbot(ctx) {
 			return ChatbotErrNotAllowedToCreate()
 		}
@@ -212,4 +227,35 @@ func toLabeledChatbots(set []*types.Chatbot) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc *chatbot) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *chatbot) scopeServices(ctx context.Context) *chatbotServices {
+	return &chatbotServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *chatbot) RegenerateWidgetKey(ctx context.Context, ID uint64) (c *types.Chatbot, err error) {
+	var (
+		aProps = &chatbotActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		c, err = svc.onRegenerateWidgetKey(ctx, aProps, ID)
+		return err
+	}()
+
+	return c, svc.recordAction(ctx, aProps, ChatbotActionRegenerateWidgetKey, err)
 }

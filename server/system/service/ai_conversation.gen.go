@@ -11,6 +11,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
@@ -37,12 +38,20 @@ func AiConversation() *aiConversation {
 	}
 }
 
+type aiConversationServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
+
 func (svc *aiConversation) FindByID(ctx context.Context, ID uint64) (res *types.AiConversation, err error) {
 	var (
 		aProps = &aiConversationActionProps{aiConversation: &types.AiConversation{ID: ID}}
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -56,6 +65,9 @@ func (svc *aiConversation) Search(ctx context.Context, filter types.AiConversati
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -71,6 +83,9 @@ func (svc *aiConversation) Create(ctx context.Context, new *types.AiConversation
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		if !svc.ac.CanCreateAiConversation(ctx) {
 			return AiConversationErrNotAllowedToCreate()
 		}
@@ -167,4 +182,18 @@ func loadAiConversation(ctx context.Context, s store.AiConversations, ID uint64)
 	}
 
 	return
+}
+
+func (svc *aiConversation) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *aiConversation) scopeServices(ctx context.Context) *aiConversationServices {
+	return &aiConversationServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

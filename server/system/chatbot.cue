@@ -82,13 +82,15 @@ _chatbotDefs: {
 
 chatbot: {
 	features: {
-		labels: true
+		labels:            true
+		labelResourceType: "chatbot"
 	}
 
 	types: {
 		gen: true
 		// ChatbotStyling has a custom Value (kept hand-written)
-		jsonTypesSkip: ["ChatbotStyling"]
+		// ChatbotStateExpression has a field named Value — Scan/Value would conflict
+		jsonTypesSkip: ["ChatbotStyling", "ChatbotStateExpression"]
 
 		defs: _chatbotDefs
 	}

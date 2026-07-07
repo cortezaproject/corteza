@@ -14,6 +14,9 @@ package schema
 		}
 	}
 
+	// bundles: standalone type registries for non-component packages
+	bundles: [...#TypeBundle] | *[]
+
 	// automation: {
 	//  types: ....
 	//  function ....

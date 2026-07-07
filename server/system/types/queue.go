@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/spf13/cast"
@@ -14,10 +13,6 @@ type (
 		Query   string       `json:"query"`
 		Deleted filter.State `json:"deleted"`
 
-		// Check fn is called by store backend for each resource found function can
-		// modify the resource and return false if store should not return it
-		//
-		// Store then loads additional resources to satisfy the paging parameters
 		Check func(*Queue) (bool, error) `json:"-"`
 
 		filter.Sorting
@@ -32,11 +27,6 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
-	QueueMeta struct {
-		PollDelay      *time.Duration `json:"poll_delay"`
-		DispatchEvents bool           `json:"dispatch_events"`
-	}
 )
 
 func (h *QueueMeta) UnmarshalJSON(s []byte) error {
@@ -49,7 +39,6 @@ func (h *QueueMeta) UnmarshalJSON(s []byte) error {
 		Alias: (*Alias)(h),
 	}
 
-	// set default
 	h.DispatchEvents = false
 
 	if err := json.Unmarshal(s, aux); err != nil {
@@ -64,7 +53,6 @@ func (h *QueueMeta) UnmarshalJSON(s []byte) error {
 }
 
 func (m QueueMeta) MarshalJSON() ([]byte, error) {
-
 	pollDelay := ""
 	if m.PollDelay != nil {
 		pollDelay = m.PollDelay.String()

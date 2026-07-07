@@ -47,6 +47,13 @@ actions:
   - action: enable
     log: 'enabled {{connection}}'
 
+  - action: check
+    log: 'checked connectivity for {{connection}}'
+    severity: info
+
+  - action: refreshDiscovery
+    log: 'refreshed discovery for {{connection}}'
+
 errors:
   - error: notFound
     message: 'connection not found'

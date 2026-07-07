@@ -239,7 +239,7 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 	return svc.recordAction(ctx, cProps, DalConnectionActionDelete, err, old, c)
 }
 
-func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {
+func (svc *dalConnection) onReloadConnections(ctx context.Context, _ *dalConnectionActionProps) (err error) {
 	return dalConnectionReload(ctx, svc.store, svc.dal)
 }
 

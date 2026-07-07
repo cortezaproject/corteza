@@ -6,17 +6,6 @@ import (
 )
 
 type (
-	TriggerConstraint struct {
-		Name   string   `json:"name"`
-		Op     string   `json:"op,omitempty"`
-		Values []string `json:"values,omitempty"`
-	}
-
-	TriggerMeta struct {
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
-	}
-
 	TriggerFilter struct {
 		TriggerID  []string `json:"triggerID"`
 		WorkflowID []string `json:"workflowID"`

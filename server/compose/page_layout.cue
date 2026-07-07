@@ -64,11 +64,13 @@ _pageLayoutDefs: {
 
 pageLayout: {
 	features: {
+		labelResourceType: "compose:page-layout"
 	}
 
 	types: {
 		gen: true
-
+		// PageLayoutButtonConfig has a field named Clone — generated Clone() method conflicts.
+		structTypesSkip: ["PageLayoutButtonConfig"]
 		defs: _pageLayoutDefs
 	}
 

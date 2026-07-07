@@ -10,6 +10,7 @@ auth_session: {
 		paging: false
 		sorting: false
 		checkFn: false
+		noIdField: true
 	}
 
 	model: {

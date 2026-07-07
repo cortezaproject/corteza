@@ -1,19 +1,10 @@
 package types
 
 import (
-	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	ApigwRouteMeta struct {
-		Debug  bool                             `json:"debug"`
-		Async  bool                             `json:"async"`
-		Desc   string                           `json:"description"`
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-	}
-
 	ApigwRouteFilter struct {
 		ApigwRouteID []string `json:"apigwRouteID"`
 		Route        string   `json:"route"`

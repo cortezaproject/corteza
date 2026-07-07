@@ -5,13 +5,7 @@ import (
 )
 
 _sharedModuleDefs: {
-	ModuleFieldSet: { name: "ModuleFieldSet", elem: _sharedModuleDefs.ModuleField, elemPtr: true }
-	ModuleField: { name: "ModuleField", fields: [
-		{ name: "Kind", type: "string", json: "kind" },
-		{ name: "Name", type: "string", json: "name" },
-		{ name: "Label", type: "string", json: "label" },
-		{ name: "IsMulti", type: "bool", json: "isMulti" },
-	]}
+	ModuleFieldSet: { name: "ModuleFieldSet", elem: _exposedModuleDefs.ModuleField, elemPtr: true }
 }
 
 sharedModule: {

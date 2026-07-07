@@ -19,6 +19,13 @@ component: schema.#component & {
 		"record-revision":     record_revision
 	}
 
+	types: {
+		"icon":           { noIdField: true }
+		"record-value":   { noIdField: true }
+		"privacy-module": { noIdField: true }
+		"de-dup-rule":    { noIdField: true }
+	}
+
 	rbac: operations: {
 		"settings.read": description:                "Read settings"
 		"settings.manage": description:              "Manage settings"

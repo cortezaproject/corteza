@@ -1,4 +1,0 @@
-package: types
-types:
-  Label:
-    noIdField: true

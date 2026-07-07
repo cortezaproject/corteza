@@ -77,6 +77,12 @@ actions:
   - action: deleteAvatar
     log: 'deleted avatar of {{user}}'
 
+  - action: createSynthetic
+    log: 'created synthetic users'
+
+  - action: removeSynthetic
+    log: 'removed synthetic users'
+
 errors:
   - error: notFound
     message: 'user not found'

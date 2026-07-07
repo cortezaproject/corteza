@@ -19,6 +19,7 @@ _namespaceDefs: {
 
 namespace: {
 	features: {
+		labelResourceType: "compose:namespace"
 	}
 
 	types: {

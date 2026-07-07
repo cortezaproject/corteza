@@ -4,7 +4,7 @@ import (
 	"context"
 
 	a "github.com/crusttech/human/server/pkg/auth"
-"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
@@ -221,15 +221,15 @@ func (svc *tenant) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, taProps, TenantActionUndelete, err, old, t)
 }
 
-func (svc *tenant) Suspend(ctx context.Context, ID uint64) error {
+func (svc *tenant) onSuspend(ctx context.Context, _ *tenantActionProps, ID uint64) error {
 	return svc.setStatus(ctx, ID, types.TenantStatusSuspended, TenantActionSuspend)
 }
 
-func (svc *tenant) Activate(ctx context.Context, ID uint64) error {
+func (svc *tenant) onActivate(ctx context.Context, _ *tenantActionProps, ID uint64) error {
 	return svc.setStatus(ctx, ID, types.TenantStatusActive, TenantActionActivate)
 }
 
-func (svc *tenant) Archive(ctx context.Context, ID uint64) error {
+func (svc *tenant) onArchive(ctx context.Context, _ *tenantActionProps, ID uint64) error {
 	return svc.setStatus(ctx, ID, types.TenantStatusArchived, TenantActionArchive)
 }
 
@@ -276,171 +276,155 @@ func (svc *tenant) setStatus(ctx context.Context, ID uint64, status types.Tenant
 
 // --- members ---
 
-func (svc *tenant) SearchMembers(ctx context.Context, filter types.TenantMembershipFilter) (set types.TenantMembershipSet, f types.TenantMembershipFilter, err error) {
-	err = func() error {
-		var t *types.Tenant
-		if t, err = loadTenant(ctx, svc.store, filter.TenantID); err != nil {
-			return err
-		}
+func (svc *tenant) onSearchMembers(ctx context.Context, _ *tenantActionProps, filter types.TenantMembershipFilter) (set types.TenantMembershipSet, f types.TenantMembershipFilter, err error) {
+	var t *types.Tenant
+	if t, err = loadTenant(ctx, svc.store, filter.TenantID); err != nil {
+		return set, f, err
+	}
 
-		if !svc.ac.CanReadTenant(ctx, t) {
-			return TenantErrNotAllowedToRead()
-		}
+	if !svc.ac.CanReadTenant(ctx, t) {
+		return set, f, TenantErrNotAllowedToRead()
+	}
 
-		if set, f, err = store.SearchTenantMemberships(ctx, svc.store, filter); err != nil {
-			return err
-		}
+	if set, f, err = store.SearchTenantMemberships(ctx, svc.store, filter); err != nil {
+		return set, f, err
+	}
 
-		return nil
-	}()
-
-	return set, f, err
+	return set, f, nil
 }
 
 // Invite adds a user to a tenant.
 //
 // Constraint: one user = one tenant. The user must not already hold an active
 // membership in any tenant.
-func (svc *tenant) Invite(ctx context.Context, m *types.TenantMembership) (res *types.TenantMembership, err error) {
-	err = func() (err error) {
-		var t *types.Tenant
-		if t, err = loadTenant(ctx, svc.store, m.TenantID); err != nil {
-			return
-		}
+func (svc *tenant) onInvite(ctx context.Context, _ *tenantActionProps, m *types.TenantMembership) (res *types.TenantMembership, err error) {
+	var t *types.Tenant
+	if t, err = loadTenant(ctx, svc.store, m.TenantID); err != nil {
+		return res, err
+	}
 
-		if !svc.ac.CanManageMembersOnTenant(ctx, t) {
-			return TenantErrNotAllowedToManageMembers()
-		}
+	if !svc.ac.CanManageMembersOnTenant(ctx, t) {
+		return res, TenantErrNotAllowedToManageMembers()
+	}
 
-		if m.UserID == 0 {
-			return TenantErrMemberNotFound()
-		}
+	if m.UserID == 0 {
+		return res, TenantErrMemberNotFound()
+	}
 
-		if m.Role == "" {
-			m.Role = types.TenantRoleMember
-		}
-		if !m.Role.Valid() {
-			return TenantErrInvalidRole()
-		}
+	if m.Role == "" {
+		m.Role = types.TenantRoleMember
+	}
+	if !m.Role.Valid() {
+		return res, TenantErrInvalidRole()
+	}
 
-		// one membership record per user per tenant
-		if existing, e := store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, m.TenantID, m.UserID); e == nil && existing != nil {
-			return TenantErrMemberAlreadyExists()
-		} else if e != nil && !errors.IsNotFound(e) {
-			return e
-		}
+	// one membership record per user per tenant
+	if existing, e := store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, m.TenantID, m.UserID); e == nil && existing != nil {
+		return res, TenantErrMemberAlreadyExists()
+	} else if e != nil && !errors.IsNotFound(e) {
+		return res, e
+	}
 
-		// one user = one tenant: refuse if user has an active membership anywhere
-		if err = svc.assertUserHasNoActiveTenant(ctx, m.UserID); err != nil {
-			return err
-		}
+	// one user = one tenant: refuse if user has an active membership anywhere
+	if err = svc.assertUserHasNoActiveTenant(ctx, m.UserID); err != nil {
+		return res, err
+	}
 
-		if m.Status == "" {
-			m.Status = types.TenantMemberStatusInvited
-		}
+	if m.Status == "" {
+		m.Status = types.TenantMemberStatusInvited
+	}
+	if !m.Status.Valid() {
+		return res, TenantErrInvalidMemberStatus()
+	}
+
+	m.ID = nextID()
+	m.CreatedAt = *now()
+	m.InvitedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	if err = store.CreateTenantMembership(ctx, svc.store, m); err != nil {
+		return res, err
+	}
+
+	res = m
+	return res, nil
+}
+
+func (svc *tenant) onAcceptInvite(ctx context.Context, _ *tenantActionProps, tenantID, userID uint64) (err error) {
+	var existing *types.TenantMembership
+	if existing, err = store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, tenantID, userID); errors.IsNotFound(err) {
+		return TenantErrMemberNotFound()
+	} else if err != nil {
+		return err
+	}
+
+	existing.Status = types.TenantMemberStatusActive
+	existing.UpdatedAt = now()
+	return store.UpdateTenantMembership(ctx, svc.store, existing)
+}
+
+func (svc *tenant) onUpdateMember(ctx context.Context, _ *tenantActionProps, m *types.TenantMembership) (res *types.TenantMembership, err error) {
+	var t *types.Tenant
+	if t, err = loadTenant(ctx, svc.store, m.TenantID); err != nil {
+		return res, err
+	}
+
+	if !svc.ac.CanManageMembersOnTenant(ctx, t) {
+		return res, TenantErrNotAllowedToManageMembers()
+	}
+
+	var existing *types.TenantMembership
+	if existing, err = store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, m.TenantID, m.UserID); errors.IsNotFound(err) {
+		return res, TenantErrMemberNotFound()
+	} else if err != nil {
+		return res, err
+	}
+
+	if !m.Role.Valid() {
+		return res, TenantErrInvalidRole()
+	}
+
+	existing.Role = m.Role
+	if m.Status != "" {
 		if !m.Status.Valid() {
-			return TenantErrInvalidMemberStatus()
+			return res, TenantErrInvalidMemberStatus()
 		}
+		existing.Status = m.Status
+	}
+	existing.UpdatedAt = now()
 
-		m.ID = nextID()
-		m.CreatedAt = *now()
-		m.InvitedBy = a.GetIdentityFromContext(ctx).Identity()
+	if err = store.UpdateTenantMembership(ctx, svc.store, existing); err != nil {
+		return res, err
+	}
 
-		if err = store.CreateTenantMembership(ctx, svc.store, m); err != nil {
-			return
-		}
-
-		res = m
-		return nil
-	}()
-
-	return res, err
+	res = existing
+	return res, nil
 }
 
-func (svc *tenant) AcceptInvite(ctx context.Context, tenantID, userID uint64) (err error) {
-	return func() (err error) {
-		var existing *types.TenantMembership
-		if existing, err = store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, tenantID, userID); errors.IsNotFound(err) {
-			return TenantErrMemberNotFound()
-		} else if err != nil {
-			return err
-		}
+func (svc *tenant) onRemoveMember(ctx context.Context, _ *tenantActionProps, tenantID, userID uint64) (err error) {
+	var t *types.Tenant
+	if t, err = loadTenant(ctx, svc.store, tenantID); err != nil {
+		return err
+	}
 
-		existing.Status = types.TenantMemberStatusActive
-		existing.UpdatedAt = now()
-		return store.UpdateTenantMembership(ctx, svc.store, existing)
-	}()
+	if !svc.ac.CanManageMembersOnTenant(ctx, t) {
+		return TenantErrNotAllowedToManageMembers()
+	}
+
+	var existing *types.TenantMembership
+	if existing, err = store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, tenantID, userID); errors.IsNotFound(err) {
+		return TenantErrMemberNotFound()
+	} else if err != nil {
+		return err
+	}
+
+	return store.DeleteTenantMembership(ctx, svc.store, existing)
 }
 
-func (svc *tenant) UpdateMember(ctx context.Context, m *types.TenantMembership) (res *types.TenantMembership, err error) {
-	err = func() (err error) {
-		var t *types.Tenant
-		if t, err = loadTenant(ctx, svc.store, m.TenantID); err != nil {
-			return
-		}
-
-		if !svc.ac.CanManageMembersOnTenant(ctx, t) {
-			return TenantErrNotAllowedToManageMembers()
-		}
-
-		var existing *types.TenantMembership
-		if existing, err = store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, m.TenantID, m.UserID); errors.IsNotFound(err) {
-			return TenantErrMemberNotFound()
-		} else if err != nil {
-			return err
-		}
-
-		if !m.Role.Valid() {
-			return TenantErrInvalidRole()
-		}
-
-		existing.Role = m.Role
-		if m.Status != "" {
-			if !m.Status.Valid() {
-				return TenantErrInvalidMemberStatus()
-			}
-			existing.Status = m.Status
-		}
-		existing.UpdatedAt = now()
-
-		if err = store.UpdateTenantMembership(ctx, svc.store, existing); err != nil {
-			return
-		}
-
-		res = existing
-		return nil
-	}()
-
-	return res, err
-}
-
-func (svc *tenant) RemoveMember(ctx context.Context, tenantID, userID uint64) (err error) {
-	return func() (err error) {
-		var t *types.Tenant
-		if t, err = loadTenant(ctx, svc.store, tenantID); err != nil {
-			return
-		}
-
-		if !svc.ac.CanManageMembersOnTenant(ctx, t) {
-			return TenantErrNotAllowedToManageMembers()
-		}
-
-		var existing *types.TenantMembership
-		if existing, err = store.LookupTenantMembershipByTenantIDUserID(ctx, svc.store, tenantID, userID); errors.IsNotFound(err) {
-			return TenantErrMemberNotFound()
-		} else if err != nil {
-			return err
-		}
-
-		return store.DeleteTenantMembership(ctx, svc.store, existing)
-	}()
-}
-
-func (svc *tenant) SuspendMember(ctx context.Context, tenantID, userID uint64) error {
+func (svc *tenant) onSuspendMember(ctx context.Context, _ *tenantActionProps, tenantID, userID uint64) error {
 	return svc.setMemberStatus(ctx, tenantID, userID, types.TenantMemberStatusSuspended)
 }
 
-func (svc *tenant) ActivateMember(ctx context.Context, tenantID, userID uint64) error {
+func (svc *tenant) onActivateMember(ctx context.Context, _ *tenantActionProps, tenantID, userID uint64) error {
 	return svc.setMemberStatus(ctx, tenantID, userID, types.TenantMemberStatusActive)
 }
 

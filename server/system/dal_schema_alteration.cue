@@ -23,6 +23,7 @@ dal_schema_alteration: {
 
 	types: {
 		gen: true
+		imports: ["github.com/crusttech/human/server/pkg/dal"]
 		defs: _dal_schema_alterationDefs
 	}
 

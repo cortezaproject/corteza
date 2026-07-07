@@ -311,7 +311,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				to_timestamp: { goType: "*time.Time" }
 				before_action_id: { goType: "uint64", ident: "beforeActionID" }
 				actor_id: { goType: "[]uint64", ident: "actorID" }
-				origin: {}
+				origin: { storeIdent: "request_origin" }
 				resource: {}
 				action: {}
 				limit: { goType: "uint" }
@@ -330,6 +330,14 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 						description: """
 							searches for action log by ID
 							"""
+					},
+				]
+
+				functions: [
+					{
+						expIdent: "ActionlogReport"
+						args: [ {ident: "rr", goType: "types.ReportRequest"}]
+						return: [ "types.ReportRowSet"]
 					},
 				]
 			}

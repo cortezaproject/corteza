@@ -15,6 +15,18 @@ component: schema.#component & {
 		"ng-automation": ng_automation
 	}
 
+	types: {
+		"trigger-constraint":    { noIdField: true }
+		"workflow-path":         { noIdField: true }
+		"workflow-issue":        { noIdField: true }
+		"workflow-step":         {}
+		"state":                 {}
+		"ng-automation-issue":   { noIdField: true }
+		"ng-automation-trigger": {}
+		"ng-automation-step":    {}
+		"ng-automation-path":    { noIdField: true }
+	}
+
 	rbac: operations: {
 		"grant": description:                        "Manage automation permissions"
 		"workflow.create": description:              "Create workflows"

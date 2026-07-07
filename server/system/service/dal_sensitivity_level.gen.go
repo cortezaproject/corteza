@@ -11,9 +11,15 @@ import (
 
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type dalSensitivityLevelServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
+}
 
 func (svc *dalSensitivityLevel) FindByID(ctx context.Context, ID uint64) (res *types.DalSensitivityLevel, err error) {
 	var (
@@ -21,6 +27,9 @@ func (svc *dalSensitivityLevel) FindByID(ctx context.Context, ID uint64) (res *t
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		res, err = svc.onLookup(ctx, ID, aProps)
 		return err
 	}()
@@ -34,6 +43,9 @@ func (svc *dalSensitivityLevel) Search(ctx context.Context, filter types.DalSens
 	)
 
 	err = func() error {
+		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
+			return err
+		}
 		set, f, err = svc.onSearch(ctx, filter, aProps)
 		return err
 	}()
@@ -49,6 +61,9 @@ func (svc *dalSensitivityLevel) Create(ctx context.Context, new *types.DalSensit
 	)
 
 	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
 		res = new
 		return svc.onCreate(ctx, new)
 	}()
@@ -146,4 +161,35 @@ func loadDalSensitivityLevel(ctx context.Context, s store.DalSensitivityLevels, 
 	}
 
 	return
+}
+
+func (svc *dalSensitivityLevel) checkScope(ctx context.Context, cap scope.Capability) error {
+	if err := scope.RequireTenantMembership(ctx); err != nil {
+		return err
+	}
+	return scope.RequireCapability(ctx, cap)
+}
+
+func (svc *dalSensitivityLevel) scopeServices(ctx context.Context) *dalSensitivityLevelServices {
+	return &dalSensitivityLevelServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
+}
+
+func (svc *dalSensitivityLevel) ReloadSensitivityLevels(ctx context.Context, s store.Storer) (err error) {
+	var (
+		aProps = &dalSensitivityLevelActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onReloadSensitivityLevels(ctx, aProps, s)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, DalSensitivityLevelActionReloadSensitivityLevels, err)
 }

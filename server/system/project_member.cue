@@ -4,17 +4,7 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
-_project_memberDefs: {
-			ProjectMemberRole: { name: "ProjectMemberRole", values: [
-				{ident: "ProjectRoleGovernanceOwner", value: "governance-owner"},
-				{ident: "ProjectRoleSecurityOwner", value: "security-owner"},
-				{ident: "ProjectRoleDeveloper", value: "developer"},
-				{ident: "ProjectRoleJuniorDeveloper", value: "junior-developer"},
-				{ident: "ProjectRoleMember", value: "member"},
-				{ident: "ProjectRoleExecutiveAuthority", value: "executive-authority", doc: "ProjectRoleExecutiveAuthority reads the whole project and signs off at the first governance gate; it never edits."},
-				{ident: "ProjectRoleInfrastructureAdministrator", value: "infrastructure-administrator", doc: "ProjectRoleInfrastructureAdministrator maintains platform infrastructure; it carries no project-content access at all."},
-			]}
-		}
+_project_memberDefs: {}
 
 project_member: {
 	features: {
@@ -44,7 +34,7 @@ project_member: {
 			}
 			role_preset: {
 				ident:      "rolePreset"
-				type:       _project_memberDefs.ProjectMemberRole
+				type:       _projectDefs.ProjectMemberRole
 				storeIdent: "role_preset"
 				dal: {length: 64}
 				omitSetter: true

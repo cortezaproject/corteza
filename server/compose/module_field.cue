@@ -180,10 +180,11 @@ moduleField: {
 	}
 
 	features: {
-		labels: false
-		paging: false
-		sorting: false
-		checkFn: false
+		labels:            false
+		paging:            false
+		sorting:           false
+		checkFn:           false
+		labelResourceType: "compose:module:field"
 	}
 
 	envoy: {

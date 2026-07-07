@@ -15,6 +15,7 @@ _chartDefs: {
 
 chart: {
 	features: {
+		labelResourceType: "compose:chart"
 	}
 
 	types: {

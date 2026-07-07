@@ -77,6 +77,12 @@ actions:
   - action: memberRemove
     log: "removed {{member.email}} from {{role}}"
 
+  - action: cloneRules
+    log: "cloned rules from {{role}}"
+
+  - action: membership
+    log: "listed membership for user"
+    severity: info
 
 errors:
   - error: notFound

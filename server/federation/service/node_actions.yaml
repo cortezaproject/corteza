@@ -62,6 +62,9 @@ actions:
   - action: handshakeComplete
     log: "{{node}} handshake completed"
 
+  - action: regenerateNodeURI
+    log: "regenerated URI for {{node}}"
+
 errors:
   - error: notFound
     message: "node does not exist"

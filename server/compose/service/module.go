@@ -683,7 +683,7 @@ func (svc *module) onUndelete(ctx context.Context, s store.Storer, namespaceID u
 // ReloadDALModels reconstructs the DAL's data model based on the store.Storer
 //
 // Directly using store so we don't spam the action log
-func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
+func (svc *module) onReloadDALModels(ctx context.Context, _ *moduleActionProps) (err error) {
 	return DalModelReload(ctx, svc.store, svc.schemaAltManager, svc.dal)
 }
 

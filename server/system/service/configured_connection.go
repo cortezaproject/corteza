@@ -192,82 +192,71 @@ func (svc *configuredConnection) DeleteByID(ctx context.Context, ID uint64) (err
 	return ConfiguredConnectionErrDeletionNotSupported()
 }
 
-func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *types.ConfiguredConnection, err error) {
-	var (
-		aProps = &configuredConnectionActionProps{connection: &types.ConfiguredConnection{ID: ID}}
-		old    *types.ConfiguredConnection
-	)
+func (svc *configuredConnection) onEnable(ctx context.Context, aProps *configuredConnectionActionProps, ID uint64) (res *types.ConfiguredConnection, err error) {
+	if res, err = loadConfiguredConnection(ctx, svc.store, ID); err != nil {
+		return res, err
+	}
 
-	err = func() (err error) {
-		if res, err = loadConfiguredConnection(ctx, svc.store, ID); err != nil {
-			return err
-		}
+	// temp: always use the live connection definition instead of the snapshot
+	if err = svc.liveConnection(ctx, res); err != nil {
+		return res, err
+	}
 
-		// temp: always use the live connection definition instead of the snapshot
-		if err = svc.liveConnection(ctx, res); err != nil {
-			return err
-		}
+	aProps.setConnection(res)
 
-		old = res.Clone()
+	if res.Status != "draft" {
+		return res, errors.InvalidData("only draft connections can be enabled")
+	}
 
-		aProps.setConnection(res)
+	// Resolve templates and provision sub-systems
+	resolved := svc.resolveTemplates(&res.Connection, res.Config.Params)
+	rsp, err := svc.dispatch(ctx, resolved, res)
+	if err != nil {
+		return res, err
+	}
 
-		if res.Status != "draft" {
-			return errors.InvalidData("only draft connections can be enabled")
-		}
+	if rsp.dalConnection != nil {
+		res.Config.DalConnectionID = rsp.dalConnection.ID
+	}
+	res.Status = "active"
 
-		// Resolve templates and provision sub-systems
-		resolved := svc.resolveTemplates(&res.Connection, res.Config.Params)
-		rsp, err := svc.dispatch(ctx, resolved, res)
-		if err != nil {
-			return err
-		}
+	if res.Labels == nil {
+		res.Labels = make(map[string]labelTypes.LabelValue)
+	}
 
-		if rsp.dalConnection != nil {
-			res.Config.DalConnectionID = rsp.dalConnection.ID
-		}
-		res.Status = "active"
+	res.Labels["human/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(res.ID, 10)}
 
-		if res.Labels == nil {
-			res.Labels = make(map[string]labelTypes.LabelValue)
-		}
+	n := now()
+	res.UpdatedAt = n
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		res.Labels["human/configured-connection-id"] = labelTypes.LabelValue{Val: strconv.FormatUint(res.ID, 10)}
+	if err = store.UpdateConfiguredConnection(ctx, svc.store, res); err != nil {
+		return res, err
+	}
 
-		n := now()
-		res.UpdatedAt = n
-		res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	// Fetch and cache Google resource discovery (spreadsheets + tabs).
+	// Non-fatal: failures are logged and silently skipped.
+	_ = svc.syncGoogleDiscovery(ctx, res)
 
-		if err = store.UpdateConfiguredConnection(ctx, svc.store, res); err != nil {
-			return err
-		}
+	// Load all active configured connections for the same source connection
+	// so that registerOperations can merge them into a single function entry
+	// with all configurationID options. Without this, each Enable call would
+	// produce a duplicate entry containing only the newly-enabled CC.
+	siblings, _, _ := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		ConnectionID: res.ConnectionID,
+		Status:       []string{"active"},
+	})
+	allCCs := make([]types.ConfiguredConnection, 0, len(siblings))
+	for _, s := range siblings {
+		allCCs = append(allCCs, *s)
+	}
 
-		// Fetch and cache Google resource discovery (spreadsheets + tabs).
-		// Non-fatal: failures are logged and silently skipped.
-		_ = svc.syncGoogleDiscovery(ctx, res)
-
-		// Load all active configured connections for the same source connection
-		// so that registerOperations can merge them into a single function entry
-		// with all configurationID options. Without this, each Enable call would
-		// produce a duplicate entry containing only the newly-enabled CC.
-		siblings, _, _ := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
-			ConnectionID: res.ConnectionID,
-			Status:       []string{"active"},
-		})
-		allCCs := make([]types.ConfiguredConnection, 0, len(siblings))
-		for _, s := range siblings {
-			allCCs = append(allCCs, *s)
-		}
-
-		conn, connErr := loadConnection(ctx, svc.store, res.ConnectionID)
-		if connErr == nil {
-			svc.registerOperations(conn, allCCs)
-		}
-		svc.registerWebhookTriggers(*res)
-		return nil
-	}()
-
-	return res, svc.recordAction(ctx, aProps, ConfiguredConnectionActionEnable, err, old, res)
+	conn, connErr := loadConnection(ctx, svc.store, res.ConnectionID)
+	if connErr == nil {
+		svc.registerOperations(conn, allCCs)
+	}
+	svc.registerWebhookTriggers(*res)
+	return res, nil
 }
 
 func (svc *configuredConnection) Search(ctx context.Context, filter types.ConfiguredConnectionFilter) (set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter, err error) {
@@ -402,7 +391,7 @@ func resolveExecutor(
 	return cw.Execute, nil
 }
 
-func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error) {
+func (svc *configuredConnection) onCheck(ctx context.Context, _ *configuredConnectionActionProps, ID uint64) (res *types.ConfiguredConnectionCheckResult, err error) {
 	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
 	if err != nil {
 		return nil, err
@@ -427,16 +416,16 @@ func (svc *configuredConnection) Check(ctx context.Context, ID uint64) (*types.C
 		}
 	}
 
-	result := &types.ConfiguredConnectionCheckResult{}
-	result.Connectivity = svc.checkConnectivity(ctx, runner)
-	result.Auth = svc.checkAuth(ctx, runner)
+	res = &types.ConfiguredConnectionCheckResult{}
+	res.Connectivity = svc.checkConnectivity(ctx, runner)
+	res.Auth = svc.checkAuth(ctx, runner)
 
 	if probe := resolved.Service.Probe; probe != nil {
 		ps := svc.checkProbe(ctx, runner, probe)
-		result.Probe = &ps
+		res.Probe = &ps
 	}
 
-	return result, nil
+	return res, nil
 }
 
 func (svc *configuredConnection) checkConnectivity(ctx context.Context, r connectionRunner) types.ConfiguredConnectionCheckStatus {
@@ -1557,7 +1546,7 @@ func injectDiscoveredOptions(segments []atypes.ConstructSegment, discovery map[s
 // RefreshDiscovery re-fetches Google resource discovery for the given CC,
 // re-registers operations so the construct library reflects the new options,
 // and returns a summary.
-func (svc *configuredConnection) RefreshDiscovery(ctx context.Context, ID uint64) (map[string]any, error) {
+func (svc *configuredConnection) onRefreshDiscovery(ctx context.Context, _ *configuredConnectionActionProps, ID uint64) (res map[string]any, err error) {
 	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
 	if err != nil {
 		return nil, err

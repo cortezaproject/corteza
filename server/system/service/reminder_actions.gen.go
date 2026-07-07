@@ -450,6 +450,25 @@ func ReminderActionSnooze(props ...*reminderActionProps) *reminderAction {
 	return a
 }
 
+// ReminderActionFindByIDs returns "system:reminder.findByIDs" action
+//
+// This function is auto-generated.
+func ReminderActionFindByIDs(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "findByIDs",
+		log:       "found reminders by IDs",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors
