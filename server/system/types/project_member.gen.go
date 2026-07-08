@@ -7,7 +7,10 @@ package types
 //
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"github.com/crusttech/human/server/pkg/revisions"
+	"github.com/crusttech/human/server/pkg/sql"
 	"reflect"
 	"time"
 )
@@ -23,6 +26,13 @@ type (
 		CreatedAt  time.Time         `json:"createdAt,omitempty"`
 		UpdatedAt  *time.Time        `json:"updatedAt,omitempty"`
 		DeletedAt  *time.Time        `json:"deletedAt,omitempty"`
+	}
+
+	ProjectCapabilities struct {
+		CanRead            bool `json:"canRead"`
+		CanWrite           bool `json:"canWrite"`
+		CanRequestApproval bool `json:"canRequestApproval"`
+		CanGrantApproval   bool `json:"canGrantApproval"`
 	}
 )
 
@@ -84,3 +94,35 @@ func (r ProjectMember) Diff(cmp *ProjectMember) []*revisions.Change {
 
 	return out
 }
+
+func (r ProjectCapabilities) Clone() *ProjectCapabilities {
+	dup := r
+	return &dup
+}
+
+func (r ProjectCapabilities) Diff(cmp *ProjectCapabilities) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ProjectCapabilities{}
+	}
+	if r.CanRead != cmp.CanRead {
+		out = append(out, &revisions.Change{Key: "canRead", Old: []any{cmp.CanRead}, New: []any{r.CanRead}})
+	}
+
+	if r.CanWrite != cmp.CanWrite {
+		out = append(out, &revisions.Change{Key: "canWrite", Old: []any{cmp.CanWrite}, New: []any{r.CanWrite}})
+	}
+
+	if r.CanRequestApproval != cmp.CanRequestApproval {
+		out = append(out, &revisions.Change{Key: "canRequestApproval", Old: []any{cmp.CanRequestApproval}, New: []any{r.CanRequestApproval}})
+	}
+
+	if r.CanGrantApproval != cmp.CanGrantApproval {
+		out = append(out, &revisions.Change{Key: "canGrantApproval", Old: []any{cmp.CanGrantApproval}, New: []any{r.CanGrantApproval}})
+	}
+
+	return out
+}
+
+func (r *ProjectCapabilities) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ProjectCapabilities) Value() (driver.Value, error) { return json.Marshal(r) }

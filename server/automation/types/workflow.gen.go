@@ -78,6 +78,19 @@ type (
 		Description string         `json:"description"`
 	}
 
+	WorkflowExecParams struct {
+		CallerWorkflowID uint64     `json:"callerWorkflowID"`
+		CallerSessionID  uint64     `json:"callerSessionID"`
+		CallerStepID     uint64     `json:"callerStepID"`
+		StepID           uint64     `json:"stepID"`
+		EventType        string     `json:"eventType"`
+		ResourceType     string     `json:"resourceType"`
+		Trace            bool       `json:"trace"`
+		Async            bool       `json:"async"`
+		Wait             bool       `json:"wait"`
+		Input            *expr.Vars `json:"input"`
+	}
+
 	WorkflowStepKind string
 )
 
@@ -410,6 +423,67 @@ func (r WorkflowIssue) Diff(cmp *WorkflowIssue) []*revisions.Change {
 
 func (r *WorkflowIssue) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r WorkflowIssue) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r WorkflowExecParams) Clone() *WorkflowExecParams {
+	dup := r
+	if r.Input != nil {
+		v := *r.Input
+		dup.Input = &v
+	}
+
+	return &dup
+}
+
+func (r WorkflowExecParams) Diff(cmp *WorkflowExecParams) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &WorkflowExecParams{}
+	}
+	if r.CallerWorkflowID != cmp.CallerWorkflowID {
+		out = append(out, &revisions.Change{Key: "callerWorkflowID", Old: []any{cmp.CallerWorkflowID}, New: []any{r.CallerWorkflowID}})
+	}
+
+	if r.CallerSessionID != cmp.CallerSessionID {
+		out = append(out, &revisions.Change{Key: "callerSessionID", Old: []any{cmp.CallerSessionID}, New: []any{r.CallerSessionID}})
+	}
+
+	if r.CallerStepID != cmp.CallerStepID {
+		out = append(out, &revisions.Change{Key: "callerStepID", Old: []any{cmp.CallerStepID}, New: []any{r.CallerStepID}})
+	}
+
+	if r.StepID != cmp.StepID {
+		out = append(out, &revisions.Change{Key: "stepID", Old: []any{cmp.StepID}, New: []any{r.StepID}})
+	}
+
+	if r.EventType != cmp.EventType {
+		out = append(out, &revisions.Change{Key: "eventType", Old: []any{cmp.EventType}, New: []any{r.EventType}})
+	}
+
+	if r.ResourceType != cmp.ResourceType {
+		out = append(out, &revisions.Change{Key: "resourceType", Old: []any{cmp.ResourceType}, New: []any{r.ResourceType}})
+	}
+
+	if r.Trace != cmp.Trace {
+		out = append(out, &revisions.Change{Key: "trace", Old: []any{cmp.Trace}, New: []any{r.Trace}})
+	}
+
+	if r.Async != cmp.Async {
+		out = append(out, &revisions.Change{Key: "async", Old: []any{cmp.Async}, New: []any{r.Async}})
+	}
+
+	if r.Wait != cmp.Wait {
+		out = append(out, &revisions.Change{Key: "wait", Old: []any{cmp.Wait}, New: []any{r.Wait}})
+	}
+
+	if !reflect.DeepEqual(r.Input, cmp.Input) {
+		out = append(out, &revisions.Change{Key: "input", Old: []any{cmp.Input}, New: []any{r.Input}})
+	}
+
+	return out
+}
+
+func (r *WorkflowExecParams) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r WorkflowExecParams) Value() (driver.Value, error) { return json.Marshal(r) }
 
 const (
 	WorkflowStepKindExpressions  WorkflowStepKind = "expressions"

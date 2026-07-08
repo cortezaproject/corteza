@@ -48,6 +48,17 @@ type (
 		Name  string   `json:"name"`
 		Value string   `json:"value"`
 	}
+
+	ConfiguredConnectionCheckStatus struct {
+		OK      bool   `json:"ok"`
+		Message string `json:"message,omitempty"`
+	}
+
+	ConfiguredConnectionCheckResult struct {
+		Connectivity ConfiguredConnectionCheckStatus  `json:"connectivity"`
+		Auth         ConfiguredConnectionCheckStatus  `json:"auth"`
+		Probe        *ConfiguredConnectionCheckStatus `json:"probe,omitempty"`
+	}
 )
 
 func (r ConfiguredConnection) Clone() *ConfiguredConnection {
@@ -220,6 +231,73 @@ func (r ConfiguredConnectionParam) Diff(cmp *ConfiguredConnectionParam) []*revis
 
 	return out
 }
+
+func (r ConfiguredConnectionCheckStatus) Clone() *ConfiguredConnectionCheckStatus {
+	dup := r
+	return &dup
+}
+
+func (r ConfiguredConnectionCheckStatus) Diff(cmp *ConfiguredConnectionCheckStatus) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ConfiguredConnectionCheckStatus{}
+	}
+	if r.OK != cmp.OK {
+		out = append(out, &revisions.Change{Key: "ok", Old: []any{cmp.OK}, New: []any{r.OK}})
+	}
+
+	if r.Message != cmp.Message {
+		out = append(out, &revisions.Change{Key: "message", Old: []any{cmp.Message}, New: []any{r.Message}})
+	}
+
+	return out
+}
+
+func (r *ConfiguredConnectionCheckStatus) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ConfiguredConnectionCheckStatus) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ConfiguredConnectionCheckResult) Clone() *ConfiguredConnectionCheckResult {
+	dup := r
+	dup.Connectivity = *r.Connectivity.Clone()
+
+	dup.Auth = *r.Auth.Clone()
+
+	if r.Probe != nil {
+		dup.Probe = r.Probe.Clone()
+	}
+
+	return &dup
+}
+
+func (r ConfiguredConnectionCheckResult) Diff(cmp *ConfiguredConnectionCheckResult) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ConfiguredConnectionCheckResult{}
+	}
+	for _, c := range r.Connectivity.Diff(&cmp.Connectivity) {
+		c.Key = "connectivity." + c.Key
+		out = append(out, c)
+	}
+
+	for _, c := range r.Auth.Diff(&cmp.Auth) {
+		c.Key = "auth." + c.Key
+		out = append(out, c)
+	}
+
+	if (r.Probe == nil) != (cmp.Probe == nil) {
+		out = append(out, &revisions.Change{Key: "probe", Old: []any{cmp.Probe}, New: []any{r.Probe}})
+	} else if r.Probe != nil {
+		for _, c := range r.Probe.Diff(cmp.Probe) {
+			c.Key = "probe." + c.Key
+			out = append(out, c)
+		}
+	}
+
+	return out
+}
+
+func (r *ConfiguredConnectionCheckResult) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ConfiguredConnectionCheckResult) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (m *Connection) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m Connection) Value() (driver.Value, error) { return json.Marshal(m) }

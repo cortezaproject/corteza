@@ -20,15 +20,6 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
-	// ProjectCapabilities is derived at runtime from a member's RolePreset.
-	// It is never persisted.
-	ProjectCapabilities struct {
-		CanRead            bool `json:"canRead"`
-		CanWrite           bool `json:"canWrite"`
-		CanRequestApproval bool `json:"canRequestApproval"`
-		CanGrantApproval   bool `json:"canGrantApproval"`
-	}
 )
 
 const (

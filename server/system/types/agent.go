@@ -6,34 +6,6 @@ import (
 )
 
 type (
-	AgentAccessTAQ struct {
-		ID          uint64            `json:"id,string"`
-		Description string            `json:"description,omitempty"`
-		Params      map[string]string `json:"params,omitempty"`
-	}
-
-	AgentAccessWorkflow struct {
-		ID          uint64 `json:"id,string"`
-		Description string `json:"description,omitempty"`
-	}
-
-	AgentAccessTool struct {
-		Name        string               `json:"name"`
-		Description string               `json:"description"`
-		Allow       []AgentAccessAllow   `json:"allow"`
-		Context     AgentAccessToolContext `json:"context,omitempty"`
-	}
-
-	AgentAccessToolContext struct {
-		Defaults  map[string]any `json:"defaults,omitempty"`
-		Overrides map[string]any `json:"overrides,omitempty"`
-	}
-
-	AgentAccessAllow struct {
-		NamespaceID uint64            `json:"namespaceID,string"`
-		ModuleIDs   AgentAccessIDList `json:"moduleIDs"`
-	}
-
 	AgentFilter struct {
 		AgentID   []string `json:"agentID"`
 		ProjectID uint64   `json:"projectID,string,omitempty"`

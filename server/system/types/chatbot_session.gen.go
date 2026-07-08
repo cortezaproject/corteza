@@ -60,6 +60,35 @@ type (
 		Fields    map[string]string `json:"fields,omitempty"`
 		Submitted bool              `json:"submitted,omitempty"`
 	}
+
+	ChatbotSessionStep struct {
+		ID             uint64     `json:"id,string"`
+		SessionID      uint64     `json:"sessionID,string"`
+		ScenarioIndex  int        `json:"scenarioIndex"`
+		ConversationID uint64     `json:"conversationID,string"`
+		Status         string     `json:"status"`
+		CreatedAt      time.Time  `json:"createdAt,omitempty"`
+		CreatedBy      uint64     `json:"createdBy,string"`
+		UpdatedAt      *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy      uint64     `json:"updatedBy,string,omitempty"`
+		DeletedAt      *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy      uint64     `json:"deletedBy,string,omitempty"`
+	}
+
+	ChatbotSessionHandoff struct {
+		ID          uint64     `json:"id,string"`
+		SessionID   uint64     `json:"sessionID,string"`
+		StepID      uint64     `json:"stepID,string"`
+		Status      string     `json:"status"`
+		InitiatedAt time.Time  `json:"initiatedAt,omitempty"`
+		ClosedAt    *time.Time `json:"closedAt,omitempty"`
+		CreatedAt   time.Time  `json:"createdAt,omitempty"`
+		CreatedBy   uint64     `json:"createdBy,string"`
+		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy   uint64     `json:"updatedBy,string,omitempty"`
+		DeletedAt   *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy   uint64     `json:"deletedBy,string,omitempty"`
+	}
 )
 
 func (r ChatbotSession) Clone() *ChatbotSession {
@@ -320,6 +349,155 @@ func (r ChatbotFormStepState) Diff(cmp *ChatbotFormStepState) []*revisions.Chang
 
 func (r *ChatbotFormStepState) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ChatbotFormStepState) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ChatbotSessionStep) Clone() *ChatbotSessionStep {
+	dup := r
+	if r.UpdatedAt != nil {
+		v := *r.UpdatedAt
+		dup.UpdatedAt = &v
+	}
+
+	if r.DeletedAt != nil {
+		v := *r.DeletedAt
+		dup.DeletedAt = &v
+	}
+
+	return &dup
+}
+
+func (r ChatbotSessionStep) Diff(cmp *ChatbotSessionStep) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ChatbotSessionStep{}
+	}
+	if r.ID != cmp.ID {
+		out = append(out, &revisions.Change{Key: "id", Old: []any{cmp.ID}, New: []any{r.ID}})
+	}
+
+	if r.SessionID != cmp.SessionID {
+		out = append(out, &revisions.Change{Key: "sessionID", Old: []any{cmp.SessionID}, New: []any{r.SessionID}})
+	}
+
+	if r.ScenarioIndex != cmp.ScenarioIndex {
+		out = append(out, &revisions.Change{Key: "scenarioIndex", Old: []any{cmp.ScenarioIndex}, New: []any{r.ScenarioIndex}})
+	}
+
+	if r.ConversationID != cmp.ConversationID {
+		out = append(out, &revisions.Change{Key: "conversationID", Old: []any{cmp.ConversationID}, New: []any{r.ConversationID}})
+	}
+
+	if r.Status != cmp.Status {
+		out = append(out, &revisions.Change{Key: "status", Old: []any{cmp.Status}, New: []any{r.Status}})
+	}
+
+	if !reflect.DeepEqual(r.CreatedAt, cmp.CreatedAt) {
+		out = append(out, &revisions.Change{Key: "createdAt", Old: []any{cmp.CreatedAt}, New: []any{r.CreatedAt}})
+	}
+
+	if r.CreatedBy != cmp.CreatedBy {
+		out = append(out, &revisions.Change{Key: "createdBy", Old: []any{cmp.CreatedBy}, New: []any{r.CreatedBy}})
+	}
+
+	if !reflect.DeepEqual(r.UpdatedAt, cmp.UpdatedAt) {
+		out = append(out, &revisions.Change{Key: "updatedAt", Old: []any{cmp.UpdatedAt}, New: []any{r.UpdatedAt}})
+	}
+
+	if r.UpdatedBy != cmp.UpdatedBy {
+		out = append(out, &revisions.Change{Key: "updatedBy", Old: []any{cmp.UpdatedBy}, New: []any{r.UpdatedBy}})
+	}
+
+	if !reflect.DeepEqual(r.DeletedAt, cmp.DeletedAt) {
+		out = append(out, &revisions.Change{Key: "deletedAt", Old: []any{cmp.DeletedAt}, New: []any{r.DeletedAt}})
+	}
+
+	if r.DeletedBy != cmp.DeletedBy {
+		out = append(out, &revisions.Change{Key: "deletedBy", Old: []any{cmp.DeletedBy}, New: []any{r.DeletedBy}})
+	}
+
+	return out
+}
+
+func (r *ChatbotSessionStep) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ChatbotSessionStep) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ChatbotSessionHandoff) Clone() *ChatbotSessionHandoff {
+	dup := r
+	if r.ClosedAt != nil {
+		v := *r.ClosedAt
+		dup.ClosedAt = &v
+	}
+
+	if r.UpdatedAt != nil {
+		v := *r.UpdatedAt
+		dup.UpdatedAt = &v
+	}
+
+	if r.DeletedAt != nil {
+		v := *r.DeletedAt
+		dup.DeletedAt = &v
+	}
+
+	return &dup
+}
+
+func (r ChatbotSessionHandoff) Diff(cmp *ChatbotSessionHandoff) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ChatbotSessionHandoff{}
+	}
+	if r.ID != cmp.ID {
+		out = append(out, &revisions.Change{Key: "id", Old: []any{cmp.ID}, New: []any{r.ID}})
+	}
+
+	if r.SessionID != cmp.SessionID {
+		out = append(out, &revisions.Change{Key: "sessionID", Old: []any{cmp.SessionID}, New: []any{r.SessionID}})
+	}
+
+	if r.StepID != cmp.StepID {
+		out = append(out, &revisions.Change{Key: "stepID", Old: []any{cmp.StepID}, New: []any{r.StepID}})
+	}
+
+	if r.Status != cmp.Status {
+		out = append(out, &revisions.Change{Key: "status", Old: []any{cmp.Status}, New: []any{r.Status}})
+	}
+
+	if !reflect.DeepEqual(r.InitiatedAt, cmp.InitiatedAt) {
+		out = append(out, &revisions.Change{Key: "initiatedAt", Old: []any{cmp.InitiatedAt}, New: []any{r.InitiatedAt}})
+	}
+
+	if !reflect.DeepEqual(r.ClosedAt, cmp.ClosedAt) {
+		out = append(out, &revisions.Change{Key: "closedAt", Old: []any{cmp.ClosedAt}, New: []any{r.ClosedAt}})
+	}
+
+	if !reflect.DeepEqual(r.CreatedAt, cmp.CreatedAt) {
+		out = append(out, &revisions.Change{Key: "createdAt", Old: []any{cmp.CreatedAt}, New: []any{r.CreatedAt}})
+	}
+
+	if r.CreatedBy != cmp.CreatedBy {
+		out = append(out, &revisions.Change{Key: "createdBy", Old: []any{cmp.CreatedBy}, New: []any{r.CreatedBy}})
+	}
+
+	if !reflect.DeepEqual(r.UpdatedAt, cmp.UpdatedAt) {
+		out = append(out, &revisions.Change{Key: "updatedAt", Old: []any{cmp.UpdatedAt}, New: []any{r.UpdatedAt}})
+	}
+
+	if r.UpdatedBy != cmp.UpdatedBy {
+		out = append(out, &revisions.Change{Key: "updatedBy", Old: []any{cmp.UpdatedBy}, New: []any{r.UpdatedBy}})
+	}
+
+	if !reflect.DeepEqual(r.DeletedAt, cmp.DeletedAt) {
+		out = append(out, &revisions.Change{Key: "deletedAt", Old: []any{cmp.DeletedAt}, New: []any{r.DeletedAt}})
+	}
+
+	if r.DeletedBy != cmp.DeletedBy {
+		out = append(out, &revisions.Change{Key: "deletedBy", Old: []any{cmp.DeletedBy}, New: []any{r.DeletedBy}})
+	}
+
+	return out
+}
+
+func (r *ChatbotSessionHandoff) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ChatbotSessionHandoff) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (m *ChatbotSessionState) Scan(src any) error          { return sql.ParseJSON(src, m) }
 func (m ChatbotSessionState) Value() (driver.Value, error) { return json.Marshal(m) }

@@ -5,126 +5,15 @@ package types
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
 //
-// Definitions file that controls how this file is generated:
-// federation/types/types.yaml
 
 type (
-
-	// ExposedModuleSet slice of ExposedModule
-	//
-	// This type is auto-generated.
+	NodeSet          []*Node
+	NodeSyncSet      []*NodeSync
 	ExposedModuleSet []*ExposedModule
-
-	// ModuleMappingSet slice of ModuleMapping
-	//
-	// This type is auto-generated.
+	SharedModuleSet  []*SharedModule
 	ModuleMappingSet []*ModuleMapping
-
-	// NodeSet slice of Node
-	//
-	// This type is auto-generated.
-	NodeSet []*Node
-
-	// NodeSyncSet slice of NodeSync
-	//
-	// This type is auto-generated.
-	NodeSyncSet []*NodeSync
-
-	// SharedModuleSet slice of SharedModule
-	//
-	// This type is auto-generated.
-	SharedModuleSet []*SharedModule
 )
 
-// Walk iterates through every slice item and calls w(ExposedModule) err
-//
-// This function is auto-generated.
-func (set ExposedModuleSet) Walk(w func(*ExposedModule) error) (err error) {
-	for i := range set {
-		if err = w(set[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// Filter iterates through every slice item, calls f(ExposedModule) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
-func (set ExposedModuleSet) Filter(f func(*ExposedModule) (bool, error)) (out ExposedModuleSet, err error) {
-	var ok bool
-	out = ExposedModuleSet{}
-	for i := range set {
-		if ok, err = f(set[i]); err != nil {
-			return
-		} else if ok {
-			out = append(out, set[i])
-		}
-	}
-
-	return
-}
-
-// FindByID finds items from slice by its ID property
-//
-// This function is auto-generated.
-func (set ExposedModuleSet) FindByID(ID uint64) *ExposedModule {
-	for i := range set {
-		if set[i].ID == ID {
-			return set[i]
-		}
-	}
-
-	return nil
-}
-
-// IDs returns a slice of uint64s from all items in the set
-//
-// This function is auto-generated.
-func (set ExposedModuleSet) IDs() (IDs []uint64) {
-	IDs = make([]uint64, len(set))
-
-	for i := range set {
-		IDs[i] = set[i].ID
-	}
-
-	return
-}
-
-// Walk iterates through every slice item and calls w(ModuleMapping) err
-//
-// This function is auto-generated.
-func (set ModuleMappingSet) Walk(w func(*ModuleMapping) error) (err error) {
-	for i := range set {
-		if err = w(set[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// Filter iterates through every slice item, calls f(ModuleMapping) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
-func (set ModuleMappingSet) Filter(f func(*ModuleMapping) (bool, error)) (out ModuleMappingSet, err error) {
-	var ok bool
-	out = ModuleMappingSet{}
-	for i := range set {
-		if ok, err = f(set[i]); err != nil {
-			return
-		} else if ok {
-			out = append(out, set[i])
-		}
-	}
-
-	return
-}
-
-// Walk iterates through every slice item and calls w(Node) err
-//
-// This function is auto-generated.
 func (set NodeSet) Walk(w func(*Node) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
@@ -135,9 +24,6 @@ func (set NodeSet) Walk(w func(*Node) error) (err error) {
 	return
 }
 
-// Filter iterates through every slice item, calls f(Node) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
 func (set NodeSet) Filter(f func(*Node) (bool, error)) (out NodeSet, err error) {
 	var ok bool
 	out = NodeSet{}
@@ -152,9 +38,6 @@ func (set NodeSet) Filter(f func(*Node) (bool, error)) (out NodeSet, err error) 
 	return
 }
 
-// FindByID finds items from slice by its ID property
-//
-// This function is auto-generated.
 func (set NodeSet) FindByID(ID uint64) *Node {
 	for i := range set {
 		if set[i].ID == ID {
@@ -165,9 +48,6 @@ func (set NodeSet) FindByID(ID uint64) *Node {
 	return nil
 }
 
-// IDs returns a slice of uint64s from all items in the set
-//
-// This function is auto-generated.
 func (set NodeSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
@@ -178,9 +58,6 @@ func (set NodeSet) IDs() (IDs []uint64) {
 	return
 }
 
-// Walk iterates through every slice item and calls w(NodeSync) err
-//
-// This function is auto-generated.
 func (set NodeSyncSet) Walk(w func(*NodeSync) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
@@ -191,9 +68,6 @@ func (set NodeSyncSet) Walk(w func(*NodeSync) error) (err error) {
 	return
 }
 
-// Filter iterates through every slice item, calls f(NodeSync) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
 func (set NodeSyncSet) Filter(f func(*NodeSync) (bool, error)) (out NodeSyncSet, err error) {
 	var ok bool
 	out = NodeSyncSet{}
@@ -208,9 +82,50 @@ func (set NodeSyncSet) Filter(f func(*NodeSync) (bool, error)) (out NodeSyncSet,
 	return
 }
 
-// Walk iterates through every slice item and calls w(SharedModule) err
-//
-// This function is auto-generated.
+func (set ExposedModuleSet) Walk(w func(*ExposedModule) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ExposedModuleSet) Filter(f func(*ExposedModule) (bool, error)) (out ExposedModuleSet, err error) {
+	var ok bool
+	out = ExposedModuleSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ExposedModuleSet) FindByID(ID uint64) *ExposedModule {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ExposedModuleSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
 func (set SharedModuleSet) Walk(w func(*SharedModule) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
@@ -221,9 +136,6 @@ func (set SharedModuleSet) Walk(w func(*SharedModule) error) (err error) {
 	return
 }
 
-// Filter iterates through every slice item, calls f(SharedModule) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
 func (set SharedModuleSet) Filter(f func(*SharedModule) (bool, error)) (out SharedModuleSet, err error) {
 	var ok bool
 	out = SharedModuleSet{}
@@ -238,9 +150,6 @@ func (set SharedModuleSet) Filter(f func(*SharedModule) (bool, error)) (out Shar
 	return
 }
 
-// FindByID finds items from slice by its ID property
-//
-// This function is auto-generated.
 func (set SharedModuleSet) FindByID(ID uint64) *SharedModule {
 	for i := range set {
 		if set[i].ID == ID {
@@ -251,14 +160,35 @@ func (set SharedModuleSet) FindByID(ID uint64) *SharedModule {
 	return nil
 }
 
-// IDs returns a slice of uint64s from all items in the set
-//
-// This function is auto-generated.
 func (set SharedModuleSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ModuleMappingSet) Walk(w func(*ModuleMapping) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ModuleMappingSet) Filter(f func(*ModuleMapping) (bool, error)) (out ModuleMappingSet, err error) {
+	var ok bool
+	out = ModuleMappingSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return

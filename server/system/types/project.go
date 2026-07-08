@@ -23,19 +23,6 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
-	// ProjectPermittedConnection is one whitelisted external connection the
-	// project may use; the Connections build step instantiates from this list.
-	ProjectPermittedConnection struct {
-		ID                  string `json:"id"`
-		Name                string `json:"name"`
-		Connector           string `json:"connector,omitempty"`
-		Type                string `json:"type,omitempty"`
-		Description         string `json:"description,omitempty"`
-		ActionIfUnavailable string `json:"actionIfUnavailable,omitempty"`
-		Replacement         string `json:"replacement,omitempty"`
-		IsAiSystem          string `json:"isAiSystem,omitempty"`
-	}
 )
 
 func (m ProjectMode) Valid() bool {

@@ -5,15 +5,25 @@ import (
 )
 
 _roleDefs: {
-			RoleMeta: { name: "RoleMeta", fields: [
-				{ name: "Description", type: "string", json: "description,omitempty" },
-				{ name: "Context", type: _roleDefs.RoleContext, ptr: true, json: "context,omitempty" },
-			]}
-			RoleContext: { name: "RoleContext", fields: [
-				{ name: "Resource", type: "string", slice: true, json: "resourceTypes,omitempty" },
-				{ name: "Expr", type: "string", json: "expr,omitempty" },
-			]}
-		}
+	RoleMeta: {name: "RoleMeta", fields: [
+				{name: "Description", type: "string", json:             "description,omitempty"},
+				{name: "Context", type:     _roleDefs.RoleContext, ptr: true, json: "context,omitempty"},
+	]}
+	RoleContext: {name: "RoleContext", fields: [
+				{name: "Resource", type: "string", slice: true, json: "resourceTypes,omitempty"},
+				{name: "Expr", type:     "string", json:  "expr,omitempty"},
+	]}
+	RoleMetrics: {name: "RoleMetrics", fields: [
+				{name: "Total", type:         "uint", json:  "total"},
+				{name: "Valid", type:         "uint", json:  "valid"},
+				{name: "Deleted", type:       "uint", json:  "deleted"},
+				{name: "Archived", type:      "uint", json:  "archived"},
+				{name: "DailyCreated", type:  "uint", slice: true, json: "dailyCreated"},
+				{name: "DailyDeleted", type:  "uint", slice: true, json: "dailyDeleted"},
+				{name: "DailyUpdated", type:  "uint", slice: true, json: "dailyUpdated"},
+				{name: "DailyArchived", type: "uint", slice: true, json: "dailyArchived"},
+	]}
+}
 
 role: {
 	features: {
@@ -44,31 +54,31 @@ role: {
 			handle: schema.HandleField
 			meta: {
 				type: _roleDefs.RoleMeta
-				ptr: true
-				dal: { type: "JSON", defaultEmptyObject: true }
+				ptr:  true
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 
 			archived_at: schema.SortableTimestampNilField
-			created_at: schema.SortableTimestampNowField
-			updated_at: schema.SortableTimestampNilField
-			deleted_at: schema.SortableTimestampNilField
+			created_at:  schema.SortableTimestampNowField
+			updated_at:  schema.SortableTimestampNilField
+			deleted_at:  schema.SortableTimestampNilField
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 		}
 	}
 
 	filter: {
 		struct: {
-			role_id:    {goType: "[]uint64", ident: "roleID", storeIdent: "id"}
+			role_id: {goType: "[]uint64", ident: "roleID", storeIdent: "id"}
 			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
-			member_id:  {goType: "uint64"}
-			user_group_id: {goType: "uint64" }
-			resource: {goType: "string" }
+			member_id: {goType: "uint64"}
+			user_group_id: {goType: "uint64"}
+			resource: {goType: "string"}
 			handle: {goType: "string"}
 			name: {goType: "string"}
 
@@ -84,7 +94,7 @@ role: {
 	envoy: {
 		yaml: {
 			supportMappedInput: true
-			mappedField: "Handle"
+			mappedField:        "Handle"
 			identKeyAlias: ["roles"]
 		}
 		store: {}
@@ -178,7 +188,7 @@ role: {
 
 		cbEvents:       true
 		templateUpdate: true
-		updateFields:   ["Handle", "Name", "Meta"]
+		updateFields: ["Handle", "Name", "Meta"]
 		hooks: {
 			validate:     true
 			beforeCreate: true

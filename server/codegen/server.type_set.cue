@@ -14,7 +14,8 @@ import (
 		payload: {
 			package: "types"
 			types: [
-				for res in cmp.resources {
+				for res in cmp.resources
+				if !res.features.noTypeSet {
 					expIdent:          res.expIdent
 					noIdField:         res.features.noIdField
 					labelResourceType: res.features.labelResourceType
@@ -36,7 +37,8 @@ import (
 		payload: {
 			package: "types"
 			types: [
-				for res in cmp.resources {
+				for res in cmp.resources
+				if !res.features.noTypeSet {
 					expIdent:  res.expIdent
 					noIdField: res.features.noIdField
 				},

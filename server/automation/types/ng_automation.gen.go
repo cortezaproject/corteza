@@ -195,6 +195,14 @@ type (
 		Index    int    `json:"index"`
 		Field    string `json:"field,omitempty"`
 	}
+
+	NgAutomationExecParams struct {
+		EntryPoint   string     `json:"entryPoint"`
+		EventType    string     `json:"eventType"`
+		ResourceType string     `json:"resourceType"`
+		Wait         bool       `json:"wait"`
+		Input        *expr.Vars `json:"input"`
+	}
 )
 
 func (r NgAutomation) Clone() *NgAutomation {
@@ -1201,6 +1209,47 @@ func (r DetailEmptyField) Diff(cmp *DetailEmptyField) []*revisions.Change {
 
 func (r *DetailEmptyField) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r DetailEmptyField) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r NgAutomationExecParams) Clone() *NgAutomationExecParams {
+	dup := r
+	if r.Input != nil {
+		v := *r.Input
+		dup.Input = &v
+	}
+
+	return &dup
+}
+
+func (r NgAutomationExecParams) Diff(cmp *NgAutomationExecParams) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &NgAutomationExecParams{}
+	}
+	if r.EntryPoint != cmp.EntryPoint {
+		out = append(out, &revisions.Change{Key: "entryPoint", Old: []any{cmp.EntryPoint}, New: []any{r.EntryPoint}})
+	}
+
+	if r.EventType != cmp.EventType {
+		out = append(out, &revisions.Change{Key: "eventType", Old: []any{cmp.EventType}, New: []any{r.EventType}})
+	}
+
+	if r.ResourceType != cmp.ResourceType {
+		out = append(out, &revisions.Change{Key: "resourceType", Old: []any{cmp.ResourceType}, New: []any{r.ResourceType}})
+	}
+
+	if r.Wait != cmp.Wait {
+		out = append(out, &revisions.Change{Key: "wait", Old: []any{cmp.Wait}, New: []any{r.Wait}})
+	}
+
+	if !reflect.DeepEqual(r.Input, cmp.Input) {
+		out = append(out, &revisions.Change{Key: "input", Old: []any{cmp.Input}, New: []any{r.Input}})
+	}
+
+	return out
+}
+
+func (r *NgAutomationExecParams) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r NgAutomationExecParams) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func ParseNgAutomationMeta(ss []string) (p *NgAutomationMeta, err error) {
 	p = &NgAutomationMeta{}

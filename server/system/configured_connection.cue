@@ -5,19 +5,28 @@ import (
 )
 
 _configured_connectionDefs: {
-			ConfiguredConnectionConfig: { name: "ConfiguredConnectionConfig", fields: [
-				{ name: "NamespaceID", type: "uint64", json: "namespaceID,string" },
-				{ name: "DalConnectionID", type: "uint64", json: "dalConnectionID,string" },
-				{ name: "CredentialID", type: "uint64", json: "credentialID,string" },
-				{ name: "Params", slice: true, type: _configured_connectionDefs.ConfiguredConnectionParam, json: "params,omitempty" },
-				{ name: "Discovery", goType: "map[string]json.RawMessage", json: "discovery,omitempty" },
-			]}
-			ConfiguredConnectionParam: { name: "ConfiguredConnectionParam", fields: [
-				{ name: "Scope", slice: true, type: "string", json: "scope" },
-				{ name: "Name", type: "string", json: "name" },
-				{ name: "Value", type: "string", json: "value" },
-			]}
-		}
+	ConfiguredConnectionConfig: {name: "ConfiguredConnectionConfig", fields: [
+						{name: "NamespaceID", type:     "uint64", json:                     "namespaceID,string"},
+						{name: "DalConnectionID", type: "uint64", json:                     "dalConnectionID,string"},
+						{name: "CredentialID", type:    "uint64", json:                     "credentialID,string"},
+						{name: "Params", slice:         true, type:                         _configured_connectionDefs.ConfiguredConnectionParam, json: "params,omitempty"},
+						{name: "Discovery", goType:     "map[string]json.RawMessage", json: "discovery,omitempty"},
+	]}
+	ConfiguredConnectionParam: {name: "ConfiguredConnectionParam", fields: [
+						{name: "Scope", slice: true, type:     "string", json: "scope"},
+						{name: "Name", type:   "string", json: "name"},
+						{name: "Value", type:  "string", json: "value"},
+	]}
+	ConfiguredConnectionCheckStatus: {name: "ConfiguredConnectionCheckStatus", fields: [
+						{name: "OK", type:      "bool", json:   "ok"},
+						{name: "Message", type: "string", json: "message,omitempty"},
+	]}
+	ConfiguredConnectionCheckResult: {name: "ConfiguredConnectionCheckResult", fields: [
+						{name: "Connectivity", type: _configured_connectionDefs.ConfiguredConnectionCheckStatus, json: "connectivity"},
+						{name: "Auth", type:         _configured_connectionDefs.ConfiguredConnectionCheckStatus, json: "auth"},
+						{name: "Probe", ptr:         true, type:                                                       _configured_connectionDefs.ConfiguredConnectionCheckStatus, json: "probe,omitempty"},
+	]}
+}
 
 configured_connection: {
 	model: {
@@ -28,11 +37,11 @@ configured_connection: {
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			connection_id: {
-				sortable: true
-				goType:   "uint64"
-				ident:    "connectionID"
+				sortable:   true
+				goType:     "uint64"
+				ident:      "connectionID"
 				storeIdent: "rel_connection"
-				dal: { type: "Ref", refModelResType: "corteza::system:connection" }
+				dal: {type: "Ref", refModelResType: "corteza::system:connection"}
 				json: {field: "connectionID", string: true}
 			}
 			name: {
@@ -41,17 +50,17 @@ configured_connection: {
 			}
 			status: {
 				sortable: true
-				dal: { type: "Text", length: 32 }
+				dal: {type: "Text", length: 32}
 			}
 			connection: {
 				goType: "types.Connection"
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 			config: {
 				type: _configured_connectionDefs.ConfiguredConnectionConfig
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
@@ -67,18 +76,18 @@ configured_connection: {
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 		}
 	}
 
 	filter: {
 		struct: {
-			tenant_id: schema.TenantFilterField
+			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
 			connection_id: {goType: "uint64", ident: "connectionID", storeIdent: "rel_connection"}
-			status:       {goType: "[]string"}
-			query:        {goType: "string"}
-			deleted:      {goType: "filter.State", storeIdent: "deleted_at"}
+			status: {goType: "[]string"}
+			query: {goType: "string"}
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 		byValue: ["connection_id", "status", "project_id"]
 		byNilState: ["deleted"]
@@ -104,7 +113,7 @@ configured_connection: {
 		operations: {
 			"read": description:   "Read connection"
 			"delete": description: "Delete connection"
-      "update": description: "Update connection"
+			"update": description: "Update connection"
 		}
 	}
 

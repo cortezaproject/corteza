@@ -69,6 +69,11 @@ import (
 		// type has no ID field (join tables, session types, etc.)
 		noIdField: bool | *false
 
+		// model-only resource: emits the DAL model and resource-type const but no
+		// Go type struct, so skip the type_set/type_labels generation that would
+		// reference a non-existent struct.
+		noTypeSet: bool | *false
+
 		// label resource kind string; non-empty generates Labeler interface methods
 		// (SetLabel, GetLabels, LabelResourceKind, LabelResourceID).
 		// Distinct from features.labels (which controls store/filter/struct generation).

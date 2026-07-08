@@ -5,39 +5,49 @@ import (
 )
 
 _userDefs: {
-			UserKind: {
-				name: "UserKind"
-				values: [
-					{ident: "NormalUser", value: ""},
-					{ident: "SystemUser", value: "sys"},
-				]
-			}
-			UserMeta: {
-				name: "UserMeta"
-				fields: [
-					{name: "AvatarID", type: "uint64", json: "avatarID,string"},
-					{name: "AvatarKind", type: "string", json: "avatarKind,omitempty"},
-					{name: "AvatarColor", type: "string", json: "avatarColor,omitempty"},
-					{name: "AvatarBgColor", type: "string", json: "avatarBgColor,omitempty"},
-					{name: "PreferredLanguage", type: "string", json: "preferredLanguage"},
-					{name: "Theme", type: "string", json: "theme"},
-					{name: "SecurityPolicy", type: _userDefs.UserMetaSecurityPolicy, json: "securityPolicy"},
-				]
-			}
-			UserMetaSecurityPolicy: {
-				name: "UserMetaSecurityPolicy"
-				fields: [
-					{name: "MFA", type: _userDefs.UserMetaSecurityPolicyMFA, json: "mfa"},
-				]
-			}
-			UserMetaSecurityPolicyMFA: {
-				name: "UserMetaSecurityPolicyMFA"
-				fields: [
-					{name: "EnforcedEmailOTP", type: "bool", json: "enforcedEmailOTP"},
-					{name: "EnforcedTOTP", type: "bool", json: "enforcedTOTP"},
-				]
-			}
-		}
+	UserKind: {
+		name: "UserKind"
+		values: [
+			{ident: "NormalUser", value: ""},
+			{ident: "SystemUser", value: "sys"},
+		]
+	}
+	UserMeta: {
+		name: "UserMeta"
+		fields: [
+			{name: "AvatarID", type:          "uint64", json:                         "avatarID,string"},
+			{name: "AvatarKind", type:        "string", json:                         "avatarKind,omitempty"},
+			{name: "AvatarColor", type:       "string", json:                         "avatarColor,omitempty"},
+			{name: "AvatarBgColor", type:     "string", json:                         "avatarBgColor,omitempty"},
+			{name: "PreferredLanguage", type: "string", json:                         "preferredLanguage"},
+			{name: "Theme", type:             "string", json:                         "theme"},
+			{name: "SecurityPolicy", type:    _userDefs.UserMetaSecurityPolicy, json: "securityPolicy"},
+		]
+	}
+	UserMetaSecurityPolicy: {
+		name: "UserMetaSecurityPolicy"
+		fields: [
+			{name: "MFA", type: _userDefs.UserMetaSecurityPolicyMFA, json: "mfa"},
+		]
+	}
+	UserMetaSecurityPolicyMFA: {
+		name: "UserMetaSecurityPolicyMFA"
+		fields: [
+			{name: "EnforcedEmailOTP", type: "bool", json: "enforcedEmailOTP"},
+			{name: "EnforcedTOTP", type:     "bool", json: "enforcedTOTP"},
+		]
+	}
+	UserMetrics: {name: "UserMetrics", fields: [
+				{name: "Total", type:          "uint", json:  "total"},
+				{name: "Valid", type:          "uint", json:  "valid"},
+				{name: "Deleted", type:        "uint", json:  "deleted"},
+				{name: "Suspended", type:      "uint", json:  "suspended"},
+				{name: "DailyCreated", type:   "uint", slice: true, json: "dailyCreated"},
+				{name: "DailyDeleted", type:   "uint", slice: true, json: "dailyDeleted"},
+				{name: "DailyUpdated", type:   "uint", slice: true, json: "dailyUpdated"},
+				{name: "DailySuspended", type: "uint", slice: true, json: "dailySuspended"},
+	]}
+}
 
 user: {
 	features: {

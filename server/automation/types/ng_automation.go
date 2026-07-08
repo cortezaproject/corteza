@@ -3,7 +3,6 @@ package types
 import (
 	"strings"
 
-	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
@@ -36,20 +35,6 @@ type (
 	}
 
 	NgAutomationTriggerSchema []NgAutomationTriggerParam
-
-	NgAutomationExecParams struct {
-		EntryPoint string `json:"entryPoint"`
-		// @todo
-
-		EventType    string `json:"eventType"`
-		ResourceType string `json:"resourceType"`
-
-		// Wait for workflow to be executed even if it's deferred
-		Wait bool `json:"wait"`
-
-		Input *expr.Vars `json:"input"`
-	}
-
 )
 
 const (
@@ -102,4 +87,3 @@ func (set NgAutomationIssueSet) Error() string {
 
 	return strings.Join(out, ", ")
 }
-

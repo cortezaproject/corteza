@@ -103,6 +103,34 @@ type (
 		OutputFormat   string          `json:"outputFormat,omitempty"`
 	}
 
+	AgentAccessTAQ struct {
+		ID          uint64            `json:"id,string"`
+		Description string            `json:"description,omitempty"`
+		Params      map[string]string `json:"params,omitempty"`
+	}
+
+	AgentAccessWorkflow struct {
+		ID          uint64 `json:"id,string"`
+		Description string `json:"description,omitempty"`
+	}
+
+	AgentAccessTool struct {
+		Name        string                 `json:"name"`
+		Description string                 `json:"description"`
+		Allow       []AgentAccessAllow     `json:"allow"`
+		Context     AgentAccessToolContext `json:"context,omitempty"`
+	}
+
+	AgentAccessToolContext struct {
+		Defaults  map[string]any `json:"defaults,omitempty"`
+		Overrides map[string]any `json:"overrides,omitempty"`
+	}
+
+	AgentAccessAllow struct {
+		NamespaceID uint64            `json:"namespaceID,string"`
+		ModuleIDs   AgentAccessIDList `json:"moduleIDs"`
+	}
+
 	// AgentAccessIDList is a []uint64 that serializes each element as a JSON string.
 	AgentAccessIDList []uint64
 )
@@ -419,17 +447,23 @@ func (r AgentAccess) Clone() *AgentAccess {
 
 	if r.Tools != nil {
 		dup.Tools = make([]AgentAccessTool, len(r.Tools))
-		copy(dup.Tools, r.Tools)
+		for i := range r.Tools {
+			dup.Tools[i] = *r.Tools[i].Clone()
+		}
 	}
 
 	if r.TAQs != nil {
 		dup.TAQs = make([]AgentAccessTAQ, len(r.TAQs))
-		copy(dup.TAQs, r.TAQs)
+		for i := range r.TAQs {
+			dup.TAQs[i] = *r.TAQs[i].Clone()
+		}
 	}
 
 	if r.Workflows != nil {
 		dup.Workflows = make([]AgentAccessWorkflow, len(r.Workflows))
-		copy(dup.Workflows, r.Workflows)
+		for i := range r.Workflows {
+			dup.Workflows[i] = *r.Workflows[i].Clone()
+		}
 	}
 
 	return &dup
@@ -579,6 +613,169 @@ func (r AgentInvocationSystem) Diff(cmp *AgentInvocationSystem) []*revisions.Cha
 
 func (r *AgentInvocationSystem) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r AgentInvocationSystem) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r AgentAccessTAQ) Clone() *AgentAccessTAQ {
+	dup := r
+	if r.Params != nil {
+		dup.Params = make(map[string]string, len(r.Params))
+		for k, v := range r.Params {
+			dup.Params[k] = v
+		}
+	}
+
+	return &dup
+}
+
+func (r AgentAccessTAQ) Diff(cmp *AgentAccessTAQ) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &AgentAccessTAQ{}
+	}
+	if r.ID != cmp.ID {
+		out = append(out, &revisions.Change{Key: "id", Old: []any{cmp.ID}, New: []any{r.ID}})
+	}
+
+	if r.Description != cmp.Description {
+		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	if !reflect.DeepEqual(r.Params, cmp.Params) {
+		out = append(out, &revisions.Change{Key: "params", Old: []any{cmp.Params}, New: []any{r.Params}})
+	}
+
+	return out
+}
+
+func (r *AgentAccessTAQ) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r AgentAccessTAQ) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r AgentAccessWorkflow) Clone() *AgentAccessWorkflow {
+	dup := r
+	return &dup
+}
+
+func (r AgentAccessWorkflow) Diff(cmp *AgentAccessWorkflow) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &AgentAccessWorkflow{}
+	}
+	if r.ID != cmp.ID {
+		out = append(out, &revisions.Change{Key: "id", Old: []any{cmp.ID}, New: []any{r.ID}})
+	}
+
+	if r.Description != cmp.Description {
+		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	return out
+}
+
+func (r *AgentAccessWorkflow) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r AgentAccessWorkflow) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r AgentAccessTool) Clone() *AgentAccessTool {
+	dup := r
+	if r.Allow != nil {
+		dup.Allow = make([]AgentAccessAllow, len(r.Allow))
+		for i := range r.Allow {
+			dup.Allow[i] = *r.Allow[i].Clone()
+		}
+	}
+
+	dup.Context = *r.Context.Clone()
+
+	return &dup
+}
+
+func (r AgentAccessTool) Diff(cmp *AgentAccessTool) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &AgentAccessTool{}
+	}
+	if r.Name != cmp.Name {
+		out = append(out, &revisions.Change{Key: "name", Old: []any{cmp.Name}, New: []any{r.Name}})
+	}
+
+	if r.Description != cmp.Description {
+		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	if !reflect.DeepEqual(r.Allow, cmp.Allow) {
+		out = append(out, &revisions.Change{Key: "allow", Old: []any{cmp.Allow}, New: []any{r.Allow}})
+	}
+
+	for _, c := range r.Context.Diff(&cmp.Context) {
+		c.Key = "context." + c.Key
+		out = append(out, c)
+	}
+
+	return out
+}
+
+func (r *AgentAccessTool) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r AgentAccessTool) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r AgentAccessToolContext) Clone() *AgentAccessToolContext {
+	dup := r
+	if r.Defaults != nil {
+		dup.Defaults = make(map[string]any, len(r.Defaults))
+		for k, v := range r.Defaults {
+			dup.Defaults[k] = v
+		}
+	}
+
+	if r.Overrides != nil {
+		dup.Overrides = make(map[string]any, len(r.Overrides))
+		for k, v := range r.Overrides {
+			dup.Overrides[k] = v
+		}
+	}
+
+	return &dup
+}
+
+func (r AgentAccessToolContext) Diff(cmp *AgentAccessToolContext) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &AgentAccessToolContext{}
+	}
+	if !reflect.DeepEqual(r.Defaults, cmp.Defaults) {
+		out = append(out, &revisions.Change{Key: "defaults", Old: []any{cmp.Defaults}, New: []any{r.Defaults}})
+	}
+
+	if !reflect.DeepEqual(r.Overrides, cmp.Overrides) {
+		out = append(out, &revisions.Change{Key: "overrides", Old: []any{cmp.Overrides}, New: []any{r.Overrides}})
+	}
+
+	return out
+}
+
+func (r *AgentAccessToolContext) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r AgentAccessToolContext) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r AgentAccessAllow) Clone() *AgentAccessAllow {
+	dup := r
+	return &dup
+}
+
+func (r AgentAccessAllow) Diff(cmp *AgentAccessAllow) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &AgentAccessAllow{}
+	}
+	if r.NamespaceID != cmp.NamespaceID {
+		out = append(out, &revisions.Change{Key: "namespaceID", Old: []any{cmp.NamespaceID}, New: []any{r.NamespaceID}})
+	}
+
+	if !reflect.DeepEqual(r.ModuleIDs, cmp.ModuleIDs) {
+		out = append(out, &revisions.Change{Key: "moduleIDs", Old: []any{cmp.ModuleIDs}, New: []any{r.ModuleIDs}})
+	}
+
+	return out
+}
+
+func (r *AgentAccessAllow) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r AgentAccessAllow) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (ll AgentAccessIDList) MarshalJSON() ([]byte, error) {
 	ss := make([]string, len(ll))

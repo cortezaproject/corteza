@@ -33,17 +33,6 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
-	RoleMetrics struct {
-		Total         uint   `json:"total"`
-		Valid         uint   `json:"valid"`
-		Deleted       uint   `json:"deleted"`
-		Archived      uint   `json:"archived"`
-		DailyCreated  []uint `json:"dailyCreated"`
-		DailyDeleted  []uint `json:"dailyDeleted"`
-		DailyUpdated  []uint `json:"dailyUpdated"`
-		DailyArchived []uint `json:"dailyArchived"`
-	}
 )
 
 // FindByHandle finds role by it's handle

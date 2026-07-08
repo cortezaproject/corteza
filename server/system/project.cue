@@ -5,80 +5,91 @@ import (
 )
 
 _projectDefs: {
-			ProjectStatus: { name: "ProjectStatus", values: [
-				{ident: "ProjectStatusDraft", value: "draft"},
-				{ident: "ProjectStatusActive", value: "active"},
+	ProjectStatus: {name: "ProjectStatus", values: [
+				{ident: "ProjectStatusDraft", value:     "draft"},
+				{ident: "ProjectStatusActive", value:    "active"},
 				{ident: "ProjectStatusPublished", value: "published"},
-				{ident: "ProjectStatusArchived", value: "archived"},
+				{ident: "ProjectStatusArchived", value:  "archived"},
 				{ident: "ProjectStatusSuspended", value: "suspended"},
-			]}
+	]}
 
-			ProjectVisibility: { name: "ProjectVisibility", values: [
-				{ident: "ProjectVisibilityOpen", value: "open"},
-				{ident: "ProjectVisibilityInviteOnly", value: "invite-only"},
-			]}
+	ProjectVisibility: {name: "ProjectVisibility", values: [
+					{ident: "ProjectVisibilityOpen", value:       "open"},
+					{ident: "ProjectVisibilityInviteOnly", value: "invite-only"},
+	]}
 
-			ProjectMode: { name: "ProjectMode", values: [
-				{ident: "ProjectModeFree", value: "free"},
+	ProjectMode: {name: "ProjectMode", values: [
+				{ident: "ProjectModeFree", value:  "free"},
 				{ident: "ProjectModeGated", value: "gated"},
-			]}
+	]}
 
-			ProjectMemberRole: { name: "ProjectMemberRole", values: [
-				{ident: "ProjectRoleGovernanceOwner", value: "governance-owner"},
-				{ident: "ProjectRoleSecurityOwner", value: "security-owner"},
-				{ident: "ProjectRoleDeveloper", value: "developer"},
-				{ident: "ProjectRoleJuniorDeveloper", value: "junior-developer"},
-				{ident: "ProjectRoleMember", value: "member"},
-				{ident: "ProjectRoleExecutiveAuthority", value: "executive-authority"},
-				{ident: "ProjectRoleInfrastructureAdministrator", value: "infrastructure-administrator"},
-			]}
+	ProjectMemberRole: {name: "ProjectMemberRole", values: [
+					{ident: "ProjectRoleGovernanceOwner", value:             "governance-owner"},
+					{ident: "ProjectRoleSecurityOwner", value:               "security-owner"},
+					{ident: "ProjectRoleDeveloper", value:                   "developer"},
+					{ident: "ProjectRoleJuniorDeveloper", value:             "junior-developer"},
+					{ident: "ProjectRoleMember", value:                      "member"},
+					{ident: "ProjectRoleExecutiveAuthority", value:          "executive-authority"},
+					{ident: "ProjectRoleInfrastructureAdministrator", value: "infrastructure-administrator"},
+	]}
 
-			ProjectConfig: { name: "ProjectConfig", fields: [
-				{name: "Visibility", type: _projectDefs.ProjectVisibility, json: "visibility,omitempty"},
-				{name: "DefaultMemberRole", type: _projectDefs.ProjectMemberRole, json: "defaultMemberRole,omitempty"},
-				{name: "FeatureFlags", goType: "map[string]bool", json: "featureFlags,omitempty"},
-				{name: "Mode", type: _projectDefs.ProjectMode, json: "mode,omitempty"},
-				{name: "NamespaceID", type: "uint64", json: "namespaceID,string,omitempty"},
+	ProjectConfig: {name: "ProjectConfig", fields: [
+				{name: "Visibility", type:         _projectDefs.ProjectVisibility, json:         "visibility,omitempty"},
+				{name: "DefaultMemberRole", type:  _projectDefs.ProjectMemberRole, json:         "defaultMemberRole,omitempty"},
+				{name: "FeatureFlags", goType:     "map[string]bool", json:                      "featureFlags,omitempty"},
+				{name: "Mode", type:               _projectDefs.ProjectMode, json:               "mode,omitempty"},
+				{name: "NamespaceID", type:        "uint64", json:                               "namespaceID,string,omitempty"},
 				{name: "DeployerCategories", type: _projectDefs.ProjectDeployerCategories, json: "deployerCategories,omitempty"},
-				{name: "FriaRequired", type: "bool", json: "friaRequired,omitempty"},
+				{name: "FriaRequired", type:       "bool", json:                                 "friaRequired,omitempty"},
 				{name: "ResourceManagement", type: _projectDefs.ProjectResourceManagement, json: "resourceManagement,omitempty"},
-			]}
+	]}
 
-			ProjectDeployerCategories: { name: "ProjectDeployerCategories", fields: [
-				{name: "PublicAuthorityAnnex3", type: "bool", json: "publicAuthorityAnnex3,omitempty"},
-				{name: "PrivateEssentialServices", type: "bool", json: "privateEssentialServices,omitempty"},
-				{name: "InsuranceBanking", type: "bool", json: "insuranceBanking,omitempty"},
-			]}
+	ProjectDeployerCategories: {name: "ProjectDeployerCategories", fields: [
+						{name: "PublicAuthorityAnnex3", type:    "bool", json: "publicAuthorityAnnex3,omitempty"},
+						{name: "PrivateEssentialServices", type: "bool", json: "privateEssentialServices,omitempty"},
+						{name: "InsuranceBanking", type:         "bool", json: "insuranceBanking,omitempty"},
+	]}
 
-			ProjectResourceManagement: { name: "ProjectResourceManagement", fields: [
-				{name: "AI", goType: "map[string]any", json: "ai,omitempty"},
-				{name: "Infra", goType: "map[string]any", json: "infra,omitempty"},
-				{name: "Connections", goType: "[]*ProjectPermittedConnection", json: "connections,omitempty"},
-			]}
+	ProjectResourceManagement: {name: "ProjectResourceManagement", fields: [
+						{name: "AI", goType:          "map[string]any", json:                "ai,omitempty"},
+						{name: "Infra", goType:       "map[string]any", json:                "infra,omitempty"},
+						{name: "Connections", goType: "[]*ProjectPermittedConnection", json: "connections,omitempty"},
+	]}
 
-			ProjectMeta: { name: "ProjectMeta", fields: [
-				{name: "Short", type: "string", json: "short,omitempty"},
+	ProjectMeta: {name: "ProjectMeta", fields: [
+				{name: "Short", type:       "string", json: "short,omitempty"},
 				{name: "Description", type: "string", json: "description,omitempty"},
-				{name: "Icon", type: "string", json: "icon,omitempty"},
-				{name: "Color", type: "string", json: "color,omitempty"},
-				{name: "Tags", slice: true, type: "string", json: "tags,omitempty"},
-			]}
+				{name: "Icon", type:        "string", json: "icon,omitempty"},
+				{name: "Color", type:       "string", json: "color,omitempty"},
+				{name: "Tags", slice:       true, type:     "string", json: "tags,omitempty"},
+	]}
 
-			ProjectGovernanceStatus: { name: "ProjectGovernanceStatus", values: [
-				{ident: "ProjectGovernanceStatusDraft", value: "draft"},
-				{ident: "ProjectGovernanceStatusSubmitted", value: "submitted"},
-				{ident: "ProjectGovernanceStatusApproved", value: "approved"},
-				{ident: "ProjectGovernanceStatusChangesRequested", value: "changes-requested"},
-			]}
+	ProjectGovernanceStatus: {name: "ProjectGovernanceStatus", values: [
+					{ident: "ProjectGovernanceStatusDraft", value:            "draft"},
+					{ident: "ProjectGovernanceStatusSubmitted", value:        "submitted"},
+					{ident: "ProjectGovernanceStatusApproved", value:         "approved"},
+					{ident: "ProjectGovernanceStatusChangesRequested", value: "changes-requested"},
+	]}
 
-			ProjectGovernanceStep: { name: "ProjectGovernanceStep", fields: [
-				{name: "Values", goType: "map[string]any", json: "values,omitempty"},
-				{name: "Status", type: _projectDefs.ProjectGovernanceStatus, json: "status"},
-				{name: "ReviewNote", type: "string", json: "reviewNote,omitempty"},
-			]}
+	ProjectGovernanceStep: {name: "ProjectGovernanceStep", fields: [
+					{name: "Values", goType:   "map[string]any", json:                     "values,omitempty"},
+					{name: "Status", type:     _projectDefs.ProjectGovernanceStatus, json: "status"},
+					{name: "ReviewNote", type: "string", json:                             "reviewNote,omitempty"},
+	]}
 
-			ProjectGovernance: { name: "ProjectGovernance", key: "string", value: _projectDefs.ProjectGovernanceStep, valuePtr: true }
-		}
+	ProjectGovernance: {name: "ProjectGovernance", key: "string", value: _projectDefs.ProjectGovernanceStep, valuePtr: true}
+
+	ProjectPermittedConnection: {name: "ProjectPermittedConnection", fields: [
+						{name: "ID", type:                  "string", json: "id"},
+						{name: "Name", type:                "string", json: "name"},
+						{name: "Connector", type:           "string", json: "connector,omitempty"},
+						{name: "Type", type:                "string", json: "type,omitempty"},
+						{name: "Description", type:         "string", json: "description,omitempty"},
+						{name: "ActionIfUnavailable", type: "string", json: "actionIfUnavailable,omitempty"},
+						{name: "Replacement", type:         "string", json: "replacement,omitempty"},
+						{name: "IsAiSystem", type:          "string", json: "isAiSystem,omitempty"},
+	]}
+}
 
 project: {
 	features: {
@@ -87,7 +98,7 @@ project: {
 	}
 
 	types: {
-		gen: true
+		gen:  true
 		defs: _projectDefs
 	}
 
@@ -176,7 +187,7 @@ project: {
 				args: [{name: "filter", goType: "types.ProjectMemberFilter"}]
 				results: [
 					{name: "set", goType: "types.ProjectMemberSet"},
-					{name: "f", goType: "types.ProjectMemberFilter"},
+					{name: "f", goType:   "types.ProjectMemberFilter"},
 					{name: "err", goType: "error"},
 				]
 			},
@@ -203,7 +214,7 @@ project: {
 				cap:  "write"
 				args: [
 					{name: "projectID", goType: "uint64"},
-					{name: "userID", goType: "uint64"},
+					{name: "userID", goType:    "uint64"},
 				]
 				results: [
 					{name: "err", goType: "error"},

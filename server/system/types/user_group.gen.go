@@ -40,6 +40,11 @@ type (
 		Description string `json:"description"`
 		Short       string `json:"short"`
 	}
+
+	UserGroupPath struct {
+		SelfID uint64 `json:"selfID,string"`
+		Name   string `json:"name"`
+	}
 )
 
 func (r UserGroup) Clone() *UserGroup {
@@ -145,7 +150,9 @@ func (r UserGroupConfig) Clone() *UserGroupConfig {
 	dup := r
 	if r.Paths != nil {
 		dup.Paths = make([]UserGroupPath, len(r.Paths))
-		copy(dup.Paths, r.Paths)
+		for i := range r.Paths {
+			dup.Paths[i] = *r.Paths[i].Clone()
+		}
 	}
 
 	return &dup
@@ -189,6 +196,30 @@ func (r UserGroupMeta) Diff(cmp *UserGroupMeta) []*revisions.Change {
 
 func (r *UserGroupMeta) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r UserGroupMeta) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r UserGroupPath) Clone() *UserGroupPath {
+	dup := r
+	return &dup
+}
+
+func (r UserGroupPath) Diff(cmp *UserGroupPath) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &UserGroupPath{}
+	}
+	if r.SelfID != cmp.SelfID {
+		out = append(out, &revisions.Change{Key: "selfID", Old: []any{cmp.SelfID}, New: []any{r.SelfID}})
+	}
+
+	if r.Name != cmp.Name {
+		out = append(out, &revisions.Change{Key: "name", Old: []any{cmp.Name}, New: []any{r.Name}})
+	}
+
+	return out
+}
+
+func (r *UserGroupPath) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r UserGroupPath) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func ParseUserGroupMeta(ss []string) (p *UserGroupMeta, err error) {
 	p = &UserGroupMeta{}

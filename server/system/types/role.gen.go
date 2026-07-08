@@ -40,6 +40,17 @@ type (
 		Resource []string `json:"resourceTypes,omitempty"`
 		Expr     string   `json:"expr,omitempty"`
 	}
+
+	RoleMetrics struct {
+		Total         uint   `json:"total"`
+		Valid         uint   `json:"valid"`
+		Deleted       uint   `json:"deleted"`
+		Archived      uint   `json:"archived"`
+		DailyCreated  []uint `json:"dailyCreated"`
+		DailyDeleted  []uint `json:"dailyDeleted"`
+		DailyUpdated  []uint `json:"dailyUpdated"`
+		DailyArchived []uint `json:"dailyArchived"`
+	}
 )
 
 func (r Role) Clone() *Role {
@@ -189,6 +200,74 @@ func (r RoleContext) Diff(cmp *RoleContext) []*revisions.Change {
 
 func (r *RoleContext) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r RoleContext) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r RoleMetrics) Clone() *RoleMetrics {
+	dup := r
+	if r.DailyCreated != nil {
+		dup.DailyCreated = make([]uint, len(r.DailyCreated))
+		copy(dup.DailyCreated, r.DailyCreated)
+	}
+
+	if r.DailyDeleted != nil {
+		dup.DailyDeleted = make([]uint, len(r.DailyDeleted))
+		copy(dup.DailyDeleted, r.DailyDeleted)
+	}
+
+	if r.DailyUpdated != nil {
+		dup.DailyUpdated = make([]uint, len(r.DailyUpdated))
+		copy(dup.DailyUpdated, r.DailyUpdated)
+	}
+
+	if r.DailyArchived != nil {
+		dup.DailyArchived = make([]uint, len(r.DailyArchived))
+		copy(dup.DailyArchived, r.DailyArchived)
+	}
+
+	return &dup
+}
+
+func (r RoleMetrics) Diff(cmp *RoleMetrics) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &RoleMetrics{}
+	}
+	if r.Total != cmp.Total {
+		out = append(out, &revisions.Change{Key: "total", Old: []any{cmp.Total}, New: []any{r.Total}})
+	}
+
+	if r.Valid != cmp.Valid {
+		out = append(out, &revisions.Change{Key: "valid", Old: []any{cmp.Valid}, New: []any{r.Valid}})
+	}
+
+	if r.Deleted != cmp.Deleted {
+		out = append(out, &revisions.Change{Key: "deleted", Old: []any{cmp.Deleted}, New: []any{r.Deleted}})
+	}
+
+	if r.Archived != cmp.Archived {
+		out = append(out, &revisions.Change{Key: "archived", Old: []any{cmp.Archived}, New: []any{r.Archived}})
+	}
+
+	if !reflect.DeepEqual(r.DailyCreated, cmp.DailyCreated) {
+		out = append(out, &revisions.Change{Key: "dailyCreated", Old: []any{cmp.DailyCreated}, New: []any{r.DailyCreated}})
+	}
+
+	if !reflect.DeepEqual(r.DailyDeleted, cmp.DailyDeleted) {
+		out = append(out, &revisions.Change{Key: "dailyDeleted", Old: []any{cmp.DailyDeleted}, New: []any{r.DailyDeleted}})
+	}
+
+	if !reflect.DeepEqual(r.DailyUpdated, cmp.DailyUpdated) {
+		out = append(out, &revisions.Change{Key: "dailyUpdated", Old: []any{cmp.DailyUpdated}, New: []any{r.DailyUpdated}})
+	}
+
+	if !reflect.DeepEqual(r.DailyArchived, cmp.DailyArchived) {
+		out = append(out, &revisions.Change{Key: "dailyArchived", Old: []any{cmp.DailyArchived}, New: []any{r.DailyArchived}})
+	}
+
+	return out
+}
+
+func (r *RoleMetrics) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r RoleMetrics) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func ParseRoleMeta(ss []string) (p *RoleMeta, err error) {
 	p = &RoleMeta{}

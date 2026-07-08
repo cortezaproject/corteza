@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 
-	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
@@ -42,34 +41,6 @@ type (
 		Label    string   `json:"label,omitempty"`
 		Types    []string `json:"types,omitempty"`
 		Required bool     `json:"required,omitempty"`
-	}
-
-	WorkflowExecParams struct {
-		// When executed as a sub-workflow
-		CallerWorkflowID uint64
-
-		// When executed as a sub-workflow
-		CallerSessionID uint64
-
-		// When executed as a sub-workflow
-		CallerStepID uint64
-
-		// Start with this specific step
-		StepID uint64
-
-		EventType    string
-		ResourceType string
-
-		// Enable execution tracing
-		Trace bool
-
-		// Do not wait for workflow to be finished
-		Async bool
-
-		// Wait for workflow to be executed even if it's deferred
-		Wait bool
-
-		Input *expr.Vars
 	}
 )
 

@@ -71,6 +71,17 @@ type (
 		ReviewNote string                  `json:"reviewNote,omitempty"`
 	}
 
+	ProjectPermittedConnection struct {
+		ID                  string `json:"id"`
+		Name                string `json:"name"`
+		Connector           string `json:"connector,omitempty"`
+		Type                string `json:"type,omitempty"`
+		Description         string `json:"description,omitempty"`
+		ActionIfUnavailable string `json:"actionIfUnavailable,omitempty"`
+		Replacement         string `json:"replacement,omitempty"`
+		IsAiSystem          string `json:"isAiSystem,omitempty"`
+	}
+
 	ProjectStatus string
 
 	ProjectVisibility string
@@ -383,6 +394,54 @@ func (r ProjectGovernanceStep) Diff(cmp *ProjectGovernanceStep) []*revisions.Cha
 
 func (r *ProjectGovernanceStep) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ProjectGovernanceStep) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ProjectPermittedConnection) Clone() *ProjectPermittedConnection {
+	dup := r
+	return &dup
+}
+
+func (r ProjectPermittedConnection) Diff(cmp *ProjectPermittedConnection) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ProjectPermittedConnection{}
+	}
+	if r.ID != cmp.ID {
+		out = append(out, &revisions.Change{Key: "id", Old: []any{cmp.ID}, New: []any{r.ID}})
+	}
+
+	if r.Name != cmp.Name {
+		out = append(out, &revisions.Change{Key: "name", Old: []any{cmp.Name}, New: []any{r.Name}})
+	}
+
+	if r.Connector != cmp.Connector {
+		out = append(out, &revisions.Change{Key: "connector", Old: []any{cmp.Connector}, New: []any{r.Connector}})
+	}
+
+	if r.Type != cmp.Type {
+		out = append(out, &revisions.Change{Key: "type", Old: []any{cmp.Type}, New: []any{r.Type}})
+	}
+
+	if r.Description != cmp.Description {
+		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	if r.ActionIfUnavailable != cmp.ActionIfUnavailable {
+		out = append(out, &revisions.Change{Key: "actionIfUnavailable", Old: []any{cmp.ActionIfUnavailable}, New: []any{r.ActionIfUnavailable}})
+	}
+
+	if r.Replacement != cmp.Replacement {
+		out = append(out, &revisions.Change{Key: "replacement", Old: []any{cmp.Replacement}, New: []any{r.Replacement}})
+	}
+
+	if r.IsAiSystem != cmp.IsAiSystem {
+		out = append(out, &revisions.Change{Key: "isAiSystem", Old: []any{cmp.IsAiSystem}, New: []any{r.IsAiSystem}})
+	}
+
+	return out
+}
+
+func (r *ProjectPermittedConnection) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ProjectPermittedConnection) Value() (driver.Value, error) { return json.Marshal(r) }
 
 const (
 	ProjectStatusDraft     ProjectStatus = "draft"

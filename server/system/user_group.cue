@@ -5,14 +5,18 @@ import (
 )
 
 _user_groupDefs: {
-			UserGroupConfig: { name: "UserGroupConfig", fields: [
-				{ name: "Paths", goType: "[]UserGroupPath", json: "path" },
-			]}
-			UserGroupMeta: { name: "UserGroupMeta", fields: [
-				{ name: "Description", type: "string", json: "description" },
-				{ name: "Short", type: "string", json: "short" },
-			]}
-		}
+	UserGroupConfig: {name: "UserGroupConfig", fields: [
+				{name: "Paths", goType: "[]UserGroupPath", json: "path"},
+	]}
+	UserGroupMeta: {name: "UserGroupMeta", fields: [
+				{name: "Description", type: "string", json: "description"},
+				{name: "Short", type:       "string", json: "short"},
+	]}
+	UserGroupPath: {name: "UserGroupPath", fields: [
+				{name: "SelfID", type: "uint64", json: "selfID,string"},
+				{name: "Name", type:   "string", json: "name"},
+	]}
+}
 
 user_group: {
 	features: {
@@ -32,61 +36,61 @@ user_group: {
 
 	model: {
 		attributes: {
-			id: schema.IdField
+			id:         schema.IdField
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
-			handle: schema.HandleField
+			handle:     schema.HandleField
 			meta: {
 				type: _user_groupDefs.UserGroupMeta
-				ptr: true
-				dal: { type: "JSON", defaultEmptyObject: true }
+				ptr:  true
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 			// Virtual sortable mapped onto meta->>'short'.
 			name: {
-				sortableJSON: { json: "meta.short", accessor: "Meta.Short" }
-				store: false
-				goType: "string"
+				sortableJSON: {json: "meta.short", accessor: "Meta.Short"}
+				store:      false
+				goType:     "string"
 				omitSetter: true
 				omitGetter: true
-				envoy: { yaml: { omitEncoder: true } }
+				envoy: {yaml: {omitEncoder: true}}
 			}
 
 			config: {
 				type: _user_groupDefs.UserGroupConfig
-				ptr: true
-				dal: { type: "JSON", defaultEmptyObject: true }
+				ptr:  true
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 
 			// Struct-only computed flag; not persisted, not a getter/setter target.
 			is_root: {
-				goType: "bool"
-				store: false
+				goType:     "bool"
+				store:      false
 				omitGetter: true
 				omitSetter: true
-				json: "isRoot"
+				json:       "isRoot"
 			}
 
 			archived_at: schema.SortableTimestampNilField
-			created_at: schema.SortableTimestampNowField
-			updated_at: schema.SortableTimestampNilField
-			deleted_at: schema.SortableTimestampNilField
+			created_at:  schema.SortableTimestampNowField
+			updated_at:  schema.SortableTimestampNilField
+			deleted_at:  schema.SortableTimestampNilField
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 		}
 	}
 
 	filter: {
 		struct: {
-			user_group_id: {goType: "[]uint64", ident: "userGroupID", storeIdent: "id" }
-			tenant_id: schema.TenantFilterField
+			user_group_id: {goType: "[]uint64", ident: "userGroupID", storeIdent: "id"}
+			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
-			member_id: {goType: "uint64" }
+			member_id: {goType: "uint64"}
 			handle: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
@@ -115,19 +119,19 @@ user_group: {
 		customFunctions: [
 			{
 				name: "Activate"
-				cap: "write"
+				cap:  "write"
 				results: [{name: "err", goType: "error"}]
 			},
 			{
-				name: "MemberList"
-				cap: "read"
+				name:   "MemberList"
+				cap:    "read"
 				action: "Members"
 				args: [{name: "userGroupID", goType: "uint64"}]
 				results: [{name: "mm", goType: "types.UserSet"}, {name: "err", goType: "error"}]
 			},
 			{
-				name: "MemberAdd"
-				cap: "write"
+				name:   "MemberAdd"
+				cap:    "write"
 				action: "MemberAdd"
 				args: [{name: "userGroupID", goType: "uint64"}, {name: "memberID", goType: "uint64"}]
 				results: [{name: "err", goType: "error"}]
@@ -170,7 +174,7 @@ user_group: {
 
 						It returns only valid user group (not deleted, not suspended)
 						"""
-				}
+				},
 			]
 		}
 	}

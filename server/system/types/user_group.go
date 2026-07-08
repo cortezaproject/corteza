@@ -6,11 +6,6 @@ import (
 )
 
 type (
-	UserGroupPath struct {
-		SelfID uint64 `json:"selfID,string"`
-		Name   string `json:"name"`
-	}
-
 	UserGroupFilter struct {
 		UserGroupID []string `json:"userGroupID"`
 		MemberID    uint64   `json:"memberID,string"`

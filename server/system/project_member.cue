@@ -4,15 +4,22 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
-_project_memberDefs: {}
+_project_memberDefs: {
+	ProjectCapabilities: {name: "ProjectCapabilities", fields: [
+					{name: "CanRead", type:            "bool", json: "canRead"},
+					{name: "CanWrite", type:           "bool", json: "canWrite"},
+					{name: "CanRequestApproval", type: "bool", json: "canRequestApproval"},
+					{name: "CanGrantApproval", type:   "bool", json: "canGrantApproval"},
+	]}
+}
 
 project_member: {
 	features: {
-		labels:        false
+		labels: false
 	}
 
 	types: {
-		gen: true
+		gen:  true
 		defs: _project_memberDefs
 	}
 

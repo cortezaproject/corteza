@@ -5,30 +5,57 @@ import (
 )
 
 _chatbotSessionDefs: {
-	ChatbotSessionState: { name: "ChatbotSessionState", elem: _chatbotSessionDefs.ChatbotSessionStepState }
-	ChatbotSessionStepState: { name: "ChatbotSessionStepState", fields: [
-		{ name: "ScenarioID", type: "string", json: "scenarioID" },
-		{ name: "Type", type: "string", json: "type" },
-		{ name: "Conversation", ptr: true, type: _chatbotSessionDefs.ChatbotConversationStepState, json: "conversation,omitempty" },
-		{ name: "Form", ptr: true, type: _chatbotSessionDefs.ChatbotFormStepState, json: "form,omitempty" },
-		{ name: "Consent", ptr: true, type: _chatbotSessionDefs.ChatbotConsentStepState, json: "consent,omitempty" },
+	ChatbotSessionState: {name: "ChatbotSessionState", elem: _chatbotSessionDefs.ChatbotSessionStepState}
+	ChatbotSessionStepState: {name: "ChatbotSessionStepState", fields: [
+					{name: "ScenarioID", type:  "string", json: "scenarioID"},
+					{name: "Type", type:        "string", json: "type"},
+					{name: "Conversation", ptr: true, type:     _chatbotSessionDefs.ChatbotConversationStepState, json: "conversation,omitempty"},
+					{name: "Form", ptr:         true, type:     _chatbotSessionDefs.ChatbotFormStepState, json:         "form,omitempty"},
+					{name: "Consent", ptr:      true, type:     _chatbotSessionDefs.ChatbotConsentStepState, json:      "consent,omitempty"},
 	]}
-	ChatbotConsentStepState: { name: "ChatbotConsentStepState", fields: [
-		{ name: "Accepted", type: "bool", json: "accepted" },
-		{ name: "At", type: "time.Time", json: "at" },
+	ChatbotConsentStepState: {name: "ChatbotConsentStepState", fields: [
+					{name: "Accepted", type: "bool", json:      "accepted"},
+					{name: "At", type:       "time.Time", json: "at"},
 	]}
-	ChatbotConversationStepState: { name: "ChatbotConversationStepState", fields: [
-		{ name: "ConversationID", type: "uint64", json: "conversationID,string,omitempty" },
-		{ name: "History", goType: "[]AiConversationMessage", json: "history,omitempty" },
-		{ name: "Handoff", ptr: true, type: _chatbotSessionDefs.ChatbotConversationHandoffState, json: "handoff,omitempty" },
+	ChatbotConversationStepState: {name: "ChatbotConversationStepState", fields: [
+						{name: "ConversationID", type: "uint64", json:                  "conversationID,string,omitempty"},
+						{name: "History", goType:      "[]AiConversationMessage", json: "history,omitempty"},
+						{name: "Handoff", ptr:         true, type:                      _chatbotSessionDefs.ChatbotConversationHandoffState, json: "handoff,omitempty"},
 	]}
-	ChatbotConversationHandoffState: { name: "ChatbotConversationHandoffState", fields: [
-		{ name: "OperatorID", type: "uint64", json: "operatorID,string,omitempty" },
-		{ name: "OperatorName", type: "string", json: "operatorName,omitempty" },
+	ChatbotConversationHandoffState: {name: "ChatbotConversationHandoffState", fields: [
+						{name: "OperatorID", type:   "uint64", json: "operatorID,string,omitempty"},
+						{name: "OperatorName", type: "string", json: "operatorName,omitempty"},
 	]}
-	ChatbotFormStepState: { name: "ChatbotFormStepState", fields: [
-		{ name: "Fields", goType: "map[string]string", json: "fields,omitempty" },
-		{ name: "Submitted", type: "bool", json: "submitted,omitempty" },
+	ChatbotFormStepState: {name: "ChatbotFormStepState", fields: [
+					{name: "Fields", goType:  "map[string]string", json: "fields,omitempty"},
+					{name: "Submitted", type: "bool", json:              "submitted,omitempty"},
+	]}
+	ChatbotSessionStep: {name: "ChatbotSessionStep", fields: [
+					{name: "ID", type:             "uint64", json:    "id,string"},
+					{name: "SessionID", type:      "uint64", json:    "sessionID,string"},
+					{name: "ScenarioIndex", type:  "int", json:       "scenarioIndex"},
+					{name: "ConversationID", type: "uint64", json:    "conversationID,string"},
+					{name: "Status", type:         "string", json:    "status"},
+					{name: "CreatedAt", type:      "time.Time", json: "createdAt,omitempty"},
+					{name: "CreatedBy", type:      "uint64", json:    "createdBy,string"},
+					{name: "UpdatedAt", type:      "time.Time", ptr:  true, json: "updatedAt,omitempty"},
+					{name: "UpdatedBy", type:      "uint64", json:    "updatedBy,string,omitempty"},
+					{name: "DeletedAt", type:      "time.Time", ptr:  true, json: "deletedAt,omitempty"},
+					{name: "DeletedBy", type:      "uint64", json:    "deletedBy,string,omitempty"},
+	]}
+	ChatbotSessionHandoff: {name: "ChatbotSessionHandoff", fields: [
+					{name: "ID", type:          "uint64", json:    "id,string"},
+					{name: "SessionID", type:   "uint64", json:    "sessionID,string"},
+					{name: "StepID", type:      "uint64", json:    "stepID,string"},
+					{name: "Status", type:      "string", json:    "status"},
+					{name: "InitiatedAt", type: "time.Time", json: "initiatedAt,omitempty"},
+					{name: "ClosedAt", type:    "time.Time", ptr:  true, json: "closedAt,omitempty"},
+					{name: "CreatedAt", type:   "time.Time", json: "createdAt,omitempty"},
+					{name: "CreatedBy", type:   "uint64", json:    "createdBy,string"},
+					{name: "UpdatedAt", type:   "time.Time", ptr:  true, json: "updatedAt,omitempty"},
+					{name: "UpdatedBy", type:   "uint64", json:    "updatedBy,string,omitempty"},
+					{name: "DeletedAt", type:   "time.Time", ptr:  true, json: "deletedAt,omitempty"},
+					{name: "DeletedBy", type:   "uint64", json:    "deletedBy,string,omitempty"},
 	]}
 }
 
@@ -46,46 +73,46 @@ chatbot_session: {
 	model: {
 		ident: "chatbot_sessions"
 		attributes: {
-			id: schema.IdField & { json: "id,string" }
+			id:         schema.IdField & {json: "id,string"}
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			chatbot_id: {
-				sortable: true,
-				goType: "uint64"
-				ident: "chatbotID"
+				sortable:   true
+				goType:     "uint64"
+				ident:      "chatbotID"
 				storeIdent: "rel_chatbot"
-				dal: { type: "Ref", refModelResType: "corteza::system:chatbot" }
+				dal: {type: "Ref", refModelResType: "corteza::system:chatbot"}
 				json: "chatbotID,string"
 			}
 			status: {
-				sortable: true,
-				goType: "string"
-				dal: { length: 32 }
+				sortable: true
+				goType:   "string"
+				dal: {length: 32}
 			}
 			current_step: {
-				goType: "int"
-				ident: "currentStep"
+				goType:     "int"
+				ident:      "currentStep"
 				storeIdent: "current_step"
-				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
+				dal: {type: "Number", meta: {"rdbms:type": "integer"}}
 			}
 			state: {
 				type: _chatbotSessionDefs.ChatbotSessionState
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
-				json: "state,omitempty"
+				json:       "state,omitempty"
 			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef & { json: "createdBy,string" }
+			created_by: schema.AttributeUserRef & {json: "createdBy,string"}
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 			"idx_chatbot": {
 				attribute: "chatbot_id"
 			}
@@ -98,7 +125,7 @@ chatbot_session: {
 	filter: {
 		struct: {
 			chatbot_session_id: {goType: "[]uint64", ident: "chatbotSessionID", storeIdent: "id"}
-			tenant_id: schema.TenantFilterField
+			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
 			chatbot_id: {goType: "uint64", ident: "chatbotID", storeIdent: "rel_chatbot"}
 			status: {goType: "[]string"}
@@ -153,29 +180,29 @@ chatbot_session_step: {
 		attributes: {
 			id: schema.IdField
 			session_id: {
-				sortable: true,
-				goType: "uint64"
-				ident: "sessionID"
+				sortable:   true
+				goType:     "uint64"
+				ident:      "sessionID"
 				storeIdent: "rel_session"
-				dal: { type: "Ref", refModelResType: "corteza::system:chatbot-session" }
+				dal: {type: "Ref", refModelResType: "corteza::system:chatbot-session"}
 			}
 			scenario_index: {
-				goType: "int"
-				ident: "scenarioIndex"
+				goType:     "int"
+				ident:      "scenarioIndex"
 				storeIdent: "scenario_index"
-				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
+				dal: {type: "Number", meta: {"rdbms:type": "integer"}}
 			}
 			conversation_id: {
-				sortable: true,
-				goType: "uint64"
-				ident: "conversationID"
+				sortable:   true
+				goType:     "uint64"
+				ident:      "conversationID"
 				storeIdent: "rel_conversation"
-				dal: { type: "Ref", refModelResType: "corteza::system:ai-conversation" }
+				dal: {type: "Ref", refModelResType: "corteza::system:ai-conversation"}
 			}
 			status: {
-				sortable: true,
-				goType: "string"
-				dal: { length: 32 }
+				sortable: true
+				goType:   "string"
+				dal: {length: 32}
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -187,7 +214,7 @@ chatbot_session_step: {
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 			"idx_session": {
 				attribute: "session_id"
 			}
@@ -259,37 +286,37 @@ chatbot_session_handoff: {
 		attributes: {
 			id: schema.IdField
 			session_id: {
-				sortable: true,
-				goType: "uint64"
-				ident: "sessionID"
+				sortable:   true
+				goType:     "uint64"
+				ident:      "sessionID"
 				storeIdent: "rel_session"
-				dal: { type: "Ref", refModelResType: "corteza::system:chatbot-session" }
+				dal: {type: "Ref", refModelResType: "corteza::system:chatbot-session"}
 			}
 			step_id: {
-				sortable: true,
-				goType: "uint64"
-				ident: "stepID"
+				sortable:   true
+				goType:     "uint64"
+				ident:      "stepID"
 				storeIdent: "rel_step"
-				dal: { type: "Ref", refModelResType: "corteza::system:chatbot-session-step" }
+				dal: {type: "Ref", refModelResType: "corteza::system:chatbot-session-step"}
 			}
 			status: {
-				sortable: true,
-				goType: "string"
-				dal: { length: 32 }
+				sortable: true
+				goType:   "string"
+				dal: {length: 32}
 			}
 			initiated_at: {
-				sortable: true,
-				goType: "time.Time"
-				ident: "initiatedAt"
+				sortable:   true
+				goType:     "time.Time"
+				ident:      "initiatedAt"
 				storeIdent: "initiated_at"
-				dal: { type: "Timestamp", nullable: false }
+				dal: {type: "Timestamp", nullable: false}
 			}
 			closed_at: {
-				sortable: true,
-				goType: "*time.Time"
-				ident: "closedAt"
+				sortable:   true
+				goType:     "*time.Time"
+				ident:      "closedAt"
 				storeIdent: "closed_at"
-				dal: { type: "Timestamp", nullable: true }
+				dal: {type: "Timestamp", nullable: true}
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -301,7 +328,7 @@ chatbot_session_handoff: {
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 			"idx_session": {
 				attribute: "session_id"
 			}

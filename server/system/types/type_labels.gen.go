@@ -5,37 +5,11 @@ package types
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
 //
-// Definitions file that controls how this file is generated:
-// system/types/types.yaml
+
 import (
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
-// SetLabel adds new label to label map
-func (m *Agent) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m Agent) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (Agent) LabelResourceKind() string {
-	return "agent"
-}
-
-// GetLabels adds new label to label map
-func (m Agent) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
 func (m *Application) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)
@@ -44,22 +18,18 @@ func (m *Application) SetLabel(key string, value labelTypes.LabelValue) {
 	m.Labels[key] = value
 }
 
-// GetLabels adds new label to label map
 func (m Application) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
-// GetLabels adds new label to label map
 func (Application) LabelResourceKind() string {
 	return "application"
 }
 
-// GetLabels adds new label to label map
 func (m Application) LabelResourceID() uint64 {
 	return m.ID
 }
 
-// SetLabel adds new label to label map
 func (m *AuthClient) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)
@@ -68,118 +38,18 @@ func (m *AuthClient) SetLabel(key string, value labelTypes.LabelValue) {
 	m.Labels[key] = value
 }
 
-// GetLabels adds new label to label map
 func (m AuthClient) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
-// GetLabels adds new label to label map
 func (AuthClient) LabelResourceKind() string {
 	return "authClient"
 }
 
-// GetLabels adds new label to label map
 func (m AuthClient) LabelResourceID() uint64 {
 	return m.ID
 }
 
-// SetLabel adds new label to label map
-func (m *Chatbot) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m Chatbot) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (Chatbot) LabelResourceKind() string {
-	return "chatbot"
-}
-
-// GetLabels adds new label to label map
-func (m Chatbot) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
-func (m *ConfiguredConnection) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m ConfiguredConnection) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (ConfiguredConnection) LabelResourceKind() string {
-	return "configuredConnection"
-}
-
-// GetLabels adds new label to label map
-func (m ConfiguredConnection) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
-func (m *Connection) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m Connection) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (Connection) LabelResourceKind() string {
-	return "connection"
-}
-
-// GetLabels adds new label to label map
-func (m Connection) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
-func (m *Project) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m Project) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (Project) LabelResourceKind() string {
-	return "project"
-}
-
-// GetLabels adds new label to label map
-func (m Project) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
 func (m *Report) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)
@@ -188,22 +58,18 @@ func (m *Report) SetLabel(key string, value labelTypes.LabelValue) {
 	m.Labels[key] = value
 }
 
-// GetLabels adds new label to label map
 func (m Report) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
-// GetLabels adds new label to label map
 func (Report) LabelResourceKind() string {
 	return "report"
 }
 
-// GetLabels adds new label to label map
 func (m Report) LabelResourceID() uint64 {
 	return m.ID
 }
 
-// SetLabel adds new label to label map
 func (m *Role) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)
@@ -212,94 +78,18 @@ func (m *Role) SetLabel(key string, value labelTypes.LabelValue) {
 	m.Labels[key] = value
 }
 
-// GetLabels adds new label to label map
 func (m Role) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
-// GetLabels adds new label to label map
 func (Role) LabelResourceKind() string {
 	return "role"
 }
 
-// GetLabels adds new label to label map
 func (m Role) LabelResourceID() uint64 {
 	return m.ID
 }
 
-// SetLabel adds new label to label map
-func (m *Template) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m Template) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (Template) LabelResourceKind() string {
-	return "template"
-}
-
-// GetLabels adds new label to label map
-func (m Template) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
-func (m *Tenant) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m Tenant) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (Tenant) LabelResourceKind() string {
-	return "tenant"
-}
-
-// GetLabels adds new label to label map
-func (m Tenant) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
-func (m *User) SetLabel(key string, value labelTypes.LabelValue) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]labelTypes.LabelValue)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m User) GetLabels() map[string]labelTypes.LabelValue {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (User) LabelResourceKind() string {
-	return "user"
-}
-
-// GetLabels adds new label to label map
-func (m User) LabelResourceID() uint64 {
-	return m.ID
-}
-
-// SetLabel adds new label to label map
 func (m *UserGroup) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)
@@ -308,17 +98,174 @@ func (m *UserGroup) SetLabel(key string, value labelTypes.LabelValue) {
 	m.Labels[key] = value
 }
 
-// GetLabels adds new label to label map
 func (m UserGroup) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
-// GetLabels adds new label to label map
 func (UserGroup) LabelResourceKind() string {
 	return "userGroup"
 }
 
-// GetLabels adds new label to label map
 func (m UserGroup) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *Template) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m Template) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (Template) LabelResourceKind() string {
+	return "template"
+}
+
+func (m Template) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *User) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m User) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (User) LabelResourceKind() string {
+	return "user"
+}
+
+func (m User) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *Connection) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m Connection) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (Connection) LabelResourceKind() string {
+	return "connection"
+}
+
+func (m Connection) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *ConfiguredConnection) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m ConfiguredConnection) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (ConfiguredConnection) LabelResourceKind() string {
+	return "configuredConnection"
+}
+
+func (m ConfiguredConnection) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *Agent) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m Agent) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (Agent) LabelResourceKind() string {
+	return "agent"
+}
+
+func (m Agent) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *Chatbot) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m Chatbot) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (Chatbot) LabelResourceKind() string {
+	return "chatbot"
+}
+
+func (m Chatbot) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *Tenant) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m Tenant) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (Tenant) LabelResourceKind() string {
+	return "tenant"
+}
+
+func (m Tenant) LabelResourceID() uint64 {
+	return m.ID
+}
+
+func (m *Project) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+func (m Project) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+func (Project) LabelResourceKind() string {
+	return "project"
+}
+
+func (m Project) LabelResourceID() uint64 {
 	return m.ID
 }
