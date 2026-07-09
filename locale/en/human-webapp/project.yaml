@@ -38,12 +38,90 @@ list:
     unarchived: Project unarchived
     deleted: Project deleted
     actionFailed: Action failed
+viewProject: View project
 overview:
   fallbackName: Project
   title: '{name} — overview'
   blurb: Read-only overview / versions for published projects (later screen).
   backToProjects: Back to projects
   openWizard: Open wizard
+dashboard:
+  backToProjects: Projects
+  version: 'v{number}'
+  nav:
+    monitor: Monitor
+    categories: Categories
+    insights: Insights
+  views:
+    dashboard: Dashboard
+    events: All Events
+    newEvent: New Event
+    reports: Reports
+    backlog: Backlog
+  categories:
+    incident: Incidents
+    feature: Features
+    privacy: Privacy
+    task: Tasks
+    review: Reviews
+    incidents: Incidents
+    features: Features
+    tasks: Tasks
+    reviews: Reviews
+  stub:
+    comingSoon: This view is coming soon.
+    filtered: 'Filtered by: {category}'
+  event:
+    title: New Event
+    step1: Select the type of event you want to create.
+    step2: 'New {category}'
+    back: Back
+    create: Create event
+    toast:
+      created: Event created
+    categories:
+      incident:
+        label: Incident / Issue
+        desc: Log a security incident or operational issue that needs investigation and corrective action.
+      feature:
+        label: New Feature / Update
+        desc: Record a new capability or change being introduced to the system.
+      privacy:
+        label: Privacy Request
+        desc: Handle a GDPR or data-subject request — access, rectification or deletion.
+      task:
+        label: Task / Review
+        desc: Track an operational task, action item or audit that needs to be completed.
+      review:
+        label: Periodic Review
+        desc: Schedule a periodic compliance, risk or access-control review.
+    f:
+      incidentType: Incident Type
+      groupSystem: Group / System
+      description: Description
+      riskIssue: Risk Assessment of Issue
+      changeRequired: Change Required / Corrective Action
+      riskChange: Risk Assessment of Change
+      issueOwner: Issue Owner
+      changeOwner: Change Owner
+      status: Status
+      changeApprovedBy: Change Approved By
+      dateDue: Date Due
+      completedDate: Completed Date
+      featureType: Feature Type
+      riskFeature: Risk Assessment of Feature
+      featureOwner: Feature Owner
+      requestType: Request Type
+      riskAssessment: Risk Assessment
+      requestOwner: Request Owner
+      taskName: Task Name
+      taskType: Task Type
+      owner: Owner
+      reviewType: Review Type
+      reviewFrequency: Review Frequency
+      scope: Scope & Objectives
+      reviewer: Reviewer
+      approvedBy: Approved By
 sidebar:
   allProjects: All Projects
   projects: Projects
@@ -135,7 +213,7 @@ wizard:
     chatbots: Add the conversational chatbots for this project; name each one here, then design its scenarios, styling and channels in the chatbot builder.
     pages: Design the pages people see — record detail pages and standalone pages — then lay out their blocks in the page builder.
     roles: Define the access roles for this project and the people in each; you grant every role its resource permissions in the next step.
-    permissions: Grant each role access to the project's resources — pick a capability, then toggle it per role, using the gear for finer-grained permissions.
+    permissions: Grant each role access to the project's resources — pick a capability, then toggle it per role.
     users: Add people to the project and assign them roles; a user's effective access is the sum of the roles they hold.
     publish: Review the project, then publish it to mark it as the live, active version and open its dashboard.
   hint:

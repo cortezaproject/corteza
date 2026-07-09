@@ -3,6 +3,18 @@
     <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
   </Teleport>
 
+  <!-- Right-aligned topbar tool: open the project's compose namespace. -->
+  <Teleport to="#topbar-tools" defer>
+    <Button
+      v-if="project?.namespaceID"
+      :label="$t('project.viewProject')"
+      icon="pi pi-external-link"
+      severity="secondary"
+      size="small"
+      @click="openProject"
+    />
+  </Teleport>
+
   <div v-if="project" class="h-full flex flex-col min-h-0">
     <div class="flex-1 flex gap-4 p-4 min-h-0">
       <!-- Left: step nav -->
@@ -763,6 +775,13 @@ function goStep(key) {
 // Leave the wizard and return to the project list.
 function onBack() {
   router.push({ name: 'project.list' })
+}
+
+// Open the project's compose namespace (resolved by namespaceID).
+function openProject() {
+  if (project.value?.namespaceID) {
+    router.push({ name: 'namespace.view', params: { slug: project.value.namespaceID } })
+  }
 }
 
 // --- Publish ---------------------------------------------------------------

@@ -25,10 +25,43 @@ export default {
       meta: { section: 'project' },
     },
     {
+      // Published-project dashboard. A layout (in-view left rail + topbar crumb)
+      // with one child per view; each is an empty scaffold stub for now.
       path: '/project/projects/:projectId',
-      name: 'project.overview',
-      component: () => import('./views/ProjectOverview.vue'),
+      component: () => import('./views/dashboard/DashboardLayout.vue'),
       meta: { section: 'project' },
+      children: [
+        {
+          path: '',
+          name: 'project.overview',
+          component: () => import('./views/dashboard/DashboardStub.vue'),
+          meta: { section: 'project', titleKey: 'project.dashboard.views.dashboard', icon: 'pi-gauge' },
+        },
+        {
+          path: 'events',
+          name: 'project.overview.events',
+          component: () => import('./views/dashboard/DashboardStub.vue'),
+          meta: { section: 'project', titleKey: 'project.dashboard.views.events', icon: 'pi-list' },
+        },
+        {
+          path: 'new-event',
+          name: 'project.overview.newEvent',
+          component: () => import('./views/dashboard/NewEventView.vue'),
+          meta: { section: 'project', titleKey: 'project.dashboard.views.newEvent', icon: 'pi-plus-circle' },
+        },
+        {
+          path: 'reports',
+          name: 'project.overview.reports',
+          component: () => import('./views/dashboard/DashboardStub.vue'),
+          meta: { section: 'project', titleKey: 'project.dashboard.views.reports', icon: 'pi-chart-bar' },
+        },
+        {
+          path: 'backlog',
+          name: 'project.overview.backlog',
+          component: () => import('./views/dashboard/DashboardStub.vue'),
+          meta: { section: 'project', titleKey: 'project.dashboard.views.backlog', icon: 'pi-th-large' },
+        },
+      ],
     },
   ],
   sidebar: ProjectSidebar,
