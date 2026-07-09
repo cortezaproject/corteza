@@ -121,13 +121,6 @@ func (r Project) Clone() *Project {
 	return &dup
 }
 
-func (r Project) RootProjectID() uint64 {
-	if r.ProjectID != 0 {
-		return r.ProjectID
-	}
-	return r.ID
-}
-
 func (r Project) Diff(cmp *Project) []*revisions.Change {
 	out := make([]*revisions.Change, 0)
 	if cmp == nil {
@@ -143,18 +136,6 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 
 	if r.Handle != cmp.Handle {
 		out = append(out, &revisions.Change{Key: "handle", Old: []any{cmp.Handle}, New: []any{r.Handle}})
-	}
-
-	if r.ProjectID != cmp.ProjectID {
-		out = append(out, &revisions.Change{Key: "rootProjectID", Old: []any{cmp.ProjectID}, New: []any{r.ProjectID}})
-	}
-
-	if r.ParentRevisionID != cmp.ParentRevisionID {
-		out = append(out, &revisions.Change{Key: "parentRevisionID", Old: []any{cmp.ParentRevisionID}, New: []any{r.ParentRevisionID}})
-	}
-
-	if r.Revision != cmp.Revision {
-		out = append(out, &revisions.Change{Key: "revision", Old: []any{cmp.Revision}, New: []any{r.Revision}})
 	}
 
 	if !reflect.DeepEqual(r.Status, cmp.Status) {
@@ -173,6 +154,18 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.Governance, cmp.Governance) {
 		out = append(out, &revisions.Change{Key: "governance", Old: []any{cmp.Governance}, New: []any{r.Governance}})
+	}
+
+	if r.ProjectID != cmp.ProjectID {
+		out = append(out, &revisions.Change{Key: "rootProjectID", Old: []any{cmp.ProjectID}, New: []any{r.ProjectID}})
+	}
+
+	if r.ParentRevisionID != cmp.ParentRevisionID {
+		out = append(out, &revisions.Change{Key: "parentRevisionID", Old: []any{cmp.ParentRevisionID}, New: []any{r.ParentRevisionID}})
+	}
+
+	if r.Revision != cmp.Revision {
+		out = append(out, &revisions.Change{Key: "revision", Old: []any{cmp.Revision}, New: []any{r.Revision}})
 	}
 
 	if !reflect.DeepEqual(r.CreatedAt, cmp.CreatedAt) {

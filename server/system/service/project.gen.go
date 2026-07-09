@@ -8,31 +8,11 @@ package service
 
 import (
 	"context"
-
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
-
-type project struct {
-	actionlog actionlog.Recorder
-	store     store.Storer
-	ac        projectAccessController
-	nsSvc     projectNamespaceSvc
-	dalSvc    projectDALImporter
-	dalConns  projectDALConnSvc
-	recordSvc projectRecordSvc
-}
-
-func Project() *project {
-	return &project{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
-}
 
 type projectServices struct {
 	scope scope.Scope

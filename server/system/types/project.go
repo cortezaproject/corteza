@@ -26,6 +26,15 @@ type (
 	}
 )
 
+// RootProjectID returns the ID of the root project in the revision chain:
+// ProjectID when set (revisions), otherwise the project's own ID (originals).
+func (r Project) RootProjectID() uint64 {
+	if r.ProjectID != 0 {
+		return r.ProjectID
+	}
+	return r.ID
+}
+
 func (m ProjectMode) Valid() bool {
 	return m == ProjectModeFree || m == ProjectModeGated
 }

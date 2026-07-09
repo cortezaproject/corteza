@@ -6,6 +6,7 @@ import (
 	"time"
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/errors"
@@ -35,9 +36,29 @@ type (
 	}
 )
 
-type (
-	// project struct + the Project() constructor are generated into project.gen.go.
+// project carries the standard service deps plus the revision-flow dependencies
+// (nsSvc/dalSvc/dalConns/recordSvc, wired post-boot via SetProjectRevisionDeps).
+// Because of those extra deps the struct + constructor are hand-written here
+// rather than generated (see project.cue: service.genConstructor=false).
+type project struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        projectAccessController
+	nsSvc     projectNamespaceSvc
+	dalSvc    projectDALImporter
+	dalConns  projectDALConnSvc
+	recordSvc projectRecordSvc
+}
 
+func Project() *project {
+	return &project{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
+
+type (
 	projectAccessController interface {
 		CanCreateProject(ctx context.Context) bool
 		CanSearchProjects(ctx context.Context) bool

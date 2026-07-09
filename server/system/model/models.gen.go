@@ -3795,7 +3795,6 @@ var Project = &dal.Model{
 			Ident: "Revision",
 			Type: &dal.TypeNumber{HasDefault: true,
 				DefaultValue: 0,
-				Precision:    0,
 			},
 			Store: &dal.CodecAlias{Ident: "revision"},
 		},

@@ -6,11 +6,12 @@ import (
 
 _projectDefs: {
 	ProjectStatus: {name: "ProjectStatus", values: [
-				{ident: "ProjectStatusDraft", value:     "draft"},
-				{ident: "ProjectStatusActive", value:    "active"},
-				{ident: "ProjectStatusPublished", value: "published"},
-				{ident: "ProjectStatusArchived", value:  "archived"},
-				{ident: "ProjectStatusSuspended", value: "suspended"},
+				{ident: "ProjectStatusDraft", value:      "draft"},
+				{ident: "ProjectStatusActive", value:     "active"},
+				{ident: "ProjectStatusPublished", value:  "published"},
+				{ident: "ProjectStatusArchived", value:   "archived"},
+				{ident: "ProjectStatusSuspended", value:  "suspended"},
+				{ident: "ProjectStatusDeprecated", value: "deprecated"},
 	]}
 
 	ProjectVisibility: {name: "ProjectVisibility", values: [
@@ -132,6 +133,39 @@ project: {
 				omitSetter: true
 				omitGetter: true
 			}
+			// Revision chain: root project ID, immediate parent revision, and the
+			// revision number. Column names are explicit (root_project_id) and differ
+			// from the exported idents; no getters/setters are generated.
+			root_project_id: {
+				ident:      "projectID"
+				expIdent:   "ProjectID"
+				goType:     "uint64"
+				storeIdent: "root_project_id"
+				json:       "rootProjectID,string,omitempty"
+				dal: {type: "ID", default: 0}
+				omitSetter: true
+				omitGetter: true
+			}
+			parent_revision_id: {
+				ident:      "parentRevisionID"
+				expIdent:   "ParentRevisionID"
+				goType:     "uint64"
+				storeIdent: "parent_revision_id"
+				json:       "parentRevisionID,string,omitempty"
+				dal: {type: "ID", default: 0}
+				omitSetter: true
+				omitGetter: true
+			}
+			revision: {
+				ident:      "revision"
+				expIdent:   "Revision"
+				goType:     "int"
+				storeIdent: "revision"
+				json:       "revision,omitempty"
+				dal: {type: "Number", default: 0, precision: 0, scale: 0}
+				omitSetter: true
+				omitGetter: true
+			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
@@ -154,6 +188,7 @@ project: {
 	filter: {
 		struct: {
 			project_id: {goType: "[]uint64", ident: "projectID", storeIdent: "id"}
+			root_project_id: {goType: "uint64", ident: "rootProjectID", storeIdent: "root_project_id"}
 			tenant_id: schema.TenantFilterField
 			handle: {goType: "string"}
 			status: {goType: "types.ProjectStatus"}
@@ -162,7 +197,7 @@ project: {
 		}
 
 		query: ["handle"]
-		byValue: ["project_id", "handle"]
+		byValue: ["project_id", "root_project_id", "handle"]
 		byNilState: ["deleted"]
 	}
 
@@ -222,12 +257,15 @@ project: {
 			},
 		]
 
-		genConstructor: true
+		// The project struct carries extra revision dependencies (nsSvc/dalSvc/
+		// dalConns/recordSvc), so the struct + constructor are hand-written in
+		// project.go rather than generated (genConstructor is only safe for
+		// dependency-free services).
+		genConstructor: false
 
-		// Only Search (+ the struct/ctor via genConstructor) is generated.
-		// FindByID/FindByHandle, Create, Update, DeleteByID (namespace-cascade),
-		// UndeleteByID and the member ops are bespoke and stay hand-written in
-		// project.go.
+		// Only Search is generated. FindByID/FindByHandle, Create, Update,
+		// DeleteByID (namespace-cascade), UndeleteByID and the member ops are
+		// bespoke and stay hand-written in project.go.
 		lookup:   false
 		create:   false
 		update:   false
