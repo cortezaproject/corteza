@@ -25,6 +25,7 @@ export const STEPS = [
   { key: 'roles', labelKey: 'project.steps.roles.label', type: 'resource', kind: 'role', gatedOnly: false, gate: false },
   { key: 'permissions', labelKey: 'project.steps.permissions.label', type: 'permissions', icon: 'pi-lock', gatedOnly: false, gate: false },
   { key: 'users', labelKey: 'project.steps.users.label', type: 'resource', kind: 'user', gatedOnly: false, gate: false },
+  { key: 'publish', labelKey: 'project.steps.publish.label', type: 'publish', icon: 'pi-cloud-upload', gatedOnly: false, gate: false },
 ]
 
 // Resolve the pipeline for a project context. Kept as a hook for future

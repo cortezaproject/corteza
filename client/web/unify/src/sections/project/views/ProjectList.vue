@@ -127,7 +127,8 @@ const fields = [
 ]
 
 const statusSeverity = status =>
-  ({ published: 'success', draft: 'info', archived: 'secondary' })[status] ?? null
+  ({ active: 'success', published: 'success', draft: 'info', archived: 'secondary' })[status] ??
+  null
 
 const totalGates = data => gateCount(data.mode)
 const showProgress = data => data.mode === 'gated' && data.status === 'draft' && totalGates(data) > 0
@@ -173,8 +174,11 @@ const onSort = ({ sortField, sortOrder }) => {
   sorting.sortDesc = sortOrder === -1
 }
 
+// A live project (active/published) opens its dashboard; anything still in the
+// build/draft lifecycle opens the wizard.
 const onRowClick = ({ data }) => {
-  const name = data.status === 'published' ? 'project.overview' : 'project.wizard'
+  const live = ['active', 'published'].includes(data.status)
+  const name = live ? 'project.overview' : 'project.wizard'
   router.push({ name, params: { projectId: data.id } })
 }
 

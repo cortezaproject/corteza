@@ -142,6 +142,12 @@ export const useProjectsStore = defineStore('projects', () => {
       mode: cfg.mode || 'free',
       status: raw.status || 'draft',
       namespaceID: cfg.namespaceID ? String(cfg.namespaceID) : null,
+
+      // Revision chain. Originals omit these (all 0); rootProjectID falls back
+      // to the project's own ID, mirroring the backend RootProjectID().
+      rootProjectID: raw.rootProjectID ? String(raw.rootProjectID) : String(raw.projectID),
+      parentRevisionID: raw.parentRevisionID ? String(raw.parentRevisionID) : null,
+      revision: raw.revision || 0,
       governance,
       gatesApproved: countGatesApproved(governance),
       createdBy: String(raw.createdBy || ''),
@@ -451,6 +457,22 @@ export const useProjectsStore = defineStore('projects', () => {
     await $SystemAPI.projectDelete({ projectID: id })
     const i = projects.value.findIndex(p => p.id === String(id))
     if (i !== -1) projects.value.splice(i, 1)
+  }
+
+  // Publish a draft project. For an original (no parent revision) this simply
+  // promotes it draft→active with no record migration; the returned project
+  // carries its new status, which we absorb into the cache. `mappings` stays
+  // empty until the revision/migration flow is wired.
+  async function publishProject(id) {
+    const p = findById.value(id)
+    if (!p) return
+    const raw = await $SystemAPI.projectPublish({
+      projectID: p.id,
+      confirm: true,
+      mappings: [],
+    })
+    touch()
+    return absorb(raw)
   }
 
   // --- members --------------------------------------------------------------
@@ -1605,6 +1627,7 @@ export const useProjectsStore = defineStore('projects', () => {
     create,
     updateProject,
     removeProject,
+    publishProject,
     addMember,
     updateMember,
     removeMember,

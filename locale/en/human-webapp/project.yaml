@@ -5,8 +5,11 @@ mode:
 # Project lifecycle status (display only — raw value is what persists).
 status:
   draft: Draft
+  active: Active
   published: Published
   archived: Archived
+  suspended: Suspended
+  deprecated: Deprecated
 list:
   title: Projects
   searchPlaceholder: Search projects…
@@ -134,6 +137,7 @@ wizard:
     roles: Define the access roles for this project and the people in each; you grant every role its resource permissions in the next step.
     permissions: Grant each role access to the project's resources — pick a capability, then toggle it per role, using the gear for finer-grained permissions.
     users: Add people to the project and assign them roles; a user's effective access is the sum of the roles they hold.
+    publish: Review the project, then publish it to mark it as the live, active version and open its dashboard.
   hint:
     grant:
       submitted: Review this step, then approve or request changes.
@@ -179,8 +183,20 @@ steps:
     label: Permissions
   users:
     label: Users
+  publish:
+    label: Publish
   data-sensitivity:
     label: Data Sensitivity
+publishStep:
+  title: Publish project
+  description: Publishing marks this project as its live, active version and takes you to its dashboard. Its resources are already available to the members you've added, so publishing doesn't change who can access them — once live, further changes to the project are made through revisions.
+  action: Publish project
+  publishedTitle: Project published
+  publishedDescription: This project is live — it's the active, official version and its resources are available to its members. Open its dashboard to manage it.
+  openDashboard: Open dashboard
+  toast:
+    success: Project published
+    failed: Could not publish the project
 summaryForm:
   sections:
     general: General

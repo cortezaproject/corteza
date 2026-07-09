@@ -130,6 +130,13 @@
                 :project="project"
                 :disabled="locked"
               />
+              <PublishStep
+                v-else-if="isPublish"
+                :project="project"
+                :publishing="publishing"
+                @publish="onPublish"
+                @open-dashboard="goDashboard"
+              />
             </template>
           </div>
 
@@ -383,6 +390,7 @@ import DataSensitivityStep from '@/sections/project/components/wizard/steps/Data
 import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
+import PublishStep from '@/sections/project/components/wizard/steps/PublishStep.vue'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { STEPS, kindsThroughStep, sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
@@ -465,6 +473,7 @@ const isPages = computed(() => activeKey.value === 'pages')
 const isRoles = computed(() => activeKey.value === 'roles')
 const isPermissions = computed(() => activeKey.value === 'permissions')
 const isUsers = computed(() => activeKey.value === 'users')
+const isPublish = computed(() => activeKey.value === 'publish')
 // Resource steps render full-height with the live resource graph beside them.
 const isResourceStep = computed(
   () =>
@@ -706,6 +715,7 @@ const STEP_BLURB = {
   roles: 'project.wizard.blurb.roles',
   permissions: 'project.wizard.blurb.permissions',
   users: 'project.wizard.blurb.users',
+  publish: 'project.wizard.blurb.publish',
 }
 const headerHint = computed(() => {
   const blurbKey = STEP_BLURB[activeKey.value]
@@ -753,6 +763,27 @@ function goStep(key) {
 // Leave the wizard and return to the project list.
 function onBack() {
   router.push({ name: 'project.list' })
+}
+
+// --- Publish ---------------------------------------------------------------
+// First publish promotes the draft to active (no record migration); on success
+// we land on the project's dashboard. Guarded against double-submit.
+const publishing = ref(false)
+function goDashboard() {
+  router.push({ name: 'project.overview', params: { projectId: project.value.id } })
+}
+async function onPublish() {
+  if (publishing.value || !project.value) return
+  publishing.value = true
+  try {
+    await store.publishProject(project.value.id)
+    $toast.toastSuccess(t('project.publishStep.toast.success'))
+    goDashboard()
+  } catch (err) {
+    $toast.toastErrorHandler(t('project.publishStep.toast.failed'))(err)
+  } finally {
+    publishing.value = false
+  }
 }
 
 // --- Prev / Next stepper ---------------------------------------------------

@@ -848,7 +848,6 @@ export default class Compose {
       namespaceID,
       pageID,
       selfID,
-      moduleID,
       title,
       handle,
       description,
@@ -879,7 +878,6 @@ export default class Compose {
     }
     cfg.data = {
       selfID,
-      moduleID,
       title,
       handle,
       description,

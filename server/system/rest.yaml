@@ -4377,6 +4377,41 @@ endpoints:
                 title: 'Transition action: submit, approve, request-changes, reopen or recall',
               }
             - { type: string, name: note, title: Review note (request-changes/reopen) }
+      - name: createRevision
+        method: POST
+        title: Create a draft revision of the project
+        path: '/{projectID}/revision'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: listRevisions
+        method: GET
+        title: List project revisions
+        path: '/{projectID}/revisions'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: getDeploymentPlan
+        method: GET
+        title: Compute deployment plan (diff, risk, suggested mapping) for a draft revision
+        path: '/{projectID}/publish'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: publish
+        method: POST
+        title: Publish a draft project
+        path: '/{projectID}/publish'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            - { type: bool, name: confirm, title: Confirm publish (required for dangerous changes) }
+            - {
+                type: '[]types.ModuleMapping',
+                name: mappings,
+                title: Per-module record migration mappings,
+              }
 
   - title: Project Groups
     path: '/projects/{projectID}/groups'

@@ -6018,6 +6018,57 @@ export default class System {
     return '/actionlog/'
   }
 
+  // Aggregated action log report
+  async actionlogReport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { dimensions, metrics, from, to, resource, action, actorID, origin, limit } =
+      (a as KV) || {}
+    if (!from) {
+      throw Error('field from is empty')
+    }
+    if (!to) {
+      throw Error('field to is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.actionlogReportEndpoint(),
+    }
+    cfg.params = {
+      dimensions,
+      metrics,
+      from,
+      to,
+      resource,
+      action,
+      actorID,
+      origin,
+      limit,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  actionlogReportCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.actionlogReport(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  actionlogReportEndpoint(): string {
+    return '/actionlog/report'
+  }
+
   // Messaging queues
   async queuesList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { query, limit, incTotal, pageCursor, sort, deleted } = (a as KV) || {}
@@ -10755,6 +10806,165 @@ export default class System {
     return `/projects/${projectID}/governance/${stepKey}/transition`
   }
 
+  // Create a draft revision of the project
+  async projectCreateRevision(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectCreateRevisionEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectCreateRevisionCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectCreateRevision(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectCreateRevisionEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/revision`
+  }
+
+  // List project revisions
+  async projectListRevisions(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectListRevisionsEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectListRevisionsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectListRevisions(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectListRevisionsEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/revisions`
+  }
+
+  // Compute deployment plan (diff, risk, suggested mapping) for a draft revision
+  async projectGetDeploymentPlan(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectGetDeploymentPlanEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGetDeploymentPlanCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGetDeploymentPlan(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGetDeploymentPlanEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/publish`
+  }
+
+  // Publish a draft project
+  async projectPublish(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, confirm, mappings } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectPublishEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      confirm,
+      mappings,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectPublishCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectPublish(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectPublishEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/publish`
+  }
+
   // List project groups
   async projectGroupList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { projectID, query, handle, projectGroupID, deleted, limit, incTotal, pageCursor, sort } =
@@ -11700,5 +11910,462 @@ export default class System {
   tenantActivateMemberEndpoint(a: KV): string {
     const { tenantID, userID } = a || {}
     return `/tenants/${tenantID}/members/${userID}/activate`
+  }
+
+  // List DML connections
+  async dmlConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, type, connectionID } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dmlConnectionListEndpoint(),
+    }
+    cfg.params = {
+      handle,
+      type,
+      connectionID,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlConnectionListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlConnectionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlConnectionListEndpoint(): string {
+    return '/dml/connections'
+  }
+
+  // Create DML connection
+  async dmlConnectionCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, label, params } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.dmlConnectionCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      label,
+      params,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlConnectionCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlConnectionCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlConnectionCreateEndpoint(): string {
+    return '/dml/connections'
+  }
+
+  // Read DML connection
+  async dmlConnectionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dmlConnectionReadEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlConnectionReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlConnectionRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlConnectionReadEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/dml/connections/${connectionID}`
+  }
+
+  // List external models for a DML connection
+  async dmlConnectionModels(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, ident } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dmlConnectionModelsEndpoint({
+        connectionID,
+      }),
+    }
+    cfg.params = {
+      ident,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlConnectionModelsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlConnectionModels(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlConnectionModelsEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/dml/connections/${connectionID}/models`
+  }
+
+  // Create DML mapping
+  async dmlMappingCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      connectionID,
+      namespaceHandle,
+      sourceIdent,
+      moduleHandle,
+      moduleName,
+      skip,
+      identifier,
+      columns,
+    } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!sourceIdent) {
+      throw Error('field sourceIdent is empty')
+    }
+    if (!moduleHandle) {
+      throw Error('field moduleHandle is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.dmlMappingCreateEndpoint({
+        connectionID,
+      }),
+    }
+    cfg.data = {
+      namespaceHandle,
+      sourceIdent,
+      moduleHandle,
+      moduleName,
+      skip,
+      identifier,
+      columns,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlMappingCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlMappingCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlMappingCreateEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/dml/connections/${connectionID}/mapping`
+  }
+
+  // Read DML mapping
+  async dmlMappingRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, mappingID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!mappingID) {
+      throw Error('field mappingID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dmlMappingReadEndpoint({
+        connectionID,
+        mappingID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlMappingReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlMappingRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlMappingReadEndpoint(a: KV): string {
+    const { connectionID, mappingID } = a || {}
+    return `/dml/connections/${connectionID}/mapping/${mappingID}`
+  }
+
+  // Update DML mapping
+  async dmlMappingUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      connectionID,
+      mappingID,
+      namespaceHandle,
+      sourceIdent,
+      moduleHandle,
+      moduleName,
+      skip,
+      identifier,
+      columns,
+    } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!mappingID) {
+      throw Error('field mappingID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.dmlMappingUpdateEndpoint({
+        connectionID,
+        mappingID,
+      }),
+    }
+    cfg.data = {
+      namespaceHandle,
+      sourceIdent,
+      moduleHandle,
+      moduleName,
+      skip,
+      identifier,
+      columns,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlMappingUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlMappingUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlMappingUpdateEndpoint(a: KV): string {
+    const { connectionID, mappingID } = a || {}
+    return `/dml/connections/${connectionID}/mapping/${mappingID}`
+  }
+
+  // Delete DML mapping
+  async dmlMappingDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, mappingID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!mappingID) {
+      throw Error('field mappingID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.dmlMappingDeleteEndpoint({
+        connectionID,
+        mappingID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlMappingDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlMappingDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlMappingDeleteEndpoint(a: KV): string {
+    const { connectionID, mappingID } = a || {}
+    return `/dml/connections/${connectionID}/mapping/${mappingID}`
+  }
+
+  // Start DML import run (applies schema then imports data)
+  async dmlImportRun(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, mappingID, method } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!mappingID) {
+      throw Error('field mappingID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.dmlImportRunEndpoint({
+        connectionID,
+        mappingID,
+      }),
+    }
+    cfg.data = {
+      method,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlImportRunCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlImportRun(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlImportRunEndpoint(a: KV): string {
+    const { connectionID, mappingID } = a || {}
+    return `/dml/connections/${connectionID}/mapping/${mappingID}/import`
+  }
+
+  // Read DML import run status
+  async dmlImportRunRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, mappingID, runID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!mappingID) {
+      throw Error('field mappingID is empty')
+    }
+    if (!runID) {
+      throw Error('field runID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dmlImportRunReadEndpoint({
+        connectionID,
+        mappingID,
+        runID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  dmlImportRunReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.dmlImportRunRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  dmlImportRunReadEndpoint(a: KV): string {
+    const { connectionID, mappingID, runID } = a || {}
+    return `/dml/connections/${connectionID}/mapping/${mappingID}/import/${runID}`
   }
 }

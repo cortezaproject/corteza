@@ -65,7 +65,7 @@ func (s *projectGraphService) fetch(ctx context.Context, projectID uint64) (cont
 		return ctx, nil, err
 	}
 
-	sources, err := s.loadSources(ctx, projectID, sens)
+	sources, err := s.loadSources(ctx, projectID, proj.Config.NamespaceID, sens)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -164,7 +164,7 @@ func (s *projectGraphService) transform(ctx context.Context, sources []*GraphSou
 	return assembleProjectGraph(ctx, sources, s.loadExternal)
 }
 
-func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64, sens map[uint64]string) ([]*GraphSource, error) {
+func (s *projectGraphService) loadSources(ctx context.Context, projectID, namespaceID uint64, sens map[uint64]string) ([]*GraphSource, error) {
 	var out []*GraphSource
 
 	// Configured connections are loaded as first-class nodes so a project's
@@ -186,7 +186,12 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		})
 	}
 
-	mm, _, err := store.SearchComposeModules(ctx, s.store, composeTypes.ModuleFilter{})
+	// Compose resources (modules/pages/charts) are scoped by NAMESPACE, not by
+	// rel_project — their generated filter builders honour NamespaceID but ignore
+	// ProjectID. A project owns exactly one namespace (locked decision G), so its
+	// namespaceID is the correct, complete scope. (System/automation resources
+	// below carry rel_project and are filtered by ProjectID instead.)
+	mm, _, err := store.SearchComposeModules(ctx, s.store, composeTypes.ModuleFilter{NamespaceID: namespaceID})
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +216,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		})
 	}
 
-	pp, _, err := store.SearchComposePages(ctx, s.store, composeTypes.PageFilter{})
+	pp, _, err := store.SearchComposePages(ctx, s.store, composeTypes.PageFilter{NamespaceID: namespaceID})
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +231,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 		})
 	}
 
-	cc, _, err := store.SearchComposeCharts(ctx, s.store, composeTypes.ChartFilter{})
+	cc, _, err := store.SearchComposeCharts(ctx, s.store, composeTypes.ChartFilter{NamespaceID: namespaceID})
 	if err != nil {
 		return nil, err
 	}
@@ -359,9 +364,10 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64,
 				}
 			}
 		}
-		// Users are looked up with the project scope stripped: end-users are
-		// global (rel_project = 0), so the ambient project scope on ctx — which
-		// correctly narrows modules/pages — would filter them all out.
+		// End-users are global (rel_project = 0) and belong to no project, so they
+		// are looked up with a tenant-only scope on ctx. Project resources above are
+		// narrowed explicitly by ProjectID in each store filter (the store ignores
+		// ambient ctx scope — that is a service-layer concern the graph bypasses).
 		userCtx := scope.SetScopeToContext(ctx, scope.Scope{TenantID: scope.GetScopeFromContext(ctx).TenantID})
 		for uid, roleIDs := range userRoleIDs {
 			u, err := store.LookupUserByID(userCtx, s.store, uid)

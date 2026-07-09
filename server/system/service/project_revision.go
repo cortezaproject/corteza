@@ -179,8 +179,18 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 	if draft.Status != types.ProjectStatusDraft {
 		return nil, fmt.Errorf("only draft projects can be published")
 	}
+
+	// First publish: a project with no parent revision has no prior namespace to
+	// migrate from — its namespace is already the live one. Publishing simply
+	// promotes the draft to active; no record migration, no namespace swap.
 	if draft.ParentRevisionID == 0 {
-		return nil, fmt.Errorf("project has no parent revision")
+		draft.Status = types.ProjectStatusActive
+		draft.UpdatedAt = now()
+		draft.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+		if err = store.UpdateProject(ctx, svc.store, draft); err != nil {
+			return nil, err
+		}
+		return draft, nil
 	}
 
 	parent, err := loadProject(ctx, svc.store, draft.ParentRevisionID)
