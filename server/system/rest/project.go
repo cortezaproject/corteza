@@ -57,6 +57,11 @@ type (
 
 		SaveGovernanceStep(ctx context.Context, projectID uint64, stepKey string, values map[string]any) (*types.Project, error)
 		TransitionGovernanceStep(ctx context.Context, projectID uint64, stepKey string, action types.ProjectGovernanceAction, note string) (*types.Project, error)
+
+		CreateRevision(ctx context.Context, projectID uint64) (*types.Project, error)
+		ListRevisions(ctx context.Context, projectID uint64) (types.ProjectSet, error)
+		DeploymentPlan(ctx context.Context, projectID uint64) (*types.ProjectDeploymentPlan, error)
+		Publish(ctx context.Context, projectID uint64, req types.PublishRequest) (*types.Project, error)
 	}
 
 	projectGraphService interface {
@@ -169,6 +174,31 @@ func (ctrl *Project) GovernanceSave(ctx context.Context, r *request.ProjectGover
 
 func (ctrl *Project) GovernanceTransition(ctx context.Context, r *request.ProjectGovernanceTransition) (interface{}, error) {
 	p, err := ctrl.svc.TransitionGovernanceStep(ctx, r.ProjectID, r.StepKey, types.ProjectGovernanceAction(r.Action), r.Note)
+	return ctrl.makePayload(ctx, p, err)
+}
+
+func (ctrl *Project) CreateRevision(ctx context.Context, r *request.ProjectCreateRevision) (interface{}, error) {
+	p, err := ctrl.svc.CreateRevision(ctx, r.ProjectID)
+	return ctrl.makePayload(ctx, p, err)
+}
+
+func (ctrl *Project) ListRevisions(ctx context.Context, r *request.ProjectListRevisions) (interface{}, error) {
+	set, err := ctrl.svc.ListRevisions(ctx, r.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	return ctrl.makeFilterPayload(ctx, set, types.ProjectFilter{}, nil)
+}
+
+func (ctrl *Project) GetDeploymentPlan(ctx context.Context, r *request.ProjectGetDeploymentPlan) (interface{}, error) {
+	return ctrl.svc.DeploymentPlan(ctx, r.ProjectID)
+}
+
+func (ctrl *Project) Publish(ctx context.Context, r *request.ProjectPublish) (interface{}, error) {
+	p, err := ctrl.svc.Publish(ctx, r.ProjectID, types.PublishRequest{
+		Confirm:  r.Confirm,
+		Mappings: r.Mappings,
+	})
 	return ctrl.makePayload(ctx, p, err)
 }
 

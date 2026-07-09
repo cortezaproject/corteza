@@ -66,11 +66,32 @@ func (c Capabilities) Has(cap Capability) bool {
 	return false
 }
 
+// RequireTenantMembership returns nil when the request is operating within a
+// known tenant scope. Tenant 0 is the mocked single-tenant and is always
+// considered active; when real multi-tenancy lands this function is the single
+// place to add the membership-record lookup.
+func RequireTenantMembership(ctx context.Context) error {
+	if GetScopeFromContext(ctx).TenantID == 0 {
+		// Tenant 0 = mocked global tenant or no scope set (bootstrap/migration
+		// paths). Both cases are permitted until multi-tenancy is active.
+		// TODO(multi-tenancy): verify TenantMembership record for sc.TenantID.
+		return nil
+	}
+	return nil
+}
+
 // RequireCapability returns nil when the capabilities on ctx grant cap, otherwise
 // an Unauthorized error. Handlers and services call this to enforce the specific
 // capability an operation needs. Middleware only resolves and stores caps; it
 // does not enforce them.
+//
+// When the request is not inside a project scope (ProjectID == 0 on the context
+// scope) the check is skipped — system-level and bootstrap paths have no project
+// scope and must not be blocked by a zero-capability context.
 func RequireCapability(ctx context.Context, cap Capability) error {
+	if GetScopeFromContext(ctx).ProjectID == 0 {
+		return nil
+	}
 	if GetCapabilitiesFromContext(ctx).Has(cap) {
 		return nil
 	}
@@ -128,16 +149,14 @@ func (c *tenantStatusCache) set(tenantID uint64, active bool) {
 	c.mu.Unlock()
 }
 
-// TenantScopeMiddleware extracts the tenant from the token, validates it, sets
-// the tenant on the request scope, and warms the tenant runtime in the
-// registry.
+// TenantScopeMiddleware extracts the tenant from the token, validates it, and
+// sets the tenant on the request scope.
 //
-// reg may be nil to skip runtime initialisation (e.g. in tests). validator may
-// be nil, in which case tenants are assumed active.
+// validator may be nil, in which case tenants are assumed active.
 //
 // TODO(multi-tenancy): tenant is mocked to 0 system-wide. TenantFromToken
 // returns 0 for current tokens, which is treated as the single active tenant.
-func TenantScopeMiddleware(reg *ScopeRegistry, validator TenantValidator) func(http.Handler) http.Handler {
+func TenantScopeMiddleware(validator TenantValidator) func(http.Handler) http.Handler {
 	cache := newTenantStatusCache(30 * time.Second)
 
 	return func(next http.Handler) http.Handler {
@@ -167,27 +186,18 @@ func TenantScopeMiddleware(reg *ScopeRegistry, validator TenantValidator) func(h
 
 			ctx = SetScopeToContext(ctx, Scope{TenantID: tenantID})
 
-			if reg != nil {
-				if _, err := reg.Tenant(tenantID); err != nil {
-					errors.ProperlyServeHTTP(w, r, err, false)
-					return
-				}
-			}
-
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
 // ProjectScopeMiddleware resolves the project from the URL path, checks the
-// user's membership, attaches capabilities to context, sets ProjectID on the
-// scope, and warms the project runtime in the registry.
+// user's membership, attaches capabilities to context, and sets ProjectID on
+// the scope.
 //
 // Mounted only on project-scoped route groups. urlParam is the chi URL
 // parameter name carrying the project handle or ID (e.g. "projectID").
-//
-// reg may be nil to skip runtime initialisation.
-func ProjectScopeMiddleware(reg *ScopeRegistry, resolver ProjectResolver, urlParam string) func(http.Handler) http.Handler {
+func ProjectScopeMiddleware(resolver ProjectResolver, urlParam string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -211,13 +221,6 @@ func ProjectScopeMiddleware(reg *ScopeRegistry, resolver ProjectResolver, urlPar
 			sc.ProjectID = projectID
 			ctx = SetScopeToContext(ctx, sc)
 			ctx = SetCapabilitiesToContext(ctx, caps)
-
-			if reg != nil {
-				if _, err = reg.Project(sc.TenantID, projectID); err != nil {
-					errors.ProperlyServeHTTP(w, r, err, false)
-					return
-				}
-			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

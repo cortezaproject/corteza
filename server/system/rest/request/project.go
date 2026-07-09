@@ -267,6 +267,25 @@ type (
 		// Review note (request-changes/reopen)
 		Note string
 	}
+
+	ProjectCreateRevision struct {
+		ProjectID uint64 `json:",string"`
+	}
+
+	ProjectListRevisions struct {
+		ProjectID uint64 `json:",string"`
+	}
+
+	ProjectGetDeploymentPlan struct {
+		ProjectID uint64 `json:",string"`
+	}
+
+	ProjectPublish struct {
+		ProjectID uint64 `json:",string"`
+
+		Confirm  bool                    `json:"confirm"`
+		Mappings []types.ModuleMapping   `json:"mappings"`
+	}
 )
 
 // NewProjectList request
@@ -1354,6 +1373,50 @@ func (r ProjectGovernanceTransition) GetNote() string {
 }
 
 // Fill processes request and fills internal variables
+func NewProjectCreateRevision() *ProjectCreateRevision { return &ProjectCreateRevision{} }
+func (r ProjectCreateRevision) Auditable() map[string]interface{} {
+	return map[string]interface{}{"projectID": r.ProjectID}
+}
+func (r *ProjectCreateRevision) Fill(req *http.Request) (err error) {
+	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
+	return
+}
+
+func NewProjectListRevisions() *ProjectListRevisions { return &ProjectListRevisions{} }
+func (r ProjectListRevisions) Auditable() map[string]interface{} {
+	return map[string]interface{}{"projectID": r.ProjectID}
+}
+func (r *ProjectListRevisions) Fill(req *http.Request) (err error) {
+	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
+	return
+}
+
+func NewProjectGetDeploymentPlan() *ProjectGetDeploymentPlan { return &ProjectGetDeploymentPlan{} }
+func (r ProjectGetDeploymentPlan) Auditable() map[string]interface{} {
+	return map[string]interface{}{"projectID": r.ProjectID}
+}
+func (r *ProjectGetDeploymentPlan) Fill(req *http.Request) (err error) {
+	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
+	return
+}
+
+func NewProjectPublish() *ProjectPublish { return &ProjectPublish{} }
+func (r ProjectPublish) Auditable() map[string]interface{} {
+	return map[string]interface{}{"projectID": r.ProjectID}
+}
+func (r *ProjectPublish) Fill(req *http.Request) (err error) {
+	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
+	if err != nil {
+		return
+	}
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		if e := json.NewDecoder(req.Body).Decode(r); e != nil && e != io.EOF {
+			return fmt.Errorf("error parsing http request body: %w", e)
+		}
+	}
+	return
+}
+
 func (r *ProjectGovernanceTransition) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {

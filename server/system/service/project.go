@@ -7,11 +7,32 @@ import (
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
 	a "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
+)
+
+type (
+	projectNamespaceSvc interface {
+		CloneFromStore(ctx context.Context, sourceNsID uint64, dup *composeTypes.Namespace) (*composeTypes.Namespace, error)
+	}
+
+	projectDALImporter interface {
+		RunImportForeground(ctx context.Context, mappingID uint64) error
+	}
+
+	projectDALConnSvc interface {
+		ReplaceConnection(ctx context.Context, conn *dal.ConnectionWrap, isDefault bool) error
+		RemoveConnection(ctx context.Context, ID uint64) error
+	}
+
+	projectRecordSvc interface {
+		Bulk(ctx context.Context, skipFailed bool, oo ...*composeTypes.RecordBulkOperation) ([]composeTypes.RecordBulkOperationResult, error)
+		Search(ctx context.Context, f composeTypes.RecordFilter) (composeTypes.RecordSet, composeTypes.RecordFilter, error)
+	}
 )
 
 type (
@@ -40,6 +61,11 @@ type (
 		AddMember(ctx context.Context, m *types.ProjectMember) (*types.ProjectMember, error)
 		UpdateMember(ctx context.Context, m *types.ProjectMember) (*types.ProjectMember, error)
 		RemoveMember(ctx context.Context, projectID, userID uint64) error
+
+		CreateRevision(ctx context.Context, projectID uint64) (*types.Project, error)
+		ListRevisions(ctx context.Context, projectID uint64) (types.ProjectSet, error)
+		DeploymentPlan(ctx context.Context, projectID uint64) (*types.ProjectDeploymentPlan, error)
+		Publish(ctx context.Context, projectID uint64, req types.PublishRequest) (*types.Project, error)
 	}
 )
 
@@ -477,7 +503,8 @@ func validateProjectStatus(s types.ProjectStatus) error {
 		types.ProjectStatusActive,
 		types.ProjectStatusPublished,
 		types.ProjectStatusArchived,
-		types.ProjectStatusSuspended:
+		types.ProjectStatusSuspended,
+		types.ProjectStatusDeprecated:
 		return nil
 	}
 	return ProjectErrInvalidStatus()

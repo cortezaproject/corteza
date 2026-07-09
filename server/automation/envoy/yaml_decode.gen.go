@@ -357,6 +357,24 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 
 			break
 
+		case "steps":
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalWorkflowStepsNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
+
 		// Handle RBAC rules
 		case "allow":
 			auxOut, err = unmarshalAllowNode(n)

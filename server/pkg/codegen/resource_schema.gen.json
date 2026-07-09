@@ -1,0 +1,1648 @@
+[
+  {
+    "attachment": {
+      "attachmentID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "ownerID": "uint64",
+      "-": "string",
+      "url": "string",
+      "previewUrl": "string",
+      "name": "string",
+      "meta": {
+        "original": {
+          "size": "int64",
+          "ext": "string",
+          "mimetype": "string",
+          "image": {
+            "width": "int",
+            "height": "int",
+            "animated": "bool",
+            "initial": "string",
+            "initial-color": "string",
+            "background-color": "string"
+          }
+        },
+        "preview": {
+          "size": "int64",
+          "ext": "string",
+          "mimetype": "string",
+          "image": {
+            "width": "int",
+            "height": "int",
+            "animated": "bool",
+            "initial": "string",
+            "initial-color": "string",
+            "background-color": "string"
+          }
+        },
+        "labels": "map[string]string"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "application": {
+      "applicationID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "name": "string",
+      "enabled": "bool",
+      "weight": "int",
+      "unify": {
+        "name": "string",
+        "listed": "bool",
+        "url": "string",
+        "config": "string",
+        "icon": "string",
+        "iconID": "uint64",
+        "logo": "string",
+        "logoID": "uint64"
+      },
+      "ownerID": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "apigw-route": {
+      "routeID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "endpoint": "string",
+      "method": "string",
+      "enabled": "bool",
+      "meta": {
+        "debug": "bool",
+        "async": "bool",
+        "description": "string",
+        "labels": "map[string]labelTypes.LabelValue"
+      },
+      "group": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "apigw-filter": {
+      "filterID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "routeID": "uint64",
+      "weight": "uint64",
+      "kind": "string",
+      "ref": "string",
+      "enabled": "bool",
+      "params": "ApigwFilterParams",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "auth-client": {
+      "authClientID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "meta": {
+        "name": "string",
+        "description": "string"
+      },
+      "secret": "string",
+      "scope": "string",
+      "validGrant": "string",
+      "redirectURI": "string",
+      "enabled": "bool",
+      "trusted": "bool",
+      "validFrom": "time.Time",
+      "expiresAt": "time.Time",
+      "security": {
+        "impersonateUser": "uint64",
+        "userGroup": "uint64",
+        "permittedRoles": "string",
+        "prohibitedRoles": "string",
+        "forcedRoles": "string"
+      },
+      "ownedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "auth-confirmed-client": {
+      "userID": "uint64",
+      "clientID": "uint64",
+      "confirmedAt": "time.Time"
+    }
+  },
+  {
+    "auth-session": {
+      "id": "string",
+      "data": "byte",
+      "userID": "uint64",
+      "remoteAddr": "string",
+      "userAgent": "string",
+      "expiresAt": "time.Time",
+      "createdAt": "time.Time"
+    }
+  },
+  {
+    "auth-oa2token": {
+      "authOa2tokenID": "uint64",
+      "code": "string",
+      "access": "string",
+      "refresh": "string",
+      "data": "rawJson",
+      "remoteAddr": "string",
+      "userAgent": "string",
+      "clientID": "uint64",
+      "userID": "uint64",
+      "createdAt": "time.Time",
+      "expiresAt": "time.Time"
+    }
+  },
+  {
+    "credential": {
+      "credentialID": "uint64",
+      "ownerID": "uint64",
+      "label": "string",
+      "kind": "string",
+      "credentials": "string",
+      "meta": "rawJson",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "lastUsedAt": "time.Time",
+      "expiresAt": "time.Time"
+    }
+  },
+  {
+    "data-privacy-request": {
+      "requestID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "kind": "RequestKind",
+      "status": "RequestStatus",
+      "payload": "DataPrivacyRequestPayloadSet",
+      "requestedAt": "time.Time",
+      "requestedBy": "uint64",
+      "completedAt": "time.Time",
+      "completedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "data-privacy-request-comment": {
+      "commentID": "uint64",
+      "requestID": "uint64",
+      "comment": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "queue": {
+      "queueID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "consumer": "string",
+      "queue": "string",
+      "meta": {
+        "poll_delay": "time.Duration",
+        "dispatch_events": "bool"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "queue-message": {
+      "messageID": "uint64",
+      "queue": "string",
+      "payload": "byte",
+      "created": "time.Time",
+      "processed": "time.Time"
+    }
+  },
+  {
+    "reminder": {
+      "reminderID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "resource": "string",
+      "payload": "rawJson",
+      "snoozeCount": "uint",
+      "assignedTo": "uint64",
+      "assignedBy": "uint64",
+      "assignedAt": "time.Time",
+      "dismissedBy": "uint64",
+      "dismissedAt": "time.Time",
+      "remindAt": "time.Time",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "notification": {
+      "notificationID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "kind": "NotificationKind",
+      "config": {
+        "simple": {
+          "title": "string",
+          "description": "string"
+        },
+        "record": {
+          "title": "string",
+          "description": "string",
+          "moduleID": "uint64",
+          "namespaceID": "uint64",
+          "recordID": "uint64",
+          "openMode": "OpenModeType",
+          "edit": "bool"
+        }
+      },
+      "recipient": "uint64",
+      "createdBy": "uint64",
+      "readAt": "time.Time",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "report": {
+      "reportID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "meta": {
+        "name": "string",
+        "description": "string"
+      },
+      "scenarios": "ReportScenarioSet",
+      "sources": "ReportDataSourceSet",
+      "blocks": "ReportBlockSet",
+      "ownedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "resource-translation": {
+      "translationID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "lang": {
+        "tag": "language.Tag"
+      },
+      "resource": "string",
+      "key": "string",
+      "message": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "ownedBy": "uint64",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "role": {
+      "roleID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "name": "string",
+      "handle": "string",
+      "meta": {
+        "description": "string",
+        "context": {
+          "resourceTypes": "string",
+          "expr": "string"
+        }
+      },
+      "archivedAt": "time.Time",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "role-member": {
+      "resource": "string",
+      "roleID": "uint64"
+    }
+  },
+  {
+    "user-group": {
+      "userGroupID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "meta": {
+        "description": "string",
+        "short": "string"
+      },
+      "config": {
+        "path": {
+          "selfID": "uint64",
+          "name": "string"
+        }
+      },
+      "isRoot": "bool",
+      "archivedAt": "time.Time",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "settings": {
+      "ownedBy": "uint64",
+      "name": "string",
+      "value": "rawJson",
+      "updatedBy": "uint64",
+      "updatedAt": "time.Time"
+    }
+  },
+  {
+    "template": {
+      "templateID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "ownerID": "uint64",
+      "handle": "string",
+      "language": "string",
+      "type": "DocumentType",
+      "partial": "bool",
+      "meta": {
+        "short": "string",
+        "description": "string"
+      },
+      "template": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "lastUsedAt": "time.Time"
+    }
+  },
+  {
+    "user": {
+      "userID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "email": "string",
+      "emailConfirmed": "bool",
+      "userGroupID": "uint64",
+      "username": "string",
+      "roles": "uint64",
+      "name": "string",
+      "handle": "string",
+      "kind": "UserKind",
+      "meta": {
+        "avatarID": "uint64",
+        "avatarKind": "string",
+        "avatarColor": "string",
+        "avatarBgColor": "string",
+        "preferredLanguage": "string",
+        "theme": "string",
+        "securityPolicy": {
+          "mfa": {
+            "enforcedEmailOTP": "bool",
+            "enforcedTOTP": "bool"
+          }
+        }
+      },
+      "suspendedAt": "time.Time",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "dal-connection": {
+      "connectionID": "uint64",
+      "handle": "string",
+      "type": "string",
+      "config": {
+        "dal": {
+          "type": "string",
+          "params": "map[string]any",
+          "modelIdent": "string",
+          "modelIdentCheck": "string"
+        },
+        "privacy": {
+          "sensitivityLevelID": "uint64"
+        }
+      },
+      "meta": {
+        "name": "string",
+        "ownership": "string",
+        "location": "geolocation.Full",
+        "properties": {
+          "dataAtRestEncryption": {
+            "enabled": "bool",
+            "notes": "string"
+          },
+          "dataAtRestProtection": {
+            "enabled": "bool",
+            "notes": "string"
+          },
+          "dataAtTransitEncryption": {
+            "enabled": "bool",
+            "notes": "string"
+          },
+          "dataRestoration": {
+            "enabled": "bool",
+            "notes": "string"
+          }
+        }
+      },
+      "issues": "dal.Issue",
+      "labels": "map[string]string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "dal-sensitivity-level": {
+      "sensitivityLevelID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "level": "int",
+      "meta": {
+        "name": "string",
+        "description": "string"
+      },
+      "labels": "map[string]string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "dal-schema-alteration": {
+      "alterationID": "uint64",
+      "batchID": "uint64",
+      "dependsOn": "uint64",
+      "resource": "string",
+      "resourceType": "string",
+      "connectionID": "uint64",
+      "kind": "string",
+      "params": {
+        "attributeAdd": "dal.AttributeAdd",
+        "attributeDelete": "dal.AttributeDelete",
+        "attributeReType": "dal.AttributeReType",
+        "attributeReEncode": "dal.AttributeReEncode",
+        "modelAdd": "dal.ModelAdd",
+        "modelDelete": "dal.ModelDelete"
+      },
+      "error": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "completedAt": "time.Time",
+      "dismissedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64",
+      "completedBy": "uint64",
+      "dismissedBy": "uint64"
+    }
+  },
+  {
+    "connection": {
+      "connectionID": "uint64",
+      "handle": "string",
+      "revision": "int",
+      "status": "string",
+      "source": "string",
+      "meta": {
+        "short": "string",
+        "description": "string",
+        "icon": "string",
+        "tags": "string"
+      },
+      "service": {
+        "baseURL": {
+          "value": "string",
+          "placeholders": {
+            "name": "string",
+            "label": "string",
+            "type": "string",
+            "description": "string",
+            "required": "bool",
+            "default": "string",
+            "options": "string"
+          }
+        },
+        "protocol": "string",
+        "contentType": "string",
+        "headers": "map[string]ConnectionTemplate",
+        "auth": {
+          "method": "string",
+          "params": "map[string]ConnectionTemplate"
+        },
+        "probe": {
+          "path": {
+            "value": "string",
+            "placeholders": {
+              "name": "string",
+              "label": "string",
+              "type": "string",
+              "description": "string",
+              "required": "bool",
+              "default": "string",
+              "options": "string"
+            }
+          },
+          "expectedStatus": "int"
+        },
+        "params": {
+          "name": "string",
+          "label": "string",
+          "type": "string",
+          "description": "string",
+          "required": "bool",
+          "default": "string",
+          "options": "string"
+        }
+      },
+      "resources": "ConnectionResources",
+      "operations": "ConnectionOperations",
+      "derivedParams": {
+        "name": "string",
+        "label": "string",
+        "scope": "string",
+        "type": "string",
+        "description": "string",
+        "required": "bool",
+        "default": "string",
+        "options": "string"
+      },
+      "catalogID": "string",
+      "installedCount": "int",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "configured-connection": {
+      "configurationID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "connectionID": "uint64",
+      "name": "string",
+      "status": "string",
+      "connection": "Connection",
+      "config": {
+        "namespaceID": "uint64",
+        "dalConnectionID": "uint64",
+        "credentialID": "uint64",
+        "params": {
+          "scope": "string",
+          "name": "string",
+          "value": "string"
+        },
+        "discovery": "map[string]json.RawMessage"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "llm-provider": {
+      "llmProviderID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "status": "string",
+      "provider": "string",
+      "credentialID": "uint64",
+      "meta": {
+        "short": "string",
+        "description": "string"
+      },
+      "config": {
+        "promptURL": "string",
+        "model": "string",
+        "temperature": "float64",
+        "timeout": "string",
+        "guard": {
+          "enabled": "bool",
+          "provider": "string",
+          "model": "string",
+          "thresholds": "map[string]float64"
+        }
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "agent": {
+      "agentID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "status": "string",
+      "revision": "int",
+      "meta": {
+        "short": "string",
+        "description": "string",
+        "sidebarRoles": "string"
+      },
+      "behavior": {
+        "systemPrompt": "string",
+        "guardrails": "string",
+        "injectSystemContext": "bool",
+        "knowledgeBases": "KnowledgeBaseIDList",
+        "treatyCLEnabled": "bool",
+        "tclTemperature": "int",
+        "tclArticles": "string"
+      },
+      "execution": {
+        "model": {
+          "llmProviderID": "uint64",
+          "model": "string",
+          "temperature": "float64"
+        },
+        "limits": {
+          "maxIterations": "int",
+          "timeout": "string",
+          "softLimitRatio": "float64",
+          "contextWindow": "int",
+          "outputTokens": "int"
+        }
+      },
+      "access": {
+        "context": {
+          "namespace": "string",
+          "module": "string",
+          "defaults": "map[string]any"
+        },
+        "tools": {
+          "name": "string",
+          "description": "string",
+          "allow": {
+            "namespaceID": "uint64",
+            "moduleIDs": "AgentAccessIDList"
+          },
+          "context": {
+            "defaults": "map[string]any",
+            "overrides": "map[string]any"
+          }
+        },
+        "taqs": {
+          "id": "uint64",
+          "description": "string",
+          "params": "map[string]string"
+        },
+        "workflows": {
+          "id": "uint64",
+          "description": "string"
+        }
+      },
+      "invocation": {
+        "user": {
+          "enabled": "bool"
+        },
+        "system": {
+          "enabled": "bool",
+          "serviceAccount": "uint64",
+          "inputSchema": "json.RawMessage",
+          "outputFormat": "string"
+        }
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "ai-conversation": {
+      "aiConversationID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "agentID": "uint64",
+      "messages": "AiConversationMessages",
+      "tokenCount": "int",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "knowledge-base": {
+      "knowledgeBaseID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "title": "string",
+      "description": "string",
+      "context": {
+        "namespaces": {
+          "namespaceID": "uint64",
+          "moduleIDs": "KnowledgeBaseIDList"
+        }
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "chatbot": {
+      "chatbotID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "name": "string",
+      "enabled": "bool",
+      "widgetKey": "string",
+      "allowedOrigins": "ChatbotAllowedOrigins",
+      "sessionTTL": "string",
+      "handoff": {
+        "enabled": "bool",
+        "automation": {
+          "onRequested": {
+            "automation": "string",
+            "async": "bool",
+            "mappings": {
+              "stateExpression": {
+                "source": "string",
+                "expr": "string",
+                "value": "any",
+                "type": "string"
+              },
+              "triggerParam": "string"
+            }
+          },
+          "onAccepted": {
+            "automation": "string",
+            "async": "bool",
+            "mappings": {
+              "stateExpression": {
+                "source": "string",
+                "expr": "string",
+                "value": "any",
+                "type": "string"
+              },
+              "triggerParam": "string"
+            }
+          }
+        }
+      },
+      "styling": {
+        "logoAttachmentID": "uint64",
+        "logoURL": "string",
+        "fontFamily": "string",
+        "fontSizes": {
+          "base": "string",
+          "small": "string",
+          "heading": "string"
+        },
+        "colors": {
+          "primary": "string",
+          "primaryText": "string",
+          "header": "string",
+          "headerText": "string",
+          "background": "string",
+          "text": "string",
+          "userBubble": "string",
+          "agentBubble": "string"
+        },
+        "launcher": {
+          "iconURL": "string",
+          "iconAttachmentID": "uint64",
+          "iconVisible": "bool",
+          "label": "string",
+          "buttonLabel": "string",
+          "size": "string",
+          "shape": "string",
+          "position": "string",
+          "startOpen": "bool"
+        }
+      },
+      "scenarios": "ChatbotScenarios",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "chatbot-session": {
+      "id": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "chatbotID": "uint64",
+      "status": "string",
+      "currentStep": "int",
+      "state": "ChatbotSessionState",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "chatbot-session-step": {
+      "chatbotSessionStepID": "uint64",
+      "sessionID": "uint64",
+      "scenarioIndex": "int",
+      "conversationID": "uint64",
+      "status": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "chatbot-session-handoff": {
+      "chatbotSessionHandoffID": "uint64",
+      "sessionID": "uint64",
+      "stepID": "uint64",
+      "status": "string",
+      "initiatedAt": "time.Time",
+      "closedAt": "time.Time",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "tenant": {
+      "tenantID": "uint64",
+      "handle": "string",
+      "status": "TenantStatus",
+      "config": {
+        "dalConnectionID": "uint64",
+        "authProviders": "string",
+        "featureFlags": "map[string]bool",
+        "quotas": {
+          "maxUsers": "int",
+          "maxProjects": "int",
+          "maxStorage": "int64"
+        },
+        "locale": "string",
+        "timezone": "string"
+      },
+      "meta": {
+        "short": "string",
+        "description": "string",
+        "logoID": "uint64",
+        "color": "string",
+        "tags": "string"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "suspendedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "tenant-membership": {
+      "tenantMembershipID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "userID": "uint64",
+      "role": "TenantMemberRole",
+      "status": "TenantMemberStatus",
+      "invitedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time"
+    }
+  },
+  {
+    "project": {
+      "projectID": "uint64",
+      "tenantID": "uint64",
+      "handle": "string",
+      "status": "ProjectStatus",
+      "config": {
+        "visibility": "ProjectVisibility",
+        "defaultMemberRole": "ProjectMemberRole",
+        "featureFlags": "map[string]bool",
+        "mode": "ProjectMode",
+        "namespaceID": "uint64",
+        "deployerCategories": {
+          "publicAuthorityAnnex3": "bool",
+          "privateEssentialServices": "bool",
+          "insuranceBanking": "bool"
+        },
+        "friaRequired": "bool",
+        "resourceManagement": {
+          "ai": "map[string]any",
+          "infra": "map[string]any",
+          "connections": "*ProjectPermittedConnection"
+        }
+      },
+      "meta": {
+        "short": "string",
+        "description": "string",
+        "icon": "string",
+        "color": "string",
+        "tags": "string"
+      },
+      "governance": "ProjectGovernance",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "project-member": {
+      "projectMemberID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "userID": "uint64",
+      "rolePreset": "ProjectMemberRole",
+      "invitedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "project-group": {
+      "projectGroupID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "meta": {
+        "short": "string",
+        "description": "string"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "project-group-entry": {
+      "-": "uint64",
+      "projectGroupID": "uint64",
+      "resourceRef": "string",
+      "createdAt": "time.Time"
+    }
+  },
+  {
+    "dml-connection": {
+      "connectionID": "uint64",
+      "handle": "string",
+      "label": "string",
+      "params": {
+        "type": "string",
+        "params": "map[string]any",
+        "modelIdent": "string",
+        "modelIdentCheck": "string"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "dml-mapping": {
+      "mappingID": "uint64",
+      "connectionID": "uint64",
+      "namespaceHandle": "string",
+      "sourceIdent": "string",
+      "moduleHandle": "string",
+      "moduleName": "string",
+      "skip": "bool",
+      "identifier": "string",
+      "columns": "DmlColumnMapSet",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "dml-import-run": {
+      "runID": "uint64",
+      "connectionID": "uint64",
+      "mappingID": "uint64",
+      "method": "DmlImportMethod",
+      "status": "string",
+      "processed": "uint64",
+      "failed": "uint64",
+      "error": "string",
+      "cursor": "map[string]string"
+    }
+  },
+  {
+    "attachment": {
+      "attachmentID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "namespaceID": "uint64",
+      "ownerID": "uint64",
+      "-": "string",
+      "url": "string",
+      "previewUrl": "string",
+      "name": "string",
+      "meta": {
+        "original": {
+          "size": "int64",
+          "ext": "string",
+          "mimetype": "string",
+          "image": {
+            "width": "int",
+            "height": "int",
+            "animated": "bool"
+          }
+        },
+        "preview": {
+          "size": "int64",
+          "ext": "string",
+          "mimetype": "string",
+          "image": {
+            "width": "int",
+            "height": "int",
+            "animated": "bool"
+          }
+        },
+        "icon": {
+          "name": "string",
+          "library": "string"
+        },
+        "iconSvg": {
+          "src": "string"
+        }
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "chart": {
+      "chartID": "uint64",
+      "handle": "string",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "namespaceID": "uint64",
+      "name": "string",
+      "config": {
+        "reports": "*ChartConfigReport",
+        "colorScheme": "string",
+        "noAnimation": "bool",
+        "toolbox": "map[string]interface{}"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time"
+    }
+  },
+  {
+    "module": {
+      "moduleID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "namespaceID": "uint64",
+      "handle": "string",
+      "name": "string",
+      "meta": "rawJson",
+      "config": {
+        "dal": {
+          "connectionID": "uint64",
+          "constraints": "map[string][]any",
+          "ident": "string",
+          "systemFieldEncoding": {
+            "id": "EncodingStrategy",
+            "moduleID": "EncodingStrategy",
+            "namespaceID": "EncodingStrategy",
+            "revision": "EncodingStrategy",
+            "meta": "EncodingStrategy",
+            "ownedBy": "EncodingStrategy",
+            "createdAt": "EncodingStrategy",
+            "createdBy": "EncodingStrategy",
+            "updatedAt": "EncodingStrategy",
+            "updatedBy": "EncodingStrategy",
+            "deletedAt": "EncodingStrategy",
+            "deletedBy": "EncodingStrategy"
+          }
+        },
+        "privacy": {
+          "sensitivityLevelID": "uint64",
+          "usageDisclosure": "string"
+        },
+        "discovery": {
+          "public": {
+            "result": {
+              "lang": "string",
+              "fields": "string"
+            }
+          },
+          "private": {
+            "result": {
+              "lang": "string",
+              "fields": "string"
+            }
+          },
+          "protected": {
+            "result": {
+              "lang": "string",
+              "fields": "string"
+            }
+          }
+        },
+        "recordRevisions": {
+          "enabled": "bool",
+          "ident": "string"
+        },
+        "recordDeDup": {
+          "-": "bool",
+          "rules": "DeDupRuleSet"
+        }
+      },
+      "fields": "ModuleFieldSet",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdByAgent": "uint64"
+    }
+  },
+  {
+    "module-field": {
+      "moduleFieldID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "moduleID": "uint64",
+      "place": "int",
+      "kind": "string",
+      "options": "ModuleFieldOptions",
+      "name": "string",
+      "label": "string",
+      "config": {
+        "dal": {
+          "encodingStrategy": {
+            "omit": "bool",
+            "alias": {
+              "ident": "string"
+            },
+            "json": {
+              "ident": "string"
+            },
+            "plain": {}
+          }
+        },
+        "privacy": {
+          "sensitivityLevelID": "uint64",
+          "usageDisclosure": "string"
+        },
+        "recordRevisions": {
+          "enabled": "bool"
+        }
+      },
+      "required": "bool",
+      "multi": "bool",
+      "defaultValue": "RecordValueSet",
+      "expressions": {
+        "value": "string",
+        "sanitizers": "string",
+        "validators": {
+          "validatorID": "uint64",
+          "test": "string",
+          "error": "string"
+        },
+        "disableDefaultValidators": "bool",
+        "formatters": "string",
+        "disableDefaultFormatters": "bool"
+      },
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdByAgent": "uint64"
+    }
+  },
+  {
+    "namespace": {
+      "namespaceID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "slug": "string",
+      "enabled": "bool",
+      "meta": {
+        "icon": "string",
+        "iconID": "uint64",
+        "logo": "string",
+        "logoID": "uint64",
+        "logoEnabled": "bool",
+        "hideSidebar": "bool",
+        "subtitle": "string",
+        "description": "string"
+      },
+      "name": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdByAgent": "uint64"
+    }
+  },
+  {
+    "page": {
+      "pageID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "title": "string",
+      "handle": "string",
+      "selfID": "uint64",
+      "moduleID": "uint64",
+      "namespaceID": "uint64",
+      "meta": {
+        "allowPersonalLayouts": "bool",
+        "notifications": "map[string]any"
+      },
+      "config": {
+        "navItem": {
+          "expanded": "bool",
+          "icon": {
+            "type": "IconType",
+            "src": "string",
+            "style": "map[string]string"
+          }
+        }
+      },
+      "blocks": "PageBlocks",
+      "children": "PageSet",
+      "visible": "bool",
+      "weight": "int",
+      "description": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdByAgent": "uint64"
+    }
+  },
+  {
+    "page-layout": {
+      "pageLayoutID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "primary": "bool",
+      "pageID": "uint64",
+      "parentID": "uint64",
+      "namespaceID": "uint64",
+      "weight": "int",
+      "meta": {
+        "title": "string",
+        "description": "string",
+        "style": "map[string]any"
+      },
+      "config": {
+        "visibility": {
+          "expression": "string",
+          "roles": "string"
+        },
+        "buttons": {
+          "new": {
+            "enabled": "bool",
+            "label": "string"
+          },
+          "edit": {
+            "enabled": "bool",
+            "label": "string"
+          },
+          "submit": {
+            "enabled": "bool",
+            "label": "string"
+          },
+          "delete": {
+            "enabled": "bool",
+            "label": "string"
+          },
+          "clone": {
+            "enabled": "bool",
+            "label": "string"
+          },
+          "back": {
+            "enabled": "bool",
+            "label": "string"
+          }
+        },
+        "actions": {
+          "actionID": "uint64",
+          "placement": "string",
+          "meta": {
+            "label": "string",
+            "style": "map[string]any"
+          },
+          "enabled": "bool",
+          "kind": "string",
+          "params": "any"
+        },
+        "validation": {
+          "requiredFields": {
+            "field": "string",
+            "condition": "string"
+          }
+        },
+        "useTitle": "bool"
+      },
+      "blocks": "PageLayoutBlocks",
+      "ownedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdByAgent": "uint64"
+    }
+  },
+  {
+    "record": {
+      "recordID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "revision": "int",
+      "moduleID": "uint64",
+      "module": "Module",
+      "values": "RecordValueSet",
+      "meta": "map[string]any",
+      "namespaceID": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "ownedBy": "uint64",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64",
+      "createdByAgent": "uint64"
+    }
+  },
+  {
+    "record-revision": {
+      "recordRevisionID": "uint64",
+      "timestamp": "time.Time",
+      "resourceID": "uint64",
+      "revision": "uint",
+      "operation": "string",
+      "relUser": "uint64",
+      "delta": "RecordValueSet",
+      "comment": "string"
+    }
+  },
+  {
+    "workflow": {
+      "workflowID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "meta": {
+        "name": "string",
+        "description": "string",
+        "visual": "map[string]interface{}",
+        "subWorkflow": "bool"
+      },
+      "enabled": "bool",
+      "trace": "bool",
+      "keepSessions": "int",
+      "scope": "expr.Vars",
+      "steps": "WorkflowStepSet",
+      "paths": "WorkflowPathSet",
+      "issues": "WorkflowIssueSet",
+      "runAs": "uint64",
+      "ownedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "session": {
+      "sessionID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "workflowID": "uint64",
+      "status": "SessionStatus",
+      "eventType": "string",
+      "resourceType": "string",
+      "input": "expr.Vars",
+      "output": "expr.Vars",
+      "stacktrace": "Stacktrace",
+      "createdBy": "uint64",
+      "createdAt": "time.Time",
+      "purgeAt": "time.Time",
+      "suspendedAt": "time.Time",
+      "completedAt": "time.Time",
+      "error": "string"
+    }
+  },
+  {
+    "trigger": {
+      "triggerID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "workflowID": "uint64",
+      "stepID": "uint64",
+      "enabled": "bool",
+      "meta": {
+        "description": "string",
+        "visual": "map[string]interface{}"
+      },
+      "resourceType": "string",
+      "eventType": "string",
+      "constraints": "TriggerConstraintSet",
+      "input": "expr.Vars",
+      "ownedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "ng-automation": {
+      "automationID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "meta": {
+        "short": "string",
+        "description": "string",
+        "visual": {},
+        "icon": {
+          "type": "string",
+          "value": "string"
+        }
+      },
+      "enabled": "bool",
+      "scope": "expr.Vars",
+      "triggers": "NgAutomationTriggerSet",
+      "steps": "NgAutomationStepSet",
+      "paths": "NgAutomationPathSet",
+      "issues": "NgAutomationIssueSet",
+      "runAs": "uint64",
+      "ownedBy": "uint64",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "node": {
+      "nodeID": "uint64",
+      "tenantID": "uint64",
+      "sharedNodeID": "uint64",
+      "name": "string",
+      "baseURL": "string",
+      "status": "string",
+      "contact": "string",
+      "-": "string",
+      "-": "string",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "node-sync": {
+      "nodeID": "uint64",
+      "moduleID": "uint64",
+      "syncType": "string",
+      "syncStatus": "string",
+      "timeOfAction": "time.Time"
+    }
+  },
+  {
+    "exposed-module": {
+      "moduleID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "name": "string",
+      "nodeID": "uint64",
+      "composeModuleID": "uint64",
+      "composeNamespaceID": "uint64",
+      "fields": "ModuleFieldSet",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "shared-module": {
+      "moduleID": "uint64",
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "handle": "string",
+      "nodeID": "uint64",
+      "name": "string",
+      "externalFederationModuleID": "uint64",
+      "fields": "ModuleFieldSet",
+      "createdAt": "time.Time",
+      "updatedAt": "time.Time",
+      "deletedAt": "time.Time",
+      "createdBy": "uint64",
+      "updatedBy": "uint64",
+      "deletedBy": "uint64"
+    }
+  },
+  {
+    "module-mapping": {
+      "tenantID": "uint64",
+      "projectID": "uint64",
+      "nodeID": "uint64",
+      "federationModuleID": "uint64",
+      "composeModuleID": "uint64",
+      "composeNamespaceID": "uint64",
+      "fields": "ModuleFieldMappingSet"
+    }
+  }
+]

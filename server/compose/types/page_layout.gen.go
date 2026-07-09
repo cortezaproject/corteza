@@ -84,6 +84,12 @@ type (
 		Field     string `json:"field"`
 		Condition string `json:"condition"`
 	}
+
+	PageLayoutBlock struct {
+		BlockID uint64         `json:"blockID,string,omitempty"`
+		XYWH    [4]int         `json:"xywh"`
+		Meta    map[string]any `json:"meta,omitempty"`
+	}
 )
 
 func (r PageLayout) Clone() *PageLayout {
@@ -453,6 +459,41 @@ func (r PageLayoutRequiredField) Diff(cmp *PageLayoutRequiredField) []*revisions
 
 func (r *PageLayoutRequiredField) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r PageLayoutRequiredField) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r PageLayoutBlock) Clone() *PageLayoutBlock {
+	dup := r
+	if r.Meta != nil {
+		dup.Meta = make(map[string]any, len(r.Meta))
+		for k, v := range r.Meta {
+			dup.Meta[k] = v
+		}
+	}
+
+	return &dup
+}
+
+func (r PageLayoutBlock) Diff(cmp *PageLayoutBlock) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &PageLayoutBlock{}
+	}
+	if r.BlockID != cmp.BlockID {
+		out = append(out, &revisions.Change{Key: "blockID", Old: []any{cmp.BlockID}, New: []any{r.BlockID}})
+	}
+
+	if r.XYWH != cmp.XYWH {
+		out = append(out, &revisions.Change{Key: "xywh", Old: []any{cmp.XYWH}, New: []any{r.XYWH}})
+	}
+
+	if !reflect.DeepEqual(r.Meta, cmp.Meta) {
+		out = append(out, &revisions.Change{Key: "meta", Old: []any{cmp.Meta}, New: []any{r.Meta}})
+	}
+
+	return out
+}
+
+func (r *PageLayoutBlock) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r PageLayoutBlock) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func ParsePageLayoutMeta(ss []string) (p PageLayoutMeta, err error) {
 	if len(ss) == 0 {

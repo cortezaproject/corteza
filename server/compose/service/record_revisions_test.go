@@ -13,7 +13,7 @@ import (
 type (
 	mockRecordRevisionsDAL struct {
 		search func(ctx context.Context, mf dal.ModelRef, f filter.Filter) (_ dal.Iterator, err error)
-		create func(ctx context.Context, mf dal.ModelRef, revision *revisions.Revision) error
+		create func(ctx context.Context, mf dal.ModelRef, revision *revisions.Revision) ([]map[string]any, error)
 	}
 )
 
@@ -21,7 +21,7 @@ func (svc *mockRecordRevisionsDAL) Search(ctx context.Context, mf dal.ModelRef, 
 	return svc.search(ctx, mf, f)
 }
 
-func (svc *mockRecordRevisionsDAL) Create(ctx context.Context, mf dal.ModelRef, rev *revisions.Revision) error {
+func (svc *mockRecordRevisionsDAL) Create(ctx context.Context, mf dal.ModelRef, rev *revisions.Revision) ([]map[string]any, error) {
 	return svc.create(ctx, mf, rev)
 }
 
@@ -53,9 +53,9 @@ func TestRecordRevisions(t *testing.T) {
 	req.NoError(rec.SetValue("rev3", 0, "val3"))
 
 	var changes int
-	dalMock.create = func(ctx context.Context, mf dal.ModelRef, r *revisions.Revision) error {
+	dalMock.create = func(ctx context.Context, mf dal.ModelRef, r *revisions.Revision) ([]map[string]any, error) {
 		changes = len(r.Changes)
-		return nil
+		return nil, nil
 	}
 
 	req.NoError(svc.created(ctx, rec))

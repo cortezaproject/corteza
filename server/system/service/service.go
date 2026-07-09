@@ -46,6 +46,7 @@ type (
 
 	Config struct {
 		ActionLog       options.ActionLogOpt
+		ActionlogStore  store.Storer
 		Discovery       options.DiscoveryOpt
 		Storage         options.ObjectStoreOpt
 		DB              options.DBOpt
@@ -152,6 +153,8 @@ var (
 
 	DefaultStatistics *statistics
 
+	DefaultActionlogReport *actionlogReport
+
 	// DML services
 	DefaultDmlConnection *DmlConnectionSvc
 	DefaultDmlMapping    *DmlMappingSvc
@@ -192,8 +195,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 			tee = logger.MakeDebugLogger()
 		}
 
-		// @todo allow configuring a separate store DSN for the actionlog
-		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
+		actionlogStore := s
+		if c.ActionlogStore != nil {
+			actionlogStore = c.ActionlogStore
+		}
+		DefaultActionlog = actionlog.NewService(actionlogStore, log, tee, policy)
 	}
 
 	// Activity log for system resources
@@ -288,6 +294,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultNotification = Notification(ctx, DefaultLogger.Named("notification"), ws)
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
+	DefaultActionlogReport = ActionlogReport()
 	DefaultQueue = Queue()
 	DefaultAgent = Agent()
 	DefaultAiConversation = AiConversation()

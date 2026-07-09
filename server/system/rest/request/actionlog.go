@@ -75,6 +75,53 @@ type (
 		// Limit
 		Limit uint
 	}
+
+	ActionlogReport struct {
+		// Dimensions GET parameter
+		//
+		// Group rows by one or more dimensions
+		Dimensions []string
+
+		// Metrics GET parameter
+		//
+		// Metrics to compute per group
+		Metrics []string
+
+		// From GET parameter
+		//
+		// From
+		From *time.Time
+
+		// To GET parameter
+		//
+		// To
+		To *time.Time
+
+		// Resource GET parameter
+		//
+		// Resource
+		Resource string
+
+		// Action GET parameter
+		//
+		// Action
+		Action string
+
+		// ActorID GET parameter
+		//
+		// Filter by one or more actors
+		ActorID []string
+
+		// Origin GET parameter
+		//
+		// Origin
+		Origin string
+
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+	}
 )
 
 // NewActionlogList request
@@ -157,6 +204,152 @@ func (r *ActionlogList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["beforeActionID"]; ok && len(val) > 0 {
 			r.BeforeActionID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resource"]; ok && len(val) > 0 {
+			r.Resource, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["action"]; ok && len(val) > 0 {
+			r.Action, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["actorID[]"]; ok {
+			r.ActorID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["actorID"]; ok {
+			r.ActorID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["origin"]; ok && len(val) > 0 {
+			r.Origin, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+// NewActionlogReport request
+func NewActionlogReport() *ActionlogReport {
+	return &ActionlogReport{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"dimensions": r.Dimensions,
+		"metrics":    r.Metrics,
+		"from":       r.From,
+		"to":         r.To,
+		"resource":   r.Resource,
+		"action":     r.Action,
+		"actorID":    r.ActorID,
+		"origin":     r.Origin,
+		"limit":      r.Limit,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetDimensions() []string {
+	return r.Dimensions
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetMetrics() []string {
+	return r.Metrics
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetFrom() *time.Time {
+	return r.From
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetTo() *time.Time {
+	return r.To
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetResource() string {
+	return r.Resource
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetAction() string {
+	return r.Action
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetActorID() []string {
+	return r.ActorID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetOrigin() string {
+	return r.Origin
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetLimit() uint {
+	return r.Limit
+}
+
+// Fill processes request and fills internal variables
+func (r *ActionlogReport) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["dimensions[]"]; ok {
+			r.Dimensions, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["dimensions"]; ok {
+			r.Dimensions, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["metrics[]"]; ok {
+			r.Metrics, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["metrics"]; ok {
+			r.Metrics, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["from"]; ok && len(val) > 0 {
+			r.From, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["to"]; ok && len(val) > 0 {
+			r.To, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

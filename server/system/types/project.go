@@ -7,11 +7,12 @@ import (
 
 type (
 	ProjectFilter struct {
-		ProjectID []string      `json:"projectID"`
-		TenantID  uint64        `json:"tenantID,string,omitempty"`
-		Handle    string        `json:"handle"`
-		Status    ProjectStatus `json:"status"`
-		Query     string        `json:"query"`
+		ProjectID     []string      `json:"projectID"`
+		RootProjectID uint64        `json:"rootProjectID,string,omitempty"`
+		TenantID      uint64        `json:"tenantID,string,omitempty"`
+		Handle        string        `json:"handle"`
+		Status        ProjectStatus `json:"status"`
+		Query         string        `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 

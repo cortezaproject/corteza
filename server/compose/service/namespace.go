@@ -73,6 +73,7 @@ type (
 		Create(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Update(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (envoyx.NodeSet, error)) (ns *types.Namespace, err error)
+		CloneFromStore(ctx context.Context, sourceNsID uint64, dup *types.Namespace) (*types.Namespace, error)
 		ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error)
 		ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace) (ns *types.Namespace, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64) error
@@ -398,6 +399,40 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 	}()
 
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionClone, err)
+}
+
+// CloneFromStore clones a namespace by decoding all its compose resources from
+// the store and passing them to Clone. Used by the project revision flow.
+func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup *types.Namespace) (*types.Namespace, error) {
+	srcNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, sourceNsID)
+	if err != nil {
+		return nil, err
+	}
+	nsScope := envoyx.ResourceFilter{
+		Scope: envoyx.Scope{
+			ResourceType: types.NamespaceResourceType,
+			Identifiers:  envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID),
+		},
+	}
+	decoder := func() (envoyx.NodeSet, error) {
+		nn, _, err := svc.envoy.Decode(ctx, envoyx.DecodeParams{
+			Type: envoyx.DecodeTypeStore,
+			Params: map[string]any{
+				"storer": svc.store,
+				"dal":    dal.Service(),
+			},
+			Filter: map[string]envoyx.ResourceFilter{
+				types.NamespaceResourceType:   {Identifiers: envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID)},
+				types.ModuleResourceType:      nsScope,
+				types.ModuleFieldResourceType: nsScope,
+				types.PageResourceType:        nsScope,
+				types.PageLayoutResourceType:  nsScope,
+				types.ChartResourceType:       nsScope,
+			},
+		})
+		return nn, err
+	}
+	return svc.Clone(ctx, sourceNsID, dup, decoder)
 }
 
 func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error) {

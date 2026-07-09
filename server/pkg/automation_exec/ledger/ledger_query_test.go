@@ -3,6 +3,8 @@ package ledger
 import (
 	"errors"
 	"testing"
+
+	"github.com/crusttech/human/server/pkg/automation_exec/types"
 )
 
 // TL;DR: IsExecutableInUse returns true while the execution is non-terminal, false once it finishes.
@@ -61,8 +63,8 @@ func TestIsExecutableInUse_ScopedToRevision(t *testing.T) {
 	xID := nextID()
 	execID1, execID2 := nextID(), nextID()
 
-	_ = l.RegisterExecution(ctx, xID, execID1, 1)
-	_ = l.RegisterExecution(ctx, xID, execID2, 2)
+	_ = l.RegisterExecution(ctx, xID, execID1, 1, types.ExecutionParams{})
+	_ = l.RegisterExecution(ctx, xID, execID2, 2, types.ExecutionParams{})
 	_ = l.ExecutionCompleted(ctx, xID, execID2, 2)
 
 	inUse, _ := l.IsExecutableInUse(ctx, xID, 1)
@@ -82,8 +84,8 @@ func TestListExecutionsByExecutable_ReturnsAll(t *testing.T) {
 	xID := nextID()
 	eID1, eID2 := nextID(), nextID()
 
-	_ = l.RegisterExecution(ctx, xID, eID1, 1)
-	_ = l.RegisterExecution(ctx, xID, eID2, 2)
+	_ = l.RegisterExecution(ctx, xID, eID1, 1, types.ExecutionParams{})
+	_ = l.RegisterExecution(ctx, xID, eID2, 2, types.ExecutionParams{})
 
 	execs, err := l.ListExecutionsByExecutable(ctx, xID)
 	if err != nil {
@@ -112,8 +114,8 @@ func TestListExecutionsByExecutable_UnknownExecutable_ReturnsEmpty(t *testing.T)
 func TestListExecutionsByExecutable_Isolated(t *testing.T) {
 	l := newLedger()
 	xID1, xID2 := nextID(), nextID()
-	_ = l.RegisterExecution(ctx, xID1, nextID(), 1)
-	_ = l.RegisterExecution(ctx, xID2, nextID(), 1)
+	_ = l.RegisterExecution(ctx, xID1, nextID(), 1, types.ExecutionParams{})
+	_ = l.RegisterExecution(ctx, xID2, nextID(), 1, types.ExecutionParams{})
 
 	execs, _ := l.ListExecutionsByExecutable(ctx, xID1)
 	if len(execs) != 1 {

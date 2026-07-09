@@ -5,13 +5,24 @@ import (
 )
 
 _chartDefs: {
-			ChartConfig: { name: "ChartConfig", fields: [
-				{name: "Reports", goType: "[]*ChartConfigReport", json: "reports,omitempty"},
-				{name: "ColorScheme", type: "string", json: "colorScheme,omitempty"},
-				{name: "NoAnimation", type: "bool", json: "noAnimation,omitempty"},
-				{name: "Toolbox", goType: "map[string]interface{}", json: "toolbox,omitempty"},
-			]}
-		}
+	ChartConfig: {name: "ChartConfig", fields: [
+				{name: "Reports", goType:   "[]*ChartConfigReport", json:   "reports,omitempty"},
+				{name: "ColorScheme", type: "string", json:                 "colorScheme,omitempty"},
+				{name: "NoAnimation", type: "bool", json:                   "noAnimation,omitempty"},
+				{name: "Toolbox", goType:   "map[string]interface{}", json: "toolbox,omitempty"},
+	]}
+	ChartConfigReport: {name: "ChartConfigReport", fields: [
+					{name: "ReportID", type:     "uint64", json:                   "reportID,string,omitempty"},
+					{name: "Filter", type:       "string", json:                   "filter"},
+					{name: "ModuleID", type:     "uint64", json:                   "moduleID,string,omitempty"},
+					{name: "Metrics", goType:    "[]map[string]interface{}", json: "metrics,omitempty"},
+					{name: "Dimensions", goType: "[]map[string]interface{}", json: "dimensions,omitempty"},
+					{name: "YAxis", goType:      "map[string]interface{}", json:   "yAxis,omitempty"},
+					{name: "Legend", goType:     "map[string]interface{}", json:   "legend,omitempty"},
+					{name: "Tooltip", goType:    "map[string]interface{}", json:   "tooltip,omitempty"},
+					{name: "Offset", goType:     "map[string]interface{}", json:   "offset,omitempty"},
+	]}
+}
 
 chart: {
 	features: {
@@ -22,6 +33,8 @@ chart: {
 		gen: true
 
 		defs: _chartDefs
+
+		structTypesSkip: ["ChartConfigReport"]
 	}
 
 	parents: [
@@ -44,12 +57,12 @@ chart: {
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			namespace_id: {
-			  ident: "namespaceID",
-				goType: "uint64",
+				ident:      "namespaceID"
+				goType:     "uint64"
 				storeIdent: "rel_namespace"
 				// parent ref carries no omitempty (hand-written json:"namespaceID,string")
 				json: {field: "namespaceID", string: true}
-				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				dal: {type: "Ref", refModelResType: "corteza::compose:namespace"}
 				envoy: {
 					yaml: {
 						identKeyAlias: ["namespace", "namespace_id", "ns"]
@@ -59,7 +72,7 @@ chart: {
 			name: {
 				sortable: true
 				dal: {}
-		  }
+			}
 			config: {
 				type: _chartDefs.ChartConfig
 				dal: {}
@@ -71,35 +84,35 @@ chart: {
 						customEncoder: true
 					}
 				}
-		  }
+			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
-			"namespace": { attribute: "namespace_id" },
+			"primary": {attribute: "id"}
+			"namespace": {attribute: "namespace_id"}
 			"unique_handle": {
-				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "namespace_id" }]
+				fields: [{attribute: "handle", modifiers: ["LOWERCASE"]}, {attribute: "namespace_id"}]
 				predicate: "handle != '' AND deleted_at IS NULL"
 			}
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 		}
 	}
 
 	filter: {
 		struct: {
-				chart_id:     { goType: "[]uint64", ident: "chartID", storeIdent: "id" }
-				tenant_id:    schema.TenantFilterField
-				project_id:   schema.ProjectFilterField
-				namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
-				handle: { goType: "string" }
-				name: { goType: "string" }
-				deleted: { goType: "filter.State", storeIdent: "deleted_at" }
+			chart_id: {goType: "[]uint64", ident: "chartID", storeIdent: "id"}
+			tenant_id:  schema.TenantFilterField
+			project_id: schema.ProjectFilterField
+			namespace_id: {goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace"}
+			handle: {goType: "string"}
+			name: {goType: "string"}
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		query: ["handle", "name"]
@@ -111,7 +124,7 @@ chart: {
 		scoped: true
 		yaml: {
 			supportMappedInput: true
-			mappedField: "Handle"
+			mappedField:        "Handle"
 			identKeyAlias: ["charts", "chrt"]
 		}
 		store: {

@@ -5,47 +5,60 @@ import (
 )
 
 _moduleFieldDefs: {
-			ModuleFieldConfig: { name: "ModuleFieldConfig", fields: [
-				{ name: "DAL", type: _moduleFieldDefs.ModuleFieldConfigDAL, json: "dal" },
-				{ name: "Privacy", type: _moduleFieldDefs.ModuleFieldConfigDataPrivacy, json: "privacy" },
-				{ name: "RecordRevisions", type: _moduleFieldDefs.ModuleFieldConfigRecordRevisions, json: "recordRevisions" },
-			]}
-			ModuleFieldConfigDAL: { name: "ModuleFieldConfigDAL", fields: [
-				{ name: "EncodingStrategy", goType: "*EncodingStrategy", json: "encodingStrategy" },
-			]}
-			ModuleFieldConfigDataPrivacy: { name: "ModuleFieldConfigDataPrivacy", fields: [
-				{ name: "SensitivityLevelID", type: "uint64", json: "sensitivityLevelID,string,omitempty" },
-				{ name: "UsageDisclosure", type: "string", json: "usageDisclosure" },
-			]}
-			ModuleFieldConfigRecordRevisions: { name: "ModuleFieldConfigRecordRevisions", fields: [
-				{ name: "Skip", type: "bool", json: "enabled" },
-			]}
-			ModuleFieldExpr: { name: "ModuleFieldExpr", fields: [
-				{ name: "ValueExpr", type: "string", json: "value,omitempty" },
-				{ name: "Sanitizers", slice: true, type: "string", json: "sanitizers,omitempty" },
-				{ name: "Validators", slice: true, type: _moduleFieldDefs.ModuleFieldValidator, json: "validators,omitempty" },
-				{ name: "DisableDefaultValidators", type: "bool", json: "disableDefaultValidators,omitempty" },
-				{ name: "Formatters", slice: true, type: "string", json: "formatters,omitempty" },
-				{ name: "DisableDefaultFormatters", type: "bool", json: "disableDefaultFormatters,omitempty" },
-			]}
-			ModuleFieldValidator: { name: "ModuleFieldValidator", fields: [
-				{ name: "ValidatorID", type: "uint64", json: "validatorID,string,omitempty" },
-				{ name: "Test", type: "string", json: "test,omitempty" },
-				{ name: "Error", type: "string", json: "error,omitempty" },
-			]}
-			ModuleFieldOptions: { name: "ModuleFieldOptions", key: "string", valueGoType: "interface{}" }
-			RecordValueSet: { name: "RecordValueSet", elem: _moduleFieldDefs.RecordValue, elemPtr: true }
-			RecordValue: { name: "RecordValue", fields: [
-				{ name: "RecordID", type: "uint64", json: "-" },
-				{ name: "Name", type: "string", json: "name" },
-				{ name: "Value", type: "string", json: "value,omitempty" },
-				{ name: "Ref", type: "uint64", json: "-" },
-				{ name: "Place", goType: "uint", json: "place,omitempty" },
-				{ name: "DeletedAt", type: "time.Time", ptr: true, json: "deletedAt,omitempty" },
-				{ name: "Updated", type: "bool", json: "-" },
-				{ name: "OldValue", type: "string", json: "-" },
-			]}
-		}
+	ModuleFieldConfig: {name: "ModuleFieldConfig", fields: [
+					{name: "DAL", type:             _moduleFieldDefs.ModuleFieldConfigDAL, json:             "dal"},
+					{name: "Privacy", type:         _moduleFieldDefs.ModuleFieldConfigDataPrivacy, json:     "privacy"},
+					{name: "RecordRevisions", type: _moduleFieldDefs.ModuleFieldConfigRecordRevisions, json: "recordRevisions"},
+	]}
+	ModuleFieldConfigDAL: {name: "ModuleFieldConfigDAL", fields: [
+					{name: "EncodingStrategy", goType: "*EncodingStrategy", json: "encodingStrategy"},
+	]}
+	ModuleFieldConfigDataPrivacy: {name: "ModuleFieldConfigDataPrivacy", fields: [
+						{name: "SensitivityLevelID", type: "uint64", json: "sensitivityLevelID,string,omitempty"},
+						{name: "UsageDisclosure", type:    "string", json: "usageDisclosure"},
+	]}
+	ModuleFieldConfigRecordRevisions: {name: "ModuleFieldConfigRecordRevisions", fields: [
+							{name: "Skip", type: "bool", json: "enabled"},
+	]}
+	ModuleFieldExpr: {name: "ModuleFieldExpr", fields: [
+				{name: "ValueExpr", type:                "string", json: "value,omitempty"},
+				{name: "Sanitizers", slice:              true, type:     "string", json:                              "sanitizers,omitempty"},
+				{name: "Validators", slice:              true, type:     _moduleFieldDefs.ModuleFieldValidator, json: "validators,omitempty"},
+				{name: "DisableDefaultValidators", type: "bool", json:   "disableDefaultValidators,omitempty"},
+				{name: "Formatters", slice:              true, type:     "string", json: "formatters,omitempty"},
+				{name: "DisableDefaultFormatters", type: "bool", json:   "disableDefaultFormatters,omitempty"},
+	]}
+	ModuleFieldValidator: {name: "ModuleFieldValidator", fields: [
+					{name: "ValidatorID", type: "uint64", json: "validatorID,string,omitempty"},
+					{name: "Test", type:        "string", json: "test,omitempty"},
+					{name: "Error", type:       "string", json: "error,omitempty"},
+	]}
+	ModuleFieldOptions: {name: "ModuleFieldOptions", key: "string", valueGoType: "interface{}"}
+	RecordValueSet: {name: "RecordValueSet", elem: _moduleFieldDefs.RecordValue, elemPtr: true}
+	RecordValue: {name: "RecordValue", fields: [
+				{name: "RecordID", type:  "uint64", json:   "-"},
+				{name: "Name", type:      "string", json:   "name"},
+				{name: "Value", type:     "string", json:   "value,omitempty"},
+				{name: "Ref", type:       "uint64", json:   "-"},
+				{name: "Place", goType:   "uint", json:     "place,omitempty"},
+				{name: "DeletedAt", type: "time.Time", ptr: true, json: "deletedAt,omitempty"},
+				{name: "Updated", type:   "bool", json:     "-"},
+				{name: "OldValue", type:  "string", json:   "-"},
+	]}
+	EncodingStrategyAlias: {name: "EncodingStrategyAlias", fields: [
+					{name: "Ident", type: "string", json: "ident"},
+	]}
+	EncodingStrategyJSON: {name: "EncodingStrategyJSON", fields: [
+					{name: "Ident", type: "string", json: "ident"},
+	]}
+	EncodingStrategyPlain: {name: "EncodingStrategyPlain", fields: []}
+	EncodingStrategy: {name: "EncodingStrategy", fields: [
+					{name: "Omit", type:                    "bool", json:                   "omit,omitempty"},
+					{name: "EncodingStrategyAlias", goType: "*EncodingStrategyAlias", json: "alias,omitempty"},
+					{name: "EncodingStrategyJSON", goType:  "*EncodingStrategyJSON", json:  "json,omitempty"},
+					{name: "EncodingStrategyPlain", goType: "*EncodingStrategyPlain", json: "plain,omitempty"},
+	]}
+}
 
 moduleField: {
 	parents: [
@@ -66,24 +79,24 @@ moduleField: {
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 			module_id: {
-			  ident: "moduleID",
-				goType: "uint64",
+				ident:      "moduleID"
+				goType:     "uint64"
 				storeIdent: "rel_module"
-				dal: { type: "Ref", refModelResType: "corteza::compose:module" }
+				dal: {type: "Ref", refModelResType: "corteza::compose:module"}
 			}
 			place: {
-				sortable: true,
-				goType: "int"
-				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
+				sortable: true
+				goType:   "int"
+				dal: {type: "Number", meta: {"rdbms:type": "integer"}}
 			}
 			kind: {
-				sortable: true,
-				goType: "string"
+				sortable: true
+				goType:   "string"
 				dal: {}
 			}
 			options: {
 				type: _moduleFieldDefs.ModuleFieldOptions
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 				envoy: {
@@ -107,23 +120,23 @@ moduleField: {
 			}
 			config: {
 				type: _moduleFieldDefs.ModuleFieldConfig
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 			required: {
-				goType: "bool",
+				goType:     "bool"
 				storeIdent: "is_required"
-				dal: { type: "Boolean" }
+				dal: {type: "Boolean"}
 			}
 			multi: {
-				goType: "bool",
+				goType:     "bool"
 				storeIdent: "is_multi"
-				dal: { type: "Boolean" }
+				dal: {type: "Boolean"}
 			}
 			default_value: {
 				type: _moduleFieldDefs.RecordValueSet
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 				envoy: {
@@ -134,7 +147,7 @@ moduleField: {
 			}
 			expressions: {
 				type: _moduleFieldDefs.ModuleFieldExpr
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 				envoy: {
@@ -143,17 +156,17 @@ moduleField: {
 					}
 				}
 			}
-			created_at: schema.SortableTimestampNowField
-			updated_at: schema.SortableTimestampNilField
-			deleted_at: schema.SortableTimestampNilField
+			created_at:       schema.SortableTimestampNowField
+			updated_at:       schema.SortableTimestampNilField
+			deleted_at:       schema.SortableTimestampNilField
 			created_by_agent: schema.AttributeAgentRef
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
-			"module": { attribute: "module_id" },
+			"primary": {attribute: "id"}
+			"module": {attribute: "module_id"}
 			"unique_name": {
-				fields: [{ attribute: "name", modifiers: ["LOWERCASE"] }, { attribute: "module_id" }]
+				fields: [{attribute: "name", modifiers: ["LOWERCASE"]}, {attribute: "module_id"}]
 				predicate: "name != '' AND deleted_at IS NULL"
 			}
 		}
@@ -161,6 +174,7 @@ moduleField: {
 
 	types: {
 		defs: _moduleFieldDefs
+		structTypesSkip: ["EncodingStrategy"]
 	}
 
 	refs: {
@@ -171,8 +185,8 @@ moduleField: {
 		struct: {
 			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
-			module_id:  { goType: "[]uint64", ident: "moduleID", storeIdent: "rel_module" }
-			deleted:    { goType: "filter.State", storeIdent: "deleted_at" }
+			module_id: {goType: "[]uint64", ident: "moduleID", storeIdent: "rel_module"}
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		byNilState: ["deleted"]
@@ -191,14 +205,14 @@ moduleField: {
 		scoped: true
 		yaml: {
 			supportMappedInput: true
-			mappedField: "Name"
+			mappedField:        "Name"
 			identKeyAlias: ["module_fields", "modulefields", "fields"]
 		}
 		store: {
-			handleField: ""
+			handleField:         ""
 			customFilterBuilder: true
-			extendedRefDecoder: true
-			sanitizeBeforeSave: true
+			extendedRefDecoder:  true
+			sanitizeBeforeSave:  true
 		}
 	}
 
@@ -262,7 +276,7 @@ moduleField: {
 					description: """
 						searches for compose module field by ID
 						"""
-				}
+				},
 			]
 		}
 	}

@@ -41,6 +41,7 @@ type (
 
 	Config struct {
 		ActionLog        options.ActionLogOpt
+		ActionlogStore   store.Storer
 		Discovery        options.DiscoveryOpt
 		Storage          options.ObjectStoreOpt
 		Limit            options.LimitOpt
@@ -120,8 +121,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 			tee = logger.MakeDebugLogger()
 		}
 
-		// @todo allow configuring a separate store DSN for the actionlog
-		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
+		actionlogStore := s
+		if c.ActionlogStore != nil {
+			actionlogStore = c.ActionlogStore
+		}
+		DefaultActionlog = actionlog.NewService(actionlogStore, log, tee, policy)
 	}
 
 	// Activity log for compose resources

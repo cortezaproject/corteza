@@ -13,7 +13,7 @@ func setupExecution(t *testing.T) (*ledger, id.ID, id.ID) {
 	t.Helper()
 	l := newLedger()
 	executableID, execID := nextID(), nextID()
-	if err := l.RegisterExecution(ctx, executableID, execID, 1); err != nil {
+	if err := l.RegisterExecution(ctx, executableID, execID, 1, types.ExecutionParams{}); err != nil {
 		t.Fatal(err)
 	}
 	return l, executableID, execID

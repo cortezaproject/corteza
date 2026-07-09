@@ -19,10 +19,11 @@ import (
 
 type (
 	Config struct {
-		ActionLog  options.ActionLogOpt
-		Storage    options.ObjectStoreOpt
-		Federation options.FederationOpt
-		Server     options.HttpServerOpt
+		ActionLog      options.ActionLogOpt
+		ActionlogStore store.Storer
+		Storage        options.ObjectStoreOpt
+		Federation     options.FederationOpt
+		Server         options.HttpServerOpt
 	}
 )
 
@@ -90,8 +91,11 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 			tee = logger.MakeDebugLogger()
 		}
 
-		// @todo allow configuring a separate store DSN for the actionlog
-		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
+		actionlogStore := s
+		if c.ActionlogStore != nil {
+			actionlogStore = c.ActionlogStore
+		}
+		DefaultActionlog = actionlog.NewService(actionlogStore, log, tee, policy)
 	}
 
 	DefaultAccessControl = AccessControl(s)

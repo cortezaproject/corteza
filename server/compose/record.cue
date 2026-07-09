@@ -5,18 +5,65 @@ import (
 )
 
 _recordDefs: {
-			RecordValueSet: { name: "RecordValueSet", elem: _recordDefs.RecordValue, elemPtr: true }
-			RecordValue: { name: "RecordValue", fields: [
-				{ name: "RecordID", type: "uint64", json: "-" },
-				{ name: "Name", type: "string", json: "name" },
-				{ name: "Value", type: "string", json: "value,omitempty" },
-				{ name: "Ref", type: "uint64", json: "-" },
-				{ name: "Place", goType: "uint", json: "place,omitempty" },
-				{ name: "DeletedAt", type: "time.Time", ptr: true, json: "deletedAt,omitempty" },
-				{ name: "Updated", type: "bool", json: "-" },
-				{ name: "OldValue", type: "string", json: "-" },
-			]}
-		}
+	RecordValueSet: {name: "RecordValueSet", elem: _recordDefs.RecordValue, elemPtr: true}
+	RecordValue: {name: "RecordValue", fields: [
+				{name: "RecordID", type:  "uint64", json:   "-"},
+				{name: "Name", type:      "string", json:   "name"},
+				{name: "Value", type:     "string", json:   "value,omitempty"},
+				{name: "Ref", type:       "uint64", json:   "-"},
+				{name: "Place", goType:   "uint", json:     "place,omitempty"},
+				{name: "DeletedAt", type: "time.Time", ptr: true, json: "deletedAt,omitempty"},
+				{name: "Updated", type:   "bool", json:     "-"},
+				{name: "OldValue", type:  "string", json:   "-"},
+	]}
+	RecordBulkOperation: {name: "RecordBulkOperation", fields: [
+					{name: "Record", goType:    "*Record"},
+					{name: "RecordID", type:    "uint64"},
+					{name: "NamespaceID", type: "uint64"},
+					{name: "ModuleID", type:    "uint64"},
+					{name: "LinkBy", type:      "string"},
+					{name: "Operation", goType: "OperationType"},
+					{name: "ID", type:          "string"},
+	]}
+	RecordBulk: {name: "RecordBulk", fields: [
+				{name: "RefField", type: "string", json:    "refField,omitempty"},
+				{name: "IDPrefix", type: "string", json:    "idPrefix,omitempty"},
+				{name: "Set", goType:    "RecordSet", json: "set,omitempty"},
+	]}
+	RecordSummary: {name: "RecordSummary", fields: [
+				{name: "Name", type:          "string"},
+				{name: "Min", type:           "float64"},
+				{name: "Max", type:           "float64"},
+				{name: "Avg", type:           "float64"},
+				{name: "Sum", type:           "float64"},
+				{name: "EmptyCount", type:    "int"},
+				{name: "NotEmptyCount", type: "int"},
+				{name: "UniqueCount", type:   "int"},
+				{name: "Earliest", type:      "time.Time"},
+				{name: "Latest", type:        "time.Time"},
+				{name: "Count", type:         "int"},
+	]}
+	RecordSummaryReq: {name: "RecordSummaryReq", fields: [
+					{name: "Name", type:  "string", json: "name"},
+					{name: "Field", type: "string", json: "field"},
+	]}
+	SensitiveRecord: {name: "SensitiveRecord", fields: [
+				{name: "RecordID", type: "uint64"},
+				{name: "Values", goType: "[]map[string]any"},
+	]}
+	SensitiveRecordSet: {name: "SensitiveRecordSet", fields: [
+					{name: "ConnectionID", type: "uint64"},
+					{name: "Module", goType:     "*Module"},
+					{name: "Namespace", goType:  "*Namespace"},
+					{name: "Records", goType:    "[]SensitiveRecord"},
+	]}
+	RecordBulkOperationResult: {name: "RecordBulkOperationResult", fields: [
+						{name: "Record", goType:           "*Record"},
+						{name: "Error", goType:            "error"},
+						{name: "ValueError", goType:       "*RecordValueErrorSet"},
+						{name: "DuplicationError", goType: "*RecordValueErrorSet"},
+	]}
+}
 
 record: {
 	features: {
@@ -24,6 +71,7 @@ record: {
 
 	types: {
 		defs: _recordDefs
+		structTypesSkip: ["RecordBulkOperationResult"]
 	}
 
 	parents: [
@@ -43,35 +91,35 @@ record: {
 			project_id: schema.ProjectRefField
 			revision: {
 				goType: "int"
-				dal: { type: "Number", meta: { "rdbms:type": "integer" }, default: 0 }
+				dal: {type: "Number", meta: {"rdbms:type": "integer"}, default: 0}
 			}
 			module_id: {
-			 	ident: "moduleID",
-				goType: "uint64",
+				ident:      "moduleID"
+				goType:     "uint64"
 				storeIdent: "rel_module"
-				dal: { type: "Ref", refModelResType: "corteza::compose:module" }
+				dal: {type: "Ref", refModelResType: "corteza::compose:module"}
 			}
 			module: {
-				goType: "*types.Module",
-				store: false
+				goType:     "*types.Module"
+				store:      false
 				omitSetter: true
 				omitGetter: true
 			}
 			values: {
 				type: _recordDefs.RecordValueSet
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 			meta: {
-				goType: "map[string]any",
-				dal: { type: "JSON", defaultEmptyObject: true }
+				goType: "map[string]any"
+				dal: {type: "JSON", defaultEmptyObject: true}
 			}
 			namespace_id: {
-				ident: "namespaceID",
-				goType: "uint64",
+				ident:      "namespaceID"
+				goType:     "uint64"
 				storeIdent: "rel_namespace"
-				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				dal: {type: "Ref", refModelResType: "corteza::compose:namespace"}
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -95,7 +143,7 @@ record: {
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
+			"primary": {attribute: "id"}
 			"idx_compose_record_base": {
 				attributes: ["module_id", "namespace_id"]
 				predicate: "deleted_at IS NULL"
@@ -110,12 +158,12 @@ record: {
 
 	filter: {
 		struct: {
-			tenant_id:    schema.TenantFilterField
-			project_id:   schema.ProjectFilterField
-			module_id:    { goType: "uint64" }
-			namespace_id: { goType: "uint64" }
-			query: { goType: "string" }
-			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
+			tenant_id:  schema.TenantFilterField
+			project_id: schema.ProjectFilterField
+			module_id: {goType: "uint64"}
+			namespace_id: {goType: "uint64"}
+			query: {goType: "string"}
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		byNilState: ["deleted"]

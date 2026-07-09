@@ -60,6 +60,9 @@ type (
 		// with warnings when incompatible
 		Store store.Storer
 
+		// separate pool/DB when ACTIONLOG_DB_DSN is set; otherwise equals Store
+		ActionlogStore store.Storer
+
 		// CLI Commands
 		Command *cobra.Command
 

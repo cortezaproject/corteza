@@ -1661,6 +1661,10 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 		ee = append(ee, goqu.C("id").In(f.ProjectID))
 	}
 
+	if f.RootProjectID > 0 {
+		ee = append(ee, goqu.C("root_project_id").Eq(f.RootProjectID))
+	}
+
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}

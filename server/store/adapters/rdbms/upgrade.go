@@ -14,11 +14,22 @@ import (
 	"go.uber.org/zap"
 )
 
+// UpgradeActionlog prepares the actionlog table on a store that may be a
+// dedicated connection. It never drops the table -- existing rows are preserved
+// -- and runs the actionlog column fixes so a pre-existing separate database
+// picks up the same additive migrations the main Upgrade applies.
 func (s *Store) UpgradeActionlog(ctx context.Context) error {
-	if err := dropTable(ctx, s, systemModels.Action.Ident); err != nil {
+	if err := createTablesFromModels(ctx, s.log(ctx), s.DataDefiner, dal.ModelSet{systemModels.Action}); err != nil {
 		return err
 	}
-	return createTablesFromModels(ctx, s.log(ctx), s.DataDefiner, dal.ModelSet{systemModels.Action})
+
+	for _, fix := range actionlogFixes {
+		if err := fix(ctx, s); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Store) Upgrade(ctx context.Context) (err error) {

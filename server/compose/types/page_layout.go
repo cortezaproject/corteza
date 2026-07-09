@@ -16,12 +16,6 @@ type (
 
 	PageLayoutBlocks []PageLayoutBlock
 
-	PageLayoutBlock struct {
-		BlockID uint64         `json:"blockID,string,omitempty" yaml:"blockID"`
-		XYWH    [4]int         `json:"xywh" yaml:"xywh"`
-		Meta    map[string]any `json:"meta,omitempty"`
-	}
-
 	PageLayoutButtonConfig struct {
 		New    PageLayoutButton `json:"new"`
 		Edit   PageLayoutButton `json:"edit"`

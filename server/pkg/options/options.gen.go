@@ -77,9 +77,10 @@ type (
 	}
 
 	ActionLogOpt struct {
-		Enabled                  bool `env:"ACTIONLOG_ENABLED"`
-		Debug                    bool `env:"ACTIONLOG_DEBUG"`
-		WorkflowFunctionsEnabled bool `env:"ACTIONLOG_WORKFLOW_FUNCTIONS_ENABLED"`
+		Enabled                  bool   `env:"ACTIONLOG_ENABLED"`
+		Debug                    bool   `env:"ACTIONLOG_DEBUG"`
+		WorkflowFunctionsEnabled bool   `env:"ACTIONLOG_WORKFLOW_FUNCTIONS_ENABLED"`
+		DBDSN                    string `env:"ACTIONLOG_DB_DSN"`
 	}
 
 	ApigwOpt struct {

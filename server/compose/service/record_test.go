@@ -730,7 +730,8 @@ func TestRecord_searchAccessControl(t *testing.T) {
 			ModuleID:    mod.ID,
 		}
 
-		req.NoError(svc.dal.Create(ctx, model.ToFilter(), nil, rr[i]))
+		_, err := svc.dal.Create(ctx, model.ToFilter(), nil, rr[i])
+		req.NoError(err)
 	}
 
 	t.Log("inform rbac service about new roles")
@@ -864,7 +865,8 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 			rr[i].Values = rr[i].Values.Set(&types.RecordValue{Name: "yes", Value: "1"})
 		}
 
-		req.NoError(svc.dal.Create(ctx, model.ToFilter(), nil, rr[i]))
+		_, err := svc.dal.Create(ctx, model.ToFilter(), nil, rr[i])
+		req.NoError(err)
 
 	}
 

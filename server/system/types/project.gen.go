@@ -18,20 +18,23 @@ import (
 
 type (
 	Project struct {
-		ID         uint64                           `json:"projectID,string"`
-		TenantID   uint64                           `json:"tenantID,string,omitempty"`
-		Handle     string                           `json:"handle"`
-		Status     ProjectStatus                    `json:"status"`
-		Config     ProjectConfig                    `json:"config"`
-		Meta       ProjectMeta                      `json:"meta"`
-		Governance ProjectGovernance                `json:"governance"`
-		CreatedAt  time.Time                        `json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time                       `json:"updatedAt,omitempty"`
-		DeletedAt  *time.Time                       `json:"deletedAt,omitempty"`
-		CreatedBy  uint64                           `json:"createdBy,string"`
-		UpdatedBy  uint64                           `json:"updatedBy,string,omitempty"`
-		DeletedBy  uint64                           `json:"deletedBy,string,omitempty"`
-		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+		ID               uint64                           `json:"projectID,string"`
+		TenantID         uint64                           `json:"tenantID,string,omitempty"`
+		Handle           string                           `json:"handle"`
+		Status           ProjectStatus                    `json:"status"`
+		Config           ProjectConfig                    `json:"config"`
+		Meta             ProjectMeta                      `json:"meta"`
+		Governance       ProjectGovernance                `json:"governance"`
+		ProjectID        uint64                           `json:"rootProjectID,string,omitempty"`
+		ParentRevisionID uint64                           `json:"parentRevisionID,string,omitempty"`
+		Revision         int                              `json:"revision,omitempty"`
+		CreatedAt        time.Time                        `json:"createdAt,omitempty"`
+		UpdatedAt        *time.Time                       `json:"updatedAt,omitempty"`
+		DeletedAt        *time.Time                       `json:"deletedAt,omitempty"`
+		CreatedBy        uint64                           `json:"createdBy,string"`
+		UpdatedBy        uint64                           `json:"updatedBy,string,omitempty"`
+		DeletedBy        uint64                           `json:"deletedBy,string,omitempty"`
+		Labels           map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 	}
 
 	ProjectConfig struct {
@@ -118,6 +121,13 @@ func (r Project) Clone() *Project {
 	return &dup
 }
 
+func (r Project) RootProjectID() uint64 {
+	if r.ProjectID != 0 {
+		return r.ProjectID
+	}
+	return r.ID
+}
+
 func (r Project) Diff(cmp *Project) []*revisions.Change {
 	out := make([]*revisions.Change, 0)
 	if cmp == nil {
@@ -133,6 +143,18 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 
 	if r.Handle != cmp.Handle {
 		out = append(out, &revisions.Change{Key: "handle", Old: []any{cmp.Handle}, New: []any{r.Handle}})
+	}
+
+	if r.ProjectID != cmp.ProjectID {
+		out = append(out, &revisions.Change{Key: "rootProjectID", Old: []any{cmp.ProjectID}, New: []any{r.ProjectID}})
+	}
+
+	if r.ParentRevisionID != cmp.ParentRevisionID {
+		out = append(out, &revisions.Change{Key: "parentRevisionID", Old: []any{cmp.ParentRevisionID}, New: []any{r.ParentRevisionID}})
+	}
+
+	if r.Revision != cmp.Revision {
+		out = append(out, &revisions.Change{Key: "revision", Old: []any{cmp.Revision}, New: []any{r.Revision}})
 	}
 
 	if !reflect.DeepEqual(r.Status, cmp.Status) {
@@ -444,11 +466,12 @@ func (r *ProjectPermittedConnection) Scan(src any) error          { return sql.P
 func (r ProjectPermittedConnection) Value() (driver.Value, error) { return json.Marshal(r) }
 
 const (
-	ProjectStatusDraft     ProjectStatus = "draft"
-	ProjectStatusActive    ProjectStatus = "active"
-	ProjectStatusPublished ProjectStatus = "published"
-	ProjectStatusArchived  ProjectStatus = "archived"
-	ProjectStatusSuspended ProjectStatus = "suspended"
+	ProjectStatusDraft      ProjectStatus = "draft"
+	ProjectStatusActive     ProjectStatus = "active"
+	ProjectStatusPublished  ProjectStatus = "published"
+	ProjectStatusArchived   ProjectStatus = "archived"
+	ProjectStatusSuspended  ProjectStatus = "suspended"
+	ProjectStatusDeprecated ProjectStatus = "deprecated"
 )
 
 const (

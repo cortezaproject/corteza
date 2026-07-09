@@ -76,6 +76,18 @@ func (a NgAutomation) resourceRefsExt(out []resourceref.Ref) []resourceref.Ref {
 	return out
 }
 
+// WorkflowStepParamKinds returns the map of argument target → resource kind
+// for the given step. Exported for use by the envoyx encode/decode path.
+func WorkflowStepParamKinds(s *WorkflowStep) map[string]string {
+	if s == nil {
+		return nil
+	}
+	if s.Kind == WorkflowStepKindExecWorkflow {
+		return map[string]string{"workflow": resourceref.KindAutomationWorkflow}
+	}
+	return stepArgumentKinds(s.Ref)
+}
+
 // stepResourceRefs extracts references from a step's arguments
 //
 // Constant argument values produce resolvable refs; computed arguments

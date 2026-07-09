@@ -151,6 +151,12 @@ workflow: {
 				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
 			}
 			paths: {
 				type: _workflowDefs.WorkflowPathSet
@@ -185,6 +191,8 @@ workflow: {
 		indexes: {
 			"primary": {attribute: "id"}
 		}
+
+		defaultSetter: true
 	}
 
 	envoy: {
@@ -207,6 +215,7 @@ workflow: {
 		store: {
 			customFilterBuilder: true
 			extendedDecoder:     true
+			extendedRefDecoder:  true
 		}
 	}
 

@@ -3776,6 +3776,31 @@ var Project = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "root_project_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "ParentRevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "parent_revision_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Revision",
+			Type: &dal.TypeNumber{HasDefault: true,
+				DefaultValue: 0,
+				Precision:    0,
+			},
+			Store: &dal.CodecAlias{Ident: "revision"},
+		},
+
+		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,

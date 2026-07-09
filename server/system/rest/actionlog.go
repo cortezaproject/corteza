@@ -18,10 +18,17 @@ import (
 type (
 	Actionlog struct {
 		actionSvc actionlog.Recorder
+		reportSvc actionlogReportService
 		store     store.Users
-		ac        interface {
-			CanReadActionLog(ctx context.Context) bool
-		}
+		ac        actionlogAccessController
+	}
+
+	actionlogReportService interface {
+		Run(ctx context.Context, rr *actionlog.ReportRequest) (*actionlog.ReportResult, error)
+	}
+
+	actionlogAccessController interface {
+		CanReadActionLog(ctx context.Context) bool
 	}
 
 	// Extend actionlog.Action so we can
@@ -41,6 +48,7 @@ type (
 func (Actionlog) New() *Actionlog {
 	return &Actionlog{
 		actionSvc: service.DefaultActionlog,
+		reportSvc: service.DefaultActionlogReport,
 		ac:        service.DefaultAccessControl,
 		store:     service.DefaultStore,
 	}
@@ -68,6 +76,55 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 	ee, f, err := ctrl.actionSvc.Find(ctx, f)
 
 	return ctrl.makeFilterPayload(ctx, ee, f, err)
+}
+
+func (ctrl *Actionlog) Report(ctx context.Context, r *request.ActionlogReport) (interface{}, error) {
+	rr := &actionlog.ReportRequest{
+		Dimensions: r.Dimensions,
+		Metrics:    r.Metrics,
+		Filter: actionlog.Filter{
+			FromTimestamp: r.From,
+			ToTimestamp:   r.To,
+			ActorID:       r.ActorID,
+			Resource:      r.Resource,
+			Action:        r.Action,
+			Origin:        r.Origin,
+			Limit:         r.Limit,
+		},
+	}
+
+	result, err := ctrl.reportSvc.Run(ctx, rr)
+	if err != nil {
+		return nil, err
+	}
+
+	mapReportSeverityNames(result)
+	return result, nil
+}
+
+// severity comes from DB as a raw int; map to name so the payload is human-readable (Decision J)
+func mapReportSeverityNames(result *actionlog.ReportResult) {
+	if result == nil {
+		return
+	}
+	for _, row := range result.Set {
+		v, ok := row.Dimensions["severity"]
+		if !ok {
+			continue
+		}
+		var n int64
+		switch sv := v.(type) {
+		case int64:
+			n = sv
+		case int:
+			n = int64(sv)
+		case float64:
+			n = int64(sv)
+		default:
+			continue
+		}
+		row.Dimensions["severity"] = actionlog.Severity(n).String()
+	}
 }
 
 func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Action, f actionlog.Filter, err error) (*actionlogPayload, error) {

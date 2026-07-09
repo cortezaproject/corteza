@@ -13,7 +13,7 @@ func TestRegisterExecution_CreatesEntry(t *testing.T) {
 	execID := nextID()
 	executableID := nextID()
 
-	if err := l.RegisterExecution(ctx, executableID, execID, 1); err != nil {
+	if err := l.RegisterExecution(ctx, executableID, execID, 1, types.ExecutionParams{}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -45,10 +45,10 @@ func TestRegisterExecution_MultipleRevisions_StoredIndependently(t *testing.T) {
 	executableID := nextID()
 	execID := nextID()
 
-	if err := l.RegisterExecution(ctx, executableID, execID, 1); err != nil {
+	if err := l.RegisterExecution(ctx, executableID, execID, 1, types.ExecutionParams{}); err != nil {
 		t.Fatal(err)
 	}
-	if err := l.RegisterExecution(ctx, executableID, execID, 2); err != nil {
+	if err := l.RegisterExecution(ctx, executableID, execID, 2, types.ExecutionParams{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -82,7 +82,7 @@ func TestGetExecution_Errors(t *testing.T) {
 	t.Run("unknown execution", func(t *testing.T) {
 		l := newLedger()
 		executableID := nextID()
-		if err := l.RegisterExecution(ctx, executableID, nextID(), 1); err != nil {
+		if err := l.RegisterExecution(ctx, executableID, nextID(), 1, types.ExecutionParams{}); err != nil {
 			t.Fatal(err)
 		}
 		_, err := l.GetExecution(ctx, executableID, nextID(), 1)
@@ -95,7 +95,7 @@ func TestGetExecution_Errors(t *testing.T) {
 		l := newLedger()
 		executableID := nextID()
 		execID := nextID()
-		if err := l.RegisterExecution(ctx, executableID, execID, 1); err != nil {
+		if err := l.RegisterExecution(ctx, executableID, execID, 1, types.ExecutionParams{}); err != nil {
 			t.Fatal(err)
 		}
 		_, err := l.GetExecution(ctx, executableID, execID, 99)

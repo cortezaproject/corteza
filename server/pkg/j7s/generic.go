@@ -4,44 +4,12 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/crusttech/human/server/pkg/envoy/resource"
 )
 
 type (
 	seqNode []interface{}
 	mapNode map[string]interface{}
 )
-
-// mapTimestamps helper encodes Timestamps into the mapping node
-func mapTimestamps(n mapNode, ts *resource.Timestamps) (mapNode, error) {
-	if ts == nil {
-		return n, nil
-	}
-
-	return AddMap(n,
-		"createdAt", ts.CreatedAt,
-		"updatedAt", ts.UpdatedAt,
-		"deletedAt", ts.DeletedAt,
-		"archivedAt", ts.ArchivedAt,
-		"suspendedAt", ts.SuspendedAt,
-	)
-}
-
-// mapUserstamps helper encodes Userstamps into the mapping node
-func mapUserstamps(n mapNode, us *resource.Userstamps) (mapNode, error) {
-	if us == nil {
-		return n, nil
-	}
-
-	return AddMap(n,
-		"createdBy", us.CreatedBy,
-		"updatedBy", us.UpdatedBy,
-		"deletedBy", us.DeletedBy,
-		"ownedBy", us.OwnedBy,
-		"runAs", us.RunAs,
-	)
-}
 
 // CleanMap helper removes any empty k:v nodes from the mapping node
 //

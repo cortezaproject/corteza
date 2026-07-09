@@ -19,6 +19,10 @@ _record_revisionDefs: {
 		}
 
 record_revision: {
+	features: {
+		noTypeSet: true
+	}
+
 	model: {
 		ident: "compose_record_revisions"
 		omitGetterSetter: true

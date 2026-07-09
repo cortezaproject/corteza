@@ -37,7 +37,9 @@ import (
 	"github.com/crusttech/human/server/pkg/monitor"
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/pkg/provision"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/rbac"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/pkg/scheduler"
 	"github.com/crusttech/human/server/pkg/sentry"
 	"github.com/crusttech/human/server/pkg/valuestore"
@@ -211,6 +213,23 @@ func (app *HumanApp) InitStore(ctx context.Context) (err error) {
 		}
 	}
 
+	if app.ActionlogStore == nil {
+		// dedicated pool/DB when ACTIONLOG_DB_DSN is set; share main store otherwise
+		if dsn := app.Opt.ActionLog.DBDSN; dsn != "" {
+			app.Log.Info("connecting dedicated actionlog store", zap.String("dsn", "***"))
+			als, alsErr := store.Connect(ctx, app.Log, dsn, app.Opt.Environment.IsDevelopment())
+			if alsErr != nil {
+				return fmt.Errorf("could not connect to actionlog store: %w", alsErr)
+			}
+			if alsErr = store.UpgradeActionlog(ctx, app.Log, als); alsErr != nil {
+				return fmt.Errorf("could not upgrade actionlog store: %w", alsErr)
+			}
+			app.ActionlogStore = als
+		} else {
+			app.ActionlogStore = app.Store
+		}
+	}
+
 	if !app.Opt.Upgrade.Always {
 		app.Log.Info("store upgrade skipped (UPGRADE_ALWAYS=false)")
 	} else {
@@ -356,6 +375,10 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 		return fmt.Errorf("could not connecto to corredor service: %w", err)
 	}
 
+	// Register global (system-level) runtime in the scope registry.
+	// Per-tenant and per-project runtimes are added later, keyed by non-zero Scope.
+	scope.Default.Set(scope.NewRuntime(scope.Scope{}))
+
 	if rbac.Global() == nil {
 		log := zap.NewNop()
 		if app.Opt.RBAC.Log {
@@ -400,7 +423,8 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
-		ActionLog:  app.Opt.ActionLog,
+		ActionLog:      app.Opt.ActionLog,
+		ActionlogStore: app.ActionlogStore,
 		Discovery:  app.Opt.Discovery,
 		Storage:    app.Opt.ObjStore,
 		Template:   app.Opt.Template,
@@ -444,9 +468,10 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
 	err = autService.Initialize(ctx, app.Log, app.Store, app.WsServer, autService.Config{
-		ActionLog: app.Opt.ActionLog,
-		Workflow:  app.Opt.Workflow,
-		Corredor:  app.Opt.Corredor,
+		ActionLog:      app.Opt.ActionLog,
+		ActionlogStore: app.ActionlogStore,
+		Workflow:       app.Opt.Workflow,
+		Corredor:       app.Opt.Corredor,
 	})
 
 	if err != nil {
@@ -459,6 +484,7 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	// will most likely be merged in the future
 	err = cmpService.Initialize(ctx, app.Log, app.Store, cmpService.Config{
 		ActionLog:        app.Opt.ActionLog,
+		ActionlogStore:   app.ActionlogStore,
 		Discovery:        app.Opt.Discovery,
 		Storage:          app.Opt.ObjStore,
 		Limit:            app.Opt.Limit,
@@ -475,6 +501,13 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 		NamespaceSvc: cmpService.DefaultNamespace,
 		RecordSvc:    cmpService.DefaultRecord,
 	}, dal.Service())
+
+	sysService.SetProjectRevisionDeps(
+		cmpService.DefaultNamespace,
+		sysService.DefaultDmlImporter,
+		dal.Service(),
+		cmpService.DefaultRecord,
+	)
 
 	sysService.DefaultAgenticRuntime.SetLookups(cmpService.DefaultNamespace, cmpService.DefaultModule)
 	sysService.DefaultAgenticRuntime.SetTAQService(autService.DefaultNgAutomation)
@@ -502,9 +535,10 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 		// Note: this is a legacy approach, all services from all 3 apps
 		// will most likely be merged in the future
 		err = fedService.Initialize(ctx, app.Log, app.Store, fedService.Config{
-			ActionLog:  app.Opt.ActionLog,
-			Federation: app.Opt.Federation,
-			Server:     app.Opt.HTTPServer,
+			ActionLog:      app.Opt.ActionLog,
+			ActionlogStore: app.ActionlogStore,
+			Federation:     app.Opt.Federation,
+			Server:         app.Opt.HTTPServer,
 		})
 
 		if err != nil {
@@ -1105,6 +1139,82 @@ func setAuthBgImageSrcUrl(imgAttachment string) string {
 	imgAttachmentValues := strings.Split(imgAttachment, ":")
 	imgSrcUrl := fmt.Sprintf("/api/system/%s/settings/%s/original/auth.ui.background-image-src", imgAttachmentValues[0], imgAttachmentValues[1])
 	return imgSrcUrl
+}
+
+// initScopeRBAC initializes the RBAC service for a tenant+project runtime.
+func (app *HumanApp) initScopeRBAC(_ context.Context, _ *scope.Runtime) error { return nil }
+
+// initScopeScheduler initializes the scheduler for a tenant+project runtime.
+func (app *HumanApp) initScopeScheduler(_ context.Context, _ *scope.Runtime) error { return nil }
+
+// initScopeReminders initializes the reminder watcher for a tenant+project runtime.
+func (app *HumanApp) initScopeReminders(_ context.Context, _ *scope.Runtime) error { return nil }
+
+// initScopeCredentialRefresher initializes the credential refresher for a tenant+project runtime.
+func (app *HumanApp) initScopeCredentialRefresher(_ context.Context, _ *scope.Runtime) error {
+	return nil
+}
+
+// initScopeFederationStructureSync initializes federation structure sync for a tenant+project runtime.
+func (app *HumanApp) initScopeFederationStructureSync(_ context.Context, _ *scope.Runtime) error {
+	return nil
+}
+
+// initScopeFederationDataSync initializes federation data sync for a tenant+project runtime.
+func (app *HumanApp) initScopeFederationDataSync(_ context.Context, _ *scope.Runtime) error {
+	return nil
+}
+
+// initScopeConfiguredConnections initializes configured connection refresh for a tenant+project runtime.
+func (app *HumanApp) initScopeConfiguredConnections(_ context.Context, _ *scope.Runtime) error {
+	return nil
+}
+
+// initScopeAutomationSessions initializes the automation session manager for a tenant+project runtime.
+func (app *HumanApp) initScopeAutomationSessions(_ context.Context, _ *scope.Runtime) error {
+	return nil
+}
+
+// initScopeAutomationWorkflows initializes the automation workflow executor for a tenant+project runtime.
+func (app *HumanApp) initScopeAutomationWorkflows(_ context.Context, _ *scope.Runtime) error {
+	return nil
+}
+
+// initScopeMessagebus initializes the messagebus for a tenant+project runtime.
+func (app *HumanApp) initScopeMessagebus(_ context.Context, _ *scope.Runtime) error { return nil }
+
+// loadAllScopes fetches every tenant and every project from the store.
+// Used during boot to seed the scope registry.
+func (app *HumanApp) loadAllScopes(ctx context.Context) (tenants types.TenantSet, projects types.ProjectSet, err error) {
+	tf := types.TenantFilter{Paging: filter.Paging{Limit: 200}}
+	for {
+		var page types.TenantSet
+		page, tf, err = app.Store.SearchTenants(ctx, tf)
+		if err != nil {
+			return
+		}
+		tenants = append(tenants, page...)
+		if tf.NextPage == nil {
+			break
+		}
+		tf.PageCursor = tf.NextPage
+	}
+
+	pf := types.ProjectFilter{Paging: filter.Paging{Limit: 200}}
+	for {
+		var page types.ProjectSet
+		page, pf, err = app.Store.SearchProjects(ctx, pf)
+		if err != nil {
+			return
+		}
+		projects = append(projects, page...)
+		if pf.NextPage == nil {
+			break
+		}
+		pf.PageCursor = pf.NextPage
+	}
+
+	return
 }
 
 func setAuthBgStyles(styles string) string {

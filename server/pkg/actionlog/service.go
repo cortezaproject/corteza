@@ -34,11 +34,13 @@ type (
 	Recorder interface {
 		Record(context.Context, *Action)
 		Find(context.Context, Filter) (ActionSet, Filter, error)
+		Report(context.Context, ReportRequest) (ReportRowSet, error)
 	}
 
 	actionlogStore interface {
 		SearchActionlogs(ctx context.Context, f Filter) (ActionSet, Filter, error)
 		CreateActionlog(ctx context.Context, rr ...*Action) error
+		ActionlogReport(ctx context.Context, rr ReportRequest) (ReportRowSet, error)
 	}
 )
 
@@ -138,6 +140,14 @@ func (svc *service) log(a *Action) {
 
 func (svc *service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, error) {
 	return svc.store.SearchActionlogs(ctx, flt)
+}
+
+func (svc *service) Report(ctx context.Context, rr ReportRequest) (ReportRowSet, error) {
+	if err := rr.Normalize(); err != nil {
+		return nil, err
+	}
+
+	return svc.store.ActionlogReport(ctx, rr)
 }
 
 // History returns all actions for a resource, ordered oldest-first.

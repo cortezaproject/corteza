@@ -2,9 +2,11 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -72,6 +74,33 @@ func (r Workflow) Dict() map[string]interface{} {
 		"deletedAt":  r.DeletedAt,
 		"deletedBy":  r.DeletedBy,
 	}
+}
+
+// setValue handles path-style field keys for nested step argument refs.
+// Called by the generated SetValue via its default: branch.
+// Key format: "Steps.{stepIdx}.Arguments.{argTarget}"
+func (w *Workflow) setValue(name string, pos uint, value any) (err error) {
+	pp := strings.SplitN(name, ".", 4)
+	if len(pp) != 4 || pp[0] != "Steps" || pp[2] != "Arguments" {
+		return
+	}
+	idx := cast.ToInt(pp[1])
+	if idx < 0 || idx >= len(w.Steps) || w.Steps[idx] == nil {
+		return
+	}
+	id := cast.ToUint64(value)
+	if id == 0 {
+		return
+	}
+	target := pp[3]
+	for _, a := range w.Steps[idx].Arguments {
+		if a == nil || a.Target != target {
+			continue
+		}
+		a.Value = id
+		return
+	}
+	return
 }
 
 func (issue *WorkflowIssue) String() string {

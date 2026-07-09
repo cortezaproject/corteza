@@ -121,6 +121,30 @@ func (im *Importer) RunImport(ctx context.Context, mappingID uint64, method type
 	return run, nil
 }
 
+// RunImportForeground runs the import synchronously in the calling goroutine.
+// Used by the project publish flow where migration must complete before state flips.
+func (im *Importer) RunImportForeground(ctx context.Context, mappingID uint64) error {
+	mp, err := im.mapping.FindByID(ctx, mappingID)
+	if err != nil {
+		return err
+	}
+	run := &types.DmlImportRun{
+		ID:           id.Next(),
+		ConnectionID: mp.ConnectionID,
+		MappingID:    mappingID,
+		Method:       "foreground",
+		Status:       "pending",
+	}
+	if err := store.CreateDmlImportRun(ctx, im.store, run); err != nil {
+		return err
+	}
+	im.runImportWork(ctx, run, mp)
+	if run.Status != "completed" {
+		return fmt.Errorf("dml import failed: %s", run.Error)
+	}
+	return nil
+}
+
 func (im *Importer) runImportWork(ctx context.Context, run *types.DmlImportRun, mp *types.DmlMapping) {
 	run.Status = "running"
 	if err := store.UpdateDmlImportRun(ctx, im.store, run); err != nil {

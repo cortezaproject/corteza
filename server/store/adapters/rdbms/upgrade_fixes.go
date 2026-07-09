@@ -66,9 +66,10 @@ var (
 		fix_2024_9_7_migrateLabelsValueToJsonb,
 		fix_2026_06_29_addDeletedAtOnDmlTables,
 		fix_2026_06_29_addSourceIdentOnDmlMappings,
+		fix_2026_07_00_addRevisionColumnsOnProjects,
 	}
 
-	fixesPost = []func(context.Context, *Store) error{
+	fixesPost = append([]func(context.Context, *Store) error{
 		fix_2024_09_05_addRelResourceRoleMembershipColumn,
 		fix_2024_09_05_addUserGroupReferenceToUser,
 		fix_2026_04_00_addChatbotColumnToAgents,
@@ -78,6 +79,11 @@ var (
 		// didn't exist during the pre phase (fresh or partially-old databases)
 		// are covered here; existing columns make it a no-op.
 		fix_2026_06_00_addTenancyScopeColumns,
+	}, actionlogFixes...)
+
+	// actionlog-only additive column fixes. Shared here so both the main Upgrade
+	// and the standalone UpgradeActionlog (dedicated actionlog DB) apply them.
+	actionlogFixes = []func(context.Context, *Store) error{
 		fix_2026_06_22_addDeltaOnActionlog,
 		fix_2026_06_22_addOldStateOnActionlog,
 	}
@@ -1432,6 +1438,28 @@ func fix_2024_9_7_migrateLabelsValueToJsonb(ctx context.Context, s *Store) (err 
 	return nil
 
 }
+func fix_2026_07_00_addRevisionColumnsOnProjects(ctx context.Context, s *Store) error {
+	if err := addColumn(ctx, s, "projects", &dal.Attribute{
+		Ident: "ProjectID",
+		Type:  &dal.TypeID{HasDefault: true, DefaultValue: 0},
+		Store: &dal.CodecAlias{Ident: "root_project_id"},
+	}); err != nil {
+		return err
+	}
+	if err := addColumn(ctx, s, "projects", &dal.Attribute{
+		Ident: "ParentRevisionID",
+		Type:  &dal.TypeID{HasDefault: true, DefaultValue: 0},
+		Store: &dal.CodecAlias{Ident: "parent_revision_id"},
+	}); err != nil {
+		return err
+	}
+	return addColumn(ctx, s, "projects", &dal.Attribute{
+		Ident: "Revision",
+		Type:  &dal.TypeNumber{HasDefault: true, DefaultValue: 0, Precision: 0},
+		Store: &dal.CodecAlias{Ident: "revision"},
+	})
+}
+
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {
 	db := s.DB.(goqu.SQLDatabase)
 

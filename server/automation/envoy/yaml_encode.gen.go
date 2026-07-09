@@ -151,6 +151,10 @@ func (e YamlEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams, 
 	if err != nil {
 		return
 	}
+	auxSteps, err := e.encodeWorkflowStepsC(ctx, p, tt, node, res, res.Steps)
+	if err != nil {
+		return
+	}
 
 	out, err = y7s.AddMap(out,
 		"createdAt", auxCreatedAt,
@@ -167,7 +171,7 @@ func (e YamlEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams, 
 		"projectID", res.ProjectID,
 		"runAs", auxRunAs,
 		"scope", res.Scope,
-		"steps", res.Steps,
+		"steps", auxSteps,
 		"tenantID", res.TenantID,
 		"trace", res.Trace,
 		"updatedAt", auxUpdatedAt,

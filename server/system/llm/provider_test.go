@@ -79,7 +79,7 @@ func TestAnthropicOutputTokens_Set(t *testing.T) {
 	defer srv.Close()
 
 	p, cred := anthropicProvider(srv.URL)
-	_, err := promptAnthropic(context.Background(), p, cred, "", 8000, nil, nil, "2023-06-01")
+	_, err := promptAnthropic(context.Background(), p, cred, "", nil, 8000, nil, nil, "2023-06-01")
 	require.NoError(t, err)
 	assert.Equal(t, 8000, captured)
 }
@@ -90,7 +90,7 @@ func TestAnthropicOutputTokens_Zero(t *testing.T) {
 	defer srv.Close()
 
 	p, cred := anthropicProvider(srv.URL)
-	_, err := promptAnthropic(context.Background(), p, cred, "", 0, nil, nil, "2023-06-01")
+	_, err := promptAnthropic(context.Background(), p, cred, "", nil, 0, nil, nil, "2023-06-01")
 	require.NoError(t, err)
 	assert.Equal(t, 0, captured)
 }
@@ -101,7 +101,7 @@ func TestOpenAIOutputTokens_Set(t *testing.T) {
 	defer srv.Close()
 
 	p, cred := openaiProvider(srv.URL)
-	_, err := promptOpenAI(context.Background(), p, cred, "", 8000, nil, nil)
+	_, err := promptOpenAI(context.Background(), p, cred, "", nil, 8000, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, 8000, captured)
 }
@@ -112,7 +112,7 @@ func TestOpenAIOutputTokens_NotSentWhenZero(t *testing.T) {
 	defer srv.Close()
 
 	p, cred := openaiProvider(srv.URL)
-	_, err := promptOpenAI(context.Background(), p, cred, "", 0, nil, nil)
+	_, err := promptOpenAI(context.Background(), p, cred, "", nil, 0, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, 0, captured)
 }

@@ -25,9 +25,10 @@ type (
 	}
 
 	Config struct {
-		ActionLog options.ActionLogOpt
-		Workflow  options.WorkflowOpt
-		Corredor  options.CorredorOpt
+		ActionLog      options.ActionLogOpt
+		ActionlogStore store.Storer
+		Workflow       options.WorkflowOpt
+		Corredor       options.CorredorOpt
 	}
 
 	userService interface {
@@ -55,13 +56,7 @@ var (
 	DefaultTrigger  *trigger
 	DefaultSession  *session
 
-	DefaultNgAutomation      *ngAutomation
-
-	// DefaultAutomationRegistry indexes one NG-automation execution engine per
-	// tenant/project scope. The engine is store-free in-memory state (executable
-	// registry + ledger + runtime-manager), so each scope gets its own isolated
-	// instance, lazily built on first access.
-	DefaultAutomationRegistry *scope.ScopeRegistry
+	DefaultNgAutomation *ngAutomation
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -97,8 +92,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 			tee = log
 		}
 
-		// @todo allow configuring a separate store DSN for the actionlog
-		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
+		actionlogStore := s
+		if c.ActionlogStore != nil {
+			actionlogStore = c.ActionlogStore
+		}
+		DefaultActionlog = actionlog.NewService(actionlogStore, log, tee, policy)
 	}
 
 	DefaultAccessControl = AccessControl(s)
@@ -111,28 +109,30 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	execLog := DefaultLogger.Named("automation-execution")
 
-	DefaultAutomationRegistry = scope.NewScopeRegistry(ctx)
+	// Populate the runtime for the current (mocked single) scope into the
+	// global scope registry. The engine is built with the app-lifetime ctx,
+	// not a request ctx: its governor and runtime-manager retain it for
+	// background work.
+	// TODO(multi-tenancy): build+register a runtime per active tenant/project.
+	{
+		sc := scope.Scope{}
+		eng, err := runnerSvc.AutomationService(ctx,
+			execLog.With(
+				zap.Uint64("tenantID", sc.TenantID),
+				zap.Uint64("projectID", sc.ProjectID),
+			),
+			manager.Config{MaxConcurrent: 10},
+		)
+		if err != nil {
+			return err
+		}
 
-	// No tenant-level provider: NG automation is project-scoped.
-	DefaultAutomationRegistry.RegisterProject(scope.Provider{
-		Name: "automation-engine",
-		Apply: func(ctx context.Context, sc scope.Scope, c *scope.Container) error {
-			eng, err := runnerSvc.AutomationService(ctx,
-				execLog.With(
-					zap.Uint64("tenantID", sc.TenantID),
-					zap.Uint64("projectID", sc.ProjectID),
-				),
-				manager.Config{MaxConcurrent: 10},
-			)
-			if err != nil {
-				return err
-			}
-			scope.Set[executionEngine](c, eng)
-			return nil
-		},
-	})
+		rt := scope.NewRuntime(sc)
+		scope.Set[executionEngine](rt.Container(), eng)
+		scope.Default.Set(rt)
+	}
 
-	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor, DefaultAutomationRegistry)
+	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor)
 
 	Registry().AddTypes(
 		&expr.Any{},

@@ -32,6 +32,10 @@ type (
 		Graph(context.Context, *request.ProjectGraph) (interface{}, error)
 		GovernanceSave(context.Context, *request.ProjectGovernanceSave) (interface{}, error)
 		GovernanceTransition(context.Context, *request.ProjectGovernanceTransition) (interface{}, error)
+		CreateRevision(context.Context, *request.ProjectCreateRevision) (interface{}, error)
+		ListRevisions(context.Context, *request.ProjectListRevisions) (interface{}, error)
+		GetDeploymentPlan(context.Context, *request.ProjectGetDeploymentPlan) (interface{}, error)
+		Publish(context.Context, *request.ProjectPublish) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -49,6 +53,10 @@ type (
 		Graph                func(http.ResponseWriter, *http.Request)
 		GovernanceSave       func(http.ResponseWriter, *http.Request)
 		GovernanceTransition func(http.ResponseWriter, *http.Request)
+		CreateRevision       func(http.ResponseWriter, *http.Request)
+		ListRevisions        func(http.ResponseWriter, *http.Request)
+		GetDeploymentPlan    func(http.ResponseWriter, *http.Request)
+		Publish              func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -262,6 +270,62 @@ func NewProject(h ProjectAPI) *Project {
 
 			api.Send(w, r, value)
 		},
+		CreateRevision: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectCreateRevision()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			value, err := h.CreateRevision(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			api.Send(w, r, value)
+		},
+		ListRevisions: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectListRevisions()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			value, err := h.ListRevisions(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			api.Send(w, r, value)
+		},
+		GetDeploymentPlan: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectGetDeploymentPlan()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			value, err := h.GetDeploymentPlan(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			api.Send(w, r, value)
+		},
+		Publish: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectPublish()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			value, err := h.Publish(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -281,5 +345,9 @@ func (h Project) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Get("/projects/{projectID}/graph", h.Graph)
 		r.Put("/projects/{projectID}/governance/{stepKey}", h.GovernanceSave)
 		r.Post("/projects/{projectID}/governance/{stepKey}/transition", h.GovernanceTransition)
+		r.Post("/projects/{projectID}/revision", h.CreateRevision)
+		r.Get("/projects/{projectID}/revisions", h.ListRevisions)
+		r.Get("/projects/{projectID}/publish", h.GetDeploymentPlan)
+		r.Post("/projects/{projectID}/publish", h.Publish)
 	})
 }

@@ -5,62 +5,68 @@ import (
 )
 
 _pageLayoutDefs: {
-			PageLayoutMeta: { name: "PageLayoutMeta", fields: [
-				{ name: "Title", type: "string", json: "title" },
-				{ name: "Description", type: "string", json: "description" },
-				{ name: "Style", goType: "map[string]any", json: "style,omitempty" },
-			]}
+	PageLayoutMeta: {name: "PageLayoutMeta", fields: [
+				{name: "Title", type:       "string", json:         "title"},
+				{name: "Description", type: "string", json:         "description"},
+				{name: "Style", goType:     "map[string]any", json: "style,omitempty"},
+	]}
 
-			PageLayoutConfig: { name: "PageLayoutConfig", fields: [
-				{ name: "Visibility", type: _pageLayoutDefs.PageLayoutVisibility, json: "visibility" },
-				{ name: "Buttons", type: _pageLayoutDefs.PageLayoutButtonConfig, json: "buttons" },
-				{ name: "Actions", slice: true, type: _pageLayoutDefs.PageLayoutAction, json: "actions,omitempty" },
-				{ name: "Validation", type: _pageLayoutDefs.PageLayoutValidation, json: "validation" },
-				{ name: "UseTitle", type: "bool", json: "useTitle" },
-			]}
+	PageLayoutConfig: {name: "PageLayoutConfig", fields: [
+					{name: "Visibility", type: _pageLayoutDefs.PageLayoutVisibility, json:   "visibility"},
+					{name: "Buttons", type:    _pageLayoutDefs.PageLayoutButtonConfig, json: "buttons"},
+					{name: "Actions", slice:   true, type:                                   _pageLayoutDefs.PageLayoutAction, json: "actions,omitempty"},
+					{name: "Validation", type: _pageLayoutDefs.PageLayoutValidation, json:   "validation"},
+					{name: "UseTitle", type:   "bool", json:                                 "useTitle"},
+	]}
 
-			PageLayoutVisibility: { name: "PageLayoutVisibility", fields: [
-				{ name: "Expression", type: "string", json: "expression" },
-				{ name: "Roles", slice: true, type: "string", json: "roles,omitempty" },
-			]}
+	PageLayoutVisibility: {name: "PageLayoutVisibility", fields: [
+					{name: "Expression", type: "string", json: "expression"},
+					{name: "Roles", slice:     true, type:     "string", json: "roles,omitempty"},
+	]}
 
-			PageLayoutButtonConfig: { name: "PageLayoutButtonConfig", fields: [
-				{ name: "New", type: _pageLayoutDefs.PageLayoutButton, json: "new" },
-				{ name: "Edit", type: _pageLayoutDefs.PageLayoutButton, json: "edit" },
-				{ name: "Submit", type: _pageLayoutDefs.PageLayoutButton, json: "submit" },
-				{ name: "Delete", type: _pageLayoutDefs.PageLayoutButton, json: "delete" },
-				{ name: "Clone", type: _pageLayoutDefs.PageLayoutButton, json: "clone" },
-				{ name: "Back", type: _pageLayoutDefs.PageLayoutButton, json: "back" },
-			]}
+	PageLayoutButtonConfig: {name: "PageLayoutButtonConfig", fields: [
+					{name: "New", type:    _pageLayoutDefs.PageLayoutButton, json: "new"},
+					{name: "Edit", type:   _pageLayoutDefs.PageLayoutButton, json: "edit"},
+					{name: "Submit", type: _pageLayoutDefs.PageLayoutButton, json: "submit"},
+					{name: "Delete", type: _pageLayoutDefs.PageLayoutButton, json: "delete"},
+					{name: "Clone", type:  _pageLayoutDefs.PageLayoutButton, json: "clone"},
+					{name: "Back", type:   _pageLayoutDefs.PageLayoutButton, json: "back"},
+	]}
 
-			PageLayoutButton: { name: "PageLayoutButton", fields: [
-				{ name: "Enabled", type: "bool", json: "enabled" },
-				{ name: "Label", type: "string", json: "label" },
-			]}
+	PageLayoutButton: {name: "PageLayoutButton", fields: [
+					{name: "Enabled", type: "bool", json:   "enabled"},
+					{name: "Label", type:   "string", json: "label"},
+	]}
 
-			PageLayoutAction: { name: "PageLayoutAction", fields: [
-				{ name: "ActionID", type: "uint64", json: "actionID,string" },
-				{ name: "Placement", type: "string", json: "placement" },
-				{ name: "Meta", type: _pageLayoutDefs.PageLayoutActionMeta, json: "meta" },
-				{ name: "Enabled", type: "bool", json: "enabled" },
-				{ name: "Kind", type: "string", json: "kind" },
-				{ name: "Params", type: "any", json: "params" },
-			]}
+	PageLayoutAction: {name: "PageLayoutAction", fields: [
+					{name: "ActionID", type:  "uint64", json:                             "actionID,string"},
+					{name: "Placement", type: "string", json:                             "placement"},
+					{name: "Meta", type:      _pageLayoutDefs.PageLayoutActionMeta, json: "meta"},
+					{name: "Enabled", type:   "bool", json:                               "enabled"},
+					{name: "Kind", type:      "string", json:                             "kind"},
+					{name: "Params", type:    "any", json:                                "params"},
+	]}
 
-			PageLayoutActionMeta: { name: "PageLayoutActionMeta", fields: [
-				{ name: "Label", type: "string", json: "label" },
-				{ name: "Style", goType: "map[string]any", json: "style,omitempty" },
-			]}
+	PageLayoutActionMeta: {name: "PageLayoutActionMeta", fields: [
+					{name: "Label", type:   "string", json:         "label"},
+					{name: "Style", goType: "map[string]any", json: "style,omitempty"},
+	]}
 
-			PageLayoutValidation: { name: "PageLayoutValidation", fields: [
-				{ name: "RequiredFields", slice: true, type: _pageLayoutDefs.PageLayoutRequiredField, json: "requiredFields,omitempty" },
-			]}
+	PageLayoutValidation: {name: "PageLayoutValidation", fields: [
+					{name: "RequiredFields", slice: true, type: _pageLayoutDefs.PageLayoutRequiredField, json: "requiredFields,omitempty"},
+	]}
 
-			PageLayoutRequiredField: { name: "PageLayoutRequiredField", fields: [
-				{ name: "Field", type: "string", json: "field" },
-				{ name: "Condition", type: "string", json: "condition" },
-			]}
-		}
+	PageLayoutRequiredField: {name: "PageLayoutRequiredField", fields: [
+					{name: "Field", type:     "string", json: "field"},
+					{name: "Condition", type: "string", json: "condition"},
+	]}
+
+	PageLayoutBlock: {name: "PageLayoutBlock", fields: [
+				{name: "BlockID", type: "uint64", json:         "blockID,string,omitempty"},
+				{name: "XYWH", goType:  "[4]int", json:         "xywh"},
+				{name: "Meta", goType:  "map[string]any", json: "meta,omitempty"},
+	]}
+}
 
 pageLayout: {
 	features: {
@@ -89,24 +95,24 @@ pageLayout: {
 			id:         schema.IdField
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
-			handle: schema.HandleField
+			handle:     schema.HandleField
 
 			// struct-only field: `Primary bool json:"primary"` is not backed by a
 			// stored/dal attribute. store:false + no dal block keeps it out of the
 			// store/dal/getters codegen so it appears ONLY in the generated struct.
 			// convention yields json:"primary", matching the hand-written tag.
 			primary: {
-				goType: "bool"
-				store: false
+				goType:     "bool"
+				store:      false
 				omitGetter: true
 				omitSetter: true
 			}
 
 			page_id: {
-				ident: "pageID",
-				goType: "uint64",
-				json: { field: "pageID", string: true }
-				dal: { type: "Ref", refModelResType: "corteza::compose:page" }
+				ident:  "pageID"
+				goType: "uint64"
+				json: {field: "pageID", string: true}
+				dal: {type: "Ref", refModelResType: "corteza::compose:page"}
 				sortable: true
 				envoy: {
 					yaml: {
@@ -115,10 +121,10 @@ pageLayout: {
 				}
 			}
 			parent_id: {
-				ident: "parentID",
-				goType: "uint64",
-				json: { field: "parentID", string: true }
-				dal: { type: "Ref", refModelResType: "corteza::compose:page-layout" }
+				ident:  "parentID"
+				goType: "uint64"
+				json: {field: "parentID", string: true}
+				dal: {type: "Ref", refModelResType: "corteza::compose:page-layout"}
 				sortable: true
 				envoy: {
 					yaml: {
@@ -128,11 +134,11 @@ pageLayout: {
 			}
 
 			namespace_id: {
-				ident: "namespaceID",
-				goType: "uint64",
-				json: { field: "namespaceID", string: true }
+				ident:  "namespaceID"
+				goType: "uint64"
+				json: {field: "namespaceID", string: true}
 				storeIdent: "rel_namespace"
-				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				dal: {type: "Ref", refModelResType: "corteza::compose:namespace"}
 				envoy: {
 					yaml: {
 						identKeyAlias: ["namespace"]
@@ -141,45 +147,45 @@ pageLayout: {
 			}
 			weight: {
 				goType: "int", sortable: true
-				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
+				dal: {type: "Number", default: 0, meta: {"rdbms:type": "integer"}}
 			}
 
 			meta: {
 				type: _pageLayoutDefs.PageLayoutMeta
-				json: { field: "meta", omitEmpty: true }
-				dal: { type: "JSON", defaultEmptyObject: true }
+				json: {field: "meta", omitEmpty: true}
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 
 			config: {
 				type: _pageLayoutDefs.PageLayoutConfig
-				dal: { type: "JSON", defaultEmptyObject: true }
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 			blocks: {
 				goType: "types.PageLayoutBlocks"
-				json: { field: "blocks", omitEmpty: true }
-				dal: { type: "JSON", defaultEmptyObject: true }
+				json: {field: "blocks", omitEmpty: true}
+				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true
 			}
 
-			owned_by: schema.AttributeUserRef & {json: {field: "ownedBy", string: true}}
-			created_at: schema.SortableTimestampNowField
-			updated_at: schema.SortableTimestampNilField
-			deleted_at: schema.SortableTimestampNilField
+			owned_by:         schema.AttributeUserRef & {json: {field: "ownedBy", string: true}}
+			created_at:       schema.SortableTimestampNowField
+			updated_at:       schema.SortableTimestampNilField
+			deleted_at:       schema.SortableTimestampNilField
 			created_by_agent: schema.AttributeAgentRef
 		}
 
 		indexes: {
-			"primary": { attribute: "id" }
-			"namespace": { attribute: "namespace_id" },
-			"page_id": { attribute: "page_id" },
-			"parent_id": { attribute: "parent_id" },
+			"primary": {attribute: "id"}
+			"namespace": {attribute: "namespace_id"}
+			"page_id": {attribute: "page_id"}
+			"parent_id": {attribute: "parent_id"}
 			"unique_handle": {
-				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "page_id" }, { attribute: "namespace_id" }]
+				fields: [{attribute: "handle", modifiers: ["LOWERCASE"]}, {attribute: "page_id"}, {attribute: "namespace_id"}]
 				predicate: "handle != '' AND deleted_at IS NULL"
 			}
 		}
@@ -187,15 +193,15 @@ pageLayout: {
 
 	filter: {
 		struct: {
-			page_layout_id: { goType: "[]uint64", ident: "pageLayoutID", storeIdent: "id" }
-			tenant_id:      schema.TenantFilterField
-			project_id:     schema.ProjectFilterField
-			namespace_id:   { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
-			page_id: { goType: "uint64", ident: "pageID", storeIdent: "page_id" }
-			parent_id: { goType: "uint64", ident: "parentID", storeIdent: "parent_id" }
-			default: { goType: "bool", ident: "default" }
-			handle: { goType: "string" }
-			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
+			page_layout_id: {goType: "[]uint64", ident: "pageLayoutID", storeIdent: "id"}
+			tenant_id:  schema.TenantFilterField
+			project_id: schema.ProjectFilterField
+			namespace_id: {goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace"}
+			page_id: {goType: "uint64", ident: "pageID", storeIdent: "page_id"}
+			parent_id: {goType: "uint64", ident: "parentID", storeIdent: "parent_id"}
+			default: {goType: "bool", ident: "default"}
+			handle: {goType: "string"}
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		query: ["handle"]
@@ -207,7 +213,7 @@ pageLayout: {
 		scoped: true
 		yaml: {
 			supportMappedInput: true
-			mappedField: "Handle"
+			mappedField:        "Handle"
 			identKeyAlias: ["page_layouts", "pagelayouts", "layouts"]
 		}
 		store: {
@@ -224,38 +230,38 @@ pageLayout: {
 
 		customFunctions: [
 			{
-				name: "FindByHandle"
-				cap:  "read"
+				name:   "FindByHandle"
+				cap:    "read"
 				action: "Lookup"
 				args: [
 					{name: "namespaceID", goType: "uint64"},
-					{name: "h", goType: "string"},
+					{name: "h", goType:           "string"},
 				]
 				results: [
-					{name: "c", goType: "*types.PageLayout"},
+					{name: "c", goType:   "*types.PageLayout"},
 					{name: "err", goType: "error"},
 				]
 			},
 			{
-				name: "FindByPageLayoutID"
-				cap:  "read"
+				name:   "FindByPageLayoutID"
+				cap:    "read"
 				action: "Lookup"
 				args: [
-					{name: "namespaceID", goType: "uint64"},
+					{name: "namespaceID", goType:  "uint64"},
 					{name: "pageLayoutID", goType: "uint64"},
 				]
 				results: [
-					{name: "p", goType: "*types.PageLayout"},
+					{name: "p", goType:   "*types.PageLayout"},
 					{name: "err", goType: "error"},
 				]
 			},
 			{
-				name: "Reorder"
-				cap:  "write"
+				name:   "Reorder"
+				cap:    "write"
 				action: "Reorder"
 				args: [
-					{name: "namespaceID", goType: "uint64"},
-					{name: "pageID", goType: "uint64"},
+					{name: "namespaceID", goType:   "uint64"},
+					{name: "pageID", goType:        "uint64"},
 					{name: "pageLayoutIDs", goType: "[]uint64"},
 				]
 				results: [
@@ -355,11 +361,11 @@ pageLayout: {
 				{
 					expIdent: "ReorderComposePageLayouts"
 					args: [
-						{ ident: "namespace_id", goType: "uint64" },
-						{ ident: "page_id", goType: "uint64" },
-						{ ident: "page_layout_ids", goType: "[]uint64" }
+						{ident: "namespace_id", goType:    "uint64"},
+						{ident: "page_id", goType:         "uint64"},
+						{ident: "page_layout_ids", goType: "[]uint64"},
 					]
-				}
+				},
 			]
 		}
 	}

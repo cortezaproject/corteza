@@ -20,11 +20,13 @@ type (
 	// Internal API interface
 	ActionlogAPI interface {
 		List(context.Context, *request.ActionlogList) (interface{}, error)
+		Report(context.Context, *request.ActionlogReport) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Actionlog struct {
-		List func(http.ResponseWriter, *http.Request)
+		List   func(http.ResponseWriter, *http.Request)
+		Report func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -46,6 +48,22 @@ func NewActionlog(h ActionlogAPI) *Actionlog {
 
 			api.Send(w, r, value)
 		},
+		Report: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewActionlogReport()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Report(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -53,5 +71,6 @@ func (h Actionlog) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/actionlog/", h.List)
+		r.Get("/actionlog/report", h.Report)
 	})
 }

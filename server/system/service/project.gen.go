@@ -20,6 +20,10 @@ type project struct {
 	actionlog actionlog.Recorder
 	store     store.Storer
 	ac        projectAccessController
+	nsSvc     projectNamespaceSvc
+	dalSvc    projectDALImporter
+	dalConns  projectDALConnSvc
+	recordSvc projectRecordSvc
 }
 
 func Project() *project {

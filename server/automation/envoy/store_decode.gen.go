@@ -192,6 +192,8 @@ func WorkflowToEnvoyNode(r *types.Workflow) (node *envoyx.Node, err error) {
 		}
 	}
 
+	refs = envoyx.MergeRefs(refs, decodeWorkflowRefs(r))
+
 	var scope envoyx.Scope
 
 	node = &envoyx.Node{
