@@ -57,8 +57,43 @@
       <template #body-updatedAt="{ data }">
         <span class="text-sm text-muted-color">{{ formatDate(data.updatedAt) }}</span>
       </template>
+      <template #filter>
+        <Button
+          icon="pi pi-filter"
+          severity="secondary"
+          size="small"
+          text
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
-
+    <Popover ref="filterMenu">
+      <div class="flex flex-col gap-4 p-2 w-64">
+        <div class="flex flex-col gap-2">
+          <span class="font-medium text-sm text-primary">
+            {{ $t('project.list.filterByStatus') }}
+          </span>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.status" :inputId="'draft'" value="draft" />
+            <label for="draft" class="text-sm cursor-pointer">
+              {{ $t('project.status.draft') }}
+            </label>
+          </div>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.status" :inputId="'published'" value="published" />
+            <label for="published" class="text-sm cursor-pointer">
+              {{ $t('project.status.published') }}
+            </label>
+          </div>
+          <div class="flex items-center gap-2">
+            <RadioButton v-model="filter.status" :inputId="'archived'" value="archived" />
+            <label for="archived" class="text-sm cursor-pointer">
+              {{ $t('project.status.archived') }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </Popover>
     <NewProjectDialog v-model:visible="newDialogVisible" @created="onCreated" />
     <RenameProjectDialog
       v-model:visible="renameVisible"
@@ -134,6 +169,11 @@ const fields = [
     pt: { columnHeaderContent: 'justify-end' },
   },
 ]
+// Filter menu
+const filterMenu = ref()
+function toggleFilterMenu(event) {
+  filterMenu.value.toggle(event)
+}
 
 const statusSeverity = status =>
   ({ active: 'success', published: 'success', draft: 'info', archived: 'secondary' })[status] ??

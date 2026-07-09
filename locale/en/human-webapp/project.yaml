@@ -17,6 +17,7 @@ statusShort:
 list:
   title: Projects
   searchPlaceholder: Search projects…
+  filterByStatus: Filter by status
   resourceSingle: project
   resourcePlural: projects
   noItems: No projects yet.
