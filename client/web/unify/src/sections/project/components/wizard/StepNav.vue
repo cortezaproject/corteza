@@ -1,5 +1,5 @@
 <template>
-  <nav class="w-full h-full overflow-y-auto rounded-xl border border-surface bg-surface-50 dark:bg-surface-950">
+  <nav class="w-full h-full overflow-y-auto rounded-xl border border-surface bg-surface">
     <ul class="p-3 flex flex-col gap-0.5">
       <template v-for="step in steps" :key="step.key">
         <li>

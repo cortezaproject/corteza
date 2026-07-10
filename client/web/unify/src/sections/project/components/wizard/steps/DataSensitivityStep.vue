@@ -64,12 +64,7 @@
                 <div v-for="mod in g.modules" :key="mod.id">
                   <!-- Module label -->
                   <div class="flex items-center gap-2.5 mb-2">
-                    <span
-                      class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-                      :class="[moduleCfg.bg, moduleCfg.ring]"
-                    >
-                      <i :class="[moduleCfg.icon, moduleCfg.text, 'text-sm']" />
-                    </span>
+                    <KindIcon kind="module" size="lg" />
                     <span class="font-medium truncate">
                       {{ mod.name }}
                     </span>
@@ -145,12 +140,7 @@
               class="pi pi-chevron-down text-xs text-muted-color shrink-0 transition-transform duration-200"
               :class="{ '-rotate-90': isModuleCollapsed(mod.id) }"
             />
-            <span
-              class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-              :class="[moduleCfg.bg, moduleCfg.ring]"
-            >
-              <i :class="[moduleCfg.icon, moduleCfg.text, 'text-sm']" />
-            </span>
+            <KindIcon kind="module" size="lg" />
             <div class="min-w-0 flex-1">
               <div class="font-medium truncate">{{ mod.name }}</div>
               <div class="text-xs text-muted-color">{{ countLabel(mod.fields.length) }}</div>
@@ -238,7 +228,7 @@
 </template>
 
 <script setup>
-import { kindConfig } from '@/sections/project/config/kinds'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { SENSITIVITY_OPTIONS, sensitivity } from '@/sections/project/config/sensitivity'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { computed, inject, ref } from 'vue'
@@ -252,7 +242,6 @@ const props = defineProps({
 const { t } = useI18n()
 const store = useProjectsStore()
 const $toast = inject('$toast')
-const moduleCfg = kindConfig('module')
 const editField = inject('editField', null)
 
 // Grouped overview ('level') vs. classification matrix ('module').

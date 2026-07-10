@@ -35,28 +35,15 @@
       <CFormGroup :label="$t('project.userDetail.roles')">
         <p class="text-sm text-muted-color mb-2">{{ $t('project.userDetail.rolesHint') }}</p>
         <div v-if="roles.length" class="flex flex-wrap gap-2">
-          <button
+          <KindBadge
             v-for="role in roles"
             :key="role.id"
-            type="button"
-            class="inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border border-surface text-sm font-medium transition-all"
-            :class="
-              draft.roleIds.includes(role.id)
-                ? 'text-color'
-                : 'text-muted-color opacity-50 hover:opacity-100'
-            "
+            kind="role"
+            :label="role.name"
+            interactive
+            :muted="!draft.roleIds.includes(role.id)"
             @click="toggleRole(role.id)"
-          >
-            <!-- Same role badge as the matrix column headers in both states; the
-                 whole chip just dims when the role isn't held. -->
-            <span
-              class="inline-flex items-center justify-center w-5 h-5 rounded ring-1 shrink-0"
-              :class="[roleCfg.bg, roleCfg.ring]"
-            >
-              <i :class="[roleCfg.icon, roleCfg.text, 'text-[10px]']" />
-            </span>
-            {{ role.name }}
-          </button>
+          />
         </div>
         <p v-else class="text-sm text-muted-color italic">
           {{ $t('project.userDetail.noRoles') }}
@@ -111,6 +98,7 @@
 </template>
 
 <script setup>
+import KindBadge from '@/sections/project/components/KindBadge.vue'
 import ProjectPermissionMatrix from '@/sections/project/components/permissions/ProjectPermissionMatrix.vue'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
@@ -141,9 +129,6 @@ const visible = computed({
 })
 
 const cfg = kindConfig('user')
-// Role kind visuals (violet id-card) — used to style the role toggle chips so
-// they read as roles, matching how roles look elsewhere.
-const roleCfg = kindConfig('role')
 
 const roles = computed(() => store.rolesFor(props.project?.id))
 

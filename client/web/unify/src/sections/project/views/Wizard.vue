@@ -1,22 +1,46 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
+    <span class="flex items-center gap-2">
+      <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
+      <span
+        v-if="project"
+        class="text-[11px] font-medium rounded-md px-2 py-0.5"
+        :class="
+          isLive
+            ? 'bg-surface-200 text-muted-color dark:bg-surface-700'
+            : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+        "
+      >
+        {{ versionLabel }}
+      </span>
+    </span>
   </Teleport>
 
-  <!-- Right-aligned topbar tool: open the project's compose namespace. -->
+  <!-- Right-aligned topbar tools: for a live project, jump to its dashboard;
+       always offer opening the project's compose namespace. -->
   <Teleport to="#topbar-tools" defer>
-    <Button
-      v-if="project?.namespaceID"
-      :label="$t('project.viewProject')"
-      icon="pi pi-external-link"
-      severity="secondary"
-      size="small"
-      @click="openProject"
-    />
+    <span class="flex items-center gap-2">
+      <Button
+        v-if="isLive"
+        :label="$t('project.viewDashboard')"
+        icon="pi pi-gauge"
+        size="small"
+        severity="secondary"
+        outlined
+        @click="goDashboard"
+      />
+      <Button
+        v-if="project?.namespaceID"
+        :label="$t('project.viewProject')"
+        icon="pi pi-external-link"
+        size="small"
+        @click="openProject"
+      />
+    </span>
   </Teleport>
 
   <div v-if="project" class="h-full flex flex-col min-h-0">
-    <div class="flex-1 flex gap-4 p-4 min-h-0">
+    <div class="flex-1 flex gap-4 p-3 min-h-0">
       <!-- Left: step nav -->
       <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
         <StepNav
@@ -33,9 +57,9 @@
         />
       </div>
 
-      <div
-        class="flex-1 flex flex-col min-w-0 min-h-0 rounded-xl border border-surface bg-surface overflow-hidden"
-      >
+      <!-- Step panel — an outlined panel on the background (border + rounded, no
+           fill); the step header's bottom border delineates it from the content. -->
+      <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden rounded-xl border border-surface">
         <!-- Step header -->
         <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
           <!-- Leading badge mirrors the sidebar/metrics strip: resource steps take
@@ -424,6 +448,18 @@ const confirm = useConfirm()
 const $toast = inject('$toast')
 
 const project = computed(() => store.findById(route.params.projectId))
+
+// A live (published) project has a dashboard to switch to; drafts are wizard-only.
+const isLive = computed(() => ['active', 'published'].includes(project.value?.status))
+
+// User-facing versions are 1-based (the original live project is v1), so we
+// display the backend revision + 1 — mirrors the dashboard topbar crumb. An
+// unpublished project is flagged as a draft (e.g. "v1 draft").
+const versionLabel = computed(() =>
+  t(isLive.value ? 'project.dashboard.version' : 'project.dashboard.versionDraft', {
+    number: (project.value?.revision ?? 0) + 1,
+  }),
+)
 
 // Load the full project (members for capability resolution) + user directory.
 usersStore.load()

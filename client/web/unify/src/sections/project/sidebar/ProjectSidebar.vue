@@ -28,10 +28,10 @@ const { projects } = storeToRefs(store)
 
 store.load()
 
-// A published project opens its read-only overview; a draft opens the wizard.
-// Mirrors ProjectList's row navigation.
+// A live (published) project opens its dashboard; a draft opens the wizard.
+// Live status is `active` (BE never sets `published`), matching ProjectList.
 const routeFor = p => ({
-  name: p.status === 'published' ? 'project.overview' : 'project.wizard',
+  name: ['active', 'published'].includes(p.status) ? 'project.overview' : 'project.wizard',
   params: { projectId: p.id },
 })
 

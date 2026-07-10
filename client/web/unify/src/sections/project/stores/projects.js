@@ -1499,6 +1499,10 @@ export const useProjectsStore = defineStore('projects', () => {
         moduleID,
         // Record pages are bound to a module; standalone pages are not.
         isRecordPage: !!moduleID,
+        // Parent page for the nav hierarchy; '0'/NoID means a root page.
+        selfID: pg.selfID && String(pg.selfID) !== '0' ? String(pg.selfID) : null,
+        // Sibling ordering within a parent (compose page weight).
+        weight: Number(pg.weight) || 0,
         // Matrix row label: a custom title that isn't just a copy of the page
         // name always wins. Otherwise, when the page has a single layout whose
         // title merely mirrors the page (the auto-created default via

@@ -13,7 +13,6 @@
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.resourceManagement.ai.addProvider')"
-          severity="secondary"
           size="small"
           @click="addProvider"
         />
@@ -72,14 +71,13 @@
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.resourceManagement.infra.add')"
-          severity="secondary"
           size="small"
           @click="addInfra"
         />
       </header>
 
       <div v-if="infraProviders.length" class="flex flex-col gap-3">
-        <div v-for="p in infraProviders" :key="p.id" class="group rounded-lg border border-surface p-4">
+        <div v-for="p in infraProviders" :key="p.id" class="group rounded-lg border border-surface bg-surface p-4">
           <div class="flex items-start gap-3">
             <div class="flex flex-col gap-4 flex-1 min-w-0">
               <CInputToggleCard
@@ -187,7 +185,7 @@
         <div
           v-for="c in connections"
           :key="c.id"
-          class="group rounded-lg border border-surface p-4 flex flex-col gap-4"
+          class="group rounded-lg border border-surface bg-surface p-4 flex flex-col gap-4"
         >
           <div class="flex items-start gap-3">
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 flex-1 min-w-0">

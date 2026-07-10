@@ -8,7 +8,7 @@
     </div>
 
     <!-- Bounded table: header bar + divided rows inside a single border. -->
-    <div v-else class="flex flex-col min-w-max rounded-border border border-surface overflow-hidden">
+    <div v-else class="flex flex-col min-w-max rounded-border border border-surface bg-surface overflow-hidden">
       <!-- Column headers (the `cform-list-header` class is a stable hook for
            consumers that restyle the list). -->
       <div

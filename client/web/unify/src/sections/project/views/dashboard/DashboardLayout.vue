@@ -13,25 +13,36 @@
     </span>
   </Teleport>
 
-  <!-- Right-aligned topbar tool: open the project's compose namespace. -->
+  <!-- Right-aligned topbar tools: jump back to the build wizard (project
+       overview); always offer opening the project's compose namespace. -->
   <Teleport to="#topbar-tools" defer>
-    <Button
-      v-if="project?.namespaceID"
-      :label="$t('project.viewProject')"
-      icon="pi pi-external-link"
-      severity="secondary"
-      size="small"
-      @click="openProject"
-    />
+    <span class="flex items-center gap-2">
+      <Button
+        v-if="project"
+        :label="$t('project.viewOverview')"
+        icon="pi pi-sitemap"
+        size="small"
+        severity="secondary"
+        outlined
+        @click="goWizard"
+      />
+      <Button
+        v-if="project?.namespaceID"
+        :label="$t('project.viewProject')"
+        icon="pi pi-external-link"
+        size="small"
+        @click="openProject"
+      />
+    </span>
   </Teleport>
 
   <!-- Left rail (in-view sub-nav) + the active view. The app's global sidebar
        is unchanged; this mirrors the Wizard's StepNav-beside-content layout. -->
-  <div class="h-full w-full flex gap-4 p-4 min-h-0">
-    <aside class="w-60 shrink-0 h-full">
+  <div class="h-full w-full flex gap-4 p-3 min-h-0">
+    <aside class="w-72 shrink-0 h-full">
       <DashboardNav />
     </aside>
-    <section class="flex-1 min-h-0 overflow-y-auto rounded-xl border border-surface bg-surface-0 dark:bg-surface-900">
+    <section class="flex-1 min-w-0 min-h-0 overflow-hidden rounded-xl border border-surface">
       <RouterView />
     </section>
   </div>
@@ -50,6 +61,11 @@ const router = useRouter()
 const store = useProjectsStore()
 
 const project = computed(() => store.findById(route.params.projectId))
+
+// Switch back to the build wizard (the project's "overview" of resources/steps).
+function goWizard() {
+  router.push({ name: 'project.wizard', params: { projectId: route.params.projectId } })
+}
 
 // Open the project's compose namespace (namespace.view resolves the URL part by
 // slug OR namespaceID, so the ID is a reliable target).

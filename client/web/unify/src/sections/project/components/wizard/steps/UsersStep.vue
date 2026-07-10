@@ -6,7 +6,6 @@
           v-if="!disabled && roles.length"
           icon="pi pi-plus"
           :label="$t('project.accessUsers.add')"
-          severity="secondary"
           size="small"
           @click="createResource?.('user')"
         />
@@ -36,15 +35,10 @@
         <template #default="{ item: row }">
           <div class="flex items-center gap-4 min-w-0">
             <CFormItemContent :title="row.name" :subtitle="row.email" />
-            <!-- Read-only role summary; editing happens in the detail dialog. -->
+            <!-- Read-only role summary using the same role badge as the user
+                 detail dialog; editing happens in the detail dialog. -->
             <div v-if="row.roleNames.length" class="flex flex-wrap gap-1.5">
-              <span
-                v-for="name in row.roleNames"
-                :key="name"
-                class="px-2 py-0.5 rounded-md text-xs font-medium border bg-primary border-primary text-primary-contrast"
-              >
-                {{ name }}
-              </span>
+              <KindBadge v-for="name in row.roleNames" :key="name" kind="role" :label="name" />
             </div>
             <span v-else class="text-xs text-muted-color italic">
               {{ $t('project.accessUsers.noRolesAssigned') }}
@@ -70,6 +64,7 @@
 </template>
 
 <script setup>
+import KindBadge from '@/sections/project/components/KindBadge.vue'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'

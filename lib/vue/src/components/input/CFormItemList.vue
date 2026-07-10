@@ -17,7 +17,7 @@
       :draggable="draggable"
       :class="[
         'group flex items-center gap-2 p-3 border border-surface rounded-border shadow-sm cursor-pointer hover:bg-emphasis transition-colors',
-        isSelected(item, index) ? 'bg-highlight' : '',
+        isSelected(item, index) ? 'bg-highlight' : 'bg-surface',
         draggable && dropTargetIndex === index && draggedIndex !== index
           ? '!border-t-2 !border-t-primary'
           : '',

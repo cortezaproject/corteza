@@ -6,7 +6,6 @@
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.accessRoles.add')"
-          severity="secondary"
           size="small"
           @click="createResource?.('role')"
         />
@@ -25,7 +24,7 @@
         <div
           v-for="r in roles"
           :key="r.id"
-          class="border border-surface rounded-border shadow-sm overflow-hidden"
+          class="bg-surface border border-surface rounded-border shadow-sm overflow-hidden"
         >
           <div class="group flex items-center hover:bg-emphasis transition-colors">
             <button

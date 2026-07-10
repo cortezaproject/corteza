@@ -39,6 +39,8 @@ list:
     deleted: Project deleted
     actionFailed: Action failed
 viewProject: View project
+viewDashboard: View dashboard
+viewOverview: Project overview
 overview:
   fallbackName: Project
   title: '{name} — overview'
@@ -48,6 +50,7 @@ overview:
 dashboard:
   backToProjects: Projects
   version: 'v{number}'
+  versionDraft: 'v{number} draft'
   nav:
     monitor: Monitor
     categories: Categories
@@ -55,9 +58,41 @@ dashboard:
   views:
     dashboard: Dashboard
     events: All Events
-    newEvent: New Event
     reports: Reports
     backlog: Backlog
+  # "+ New {type}" button label; {type} is a category singular below.
+  newButton: 'New {type}'
+  # Singular category nouns used in buttons/dialog titles.
+  categorySingular:
+    incident: Incident
+    feature: Feature
+    privacy: Privacy request
+    task: Task
+    review: Review
+  # KPI stat-card labels on each category page.
+  kpi:
+    total: Total
+    open: Open
+    overdue: Overdue
+  # Bar-chart card titles (grouped-by field).
+  chart:
+    byStatus: 'By status'
+    byType: 'By type'
+    byRequestType: 'By request type'
+    byTaskType: 'By task type'
+    byReviewType: 'By review type'
+    byFeatureType: 'By feature type'
+  # Extra CResourceList column headers not covered by event.f.*.
+  columns:
+    id: ID
+    title: Title
+    severity: Severity
+    risk: Risk
+    backlog: Backlog
+  # CResourceList chrome for category pages.
+  list:
+    searchPlaceholder: 'Search…'
+    empty: 'Nothing here yet.'
   categories:
     incident: Incidents
     feature: Features
@@ -803,10 +838,11 @@ userDetail:
   toastSaveFailed: Could not update the user's project roles
 pages:
   title: Pages
-  recordSubtitle: Module detail page
   add: New Page
   remove: Remove Page
   openBuilder: Open in page builder
+  expand: Expand child pages
+  collapse: Collapse child pages
   empty: No pages yet.
   visible: Visible
   hidden: Hidden

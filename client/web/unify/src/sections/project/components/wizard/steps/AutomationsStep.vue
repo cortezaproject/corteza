@@ -6,7 +6,6 @@
           v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.automations.add')"
-          severity="secondary"
           size="small"
           @click="createResource?.('automation')"
         />

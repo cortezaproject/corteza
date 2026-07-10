@@ -75,7 +75,16 @@
             :sortable="field.sortable"
             :class="field.class"
             :style="field.style"
-            :pt="field.pt"
+            :pt="{
+              ...field.pt,
+              headerCell: {
+                ...field.pt?.headerCell,
+                class: [
+                  'bg-emphasis text-muted-color font-semibold uppercase text-sm tracking-wide',
+                  field.pt?.headerCell?.class,
+                ],
+              },
+            }"
             :frozen="field.frozen"
             :alignFrozen="field.alignFrozen"
           >

@@ -44,10 +44,10 @@ export default {
           meta: { section: 'project', titleKey: 'project.dashboard.views.events', icon: 'pi-list' },
         },
         {
-          path: 'new-event',
-          name: 'project.overview.newEvent',
-          component: () => import('./views/dashboard/NewEventView.vue'),
-          meta: { section: 'project', titleKey: 'project.dashboard.views.newEvent', icon: 'pi-plus-circle' },
+          path: 'category/:category',
+          name: 'project.overview.category',
+          component: () => import('./views/dashboard/CategoryView.vue'),
+          meta: { section: 'project', titleKey: 'project.dashboard.views.dashboard', icon: 'pi-list' },
         },
         {
           path: 'reports',

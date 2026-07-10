@@ -14,18 +14,17 @@ export const DASHBOARD_NAV = [
     items: [
       { key: 'dashboard', labelKey: 'project.dashboard.views.dashboard', icon: 'pi-gauge', route: 'project.overview' },
       { key: 'events', labelKey: 'project.dashboard.views.events', icon: 'pi-list', route: 'project.overview.events', badge: 12 },
-      { key: 'new-event', labelKey: 'project.dashboard.views.newEvent', icon: 'pi-plus-circle', route: 'project.overview.newEvent' },
     ],
   },
   {
     key: 'categories',
     labelKey: 'project.dashboard.nav.categories',
     items: [
-      { key: 'incidents', labelKey: 'project.dashboard.categories.incidents', icon: 'pi-exclamation-triangle', route: 'project.overview.events', query: { category: 'incident' }, badge: 5 },
-      { key: 'features', labelKey: 'project.dashboard.categories.features', icon: 'pi-sparkles', route: 'project.overview.events', query: { category: 'feature' }, badge: 4, badgeTone: 'muted' },
-      { key: 'privacy', labelKey: 'project.dashboard.categories.privacy', icon: 'pi-shield', route: 'project.overview.events', query: { category: 'privacy' }, badge: 2, badgeTone: 'warning' },
-      { key: 'tasks', labelKey: 'project.dashboard.categories.tasks', icon: 'pi-check-square', route: 'project.overview.events', query: { category: 'task' }, badge: 1, badgeTone: 'muted' },
-      { key: 'reviews', labelKey: 'project.dashboard.categories.reviews', icon: 'pi-eye', route: 'project.overview.events', query: { category: 'review' }, badge: 0, badgeTone: 'muted' },
+      { key: 'incidents', labelKey: 'project.dashboard.categories.incidents', icon: 'pi-exclamation-triangle', route: 'project.overview.category', category: 'incident' },
+      { key: 'features', labelKey: 'project.dashboard.categories.features', icon: 'pi-sparkles', route: 'project.overview.category', category: 'feature' },
+      { key: 'privacy', labelKey: 'project.dashboard.categories.privacy', icon: 'pi-shield', route: 'project.overview.category', category: 'privacy' },
+      { key: 'tasks', labelKey: 'project.dashboard.categories.tasks', icon: 'pi-check-square', route: 'project.overview.category', category: 'task' },
+      { key: 'reviews', labelKey: 'project.dashboard.categories.reviews', icon: 'pi-eye', route: 'project.overview.category', category: 'review' },
     ],
   },
   {

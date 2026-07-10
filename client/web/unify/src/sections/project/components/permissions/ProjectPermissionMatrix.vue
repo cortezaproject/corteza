@@ -53,13 +53,7 @@
               >
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 min-w-0">
-                    <span
-                      v-if="row.icon"
-                      class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
-                      :class="[row.icon.bg, row.icon.ring]"
-                    >
-                      <i :class="[row.icon.icon, row.icon.text, 'text-xs']" />
-                    </span>
+                    <KindIcon v-if="row.icon" :config="row.icon" size="md" />
                     <span :class="row.labelClass" class="truncate min-w-0">{{ row.label }}</span>
                     <FieldKindTag v-if="row.tag" :type="row.tag.type" />
                     <i
@@ -157,12 +151,7 @@
             v-if="evalUserId"
             class="flex items-center justify-center gap-1.5 px-3 py-2 min-w-0 font-medium bg-black/[0.04] dark:bg-white/[0.04]"
           >
-            <span
-              class="inline-flex items-center justify-center w-5 h-5 rounded ring-1 shrink-0"
-              :class="[userCfg.bg, userCfg.ring]"
-            >
-              <i :class="[userCfg.icon, userCfg.text, 'text-[10px]']" />
-            </span>
+            <KindIcon kind="user" />
             <span class="truncate">
               {{ evalLabel || $t('project.userDetail.permissions.evaluated') }}
             </span>
@@ -182,12 +171,7 @@
             class="flex items-center justify-center gap-1.5 px-2 py-2 min-w-0 font-medium border-l border-surface"
             v-tooltip.bottom="{ value: role.name, showDelay: 400 }"
           >
-            <span
-              class="inline-flex items-center justify-center w-5 h-5 rounded ring-1 shrink-0"
-              :class="[roleCfg.bg, roleCfg.ring]"
-            >
-              <i :class="[roleCfg.icon, roleCfg.text, 'text-[10px]']" />
-            </span>
+            <KindIcon kind="role" />
             <span class="truncate">{{ role.name }}</span>
           </div>
           <div aria-hidden="true" class="border-l border-surface" />
@@ -216,13 +200,7 @@
                   <div class="flex items-center gap-2 min-w-0 flex-1">
                     <div class="min-w-0 flex-1">
                       <div class="flex items-center gap-2 min-w-0">
-                        <span
-                          v-if="row.icon"
-                          class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
-                          :class="[row.icon.bg, row.icon.ring]"
-                        >
-                          <i :class="[row.icon.icon, row.icon.text, 'text-xs']" />
-                        </span>
+                        <KindIcon v-if="row.icon" :config="row.icon" size="md" />
                         <span :class="row.labelClass" class="truncate min-w-0">
                           {{ row.label }}
                         </span>
@@ -376,6 +354,7 @@
 </template>
 
 <script setup>
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import FieldKindTag from '@/sections/project/components/datamodel/FieldKindTag.vue'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
@@ -448,11 +427,6 @@ const gridStyle = computed(() => {
   cols.push('1fr') // filler
   return { gridTemplateColumns: cols.join(' ') }
 })
-
-// Role (violet id-card) + user (emerald) kind visuals — shown as the same badge
-// used elsewhere (icon in a bg+ring chip) next to each column header's name.
-const roleCfg = kindConfig('role')
-const userCfg = kindConfig('user')
 
 function resStr(def, id) {
   return def.ns ? `${def.type}/${ns.value}/${id}` : `${def.type}/${id}`

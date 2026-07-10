@@ -6,13 +6,12 @@
           v-if="canManage"
           icon="pi pi-plus"
           :label="$t('project.members.addMember')"
-          severity="secondary"
           size="small"
           @click="openAdd"
         />
       </template>
 
-      <div class="rounded-lg border border-surface overflow-x-auto mt-1">
+      <div class="rounded-lg border border-surface bg-surface overflow-x-auto mt-1">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-emphasis text-muted-color text-xs uppercase tracking-wider">
@@ -90,7 +89,7 @@
 
     <!-- Role descriptions — the accountability framework (Article 17(m)). -->
     <CFormGroup>
-      <div class="rounded-lg border border-surface divide-y divide-surface">
+      <div class="rounded-lg border border-surface bg-surface divide-y divide-surface">
         <div v-for="r in ROLE_PRESETS" :key="r.id" class="px-4 py-3">
           <div class="flex items-center gap-2">
             <span class="font-medium">{{ $t(r.labelKey) }}</span>

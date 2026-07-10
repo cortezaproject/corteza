@@ -2,7 +2,9 @@
   <div class="w-full h-full flex flex-col gap-3">
     <!-- Header: what you're looking at + refresh -->
     <div class="shrink-0 flex items-center gap-2">
-      <h3 class="text-xs font-semibold uppercase tracking-wide text-muted-color">{{ $t('project.graph.resources') }}</h3>
+      <h3 class="text-xs font-semibold uppercase tracking-wide text-muted-color">
+        {{ $t('project.graph.resources') }}
+      </h3>
       <Button
         icon="pi pi-refresh"
         severity="secondary"
@@ -39,13 +41,15 @@
         >
           <i :class="[m.cfg.icon, m.cfg.text, 'text-xs']" />
         </span>
-        <span class="text-base font-semibold leading-none">{{ m.count }}</span>
+        <span class="text-base font-medium leading-none">{{ m.count }}</span>
         <span class="text-xs text-muted-color leading-none">{{ $t(m.cfg.labelKey) }}</span>
       </button>
     </div>
 
     <!-- Relationship graph -->
-    <div class="flex-1 min-h-0 rounded-lg border border-surface overflow-hidden bg-emphasis relative">
+    <div
+      class="flex-1 min-h-0 rounded-lg border border-surface overflow-hidden bg-emphasis relative"
+    >
       <v-chart
         v-if="visibleNodes.length"
         :option="option"
@@ -53,11 +57,16 @@
         class="w-full h-full"
         @click="onClick"
       />
-      <div v-else class="absolute inset-0 grid place-items-center text-center px-6 text-muted-color">
+      <div
+        v-else
+        class="absolute inset-0 grid place-items-center text-center px-6 text-muted-color"
+      >
         <div>
           <i class="pi pi-sitemap text-4xl mb-2" />
           <p class="text-sm">
-            {{ graph.nodes.length ? $t('project.graph.allLayersHidden') : $t('project.graph.empty') }}
+            {{
+              graph.nodes.length ? $t('project.graph.allLayersHidden') : $t('project.graph.empty')
+            }}
           </p>
         </div>
       </div>
@@ -183,9 +192,7 @@ const metrics = computed(() => {
 
 // The graph pane shows only the kinds the layer selector has enabled; edges
 // stay only between visible nodes (hiding a kind hides its edges too).
-const visibleNodes = computed(() =>
-  graph.value.nodes.filter(n => store.graphKindVisible(n.kind)),
-)
+const visibleNodes = computed(() => graph.value.nodes.filter(n => store.graphKindVisible(n.kind)))
 const visibleEdges = computed(() => {
   const ids = new Set(visibleNodes.value.map(n => n.id))
   return graph.value.edges.filter(e => ids.has(e.source) && ids.has(e.target))
@@ -274,10 +281,7 @@ const option = computed(() => {
           const deg = degreeMap.value.get(params.data.id) || 0
           const kindLabel = t(kindConfig(params.data.kind).singularKey)
           const refLabel = deg === 1 ? t('project.graph.reference') : t('project.graph.references')
-          const lines = [
-            `<b>${params.data.name}</b>`,
-            `${kindLabel} · ${deg} ${refLabel}`,
-          ]
+          const lines = [`<b>${params.data.name}</b>`, `${kindLabel} · ${deg} ${refLabel}`]
           return lines.join('<br/>')
         }
         if (params.dataType === 'edge') {

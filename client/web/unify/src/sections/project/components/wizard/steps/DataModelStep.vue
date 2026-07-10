@@ -7,7 +7,6 @@
             v-if="!disabled"
             icon="pi pi-plus"
             :label="$t('project.dataModel.addModule')"
-            severity="secondary"
             size="small"
             @click="openCreate"
           />
@@ -26,7 +25,7 @@
           <div
             v-for="m in modules"
             :key="m.id"
-            class="border border-surface rounded-border shadow-sm overflow-hidden"
+            class="bg-surface border border-surface rounded-border shadow-sm overflow-hidden"
           >
             <div class="group flex items-center hover:bg-emphasis transition-colors">
               <button
