@@ -13,7 +13,6 @@ import (
 
 	automationService "github.com/crusttech/human/server/automation/service"
 	atypes "github.com/crusttech/human/server/automation/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/apigw"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
@@ -40,15 +39,6 @@ import (
 // operation/webhook registration, Google discovery, ...).
 
 type (
-	configuredConnection struct {
-		actionlog     actionlog.Recorder
-		dalConnection dalConMngmntSvc
-		store         store.Storer
-		ac            configuredConnectionAccessController
-		connectionSvc *connection
-		logger        *zap.Logger
-	}
-
 	configuredConnectionAccessController interface {
 		CanSearchConfiguredConnections(ctx context.Context) bool
 
@@ -66,20 +56,28 @@ type (
 	connectionRunner interface {
 		Run(ctx context.Context, method, path string, payload []byte, headers map[string][]string) (statusCode int, outHeaders map[string][]string, rsp []byte, err error)
 	}
+
+	configuredConnectionServices struct {
+		dalConnection dalConMngmntSvc
+		connectionSvc *connection
+		logger        *zap.Logger
+	}
 )
 
 func ConfiguredConnectionSvc() *configuredConnection {
 	return &configuredConnection{
-		actionlog:     DefaultActionlog,
-		store:         DefaultStore,
-		ac:            DefaultAccessControl,
-		connectionSvc: DefaultConnection,
-		logger:        DefaultLogger.Named("configured-connection"),
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+		services: &configuredConnectionServices{
+			connectionSvc: DefaultConnection,
+			logger:        DefaultLogger.Named("configured-connection"),
+		},
 	}
 }
 
 func (svc *configuredConnection) WithDalConnection(s dalConMngmntSvc) *configuredConnection {
-	svc.dalConnection = s
+	svc.services.dalConnection = s
 	return svc
 }
 
@@ -121,7 +119,7 @@ func (svc *configuredConnection) FindByID(ctx context.Context, ID uint64) (res *
 func (svc *configuredConnection) beforeCreate(ctx context.Context, new *types.ConfiguredConnection) (err error) {
 	// Fetch and snapshot the connection definition
 	var conn *types.Connection
-	if conn, err = svc.connectionSvc.FindByID(ctx, new.ConnectionID); err != nil {
+	if conn, err = svc.services.connectionSvc.FindByID(ctx, new.ConnectionID); err != nil {
 		return err
 	}
 
@@ -676,11 +674,11 @@ func (svc *configuredConnection) provisionDAL(ctx context.Context, resolved *typ
 	}
 
 	// Create via dal connection service
-	if svc.dalConnection == nil {
+	if svc.services.dalConnection == nil {
 		return nil, fmt.Errorf("dalConnection service not injected")
 	}
 
-	return svc.dalConnection.Create(ctx, dalConn)
+	return svc.services.dalConnection.Create(ctx, dalConn)
 }
 
 // RegisterAllOperations loads all active configured connections and registers
@@ -1394,7 +1392,7 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 			"/users/me/calendarList?fields=items(id,summary)&maxResults=250",
 			nil, nil)
 		if err != nil {
-			svc.logger.Warn("google discovery: calendarList unavailable",
+			svc.services.logger.Warn("google discovery: calendarList unavailable",
 				zap.Uint64("ccID", cc.ID), zap.Error(err))
 			return nil
 		}
@@ -1427,7 +1425,7 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 		"/files?q="+q+"&fields=files(id,name)&pageSize=200",
 		nil, nil)
 	if err != nil {
-		svc.logger.Warn("google discovery: drive API unavailable",
+		svc.services.logger.Warn("google discovery: drive API unavailable",
 			zap.Uint64("ccID", cc.ID), zap.Error(err))
 		return nil
 	}
@@ -1620,7 +1618,7 @@ func (svc *configuredConnection) refreshAllGoogleConnections(ctx context.Context
 		Status: []string{"active"},
 	})
 	if err != nil {
-		svc.logger.Warn("google discovery refresh: failed to load connections", zap.Error(err))
+		svc.services.logger.Warn("google discovery refresh: failed to load connections", zap.Error(err))
 		return
 	}
 
@@ -1632,7 +1630,7 @@ func (svc *configuredConnection) refreshAllGoogleConnections(ctx context.Context
 			continue
 		}
 		if err := svc.syncGoogleDiscovery(ctx, cc); err != nil {
-			svc.logger.Warn("google discovery refresh: sync failed",
+			svc.services.logger.Warn("google discovery refresh: sync failed",
 				zap.Uint64("ccID", cc.ID), zap.Error(err))
 		}
 		byConn[cc.ConnectionID] = append(byConn[cc.ConnectionID], *cc)

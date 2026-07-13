@@ -6,7 +6,6 @@ import (
 
 	"github.com/crusttech/human/server/compose/service/event"
 	"github.com/crusttech/human/server/compose/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/handle"
@@ -17,13 +16,9 @@ import (
 )
 
 type (
-	pageLayout struct {
-		actionlog actionlog.Recorder
-		ac        pageLayoutAccessController
-		eventbus  eventDispatcher
-		store     store.Storer
-		locale    ResourceTranslationsManagerService
-
+	pageLayoutServices struct {
+		eventbus           eventDispatcher
+		locale             ResourceTranslationsManagerService
 		pageLayoutSettings *pageLayoutSettings
 	}
 
@@ -58,53 +53,15 @@ const (
 
 func PageLayout() *pageLayout {
 	return &pageLayout{
-		actionlog:          DefaultActionlog,
-		ac:                 DefaultAccessControl,
-		eventbus:           eventbus.Service(),
-		store:              DefaultStore,
-		locale:             DefaultResourceTranslation,
-		pageLayoutSettings: &pageLayoutSettings{},
+		actionlog: DefaultActionlog,
+		ac:        DefaultAccessControl,
+		store:     DefaultStore,
+		services: &pageLayoutServices{
+			eventbus:           eventbus.Service(),
+			locale:             DefaultResourceTranslation,
+			pageLayoutSettings: &pageLayoutSettings{},
+		},
 	}
-}
-
-// onLookup is the generated FindByID body handler. FindByID is scoped to the
-// namespace parent only (per opParents.lookup) so the page id is not part of the
-// signature.
-func (svc *pageLayout) onLookup(ctx context.Context, namespaceID, pageLayoutID uint64, aProps *pageLayoutActionProps) (p *types.PageLayout, err error) {
-	return svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
-		if pageLayoutID == 0 {
-			return nil, PageLayoutErrInvalidID()
-		}
-
-		aProps.pageLayout.ID = pageLayoutID
-		return store.LookupComposePageLayoutByID(ctx, svc.store, pageLayoutID)
-	})
-}
-
-func (svc *pageLayout) onFindByHandle(ctx context.Context, aProps *pageLayoutActionProps, namespaceID uint64, h string) (c *types.PageLayout, err error) {
-	aProps.pageLayout = &types.PageLayout{NamespaceID: namespaceID}
-
-	return svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
-		if !handle.IsValid(h) {
-			return nil, PageLayoutErrInvalidHandle()
-		}
-
-		aProps.pageLayout.Handle = h
-		return store.LookupComposePageLayoutByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
-	})
-}
-
-func (svc *pageLayout) onFindByPageLayoutID(ctx context.Context, aProps *pageLayoutActionProps, namespaceID, pageLayoutID uint64) (p *types.PageLayout, err error) {
-	aProps.pageLayout = &types.PageLayout{NamespaceID: namespaceID}
-
-	return svc.lookup(ctx, namespaceID, aProps, func(aProps *pageLayoutActionProps) (*types.PageLayout, error) {
-		if pageLayoutID == 0 {
-			return nil, PageLayoutErrInvalidID()
-		}
-
-		aProps.pageLayout.ID = pageLayoutID
-		return store.LookupComposePageLayoutByID(ctx, svc.store, pageLayoutID)
-	})
 }
 
 func checkPageLayout(ctx context.Context, ac pageLayoutAccessController) func(res *types.PageLayout) (bool, error) {
@@ -117,274 +74,79 @@ func checkPageLayout(ctx context.Context, ac pageLayoutAccessController) func(re
 	}
 }
 
-// onSearch is the generated Search body handler.
-//
-// The recordAction wrapper and aProps (filter) are owned by the generated
-// page_layout.gen.go; this handler runs the namespace/page preload, access check
-// and store search.
-func (svc *pageLayout) onSearch(ctx context.Context, filter types.PageLayoutFilter, aProps *pageLayoutActionProps) (set types.PageLayoutSet, f types.PageLayoutFilter, err error) {
+// search fn() orchestrates pageLayouts search, namespace preload and check
+func (svc pageLayout) search(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error) {
 	var (
-		ns *types.Namespace
-		pg *types.Page
+		aProps = &pageLayoutActionProps{filter: &filter}
+		ns     *types.Namespace
+		pg     *types.Page
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = checkPageLayout(ctx, svc.ac)
 
-	if filter.PageID > 0 {
-		ns, pg, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
-		if err != nil {
-			return
-		}
-		if !svc.ac.CanSearchPageLayoutsOnPage(ctx, pg) {
-			return nil, f, PageLayoutErrNotAllowedToSearch()
-		}
-	} else {
-		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
-		if err != nil {
-			return
-		}
-	}
-
-	aProps.setNamespace(ns)
-
-	if len(filter.Labels) > 0 {
-		filter.LabeledIDs, err = label.Search(
-			ctx,
-			svc.store,
-			types.PageLayout{}.LabelResourceKind(),
-			filter.Labels,
-		)
-
-		if err != nil {
-			return
-		}
-
-		// labels specified but no labeled resources found
-		if len(filter.LabeledIDs) == 0 {
-			return
-		}
-	}
-
-	if set, f, err = store.SearchComposePageLayouts(ctx, svc.store, filter); err != nil {
-		return
-	}
-
-	if err = label.Load(ctx, svc.store, toLabeledPageLayouts(set)...); err != nil {
-		return
-	}
-
-	// i18n
-	tag := locale.GetAcceptLanguageFromContext(ctx)
-	set.Walk(func(p *types.PageLayout) error {
-		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
-		return nil
-	})
-
-	return
-}
-
-// onCreate is the generated Create body handler.
-//
-// The recordAction wrapper, aProps and res=new assignment are owned by the
-// generated page_layout.gen.go.
-func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) error {
-	var (
-		aProps = &pageLayoutActionProps{pageLayout: new}
-		ns     *types.Namespace
-		pg     *types.Page
-	)
-
-	new.ID = 0
-
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if !handle.IsValid(new.Handle) {
-			return PageLayoutErrInvalidID()
-		}
-
-		if ns, pg, err = loadPageCombo(ctx, s, new.NamespaceID, new.PageID); err != nil {
-			return err
-		}
-
-		// Allow users to manage their personal layouts regardless of RBAC (when enabled)
-		if !svc.ac.CanCreatePageLayoutOnPage(ctx, pg) {
-			if new.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
-				return PageLayoutErrNotAllowedToCreate()
+	err = func() error {
+		if filter.PageID > 0 {
+			ns, pg, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
+			if err != nil {
+				return err
+			}
+			if !svc.ac.CanSearchPageLayoutsOnPage(ctx, pg) {
+				return PageLayoutErrNotAllowedToSearch()
+			}
+		} else {
+			ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+			if err != nil {
+				return err
 			}
 		}
 
 		aProps.setNamespace(ns)
 
-		if err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeCreate(new, nil, ns, nil)); err != nil {
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				ctx,
+				svc.store,
+				types.PageLayout{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
+		}
+
+		if set, f, err = store.SearchComposePageLayouts(ctx, svc.store, filter); err != nil {
 			return err
 		}
 
-		if err = svc.uniqueCheck(ctx, new); err != nil {
+		if err = label.Load(ctx, svc.store, toLabeledPageLayouts(set)...); err != nil {
 			return err
 		}
 
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.UpdatedAt = nil
-		new.DeletedAt = nil
+		// i18n
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		set.Walk(func(p *types.PageLayout) error {
+			p.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
+			return nil
+		})
 
-		// Ensure pageLayout-block IDs
-		for i := range new.Blocks {
-			new.Blocks[i].BlockID = uint64(i) + 1
-		}
-
-		aProps.setChanged(new)
-
-		if err = store.CreateComposePageLayout(ctx, s, new); err != nil {
-			return err
-		}
-
-		if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, s, new); err != nil {
-			return
-		}
-
-		_ = svc.eventbus.WaitFor(ctx, event.PageLayoutAfterCreate(new, nil, ns, nil))
-		return err
-	})
-}
-
-func (svc *pageLayout) onReorder(ctx context.Context, aProps *pageLayoutActionProps, namespaceID, pageID uint64, pageLayoutIDs []uint64) (err error) {
-	var p *types.Page
-
-	aProps.pageLayout = &types.PageLayout{ID: pageID}
-
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		// Get the page
-		if p, err = store.LookupComposePageByID(ctx, svc.store, pageID); errors.IsNotFound(err) {
-			return PageLayoutErrNotFound()
-		} else if err != nil {
-			return err
-		}
-		_ = p
-
-		// @note following the pattern of pages; should probably change this
-		//       on both resources since it doesn't sound right.
-		if !svc.ac.CanCreatePageLayoutOnPage(ctx, p) {
-			return PageLayoutErrNotAllowedToUpdate()
-		}
-
-		return store.ReorderComposePageLayouts(ctx, s, namespaceID, pageID, pageLayoutIDs)
-	})
-}
-
-// onUpdate is the generated Update body handler.
-func (svc *pageLayout) onUpdate(ctx context.Context, s store.Storer, upd, res *types.PageLayout, aProps *pageLayoutActionProps, _ func() error, _ func() error) error {
-	ns, err := loadNamespace(ctx, s, res.NamespaceID)
-	if err != nil {
-		return err
-	}
-	pg, err := loadPage(ctx, s, res.PageID)
-	if err != nil {
-		return err
-	}
-
-	aProps.setNamespace(ns)
-
-	old := res.Clone()
-	if err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeUpdate(old, res, ns, nil)); err != nil {
-		return err
-	}
-
-	changes, err := svc.handleUpdate(ctx, upd)(ctx, ns, pg, res)
-	if err != nil {
-		return err
-	}
-
-	if changes&pageLayoutChanged > 0 {
-		if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {
-			return err
-		}
-	}
-
-	if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
-		return err
-	}
-
-	if changes&pageLayoutLabelsChanged > 0 {
-		if err = label.Update(ctx, s, res); err != nil {
-			return err
-		}
-	}
-
-	return svc.eventbus.WaitFor(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
-}
-
-// onDelete is the generated DeleteByID body handler (namespace+page-scoped compound id).
-func (svc *pageLayout) onDelete(ctx context.Context, s store.Storer, namespaceID, pageID uint64, res *types.PageLayout, aProps *pageLayoutActionProps) error {
-	ns, err := loadNamespace(ctx, s, namespaceID)
-	if err != nil {
-		return err
-	}
-	pg, err := loadPage(ctx, s, pageID)
-	if err != nil {
-		return err
-	}
-
-	if !svc.ac.CanDeletePageLayout(ctx, res) {
-		if res.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
-			return PageLayoutErrNotAllowedToDelete()
-		}
-	}
-	if res.DeletedAt != nil {
 		return nil
-	}
+	}()
 
-	old := res.Clone()
-	// res.DeletedAt == nil before delete → fires update-before (matches updater behaviour)
-	if err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeUpdate(old, res, ns, nil)); err != nil {
-		return err
-	}
-	res.DeletedAt = now()
-	if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {
-		return err
-	}
-	// res.DeletedAt != nil after delete → fires delete-after
-	return svc.eventbus.WaitFor(ctx, event.PageLayoutAfterDelete(nil, res, ns, nil))
+	return set, f, svc.recordAction(ctx, aProps, PageLayoutActionSearch, err)
 }
 
-// onUndelete is the generated UndeleteByID body handler (namespace+page-scoped compound id).
-func (svc *pageLayout) onUndelete(ctx context.Context, s store.Storer, namespaceID, pageID uint64, res *types.PageLayout, aProps *pageLayoutActionProps) error {
-	ns, err := loadNamespace(ctx, s, namespaceID)
-	if err != nil {
-		return err
-	}
-	pg, err := loadPage(ctx, s, pageID)
-	if err != nil {
-		return err
-	}
-
-	if !svc.ac.CanDeletePageLayout(ctx, res) {
-		if res.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
-			return PageLayoutErrNotAllowedToUndelete()
-		}
-	}
-	if res.DeletedAt == nil {
-		return nil
-	}
-
-	old := res.Clone()
-	// res.DeletedAt != nil before undelete → fires delete-before
-	if err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeDelete(old, res, ns, nil)); err != nil {
-		return err
-	}
-	res.DeletedAt = nil
-	if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {
-		return err
-	}
-	// res.DeletedAt == nil after undelete → fires update-after
-	return svc.eventbus.WaitFor(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
+func (svc pageLayout) Find(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error) {
+	return svc.search(ctx, filter)
 }
 
-func (svc *pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Namespace, pg *types.Page, res *types.PageLayout, action func(...*pageLayoutActionProps) *pageLayoutAction, fn pageLayoutUpdateHandler) (*types.PageLayout, error) {
+func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Namespace, pg *types.Page, res *types.PageLayout, action func(...*pageLayoutActionProps) *pageLayoutAction, fn pageLayoutUpdateHandler) (*types.PageLayout, error) {
 	var (
 		changes pageLayoutChanges
 		old     *types.PageLayout
@@ -403,9 +165,9 @@ func (svc *pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Na
 		aProps.setChanged(res)
 
 		if res.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeUpdate(old, res, ns, nil))
+			err = svc.services.eventbus.WaitFor(ctx, event.PageLayoutBeforeUpdate(old, res, ns, nil))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.PageLayoutBeforeDelete(old, res, ns, nil))
+			err = svc.services.eventbus.WaitFor(ctx, event.PageLayoutBeforeDelete(old, res, ns, nil))
 		}
 
 		if err != nil {
@@ -422,7 +184,7 @@ func (svc *pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Na
 			}
 		}
 
-		if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
+		if err = updateTranslations(ctx, svc.ac, svc.services.locale, res.EncodeTranslations()...); err != nil {
 			return
 		}
 
@@ -433,25 +195,20 @@ func (svc *pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Na
 		}
 
 		if res.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
+			err = svc.services.eventbus.WaitFor(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.PageLayoutAfterDelete(nil, res, ns, nil))
+			err = svc.services.eventbus.WaitFor(ctx, event.PageLayoutAfterDelete(nil, res, ns, nil))
 		}
 
 		return err
 	})
 
-	return res, svc.recordAction(ctx, aProps, action, err, old, res)
+	return res, svc.recordAction(ctx, aProps, action, err)
 }
 
-// lookup fn() orchestrates pageLayout lookup, namespace preload and check.
-//
-// The recordAction wrapper is owned by the caller (the generated onLookup path
-// via page_layout.gen.go, or the custom FindBy* methods).
-func (svc *pageLayout) lookup(ctx context.Context, namespaceID uint64, aProps *pageLayoutActionProps, lookup func(*pageLayoutActionProps) (*types.PageLayout, error)) (p *types.PageLayout, err error) {
-	if aProps.pageLayout == nil {
-		aProps.pageLayout = &types.PageLayout{NamespaceID: namespaceID}
-	}
+// lookup fn() orchestrates pageLayout lookup, namespace preload and check
+func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup func(*pageLayoutActionProps) (*types.PageLayout, error)) (p *types.PageLayout, err error) {
+	var aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{NamespaceID: namespaceID}}
 
 	err = func() error {
 		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
@@ -466,7 +223,7 @@ func (svc *pageLayout) lookup(ctx context.Context, namespaceID uint64, aProps *p
 			return err
 		}
 
-		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
+		p.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPageLayout(p)
 
@@ -481,10 +238,10 @@ func (svc *pageLayout) lookup(ctx context.Context, namespaceID uint64, aProps *p
 		return nil
 	}()
 
-	return p, err
+	return p, svc.recordAction(ctx, aProps, PageLayoutActionLookup, err)
 }
 
-func (svc *pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err error) {
+func (svc pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err error) {
 	if p.Handle != "" {
 		if e, _ := store.LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx, svc.store, p.NamespaceID, p.PageID, p.Handle); e != nil && e.ID != p.ID {
 			return PageLayoutErrHandleNotUnique()
@@ -494,8 +251,12 @@ func (svc *pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (er
 	return nil
 }
 
-func (svc *pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) pageLayoutUpdateHandler {
+func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) pageLayoutUpdateHandler {
 	return func(ctx context.Context, ns *types.Namespace, pg *types.Page, res *types.PageLayout) (changes pageLayoutChanges, err error) {
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return pageLayoutUnchanged, PageLayoutErrStaleData()
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return pageLayoutUnchanged, PageLayoutErrInvalidHandle()
 		}
@@ -600,7 +361,7 @@ func (svc *pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) 
 	}
 }
 
-func (svc *pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
+func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
 		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
@@ -617,7 +378,7 @@ func (svc *pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg
 	return pageLayoutChanged, nil
 }
 
-func (svc *pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
+func (svc pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
 		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
@@ -637,7 +398,7 @@ func (svc *pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, 
 func (svc *pageLayout) UpdateConfig(ss *systemTypes.AppSettings) {
 	a := ss.Compose.UI.RecordToolbar
 
-	svc.pageLayoutSettings = &pageLayoutSettings{
+	svc.services.pageLayoutSettings = &pageLayoutSettings{
 		hideNew:    a.HideNew,
 		hideEdit:   a.HideEdit,
 		hideSubmit: a.HideSubmit,
@@ -645,6 +406,151 @@ func (svc *pageLayout) UpdateConfig(ss *systemTypes.AppSettings) {
 		hideClone:  a.HideClone,
 		hideBack:   a.HideBack,
 	}
+}
+
+func (svc *pageLayout) onLookup(ctx context.Context, namespaceID uint64, ID uint64, aProps *pageLayoutActionProps) (*types.PageLayout, error) {
+	return svc.lookup(ctx, namespaceID, func(props *pageLayoutActionProps) (*types.PageLayout, error) {
+		if ID == 0 {
+			return nil, PageLayoutErrInvalidID()
+		}
+		props.pageLayout.ID = ID
+		return store.LookupComposePageLayoutByID(ctx, svc.store, ID)
+	})
+}
+
+func (svc *pageLayout) onSearch(ctx context.Context, filter types.PageLayoutFilter, _ *pageLayoutActionProps) (types.PageLayoutSet, types.PageLayoutFilter, error) {
+	return svc.search(ctx, filter)
+}
+
+func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) error {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		var (
+			ns *types.Namespace
+			pg *types.Page
+		)
+
+		if !handle.IsValid(new.Handle) {
+			return PageLayoutErrInvalidID()
+		}
+
+		if ns, pg, err = loadPageCombo(ctx, s, new.NamespaceID, new.PageID); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanCreatePageLayoutOnPage(ctx, pg) {
+			if new.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+				return PageLayoutErrNotAllowedToCreate()
+			}
+		}
+
+		if err = svc.services.eventbus.WaitFor(ctx, event.PageLayoutBeforeCreate(new, nil, ns, nil)); err != nil {
+			return err
+		}
+
+		if err = svc.uniqueCheck(ctx, new); err != nil {
+			return err
+		}
+
+		new.ID = nextID()
+		new.CreatedAt = *now()
+		new.UpdatedAt = nil
+		new.DeletedAt = nil
+
+		for i := range new.Blocks {
+			new.Blocks[i].BlockID = uint64(i) + 1
+		}
+
+		if err = store.CreateComposePageLayout(ctx, s, new); err != nil {
+			return err
+		}
+
+		if err = updateTranslations(ctx, svc.ac, svc.services.locale, new.EncodeTranslations()...); err != nil {
+			return
+		}
+
+		if err = label.Create(ctx, s, new); err != nil {
+			return
+		}
+
+		_ = svc.services.eventbus.WaitFor(ctx, event.PageLayoutAfterCreate(new, nil, ns, nil))
+		return err
+	})
+}
+
+func (svc *pageLayout) onUpdate(ctx context.Context, s store.Storer, upd *types.PageLayout, res *types.PageLayout, _ *pageLayoutActionProps, before func() error, after func() error) error {
+	if err := before(); err != nil {
+		return err
+	}
+	ns, err := loadNamespace(ctx, svc.store, res.NamespaceID)
+	if err != nil {
+		return err
+	}
+	_, err = svc.updater(ctx, s, ns, nil, res, PageLayoutActionUpdate, svc.handleUpdate(ctx, upd))
+	if err != nil {
+		return err
+	}
+	return after()
+}
+
+func (svc *pageLayout) onDelete(ctx context.Context, s store.Storer, namespaceID uint64, pageID uint64, res *types.PageLayout, _ *pageLayoutActionProps) error {
+	ns, err := loadNamespace(ctx, svc.store, namespaceID)
+	if err != nil {
+		return err
+	}
+	_ = pageID
+	_, err = svc.updater(ctx, s, ns, nil, res, PageLayoutActionDelete, svc.handleDelete)
+	return err
+}
+
+func (svc *pageLayout) onUndelete(ctx context.Context, s store.Storer, namespaceID uint64, pageID uint64, res *types.PageLayout, _ *pageLayoutActionProps) error {
+	ns, err := loadNamespace(ctx, svc.store, namespaceID)
+	if err != nil {
+		return err
+	}
+	_ = pageID
+	_, err = svc.updater(ctx, s, ns, nil, res, PageLayoutActionUpdate, svc.handleUndelete)
+	return err
+}
+
+func (svc *pageLayout) onFindByHandle(ctx context.Context, _ *pageLayoutActionProps, namespaceID uint64, h string) (*types.PageLayout, error) {
+	return svc.lookup(ctx, namespaceID, func(props *pageLayoutActionProps) (*types.PageLayout, error) {
+		if !handle.IsValid(h) {
+			return nil, PageLayoutErrInvalidHandle()
+		}
+		props.pageLayout.Handle = h
+		return store.LookupComposePageLayoutByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
+	})
+}
+
+func (svc *pageLayout) onFindByPageLayoutID(ctx context.Context, _ *pageLayoutActionProps, namespaceID uint64, pageLayoutID uint64) (*types.PageLayout, error) {
+	return svc.lookup(ctx, namespaceID, func(props *pageLayoutActionProps) (*types.PageLayout, error) {
+		if pageLayoutID == 0 {
+			return nil, PageLayoutErrInvalidID()
+		}
+		props.pageLayout.ID = pageLayoutID
+		return store.LookupComposePageLayoutByID(ctx, svc.store, pageLayoutID)
+	})
+}
+
+func (svc *pageLayout) onReorder(ctx context.Context, _ *pageLayoutActionProps, namespaceID uint64, pageID uint64, pageLayoutIDs []uint64) error {
+	var (
+		p   *types.Page
+		err error
+	)
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		if p, err = store.LookupComposePageByID(ctx, svc.store, pageID); errors.IsNotFound(err) {
+			return PageLayoutErrNotFound()
+		} else if err != nil {
+			return err
+		}
+
+		if !svc.ac.CanCreatePageLayoutOnPage(ctx, p) {
+			return PageLayoutErrNotAllowedToUpdate()
+		}
+
+		return store.ReorderComposePageLayouts(ctx, s, namespaceID, pageID, pageLayoutIDs)
+	})
 }
 
 func loadPageLayoutCombo(ctx context.Context, s interface {
@@ -656,28 +562,14 @@ func loadPageLayoutCombo(ctx context.Context, s interface {
 		return
 	}
 
-	c, err = loadPageLayoutScoped(ctx, s, namespaceID, pageID, pageLayoutID)
-	return
-}
-
-func loadPageLayoutScoped(ctx context.Context, s store.ComposePageLayouts, namespaceID, pageID, pageLayoutID uint64) (res *types.PageLayout, err error) {
-	if pageLayoutID == 0 || namespaceID == 0 {
-		return nil, PageLayoutErrInvalidID()
+	if c, err = loadPageLayout(ctx, s, pageLayoutID); err != nil {
+		return
 	}
 
-	if res, err = store.LookupComposePageLayoutByID(ctx, s, pageLayoutID); errors.IsNotFound(err) {
-		err = PageLayoutErrNotFound()
+	if namespaceID != c.NamespaceID {
+		return nil, nil, nil, PageLayoutErrNotFound()
 	}
 
-	if err == nil && namespaceID != res.NamespaceID {
-		// Make sure chart belongs to the right namespace
-		return nil, PageLayoutErrNotFound()
-	}
-
-	if err == nil && namespaceID != res.NamespaceID {
-		// Make sure pageLayout belongs to the right namespace
-		return nil, PageLayoutErrNotFound()
-	}
-
+	_ = pageID
 	return
 }

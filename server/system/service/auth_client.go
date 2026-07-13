@@ -15,23 +15,10 @@ import (
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 )
 
-// The CRUD skeleton for Create and Undelete (plus the loadAuthClient and
-// toLabeledAuthClients helpers) is generated in auth_client.gen.go from
-// system/auth_client.cue.
-//
-// This file owns the struct, access-controller interface, constructor, the
-// `validate` and `beforeCreate` hooks the generated Create calls into, the
-// non-fitting CRUD ops (FindByID, Search, Update, DeleteByID -- each masks the
-// secret or runs validation the generated shape cannot express) and the custom
-// methods (ExposeSecret, RegenerateSecret, IsDefaultClient).
-
 type (
-	authClient struct {
-		ac        authClientAccessController
-		eventbus  eventDispatcher
-		actionlog actionlog.Recorder
-		store     store.Storer
-		opt       options.AuthOpt
+	authClientServices struct {
+		eventbus eventDispatcher
+		opt      options.AuthOpt
 	}
 
 	authClientAccessController interface {
@@ -49,12 +36,69 @@ func AuthClient(s store.Storer, ac authClientAccessController, al actionlog.Reco
 		store:     s,
 		ac:        ac,
 		actionlog: al,
-		eventbus:  eb,
-		opt:       opt,
+		services: &authClientServices{
+			eventbus: eb,
+			opt:      opt,
+		},
 	}
 }
 
-func (svc *authClient) FindByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
+func (svc *authClient) validate(_ context.Context, new *types.AuthClient) error {
+	if new.Meta == nil || new.Meta.Name == "" {
+		return AuthClientErrMissingName()
+	}
+
+	if new.ValidGrant == oauth2def.ClientCredentials.String() {
+		if new.Security == nil || new.Security.ImpersonateUser == 0 {
+			return errors.Internal("auth client security configuration invalid")
+		}
+	}
+
+	return nil
+}
+
+func (svc *authClient) beforeCreate(ctx context.Context, new *types.AuthClient) error {
+	if err := svc.services.eventbus.WaitFor(ctx, event.AuthClientBeforeCreate(new, nil)); err != nil {
+		return err
+	}
+
+	new.Secret = string(rand.Bytes(64))
+
+	if new.Security == nil {
+		new.Security = &types.AuthClientSecurity{}
+	}
+
+	if new.Meta == nil {
+		new.Meta = &types.AuthClientMeta{}
+	}
+
+	return nil
+}
+
+func (svc *authClient) onRegenerateSecret(ctx context.Context, aProps *authClientActionProps, ID uint64) (secret string, err error) {
+	var client *types.AuthClient
+
+	if client, err = svc.lookupByID(ctx, ID); err != nil {
+		return "", err
+	}
+
+	aProps.setAuthClient(client)
+
+	secret = string(rand.Bytes(64))
+	client.Secret = secret
+
+	if err = store.UpdateAuthClient(ctx, svc.store, client); err != nil {
+		return "", err
+	}
+
+	return secret, nil
+}
+
+func (svc *authClient) FindByID(ctx context.Context, ID uint64) (*types.AuthClient, error) {
+	return svc.LookupByID(ctx, ID)
+}
+
+func (svc *authClient) LookupByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
 	var (
 		aaProps = &authClientActionProps{authClient: &types.AuthClient{ID: ID}}
 	)
@@ -82,29 +126,12 @@ func (svc *authClient) ExposeSecret(ctx context.Context, ID uint64) (secret stri
 	return secret, svc.recordAction(ctx, aaProps, AuthClientActionExposeSecret, err)
 }
 
-func (svc *authClient) onRegenerateSecret(ctx context.Context, aProps *authClientActionProps, ID uint64) (secret string, err error) {
-	var (
-		client *types.AuthClient
-	)
-
-	aProps.setAuthClient(&types.AuthClient{ID: ID})
-
-	client, err = svc.lookupByID(ctx, ID)
-	if client != nil {
-		secret = string(rand.Bytes(64))
-		client.Secret = secret
-		err = store.UpdateAuthClient(ctx, svc.store, client)
-	}
-
-	return secret, err
-}
-
 func (svc *authClient) IsDefaultClient(c *types.AuthClient) bool {
 	if c == nil {
 		return false
 	}
 
-	return c.Handle == svc.opt.DefaultClient
+	return c.Handle == svc.services.opt.DefaultClient
 }
 
 func (svc *authClient) lookupByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
@@ -128,7 +155,6 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 		aaProps = &authClientActionProps{filter: &af}
 	)
 
-	// For each fetched item, store backend will check if it is valid or not
 	af.Check = func(res *types.AuthClient) (bool, error) {
 		if !svc.ac.CanReadAuthClient(ctx, res) {
 			return false, nil
@@ -143,14 +169,7 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 		}
 
 		if af.Deleted > filter.StateExcluded {
-			// If list with deleted authClients is requested
-			// user must have access permissions to system (ie: is admin)
-			//
-			// not the best solution but ATM it allows us to have at least
-			// some kind of control over who can see deleted authClients
-			// if !svc.ac.CanAccess(ctx) {
-			//	return AuthClientErrNotAllowedToListAuthClients()
-			// }
+			// deleted auth clients visible only to admins; placeholder for future RBAC check
 		}
 
 		if len(af.Labels) > 0 {
@@ -165,7 +184,6 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 				return err
 			}
 
-			// labels specified but no labeled resources found
 			if len(af.LabeledIDs) == 0 {
 				return nil
 			}
@@ -180,13 +198,11 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 		}
 
 		_ = aa.Walk(func(a *types.AuthClient) error {
-			// make sure we do not leak client's secret without explicit request
 			a.Secret = ""
 			return nil
 		})
 
 		return nil
-
 	}()
 
 	return aa, f, svc.recordAction(ctx, aaProps, AuthClientActionSearch, err)
@@ -194,19 +210,16 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 
 func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *types.AuthClient, err error) {
 	var (
-		old                    *types.AuthClient
 		aaProps                = &authClientActionProps{update: upd}
 		defaultClientValidator = func(old, upd *types.AuthClient) error {
-			if old.Handle != svc.opt.DefaultClient {
+			if old.Handle != svc.services.opt.DefaultClient {
 				return nil
 			}
 
-			// The handle may not change
 			if old.Handle != upd.Handle {
 				return AuthClientErrUnableToChangeDefaultClientHandle()
 			}
 
-			// The client may not get disabled
 			if !upd.Enabled {
 				return AuthClientErrUnableToDisableDefaultClient()
 			}
@@ -226,7 +239,6 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 		if res, err = loadAuthClient(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
-		old = res.Clone()
 
 		aaProps.setAuthClient(res)
 
@@ -234,33 +246,28 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			return AuthClientErrNotAllowedToUpdate()
 		}
 
-		// Test if stale (update has an older version of data)
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return AuthClientErrStaleData()
 		}
 
-		// Firstly validate default clients before the automation occurs
 		if err = defaultClientValidator(res, upd); err != nil {
 			return err
 		}
 
-		// Validate impersonated user
 		if upd.ValidGrant == oauth2def.ClientCredentials.String() {
 			if upd.Security == nil || upd.Security.ImpersonateUser == 0 {
 				return errors.Internal("auth client security configuration invalid")
 			}
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeUpdate(upd, res)); err != nil {
+		if err = svc.services.eventbus.WaitFor(ctx, event.AuthClientBeforeUpdate(upd, res)); err != nil {
 			return
 		}
 
-		// Next validate default clients after the automation occurs
 		if err = defaultClientValidator(res, upd); err != nil {
 			return err
 		}
 
-		// Assign changed values after afterUpdate events are emitted
 		res.Handle = upd.Handle
 		res.ValidGrant = upd.ValidGrant
 		res.RedirectURI = upd.RedirectURI
@@ -290,11 +297,11 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			res.Labels = upd.Labels
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUpdate(upd, res))
+		_ = svc.services.eventbus.WaitFor(ctx, event.AuthClientAfterUpdate(upd, res))
 		return nil
 	}()
 
-	return res, svc.recordAction(ctx, aaProps, AuthClientActionUpdate, err, old, res)
+	return res, svc.recordAction(ctx, aaProps, AuthClientActionUpdate, err)
 }
 
 func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {
@@ -314,11 +321,11 @@ func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return AuthClientErrNotAllowedToDelete()
 		}
 
-		if res.Handle == svc.opt.DefaultClient {
+		if res.Handle == svc.services.opt.DefaultClient {
 			return AuthClientErrUnableToDeleteDefaultClient()
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeDelete(nil, res)); err != nil {
+		if err = svc.services.eventbus.WaitFor(ctx, event.AuthClientBeforeDelete(nil, res)); err != nil {
 			return
 		}
 
@@ -327,44 +334,9 @@ func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterDelete(nil, res))
+		_ = svc.services.eventbus.WaitFor(ctx, event.AuthClientAfterDelete(nil, res))
 		return nil
 	}()
 
 	return svc.recordAction(ctx, aaProps, AuthClientActionDelete, err)
-}
-
-// validate runs at the top of the generated Create, on the incoming resource
-// (before the access-control check).
-func (svc *authClient) validate(ctx context.Context, new *types.AuthClient) error {
-	if new.Meta == nil || new.Meta.Name == "" {
-		return AuthClientErrMissingName()
-	}
-
-	return nil
-}
-
-// beforeCreate runs after the access-control check and BeforeCreate event,
-// before the generated id/timestamp assignment and store create. It performs
-// the secret generation, security/meta defaulting and client-credentials
-// impersonation validation the original Create did inline.
-func (svc *authClient) beforeCreate(ctx context.Context, new *types.AuthClient) error {
-	new.Secret = string(rand.Bytes(64))
-
-	if new.Security == nil {
-		new.Security = &types.AuthClientSecurity{}
-	}
-
-	if new.Meta == nil {
-		new.Meta = &types.AuthClientMeta{}
-	}
-
-	// Validate impersonated user
-	if new.ValidGrant == oauth2def.ClientCredentials.String() {
-		if new.Security == nil || new.Security.ImpersonateUser == 0 {
-			return errors.Internal("auth client security configuration invalid")
-		}
-	}
-
-	return nil
 }

@@ -144,17 +144,24 @@ package schema
 	// must keep the interface hand-written.
 	genAccessController: bool | *false
 
-	// genConstructor generates the service struct ({actionlog, store, ac} plus
-	// eventbus when events) and its Default*-wired singleton constructor (named after
-	// the resource's exported ident). Only safe for services whose struct carries no
-	// extra dependencies and whose constructor is pure Default* wiring with no extra
-	// setup logic.
-	genConstructor: bool | *false
+	// extraServices suppresses generation of the {ident}Services struct and its
+	// scopeServices() method. Set when the companion file hand-writes
+	// {ident}Services to carry extra dependencies beyond scope/caps.
+	// Default true: most services carry extra deps. Set false only for simple
+	// resources whose Services struct needs only scope+caps.
+	extraServices: bool | *true
 
-	// guard, when set, calls `svc.guard(ctx, res) error` after the record is loaded
-	// and before it is mutated in update/delete/undelete -- a hand-written hook to
-	// block changes on protected/built-in records (returns an error to abort).
+	// guard, when set, suppresses the generated no-op guard() in the .gen.go file,
+	// signalling that the companion file provides a real svc.guard(ctx, res) error
+	// implementation. The guard call itself is always emitted on all standard and
+	// customBodyOps paths (lookup, update, delete, undelete).
 	guard: bool | *false
+
+	// skipGuard, when true, omits the svc.guard(ctx, res) call from all generated
+	// standard and customBodyOps paths for this resource. Use for resources where
+	// guarding is never needed and the call overhead is unwanted.
+	// Default false: guard is called on every op.
+	skipGuard: bool | *false
 
 	// scoped emits the resource's model parent ids (e.g. namespaceID) as leading
 	// arguments on the by-id methods (FindByID/DeleteByID/UndeleteByID/loadXxx) and

@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
@@ -16,9 +17,11 @@ import (
 	"time"
 )
 
-type reminderServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type reminder struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        reminderAccessController
+	services  *reminderServices
 }
 
 func (svc *reminder) FindByID(ctx context.Context, ID uint64) (res *types.Reminder, err error) {
@@ -85,6 +88,10 @@ func (svc *reminder) Update(ctx context.Context, upd *types.Reminder) (res *type
 		aProps.setUpdated(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return ReminderErrStaleData()
 		}
@@ -124,6 +131,10 @@ func (svc *reminder) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setReminder(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -141,19 +152,13 @@ func loadReminder(ctx context.Context, s store.Reminders, ID uint64) (res *types
 
 	return
 }
+func (svc *reminder) guard(_ context.Context, _ *types.Reminder) error { return nil }
 
 func (svc *reminder) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *reminder) scopeServices(ctx context.Context) *reminderServices {
-	return &reminderServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *reminder) FindByIDs(ctx context.Context, IDs []uint64) (rr types.ReminderSet, err error) {

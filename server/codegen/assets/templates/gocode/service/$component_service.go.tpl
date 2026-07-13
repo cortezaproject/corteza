@@ -4,25 +4,20 @@ package {{ .package }}
 {{/*
   Service CRUD methods: each body is wrapped in a recordAction closure (action
   logging) and may emit eventbus Before/After events. The method bodies and the
-  loadXxx / toLabeledXxx helpers are always generated; the struct, access-control
-  interface and constructor are generated only when genConstructor /
-  genAccessController are set (otherwise they stay in the hand-written companion
-  file, alongside any custom methods). Ops listed in customBodyOps delegate to
-  hand-written on<Op> handlers instead of generating a standard body.
+  loadXxx / toLabeledXxx helpers are always generated. The access-control
+  interface is generated when genAccessController is set. The struct is always
+  generated here; the constructor lives in the hand-written companion file
+  (alongside any custom methods). When extraServices is set the struct gains a
+  services *{ident}Services field and the companion provides that struct +
+  scopeServices(); otherwise {ident}Services{scope,caps} is auto-generated.
+  Ops listed in customBodyOps delegate to hand-written on<Op> handlers.
 */}}
 import (
 	"context"
-{{- if .genConstructor }}
 
 	"github.com/crusttech/human/server/pkg/actionlog"
-{{- end }}
 {{- if and .load .hasID }}
-{{- if .genConstructor }}
 	"github.com/crusttech/human/server/pkg/errors"
-{{- else }}
-
-	"github.com/crusttech/human/server/pkg/errors"
-{{- end }}
 {{- end }}
 {{- if and .handle .update }}
 	"github.com/crusttech/human/server/pkg/handle"
@@ -31,15 +26,10 @@ import (
 	"github.com/crusttech/human/server/pkg/label"
 {{- end }}
 	"github.com/crusttech/human/server/pkg/scope"
-{{- if and .genConstructor .events }}
-	"github.com/crusttech/human/server/pkg/eventbus"
-{{- end }}
 {{- if .events }}
 	"{{ .eventImport }}"
 {{- end }}
-{{- if or .usesStore .genConstructor }}
 	"github.com/crusttech/human/server/store"
-{{- end }}
 	types "{{ .typesImport }}"
 {{- range .customFunctionImports }}
 	{{ . }}
@@ -65,7 +55,6 @@ type {{ .ident }}AccessController interface {
 {{- end }}
 }
 {{- end }}
-{{- if .genConstructor }}
 
 type {{ .ident }} struct {
 	actionlog actionlog.Recorder
@@ -74,24 +63,18 @@ type {{ .ident }} struct {
 {{- if .events }}
 	eventbus  eventDispatcher
 {{- end }}
+{{- if .extraServices }}
+	services  *{{ .ident }}Services
+{{- end }}
 }
 
-func {{ .expIdent }}() *{{ .ident }} {
-	return &{{ .ident }}{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-{{- if .events }}
-		eventbus:  eventbus.Service(),
-{{- end }}
-	}
-}
-{{- end }}
+{{- if not .extraServices }}
 
 type {{ .ident }}Services struct {
 	scope scope.Scope
 	caps  scope.Capabilities
 }
+{{- end }}
 {{- if .lookup }}
 
 func (svc *{{ .ident }}) {{ .lookupIdent }}(ctx context.Context, {{ .lookupParentParamsTyped }}ID uint64) (res *{{ .goType }}, err error) {
@@ -125,6 +108,12 @@ func (svc *{{ .ident }}) {{ .lookupIdent }}(ctx context.Context, {{ .lookupParen
 {{- end }}
 
 		aProps.set{{ .actionPropExp }}(res)
+{{- if not .skipGuard }}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+{{- end }}
 {{- if not (has "lookup" .customAccessOps) }}
 
 		if !svc.ac.{{ .ac.read }}(ctx, res) {
@@ -320,6 +309,12 @@ func (svc *{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{
 		aProps.set{{ .actionPropExp }}(res)
 		aProps.set{{ .updateProp | title }}(res)
 		old = res.Clone()
+{{- if not .skipGuard }}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+{{- end }}
 {{- if .handle }}
 
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
@@ -379,6 +374,12 @@ func (svc *{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{
 
 		old = res.Clone()
 		aProps.set{{ .actionPropExp }}(res)
+{{- if not .skipGuard }}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+{{- end }}
 {{- if .handle }}
 
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
@@ -456,6 +457,12 @@ func (svc *{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .deleteParen
 {{- end }}
 
 		aProps.set{{ .actionPropExp }}(res)
+{{- if not .skipGuard }}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+{{- end }}
 
 		return svc.onDelete(ctx, s, {{ .deleteParentParams }}res, {{ .deleteExtraArgsCall }}aProps)
 	})
@@ -468,7 +475,7 @@ func (svc *{{ .ident }}) {{ .deleteIdent }}(ctx context.Context, {{ .deleteParen
 		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
-{{- if .guard }}
+{{- if not .skipGuard }}
 
 		if err = svc.guard(ctx, res); err != nil {
 			return err
@@ -535,6 +542,12 @@ func (svc *{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ .undeleteP
 {{- end }}
 
 		aProps.set{{ .actionPropExp }}(res)
+{{- if not .skipGuard }}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+{{- end }}
 
 		return svc.onUndelete(ctx, s, {{ .undeleteParentParams }}res, aProps)
 	})
@@ -547,7 +560,7 @@ func (svc *{{ .ident }}) {{ .undeleteIdent }}(ctx context.Context, {{ .undeleteP
 		if res, err = load{{ .expIdent }}(ctx, svc.store, ID); err != nil {
 			return
 		}
-{{- if .guard }}
+{{- if not .skipGuard }}
 
 		if err = svc.guard(ctx, res); err != nil {
 			return err
@@ -619,6 +632,10 @@ func toLabeled{{ .expIdentPlural }}(set []*{{ .goType }}) []label.LabeledResourc
 {{- end }}
 
 
+{{- if and (not .guard) (not .skipGuard) }}
+func (svc *{{ .ident }}) guard(_ context.Context, _ *{{ .goType }}) error { return nil }
+{{- end }}
+
 func (svc *{{ .ident }}) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
@@ -626,12 +643,14 @@ func (svc *{{ .ident }}) checkScope(ctx context.Context, cap scope.Capability) e
 	return scope.RequireCapability(ctx, cap)
 }
 
+{{- if not .extraServices }}
 func (svc *{{ .ident }}) scopeServices(ctx context.Context) *{{ .ident }}Services {
 	return &{{ .ident }}Services{
 		scope: scope.GetScopeFromContext(ctx),
 		caps:  scope.GetCapabilitiesFromContext(ctx),
 	}
 }
+{{- end }}
 {{- range .customFunctions }}
 
 func (svc *{{ $.ident }}) {{ .name }}({{ .sigParams }}) {{ .resultsSig }} {

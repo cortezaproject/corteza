@@ -879,6 +879,10 @@ func ComposeChartFilter(d drivers.Dialect, f composeType.ChartFilter) (ee []goqu
 		ee = append(ee, goqu.C("rel_namespace").Eq(f.NamespaceID))
 	}
 
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
@@ -916,6 +920,10 @@ func ComposeModuleFilter(d drivers.Dialect, f composeType.ModuleFilter) (ee []go
 
 	if f.NamespaceID > 0 {
 		ee = append(ee, goqu.C("rel_namespace").Eq(f.NamespaceID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
 	if len(f.LabeledIDs) > 0 {
@@ -1018,6 +1026,10 @@ func ComposePageFilter(d drivers.Dialect, f composeType.PageFilter) (ee []goqu.E
 
 	if f.ModuleID > 0 {
 		ee = append(ee, goqu.C("rel_module").Eq(f.ModuleID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
 	if len(f.LabeledIDs) > 0 {

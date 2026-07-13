@@ -23,14 +23,6 @@ type projectGroup struct {
 	ac        projectGroupAccessController
 }
 
-func ProjectGroup() *projectGroup {
-	return &projectGroup{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
-}
-
 type projectGroupServices struct {
 	scope scope.Scope
 	caps  scope.Capabilities
@@ -50,6 +42,10 @@ func (svc *projectGroup) FindByID(ctx context.Context, ID uint64) (res *types.Pr
 		}
 
 		aProps.setProjectGroup(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
 
 		if !svc.ac.CanReadProjectGroup(ctx, res) {
 			return ProjectGroupErrNotAllowedToRead()
@@ -142,6 +138,10 @@ func (svc *projectGroup) Update(ctx context.Context, upd *types.ProjectGroup) (r
 		old = res.Clone()
 		aProps.setProjectGroup(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return ProjectGroupErrInvalidHandle()
 		}
@@ -183,6 +183,10 @@ func (svc *projectGroup) DeleteByID(ctx context.Context, ID uint64) (err error) 
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setProjectGroup(res)
 
 		if !svc.ac.CanDeleteProjectGroup(ctx, res) {
@@ -210,6 +214,7 @@ func loadProjectGroup(ctx context.Context, s store.ProjectGroups, ID uint64) (re
 
 	return
 }
+func (svc *projectGroup) guard(_ context.Context, _ *types.ProjectGroup) error { return nil }
 
 func (svc *projectGroup) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -217,7 +222,6 @@ func (svc *projectGroup) checkScope(ctx context.Context, cap scope.Capability) e
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *projectGroup) scopeServices(ctx context.Context) *projectGroupServices {
 	return &projectGroupServices{
 		scope: scope.GetScopeFromContext(ctx),

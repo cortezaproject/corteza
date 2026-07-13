@@ -215,7 +215,7 @@ func (app *HumanApp) InitStore(ctx context.Context) (err error) {
 
 	if app.ActionlogStore == nil {
 		// dedicated pool/DB when ACTIONLOG_DB_DSN is set; share main store otherwise
-		if dsn := app.Opt.ActionLog.DBDSN; dsn != "" {
+		if dsn := app.Opt.ActionLog.DbDsn; dsn != "" {
 			app.Log.Info("connecting dedicated actionlog store", zap.String("dsn", "***"))
 			als, alsErr := store.Connect(ctx, app.Log, dsn, app.Opt.Environment.IsDevelopment())
 			if alsErr != nil {

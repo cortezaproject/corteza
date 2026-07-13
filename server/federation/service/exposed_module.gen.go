@@ -10,15 +10,18 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
 
-type exposedModuleServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type exposedModule struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        exposedModuleAccessController
+	services  *exposedModuleServices
 }
 
 func (svc *exposedModule) FindByID(ctx context.Context, nodeID uint64, ID uint64) (res *types.ExposedModule, err error) {
@@ -85,6 +88,10 @@ func (svc *exposedModule) Update(ctx context.Context, upd *types.ExposedModule) 
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return ExposedModuleErrInvalidHandle()
 		}
@@ -128,6 +135,10 @@ func (svc *exposedModule) DeleteByID(ctx context.Context, nodeID uint64, ID uint
 
 		aProps.setModule(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, nodeID, res, aProps)
 	})
 
@@ -145,17 +156,11 @@ func loadExposedModule(ctx context.Context, s store.FederationExposedModules, ID
 
 	return
 }
+func (svc *exposedModule) guard(_ context.Context, _ *types.ExposedModule) error { return nil }
 
 func (svc *exposedModule) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *exposedModule) scopeServices(ctx context.Context) *exposedModuleServices {
-	return &exposedModuleServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }

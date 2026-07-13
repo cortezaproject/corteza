@@ -10,14 +10,17 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
 
-type nodeServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type node struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        nodeAccessController
+	services  *nodeServices
 }
 
 func (svc *node) Search(ctx context.Context, filter types.NodeFilter) (set types.NodeSet, f types.NodeFilter, err error) {
@@ -74,6 +77,10 @@ func (svc *node) Update(ctx context.Context, upd *types.Node) (res *types.Node, 
 		aProps.setNode(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return NodeErrStaleData()
 		}
@@ -116,6 +123,10 @@ func (svc *node) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setNode(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -134,6 +145,10 @@ func (svc *node) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setNode(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
 
@@ -151,19 +166,13 @@ func loadNode(ctx context.Context, s store.FederationNodes, ID uint64) (res *typ
 
 	return
 }
+func (svc *node) guard(_ context.Context, _ *types.Node) error { return nil }
 
 func (svc *node) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *node) scopeServices(ctx context.Context) *nodeServices {
-	return &nodeServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *node) Read(ctx context.Context, ID uint64) (res *types.Node, err error) {

@@ -8,14 +8,6 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-// The CRUD skeleton (FindByID, Search, Create, Update, DeleteByID, UndeleteByID)
-// is generated in resource_translation.gen.go from system/resource_translation.cue.
-//
-// Every op is bespoke: a single, non-RBAC access check
-// (CanManageResourceTranslations) gates all of them and the bodies diverge from
-// the standard CRUD scaffold, so each op delegates to a hand-written on<Op>
-// handler here (customBodyOps + customAccessOps on every op).
-
 type (
 	resourceTranslationAccessController interface {
 		CanManageResourceTranslations(context.Context) bool
@@ -31,85 +23,63 @@ type (
 	}
 )
 
-// onLookup is the custom body for the generated FindByID. The generated method
-// owns the action-log scaffold (+ recordAction with ResourceTranslationActionLookup);
-// the ID/access guards and the deleted-inclusive lookup live here.
-func (svc *resourceTranslation) onLookup(ctx context.Context, ID uint64, ccProps *resourceTranslationActionProps) (cc *types.ResourceTranslation, err error) {
-	if ID == 0 {
-		return nil, TemplateErrInvalidID()
+func ResourceTranslation() *resourceTranslation {
+	return &resourceTranslation{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
 	}
+}
 
+func (svc *resourceTranslation) onLookup(ctx context.Context, ID uint64, aProps *resourceTranslationActionProps) (*types.ResourceTranslation, error) {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
 		return nil, ResourceTranslationErrNotAllowedToManage()
 	}
 
-	if cc, err = store.LookupResourceTranslationByID(ctx, svc.store, ID); err != nil {
+	res, err := store.LookupResourceTranslationByID(ctx, svc.store, ID)
+	if err != nil {
 		return nil, ResourceTranslationErrInvalidID().Wrap(err)
 	}
 
-	ccProps.setResourceTranslation(cc)
-
-	return cc, nil
+	aProps.setResourceTranslation(res)
+	return res, nil
 }
 
-// onSearch is the custom body for the generated Search. The access check is
-// non-RBAC (CanManageResourceTranslations), so it lives here rather than in the
-// generated scaffold.
-func (svc *resourceTranslation) onSearch(ctx context.Context, filter types.ResourceTranslationFilter, aProps *resourceTranslationActionProps) (set types.ResourceTranslationSet, f types.ResourceTranslationFilter, err error) {
+func (svc *resourceTranslation) onSearch(ctx context.Context, filter types.ResourceTranslationFilter, aProps *resourceTranslationActionProps) (types.ResourceTranslationSet, types.ResourceTranslationFilter, error) {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
-		return nil, f, ResourceTranslationErrNotAllowedToManage()
+		return nil, filter, ResourceTranslationErrNotAllowedToManage()
 	}
 
-	if set, f, err = store.SearchResourceTranslations(ctx, svc.store, filter); err != nil {
-		return nil, f, err
-	}
-
-	return set, f, nil
+	set, f, err := store.SearchResourceTranslations(ctx, svc.store, filter)
+	return set, f, err
 }
 
-// onCreate is the custom body for the generated Create. The generated method
-// owns the action-log scaffold; the non-RBAC access check and the bespoke
-// field assignment (incl. CreatedBy) live here.
-func (svc *resourceTranslation) onCreate(ctx context.Context, new *types.ResourceTranslation) (err error) {
+func (svc *resourceTranslation) onCreate(ctx context.Context, new *types.ResourceTranslation) error {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
 		return ResourceTranslationErrNotAllowedToManage()
 	}
 
-	// @todo corredor?
-
-	// Set new values after beforeCreate events are emitted
 	new.ID = nextID()
 	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 	new.CreatedAt = *now()
 
-	if err = store.CreateResourceTranslation(ctx, svc.store, new); err != nil {
-		return
-	}
-
-	return nil
+	return store.CreateResourceTranslation(ctx, svc.store, new)
 }
 
-// onUpdate is the custom body for the generated Update. The non-RBAC access
-// check, the lookup of the existing record and the bespoke field copy live here.
-func (svc *resourceTranslation) onUpdate(ctx context.Context, s store.Storer, upd, res *types.ResourceTranslation, tplProps *resourceTranslationActionProps, _ func() error, _ func() error) error {
+func (svc *resourceTranslation) onUpdate(ctx context.Context, s store.Storer, upd *types.ResourceTranslation, res *types.ResourceTranslation, aProps *resourceTranslationActionProps, before func() error, after func() error) error {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
 		return ResourceTranslationErrNotAllowedToManage()
 	}
 
+	// Lang is not copied by gen; set it on upd so gen's field-copy picks it up via res.
+	// Gen copies Resource/K/Message/OwnedBy/UpdatedBy but not Lang — copy it here.
 	res.Lang = upd.Lang
-	res.Resource = upd.Resource
-	res.K = upd.K
-	res.Message = upd.Message
-	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-	res.OwnedBy = upd.OwnedBy
-	res.UpdatedAt = now()
+	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	return store.UpdateResourceTranslation(ctx, s, res)
+	return nil
 }
 
-// onDelete is the custom body for the generated DeleteByID. The non-RBAC access
-// check and the soft-delete via UpdateResourceTranslation live here.
-func (svc *resourceTranslation) onDelete(ctx context.Context, s store.Storer, res *types.ResourceTranslation, tplProps *resourceTranslationActionProps) error {
+func (svc *resourceTranslation) onDelete(ctx context.Context, s store.Storer, res *types.ResourceTranslation, aProps *resourceTranslationActionProps) error {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
 		return ResourceTranslationErrNotAllowedToManage()
 	}
@@ -118,9 +88,7 @@ func (svc *resourceTranslation) onDelete(ctx context.Context, s store.Storer, re
 	return store.UpdateResourceTranslation(ctx, s, res)
 }
 
-// onUndelete is the custom body for the generated UndeleteByID. The non-RBAC
-// access check and the clearing of deleted_at live here.
-func (svc *resourceTranslation) onUndelete(ctx context.Context, s store.Storer, res *types.ResourceTranslation, tplProps *resourceTranslationActionProps) error {
+func (svc *resourceTranslation) onUndelete(ctx context.Context, s store.Storer, res *types.ResourceTranslation, aProps *resourceTranslationActionProps) error {
 	if !svc.ac.CanManageResourceTranslations(ctx) {
 		return ResourceTranslationErrNotAllowedToManage()
 	}

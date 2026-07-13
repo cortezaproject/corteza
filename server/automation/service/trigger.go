@@ -8,7 +8,6 @@ import (
 
 	"github.com/crusttech/human/server/automation/types"
 	cmpEvent "github.com/crusttech/human/server/compose/service/event"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/eventbus"
@@ -25,27 +24,18 @@ import (
 )
 
 type (
-	trigger struct {
-		eventbus  triggerEventTriggerHandler
-		store     store.Storer
-		actionlog actionlog.Recorder
-		ac        triggerAccessController
-
-		opt options.WorkflowOpt
-
-		log *zap.Logger
-
+	triggerServices struct {
+		eventbus triggerEventTriggerHandler
+		opt      options.WorkflowOpt
+		log      *zap.Logger
 		// maps registered triggers (value, uintptr) to trigger ID (key, uint64)
 		// this will keep track of all our trigger registrations and help us do a cleanup on
 		// trigger update.
 		triggers map[uint64]uintptr
-
-		reg map[uint64]map[uint64]uintptr
-
+		reg      map[uint64]map[uint64]uintptr
 		workflow *workflow
 		session  *session
-
-		mux *sync.RWMutex
+		mux      *sync.RWMutex
 	}
 
 	triggerAccessController interface {
@@ -70,17 +60,19 @@ type (
 
 func Trigger(log *zap.Logger, opt options.WorkflowOpt) *trigger {
 	return &trigger{
-		log:       log,
-		opt:       opt,
-		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
-		session:   DefaultSession,
-		workflow:  DefaultWorkflow,
-		triggers:  make(map[uint64]uintptr),
-		reg:       make(map[uint64]map[uint64]uintptr),
-		mux:       &sync.RWMutex{},
+		services: &triggerServices{
+			log:      log,
+			opt:      opt,
+			eventbus: eventbus.Service(),
+			session:  DefaultSession,
+			workflow: DefaultWorkflow,
+			triggers: make(map[uint64]uintptr),
+			reg:      make(map[uint64]map[uint64]uintptr),
+			mux:      &sync.RWMutex{},
+		},
 	}
 }
 
@@ -388,7 +380,7 @@ func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt
 		return auth.SetIdentityToContext(ctx, auth.ServiceUser())
 	}
 
-	if !svc.opt.Register {
+	if !svc.services.opt.Register {
 		return nil
 	}
 
@@ -433,7 +425,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		err       error
 		g         *wfexec.Graph
 		issues    types.WorkflowIssueSet
-		wfLog     = svc.log.
+		wfLog     = svc.services.log.
 				With(logger.Uint64("workflowID", wf.ID))
 
 		// register only enabled, undeleted workflows
@@ -443,7 +435,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 	// convert only registrable and workflows without issues
 	if registerWorkflow && len(wf.Issues) == 0 {
 		// Convert workflow only when valid (no issues, enable, not delete)
-		if g, issues = Convert(svc.workflow, wf); len(issues) > 0 {
+		if g, issues = Convert(svc.services.workflow, wf); len(issues) > 0 {
 			wfLog.Error("failed to convert workflow to graph", zap.Error(issues))
 			_ = issues.Walk(func(i *types.WorkflowIssue) error {
 				wfLog.Debug("workflow issue found: "+i.Description, zap.Any("culprit", i.Culprit))
@@ -453,18 +445,18 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		}
 	}
 
-	defer svc.mux.Unlock()
-	svc.mux.Lock()
+	defer svc.services.mux.Unlock()
+	svc.services.mux.Lock()
 
 	for _, t := range tt {
 		log := wfLog.With(logger.Uint64("triggerID", t.ID))
 
 		// always unregister
-		if svc.reg[wf.ID] == nil {
-			svc.reg[wf.ID] = make(map[uint64]uintptr)
-		} else if ptr := svc.reg[wf.ID][t.ID]; ptr != 0 {
+		if svc.services.reg[wf.ID] == nil {
+			svc.services.reg[wf.ID] = make(map[uint64]uintptr)
+		} else if ptr := svc.services.reg[wf.ID][t.ID]; ptr != 0 {
 			// unregister handlers for this trigger if they exist
-			svc.eventbus.Unregister(ptr)
+			svc.services.eventbus.Unregister(ptr)
 		}
 
 		// do not register disabled or deleted triggers
@@ -488,7 +480,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 				).Wrap(wf.Issues)
 			}
 		} else {
-			handlerFn = makeWorkflowHandler(svc.workflow, wf, t)
+			handlerFn = makeWorkflowHandler(svc.services.workflow, wf, t)
 		}
 
 		ops = append(
@@ -509,7 +501,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 			}
 		}
 
-		svc.reg[wf.ID][t.ID] = svc.eventbus.Register(handlerFn, ops...)
+		svc.services.reg[wf.ID][t.ID] = svc.services.eventbus.Register(handlerFn, ops...)
 
 		log.Debug("trigger registered",
 			zap.String("eventType", t.EventType),
@@ -520,33 +512,33 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 }
 
 func (svc *trigger) unregisterWorkflows(wwf ...*types.Workflow) {
-	defer svc.mux.Unlock()
-	svc.mux.Lock()
+	defer svc.services.mux.Unlock()
+	svc.services.mux.Lock()
 
 	for _, wf := range wwf {
-		for triggerID, ptr := range svc.reg[wf.ID] {
-			svc.eventbus.Unregister(ptr)
-			svc.log.Debug("trigger unregistered", logger.Uint64("triggerID", triggerID), logger.Uint64("workflowID", wf.ID))
-			delete(svc.triggers, wf.ID)
+		for triggerID, ptr := range svc.services.reg[wf.ID] {
+			svc.services.eventbus.Unregister(ptr)
+			svc.services.log.Debug("trigger unregistered", logger.Uint64("triggerID", triggerID), logger.Uint64("workflowID", wf.ID))
+			delete(svc.services.triggers, wf.ID)
 		}
 
-		delete(svc.reg, wf.ID)
+		delete(svc.services.reg, wf.ID)
 	}
 }
 
 func (svc *trigger) unregisterTriggers(tt ...*types.Trigger) {
-	defer svc.mux.Unlock()
-	svc.mux.Lock()
+	defer svc.services.mux.Unlock()
+	svc.services.mux.Lock()
 
 	for _, t := range tt {
-		if svc.reg[t.WorkflowID] == nil {
+		if svc.services.reg[t.WorkflowID] == nil {
 			return
 		}
 
-		if ptr, has := svc.reg[t.WorkflowID][t.ID]; has {
-			svc.eventbus.Unregister(ptr)
-			svc.log.Debug("trigger unregistered", logger.Uint64("triggerID", t.ID), logger.Uint64("workflowID", t.WorkflowID))
-			delete(svc.triggers, t.ID)
+		if ptr, has := svc.services.reg[t.WorkflowID][t.ID]; has {
+			svc.services.eventbus.Unregister(ptr)
+			svc.services.log.Debug("trigger unregistered", logger.Uint64("triggerID", t.ID), logger.Uint64("workflowID", t.WorkflowID))
+			delete(svc.services.triggers, t.ID)
 		}
 	}
 }

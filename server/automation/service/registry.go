@@ -64,7 +64,7 @@ func (r registry) Functions() []*types.Function {
 
 	for ref, f := range r.functions {
 		// flag for UI weather this function step is disabled or not
-		f.Disabled = !DefaultWorkflow.corredorOpt.Enabled && ref == "corredorExec"
+		f.Disabled = !DefaultWorkflow.services.corredorOpt.Enabled && ref == "corredorExec"
 		rr = append(rr, ref)
 	}
 

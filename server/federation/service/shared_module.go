@@ -2,21 +2,18 @@ package service
 
 import (
 	"context"
+	"github.com/crusttech/human/server/pkg/errors"
 
 	composeService "github.com/crusttech/human/server/compose/service"
 	"github.com/crusttech/human/server/federation/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/store"
 )
 
 type (
-	sharedModule struct {
-		node      node
-		ac        sharedModuleAccessController
-		compose   composeService.ModuleService
-		store     store.Storer
-		actionlog actionlog.Recorder
+	sharedModuleServices struct {
+		node    node
+		compose composeService.ModuleService
 	}
 
 	sharedModuleAccessController interface {
@@ -26,48 +23,45 @@ type (
 	SharedModuleService interface {
 		Create(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error)
 		Update(ctx context.Context, updated *types.SharedModule) (*types.SharedModule, error)
-		Search(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error)
+		Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error)
 		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.SharedModule, error)
+		Search(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error)
 	}
 )
 
 func SharedModule() *sharedModule {
 	return &sharedModule{
 		ac:        DefaultAccessControl,
-		node:      *DefaultNode,
-		compose:   composeService.DefaultModule,
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
+		services: &sharedModuleServices{
+			node:    *DefaultNode,
+			compose: composeService.DefaultModule,
+		},
 	}
 }
 
-// onLookup is the generated FindByID body handler (node-scoped compound id).
-//
-// The recordAction wrapper and aProps are owned by the generated
-// shared_module.gen.go.
-func (svc *sharedModule) onLookup(ctx context.Context, nodeID, ID uint64, aProps *sharedModuleActionProps) (module *types.SharedModule, err error) {
-	if module, err = loadSharedModuleScoped(ctx, svc.store, nodeID, ID); err != nil {
+func (svc *sharedModule) onLookup(ctx context.Context, nodeID uint64, ID uint64, aProps *sharedModuleActionProps) (*types.SharedModule, error) {
+	res, err := loadSharedModuleByNodeID(ctx, svc.store, nodeID, ID)
+	if err != nil {
 		return nil, err
 	}
-
-	return module, nil
+	aProps.setModule(res)
+	return res, nil
 }
 
-// onCreate is the generated Create body handler.
-//
-// The recordAction wrapper, aProps (module/changed) and res=new assignment are
-// owned by the generated shared_module.gen.go.
-func (svc *sharedModule) onCreate(ctx context.Context, new *types.SharedModule) error {
-	var (
-		aProps = &sharedModuleActionProps{changed: new}
-	)
+func (svc *sharedModule) onSearch(ctx context.Context, filter types.SharedModuleFilter, aProps *sharedModuleActionProps) (types.SharedModuleSet, types.SharedModuleFilter, error) {
+	return store.SearchFederationSharedModules(ctx, svc.store, filter)
+}
 
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+func (svc *sharedModule) onCreate(ctx context.Context, new *types.SharedModule) error {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		var (
 			node *types.Node
+			err  error
 		)
 
-		if node, err = svc.node.FindByID(ctx, new.NodeID); err != nil {
+		if node, err = svc.services.node.FindByID(ctx, new.NodeID); err != nil {
 			return SharedModuleErrNodeNotFound()
 		}
 
@@ -83,37 +77,19 @@ func (svc *sharedModule) onCreate(ctx context.Context, new *types.SharedModule) 
 		new.CreatedAt = *now()
 		new.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
-		// check if Fields can be unmarshaled to the fields structure
-		if new.Fields != nil {
-		}
-
-		aProps.setModule(new)
-
-		if err = store.CreateFederationSharedModule(ctx, s, new); err != nil {
-			return err
-		}
-
-		return nil
+		return store.CreateFederationSharedModule(ctx, s, new)
 	})
 }
 
-// onUpdate is the generated Update body handler.
-//
-// The recordAction wrapper, Tx, load, and old clone are owned by shared_module.gen.go.
-func (svc *sharedModule) onUpdate(ctx context.Context, s store.Storer, upd, res *types.SharedModule, aProps *sharedModuleActionProps, _ func() error, _ func() error) error {
-	if _, err := svc.node.FindByID(ctx, upd.NodeID); err != nil {
+func (svc *sharedModule) onUpdate(ctx context.Context, s store.Storer, upd *types.SharedModule, res *types.SharedModule, aProps *sharedModuleActionProps, before func() error, after func() error) error {
+	if _, err := svc.services.node.FindByID(ctx, upd.NodeID); err != nil {
 		return SharedModuleErrNodeNotFound()
 	}
 
-	res.Fields = upd.Fields
-	res.Handle = upd.Handle
-	res.Name = upd.Name
-	res.UpdatedAt = now()
-	res.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+	upd.UpdatedAt = now()
+	upd.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
-	aProps.setModule(res)
-
-	return store.UpdateFederationSharedModule(ctx, s, res)
+	return store.UpdateFederationSharedModule(ctx, s, upd)
 }
 
 func (svc sharedModule) uniqueCheck(ctx context.Context, m *types.SharedModule) (err error) {
@@ -132,22 +108,37 @@ func (svc sharedModule) uniqueCheck(ctx context.Context, m *types.SharedModule) 
 	return nil
 }
 
-// onSearch is the generated Search body handler.
-//
-// The recordAction wrapper and aProps (filter) are owned by the generated
-// shared_module.gen.go.
-func (svc *sharedModule) onSearch(ctx context.Context, filter types.SharedModuleFilter, aProps *sharedModuleActionProps) (set types.SharedModuleSet, f types.SharedModuleFilter, err error) {
-	if set, f, err = store.SearchFederationSharedModules(ctx, svc.store, filter); err != nil {
-		return nil, f, err
-	}
+func (svc sharedModule) Find(ctx context.Context, filter types.SharedModuleFilter) (set types.SharedModuleSet, f types.SharedModuleFilter, err error) {
+	var (
+		aProps = &sharedModuleActionProps{filter: &filter}
+	)
 
-	return set, f, nil
+	err = func() error {
+		if set, f, err = store.SearchFederationSharedModules(ctx, svc.store, filter); err != nil {
+			return err
+		}
+		return nil
+	}()
+
+	return set, f, svc.recordAction(ctx, aProps, SharedModuleActionSearch, err)
 }
 
-func loadSharedModuleScoped(ctx context.Context, s store.Storer, nodeID, moduleID uint64) (res *types.SharedModule, err error) {
-	if res, err = loadSharedModule(ctx, s, moduleID); err == nil && res.NodeID != nodeID {
+func loadSharedModuleByNodeID(ctx context.Context, s store.FederationSharedModules, nodeID, ID uint64) (res *types.SharedModule, err error) {
+	if ID == 0 || nodeID == 0 {
+		return nil, SharedModuleErrInvalidID()
+	}
+
+	if res, err = store.LookupFederationSharedModuleByID(ctx, s, ID); errors.IsNotFound(err) {
+		err = SharedModuleErrNotFound()
+	}
+
+	if err == nil && nodeID != res.NodeID {
 		return nil, SharedModuleErrNotFound()
 	}
+
 	return
 }
 
+func loadSharedModuleScoped(ctx context.Context, s store.FederationSharedModules, nodeID, ID uint64) (res *types.SharedModule, err error) {
+	return loadSharedModuleByNodeID(ctx, s, nodeID, ID)
+}

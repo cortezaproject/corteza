@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -17,9 +18,11 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type roleServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type role struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        roleAccessController
+	services  *roleServices
 }
 
 func (svc *role) FindByID(ctx context.Context, ID uint64) (res *types.Role, err error) {
@@ -156,6 +159,10 @@ func (svc *role) Update(ctx context.Context, upd *types.Role) (res *types.Role, 
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return RoleErrInvalidHandle()
 		}
@@ -207,6 +214,10 @@ func (svc *role) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setRole(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -228,6 +239,10 @@ func (svc *role) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		aProps.setRole(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
 
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
@@ -260,19 +275,13 @@ func toLabeledRoles(set []*types.Role) []label.LabeledResource {
 
 	return ll
 }
+func (svc *role) guard(_ context.Context, _ *types.Role) error { return nil }
 
 func (svc *role) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *role) scopeServices(ctx context.Context) *roleServices {
-	return &roleServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *role) Archive(ctx context.Context, roleID uint64) (err error) {

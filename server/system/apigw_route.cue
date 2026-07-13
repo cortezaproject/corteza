@@ -135,8 +135,9 @@ apigw_route: {
 	}
 
 	service: {
-		actionProp: "route"
-		filterProp: "search"
+		extraServices: false
+		actionProp:    "route"
+		filterProp:    "search"
 
 		undelete: true
 

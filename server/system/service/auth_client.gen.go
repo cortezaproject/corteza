@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
@@ -16,9 +17,11 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type authClientServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type authClient struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        authClientAccessController
+	services  *authClientServices
 }
 
 func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *types.AuthClient, err error) {
@@ -75,6 +78,10 @@ func (svc *authClient) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setAuthClient(res)
 
 		if !svc.ac.CanDeleteAuthClient(ctx, res) {
@@ -117,19 +124,13 @@ func toLabeledAuthClients(set []*types.AuthClient) []label.LabeledResource {
 
 	return ll
 }
+func (svc *authClient) guard(_ context.Context, _ *types.AuthClient) error { return nil }
 
 func (svc *authClient) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *authClient) scopeServices(ctx context.Context) *authClientServices {
-	return &authClientServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *authClient) RegenerateSecret(ctx context.Context, ID uint64) (secret string, err error) {

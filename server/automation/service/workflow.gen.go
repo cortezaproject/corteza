@@ -8,16 +8,20 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
 
-type workflowServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type workflow struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        workflowAccessController
+	services  *workflowServices
 }
 
 func (svc *workflow) Search(ctx context.Context, filter types.WorkflowFilter) (set types.WorkflowSet, f types.WorkflowFilter, err error) {
@@ -86,19 +90,13 @@ func toLabeledWorkflows(set []*types.Workflow) []label.LabeledResource {
 
 	return ll
 }
+func (svc *workflow) guard(_ context.Context, _ *types.Workflow) error { return nil }
 
 func (svc *workflow) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *workflow) scopeServices(ctx context.Context) *workflowServices {
-	return &workflowServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (results *expr.Vars, sessionID uint64, stacktrace types.Stacktrace, err error) {

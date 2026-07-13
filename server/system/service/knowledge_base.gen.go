@@ -31,14 +31,6 @@ type knowledgeBase struct {
 	ac        knowledgeBaseAccessController
 }
 
-func KnowledgeBase() *knowledgeBase {
-	return &knowledgeBase{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
-}
-
 type knowledgeBaseServices struct {
 	scope scope.Scope
 	caps  scope.Capabilities
@@ -58,6 +50,10 @@ func (svc *knowledgeBase) FindByID(ctx context.Context, ID uint64) (res *types.K
 		}
 
 		aProps.setKnowledgeBase(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
 
 		if !svc.ac.CanReadKnowledgeBase(ctx, res) {
 			return KnowledgeBaseErrNotAllowedToRead()
@@ -148,6 +144,10 @@ func (svc *knowledgeBase) Update(ctx context.Context, upd *types.KnowledgeBase) 
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return KnowledgeBaseErrInvalidHandle()
 		}
@@ -193,6 +193,10 @@ func (svc *knowledgeBase) DeleteByID(ctx context.Context, ID uint64) (err error)
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setKnowledgeBase(res)
 
 		if !svc.ac.CanDeleteKnowledgeBase(ctx, res) {
@@ -225,6 +229,10 @@ func (svc *knowledgeBase) UndeleteByID(ctx context.Context, ID uint64) (err erro
 
 		aProps.setKnowledgeBase(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
 
@@ -242,6 +250,7 @@ func loadKnowledgeBase(ctx context.Context, s store.KnowledgeBases, ID uint64) (
 
 	return
 }
+func (svc *knowledgeBase) guard(_ context.Context, _ *types.KnowledgeBase) error { return nil }
 
 func (svc *knowledgeBase) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -249,7 +258,6 @@ func (svc *knowledgeBase) checkScope(ctx context.Context, cap scope.Capability) 
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *knowledgeBase) scopeServices(ctx context.Context) *knowledgeBaseServices {
 	return &knowledgeBaseServices{
 		scope: scope.GetScopeFromContext(ctx),

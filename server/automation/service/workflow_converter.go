@@ -32,9 +32,9 @@ type (
 
 func Convert(wfService *workflow, wf *types.Workflow) (*wfexec.Graph, types.WorkflowIssueSet) {
 	conv := &workflowConverter{
-		reg:    wfService.reg,
-		parser: wfService.parser,
-		log:    wfService.log,
+		reg:    wfService.services.reg,
+		parser: wfService.services.parser,
+		log:    wfService.services.log,
 		graphs: wfService,
 	}
 
@@ -699,7 +699,7 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 
 		// check for corredor function step(s) are allowed or not
 		checkDisabledFunc = func() error {
-			if !DefaultWorkflow.corredorOpt.Enabled && s.Ref == "corredorExec" {
+			if !DefaultWorkflow.services.corredorOpt.Enabled && s.Ref == "corredorExec" {
 				return WorkflowErrNotAllowedToExecuteCorredorStep()
 			}
 			return nil

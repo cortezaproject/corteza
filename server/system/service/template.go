@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/store"
@@ -16,20 +15,8 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-// The CRUD skeleton (FindByID, Search, Create, Update, DeleteByID,
-// UndeleteByID, loadTemplate and toLabeledTemplates) is generated in
-// template.gen.go from system/template.cue.
-//
-// This file owns the struct, access-controller interface, constructor, the
-// `validate` hook the generated Create / Update call into, and the custom
-// methods (FindByHandle, FindByAny, Render and helpers).
-
 type (
-	template struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        templateAccessController
-
+	templateServices struct {
 		renderer rendererService
 	}
 
@@ -69,23 +56,59 @@ func Renderer(cfg options.TemplateOpt) *template {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
-
-		renderer: renderer.Renderer(cfg),
+		services:  &templateServices{renderer: renderer.Renderer(cfg)},
 	}
 }
 
-// validate runs at the top of the generated Create and Update, on the incoming
-// resource.
-func (svc *template) validate(ctx context.Context, res *types.Template) error {
-	if !handle.IsValid(res.Handle) {
+func (svc *template) validate(ctx context.Context, t *types.Template) error {
+	if !handle.IsValid(t.Handle) {
 		return TemplateErrInvalidHandle()
 	}
-
-	if res.Meta.Short == "" {
+	if t.Meta.Short == "" {
 		return TemplateErrMissingShort()
 	}
-
 	return nil
+}
+
+func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (io.ReadSeeker, error) {
+	tpl, err := svc.FindByID(ctx, templateID)
+	if err != nil {
+		return nil, err
+	}
+	if tpl == nil {
+		return nil, TemplateErrNotFound()
+	}
+	if tpl.Partial {
+		return nil, TemplateErrCannotRenderPartial()
+	}
+
+	aProps.setTemplate(tpl)
+
+	if !svc.ac.CanRenderTemplate(ctx, tpl) {
+		return nil, TemplateErrNotAllowedToRender()
+	}
+
+	pp, err := svc.getPartials(ctx, tpl)
+	if err != nil {
+		return nil, err
+	}
+
+	att, err := svc.getAttachments(ctx, tpl)
+	if err != nil {
+		return nil, err
+	}
+
+	p := &renderer.RendererPayload{
+		Template:     svc.getSource(tpl),
+		TemplateType: tpl.Type,
+		TargetType:   types.DocumentType(dstType),
+		Variables:    variables,
+		Options:      options,
+		Partials:     pp,
+		Attachments:  att,
+	}
+
+	return svc.services.renderer.Render(ctx, p)
 }
 
 func (svc *template) FindByHandle(ctx context.Context, h string) (tpl *types.Template, err error) {
@@ -127,68 +150,12 @@ func (svc *template) FindByAny(ctx context.Context, identifier interface{}) (tpl
 		err = TemplateErrInvalidID()
 	}
 
-	if err != nil {
-		return
-	}
-
 	return
 }
 
 func (svc *template) Drivers() []renderer.DriverDefinition {
-	return svc.renderer.Drivers()
+	return svc.services.renderer.Drivers()
 }
-
-func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {
-	tpl, err := svc.FindByID(ctx, templateID)
-	if err != nil {
-		return nil, err
-	}
-	if tpl == nil {
-		return nil, TemplateErrNotFound()
-	}
-	if tpl.Partial {
-		return nil, TemplateErrCannotRenderPartial()
-	}
-
-	aProps.setTemplate(tpl)
-
-	if !svc.ac.CanRenderTemplate(ctx, tpl) {
-		return nil, TemplateErrNotAllowedToRender()
-	}
-
-	// Prepare partials
-	//
-	// @todo Make this more sophisticated by inspecting the template or
-	//       by requiring users to "import" (specify) what partials to use.
-	pp, err := svc.getPartials(ctx, tpl)
-	if err != nil {
-		return nil, err
-	}
-
-	att, err := svc.getAttachments(ctx, tpl)
-	if err != nil {
-		return nil, err
-	}
-
-	p := &renderer.RendererPayload{
-		Template:     svc.getSource(tpl),
-		TemplateType: tpl.Type,
-		TargetType:   types.DocumentType(dstType),
-		Variables:    variables,
-		Options:      options,
-		Partials:     pp,
-		Attachments:  att,
-	}
-
-	document, err = svc.renderer.Render(ctx, p)
-	if err != nil {
-		return nil, err
-	}
-
-	return document, nil
-}
-
-// Util things
 
 func (svc *template) getSource(tpl *types.Template) io.Reader {
 	return bytes.NewBuffer([]byte(tpl.Template))
@@ -204,18 +171,15 @@ func (svc *template) getPartials(ctx context.Context, tpl *types.Template) ([]*r
 		return nil, err
 	}
 
-	// @todo inspect original template to filter partials
-	// @todo do some filtering based on partial type and main template type
-
 	for _, t := range set {
-		tpl := t.Template
-		if !strings.HasPrefix(tpl, "{{define") {
-			tpl = fmt.Sprintf(`{{define "%s"}}%s{{end}}`, t.Handle, tpl)
+		src := t.Template
+		if !strings.HasPrefix(src, "{{define") {
+			src = fmt.Sprintf(`{{define "%s"}}%s{{end}}`, t.Handle, src)
 		}
 
 		pp = append(pp, &renderer.TemplatePartial{
 			Handle:       t.Handle,
-			Template:     bytes.NewBuffer([]byte(tpl)),
+			Template:     bytes.NewBuffer([]byte(src)),
 			TemplateType: t.Type,
 		})
 	}
@@ -223,7 +187,7 @@ func (svc *template) getPartials(ctx context.Context, tpl *types.Template) ([]*r
 	return pp, nil
 }
 
-// @todo...
-func (svc *template) getAttachments(ctx context.Context, tpl *types.Template) (renderer.AttachmentIndex, error) {
+func (svc *template) getAttachments(_ context.Context, _ *types.Template) (renderer.AttachmentIndex, error) {
 	return make(renderer.AttachmentIndex), nil
 }
+

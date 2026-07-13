@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
@@ -16,9 +17,11 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type applicationServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type application struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        applicationAccessController
+	services  *applicationServices
 }
 
 func (svc *application) FindByID(ctx context.Context, ID uint64) (res *types.Application, err error) {
@@ -35,6 +38,10 @@ func (svc *application) FindByID(ctx context.Context, ID uint64) (res *types.App
 		}
 
 		aProps.setApplication(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
 
 		if !svc.ac.CanReadApplication(ctx, res) {
 			return ApplicationErrNotAllowedToRead()
@@ -118,6 +125,10 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (res
 		old = res.Clone()
 		aProps.setApplication(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		if !svc.ac.CanUpdateApplication(ctx, res) {
 			return ApplicationErrNotAllowedToUpdate()
 		}
@@ -165,6 +176,10 @@ func (svc *application) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setApplication(res)
 
 		if !svc.ac.CanDeleteApplication(ctx, res) {
@@ -193,6 +208,10 @@ func (svc *application) UndeleteByID(ctx context.Context, ID uint64) (err error)
 
 		if res, err = loadApplication(ctx, svc.store, ID); err != nil {
 			return
+		}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
 		}
 
 		aProps.setApplication(res)
@@ -237,19 +256,13 @@ func toLabeledApplications(set []*types.Application) []label.LabeledResource {
 
 	return ll
 }
+func (svc *application) guard(_ context.Context, _ *types.Application) error { return nil }
 
 func (svc *application) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *application) scopeServices(ctx context.Context) *applicationServices {
-	return &applicationServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *application) Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) (err error) {

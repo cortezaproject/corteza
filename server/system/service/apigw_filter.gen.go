@@ -9,15 +9,18 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type apigwFilterServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type apigwFilter struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        apigwFilterAccessController
+	services  *apigwFilterServices
 }
 
 func (svc *apigwFilter) FindByID(ctx context.Context, ID uint64) (res *types.ApigwFilter, err error) {
@@ -84,6 +87,10 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (res
 		aProps.setFilter(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return ApigwFilterErrStaleData()
 		}
@@ -125,6 +132,10 @@ func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setFilter(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -142,19 +153,13 @@ func loadApigwFilter(ctx context.Context, s store.ApigwFilters, ID uint64) (res 
 
 	return
 }
+func (svc *apigwFilter) guard(_ context.Context, _ *types.ApigwFilter) error { return nil }
 
 func (svc *apigwFilter) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *apigwFilter) scopeServices(ctx context.Context) *apigwFilterServices {
-	return &apigwFilterServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *apigwFilter) DefFilter(ctx context.Context, kind string) (l interface{}, err error) {

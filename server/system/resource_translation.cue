@@ -89,7 +89,7 @@ resource_translation: {
 	}
 
 	service: {
-		genConstructor: true
+		extraServices: false
 
 		undelete: true
 

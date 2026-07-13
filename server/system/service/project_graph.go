@@ -65,7 +65,7 @@ func (s *projectGraphService) fetch(ctx context.Context, projectID uint64) (cont
 		return ctx, nil, err
 	}
 
-	sources, err := s.loadSources(ctx, projectID, proj.Config.NamespaceID, sens)
+	sources, err := s.loadSources(ctx, projectID, sens)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -164,7 +164,7 @@ func (s *projectGraphService) transform(ctx context.Context, sources []*GraphSou
 	return assembleProjectGraph(ctx, sources, s.loadExternal)
 }
 
-func (s *projectGraphService) loadSources(ctx context.Context, projectID, namespaceID uint64, sens map[uint64]string) ([]*GraphSource, error) {
+func (s *projectGraphService) loadSources(ctx context.Context, projectID uint64, sens map[uint64]string) ([]*GraphSource, error) {
 	var out []*GraphSource
 
 	// Configured connections are loaded as first-class nodes so a project's
@@ -186,12 +186,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID, namesp
 		})
 	}
 
-	// Compose resources (modules/pages/charts) are scoped by NAMESPACE, not by
-	// rel_project — their generated filter builders honour NamespaceID but ignore
-	// ProjectID. A project owns exactly one namespace (locked decision G), so its
-	// namespaceID is the correct, complete scope. (System/automation resources
-	// below carry rel_project and are filtered by ProjectID instead.)
-	mm, _, err := store.SearchComposeModules(ctx, s.store, composeTypes.ModuleFilter{NamespaceID: namespaceID})
+	mm, _, err := store.SearchComposeModules(ctx, s.store, composeTypes.ModuleFilter{ProjectID: projectID})
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +211,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID, namesp
 		})
 	}
 
-	pp, _, err := store.SearchComposePages(ctx, s.store, composeTypes.PageFilter{NamespaceID: namespaceID})
+	pp, _, err := store.SearchComposePages(ctx, s.store, composeTypes.PageFilter{ProjectID: projectID})
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +226,7 @@ func (s *projectGraphService) loadSources(ctx context.Context, projectID, namesp
 		})
 	}
 
-	cc, _, err := store.SearchComposeCharts(ctx, s.store, composeTypes.ChartFilter{NamespaceID: namespaceID})
+	cc, _, err := store.SearchComposeCharts(ctx, s.store, composeTypes.ChartFilter{ProjectID: projectID})
 	if err != nil {
 		return nil, err
 	}

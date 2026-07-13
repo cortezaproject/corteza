@@ -663,7 +663,7 @@ func parseExpressions(svc *ngAutomation, ee ...*types.Expr) (err error) {
 	for _, e := range ee {
 
 		if len(strings.TrimSpace(e.Expr)) > 0 {
-			if err = svc.parser.ParseEvaluators(e); err != nil {
+			if err = svc.services.parser.ParseEvaluators(e); err != nil {
 				return
 			}
 		}
@@ -674,7 +674,7 @@ func parseExpressions(svc *ngAutomation, ee ...*types.Expr) (err error) {
 		}
 
 		for _, t := range e.Tests {
-			if err = svc.parser.ParseEvaluators(t); err != nil {
+			if err = svc.services.parser.ParseEvaluators(t); err != nil {
 				return
 			}
 		}

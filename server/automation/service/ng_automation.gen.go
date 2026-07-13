@@ -8,7 +8,9 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/label"
@@ -16,9 +18,11 @@ import (
 	"github.com/crusttech/human/server/store"
 )
 
-type ngAutomationServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type ngAutomation struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        ngAutomationAccessController
+	services  *ngAutomationServices
 }
 
 func (svc *ngAutomation) Search(ctx context.Context, filter types.NgAutomationFilter) (set types.NgAutomationSet, f types.NgAutomationFilter, err error) {
@@ -87,19 +91,13 @@ func toLabeledNgAutomations(set []*types.NgAutomation) []label.LabeledResource {
 
 	return ll
 }
+func (svc *ngAutomation) guard(_ context.Context, _ *types.NgAutomation) error { return nil }
 
 func (svc *ngAutomation) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *ngAutomation) scopeServices(ctx context.Context) *ngAutomationServices {
-	return &ngAutomationServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {

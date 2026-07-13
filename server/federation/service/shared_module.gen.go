@@ -10,15 +10,18 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
 
-type sharedModuleServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type sharedModule struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        sharedModuleAccessController
+	services  *sharedModuleServices
 }
 
 func (svc *sharedModule) FindByID(ctx context.Context, nodeID uint64, ID uint64) (res *types.SharedModule, err error) {
@@ -85,6 +88,10 @@ func (svc *sharedModule) Update(ctx context.Context, upd *types.SharedModule) (r
 		aProps.setModule(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return SharedModuleErrInvalidHandle()
 		}
@@ -126,17 +133,11 @@ func loadSharedModule(ctx context.Context, s store.FederationSharedModules, ID u
 
 	return
 }
+func (svc *sharedModule) guard(_ context.Context, _ *types.SharedModule) error { return nil }
 
 func (svc *sharedModule) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *sharedModule) scopeServices(ctx context.Context) *sharedModuleServices {
-	return &sharedModuleServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }

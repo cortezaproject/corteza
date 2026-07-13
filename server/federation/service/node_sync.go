@@ -4,16 +4,12 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/federation/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
 )
 
 type (
-	nodeSync struct {
-		store     store.Storer
-		actionlog actionlog.Recorder
-	}
+	nodeSyncAccessController interface{}
 
 	NodeSyncService interface {
 		Create(ctx context.Context, new *types.NodeSync) (*types.NodeSync, error)
@@ -29,32 +25,27 @@ func NodeSync() NodeSyncService {
 	}
 }
 
-// onCreate is the custom body for the generated Create. It verifies the
-// referenced node exists before storing the sync record.
-func (svc *nodeSync) onCreate(ctx context.Context, new *types.NodeSync) error {
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if _, err := DefaultNode.FindByID(ctx, new.NodeID); err != nil {
-			return NodeSyncErrNodeNotFound()
-		}
-
-		return store.CreateFederationNodeSync(ctx, s, new)
-	})
-}
-
-// onSearch is the custom body for the generated Search.
 func (svc *nodeSync) onSearch(ctx context.Context, f types.NodeSyncFilter, aProps *nodeSyncActionProps) (types.NodeSyncSet, types.NodeSyncFilter, error) {
 	return store.SearchFederationNodeSyncs(ctx, svc.store, f)
 }
 
-func (svc *nodeSync) LookupLastSuccessfulSync(ctx context.Context, nodeID uint64, syncType string) (ns *types.NodeSync, err error) {
-	// todo - filter by sync-type does not work
+func (svc *nodeSync) onCreate(ctx context.Context, new *types.NodeSync) error {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		if _, err := DefaultNode.FindByID(ctx, new.NodeID); err != nil {
+			return NodeSyncErrNodeNotFound()
+		}
+		return store.CreateFederationNodeSync(ctx, s, new)
+	})
+}
+
+func (svc nodeSync) LookupLastSuccessfulSync(ctx context.Context, nodeID uint64, syncType string) (ns *types.NodeSync, err error) {
 	s, _, err := store.SearchFederationNodeSyncs(ctx, svc.store, types.NodeSyncFilter{
 		NodeID:     nodeID,
 		SyncType:   syncType,
 		SyncStatus: types.NodeSyncStatusSuccess,
 		Sorting: filter.Sorting{
 			Sort: filter.SortExprSet{
-				&filter.SortExpr{Column: "time_of_action", Descending: true},
+				&filter.SortExpr{Column: "time_action", Descending: true},
 			},
 		},
 		Paging: filter.Paging{Limit: 1},

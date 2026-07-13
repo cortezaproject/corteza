@@ -8,15 +8,19 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type configuredConnectionServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type configuredConnection struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        configuredConnectionAccessController
+	services  *configuredConnectionServices
 }
 
 func (svc *configuredConnection) Create(ctx context.Context, new *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
@@ -69,19 +73,15 @@ func toLabeledConfiguredConnections(set []*types.ConfiguredConnection) []label.L
 
 	return ll
 }
+func (svc *configuredConnection) guard(_ context.Context, _ *types.ConfiguredConnection) error {
+	return nil
+}
 
 func (svc *configuredConnection) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *configuredConnection) scopeServices(ctx context.Context) *configuredConnectionServices {
-	return &configuredConnectionServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *configuredConnection) Enable(ctx context.Context, ID uint64) (res *types.ConfiguredConnection, err error) {

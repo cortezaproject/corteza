@@ -192,12 +192,12 @@ func (svc *<resource>Service) classifyChanges(changes []ProjectChange, out []Pro
 
 Envoy handles ref rewrites automatically during clone.
 
-| Resource    | Field                                        | Handled by envoy |
-| ----------- | -------------------------------------------- | ---------------- |
-| Page        | `ModuleID` on record-list/record-edit blocks | ✅ yes           |
-| Chart       | `Config.Reports[].moduleID`                  | ✅ yes           |
-| Workflow    | Step arguments (module, namespace, role, workflow refs) | ✅ yes |
-| NgAutomation | Step arguments                              | ⚠️ no envoy support yet (`envoy: { omit: true }` in ng_automation.cue) |
+| Resource     | Field                                                   | Handled by envoy                                                       |
+| ------------ | ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Page         | `ModuleID` on record-list/record-edit blocks            | ✅ yes                                                                 |
+| Chart        | `Config.Reports[].moduleID`                             | ✅ yes                                                                 |
+| Workflow     | Step arguments (module, namespace, role, workflow refs) | ✅ yes                                                                 |
+| NgAutomation | Step arguments                                          | ⚠️ no envoy support yet (`envoy: { omit: true }` in ng_automation.cue) |
 
 ### REST API
 

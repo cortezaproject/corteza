@@ -116,7 +116,7 @@ chart: {
 		}
 
 		query: ["handle", "name"]
-		byValue: ["handle", "chart_id", "namespace_id"]
+		byValue: ["handle", "chart_id", "namespace_id", "project_id"]
 		byNilState: ["deleted"]
 	}
 

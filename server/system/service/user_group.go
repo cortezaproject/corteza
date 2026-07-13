@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/handle"
@@ -18,21 +17,6 @@ import (
 )
 
 type (
-	userGroup struct {
-		actionlog actionlog.Recorder
-
-		ac       userGroupAccessController
-		eventbus eventDispatcher
-		rbac     rbacUserGroupService
-
-		user UserService
-		role RoleService
-
-		rootUserGroup id.ID
-
-		store store.Storer
-	}
-
 	userGroupAccessController interface {
 		CanGrant(context.Context) bool
 
@@ -75,19 +59,27 @@ type (
 	userGroupAuth interface {
 		RemoveAccessTokens(context.Context, *types.User) error
 	}
+
+	userGroupServices struct {
+		eventbus      eventDispatcher
+		rbac          rbacUserGroupService
+		user          UserService
+		role          RoleService
+		rootUserGroup id.ID
+	}
 )
 
 func UserGroup(rbac rbacUserGroupService) *userGroup {
 	return &userGroup{
-		ac:       DefaultAccessControl,
-		eventbus: eventbus.Service(),
-		rbac:     rbac,
-
+		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
-
-		user:  DefaultUser,
-		role:  DefaultRole,
-		store: DefaultStore,
+		store:     DefaultStore,
+		services: &userGroupServices{
+			eventbus: eventbus.Service(),
+			rbac:     rbac,
+			user:     DefaultUser,
+			role:     DefaultRole,
+		},
 	}
 }
 
@@ -101,10 +93,10 @@ func (svc *userGroup) onActivate(ctx context.Context, _ *userGroupActionProps) (
 
 	for _, g := range groups {
 		if len(g.Config.Paths) == 0 {
-			svc.rootUserGroup = id.MustNumID(g.ID)
+			svc.services.rootUserGroup = id.MustNumID(g.ID)
 		}
 
-		roles, _, err := svc.role.Search(ctx, types.RoleFilter{
+		roles, _, err := svc.services.role.Find(ctx, types.RoleFilter{
 			Resource: fmt.Sprintf("corteza::system:user-group/%d", g.ID),
 		})
 		if err != nil {
@@ -139,7 +131,7 @@ func (svc *userGroup) onActivate(ctx context.Context, _ *userGroupActionProps) (
 		gMembers = append(gMembers, rbac.ConvUserGroup(id.MustNumID(g.ID), g.Handle, members, rr, pp))
 	}
 
-	err = svc.rbac.UpdateUserGroups(gMembers...)
+	err = svc.services.rbac.UpdateUserGroups(gMembers...)
 	if err != nil {
 		return
 	}
@@ -200,7 +192,7 @@ func (svc *userGroup) Search(ctx context.Context, filter types.UserGroupFilter) 
 		}
 
 		for _, r := range rr {
-			r.IsRoot = id.MustNumID(r.ID).Equal(svc.rootUserGroup)
+			r.IsRoot = id.MustNumID(r.ID).Equal(svc.services.rootUserGroup)
 		}
 
 		if err = label.Load(ctx, svc.store, toLabeledUserGroups(rr)...); err != nil {
@@ -223,7 +215,7 @@ func (svc *userGroup) FindByID(ctx context.Context, userGroupID uint64) (r *type
 			return err
 		}
 
-		r.IsRoot = id.MustNumID(r.ID).Equal(svc.rootUserGroup)
+		r.IsRoot = id.MustNumID(r.ID).Equal(svc.services.rootUserGroup)
 
 		raProps.setUserGroup(r)
 		return nil
@@ -311,7 +303,7 @@ func (svc *userGroup) validate(ctx context.Context, new *types.UserGroup) error 
 // before-create event and then enforces handle uniqueness, matching the original
 // ordering exactly.
 func (svc *userGroup) beforeCreate(ctx context.Context, new *types.UserGroup) error {
-	if err := svc.eventbus.WaitFor(ctx, event.UserGroupBeforeCreate(new, nil)); err != nil {
+	if err := svc.services.eventbus.WaitFor(ctx, event.UserGroupBeforeCreate(new, nil)); err != nil {
 		return err
 	}
 
@@ -331,11 +323,11 @@ func (svc *userGroup) afterCreate(ctx context.Context, r *types.UserGroup) error
 		})
 	}
 
-	if err := svc.rbac.AddNode(id.MustNumID(r.ID), r.Handle, pp...); err != nil {
+	if err := svc.services.rbac.AddNode(id.MustNumID(r.ID), r.Handle, pp...); err != nil {
 		return err
 	}
 
-	svc.eventbus.Dispatch(ctx, event.UserGroupAfterCreate(r, r))
+	svc.services.eventbus.Dispatch(ctx, event.UserGroupAfterCreate(r, r))
 	return nil
 }
 
@@ -378,7 +370,7 @@ func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *type
 			return UserGroupErrStaleData()
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeUpdate(upd, r)); err != nil {
+		if err = svc.services.eventbus.WaitFor(ctx, event.UserGroupBeforeUpdate(upd, r)); err != nil {
 			return
 		}
 
@@ -412,12 +404,12 @@ func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *type
 			})
 		}
 
-		err = svc.rbac.UpdateNode(id.MustNumID(r.ID), r.Handle, pp...)
+		err = svc.services.rbac.UpdateNode(id.MustNumID(r.ID), r.Handle, pp...)
 		if err != nil {
 			return
 		}
 
-		svc.eventbus.Dispatch(ctx, event.UserGroupAfterUpdate(upd, r))
+		svc.services.eventbus.Dispatch(ctx, event.UserGroupAfterUpdate(upd, r))
 
 		return nil
 	}()
@@ -457,7 +449,7 @@ func (svc *userGroup) DeleteByID(ctx context.Context, userGroupID uint64) (err e
 			return UserGroupErrNotAllowedToDelete()
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeDelete(nil, r)); err != nil {
+		if err = svc.services.eventbus.WaitFor(ctx, event.UserGroupBeforeDelete(nil, r)); err != nil {
 			return
 		}
 
@@ -467,12 +459,12 @@ func (svc *userGroup) DeleteByID(ctx context.Context, userGroupID uint64) (err e
 			return
 		}
 
-		err = svc.rbac.RemoveNode(id.MustNumID(r.ID))
+		err = svc.services.rbac.RemoveNode(id.MustNumID(r.ID))
 		if err != nil {
 			return
 		}
 
-		svc.eventbus.Dispatch(ctx, event.UserGroupAfterDelete(nil, r))
+		svc.services.eventbus.Dispatch(ctx, event.UserGroupAfterDelete(nil, r))
 
 		return
 	}()
@@ -492,7 +484,7 @@ func (svc *userGroup) UndeleteByID(ctx context.Context, userGroupID uint64) (err
 		}
 
 		upd = r.Clone()
-		if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeUpdate(upd, r)); err != nil {
+		if err = svc.services.eventbus.WaitFor(ctx, event.UserGroupBeforeUpdate(upd, r)); err != nil {
 			return
 		}
 
@@ -515,12 +507,12 @@ func (svc *userGroup) UndeleteByID(ctx context.Context, userGroupID uint64) (err
 			})
 		}
 
-		err = svc.rbac.AddNode(id.MustNumID(upd.ID), upd.Handle, pp...)
+		err = svc.services.rbac.AddNode(id.MustNumID(upd.ID), upd.Handle, pp...)
 		if err != nil {
 			return
 		}
 
-		svc.eventbus.Dispatch(ctx, event.UserGroupAfterUpdate(upd, r))
+		svc.services.eventbus.Dispatch(ctx, event.UserGroupAfterUpdate(upd, r))
 		return nil
 	}()
 
@@ -573,7 +565,7 @@ func (svc *userGroup) onMemberAdd(ctx context.Context, aProps *userGroupActionPr
 
 	aProps.setUserGroup(g)
 
-	if m, err = svc.user.FindByID(ctx, memberID); err != nil {
+	if m, err = svc.services.user.FindByID(ctx, memberID); err != nil {
 		return
 	}
 
@@ -581,7 +573,7 @@ func (svc *userGroup) onMemberAdd(ctx context.Context, aProps *userGroupActionPr
 
 	m.UserGroupID = g.ID
 
-	if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeMemberAdd(g, g)); err != nil {
+	if err = svc.services.eventbus.WaitFor(ctx, event.UserGroupBeforeMemberAdd(g, g)); err != nil {
 		return
 	}
 
@@ -593,12 +585,12 @@ func (svc *userGroup) onMemberAdd(ctx context.Context, aProps *userGroupActionPr
 		return
 	}
 
-	err = svc.rbac.AssignGroupMembers(id.MustNumID(m.UserGroupID), id.MustNumID(m.ID))
+	err = svc.services.rbac.AssignGroupMembers(id.MustNumID(m.UserGroupID), id.MustNumID(m.ID))
 	if err != nil {
 		return
 	}
 
-	_ = svc.eventbus.WaitFor(ctx, event.UserGroupAfterMemberAdd(g, g))
+	_ = svc.services.eventbus.WaitFor(ctx, event.UserGroupAfterMemberAdd(g, g))
 	return nil
 }
 
@@ -637,7 +629,7 @@ func (svc *userGroup) checkSelfID(ctx context.Context, g *types.UserGroup) bool 
 }
 
 func (svc *userGroup) checkPaths(g *types.UserGroup) (ok bool) {
-	if id.MustNumID(g.ID).Equal(svc.rootUserGroup) {
+	if id.MustNumID(g.ID).Equal(svc.services.rootUserGroup) {
 		return len(g.Config.Paths) == 0
 	}
 

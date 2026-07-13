@@ -9,14 +9,11 @@ import (
 	"time"
 
 	automationService "github.com/crusttech/human/server/automation/service"
-	"github.com/crusttech/human/server/compose/service/event"
 	"github.com/crusttech/human/server/compose/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/envoyx"
 	"github.com/crusttech/human/server/pkg/errors"
-	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/locale"
@@ -27,17 +24,12 @@ import (
 )
 
 type (
-	namespace struct {
-		actionlog actionlog.Recorder
-		ac        namespaceAccessController
-		modAc     moduleAccessController
-		pageAc    pageAccessController
-		chartAc   chartAccessController
-
-		eventbus eventDispatcher
-		store    store.Storer
-		locale   ResourceTranslationsManagerService
-		envoy    *envoyx.Service
+	namespaceServices struct {
+		locale  ResourceTranslationsManagerService
+		modAc   moduleAccessController
+		pageAc  pageAccessController
+		chartAc chartAccessController
+		envoy   *envoyx.Service
 	}
 
 	namespaceImportSession struct {
@@ -67,7 +59,8 @@ type (
 	NamespaceService interface {
 		FindByID(ctx context.Context, namespaceID uint64) (*types.Namespace, error)
 		FindByHandle(ctx context.Context, handle string) (*types.Namespace, error)
-		Search(context.Context, types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
+		Search(ctx context.Context, filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error)
+		Find(context.Context, types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
 		FindByAny(context.Context, interface{}) (*types.Namespace, error)
 
 		Create(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
@@ -97,26 +90,73 @@ var (
 
 func Namespace() *namespace {
 	return &namespace{
-		ac:      DefaultAccessControl,
-		modAc:   DefaultAccessControl,
-		pageAc:  DefaultAccessControl,
-		chartAc: DefaultAccessControl,
-
-		eventbus:  eventbus.Service(),
+		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-		locale:    DefaultResourceTranslation,
-		envoy:     envoyx.Global(),
+		services: &namespaceServices{
+			locale:  DefaultResourceTranslation,
+			modAc:   DefaultAccessControl,
+			pageAc:  DefaultAccessControl,
+			chartAc: DefaultAccessControl,
+			envoy:   envoyx.Global(),
+		},
 	}
 }
 
-// onSearch is the generated Search body handler.
-//
-// The recordAction wrapper, aProps (filter) and the standard CanSearchNamespaces
-// access check are owned by the generated namespace.gen.go; this handler runs the
-// store search, i18n decode and label load. It also installs filter.Check
-// (the generated wrapper does not emit it for custom-body search).
-func (svc namespace) onSearch(ctx context.Context, filter types.NamespaceFilter, aProps *namespaceActionProps) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
+func (svc *namespace) onLookup(ctx context.Context, ID uint64, aProps *namespaceActionProps) (*types.Namespace, error) {
+	return svc.lookup(ctx, func(p *namespaceActionProps) (*types.Namespace, error) {
+		if ID == 0 {
+			return nil, NamespaceErrInvalidID()
+		}
+		p.namespace.ID = ID
+		return store.LookupComposeNamespaceByID(ctx, svc.store, ID)
+	})
+}
+
+func (svc *namespace) onSearch(ctx context.Context, filter types.NamespaceFilter, aProps *namespaceActionProps) (types.NamespaceSet, types.NamespaceFilter, error) {
+	return svc.Find(ctx, filter)
+}
+
+func (svc *namespace) onCreate(ctx context.Context, new *types.Namespace) error {
+	_, err := svc.Create(ctx, new)
+	return err
+}
+
+func (svc *namespace) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Namespace, aProps *namespaceActionProps, before, after func() error) error {
+	if !svc.ac.CanUpdateNamespace(ctx, res) {
+		return NamespaceErrNotAllowedToUpdate()
+	}
+
+	if err := svc.uniqueCheck(ctx, upd); err != nil {
+		return err
+	}
+
+	res.Name = upd.Name
+	res.Slug = upd.Slug
+	res.Enabled = upd.Enabled
+	res.Meta = upd.Meta
+
+	if err := updateTranslations(ctx, svc.ac, svc.services.locale, res.EncodeTranslations()...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (svc *namespace) onDelete(ctx context.Context, s store.Storer, res *types.Namespace, aProps *namespaceActionProps) error {
+	if !svc.ac.CanDeleteNamespace(ctx, res) {
+		return NamespaceErrNotAllowedToDelete()
+	}
+	res.DeletedAt = now()
+	return store.UpdateComposeNamespace(ctx, s, res)
+}
+
+// search fn() orchestrates pages search, namespace preload and check
+func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
+	var (
+		aProps = &namespaceActionProps{filter: &filter}
+	)
+
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Namespace) (bool, error) {
 		if !svc.ac.CanReadNamespace(ctx, res) {
@@ -126,55 +166,48 @@ func (svc namespace) onSearch(ctx context.Context, filter types.NamespaceFilter,
 		return true, nil
 	}
 
-	if len(filter.Labels) > 0 {
-		filter.LabeledIDs, err = label.Search(
-			ctx,
-			svc.store,
-			types.Namespace{}.LabelResourceKind(),
-			filter.Labels,
-		)
-
-		if err != nil {
-			return
+	err = func() error {
+		if !svc.ac.CanSearchNamespaces(ctx) {
+			return NamespaceErrNotAllowedToSearch()
 		}
 
-		// labels specified but no labeled resources found
-		if len(filter.LabeledIDs) == 0 {
-			return
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				ctx,
+				svc.store,
+				types.Namespace{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
 		}
-	}
 
-	if set, f, err = store.SearchComposeNamespaces(ctx, svc.store, filter); err != nil {
-		return
-	}
+		if set, f, err = store.SearchComposeNamespaces(ctx, svc.store, filter); err != nil {
+			return err
+		}
 
-	// i18n
-	tag := locale.GetAcceptLanguageFromContext(ctx)
-	set.Walk(func(n *types.Namespace) error {
-		n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
+		// i18n
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		set.Walk(func(n *types.Namespace) error {
+			n.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
+			return nil
+		})
+
+		if err = label.Load(ctx, svc.store, toLabeledNamespaces(set)...); err != nil {
+			return err
+		}
+
 		return nil
-	})
+	}()
 
-	if err = label.Load(ctx, svc.store, toLabeledNamespaces(set)...); err != nil {
-		return
-	}
-
-	return
-}
-
-// onLookup is the generated FindByID body handler.
-//
-// The recordAction wrapper and aProps (namespace) are owned by the generated
-// namespace.gen.go.
-func (svc namespace) onLookup(ctx context.Context, ID uint64, aProps *namespaceActionProps) (ns *types.Namespace, err error) {
-	return svc.lookup(ctx, aProps, func(aProps *namespaceActionProps) (*types.Namespace, error) {
-		if ID == 0 {
-			return nil, NamespaceErrInvalidID()
-		}
-
-		aProps.namespace.ID = ID
-		return store.LookupComposeNamespaceByID(ctx, svc.store, ID)
-	})
+	return set, f, svc.recordAction(ctx, aProps, NamespaceActionSearch, err)
 }
 
 // FindByHandle is an alias for FindBySlug
@@ -183,9 +216,7 @@ func (svc namespace) FindByHandle(ctx context.Context, handle string) (ns *types
 }
 
 func (svc namespace) FindBySlug(ctx context.Context, slug string) (ns *types.Namespace, err error) {
-	var aProps = &namespaceActionProps{namespace: &types.Namespace{}}
-
-	ns, err = svc.lookup(ctx, aProps, func(aProps *namespaceActionProps) (*types.Namespace, error) {
+	return svc.lookup(ctx, func(aProps *namespaceActionProps) (*types.Namespace, error) {
 		if !handle.IsValid(slug) {
 			return nil, NamespaceErrInvalidHandle()
 		}
@@ -193,8 +224,6 @@ func (svc namespace) FindBySlug(ctx context.Context, slug string) (ns *types.Nam
 		aProps.namespace.Slug = slug
 		return store.LookupComposeNamespaceBySlug(ctx, svc.store, slug)
 	})
-
-	return ns, svc.recordAction(ctx, aProps, NamespaceActionLookup, err)
 }
 
 // FindByAny tries to find namespace by id, handle or slug
@@ -219,119 +248,6 @@ func (svc namespace) FindByAny(ctx context.Context, identifier interface{}) (r *
 	}
 
 	return
-}
-
-// onCreate is the generated Create body handler. It adds namespace and presets
-// access rules for role everyone.
-//
-// The recordAction wrapper, aProps (namespace) and res=new assignment are owned
-// by the generated namespace.gen.go. The CanCreateNamespace access check lives
-// here (create is in customAccessOps) because it must run inside the tx, after
-// the handle validation.
-func (svc namespace) onCreate(ctx context.Context, new *types.Namespace) error {
-	var (
-		aProps = &namespaceActionProps{namespace: new}
-	)
-
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if !handle.IsValid(new.Slug) {
-			return NamespaceErrInvalidHandle()
-		}
-
-		if !svc.ac.CanCreateNamespace(ctx) {
-			return NamespaceErrNotAllowedToCreate()
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.NamespaceBeforeCreate(new, nil)); err != nil {
-			return err
-		}
-
-		if err = svc.uniqueCheck(ctx, new); err != nil {
-			return err
-		}
-
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.UpdatedAt = nil
-		new.DeletedAt = nil
-
-		aProps.setChanged(new)
-
-		if err = store.CreateComposeNamespace(ctx, svc.store, new); err != nil {
-			return err
-		}
-
-		if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, s, new); err != nil {
-			return
-		}
-
-		_ = svc.eventbus.WaitFor(ctx, event.NamespaceAfterCreate(new, nil))
-		return nil
-	})
-}
-
-// onUpdate is the generated Update body handler.
-func (svc namespace) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Namespace, aProps *namespaceActionProps, _ func() error, _ func() error) error {
-	old := res.Clone()
-
-	if upd.Slug != res.Slug && !handle.IsValid(upd.Slug) {
-		return NamespaceErrInvalidHandle()
-	}
-
-	if err := svc.uniqueCheck(ctx, upd); err != nil {
-		return err
-	}
-
-	if !svc.ac.CanUpdateNamespace(ctx, res) {
-		return NamespaceErrNotAllowedToUpdate()
-	}
-
-	if err := svc.eventbus.WaitFor(ctx, event.NamespaceBeforeUpdate(res, old)); err != nil {
-		return err
-	}
-
-	if res.Name != upd.Name {
-		res.Name = upd.Name
-	}
-
-	if res.Slug != upd.Slug {
-		res.Slug = upd.Slug
-	}
-
-	if res.Enabled != upd.Enabled {
-		res.Enabled = upd.Enabled
-	}
-
-	if !reflect.DeepEqual(upd.Meta, res.Meta) {
-		res.Meta = upd.Meta
-	}
-
-	if upd.Labels != nil {
-		if label.Changed(res.Labels, upd.Labels) {
-			res.Labels = upd.Labels
-			if err := label.Update(ctx, s, res); err != nil {
-				return err
-			}
-		}
-	}
-
-	res.UpdatedAt = now()
-	aProps.setChanged(res)
-
-	if err := store.UpdateComposeNamespace(ctx, s, res); err != nil {
-		return err
-	}
-
-	if err := updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
-		return err
-	}
-
-	_ = svc.eventbus.WaitFor(ctx, event.NamespaceAfterUpdate(res, old))
-	return nil
 }
 
 func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (envoyx.NodeSet, error)) (ns *types.Namespace, err error) {
@@ -384,7 +300,7 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 				return err
 			}
 			tag := locale.GetAcceptLanguageFromContext(ctx)
-			dup.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, dup.ResourceTranslation()))
+			dup.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(tag, dup.ResourceTranslation()))
 
 			aProps.setNamespace(dup)
 
@@ -399,40 +315,6 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 	}()
 
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionClone, err)
-}
-
-// CloneFromStore clones a namespace by decoding all its compose resources from
-// the store and passing them to Clone. Used by the project revision flow.
-func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup *types.Namespace) (*types.Namespace, error) {
-	srcNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, sourceNsID)
-	if err != nil {
-		return nil, err
-	}
-	nsScope := envoyx.ResourceFilter{
-		Scope: envoyx.Scope{
-			ResourceType: types.NamespaceResourceType,
-			Identifiers:  envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID),
-		},
-	}
-	decoder := func() (envoyx.NodeSet, error) {
-		nn, _, err := svc.envoy.Decode(ctx, envoyx.DecodeParams{
-			Type: envoyx.DecodeTypeStore,
-			Params: map[string]any{
-				"storer": svc.store,
-				"dal":    dal.Service(),
-			},
-			Filter: map[string]envoyx.ResourceFilter{
-				types.NamespaceResourceType:   {Identifiers: envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID)},
-				types.ModuleResourceType:      nsScope,
-				types.ModuleFieldResourceType: nsScope,
-				types.PageResourceType:        nsScope,
-				types.PageLayoutResourceType:  nsScope,
-				types.ChartResourceType:       nsScope,
-			},
-		})
-		return nn, err
-	}
-	return svc.Clone(ctx, sourceNsID, dup, decoder)
 }
 
 func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error) {
@@ -601,55 +483,13 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionImportRun, err)
 }
 
-// onDelete is the generated DeleteByID body handler.
-func (svc namespace) onDelete(ctx context.Context, s store.Storer, res *types.Namespace, aProps *namespaceActionProps) error {
-	if !svc.ac.CanDeleteNamespace(ctx, res) {
-		return NamespaceErrNotAllowedToDelete()
-	}
-
-	if res.DeletedAt != nil {
-		return nil
-	}
-
-	old := res.Clone()
-
-	if err := svc.eventbus.WaitFor(ctx, event.NamespaceBeforeDelete(res, old)); err != nil {
-		return err
-	}
-
-	res.DeletedAt = now()
-
-	if err := store.UpdateComposeNamespace(ctx, s, res); err != nil {
-		return err
-	}
-
-	if err := updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
-		return err
-	}
-
-	_ = svc.eventbus.WaitFor(ctx, event.NamespaceAfterDelete(nil, old))
-	return nil
-}
-
-func (svc namespace) UndeleteByID(ctx context.Context, namespaceID uint64) error {
-	var (
-		aProps = &namespaceActionProps{}
-	)
-
-	_, err := svc.updater(ctx, namespaceID, aProps, NamespaceActionUndelete, svc.handleUndelete)
-	return err
-}
-
-func (svc namespace) updater(ctx context.Context, namespaceID uint64, aProps *namespaceActionProps, action func(...*namespaceActionProps) *namespaceAction, fn namespaceUpdateHandler) (*types.Namespace, error) {
+func (svc namespace) updater(ctx context.Context, namespaceID uint64, action func(...*namespaceActionProps) *namespaceAction, fn namespaceUpdateHandler) (*types.Namespace, error) {
 	var (
 		changes namespaceChanges
-		ns, old *types.Namespace
+		ns      *types.Namespace
+		aProps  = &namespaceActionProps{namespace: &types.Namespace{ID: namespaceID}}
 		err     error
 	)
-
-	if aProps.namespace == nil {
-		aProps.namespace = &types.Namespace{ID: namespaceID}
-	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, err = loadNamespace(ctx, s, namespaceID)
@@ -661,20 +501,8 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, aProps *na
 			return err
 		}
 
-		old = ns.Clone()
-
 		aProps.setNamespace(ns)
 		aProps.setChanged(ns)
-
-		if ns.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.NamespaceBeforeUpdate(ns, old))
-		} else {
-			err = svc.eventbus.WaitFor(ctx, event.NamespaceBeforeDelete(ns, old))
-		}
-
-		if err != nil {
-			return
-		}
 
 		if changes, err = fn(ctx, ns); err != nil {
 			return err
@@ -686,7 +514,7 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, aProps *na
 			}
 		}
 
-		if err = updateTranslations(ctx, svc.ac, svc.locale, ns.EncodeTranslations()...); err != nil {
+		if err = updateTranslations(ctx, svc.ac, svc.services.locale, ns.EncodeTranslations()...); err != nil {
 			return
 		}
 
@@ -696,28 +524,15 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, aProps *na
 			}
 		}
 
-		if ns.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.NamespaceAfterUpdate(ns, old))
-		} else {
-			err = svc.eventbus.WaitFor(ctx, event.NamespaceAfterDelete(nil, old))
-		}
-
 		return err
 	})
 
-	return ns, svc.recordAction(ctx, aProps, action, err, old, ns)
+	return ns, svc.recordAction(ctx, aProps, action, err)
 }
 
-// lookup fn() orchestrates namespace lookup, and check.
-//
-// The recordAction wrapper (NamespaceActionLookup) is owned by the generated
-// FindByID; UndeleteByID/Clone callers that still own their action log pass their
-// own aProps. The aProps.namespace is preset to a blank namespace when nil so the
-// lookup fn can stamp the ID/slug onto it.
-func (svc namespace) lookup(ctx context.Context, aProps *namespaceActionProps, lookup func(*namespaceActionProps) (*types.Namespace, error)) (ns *types.Namespace, err error) {
-	if aProps.namespace == nil {
-		aProps.namespace = &types.Namespace{}
-	}
+// lookup fn() orchestrates namespace lookup, and check
+func (svc namespace) lookup(ctx context.Context, lookup func(*namespaceActionProps) (*types.Namespace, error)) (ns *types.Namespace, err error) {
+	var aProps = &namespaceActionProps{namespace: &types.Namespace{}}
 
 	err = func() error {
 		if ns, err = lookup(aProps); errors.IsNotFound(err) {
@@ -739,7 +554,7 @@ func (svc namespace) lookup(ctx context.Context, aProps *namespaceActionProps, l
 		return nil
 	}()
 
-	return ns, err
+	return ns, svc.recordAction(ctx, aProps, NamespaceActionLookup, err)
 }
 
 func (svc namespace) uniqueCheck(ctx context.Context, ns *types.Namespace) (err error) {
@@ -750,6 +565,73 @@ func (svc namespace) uniqueCheck(ctx context.Context, ns *types.Namespace) (err 
 	}
 
 	return nil
+}
+
+func (svc namespace) handleUpdate(ctx context.Context, upd *types.Namespace) namespaceUpdateHandler {
+	return func(ctx context.Context, res *types.Namespace) (changes namespaceChanges, err error) {
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return namespaceUnchanged, NamespaceErrStaleData()
+		}
+
+		if upd.Slug != res.Slug && !handle.IsValid(upd.Slug) {
+			return namespaceUnchanged, NamespaceErrInvalidHandle()
+		}
+
+		if err := svc.uniqueCheck(ctx, upd); err != nil {
+			return namespaceUnchanged, err
+		}
+
+		if !svc.ac.CanUpdateNamespace(ctx, res) {
+			return namespaceUnchanged, NamespaceErrNotAllowedToUpdate()
+		}
+
+		if res.Name != upd.Name {
+			changes |= namespaceChanged
+			res.Name = upd.Name
+		}
+
+		if res.Slug != upd.Slug {
+			changes |= namespaceChanged
+			res.Slug = upd.Slug
+		}
+
+		if res.Enabled != upd.Enabled {
+			changes |= namespaceChanged
+			res.Enabled = upd.Enabled
+		}
+
+		if !reflect.DeepEqual(upd.Meta, res.Meta) {
+			changes |= namespaceChanged
+			res.Meta = upd.Meta
+		}
+
+		if upd.Labels != nil {
+			if label.Changed(res.Labels, upd.Labels) {
+				changes |= namespaceLabelsChanged
+				res.Labels = upd.Labels
+			}
+		}
+
+		if changes&namespaceChanged > 0 {
+			res.UpdatedAt = now()
+		}
+
+		return
+	}
+}
+
+func (svc namespace) handleDelete(ctx context.Context, ns *types.Namespace) (namespaceChanges, error) {
+	if !svc.ac.CanDeleteNamespace(ctx, ns) {
+		return namespaceUnchanged, NamespaceErrNotAllowedToDelete()
+	}
+
+	if ns.DeletedAt != nil {
+		// namespace already deleted
+		return namespaceUnchanged, nil
+	}
+
+	ns.DeletedAt = now()
+	return namespaceChanged, nil
 }
 
 func (svc namespace) handleUndelete(ctx context.Context, ns *types.Namespace) (namespaceChanges, error) {
@@ -792,19 +674,19 @@ func (svc namespace) canExport(ctx context.Context, namespace *types.Namespace) 
 	}
 	// - modules
 	for _, m := range mm {
-		if !svc.modAc.CanReadModule(ctx, m) {
+		if !svc.services.modAc.CanReadModule(ctx, m) {
 			return ModuleErrNotAllowedToRead()
 		}
 	}
 	// - pages
 	for _, p := range pp {
-		if !svc.pageAc.CanReadPage(ctx, p) {
+		if !svc.services.pageAc.CanReadPage(ctx, p) {
 			return PageErrNotAllowedToRead()
 		}
 	}
 	// - charts
 	for _, c := range cc {
-		if !svc.chartAc.CanReadChart(ctx, c) {
+		if !svc.services.chartAc.CanReadChart(ctx, c) {
 			return ChartErrNotAllowedToRead()
 		}
 	}
@@ -869,7 +751,7 @@ func (svc namespace) envoyRun(ctx context.Context, s store.Storer, nodes envoyx.
 
 	// Get expected placeholder refs
 	// - roles
-	roles, _, err := svc.envoy.Decode(ctx, envoyx.DecodeParams{
+	roles, _, err := svc.services.envoy.Decode(ctx, envoyx.DecodeParams{
 		Type: envoyx.DecodeTypeStore,
 		Params: map[string]any{
 			"storer": s,
@@ -888,7 +770,7 @@ func (svc namespace) envoyRun(ctx context.Context, s store.Storer, nodes envoyx.
 	nodes = append(nodes, roles...)
 
 	// run the import
-	gg, err := svc.envoy.Bake(ctx, envoyx.EncodeParams{
+	gg, err := svc.services.envoy.Bake(ctx, envoyx.EncodeParams{
 		Type: envoyx.EncodeTypeStore,
 		Params: map[string]any{
 			"storer": s,
@@ -899,7 +781,7 @@ func (svc namespace) envoyRun(ctx context.Context, s store.Storer, nodes envoyx.
 		return
 	}
 
-	err = svc.envoy.Encode(ctx, envoyx.EncodeParams{
+	err = svc.services.envoy.Encode(ctx, envoyx.EncodeParams{
 		Type: envoyx.EncodeTypeStore,
 		Params: map[string]any{
 			"storer": s,
@@ -912,7 +794,7 @@ func (svc namespace) envoyRun(ctx context.Context, s store.Storer, nodes envoyx.
 
 func (svc namespace) reloadServices(ctx context.Context, ns *types.Namespace) (err error) {
 	// Adjust name res. tr. since we're changing it
-	if err = updateTranslations(ctx, svc.ac, svc.locale, &locale.ResourceTranslation{
+	if err = updateTranslations(ctx, svc.ac, svc.services.locale, &locale.ResourceTranslation{
 		Resource: ns.ResourceTranslation(),
 		Key:      types.LocaleKeyNamespaceName.Path,
 		Msg:      locale.SanitizeMessage(ns.Name),
@@ -926,20 +808,30 @@ func (svc namespace) reloadServices(ctx context.Context, ns *types.Namespace) (e
 		return
 	}
 
-	{
-		// Reload workflow-triggers (in case import brought in something new)
-		if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
-			// should not be a fatal error
-			err = nil
-		}
-
-		// Reload workflow-triggers (in case import brought in something new)
-	if err = automationService.DefaultNgAutomation.Load(ctx); err != nil {
+	// Reload workflow-triggers (in case import brought in something new)
+	if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
 		// should not be a fatal error
 		err = nil
 	}
-	}
 
 	return
+}
+
+func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup *types.Namespace) (*types.Namespace, error) {
+	return svc.Clone(ctx, sourceNsID, dup, func() (envoyx.NodeSet, error) {
+		nn, _, err := svc.services.envoy.Decode(ctx, envoyx.DecodeParams{
+			Type: envoyx.DecodeTypeStore,
+			Params: map[string]any{
+				"storer": svc.store,
+				"dal":    dal.Service(),
+			},
+			Filter: map[string]envoyx.ResourceFilter{
+				types.NamespaceResourceType: {
+					Identifiers: envoyx.MakeIdentifiers(sourceNsID),
+				},
+			},
+		})
+		return nn, err
+	})
 }
 

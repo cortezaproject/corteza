@@ -75,6 +75,7 @@ project_group: {
 	envoy: {omit: true}
 
 	service: {
+		extraServices: false
 
 		customFunctions: [
 			{
@@ -110,7 +111,6 @@ project_group: {
 			},
 		]
 
-		genConstructor: true
 
 		filterProp: "search"
 

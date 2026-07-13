@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	intAuth "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
@@ -13,14 +12,6 @@ import (
 )
 
 type (
-	notification struct {
-		ac                 notificationAccessController
-		log                *zap.Logger
-		actionlog          actionlog.Recorder
-		store              store.Storer
-		notificationSender notificationSender
-	}
-
 	notificationSender interface {
 		Send(kind string, payload interface{}, userIDs ...uint64) error
 	}
@@ -42,14 +33,22 @@ type (
 		MarkAllAsRead(context.Context) error
 		MarkAllAsUnread(context.Context) error
 	}
+
+	notificationServices struct {
+		log                *zap.Logger
+		notificationSender notificationSender
+	}
 )
 
 func Notification(ctx context.Context, log *zap.Logger, ns notificationSender) NotificationService {
 	return &notification{
-		ac:                 DefaultAccessControl,
-		log:                log,
-		store:              DefaultStore,
-		notificationSender: ns,
+		ac:        DefaultAccessControl,
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		services: &notificationServices{
+			log:                log,
+			notificationSender: ns,
+		},
 	}
 }
 
@@ -121,9 +120,9 @@ func (svc *notification) onCreate(ctx context.Context, new *types.Notification) 
 	}
 
 	// Send the notification via websocket
-	if svc.notificationSender != nil {
+	if svc.services.notificationSender != nil {
 		// Send only to the recipient
-		if err = svc.notificationSender.Send("notification", new, new.Recipient); err != nil {
+		if err = svc.services.notificationSender.Send("notification", new, new.Recipient); err != nil {
 			return err
 		}
 	}
@@ -185,8 +184,8 @@ func (svc *notification) onDelete(ctx context.Context, s store.Storer, res *type
 	}
 
 	// Send the deleted notification via websocket so client can update UI
-	if svc.notificationSender != nil {
-		if err := svc.notificationSender.Send("notification.delete", res, res.Recipient); err != nil {
+	if svc.services.notificationSender != nil {
+		if err := svc.services.notificationSender.Send("notification.delete", res, res.Recipient); err != nil {
 			return err
 		}
 	}
@@ -223,8 +222,8 @@ func (svc *notification) onMarkAsRead(ctx context.Context, aProps *notificationA
 	}
 
 	// Send the updated notification via websocket so client can update UI
-	if svc.notificationSender != nil {
-		if err = svc.notificationSender.Send("notification.read", n, n.Recipient); err != nil {
+	if svc.services.notificationSender != nil {
+		if err = svc.services.notificationSender.Send("notification.read", n, n.Recipient); err != nil {
 			return err
 		}
 	}
@@ -261,8 +260,8 @@ func (svc *notification) onMarkAsUnread(ctx context.Context, aProps *notificatio
 	}
 
 	// Send the updated notification via websocket so client can update UI
-	if svc.notificationSender != nil {
-		if err = svc.notificationSender.Send("notification.unread", n, n.Recipient); err != nil {
+	if svc.services.notificationSender != nil {
+		if err = svc.services.notificationSender.Send("notification.unread", n, n.Recipient); err != nil {
 			return err
 		}
 	}
@@ -312,8 +311,8 @@ func (svc *notification) onMarkAllAsRead(ctx context.Context, aProps *notificati
 			}
 
 			// Send the updated notifications via websocket so client can update UI
-			if svc.notificationSender != nil && len(nn) > 0 {
-				if err = svc.notificationSender.Send("notification.read.all", nn, currentUserID); err != nil {
+			if svc.services.notificationSender != nil && len(nn) > 0 {
+				if err = svc.services.notificationSender.Send("notification.read.all", nn, currentUserID); err != nil {
 					return err
 				}
 			}
@@ -366,8 +365,8 @@ func (svc *notification) onMarkAllAsUnread(ctx context.Context, aProps *notifica
 				return err
 			}
 
-			if svc.notificationSender != nil && len(nn) > 0 {
-				if err = svc.notificationSender.Send("notification.unread.all", nn, currentUserID); err != nil {
+			if svc.services.notificationSender != nil && len(nn) > 0 {
+				if err = svc.services.notificationSender.Send("notification.unread.all", nn, currentUserID); err != nil {
 					return err
 				}
 			}

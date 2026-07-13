@@ -98,10 +98,10 @@ queue: {
 	}
 
 	service: {
-		undelete: true
+		extraServices: false
+		undelete:      true
 
-		genAccessController: true
-		genConstructor:      true
+		genAccessController: false
 
 		filterProp: "search"
 

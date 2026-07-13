@@ -99,8 +99,8 @@ knowledge_base: {
 	}
 
 	service: {
+		extraServices:       false
 		genAccessController: true
-		genConstructor:      true
 
 		undelete: true
 

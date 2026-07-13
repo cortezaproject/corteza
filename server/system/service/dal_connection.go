@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/options"
@@ -15,12 +14,9 @@ import (
 )
 
 type (
-	dalConnection struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        dalConnectionAccessController
-		dal       dalConnManager
-		dbConf    options.DBOpt
+	dalConnectionServices struct {
+		dal    dalConnManager
+		dbConf options.DBOpt
 	}
 
 	dalConnectionAccessController interface {
@@ -47,62 +43,51 @@ func DalConnection(ctx context.Context, dal dalConnManager, dbConf options.DBOpt
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-		dal:       dal,
-		dbConf:    dbConf,
+		services: &dalConnectionServices{
+			dal:    dal,
+			dbConf: dbConf,
+		},
 	}
 }
 
-// onLookup is the custom body for the generated FindByID. The generated method
-// owns the action-log scaffold + recordAction; the load-error wrapping, access
-// check (CanReadDalConnection) and proc enrichment, which the standard template
-// does not emit, live here.
-func (svc *dalConnection) onLookup(ctx context.Context, ID uint64, aProps *dalConnectionActionProps) (q *types.DalConnection, err error) {
-	if q, err = loadDalConnection(ctx, svc.store, ID); err != nil {
+func (svc *dalConnection) onLookup(ctx context.Context, ID uint64, aProps *dalConnectionActionProps) (*types.DalConnection, error) {
+	res, err := loadDalConnection(ctx, svc.store, ID)
+	if err != nil {
 		return nil, DalConnectionErrInvalidID().Wrap(err)
 	}
 
-	aProps.setConnection(q)
+	aProps.setConnection(res)
 
-	if !svc.ac.CanReadDalConnection(ctx, q) {
+	if !svc.ac.CanReadDalConnection(ctx, res) {
 		return nil, DalConnectionErrNotAllowedToRead(aProps)
 	}
 
-	svc.proc(ctx, q)
-	return q, nil
+	svc.proc(ctx, res)
+	return res, nil
 }
 
-// onSearch is the custom body for the generated Search. The generated method
-// owns the action-log scaffold + recordAction; the per-item filter.Check, the
-// CanSearchDalConnections access guard and the proc enrichment live here
-// (search is in customAccessOps, so the generated method emits no access check).
-func (svc *dalConnection) onSearch(ctx context.Context, filter types.DalConnectionFilter, aProps *dalConnectionActionProps) (r types.DalConnectionSet, f types.DalConnectionFilter, err error) {
-	// For each fetched item, store backend will check if it is valid or not
+func (svc *dalConnection) onSearch(ctx context.Context, filter types.DalConnectionFilter, aProps *dalConnectionActionProps) (types.DalConnectionSet, types.DalConnectionFilter, error) {
 	filter.Check = func(res *types.DalConnection) (bool, error) {
 		if !svc.ac.CanReadDalConnection(ctx, res) {
 			return false, nil
 		}
-
 		return true, nil
 	}
 
 	if !svc.ac.CanSearchDalConnections(ctx) {
-		return nil, f, DalConnectionErrNotAllowedToSearch()
+		return nil, filter, DalConnectionErrNotAllowedToSearch()
 	}
 
-	if r, f, err = store.SearchDalConnections(ctx, svc.store, filter); err != nil {
+	set, f, err := store.SearchDalConnections(ctx, svc.store, filter)
+	if err != nil {
 		return nil, f, err
 	}
 
-	svc.proc(ctx, r...)
-	return r, f, nil
+	svc.proc(ctx, set...)
+	return set, f, nil
 }
 
-// onCreate is the custom body for the generated Create. The generated method
-// owns the action-log scaffold + recordAction; the missing-name guard (which
-// must run before the access check), the CanCreateDalConnection access guard
-// (create is in customAccessOps), type validation, the dal manager replace
-// side-effect and proc enrichment live here.
-func (svc *dalConnection) onCreate(ctx context.Context, new *types.DalConnection) (err error) {
+func (svc *dalConnection) onCreate(ctx context.Context, new *types.DalConnection) error {
 	if new.Meta.Name == "" {
 		return DalConnectionErrMissingName()
 	}
@@ -115,32 +100,23 @@ func (svc *dalConnection) onCreate(ctx context.Context, new *types.DalConnection
 	new.CreatedAt = *now()
 	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	// validation
-	{
-		if new.Type != types.DalConnectionResourceType {
-			// @todo error
-			err = fmt.Errorf("cannot create connection: unsupported connection type %s", new.Type)
-			return
-		}
+	if new.Type != types.DalConnectionResourceType {
+		return fmt.Errorf("cannot create connection: unsupported connection type %s", new.Type)
 	}
 
-	if err = store.CreateDalConnection(ctx, svc.store, new); err != nil {
+	if err := store.CreateDalConnection(ctx, svc.store, new); err != nil {
 		return err
 	}
 
-	if err = dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.dal, new); err != nil {
+	if err := dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.services.dal, new); err != nil {
 		return err
 	}
+
 	svc.proc(ctx, new)
-	return
+	return nil
 }
 
-// onUpdate is the custom body for the generated Update. The generated method
-// owns the action-log scaffold + recordAction; the bespoke stale/access
-// flow, the primary-connection DAL-config handling (with the
-// CanManageDalConfigOnDalConnection check), the dal manager replace side-effect
-// and proc enrichment live here.
-func (svc *dalConnection) onUpdate(ctx context.Context, s store.Storer, upd, res *types.DalConnection, aProps *dalConnectionActionProps, _ func() error, _ func() error) (err error) {
+func (svc *dalConnection) onUpdate(ctx context.Context, s store.Storer, upd *types.DalConnection, res *types.DalConnection, aProps *dalConnectionActionProps, before func() error, after func() error) error {
 	if upd.Meta.Name == "" {
 		return DalConnectionErrMissingName()
 	}
@@ -149,74 +125,57 @@ func (svc *dalConnection) onUpdate(ctx context.Context, s store.Storer, upd, res
 		return DalConnectionErrNotAllowedToUpdate(aProps)
 	}
 
-	upd.UpdatedAt = now()
-	upd.CreatedAt = res.CreatedAt
+	if res.Type == types.DalPrimaryConnectionResourceType {
+		upd.Config.DAL = res.Config.DAL
+	} else if upd.Config.DAL == nil {
+		upd.Config.DAL = res.Config.DAL
+	} else if !svc.ac.CanManageDalConfigOnDalConnection(ctx, res) {
+		return DalConnectionErrNotAllowedToUpdate()
+	}
+
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	// validate
-	{
-		if res.Type == types.DalPrimaryConnectionResourceType {
-			// when primary connection is updated,
-			// ignore connection & DAL config changes
-			//
-			// see Test_dal_connection_update_primary
-			// for more details
-			upd.Config.DAL = res.Config.DAL
-		} else if upd.Config.DAL == nil {
-			upd.Config.DAL = res.Config.DAL
-		} else if !svc.ac.CanManageDalConfigOnDalConnection(ctx, res) {
-			return DalConnectionErrNotAllowedToUpdate()
-		}
+	if err := store.UpdateDalConnection(ctx, s, upd); err != nil {
+		return err
 	}
 
-	if err = store.UpdateDalConnection(ctx, s, upd); err != nil {
-		return
-	}
-
-	*res = *upd
-	svc.proc(ctx, res)
-
-	return dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.dal, upd)
+	svc.proc(ctx, upd)
+	return dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.services.dal, upd)
 }
 
-// onDelete is the custom body for the generated DeleteByID. The generated method
-// owns the action-log scaffold + recordAction; the primary-connection guard, the
-// CanDeleteDalConnection access check, the soft-delete write and the dal manager
-// remove side-effect live here.
-func (svc *dalConnection) onDelete(ctx context.Context, s store.Storer, c *types.DalConnection, aProps *dalConnectionActionProps) (err error) {
-	if c.Type == types.DalPrimaryConnectionResourceType {
+func (svc *dalConnection) onDelete(ctx context.Context, s store.Storer, res *types.DalConnection, aProps *dalConnectionActionProps) error {
+	if res.Type == types.DalPrimaryConnectionResourceType {
 		return fmt.Errorf("not allowed to delete primary connections")
 	}
 
-	if !svc.ac.CanDeleteDalConnection(ctx, c) {
+	if !svc.ac.CanDeleteDalConnection(ctx, res) {
 		return DalConnectionErrNotAllowedToDelete(aProps)
 	}
 
-	aProps.setConnection(c)
+	res.DeletedAt = now()
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	c.DeletedAt = now()
-	c.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-
-	if err = store.UpdateDalConnection(ctx, s, c); err != nil {
-		return
+	if err := store.UpdateDalConnection(ctx, s, res); err != nil {
+		return err
 	}
 
-	return dalConnectionRemove(ctx, svc.dal, c)
+	return dalConnectionRemove(ctx, svc.services.dal, res)
+}
+
+func (svc *dalConnection) onReloadConnections(ctx context.Context, aProps *dalConnectionActionProps) error {
+	return dalConnectionReload(ctx, svc.store, svc.services.dal)
 }
 
 func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		cProps = &dalConnectionActionProps{}
 		c      *types.DalConnection
-		old    *types.DalConnection
 	)
 
 	err = func() (err error) {
 		if c, err = loadDalConnection(ctx, svc.store, ID); err != nil {
 			return
 		}
-
-		old = c.Clone()
 
 		if !svc.ac.CanDeleteDalConnection(ctx, c) {
 			return DalConnectionErrNotAllowedToUndelete(cProps)
@@ -231,20 +190,14 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 			return
 		}
 
-		// We're creating it here since it was removed on delete
-		// primary connection can't be deleted we're just using nil here.
-		return dalConnectionReplace(ctx, nil, svc.dal, c)
+		// primary connection can't be deleted; passing nil for primary conn here
+		return dalConnectionReplace(ctx, nil, svc.services.dal, c)
 	}()
 
-	return svc.recordAction(ctx, cProps, DalConnectionActionDelete, err, old, c)
+	return svc.recordAction(ctx, cProps, DalConnectionActionDelete, err)
 }
 
-func (svc *dalConnection) onReloadConnections(ctx context.Context, _ *dalConnectionActionProps) (err error) {
-	return dalConnectionReload(ctx, svc.store, svc.dal)
-}
-
-// proc is a helper function that processes the given connection set
-// before connections are returned to the caller.
+// proc processes the given connections before they are returned to the caller.
 func (svc *dalConnection) proc(ctx context.Context, connections ...*types.DalConnection) {
 	for _, c := range connections {
 		svc.procPrimaryConnection(c)
@@ -258,8 +211,6 @@ func (svc *dalConnection) procPrimaryConnection(c *types.DalConnection) {
 		if c.Config.DAL == nil {
 			c.Config.DAL = &types.DalConnectionConfigDAL{}
 		}
-
-		return
 	}
 }
 
@@ -269,7 +220,7 @@ func (svc *dalConnection) procDal(ctx context.Context, c *types.DalConnection) {
 		return
 	}
 
-	c.Issues = svc.dal.SearchConnectionIssues(c.ID)
+	c.Issues = svc.services.dal.SearchConnectionIssues(c.ID)
 	if len(c.Issues) == 0 {
 		c.Issues = nil
 	}
@@ -280,7 +231,6 @@ func (svc *dalConnection) procLocale(c *types.DalConnection) {
 }
 
 func dalConnectionReload(ctx context.Context, s store.Storer, dcm dalConnManager) (err error) {
-	// Get all available connections
 	cc, _, err := store.SearchDalConnections(ctx, s, types.DalConnectionFilter{})
 	if err != nil {
 		return
@@ -289,7 +239,7 @@ func dalConnectionReload(ctx context.Context, s store.Storer, dcm dalConnManager
 	return dalConnectionReplace(ctx, s.ToDalConn(), dcm, cc...)
 }
 
-// Replaces all given connections
+// dalConnectionReplace replaces all given connections in the DAL service.
 func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalConnManager, cc ...*types.DalConnection) (err error) {
 	var (
 		cw        *dal.ConnectionWrap
@@ -300,7 +250,6 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 		isPrimary = c.Type == types.DalPrimaryConnectionResourceType
 
 		if isPrimary {
-			// reuse primary connection
 			cw, err = MakeDalConnection(c, primary)
 		} else {
 			cw, err = MakeDalConnection(c, nil)
@@ -318,7 +267,7 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 	return
 }
 
-// MakeDalConnection converts types.DalConnection to dal.ConnectionWrap and returns it.
+// MakeDalConnection converts types.DalConnection to dal.ConnectionWrap.
 func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal.ConnectionWrap, err error) {
 	var (
 		connConfig = dal.ConnectionConfig{
@@ -331,16 +280,9 @@ func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal
 	if c.Config.DAL != nil {
 		connConfig.ModelIdent = c.Config.DAL.ModelIdent
 
-		// Copy params and add connection ID
-		params := make(map[string]any)
-		for k, v := range c.Config.DAL.Params {
-			params[k] = v
-		}
-		params["connectionID"] = c.ID
-
 		connParams = dal.ConnectionParams{
 			Type:   c.Config.DAL.Type,
-			Params: params,
+			Params: c.Config.DAL.Params,
 		}
 
 		if checks := len(c.Config.DAL.ModelIdentCheck); checks > 0 {
@@ -363,7 +305,7 @@ func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal
 	return
 }
 
-// Removes a connection from DAL service
+// dalConnectionRemove removes connections from the DAL service.
 func dalConnectionRemove(ctx context.Context, dcm dalConnManager, cc ...*types.DalConnection) (err error) {
 	for _, c := range cc {
 		if err = dcm.RemoveConnection(ctx, c.ID); err != nil {

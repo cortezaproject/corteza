@@ -8,9 +8,18 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/scope"
+	"github.com/crusttech/human/server/store"
 )
+
+type nodeSync struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        nodeSyncAccessController
+}
 
 type nodeSyncServices struct {
 	scope scope.Scope
@@ -50,6 +59,7 @@ func (svc *nodeSync) Create(ctx context.Context, new *types.NodeSync) (res *type
 
 	return res, svc.recordAction(ctx, aProps, NodeSyncActionCreate, err)
 }
+func (svc *nodeSync) guard(_ context.Context, _ *types.NodeSync) error { return nil }
 
 func (svc *nodeSync) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -57,7 +67,6 @@ func (svc *nodeSync) checkScope(ctx context.Context, cap scope.Capability) error
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *nodeSync) scopeServices(ctx context.Context) *nodeSyncServices {
 	return &nodeSyncServices{
 		scope: scope.GetScopeFromContext(ctx),

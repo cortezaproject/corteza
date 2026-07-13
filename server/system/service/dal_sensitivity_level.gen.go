@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/scope"
@@ -16,9 +17,11 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type dalSensitivityLevelServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type dalSensitivityLevel struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        dalSensitivityLevelAccessController
+	services  *dalSensitivityLevelServices
 }
 
 func (svc *dalSensitivityLevel) FindByID(ctx context.Context, ID uint64) (res *types.DalSensitivityLevel, err error) {
@@ -85,6 +88,10 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return DalSensitivityLevelErrInvalidHandle()
 		}
@@ -127,6 +134,10 @@ func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err 
 
 		aProps.setSensitivityLevel(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -145,6 +156,10 @@ func (svc *dalSensitivityLevel) UndeleteByID(ctx context.Context, ID uint64) (er
 
 		aProps.setSensitivityLevel(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
 
@@ -162,19 +177,15 @@ func loadDalSensitivityLevel(ctx context.Context, s store.DalSensitivityLevels, 
 
 	return
 }
+func (svc *dalSensitivityLevel) guard(_ context.Context, _ *types.DalSensitivityLevel) error {
+	return nil
+}
 
 func (svc *dalSensitivityLevel) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *dalSensitivityLevel) scopeServices(ctx context.Context) *dalSensitivityLevelServices {
-	return &dalSensitivityLevelServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *dalSensitivityLevel) ReloadSensitivityLevels(ctx context.Context, s store.Storer) (err error) {

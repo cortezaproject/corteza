@@ -10,6 +10,7 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -17,9 +18,11 @@ import (
 	"github.com/crusttech/human/server/store"
 )
 
-type pageLayoutServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type pageLayout struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        pageLayoutAccessController
+	services  *pageLayoutServices
 }
 
 func (svc *pageLayout) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.PageLayout, err error) {
@@ -90,6 +93,10 @@ func (svc *pageLayout) Update(ctx context.Context, upd *types.PageLayout) (res *
 		aProps.setChanged(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return PageLayoutErrInvalidHandle()
 		}
@@ -145,6 +152,10 @@ func (svc *pageLayout) DeleteByID(ctx context.Context, namespaceID uint64, pageI
 
 		aProps.setPageLayout(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, namespaceID, pageID, res, aProps)
 	})
 
@@ -166,6 +177,10 @@ func (svc *pageLayout) UndeleteByID(ctx context.Context, namespaceID uint64, pag
 		}
 
 		aProps.setPageLayout(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
 
 		return svc.onUndelete(ctx, s, namespaceID, pageID, res, aProps)
 	})
@@ -198,19 +213,13 @@ func toLabeledPageLayouts(set []*types.PageLayout) []label.LabeledResource {
 
 	return ll
 }
+func (svc *pageLayout) guard(_ context.Context, _ *types.PageLayout) error { return nil }
 
 func (svc *pageLayout) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *pageLayout) scopeServices(ctx context.Context) *pageLayoutServices {
-	return &pageLayoutServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *pageLayout) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.PageLayout, err error) {

@@ -218,7 +218,7 @@ page: {
 		}
 
 		query: ["handle", "title", "description"]
-		byValue: ["page_id", "handle", "namespace_id", "module_id"]
+		byValue: ["page_id", "handle", "namespace_id", "module_id", "project_id"]
 		byNilState: ["deleted"]
 	}
 

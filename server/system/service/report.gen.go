@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -18,9 +19,11 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type reportServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type report struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        reportAccessController
+	services  *reportServices
 }
 
 func (svc *report) FindByID(ctx context.Context, ID uint64) (res *types.Report, err error) {
@@ -37,6 +40,10 @@ func (svc *report) FindByID(ctx context.Context, ID uint64) (res *types.Report, 
 		}
 
 		aProps.setReport(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
 
 		if !svc.ac.CanReadReport(ctx, res) {
 			return ReportErrNotAllowedToRead()
@@ -154,6 +161,10 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (res *types.Re
 		old = res.Clone()
 		aProps.setReport(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return ReportErrInvalidHandle()
 		}
@@ -207,6 +218,10 @@ func (svc *report) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setReport(res)
 
 		if !svc.ac.CanDeleteReport(ctx, res) {
@@ -235,6 +250,10 @@ func (svc *report) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		if res, err = loadReport(ctx, svc.store, ID); err != nil {
 			return
+		}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
 		}
 
 		aProps.setReport(res)
@@ -279,19 +298,13 @@ func toLabeledReports(set []*types.Report) []label.LabeledResource {
 
 	return ll
 }
+func (svc *report) guard(_ context.Context, _ *types.Report) error { return nil }
 
 func (svc *report) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *report) scopeServices(ctx context.Context) *reportServices {
-	return &reportServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error) {

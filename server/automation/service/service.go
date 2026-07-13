@@ -105,7 +105,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Corredor, c.Workflow)
 	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 
-	DefaultWorkflow.triggers = DefaultTrigger
+	DefaultWorkflow.services.triggers = DefaultTrigger
 
 	execLog := DefaultLogger.Named("automation-execution")
 
@@ -161,8 +161,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.QueueHandler(Registry())
 	automation.JsenvHandler(Registry())
 	automation.Oauth2Handler(Registry())
-	automation.LoopHandler(Registry(), DefaultWorkflow.parser)
-	automation.NgLoopHandler(ConstructLibrary(), DefaultWorkflow.parser)
+	automation.LoopHandler(Registry(), DefaultWorkflow.services.parser)
+	automation.NgLoopHandler(ConstructLibrary(), DefaultWorkflow.services.parser)
 	automation.NgWorkflowHandler(ConstructLibrary(), DefaultWorkflow)
 	automation.CorredorHandler(Registry(), corredor.Service())
 	automation.EmailHandler(Registry())

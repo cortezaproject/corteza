@@ -10,15 +10,18 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
 
-type namespaceServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type namespace struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        namespaceAccessController
+	services  *namespaceServices
 }
 
 func (svc *namespace) FindByID(ctx context.Context, ID uint64) (res *types.Namespace, err error) {
@@ -92,6 +95,10 @@ func (svc *namespace) Update(ctx context.Context, upd *types.Namespace) (res *ty
 		aProps.setChanged(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return NamespaceErrStaleData()
 		}
@@ -140,6 +147,10 @@ func (svc *namespace) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setNamespace(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -171,17 +182,11 @@ func toLabeledNamespaces(set []*types.Namespace) []label.LabeledResource {
 
 	return ll
 }
+func (svc *namespace) guard(_ context.Context, _ *types.Namespace) error { return nil }
 
 func (svc *namespace) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *namespace) scopeServices(ctx context.Context) *namespaceServices {
-	return &namespaceServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }

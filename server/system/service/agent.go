@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/label"
 
 	"github.com/crusttech/human/server/store"
@@ -23,15 +22,12 @@ import (
 // generated in agent.gen.go.
 
 type (
-	agent struct {
-		actionlog actionlog.Recorder
-		store     store.Storer
-		ac        agentAccessController
-		llm       agentLLMValidator
-	}
-
 	agentLLMValidator interface {
 		ValidateTemperature(ctx context.Context, providerID uint64, model string, temperature *float64) error
+	}
+
+	agentServices struct {
+		llm agentLLMValidator
 	}
 )
 
@@ -40,11 +36,12 @@ func Agent() *agent {
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
+		services:  &agentServices{},
 	}
 }
 
 func (svc *agent) WithLLMValidator(v agentLLMValidator) *agent {
-	svc.llm = v
+	svc.services.llm = v
 	return svc
 }
 
@@ -86,8 +83,8 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 		new.Status = "active"
 	}
 
-	if new.Execution.Model.Temperature != nil && svc.llm != nil {
-		if err = svc.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
+	if new.Execution.Model.Temperature != nil && svc.services.llm != nil {
+		if err = svc.services.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
 			return
 		}
 	}
@@ -123,8 +120,8 @@ func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.
 	// (otherwise it would vanish from the project-scoped resource graph).
 	upd.ProjectID = res.ProjectID
 
-	if upd.Execution.Model.Temperature != nil && svc.llm != nil {
-		if err := svc.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
+	if upd.Execution.Model.Temperature != nil && svc.services.llm != nil {
+		if err := svc.services.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
 			return err
 		}
 	}

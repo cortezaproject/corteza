@@ -11,7 +11,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/filter"
@@ -22,15 +21,6 @@ import (
 )
 
 type (
-	connection struct {
-		actionlog            actionlog.Recorder
-		store                store.Storer
-		ac                   connectionAccessController
-		configuredConnection *configuredConnection
-		catalog              appstore.Client
-		logger               *zap.Logger
-	}
-
 	connectionAccessController interface {
 		CanSearchConnections(ctx context.Context) bool
 
@@ -70,6 +60,12 @@ type (
 		LastSortKey string `json:"lastSortKey,omitempty"`
 		SortCol     string `json:"sortCol,omitempty"`
 		SortDesc    bool   `json:"sortDesc,omitempty"`
+	}
+
+	connectionServices struct {
+		configuredConnection *configuredConnection
+		catalog              appstore.Client
+		logger               *zap.Logger
 	}
 )
 
@@ -117,17 +113,19 @@ func Connection() *connection {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
-		logger:    DefaultLogger.Named("connection"),
+		services: &connectionServices{
+			logger: DefaultLogger.Named("connection"),
+		},
 	}
 }
 
 func (svc *connection) WithConfiguredConnection(cc *configuredConnection) *connection {
-	svc.configuredConnection = cc
+	svc.services.configuredConnection = cc
 	return svc
 }
 
 func (svc *connection) WithCatalog(c appstore.Client) *connection {
-	svc.catalog = c
+	svc.services.catalog = c
 	return svc
 }
 
@@ -140,7 +138,7 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Conn
 		res, err = loadConnection(ctx, svc.store, ID)
 		if err != nil {
 			// High bit set → synthetic catalog ID. Try catalog lookup.
-			if svc.catalog != nil && ID&(1<<63) != 0 {
+			if svc.services.catalog != nil && ID&(1<<63) != 0 {
 				res, err = svc.findByCatalogSyntheticID(ctx, ID)
 				if err != nil {
 					return err
@@ -178,13 +176,13 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Conn
 func (svc *connection) findByCatalogSyntheticID(ctx context.Context, id uint64) (*types.Connection, error) {
 	const pageSize = 50
 	for page := 1; ; page++ {
-		summaries, err := svc.catalog.ListPage(ctx, page, pageSize)
+		summaries, err := svc.services.catalog.ListPage(ctx, page, pageSize)
 		if err != nil {
 			return nil, err
 		}
 		for _, s := range summaries {
 			if catalogIDToSyntheticID(s.ID) == id {
-				conn, err := svc.catalog.GetConnection(ctx, s.ID)
+				conn, err := svc.services.catalog.GetConnection(ctx, s.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -390,7 +388,7 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 		// sort position by fetching ALL catalog summaries and filtering to the
 		// sort window defined by the current DB page.
 		var catalogOnly []*types.Connection
-		if svc.catalog != nil {
+		if svc.services.catalog != nil {
 			var arb catalogArb
 			if filter.PageCursor != nil {
 				_ = filter.PageCursor.GetArb(&arb)
@@ -415,9 +413,9 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 			var allSummaries []appstore.ConnectionSummary
 			catFetchOK := true
 			for page := 1; page <= maxPages; page++ {
-				summaries, catErr := svc.catalog.ListPage(ctx, page, pageSize)
+				summaries, catErr := svc.services.catalog.ListPage(ctx, page, pageSize)
 				if catErr != nil {
-					svc.logger.Warn("appstore unavailable, serving DB-only results", zap.Error(catErr))
+					svc.services.logger.Warn("appstore unavailable, serving DB-only results", zap.Error(catErr))
 					catFetchOK = false
 					break
 				}
@@ -512,12 +510,12 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 		// Adjust total to include catalog-only entries not yet imported into DB.
 		// The store counts only DB records; catalog-only entries must be added.
 		// When filtering by source="local", catalog entries are excluded so no adjustment needed.
-		if filter.IncTotal && svc.catalog != nil && filter.Source != "local" {
+		if filter.IncTotal && svc.services.catalog != nil && filter.Source != "local" {
 			f.Total += uint(len(catalogOnly))
 		}
 
 		// Re-sort the merged set so catalog-appended entries land in the right position.
-		if svc.catalog != nil {
+		if svc.services.catalog != nil {
 			sortConnectionSet(set, filter.Sort)
 		}
 
@@ -531,7 +529,7 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 		if len(dbIDs) > 0 {
 			counts, countErr := svc.countConfiguredByIDs(ctx, dbIDs)
 			if countErr != nil {
-				svc.logger.Warn("could not count configured connections", zap.Error(countErr))
+				svc.services.logger.Warn("could not count configured connections", zap.Error(countErr))
 			} else {
 				for _, c := range set {
 					c.InstalledCount = counts[c.ID]
@@ -557,11 +555,11 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 // creates it locally. If a connection with the same handle already exists the
 // existing record is returned without error.
 func (svc *connection) Import(ctx context.Context, catalogID string) (res *types.Connection, err error) {
-	if svc.catalog == nil {
+	if svc.services.catalog == nil {
 		return nil, fmt.Errorf("appstore catalog is not configured")
 	}
 
-	catalogConn, err := svc.catalog.GetConnection(ctx, catalogID)
+	catalogConn, err := svc.services.catalog.GetConnection(ctx, catalogID)
 	if err != nil {
 		return nil, err
 	}
@@ -640,11 +638,11 @@ func filterDBConnections(set types.ConnectionSet) types.ConnectionSet {
 // Configure creates a new ConfiguredConnection in draft status.
 // No provisioning is done yet; config can be freely edited.
 func (svc *connection) Configure(ctx context.Context, new *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
-	return svc.configuredConnection.Create(ctx, new)
+	return svc.services.configuredConnection.Create(ctx, new)
 }
 
 func (svc *connection) UpdateConfiguration(ctx context.Context, upd *types.ConfiguredConnection) (res *types.ConfiguredConnection, err error) {
-	res, err = svc.configuredConnection.Update(ctx, upd)
+	res, err = svc.services.configuredConnection.Update(ctx, upd)
 	if err != nil {
 		return nil, err
 	}

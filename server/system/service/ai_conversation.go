@@ -8,6 +8,14 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
+func AiConversation() *aiConversation {
+	return &aiConversation{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
+
 func (svc *aiConversation) onLookup(ctx context.Context, ID uint64, aProps *aiConversationActionProps) (conv *types.AiConversation, err error) {
 	if !svc.ac.CanReadAiConversation(ctx, &types.AiConversation{ID: ID}) {
 		return nil, AiConversationErrNotAllowedToRead(aProps)

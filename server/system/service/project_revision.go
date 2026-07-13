@@ -27,10 +27,10 @@ func SetProjectRevisionDeps(
 	if DefaultProject == nil {
 		return
 	}
-	DefaultProject.nsSvc = nsSvc
-	DefaultProject.dalSvc = importer
-	DefaultProject.dalConns = dalConns
-	DefaultProject.recordSvc = recordSvc
+	DefaultProject.services.nsSvc = nsSvc
+	DefaultProject.services.dalSvc = importer
+	DefaultProject.services.dalConns = dalConns
+	DefaultProject.services.recordSvc = recordSvc
 }
 
 // CreateRevision clones the project and its namespace into a new draft revision.
@@ -70,7 +70,7 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		revSlug = "rev-" + strconv.FormatUint(rootID, 10) + "-" + strconv.Itoa(newRevision)
 	}
 
-	if svc.nsSvc == nil {
+	if svc.services.nsSvc == nil {
 		return nil, fmt.Errorf("project revision deps not initialised (nsSvc)")
 	}
 
@@ -81,7 +81,7 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		Slug:      revSlug,
 		Enabled:   false, // draft namespaces are inactive
 	}
-	clonedNs, err := svc.nsSvc.CloneFromStore(ctx, parent.Config.NamespaceID, dup)
+	clonedNs, err := svc.services.nsSvc.CloneFromStore(ctx, parent.Config.NamespaceID, dup)
 	if err != nil {
 		return nil, fmt.Errorf("clone namespace for revision: %w", err)
 	}
@@ -259,7 +259,7 @@ func (svc *project) migrateRecords(
 	oldNs, newNs *composeTypes.Namespace,
 	mappings []types.ModuleMapping,
 ) error {
-	if svc.dalSvc == nil || svc.dalConns == nil || svc.recordSvc == nil {
+	if svc.services.dalSvc == nil || svc.services.dalConns == nil || svc.services.recordSvc == nil {
 		return fmt.Errorf("project revision deps not initialised (dal)")
 	}
 	if len(mappings) == 0 {
@@ -268,16 +268,16 @@ func (svc *project) migrateRecords(
 
 	// Build and register the ephemeral internal DAL connection.
 	connID := nextID()
-	internalConn := dml.NewInternalConn(oldNs.ID, svc.store, svc.recordSvc)
+	internalConn := dml.NewInternalConn(oldNs.ID, svc.store, svc.services.recordSvc)
 	cw := dal.MakeConnection(connID, internalConn, dal.ConnectionParams{
 		Type:   "corteza::dal:connection:internal",
 		Params: map[string]any{"namespaceID": oldNs.ID},
 	}, dal.ConnectionConfig{})
-	if err := svc.dalConns.ReplaceConnection(ctx, cw, false); err != nil {
+	if err := svc.services.dalConns.ReplaceConnection(ctx, cw, false); err != nil {
 		return fmt.Errorf("register internal dal connection: %w", err)
 	}
 	defer func() {
-		_ = svc.dalConns.RemoveConnection(ctx, connID)
+		_ = svc.services.dalConns.RemoveConnection(ctx, connID)
 	}()
 
 	// Store the ephemeral DmlConnection row so the Importer can find it.
@@ -336,7 +336,7 @@ func (svc *project) runModuleMapping(
 		_ = store.DeleteDmlMappingByID(ctx, svc.store, mp.ID)
 	}()
 
-	return svc.dalSvc.RunImportForeground(ctx, mp.ID)
+	return svc.services.dalSvc.RunImportForeground(ctx, mp.ID)
 }
 
 // computeDeploymentPlan diffs modules between two namespaces.

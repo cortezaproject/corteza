@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/scope"
@@ -16,9 +17,11 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type dalConnectionServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type dalConnection struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        dalConnectionAccessController
+	services  *dalConnectionServices
 }
 
 func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (res *types.DalConnection, err error) {
@@ -85,6 +88,10 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return DalConnectionErrInvalidHandle()
 		}
@@ -127,6 +134,10 @@ func (svc *dalConnection) DeleteByID(ctx context.Context, ID uint64) (err error)
 
 		aProps.setConnection(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -144,19 +155,13 @@ func loadDalConnection(ctx context.Context, s store.DalConnections, ID uint64) (
 
 	return
 }
+func (svc *dalConnection) guard(_ context.Context, _ *types.DalConnection) error { return nil }
 
 func (svc *dalConnection) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *dalConnection) scopeServices(ctx context.Context) *dalConnectionServices {
-	return &dalConnectionServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {

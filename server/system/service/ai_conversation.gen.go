@@ -30,14 +30,6 @@ type aiConversation struct {
 	ac        aiConversationAccessController
 }
 
-func AiConversation() *aiConversation {
-	return &aiConversation{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
-}
-
 type aiConversationServices struct {
 	scope scope.Scope
 	caps  scope.Capabilities
@@ -110,6 +102,10 @@ func (svc *aiConversation) Update(ctx context.Context, upd *types.AiConversation
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return AiConversationErrStaleData()
 		}
@@ -148,6 +144,10 @@ func (svc *aiConversation) DeleteByID(ctx context.Context, ID uint64) (err error
 
 		aProps.setAiConversation(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -166,6 +166,10 @@ func (svc *aiConversation) UndeleteByID(ctx context.Context, ID uint64) (err err
 
 		aProps.setAiConversation(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
 
@@ -183,6 +187,7 @@ func loadAiConversation(ctx context.Context, s store.AiConversations, ID uint64)
 
 	return
 }
+func (svc *aiConversation) guard(_ context.Context, _ *types.AiConversation) error { return nil }
 
 func (svc *aiConversation) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -190,7 +195,6 @@ func (svc *aiConversation) checkScope(ctx context.Context, cap scope.Capability)
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *aiConversation) scopeServices(ctx context.Context) *aiConversationServices {
 	return &aiConversationServices{
 		scope: scope.GetScopeFromContext(ctx),

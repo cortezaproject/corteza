@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -18,9 +19,11 @@ import (
 	"io"
 )
 
-type templateServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type template struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        templateAccessController
+	services  *templateServices
 }
 
 func (svc *template) FindByID(ctx context.Context, ID uint64) (res *types.Template, err error) {
@@ -37,6 +40,10 @@ func (svc *template) FindByID(ctx context.Context, ID uint64) (res *types.Templa
 		}
 
 		aProps.setTemplate(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
 
 		if !svc.ac.CanReadTemplate(ctx, res) {
 			return TemplateErrNotAllowedToRead()
@@ -156,6 +163,10 @@ func (svc *template) Update(ctx context.Context, upd *types.Template) (res *type
 		old = res.Clone()
 		aProps.setTemplate(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return TemplateErrInvalidHandle()
 		}
@@ -207,6 +218,10 @@ func (svc *template) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setTemplate(res)
 
 		if !svc.ac.CanDeleteTemplate(ctx, res) {
@@ -235,6 +250,10 @@ func (svc *template) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		if res, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return
+		}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
 		}
 
 		aProps.setTemplate(res)
@@ -279,19 +298,13 @@ func toLabeledTemplates(set []*types.Template) []label.LabeledResource {
 
 	return ll
 }
+func (svc *template) guard(_ context.Context, _ *types.Template) error { return nil }
 
 func (svc *template) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *template) scopeServices(ctx context.Context) *templateServices {
-	return &templateServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {

@@ -4,10 +4,17 @@ import (
 	"context"
 
 	a "github.com/crusttech/human/server/pkg/auth"
-
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
+
+func KnowledgeBase() *knowledgeBase {
+	return &knowledgeBase{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
 
 // The CRUD skeleton (FindByID, Search, Create, DeleteByID, loadKnowledgeBase),
 // the struct, the access-controller interface and the constructor are generated

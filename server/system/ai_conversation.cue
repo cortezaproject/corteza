@@ -91,8 +91,8 @@ ai_conversation: {
 	}
 
 	service: {
+		extraServices:       false
 		genAccessController: true
-		genConstructor:      true
 
 		undelete: true
 

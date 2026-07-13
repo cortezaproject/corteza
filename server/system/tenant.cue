@@ -113,8 +113,8 @@ tenant: {
 	}
 
 	service: {
-		genConstructor: true
-		filterProp:     "search"
+		extraServices: false
+		filterProp:    "search"
 
 		lookup:   false
 		update:   false

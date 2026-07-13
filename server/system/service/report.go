@@ -18,24 +18,11 @@ import (
 	"github.com/spf13/cast"
 )
 
-// The CRUD skeleton (LookupByID, Search, Create, Update, Delete, Undelete,
-// loadReport and toLabeledReports) is generated in report.gen.go from
-// system/report.cue.
-//
-// This file owns the struct, access-controller interface, constructor, the
-// before-create / before-update hooks the generated Create / Update call into,
-// and the custom methods (Describe, Run and helpers).
-
 type (
-	report struct {
-		ac        reportAccessController
-		eventbus  eventDispatcher
-		actionlog actionlog.Recorder
-		store     store.Storer
-		locale    locale.Locale
-
-		users UserService
-
+	reportServices struct {
+		eventbus       eventDispatcher
+		locale         locale.Locale
+		users          UserService
 		pipelineRunner pipelineRunner
 	}
 
@@ -61,74 +48,64 @@ func Report(s store.Storer, ac reportAccessController, al actionlog.Recorder, eb
 		store:     s,
 		ac:        ac,
 		actionlog: al,
-		eventbus:  eb,
-		locale:    locale.Global(),
-
-		users: DefaultUser,
-
-		pipelineRunner: dal.Service(),
+		services: &reportServices{
+			eventbus:       eb,
+			locale:         locale.Global(),
+			users:          DefaultUser,
+			pipelineRunner: dal.Service(),
+		},
 	}
 }
 
-// beforeCreate runs after the access check and before the generated Create
-// assigns the ID / timestamps and persists. It defaults the Meta and assigns
-// IDs to nested scenarios / blocks / elements.
-func (svc *report) beforeCreate(ctx context.Context, new *types.Report) error {
+func (svc *report) beforeCreate(_ context.Context, new *types.Report) error {
 	if new.Meta == nil {
 		new.Meta = &types.ReportMeta{}
 	}
-
 	svc.setIDs(new)
 	return nil
 }
 
-// beforeUpdate runs after the stale-data guard and before the generated Update
-// copies the mutable fields onto the loaded record. We assign IDs to nested
-// scenarios / blocks / elements on the incoming resource so the subsequent
-// field copy carries them onto the persisted record.
-func (svc *report) beforeUpdate(ctx context.Context, upd, existing *types.Report) error {
-	svc.setIDs(upd)
+func (svc *report) beforeUpdate(_ context.Context, upd *types.Report, res *types.Report) error {
+	if upd.Meta != nil {
+		res.Meta = upd.Meta
+	}
+	svc.setIDs(res)
 	return nil
 }
 
-func (svc *report) onDescribe(ctx context.Context, _ *reportActionProps, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error) {
-	out = make([]reporting.FrameDescription, 0, len(sources)*2)
-
+func (svc *report) onDescribe(ctx context.Context, _ *reportActionProps, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) ([]reporting.FrameDescription, error) {
 	ss := src.ReportSteps()
 	ss = append(ss, st...)
-
-	out, err = reporting.Describe(ctx, svc.pipelineRunner, ss, sources)
-	return out, err
+	return reporting.Describe(ctx, svc.services.pipelineRunner, ss, sources)
 }
 
-func (svc *report) onRun(ctx context.Context, aProps *reportActionProps, reportID uint64, dd reporting.FrameDefinitionSet) (out []*reporting.Frame, err error) {
-	var (
-		iter dal.Iterator
-		ff   []*reporting.Frame
-	)
-	out = make([]*reporting.Frame, 0, 4)
-
+func (svc *report) onRun(ctx context.Context, _ *reportActionProps, reportID uint64, dd reporting.FrameDefinitionSet) ([]*reporting.Frame, error) {
 	r, err := loadReport(ctx, svc.store, reportID)
 	if err != nil {
-		return out, err
+		return nil, err
 	}
 
 	if !svc.ac.CanRunReport(ctx, r) {
-		return out, ReportErrNotAllowedToRun()
+		return nil, ReportErrNotAllowedToRun()
 	}
 
 	ss := r.Sources.ReportSteps()
 	ss = append(ss, r.Blocks.ReportSteps()...)
 
-	runs, err := reporting.Runs(svc.pipelineRunner, ss, dd)
+	runs, err := reporting.Runs(svc.services.pipelineRunner, ss, dd)
 	if err != nil {
-		return out, err
+		return nil, err
 	}
 
-	// @todo this can be ran in paralel
+	var (
+		iter dal.Iterator
+		ff   []*reporting.Frame
+		out  = make([]*reporting.Frame, 0, 4)
+	)
+
 	for _, run := range runs {
 		err = func() (err error) {
-			iter, err = svc.pipelineRunner.Run(ctx, run.Pipeline)
+			iter, err = svc.services.pipelineRunner.Run(ctx, run.Pipeline)
 			if err != nil {
 				return
 			}
@@ -149,21 +126,17 @@ func (svc *report) onRun(ctx context.Context, aProps *reportActionProps, reportI
 		}()
 
 		if err != nil {
-			return out, err
+			return nil, err
 		}
 	}
 
 	return out, nil
 }
 
-// enhance is a temporary function that enriches the output to satisfy some current requirements.
-// @todo extend core implementation to support such operatons
-//
-// - userID is replaced by the user name || username || email || handle || userID
+// enhance enriches report output: replaces userID cells with display name.
 func (svc *report) enhance(ctx context.Context, ff []*reporting.Frame) (err error) {
-	// Preload sys users
 	uIndex := make(map[uint64]*types.User)
-	uu, uf, err := svc.users.Find(ctx, types.UserFilter{Paging: filter.Paging{Limit: 1024}})
+	uu, uf, err := svc.services.users.Find(ctx, types.UserFilter{Paging: filter.Paging{Limit: 1024}})
 	if err != nil {
 		return
 	}
@@ -176,14 +149,12 @@ func (svc *report) enhance(ctx context.Context, ff []*reporting.Frame) (err erro
 	for _, f := range ff {
 		userCols := make([]int, 0, len(f.Columns))
 		for i, c := range f.Columns {
-			// Translate system columns
 			if c.System {
 				pp := strings.Split(c.Name, ".")
-				c.Label = svc.locale.T(ctx, "compose", fmt.Sprintf("field.system.%s", pp[len(pp)-1]))
+				c.Label = svc.services.locale.T(ctx, "compose", fmt.Sprintf("field.system.%s", pp[len(pp)-1]))
 				f.Columns[i] = c
 			}
 
-			// Collect user columns to replace IDs with labels
 			if c.Kind != "User" {
 				continue
 			}
@@ -203,7 +174,7 @@ func (svc *report) enhance(ctx context.Context, ff []*reporting.Frame) (err erro
 
 				user, ok := uIndex[uID]
 				if !ok && hasMore {
-					user, err = svc.users.FindByID(ctx, uID)
+					user, err = svc.services.users.FindByID(ctx, uID)
 					if err != nil && err != store.ErrNotFound {
 						return
 					}
@@ -235,20 +206,17 @@ func (svc *report) enhance(ctx context.Context, ff []*reporting.Frame) (err erro
 }
 
 func (svc *report) setIDs(r *types.Report) *types.Report {
-	// scenarios
 	for _, s := range r.Scenarios {
 		if s.ScenarioID == 0 {
 			s.ScenarioID = nextID()
 		}
 	}
 
-	// blocks
 	for _, b := range r.Blocks {
 		if b.BlockID == 0 {
 			b.BlockID = nextID()
 		}
 
-		// elements
 		for _, elRaw := range b.Elements {
 			el, ok := elRaw.(map[string]interface{})
 			if !ok {

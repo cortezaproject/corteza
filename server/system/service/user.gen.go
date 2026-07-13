@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -18,9 +19,11 @@ import (
 	"mime/multipart"
 )
 
-type userServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type user struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        userAccessController
+	services  *userServices
 }
 
 func (svc *user) FindByID(ctx context.Context, ID uint64) (res *types.User, err error) {
@@ -210,13 +213,6 @@ func (svc *user) checkScope(ctx context.Context, cap scope.Capability) error {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *user) scopeServices(ctx context.Context) *userServices {
-	return &userServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *user) FindByEmail(ctx context.Context, email string) (u *types.User, err error) {

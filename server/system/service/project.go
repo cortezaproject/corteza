@@ -6,12 +6,12 @@ import (
 	"time"
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
@@ -36,25 +36,12 @@ type (
 	}
 )
 
-// project carries the standard service deps plus the revision-flow dependencies
-// (nsSvc/dalSvc/dalConns/recordSvc, wired post-boot via SetProjectRevisionDeps).
-// Because of those extra deps the struct + constructor are hand-written here
-// rather than generated (see project.cue: service.genConstructor=false).
-type project struct {
-	actionlog actionlog.Recorder
-	store     store.Storer
-	ac        projectAccessController
-	nsSvc     projectNamespaceSvc
-	dalSvc    projectDALImporter
-	dalConns  projectDALConnSvc
-	recordSvc projectRecordSvc
-}
-
 func Project() *project {
 	return &project{
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
+		services:  &projectServices{},
 	}
 }
 
@@ -90,28 +77,33 @@ type (
 	}
 )
 
-func (svc *project) FindByID(ctx context.Context, ID uint64) (p *types.Project, err error) {
-	var paProps = &projectActionProps{project: &types.Project{ID: ID}}
+// projectServices extends the generated scope/caps struct with project-specific
+// dependencies wired at construction time.
+type projectServices struct {
+	scope     scope.Scope
+	caps      scope.Capabilities
+	nsSvc     projectNamespaceSvc
+	dalSvc    projectDALImporter
+	dalConns  projectDALConnSvc
+	recordSvc projectRecordSvc
+}
 
-	err = func() error {
-		if p, err = loadProject(ctx, svc.store, ID); err != nil {
-			return err
-		}
+func (svc *project) scopeServices(ctx context.Context) *projectServices {
+	return &projectServices{
+		scope:     scope.GetScopeFromContext(ctx),
+		caps:      scope.GetCapabilitiesFromContext(ctx),
+		nsSvc:     svc.services.nsSvc,
+		dalSvc:    svc.services.dalSvc,
+		dalConns:  svc.services.dalConns,
+		recordSvc: svc.services.recordSvc,
+	}
+}
 
-		paProps.setProject(p)
-
-		if !svc.ac.CanReadProject(ctx, p) {
-			return ProjectErrNotAllowedToRead()
-		}
-
-		if err = label.Load(ctx, svc.store, p); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return p, svc.recordAction(ctx, paProps, ProjectActionLookup, err)
+func (svc *project) afterLookup(ctx context.Context, p *types.Project) (*types.Project, error) {
+	if err := label.Load(ctx, svc.store, p); err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 func (svc *project) FindByHandle(ctx context.Context, h string) (p *types.Project, err error) {
@@ -140,210 +132,141 @@ func (svc *project) FindByHandle(ctx context.Context, h string) (p *types.Projec
 	return p, svc.recordAction(ctx, paProps, ProjectActionLookup, err)
 }
 
-func (svc *project) Create(ctx context.Context, new *types.Project) (p *types.Project, err error) {
-	var paProps = &projectActionProps{new: new}
+func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
+	if !handle.IsValid(new.Handle) {
+		return ProjectErrInvalidHandle()
+	}
 
-	err = func() (err error) {
-		if !svc.ac.CanCreateProject(ctx) {
-			return ProjectErrNotAllowedToCreate()
+	if new.Status == "" {
+		new.Status = types.ProjectStatusDraft
+	}
+	if err := validateProjectStatus(new.Status); err != nil {
+		return err
+	}
+
+	if new.Config.Mode == "" {
+		new.Config.Mode = types.ProjectModeFree
+	}
+	if !new.Config.Mode.Valid() {
+		return ProjectErrInvalidMode()
+	}
+
+	// FRIA requirement is derived from the deployer answers once, at
+	// creation, so the pipeline shape doesn't silently change later.
+	new.Config.FriaRequired = friaRequired(new.Config.DeployerCategories)
+
+	if err := svc.uniqueCheck(ctx, new); err != nil {
+		return err
+	}
+
+	new.ID = nextID()
+	new.CreatedAt = *now()
+	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	// Project-scoped compose resources (modules, pages, charts) live in a
+	// namespace created alongside the project. Projects are referenced by
+	// ID; handle and slug stay empty unless a client explicitly sets one.
+	// The scope refs are stamped explicitly: the request context carries
+	// no project scope yet at creation time.
+	ns := &composeTypes.Namespace{
+		ID:        nextID(),
+		TenantID:  new.TenantID,
+		ProjectID: new.ID,
+		Slug:      new.Handle,
+		Name:      new.Meta.Short,
+		Enabled:   true,
+		CreatedAt: *now(),
+	}
+	if ns.Name == "" {
+		ns.Name = "project-" + strconv.FormatUint(new.ID, 10)
+	}
+	new.Config.NamespaceID = ns.ID
+
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		// Slug uniqueness only matters when one is actually set; empty
+		// slugs are allowed to repeat (partial unique index).
+		if ns.Slug != "" {
+			if existing, e := store.LookupComposeNamespaceBySlug(ctx, s, ns.Slug); e == nil && existing != nil {
+				return ProjectErrHandleNotUnique()
+			} else if e != nil && !errors.IsNotFound(e) {
+				return e
+			}
 		}
 
-		if !handle.IsValid(new.Handle) {
-			return ProjectErrInvalidHandle()
-		}
-
-		if new.Status == "" {
-			new.Status = types.ProjectStatusDraft
-		}
-		if err = validateProjectStatus(new.Status); err != nil {
+		if err := store.CreateComposeNamespace(ctx, s, ns); err != nil {
 			return err
 		}
 
-		if new.Config.Mode == "" {
-			new.Config.Mode = types.ProjectModeFree
-		}
-		if !new.Config.Mode.Valid() {
-			return ProjectErrInvalidMode()
-		}
+		return store.CreateProject(ctx, s, new)
+	})
+	if err != nil {
+		return err
+	}
 
-		// FRIA requirement is derived from the deployer answers once, at
-		// creation, so the pipeline shape doesn't silently change later.
-		new.Config.FriaRequired = friaRequired(new.Config.DeployerCategories)
+	if err := label.Create(ctx, svc.store, new); err != nil {
+		return err
+	}
 
-		if err = svc.uniqueCheck(ctx, new); err != nil {
+	// The creator becomes the first member: in gated mode they drive the
+	// pipeline as a developer.
+	creator := &types.ProjectMember{
+		ID:         nextID(),
+		ProjectID:  new.ID,
+		TenantID:   new.TenantID,
+		UserID:     new.CreatedBy,
+		RolePreset: types.ProjectRoleDeveloper,
+		InvitedBy:  new.CreatedBy,
+		CreatedAt:  *now(),
+	}
+	if creator.UserID != 0 {
+		if err := store.CreateProjectMember(ctx, svc.store, creator); err != nil {
 			return err
 		}
+	}
 
-		new.ID = nextID()
-		new.CreatedAt = *now()
-		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		// Project-scoped compose resources (modules, pages, charts) live in a
-		// namespace created alongside the project. Projects are referenced by
-		// ID; handle and slug stay empty unless a client explicitly sets one.
-		// The scope refs are stamped explicitly: the request context carries
-		// no project scope yet at creation time.
-		ns := &composeTypes.Namespace{
-			ID:        nextID(),
-			TenantID:  new.TenantID,
-			ProjectID: new.ID,
-			Slug:      new.Handle,
-			Name:      new.Meta.Short,
-			Enabled:   true,
-			CreatedAt: *now(),
-		}
-		if ns.Name == "" {
-			ns.Name = "project-" + strconv.FormatUint(new.ID, 10)
-		}
-		new.Config.NamespaceID = ns.ID
-
-		err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-			// Slug uniqueness only matters when one is actually set; empty
-			// slugs are allowed to repeat (partial unique index).
-			if ns.Slug != "" {
-				if existing, e := store.LookupComposeNamespaceBySlug(ctx, s, ns.Slug); e == nil && existing != nil {
-					return ProjectErrHandleNotUnique()
-				} else if e != nil && !errors.IsNotFound(e) {
-					return e
-				}
-			}
-
-			if err = store.CreateComposeNamespace(ctx, s, ns); err != nil {
-				return err
-			}
-
-			return store.CreateProject(ctx, s, new)
-		})
-		if err != nil {
-			return
-		}
-
-		if err = label.Create(ctx, svc.store, new); err != nil {
-			return
-		}
-
-		// The creator becomes the first member: in gated mode they drive the
-		// pipeline as a developer.
-		creator := &types.ProjectMember{
-			ID:         nextID(),
-			ProjectID:  new.ID,
-			TenantID:   new.TenantID,
-			UserID:     new.CreatedBy,
-			RolePreset: types.ProjectRoleDeveloper,
-			InvitedBy:  new.CreatedBy,
-			CreatedAt:  *now(),
-		}
-		if creator.UserID != 0 {
-			if err = store.CreateProjectMember(ctx, svc.store, creator); err != nil {
-				return
-			}
-		}
-
-		p = new
-		return nil
-	}()
-
-	return p, svc.recordAction(ctx, paProps, ProjectActionCreate, err)
+	return nil
 }
 
-func (svc *project) Update(ctx context.Context, upd *types.Project) (p *types.Project, err error) {
-	var (
-		paProps  = &projectActionProps{update: upd}
-		existing *types.Project
-	)
+func (svc *project) beforeUpdate(ctx context.Context, upd, res *types.Project) error {
+	if upd.Status == "" {
+		upd.Status = res.Status
+	}
+	if err := validateProjectStatus(upd.Status); err != nil {
+		return err
+	}
 
-	err = func() (err error) {
-		if existing, err = loadProject(ctx, svc.store, upd.ID); err != nil {
-			return
-		}
-
-		paProps.setProject(existing)
-
-		if !svc.ac.CanUpdateProject(ctx, existing) {
-			return ProjectErrNotAllowedToUpdate()
-		}
-
-		if isStale(upd.UpdatedAt, existing.UpdatedAt, existing.CreatedAt) {
-			return ProjectErrStaleData()
-		}
-
-		if !handle.IsValid(upd.Handle) {
-			return ProjectErrInvalidHandle()
-		}
-
-		if upd.Status == "" {
-			upd.Status = existing.Status
-		}
-		if err = validateProjectStatus(upd.Status); err != nil {
+	if upd.Handle != res.Handle {
+		if err := svc.uniqueCheck(ctx, upd); err != nil {
 			return err
 		}
+	}
 
-		if upd.Handle != existing.Handle {
-			if err = svc.uniqueCheck(ctx, upd); err != nil {
-				return err
-			}
-		}
+	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		upd.UpdatedAt = now()
-		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-		upd.CreatedAt = existing.CreatedAt
-		upd.CreatedBy = existing.CreatedBy
-		upd.DeletedAt = existing.DeletedAt
-		upd.TenantID = existing.TenantID
+	// Mode, namespace binding, deployer answers, and FRIA derivation are
+	// immutable after creation.
+	upd.Config.Mode = res.Config.Mode
+	upd.Config.NamespaceID = res.Config.NamespaceID
+	upd.Config.DeployerCategories = res.Config.DeployerCategories
+	upd.Config.FriaRequired = res.Config.FriaRequired
 
-		// Mode and namespace binding are immutable; FRIA derivation is fixed at
-		// creation. Governance state only changes through the dedicated
-		// governance operations.
-		upd.Config.Mode = existing.Config.Mode
-		upd.Config.NamespaceID = existing.Config.NamespaceID
-		upd.Config.DeployerCategories = existing.Config.DeployerCategories
-		upd.Config.FriaRequired = existing.Config.FriaRequired
-		upd.Governance = existing.Governance
-
-		if err = store.UpdateProject(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		if err = label.Update(ctx, svc.store, upd); err != nil {
-			return
-		}
-
-		p = upd
-		return nil
-	}()
-
-	return p, svc.recordAction(ctx, paProps, ProjectActionUpdate, err, existing, upd)
+	return nil
 }
 
-func (svc *project) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	var paProps = &projectActionProps{project: &types.Project{ID: ID}}
+func (svc *project) onDelete(ctx context.Context, s store.Storer, p *types.Project, _ *projectActionProps) error {
+	if !svc.ac.CanDeleteProject(ctx, p) {
+		return ProjectErrNotAllowedToDelete()
+	}
 
-	err = func() (err error) {
-		var p *types.Project
-		if p, err = loadProject(ctx, svc.store, ID); err != nil {
-			return
-		}
+	p.DeletedAt = now()
+	p.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		paProps.setProject(p)
-
-		if !svc.ac.CanDeleteProject(ctx, p) {
-			return ProjectErrNotAllowedToDelete()
-		}
-
-		p.DeletedAt = now()
-		p.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
-
-		// The project's namespace follows its lifecycle — leaving it active
-		// would squat the slug and block future creations.
-		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-			if err := store.UpdateProject(ctx, s, p); err != nil {
-				return err
-			}
-			return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, p.DeletedAt)
-		})
-	}()
-
-	return svc.recordAction(ctx, paProps, ProjectActionDelete, err)
+	// The project's namespace follows its lifecycle — leaving it active
+	// would squat the slug and block future creations.
+	if err := store.UpdateProject(ctx, s, p); err != nil {
+		return err
+	}
+	return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, p.DeletedAt)
 }
 
 // setNamespaceDeleted stamps (or clears) DeletedAt on the project's compose
@@ -365,33 +288,18 @@ func (svc *project) setNamespaceDeleted(ctx context.Context, s store.Storer, nam
 	return store.UpdateComposeNamespace(ctx, s, ns)
 }
 
-func (svc *project) UndeleteByID(ctx context.Context, ID uint64) (err error) {
-	var paProps = &projectActionProps{project: &types.Project{ID: ID}}
+func (svc *project) onUndelete(ctx context.Context, s store.Storer, p *types.Project, _ *projectActionProps) error {
+	if !svc.ac.CanDeleteProject(ctx, p) {
+		return ProjectErrNotAllowedToDelete()
+	}
 
-	err = func() (err error) {
-		var p *types.Project
-		if p, err = loadProject(ctx, svc.store, ID); err != nil {
-			return
-		}
+	p.DeletedAt = nil
+	p.DeletedBy = 0
 
-		paProps.setProject(p)
-
-		if !svc.ac.CanDeleteProject(ctx, p) {
-			return ProjectErrNotAllowedToDelete()
-		}
-
-		p.DeletedAt = nil
-		p.DeletedBy = 0
-
-		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-			if err := store.UpdateProject(ctx, s, p); err != nil {
-				return err
-			}
-			return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, nil)
-		})
-	}()
-
-	return svc.recordAction(ctx, paProps, ProjectActionUndelete, err)
+	if err := store.UpdateProject(ctx, s, p); err != nil {
+		return err
+	}
+	return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, nil)
 }
 
 // --- members ---
@@ -537,16 +445,3 @@ func friaRequired(d types.ProjectDeployerCategories) bool {
 	return d.PublicAuthorityAnnex3 || d.PrivateEssentialServices || d.InsuranceBanking
 }
 
-// toLabeledProjects is generated into project.gen.go.
-
-func loadProject(ctx context.Context, s store.Projects, ID uint64) (res *types.Project, err error) {
-	if ID == 0 {
-		return nil, ProjectErrInvalidID()
-	}
-
-	if res, err = store.LookupProjectByID(ctx, s, ID); errors.IsNotFound(err) {
-		return nil, ProjectErrNotFound()
-	}
-
-	return
-}

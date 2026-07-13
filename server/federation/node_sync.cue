@@ -72,10 +72,11 @@ nodeSync: {
 	}
 
 	service: {
-		lookup:   false
-		update:   false
-		delete:   false
-		undelete: false
+		extraServices: false
+		lookup:        false
+		update:        false
+		delete:        false
+		undelete:      false
 
 		customBodyOps:   ["create", "search"]
 		customAccessOps: ["create", "search"]

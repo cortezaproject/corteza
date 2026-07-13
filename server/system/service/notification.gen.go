@@ -9,15 +9,18 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type notificationServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type notification struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        notificationAccessController
+	services  *notificationServices
 }
 
 func (svc *notification) FindByID(ctx context.Context, ID uint64) (res *types.Notification, err error) {
@@ -84,6 +87,10 @@ func (svc *notification) Update(ctx context.Context, upd *types.Notification) (r
 		aProps.setUpdated(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return NotificationErrStaleData()
 		}
@@ -121,6 +128,10 @@ func (svc *notification) DeleteByID(ctx context.Context, ID uint64) (err error) 
 
 		aProps.setNotification(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -138,19 +149,13 @@ func loadNotification(ctx context.Context, s store.Notifications, ID uint64) (re
 
 	return
 }
+func (svc *notification) guard(_ context.Context, _ *types.Notification) error { return nil }
 
 func (svc *notification) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *notification) scopeServices(ctx context.Context) *notificationServices {
-	return &notificationServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {

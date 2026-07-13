@@ -11,6 +11,14 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
+func Chatbot() *chatbot {
+	return &chatbot{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
+
 func (svc *chatbot) Get(ctx context.Context, ID uint64) (*types.Chatbot, error) {
 	return svc.FindByID(ctx, ID)
 }

@@ -16,7 +16,7 @@ type (
 	}
 
 	workflowRunner interface {
-		LookupByID(ctx context.Context, workflowID uint64) (*atypes.Workflow, error)
+		FindByID(ctx context.Context, workflowID uint64) (*atypes.Workflow, error)
 		LookupByHandle(ctx context.Context, handle string) (*atypes.Workflow, error)
 		Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
 	}
@@ -135,12 +135,12 @@ func (h ngWorkflowHandler) Exec() atypes.ConstructFunction {
 
 			switch v := expr.Must(expr.Select(in, "workflow")).Get().(type) {
 			case uint64:
-				wf, err = h.wf.LookupByID(ctx, v)
+				wf, err = h.wf.FindByID(ctx, v)
 			case int64:
-				wf, err = h.wf.LookupByID(ctx, uint64(v))
+				wf, err = h.wf.FindByID(ctx, uint64(v))
 			case string:
 				if id, perr := strconv.ParseUint(v, 10, 64); perr == nil {
-					wf, err = h.wf.LookupByID(ctx, id)
+					wf, err = h.wf.FindByID(ctx, id)
 				} else {
 					wf, err = h.wf.LookupByHandle(ctx, v)
 				}

@@ -46,6 +46,14 @@ type (
 	}
 )
 
+func Tenant() *tenant {
+	return &tenant{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
+
 func (svc *tenant) FindByID(ctx context.Context, ID uint64) (t *types.Tenant, err error) {
 	var taProps = &tenantActionProps{tenant: &types.Tenant{ID: ID}}
 

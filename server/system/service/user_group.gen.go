@@ -8,15 +8,19 @@ package service
 
 import (
 	"context"
+
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type userGroupServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type userGroup struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        userGroupAccessController
+	services  *userGroupServices
 }
 
 func (svc *userGroup) Create(ctx context.Context, new *types.UserGroup) (res *types.UserGroup, err error) {
@@ -76,19 +80,13 @@ func toLabeledUserGroups(set []*types.UserGroup) []label.LabeledResource {
 
 	return ll
 }
+func (svc *userGroup) guard(_ context.Context, _ *types.UserGroup) error { return nil }
 
 func (svc *userGroup) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *userGroup) scopeServices(ctx context.Context) *userGroupServices {
-	return &userGroupServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *userGroup) Activate(ctx context.Context) (err error) {

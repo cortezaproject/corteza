@@ -187,12 +187,13 @@ _ServiceResource: {
 		flags:   res.features.flags
 		checkFn: res.features.checkFn
 
-		hooks: res.service.hooks
-		guard: res.service.guard
+		hooks:     res.service.hooks
+		guard:     res.service.guard
+		skipGuard: res.service.skipGuard
 
-		// generate the AC interface / struct+constructor in the .gen.go (opt-in)
+		// generate the AC interface in the .gen.go (opt-in)
 		genAccessController: res.service.genAccessController
-		genConstructor:      res.service.genConstructor
+		extraServices:       res.service.extraServices
 
 		// scoped (compound-id) support: namespace-scoped resources (compose) prepend
 		// their model parent ids as leading args on the by-id methods and on<Op> hooks.

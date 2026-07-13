@@ -10,15 +10,18 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/automation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 )
 
-type triggerServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type trigger struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        triggerAccessController
+	services  *triggerServices
 }
 
 func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error) {
@@ -76,6 +79,10 @@ func (svc *trigger) Update(ctx context.Context, upd *types.Trigger) (res *types.
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return TriggerErrStaleData()
 		}
@@ -128,6 +135,10 @@ func (svc *trigger) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setTrigger(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -149,6 +160,10 @@ func (svc *trigger) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		aProps.setTrigger(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
 
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
@@ -181,19 +196,13 @@ func toLabeledTriggers(set []*types.Trigger) []label.LabeledResource {
 
 	return ll
 }
+func (svc *trigger) guard(_ context.Context, _ *types.Trigger) error { return nil }
 
 func (svc *trigger) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *trigger) scopeServices(ctx context.Context) *triggerServices {
-	return &triggerServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *trigger) SearchOnManual(ctx context.Context, workflowID uint64, stepID uint64) (res *types.Trigger, err error) {

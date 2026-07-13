@@ -152,7 +152,7 @@ module: {
 		}
 
 		query: ["handle", "name"]
-		byValue: ["handle", "module_id", "namespace_id"]
+		byValue: ["handle", "module_id", "namespace_id", "project_id"]
 		byNilState: ["deleted"]
 	}
 

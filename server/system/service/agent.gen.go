@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -25,9 +26,11 @@ type agentAccessController interface {
 	CanDeleteAgent(context.Context, *types.Agent) bool
 }
 
-type agentServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type agent struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        agentAccessController
+	services  *agentServices
 }
 
 func (svc *agent) FindByID(ctx context.Context, ID uint64) (res *types.Agent, err error) {
@@ -104,6 +107,10 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (res *types.Agen
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return AgentErrInvalidHandle()
 		}
@@ -156,6 +163,10 @@ func (svc *agent) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setAgent(res)
 
 		if !svc.ac.CanDeleteAgent(ctx, res) {
@@ -197,17 +208,11 @@ func toLabeledAgents(set []*types.Agent) []label.LabeledResource {
 
 	return ll
 }
+func (svc *agent) guard(_ context.Context, _ *types.Agent) error { return nil }
 
 func (svc *agent) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *agent) scopeServices(ctx context.Context) *agentServices {
-	return &agentServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }

@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,12 +15,9 @@ import (
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/filter"
 
-	"github.com/crusttech/human/server/compose/service/event"
 	"github.com/crusttech/human/server/compose/service/values"
 	"github.com/crusttech/human/server/compose/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
-	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/locale"
@@ -31,13 +27,8 @@ import (
 )
 
 type (
-	module struct {
-		actionlog actionlog.Recorder
-		ac        moduleAccessController
-		eventbus  eventDispatcher
-		store     store.Storer
-		locale    ResourceTranslationsManagerService
-
+	moduleServices struct {
+		locale           ResourceTranslationsManagerService
 		dal              dal.FullService
 		schemaAltManager schemaAltManager
 	}
@@ -57,6 +48,7 @@ type (
 		FindByName(ctx context.Context, namespaceID uint64, name string) (*types.Module, error)
 		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Module, error)
 		FindByAny(ctx context.Context, namespaceID uint64, identifier interface{}) (*types.Module, error)
+		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 		Search(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 		SearchSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error)
 
@@ -67,6 +59,10 @@ type (
 		// @note probably temporary just so tests are easier
 		ReloadDALModels(ctx context.Context) error
 	}
+
+	moduleUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Module) (moduleChanges, error)
+
+	moduleChanges uint8
 
 	// Model management on DAL Service
 	dalModelManager interface {
@@ -80,6 +76,11 @@ type (
 )
 
 const (
+	moduleUnchanged     moduleChanges = 0
+	moduleChanged       moduleChanges = 1
+	moduleLabelsChanged moduleChanges = 2
+	moduleFieldsChanged moduleChanges = 4
+
 	recordTable            = "compose_record"
 	recordFieldID          = "ID"
 	recordFieldModuleID    = "moduleID"
@@ -89,8 +90,6 @@ const (
 const (
 	// https://www.rfc-editor.org/errata/eid1690
 	emailLength = 254
-
-	maxPrecisionLength = 15
 
 	// Generally the upper most limit
 	urlLength = 2048
@@ -139,23 +138,82 @@ var (
 
 func Module(am schemaAltManager) *module {
 	return &module{
-		ac:               DefaultAccessControl,
-		eventbus:         eventbus.Service(),
-		actionlog:        DefaultActionlog,
-		store:            DefaultStore,
-		locale:           DefaultResourceTranslation,
-		dal:              dal.Service(),
-		schemaAltManager: am,
+		ac:        DefaultAccessControl,
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		services: &moduleServices{
+			locale:           DefaultResourceTranslation,
+			dal:              dal.Service(),
+			schemaAltManager: am,
+		},
 	}
 }
 
-// onSearch is the generated Search body handler.
-//
-// The recordAction wrapper and aProps (filter) are owned by the generated
-// module.gen.go; this handler runs the namespace preload, access check and
-// store search.
-func (svc *module) onSearch(ctx context.Context, filter types.ModuleFilter, aProps *moduleActionProps) (set types.ModuleSet, f types.ModuleFilter, err error) {
-	var ns *types.Namespace
+func (svc *module) onLookup(ctx context.Context, namespaceID uint64, ID uint64, aProps *moduleActionProps) (*types.Module, error) {
+	return svc.lookup(ctx, namespaceID, func(p *moduleActionProps) (*types.Module, error) {
+		if ID == 0 {
+			return nil, ModuleErrInvalidID()
+		}
+		p.module.ID = ID
+		return store.LookupComposeModuleByID(ctx, svc.store, ID)
+	})
+}
+
+func (svc *module) onSearch(ctx context.Context, filter types.ModuleFilter, aProps *moduleActionProps) (types.ModuleSet, types.ModuleFilter, error) {
+	return svc.Find(ctx, filter)
+}
+
+func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
+	_, err := svc.createModule(ctx, new)
+	return err
+}
+
+func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Module, res *types.Module, aProps *moduleActionProps, before, after func() error) error {
+	if !svc.ac.CanUpdateModule(ctx, res) {
+		return ModuleErrNotAllowedToUpdate()
+	}
+	if err := svc.uniqueCheck(ctx, upd); err != nil {
+		return err
+	}
+	if err := validateModuleDedupRules(ctx, upd); err != nil {
+		return ModuleErrDedupConfigurationInvalidMissingConstraint()
+	}
+	res.Name = upd.Name
+	res.Handle = upd.Handle
+	res.Meta = upd.Meta
+	res.Config = upd.Config
+	res.Fields = upd.Fields
+	return nil
+}
+
+func (svc *module) onDelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Module, aProps *moduleActionProps) error {
+	if !svc.ac.CanDeleteModule(ctx, res) {
+		return ModuleErrNotAllowedToDelete()
+	}
+	res.DeletedAt = now()
+	if err := store.UpdateComposeModule(ctx, s, res); err != nil {
+		return err
+	}
+	return DalModelRemove(ctx, svc.services.dal, res)
+}
+
+func (svc *module) onUndelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Module, aProps *moduleActionProps) error {
+	if !svc.ac.CanDeleteModule(ctx, res) {
+		return ModuleErrNotAllowedToUndelete()
+	}
+	res.DeletedAt = nil
+	return store.UpdateComposeModule(ctx, s, res)
+}
+
+func (svc *module) onReloadDALModels(ctx context.Context, aProps *moduleActionProps) error {
+	return DalModelReload(ctx, svc.store, svc.services.schemaAltManager, svc.services.dal)
+}
+
+func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
+	var (
+		ns     *types.Namespace
+		aProps = &moduleActionProps{filter: &filter}
+	)
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Module) (bool, error) {
@@ -166,85 +224,71 @@ func (svc *module) onSearch(ctx context.Context, filter types.ModuleFilter, aPro
 		return true, nil
 	}
 
-	ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
-	if err != nil {
-		return
-	}
-
-	aProps.setNamespace(ns)
-	if !svc.ac.CanSearchModulesOnNamespace(ctx, ns) {
-		return nil, f, ModuleErrNotAllowedToSearch()
-	}
-
-	if len(filter.Labels) > 0 {
-		filter.LabeledIDs, err = label.Search(
-			ctx,
-			svc.store,
-			types.Module{}.LabelResourceKind(),
-			filter.Labels,
-			id.Uints(filter.ModuleID...)...,
-		)
-
+	err = func() error {
+		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
 		if err != nil {
-			return
+			return err
 		}
 
-		// labels specified but no labeled resources found
-		if len(filter.LabeledIDs) == 0 {
-			return
+		aProps.setNamespace(ns)
+		if !svc.ac.CanSearchModulesOnNamespace(ctx, ns) {
+			return ModuleErrNotAllowedToSearch()
 		}
-	}
 
-	if set, f, err = store.SearchComposeModules(ctx, svc.store, filter); err != nil {
-		return
-	}
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				ctx,
+				svc.store,
+				types.Module{}.LabelResourceKind(),
+				filter.Labels,
+				id.Uints(filter.ModuleID...)...,
+			)
 
-	if err = loadModuleLabels(ctx, svc.store, set...); err != nil {
-		return
-	}
+			if err != nil {
+				return err
+			}
 
-	err = loadModuleFields(ctx, svc.store, set...)
-	if err != nil {
-		return
-	}
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
+		}
 
-	set.Walk(func(m *types.Module) error {
-		svc.proc(ctx, m)
+		if set, f, err = store.SearchComposeModules(ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = loadModuleLabels(ctx, svc.store, set...); err != nil {
+			return err
+		}
+
+		err = loadModuleFields(ctx, svc.store, set...)
+		if err != nil {
+			return err
+		}
+
+		set.Walk(func(m *types.Module) error {
+			svc.proc(ctx, m)
+			return nil
+		})
 		return nil
-	})
+	}()
 
-	return
+	return set, f, svc.recordAction(ctx, aProps, ModuleActionSearch, err)
 }
 
-// onLookup is the generated FindByID body handler (namespace-scoped compound id).
-func (svc *module) onLookup(ctx context.Context, namespaceID, moduleID uint64, aProps *moduleActionProps) (m *types.Module, err error) {
-	return svc.lookup(ctx, namespaceID, aProps, func(aProps *moduleActionProps) (*types.Module, error) {
-		if moduleID == 0 {
-			return nil, ModuleErrInvalidID()
-		}
-
-		aProps.module.ID = moduleID
-		return store.LookupComposeModuleByID(ctx, svc.store, moduleID)
-	})
-}
 
 // FindByName tries to find module by name
 func (svc module) FindByName(ctx context.Context, namespaceID uint64, name string) (m *types.Module, err error) {
-	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
-
-	m, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *moduleActionProps) (*types.Module, error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
 		aProps.module.Name = name
 		return store.LookupComposeModuleByNamespaceIDName(ctx, svc.store, namespaceID, name)
 	})
-
-	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
 }
 
 // FindByHandle tries to find module by handle
 func (svc module) FindByHandle(ctx context.Context, namespaceID uint64, h string) (m *types.Module, err error) {
-	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
-
-	m, err = svc.lookup(ctx, namespaceID, aProps, func(aProps *moduleActionProps) (*types.Module, error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
 		if !handle.IsValid(h) {
 			return nil, ModuleErrInvalidHandle()
 		}
@@ -252,8 +296,6 @@ func (svc module) FindByHandle(ctx context.Context, namespaceID uint64, h string
 		aProps.module.Handle = h
 		return store.LookupComposeModuleByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
-
-	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
 }
 
 // FindByAny tries to find module in a particular namespace by id, handle or name
@@ -288,42 +330,38 @@ func (svc module) proc(ctx context.Context, m *types.Module) {
 }
 
 func (svc module) procLocale(ctx context.Context, m *types.Module) {
-	if svc.locale == nil || svc.locale.Locale() == nil {
+	if svc.services.locale == nil || svc.services.locale.Locale() == nil {
 		return
 	}
 
 	tag := locale.GetAcceptLanguageFromContext(ctx)
-	m.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
+	m.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
 
 	m.Fields.Walk(func(mf *types.ModuleField) error {
-		mf.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, mf.ResourceTranslation()))
+		mf.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(tag, mf.ResourceTranslation()))
 		return nil
 	})
 }
 
 func (svc module) procDal(m *types.Module) {
-	if svc.dal == nil {
+	if svc.services.dal == nil {
 		return
 	}
 
-	m.Issues = svc.dal.SearchModelIssues(m.ID)
-	m.Issues = append(m.Issues, svc.dal.SearchResourceIssues("corteza::system:revision", m.RbacResource())...)
+	m.Issues = svc.services.dal.SearchModelIssues(m.ID)
+	m.Issues = append(m.Issues, svc.services.dal.SearchResourceIssues("corteza::system:revision", m.RbacResource())...)
 	if len(m.Issues) == 0 {
 		m.Issues = nil
 	}
 }
 
-// onCreate is the generated Create body handler.
-//
-// The recordAction wrapper, aProps and res=new assignment are owned by the
-// generated module.gen.go.
-func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
+func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.Module, error) {
 	var (
 		ns     *types.Namespace
 		aProps = &moduleActionProps{module: new}
 	)
 
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return ModuleErrInvalidHandle()
 		}
@@ -344,20 +382,11 @@ func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 			return ModuleErrNotAllowedToCreate()
 		}
 
-		// Calling before-create scripts
-		if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
-			return err
-		}
-
 		if err = svc.uniqueCheck(ctx, new); err != nil {
 			return err
 		}
 
 		new.ID = nextID()
-		// ProjectID comes from the caller (the REST create param), not derived
-		// from the namespace: the project flow stamps it explicitly. Callers that
-		// don't send it (e.g. the compose admin editor) create tenant-level
-		// resources (project_id 0). Fields inherit the module's project below.
 		new.CreatedAt = *now()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
@@ -367,9 +396,7 @@ func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 				f.ID = nextID()
 				f.ModuleID = new.ID
 				f.NamespaceID = new.NamespaceID
-				f.ProjectID = new.ProjectID
 				f.CreatedAt = *now()
-				f.CreatedByAgent = new.CreatedByAgent
 				f.UpdatedAt = nil
 				f.DeletedAt = nil
 
@@ -408,7 +435,7 @@ func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 			tt = append(tt, f.EncodeTranslations()...)
 		}
 
-		if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
+		if err = updateTranslations(ctx, svc.ac, svc.services.locale, tt...); err != nil {
 			return
 		}
 
@@ -416,275 +443,15 @@ func (svc *module) onCreate(ctx context.Context, new *types.Module) error {
 			return
 		}
 
-		if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, new); err != nil {
+		if err = DalModelReplace(ctx, s, svc.services.schemaAltManager, svc.services.dal, ns, new); err != nil {
 			return err
 		}
-
-		_ = svc.eventbus.WaitFor(ctx, event.ModuleAfterCreate(new, nil, ns))
 
 		svc.procDal(new)
 		return nil
 	})
-}
 
-// onUpdate is the generated Update body handler.
-func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Module, aProps *moduleActionProps, _ func() error, _ func() error) error {
-	// loadModule (generated) fetches only the module row, not its fields.
-	// updateModuleFields diffs the incoming fields against res.Fields to decide
-	// what to create/update/delete, so without this the existing fields are
-	// invisible: nothing gets deleted and every incoming field is treated as new,
-	// colliding with the still-present rows ("not unique").
-	if err := loadModuleFields(ctx, s, res); err != nil {
-		return err
-	}
-
-	old := res.Clone()
-	svc.procDal(old)
-
-	ns, err := loadNamespace(ctx, s, res.NamespaceID)
-	if err != nil {
-		return err
-	}
-
-	if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
-		return ModuleErrInvalidHandle()
-	}
-
-	if err = svc.uniqueCheck(ctx, upd); err != nil {
-		return err
-	}
-
-	if err = validateModuleDedupRules(ctx, upd); err != nil {
-		return ModuleErrDedupConfigurationInvalidMissingConstraint()
-	}
-
-	if !svc.ac.CanUpdateModule(ctx, res) {
-		return ModuleErrNotAllowedToUpdate()
-	}
-
-	if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(res, old, ns)); err != nil {
-		return err
-	}
-
-	// Get max validatorID for later use
-	vvID := make(map[uint64]uint64)
-	for _, f := range res.Fields {
-		for _, v := range f.Expressions.Validators {
-			if vvID[f.ID] < v.ValidatorID {
-				vvID[f.ID] = v.ValidatorID
-			}
-		}
-	}
-
-	moduleModified := false
-	fieldsModified := false
-
-	if res.Name != upd.Name {
-		res.Name = upd.Name
-		moduleModified = true
-	}
-
-	if res.Handle != upd.Handle {
-		res.Handle = upd.Handle
-		moduleModified = true
-	}
-
-	{
-		oldMeta := res.Meta.String()
-		if oldMeta == "{}" {
-			oldMeta = ""
-		}
-		newMeta := upd.Meta.String()
-		if newMeta == "{}" {
-			newMeta = ""
-		}
-		if oldMeta != newMeta {
-			res.Meta = upd.Meta
-			moduleModified = true
-		}
-	}
-
-	_ = handleDalSysFieldEncodingUpdate(upd)
-
-	if !reflect.DeepEqual(res.Config, upd.Config) {
-		res.Config = upd.Config
-		moduleModified = true
-	}
-
-	if (len(upd.Fields) > 0 || len(res.Fields) > 0) && !reflect.DeepEqual(res.Fields, upd.Fields) {
-		res.Fields = upd.Fields
-		fieldsModified = true
-	}
-
-	// Assure validatorIDs
-	for _, f := range res.Fields {
-		for j, v := range f.Expressions.Validators {
-			if v.ValidatorID == 0 {
-				vvID[f.ID] += 1
-				v.ValidatorID = vvID[f.ID]
-				f.Expressions.Validators[j] = v
-				fieldsModified = true
-			}
-		}
-	}
-
-	if upd.Labels != nil && label.Changed(res.Labels, upd.Labels) {
-		res.Labels = upd.Labels
-		if err = label.Update(ctx, s, res); err != nil {
-			return err
-		}
-	}
-
-	if moduleModified {
-		res.UpdatedAt = now()
-	}
-
-	if moduleModified {
-		var defConn *dal.ConnectionWrap
-		if defConn = svc.dal.GetConnectionByID(0); defConn == nil {
-			return fmt.Errorf("could not find default DAL connection")
-		}
-		if old.Config.DAL.ConnectionID == 0 {
-			old.Config.DAL.ConnectionID = defConn.ID
-		}
-		if res.Config.DAL.ConnectionID == 0 {
-			res.Config.DAL.ConnectionID = defConn.ID
-		}
-
-		if err = store.UpdateComposeModule(ctx, s, res); err != nil {
-			return err
-		}
-	}
-
-	if fieldsModified {
-		var hasRecords bool
-		if modelIssues := svc.dal.SearchModelIssues(res.ID); len(modelIssues) != 0 {
-			hasRecords = false
-		}
-
-		if err = updateModuleFields(ctx, s, res, old, hasRecords); err != nil {
-			return err
-		}
-	}
-
-	tt := res.EncodeTranslations()
-	for _, f := range res.Fields {
-		tt = append(tt, f.EncodeTranslations()...)
-	}
-	if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
-		return err
-	}
-
-	if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(res, old, ns)); err != nil {
-		return err
-	}
-	if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, res); err != nil {
-		return err
-	}
-
-	svc.procDal(res)
-	return nil
-}
-
-// onDelete is the generated DeleteByID body handler (namespace-scoped compound id).
-func (svc *module) onDelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Module, aProps *moduleActionProps) error {
-	if !svc.ac.CanDeleteModule(ctx, res) {
-		return ModuleErrNotAllowedToDelete()
-	}
-
-	if res.DeletedAt != nil {
-		return nil
-	}
-
-	ns, err := loadNamespace(ctx, s, namespaceID)
-	if err != nil {
-		return err
-	}
-
-	old := res.Clone()
-	svc.procDal(old)
-
-	if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeDelete(res, old, ns)); err != nil {
-		return err
-	}
-
-	res.DeletedAt = now()
-
-	if err = store.UpdateComposeModule(ctx, s, res); err != nil {
-		return err
-	}
-
-	tt := res.EncodeTranslations()
-	for _, f := range res.Fields {
-		tt = append(tt, f.EncodeTranslations()...)
-	}
-	if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
-		return err
-	}
-
-	if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
-		return err
-	}
-	if err = DalModelRemove(ctx, svc.dal, res); err != nil {
-		return err
-	}
-
-	svc.procDal(res)
-	return nil
-}
-
-// onUndelete is the generated UndeleteByID body handler (namespace-scoped compound id).
-func (svc *module) onUndelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Module, aProps *moduleActionProps) error {
-	if !svc.ac.CanDeleteModule(ctx, res) {
-		return ModuleErrNotAllowedToUndelete()
-	}
-
-	if res.DeletedAt == nil {
-		return nil
-	}
-
-	ns, err := loadNamespace(ctx, s, namespaceID)
-	if err != nil {
-		return err
-	}
-
-	old := res.Clone()
-	svc.procDal(old)
-
-	if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(res, old, ns)); err != nil {
-		return err
-	}
-
-	res.DeletedAt = nil
-
-	if err = store.UpdateComposeModule(ctx, s, res); err != nil {
-		return err
-	}
-
-	tt := res.EncodeTranslations()
-	for _, f := range res.Fields {
-		tt = append(tt, f.EncodeTranslations()...)
-	}
-	if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
-		return err
-	}
-
-	if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(res, old, ns)); err != nil {
-		return err
-	}
-	if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, res); err != nil {
-		return err
-	}
-
-	svc.procDal(res)
-	return nil
-}
-
-// ReloadDALModels reconstructs the DAL's data model based on the store.Storer
-//
-// Directly using store so we don't spam the action log
-func (svc *module) onReloadDALModels(ctx context.Context, _ *moduleActionProps) (err error) {
-	return DalModelReload(ctx, svc.store, svc.schemaAltManager, svc.dal)
+	return new, svc.recordAction(ctx, aProps, ModuleActionCreate, err)
 }
 
 // SearchSensitive will list all module with at least one private module field
@@ -701,13 +468,13 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 	}
 
 	err = func() error {
-		mm, _, err = svc.Search(ctx, types.ModuleFilter{NamespaceID: filter.NamespaceID})
+		mm, _, err = svc.Find(ctx, types.ModuleFilter{NamespaceID: filter.NamespaceID})
 		if err != nil {
 			return err
 		}
 
 		for _, m := range mm {
-			conn := svc.dal.GetConnectionByID(m.Config.DAL.ConnectionID)
+			conn := svc.services.dal.GetConnectionByID(m.Config.DAL.ConnectionID)
 			if err != nil {
 				return err
 			}
@@ -723,7 +490,7 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 			}
 
 			tag := locale.GetAcceptLanguageFromContext(ctx)
-			m.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
+			m.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
 
 			if isSensitive && m != nil {
 				pm := types.PrivacyModule{
@@ -746,14 +513,10 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 	return set, filter, err
 }
 
+
 // lookup fn() orchestrates module lookup, namespace preload and check, module reading...
-//
-// The recordAction wrapper is owned by the caller (the generated onLookup body
-// or the custom FindBy* methods).
-func (svc *module) lookup(ctx context.Context, namespaceID uint64, aProps *moduleActionProps, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
-	if aProps.module == nil {
-		aProps.module = &types.Module{NamespaceID: namespaceID}
-	}
+func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
+	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
 
 	err = func() error {
 		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
@@ -786,7 +549,7 @@ func (svc *module) lookup(ctx context.Context, namespaceID uint64, aProps *modul
 		return nil
 	}()
 
-	return m, err
+	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
 }
 
 func (svc module) uniqueCheck(ctx context.Context, m *types.Module) (err error) {
@@ -805,6 +568,7 @@ func (svc module) uniqueCheck(ctx context.Context, m *types.Module) (err error) 
 	return nil
 }
 
+
 // updates module fields
 // expecting to receive all module fields, as it deletes the rest
 // also, sort order of the fields is also important as this fn stores and updates field's place as send
@@ -817,9 +581,6 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		if f.NamespaceID == 0 {
 			f.NamespaceID = new.NamespaceID
 		}
-		// Keep fields' project in sync with their module (incoming payloads
-		// carry no projectID; the module is the source of truth).
-		f.ProjectID = new.ProjectID
 
 		if systemFields[f.Name] && !old.Fields.HasName(f.Name) {
 			// make sure we're backward compatible, or better:
@@ -904,7 +665,6 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		} else {
 			f.ID = nextID()
 			f.CreatedAt = *now()
-			f.CreatedByAgent = new.CreatedByAgent
 
 			if err = store.CreateComposeModuleField(ctx, s, f); err != nil {
 				return err
@@ -1011,28 +771,15 @@ func loadModuleCombo(ctx context.Context, s store.Storer, namespaceID, moduleID 
 		return
 	}
 
-	m, err = loadModuleWithFields(ctx, s, namespaceID, moduleID)
-	return
-}
-
-// loadModuleWithFields loads a module by ID (with namespace scope check) and populates its fields.
-func loadModuleWithFields(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (res *types.Module, err error) {
-	if moduleID == 0 {
-		return nil, ModuleErrInvalidID()
+	if m, err = loadModule(ctx, s, moduleID); err != nil {
+		return
 	}
 
-	if res, err = store.LookupComposeModuleByID(ctx, s, moduleID); errors.IsNotFound(err) {
-		err = ModuleErrNotFound()
+	if namespaceID != m.NamespaceID {
+		return nil, nil, ModuleErrNotFound()
 	}
 
-	if err == nil && namespaceID != res.NamespaceID {
-		return nil, ModuleErrNotFound()
-	}
-
-	if err == nil {
-		err = loadModuleFields(ctx, s, res)
-	}
-
+	err = loadModuleFields(ctx, s, m)
 	return
 }
 
@@ -1516,9 +1263,7 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "number":
 		at := &dal.TypeNumber{
-			// @todo !! This is temporary; precision and scale require a rework
-			Precision: maxPrecisionLength,
-			Scale:     int(f.Options.Precision()),
+			Precision: int(f.Options.Precision()),
 			Nullable:  !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
@@ -1600,19 +1345,4 @@ func handleDalSysFieldEncodingUpdate(mod *types.Module) error {
 		mod.Config.DAL.SystemFieldEncoding.ID.Omit = false
 	}
 	return nil
-}
-
-// loadModuleScoped loads a module by ID and validates it belongs to the given namespace.
-func loadModuleScoped(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (res *types.Module, err error) {
-	if res, err = loadModule(ctx, s, moduleID); err == nil && res.NamespaceID != namespaceID {
-		return nil, ModuleErrNotFound()
-	}
-	return
-}
-
-func loadModuleFieldScoped(ctx context.Context, s store.Storer, namespaceID, moduleID, fieldID uint64) (res *types.ModuleField, err error) {
-	if res, err = loadModuleField(ctx, s, namespaceID, moduleID, fieldID); err == nil && res.ModuleID != moduleID {
-		return nil, ModuleErrNotFound()
-	}
-	return
 }

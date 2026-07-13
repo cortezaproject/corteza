@@ -23,14 +23,6 @@ type tenant struct {
 	ac        tenantAccessController
 }
 
-func Tenant() *tenant {
-	return &tenant{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
-}
-
 type tenantServices struct {
 	scope scope.Scope
 	caps  scope.Capabilities
@@ -140,6 +132,10 @@ func (svc *tenant) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setTenant(res)
 
 		if !svc.ac.CanDeleteTenant(ctx, res) {
@@ -185,6 +181,7 @@ func toLabeledTenants(set []*types.Tenant) []label.LabeledResource {
 
 	return ll
 }
+func (svc *tenant) guard(_ context.Context, _ *types.Tenant) error { return nil }
 
 func (svc *tenant) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -192,7 +189,6 @@ func (svc *tenant) checkScope(ctx context.Context, cap scope.Capability) error {
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *tenant) scopeServices(ctx context.Context) *tenantServices {
 	return &tenantServices{
 		scope: scope.GetScopeFromContext(ctx),

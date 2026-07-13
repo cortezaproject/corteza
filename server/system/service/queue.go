@@ -11,69 +11,55 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-// The CRUD skeleton (FindByID, Create, Update, DeleteByID, UndeleteByID and the
-// loadQueue helper) is generated in queue.gen.go from system/queue.cue.
-//
-// The struct, queueAccessController interface and Queue() constructor are also
-// generated (genConstructor + genAccessController), as is the standard Search
-// (its action-log filter prop is named `search`, set via filterProp).
-//
-// This file owns the before/after hooks the generated CRUD calls into (consumer
-// validation, unique-name check and the messagebus ReloadQueues() signal) and the
-// custom methods (CreateQueueEvent, ProcessQueueMessage, CreateQueueMessage, the
-// messagebus SearchQueues + makeFilter, isValidHandler).
+type (
+	queueAccessController interface {
+		CanCreateQueue(ctx context.Context) bool
+		CanSearchQueues(ctx context.Context) bool
+		CanReadQueue(ctx context.Context, c *types.Queue) bool
+		CanUpdateQueue(ctx context.Context, c *types.Queue) bool
+		CanDeleteQueue(ctx context.Context, c *types.Queue) bool
+	}
+)
 
-// beforeCreate runs after the create access check, before id/timestamps are set.
-func (svc *queue) beforeCreate(ctx context.Context, new *types.Queue) error {
+func Queue() *queue {
+	return &queue{
+		ac:        DefaultAccessControl,
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+	}
+}
+
+func (svc *queue) beforeCreate(_ context.Context, new *types.Queue) error {
 	if !svc.isValidHandler(mt.ConsumerType(new.Consumer)) {
-		return QueueErrInvalidConsumer(&queueActionProps{new: new})
+		return QueueErrInvalidConsumer()
 	}
-
 	return nil
 }
 
-// afterCreate runs after the store create.
-func (svc *queue) afterCreate(ctx context.Context, res *types.Queue) error {
-	// send the signal to reload all queues
+func (svc *queue) afterCreate(_ context.Context, res *types.Queue) error {
 	messagebus.Service().ReloadQueues()
-
 	return nil
 }
 
-// beforeUpdate runs after the stale check, before the field copy.
-func (svc *queue) beforeUpdate(ctx context.Context, upd, existing *types.Queue) error {
-	if qq, e := store.LookupQueueByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {
-		return QueueErrAlreadyExists(&queueActionProps{update: upd})
-	}
-
+func (svc *queue) beforeUpdate(_ context.Context, upd *types.Queue, _ *types.Queue) error {
 	if !svc.isValidHandler(mt.ConsumerType(upd.Consumer)) {
-		return QueueErrInvalidConsumer(&queueActionProps{update: upd})
+		return QueueErrInvalidConsumer()
 	}
-
 	return nil
 }
 
-// afterUpdate runs after the store update.
-func (svc *queue) afterUpdate(ctx context.Context, res *types.Queue) error {
-	// send the signal to reload all queues
+func (svc *queue) afterUpdate(_ context.Context, _ *types.Queue) error {
 	messagebus.Service().ReloadQueues()
-
 	return nil
 }
 
-// afterDelete runs after the store soft-delete.
-func (svc *queue) afterDelete(ctx context.Context, res *types.Queue) error {
-	// send the signal to reload all queues
+func (svc *queue) afterDelete(_ context.Context, _ *types.Queue) error {
 	messagebus.Service().ReloadQueues()
-
 	return nil
 }
 
-// afterUndelete runs after the store undelete.
-func (svc *queue) afterUndelete(ctx context.Context, res *types.Queue) error {
-	// send the signal to reload all queues
+func (svc *queue) afterUndelete(_ context.Context, _ *types.Queue) error {
 	messagebus.Service().ReloadQueues()
-
 	return nil
 }
 

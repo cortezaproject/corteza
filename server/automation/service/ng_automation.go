@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/crusttech/human/server/automation/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/auth"
 	intAuth "github.com/crusttech/human/server/pkg/auth"
 	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
@@ -29,19 +28,12 @@ import (
 )
 
 type (
-	ngAutomation struct {
-		mux *sync.RWMutex
-
-		eventbus  ngAutomationEventTriggerHandler
-		store     store.Storer
-		actionlog actionlog.Recorder
-		ac        ngAutomationAccessController
-
-		reg map[uint64]map[uint64]uintptr
-
-		log *zap.Logger
-
-		parser expr.Parsable
+	ngAutomationServices struct {
+		mux      *sync.RWMutex
+		eventbus ngAutomationEventTriggerHandler
+		reg      map[uint64]map[uint64]uintptr
+		log      *zap.Logger
+		parser   expr.Parsable
 	}
 
 	ngAutomationAccessController interface {
@@ -91,20 +83,20 @@ const (
 
 func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt) *ngAutomation {
 	return &ngAutomation{
-		log: log,
-
-		// registry for event bus triggers
-		// @todo can we get rid of this and keep track of event bus entries via
-		// some reference/identifier?
-		mux: &sync.RWMutex{},
-		reg: map[uint64]map[uint64]uintptr{},
-
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
-		eventbus:  eventbus.Service(),
+		services: &ngAutomationServices{
+			log: log,
 
-		parser: expr.NewParser(),
+			// registry for event bus triggers
+			// @todo can we get rid of this and keep track of event bus entries via
+			// some reference/identifier?
+			mux:      &sync.RWMutex{},
+			reg:      map[uint64]map[uint64]uintptr{},
+			eventbus: eventbus.Service(),
+			parser:   expr.NewParser(),
+		},
 	}
 }
 
@@ -756,14 +748,14 @@ func (svc *ngAutomation) procAutomation(ctx context.Context, atm *types.NgAutoma
 }
 
 func (svc *ngAutomation) unregisterAutomation(a *types.NgAutomation) {
-	svc.mux.Lock()
-	defer svc.mux.Unlock()
+	svc.services.mux.Lock()
+	defer svc.services.mux.Unlock()
 
-	if ptrs, ok := svc.reg[a.ID]; ok {
+	if ptrs, ok := svc.services.reg[a.ID]; ok {
 		for _, ptr := range ptrs {
-			svc.eventbus.Unregister(ptr)
+			svc.services.eventbus.Unregister(ptr)
 		}
-		delete(svc.reg, a.ID)
+		delete(svc.services.reg, a.ID)
 	}
 }
 
@@ -785,13 +777,13 @@ func (svc *ngAutomation) registerAutomation(ctx context.Context, a *types.NgAuto
 		}
 	}
 
-	log := svc.log.With(logger.Uint64("automationID", a.ID))
+	log := svc.services.log.With(logger.Uint64("automationID", a.ID))
 
-	svc.mux.Lock()
-	defer svc.mux.Unlock()
+	svc.services.mux.Lock()
+	defer svc.services.mux.Unlock()
 
-	if svc.reg[a.ID] == nil {
-		svc.reg[a.ID] = make(map[uint64]uintptr)
+	if svc.services.reg[a.ID] == nil {
+		svc.services.reg[a.ID] = make(map[uint64]uintptr)
 	}
 
 	for _, t := range a.Triggers {
@@ -810,16 +802,16 @@ func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation,
 
 	if t.ResourceType == "automation:trigger:agentic" {
 		// EventBus is skipped for natively-executed agentic triggers
-		if ptr := svc.reg[a.ID][t.ID]; ptr != 0 {
-			svc.eventbus.Unregister(ptr)
-			delete(svc.reg[a.ID], t.ID)
+		if ptr := svc.services.reg[a.ID][t.ID]; ptr != 0 {
+			svc.services.eventbus.Unregister(ptr)
+			delete(svc.services.reg[a.ID], t.ID)
 		}
 		return
 	}
 
 	// Always unregister existing handler
-	if ptr := svc.reg[a.ID][t.ID]; ptr != 0 {
-		svc.eventbus.Unregister(ptr)
+	if ptr := svc.services.reg[a.ID][t.ID]; ptr != 0 {
+		svc.services.eventbus.Unregister(ptr)
 	}
 
 	ops := []eventbus.HandlerRegOp{
@@ -849,7 +841,7 @@ func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation,
 	}
 
 	handlerFn := makeAutomationHandler(svc, a, t)
-	svc.reg[a.ID][t.ID] = svc.eventbus.Register(handlerFn, ops...)
+	svc.services.reg[a.ID][t.ID] = svc.services.eventbus.Register(handlerFn, ops...)
 
 	log.Debug("trigger registered",
 		zap.String("eventType", t.EventType),

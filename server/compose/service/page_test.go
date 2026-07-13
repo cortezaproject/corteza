@@ -52,7 +52,9 @@ func TestPageDeleting(t *testing.T) {
 			store:    s,
 			ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
 			eventbus: eventbus.New(),
-			locale:   ResourceTranslationsManager(locale.Static()),
+			services: &pageServices{
+				locale: ResourceTranslationsManager(locale.Static()),
+			},
 		}
 
 		pageLookup = func(t *testing.T, pageID uint64) *types.Page {

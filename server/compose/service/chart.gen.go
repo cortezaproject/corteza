@@ -10,6 +10,7 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -17,9 +18,11 @@ import (
 	"github.com/crusttech/human/server/store"
 )
 
-type chartServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type chart struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        chartAccessController
+	services  *chartServices
 }
 
 func (svc *chart) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Chart, err error) {
@@ -90,6 +93,10 @@ func (svc *chart) Update(ctx context.Context, upd *types.Chart) (res *types.Char
 		aProps.setChanged(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return ChartErrInvalidHandle()
 		}
@@ -141,6 +148,10 @@ func (svc *chart) DeleteByID(ctx context.Context, namespaceID uint64, ID uint64)
 
 		aProps.setChart(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, namespaceID, res, aProps)
 	})
 
@@ -162,6 +173,10 @@ func (svc *chart) UndeleteByID(ctx context.Context, namespaceID uint64, ID uint6
 		}
 
 		aProps.setChart(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
 
 		return svc.onUndelete(ctx, s, namespaceID, res, aProps)
 	})
@@ -194,17 +209,11 @@ func toLabeledCharts(set []*types.Chart) []label.LabeledResource {
 
 	return ll
 }
+func (svc *chart) guard(_ context.Context, _ *types.Chart) error { return nil }
 
 func (svc *chart) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *chart) scopeServices(ctx context.Context) *chartServices {
-	return &chartServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }

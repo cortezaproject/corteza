@@ -10,6 +10,7 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -17,9 +18,11 @@ import (
 	"github.com/crusttech/human/server/store"
 )
 
-type pageServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type page struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        pageAccessController
+	services  *pageServices
 }
 
 func (svc *page) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Page, err error) {
@@ -90,6 +93,10 @@ func (svc *page) Update(ctx context.Context, upd *types.Page) (res *types.Page, 
 		aProps.setChanged(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return PageErrInvalidHandle()
 		}
@@ -147,6 +154,10 @@ func (svc *page) DeleteByID(ctx context.Context, namespaceID uint64, ID uint64, 
 
 		aProps.setPage(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, namespaceID, res, strategy, aProps)
 	})
 
@@ -168,6 +179,10 @@ func (svc *page) UndeleteByID(ctx context.Context, namespaceID uint64, ID uint64
 		}
 
 		aProps.setPage(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
 
 		return svc.onUndelete(ctx, s, namespaceID, res, aProps)
 	})
@@ -200,19 +215,13 @@ func toLabeledPages(set []*types.Page) []label.LabeledResource {
 
 	return ll
 }
+func (svc *page) guard(_ context.Context, _ *types.Page) error { return nil }
 
 func (svc *page) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *page) scopeServices(ctx context.Context) *pageServices {
-	return &pageServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSet, err error) {

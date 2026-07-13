@@ -22,14 +22,6 @@ type resourceTranslation struct {
 	ac        resourceTranslationAccessController
 }
 
-func ResourceTranslation() *resourceTranslation {
-	return &resourceTranslation{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
-}
-
 type resourceTranslationServices struct {
 	scope scope.Scope
 	caps  scope.Capabilities
@@ -99,6 +91,10 @@ func (svc *resourceTranslation) Update(ctx context.Context, upd *types.ResourceT
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return ResourceTranslationErrStaleData()
 		}
@@ -139,6 +135,10 @@ func (svc *resourceTranslation) DeleteByID(ctx context.Context, ID uint64) (err 
 
 		aProps.setResourceTranslation(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -157,6 +157,10 @@ func (svc *resourceTranslation) UndeleteByID(ctx context.Context, ID uint64) (er
 
 		aProps.setResourceTranslation(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
 
@@ -174,6 +178,9 @@ func loadResourceTranslation(ctx context.Context, s store.ResourceTranslations, 
 
 	return
 }
+func (svc *resourceTranslation) guard(_ context.Context, _ *types.ResourceTranslation) error {
+	return nil
+}
 
 func (svc *resourceTranslation) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -181,7 +188,6 @@ func (svc *resourceTranslation) checkScope(ctx context.Context, cap scope.Capabi
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *resourceTranslation) scopeServices(ctx context.Context) *resourceTranslationServices {
 	return &resourceTranslationServices{
 		scope: scope.GetScopeFromContext(ctx),

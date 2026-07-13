@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/crusttech/human/server/automation/types"
-	"github.com/crusttech/human/server/pkg/actionlog"
 	intAuth "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/eventbus"
@@ -24,31 +23,22 @@ import (
 )
 
 type (
-	workflow struct {
-		eventbus  workflowEventTriggerHandler
-		store     store.Storer
-		actionlog actionlog.Recorder
-		ac        workflowAccessController
-		triggers  *trigger
-		session   *session
-
-		opt options.WorkflowOpt
-
-		log *zap.Logger
-
+	workflowServices struct {
+		eventbus    workflowEventTriggerHandler
+		triggers    *trigger
+		session     *session
+		opt         options.WorkflowOpt
+		log         *zap.Logger
 		// cache of workflows, graphs to workflow ID (key, uint64)
 		cache    map[uint64]*wfCacheItem
 		muxCache *sync.RWMutex
-
 		// handle to workflow index
 		wIndex    map[string]uint64
 		muxWIndex *sync.RWMutex
-
 		// workflow function registry
 		reg         *registry
 		corredorOpt options.CorredorOpt
-
-		parser expr.Parsable
+		parser      expr.Parsable
 	}
 
 	wfCacheItem struct {
@@ -89,21 +79,23 @@ type (
 
 func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt, opt options.WorkflowOpt) *workflow {
 	return &workflow{
-		log:         log,
-		opt:         opt,
-		actionlog:   DefaultActionlog,
-		store:       DefaultStore,
-		ac:          DefaultAccessControl,
-		triggers:    DefaultTrigger,
-		session:     DefaultSession,
-		eventbus:    eventbus.Service(),
-		cache:       make(map[uint64]*wfCacheItem),
-		wIndex:      make(map[string]uint64),
-		muxCache:    &sync.RWMutex{},
-		muxWIndex:   &sync.RWMutex{},
-		parser:      expr.NewParser(),
-		reg:         Registry(),
-		corredorOpt: corredorOpt,
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+		services: &workflowServices{
+			log:         log,
+			opt:         opt,
+			triggers:    DefaultTrigger,
+			session:     DefaultSession,
+			eventbus:    eventbus.Service(),
+			cache:       make(map[uint64]*wfCacheItem),
+			wIndex:      make(map[string]uint64),
+			muxCache:    &sync.RWMutex{},
+			muxWIndex:   &sync.RWMutex{},
+			parser:      expr.NewParser(),
+			reg:         Registry(),
+			corredorOpt: corredorOpt,
+		},
 	}
 }
 
@@ -198,7 +190,7 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 		svc.updateCache(wf, runAs, g)
 
 		if len(wf.Issues) == 0 {
-			if err = svc.triggers.registerWorkflows(ctx, wf); err != nil {
+			if err = svc.services.triggers.registerWorkflows(ctx, wf); err != nil {
 				return err
 			}
 		}
@@ -375,7 +367,7 @@ func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *typ
 	svc.updateCache(res, runAs, g)
 
 	if len(res.Issues) == 0 {
-		if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
+		if err = svc.services.triggers.registerWorkflows(ctx, res); err != nil {
 			return err
 		}
 	}
@@ -437,7 +429,7 @@ func (svc *workflow) onUndelete(ctx context.Context, s store.Storer, res *types.
 	svc.updateCache(res, runAs, g)
 
 	if len(res.Issues) == 0 {
-		if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
+		if err = svc.services.triggers.registerWorkflows(ctx, res); err != nil {
 			return err
 		}
 	}
@@ -459,11 +451,11 @@ func (svc *workflow) Load(ctx context.Context) error {
 		return err
 	}
 
-	svc.muxWIndex.Lock()
-	defer svc.muxWIndex.Unlock()
+	svc.services.muxWIndex.Lock()
+	defer svc.services.muxWIndex.Unlock()
 
 	for _, wf := range set {
-		svc.wIndex[wf.Handle] = wf.ID
+		svc.services.wIndex[wf.Handle] = wf.ID
 
 		if g, runAs, err = svc.validateWorkflow(ctx, wf); err != nil {
 			continue
@@ -472,21 +464,21 @@ func (svc *workflow) Load(ctx context.Context) error {
 		svc.updateCache(wf, runAs, g)
 	}
 
-	return svc.triggers.registerWorkflows(ctx, set...)
+	return svc.services.triggers.registerWorkflows(ctx, set...)
 }
 
 // updateCache
 func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable, g *wfexec.Graph) {
-	defer svc.muxCache.Unlock()
-	svc.muxCache.Lock()
+	defer svc.services.muxCache.Unlock()
+	svc.services.muxCache.Lock()
 
 	if wf.Executable() {
-		svc.wIndex[wf.Handle] = wf.ID
-		svc.cache[wf.ID] = &wfCacheItem{g: g, wf: wf, runAs: runAs}
+		svc.services.wIndex[wf.Handle] = wf.ID
+		svc.services.cache[wf.ID] = &wfCacheItem{g: g, wf: wf, runAs: runAs}
 	} else {
 		// remove deleted
-		delete(svc.cache, wf.ID)
-		delete(svc.wIndex, wf.Handle)
+		delete(svc.services.cache, wf.ID)
+		delete(svc.services.wIndex, wf.Handle)
 	}
 
 	return
@@ -498,14 +490,14 @@ func (svc *workflow) onExec(ctx context.Context, aProps *workflowActionProps, wo
 		wait WaitFn
 	)
 
-	svc.muxCache.Lock()
-	if nil == svc.cache[workflowID] || nil == svc.cache[workflowID].wf {
-		svc.muxCache.Unlock()
+	svc.services.muxCache.Lock()
+	if nil == svc.services.cache[workflowID] || nil == svc.services.cache[workflowID].wf {
+		svc.services.muxCache.Unlock()
 		return nil, 0, nil, WorkflowErrNotFound()
 	}
 
-	wf := svc.cache[workflowID].wf
-	svc.muxCache.Unlock()
+	wf := svc.services.cache[workflowID].wf
+	svc.services.muxCache.Unlock()
 
 	aProps.setWorkflow(wf)
 
@@ -644,16 +636,16 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 		return nil, 0, wf.Issues
 	}
 
-	defer svc.muxCache.Unlock()
-	svc.muxCache.Lock()
+	defer svc.services.muxCache.Unlock()
+	svc.services.muxCache.Lock()
 
-	if svc.cache[wf.ID] == nil {
+	if svc.services.cache[wf.ID] == nil {
 		return nil, 0, WorkflowErrInvalidID()
 	}
 
 	var (
-		g     = svc.cache[wf.ID].g
-		runAs = svc.cache[wf.ID].runAs
+		g     = svc.services.cache[wf.ID].g
+		runAs = svc.services.cache[wf.ID].runAs
 
 		scope *expr.Vars
 	)
@@ -661,7 +653,7 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 	// merge workflow scope with the input
 	scope = wf.Scope.MustMerge(p.Input)
 
-	return svc.session.Start(ctx, g, types.SessionStartParams{
+	return svc.services.session.Start(ctx, g, types.SessionStartParams{
 		Invoker: intAuth.GetIdentityFromContext(ctx),
 		Runner:  runAs,
 
@@ -727,10 +719,10 @@ func makeWorkflowHandler(svc *workflow, wf *types.Workflow, t *types.Trigger) ev
 }
 
 func (svc *workflow) handleToID(h string) uint64 {
-	svc.muxWIndex.RLock()
-	defer svc.muxWIndex.RUnlock()
+	svc.services.muxWIndex.RLock()
+	defer svc.services.muxWIndex.RUnlock()
 
-	return svc.wIndex[h]
+	return svc.services.wIndex[h]
 }
 
 func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {

@@ -10,6 +10,7 @@ import (
 	"context"
 
 	types "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
@@ -17,9 +18,11 @@ import (
 	"github.com/crusttech/human/server/store"
 )
 
-type moduleServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type module struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        moduleAccessController
+	services  *moduleServices
 }
 
 func (svc *module) FindByID(ctx context.Context, namespaceID uint64, ID uint64) (res *types.Module, err error) {
@@ -90,6 +93,10 @@ func (svc *module) Update(ctx context.Context, upd *types.Module) (res *types.Mo
 		aProps.setChanged(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return ModuleErrInvalidHandle()
 		}
@@ -142,6 +149,10 @@ func (svc *module) DeleteByID(ctx context.Context, namespaceID uint64, ID uint64
 
 		aProps.setModule(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, namespaceID, res, aProps)
 	})
 
@@ -163,6 +174,10 @@ func (svc *module) UndeleteByID(ctx context.Context, namespaceID uint64, ID uint
 		}
 
 		aProps.setModule(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
 
 		return svc.onUndelete(ctx, s, namespaceID, res, aProps)
 	})
@@ -195,19 +210,13 @@ func toLabeledModules(set []*types.Module) []label.LabeledResource {
 
 	return ll
 }
+func (svc *module) guard(_ context.Context, _ *types.Module) error { return nil }
 
 func (svc *module) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *module) scopeServices(ctx context.Context) *moduleServices {
-	return &moduleServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }
 
 func (svc *module) ReloadDALModels(ctx context.Context) (err error) {

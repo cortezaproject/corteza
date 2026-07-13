@@ -40,6 +40,14 @@ type (
 	}
 )
 
+func ProjectGroup() *projectGroup {
+	return &projectGroup{
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		ac:        DefaultAccessControl,
+	}
+}
+
 // beforeCreate validates the handle, resolves the owning tenant from the
 // project and enforces handle uniqueness before the generated Create assigns
 // the ID / timestamps and persists.

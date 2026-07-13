@@ -32,14 +32,6 @@ type chatbot struct {
 	ac        chatbotAccessController
 }
 
-func Chatbot() *chatbot {
-	return &chatbot{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
-}
-
 type chatbotServices struct {
 	scope scope.Scope
 	caps  scope.Capabilities
@@ -119,6 +111,10 @@ func (svc *chatbot) Update(ctx context.Context, upd *types.Chatbot) (res *types.
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 			return ChatbotErrInvalidHandle()
 		}
@@ -175,6 +171,10 @@ func (svc *chatbot) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setChatbot(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -196,6 +196,10 @@ func (svc *chatbot) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		aProps.setChatbot(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
 
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
@@ -228,6 +232,7 @@ func toLabeledChatbots(set []*types.Chatbot) []label.LabeledResource {
 
 	return ll
 }
+func (svc *chatbot) guard(_ context.Context, _ *types.Chatbot) error { return nil }
 
 func (svc *chatbot) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -235,7 +240,6 @@ func (svc *chatbot) checkScope(ctx context.Context, cap scope.Capability) error 
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *chatbot) scopeServices(ctx context.Context) *chatbotServices {
 	return &chatbotServices{
 		scope: scope.GetScopeFromContext(ctx),

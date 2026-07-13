@@ -6,13 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/crusttech/human/server/pkg/actionlog"
 	intAuth "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/handle"
-	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/pkg/options"
@@ -25,22 +23,13 @@ import (
 )
 
 type (
-	role struct {
-		actionlog actionlog.Recorder
-
-		ac       roleAccessController
+	roleServices struct {
 		eventbus eventDispatcher
 		rbac     rbacRuleService
-
-		user      UserService
-		userGroup UserGroupService
-		auth      roleAuth
-
-		store store.Storer
-
+		user     UserService
+		auth     roleAuth
 		// list of all system roles
 		system map[string]bool
-
 		// list of all closed roles
 		closed map[string]bool
 	}
@@ -61,7 +50,9 @@ type (
 		FindByName(ctx context.Context, name string) (*types.Role, error)
 		FindByHandle(ctx context.Context, handle string) (*types.Role, error)
 		FindByAny(ctx context.Context, identifier interface{}) (*types.Role, error)
+		Find(context.Context, types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
 		Search(context.Context, types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
+		DeleteByID(ctx context.Context, ID uint64) error
 
 		IsSystem(r *types.Role) bool
 		IsClosed(r *types.Role) bool
@@ -71,16 +62,17 @@ type (
 
 		Archive(ctx context.Context, ID uint64) error
 		Unarchive(ctx context.Context, ID uint64) error
-		DeleteByID(ctx context.Context, ID uint64) error
+		Delete(ctx context.Context, ID uint64) error
+		Undelete(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 		CloneRules(ctx context.Context, ID uint64, cloneToRoleID ...uint64) error
 
 		Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error)
 		MemberList(ctx context.Context, roleID uint64) (types.RoleMemberSet, error)
 		MemberAdd(ctx context.Context, roleID, userID uint64) error
-		MemberAddGroup(ctx context.Context, roleID, userID uint64) error
+		MemberAddGroup(ctx context.Context, roleID, userGroupID uint64) error
 		MemberRemove(ctx context.Context, roleID, userID uint64) error
-		MemberRemoveGroup(ctx context.Context, roleID, userID uint64) error
+		MemberRemoveGroup(ctx context.Context, roleID, userGroupID uint64) error
 	}
 
 	eventbusRoleChangeRegistry interface {
@@ -92,11 +84,7 @@ type (
 	}
 
 	rbacRuleService interface {
-		Grant(ctx context.Context, rr ...*rbac.Rule) error
 		CloneRulesByRoleID(ctx context.Context, roleID uint64, toRoleID ...uint64) error
-
-		AddGroupRole(group id.ID, roles ...id.ID) (err error)
-		RemoveGroupRole(group id.ID, roles ...id.ID) (err error)
 	}
 
 	roleAuth interface {
@@ -106,19 +94,17 @@ type (
 
 func Role(rbac rbacRuleService) *role {
 	return &role{
-		ac:       DefaultAccessControl,
-		eventbus: eventbus.Service(),
-		rbac:     rbac,
-
+		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
-
-		user:      DefaultUser,
-		userGroup: DefaultUserGroup,
-		auth:      DefaultAuth,
 		store:     DefaultStore,
-
-		system: make(map[string]bool),
-		closed: make(map[string]bool),
+		services: &roleServices{
+			eventbus: eventbus.Service(),
+			rbac:     rbac,
+			user:     DefaultUser,
+			auth:     DefaultAuth,
+			system:   make(map[string]bool),
+			closed:   make(map[string]bool),
+		},
 	}
 }
 
@@ -126,70 +112,43 @@ func Role(rbac rbacRuleService) *role {
 //
 // System roles can not be changed or deleted
 func (svc *role) SetSystem(hh ...string) {
-	svc.system = slice.ToStringBoolMap(hh)
-	delete(svc.system, "")
+	svc.services.system = slice.ToStringBoolMap(hh)
+	delete(svc.services.system, "")
 }
 
-func (svc *role) IsSystem(r *types.Role) bool {
-	return len(r.Handle) > 0 && svc.system[r.Handle]
+func (svc role) IsSystem(r *types.Role) bool {
+	return len(r.Handle) > 0 && svc.services.system[r.Handle]
 }
 
 // SetClosed sets list of handles for all closed roles
 //
 // Closed roles can not have members
 func (svc *role) SetClosed(hh ...string) {
-	svc.closed = slice.ToStringBoolMap(hh)
-	delete(svc.closed, "")
+	svc.services.closed = slice.ToStringBoolMap(hh)
+	delete(svc.services.closed, "")
 }
 
-func (svc *role) IsClosed(r *types.Role) bool {
-	return len(r.Handle) > 0 && svc.closed[r.Handle]
+func (svc role) IsClosed(r *types.Role) bool {
+	return len(r.Handle) > 0 && svc.services.closed[r.Handle]
 }
 
-func (svc *role) IsContextual(r *types.Role) bool {
+func (svc role) IsContextual(r *types.Role) bool {
 	return r.Meta != nil && r.Meta.Context != nil && len(r.Meta.Context.Expr) > 0
 }
 
-// beforeSearch runs at the top of the generated Search, before the access
-// check and store search. It reproduces the original ordering: the
-// MemberID/UserGroupID are mapped onto the Resource filter (only when Resource
-// is empty) and then the member/user-group mutual-exclusion is enforced.
-func (svc *role) beforeSearch(ctx context.Context, filter *types.RoleFilter) error {
-	if filter.Resource == "" {
-		if filter.MemberID > 0 {
-			filter.Resource = fmt.Sprintf("corteza::system:user/%d", filter.MemberID)
-		}
-		if filter.UserGroupID > 0 {
-			filter.Resource = fmt.Sprintf("corteza::system:user-group/%d", filter.UserGroupID)
-		}
-	}
+func (svc role) Delete(ctx context.Context, ID uint64) error   { return svc.DeleteByID(ctx, ID) }
+func (svc role) Undelete(ctx context.Context, ID uint64) error { return svc.UndeleteByID(ctx, ID) }
 
-	if filter.MemberID > 0 && filter.UserGroupID > 0 {
-		return RoleErrSearchByMemberUserGroup()
-	}
-
-	return nil
+func (svc role) Find(ctx context.Context, filter types.RoleFilter) (types.RoleSet, types.RoleFilter, error) {
+	return svc.Search(ctx, filter)
 }
 
-// onLookup is the custom body for the generated FindByID. The generated method
-// owns the action-log scaffold + recordAction; everything below (findByID =
-// loadRole + proc, with NO read access-control) lives here, reproducing the
-// original FindByID exactly -- including proc's NotFound mapping and label load.
-func (svc *role) onLookup(ctx context.Context, roleID uint64, raProps *roleActionProps) (r *types.Role, err error) {
-	if r, err = svc.findByID(ctx, roleID); err != nil {
-		return nil, err
-	}
-
-	raProps.setRole(r)
-	return r, nil
-}
-
-func (svc *role) findByID(ctx context.Context, roleID uint64) (*types.Role, error) {
+func (svc role) findByID(ctx context.Context, roleID uint64) (*types.Role, error) {
 	r, err := loadRole(ctx, svc.store, roleID)
 	return svc.proc(ctx, r, err)
 }
 
-func (svc *role) FindByName(ctx context.Context, name string) (r *types.Role, err error) {
+func (svc role) FindByName(ctx context.Context, name string) (r *types.Role, err error) {
 	var (
 		raProps = &roleActionProps{role: &types.Role{Name: name}}
 	)
@@ -207,7 +166,7 @@ func (svc *role) FindByName(ctx context.Context, name string) (r *types.Role, er
 	return r, svc.recordAction(ctx, raProps, RoleActionLookup, err)
 }
 
-func (svc *role) FindByHandle(ctx context.Context, h string) (r *types.Role, err error) {
+func (svc role) FindByHandle(ctx context.Context, h string) (r *types.Role, err error) {
 	var (
 		raProps = &roleActionProps{role: &types.Role{Handle: h}}
 	)
@@ -226,7 +185,7 @@ func (svc *role) FindByHandle(ctx context.Context, h string) (r *types.Role, err
 }
 
 // FindByAny finds role by given identifier (id, handle, name)
-func (svc *role) FindByAny(ctx context.Context, identifier interface{}) (r *types.Role, err error) {
+func (svc role) FindByAny(ctx context.Context, identifier interface{}) (r *types.Role, err error) {
 	if ID, ok := identifier.(uint64); ok {
 		return svc.FindByID(ctx, ID)
 	} else if strIdentifier, ok := identifier.(string); ok {
@@ -246,7 +205,7 @@ func (svc *role) FindByAny(ctx context.Context, identifier interface{}) (r *type
 	}
 }
 
-func (svc *role) proc(ctx context.Context, r *types.Role, err error) (*types.Role, error) {
+func (svc role) proc(ctx context.Context, r *types.Role, err error) (*types.Role, error) {
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil, RoleErrNotFound()
@@ -262,125 +221,7 @@ func (svc *role) proc(ctx context.Context, r *types.Role, err error) (*types.Rol
 	return r, nil
 }
 
-// validate runs at the top of the generated Create (before the access check).
-// It holds the handle validity check the original Create performed first.
-func (svc *role) validate(ctx context.Context, new *types.Role) error {
-	if !handle.IsValid(new.Handle) {
-		return RoleErrInvalidHandle()
-	}
-
-	return nil
-}
-
-// beforeCreate runs after the access check and before the generated Create
-// assigns the ID / timestamps and persists. It reproduces the original ordering:
-// the RoleBeforeCreate event fires first, then the context expression is
-// validated and the handle/name uniqueness is checked.
-func (svc *role) beforeCreate(ctx context.Context, new *types.Role) (err error) {
-	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeCreate(new, nil)); err != nil {
-		return
-	}
-
-	if new.Meta != nil && new.Meta.Context != nil {
-		if err = svc.validateContext(ctx, new.Meta.Context); err != nil {
-			return
-		}
-	}
-
-	if err = svc.UniqueCheck(ctx, new); err != nil {
-		return
-	}
-
-	return nil
-}
-
-// afterCreate runs after the generated Create persists the record (and its
-// labels). It dispatches the RoleAfterCreate event asynchronously, matching the
-// original Dispatch (not WaitFor) behavior.
-func (svc *role) afterCreate(ctx context.Context, res *types.Role) error {
-	svc.eventbus.Dispatch(ctx, event.RoleAfterCreate(res, res))
-
-	// Project roles need a baseline grant to their project's namespace so members
-	// can actually open the project. Best-effort: a grant hiccup must not fail the
-	// (already persisted) role, but it is logged for follow-up.
-	if err := svc.grantProjectNamespaceAccess(ctx, res); err != nil {
-		logger.ContextValue(ctx).Warn(
-			"could not grant project namespace access to new project role",
-			logger.Uint64("roleID", res.ID),
-			logger.Uint64("projectID", res.ProjectID),
-			zap.Error(err),
-		)
-	}
-
-	return nil
-}
-
-// grantProjectNamespaceAccess seeds the baseline RBAC a project role needs so
-// its members can reach the project: read the project's compose namespace, list
-// its modules/pages/charts, and read page layouts so pages render. Per-resource
-// data access (module/record/field/page read) stays governed explicitly through
-// the project's permission matrix. Non-project roles (ProjectID == 0) — including
-// every system/provisioned role — are left untouched.
-//
-// This is what lets the platform-wide "authenticated" role stay near-zero: a
-// plain logged-in user gets no compose access by default and only reaches a
-// project's namespace through a role they've been assigned.
-func (svc *role) grantProjectNamespaceAccess(ctx context.Context, res *types.Role) error {
-	if res == nil || res.ProjectID == 0 {
-		return nil
-	}
-
-	p, err := store.LookupProjectByID(ctx, svc.store, res.ProjectID)
-	if err != nil {
-		return err
-	}
-
-	nsID := p.Config.NamespaceID
-	if nsID == 0 {
-		// Older projects may predate the auto-created namespace; nothing to grant.
-		return nil
-	}
-
-	var (
-		nsRes     = fmt.Sprintf("corteza::compose:namespace/%d", nsID)
-		layoutRes = fmt.Sprintf("corteza::compose:page-layout/%d/*/*", nsID)
-	)
-
-	return svc.rbac.Grant(ctx,
-		rbac.AllowRule(res.ID, nsRes, "read"),
-		rbac.AllowRule(res.ID, nsRes, "modules.search"),
-		rbac.AllowRule(res.ID, nsRes, "pages.search"),
-		rbac.AllowRule(res.ID, nsRes, "charts.search"),
-		rbac.AllowRule(res.ID, layoutRes, "read"),
-	)
-}
-
-// onUpdate is called by the generated Update after load, stale check, and
-// before event. Field copy, store.Update, label.Update and after event are
-// owned by the generated scaffold (templateUpdate: true).
-func (svc *role) onUpdate(ctx context.Context, s store.Storer, upd, r *types.Role, raProps *roleActionProps, _, _ func() error) (err error) {
-	if !svc.ac.CanUpdateRole(ctx, upd) {
-		return RoleErrNotAllowedToUpdate()
-	}
-
-	if svc.IsSystem(r) {
-		// prevent system role updates
-		if r.Handle == upd.Handle && r.Name == upd.Name {
-			return nil
-		}
-		return RoleErrNotAllowedToUpdate()
-	}
-
-	if upd.Meta != nil && upd.Meta.Context != nil {
-		if err = svc.validateContext(ctx, upd.Meta.Context); err != nil {
-			return
-		}
-	}
-
-	return svc.UniqueCheck(ctx, upd)
-}
-
-func (svc *role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
+func (svc role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
 	var (
 		raProps = &roleActionProps{role: r}
 	)
@@ -403,7 +244,7 @@ func (svc *role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
 }
 
 // validateContext validates role context expression
-func (svc *role) validateContext(ctx context.Context, r *types.RoleContext) error {
+func (svc role) validateContext(ctx context.Context, r *types.RoleContext) error {
 	if len(strings.TrimSpace(r.Expr)) == 0 {
 		return nil
 	}
@@ -420,14 +261,81 @@ func (svc *role) validateContext(ctx context.Context, r *types.RoleContext) erro
 	return nil
 }
 
-// onDelete is the custom body for the generated DeleteByID. The generated
-// method owns the action-log scaffold + recordAction; the body below is lifted
-// verbatim from the original DeleteByID, preserving the IsSystem guard (before
-// the access check), the eventbus RoleBefore/AfterDelete dispatch (events are
-// off for the standard body) and the soft-delete stamp. The initial
-// {role: {ID: roleID}} action prop -- not set by the generated empty aProps --
-// is restored here so failure paths log the same props as the original.
-func (svc *role) onDelete(ctx context.Context, s store.Storer, res *types.Role, raProps *roleActionProps) (err error) {
+// -- hooks --
+
+func (svc *role) validate(ctx context.Context, new *types.Role) error {
+	if !handle.IsValid(new.Handle) {
+		return RoleErrInvalidHandle()
+	}
+
+	if new.Meta != nil && new.Meta.Context != nil {
+		if err := svc.validateContext(ctx, new.Meta.Context); err != nil {
+			return err
+		}
+	}
+
+	return svc.UniqueCheck(ctx, new)
+}
+
+func (svc *role) beforeSearch(_ context.Context, _ *types.RoleFilter) error {
+	return nil
+}
+
+func (svc *role) beforeCreate(ctx context.Context, new *types.Role) error {
+	return svc.services.eventbus.WaitFor(ctx, event.RoleBeforeCreate(new, nil))
+}
+
+func (svc *role) afterCreate(ctx context.Context, res *types.Role) error {
+	svc.services.eventbus.Dispatch(ctx, event.RoleAfterCreate(res, res))
+	return nil
+}
+
+func (svc *role) onLookup(ctx context.Context, roleID uint64, aProps *roleActionProps) (*types.Role, error) {
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !svc.ac.CanReadRole(ctx, r) {
+		return nil, RoleErrNotAllowedToRead()
+	}
+
+	aProps.setRole(r)
+	return r, nil
+}
+
+func (svc *role) onUpdate(ctx context.Context, _ store.Storer, upd *types.Role, res *types.Role, _ *roleActionProps, _ func() error, _ func() error) error {
+	if svc.IsSystem(res) {
+		// prevent system role updates unless handle and name are unchanged
+		if res.Handle == upd.Handle && res.Name == upd.Name {
+			return nil
+		}
+		return RoleErrNotAllowedToUpdate()
+	}
+
+	if !svc.ac.CanUpdateRole(ctx, res) {
+		return RoleErrNotAllowedToUpdate()
+	}
+
+	if err := svc.services.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, res)); err != nil {
+		return err
+	}
+
+	if upd.Meta != nil && upd.Meta.Context != nil {
+		if err := svc.validateContext(ctx, upd.Meta.Context); err != nil {
+			return err
+		}
+	}
+
+	if err := svc.UniqueCheck(ctx, upd); err != nil {
+		return err
+	}
+
+	svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, res))
+	return nil
+}
+
+func (svc *role) onDelete(ctx context.Context, s store.Storer, res *types.Role, _ *roleActionProps) error {
 	if svc.IsSystem(res) {
 		return RoleErrNotAllowedToDelete()
 	}
@@ -436,34 +344,27 @@ func (svc *role) onDelete(ctx context.Context, s store.Storer, res *types.Role, 
 		return RoleErrNotAllowedToDelete()
 	}
 
-	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeDelete(nil, res)); err != nil {
-		return
+	if err := svc.services.eventbus.WaitFor(ctx, event.RoleBeforeDelete(nil, res)); err != nil {
+		return err
 	}
 
 	res.DeletedAt = now()
-
-	if err = store.UpdateRole(ctx, s, res); err != nil {
-		return
+	if err := store.UpdateRole(ctx, s, res); err != nil {
+		return err
 	}
 
-	svc.eventbus.Dispatch(ctx, event.RoleAfterDelete(nil, res))
-	return
+	svc.services.eventbus.Dispatch(ctx, event.RoleAfterDelete(nil, res))
+	return nil
 }
 
-// onUndelete is the custom body for the generated UndeleteByID. The generated
-// method owns the action-log scaffold + recordAction; the body below is lifted
-// verbatim from the original UndeleteByID, preserving its quirks: it dispatches
-// the RoleBefore/AfterUpdate events (NOT Undelete events), clones the loaded
-// record, guards system roles and clears the deleted_at stamp. The initial
-// {role: {ID: roleID}} action prop is restored here to match the original.
-func (svc *role) onUndelete(ctx context.Context, s store.Storer, res *types.Role, raProps *roleActionProps) (err error) {
+func (svc *role) onUndelete(ctx context.Context, s store.Storer, res *types.Role, _ *roleActionProps) error {
 	if svc.IsSystem(res) {
 		return RoleErrNotAllowedToUndelete()
 	}
 
 	upd := res.Clone()
-	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, res)); err != nil {
-		return
+	if err := svc.services.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, res)); err != nil {
+		return err
 	}
 
 	if !svc.ac.CanDeleteRole(ctx, upd) {
@@ -471,25 +372,17 @@ func (svc *role) onUndelete(ctx context.Context, s store.Storer, res *types.Role
 	}
 
 	upd.DeletedAt = nil
-	if err = store.UpdateRole(ctx, s, upd); err != nil {
-		return
+	if err := store.UpdateRole(ctx, s, upd); err != nil {
+		return err
 	}
 
-	// Reflect undelete back onto res so the caller sees the updated state.
-	*res = *upd
-
-	svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, res))
+	svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, res))
 	return nil
 }
 
-func (svc *role) onArchive(ctx context.Context, raProps *roleActionProps, roleID uint64) (err error) {
-	var (
-		r, upd *types.Role
-	)
-
-	raProps.setRole(&types.Role{ID: roleID})
-
-	if r, err = svc.findByID(ctx, roleID); err != nil {
+func (svc *role) onArchive(ctx context.Context, _ *roleActionProps, roleID uint64) error {
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
 		return err
 	}
 
@@ -497,12 +390,10 @@ func (svc *role) onArchive(ctx context.Context, raProps *roleActionProps, roleID
 		return RoleErrNotAllowedToArchive()
 	}
 
-	upd = r.Clone()
-	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
-		return
+	upd := r.Clone()
+	if err = svc.services.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
+		return err
 	}
-
-	raProps.setRole(upd)
 
 	if !svc.ac.CanUpdateRole(ctx, upd) {
 		return RoleErrNotAllowedToArchive()
@@ -510,21 +401,16 @@ func (svc *role) onArchive(ctx context.Context, raProps *roleActionProps, roleID
 
 	upd.ArchivedAt = now()
 	if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
-		return
+		return err
 	}
 
-	svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
-	return
+	svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
+	return nil
 }
 
-func (svc *role) onUnarchive(ctx context.Context, raProps *roleActionProps, roleID uint64) (err error) {
-	var (
-		r, upd *types.Role
-	)
-
-	raProps.setRole(&types.Role{ID: roleID})
-
-	if r, err = svc.findByID(ctx, roleID); err != nil {
+func (svc *role) onUnarchive(ctx context.Context, _ *roleActionProps, roleID uint64) error {
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
 		return err
 	}
 
@@ -532,12 +418,10 @@ func (svc *role) onUnarchive(ctx context.Context, raProps *roleActionProps, role
 		return RoleErrNotAllowedToUnarchive()
 	}
 
-	upd = r.Clone()
-	if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
-		return
+	upd := r.Clone()
+	if err = svc.services.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
+		return err
 	}
-
-	raProps.setRole(upd)
 
 	if !svc.ac.CanDeleteRole(ctx, upd) {
 		return RoleErrNotAllowedToUndelete()
@@ -545,34 +429,30 @@ func (svc *role) onUnarchive(ctx context.Context, raProps *roleActionProps, role
 
 	upd.ArchivedAt = nil
 	if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
-		return
+		return err
 	}
 
-	svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
+	svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
 	return nil
 }
 
-func (svc *role) onCloneRules(ctx context.Context, _ *roleActionProps, roleID uint64, cloneToRoleID ...uint64) (err error) {
-	return svc.rbac.CloneRulesByRoleID(ctx, roleID, cloneToRoleID...)
+func (svc *role) onCloneRules(ctx context.Context, _ *roleActionProps, roleID uint64, cloneToRoleID ...uint64) error {
+	return svc.services.rbac.CloneRulesByRoleID(ctx, roleID, cloneToRoleID...)
 }
 
-func (svc *role) onMembership(ctx context.Context, _ *roleActionProps, userID uint64) (mm types.RoleMemberSet, err error) {
-	mm, _, err = store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{Resource: fmt.Sprintf("corteza::system:user/%d", userID)})
+func (svc *role) onMembership(ctx context.Context, _ *roleActionProps, userID uint64) (types.RoleMemberSet, error) {
+	resource := fmt.Sprintf("corteza::system:user/%d", userID)
+	mm, _, err := store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{Resource: resource})
 	return mm, err
 }
 
-func (svc *role) onMemberList(ctx context.Context, raProps *roleActionProps, roleID uint64) (mm types.RoleMemberSet, err error) {
-	var (
-		r *types.Role
-	)
-
-	raProps.setRole(&types.Role{ID: roleID})
-
+func (svc *role) onMemberList(ctx context.Context, _ *roleActionProps, roleID uint64) (mm types.RoleMemberSet, err error) {
 	if roleID == 0 {
 		return nil, RoleErrInvalidID()
 	}
 
-	if r, err = svc.findByID(ctx, roleID); err != nil {
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -588,216 +468,115 @@ func (svc *role) onMemberList(ctx context.Context, raProps *roleActionProps, rol
 	return mm, err
 }
 
-// onMemberAdd adds member (user) to a role
-func (svc *role) onMemberAdd(ctx context.Context, raProps *roleActionProps, roleID, memberID uint64) (err error) {
-	var (
-		r *types.Role
-		m *types.User
-	)
-
-	raProps.setRole(&types.Role{ID: roleID})
-	raProps.setMember(&types.User{ID: memberID})
-
+func (svc *role) onMemberAdd(ctx context.Context, _ *roleActionProps, roleID, memberID uint64) error {
 	if roleID == 0 || memberID == 0 {
 		return RoleErrInvalidID()
 	}
 
-	if r, err = svc.findByID(ctx, roleID); err != nil {
-		return
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
+		return err
 	}
-
-	raProps.setRole(r)
 
 	if svc.IsClosed(r) || svc.IsContextual(r) {
 		return RoleErrNotAllowedToManageMembers()
 	}
 
-	if m, err = svc.user.FindByID(ctx, memberID); err != nil {
-		return
+	m, err := svc.services.user.FindByID(ctx, memberID)
+	if err != nil {
+		return err
 	}
 
-	raProps.setMember(m)
-
-	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeAdd(m, r)); err != nil {
-		return
+	if err = svc.services.eventbus.WaitFor(ctx, event.RoleMemberBeforeAdd(m, r)); err != nil {
+		return err
 	}
 
 	if !svc.ac.CanManageMembersOnRole(ctx, r) {
 		return RoleErrNotAllowedToManageMembers()
 	}
 
-	if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user/%d", m.ID)}); err != nil {
-		return
+	resource := fmt.Sprintf("corteza::system:user/%d", m.ID)
+	if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource}); err != nil {
+		return err
 	}
 
-	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(m, r))
+	_ = svc.services.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(m, r))
 	return nil
 }
 
-func (svc *role) onMemberAddGroup(ctx context.Context, raProps *roleActionProps, roleID, userGroupID uint64) (err error) {
-	var (
-		r  *types.Role
-		ug *types.UserGroup
-	)
-
-	raProps.setRole(&types.Role{ID: roleID})
-	raProps.setGroup(&types.UserGroup{ID: userGroupID})
-
+func (svc *role) onMemberAddGroup(ctx context.Context, _ *roleActionProps, roleID, userGroupID uint64) error {
 	if roleID == 0 || userGroupID == 0 {
 		return RoleErrInvalidID()
 	}
 
-	if r, err = svc.findByID(ctx, roleID); err != nil {
-		return
-	}
-
-	raProps.setRole(r)
-
-	if svc.IsClosed(r) || svc.IsContextual(r) {
-		return RoleErrNotAllowedToManageMembers()
-	}
-
-	if ug, err = DefaultUserGroup.FindByID(ctx, userGroupID); err != nil {
-		return
-	}
-
-	raProps.setGroup(ug)
-
-	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeAdd(nil, r)); err != nil {
-		return
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
+		return err
 	}
 
 	if !svc.ac.CanManageMembersOnRole(ctx, r) {
 		return RoleErrNotAllowedToManageMembers()
 	}
 
-	if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user-group/%d", ug.ID)}); err != nil {
-		return
-	}
-
-	if err = svc.rbac.AddGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
-		return
-	}
-
-	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(nil, r))
-	return nil
+	resource := fmt.Sprintf("corteza::system:user-group/%d", userGroupID)
+	return store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource})
 }
 
-// onMemberRemove removes member (user) from a role
-func (svc *role) onMemberRemove(ctx context.Context, raProps *roleActionProps, roleID, memberID uint64) (err error) {
-	var (
-		r *types.Role
-		m *types.User
-	)
-
-	raProps.setRole(&types.Role{ID: roleID})
-	raProps.setMember(&types.User{ID: memberID})
-
+func (svc *role) onMemberRemove(ctx context.Context, _ *roleActionProps, roleID, memberID uint64) error {
 	if roleID == 0 || memberID == 0 {
 		return RoleErrInvalidID()
 	}
 
-	if r, err = svc.findByID(ctx, roleID); err != nil {
-		return
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
+		return err
 	}
 
 	if svc.IsClosed(r) || svc.IsContextual(r) {
 		return RoleErrNotAllowedToManageMembers()
 	}
 
-	raProps.setRole(r)
-
-	if m, err = svc.user.FindByID(ctx, memberID); err != nil {
-		return
+	m, err := svc.services.user.FindByID(ctx, memberID)
+	if err != nil {
+		return err
 	}
 
-	raProps.setMember(m)
-
-	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeRemove(m, r)); err != nil {
-		return
+	if err = svc.services.eventbus.WaitFor(ctx, event.RoleMemberBeforeRemove(m, r)); err != nil {
+		return err
 	}
 
 	if !svc.ac.CanManageMembersOnRole(ctx, r) {
 		return RoleErrNotAllowedToManageMembers()
 	}
 
-	if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user/%d", m.ID)}); err != nil {
-		return
+	resource := fmt.Sprintf("corteza::system:user/%d", m.ID)
+	if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource}); err != nil {
+		return err
 	}
 
-	// @todo skipping this for now,
-	//			AS per now PUT `/role/{roleID}` endpoint updates role and it's member with it but
-	//			only if one or more members are included in request otherwise we ignore it,
-	//			which causes issue in admin when we remove all the members from role.
-	//			we have to rework the role membership management logic in admin,
-	//			and use the dedicated endpoints for POST, DELETE role member.
-	// if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
-	//	 return
-	// }
-
-	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(m, r))
+	_ = svc.services.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(m, r))
 	return nil
 }
 
-// onMemberRemoveGroup removes user group from a role
-func (svc *role) onMemberRemoveGroup(ctx context.Context, raProps *roleActionProps, roleID, userGroupID uint64) (err error) {
-	var (
-		r  *types.Role
-		ug *types.UserGroup
-	)
-
-	raProps.setRole(&types.Role{ID: roleID})
-	raProps.setGroup(&types.UserGroup{ID: userGroupID})
-
+func (svc *role) onMemberRemoveGroup(ctx context.Context, _ *roleActionProps, roleID, userGroupID uint64) error {
 	if roleID == 0 || userGroupID == 0 {
 		return RoleErrInvalidID()
 	}
 
-	if r, err = svc.findByID(ctx, roleID); err != nil {
-		return
-	}
-
-	if svc.IsClosed(r) || svc.IsContextual(r) {
-		return RoleErrNotAllowedToManageMembers()
-	}
-
-	raProps.setRole(r)
-
-	if ug, err = DefaultUserGroup.FindByID(ctx, userGroupID); err != nil {
-		return
-	}
-
-	raProps.setGroup(ug)
-
-	if err = svc.eventbus.WaitFor(ctx, event.RoleMemberBeforeRemove(nil, r)); err != nil {
-		return
+	r, err := svc.findByID(ctx, roleID)
+	if err != nil {
+		return err
 	}
 
 	if !svc.ac.CanManageMembersOnRole(ctx, r) {
 		return RoleErrNotAllowedToManageMembers()
 	}
 
-	if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user-group/%d", ug.ID)}); err != nil {
-		return
-	}
-
-	if err = svc.rbac.RemoveGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
-		return
-	}
-
-	// @todo skipping this for now,
-	//			AS per now PUT `/role/{roleID}` endpoint updates role and it's member with it but
-	//			only if one or more members are included in request otherwise we ignore it,
-	//			which causes issue in admin when we remove all the members from role.
-	//			we have to rework the role membership management logic in admin,
-	//			and use the dedicated endpoints for POST, DELETE role member.
-	// if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
-	//	 return
-	// }
-
-	_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(nil, r))
-	return nil
+	resource := fmt.Sprintf("corteza::system:user-group/%d", userGroupID)
+	return store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource})
 }
+
+// -- init helpers --
 
 // Initializes roles to RBAC and default role service
 //
@@ -976,15 +755,15 @@ func UpdateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, b
 	}
 
 	if countBypass == 0 {
-		log.Warn("no bypass roles registered, Human might not work as expected")
+		log.Warn("no bypass roles registered, Corteza might not work as expected")
 	}
 
 	if countAuth == 0 {
-		log.Warn("no roles for authentication users registered, Human might not work as expected")
+		log.Warn("no roles for authentication users registered, Corteza might not work as expected")
 	}
 
 	if countAnony == 0 {
-		log.Warn("no roles for anonymous users registered, Human might not work as expected")
+		log.Warn("no roles for anonymous users registered, Corteza might not work as expected")
 	}
 
 	ru.UpdateRoles(rr...)

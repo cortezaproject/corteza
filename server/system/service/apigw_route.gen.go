@@ -9,11 +9,18 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
 	types "github.com/crusttech/human/server/system/types"
 )
+
+type apigwRoute struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        apigwRouteAccessController
+}
 
 type apigwRouteServices struct {
 	scope scope.Scope
@@ -34,6 +41,10 @@ func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (res *types.Apig
 		}
 
 		aProps.setRoute(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
 
 		if !svc.ac.CanReadApigwRoute(ctx, res) {
 			return ApigwRouteErrNotAllowedToRead()
@@ -112,6 +123,10 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *
 		aProps.setUpdate(res)
 		old = res.Clone()
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return ApigwRouteErrStaleData()
 		}
@@ -152,6 +167,10 @@ func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		aProps.setRoute(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onDelete(ctx, s, res, aProps)
 	})
 
@@ -170,6 +189,10 @@ func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 
 		aProps.setRoute(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
 		return svc.onUndelete(ctx, s, res, aProps)
 	})
 
@@ -187,6 +210,7 @@ func loadApigwRoute(ctx context.Context, s store.ApigwRoutes, ID uint64) (res *t
 
 	return
 }
+func (svc *apigwRoute) guard(_ context.Context, _ *types.ApigwRoute) error { return nil }
 
 func (svc *apigwRoute) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -194,7 +218,6 @@ func (svc *apigwRoute) checkScope(ctx context.Context, cap scope.Capability) err
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *apigwRoute) scopeServices(ctx context.Context) *apigwRouteServices {
 	return &apigwRouteServices{
 		scope: scope.GetScopeFromContext(ctx),

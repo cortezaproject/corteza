@@ -9,6 +9,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
@@ -16,9 +17,11 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type connectionServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type connection struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        connectionAccessController
+	services  *connectionServices
 }
 
 func (svc *connection) Create(ctx context.Context, new *types.Connection) (res *types.Connection, err error) {
@@ -76,6 +79,10 @@ func (svc *connection) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setConnection(res)
 
 		if !svc.ac.CanDeleteConnection(ctx, res) {
@@ -108,6 +115,10 @@ func (svc *connection) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 
 		if res, err = loadConnection(ctx, svc.store, ID); err != nil {
 			return
+		}
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
 		}
 
 		aProps.setConnection(res)
@@ -156,17 +167,11 @@ func toLabeledConnections(set []*types.Connection) []label.LabeledResource {
 
 	return ll
 }
+func (svc *connection) guard(_ context.Context, _ *types.Connection) error { return nil }
 
 func (svc *connection) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *connection) scopeServices(ctx context.Context) *connectionServices {
-	return &connectionServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }

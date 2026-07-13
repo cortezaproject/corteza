@@ -16,26 +16,10 @@ import (
 	types "github.com/crusttech/human/server/system/types"
 )
 
-type queueAccessController interface {
-	CanCreateQueue(context.Context) bool
-	CanSearchQueues(context.Context) bool
-	CanReadQueue(context.Context, *types.Queue) bool
-	CanUpdateQueue(context.Context, *types.Queue) bool
-	CanDeleteQueue(context.Context, *types.Queue) bool
-}
-
 type queue struct {
 	actionlog actionlog.Recorder
 	store     store.Storer
 	ac        queueAccessController
-}
-
-func Queue() *queue {
-	return &queue{
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-	}
 }
 
 type queueServices struct {
@@ -57,6 +41,10 @@ func (svc *queue) FindByID(ctx context.Context, ID uint64) (res *types.Queue, er
 		}
 
 		aProps.setQueue(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
 
 		if !svc.ac.CanReadQueue(ctx, res) {
 			return QueueErrNotAllowedToRead()
@@ -153,6 +141,10 @@ func (svc *queue) Update(ctx context.Context, upd *types.Queue) (res *types.Queu
 		old = res.Clone()
 		aProps.setQueue(res)
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		if !svc.ac.CanUpdateQueue(ctx, res) {
 			return QueueErrNotAllowedToUpdate()
 		}
@@ -197,6 +189,10 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setQueue(res)
 
 		if !svc.ac.CanDeleteQueue(ctx, res) {
@@ -231,6 +227,10 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
+		if err = svc.guard(ctx, res); err != nil {
+			return err
+		}
+
 		aProps.setQueue(res)
 
 		if !svc.ac.CanDeleteQueue(ctx, res) {
@@ -263,6 +263,7 @@ func loadQueue(ctx context.Context, s store.Queues, ID uint64) (res *types.Queue
 
 	return
 }
+func (svc *queue) guard(_ context.Context, _ *types.Queue) error { return nil }
 
 func (svc *queue) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
@@ -270,7 +271,6 @@ func (svc *queue) checkScope(ctx context.Context, cap scope.Capability) error {
 	}
 	return scope.RequireCapability(ctx, cap)
 }
-
 func (svc *queue) scopeServices(ctx context.Context) *queueServices {
 	return &queueServices{
 		scope: scope.GetScopeFromContext(ctx),

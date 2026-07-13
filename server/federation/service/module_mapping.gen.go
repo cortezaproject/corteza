@@ -8,13 +8,18 @@ package service
 
 import (
 	"context"
+
 	types "github.com/crusttech/human/server/federation/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/scope"
+	"github.com/crusttech/human/server/store"
 )
 
-type moduleMappingServices struct {
-	scope scope.Scope
-	caps  scope.Capabilities
+type moduleMapping struct {
+	actionlog actionlog.Recorder
+	store     store.Storer
+	ac        moduleMappingAccessController
+	services  *moduleMappingServices
 }
 
 func (svc *moduleMapping) FindByID(ctx context.Context, ID uint64) (res *types.ModuleMapping, err error) {
@@ -79,17 +84,11 @@ func (svc *moduleMapping) Update(ctx context.Context, upd *types.ModuleMapping) 
 
 	return res, svc.recordAction(ctx, aProps, ModuleMappingActionUpdate, err, old, res)
 }
+func (svc *moduleMapping) guard(_ context.Context, _ *types.ModuleMapping) error { return nil }
 
 func (svc *moduleMapping) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
-}
-
-func (svc *moduleMapping) scopeServices(ctx context.Context) *moduleMappingServices {
-	return &moduleMappingServices{
-		scope: scope.GetScopeFromContext(ctx),
-		caps:  scope.GetCapabilitiesFromContext(ctx),
-	}
 }

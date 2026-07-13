@@ -297,6 +297,8 @@ user: {
 			},
 		]
 		customFunctionImports: ["\"mime/multipart\""]
+
+		skipGuard: true
 	}
 
 	store: {

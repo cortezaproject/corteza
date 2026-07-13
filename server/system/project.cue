@@ -261,16 +261,29 @@ project: {
 		// dalConns/recordSvc), so the struct + constructor are hand-written in
 		// project.go rather than generated (genConstructor is only safe for
 		// dependency-free services).
-		genConstructor: false
 
-		// Only Search is generated. FindByID/FindByHandle, Create, Update,
-		// DeleteByID (namespace-cascade), UndeleteByID and the member ops are
-		// bespoke and stay hand-written in project.go.
-		lookup:   false
-		create:   false
-		update:   false
-		delete:   false
-		undelete: false
+		// projectServices is hand-written in project.go with all extra deps.
+
+		// Create/delete/undelete delegate to hand-written on<Op> handlers
+		// (namespace cascade, member seeding, Tx).  Update uses beforeUpdate.
+		// Lookup uses afterLookup for label loading.
+		lookup:   true
+		create:   true
+		update:   true
+		delete:   true
+		undelete: true
+
+		customBodyOps: ["create", "delete", "undelete"]
+
+		// Explicit list because status/config/meta carry omitSetter:true (a DAL
+		// concern) which would wrongly exclude them from the derived settable list.
+		// updated_by is included so beforeUpdate can stamp the caller identity.
+		updateFields: ["Handle", "Status", "Config", "Meta", "UpdatedBy"]
+
+		hooks: {
+			afterLookup:  true
+			beforeUpdate: true
+		}
 	}
 
 	store: {
