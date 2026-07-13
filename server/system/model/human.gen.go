@@ -68,6 +68,14 @@ var Action = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
 			Ident: "Action",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "action"},

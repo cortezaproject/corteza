@@ -31,6 +31,7 @@ type (
 		RequestOrigin string                 `db:"request_origin"`
 		RequestID     string                 `db:"request_id"`
 		Resource      string                 `db:"resource"`
+		ProjectID     uint64                 `db:"project_id"`
 		Action        string                 `db:"action"`
 		Error         string                 `db:"error"`
 		Severity      actionlogType.Severity `db:"severity"`
@@ -830,6 +831,33 @@ type (
 		DeletedBy        uint64                       `db:"deleted_by"`
 	}
 
+	// auxProjectFeature is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectFeature struct {
+		ID               uint64     `db:"id"`
+		TenantID         uint64     `db:"tenant_id"`
+		ProjectID        uint64     `db:"project_id"`
+		Title            string     `db:"title"`
+		Description      string     `db:"description"`
+		FeatureType      string     `db:"feature_type"`
+		Status           string     `db:"status"`
+		Severity         string     `db:"severity"`
+		Risk             string     `db:"risk"`
+		FeatureOwner     uint64     `db:"feature_owner"`
+		ChangeOwner      uint64     `db:"change_owner"`
+		ChangeApprovedBy uint64     `db:"change_approved_by"`
+		RiskFeature      string     `db:"risk_feature"`
+		ChangeRequired   string     `db:"change_required"`
+		RiskChange       string     `db:"risk_change"`
+		Backlog          string     `db:"backlog"`
+		DateDue          string     `db:"date_due"`
+		CreatedAt        time.Time  `db:"created_at"`
+		UpdatedAt        *time.Time `db:"updated_at"`
+		DeletedAt        *time.Time `db:"deleted_at"`
+		CreatedBy        uint64     `db:"created_by"`
+		UpdatedBy        uint64     `db:"updated_by"`
+		DeletedBy        uint64     `db:"deleted_by"`
+	}
+
 	// auxProjectGroup is an auxiliary structure used for transporting to/from RDBMS store
 	auxProjectGroup struct {
 		ID        uint64                      `db:"id"`
@@ -849,6 +877,35 @@ type (
 		CreatedAt      time.Time `db:"created_at"`
 	}
 
+	// auxProjectIncident is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectIncident struct {
+		ID               uint64     `db:"id"`
+		TenantID         uint64     `db:"tenant_id"`
+		ProjectID        uint64     `db:"project_id"`
+		Title            string     `db:"title"`
+		Description      string     `db:"description"`
+		IncidentType     string     `db:"incident_type"`
+		GroupSystem      string     `db:"group_system"`
+		Status           string     `db:"status"`
+		Severity         string     `db:"severity"`
+		Risk             string     `db:"risk"`
+		IssueOwner       uint64     `db:"issue_owner"`
+		ChangeOwner      uint64     `db:"change_owner"`
+		ChangeApprovedBy uint64     `db:"change_approved_by"`
+		RiskIssue        string     `db:"risk_issue"`
+		ChangeRequired   string     `db:"change_required"`
+		RiskChange       string     `db:"risk_change"`
+		Backlog          string     `db:"backlog"`
+		DateDue          string     `db:"date_due"`
+		CompletedDate    string     `db:"completed_date"`
+		CreatedAt        time.Time  `db:"created_at"`
+		UpdatedAt        *time.Time `db:"updated_at"`
+		DeletedAt        *time.Time `db:"deleted_at"`
+		CreatedBy        uint64     `db:"created_by"`
+		UpdatedBy        uint64     `db:"updated_by"`
+		DeletedBy        uint64     `db:"deleted_by"`
+	}
+
 	// auxProjectMember is an auxiliary structure used for transporting to/from RDBMS store
 	auxProjectMember struct {
 		ID         uint64                       `db:"id"`
@@ -860,6 +917,80 @@ type (
 		CreatedAt  time.Time                    `db:"created_at"`
 		UpdatedAt  *time.Time                   `db:"updated_at"`
 		DeletedAt  *time.Time                   `db:"deleted_at"`
+	}
+
+	// auxProjectPrivacy is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectPrivacy struct {
+		ID               uint64     `db:"id"`
+		TenantID         uint64     `db:"tenant_id"`
+		ProjectID        uint64     `db:"project_id"`
+		Title            string     `db:"title"`
+		Description      string     `db:"description"`
+		RequestType      string     `db:"request_type"`
+		Status           string     `db:"status"`
+		Severity         string     `db:"severity"`
+		Risk             string     `db:"risk"`
+		RequestOwner     uint64     `db:"request_owner"`
+		ChangeOwner      uint64     `db:"change_owner"`
+		ChangeApprovedBy uint64     `db:"change_approved_by"`
+		RiskAssessment   string     `db:"risk_assessment"`
+		ChangeRequired   string     `db:"change_required"`
+		RiskChange       string     `db:"risk_change"`
+		Backlog          string     `db:"backlog"`
+		DateDue          string     `db:"date_due"`
+		CreatedAt        time.Time  `db:"created_at"`
+		UpdatedAt        *time.Time `db:"updated_at"`
+		DeletedAt        *time.Time `db:"deleted_at"`
+		CreatedBy        uint64     `db:"created_by"`
+		UpdatedBy        uint64     `db:"updated_by"`
+		DeletedBy        uint64     `db:"deleted_by"`
+	}
+
+	// auxProjectReview is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectReview struct {
+		ID              uint64     `db:"id"`
+		TenantID        uint64     `db:"tenant_id"`
+		ProjectID       uint64     `db:"project_id"`
+		Title           string     `db:"title"`
+		Description     string     `db:"description"`
+		ReviewType      string     `db:"review_type"`
+		ReviewFrequency string     `db:"review_frequency"`
+		Scope           string     `db:"scope"`
+		Reviewer        uint64     `db:"reviewer"`
+		ApprovedBy      uint64     `db:"approved_by"`
+		Status          string     `db:"status"`
+		DateDue         string     `db:"date_due"`
+		CreatedAt       time.Time  `db:"created_at"`
+		UpdatedAt       *time.Time `db:"updated_at"`
+		DeletedAt       *time.Time `db:"deleted_at"`
+		CreatedBy       uint64     `db:"created_by"`
+		UpdatedBy       uint64     `db:"updated_by"`
+		DeletedBy       uint64     `db:"deleted_by"`
+	}
+
+	// auxProjectTask is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectTask struct {
+		ID            uint64     `db:"id"`
+		TenantID      uint64     `db:"tenant_id"`
+		ProjectID     uint64     `db:"project_id"`
+		Title         string     `db:"title"`
+		Description   string     `db:"description"`
+		TaskName      string     `db:"task_name"`
+		TaskType      string     `db:"task_type"`
+		Status        string     `db:"status"`
+		Severity      string     `db:"severity"`
+		Risk          string     `db:"risk"`
+		Owner         uint64     `db:"owner"`
+		ChangeOwner   uint64     `db:"change_owner"`
+		Backlog       string     `db:"backlog"`
+		DateDue       string     `db:"date_due"`
+		CompletedDate string     `db:"completed_date"`
+		CreatedAt     time.Time  `db:"created_at"`
+		UpdatedAt     *time.Time `db:"updated_at"`
+		DeletedAt     *time.Time `db:"deleted_at"`
+		CreatedBy     uint64     `db:"created_by"`
+		UpdatedBy     uint64     `db:"updated_by"`
+		DeletedBy     uint64     `db:"deleted_by"`
 	}
 
 	// auxQueue is an auxiliary structure used for transporting to/from RDBMS store
@@ -1082,6 +1213,7 @@ func (aux *auxActionlog) encode(res *actionlogType.Action) (_ error) {
 	aux.RequestOrigin = res.RequestOrigin
 	aux.RequestID = res.RequestID
 	aux.Resource = res.Resource
+	aux.ProjectID = res.ProjectID
 	aux.Action = res.Action
 	aux.Error = res.Error
 	aux.Severity = res.Severity
@@ -1104,6 +1236,7 @@ func (aux auxActionlog) decode() (res *actionlogType.Action, _ error) {
 	res.RequestOrigin = aux.RequestOrigin
 	res.RequestID = aux.RequestID
 	res.Resource = aux.Resource
+	res.ProjectID = aux.ProjectID
 	res.Action = aux.Action
 	res.Error = aux.Error
 	res.Severity = aux.Severity
@@ -1126,6 +1259,7 @@ func (aux *auxActionlog) scan(row scanner) error {
 		&aux.RequestOrigin,
 		&aux.RequestID,
 		&aux.Resource,
+		&aux.ProjectID,
 		&aux.Action,
 		&aux.Error,
 		&aux.Severity,
@@ -4023,6 +4157,98 @@ func (aux *auxProject) scan(row scanner) error {
 	)
 }
 
+// encodes ProjectFeature to auxProjectFeature
+//
+// This function is auto-generated
+func (aux *auxProjectFeature) encode(res *systemType.ProjectFeature) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Title = res.Title
+	aux.Description = res.Description
+	aux.FeatureType = res.FeatureType
+	aux.Status = res.Status
+	aux.Severity = res.Severity
+	aux.Risk = res.Risk
+	aux.FeatureOwner = res.FeatureOwner
+	aux.ChangeOwner = res.ChangeOwner
+	aux.ChangeApprovedBy = res.ChangeApprovedBy
+	aux.RiskFeature = res.RiskFeature
+	aux.ChangeRequired = res.ChangeRequired
+	aux.RiskChange = res.RiskChange
+	aux.Backlog = res.Backlog
+	aux.DateDue = res.DateDue
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ProjectFeature from auxProjectFeature
+//
+// This function is auto-generated
+func (aux auxProjectFeature) decode() (res *systemType.ProjectFeature, _ error) {
+	res = new(systemType.ProjectFeature)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Title = aux.Title
+	res.Description = aux.Description
+	res.FeatureType = aux.FeatureType
+	res.Status = aux.Status
+	res.Severity = aux.Severity
+	res.Risk = aux.Risk
+	res.FeatureOwner = aux.FeatureOwner
+	res.ChangeOwner = aux.ChangeOwner
+	res.ChangeApprovedBy = aux.ChangeApprovedBy
+	res.RiskFeature = aux.RiskFeature
+	res.ChangeRequired = aux.ChangeRequired
+	res.RiskChange = aux.RiskChange
+	res.Backlog = aux.Backlog
+	res.DateDue = aux.DateDue
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxProjectFeature fields
+//
+// This function is auto-generated
+func (aux *auxProjectFeature) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Title,
+		&aux.Description,
+		&aux.FeatureType,
+		&aux.Status,
+		&aux.Severity,
+		&aux.Risk,
+		&aux.FeatureOwner,
+		&aux.ChangeOwner,
+		&aux.ChangeApprovedBy,
+		&aux.RiskFeature,
+		&aux.ChangeRequired,
+		&aux.RiskChange,
+		&aux.Backlog,
+		&aux.DateDue,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
 // encodes ProjectGroup to auxProjectGroup
 //
 // This function is auto-generated
@@ -4102,6 +4328,104 @@ func (aux *auxProjectGroupEntry) scan(row scanner) error {
 	)
 }
 
+// encodes ProjectIncident to auxProjectIncident
+//
+// This function is auto-generated
+func (aux *auxProjectIncident) encode(res *systemType.ProjectIncident) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Title = res.Title
+	aux.Description = res.Description
+	aux.IncidentType = res.IncidentType
+	aux.GroupSystem = res.GroupSystem
+	aux.Status = res.Status
+	aux.Severity = res.Severity
+	aux.Risk = res.Risk
+	aux.IssueOwner = res.IssueOwner
+	aux.ChangeOwner = res.ChangeOwner
+	aux.ChangeApprovedBy = res.ChangeApprovedBy
+	aux.RiskIssue = res.RiskIssue
+	aux.ChangeRequired = res.ChangeRequired
+	aux.RiskChange = res.RiskChange
+	aux.Backlog = res.Backlog
+	aux.DateDue = res.DateDue
+	aux.CompletedDate = res.CompletedDate
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ProjectIncident from auxProjectIncident
+//
+// This function is auto-generated
+func (aux auxProjectIncident) decode() (res *systemType.ProjectIncident, _ error) {
+	res = new(systemType.ProjectIncident)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Title = aux.Title
+	res.Description = aux.Description
+	res.IncidentType = aux.IncidentType
+	res.GroupSystem = aux.GroupSystem
+	res.Status = aux.Status
+	res.Severity = aux.Severity
+	res.Risk = aux.Risk
+	res.IssueOwner = aux.IssueOwner
+	res.ChangeOwner = aux.ChangeOwner
+	res.ChangeApprovedBy = aux.ChangeApprovedBy
+	res.RiskIssue = aux.RiskIssue
+	res.ChangeRequired = aux.ChangeRequired
+	res.RiskChange = aux.RiskChange
+	res.Backlog = aux.Backlog
+	res.DateDue = aux.DateDue
+	res.CompletedDate = aux.CompletedDate
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxProjectIncident fields
+//
+// This function is auto-generated
+func (aux *auxProjectIncident) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Title,
+		&aux.Description,
+		&aux.IncidentType,
+		&aux.GroupSystem,
+		&aux.Status,
+		&aux.Severity,
+		&aux.Risk,
+		&aux.IssueOwner,
+		&aux.ChangeOwner,
+		&aux.ChangeApprovedBy,
+		&aux.RiskIssue,
+		&aux.ChangeRequired,
+		&aux.RiskChange,
+		&aux.Backlog,
+		&aux.DateDue,
+		&aux.CompletedDate,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
 // encodes ProjectMember to auxProjectMember
 //
 // This function is auto-generated
@@ -4149,6 +4473,261 @@ func (aux *auxProjectMember) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+	)
+}
+
+// encodes ProjectPrivacy to auxProjectPrivacy
+//
+// This function is auto-generated
+func (aux *auxProjectPrivacy) encode(res *systemType.ProjectPrivacy) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Title = res.Title
+	aux.Description = res.Description
+	aux.RequestType = res.RequestType
+	aux.Status = res.Status
+	aux.Severity = res.Severity
+	aux.Risk = res.Risk
+	aux.RequestOwner = res.RequestOwner
+	aux.ChangeOwner = res.ChangeOwner
+	aux.ChangeApprovedBy = res.ChangeApprovedBy
+	aux.RiskAssessment = res.RiskAssessment
+	aux.ChangeRequired = res.ChangeRequired
+	aux.RiskChange = res.RiskChange
+	aux.Backlog = res.Backlog
+	aux.DateDue = res.DateDue
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ProjectPrivacy from auxProjectPrivacy
+//
+// This function is auto-generated
+func (aux auxProjectPrivacy) decode() (res *systemType.ProjectPrivacy, _ error) {
+	res = new(systemType.ProjectPrivacy)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Title = aux.Title
+	res.Description = aux.Description
+	res.RequestType = aux.RequestType
+	res.Status = aux.Status
+	res.Severity = aux.Severity
+	res.Risk = aux.Risk
+	res.RequestOwner = aux.RequestOwner
+	res.ChangeOwner = aux.ChangeOwner
+	res.ChangeApprovedBy = aux.ChangeApprovedBy
+	res.RiskAssessment = aux.RiskAssessment
+	res.ChangeRequired = aux.ChangeRequired
+	res.RiskChange = aux.RiskChange
+	res.Backlog = aux.Backlog
+	res.DateDue = aux.DateDue
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxProjectPrivacy fields
+//
+// This function is auto-generated
+func (aux *auxProjectPrivacy) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Title,
+		&aux.Description,
+		&aux.RequestType,
+		&aux.Status,
+		&aux.Severity,
+		&aux.Risk,
+		&aux.RequestOwner,
+		&aux.ChangeOwner,
+		&aux.ChangeApprovedBy,
+		&aux.RiskAssessment,
+		&aux.ChangeRequired,
+		&aux.RiskChange,
+		&aux.Backlog,
+		&aux.DateDue,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes ProjectReview to auxProjectReview
+//
+// This function is auto-generated
+func (aux *auxProjectReview) encode(res *systemType.ProjectReview) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Title = res.Title
+	aux.Description = res.Description
+	aux.ReviewType = res.ReviewType
+	aux.ReviewFrequency = res.ReviewFrequency
+	aux.Scope = res.Scope
+	aux.Reviewer = res.Reviewer
+	aux.ApprovedBy = res.ApprovedBy
+	aux.Status = res.Status
+	aux.DateDue = res.DateDue
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ProjectReview from auxProjectReview
+//
+// This function is auto-generated
+func (aux auxProjectReview) decode() (res *systemType.ProjectReview, _ error) {
+	res = new(systemType.ProjectReview)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Title = aux.Title
+	res.Description = aux.Description
+	res.ReviewType = aux.ReviewType
+	res.ReviewFrequency = aux.ReviewFrequency
+	res.Scope = aux.Scope
+	res.Reviewer = aux.Reviewer
+	res.ApprovedBy = aux.ApprovedBy
+	res.Status = aux.Status
+	res.DateDue = aux.DateDue
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxProjectReview fields
+//
+// This function is auto-generated
+func (aux *auxProjectReview) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Title,
+		&aux.Description,
+		&aux.ReviewType,
+		&aux.ReviewFrequency,
+		&aux.Scope,
+		&aux.Reviewer,
+		&aux.ApprovedBy,
+		&aux.Status,
+		&aux.DateDue,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes ProjectTask to auxProjectTask
+//
+// This function is auto-generated
+func (aux *auxProjectTask) encode(res *systemType.ProjectTask) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Title = res.Title
+	aux.Description = res.Description
+	aux.TaskName = res.TaskName
+	aux.TaskType = res.TaskType
+	aux.Status = res.Status
+	aux.Severity = res.Severity
+	aux.Risk = res.Risk
+	aux.Owner = res.Owner
+	aux.ChangeOwner = res.ChangeOwner
+	aux.Backlog = res.Backlog
+	aux.DateDue = res.DateDue
+	aux.CompletedDate = res.CompletedDate
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ProjectTask from auxProjectTask
+//
+// This function is auto-generated
+func (aux auxProjectTask) decode() (res *systemType.ProjectTask, _ error) {
+	res = new(systemType.ProjectTask)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Title = aux.Title
+	res.Description = aux.Description
+	res.TaskName = aux.TaskName
+	res.TaskType = aux.TaskType
+	res.Status = aux.Status
+	res.Severity = aux.Severity
+	res.Risk = aux.Risk
+	res.Owner = aux.Owner
+	res.ChangeOwner = aux.ChangeOwner
+	res.Backlog = aux.Backlog
+	res.DateDue = aux.DateDue
+	res.CompletedDate = aux.CompletedDate
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxProjectTask fields
+//
+// This function is auto-generated
+func (aux *auxProjectTask) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Title,
+		&aux.Description,
+		&aux.TaskName,
+		&aux.TaskType,
+		&aux.Status,
+		&aux.Severity,
+		&aux.Risk,
+		&aux.Owner,
+		&aux.ChangeOwner,
+		&aux.Backlog,
+		&aux.DateDue,
+		&aux.CompletedDate,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

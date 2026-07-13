@@ -174,14 +174,29 @@ type (
 		// optional project filter function called after the generated function
 		Project func(*Store, systemType.ProjectFilter) ([]goqu.Expression, systemType.ProjectFilter, error)
 
+		// optional projectFeature filter function called after the generated function
+		ProjectFeature func(*Store, systemType.ProjectFeatureFilter) ([]goqu.Expression, systemType.ProjectFeatureFilter, error)
+
 		// optional projectGroup filter function called after the generated function
 		ProjectGroup func(*Store, systemType.ProjectGroupFilter) ([]goqu.Expression, systemType.ProjectGroupFilter, error)
 
 		// optional projectGroupEntry filter function called after the generated function
 		ProjectGroupEntry func(*Store, systemType.ProjectGroupEntryFilter) ([]goqu.Expression, systemType.ProjectGroupEntryFilter, error)
 
+		// optional projectIncident filter function called after the generated function
+		ProjectIncident func(*Store, systemType.ProjectIncidentFilter) ([]goqu.Expression, systemType.ProjectIncidentFilter, error)
+
 		// optional projectMember filter function called after the generated function
 		ProjectMember func(*Store, systemType.ProjectMemberFilter) ([]goqu.Expression, systemType.ProjectMemberFilter, error)
+
+		// optional projectPrivacy filter function called after the generated function
+		ProjectPrivacy func(*Store, systemType.ProjectPrivacyFilter) ([]goqu.Expression, systemType.ProjectPrivacyFilter, error)
+
+		// optional projectReview filter function called after the generated function
+		ProjectReview func(*Store, systemType.ProjectReviewFilter) ([]goqu.Expression, systemType.ProjectReviewFilter, error)
+
+		// optional projectTask filter function called after the generated function
+		ProjectTask func(*Store, systemType.ProjectTaskFilter) ([]goqu.Expression, systemType.ProjectTaskFilter, error)
 
 		// optional queue filter function called after the generated function
 		Queue func(*Store, systemType.QueueFilter) ([]goqu.Expression, systemType.QueueFilter, error)
@@ -253,6 +268,10 @@ func ActionlogFilter(d drivers.Dialect, f actionlogType.Filter) (ee []goqu.Expre
 
 	if len(f.ActorID) > 0 {
 		ee = append(ee, goqu.C("actor_id").In(f.ActorID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
 	return ee, f, err
@@ -1682,6 +1701,37 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 	return ee, f, err
 }
 
+// ProjectFeatureFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectFeatures() and can be extended
+// by setting Store.Filters.ProjectFeature. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectFeatureFilter(d drivers.Dialect, f systemType.ProjectFeatureFilter) (ee []goqu.Expression, _ systemType.ProjectFeatureFilter, err error) {
+
+	if len(f.FeatureID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.FeatureID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("title").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
 // ProjectGroupFilter returns logical expressions
 //
 // This function is called from Store.QueryProjectGroups() and can be extended
@@ -1736,6 +1786,37 @@ func ProjectGroupEntryFilter(d drivers.Dialect, f systemType.ProjectGroupEntryFi
 	return ee, f, err
 }
 
+// ProjectIncidentFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectIncidents() and can be extended
+// by setting Store.Filters.ProjectIncident. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectIncidentFilter(d drivers.Dialect, f systemType.ProjectIncidentFilter) (ee []goqu.Expression, _ systemType.ProjectIncidentFilter, err error) {
+
+	if len(f.IncidentID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.IncidentID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("title").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
 // ProjectMemberFilter returns logical expressions
 //
 // This function is called from Store.QueryProjectMembers() and can be extended
@@ -1759,6 +1840,99 @@ func ProjectMemberFilter(d drivers.Dialect, f systemType.ProjectMemberFilter) (e
 
 	if f.UserID > 0 {
 		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
+	}
+
+	return ee, f, err
+}
+
+// ProjectPrivacyFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectPrivacys() and can be extended
+// by setting Store.Filters.ProjectPrivacy. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectPrivacyFilter(d drivers.Dialect, f systemType.ProjectPrivacyFilter) (ee []goqu.Expression, _ systemType.ProjectPrivacyFilter, err error) {
+
+	if len(f.PrivacyID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.PrivacyID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("title").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ProjectReviewFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectReviews() and can be extended
+// by setting Store.Filters.ProjectReview. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectReviewFilter(d drivers.Dialect, f systemType.ProjectReviewFilter) (ee []goqu.Expression, _ systemType.ProjectReviewFilter, err error) {
+
+	if len(f.ReviewID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ReviewID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("title").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ProjectTaskFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectTasks() and can be extended
+// by setting Store.Filters.ProjectTask. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectTaskFilter(d drivers.Dialect, f systemType.ProjectTaskFilter) (ee []goqu.Expression, _ systemType.ProjectTaskFilter, err error) {
+
+	if len(f.TaskID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.TaskID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("title").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
 	}
 
 	return ee, f, err

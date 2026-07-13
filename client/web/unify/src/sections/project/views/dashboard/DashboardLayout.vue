@@ -12,21 +12,21 @@
        overview); always offer opening the project's compose namespace. -->
   <Teleport to="#topbar-tools" defer>
     <span class="flex items-center gap-2">
-      <Button
+      <CRouterLinkButton
         v-if="project"
+        :to="{ name: 'project.wizard', params: { projectId: route.params.projectId } }"
         :label="$t('project.viewOverview')"
         icon="pi pi-sitemap"
         size="small"
         severity="secondary"
         outlined
-        @click="goWizard"
       />
-      <Button
+      <CRouterLinkButton
         v-if="project?.namespaceID"
+        :to="{ name: 'namespace.view', params: { slug: project.namespaceID } }"
         :label="$t('project.viewProject')"
         icon="pi pi-external-link"
         size="small"
-        @click="openProject"
       />
     </span>
   </Teleport>
@@ -45,30 +45,31 @@
 
 <script setup>
 import DashboardNav from '@/sections/project/components/dashboard/DashboardNav.vue'
+import { useEventsStore } from '@/sections/project/stores/events'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { computed } from 'vue'
+import { components } from '@planetcrust/human-vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+
+const { CRouterLinkButton } = components
 
 const { t } = useI18n()
 const route = useRoute()
-const router = useRouter()
 const store = useProjectsStore()
+const eventsStore = useEventsStore()
 
 const project = computed(() => store.findById(route.params.projectId))
 
-// Switch back to the build wizard (the project's "overview" of resources/steps).
-function goWizard() {
-  router.push({ name: 'project.wizard', params: { projectId: route.params.projectId } })
-}
-
-// Open the project's compose namespace (namespace.view resolves the URL part by
-// slug OR namespaceID, so the ID is a reliable target).
-function openProject() {
-  if (project.value?.namespaceID) {
-    router.push({ name: 'namespace.view', params: { slug: project.value.namespaceID } })
-  }
-}
+// Load the project's events (all five category resources) on entry and whenever
+// the active project changes, so the nav badges, KPIs and lists reflect it.
+watch(
+  () => route.params.projectId,
+  id => {
+    if (id) eventsStore.load(id)
+  },
+  { immediate: true },
+)
 
 // Which version of the project we're viewing. User-facing versions are 1-based
 // (the original live project is v1), so we display the backend revision + 1.

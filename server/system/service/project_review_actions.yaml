@@ -1,0 +1,78 @@
+# List of loggable service actions
+
+resource: system:project-review
+service: projectReview
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectReview
+    type: "*types.ProjectReview"
+    fields: [ title, ID ]
+  - name: new
+    type: "*types.ProjectReview"
+    fields: [ title, ID ]
+  - name: update
+    type: "*types.ProjectReview"
+    fields: [ title, ID ]
+  - name: filter
+    type: "*types.ProjectReviewFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for project reviews"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectReview}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectReview}}"
+
+  - action: update
+    log: "updated {{projectReview}}"
+
+  - action: delete
+    log: "deleted {{projectReview}}"
+
+errors:
+  - error: notFound
+    message: "project review not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "project review was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project review"
+    log: "failed to create a project review; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project review"
+    log: "failed to read {{projectReview.title}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list project reviews"
+    log: "failed to search or list project reviews; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project review"
+    log: "failed to update {{projectReview.title}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project review"
+    log: "failed to delete {{projectReview.title}}; insufficient permissions"

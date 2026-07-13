@@ -98,6 +98,10 @@ type (
 		// Resource
 		Resource string `json:"resource"`
 
+		// Project the event belongs to, taken from the request scope in enrich()
+		// so the log can be filtered per project. 0 = tenant-level / no project.
+		ProjectID uint64 `json:"projectID,string"`
+
 		// Type of action
 		Action string `json:"action"`
 
@@ -126,11 +130,12 @@ type (
 
 		BeforeActionID uint64 `json:"beforeActionID"`
 
-		ActorID  []string `json:"actorID"`
-		Origin   string   `json:"origin"`
-		Resource string   `json:"resource"`
-		Action   string   `json:"action"`
-		Limit    uint     `json:"limit"`
+		ActorID   []string `json:"actorID"`
+		Origin    string   `json:"origin"`
+		Resource  string   `json:"resource"`
+		ProjectID uint64   `json:"projectID"`
+		Action    string   `json:"action"`
+		Limit     uint     `json:"limit"`
 
 		// Standard helpers for sorting
 		filter.Sorting

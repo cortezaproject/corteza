@@ -19,6 +19,7 @@ import (
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/rdbms/ddl"
+	systemModel "github.com/crusttech/human/server/system/model"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
@@ -86,6 +87,7 @@ var (
 	actionlogFixes = []func(context.Context, *Store) error{
 		fix_2026_06_22_addDeltaOnActionlog,
 		fix_2026_06_22_addOldStateOnActionlog,
+		fix_2026_07_13_addRelProjectOnActionlog,
 	}
 )
 
@@ -109,6 +111,47 @@ func fix_2026_06_22_addOldStateOnActionlog(ctx context.Context, s *Store) error 
 			Store: &dal.CodecAlias{Ident: "old_state"},
 		},
 	)
+}
+
+// Adds the rel_project column (+ index) that scopes action-log events to a
+// project. Reuses the generated model attribute so the column type matches the
+// canonical ProjectRefField. Additive & idempotent — addColumn/index no-op if
+// already present, and skip cleanly when the table doesn't exist yet.
+//
+// No backfill: a project id is only known from the request scope at write time
+// (see actionlog enrich()); it can't be recovered from existing rows, so old
+// events stay at project 0.
+func fix_2026_07_13_addRelProjectOnActionlog(ctx context.Context, s *Store) error {
+	if _, err := s.DataDefiner.TableLookup(ctx, "actionlog"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	attr := systemModel.Action.Attributes.FindByIdent("ProjectID")
+	if attr == nil {
+		return fmt.Errorf("actionlog model is missing the ProjectID attribute")
+	}
+	if err := addColumn(ctx, s, "actionlog", attr); err != nil {
+		return err
+	}
+
+	const indexName = "actionlog_rel_project"
+	idx, err := s.DataDefiner.IndexLookup(ctx, indexName, "actionlog")
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	if idx != nil {
+		return nil
+	}
+
+	return s.DataDefiner.IndexCreate(ctx, "actionlog", &ddl.Index{
+		TableIdent: "actionlog",
+		Ident:      indexName,
+		Type:       "BTREE",
+		Fields:     []*ddl.IndexField{{Column: "rel_project"}},
+	})
 }
 
 func fix_2026_06_29_addSourceIdentOnDmlMappings(ctx context.Context, s *Store) error {

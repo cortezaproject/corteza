@@ -120,6 +120,7 @@ dashboard:
     create: Create event
     toast:
       created: Event created
+      createFailed: Could not create the event. Please try again.
     categories:
       incident:
         label: Incident / Issue

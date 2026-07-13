@@ -277,11 +277,13 @@ func NewProject(h ProjectAPI) *Project {
 				api.Send(w, r, err)
 				return
 			}
+
 			value, err := h.CreateRevision(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
 			}
+
 			api.Send(w, r, value)
 		},
 		ListRevisions: func(w http.ResponseWriter, r *http.Request) {
@@ -291,11 +293,13 @@ func NewProject(h ProjectAPI) *Project {
 				api.Send(w, r, err)
 				return
 			}
+
 			value, err := h.ListRevisions(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
 			}
+
 			api.Send(w, r, value)
 		},
 		GetDeploymentPlan: func(w http.ResponseWriter, r *http.Request) {
@@ -305,11 +309,13 @@ func NewProject(h ProjectAPI) *Project {
 				api.Send(w, r, err)
 				return
 			}
+
 			value, err := h.GetDeploymentPlan(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
 			}
+
 			api.Send(w, r, value)
 		},
 		Publish: func(w http.ResponseWriter, r *http.Request) {
@@ -319,11 +325,13 @@ func NewProject(h ProjectAPI) *Project {
 				api.Send(w, r, err)
 				return
 			}
+
 			value, err := h.Publish(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
 			}
+
 			api.Send(w, r, value)
 		},
 	}

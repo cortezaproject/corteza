@@ -5977,7 +5977,8 @@ export default class System {
 
   // Action log events
   async actionlogList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { from, to, beforeActionID, resource, action, actorID, origin, limit } = (a as KV) || {}
+    const { from, to, beforeActionID, resource, projectID, action, actorID, origin, limit } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -5988,6 +5989,7 @@ export default class System {
       to,
       beforeActionID,
       resource,
+      projectID,
       action,
       actorID,
       origin,
@@ -8493,6 +8495,1261 @@ export default class System {
 
   smtpConfigurationCheckerCheckEndpoint(): string {
     return '/smtp/configuration-checker/'
+  }
+
+  // List project incidents
+  async projectIncidentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectIncidentListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      projectID,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectIncidentListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectIncidentList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectIncidentListEndpoint(): string {
+    return '/project-incidents/'
+  }
+
+  // Create project incident
+  async projectIncidentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      title,
+      description,
+      incidentType,
+      groupSystem,
+      status,
+      severity,
+      risk,
+      issueOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskIssue,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+      completedDate,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectIncidentCreateEndpoint(),
+    }
+    cfg.data = {
+      projectID,
+      title,
+      description,
+      incidentType,
+      groupSystem,
+      status,
+      severity,
+      risk,
+      issueOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskIssue,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+      completedDate,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectIncidentCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectIncidentCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectIncidentCreateEndpoint(): string {
+    return '/project-incidents'
+  }
+
+  // Read project incident details
+  async projectIncidentRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { incidentID } = (a as KV) || {}
+    if (!incidentID) {
+      throw Error('field incidentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectIncidentReadEndpoint({
+        incidentID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectIncidentReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectIncidentRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectIncidentReadEndpoint(a: KV): string {
+    const { incidentID } = a || {}
+    return `/project-incidents/${incidentID}`
+  }
+
+  // Update project incident details
+  async projectIncidentUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      incidentID,
+      title,
+      description,
+      incidentType,
+      groupSystem,
+      status,
+      severity,
+      risk,
+      issueOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskIssue,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+      completedDate,
+    } = (a as KV) || {}
+    if (!incidentID) {
+      throw Error('field incidentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectIncidentUpdateEndpoint({
+        incidentID,
+      }),
+    }
+    cfg.data = {
+      title,
+      description,
+      incidentType,
+      groupSystem,
+      status,
+      severity,
+      risk,
+      issueOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskIssue,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+      completedDate,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectIncidentUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectIncidentUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectIncidentUpdateEndpoint(a: KV): string {
+    const { incidentID } = a || {}
+    return `/project-incidents/${incidentID}`
+  }
+
+  // Delete project incident
+  async projectIncidentDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { incidentID } = (a as KV) || {}
+    if (!incidentID) {
+      throw Error('field incidentID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectIncidentDeleteEndpoint({
+        incidentID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectIncidentDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectIncidentDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectIncidentDeleteEndpoint(a: KV): string {
+    const { incidentID } = a || {}
+    return `/project-incidents/${incidentID}`
+  }
+
+  // List project features
+  async projectFeatureList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectFeatureListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      projectID,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFeatureListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFeatureList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFeatureListEndpoint(): string {
+    return '/project-features/'
+  }
+
+  // Create project feature
+  async projectFeatureCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      title,
+      description,
+      featureType,
+      status,
+      severity,
+      risk,
+      featureOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskFeature,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectFeatureCreateEndpoint(),
+    }
+    cfg.data = {
+      projectID,
+      title,
+      description,
+      featureType,
+      status,
+      severity,
+      risk,
+      featureOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskFeature,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFeatureCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFeatureCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFeatureCreateEndpoint(): string {
+    return '/project-features'
+  }
+
+  // Read project feature details
+  async projectFeatureRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { featureID } = (a as KV) || {}
+    if (!featureID) {
+      throw Error('field featureID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectFeatureReadEndpoint({
+        featureID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFeatureReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFeatureRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFeatureReadEndpoint(a: KV): string {
+    const { featureID } = a || {}
+    return `/project-features/${featureID}`
+  }
+
+  // Update project feature details
+  async projectFeatureUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      featureID,
+      title,
+      description,
+      featureType,
+      status,
+      severity,
+      risk,
+      featureOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskFeature,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    } = (a as KV) || {}
+    if (!featureID) {
+      throw Error('field featureID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectFeatureUpdateEndpoint({
+        featureID,
+      }),
+    }
+    cfg.data = {
+      title,
+      description,
+      featureType,
+      status,
+      severity,
+      risk,
+      featureOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskFeature,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFeatureUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFeatureUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFeatureUpdateEndpoint(a: KV): string {
+    const { featureID } = a || {}
+    return `/project-features/${featureID}`
+  }
+
+  // Delete project feature
+  async projectFeatureDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { featureID } = (a as KV) || {}
+    if (!featureID) {
+      throw Error('field featureID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectFeatureDeleteEndpoint({
+        featureID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFeatureDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFeatureDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFeatureDeleteEndpoint(a: KV): string {
+    const { featureID } = a || {}
+    return `/project-features/${featureID}`
+  }
+
+  // List project privacy items
+  async projectPrivacyList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectPrivacyListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      projectID,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectPrivacyListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectPrivacyList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectPrivacyListEndpoint(): string {
+    return '/project-privacies/'
+  }
+
+  // Create project privacy item
+  async projectPrivacyCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      title,
+      description,
+      requestType,
+      status,
+      severity,
+      risk,
+      requestOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskAssessment,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectPrivacyCreateEndpoint(),
+    }
+    cfg.data = {
+      projectID,
+      title,
+      description,
+      requestType,
+      status,
+      severity,
+      risk,
+      requestOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskAssessment,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectPrivacyCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectPrivacyCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectPrivacyCreateEndpoint(): string {
+    return '/project-privacies'
+  }
+
+  // Read project privacy item details
+  async projectPrivacyRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { privacyID } = (a as KV) || {}
+    if (!privacyID) {
+      throw Error('field privacyID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectPrivacyReadEndpoint({
+        privacyID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectPrivacyReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectPrivacyRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectPrivacyReadEndpoint(a: KV): string {
+    const { privacyID } = a || {}
+    return `/project-privacies/${privacyID}`
+  }
+
+  // Update project privacy item details
+  async projectPrivacyUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      privacyID,
+      title,
+      description,
+      requestType,
+      status,
+      severity,
+      risk,
+      requestOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskAssessment,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    } = (a as KV) || {}
+    if (!privacyID) {
+      throw Error('field privacyID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectPrivacyUpdateEndpoint({
+        privacyID,
+      }),
+    }
+    cfg.data = {
+      title,
+      description,
+      requestType,
+      status,
+      severity,
+      risk,
+      requestOwner,
+      changeOwner,
+      changeApprovedBy,
+      riskAssessment,
+      changeRequired,
+      riskChange,
+      backlog,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectPrivacyUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectPrivacyUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectPrivacyUpdateEndpoint(a: KV): string {
+    const { privacyID } = a || {}
+    return `/project-privacies/${privacyID}`
+  }
+
+  // Delete project privacy item
+  async projectPrivacyDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { privacyID } = (a as KV) || {}
+    if (!privacyID) {
+      throw Error('field privacyID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectPrivacyDeleteEndpoint({
+        privacyID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectPrivacyDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectPrivacyDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectPrivacyDeleteEndpoint(a: KV): string {
+    const { privacyID } = a || {}
+    return `/project-privacies/${privacyID}`
+  }
+
+  // List project tasks
+  async projectTaskList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectTaskListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      projectID,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectTaskListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectTaskList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectTaskListEndpoint(): string {
+    return '/project-tasks/'
+  }
+
+  // Create project task
+  async projectTaskCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      title,
+      description,
+      taskName,
+      taskType,
+      status,
+      severity,
+      risk,
+      owner,
+      changeOwner,
+      backlog,
+      dateDue,
+      completedDate,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectTaskCreateEndpoint(),
+    }
+    cfg.data = {
+      projectID,
+      title,
+      description,
+      taskName,
+      taskType,
+      status,
+      severity,
+      risk,
+      owner,
+      changeOwner,
+      backlog,
+      dateDue,
+      completedDate,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectTaskCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectTaskCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectTaskCreateEndpoint(): string {
+    return '/project-tasks'
+  }
+
+  // Read project task details
+  async projectTaskRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { taskID } = (a as KV) || {}
+    if (!taskID) {
+      throw Error('field taskID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectTaskReadEndpoint({
+        taskID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectTaskReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectTaskRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectTaskReadEndpoint(a: KV): string {
+    const { taskID } = a || {}
+    return `/project-tasks/${taskID}`
+  }
+
+  // Update project task details
+  async projectTaskUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      taskID,
+      title,
+      description,
+      taskName,
+      taskType,
+      status,
+      severity,
+      risk,
+      owner,
+      changeOwner,
+      backlog,
+      dateDue,
+      completedDate,
+    } = (a as KV) || {}
+    if (!taskID) {
+      throw Error('field taskID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectTaskUpdateEndpoint({
+        taskID,
+      }),
+    }
+    cfg.data = {
+      title,
+      description,
+      taskName,
+      taskType,
+      status,
+      severity,
+      risk,
+      owner,
+      changeOwner,
+      backlog,
+      dateDue,
+      completedDate,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectTaskUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectTaskUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectTaskUpdateEndpoint(a: KV): string {
+    const { taskID } = a || {}
+    return `/project-tasks/${taskID}`
+  }
+
+  // Delete project task
+  async projectTaskDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { taskID } = (a as KV) || {}
+    if (!taskID) {
+      throw Error('field taskID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectTaskDeleteEndpoint({
+        taskID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectTaskDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectTaskDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectTaskDeleteEndpoint(a: KV): string {
+    const { taskID } = a || {}
+    return `/project-tasks/${taskID}`
+  }
+
+  // List project reviews
+  async projectReviewList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectReviewListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      projectID,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectReviewListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectReviewList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectReviewListEndpoint(): string {
+    return '/project-reviews/'
+  }
+
+  // Create project review
+  async projectReviewCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      title,
+      description,
+      reviewType,
+      reviewFrequency,
+      scope,
+      status,
+      reviewer,
+      approvedBy,
+      dateDue,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectReviewCreateEndpoint(),
+    }
+    cfg.data = {
+      projectID,
+      title,
+      description,
+      reviewType,
+      reviewFrequency,
+      scope,
+      status,
+      reviewer,
+      approvedBy,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectReviewCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectReviewCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectReviewCreateEndpoint(): string {
+    return '/project-reviews'
+  }
+
+  // Read project review details
+  async projectReviewRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { reviewID } = (a as KV) || {}
+    if (!reviewID) {
+      throw Error('field reviewID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectReviewReadEndpoint({
+        reviewID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectReviewReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectReviewRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectReviewReadEndpoint(a: KV): string {
+    const { reviewID } = a || {}
+    return `/project-reviews/${reviewID}`
+  }
+
+  // Update project review details
+  async projectReviewUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      reviewID,
+      title,
+      description,
+      reviewType,
+      reviewFrequency,
+      scope,
+      status,
+      reviewer,
+      approvedBy,
+      dateDue,
+    } = (a as KV) || {}
+    if (!reviewID) {
+      throw Error('field reviewID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectReviewUpdateEndpoint({
+        reviewID,
+      }),
+    }
+    cfg.data = {
+      title,
+      description,
+      reviewType,
+      reviewFrequency,
+      scope,
+      status,
+      reviewer,
+      approvedBy,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectReviewUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectReviewUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectReviewUpdateEndpoint(a: KV): string {
+    const { reviewID } = a || {}
+    return `/project-reviews/${reviewID}`
+  }
+
+  // Delete project review
+  async projectReviewDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { reviewID } = (a as KV) || {}
+    if (!reviewID) {
+      throw Error('field reviewID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectReviewDeleteEndpoint({
+        reviewID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectReviewDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectReviewDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectReviewDeleteEndpoint(a: KV): string {
+    const { reviewID } = a || {}
+    return `/project-reviews/${reviewID}`
   }
 
   // Get TCL master list

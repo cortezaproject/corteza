@@ -18,6 +18,9 @@ actionLog: schema.#optionsGroup & {
 		workflow_functions_enabled: {
 			type: "bool"
 		}
+		DB_DSN: {
+			description: "Database connection string for the action log; when empty the primary DB connection is used."
+		}
 	}
 	title: "Actionlog"
 }

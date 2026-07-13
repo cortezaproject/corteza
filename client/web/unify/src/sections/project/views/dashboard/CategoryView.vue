@@ -49,7 +49,7 @@
         @update:filter="Object.assign(filter, $event)"
         :sorting="sorting"
         :pagination="pagination"
-        :loading="false"
+        :loading="store.loading"
         :translations="{
           searchPlaceholder: $t('project.dashboard.list.searchPlaceholder'),
           noItems: $t('project.dashboard.list.empty'),
@@ -122,6 +122,7 @@
       v-model:visible="dialogVisible"
       :category="category"
       :schema="cfg.formSchema"
+      :user-options="store.ownerOptions"
       @create="onCreate"
     />
   </div>
@@ -228,14 +229,20 @@ watch(category, () => {
   sorting.sortDesc = true
 })
 
-// Create handler — push into the store (list/KPIs/charts/nav badge all react),
-// toast, and close.
-const onCreate = payload => {
-  store.add(category.value, payload)
-  $toast.toastSuccess(
-    t('project.dashboard.newButton', { type: t(cfg.value.singularKey) }),
-    t('project.dashboard.event.toast.created'),
-  )
-  dialogVisible.value = false
+// Create handler — persist via the store (list/KPIs/charts/nav badge all react
+// off the returned record), toast, and close. Errors surface as a toast and
+// keep the dialog open so the user can retry.
+const onCreate = async payload => {
+  try {
+    await store.add(category.value, payload)
+    $toast.toastSuccess(
+      t('project.dashboard.newButton', { type: t(cfg.value.singularKey) }),
+      t('project.dashboard.event.toast.created'),
+    )
+    dialogVisible.value = false
+  } catch (err) {
+    console.error('Failed to create event', err)
+    $toast.toastErrorHandler(t('project.dashboard.event.toast.createFailed'))(err)
+  }
 }
 </script>

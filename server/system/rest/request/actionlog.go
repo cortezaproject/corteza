@@ -55,6 +55,11 @@ type (
 		// Resource
 		Resource string
 
+		// ProjectID GET parameter
+		//
+		// Scope to a project
+		ProjectID uint64 `json:",string"`
+
 		// Action GET parameter
 		//
 		// Action
@@ -136,6 +141,7 @@ func (r ActionlogList) Auditable() map[string]interface{} {
 		"to":             r.To,
 		"beforeActionID": r.BeforeActionID,
 		"resource":       r.Resource,
+		"projectID":      r.ProjectID,
 		"action":         r.Action,
 		"actorID":        r.ActorID,
 		"origin":         r.Origin,
@@ -161,6 +167,11 @@ func (r ActionlogList) GetBeforeActionID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) GetResource() string {
 	return r.Resource
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogList) GetProjectID() uint64 {
+	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -210,6 +221,12 @@ func (r *ActionlogList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["resource"]; ok && len(val) > 0 {
 			r.Resource, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

@@ -1,0 +1,78 @@
+# List of loggable service actions
+
+resource: system:project-feature
+service: projectFeature
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectFeature
+    type: "*types.ProjectFeature"
+    fields: [ title, ID ]
+  - name: new
+    type: "*types.ProjectFeature"
+    fields: [ title, ID ]
+  - name: update
+    type: "*types.ProjectFeature"
+    fields: [ title, ID ]
+  - name: filter
+    type: "*types.ProjectFeatureFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for project features"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectFeature}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectFeature}}"
+
+  - action: update
+    log: "updated {{projectFeature}}"
+
+  - action: delete
+    log: "deleted {{projectFeature}}"
+
+errors:
+  - error: notFound
+    message: "project feature not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "project feature was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project feature"
+    log: "failed to create a project feature; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project feature"
+    log: "failed to read {{projectFeature.title}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list project features"
+    log: "failed to search or list project features; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project feature"
+    log: "failed to update {{projectFeature.title}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project feature"
+    log: "failed to delete {{projectFeature.title}}; insufficient permissions"

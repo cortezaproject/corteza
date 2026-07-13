@@ -321,3 +321,68 @@ func SystemProjectGroupRbacReferences(projectGroup string) (res *Ref, pp []*Ref,
 
 	return
 }
+
+// SystemProjectIncidentRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectIncidentRbacReferences(projectIncident string) (res *Ref, pp []*Ref, err error) {
+	if projectIncident != "*" {
+		res = &Ref{ResourceType: types.ProjectIncidentResourceType, Identifiers: MakeIdentifiers(projectIncident)}
+	}
+
+	return
+}
+
+// SystemProjectFeatureRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectFeatureRbacReferences(projectFeature string) (res *Ref, pp []*Ref, err error) {
+	if projectFeature != "*" {
+		res = &Ref{ResourceType: types.ProjectFeatureResourceType, Identifiers: MakeIdentifiers(projectFeature)}
+	}
+
+	return
+}
+
+// SystemProjectPrivacyRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectPrivacyRbacReferences(projectPrivacy string) (res *Ref, pp []*Ref, err error) {
+	if projectPrivacy != "*" {
+		res = &Ref{ResourceType: types.ProjectPrivacyResourceType, Identifiers: MakeIdentifiers(projectPrivacy)}
+	}
+
+	return
+}
+
+// SystemProjectTaskRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectTaskRbacReferences(projectTask string) (res *Ref, pp []*Ref, err error) {
+	if projectTask != "*" {
+		res = &Ref{ResourceType: types.ProjectTaskResourceType, Identifiers: MakeIdentifiers(projectTask)}
+	}
+
+	return
+}
+
+// SystemProjectReviewRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectReviewRbacReferences(projectReview string) (res *Ref, pp []*Ref, err error) {
+	if projectReview != "*" {
+		res = &Ref{ResourceType: types.ProjectReviewResourceType, Identifiers: MakeIdentifiers(projectReview)}
+	}
+
+	return
+}

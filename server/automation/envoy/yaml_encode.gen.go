@@ -143,15 +143,16 @@ func (e YamlEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams, 
 		return
 	}
 
+	auxSteps, err := e.encodeWorkflowStepsC(ctx, p, tt, node, res, res.Steps)
+	if err != nil {
+		return
+	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
 	}
 	auxUpdatedBy, err := e.encodeRef(p, res.UpdatedBy, "UpdatedBy", node, tt)
-	if err != nil {
-		return
-	}
-	auxSteps, err := e.encodeWorkflowStepsC(ctx, p, tt, node, res, res.Steps)
 	if err != nil {
 		return
 	}

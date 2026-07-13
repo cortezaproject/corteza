@@ -158,14 +158,29 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("project", func(t *testing.T) {
 		testProjects(t, s)
 	})
+	t.Run("projectFeature", func(t *testing.T) {
+		testProjectFeatures(t, s)
+	})
 	t.Run("projectGroup", func(t *testing.T) {
 		testProjectGroups(t, s)
 	})
 	t.Run("projectGroupEntry", func(t *testing.T) {
 		testProjectGroupEntrys(t, s)
 	})
+	t.Run("projectIncident", func(t *testing.T) {
+		testProjectIncidents(t, s)
+	})
 	t.Run("projectMember", func(t *testing.T) {
 		testProjectMembers(t, s)
+	})
+	t.Run("projectPrivacy", func(t *testing.T) {
+		testProjectPrivacys(t, s)
+	})
+	t.Run("projectReview", func(t *testing.T) {
+		testProjectReviews(t, s)
+	})
+	t.Run("projectTask", func(t *testing.T) {
+		testProjectTasks(t, s)
 	})
 	t.Run("queue", func(t *testing.T) {
 		testQueues(t, s)

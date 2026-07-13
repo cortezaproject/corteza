@@ -50,6 +50,11 @@ component: schema.#component & {
     "project-member":                 project_member
     "project-group":                  project_group
     "project-group-entry":            project_group_entry
+    "project-incident":               project_incident
+    "project-feature":                project_feature
+    "project-privacy":                project_privacy
+    "project-task":                   project_task
+    "project-review":                 project_review
     "dml-connection":                 dml_connection
     "dml-mapping":                    dml_mapping
     "dml-import-run":                 dml_import_run
@@ -122,6 +127,21 @@ component: schema.#component & {
 
 		"agent.create": description:  "Create agents"
 		"agents.search": description: "List, search or filter agents"
+
+		"project-incident.create": description:  "Create project incidents"
+		"project-incidents.search": description: "List, search or filter project incidents"
+
+		"project-feature.create": description:  "Create project features"
+		"project-features.search": description: "List, search or filter project features"
+
+		"project-privacy.create": description:  "Create project privacy items"
+		"project-privacys.search": description: "List, search or filter project privacy items"
+
+		"project-task.create": description:  "Create project tasks"
+		"project-tasks.search": description: "List, search or filter project tasks"
+
+		"project-review.create": description:  "Create project reviews"
+		"project-reviews.search": description: "List, search or filter project reviews"
 
 		"ai-conversation.create": description:  "Create AI conversations"
 		"ai-conversations.search": description: "List, search or filter AI conversations"

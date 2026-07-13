@@ -13,6 +13,7 @@ import (
 	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/scope"
 )
 
 type (
@@ -197,6 +198,14 @@ func enrich(ctx context.Context, a *Action) *Action {
 
 			a.ActorIPAddr = ipAddr
 		}
+	}
+
+	// Attribute the event to the active project (from the request scope) so the
+	// action log can be filtered per project. Covers every resource touched
+	// inside a project — compose, agents, chatbots, roles, users, etc. 0 means
+	// a tenant-level operation with no project context.
+	if a.ProjectID == 0 {
+		a.ProjectID = scope.GetScopeFromContext(ctx).ProjectID
 	}
 
 	return a

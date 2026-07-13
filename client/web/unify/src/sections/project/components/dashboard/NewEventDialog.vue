@@ -10,7 +10,7 @@
     <!-- Reuse the per-category governance form; two-column layout with
          textareas spanning both columns. `model` is a plain object keyed by
          field.key and is reset every time the dialog opens. -->
-    <GovernanceForm :schema="schema" v-model="model" :columns="2" />
+    <GovernanceForm :schema="resolvedSchema" v-model="model" :columns="2" />
 
     <template #footer>
       <div class="flex items-center justify-end gap-2 w-full">
@@ -30,10 +30,25 @@ const props = defineProps({
   visible: { type: Boolean, default: false },
   category: { type: String, required: true },
   schema: { type: Array, default: () => [] },
+  // [{ label, value }] used to populate fields flagged `source: 'users'`.
+  userOptions: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:visible', 'create'])
 
 const { t } = useI18n()
+
+// Inject the dynamic user directory into any `source: 'users'` field so owner /
+// approver selects render names and yield user IDs.
+const resolvedSchema = computed(() =>
+  props.schema.map(section => ({
+    ...section,
+    fields: section.fields.map(f =>
+      f.source === 'users'
+        ? { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
+        : f,
+    ),
+  })),
+)
 
 // Collected form values, keyed by field.key. Reset on each open.
 const model = ref({})

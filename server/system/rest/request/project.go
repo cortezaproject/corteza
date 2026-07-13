@@ -269,22 +269,41 @@ type (
 	}
 
 	ProjectCreateRevision struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
 		ProjectID uint64 `json:",string"`
 	}
 
 	ProjectListRevisions struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
 		ProjectID uint64 `json:",string"`
 	}
 
 	ProjectGetDeploymentPlan struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
 		ProjectID uint64 `json:",string"`
 	}
 
 	ProjectPublish struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
 		ProjectID uint64 `json:",string"`
 
-		Confirm  bool                    `json:"confirm"`
-		Mappings []types.ModuleMapping   `json:"mappings"`
+		// Confirm POST parameter
+		//
+		// Confirm publish (required for dangerous changes)
+		Confirm bool
+
+		// Mappings POST parameter
+		//
+		// Per-module record migration mappings
+		Mappings []types.ModuleMapping
 	}
 )
 
@@ -1373,50 +1392,6 @@ func (r ProjectGovernanceTransition) GetNote() string {
 }
 
 // Fill processes request and fills internal variables
-func NewProjectCreateRevision() *ProjectCreateRevision { return &ProjectCreateRevision{} }
-func (r ProjectCreateRevision) Auditable() map[string]interface{} {
-	return map[string]interface{}{"projectID": r.ProjectID}
-}
-func (r *ProjectCreateRevision) Fill(req *http.Request) (err error) {
-	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
-	return
-}
-
-func NewProjectListRevisions() *ProjectListRevisions { return &ProjectListRevisions{} }
-func (r ProjectListRevisions) Auditable() map[string]interface{} {
-	return map[string]interface{}{"projectID": r.ProjectID}
-}
-func (r *ProjectListRevisions) Fill(req *http.Request) (err error) {
-	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
-	return
-}
-
-func NewProjectGetDeploymentPlan() *ProjectGetDeploymentPlan { return &ProjectGetDeploymentPlan{} }
-func (r ProjectGetDeploymentPlan) Auditable() map[string]interface{} {
-	return map[string]interface{}{"projectID": r.ProjectID}
-}
-func (r *ProjectGetDeploymentPlan) Fill(req *http.Request) (err error) {
-	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
-	return
-}
-
-func NewProjectPublish() *ProjectPublish { return &ProjectPublish{} }
-func (r ProjectPublish) Auditable() map[string]interface{} {
-	return map[string]interface{}{"projectID": r.ProjectID}
-}
-func (r *ProjectPublish) Fill(req *http.Request) (err error) {
-	r.ProjectID, err = payload.ParseUint64(chi.URLParam(req, "projectID")), nil
-	if err != nil {
-		return
-	}
-	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
-		if e := json.NewDecoder(req.Body).Decode(r); e != nil && e != io.EOF {
-			return fmt.Errorf("error parsing http request body: %w", e)
-		}
-	}
-	return
-}
-
 func (r *ProjectGovernanceTransition) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
@@ -1487,6 +1462,208 @@ func (r *ProjectGovernanceTransition) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "stepKey")
 		r.StepKey, err = val, nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectCreateRevision request
+func NewProjectCreateRevision() *ProjectCreateRevision {
+	return &ProjectCreateRevision{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectCreateRevision) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectCreateRevision) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectCreateRevision) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectListRevisions request
+func NewProjectListRevisions() *ProjectListRevisions {
+	return &ProjectListRevisions{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectListRevisions) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectListRevisions) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectListRevisions) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectGetDeploymentPlan request
+func NewProjectGetDeploymentPlan() *ProjectGetDeploymentPlan {
+	return &ProjectGetDeploymentPlan{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGetDeploymentPlan) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGetDeploymentPlan) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectGetDeploymentPlan) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectPublish request
+func NewProjectPublish() *ProjectPublish {
+	return &ProjectPublish{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectPublish) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+		"confirm":   r.Confirm,
+		"mappings":  r.Mappings,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectPublish) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectPublish) GetConfirm() bool {
+	return r.Confirm
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectPublish) GetMappings() []types.ModuleMapping {
+	return r.Mappings
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectPublish) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["confirm"]; ok && len(val) > 0 {
+				r.Confirm, err = payload.ParseBool(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["confirm"]; ok && len(val) > 0 {
+			r.Confirm, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		//if val, ok := req.Form["mappings[]"]; ok && len(val) > 0  {
+		//    r.Mappings, err = []types.ModuleMapping(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

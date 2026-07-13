@@ -160,6 +160,11 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.TenantRbacResource(0)),
 		rbac.NewResource(types.ProjectRbacResource(0)),
 		rbac.NewResource(types.ProjectGroupRbacResource(0)),
+		rbac.NewResource(types.ProjectIncidentRbacResource(0)),
+		rbac.NewResource(types.ProjectFeatureRbacResource(0)),
+		rbac.NewResource(types.ProjectPrivacyRbacResource(0)),
+		rbac.NewResource(types.ProjectTaskRbacResource(0)),
+		rbac.NewResource(types.ProjectReviewRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -635,6 +640,81 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "members.manage",
 		},
 		{
+			"type": types.ProjectIncidentResourceType,
+			"any":  types.ProjectIncidentRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectIncidentResourceType,
+			"any":  types.ProjectIncidentRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectIncidentResourceType,
+			"any":  types.ProjectIncidentRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ProjectFeatureResourceType,
+			"any":  types.ProjectFeatureRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectFeatureResourceType,
+			"any":  types.ProjectFeatureRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectFeatureResourceType,
+			"any":  types.ProjectFeatureRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ProjectPrivacyResourceType,
+			"any":  types.ProjectPrivacyRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectPrivacyResourceType,
+			"any":  types.ProjectPrivacyRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectPrivacyResourceType,
+			"any":  types.ProjectPrivacyRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ProjectTaskResourceType,
+			"any":  types.ProjectTaskRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectTaskResourceType,
+			"any":  types.ProjectTaskRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectTaskResourceType,
+			"any":  types.ProjectTaskRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ProjectReviewResourceType,
+			"any":  types.ProjectReviewRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectReviewResourceType,
+			"any":  types.ProjectReviewRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectReviewResourceType,
+			"any":  types.ProjectReviewRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -838,6 +918,56 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "agents.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-incident.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-incidents.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-feature.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-features.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-privacy.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-privacys.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-task.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-tasks.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-review.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-reviews.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -1672,6 +1802,111 @@ func (svc accessControl) CanManageMembersOnProjectGroup(ctx context.Context, r *
 	return svc.can(ctx, "members.manage", r)
 }
 
+// CanReadProjectIncident checks if current user can read project incident
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProjectIncident(ctx context.Context, r *types.ProjectIncident) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProjectIncident checks if current user can update project incident
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProjectIncident(ctx context.Context, r *types.ProjectIncident) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProjectIncident checks if current user can delete project incident
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProjectIncident(ctx context.Context, r *types.ProjectIncident) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadProjectFeature checks if current user can read project feature
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProjectFeature(ctx context.Context, r *types.ProjectFeature) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProjectFeature checks if current user can update project feature
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProjectFeature(ctx context.Context, r *types.ProjectFeature) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProjectFeature checks if current user can delete project feature
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProjectFeature(ctx context.Context, r *types.ProjectFeature) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadProjectPrivacy checks if current user can read project privacy
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProjectPrivacy(ctx context.Context, r *types.ProjectPrivacy) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProjectPrivacy checks if current user can update project privacy
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProjectPrivacy(ctx context.Context, r *types.ProjectPrivacy) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProjectPrivacy checks if current user can delete project privacy
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProjectPrivacy(ctx context.Context, r *types.ProjectPrivacy) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadProjectTask checks if current user can read project task
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProjectTask(ctx context.Context, r *types.ProjectTask) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProjectTask checks if current user can update project task
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProjectTask(ctx context.Context, r *types.ProjectTask) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProjectTask checks if current user can delete project task
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProjectTask(ctx context.Context, r *types.ProjectTask) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadProjectReview checks if current user can read project review
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProjectReview(ctx context.Context, r *types.ProjectReview) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProjectReview checks if current user can update project review
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProjectReview(ctx context.Context, r *types.ProjectReview) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProjectReview checks if current user can delete project review
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProjectReview(ctx context.Context, r *types.ProjectReview) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -2000,6 +2235,86 @@ func (svc accessControl) CanSearchAgents(ctx context.Context) bool {
 	return svc.can(ctx, "agents.search", r)
 }
 
+// CanCreateProjectIncident checks if current user can create project incidents
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProjectIncident(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-incident.create", r)
+}
+
+// CanSearchProjectIncidents checks if current user can list, search or filter project incidents
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjectIncidents(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-incidents.search", r)
+}
+
+// CanCreateProjectFeature checks if current user can create project features
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProjectFeature(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-feature.create", r)
+}
+
+// CanSearchProjectFeatures checks if current user can list, search or filter project features
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjectFeatures(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-features.search", r)
+}
+
+// CanCreateProjectPrivacy checks if current user can create project privacy items
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProjectPrivacy(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-privacy.create", r)
+}
+
+// CanSearchProjectPrivacys checks if current user can list, search or filter project privacy items
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjectPrivacys(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-privacys.search", r)
+}
+
+// CanCreateProjectTask checks if current user can create project tasks
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProjectTask(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-task.create", r)
+}
+
+// CanSearchProjectTasks checks if current user can list, search or filter project tasks
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjectTasks(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-tasks.search", r)
+}
+
+// CanCreateProjectReview checks if current user can create project reviews
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProjectReview(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-review.create", r)
+}
+
+// CanSearchProjectReviews checks if current user can list, search or filter project reviews
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjectReviews(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-reviews.search", r)
+}
+
 // CanCreateAiConversation checks if current user can create ai conversations
 //
 // This function is auto-generated
@@ -2197,6 +2512,16 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacProjectResourceValidator(r, oo...)
 	case types.ProjectGroupResourceType:
 		return rbacProjectGroupResourceValidator(r, oo...)
+	case types.ProjectIncidentResourceType:
+		return rbacProjectIncidentResourceValidator(r, oo...)
+	case types.ProjectFeatureResourceType:
+		return rbacProjectFeatureResourceValidator(r, oo...)
+	case types.ProjectPrivacyResourceType:
+		return rbacProjectPrivacyResourceValidator(r, oo...)
+	case types.ProjectTaskResourceType:
+		return rbacProjectTaskResourceValidator(r, oo...)
+	case types.ProjectReviewResourceType:
+		return rbacProjectReviewResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -2368,6 +2693,36 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadProjectGroup(ctx, svc.store, ids[0])
+	case types.ProjectIncidentResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectIncidentRbacResource(ids[0])), nil
+		}
+
+		return loadProjectIncident(ctx, svc.store, ids[0])
+	case types.ProjectFeatureResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectFeatureRbacResource(ids[0])), nil
+		}
+
+		return loadProjectFeature(ctx, svc.store, ids[0])
+	case types.ProjectPrivacyResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectPrivacyRbacResource(ids[0])), nil
+		}
+
+		return loadProjectPrivacy(ctx, svc.store, ids[0])
+	case types.ProjectTaskResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectTaskRbacResource(ids[0])), nil
+		}
+
+		return loadProjectTask(ctx, svc.store, ids[0])
+	case types.ProjectReviewResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectReviewRbacResource(ids[0])), nil
+		}
+
+		return loadProjectReview(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -2546,6 +2901,36 @@ func rbacResourceOperations(r string) map[string]bool {
 			"delete":         true,
 			"members.manage": true,
 		}
+	case types.ProjectIncidentResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ProjectFeatureResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ProjectPrivacyResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ProjectTaskResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ProjectReviewResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                           true,
@@ -2589,6 +2974,16 @@ func rbacResourceOperations(r string) map[string]bool {
 			"llm-providers.search":            true,
 			"agent.create":                    true,
 			"agents.search":                   true,
+			"project-incident.create":         true,
+			"project-incidents.search":        true,
+			"project-feature.create":          true,
+			"project-features.search":         true,
+			"project-privacy.create":          true,
+			"project-privacys.search":         true,
+			"project-task.create":             true,
+			"project-tasks.search":            true,
+			"project-review.create":           true,
+			"project-reviews.search":          true,
 			"ai-conversation.create":          true,
 			"ai-conversations.search":         true,
 			"knowledge-base.create":           true,
@@ -3683,6 +4078,231 @@ func rbacProjectGroupResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for projectGroup resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectIncidentResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectIncidentResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectIncidentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for projectIncident resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectIncidentResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for projectIncident resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectFeatureResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectFeatureResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectFeatureResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for projectFeature resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectFeatureResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for projectFeature resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectPrivacyResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectPrivacyResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectPrivacyResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for projectPrivacy resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectPrivacyResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for projectPrivacy resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectTaskResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectTaskResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectTaskResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for projectTask resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectTaskResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for projectTask resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectReviewResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectReviewResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectReviewResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for projectReview resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectReviewResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for projectReview resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

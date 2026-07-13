@@ -332,6 +332,7 @@
 <script setup>
 import { inject, reactive, ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { components, filters, useUserStore } from '@planetcrust/human-vue'
 // Cross-section reuse: the ActionLog vocab (resource/action/origin option lists
 // and label helpers) is the single source of truth — do NOT duplicate it here.
@@ -349,10 +350,17 @@ const { CResourceList, CInputUser } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()
+const route = useRoute()
 const $SystemAPI = inject('$SystemAPI')
 
 // Shared user store: batch-resolve actor IDs and look up labels (no bespoke cache).
 const userStore = useUserStore()
+
+// The project this dashboard is for; scopes the log to its events (see
+// buildParams). The backend tags each event with the active project from the
+// request scope, so every resource touched in the project (compose, agents,
+// chatbots, roles, users…) is included.
+const projectID = computed(() => route.params.projectId || undefined)
 
 const items = ref([])
 const loading = ref(false)
@@ -450,6 +458,8 @@ function buildParams(beforeActionID) {
     from: filter.from ? filter.from.toISOString() : undefined,
     to: filter.to ? filter.to.toISOString() : undefined,
     resource: filter.resource || undefined,
+    // Scope to this project so the log shows only its events.
+    projectID: projectID.value || undefined,
     action: filter.action || undefined,
     origin: filter.origin || undefined,
     // actorID can be null when cleared via Select's clear button

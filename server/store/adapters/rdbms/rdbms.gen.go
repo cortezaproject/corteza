@@ -78,9 +78,14 @@ var (
 	_ store.LlmProviders               = &Store{}
 	_ store.Notifications              = &Store{}
 	_ store.Projects                   = &Store{}
+	_ store.ProjectFeatures            = &Store{}
 	_ store.ProjectGroups              = &Store{}
 	_ store.ProjectGroupEntrys         = &Store{}
+	_ store.ProjectIncidents           = &Store{}
 	_ store.ProjectMembers             = &Store{}
+	_ store.ProjectPrivacys            = &Store{}
+	_ store.ProjectReviews             = &Store{}
+	_ store.ProjectTasks               = &Store{}
 	_ store.Queues                     = &Store{}
 	_ store.QueueMessages              = &Store{}
 	_ store.RbacRules                  = &Store{}
@@ -27118,6 +27123,566 @@ func (s *Store) checkProjectConstraints(ctx context.Context, res *systemType.Pro
 	return nil
 }
 
+// CreateProjectFeature creates one or more rows in projectFeature collection
+//
+// This function is auto-generated
+func (s *Store) CreateProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) (err error) {
+	for i := range rr {
+
+		if err = s.checkProjectFeatureConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, projectFeatureInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateProjectFeature updates one or more existing entries in projectFeature collection
+//
+// This function is auto-generated
+func (s *Store) UpdateProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) (err error) {
+	for i := range rr {
+		if err = s.checkProjectFeatureConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+		if err = s.Exec(ctx, projectFeatureUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertProjectFeature updates one or more existing entries in projectFeature collection
+//
+// This function is auto-generated
+func (s *Store) UpsertProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) (err error) {
+	for i := range rr {
+		if err = s.checkProjectFeatureConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, projectFeatureUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, projectFeatureInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, projectFeatureUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteProjectFeature Deletes one or more entries from projectFeature collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, projectFeatureDeleteQuery(s.Dialect.GOQU(), projectFeaturePrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteProjectFeatureByID deletes single entry from projectFeature collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectFeatureByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, projectFeatureDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateProjectFeatures Deletes all rows from the projectFeature collection
+func (s *Store) TruncateProjectFeatures(ctx context.Context) error {
+	return s.Exec(ctx, projectFeatureTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchProjectFeatures returns (filtered) set of ProjectFeatures
+//
+// This function is auto-generated
+func (s *Store) SearchProjectFeatures(ctx context.Context, f systemType.ProjectFeatureFilter) (set systemType.ProjectFeatureSet, _ systemType.ProjectFeatureFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfProjectFeatures fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfProjectFeatures(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ProjectFeatureSet
+			if navSet, _, _, err = s.fetchFullPageOfProjectFeatures(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfProjectFeatures collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfProjectFeatures(
+	ctx context.Context,
+	filter systemType.ProjectFeatureFilter,
+	sort filter.SortExprSet,
+) (set []*systemType.ProjectFeature, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*systemType.ProjectFeature
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter systemType.ProjectFeatureFilter
+	)
+
+	set = make([]*systemType.ProjectFeature, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryProjectFeatures(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectProjectFeatureCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectProjectFeatureCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectProjectFeatureCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryProjectFeatures queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryProjectFeatures(
+	ctx context.Context,
+	f systemType.ProjectFeatureFilter,
+) (_ []*systemType.ProjectFeature, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*systemType.ProjectFeature, 0, DefaultSliceCapacity)
+		res         *systemType.ProjectFeature
+		aux         *auxProjectFeature
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.ProjectFeature != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.ProjectFeature(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = ProjectFeatureFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for ProjectFeature: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableProjectFeatureFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := projectFeatureSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableProjectFeatureFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for ProjectFeature: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query ProjectFeature: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query ProjectFeature: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query ProjectFeature: %w", err)
+			return
+		}
+
+		aux = new(auxProjectFeature)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for ProjectFeature: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode ProjectFeature: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupProjectFeatureByID searches for project feature by ID
+//
+// It also returns deleted project features.
+//
+// This function is auto-generated
+func (s *Store) LookupProjectFeatureByID(ctx context.Context, id uint64) (_ *systemType.ProjectFeature, err error) {
+	var (
+		rows       *sql.Rows
+		aux        = new(auxProjectFeature)
+		lookupExpr = []goqu.Expression{
+			goqu.I("id").Eq(id),
+		}
+	)
+
+	lookup := projectFeatureSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableProjectFeatureFields returns all ProjectFeature columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableProjectFeatureFields() map[string]string {
+	return map[string]string{
+		"created_at":   "created_at",
+		"createdat":    "created_at",
+		"deleted_at":   "deleted_at",
+		"deletedat":    "deleted_at",
+		"feature_type": "feature_type",
+		"featuretype":  "feature_type",
+		"id":           "id",
+		"status":       "status",
+		"title":        "title",
+		"updated_at":   "updated_at",
+		"updatedat":    "updated_at",
+	}
+}
+
+// collectProjectFeatureCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectProjectFeatureCursorValues(res *systemType.ProjectFeature, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "title":
+					return res.Title
+				case "featureType":
+					return res.FeatureType
+				case "status":
+					return res.Status
+				case "createdAt":
+					return res.CreatedAt
+				case "updatedAt":
+					return res.UpdatedAt
+				case "deletedAt":
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkProjectFeatureConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkProjectFeatureConstraints(ctx context.Context, res *systemType.ProjectFeature) (err error) {
+	return nil
+}
+
 // CreateProjectGroup creates one or more rows in projectGroup collection
 //
 // This function is auto-generated
@@ -28081,6 +28646,566 @@ func (s *Store) checkProjectGroupEntryConstraints(ctx context.Context, res *syst
 	return nil
 }
 
+// CreateProjectIncident creates one or more rows in projectIncident collection
+//
+// This function is auto-generated
+func (s *Store) CreateProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) (err error) {
+	for i := range rr {
+
+		if err = s.checkProjectIncidentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, projectIncidentInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateProjectIncident updates one or more existing entries in projectIncident collection
+//
+// This function is auto-generated
+func (s *Store) UpdateProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) (err error) {
+	for i := range rr {
+		if err = s.checkProjectIncidentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+		if err = s.Exec(ctx, projectIncidentUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertProjectIncident updates one or more existing entries in projectIncident collection
+//
+// This function is auto-generated
+func (s *Store) UpsertProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) (err error) {
+	for i := range rr {
+		if err = s.checkProjectIncidentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, projectIncidentUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, projectIncidentInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, projectIncidentUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteProjectIncident Deletes one or more entries from projectIncident collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, projectIncidentDeleteQuery(s.Dialect.GOQU(), projectIncidentPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteProjectIncidentByID deletes single entry from projectIncident collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectIncidentByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, projectIncidentDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateProjectIncidents Deletes all rows from the projectIncident collection
+func (s *Store) TruncateProjectIncidents(ctx context.Context) error {
+	return s.Exec(ctx, projectIncidentTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchProjectIncidents returns (filtered) set of ProjectIncidents
+//
+// This function is auto-generated
+func (s *Store) SearchProjectIncidents(ctx context.Context, f systemType.ProjectIncidentFilter) (set systemType.ProjectIncidentSet, _ systemType.ProjectIncidentFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfProjectIncidents fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfProjectIncidents(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ProjectIncidentSet
+			if navSet, _, _, err = s.fetchFullPageOfProjectIncidents(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfProjectIncidents collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfProjectIncidents(
+	ctx context.Context,
+	filter systemType.ProjectIncidentFilter,
+	sort filter.SortExprSet,
+) (set []*systemType.ProjectIncident, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*systemType.ProjectIncident
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter systemType.ProjectIncidentFilter
+	)
+
+	set = make([]*systemType.ProjectIncident, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryProjectIncidents(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectProjectIncidentCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectProjectIncidentCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectProjectIncidentCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryProjectIncidents queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryProjectIncidents(
+	ctx context.Context,
+	f systemType.ProjectIncidentFilter,
+) (_ []*systemType.ProjectIncident, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*systemType.ProjectIncident, 0, DefaultSliceCapacity)
+		res         *systemType.ProjectIncident
+		aux         *auxProjectIncident
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.ProjectIncident != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.ProjectIncident(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = ProjectIncidentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for ProjectIncident: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableProjectIncidentFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := projectIncidentSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableProjectIncidentFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for ProjectIncident: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query ProjectIncident: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query ProjectIncident: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query ProjectIncident: %w", err)
+			return
+		}
+
+		aux = new(auxProjectIncident)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for ProjectIncident: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode ProjectIncident: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupProjectIncidentByID searches for project incident by ID
+//
+// It also returns deleted project incidents.
+//
+// This function is auto-generated
+func (s *Store) LookupProjectIncidentByID(ctx context.Context, id uint64) (_ *systemType.ProjectIncident, err error) {
+	var (
+		rows       *sql.Rows
+		aux        = new(auxProjectIncident)
+		lookupExpr = []goqu.Expression{
+			goqu.I("id").Eq(id),
+		}
+	)
+
+	lookup := projectIncidentSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableProjectIncidentFields returns all ProjectIncident columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableProjectIncidentFields() map[string]string {
+	return map[string]string{
+		"created_at":    "created_at",
+		"createdat":     "created_at",
+		"deleted_at":    "deleted_at",
+		"deletedat":     "deleted_at",
+		"id":            "id",
+		"incident_type": "incident_type",
+		"incidenttype":  "incident_type",
+		"status":        "status",
+		"title":         "title",
+		"updated_at":    "updated_at",
+		"updatedat":     "updated_at",
+	}
+}
+
+// collectProjectIncidentCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectProjectIncidentCursorValues(res *systemType.ProjectIncident, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "title":
+					return res.Title
+				case "incidentType":
+					return res.IncidentType
+				case "status":
+					return res.Status
+				case "createdAt":
+					return res.CreatedAt
+				case "updatedAt":
+					return res.UpdatedAt
+				case "deletedAt":
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkProjectIncidentConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkProjectIncidentConstraints(ctx context.Context, res *systemType.ProjectIncident) (err error) {
+	return nil
+}
+
 // CreateProjectMember creates one or more rows in projectMember collection
 //
 // This function is auto-generated
@@ -28703,6 +29828,1686 @@ func (s *Store) checkProjectMemberConstraints(ctx context.Context, res *systemTy
 		return
 	}
 
+	return nil
+}
+
+// CreateProjectPrivacy creates one or more rows in projectPrivacy collection
+//
+// This function is auto-generated
+func (s *Store) CreateProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) (err error) {
+	for i := range rr {
+
+		if err = s.checkProjectPrivacyConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, projectPrivacyInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateProjectPrivacy updates one or more existing entries in projectPrivacy collection
+//
+// This function is auto-generated
+func (s *Store) UpdateProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) (err error) {
+	for i := range rr {
+		if err = s.checkProjectPrivacyConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+		if err = s.Exec(ctx, projectPrivacyUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertProjectPrivacy updates one or more existing entries in projectPrivacy collection
+//
+// This function is auto-generated
+func (s *Store) UpsertProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) (err error) {
+	for i := range rr {
+		if err = s.checkProjectPrivacyConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, projectPrivacyUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, projectPrivacyInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, projectPrivacyUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteProjectPrivacy Deletes one or more entries from projectPrivacy collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, projectPrivacyDeleteQuery(s.Dialect.GOQU(), projectPrivacyPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteProjectPrivacyByID deletes single entry from projectPrivacy collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectPrivacyByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, projectPrivacyDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateProjectPrivacys Deletes all rows from the projectPrivacy collection
+func (s *Store) TruncateProjectPrivacys(ctx context.Context) error {
+	return s.Exec(ctx, projectPrivacyTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchProjectPrivacys returns (filtered) set of ProjectPrivacys
+//
+// This function is auto-generated
+func (s *Store) SearchProjectPrivacys(ctx context.Context, f systemType.ProjectPrivacyFilter) (set systemType.ProjectPrivacySet, _ systemType.ProjectPrivacyFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfProjectPrivacys fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfProjectPrivacys(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ProjectPrivacySet
+			if navSet, _, _, err = s.fetchFullPageOfProjectPrivacys(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfProjectPrivacys collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfProjectPrivacys(
+	ctx context.Context,
+	filter systemType.ProjectPrivacyFilter,
+	sort filter.SortExprSet,
+) (set []*systemType.ProjectPrivacy, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*systemType.ProjectPrivacy
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter systemType.ProjectPrivacyFilter
+	)
+
+	set = make([]*systemType.ProjectPrivacy, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryProjectPrivacys(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectProjectPrivacyCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectProjectPrivacyCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectProjectPrivacyCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryProjectPrivacys queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryProjectPrivacys(
+	ctx context.Context,
+	f systemType.ProjectPrivacyFilter,
+) (_ []*systemType.ProjectPrivacy, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*systemType.ProjectPrivacy, 0, DefaultSliceCapacity)
+		res         *systemType.ProjectPrivacy
+		aux         *auxProjectPrivacy
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.ProjectPrivacy != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.ProjectPrivacy(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = ProjectPrivacyFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for ProjectPrivacy: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableProjectPrivacyFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := projectPrivacySelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableProjectPrivacyFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for ProjectPrivacy: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query ProjectPrivacy: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query ProjectPrivacy: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query ProjectPrivacy: %w", err)
+			return
+		}
+
+		aux = new(auxProjectPrivacy)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for ProjectPrivacy: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode ProjectPrivacy: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupProjectPrivacyByID searches for project privacy by ID
+//
+// It also returns deleted project privacys.
+//
+// This function is auto-generated
+func (s *Store) LookupProjectPrivacyByID(ctx context.Context, id uint64) (_ *systemType.ProjectPrivacy, err error) {
+	var (
+		rows       *sql.Rows
+		aux        = new(auxProjectPrivacy)
+		lookupExpr = []goqu.Expression{
+			goqu.I("id").Eq(id),
+		}
+	)
+
+	lookup := projectPrivacySelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableProjectPrivacyFields returns all ProjectPrivacy columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableProjectPrivacyFields() map[string]string {
+	return map[string]string{
+		"created_at":   "created_at",
+		"createdat":    "created_at",
+		"deleted_at":   "deleted_at",
+		"deletedat":    "deleted_at",
+		"id":           "id",
+		"request_type": "request_type",
+		"requesttype":  "request_type",
+		"status":       "status",
+		"title":        "title",
+		"updated_at":   "updated_at",
+		"updatedat":    "updated_at",
+	}
+}
+
+// collectProjectPrivacyCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectProjectPrivacyCursorValues(res *systemType.ProjectPrivacy, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "title":
+					return res.Title
+				case "requestType":
+					return res.RequestType
+				case "status":
+					return res.Status
+				case "createdAt":
+					return res.CreatedAt
+				case "updatedAt":
+					return res.UpdatedAt
+				case "deletedAt":
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkProjectPrivacyConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkProjectPrivacyConstraints(ctx context.Context, res *systemType.ProjectPrivacy) (err error) {
+	return nil
+}
+
+// CreateProjectReview creates one or more rows in projectReview collection
+//
+// This function is auto-generated
+func (s *Store) CreateProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) (err error) {
+	for i := range rr {
+
+		if err = s.checkProjectReviewConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, projectReviewInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateProjectReview updates one or more existing entries in projectReview collection
+//
+// This function is auto-generated
+func (s *Store) UpdateProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) (err error) {
+	for i := range rr {
+		if err = s.checkProjectReviewConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+		if err = s.Exec(ctx, projectReviewUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertProjectReview updates one or more existing entries in projectReview collection
+//
+// This function is auto-generated
+func (s *Store) UpsertProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) (err error) {
+	for i := range rr {
+		if err = s.checkProjectReviewConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, projectReviewUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, projectReviewInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, projectReviewUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteProjectReview Deletes one or more entries from projectReview collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, projectReviewDeleteQuery(s.Dialect.GOQU(), projectReviewPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteProjectReviewByID deletes single entry from projectReview collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectReviewByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, projectReviewDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateProjectReviews Deletes all rows from the projectReview collection
+func (s *Store) TruncateProjectReviews(ctx context.Context) error {
+	return s.Exec(ctx, projectReviewTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchProjectReviews returns (filtered) set of ProjectReviews
+//
+// This function is auto-generated
+func (s *Store) SearchProjectReviews(ctx context.Context, f systemType.ProjectReviewFilter) (set systemType.ProjectReviewSet, _ systemType.ProjectReviewFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfProjectReviews fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfProjectReviews(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ProjectReviewSet
+			if navSet, _, _, err = s.fetchFullPageOfProjectReviews(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfProjectReviews collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfProjectReviews(
+	ctx context.Context,
+	filter systemType.ProjectReviewFilter,
+	sort filter.SortExprSet,
+) (set []*systemType.ProjectReview, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*systemType.ProjectReview
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter systemType.ProjectReviewFilter
+	)
+
+	set = make([]*systemType.ProjectReview, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryProjectReviews(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectProjectReviewCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectProjectReviewCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectProjectReviewCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryProjectReviews queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryProjectReviews(
+	ctx context.Context,
+	f systemType.ProjectReviewFilter,
+) (_ []*systemType.ProjectReview, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*systemType.ProjectReview, 0, DefaultSliceCapacity)
+		res         *systemType.ProjectReview
+		aux         *auxProjectReview
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.ProjectReview != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.ProjectReview(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = ProjectReviewFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for ProjectReview: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableProjectReviewFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := projectReviewSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableProjectReviewFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for ProjectReview: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query ProjectReview: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query ProjectReview: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query ProjectReview: %w", err)
+			return
+		}
+
+		aux = new(auxProjectReview)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for ProjectReview: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode ProjectReview: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupProjectReviewByID searches for project review by ID
+//
+// It also returns deleted project reviews.
+//
+// This function is auto-generated
+func (s *Store) LookupProjectReviewByID(ctx context.Context, id uint64) (_ *systemType.ProjectReview, err error) {
+	var (
+		rows       *sql.Rows
+		aux        = new(auxProjectReview)
+		lookupExpr = []goqu.Expression{
+			goqu.I("id").Eq(id),
+		}
+	)
+
+	lookup := projectReviewSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableProjectReviewFields returns all ProjectReview columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableProjectReviewFields() map[string]string {
+	return map[string]string{
+		"created_at":  "created_at",
+		"createdat":   "created_at",
+		"deleted_at":  "deleted_at",
+		"deletedat":   "deleted_at",
+		"id":          "id",
+		"review_type": "review_type",
+		"reviewtype":  "review_type",
+		"status":      "status",
+		"title":       "title",
+		"updated_at":  "updated_at",
+		"updatedat":   "updated_at",
+	}
+}
+
+// collectProjectReviewCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectProjectReviewCursorValues(res *systemType.ProjectReview, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "title":
+					return res.Title
+				case "reviewType":
+					return res.ReviewType
+				case "status":
+					return res.Status
+				case "createdAt":
+					return res.CreatedAt
+				case "updatedAt":
+					return res.UpdatedAt
+				case "deletedAt":
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkProjectReviewConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkProjectReviewConstraints(ctx context.Context, res *systemType.ProjectReview) (err error) {
+	return nil
+}
+
+// CreateProjectTask creates one or more rows in projectTask collection
+//
+// This function is auto-generated
+func (s *Store) CreateProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) (err error) {
+	for i := range rr {
+
+		if err = s.checkProjectTaskConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, projectTaskInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateProjectTask updates one or more existing entries in projectTask collection
+//
+// This function is auto-generated
+func (s *Store) UpdateProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) (err error) {
+	for i := range rr {
+		if err = s.checkProjectTaskConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+		if err = s.Exec(ctx, projectTaskUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertProjectTask updates one or more existing entries in projectTask collection
+//
+// This function is auto-generated
+func (s *Store) UpsertProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) (err error) {
+	for i := range rr {
+		if err = s.checkProjectTaskConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, projectTaskUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, projectTaskInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, projectTaskUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteProjectTask Deletes one or more entries from projectTask collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, projectTaskDeleteQuery(s.Dialect.GOQU(), projectTaskPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteProjectTaskByID deletes single entry from projectTask collection
+//
+// This function is auto-generated
+func (s *Store) DeleteProjectTaskByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, projectTaskDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateProjectTasks Deletes all rows from the projectTask collection
+func (s *Store) TruncateProjectTasks(ctx context.Context) error {
+	return s.Exec(ctx, projectTaskTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchProjectTasks returns (filtered) set of ProjectTasks
+//
+// This function is auto-generated
+func (s *Store) SearchProjectTasks(ctx context.Context, f systemType.ProjectTaskFilter) (set systemType.ProjectTaskSet, _ systemType.ProjectTaskFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfProjectTasks fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfProjectTasks(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ProjectTaskSet
+			if navSet, _, _, err = s.fetchFullPageOfProjectTasks(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfProjectTasks collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfProjectTasks(
+	ctx context.Context,
+	filter systemType.ProjectTaskFilter,
+	sort filter.SortExprSet,
+) (set []*systemType.ProjectTask, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*systemType.ProjectTask
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter systemType.ProjectTaskFilter
+	)
+
+	set = make([]*systemType.ProjectTask, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryProjectTasks(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectProjectTaskCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectProjectTaskCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectProjectTaskCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryProjectTasks queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryProjectTasks(
+	ctx context.Context,
+	f systemType.ProjectTaskFilter,
+) (_ []*systemType.ProjectTask, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*systemType.ProjectTask, 0, DefaultSliceCapacity)
+		res         *systemType.ProjectTask
+		aux         *auxProjectTask
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.ProjectTask != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.ProjectTask(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = ProjectTaskFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for ProjectTask: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableProjectTaskFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := projectTaskSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableProjectTaskFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for ProjectTask: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query ProjectTask: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query ProjectTask: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query ProjectTask: %w", err)
+			return
+		}
+
+		aux = new(auxProjectTask)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for ProjectTask: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode ProjectTask: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupProjectTaskByID searches for project task by ID
+//
+// It also returns deleted project tasks.
+//
+// This function is auto-generated
+func (s *Store) LookupProjectTaskByID(ctx context.Context, id uint64) (_ *systemType.ProjectTask, err error) {
+	var (
+		rows       *sql.Rows
+		aux        = new(auxProjectTask)
+		lookupExpr = []goqu.Expression{
+			goqu.I("id").Eq(id),
+		}
+	)
+
+	lookup := projectTaskSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableProjectTaskFields returns all ProjectTask columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableProjectTaskFields() map[string]string {
+	return map[string]string{
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
+		"id":         "id",
+		"status":     "status",
+		"task_name":  "task_name",
+		"taskname":   "task_name",
+		"title":      "title",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+	}
+}
+
+// collectProjectTaskCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectProjectTaskCursorValues(res *systemType.ProjectTask, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "title":
+					return res.Title
+				case "taskName":
+					return res.TaskName
+				case "status":
+					return res.Status
+				case "createdAt":
+					return res.CreatedAt
+				case "updatedAt":
+					return res.UpdatedAt
+				case "deletedAt":
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkProjectTaskConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkProjectTaskConstraints(ctx context.Context, res *systemType.ProjectTask) (err error) {
 	return nil
 }
 

@@ -268,6 +268,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				resource:  {
 					dal: { type: "Text", length: 512 }
 				}
+				project_id: schema.ProjectRefField
 				action: {
 					dal: { type: "Text", length: 64 }
 				}
@@ -313,11 +314,12 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				actor_id: { goType: "[]uint64", ident: "actorID" }
 				origin: { storeIdent: "request_origin" }
 				resource: {}
+				project_id: schema.ProjectFilterField
 				action: {}
 				limit: { goType: "uint" }
 			}
 
-			byValue: ["action", "resource", "origin", "actor_id" ]
+			byValue: ["action", "resource", "origin", "actor_id", "project_id" ]
 		}
 
 		store: {

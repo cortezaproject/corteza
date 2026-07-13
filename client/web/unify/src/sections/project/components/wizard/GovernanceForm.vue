@@ -60,6 +60,9 @@
             v-else-if="field.type === 'select'"
             :model-value="modelValue[field.key]"
             :options="field.options"
+            :option-label="field.optionLabel"
+            :option-value="field.optionValue"
+            :filter="!!field.filter"
             :disabled="disabled"
             fluid
             @update:model-value="update(field.key, $event)"

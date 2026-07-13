@@ -412,6 +412,19 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
+	case "corteza::system:project-feature":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-feature",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
 	case "corteza::system:project-group":
 		scope := Scope{}
 
@@ -438,6 +451,19 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
+	case "corteza::system:project-incident":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-incident",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
 	case "corteza::system:project-member":
 		scope := Scope{}
 
@@ -447,6 +473,45 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 
 		out["Path.0"] = Ref{
 			ResourceType: "corteza::system:project-member",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:project-privacy":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-privacy",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:project-review":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-review",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:project-task":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-task",
 			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
 			Scope:        scope,
 		}

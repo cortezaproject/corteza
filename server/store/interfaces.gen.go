@@ -92,9 +92,14 @@ type (
 		LlmProviders
 		Notifications
 		Projects
+		ProjectFeatures
 		ProjectGroups
 		ProjectGroupEntrys
+		ProjectIncidents
 		ProjectMembers
+		ProjectPrivacys
+		ProjectReviews
+		ProjectTasks
 		Queues
 		QueueMessages
 		RbacRules
@@ -735,6 +740,18 @@ type (
 		LookupProjectByHandle(ctx context.Context, handle string) (*systemType.Project, error)
 	}
 
+	ProjectFeatures interface {
+		SearchProjectFeatures(ctx context.Context, f systemType.ProjectFeatureFilter) (systemType.ProjectFeatureSet, systemType.ProjectFeatureFilter, error)
+		CreateProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) error
+		UpdateProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) error
+		UpsertProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) error
+		DeleteProjectFeature(ctx context.Context, rr ...*systemType.ProjectFeature) error
+
+		DeleteProjectFeatureByID(ctx context.Context, id uint64) error
+		TruncateProjectFeatures(ctx context.Context) error
+		LookupProjectFeatureByID(ctx context.Context, id uint64) (*systemType.ProjectFeature, error)
+	}
+
 	ProjectGroups interface {
 		SearchProjectGroups(ctx context.Context, f systemType.ProjectGroupFilter) (systemType.ProjectGroupSet, systemType.ProjectGroupFilter, error)
 		CreateProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
@@ -760,6 +777,18 @@ type (
 		LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, projectGroupID uint64, resourceRef string) (*systemType.ProjectGroupEntry, error)
 	}
 
+	ProjectIncidents interface {
+		SearchProjectIncidents(ctx context.Context, f systemType.ProjectIncidentFilter) (systemType.ProjectIncidentSet, systemType.ProjectIncidentFilter, error)
+		CreateProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) error
+		UpdateProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) error
+		UpsertProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) error
+		DeleteProjectIncident(ctx context.Context, rr ...*systemType.ProjectIncident) error
+
+		DeleteProjectIncidentByID(ctx context.Context, id uint64) error
+		TruncateProjectIncidents(ctx context.Context) error
+		LookupProjectIncidentByID(ctx context.Context, id uint64) (*systemType.ProjectIncident, error)
+	}
+
 	ProjectMembers interface {
 		SearchProjectMembers(ctx context.Context, f systemType.ProjectMemberFilter) (systemType.ProjectMemberSet, systemType.ProjectMemberFilter, error)
 		CreateProjectMember(ctx context.Context, rr ...*systemType.ProjectMember) error
@@ -771,6 +800,42 @@ type (
 		TruncateProjectMembers(ctx context.Context) error
 		LookupProjectMemberByID(ctx context.Context, id uint64) (*systemType.ProjectMember, error)
 		LookupProjectMemberByProjectIDUserID(ctx context.Context, projectID uint64, userID uint64) (*systemType.ProjectMember, error)
+	}
+
+	ProjectPrivacys interface {
+		SearchProjectPrivacys(ctx context.Context, f systemType.ProjectPrivacyFilter) (systemType.ProjectPrivacySet, systemType.ProjectPrivacyFilter, error)
+		CreateProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) error
+		UpdateProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) error
+		UpsertProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) error
+		DeleteProjectPrivacy(ctx context.Context, rr ...*systemType.ProjectPrivacy) error
+
+		DeleteProjectPrivacyByID(ctx context.Context, id uint64) error
+		TruncateProjectPrivacys(ctx context.Context) error
+		LookupProjectPrivacyByID(ctx context.Context, id uint64) (*systemType.ProjectPrivacy, error)
+	}
+
+	ProjectReviews interface {
+		SearchProjectReviews(ctx context.Context, f systemType.ProjectReviewFilter) (systemType.ProjectReviewSet, systemType.ProjectReviewFilter, error)
+		CreateProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) error
+		UpdateProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) error
+		UpsertProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) error
+		DeleteProjectReview(ctx context.Context, rr ...*systemType.ProjectReview) error
+
+		DeleteProjectReviewByID(ctx context.Context, id uint64) error
+		TruncateProjectReviews(ctx context.Context) error
+		LookupProjectReviewByID(ctx context.Context, id uint64) (*systemType.ProjectReview, error)
+	}
+
+	ProjectTasks interface {
+		SearchProjectTasks(ctx context.Context, f systemType.ProjectTaskFilter) (systemType.ProjectTaskSet, systemType.ProjectTaskFilter, error)
+		CreateProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) error
+		UpdateProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) error
+		UpsertProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) error
+		DeleteProjectTask(ctx context.Context, rr ...*systemType.ProjectTask) error
+
+		DeleteProjectTaskByID(ctx context.Context, id uint64) error
+		TruncateProjectTasks(ctx context.Context) error
+		LookupProjectTaskByID(ctx context.Context, id uint64) (*systemType.ProjectTask, error)
 	}
 
 	Queues interface {
@@ -4078,6 +4143,64 @@ func LookupProjectByHandle(ctx context.Context, s Projects, handle string) (*sys
 	return s.LookupProjectByHandle(ctx, handle)
 }
 
+// SearchProjectFeatures returns all matching ProjectFeatures from store
+//
+// This function is auto-generated
+func SearchProjectFeatures(ctx context.Context, s ProjectFeatures, f systemType.ProjectFeatureFilter) (systemType.ProjectFeatureSet, systemType.ProjectFeatureFilter, error) {
+	return s.SearchProjectFeatures(ctx, f)
+}
+
+// CreateProjectFeature creates one or more ProjectFeatures in store
+//
+// This function is auto-generated
+func CreateProjectFeature(ctx context.Context, s ProjectFeatures, rr ...*systemType.ProjectFeature) error {
+	return s.CreateProjectFeature(ctx, rr...)
+}
+
+// UpdateProjectFeature updates one or more (existing) ProjectFeatures in store
+//
+// This function is auto-generated
+func UpdateProjectFeature(ctx context.Context, s ProjectFeatures, rr ...*systemType.ProjectFeature) error {
+	return s.UpdateProjectFeature(ctx, rr...)
+}
+
+// UpsertProjectFeature creates new or updates existing one or more ProjectFeatures in store
+//
+// This function is auto-generated
+func UpsertProjectFeature(ctx context.Context, s ProjectFeatures, rr ...*systemType.ProjectFeature) error {
+	return s.UpsertProjectFeature(ctx, rr...)
+}
+
+// DeleteProjectFeature deletes one or more ProjectFeatures from store
+//
+// This function is auto-generated
+func DeleteProjectFeature(ctx context.Context, s ProjectFeatures, rr ...*systemType.ProjectFeature) error {
+	return s.DeleteProjectFeature(ctx, rr...)
+}
+
+// DeleteProjectFeatureByID deletes one or more ProjectFeatures from store
+//
+// This function is auto-generated
+func DeleteProjectFeatureByID(ctx context.Context, s ProjectFeatures, id uint64) error {
+	return s.DeleteProjectFeatureByID(ctx, id)
+}
+
+// TruncateProjectFeatures Deletes all ProjectFeatures from store
+//
+// This function is auto-generated
+func TruncateProjectFeatures(ctx context.Context, s ProjectFeatures) error {
+	return s.TruncateProjectFeatures(ctx)
+}
+
+// LookupProjectFeatureByID searches for project feature by ID
+//
+// It also returns deleted project features.
+//
+// This function is auto-generated
+func LookupProjectFeatureByID(ctx context.Context, s ProjectFeatures, id uint64) (*systemType.ProjectFeature, error) {
+	return s.LookupProjectFeatureByID(ctx, id)
+}
+
 // SearchProjectGroups returns all matching ProjectGroups from store
 //
 // This function is auto-generated
@@ -4197,6 +4320,64 @@ func LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, s P
 	return s.LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx, projectGroupID, resourceRef)
 }
 
+// SearchProjectIncidents returns all matching ProjectIncidents from store
+//
+// This function is auto-generated
+func SearchProjectIncidents(ctx context.Context, s ProjectIncidents, f systemType.ProjectIncidentFilter) (systemType.ProjectIncidentSet, systemType.ProjectIncidentFilter, error) {
+	return s.SearchProjectIncidents(ctx, f)
+}
+
+// CreateProjectIncident creates one or more ProjectIncidents in store
+//
+// This function is auto-generated
+func CreateProjectIncident(ctx context.Context, s ProjectIncidents, rr ...*systemType.ProjectIncident) error {
+	return s.CreateProjectIncident(ctx, rr...)
+}
+
+// UpdateProjectIncident updates one or more (existing) ProjectIncidents in store
+//
+// This function is auto-generated
+func UpdateProjectIncident(ctx context.Context, s ProjectIncidents, rr ...*systemType.ProjectIncident) error {
+	return s.UpdateProjectIncident(ctx, rr...)
+}
+
+// UpsertProjectIncident creates new or updates existing one or more ProjectIncidents in store
+//
+// This function is auto-generated
+func UpsertProjectIncident(ctx context.Context, s ProjectIncidents, rr ...*systemType.ProjectIncident) error {
+	return s.UpsertProjectIncident(ctx, rr...)
+}
+
+// DeleteProjectIncident deletes one or more ProjectIncidents from store
+//
+// This function is auto-generated
+func DeleteProjectIncident(ctx context.Context, s ProjectIncidents, rr ...*systemType.ProjectIncident) error {
+	return s.DeleteProjectIncident(ctx, rr...)
+}
+
+// DeleteProjectIncidentByID deletes one or more ProjectIncidents from store
+//
+// This function is auto-generated
+func DeleteProjectIncidentByID(ctx context.Context, s ProjectIncidents, id uint64) error {
+	return s.DeleteProjectIncidentByID(ctx, id)
+}
+
+// TruncateProjectIncidents Deletes all ProjectIncidents from store
+//
+// This function is auto-generated
+func TruncateProjectIncidents(ctx context.Context, s ProjectIncidents) error {
+	return s.TruncateProjectIncidents(ctx)
+}
+
+// LookupProjectIncidentByID searches for project incident by ID
+//
+// It also returns deleted project incidents.
+//
+// This function is auto-generated
+func LookupProjectIncidentByID(ctx context.Context, s ProjectIncidents, id uint64) (*systemType.ProjectIncident, error) {
+	return s.LookupProjectIncidentByID(ctx, id)
+}
+
 // SearchProjectMembers returns all matching ProjectMembers from store
 //
 // This function is auto-generated
@@ -4260,6 +4441,180 @@ func LookupProjectMemberByID(ctx context.Context, s ProjectMembers, id uint64) (
 // This function is auto-generated
 func LookupProjectMemberByProjectIDUserID(ctx context.Context, s ProjectMembers, projectID uint64, userID uint64) (*systemType.ProjectMember, error) {
 	return s.LookupProjectMemberByProjectIDUserID(ctx, projectID, userID)
+}
+
+// SearchProjectPrivacys returns all matching ProjectPrivacys from store
+//
+// This function is auto-generated
+func SearchProjectPrivacys(ctx context.Context, s ProjectPrivacys, f systemType.ProjectPrivacyFilter) (systemType.ProjectPrivacySet, systemType.ProjectPrivacyFilter, error) {
+	return s.SearchProjectPrivacys(ctx, f)
+}
+
+// CreateProjectPrivacy creates one or more ProjectPrivacys in store
+//
+// This function is auto-generated
+func CreateProjectPrivacy(ctx context.Context, s ProjectPrivacys, rr ...*systemType.ProjectPrivacy) error {
+	return s.CreateProjectPrivacy(ctx, rr...)
+}
+
+// UpdateProjectPrivacy updates one or more (existing) ProjectPrivacys in store
+//
+// This function is auto-generated
+func UpdateProjectPrivacy(ctx context.Context, s ProjectPrivacys, rr ...*systemType.ProjectPrivacy) error {
+	return s.UpdateProjectPrivacy(ctx, rr...)
+}
+
+// UpsertProjectPrivacy creates new or updates existing one or more ProjectPrivacys in store
+//
+// This function is auto-generated
+func UpsertProjectPrivacy(ctx context.Context, s ProjectPrivacys, rr ...*systemType.ProjectPrivacy) error {
+	return s.UpsertProjectPrivacy(ctx, rr...)
+}
+
+// DeleteProjectPrivacy deletes one or more ProjectPrivacys from store
+//
+// This function is auto-generated
+func DeleteProjectPrivacy(ctx context.Context, s ProjectPrivacys, rr ...*systemType.ProjectPrivacy) error {
+	return s.DeleteProjectPrivacy(ctx, rr...)
+}
+
+// DeleteProjectPrivacyByID deletes one or more ProjectPrivacys from store
+//
+// This function is auto-generated
+func DeleteProjectPrivacyByID(ctx context.Context, s ProjectPrivacys, id uint64) error {
+	return s.DeleteProjectPrivacyByID(ctx, id)
+}
+
+// TruncateProjectPrivacys Deletes all ProjectPrivacys from store
+//
+// This function is auto-generated
+func TruncateProjectPrivacys(ctx context.Context, s ProjectPrivacys) error {
+	return s.TruncateProjectPrivacys(ctx)
+}
+
+// LookupProjectPrivacyByID searches for project privacy by ID
+//
+// It also returns deleted project privacys.
+//
+// This function is auto-generated
+func LookupProjectPrivacyByID(ctx context.Context, s ProjectPrivacys, id uint64) (*systemType.ProjectPrivacy, error) {
+	return s.LookupProjectPrivacyByID(ctx, id)
+}
+
+// SearchProjectReviews returns all matching ProjectReviews from store
+//
+// This function is auto-generated
+func SearchProjectReviews(ctx context.Context, s ProjectReviews, f systemType.ProjectReviewFilter) (systemType.ProjectReviewSet, systemType.ProjectReviewFilter, error) {
+	return s.SearchProjectReviews(ctx, f)
+}
+
+// CreateProjectReview creates one or more ProjectReviews in store
+//
+// This function is auto-generated
+func CreateProjectReview(ctx context.Context, s ProjectReviews, rr ...*systemType.ProjectReview) error {
+	return s.CreateProjectReview(ctx, rr...)
+}
+
+// UpdateProjectReview updates one or more (existing) ProjectReviews in store
+//
+// This function is auto-generated
+func UpdateProjectReview(ctx context.Context, s ProjectReviews, rr ...*systemType.ProjectReview) error {
+	return s.UpdateProjectReview(ctx, rr...)
+}
+
+// UpsertProjectReview creates new or updates existing one or more ProjectReviews in store
+//
+// This function is auto-generated
+func UpsertProjectReview(ctx context.Context, s ProjectReviews, rr ...*systemType.ProjectReview) error {
+	return s.UpsertProjectReview(ctx, rr...)
+}
+
+// DeleteProjectReview deletes one or more ProjectReviews from store
+//
+// This function is auto-generated
+func DeleteProjectReview(ctx context.Context, s ProjectReviews, rr ...*systemType.ProjectReview) error {
+	return s.DeleteProjectReview(ctx, rr...)
+}
+
+// DeleteProjectReviewByID deletes one or more ProjectReviews from store
+//
+// This function is auto-generated
+func DeleteProjectReviewByID(ctx context.Context, s ProjectReviews, id uint64) error {
+	return s.DeleteProjectReviewByID(ctx, id)
+}
+
+// TruncateProjectReviews Deletes all ProjectReviews from store
+//
+// This function is auto-generated
+func TruncateProjectReviews(ctx context.Context, s ProjectReviews) error {
+	return s.TruncateProjectReviews(ctx)
+}
+
+// LookupProjectReviewByID searches for project review by ID
+//
+// It also returns deleted project reviews.
+//
+// This function is auto-generated
+func LookupProjectReviewByID(ctx context.Context, s ProjectReviews, id uint64) (*systemType.ProjectReview, error) {
+	return s.LookupProjectReviewByID(ctx, id)
+}
+
+// SearchProjectTasks returns all matching ProjectTasks from store
+//
+// This function is auto-generated
+func SearchProjectTasks(ctx context.Context, s ProjectTasks, f systemType.ProjectTaskFilter) (systemType.ProjectTaskSet, systemType.ProjectTaskFilter, error) {
+	return s.SearchProjectTasks(ctx, f)
+}
+
+// CreateProjectTask creates one or more ProjectTasks in store
+//
+// This function is auto-generated
+func CreateProjectTask(ctx context.Context, s ProjectTasks, rr ...*systemType.ProjectTask) error {
+	return s.CreateProjectTask(ctx, rr...)
+}
+
+// UpdateProjectTask updates one or more (existing) ProjectTasks in store
+//
+// This function is auto-generated
+func UpdateProjectTask(ctx context.Context, s ProjectTasks, rr ...*systemType.ProjectTask) error {
+	return s.UpdateProjectTask(ctx, rr...)
+}
+
+// UpsertProjectTask creates new or updates existing one or more ProjectTasks in store
+//
+// This function is auto-generated
+func UpsertProjectTask(ctx context.Context, s ProjectTasks, rr ...*systemType.ProjectTask) error {
+	return s.UpsertProjectTask(ctx, rr...)
+}
+
+// DeleteProjectTask deletes one or more ProjectTasks from store
+//
+// This function is auto-generated
+func DeleteProjectTask(ctx context.Context, s ProjectTasks, rr ...*systemType.ProjectTask) error {
+	return s.DeleteProjectTask(ctx, rr...)
+}
+
+// DeleteProjectTaskByID deletes one or more ProjectTasks from store
+//
+// This function is auto-generated
+func DeleteProjectTaskByID(ctx context.Context, s ProjectTasks, id uint64) error {
+	return s.DeleteProjectTaskByID(ctx, id)
+}
+
+// TruncateProjectTasks Deletes all ProjectTasks from store
+//
+// This function is auto-generated
+func TruncateProjectTasks(ctx context.Context, s ProjectTasks) error {
+	return s.TruncateProjectTasks(ctx)
+}
+
+// LookupProjectTaskByID searches for project task by ID
+//
+// It also returns deleted project tasks.
+//
+// This function is auto-generated
+func LookupProjectTaskByID(ctx context.Context, s ProjectTasks, id uint64) (*systemType.ProjectTask, error) {
+	return s.LookupProjectTaskByID(ctx, id)
 }
 
 // SearchQueues returns all matching Queues from store

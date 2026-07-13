@@ -3059,6 +3059,386 @@ func TestProjectGroupEntrySetIDs(t *testing.T) {
 	}
 }
 
+func TestProjectIncidentSetWalk(t *testing.T) {
+	var (
+		value = make(ProjectIncidentSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		err := value.Walk(func(*ProjectIncident) error { return nil })
+		req.NoError(err)
+	}
+
+	req.Error(value.Walk(func(*ProjectIncident) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectIncidentSetFilter(t *testing.T) {
+	var (
+		value = make(ProjectIncidentSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		set, err := value.Filter(func(*ProjectIncident) (bool, error) { return true, nil })
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	{
+		found := false
+		set, err := value.Filter(func(*ProjectIncident) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	{
+		_, err := value.Filter(func(*ProjectIncident) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectIncidentSetIDs(t *testing.T) {
+	var (
+		value = make(ProjectIncidentSet, 3)
+		req   = require.New(t)
+	)
+
+	value[0] = new(ProjectIncident)
+	value[1] = new(ProjectIncident)
+	value[2] = new(ProjectIncident)
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestProjectFeatureSetWalk(t *testing.T) {
+	var (
+		value = make(ProjectFeatureSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		err := value.Walk(func(*ProjectFeature) error { return nil })
+		req.NoError(err)
+	}
+
+	req.Error(value.Walk(func(*ProjectFeature) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectFeatureSetFilter(t *testing.T) {
+	var (
+		value = make(ProjectFeatureSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		set, err := value.Filter(func(*ProjectFeature) (bool, error) { return true, nil })
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	{
+		found := false
+		set, err := value.Filter(func(*ProjectFeature) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	{
+		_, err := value.Filter(func(*ProjectFeature) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectFeatureSetIDs(t *testing.T) {
+	var (
+		value = make(ProjectFeatureSet, 3)
+		req   = require.New(t)
+	)
+
+	value[0] = new(ProjectFeature)
+	value[1] = new(ProjectFeature)
+	value[2] = new(ProjectFeature)
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestProjectPrivacySetWalk(t *testing.T) {
+	var (
+		value = make(ProjectPrivacySet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		err := value.Walk(func(*ProjectPrivacy) error { return nil })
+		req.NoError(err)
+	}
+
+	req.Error(value.Walk(func(*ProjectPrivacy) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectPrivacySetFilter(t *testing.T) {
+	var (
+		value = make(ProjectPrivacySet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		set, err := value.Filter(func(*ProjectPrivacy) (bool, error) { return true, nil })
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	{
+		found := false
+		set, err := value.Filter(func(*ProjectPrivacy) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	{
+		_, err := value.Filter(func(*ProjectPrivacy) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectPrivacySetIDs(t *testing.T) {
+	var (
+		value = make(ProjectPrivacySet, 3)
+		req   = require.New(t)
+	)
+
+	value[0] = new(ProjectPrivacy)
+	value[1] = new(ProjectPrivacy)
+	value[2] = new(ProjectPrivacy)
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestProjectTaskSetWalk(t *testing.T) {
+	var (
+		value = make(ProjectTaskSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		err := value.Walk(func(*ProjectTask) error { return nil })
+		req.NoError(err)
+	}
+
+	req.Error(value.Walk(func(*ProjectTask) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectTaskSetFilter(t *testing.T) {
+	var (
+		value = make(ProjectTaskSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		set, err := value.Filter(func(*ProjectTask) (bool, error) { return true, nil })
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	{
+		found := false
+		set, err := value.Filter(func(*ProjectTask) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	{
+		_, err := value.Filter(func(*ProjectTask) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectTaskSetIDs(t *testing.T) {
+	var (
+		value = make(ProjectTaskSet, 3)
+		req   = require.New(t)
+	)
+
+	value[0] = new(ProjectTask)
+	value[1] = new(ProjectTask)
+	value[2] = new(ProjectTask)
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestProjectReviewSetWalk(t *testing.T) {
+	var (
+		value = make(ProjectReviewSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		err := value.Walk(func(*ProjectReview) error { return nil })
+		req.NoError(err)
+	}
+
+	req.Error(value.Walk(func(*ProjectReview) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectReviewSetFilter(t *testing.T) {
+	var (
+		value = make(ProjectReviewSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		set, err := value.Filter(func(*ProjectReview) (bool, error) { return true, nil })
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	{
+		found := false
+		set, err := value.Filter(func(*ProjectReview) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	{
+		_, err := value.Filter(func(*ProjectReview) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectReviewSetIDs(t *testing.T) {
+	var (
+		value = make(ProjectReviewSet, 3)
+		req   = require.New(t)
+	)
+
+	value[0] = new(ProjectReview)
+	value[1] = new(ProjectReview)
+	value[2] = new(ProjectReview)
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
 func TestDmlConnectionSetWalk(t *testing.T) {
 	var (
 		value = make(DmlConnectionSet, 3)

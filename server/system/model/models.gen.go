@@ -3886,6 +3886,206 @@ var Project = &dal.Model{
 	},
 }
 
+var ProjectFeature = &dal.Model{
+	Ident:        "project_features",
+	ResourceType: types.ProjectFeatureResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title", Sortable: true,
+			Type:  &dal.TypeText{Length: 255},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "FeatureType", Sortable: true,
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "feature_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "Severity",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "severity"},
+		},
+
+		&dal.Attribute{
+			Ident: "Risk",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "risk"},
+		},
+
+		&dal.Attribute{
+			Ident: "FeatureOwner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "feature_owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeOwner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "change_owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeApprovedBy",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "change_approved_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "RiskFeature",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "risk_feature"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeRequired",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "change_required"},
+		},
+
+		&dal.Attribute{
+			Ident: "RiskChange",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "risk_change"},
+		},
+
+		&dal.Attribute{
+			Ident: "Backlog",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "backlog"},
+		},
+
+		&dal.Attribute{
+			Ident: "DateDue",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "date_due"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
 var ProjectGroup = &dal.Model{
 	Ident:        "project_groups",
 	ResourceType: types.ProjectGroupResourceType,
@@ -4028,6 +4228,218 @@ var ProjectGroupEntry = &dal.Model{
 	},
 }
 
+var ProjectIncident = &dal.Model{
+	Ident:        "project_incidents",
+	ResourceType: types.ProjectIncidentResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title", Sortable: true,
+			Type:  &dal.TypeText{Length: 255},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "IncidentType", Sortable: true,
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "incident_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "GroupSystem",
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "group_system"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "Severity",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "severity"},
+		},
+
+		&dal.Attribute{
+			Ident: "Risk",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "risk"},
+		},
+
+		&dal.Attribute{
+			Ident: "IssueOwner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "issue_owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeOwner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "change_owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeApprovedBy",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "change_approved_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "RiskIssue",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "risk_issue"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeRequired",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "change_required"},
+		},
+
+		&dal.Attribute{
+			Ident: "RiskChange",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "risk_change"},
+		},
+
+		&dal.Attribute{
+			Ident: "Backlog",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "backlog"},
+		},
+
+		&dal.Attribute{
+			Ident: "DateDue",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "date_due"},
+		},
+
+		&dal.Attribute{
+			Ident: "CompletedDate",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "completed_date"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
 var ProjectMember = &dal.Model{
 	Ident:        "project_members",
 	ResourceType: types.ProjectMemberResourceType,
@@ -4120,6 +4532,554 @@ var ProjectMember = &dal.Model{
 
 				{
 					AttributeIdent: "UserID",
+				},
+			},
+		},
+	},
+}
+
+var ProjectPrivacy = &dal.Model{
+	Ident:        "project_privacys",
+	ResourceType: types.ProjectPrivacyResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title", Sortable: true,
+			Type:  &dal.TypeText{Length: 255},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestType", Sortable: true,
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "request_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "Severity",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "severity"},
+		},
+
+		&dal.Attribute{
+			Ident: "Risk",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "risk"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestOwner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "request_owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeOwner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "change_owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeApprovedBy",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "change_approved_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "RiskAssessment",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "risk_assessment"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeRequired",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "change_required"},
+		},
+
+		&dal.Attribute{
+			Ident: "RiskChange",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "risk_change"},
+		},
+
+		&dal.Attribute{
+			Ident: "Backlog",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "backlog"},
+		},
+
+		&dal.Attribute{
+			Ident: "DateDue",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "date_due"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
+var ProjectReview = &dal.Model{
+	Ident:        "project_reviews",
+	ResourceType: types.ProjectReviewResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title", Sortable: true,
+			Type:  &dal.TypeText{Length: 255},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "ReviewType", Sortable: true,
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "review_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "ReviewFrequency",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "review_frequency"},
+		},
+
+		&dal.Attribute{
+			Ident: "Scope",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "scope"},
+		},
+
+		&dal.Attribute{
+			Ident: "Reviewer",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "reviewer"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApprovedBy",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "approved_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "DateDue",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "date_due"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
+var ProjectTask = &dal.Model{
+	Ident:        "project_tasks",
+	ResourceType: types.ProjectTaskResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title", Sortable: true,
+			Type:  &dal.TypeText{Length: 255},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "TaskName", Sortable: true,
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "task_name"},
+		},
+
+		&dal.Attribute{
+			Ident: "TaskType",
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "task_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "Severity",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "severity"},
+		},
+
+		&dal.Attribute{
+			Ident: "Risk",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "risk"},
+		},
+
+		&dal.Attribute{
+			Ident: "Owner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "ChangeOwner",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "change_owner"},
+		},
+
+		&dal.Attribute{
+			Ident: "Backlog",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "backlog"},
+		},
+
+		&dal.Attribute{
+			Ident: "DateDue",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "date_due"},
+		},
+
+		&dal.Attribute{
+			Ident: "CompletedDate",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "completed_date"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
 				},
 			},
 		},
@@ -5639,9 +6599,14 @@ func init() {
 		LlmProvider,
 		Notification,
 		Project,
+		ProjectFeature,
 		ProjectGroup,
 		ProjectGroupEntry,
+		ProjectIncident,
 		ProjectMember,
+		ProjectPrivacy,
+		ProjectReview,
+		ProjectTask,
 		Queue,
 		QueueMessage,
 		Reminder,

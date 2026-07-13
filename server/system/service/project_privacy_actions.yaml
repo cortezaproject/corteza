@@ -1,0 +1,78 @@
+# List of loggable service actions
+
+resource: system:project-privacy
+service: projectPrivacy
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectPrivacy
+    type: "*types.ProjectPrivacy"
+    fields: [ title, ID ]
+  - name: new
+    type: "*types.ProjectPrivacy"
+    fields: [ title, ID ]
+  - name: update
+    type: "*types.ProjectPrivacy"
+    fields: [ title, ID ]
+  - name: filter
+    type: "*types.ProjectPrivacyFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for project privacys"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectPrivacy}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectPrivacy}}"
+
+  - action: update
+    log: "updated {{projectPrivacy}}"
+
+  - action: delete
+    log: "deleted {{projectPrivacy}}"
+
+errors:
+  - error: notFound
+    message: "project privacy not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "project privacy was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project privacy"
+    log: "failed to create a project privacy; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project privacy"
+    log: "failed to read {{projectPrivacy.title}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list project privacys"
+    log: "failed to search or list project privacys; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project privacy"
+    log: "failed to update {{projectPrivacy.title}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project privacy"
+    log: "failed to delete {{projectPrivacy.title}}; insufficient permissions"

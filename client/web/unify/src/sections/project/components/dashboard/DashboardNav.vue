@@ -60,17 +60,23 @@ function isActive(item) {
 }
 
 // Icon badge classes. Category items reuse the SAME colored badge as their
-// screen title (CATEGORY_CONFIG.badge — bg/ring/icon/text); other items use the
-// neutral badge that tints to primary when active.
+// screen title (CATEGORY_CONFIG.badge — bg/ring/icon/text); items with a fixed
+// `iconTone` mirror their screen's header badge (neutral box + tinted icon,
+// regardless of active state); the rest use the neutral badge that tints to
+// primary when active.
 function iconBox(item) {
   if (item.category) {
     const { badge } = CATEGORY_CONFIG[item.category]
     return { wrap: [badge.bg, badge.ring], icon: [badge.icon, badge.text] }
   }
-  const active = isActive(item)
+  if (item.iconTone === 'primary') {
+    return { wrap: ['bg-emphasis', 'ring-surface'], icon: ['pi', item.icon, 'text-primary'] }
+  }
+  // Badge is constant regardless of active state — the row background (see the
+  // button :class) is what marks the active item, not the icon.
   return {
-    wrap: [active ? 'bg-primary/10' : 'bg-emphasis', active ? 'ring-primary/30' : 'ring-surface'],
-    icon: ['pi', item.icon, active ? 'text-primary' : 'text-muted-color'],
+    wrap: ['bg-emphasis', 'ring-surface'],
+    icon: ['pi', item.icon, 'text-muted-color'],
   }
 }
 

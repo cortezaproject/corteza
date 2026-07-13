@@ -2668,6 +2668,10 @@ endpoints:
               required: false
               title: Resource
               type: string
+            - name: projectID
+              required: false
+              title: Scope to a project
+              type: uint64
             - name: action
               required: false
               title: Action
@@ -3527,6 +3531,376 @@ endpoints:
             - { name: tlsInsecure, type: bool, title: TLS mode }
             - { name: tlsServerName, type: string, title: TLS server name }
 
+  - title: Project Incidents
+    path: '/project-incidents'
+    entrypoint: projectIncident
+    genController: true
+    authentication: []
+    apis:
+      - name: list
+        method: GET
+        title: List project incidents
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create project incident
+        path: ''
+        parameters:
+          post:
+            - { type: uint64, name: projectID, title: Project this incident belongs to }
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: incidentType, title: Incident type }
+            - { type: string, name: groupSystem, title: Affected group/system }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: issueOwner, title: Issue owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: uint64, name: changeApprovedBy, title: Change approved-by user ID }
+            - { type: string, name: riskIssue, title: Risk/issue assessment }
+            - { type: string, name: changeRequired, title: Change required }
+            - { type: string, name: riskChange, title: Risk of change }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+            - { type: string, name: completedDate, title: Completed date (ISO) }
+      - name: read
+        method: GET
+        title: Read project incident details
+        path: '/{incidentID}'
+        parameters:
+          path:
+            - { type: uint64, name: incidentID, required: true, title: Incident ID }
+      - name: update
+        method: PUT
+        title: Update project incident details
+        path: '/{incidentID}'
+        parameters:
+          path:
+            - { type: uint64, name: incidentID, required: true, title: Incident ID }
+          post:
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: incidentType, title: Incident type }
+            - { type: string, name: groupSystem, title: Affected group/system }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: issueOwner, title: Issue owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: uint64, name: changeApprovedBy, title: Change approved-by user ID }
+            - { type: string, name: riskIssue, title: Risk/issue assessment }
+            - { type: string, name: changeRequired, title: Change required }
+            - { type: string, name: riskChange, title: Risk of change }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+            - { type: string, name: completedDate, title: Completed date (ISO) }
+      - name: delete
+        method: DELETE
+        title: Delete project incident
+        path: '/{incidentID}'
+        parameters:
+          path:
+            - { type: uint64, name: incidentID, required: true, title: Incident ID }
+  - title: Project Features
+    path: '/project-features'
+    entrypoint: projectFeature
+    genController: true
+    authentication: []
+    apis:
+      - name: list
+        method: GET
+        title: List project features
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create project feature
+        path: ''
+        parameters:
+          post:
+            - { type: uint64, name: projectID, title: Project this feature belongs to }
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: featureType, title: Feature type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: featureOwner, title: Feature owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: uint64, name: changeApprovedBy, title: Change approved-by user ID }
+            - { type: string, name: riskFeature, title: Risk of feature }
+            - { type: string, name: changeRequired, title: Change required }
+            - { type: string, name: riskChange, title: Risk of change }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: read
+        method: GET
+        title: Read project feature details
+        path: '/{featureID}'
+        parameters:
+          path:
+            - { type: uint64, name: featureID, required: true, title: Feature ID }
+      - name: update
+        method: PUT
+        title: Update project feature details
+        path: '/{featureID}'
+        parameters:
+          path:
+            - { type: uint64, name: featureID, required: true, title: Feature ID }
+          post:
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: featureType, title: Feature type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: featureOwner, title: Feature owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: uint64, name: changeApprovedBy, title: Change approved-by user ID }
+            - { type: string, name: riskFeature, title: Risk of feature }
+            - { type: string, name: changeRequired, title: Change required }
+            - { type: string, name: riskChange, title: Risk of change }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: delete
+        method: DELETE
+        title: Delete project feature
+        path: '/{featureID}'
+        parameters:
+          path:
+            - { type: uint64, name: featureID, required: true, title: Feature ID }
+  - title: Project Privacy
+    path: '/project-privacies'
+    entrypoint: projectPrivacy
+    genController: true
+    authentication: []
+    apis:
+      - name: list
+        method: GET
+        title: List project privacy items
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create project privacy item
+        path: ''
+        parameters:
+          post:
+            - { type: uint64, name: projectID, title: Project this item belongs to }
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: requestType, title: Request type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: requestOwner, title: Request owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: uint64, name: changeApprovedBy, title: Change approved-by user ID }
+            - { type: string, name: riskAssessment, title: Risk assessment }
+            - { type: string, name: changeRequired, title: Change required }
+            - { type: string, name: riskChange, title: Risk of change }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: read
+        method: GET
+        title: Read project privacy item details
+        path: '/{privacyID}'
+        parameters:
+          path:
+            - { type: uint64, name: privacyID, required: true, title: Privacy item ID }
+      - name: update
+        method: PUT
+        title: Update project privacy item details
+        path: '/{privacyID}'
+        parameters:
+          path:
+            - { type: uint64, name: privacyID, required: true, title: Privacy item ID }
+          post:
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: requestType, title: Request type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: requestOwner, title: Request owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: uint64, name: changeApprovedBy, title: Change approved-by user ID }
+            - { type: string, name: riskAssessment, title: Risk assessment }
+            - { type: string, name: changeRequired, title: Change required }
+            - { type: string, name: riskChange, title: Risk of change }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: delete
+        method: DELETE
+        title: Delete project privacy item
+        path: '/{privacyID}'
+        parameters:
+          path:
+            - { type: uint64, name: privacyID, required: true, title: Privacy item ID }
+  - title: Project Tasks
+    path: '/project-tasks'
+    entrypoint: projectTask
+    genController: true
+    authentication: []
+    apis:
+      - name: list
+        method: GET
+        title: List project tasks
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create project task
+        path: ''
+        parameters:
+          post:
+            - { type: uint64, name: projectID, title: Project this task belongs to }
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: taskName, title: Task name }
+            - { type: string, name: taskType, title: Task type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: owner, title: Owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+            - { type: string, name: completedDate, title: Completed date (ISO) }
+      - name: read
+        method: GET
+        title: Read project task details
+        path: '/{taskID}'
+        parameters:
+          path:
+            - { type: uint64, name: taskID, required: true, title: Task ID }
+      - name: update
+        method: PUT
+        title: Update project task details
+        path: '/{taskID}'
+        parameters:
+          path:
+            - { type: uint64, name: taskID, required: true, title: Task ID }
+          post:
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: taskName, title: Task name }
+            - { type: string, name: taskType, title: Task type }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: severity, title: Severity }
+            - { type: string, name: risk, title: Risk }
+            - { type: uint64, name: owner, title: Owner user ID }
+            - { type: uint64, name: changeOwner, title: Change owner user ID }
+            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+            - { type: string, name: completedDate, title: Completed date (ISO) }
+      - name: delete
+        method: DELETE
+        title: Delete project task
+        path: '/{taskID}'
+        parameters:
+          path:
+            - { type: uint64, name: taskID, required: true, title: Task ID }
+  - title: Project Reviews
+    path: '/project-reviews'
+    entrypoint: projectReview
+    genController: true
+    authentication: []
+    apis:
+      - name: list
+        method: GET
+        title: List project reviews
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create project review
+        path: ''
+        parameters:
+          post:
+            - { type: uint64, name: projectID, title: Project this review belongs to }
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: reviewType, title: Review type }
+            - { type: string, name: reviewFrequency, title: Review frequency }
+            - { type: string, name: scope, title: Scope }
+            - { type: string, name: status, title: Status }
+            - { type: uint64, name: reviewer, title: Reviewer user ID }
+            - { type: uint64, name: approvedBy, title: Approved-by user ID }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: read
+        method: GET
+        title: Read project review details
+        path: '/{reviewID}'
+        parameters:
+          path:
+            - { type: uint64, name: reviewID, required: true, title: Review ID }
+      - name: update
+        method: PUT
+        title: Update project review details
+        path: '/{reviewID}'
+        parameters:
+          path:
+            - { type: uint64, name: reviewID, required: true, title: Review ID }
+          post:
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: reviewType, title: Review type }
+            - { type: string, name: reviewFrequency, title: Review frequency }
+            - { type: string, name: scope, title: Scope }
+            - { type: string, name: status, title: Status }
+            - { type: uint64, name: reviewer, title: Reviewer user ID }
+            - { type: uint64, name: approvedBy, title: Approved-by user ID }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: delete
+        method: DELETE
+        title: Delete project review
+        path: '/{reviewID}'
+        parameters:
+          path:
+            - { type: uint64, name: reviewID, required: true, title: Review ID }
   - title: Agents
     path: '/agents'
     entrypoint: agent

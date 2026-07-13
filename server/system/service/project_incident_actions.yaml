@@ -1,0 +1,78 @@
+# List of loggable service actions
+
+resource: system:project-incident
+service: projectIncident
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectIncident
+    type: "*types.ProjectIncident"
+    fields: [ title, ID ]
+  - name: new
+    type: "*types.ProjectIncident"
+    fields: [ title, ID ]
+  - name: update
+    type: "*types.ProjectIncident"
+    fields: [ title, ID ]
+  - name: filter
+    type: "*types.ProjectIncidentFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for project incidents"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectIncident}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectIncident}}"
+
+  - action: update
+    log: "updated {{projectIncident}}"
+
+  - action: delete
+    log: "deleted {{projectIncident}}"
+
+errors:
+  - error: notFound
+    message: "project incident not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "project incident was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project incident"
+    log: "failed to create a project incident; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project incident"
+    log: "failed to read {{projectIncident.title}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list project incidents"
+    log: "failed to search or list project incidents; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project incident"
+    log: "failed to update {{projectIncident.title}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project incident"
+    log: "failed to delete {{projectIncident.title}}; insufficient permissions"

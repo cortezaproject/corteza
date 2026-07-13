@@ -1,0 +1,78 @@
+# List of loggable service actions
+
+resource: system:project-task
+service: projectTask
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectTask
+    type: "*types.ProjectTask"
+    fields: [ title, ID ]
+  - name: new
+    type: "*types.ProjectTask"
+    fields: [ title, ID ]
+  - name: update
+    type: "*types.ProjectTask"
+    fields: [ title, ID ]
+  - name: filter
+    type: "*types.ProjectTaskFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for project tasks"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectTask}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectTask}}"
+
+  - action: update
+    log: "updated {{projectTask}}"
+
+  - action: delete
+    log: "deleted {{projectTask}}"
+
+errors:
+  - error: notFound
+    message: "project task not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "project task was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project task"
+    log: "failed to create a project task; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project task"
+    log: "failed to read {{projectTask.title}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list project tasks"
+    log: "failed to search or list project tasks; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project task"
+    log: "failed to update {{projectTask.title}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project task"
+    log: "failed to delete {{projectTask.title}}; insufficient permissions"

@@ -49,6 +49,11 @@ type (
 	ProjectMemberSet             []*ProjectMember
 	ProjectGroupSet              []*ProjectGroup
 	ProjectGroupEntrySet         []*ProjectGroupEntry
+	ProjectIncidentSet           []*ProjectIncident
+	ProjectFeatureSet            []*ProjectFeature
+	ProjectPrivacySet            []*ProjectPrivacy
+	ProjectTaskSet               []*ProjectTask
+	ProjectReviewSet             []*ProjectReview
 	DmlConnectionSet             []*DmlConnection
 	DmlMappingSet                []*DmlMapping
 	DmlImportRunSet              []*DmlImportRun
@@ -1797,6 +1802,226 @@ func (set ProjectGroupEntrySet) FindByID(ID uint64) *ProjectGroupEntry {
 }
 
 func (set ProjectGroupEntrySet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ProjectIncidentSet) Walk(w func(*ProjectIncident) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ProjectIncidentSet) Filter(f func(*ProjectIncident) (bool, error)) (out ProjectIncidentSet, err error) {
+	var ok bool
+	out = ProjectIncidentSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ProjectIncidentSet) FindByID(ID uint64) *ProjectIncident {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ProjectIncidentSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ProjectFeatureSet) Walk(w func(*ProjectFeature) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ProjectFeatureSet) Filter(f func(*ProjectFeature) (bool, error)) (out ProjectFeatureSet, err error) {
+	var ok bool
+	out = ProjectFeatureSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ProjectFeatureSet) FindByID(ID uint64) *ProjectFeature {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ProjectFeatureSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ProjectPrivacySet) Walk(w func(*ProjectPrivacy) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ProjectPrivacySet) Filter(f func(*ProjectPrivacy) (bool, error)) (out ProjectPrivacySet, err error) {
+	var ok bool
+	out = ProjectPrivacySet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ProjectPrivacySet) FindByID(ID uint64) *ProjectPrivacy {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ProjectPrivacySet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ProjectTaskSet) Walk(w func(*ProjectTask) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ProjectTaskSet) Filter(f func(*ProjectTask) (bool, error)) (out ProjectTaskSet, err error) {
+	var ok bool
+	out = ProjectTaskSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ProjectTaskSet) FindByID(ID uint64) *ProjectTask {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ProjectTaskSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ProjectReviewSet) Walk(w func(*ProjectReview) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ProjectReviewSet) Filter(f func(*ProjectReview) (bool, error)) (out ProjectReviewSet, err error) {
+	var ok bool
+	out = ProjectReviewSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ProjectReviewSet) FindByID(ID uint64) *ProjectReview {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ProjectReviewSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {
