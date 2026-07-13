@@ -147,7 +147,7 @@
       </div>
       <div
         v-else
-        class="text-muted-color text-sm p-3 border border-surface rounded-border bg-highlight text-center"
+        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
       >
         {{ $t('project.resourceManagement.infra.empty') }}
       </div>
@@ -269,7 +269,7 @@
       <!-- Same empty-state styling as CFormList's empty-message (providers above). -->
       <div
         v-else
-        class="text-muted-color text-sm p-3 border border-surface rounded-border bg-highlight text-center"
+        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
       >
         {{ $t('project.resourceManagement.connections.empty') }}
       </div>

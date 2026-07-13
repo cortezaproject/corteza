@@ -37,6 +37,16 @@
         </div>
       </CFormGroup>
 
+      <CFormGroup :label="$t('general.label.description')">
+        <Textarea
+          v-model="draft.description"
+          fluid
+          rows="2"
+          auto-resize
+          :placeholder="$t('project.pageDetail.descriptionPlaceholder')"
+        />
+      </CFormGroup>
+
       <CInputToggleCard
         v-model="draft.visible"
         :label="$t('project.pageDetail.visible')"
@@ -114,11 +124,12 @@ const page = computed(() =>
 )
 
 // --- Draft (staged; nothing persists until Save) -------------------------------
-const draft = reactive({ name: '', visible: true })
+const draft = reactive({ name: '', description: '', visible: true })
 
 function initDraft() {
   submitted.value = false
   draft.name = page.value?.name || ''
+  draft.description = page.value?.description || ''
   draft.visible = page.value ? !!page.value.visible : true
 }
 
@@ -151,6 +162,7 @@ async function onSave() {
   try {
     await store.updatePage(props.project.id, props.resourceId, {
       name: draft.name.trim(),
+      description: draft.description.trim(),
       visible: draft.visible,
     })
     emit('saved')

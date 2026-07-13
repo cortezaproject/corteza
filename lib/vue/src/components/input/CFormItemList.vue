@@ -5,7 +5,7 @@
 
   <div
     v-else-if="!items.length && emptyMessage"
-    class="text-muted-color p-4 border rounded-lg bg-emphasis text-center"
+    class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
   >
     {{ emptyMessage }}
   </div>

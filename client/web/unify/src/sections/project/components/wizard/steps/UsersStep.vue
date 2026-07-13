@@ -1,9 +1,8 @@
 <template>
   <div class="h-full overflow-auto p-4">
     <div class="flex flex-col gap-2">
-      <div>
+      <div v-if="!disabled && roles.length">
         <Button
-          v-if="!disabled && roles.length"
           icon="pi pi-plus"
           :label="$t('project.accessUsers.add')"
           size="small"
@@ -14,10 +13,9 @@
       <!-- Need roles before users can be assigned to them. -->
       <div
         v-if="!roles.length"
-        class="rounded-lg border border-surface mt-1 px-4 py-8 text-center text-muted-color"
+        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
       >
-        <i class="pi pi-id-card text-3xl mb-2" />
-        <p class="text-sm">{{ $t('project.accessUsers.noRoles') }}</p>
+        {{ $t('project.accessUsers.noRoles') }}
       </div>
 
       <CFormItemList
@@ -28,7 +26,6 @@
         :hide-remove="disabled"
         item-key="userId"
         reveal-on-hover
-        class="mt-1"
         @select="row => inspectResource?.('user', row.userId)"
         @remove="remove"
       >

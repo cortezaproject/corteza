@@ -1,9 +1,8 @@
 <template>
   <div class="h-full overflow-auto p-4">
     <div class="flex flex-col gap-2">
-      <div>
+      <div v-if="!disabled">
         <Button
-          v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.accessRoles.add')"
           size="small"
@@ -13,14 +12,14 @@
 
       <div
         v-if="!roles.length"
-        class="text-muted-color p-4 border rounded-lg bg-emphasis text-center mt-1"
+        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
       >
         {{ $t('project.accessRoles.empty') }}
       </div>
 
       <!-- One card per role — click the header to configure it; each card lists
            the role's members. Mirrors the data-model step's module cards. -->
-      <div v-else class="flex flex-col gap-4 mt-1">
+      <div v-else class="flex flex-col gap-4">
         <div
           v-for="r in roles"
           :key="r.id"

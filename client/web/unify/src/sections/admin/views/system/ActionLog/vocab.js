@@ -222,3 +222,17 @@ export const ORIGINS = Object.entries(ORIGIN_LABELS)
 export function originLabel(value) {
   return ORIGIN_LABELS[value] || value
 }
+
+// Backend severity is a uint8 (0–7) syslog level. Maps each to a PrimeVue Tag
+// `severity` + an i18n label key suffix (system.actionlog.list.severity.<label>).
+// 0=Emergency 1=Alert 2=Critical 3=Error 4=Warning 5=Notice 6=Info 7=Debug
+export const SEVERITY_MAP = {
+  0: { severity: 'danger', label: 'emergency' },
+  1: { severity: 'danger', label: 'alert' },
+  2: { severity: 'danger', label: 'critical' },
+  3: { severity: 'danger', label: 'error' },
+  4: { severity: 'warn', label: 'warning' },
+  5: { severity: 'success', label: 'notice' },
+  6: { severity: 'info', label: 'info' },
+  7: { severity: 'secondary', label: 'debug' },
+}

@@ -41,7 +41,7 @@
             kind="role"
             :label="role.name"
             interactive
-            :muted="!draft.roleIds.includes(role.id)"
+            :disabled="!draft.roleIds.includes(role.id)"
             @click="toggleRole(role.id)"
           />
         </div>

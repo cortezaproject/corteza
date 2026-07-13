@@ -63,11 +63,11 @@
       </main>
 
       <Toast
-        position="top-right"
+        position="bottom-right"
         :pt="{
           root: {
             style: {
-              top: 'var(--topbar-height)',
+              bottom: '4rem',
             },
           },
         }"

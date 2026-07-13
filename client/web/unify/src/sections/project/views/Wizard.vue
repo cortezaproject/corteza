@@ -2,17 +2,12 @@
   <Teleport to="#topbar-title" defer>
     <span class="flex items-center gap-2">
       <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
-      <span
+      <Tag
         v-if="project"
-        class="text-[11px] font-medium rounded-md px-2 py-0.5"
-        :class="
-          isLive
-            ? 'bg-surface-200 text-muted-color dark:bg-surface-700'
-            : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-        "
-      >
-        {{ versionLabel }}
-      </span>
+        :value="versionLabel"
+        :severity="isLive ? 'secondary' : 'warn'"
+        class="!text-xs"
+      />
     </span>
   </Teleport>
 
@@ -66,7 +61,7 @@
                their kind's icon and colour, other steps a neutral badge + step icon. -->
           <span
             v-if="activeStep"
-            class="inline-flex items-center justify-center w-9 h-9 rounded-md ring-1 shrink-0"
+            class="inline-flex items-center justify-center w-9 h-9 rounded-md shrink-0"
             :class="activeBadge.wrap"
           >
             <i :class="activeBadge.icon" />
@@ -740,10 +735,16 @@ const activeBadge = computed(() => {
   const s = activeStep.value
   if (s?.kind) {
     const cfg = kindConfig(s.kind)
-    return { wrap: [cfg.bg, cfg.ring], icon: [cfg.icon, cfg.text] }
+    return { wrap: ['ring-1', cfg.bg, cfg.ring], icon: [cfg.icon, cfg.text] }
+  }
+  // Permissions step mirrors the app-wide permissions button (CPermissionsButton):
+  // outlined secondary — surface fill, border-surface (--p-content-border-color,
+  // the token the outlined-secondary Button uses), full-tone lock.
+  if (s?.type === 'permissions') {
+    return { wrap: ['border', 'border-surface', 'bg-surface'], icon: ['pi', s?.icon || 'pi-lock', 'text-color'] }
   }
   return {
-    wrap: ['bg-emphasis', 'ring-surface'],
+    wrap: ['ring-1', 'bg-emphasis', 'ring-surface'],
     icon: ['pi', s?.icon || 'pi-circle', 'text-muted-color'],
   }
 })

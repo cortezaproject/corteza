@@ -40,7 +40,7 @@ export default {
         {
           path: 'events',
           name: 'project.overview.events',
-          component: () => import('./views/dashboard/DashboardStub.vue'),
+          component: () => import('./views/dashboard/AllEventsView.vue'),
           meta: { section: 'project', titleKey: 'project.dashboard.views.events', icon: 'pi-list' },
         },
         {

@@ -1,9 +1,8 @@
 <template>
   <div class="h-full overflow-auto p-4">
     <div class="flex flex-col gap-2">
-      <div>
+      <div v-if="!disabled">
         <Button
-          v-if="!disabled"
           icon="pi pi-plus"
           :label="$t('project.connections.add')"
           size="small"
@@ -11,7 +10,7 @@
         />
       </div>
 
-      <div class="mt-1">
+      <div>
         <CFormItemList
           :items="connections"
           item-key="id"

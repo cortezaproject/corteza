@@ -301,6 +301,7 @@ import {
   RESOURCE_TYPES,
   COMMON_ACTIONS,
   ORIGINS,
+  SEVERITY_MAP,
   actionLabel,
   resourceLabel,
   originLabel,
@@ -324,18 +325,8 @@ const filter = reactive({
   actorID: '',
 })
 
-// Severity is returned as uint8 (0–7) from the backend.
-// 0=Emergency, 1=Alert, 2=Critical, 3=Error, 4=Warning, 5=Notice, 6=Info, 7=Debug
-const severityMap = {
-  0: { severity: 'danger', label: 'emergency' },
-  1: { severity: 'danger', label: 'alert' },
-  2: { severity: 'danger', label: 'critical' },
-  3: { severity: 'danger', label: 'error' },
-  4: { severity: 'warn', label: 'warning' },
-  5: { severity: 'success', label: 'notice' },
-  6: { severity: 'info', label: 'info' },
-  7: { severity: 'secondary', label: 'debug' },
-}
+// Severity (uint8 0–7) → Tag severity + label key; shared via ActionLog vocab.
+const severityMap = SEVERITY_MAP
 
 const fields = [
   {

@@ -4,12 +4,7 @@
   <Teleport to="#topbar-title" defer>
     <span class="flex items-center gap-2">
       <span>{{ project?.name || $t('project.overview.fallbackName') }}</span>
-      <span
-        v-if="project"
-        class="text-[11px] font-medium rounded-md px-2 py-0.5 bg-surface-200 text-muted-color dark:bg-surface-700"
-      >
-        {{ versionLabel }}
-      </span>
+      <Tag v-if="project" :value="versionLabel" severity="secondary" class="!text-xs" />
     </span>
   </Teleport>
 

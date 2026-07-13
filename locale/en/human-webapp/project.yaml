@@ -60,6 +60,12 @@ dashboard:
     events: All Events
     reports: Reports
     backlog: Backlog
+  # Real action-log view (All Events). Column/filter/severity/detail labels are
+  # reused from system.actionlog.list.*; only the header + empty state live here.
+  allEvents:
+    title: All Events
+    desc: Activity and action log for this project workspace.
+    empty: No events recorded yet.
   # "+ New {type}" button label; {type} is a category singular below.
   newButton: 'New {type}'
   # Singular category nouns used in buttons/dialog titles.
@@ -239,17 +245,17 @@ wizard:
   blurb:
     summary: Fill in the form, then submit the section for approval at the gate.
     resourceManagement: Declare the permitted AI providers, infrastructure and third-party connections, then save. Later steps choose from these.
-    members: Assign people to project roles. Changes save as you go; the section locks at the gate.
-    dataModel: Define the modules (data tables) that hold your project's data, and the fields on each.
+    members: Assign people to project roles. Changes save as you go, and the section locks at the gate.
+    dataModel: Define the modules (data tables) that hold your project's data, along with the fields on each.
     dataSensitivity: Classify every field by its data sensitivity level so governance and access controls can protect it appropriately.
-    connections: Connect the external systems and data sources this project draws on — pick one from the catalogue and enter its credentials for later steps to reuse.
-    automations: Automate record actions and background jobs — each automation runs a trigger-action-query flow you can build out in the full automation builder.
-    agents: Add the AI agents that act within this project; name each one here, then configure its behaviour, model and access in the agent builder.
-    chatbots: Add the conversational chatbots for this project; name each one here, then design its scenarios, styling and channels in the chatbot builder.
-    pages: Design the pages people see — record detail pages and standalone pages — then lay out their blocks in the page builder.
-    roles: Define the access roles for this project and the people in each; you grant every role its resource permissions in the next step.
-    permissions: Grant each role access to the project's resources — pick a capability, then toggle it per role.
-    users: Add people to the project and assign them roles; a user's effective access is the sum of the roles they hold.
+    connections: Connect the external systems and data sources this project draws on. Pick one from the catalogue and enter its credentials so later steps can reuse it.
+    automations: Automate record actions and background jobs. Each automation runs a trigger, action and query flow that you can build out in the full automation builder.
+    agents: Add the AI agents that act within this project. Name each one here, then configure its behaviour, model and access in the agent builder.
+    chatbots: Add the conversational chatbots for this project. Name each one here, then design its scenarios, styling and channels in the chatbot builder.
+    pages: Design the record detail and standalone pages people see. Drag and drop pages to arrange the page tree, then lay out each page's blocks in the page builder.
+    roles: Define the access roles for this project and the people in each. You grant every role its resource permissions in the next step.
+    permissions: Grant each role access to the project's resources. Pick a capability, then toggle it per role.
+    users: Add people to the project and assign them roles. A user's effective access is the sum of the roles they hold.
     publish: Review the project, then publish it to mark it as the live, active version and open its dashboard.
   hint:
     grant:
@@ -848,6 +854,7 @@ pages:
   hidden: Hidden
   toastLoadFailed: Could not load pages
   toastRemoveFailed: Could not remove page
+  toastMoveFailed: Could not move page
   removeConfirm:
     header: Remove page
     message: Remove “{name}” from this project? This deletes the page.
@@ -862,6 +869,7 @@ pageCreate:
 pageDetail:
   unnamed: Untitled page
   namePlaceholder: e.g. Dashboard
+  descriptionPlaceholder: What this page is for (optional)
   nameRequired: A name is required
   visible: Visible
   visibleHint: Show this page in the namespace navigation. Hidden pages are still reachable by link.

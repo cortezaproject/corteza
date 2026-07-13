@@ -221,7 +221,7 @@
       </div>
     </template>
 
-    <div v-else class="text-sm text-muted-color italic">
+    <div v-else class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center">
       {{ $t('project.dataSensitivity.empty') }}
     </div>
   </div>

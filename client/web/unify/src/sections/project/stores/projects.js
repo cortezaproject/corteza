@@ -1495,6 +1495,7 @@ export const useProjectsStore = defineStore('projects', () => {
       return {
         id: String(pg.pageID),
         name: pageName,
+        description: pg.description || '',
         visible: !!pg.visible,
         moduleID,
         // Record pages are bound to a module; standalone pages are not.
@@ -1577,10 +1578,11 @@ export const useProjectsStore = defineStore('projects', () => {
     return String(created.pageID)
   }
 
-  // Update a page's title/visibility. pageUpdate REPLACES the page, so we spread
-  // the full record and override only these two fields — never wiping blocks,
-  // layout binding or module link.
-  async function updatePage(projectId, pageId, { name, visible } = {}) {
+  // Update a page's title/visibility/parent. pageUpdate REPLACES the page, so we
+  // spread the full record and override only the given fields — never wiping
+  // blocks, layout binding or module link. `selfID` reparents the page in the nav
+  // tree (used by the Pages step drag-to-nest); pass '0' for a root page.
+  async function updatePage(projectId, pageId, { name, visible, selfID, description } = {}) {
     const p = findById.value(projectId)
     if (!p?.namespaceID) return
     const full = await $ComposeAPI.pageRead({ namespaceID: p.namespaceID, pageID: pageId })
@@ -1589,9 +1591,25 @@ export const useProjectsStore = defineStore('projects', () => {
       namespaceID: p.namespaceID,
       pageID: pageId,
       title: name === undefined ? full.title : (name || '').trim() || 'Untitled',
+      description: description === undefined ? full.description : (description || '').trim(),
       visible: visible === undefined ? full.visible : visible,
+      selfID: selfID === undefined ? full.selfID : selfID,
     })
     await loadPages(projectId)
+  }
+
+  // Reorder sibling pages under one parent (selfID '0' = root). pageReorder
+  // stamps each page's weight from the array order, which drives the compose
+  // namespace sidebar. The caller reparents (updatePage selfID) before reordering
+  // so pageIDs are all true siblings under selfID.
+  async function reorderPages(projectId, selfID, pageIDs) {
+    const p = findById.value(projectId)
+    if (!p?.namespaceID || !pageIDs?.length) return
+    await $ComposeAPI.pageReorder({
+      namespaceID: p.namespaceID,
+      selfID: selfID || '0',
+      pageIDs,
+    })
   }
 
   async function removePage(projectId, pageId) {
@@ -1684,6 +1702,7 @@ export const useProjectsStore = defineStore('projects', () => {
     loadPages,
     addPage,
     updatePage,
+    reorderPages,
     removePage,
     updateField,
     addField,

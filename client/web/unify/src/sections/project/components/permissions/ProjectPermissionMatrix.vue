@@ -15,21 +15,15 @@
 
     <div
       v-if="!roles.length && !evalUserId"
-      class="grid place-items-center text-center px-6 py-10 text-muted-color"
+      class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
     >
-      <div>
-        <i class="pi pi-id-card text-4xl mb-2" />
-        <p class="text-sm">{{ $t('project.permissions.noRoles') }}</p>
-      </div>
+      {{ $t('project.permissions.noRoles') }}
     </div>
     <div
       v-else-if="!visibleRows.length"
-      class="grid place-items-center text-center px-6 py-10 text-muted-color"
+      class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
     >
-      <div>
-        <i class="pi pi-sitemap text-4xl mb-2" />
-        <p class="text-sm">{{ $t('project.permissions.noResources') }}</p>
-      </div>
+      {{ $t('project.permissions.noResources') }}
     </div>
 
     <!-- ============ Single-role detail view: all capabilities per row ============ -->

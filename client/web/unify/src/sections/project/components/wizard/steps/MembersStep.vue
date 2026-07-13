@@ -78,7 +78,7 @@
               </td>
             </tr>
             <tr v-if="!rows.length">
-              <td colspan="8" class="px-3 py-4 text-center text-muted-color italic">
+              <td colspan="8" class="px-3 py-4 text-center text-muted-color">
                 {{ $t('project.members.empty') }}
               </td>
             </tr>

@@ -2,9 +2,8 @@
   <div class="h-full overflow-auto p-4">
     <div>
       <div class="flex flex-col gap-2">
-        <div>
+        <div v-if="!disabled">
           <Button
-            v-if="!disabled"
             icon="pi pi-plus"
             :label="$t('project.dataModel.addModule')"
             size="small"
@@ -14,14 +13,14 @@
 
         <div
           v-if="!modules.length"
-          class="text-muted-color p-4 border rounded-lg bg-emphasis text-center mt-1"
+          class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
         >
           {{ $t('project.dataModel.empty') }}
         </div>
 
         <!-- One card per module — click the header to configure it; each card
              lists the module's fields with their type. -->
-        <div v-else class="flex flex-col gap-4 mt-1">
+        <div v-else class="flex flex-col gap-4">
           <div
             v-for="m in modules"
             :key="m.id"

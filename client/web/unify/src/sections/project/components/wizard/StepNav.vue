@@ -22,7 +22,7 @@
             />
             <span
               v-else
-              class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
+              class="inline-flex items-center justify-center w-6 h-6 rounded-md shrink-0"
               :class="stepBadge(step)"
             >
               <i :class="[...stepIconClass(step), 'text-xs']" />
@@ -96,15 +96,20 @@ const gateNumber = computed(() => {
 function stepBadge(step) {
   if (step.kind) {
     const cfg = kindConfig(step.kind)
-    return [cfg.bg, cfg.ring]
+    return ['ring-1', cfg.bg, cfg.ring]
   }
-  return ['bg-emphasis', 'ring-surface']
+  // Permissions mirrors the app-wide permissions button (outlined secondary):
+  // border-surface is bound to --p-content-border-color, the same token the
+  // outlined-secondary Button resolves its border to.
+  if (step.type === 'permissions') return ['border', 'border-surface', 'bg-surface']
+  return ['ring-1', 'bg-emphasis', 'ring-surface']
 }
 function stepIconClass(step) {
   if (step.kind) {
     const cfg = kindConfig(step.kind)
     return [cfg.icon, cfg.text]
   }
+  if (step.type === 'permissions') return ['pi', step.icon || 'pi-lock', 'text-color']
   return ['pi', step.icon || 'pi-circle', 'text-muted-color']
 }
 
