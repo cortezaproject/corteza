@@ -78,7 +78,7 @@ const { confirmDelete } = useConfirmDelete()
 const inspectResource = inject('inspectResource', null)
 const createResource = inject('createResource', null)
 
-const agents = computed(() => store.agentsFor(props.project.id))
+const agents = computed(() => store.agentsFor(props.project.projectID))
 
 function onRemove(a) {
   confirmDelete({
@@ -86,7 +86,7 @@ function onRemove(a) {
     message: t('project.agents.removeConfirm.message', { name: a.name }),
     onConfirm: async () => {
       try {
-        await store.removeAgent(props.project.id, a.id)
+        await store.removeAgent(props.project.projectID, a.id)
       } catch (err) {
         $toast.toastErrorHandler(t('project.agents.toastRemoveFailed'))(err)
       }
@@ -102,9 +102,9 @@ async function refresh(id) {
   }
 }
 
-onMounted(() => refresh(props.project.id))
+onMounted(() => refresh(props.project.projectID))
 watch(
-  () => props.project.id,
+  () => props.project.projectID,
   id => id && refresh(id),
 )
 </script>

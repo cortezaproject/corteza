@@ -121,7 +121,7 @@ async function onCreate(openBuilder = false) {
   // close it if the create fails.
   const builderTab = openBuilder ? window.open('', '_blank') : null
   try {
-    const id = await store.addAutomation(props.project.id, {
+    const id = await store.addAutomation(props.project.projectID, {
       name: draft.name.trim(),
       description: draft.description.trim(),
     })

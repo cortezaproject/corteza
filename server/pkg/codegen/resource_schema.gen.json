@@ -924,7 +924,6 @@
   "visibility": "ProjectVisibility",
   "defaultMemberRole": "ProjectMemberRole",
   "featureFlags": "map[string]bool",
-  "mode": "ProjectMode",
   "namespaceID": "uint64",
   "deployerCategories": {
   "publicAuthorityAnnex3": "bool",
@@ -938,6 +937,7 @@
   "connections": "*ProjectPermittedConnection"
 }
 },
+  "mode": "ProjectMode",
   "meta": {
   "short": "string",
   "description": "string",

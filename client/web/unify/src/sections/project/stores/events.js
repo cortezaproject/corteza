@@ -121,8 +121,7 @@ export const useEventsStore = defineStore('events', () => {
   const ownerOptions = computed(() => {
     const pid = currentProjectId.value
     const ids = new Set()
-    const p = projects.findById(pid)
-    for (const m of p?.members || []) if (m.userId) ids.add(String(m.userId))
+    for (const m of projects.membersFor(pid)) if (m.userId) ids.add(String(m.userId))
     for (const u of projects.projectUsersFor(pid)) if (u.userId) ids.add(String(u.userId))
     let opts = [...ids].map(id => ({ label: users.userName(id), value: id }))
     if (!opts.length) opts = users.users.map(u => ({ label: u.name, value: u.id }))

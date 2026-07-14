@@ -133,7 +133,7 @@ async function onSave() {
     if (!id) {
       // createdId guards against duplicates when the create partially fails and
       // the user re-saves: the module exists, so the retry reuses it.
-      id = await store.addResource(props.project.id, { kind: 'module', name: draft.name.trim() })
+      id = await store.addResource(props.project.projectID, { kind: 'module', name: draft.name.trim() })
       createdId.value = id
     }
     emit('created', id)

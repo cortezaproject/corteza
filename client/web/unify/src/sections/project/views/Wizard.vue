@@ -25,7 +25,7 @@
         @click="goDashboard"
       />
       <Button
-        v-if="project?.namespaceID"
+        v-if="project?.hasNamespace"
         :label="$t('project.viewProject')"
         icon="pi pi-external-link"
         size="small"
@@ -474,7 +474,7 @@ watch(
 // Tab access follows the logged-in user's role: a member who can request OR
 // grant approval works in the Governance view; everyone else sees Build only.
 const currentMember = computed(() =>
-  (project.value?.members || []).find(m => m.userId === usersStore.currentUserID),
+  store.membersFor(project.value?.projectID).find(m => m.userId === usersStore.currentUserID),
 )
 const currentRole = computed(() => rolePreset(currentMember.value?.role))
 const canWrite = computed(() => !!currentRole.value.write)
@@ -816,7 +816,7 @@ function onBack() {
 
 // Open the project's compose namespace (resolved by namespaceID).
 function openProject() {
-  if (project.value?.namespaceID) {
+  if (project.value?.hasNamespace) {
     router.push({ name: 'namespace.view', params: { slug: project.value.namespaceID } })
   }
 }
@@ -826,13 +826,13 @@ function openProject() {
 // we land on the project's dashboard. Guarded against double-submit.
 const publishing = ref(false)
 function goDashboard() {
-  router.push({ name: 'project.overview', params: { projectId: project.value.id } })
+  router.push({ name: 'project.overview', params: { projectId: project.value.projectID } })
 }
 async function onPublish() {
   if (publishing.value || !project.value) return
   publishing.value = true
   try {
-    await store.publishProject(project.value.id)
+    await store.publishProject(project.value.projectID)
     $toast.toastSuccess(t('project.publishStep.toast.success'))
     goDashboard()
   } catch (err) {
@@ -901,7 +901,7 @@ function onGateClick(gateKey) {
       accept: async () => {
         try {
           await store.submitSection(
-            project.value.id,
+            project.value.projectID,
             sec.steps.map(s => s.key),
           )
           $toast.toastSuccess(t('project.wizard.gate.requestedToast'))
@@ -928,19 +928,19 @@ async function governanceAction(fn, summary) {
 }
 function onSave() {
   governanceAction(
-    () => store.saveStepForm(project.value.id, activeKey.value, working.value),
+    () => store.saveStepForm(project.value.projectID, activeKey.value, working.value),
     t('project.wizard.toast.saved'),
   )
 }
 function onApprove() {
   governanceAction(
-    () => store.transitionStep(project.value.id, activeKey.value, 'approve'),
+    () => store.transitionStep(project.value.projectID, activeKey.value, 'approve'),
     t('project.wizard.toast.approved'),
   )
 }
 function onResubmit() {
   governanceAction(
-    () => store.transitionStep(project.value.id, activeKey.value, 'submit'),
+    () => store.transitionStep(project.value.projectID, activeKey.value, 'submit'),
     t('project.wizard.toast.resubmitted'),
   )
 }
@@ -969,7 +969,7 @@ async function confirmReason() {
   const { action, note } = reason.value
   if (!note.trim()) return
   try {
-    await store.transitionStep(project.value.id, activeKey.value, action, note.trim())
+    await store.transitionStep(project.value.projectID, activeKey.value, action, note.trim())
     reason.value.visible = false
     $toast.toastInfo(
       action === 'reopen' ? t('project.wizard.toast.reopened') : t('project.wizard.toast.sentBack'),

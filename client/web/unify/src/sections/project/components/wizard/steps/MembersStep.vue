@@ -185,7 +185,7 @@ const roleOptions = computed(() => ROLE_PRESETS.map(r => ({ id: r.id, label: t(r
 // the gate lock on top); the backend enforces the same rule.
 const canManage = computed(() => !props.disabled && props.project.canManageMembers)
 
-const members = computed(() => props.project.members || [])
+const members = computed(() => store.membersFor(props.project.projectID))
 // Capability flags come from the backend (derived from the role preset);
 // `resources` is FE-only descriptive text.
 const rows = computed(() =>
@@ -217,7 +217,7 @@ function fail(summary, err) {
 async function add() {
   if (!draft.role || !draft.userId) return
   try {
-    await store.addMember(props.project.id, { userId: draft.userId, role: draft.role })
+    await store.addMember(props.project.projectID, { userId: draft.userId, role: draft.role })
     addOpen.value = false
   } catch (err) {
     fail(t('project.members.toast.addFailed'), err)
@@ -227,7 +227,7 @@ async function add() {
 async function setRole(row, role) {
   if (!role || role === row.role) return
   try {
-    await store.updateMember(props.project.id, row.userId, role)
+    await store.updateMember(props.project.projectID, row.userId, role)
   } catch (err) {
     fail(t('project.members.toast.changeRoleFailed'), err)
   }
@@ -243,7 +243,7 @@ function remove(row) {
 
 async function handleRemove(row) {
   try {
-    await store.removeMember(props.project.id, row.userId)
+    await store.removeMember(props.project.projectID, row.userId)
   } catch (err) {
     fail(t('project.members.toast.removeFailed'), err)
   }

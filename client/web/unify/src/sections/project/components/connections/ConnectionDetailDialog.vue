@@ -214,7 +214,7 @@ async function onSave() {
   if (!isValid.value) return
   saving.value = true
   try {
-    await store.saveConnection(props.project.id, {
+    await store.saveConnection(props.project.projectID, {
       connection: connection.value,
       configuredConnectionID: entity.value?.configuredConnectionID,
       name: name.value.trim(),

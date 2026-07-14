@@ -178,7 +178,7 @@ const createResource = inject('createResource', null)
 const editField = inject('editField', null)
 const createField = inject('createField', null)
 
-const modules = computed(() => store.resourcesFor(props.project.id).filter(r => r.kind === 'module'))
+const modules = computed(() => store.resourcesFor(props.project.projectID).filter(r => r.kind === 'module'))
 
 // Modules collapsed by default; the set holds the expanded ones.
 const expandedIds = ref(new Set())
@@ -223,7 +223,7 @@ function removeModule(m) {
 
 async function handleRemoveModule(m) {
   try {
-    await store.removeResource(props.project.id, m.id)
+    await store.removeResource(props.project.projectID, m.id)
     $toast.toastSuccess(m.name, t('project.dataModel.toast.removed'))
   } catch (err) {
     $toast.toastErrorHandler(t('project.dataModel.toast.removeFailed'))(err)
@@ -242,7 +242,7 @@ function removeField(m, f) {
 
 async function handleRemoveField(m, f) {
   try {
-    await store.removeField(props.project.id, m.id, f.id)
+    await store.removeField(props.project.projectID, m.id, f.id)
     $toast.toastSuccess(f.name, t('project.dataModel.toast.fieldRemoved'))
   } catch (err) {
     $toast.toastErrorHandler(t('project.dataModel.toast.fieldRemoveFailed'))(err)

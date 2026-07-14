@@ -140,7 +140,7 @@ async function reload() {
   }
   loading.value = true
   try {
-    graph.value = await store.graph(props.project.id)
+    graph.value = await store.graph(props.project.projectID)
   } catch (err) {
     $toast.toastErrorHandler(t('project.graph.toastLoadFailed'))(err)
   } finally {

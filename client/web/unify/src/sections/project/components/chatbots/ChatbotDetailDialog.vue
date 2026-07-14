@@ -149,7 +149,7 @@ async function onSave() {
   if (!isValid.value) return
   saving.value = true
   try {
-    await store.updateChatbot(props.project.id, props.resourceId, {
+    await store.updateChatbot(props.project.projectID, props.resourceId, {
       name: draft.name.trim(),
       enabled: draft.enabled,
     })

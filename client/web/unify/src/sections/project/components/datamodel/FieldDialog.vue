@@ -421,9 +421,9 @@ async function onSave() {
     }
     // No fieldId means we're adding a new field to the module.
     if (props.fieldId) {
-      await store.updateField(props.project.id, props.moduleId, props.fieldId, patch)
+      await store.updateField(props.project.projectID, props.moduleId, props.fieldId, patch)
     } else {
-      await store.addField(props.project.id, props.moduleId, patch)
+      await store.addField(props.project.projectID, props.moduleId, patch)
     }
     visible.value = false
   } catch (err) {

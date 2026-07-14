@@ -32,7 +32,7 @@ store.load()
 // Live status is `active` (BE never sets `published`), matching ProjectList.
 const routeFor = p => ({
   name: ['active', 'published'].includes(p.status) ? 'project.overview' : 'project.wizard',
-  params: { projectId: p.id },
+  params: { projectId: p.projectID },
 })
 
 const navItems = computed(() => [
@@ -53,7 +53,7 @@ const navItems = computed(() => [
   ...[...projects.value]
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     .map(p => ({
-      _id: p.id,
+      _id: p.projectID,
       _parentId: 'projects',
       _label: p.name || t('project.list.untitled'),
       _icon: p.mode === 'gated' ? 'pi pi-shield' : 'pi pi-unlock',

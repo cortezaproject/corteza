@@ -58,7 +58,7 @@
 
     <template #footer>
       <CRouterLinkButton
-        v-if="props.resourceId && project?.namespaceID"
+        v-if="props.resourceId && project?.hasNamespace"
         :to="{ name: 'admin.pages.builder', params: { slug: project.namespaceID, pageID: props.resourceId } }"
         target="_blank"
         rel="noopener"
@@ -160,7 +160,7 @@ async function onSave() {
   if (!isValid.value) return
   saving.value = true
   try {
-    await store.updatePage(props.project.id, props.resourceId, {
+    await store.updatePage(props.project.projectID, props.resourceId, {
       name: draft.name.trim(),
       description: draft.description.trim(),
       visible: draft.visible,

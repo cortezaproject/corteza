@@ -22,7 +22,7 @@
         outlined
       />
       <CRouterLinkButton
-        v-if="project?.namespaceID"
+        v-if="project?.hasNamespace"
         :to="{ name: 'namespace.view', params: { slug: project.namespaceID } }"
         :label="$t('project.viewProject')"
         icon="pi pi-external-link"

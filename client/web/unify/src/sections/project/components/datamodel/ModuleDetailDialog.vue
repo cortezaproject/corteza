@@ -103,7 +103,7 @@
 
     <template #footer>
       <CRouterLinkButton
-        v-if="resourceId && project?.namespaceID"
+        v-if="resourceId && project?.hasNamespace"
         :to="{ name: 'admin.modules.edit', params: { slug: project.namespaceID, moduleID: resourceId } }"
         target="_blank"
         rel="noopener"
@@ -226,7 +226,7 @@ function removeField(f) {
 
 async function handleRemoveField(f) {
   try {
-    await store.removeField(props.project.id, props.resourceId, f.id)
+    await store.removeField(props.project.projectID, props.resourceId, f.id)
     $toast.toastSuccess(f.name, t('project.dataModel.toast.fieldRemoved'))
   } catch (err) {
     $toast.toastErrorHandler(t('project.dataModel.toast.fieldRemoveFailed'))(err)
@@ -242,7 +242,7 @@ async function onSave() {
   if (!isValid.value) return
   saving.value = true
   try {
-    await store.updateResource(props.project.id, props.resourceId, {
+    await store.updateResource(props.project.projectID, props.resourceId, {
       name: draft.name,
       description: draft.description,
     })

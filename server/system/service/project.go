@@ -144,10 +144,10 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 		return err
 	}
 
-	if new.Config.Mode == "" {
-		new.Config.Mode = types.ProjectModeFree
+	if new.Mode == "" {
+		new.Mode = types.ProjectModeFree
 	}
-	if !new.Config.Mode.Valid() {
+	if !new.Mode.Valid() {
 		return ProjectErrInvalidMode()
 	}
 
@@ -244,8 +244,8 @@ func (svc *project) beforeUpdate(ctx context.Context, upd, res *types.Project) e
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
 	// Mode, namespace binding, deployer answers, and FRIA derivation are
-	// immutable after creation.
-	upd.Config.Mode = res.Config.Mode
+	// immutable after creation. Mode is a top-level column not in updateFields,
+	// so it's never written on update — no need to copy it here.
 	upd.Config.NamespaceID = res.Config.NamespaceID
 	upd.Config.DeployerCategories = res.Config.DeployerCategories
 	upd.Config.FriaRequired = res.Config.FriaRequired

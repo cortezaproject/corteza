@@ -818,6 +818,7 @@ type (
 		Handle           string                       `db:"handle"`
 		Status           systemType.ProjectStatus     `db:"status"`
 		Config           systemType.ProjectConfig     `db:"config"`
+		Mode             systemType.ProjectMode       `db:"mode"`
 		Meta             systemType.ProjectMeta       `db:"meta"`
 		Governance       systemType.ProjectGovernance `db:"governance"`
 		ProjectID        uint64                       `db:"root_project_id"`
@@ -4095,6 +4096,7 @@ func (aux *auxProject) encode(res *systemType.Project) (_ error) {
 	aux.Handle = res.Handle
 	aux.Status = res.Status
 	aux.Config = res.Config
+	aux.Mode = res.Mode
 	aux.Meta = res.Meta
 	aux.Governance = res.Governance
 	aux.ProjectID = res.ProjectID
@@ -4119,6 +4121,7 @@ func (aux auxProject) decode() (res *systemType.Project, _ error) {
 	res.Handle = aux.Handle
 	res.Status = aux.Status
 	res.Config = aux.Config
+	res.Mode = aux.Mode
 	res.Meta = aux.Meta
 	res.Governance = aux.Governance
 	res.ProjectID = aux.ProjectID
@@ -4143,6 +4146,7 @@ func (aux *auxProject) scan(row scanner) error {
 		&aux.Handle,
 		&aux.Status,
 		&aux.Config,
+		&aux.Mode,
 		&aux.Meta,
 		&aux.Governance,
 		&aux.ProjectID,

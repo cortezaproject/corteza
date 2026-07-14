@@ -157,7 +157,7 @@ const createResource = inject('createResource', null)
 // --- Page hierarchy --------------------------------------------------------------
 // Nest pages by selfID (root = null) and order siblings by weight, then name.
 // Both standalone and module-detail pages live in this one tree.
-const flatPages = computed(() => store.pagesFor(props.project.id))
+const flatPages = computed(() => store.pagesFor(props.project.projectID))
 
 const tree = computed(() => {
   const byId = new Map(flatPages.value.map(p => [p.id, { ...p, children: [] }]))
@@ -201,7 +201,7 @@ const visibleRows = computed(() => {
 // Record (module detail) pages show the module they belong to as a badge.
 const modulesById = computed(() => {
   const map = new Map()
-  for (const r of store.resourcesFor(props.project.id)) {
+  for (const r of store.resourcesFor(props.project.projectID)) {
     if (r.kind === 'module') map.set(r.id, r)
   }
   return map
@@ -215,7 +215,7 @@ function onRemove(p) {
     message: t('project.pages.removeConfirm.message', { name: p.name }),
     onConfirm: async () => {
       try {
-        await store.removePage(props.project.id, p.id)
+        await store.removePage(props.project.projectID, p.id)
       } catch (err) {
         $toast.toastErrorHandler(t('project.pages.toastRemoveFailed'))(err)
       }
@@ -323,16 +323,16 @@ async function movePage(draggedId, targetId, pos) {
 
   try {
     if ((dragged.selfID || null) !== (newParent || null)) {
-      await store.updatePage(props.project.id, draggedId, { selfID: newParent || '0' })
+      await store.updatePage(props.project.projectID, draggedId, { selfID: newParent || '0' })
     }
-    await store.reorderPages(props.project.id, newParent, siblings)
+    await store.reorderPages(props.project.projectID, newParent, siblings)
     if (pos === 'inside') open.set(targetId, true) // reveal the newly nested child
   } catch (err) {
     $toast.toastErrorHandler(t('project.pages.toastMoveFailed'))(err)
   } finally {
     // Weights are stamped server-side; refetch so the tree matches.
     try {
-      await store.loadPages(props.project.id)
+      await store.loadPages(props.project.projectID)
     } catch {
       /* toast above already surfaced the failure */
     }
@@ -349,9 +349,9 @@ async function refresh(id) {
   }
 }
 
-onMounted(() => refresh(props.project.id))
+onMounted(() => refresh(props.project.projectID))
 watch(
-  () => props.project.id,
+  () => props.project.projectID,
   id => id && refresh(id),
 )
 </script>

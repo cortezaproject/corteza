@@ -54,8 +54,8 @@
               :group="group"
               :project="project"
               :disabled="disabled"
-              @update="patch => store.updateGroup(project.id, group.id, patch)"
-              @remove="store.removeGroup(project.id, group.id)"
+              @update="patch => store.updateGroup(project.projectID, group.id, patch)"
+              @remove="store.removeGroup(project.projectID, group.id)"
             />
             <NewGroupForm v-if="!disabled" @create="onCreate" />
           </div>
@@ -66,7 +66,7 @@
             :group="focusedGroup"
             :project="project"
             :disabled="disabled"
-            @update="patch => store.updateGroup(project.id, focusedGroup.id, patch)"
+            @update="patch => store.updateGroup(project.projectID, focusedGroup.id, patch)"
             @remove="onRemoveFocused"
           />
         </template>
@@ -122,13 +122,13 @@ const roleLabel = group => {
 }
 
 const onCreate = group => {
-  const id = store.addGroup(props.project.id, group)
+  const id = store.addGroup(props.project.projectID, group)
   if (id) selectedId.value = id
 }
 
 const onRemoveFocused = () => {
   if (!focusedGroup.value) return
-  store.removeGroup(props.project.id, focusedGroup.value.id)
+  store.removeGroup(props.project.projectID, focusedGroup.value.id)
   selectedId.value = '__all__'
 }
 </script>

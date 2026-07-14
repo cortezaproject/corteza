@@ -95,6 +95,11 @@ type (
 		// Project status
 		Status string
 
+		// Mode POST parameter
+		//
+		// Project mode
+		Mode string
+
 		// Config POST parameter
 		//
 		// Project config
@@ -453,6 +458,7 @@ func (r ProjectCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"handle": r.Handle,
 		"status": r.Status,
+		"mode":   r.Mode,
 		"config": r.Config,
 		"meta":   r.Meta,
 		"labels": r.Labels,
@@ -467,6 +473,11 @@ func (r ProjectCreate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectCreate) GetStatus() string {
 	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectCreate) GetMode() string {
+	return r.Mode
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -514,6 +525,13 @@ func (r *ProjectCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["status"]; ok && len(val) > 0 {
 				r.Status, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["mode"]; ok && len(val) > 0 {
+				r.Mode, err = val[0], nil
 				if err != nil {
 					return err
 				}
@@ -573,6 +591,13 @@ func (r *ProjectCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["status"]; ok && len(val) > 0 {
 			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["mode"]; ok && len(val) > 0 {
+			r.Mode, err = val[0], nil
 			if err != nil {
 				return err
 			}

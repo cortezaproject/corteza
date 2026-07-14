@@ -118,8 +118,8 @@ const { confirmDelete } = useConfirmDelete()
 const inspectResource = inject('inspectResource', null)
 const createResource = inject('createResource', null)
 
-const roles = computed(() => store.rolesFor(props.project.id))
-const projectUsers = computed(() => store.projectUsersFor(props.project.id))
+const roles = computed(() => store.rolesFor(props.project.projectID))
+const projectUsers = computed(() => store.projectUsersFor(props.project.projectID))
 
 // Roles collapsed by default; the set holds the expanded ones.
 const expandedIds = ref(new Set())
@@ -154,7 +154,7 @@ function onRemove(r) {
     message: t('project.accessRoles.removeConfirm.message', { name: r.name }),
     onConfirm: async () => {
       try {
-        await store.removeRole(props.project.id, r.id)
+        await store.removeRole(props.project.projectID, r.id)
       } catch (err) {
         $toast.toastErrorHandler(t('project.accessRoles.toastRemoveFailed'))(err)
       }
@@ -173,9 +173,9 @@ async function refresh(id) {
   }
 }
 
-onMounted(() => refresh(props.project.id))
+onMounted(() => refresh(props.project.projectID))
 watch(
-  () => props.project.id,
+  () => props.project.projectID,
   id => id && refresh(id),
 )
 </script>

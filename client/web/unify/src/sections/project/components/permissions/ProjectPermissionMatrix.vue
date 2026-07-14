@@ -446,7 +446,7 @@ const tree = computed(() => {
   for (const def of KINDS) {
     // Single-resource scope: only the matching kind, only the matching id.
     if (props.scope && def.kind !== props.scope.kind) continue
-    const items = (store[def.getter](props.project.id) || []).filter(
+    const items = (store[def.getter](props.project.projectID) || []).filter(
       it => !props.scope || String(it.id) === String(props.scope.id),
     )
     if (!items.length) continue
@@ -719,17 +719,17 @@ const allResources = computed(() => {
 
 watch(
   [
-    () => props.project.id,
+    () => props.project.projectID,
     () => props.roles,
     allResources,
     () => store.graphVersion,
     () => props.evalUserId,
   ],
   () => {
-    if (!props.project.id) return
-    store.loadEffectiveAccess(props.project.id, allResources.value)
+    if (!props.project.projectID) return
+    store.loadEffectiveAccess(props.project.projectID, allResources.value)
     if (props.evalUserId)
-      store.loadUserEffectiveAccess(props.project.id, props.evalUserId, allResources.value)
+      store.loadUserEffectiveAccess(props.project.projectID, props.evalUserId, allResources.value)
   },
   { immediate: true },
 )
@@ -778,9 +778,9 @@ function rowCaps(node) {
 function capState(roleId, ops) {
   if (!ops || !ops.length) return 'na'
   const states = ops.map(({ resource, op }) =>
-    store.effectiveAccess(props.project.id, roleId, resource, op),
+    store.effectiveAccess(props.project.projectID, roleId, resource, op),
   )
-  if (states.some(s => !s) && store.isEffectiveAccessLoading(props.project.id)) return 'loading'
+  if (states.some(s => !s) && store.isEffectiveAccessLoading(props.project.projectID)) return 'loading'
   const defined = states.filter(Boolean)
   if (!defined.length) return 'none'
   const uniq = [...new Set(defined)]
@@ -796,11 +796,11 @@ function capState(roleId, ops) {
 function userCapState(ops) {
   if (!ops || !ops.length) return 'na'
   const states = ops.map(({ resource, op }) =>
-    store.userEffectiveAccess(props.project.id, props.evalUserId, resource, op),
+    store.userEffectiveAccess(props.project.projectID, props.evalUserId, resource, op),
   )
   if (
     states.some(s => !s) &&
-    store.isUserEffectiveAccessLoading(props.project.id, props.evalUserId)
+    store.isUserEffectiveAccessLoading(props.project.projectID, props.evalUserId)
   )
     return 'loading'
   const defined = states.filter(Boolean)
@@ -967,7 +967,7 @@ async function applyToggle(cascade) {
   const ops = cascade ? p.deepOps : p.ownOps
   pending.value = null
   try {
-    await store.setCapabilityAccess(props.project.id, p.role.id, ops, p.next)
+    await store.setCapabilityAccess(props.project.projectID, p.role.id, ops, p.next)
     $toast.toastSuccess(t('project.permissions.toastSaved'))
   } catch (e) {
     $toast.toastErrorHandler(t('project.permissions.toastSaveFailed'))(e)

@@ -68,7 +68,7 @@ const createResource = inject('createResource', null)
 // catalog by catalogID, falling back to the raw catalogID.
 const labelForConnector = id => connector(id)?.label || id || ''
 
-const connections = computed(() => store.connectionsFor(props.project.id))
+const connections = computed(() => store.connectionsFor(props.project.projectID))
 
 // Clicking a configured connection opens its detail dialog for editing.
 function onSelect(item) {
@@ -82,7 +82,7 @@ function onRemove(c) {
     message: t('project.connections.removeConfirm.message', { name: c.name }),
     onConfirm: async () => {
       try {
-        await store.removeConnection(props.project.id, c.id)
+        await store.removeConnection(props.project.projectID, c.id)
       } catch (err) {
         $toast.toastErrorHandler(t('project.connections.toastRemoveFailed'))(err)
       }
@@ -98,9 +98,9 @@ async function refresh(id) {
   }
 }
 
-onMounted(() => refresh(props.project.id))
+onMounted(() => refresh(props.project.projectID))
 watch(
-  () => props.project.id,
+  () => props.project.projectID,
   id => id && refresh(id),
 )
 </script>

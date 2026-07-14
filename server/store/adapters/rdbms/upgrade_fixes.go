@@ -68,6 +68,7 @@ var (
 		fix_2026_06_29_addDeletedAtOnDmlTables,
 		fix_2026_06_29_addSourceIdentOnDmlMappings,
 		fix_2026_07_00_addRevisionColumnsOnProjects,
+		fix_2026_07_14_addModeOnProjects,
 	}
 
 	fixesPost = append([]func(context.Context, *Store) error{
@@ -1501,6 +1502,47 @@ func fix_2026_07_00_addRevisionColumnsOnProjects(ctx context.Context, s *Store) 
 		Type:  &dal.TypeNumber{HasDefault: true, DefaultValue: 0, Precision: 0},
 		Store: &dal.CodecAlias{Ident: "revision"},
 	})
+}
+
+// fix_2026_07_14_addModeOnProjects promotes project mode out of the config JSON
+// to a top-level sortable column. The column defaults to 'free'; existing rows
+// are backfilled from the old config->>'mode' so gated projects keep their mode.
+func fix_2026_07_14_addModeOnProjects(ctx context.Context, s *Store) error {
+	if err := addColumn(ctx, s, "projects", &dal.Attribute{
+		Ident: "Mode",
+		Type:  &dal.TypeText{Length: 32, HasDefault: true, DefaultValue: "free"},
+		Store: &dal.CodecAlias{Ident: "mode"},
+	}); err != nil {
+		return err
+	}
+
+	// Skip the backfill on a fresh DB (table not created yet — the column comes
+	// from the model, and there are no rows to migrate).
+	if _, err := s.DataDefiner.TableLookup(ctx, "projects"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	// Dialect-aware extraction of config.mode from the JSON column.
+	var expr string
+	switch {
+	case strings.HasPrefix(s.DB.DriverName(), "postgres"):
+		expr = "config->>'mode'"
+	case strings.HasPrefix(s.DB.DriverName(), "mysql"):
+		expr = "JSON_UNQUOTE(JSON_EXTRACT(config, '$.mode'))"
+	case strings.HasPrefix(s.DB.DriverName(), "sqlite"):
+		expr = "json_extract(config, '$.mode')"
+	case s.DB.DriverName() == "sqlserver":
+		expr = "JSON_VALUE(config, '$.mode')"
+	default:
+		return nil
+	}
+
+	q := fmt.Sprintf("UPDATE projects SET mode = %s WHERE %s IS NOT NULL AND %s <> ''", expr, expr, expr)
+	_, err := s.DB.ExecContext(ctx, q)
+	return err
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

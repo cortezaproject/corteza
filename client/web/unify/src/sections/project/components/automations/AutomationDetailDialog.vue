@@ -157,7 +157,7 @@ async function onSave() {
   if (!isValid.value) return
   saving.value = true
   try {
-    await store.updateAutomation(props.project.id, props.resourceId, {
+    await store.updateAutomation(props.project.projectID, props.resourceId, {
       name: draft.name.trim(),
       description: draft.description.trim(),
       enabled: draft.enabled,

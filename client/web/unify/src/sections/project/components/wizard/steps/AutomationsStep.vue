@@ -77,7 +77,7 @@ const { confirmDelete } = useConfirmDelete()
 const inspectResource = inject('inspectResource', null)
 const createResource = inject('createResource', null)
 
-const automations = computed(() => store.automationsFor(props.project.id))
+const automations = computed(() => store.automationsFor(props.project.projectID))
 
 function onRemove(a) {
   confirmDelete({
@@ -85,7 +85,7 @@ function onRemove(a) {
     message: t('project.automations.removeConfirm.message', { name: a.name }),
     onConfirm: async () => {
       try {
-        await store.removeAutomation(props.project.id, a.id)
+        await store.removeAutomation(props.project.projectID, a.id)
       } catch (err) {
         $toast.toastErrorHandler(t('project.automations.toastRemoveFailed'))(err)
       }
@@ -101,9 +101,9 @@ async function refresh(id) {
   }
 }
 
-onMounted(() => refresh(props.project.id))
+onMounted(() => refresh(props.project.projectID))
 watch(
-  () => props.project.id,
+  () => props.project.projectID,
   id => id && refresh(id),
 )
 </script>

@@ -72,3 +72,13 @@ export function sections(stepList = STEPS) {
   if (current.length) out.push({ gateKey: null, steps: current })
   return out
 }
+
+// Count of gate sections fully approved in the given governance state — a
+// section counts once every one of its steps is approved. Derived from the
+// gated pipeline, so it lives here (not on the lib Project class, which has no
+// knowledge of the client pipeline config).
+export function gatesApproved(governance = {}) {
+  return sections(stepsForTab('governance'))
+    .filter(sec => sec.gateKey)
+    .filter(sec => sec.steps.every(s => governance[s.key]?.status === 'approved')).length
+}

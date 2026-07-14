@@ -22,7 +22,7 @@ const store = useProjectsStore()
 const { t } = useI18n()
 const $toast = inject('$toast')
 
-const roles = computed(() => store.rolesFor(props.project.id))
+const roles = computed(() => store.rolesFor(props.project.projectID))
 
 // Load the roles and every kind of resource the matrix charts. The matrix builds
 // its tree from these store caches and evaluates effective access itself.
@@ -43,6 +43,6 @@ async function refresh(id) {
   }
 }
 
-onMounted(() => refresh(props.project.id))
-watch(() => props.project.id, refresh)
+onMounted(() => refresh(props.project.projectID))
+watch(() => props.project.projectID, refresh)
 </script>

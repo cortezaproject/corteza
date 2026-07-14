@@ -1,8 +1,7 @@
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
-import { sections, stepsForTab } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
-import { compose } from '@planetcrust/human-js'
+import { compose, NoID, system } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, inject, ref } from 'vue'
 
@@ -20,7 +19,11 @@ export const useProjectsStore = defineStore('projects', () => {
   const loaded = ref(false)
   let loading = null
 
-  const findById = computed(() => id => projects.value.find(p => p.id === String(id)))
+  const findById = computed(() => id => projects.value.find(p => p.projectID === String(id)))
+
+  // A project has a compose namespace only once created server-side; the class
+  // getter returns NoID ('0') until then, so guards test against NoID.
+  const hasNamespace = p => !!p?.namespaceID && p.namespaceID !== NoID
 
   // Bumped after every persisting mutation; the resource graph watches it and
   // refetches, so the panel always reflects current state.
@@ -120,67 +123,25 @@ export const useProjectsStore = defineStore('projects', () => {
   const pagesByProject = ref({})
   const pagesFor = computed(() => projectId => pagesByProject.value[String(projectId)] || [])
 
+  // A project's build-team members. The Project class doesn't hold members
+  // (they're a separate resource), so they're cached per-project here — like
+  // resources/connections/roles above — and read via membersFor(projectId).
+  const membersByProject = ref({})
+  const membersFor = computed(() => projectId => membersByProject.value[String(projectId)] || [])
+
   // --- payload mapping --------------------------------------------------------
 
-  // Approved gates, derived from governance state against the gated pipeline.
-  function countGatesApproved(governance = {}) {
-    return sections(stepsForTab('governance'))
-      .filter(sec => sec.gateKey)
-      .filter(sec => sec.steps.every(s => governance[s.key]?.status === 'approved')).length
-  }
-
-  function unmarshalProject(raw, prev = {}) {
-    const cfg = raw.config || {}
-    const meta = raw.meta || {}
-    const governance = raw.governance || {}
-
-    return {
-      id: String(raw.projectID),
-      handle: raw.handle,
-      name: meta.short || raw.handle,
-      description: meta.description || '',
-      mode: cfg.mode || 'free',
-      status: raw.status || 'draft',
-      namespaceID: cfg.namespaceID ? String(cfg.namespaceID) : null,
-
-      // Revision chain. Originals omit these (all 0); rootProjectID falls back
-      // to the project's own ID, mirroring the backend RootProjectID().
-      rootProjectID: raw.rootProjectID ? String(raw.rootProjectID) : String(raw.projectID),
-      parentRevisionID: raw.parentRevisionID ? String(raw.parentRevisionID) : null,
-      revision: raw.revision || 0,
-      governance,
-      gatesApproved: countGatesApproved(governance),
-      createdBy: String(raw.createdBy || ''),
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt || raw.createdAt,
-      canGrant: !!raw.canGrant,
-      canUpdateProject: !!raw.canUpdateProject,
-      canDeleteProject: !!raw.canDeleteProject,
-      canManageMembers: !!raw.canManageMembers,
-
-      // Members are loaded separately (fetchProject) and preserved across
-      // re-unmarshals. Resources are NOT held here — they live in the
-      // store's resourcesByProject cache, fetched by projectID.
-      members: prev.members || [],
-
-      // Backend bookkeeping for optimistic-lock updates. Config is carried
-      // whole so updates round-trip fields the UI doesn't surface yet
-      // (mode, namespaceID, deployer answers, …).
-      _raw: { config: cfg, meta, status: raw.status, updatedAt: raw.updatedAt },
-    }
-  }
-
   // Merge a fresh backend payload into the cached project (or insert it).
-  // Always returns the reactive instance from the array (never the raw object
-  // that was pushed) so later mutations on it are seen by watchers.
+  // Projects are lib `system.Project` instances; `apply` re-runs the class
+  // mapping in place so later mutations stay reactive. Members are NOT carried
+  // on the instance — they live in membersByProject, fetched by projectID.
   function absorb(raw) {
-    const prev = projects.value.find(p => p.id === String(raw.projectID))
-    const next = unmarshalProject(raw, prev || {})
+    const prev = projects.value.find(p => p.projectID === String(raw.projectID))
     if (prev) {
-      Object.assign(prev, next)
+      prev.apply(raw)
       return prev
     }
-    projects.value.push(next)
+    projects.value.push(new system.Project(raw))
     return projects.value[projects.value.length - 1]
   }
 
@@ -353,7 +314,7 @@ export const useProjectsStore = defineStore('projects', () => {
       updatedAt: raw.updatedAt,
     })
     // Resync from the server (by projectID) rather than patching in place.
-    await loadResources(p.id)
+    await loadResources(p.projectID)
   }
 
   // --- loading -----------------------------------------------------------------
@@ -383,11 +344,11 @@ export const useProjectsStore = defineStore('projects', () => {
     await loadSensitivityLevels()
 
     const [members] = await Promise.all([
-      $SystemAPI.projectListMembers({ projectID: p.id }).catch(() => ({ set: [] })),
-      loadResources(p.id),
+      $SystemAPI.projectListMembers({ projectID: p.projectID }).catch(() => ({ set: [] })),
+      loadResources(p.projectID),
     ])
 
-    p.members = (members.set || []).map(unmarshalMember)
+    membersByProject.value[p.projectID] = (members.set || []).map(unmarshalMember)
 
     return p
   }
@@ -397,12 +358,12 @@ export const useProjectsStore = defineStore('projects', () => {
   // resourcesFor(projectId), and every resource mutation calls this to resync.
   async function loadResources(projectId) {
     const p = findById.value(projectId)
-    if (!p?.namespaceID) {
+    if (!hasNamespace(p)) {
       resourcesByProject.value[String(projectId)] = []
       return []
     }
     const { set = [] } = await $ComposeAPI
-      .moduleList({ namespaceID: p.namespaceID, projectID: p.id, limit: 500 })
+      .moduleList({ namespaceID: p.namespaceID, projectID: p.projectID, limit: 500 })
       .catch(() => ({ set: [] }))
     resourcesByProject.value[String(projectId)] = set.map(unmarshalModule)
     touch()
@@ -417,8 +378,8 @@ export const useProjectsStore = defineStore('projects', () => {
   async function create({ name, description = '', mode = 'free', deployer = {} } = {}) {
     const raw = await $SystemAPI.projectCreate({
       status: 'draft',
+      mode,
       config: {
-        mode,
         deployerCategories: {
           publicAuthorityAnnex3: !!deployer.publicAuthorityAnnex3,
           privateEssentialServices: !!deployer.privateEssentialServices,
@@ -430,33 +391,38 @@ export const useProjectsStore = defineStore('projects', () => {
     return fetchProject(raw.projectID)
   }
 
-  // Push the cached project state (name/description/status) to the API.
+  // Push the cached project state to the API. The Project instance carries the
+  // whole config/meta, so updates round-trip fields the UI doesn't surface yet.
   async function pushProject(p) {
     const raw = await $SystemAPI.projectUpdate({
-      projectID: p.id,
+      projectID: p.projectID,
       handle: p.handle,
       status: p.status,
-      config: p._raw.config,
-      meta: { ...p._raw.meta, short: p.name, description: p.description },
-      updatedAt: p._raw.updatedAt,
+      config: p.config,
+      meta: p.meta,
+      labels: p.labels,
+      updatedAt: p.updatedAt,
     })
     touch()
     return absorb(raw)
   }
 
-  // Patch a project. `mode` is immutable (also enforced server-side).
+  // Patch a project. Name/description live in meta; `mode` is immutable (also
+  // enforced server-side).
   async function updateProject(id, patch = {}) {
     const p = findById.value(id)
     if (!p) return
-    const { mode: _ignored, ...rest } = patch
-    Object.assign(p, rest)
+    if (typeof patch.status === 'string') p.status = patch.status
+    if (typeof patch.name === 'string') p.meta = { ...p.meta, short: patch.name }
+    if (typeof patch.description === 'string') p.meta = { ...p.meta, description: patch.description }
     return pushProject(p)
   }
 
   async function removeProject(id) {
     await $SystemAPI.projectDelete({ projectID: id })
-    const i = projects.value.findIndex(p => p.id === String(id))
+    const i = projects.value.findIndex(p => p.projectID === String(id))
     if (i !== -1) projects.value.splice(i, 1)
+    delete membersByProject.value[String(id)]
   }
 
   // Publish a draft project. For an original (no parent revision) this simply
@@ -467,7 +433,7 @@ export const useProjectsStore = defineStore('projects', () => {
     const p = findById.value(id)
     if (!p) return
     const raw = await $SystemAPI.projectPublish({
-      projectID: p.id,
+      projectID: p.projectID,
       confirm: true,
       mappings: [],
     })
@@ -484,11 +450,12 @@ export const useProjectsStore = defineStore('projects', () => {
     const p = findById.value(projectId)
     if (!p) return
     const raw = await $SystemAPI.projectAddMember({
-      projectID: p.id,
+      projectID: p.projectID,
       userID: userId,
       rolePreset: role,
     })
-    p.members.push(unmarshalMember(raw))
+    const key = String(projectId)
+    membersByProject.value[key] = [...(membersByProject.value[key] || []), unmarshalMember(raw)]
     touch()
   }
 
@@ -496,20 +463,26 @@ export const useProjectsStore = defineStore('projects', () => {
     const p = findById.value(projectId)
     if (!p) return
     const raw = await $SystemAPI.projectUpdateMember({
-      projectID: p.id,
+      projectID: p.projectID,
       userID: userId,
       rolePreset: role,
     })
-    const m = p.members.find(x => x.userId === String(userId))
-    if (m) Object.assign(m, unmarshalMember(raw))
+    const key = String(projectId)
+    const next = unmarshalMember(raw)
+    membersByProject.value[key] = (membersByProject.value[key] || []).map(m =>
+      m.userId === String(userId) ? { ...m, ...next } : m,
+    )
     touch()
   }
 
   async function removeMember(projectId, userId) {
     const p = findById.value(projectId)
     if (!p) return
-    await $SystemAPI.projectRemoveMember({ projectID: p.id, userID: userId })
-    p.members = p.members.filter(m => m.userId !== String(userId))
+    await $SystemAPI.projectRemoveMember({ projectID: p.projectID, userID: userId })
+    const key = String(projectId)
+    membersByProject.value[key] = (membersByProject.value[key] || []).filter(
+      m => m.userId !== String(userId),
+    )
     touch()
   }
 
@@ -518,11 +491,11 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function addResource(projectId, { kind, name } = {}) {
     const p = findById.value(projectId)
-    if (!p || kind !== 'module' || !p.namespaceID) return null
+    if (!p || kind !== 'module' || !hasNamespace(p)) return null
 
     const raw = await $ComposeAPI.moduleCreate({
       namespaceID: p.namespaceID,
-      projectID: String(p.id),
+      projectID: String(p.projectID),
       name: (name || '').trim() || 'Untitled',
       // Handle is the slugified title (no hash). Duplicate titles collide on
       // the unique handle; the create dialog validates against that first.
@@ -540,7 +513,7 @@ export const useProjectsStore = defineStore('projects', () => {
         p.namespaceID,
         String(raw.moduleID),
         (name || '').trim() || 'Untitled',
-        String(p.id),
+        String(p.projectID),
       )
     } catch (err) {
       console.error('Failed to create record page for module:', err)
@@ -670,7 +643,6 @@ export const useProjectsStore = defineStore('projects', () => {
     if (!p) return
     const step = ensureGovStep(p, stepKey)
     step.values = { ...values }
-    p.gatesApproved = countGatesApproved(p.governance)
     touch()
   }
 
@@ -694,7 +666,6 @@ export const useProjectsStore = defineStore('projects', () => {
     if (!t || !t.from.includes(step.status)) return
     step.status = t.to
     step.reviewNote = t.clearNote ? '' : note
-    p.gatesApproved = countGatesApproved(p.governance)
     touch()
   }
 
@@ -1460,7 +1431,7 @@ export const useProjectsStore = defineStore('projects', () => {
   async function loadPages(projectId) {
     const p = findById.value(projectId)
     const key = String(projectId)
-    if (!p?.namespaceID) {
+    if (!hasNamespace(p)) {
       pagesByProject.value[key] = []
       return []
     }
@@ -1564,10 +1535,10 @@ export const useProjectsStore = defineStore('projects', () => {
   // in the namespace navigation; the user builds its blocks in the page builder.
   async function addPage(projectId, { name } = {}) {
     const p = findById.value(projectId)
-    if (!p?.namespaceID) return null
+    if (!hasNamespace(p)) return null
     const page = new compose.Page({
       namespaceID: p.namespaceID,
-      projectID: String(p.id),
+      projectID: String(p.projectID),
       title: (name || '').trim() || 'Untitled',
       visible: true,
       blocks: [],
@@ -1584,7 +1555,7 @@ export const useProjectsStore = defineStore('projects', () => {
   // tree (used by the Pages step drag-to-nest); pass '0' for a root page.
   async function updatePage(projectId, pageId, { name, visible, selfID, description } = {}) {
     const p = findById.value(projectId)
-    if (!p?.namespaceID) return
+    if (!hasNamespace(p)) return
     const full = await $ComposeAPI.pageRead({ namespaceID: p.namespaceID, pageID: pageId })
     await $ComposeAPI.pageUpdate({
       ...full,
@@ -1604,7 +1575,7 @@ export const useProjectsStore = defineStore('projects', () => {
   // so pageIDs are all true siblings under selfID.
   async function reorderPages(projectId, selfID, pageIDs) {
     const p = findById.value(projectId)
-    if (!p?.namespaceID || !pageIDs?.length) return
+    if (!hasNamespace(p) || !pageIDs?.length) return
     await $ComposeAPI.pageReorder({
       namespaceID: p.namespaceID,
       selfID: selfID || '0',
@@ -1644,6 +1615,7 @@ export const useProjectsStore = defineStore('projects', () => {
     load,
     fetchProject,
     findById,
+    membersFor,
     resourcesFor,
     loadResources,
     create,

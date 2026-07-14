@@ -70,7 +70,6 @@ interface Config {
   defaultMemberRole?: ProjectMemberRole;
   featureFlags?: Record<string, boolean>;
 
-  mode: ProjectMode;
   namespaceID: string;
   deployerCategories: ProjectDeployerCategories;
   friaRequired: boolean;
@@ -78,7 +77,6 @@ interface Config {
 }
 
 const defaultConfig = (): Config => ({
-  mode: 'free',
   namespaceID: NoID,
   deployerCategories: {
     publicAuthorityAnnex3: false,
@@ -116,6 +114,15 @@ export class Project {
   public handle = ''
   public status: ProjectStatus = 'draft'
 
+  // Chosen at creation, immutable after. Top-level column (not config JSON).
+  public mode: ProjectMode = 'free'
+
+  // Revision chain. Originals leave these at NoID/0; rootProjectID falls back
+  // to the project's own ID (mirrors the backend RootProjectID()).
+  public rootProjectID = NoID
+  public parentRevisionID = NoID
+  public revision = 0
+
   public config: Config = defaultConfig()
   public meta: Meta = defaultMeta()
   public governance: ProjectGovernance = {}
@@ -137,9 +144,15 @@ export class Project {
   }
 
   apply(p?: PartialProject): void {
-    Apply(this, p, HumanID, 'projectID', 'tenantID', 'createdBy')
-    Apply(this, p, String, 'handle', 'status')
+    Apply(this, p, HumanID, 'projectID', 'tenantID', 'createdBy', 'rootProjectID', 'parentRevisionID')
+    Apply(this, p, String, 'handle', 'status', 'mode')
+    Apply(this, p, Number, 'revision')
     Apply(this, p, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
+
+    // An original revision carries no rootProjectID; it is its own root.
+    if (this.rootProjectID === NoID) {
+      this.rootProjectID = this.projectID
+    }
     Apply(
       this,
       p,
@@ -181,16 +194,20 @@ export class Project {
     return this.meta.short || this.handle
   }
 
-  get mode(): ProjectMode {
-    return this.config.mode
-  }
-
   get isGated(): boolean {
-    return this.config.mode === 'gated'
+    return this.mode === 'gated'
   }
 
   get namespaceID(): string {
     return this.config.namespaceID
+  }
+
+  /**
+   * Whether the project has its compose namespace yet (created server-side).
+   * namespaceID is NoID until then, so guard on this rather than truthiness.
+   */
+  get hasNamespace(): boolean {
+    return this.config.namespaceID !== NoID
   }
 
   get friaRequired(): boolean {

@@ -85,8 +85,8 @@ const { confirmDelete } = useConfirmDelete()
 const inspectResource = inject('inspectResource', null)
 const createResource = inject('createResource', null)
 
-const roles = computed(() => store.rolesFor(props.project.id))
-const projectUsers = computed(() => store.projectUsersFor(props.project.id))
+const roles = computed(() => store.rolesFor(props.project.projectID))
+const projectUsers = computed(() => store.projectUsersFor(props.project.projectID))
 
 const rows = computed(() =>
   projectUsers.value.map(u => {
@@ -109,7 +109,7 @@ function remove(row) {
     message: t('project.accessUsers.removeConfirm.message', { name: row.name }),
     onConfirm: async () => {
       try {
-        await store.removeProjectUser(props.project.id, row.userId, row.roleIds)
+        await store.removeProjectUser(props.project.projectID, row.userId, row.roleIds)
       } catch (err) {
         $toast.toastErrorHandler(t('project.accessUsers.toastRemoveFailed'))(err)
       }
@@ -126,6 +126,6 @@ async function refresh(id) {
   }
 }
 
-onMounted(() => refresh(props.project.id))
-watch(() => props.project.id, refresh)
+onMounted(() => refresh(props.project.projectID))
+watch(() => props.project.projectID, refresh)
 </script>

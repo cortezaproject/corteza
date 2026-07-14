@@ -102,7 +102,7 @@ async function onCreate() {
   if (!isValid.value) return
   saving.value = true
   try {
-    const id = await store.addRole(props.project.id, {
+    const id = await store.addRole(props.project.projectID, {
       name: draft.name.trim(),
       description: draft.description,
     })

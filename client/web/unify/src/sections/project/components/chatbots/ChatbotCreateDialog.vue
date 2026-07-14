@@ -111,7 +111,7 @@ async function onCreate(openBuilder = false) {
   // close it if the create fails.
   const builderTab = openBuilder ? window.open('', '_blank') : null
   try {
-    const id = await store.addChatbot(props.project.id, { name: name.value.trim() })
+    const id = await store.addChatbot(props.project.projectID, { name: name.value.trim() })
     if (builderTab) {
       const { href } = router.resolve({ name: 'chatbot.edit', params: { chatbotID: id } })
       builderTab.location.href = new URL(href, window.location.href).href

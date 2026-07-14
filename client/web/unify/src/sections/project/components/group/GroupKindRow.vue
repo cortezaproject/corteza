@@ -151,7 +151,7 @@ const openCreate = () => {
 
 const create = () => {
   if (!createName.value.trim()) return
-  const id = store.addResource(props.project.id, { kind: props.kind, name: createName.value.trim() })
+  const id = store.addResource(props.project.projectID, { kind: props.kind, name: createName.value.trim() })
   if (id) emit('link', id)
   createOpen.value = false
 }

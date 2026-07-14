@@ -281,7 +281,7 @@ const matrixCols = `grid-template-columns: minmax(0, 1fr) repeat(${SENSITIVITY_O
 const LEVEL_ORDER = ['restricted', 'confidential', 'internal', 'public']
 
 const moduleResources = computed(() =>
-  store.resourcesFor(props.project.id).filter(m => m.kind === 'module'),
+  store.resourcesFor(props.project.projectID).filter(m => m.kind === 'module'),
 )
 
 const totalFields = computed(() =>
@@ -368,7 +368,7 @@ function countLabel(n) {
 
 async function setLevel(f, level) {
   try {
-    await store.updateField(props.project.id, f.moduleId, f.fieldId, { sensitivity: level || null })
+    await store.updateField(props.project.projectID, f.moduleId, f.fieldId, { sensitivity: level || null })
   } catch (err) {
     $toast.toastErrorHandler(t('project.dataSensitivity.toastUpdateFailed'))(err)
   }

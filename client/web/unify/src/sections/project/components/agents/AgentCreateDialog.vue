@@ -119,7 +119,7 @@ async function onCreate(openBuilder = false) {
   // it if the create fails.
   const builderTab = openBuilder ? window.open('', '_blank') : null
   try {
-    const id = await store.addAgent(props.project.id, {
+    const id = await store.addAgent(props.project.projectID, {
       name: name.value.trim(),
       description: description.value.trim(),
     })

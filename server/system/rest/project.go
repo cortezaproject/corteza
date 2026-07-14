@@ -117,6 +117,7 @@ func (ctrl *Project) makeFilter(ctx context.Context, r *request.ProjectList) (ty
 // already mapped the plain-value params.
 func (ctrl *Project) beforeCreate(ctx context.Context, res *types.Project, r *request.ProjectCreate) error {
 	res.Status = types.ProjectStatus(r.Status)
+	res.Mode = types.ProjectMode(r.Mode)
 	res.Config = r.Config
 	res.Meta = r.Meta
 	res.Labels = r.Labels

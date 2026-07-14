@@ -58,7 +58,7 @@ const picked = reactive({})
 // the role IDs they hold), resolved against the directory or the pick cache.
 const members = computed(() =>
   store
-    .projectUsersFor(props.project.id)
+    .projectUsersFor(props.project.projectID)
     .filter(u => u.roleIds.includes(props.role.id))
     .map(u => {
       const dir = usersStore.findUser(u.userId) || picked[u.userId]
@@ -77,7 +77,7 @@ async function onSelect(user) {
     email: user.email || '',
   }
   try {
-    await store.setProjectUserRole(props.project.id, userId, props.role.id, true)
+    await store.setProjectUserRole(props.project.projectID, userId, props.role.id, true)
   } catch (err) {
     $toast.toastErrorHandler(t('project.roleMembers.toastAddFailed'))(err)
   }
@@ -86,7 +86,7 @@ async function onSelect(user) {
 async function remove(item) {
   busyId.value = item.userId
   try {
-    await store.setProjectUserRole(props.project.id, item.userId, props.role.id, false)
+    await store.setProjectUserRole(props.project.projectID, item.userId, props.role.id, false)
   } catch (err) {
     $toast.toastErrorHandler(t('project.roleMembers.toastRemoveFailed'))(err)
   } finally {

@@ -113,8 +113,8 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-const roles = computed(() => store.rolesFor(props.project.id))
-const projectUsers = computed(() => store.projectUsersFor(props.project.id))
+const roles = computed(() => store.rolesFor(props.project.projectID))
+const projectUsers = computed(() => store.projectUsersFor(props.project.projectID))
 
 const modeOptions = [
   { label: t('project.userCreate.modeExisting'), value: 'existing' },
@@ -157,11 +157,11 @@ async function onCreate() {
   try {
     let userId = draft.userId
     if (draft.mode === 'new') {
-      userId = await store.addProjectUser(props.project.id, { email: draft.email, name: draft.name })
+      userId = await store.addProjectUser(props.project.projectID, { email: draft.email, name: draft.name })
       // Refresh the directory so the new user resolves to a name/email.
       await usersStore.reload()
     }
-    await store.assignProjectUserRoles(props.project.id, userId, draft.roleIds)
+    await store.assignProjectUserRoles(props.project.projectID, userId, draft.roleIds)
     emit('created', userId)
     visible.value = false
   } catch (err) {

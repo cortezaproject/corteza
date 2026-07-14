@@ -193,7 +193,7 @@ async function onSave() {
   if (!isValid.value) return
   saving.value = true
   try {
-    await store.updateRole(props.project.id, props.resourceId, {
+    await store.updateRole(props.project.projectID, props.resourceId, {
       name: draft.name.trim(),
       description: draft.description,
     })

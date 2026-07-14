@@ -166,7 +166,7 @@ const iconForConnector = id => connector(id)?.icon || cfg.icon
 // filtered to the Resource Management whitelist. With no whitelist (Free mode)
 // the full library is offered.
 const pickerItems = computed(() => {
-  const allowed = store.allowedConnectorIds(props.project.id)
+  const allowed = store.allowedConnectorIds(props.project.projectID)
   return store.connectionLibrary
     .filter(c => !allowed || allowed.has(c.catalogID))
     .map(c => ({
@@ -287,7 +287,7 @@ async function onCreate() {
   if (!isValid.value) return
   saving.value = true
   try {
-    const entry = await store.saveConnection(props.project.id, {
+    const entry = await store.saveConnection(props.project.projectID, {
       connection: connection.value,
       name: name.value.trim(),
       config: { params: collectParams() },

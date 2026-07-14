@@ -111,7 +111,7 @@ async function onCreate(openBuilder = false) {
   // it if the create fails.
   const builderTab = openBuilder ? window.open('', '_blank') : null
   try {
-    const id = await store.addPage(props.project.id, { name: name.value.trim() })
+    const id = await store.addPage(props.project.projectID, { name: name.value.trim() })
     if (builderTab) {
       const { href } = router.resolve({
         name: 'admin.pages.builder',

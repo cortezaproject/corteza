@@ -244,7 +244,7 @@ const unlinkDraft = id => {
 // --- Commit -----------------------------------------------------------------
 function onSave() {
   if (!draft.name.trim()) return
-  const pid = props.project.id
+  const pid = props.project.projectID
   const k = kind.value
   try {
     // Edit the existing resource, the already-created one, or create a new one.

@@ -38,7 +38,6 @@ _projectDefs: {
 				{name: "Visibility", type:         _projectDefs.ProjectVisibility, json:         "visibility,omitempty"},
 				{name: "DefaultMemberRole", type:  _projectDefs.ProjectMemberRole, json:         "defaultMemberRole,omitempty"},
 				{name: "FeatureFlags", goType:     "map[string]bool", json:                      "featureFlags,omitempty"},
-				{name: "Mode", type:               _projectDefs.ProjectMode, json:               "mode,omitempty"},
 				{name: "NamespaceID", type:        "uint64", json:                               "namespaceID,string,omitempty"},
 				{name: "DeployerCategories", type: _projectDefs.ProjectDeployerCategories, json: "deployerCategories,omitempty"},
 				{name: "FriaRequired", type:       "bool", json:                                 "friaRequired,omitempty"},
@@ -118,6 +117,15 @@ project: {
 			config: {
 				type: _projectDefs.ProjectConfig
 				dal: {type: "JSON", defaultEmptyObject: true}
+				omitSetter: true
+				omitGetter: true
+			}
+			// Top-level, sortable. Mode is chosen at creation and immutable after;
+			// it lives here (not in config JSON) so it's a plain sortable column.
+			mode: {
+				sortable: true
+				type:     _projectDefs.ProjectMode
+				dal: {length: 32}
 				omitSetter: true
 				omitGetter: true
 			}

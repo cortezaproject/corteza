@@ -23,6 +23,7 @@ type (
 		Handle           string                           `json:"handle"`
 		Status           ProjectStatus                    `json:"status"`
 		Config           ProjectConfig                    `json:"config"`
+		Mode             ProjectMode                      `json:"mode"`
 		Meta             ProjectMeta                      `json:"meta"`
 		Governance       ProjectGovernance                `json:"governance"`
 		ProjectID        uint64                           `json:"rootProjectID,string,omitempty"`
@@ -41,7 +42,6 @@ type (
 		Visibility         ProjectVisibility         `json:"visibility,omitempty"`
 		DefaultMemberRole  ProjectMemberRole         `json:"defaultMemberRole,omitempty"`
 		FeatureFlags       map[string]bool           `json:"featureFlags,omitempty"`
-		Mode               ProjectMode               `json:"mode,omitempty"`
 		NamespaceID        uint64                    `json:"namespaceID,string,omitempty"`
 		DeployerCategories ProjectDeployerCategories `json:"deployerCategories,omitempty"`
 		FriaRequired       bool                      `json:"friaRequired,omitempty"`
@@ -147,6 +147,10 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 		out = append(out, c)
 	}
 
+	if !reflect.DeepEqual(r.Mode, cmp.Mode) {
+		out = append(out, &revisions.Change{Key: "mode", Old: []any{cmp.Mode}, New: []any{r.Mode}})
+	}
+
 	for _, c := range r.Meta.Diff(&cmp.Meta) {
 		c.Key = "meta." + c.Key
 		out = append(out, c)
@@ -229,10 +233,6 @@ func (r ProjectConfig) Diff(cmp *ProjectConfig) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.FeatureFlags, cmp.FeatureFlags) {
 		out = append(out, &revisions.Change{Key: "featureFlags", Old: []any{cmp.FeatureFlags}, New: []any{r.FeatureFlags}})
-	}
-
-	if !reflect.DeepEqual(r.Mode, cmp.Mode) {
-		out = append(out, &revisions.Change{Key: "mode", Old: []any{cmp.Mode}, New: []any{r.Mode}})
 	}
 
 	if r.NamespaceID != cmp.NamespaceID {

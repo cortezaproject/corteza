@@ -168,7 +168,7 @@ async function toggleRole(roleId) {
   if (on) draft.roleIds.push(roleId)
   else draft.roleIds.splice(draft.roleIds.indexOf(roleId), 1)
   try {
-    await store.setProjectUserRole(props.project.id, props.resourceId, roleId, on)
+    await store.setProjectUserRole(props.project.projectID, props.resourceId, roleId, on)
     emit('saved')
   } catch (err) {
     if (on) draft.roleIds.splice(draft.roleIds.indexOf(roleId), 1)
