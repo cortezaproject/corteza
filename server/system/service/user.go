@@ -143,7 +143,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 		return
 	}
 
-	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{MemberID: u.ID})
+	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{Resource: fmt.Sprintf("corteza::system:user/%d", u.ID)})
 	if err != nil {
 		return nil, err
 	}
