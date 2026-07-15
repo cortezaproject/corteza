@@ -112,6 +112,16 @@ type (
 		// Resource
 		Resource string
 
+		// ProjectID GET parameter
+		//
+		// Scope to a project
+		ProjectID uint64 `json:",string"`
+
+		// ResourceProjectID GET parameter
+		//
+		// Filter by the project owning the affected resource
+		ResourceProjectID uint64 `json:",string"`
+
 		// Action GET parameter
 		//
 		// Action
@@ -290,15 +300,17 @@ func NewActionlogReport() *ActionlogReport {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogReport) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"dimensions": r.Dimensions,
-		"metrics":    r.Metrics,
-		"from":       r.From,
-		"to":         r.To,
-		"resource":   r.Resource,
-		"action":     r.Action,
-		"actorID":    r.ActorID,
-		"origin":     r.Origin,
-		"limit":      r.Limit,
+		"dimensions":        r.Dimensions,
+		"metrics":           r.Metrics,
+		"from":              r.From,
+		"to":                r.To,
+		"resource":          r.Resource,
+		"projectID":         r.ProjectID,
+		"resourceProjectID": r.ResourceProjectID,
+		"action":            r.Action,
+		"actorID":           r.ActorID,
+		"origin":            r.Origin,
+		"limit":             r.Limit,
 	}
 }
 
@@ -325,6 +337,16 @@ func (r ActionlogReport) GetTo() *time.Time {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogReport) GetResource() string {
 	return r.Resource
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetResourceProjectID() uint64 {
+	return r.ResourceProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -390,6 +412,18 @@ func (r *ActionlogReport) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["resource"]; ok && len(val) > 0 {
 			r.Resource, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
+			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resourceProjectID"]; ok && len(val) > 0 {
+			r.ResourceProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

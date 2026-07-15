@@ -6033,8 +6033,19 @@ export default class System {
 
   // Aggregated action log report
   async actionlogReport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { dimensions, metrics, from, to, resource, action, actorID, origin, limit } =
-      (a as KV) || {}
+    const {
+      dimensions,
+      metrics,
+      from,
+      to,
+      resource,
+      projectID,
+      resourceProjectID,
+      action,
+      actorID,
+      origin,
+      limit,
+    } = (a as KV) || {}
     if (!from) {
       throw Error('field from is empty')
     }
@@ -6052,6 +6063,8 @@ export default class System {
       from,
       to,
       resource,
+      projectID,
+      resourceProjectID,
       action,
       actorID,
       origin,
@@ -9761,6 +9774,53 @@ export default class System {
   projectReviewDeleteEndpoint(a: KV): string {
     const { reviewID } = a || {}
     return `/project-reviews/${reviewID}`
+  }
+
+  // Aggregated project category report
+  async projectReportReport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { resource, projectID, dimensions, metrics, from, to } = (a as KV) || {}
+    if (!resource) {
+      throw Error('field resource is empty')
+    }
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectReportReportEndpoint(),
+    }
+    cfg.params = {
+      resource,
+      projectID,
+      dimensions,
+      metrics,
+      from,
+      to,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectReportReportCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectReportReport(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectReportReportEndpoint(): string {
+    return '/project-report/'
   }
 
   // Get TCL master list

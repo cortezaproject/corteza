@@ -1,10 +1,22 @@
 <template>
-  <!-- Real event log for the published-project dashboard. Ports the admin
-       ActionLog list (filters, cursor pagination, drill-down, expansion rows)
-       but wears the CategoryView layout idiom: a fixed badge/title header, a
-       fixed filter row, then the list fills the rest and scrolls internally.
-       DashboardLayout owns the topbar, so there is NO Teleport here. -->
-  <div class="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
+  <!-- Real event log for the published-project dashboard, as an activity
+       timeline: who did what, to which resource, and — for updates — what it
+       actually became. Wears the CategoryView layout idiom (fixed badge/title
+       header, fixed filter row, list fills the rest and scrolls internally).
+       DashboardLayout owns the topbar, so there is NO Teleport here.
+
+       bg-surface is load-bearing: DashboardLayout's content <section> is a
+       rounded, bordered panel with NO background of its own. Sibling views get
+       theirs from CResourceList's <Card>; this one does not use CResourceList,
+       so without an explicit surface the whole list renders transparent.
+
+       Note bg-surface is NOT a Tailwind utility — tailwindcss-primeui ships
+       bg-emphasis/border-surface but no bg-surface, and the surface palette has
+       no DEFAULT. It is declared by the theme itself (lib/vue/src/composables/
+       useTheme.ts, `.bg-surface { background-color: var(--p-content-background) }`),
+       which is the same token PrimeVue's Card uses. Don't go looking for it in
+       tailwind.config. -->
+  <div class="flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-surface">
     <!-- Title bar — wizard-style leading badge + title + description. -->
     <header class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
       <span
@@ -20,311 +32,289 @@
       </div>
     </header>
 
-    <!-- Filters — fixed above the list; same grid as the admin page. -->
-    <div class="shrink-0 p-4">
-      <!-- Each control is wrapped in its <label> so the caption is
-           programmatically associated with the input (a11y) without per-component
-           inputId juggling (CInputUser doesn't forward one). -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 w-full">
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-muted-color">
-            {{ $t('system.actionlog.list.filter.from') }}
-          </span>
-          <DatePicker
-            v-model="filter.from"
-            showTime
-            hourFormat="24"
-            showButtonBar
-            size="small"
-            fluid
-            @update:modelValue="reload"
+    <!-- Toolbar — deliberately mirrors CResourceList's header so this view reads
+         like every other list in the app: same bar shape, actions and search
+         right-aligned, filter button in the same place and same icon-only shape.
+         Active filters live on the left as removable chips, so the six selects
+         stay folded into the popover instead of eating the viewport. -->
+    <div
+      class="shrink-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-surface"
+    >
+      <div class="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
+        <template v-if="activeFilters.length">
+          <Chip
+            v-for="f in activeFilters"
+            :key="f.field"
+            :label="f.label"
+            removable
+            class="text-xs"
+            @remove="clearFilter(f.field)"
           />
-        </label>
-
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-muted-color">
-            {{ $t('system.actionlog.list.filter.to') }}
-          </span>
-          <DatePicker
-            v-model="filter.to"
-            showTime
-            hourFormat="24"
-            showButtonBar
+          <Button
+            type="button"
             size="small"
-            fluid
-            @update:modelValue="reload"
+            severity="secondary"
+            text
+            :label="$t('project.dashboard.allEvents.clearAll')"
+            @click="clearAllFilters"
           />
-        </label>
+        </template>
+      </div>
 
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-muted-color">
-            {{ $t('system.actionlog.list.filter.actor') }}
-          </span>
-          <CInputUser v-model="filter.actorID" size="small" @update:modelValue="reload" />
-        </label>
+      <div class="flex-1 flex items-center justify-end gap-2">
+        <Button
+          type="button"
+          icon="pi pi-filter"
+          severity="secondary"
+          size="small"
+          text
+          :aria-label="$t('project.dashboard.allEvents.filters')"
+          v-tooltip.top="$t('project.dashboard.allEvents.filters')"
+          @click="toggleFilters"
+        />
+        <Button
+          type="button"
+          icon="pi pi-refresh"
+          severity="secondary"
+          size="small"
+          text
+          :loading="loading"
+          :aria-label="$t('project.dashboard.allEvents.refresh')"
+          v-tooltip.top="$t('project.dashboard.allEvents.refresh')"
+          @click="reload"
+        />
+        <CInputSearch
+          v-model="search"
+          size="small"
+          class="flex-1 min-w-0 max-w-xl"
+          :placeholder="$t('project.dashboard.allEvents.searchPlaceholder')"
+        />
+      </div>
 
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-muted-color">
-            {{ $t('system.actionlog.list.filter.origin') }}
-          </span>
-          <Select
-            v-model="filter.origin"
-            :options="originOptions"
-            option-label="label"
-            option-value="value"
-            filter
-            show-clear
-            size="small"
-            @update:modelValue="reload"
-          />
-        </label>
+      <Popover ref="filterPanel">
+        <div class="flex flex-col gap-3 w-72">
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-muted-color">
+              {{ $t('system.actionlog.list.filter.from') }}
+            </span>
+            <DatePicker
+              v-model="filter.from"
+              showTime
+              hourFormat="24"
+              showButtonBar
+              size="small"
+              fluid
+              @update:modelValue="reload"
+            />
+          </label>
 
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-muted-color">
-            {{ $t('system.actionlog.list.filter.resource') }}
-          </span>
-          <Select
-            v-model="filter.resource"
-            :options="resourceOptions"
-            option-label="label"
-            option-value="value"
-            filter
-            show-clear
-            size="small"
-            @update:modelValue="reload"
-          />
-        </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-muted-color">
+              {{ $t('system.actionlog.list.filter.to') }}
+            </span>
+            <DatePicker
+              v-model="filter.to"
+              showTime
+              hourFormat="24"
+              showButtonBar
+              size="small"
+              fluid
+              @update:modelValue="reload"
+            />
+          </label>
 
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-muted-color">
-            {{ $t('system.actionlog.list.filter.action') }}
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-muted-color">
+              {{ $t('system.actionlog.list.filter.actor') }}
+            </span>
+            <CInputUser v-model="filter.actorID" size="small" @update:modelValue="reload" />
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-muted-color">
+              {{ $t('system.actionlog.list.filter.origin') }}
+            </span>
+            <Select
+              v-model="filter.origin"
+              :options="originOptions"
+              option-label="label"
+              option-value="value"
+              filter
+              show-clear
+              size="small"
+              @update:modelValue="reload"
+            />
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-muted-color">
+              {{ $t('system.actionlog.list.filter.resource') }}
+            </span>
+            <Select
+              v-model="filter.resource"
+              :options="resourceOptions"
+              option-label="label"
+              option-value="value"
+              filter
+              show-clear
+              size="small"
+              @update:modelValue="reload"
+            />
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium text-muted-color">
+              {{ $t('system.actionlog.list.filter.action') }}
+            </span>
+            <Select
+              v-model="filter.action"
+              :options="actionOptions"
+              option-label="label"
+              option-value="value"
+              filter
+              show-clear
+              size="small"
+              @update:modelValue="reload"
+            />
+          </label>
+        </div>
+      </Popover>
+    </div>
+
+    <!-- Metrics band — event volume + at-a-glance stats over the effective
+         range, reflecting the active filters. Hidden when the report is
+         unavailable (e.g. the viewer lacks action-log.read), so non-admins just
+         see the timeline. -->
+    <div
+      v-if="!metrics.failed"
+      class="shrink-0 border-b border-surface px-4 py-3 flex flex-col sm:flex-row items-stretch gap-4"
+    >
+      <div class="flex sm:flex-col justify-around sm:justify-center gap-4 sm:w-36 shrink-0">
+        <div class="flex flex-col">
+          <span class="text-xl font-semibold text-color leading-none">{{ metrics.total }}</span>
+          <span class="text-xs text-muted-color">
+            {{ $t('project.dashboard.allEvents.metrics.events') }}
           </span>
-          <Select
-            v-model="filter.action"
-            :options="actionOptions"
-            option-label="label"
-            option-value="value"
-            filter
-            show-clear
-            size="small"
-            @update:modelValue="reload"
-          />
-        </label>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-semibold text-color leading-none">{{ metrics.actors }}</span>
+          <span class="text-xs text-muted-color">
+            {{ $t('project.dashboard.allEvents.metrics.people') }}
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <span
+            class="text-xl font-semibold leading-none"
+            :class="metrics.errors ? 'text-red-500' : 'text-color'"
+          >
+            {{ metrics.errors }}
+          </span>
+          <span class="text-xs text-muted-color">
+            {{ $t('project.dashboard.allEvents.metrics.errors') }}
+          </span>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <CategoryTrendChart bare :height="96" :labels="metrics.labels" :series="metrics.series" />
       </div>
     </div>
 
-    <!-- The log — fills remaining space; CResourceList owns its internal scroll. -->
-    <div class="flex-1 min-h-0 px-4 pb-4">
-      <CResourceList
-        class="h-full"
-        primary-key="actionID"
-        :fields="fields"
-        :items="items"
-        :filter="{}"
-        :sorting="{}"
-        :pagination="{}"
-        :loading="loading && items.length === 0"
-        :expandable="true"
-        hide-search
-        hide-pagination
-        :translations="{ noItems: $t('project.dashboard.allEvents.empty') }"
-      >
-        <template #body-timestamp="{ data }">
-          {{ locFullDateTime(data.timestamp) }}
-        </template>
-
-        <template #body-actor="{ data }">
-          <span
-            v-if="data.actor || data.actorID"
-            v-tooltip.top="data.actorID"
-            role="button"
-            tabindex="0"
-            :class="filterLinkClass(filter.actorID, data.actorID)"
-            @click.stop="drillDown('actorID', data.actorID)"
-            @keydown.enter.prevent="drillDown('actorID', data.actorID)"
-            @keydown.space.prevent="drillDown('actorID', data.actorID)"
-          >
-            {{ actorLabel(data) }}
-          </span>
-        </template>
-
-        <template #body-resource="{ data }">
-          <span
-            v-if="data.resource"
-            v-tooltip.top="data.resource"
-            role="button"
-            tabindex="0"
-            :class="filterLinkClass(filter.resource, data.resource)"
-            @click.stop="drillDown('resource', data.resource)"
-            @keydown.enter.prevent="drillDown('resource', data.resource)"
-            @keydown.space.prevent="drillDown('resource', data.resource)"
-          >
-            {{ resourceLabel(data.resource) }}
-          </span>
-        </template>
-
-        <template #body-action="{ data }">
-          <span
-            v-if="data.action"
-            v-tooltip.top="data.action"
-            role="button"
-            tabindex="0"
-            :class="filterLinkClass(filter.action, data.action)"
-            @click.stop="drillDown('action', data.action)"
-            @keydown.enter.prevent="drillDown('action', data.action)"
-            @keydown.space.prevent="drillDown('action', data.action)"
-          >
-            {{ actionLabel(data.action) }}
-          </span>
-        </template>
-
-        <template #body-requestOrigin="{ data }">
-          <span v-if="data.requestOrigin" v-tooltip.top="data.requestOrigin">
-            {{ originLabel(data.requestOrigin) }}
-          </span>
-        </template>
-
-        <template #body-severity="{ data }">
-          <Tag
-            :value="
-              $t('system.actionlog.list.severity.' + (severityMap[data.severity]?.label ?? 'info'))
-            "
-            :severity="severityMap[data.severity]?.severity ?? 'info'"
+    <!-- The timeline — fills the remaining space and owns its scroll. -->
+    <div ref="scroller" class="flex-1 min-h-0 overflow-y-auto px-4 py-4" @scroll.passive="onScroll">
+      <!-- First load: skeleton rows rather than a spinner, so the layout does
+           not jump when the events land. -->
+      <div v-if="loading && !items.length" class="flex flex-col gap-4">
+        <div v-for="n in 5" :key="n" class="flex gap-3">
+          <div
+            class="w-7 h-7 rounded-full bg-emphasis shrink-0 animate-pulse motion-reduce:animate-none"
           />
-        </template>
+          <div class="flex-1 flex flex-col gap-2 pt-1">
+            <div class="h-3 w-2/5 rounded bg-emphasis animate-pulse motion-reduce:animate-none" />
+            <div class="h-2 w-1/5 rounded bg-emphasis animate-pulse motion-reduce:animate-none" />
+          </div>
+        </div>
+      </div>
 
-        <template v-if="items.length" #footer>
-          <div class="flex justify-center px-3 py-2">
-            <Button
-              :label="$t('system.actionlog.list.loadOlder')"
-              :loading="loading"
-              severity="secondary"
-              size="small"
-              @click="loadOlder"
+      <!-- Empty. This view is empty far more often than most, and for reasons
+           that are not obvious (only create/update/delete are recorded, nothing
+           is backfilled), so say why instead of leaving a dead end. -->
+      <div v-else-if="!groups.length" class="flex flex-col items-center text-center gap-2 py-12">
+        <span
+          class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emphasis text-muted-color"
+        >
+          <i class="pi pi-inbox text-xl" />
+        </span>
+        <p class="text-sm font-medium text-color">
+          {{
+            hasQuery
+              ? $t('project.dashboard.allEvents.emptyFiltered')
+              : $t('project.dashboard.allEvents.empty')
+          }}
+        </p>
+        <p class="text-sm text-muted-color max-w-md">
+          {{
+            hasQuery
+              ? $t('project.dashboard.allEvents.emptyFilteredHint')
+              : $t('project.dashboard.allEvents.emptyHint')
+          }}
+        </p>
+        <Button
+          v-if="hasQuery"
+          type="button"
+          size="small"
+          severity="secondary"
+          outlined
+          :label="$t('project.dashboard.allEvents.clearAll')"
+          @click="clearAllFilters"
+        />
+      </div>
+
+      <!-- Day groups. Sticky headers keep "which day am I in?" answered while
+           scrolling a long log. -->
+      <div v-else class="flex flex-col">
+        <section v-for="group in groups" :key="group.key">
+          <!-- Must carry the SAME surface as the view root, or rows show through
+               it while scrolling underneath. -->
+          <!-- bg-emphasis (--p-content-hover-background: surface.100 / surface.800)
+               reads as a real band against the view's bg-surface, so a pinned day
+               is visible rather than text floating over the rows. It must stay a
+               solid token: a translucent one would let rows show through while
+               they scroll underneath. -->
+          <h3
+            class="sticky top-0 z-10 -mx-4 px-4 py-1.5 bg-emphasis text-xs font-semibold uppercase tracking-wide text-muted-color"
+          >
+            {{ group.label }}
+          </h3>
+          <div class="pt-2 pb-2 flex flex-col gap-1">
+            <EventTimelineItem
+              v-for="item in group.items"
+              :key="item.actionID"
+              :data="item"
+              :actor-name="actorLabel(item)"
+              :active-resource="filter.resource"
+              @filter="drillDown"
             />
           </div>
-        </template>
+        </section>
 
-        <template #expansion="{ data }">
-          <div class="flex flex-wrap gap-4 p-4">
-            <div class="flex-1 min-w-64">
-              <p class="font-semibold mb-2">{{ $t('system.actionlog.list.details.header') }}</p>
-              <table class="text-sm w-full">
-                <tbody>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.id') }}
-                    </td>
-                    <td class="py-0.5">{{ data.actionID }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.timestamp') }}
-                    </td>
-                    <td class="py-0.5">{{ locFullDateTime(data.timestamp) }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.requestOrigin') }}
-                    </td>
-                    <td class="py-0.5" v-tooltip.top="data.requestOrigin">
-                      {{ originLabel(data.requestOrigin) }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.requestID') }}
-                    </td>
-                    <td class="py-0.5">{{ data.requestID }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.actorIPAddr') }}
-                    </td>
-                    <td class="py-0.5">{{ data.actorIPAddr }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.actor') }}
-                    </td>
-                    <td class="py-0.5">{{ actorLabel(data) }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.actorID') }}
-                    </td>
-                    <td class="py-0.5">{{ data.actorID }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.severity') }}
-                    </td>
-                    <td class="py-0.5">
-                      {{
-                        $t(
-                          'system.actionlog.list.severity.' +
-                            (severityMap[data.severity]?.label ?? 'info'),
-                        )
-                      }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.resource') }}
-                    </td>
-                    <td class="py-0.5" v-tooltip.top="data.resource">
-                      {{ resourceLabel(data.resource) }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.action') }}
-                    </td>
-                    <td class="py-0.5" v-tooltip.top="data.action">
-                      {{ actionLabel(data.action) }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="flex-1 min-w-64">
-              <p class="font-semibold mb-2">
-                {{ $t('system.actionlog.list.details.headerAdditional') }}
-              </p>
-              <table class="text-sm w-full">
-                <tbody>
-                  <tr>
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.description') }}
-                    </td>
-                    <td class="py-0.5">{{ data.description }}</td>
-                  </tr>
-                  <tr v-if="data.error">
-                    <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">
-                      {{ $t('system.actionlog.list.details.error') }}
-                    </td>
-                    <td class="py-0.5 text-red-500">{{ data.error }}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <template v-if="data.meta && Object.keys(data.meta).length">
-                <Divider />
-                <p class="font-semibold mb-2">{{ $t('system.actionlog.list.details.meta') }}</p>
-                <table class="text-sm w-full font-mono">
-                  <tbody>
-                    <tr v-for="(val, key) in data.meta" :key="key">
-                      <td class="text-muted-color pr-4 py-0.5 whitespace-nowrap">{{ key }}</td>
-                      <td class="py-0.5">{{ val }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </template>
-            </div>
-          </div>
-        </template>
-      </CResourceList>
+        <!-- Infinite scroll, with an explicit fallback so the log is still
+             reachable when the scroll handler cannot fire (short viewport). -->
+        <div class="flex justify-center py-2">
+          <Button
+            v-if="!exhausted"
+            type="button"
+            :label="$t('system.actionlog.list.loadOlder')"
+            :loading="loading"
+            severity="secondary"
+            text
+            size="small"
+            @click="loadOlder"
+          />
+          <span v-else class="text-xs text-muted-color">
+            {{ $t('project.dashboard.allEvents.end') }}
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -340,14 +330,25 @@ import {
   RESOURCE_TYPES,
   COMMON_ACTIONS,
   ORIGINS,
-  SEVERITY_MAP,
   actionLabel,
-  resourceLabel,
+  actionVerb,
   originLabel,
+  resourceLabel,
+  resourceTypeLabel,
 } from '@/sections/admin/views/system/ActionLog/vocab'
+import EventTimelineItem from '@/sections/project/components/dashboard/EventTimelineItem.vue'
+import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
+import {
+  bucketDaily,
+  bucketWeekly,
+  dayLabel as axisDayLabel,
+  dayStarts,
+  weekLabel,
+  weekStarts,
+} from '@/sections/project/config/trend'
 
-const { CResourceList, CInputUser } = components
-const { locFullDateTime } = filters
+const { CInputUser, CInputSearch } = components
+const { locDate } = filters
 
 const { t } = useI18n()
 const route = useRoute()
@@ -371,6 +372,10 @@ const projectID = computed(() => route.params.projectId || undefined)
 
 const items = ref([])
 const loading = ref(false)
+const exhausted = ref(false)
+const search = ref('')
+const filterPanel = ref(null)
+const scroller = ref(null)
 
 const filter = reactive({
   from: null,
@@ -381,48 +386,11 @@ const filter = reactive({
   actorID: '',
 })
 
-// Severity (uint8 0–7) → Tag severity + label key; shared with the admin log.
-const severityMap = SEVERITY_MAP
+const PAGE_SIZE = 50
 
-const fields = [
-  {
-    key: 'timestamp',
-    sortable: false,
-    header: t('system.actionlog.list.columns.timestamp'),
-  },
-  {
-    key: 'actor',
-    sortable: false,
-    header: t('system.actionlog.list.columns.actor'),
-  },
-  {
-    key: 'requestOrigin',
-    sortable: false,
-    header: t('system.actionlog.list.columns.requestOrigin'),
-  },
-  {
-    key: 'resource',
-    sortable: false,
-    header: t('system.actionlog.list.columns.resource'),
-  },
-  {
-    key: 'action',
-    sortable: false,
-    header: t('system.actionlog.list.columns.action'),
-  },
-  {
-    key: 'description',
-    sortable: false,
-    header: t('system.actionlog.list.columns.description'),
-  },
-  {
-    key: 'severity',
-    sortable: false,
-    header: t('system.actionlog.list.columns.severity'),
-    class: 'text-right',
-    pt: { columnHeaderContent: 'justify-end' },
-  },
-]
+function toggleFilters(e) {
+  filterPanel.value?.toggle(e)
+}
 
 // Authoritative option lists from server enums; actions also merge any unusual
 // values present in loaded items so service-specific names stay discoverable.
@@ -446,18 +414,105 @@ const actionOptions = computed(() => {
   return [...COMMON_ACTIONS, ...extras].sort((a, b) => a.label.localeCompare(b.label))
 })
 
-// Click a cell value to filter by it; click the active filter value to clear it
+// Active filters as chips. `from`/`to` are Dates; the rest are plain values.
+const activeFilters = computed(() => {
+  const out = []
+  if (filter.from)
+    out.push({
+      field: 'from',
+      label: `${t('system.actionlog.list.filter.from')}: ${locDate(filter.from)}`,
+    })
+  if (filter.to)
+    out.push({
+      field: 'to',
+      label: `${t('system.actionlog.list.filter.to')}: ${locDate(filter.to)}`,
+    })
+  if (filter.resource) out.push({ field: 'resource', label: resourceTypeLabel(filter.resource) })
+  if (filter.action) out.push({ field: 'action', label: actionLabel(filter.action) })
+  if (filter.origin) out.push({ field: 'origin', label: originLabel(filter.origin) })
+  if (filter.actorID) {
+    const u = userStore.findByID(filter.actorID)
+    out.push({
+      field: 'actorID',
+      label: u ? u.name || u.handle || u.username || u.email || filter.actorID : filter.actorID,
+    })
+  }
+  return out
+})
+
+const hasQuery = computed(() => activeFilters.value.length > 0 || !!search.value.trim())
+
+function clearFilter(field) {
+  filter[field] = field === 'from' || field === 'to' ? null : ''
+  reload()
+}
+
+function clearAllFilters() {
+  filter.from = null
+  filter.to = null
+  filter.resource = ''
+  filter.action = ''
+  filter.origin = ''
+  filter.actorID = ''
+  search.value = ''
+  reload()
+}
+
+// Click a value to filter by it; click the active filter value to clear it.
 function drillDown(field, value) {
   filter[field] = filter[field] === value ? '' : value
   reload()
 }
 
-function filterLinkClass(currentFilterValue, cellValue) {
-  const isActive = currentFilterValue === cellValue
-  return [
-    'cursor-pointer hover:underline',
-    isActive ? 'text-primary font-medium' : 'text-primary-500',
-  ]
+// Free-text search is client-side over what's loaded: the backend has no search
+// param, and adding one is a server change. Scoped to the fields you'd actually
+// search by — actor, resource, action, description.
+const visible = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return items.value
+  return items.value.filter(e =>
+    [
+      actorLabel(e),
+      resourceTypeLabel(e.resource),
+      e.resource,
+      actionVerb(e.action),
+      e.action,
+      e.description,
+    ]
+      .filter(Boolean)
+      .some(v => String(v).toLowerCase().includes(q)),
+  )
+})
+
+// Group by calendar day, newest first (the API already returns newest-first).
+const groups = computed(() => {
+  const out = []
+  let current = null
+
+  for (const e of visible.value) {
+    const d = e.timestamp ? new Date(e.timestamp) : null
+    const key = d && !Number.isNaN(d.getTime()) ? d.toDateString() : 'unknown'
+
+    if (!current || current.key !== key) {
+      current = { key, label: dayLabel(d), items: [] }
+      out.push(current)
+    }
+    current.items.push(e)
+  }
+  return out
+})
+
+function dayLabel(d) {
+  if (!d || Number.isNaN(d.getTime())) return t('project.dashboard.allEvents.unknownDate')
+
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(today.getDate() - 1)
+
+  if (d.toDateString() === today.toDateString()) return t('project.dashboard.allEvents.today')
+  if (d.toDateString() === yesterday.toDateString())
+    return t('project.dashboard.allEvents.yesterday')
+  return locDate(d)
 }
 
 function buildParams(beforeActionID) {
@@ -474,7 +529,7 @@ function buildParams(beforeActionID) {
     // actorID can be null when cleared via Select's clear button
     actorID: filter.actorID ? [filter.actorID] : undefined,
     beforeActionID: beforeActionID || undefined,
-    limit: 50,
+    limit: PAGE_SIZE,
   }
 }
 
@@ -487,6 +542,7 @@ async function load(reset = false) {
 
   if (reset) {
     items.value = []
+    exhausted.value = false
   }
 
   const beforeActionID = reset
@@ -500,12 +556,17 @@ async function load(reset = false) {
   try {
     const { set } = await $SystemAPI.actionlogList(buildParams(beforeActionID))
     if (mySeq !== loadSeq) return // stale response
+
+    const batch = set ?? []
+    // A short page means the server has nothing older left; stop asking.
+    exhausted.value = batch.length < PAGE_SIZE
+
     if (reset) {
-      items.value = set ?? []
+      items.value = batch
     } else {
-      items.value = [...items.value, ...(set ?? [])]
+      items.value = [...items.value, ...batch]
     }
-    resolveActors(set ?? [])
+    resolveActors(batch)
   } finally {
     if (mySeq === loadSeq) loading.value = false
   }
@@ -513,6 +574,75 @@ async function load(reset = false) {
 
 function reload() {
   load(true)
+  loadMetrics()
+}
+
+// Event metrics over the effective range, reflecting the active filters. The
+// report requires an explicit window, so an unset from/to defaults to 30 days.
+const metrics = reactive({ labels: [], series: [], total: 0, actors: 0, errors: 0, failed: false })
+const EVENTS_COLOR = '#6366f1'
+
+function metricsRange() {
+  const to = filter.to || new Date()
+  const from = filter.from || new Date(to.getTime() - 30 * 86400000)
+  return { from, to }
+}
+
+async function loadMetrics() {
+  const { from, to } = metricsRange()
+  const base = {
+    from: from.toISOString(),
+    to: to.toISOString(),
+    resource: filter.resource || undefined,
+    resourceProjectID: projectID.value || undefined,
+    action: filter.action || undefined,
+    origin: filter.origin || undefined,
+    actorID: filter.actorID ? [filter.actorID] : undefined,
+  }
+  try {
+    // Two calls: a day series for the bar chart, and a grand total for the
+    // stats (distinct actors can't be summed across day buckets).
+    const [daily, totals] = await Promise.all([
+      $SystemAPI.actionlogReport({ ...base, dimensions: ['day'], metrics: ['count'] }),
+      $SystemAPI.actionlogReport({ ...base, metrics: ['count', 'actors', 'errors'] }),
+    ])
+    const points = (daily.set || [])
+      .map(r => ({ date: String(r.dimensions?.day || ''), value: Number(r.metrics?.count || 0) }))
+      .filter(p => p.date)
+    // Adapt granularity to the span so wide ranges don't render hundreds of bars.
+    const span = (to - from) / 86400000
+    const useWeek = span > 70
+    const starts = useWeek ? weekStarts(from, to) : dayStarts(from, to)
+    metrics.labels = starts.map(useWeek ? weekLabel : axisDayLabel)
+    metrics.series = [
+      {
+        name: t('project.dashboard.allEvents.metrics.events'),
+        color: EVENTS_COLOR,
+        data: (useWeek ? bucketWeekly : bucketDaily)(points, starts),
+      },
+    ]
+    const g = (totals.set && totals.set[0]) || {}
+    metrics.total = Number(g.metrics?.count || 0)
+    metrics.actors = Number(g.metrics?.actors || 0)
+    metrics.errors = Number(g.metrics?.errors || 0)
+    metrics.failed = false
+  } catch (e) {
+    // Fail soft: hide the band (e.g. the viewer lacks action-log.read) rather
+    // than showing a broken zero-strip.
+    console.error('Failed to load event metrics', e)
+    metrics.failed = true
+  }
+}
+
+function loadOlder() {
+  load(false)
+}
+
+// Pull the next page as the bottom comes into view.
+function onScroll() {
+  const el = scroller.value
+  if (!el || loading.value || exhausted.value) return
+  if (el.scrollHeight - el.scrollTop - el.clientHeight < 240) loadOlder()
 }
 
 // Actor resolution via the shared user store — batch-resolve encountered IDs.
@@ -529,9 +659,8 @@ function actorLabel(data) {
   return data.actor || data.actorID || ''
 }
 
-function loadOlder() {
-  load(false)
-}
-
-onMounted(() => load(true))
+onMounted(() => {
+  load(true)
+  loadMetrics()
+})
 </script>

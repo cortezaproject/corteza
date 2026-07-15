@@ -89,7 +89,12 @@ export default class Federation {
 
   // Initialize the handshake step with node B
   async nodeHandshakeInitialize(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, pairToken, sharedNodeID, authToken } = (a as KV) || {}
+    const {
+      nodeID,
+      pairToken,
+      sharedNodeID,
+      authToken,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -120,8 +125,7 @@ export default class Federation {
   }
 
   nodeHandshakeInitializeCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -135,13 +139,22 @@ export default class Federation {
   }
 
   nodeHandshakeInitializeEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/handshake`
   }
 
   // Search federated nodes
   async nodeSearch(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const {
+      query,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -162,8 +175,7 @@ export default class Federation {
   }
 
   nodeSearchCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -182,7 +194,12 @@ export default class Federation {
 
   // Create a new federation node
   async nodeCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { baseURL, name, contact, pairingURI } = (a as KV) || {}
+    const {
+      baseURL,
+      name,
+      contact,
+      pairingURI,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -200,8 +217,7 @@ export default class Federation {
   }
 
   nodeCreateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -220,7 +236,9 @@ export default class Federation {
 
   // Read a federation node
   async nodeRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID } = (a as KV) || {}
+    const {
+      nodeID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -238,8 +256,7 @@ export default class Federation {
   }
 
   nodeReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -253,13 +270,17 @@ export default class Federation {
   }
 
   nodeReadEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}`
   }
 
   // Creates new sharable federation URI
   async nodeGenerateUri(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID } = (a as KV) || {}
+    const {
+      nodeID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -277,8 +298,7 @@ export default class Federation {
   }
 
   nodeGenerateUriCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -292,13 +312,20 @@ export default class Federation {
   }
 
   nodeGenerateUriEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/uri`
   }
 
   // Updates existing node
   async nodeUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, name, contact, baseURL } = (a as KV) || {}
+    const {
+      nodeID,
+      name,
+      contact,
+      baseURL,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -320,8 +347,7 @@ export default class Federation {
   }
 
   nodeUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -335,13 +361,17 @@ export default class Federation {
   }
 
   nodeUpdateEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}`
   }
 
   // Deletes node
   async nodeDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID } = (a as KV) || {}
+    const {
+      nodeID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -359,8 +389,7 @@ export default class Federation {
   }
 
   nodeDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -374,13 +403,17 @@ export default class Federation {
   }
 
   nodeDeleteEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}`
   }
 
   // Undeletes a node
   async nodeUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID } = (a as KV) || {}
+    const {
+      nodeID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -398,8 +431,7 @@ export default class Federation {
   }
 
   nodeUndeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -413,13 +445,17 @@ export default class Federation {
   }
 
   nodeUndeleteEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/undelete`
   }
 
   // Initialize the pairing process between the two nodes
   async nodePair(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID } = (a as KV) || {}
+    const {
+      nodeID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -437,8 +473,7 @@ export default class Federation {
   }
 
   nodePairCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -452,13 +487,17 @@ export default class Federation {
   }
 
   nodePairEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/pair`
   }
 
   // Confirm the requested handshake
   async nodeHandshakeConfirm(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID } = (a as KV) || {}
+    const {
+      nodeID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -476,8 +515,7 @@ export default class Federation {
   }
 
   nodeHandshakeConfirmCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -491,13 +529,18 @@ export default class Federation {
   }
 
   nodeHandshakeConfirmEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/handshake-confirm`
   }
 
   // Complete the handshake
   async nodeHandshakeComplete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, authToken } = (a as KV) || {}
+    const {
+      nodeID,
+      authToken,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -520,8 +563,7 @@ export default class Federation {
   }
 
   nodeHandshakeCompleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -535,13 +577,18 @@ export default class Federation {
   }
 
   nodeHandshakeCompleteEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/handshake-complete`
   }
 
   // Exposed settings for module
   async manageStructureReadExposed(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID } = (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -552,8 +599,7 @@ export default class Federation {
       ...extra,
       method: 'get',
       url: this.manageStructureReadExposedEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
 
@@ -563,8 +609,7 @@ export default class Federation {
   }
 
   manageStructureReadExposedCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -578,13 +623,23 @@ export default class Federation {
   }
 
   manageStructureReadExposedEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/exposed`
   }
 
   // Add module to federation
   async manageStructureCreateExposed(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, composeModuleID, composeNamespaceID, name, handle, fields } = (a as KV) || {}
+    const {
+      nodeID,
+      composeModuleID,
+      composeNamespaceID,
+      name,
+      handle,
+      fields,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -620,8 +675,7 @@ export default class Federation {
   }
 
   manageStructureCreateExposedCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -635,14 +689,23 @@ export default class Federation {
   }
 
   manageStructureCreateExposedEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/`
   }
 
   // Update already exposed module
   async manageStructureUpdateExposed(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID, composeModuleID, composeNamespaceID, name, handle, fields } =
-      (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+      composeModuleID,
+      composeNamespaceID,
+      name,
+      handle,
+      fields,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -665,8 +728,7 @@ export default class Federation {
       ...extra,
       method: 'post',
       url: this.manageStructureUpdateExposedEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
     cfg.data = {
@@ -682,8 +744,7 @@ export default class Federation {
   }
 
   manageStructureUpdateExposedCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -697,13 +758,19 @@ export default class Federation {
   }
 
   manageStructureUpdateExposedEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/exposed`
   }
 
   // Remove from federation
   async manageStructureRemoveExposed(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID } = (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -714,8 +781,7 @@ export default class Federation {
       ...extra,
       method: 'delete',
       url: this.manageStructureRemoveExposedEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
 
@@ -725,8 +791,7 @@ export default class Federation {
   }
 
   manageStructureRemoveExposedCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -740,13 +805,19 @@ export default class Federation {
   }
 
   manageStructureRemoveExposedEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/exposed`
   }
 
   // Shared settings for module
   async manageStructureReadShared(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID } = (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -757,8 +828,7 @@ export default class Federation {
       ...extra,
       method: 'get',
       url: this.manageStructureReadSharedEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
 
@@ -768,8 +838,7 @@ export default class Federation {
   }
 
   manageStructureReadSharedCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -783,13 +852,22 @@ export default class Federation {
   }
 
   manageStructureReadSharedEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/shared`
   }
 
   // Add fields mappings to federated module
   async manageStructureCreateMappings(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID, composeModuleID, composeNamespaceID, fields } = (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+      composeModuleID,
+      composeNamespaceID,
+      fields,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -806,8 +884,7 @@ export default class Federation {
       ...extra,
       method: 'put',
       url: this.manageStructureCreateMappingsEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
     cfg.data = {
@@ -821,8 +898,7 @@ export default class Federation {
   }
 
   manageStructureCreateMappingsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -836,13 +912,20 @@ export default class Federation {
   }
 
   manageStructureCreateMappingsEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/mapped`
   }
 
   // Fields mappings for module
   async manageStructureReadMappings(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID, composeModuleID } = (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+      composeModuleID,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -853,8 +936,7 @@ export default class Federation {
       ...extra,
       method: 'get',
       url: this.manageStructureReadMappingsEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
     cfg.params = {
@@ -867,8 +949,7 @@ export default class Federation {
   }
 
   manageStructureReadMappingsCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -882,13 +963,21 @@ export default class Federation {
   }
 
   manageStructureReadMappingsEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/mapped`
   }
 
   // List of shared/exposed/mapped modules
   async manageStructureListAll(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, shared, exposed, mapped } = (a as KV) || {}
+    const {
+      nodeID,
+      shared,
+      exposed,
+      mapped,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -911,8 +1000,7 @@ export default class Federation {
   }
 
   manageStructureListAllCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -926,13 +1014,22 @@ export default class Federation {
   }
 
   manageStructureListAllEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/`
   }
 
   // List all exposed modules changes
   async syncStructureReadExposedInternal(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, lastSync, query, limit, pageCursor, sort } = (a as KV) || {}
+    const {
+      nodeID,
+      lastSync,
+      query,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -957,8 +1054,7 @@ export default class Federation {
   }
 
   syncStructureReadExposedInternalCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -972,13 +1068,22 @@ export default class Federation {
   }
 
   syncStructureReadExposedInternalEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/exposed/`
   }
 
   // List all exposed modules changes in activity streams format
   async syncStructureReadExposedSocial(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, lastSync, query, limit, pageCursor, sort } = (a as KV) || {}
+    const {
+      nodeID,
+      lastSync,
+      query,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -1003,8 +1108,7 @@ export default class Federation {
   }
 
   syncStructureReadExposedSocialCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1018,13 +1122,22 @@ export default class Federation {
   }
 
   syncStructureReadExposedSocialEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/exposed/activity-stream`
   }
 
   // List all record changes
   async syncDataReadExposedAll(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, lastSync, query, limit, pageCursor, sort } = (a as KV) || {}
+    const {
+      nodeID,
+      lastSync,
+      query,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -1049,8 +1162,7 @@ export default class Federation {
   }
 
   syncDataReadExposedAllCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1064,13 +1176,23 @@ export default class Federation {
   }
 
   syncDataReadExposedAllEndpoint(a: KV): string {
-    const { nodeID } = a || {}
+    const {
+      nodeID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/exposed/records/`
   }
 
   // List all records per module
   async syncDataReadExposedInternal(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID, lastSync, query, limit, pageCursor, sort } = (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+      lastSync,
+      query,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -1081,8 +1203,7 @@ export default class Federation {
       ...extra,
       method: 'get',
       url: this.syncDataReadExposedInternalEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
     cfg.params = {
@@ -1099,8 +1220,7 @@ export default class Federation {
   }
 
   syncDataReadExposedInternalCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1114,13 +1234,24 @@ export default class Federation {
   }
 
   syncDataReadExposedInternalEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/records/`
   }
 
   // List all records per module in activitystreams format
   async syncDataReadExposedSocial(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { nodeID, moduleID, lastSync, query, limit, pageCursor, sort } = (a as KV) || {}
+    const {
+      nodeID,
+      moduleID,
+      lastSync,
+      query,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!nodeID) {
       throw Error('field nodeID is empty')
     }
@@ -1131,8 +1262,7 @@ export default class Federation {
       ...extra,
       method: 'get',
       url: this.syncDataReadExposedSocialEndpoint({
-        nodeID,
-        moduleID,
+        nodeID, moduleID,
       }),
     }
     cfg.params = {
@@ -1149,8 +1279,7 @@ export default class Federation {
   }
 
   syncDataReadExposedSocialCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1164,12 +1293,16 @@ export default class Federation {
   }
 
   syncDataReadExposedSocialEndpoint(a: KV): string {
-    const { nodeID, moduleID } = a || {}
+    const {
+      nodeID,
+      moduleID,
+    } = a || {}
     return `/nodes/${nodeID}/modules/${moduleID}/records/activity-stream/`
   }
 
   // Retrieve defined permissions
   async permissionsList(extra: AxiosRequestConfig = {}): Promise<KV> {
+
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -1181,10 +1314,9 @@ export default class Federation {
       .then(result => stdResolve(result))
   }
 
-  permissionsListCancellable(extra: AxiosRequestConfig = {}): {
-    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
-    cancel: () => void
-  } {
+  permissionsListCancellable(
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1202,7 +1334,9 @@ export default class Federation {
 
   // Effective rules for current user
   async permissionsEffective(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { resource } = (a as KV) || {}
+    const {
+      resource,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -1218,8 +1352,7 @@ export default class Federation {
   }
 
   permissionsEffectiveCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1238,7 +1371,11 @@ export default class Federation {
 
   // Evaluate rules for given user/role combo
   async permissionsTrace(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { resource, userID, roleID } = (a as KV) || {}
+    const {
+      resource,
+      userID,
+      roleID,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -1256,8 +1393,7 @@ export default class Federation {
   }
 
   permissionsTraceCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1276,7 +1412,10 @@ export default class Federation {
 
   // Retrieve role permissions
   async permissionsRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { roleID, resource } = (a as KV) || {}
+    const {
+      roleID,
+      resource,
+    } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1297,8 +1436,7 @@ export default class Federation {
   }
 
   permissionsReadCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1312,13 +1450,17 @@ export default class Federation {
   }
 
   permissionsReadEndpoint(a: KV): string {
-    const { roleID } = a || {}
+    const {
+      roleID,
+    } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Remove all defined role permissions
   async permissionsDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { roleID } = (a as KV) || {}
+    const {
+      roleID,
+    } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1336,8 +1478,7 @@ export default class Federation {
   }
 
   permissionsDeleteCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1351,13 +1492,18 @@ export default class Federation {
   }
 
   permissionsDeleteEndpoint(a: KV): string {
-    const { roleID } = a || {}
+    const {
+      roleID,
+    } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Update permission settings
   async permissionsUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { roleID, rules } = (a as KV) || {}
+    const {
+      roleID,
+      rules,
+    } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1380,8 +1526,7 @@ export default class Federation {
   }
 
   permissionsUpdateCancellable(
-    a: KV,
-    extra: AxiosRequestConfig = {},
+    a: KV, extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
@@ -1395,7 +1540,10 @@ export default class Federation {
   }
 
   permissionsUpdateEndpoint(a: KV): string {
-    const { roleID } = a || {}
+    const {
+      roleID,
+    } = a || {}
     return `/permissions/${roleID}/rules`
   }
+
 }

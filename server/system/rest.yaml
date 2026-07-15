@@ -2717,6 +2717,14 @@ endpoints:
               required: false
               title: Resource
               type: string
+            - name: projectID
+              required: false
+              title: Scope to a project
+              type: uint64
+            - name: resourceProjectID
+              required: false
+              title: Filter by the project owning the affected resource
+              type: uint64
             - name: action
               required: false
               title: Action
@@ -3905,6 +3913,43 @@ endpoints:
         parameters:
           path:
             - { type: uint64, name: reviewID, required: true, title: Review ID }
+  - title: Project Reports
+    entrypoint: projectReport
+    path: '/project-report'
+    authentication: []
+    imports:
+      - time
+    apis:
+      - name: report
+        method: GET
+        title: Aggregated project category report
+        path: '/'
+        parameters:
+          get:
+            - name: resource
+              type: string
+              required: true
+              title: Category to report on (incident, task, feature, privacy, review)
+            - name: projectID
+              type: uint64
+              required: true
+              title: Project scope
+            - name: dimensions
+              type: '[]string'
+              required: false
+              title: Group rows by one or more dimensions
+            - name: metrics
+              type: '[]string'
+              required: false
+              title: Metrics to compute per group
+            - name: from
+              type: '*time.Time'
+              required: false
+              title: Created-at window start
+            - name: to
+              type: '*time.Time'
+              required: false
+              title: Created-at window end
   - title: Agents
     path: '/agents'
     entrypoint: agent

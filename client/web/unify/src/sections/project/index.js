@@ -39,7 +39,7 @@ export default {
         {
           path: '',
           name: 'project.overview',
-          component: () => import('./views/dashboard/DashboardStub.vue'),
+          component: () => import('./views/dashboard/Overview.vue'),
           meta: { section: 'project', titleKey: 'project.dashboard.views.dashboard', icon: 'pi-gauge' },
         },
         {

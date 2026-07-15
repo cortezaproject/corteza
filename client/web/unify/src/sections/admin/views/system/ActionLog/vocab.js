@@ -236,3 +236,95 @@ export const SEVERITY_MAP = {
   6: { severity: 'info', label: 'info' },
   7: { severity: 'secondary', label: 'debug' },
 }
+
+// ---------------------------------------------------------------------------
+// Helpers for the event timeline (project dashboard). Additive — the admin
+// ActionLog list does not use these.
+// ---------------------------------------------------------------------------
+
+// resourceType strips the trailing `/<id>[/<id>…]` from an action-log resource,
+// leaving the bare type: `corteza::compose:record/1/2/3` → `corteza::compose:record`.
+export function resourceType(value) {
+  if (!value) return ''
+  const slash = value.indexOf('/')
+  return slash === -1 ? value : value.slice(0, slash)
+}
+
+// resourceTypeLabel is resourceLabel without the ID suffix — `Record`, not
+// `Record (1/2/3)`. Use where the ID is shown separately (or not at all).
+export function resourceTypeLabel(value) {
+  const type = resourceType(value)
+  return lookupLabel(type) || type
+}
+
+// resourceID returns the last path segment of a resource — usually the ID of the
+// affected resource itself. Empty when the resource carries no path.
+export function resourceID(value) {
+  if (!value) return ''
+  const slash = value.lastIndexOf('/')
+  if (slash === -1) return ''
+  const id = value.slice(slash + 1)
+  return id === '*' ? '' : id
+}
+
+// Past-tense verbs for the timeline sentence ("Ada *created* Agent foo").
+// Only actions that read badly under the generic fallback need an entry; the
+// fallback lower-cases the action's label, which is right for most of them
+// ("grant" → "grant", "execute" → "execute").
+const ACTION_VERBS = {
+  create: 'created',
+  read: 'read',
+  update: 'updated',
+  patch: 'patched',
+  delete: 'deleted',
+  undelete: 'restored',
+  archive: 'archived',
+  unarchive: 'unarchived',
+  enable: 'enabled',
+  suspend: 'suspended',
+  unsuspend: 'unsuspended',
+  authenticate: 'authenticated',
+  login: 'signed in',
+  logout: 'signed out',
+  register: 'registered',
+  search: 'searched',
+  searchSensitive: 'searched (sensitive)',
+  searchRevisions: 'searched revisions of',
+  lookup: 'viewed',
+  members: 'listed members of',
+  memberAdd: 'added a member to',
+  memberRemove: 'removed a member from',
+  grant: 'changed permissions on',
+  impersonate: 'impersonated',
+  execute: 'executed',
+  run: 'ran',
+  apply: 'applied',
+  clone: 'cloned',
+  export: 'exported',
+  import: 'imported',
+  merge: 'merged',
+  reorder: 'reordered',
+  organize: 'organized',
+  render: 'rendered',
+  send: 'sent',
+  sign: 'signed',
+  approve: 'approved',
+  dismiss: 'dismissed',
+  undismiss: 'undismissed',
+  snooze: 'snoozed',
+  markAsRead: 'marked as read',
+  markAsUnread: 'marked as unread',
+  markAllAsRead: 'marked all as read',
+  markAllAsUnread: 'marked all as unread',
+  changePassword: 'changed the password of',
+  setPassword: 'set the password of',
+  removePassword: 'removed the password of',
+  uploadAvatar: 'uploaded an avatar for',
+  generateAvatar: 'generated an avatar for',
+  deleteAvatar: 'deleted the avatar of',
+}
+
+export function actionVerb(value) {
+  if (!value) return ''
+  return ACTION_VERBS[value] || actionLabel(value).toLowerCase()
+}

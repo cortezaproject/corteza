@@ -60,12 +60,45 @@ dashboard:
     events: All Events
     reports: Reports
     backlog: Backlog
-  # Real action-log view (All Events). Column/filter/severity/detail labels are
-  # reused from system.actionlog.list.*; only the header + empty state live here.
+  # Real action-log view (All Events), rendered as an activity timeline.
+  # Filter/severity/detail labels are reused from system.actionlog.list.*; only
+  # the header, timeline chrome and empty states live here.
   allEvents:
     title: All Events
     desc: Activity and action log for this project workspace.
+    searchPlaceholder: Search events…
+    filters: Filters
+    refresh: Refresh
+    clearAll: Clear all
+    # Day-group headings above the timeline.
+    today: Today
+    yesterday: Yesterday
+    unknownDate: Unknown date
+    end: That's the whole history.
+    # Actor fallback when an event has no user behind it (system/automation).
+    system: System
+    details: Show details
+    # Reveals the changed fields the row does not have room for; {count} is how
+    # many are hidden.
+    moreChanges: 1 more change | {count} more changes
+    diff:
+      empty: (empty)
+    # Empty states. This view is legitimately empty more often than most, and for
+    # non-obvious reasons, so the hints explain why rather than leaving a dead end.
     empty: No events recorded yet.
+    emptyHint:
+      Events appear here when someone creates, updates or deletes a resource in this
+      project. Viewing and listing are not recorded, and activity from before event
+      tracking was enabled is not shown.
+    emptyFiltered: No events match your filters.
+    emptyFilteredHint: Try widening the time range or clearing a filter.
+    # Metrics band above the timeline (respects the active filters).
+    metrics:
+      volume: Event volume
+      events: Events
+      people: People
+      errors: Errors
+      last30: last 30 days
   # "+ New {type}" button label; {type} is a category singular below.
   newButton: 'New {type}'
   # Singular category nouns used in buttons/dialog titles.
@@ -88,6 +121,18 @@ dashboard:
     byTaskType: 'By task type'
     byReviewType: 'By review type'
     byFeatureType: 'By feature type'
+    bySeverity: 'By severity'
+    byRisk: 'By risk'
+    # Section heading + titles for the created-over-time trend charts.
+    activity: Activity
+    trend: New items over time
+    createdOverTime: Created over time
+  # Overview "Events" band — audit activity summary + recent feed (admin-only).
+  eventsBand:
+    title: Events
+    recent: Recent activity
+    viewAll: View all
+    noRecent: No recent activity yet.
   # Extra CResourceList column headers not covered by event.f.*.
   columns:
     id: ID

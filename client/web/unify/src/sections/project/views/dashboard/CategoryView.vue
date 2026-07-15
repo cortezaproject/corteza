@@ -24,17 +24,29 @@
       </div>
     </header>
 
-    <!-- Metrics — KPI row + charts, fixed above the list. -->
-    <div class="shrink-0 p-4 flex flex-col gap-4">
+    <!-- Metrics — KPI row + compact breakdown grid + trend, fixed above the
+         list. Breakdowns flow up to four across on wide screens so the band
+         stays shallow and leaves room for the list. -->
+    <div class="shrink-0 p-4 flex flex-col gap-3">
       <CategoryKpiRow :kpis="kpiList" />
-      <div class="grid sm:grid-cols-2 gap-4">
-        <CategoryBarChart
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <CategoryDonutChart
           v-for="chart in cfg.charts"
           :key="chart.field"
           :title-key="chart.titleKey"
-          :data="breakdownFor(chart.field)"
+          :data="breakdownFor(chart.field, chart.variant)"
+          :variant="chart.variant"
+          :accent="accentColor"
+          :height="180"
         />
       </div>
+      <CategoryTrendChart
+        title-key="project.dashboard.chart.createdOverTime"
+        :labels="trend.labels"
+        :series="trend.series"
+        :accent="accentColor"
+        :height="180"
+      />
     </div>
 
     <!-- The category's items — fills the remaining space; the list scrolls
@@ -129,14 +141,18 @@
 </template>
 
 <script setup>
-import CategoryBarChart from '@/sections/project/components/dashboard/CategoryBarChart.vue'
+import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
 import CategoryKpiRow from '@/sections/project/components/dashboard/CategoryKpiRow.vue'
+import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import NewEventDialog from '@/sections/project/components/dashboard/NewEventDialog.vue'
 import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
+import { CATEGORY_COLORS, colorFor, orderIndex } from '@/sections/project/config/chartColors'
+import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/trend'
 import { useEventsStore } from '@/sections/project/stores/events'
+import { useReportStore } from '@/sections/project/stores/report'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -152,6 +168,46 @@ const $toast = inject('$toast')
 // Active category comes straight from the route; cfg is null for unknown keys.
 const category = computed(() => route.params.category)
 const cfg = computed(() => CATEGORY_CONFIG[category.value] || null)
+const accentColor = computed(() => CATEGORY_COLORS[category.value] || '')
+
+// Created-over-time trend for this category, from the report endpoint (accurate,
+// not subject to the events store's per-category list cap).
+const reportStore = useReportStore()
+const trend = reactive({ labels: [], series: [] })
+
+async function loadTrend() {
+  const pid = route.params.projectId
+  if (!pid || !cfg.value) {
+    trend.labels = []
+    trend.series = []
+    return
+  }
+  const { fromISO, toISO, starts } = trendWindow(12)
+  const groupBy = cfg.value.trendGroupBy
+  const points = await reportStore
+    .trend(pid, category.value, { from: fromISO, to: toISO, groupBy })
+    .catch(() => [])
+  trend.labels = starts.map(weekLabel)
+
+  // Pivot the day×group points into one stacked series per group value
+  // (e.g. per severity), ordered canonically and coloured to match its badge.
+  const byGroup = new Map()
+  for (const p of points) {
+    const g = p.group || '—'
+    if (!byGroup.has(g)) byGroup.set(g, [])
+    byGroup.get(g).push({ date: p.date, value: p.value })
+  }
+  const keys = [...byGroup.keys()].sort(
+    (a, b) => orderIndex(groupBy, a) - orderIndex(groupBy, b) || a.localeCompare(b),
+  )
+  trend.series = keys.map(g => ({
+    name: g,
+    color: colorFor(groupBy, g),
+    data: bucketWeekly(byGroup.get(g), starts),
+  }))
+}
+
+watch([category, () => route.params.projectId], loadTrend, { immediate: true })
 
 const dialogVisible = ref(false)
 const filter = reactive({ query: '' })
@@ -177,8 +233,15 @@ const kpiList = computed(() => {
   return cfg.value.kpis.map(({ key, labelKey }) => ({ labelKey, value: k[key] }))
 })
 
-// Chart data helper — grouped counts for a given field, live from the store.
-const breakdownFor = field => store.breakdown(category.value, field)
+// Chart data helper — grouped counts for a field, ordered canonically for
+// ranked variants (severity/risk/status) so bars read worst→best.
+const breakdownFor = (field, variant) => {
+  const rows = store.breakdown(category.value, field)
+  if (!variant || variant === 'type') return rows
+  return [...rows].sort(
+    (a, b) => orderIndex(variant, a.label) - orderIndex(variant, b.label) || a.label.localeCompare(b.label),
+  )
+}
 
 const formatDate = v => {
   if (!v) return '—'

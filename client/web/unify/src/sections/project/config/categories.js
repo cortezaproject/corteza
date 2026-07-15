@@ -69,12 +69,20 @@ const COLUMNS = {
   ],
 }
 
-// Charts: always exactly two — a status breakdown plus a breakdown on the
-// category's type field (with an apt chart.* titleKey).
-const buildCharts = ({ typeKey, typeChartKey }) => [
-  { field: 'status', titleKey: 'project.dashboard.chart.byStatus' },
-  { field: typeKey, titleKey: typeChartKey },
-]
+// Charts for a category page: status + the category's type field always, plus
+// severity + risk where the category carries them (all but review). `variant`
+// selects the semantic colour family (see config/chartColors).
+const buildCharts = (key, { typeKey, typeChartKey }) => {
+  const charts = [
+    { field: 'status', titleKey: 'project.dashboard.chart.byStatus', variant: 'status' },
+    { field: typeKey, titleKey: typeChartKey, variant: 'type' },
+  ]
+  if (key !== 'review') {
+    charts.push({ field: 'severity', titleKey: 'project.dashboard.chart.bySeverity', variant: 'severity' })
+    charts.push({ field: 'risk', titleKey: 'project.dashboard.chart.byRisk', variant: 'risk' })
+  }
+  return charts
+}
 
 // Leading title badge per category — same shape/idiom as config/kinds.js
 // KIND_CONFIG (icon + text/bg/ring, light+dark), so the CategoryView header
@@ -118,7 +126,10 @@ const build = key => {
     singularKey: `project.dashboard.categorySingular.${key}`,
     formSchema: EVENT_FORMS[key],
     columns: COLUMNS[key],
-    charts: buildCharts(fields),
+    charts: buildCharts(key, fields),
+    // Dimension the created-over-time trend is stacked by. Review has no
+    // severity, so it stacks by status instead.
+    trendGroupBy: key === 'review' ? 'status' : 'severity',
     kpis: KPIS,
   }
 }

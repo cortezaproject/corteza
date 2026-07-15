@@ -85,13 +85,15 @@ func (ctrl *Actionlog) Report(ctx context.Context, r *request.ActionlogReport) (
 		Dimensions: r.Dimensions,
 		Metrics:    r.Metrics,
 		Filter: actionlog.Filter{
-			FromTimestamp: r.From,
-			ToTimestamp:   r.To,
-			ActorID:       r.ActorID,
-			Resource:      r.Resource,
-			Action:        r.Action,
-			Origin:        r.Origin,
-			Limit:         r.Limit,
+			FromTimestamp:     r.From,
+			ToTimestamp:       r.To,
+			ActorID:           r.ActorID,
+			Resource:          r.Resource,
+			ProjectID:         r.ProjectID,
+			ResourceProjectID: r.ResourceProjectID,
+			Action:            r.Action,
+			Origin:            r.Origin,
+			Limit:             r.Limit,
 		},
 	}
 
