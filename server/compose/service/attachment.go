@@ -292,8 +292,10 @@ func (svc attachment) CreatePageAttachment(ctx context.Context, namespaceID uint
 
 		att = &types.Attachment{
 			NamespaceID: namespaceID,
-			Name:        strings.TrimSpace(name),
-			Kind:        types.PageAttachment,
+			// Inherit the owning project from the namespace (see record.create).
+			ProjectID: ns.ProjectID,
+			Name:      strings.TrimSpace(name),
+			Kind:      types.PageAttachment,
 		}
 
 		return svc.create(ctx, s, name, size, fh, att)
@@ -451,8 +453,10 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 
 		att = &types.Attachment{
 			NamespaceID: namespaceID,
-			Name:        strings.TrimSpace(name),
-			Kind:        types.RecordAttachment,
+			// Inherit the owning project from the namespace (see record.create).
+			ProjectID: ns.ProjectID,
+			Name:      strings.TrimSpace(name),
+			Kind:      types.RecordAttachment,
 		}
 
 		return svc.create(ctx, s, name, size, fh, att)

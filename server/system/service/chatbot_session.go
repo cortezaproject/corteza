@@ -63,13 +63,25 @@ func (svc *chatbotSession) Create(ctx context.Context, new *types.ChatbotSession
 		new.Status = "active"
 		new.CurrentStep = 0
 
+		// A session is always started against a chatbot, so inherit that chatbot's
+		// owning project. A missing chatbot is not fatal here (the session is still
+		// valid); it just stays unattributed.
+		if new.ProjectID == 0 && new.ChatbotID != 0 {
+			if cb, err := store.LookupChatbotByID(ctx, svc.store, new.ChatbotID); err == nil && cb != nil {
+				new.ProjectID = cb.ProjectID
+			}
+		}
+
 		if err := store.CreateChatbotSession(ctx, svc.store, new); err != nil {
 			return err
 		}
 
+		// This action is hand-built (it does not go through the generated
+		// ToAction), so the resource's project has to be stamped explicitly.
 		svc.actionlog.Record(ctx, &actionlog.Action{
-			Resource: "chatbot-session",
-			Action:   "create",
+			Resource:          "chatbot-session",
+			Action:            "create",
+			ResourceProjectID: new.ProjectID,
 		})
 
 		return nil

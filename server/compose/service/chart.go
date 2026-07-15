@@ -90,6 +90,10 @@ func (svc *chart) onCreate(ctx context.Context, new *types.Chart) error {
 		new.DeletedAt = nil
 		new.Config.GenerateIDs(nextID)
 
+		// Inherit the owning project from the namespace; a chart is addressed via
+		// its namespace, so the project never comes from the request payload.
+		new.ProjectID = ns.ProjectID
+
 		if err = store.CreateComposeChart(ctx, s, new); err != nil {
 			return err
 		}

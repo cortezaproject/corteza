@@ -332,11 +332,12 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				tenant_id: schema.TenantFilterField
 				project_id: schema.ProjectFilterField
 				root_project_id: { goType: "uint64", ident: "rootProjectID", storeIdent: "rel_root_project" }
+				resource_project_id: { goType: "uint64", ident: "resourceProjectID", storeIdent: "rel_resource_project" }
 				action: {}
 				limit: { goType: "uint" }
 			}
 
-			byValue: ["action", "resource", "origin", "actor_id", "tenant_id", "project_id", "root_project_id" ]
+			byValue: ["action", "resource", "origin", "actor_id", "tenant_id", "project_id", "root_project_id", "resource_project_id" ]
 		}
 
 		store: {

@@ -456,6 +456,10 @@ func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) erro
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
+		// Inherit the owning project from the namespace; a layout is addressed via
+		// its namespace+page, so the project never comes from the request payload.
+		new.ProjectID = ns.ProjectID
+
 		for i := range new.Blocks {
 			new.Blocks[i].BlockID = uint64(i) + 1
 		}

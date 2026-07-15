@@ -185,15 +185,17 @@ func (a *credentialsAction) String() string {
 
 func (e *credentialsAction) ToAction() *actionlog.Action {
 	resource := e.resource
+	var resourceProjectID uint64
 
 	return &actionlog.Action{
-		Resource:    resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Meta:        e.props.Serialize(),
-		Delta:       actionlog.Delta(e.props.diff),
-		OldState:    actionlog.OldState(e.props.old),
+		Resource:          resource,
+		ResourceProjectID: resourceProjectID,
+		Action:            e.action,
+		Severity:          e.severity,
+		Description:       e.String(),
+		Meta:              e.props.Serialize(),
+		Delta:             actionlog.Delta(e.props.diff),
+		OldState:          actionlog.OldState(e.props.old),
 	}
 }
 

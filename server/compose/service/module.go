@@ -396,6 +396,8 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 				f.ID = nextID()
 				f.ModuleID = new.ID
 				f.NamespaceID = new.NamespaceID
+				// A field always belongs to the same project as its module.
+				f.ProjectID = new.ProjectID
 				f.CreatedAt = *now()
 				f.UpdatedAt = nil
 				f.DeletedAt = nil
@@ -581,6 +583,10 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		if f.NamespaceID == 0 {
 			f.NamespaceID = new.NamespaceID
 		}
+		// Keep the field's project in sync with its module (set unconditionally:
+		// the payload never carries it, and a field cannot outlive its module's
+		// project).
+		f.ProjectID = new.ProjectID
 
 		if systemFields[f.Name] && !old.Fields.HasName(f.Name) {
 			// make sure we're backward compatible, or better:

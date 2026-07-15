@@ -60,6 +60,11 @@ type (
 		// Scope to a project
 		ProjectID uint64 `json:",string"`
 
+		// ResourceProjectID GET parameter
+		//
+		// Filter by the project owning the affected resource
+		ResourceProjectID uint64 `json:",string"`
+
 		// Action GET parameter
 		//
 		// Action
@@ -137,15 +142,16 @@ func NewActionlogList() *ActionlogList {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"from":           r.From,
-		"to":             r.To,
-		"beforeActionID": r.BeforeActionID,
-		"resource":       r.Resource,
-		"projectID":      r.ProjectID,
-		"action":         r.Action,
-		"actorID":        r.ActorID,
-		"origin":         r.Origin,
-		"limit":          r.Limit,
+		"from":              r.From,
+		"to":                r.To,
+		"beforeActionID":    r.BeforeActionID,
+		"resource":          r.Resource,
+		"projectID":         r.ProjectID,
+		"resourceProjectID": r.ResourceProjectID,
+		"action":            r.Action,
+		"actorID":           r.ActorID,
+		"origin":            r.Origin,
+		"limit":             r.Limit,
 	}
 }
 
@@ -172,6 +178,11 @@ func (r ActionlogList) GetResource() string {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) GetProjectID() uint64 {
 	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogList) GetResourceProjectID() uint64 {
+	return r.ResourceProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -227,6 +238,12 @@ func (r *ActionlogList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
 			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resourceProjectID"]; ok && len(val) > 0 {
+			r.ResourceProjectID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

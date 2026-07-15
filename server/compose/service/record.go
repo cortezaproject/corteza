@@ -867,6 +867,16 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	aProps.setNamespace(ns)
 	aProps.setModule(m)
 
+	// A record is only ever addressed via namespace+module, so its owning project
+	// cannot come from the request payload; inherit it from the namespace.
+	//
+	// NOTE: this is in-memory only — the record DAL model (moduleSystemFieldsToAttributes)
+	// declares no projectID system attribute, so it is NOT persisted to rel_project.
+	// It exists so the action log can attribute the event (see ToAction). Persisting
+	// it would mean adding a system attribute to every module model, including
+	// records held in external DAL connections.
+	new.ProjectID = ns.ProjectID
+
 	// check the records limit per namespace
 	if err = svc.checkLimit(ctx, m); err != nil {
 		return nil, nil, err
@@ -1198,6 +1208,11 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	aProps.setModule(m)
 	aProps.setRecord(old)
 
+	// Re-derive the owning project from the namespace (in-memory only, see create)
+	// so the update event is attributed; neither the payload nor the stored record
+	// carries it.
+	upd.ProjectID = ns.ProjectID
+
 	if !svc.ac.CanUpdateRecord(ctx, old) {
 		return nil, nil, nil, dd, RecordErrNotAllowedToUpdate()
 	}
@@ -1524,6 +1539,11 @@ func (svc record) processDelete(ctx context.Context, del *types.Record, namespac
 	if !svc.ac.CanDeleteRecord(ctx, del) {
 		return nil, RecordErrNotAllowedToDelete()
 	}
+
+	// The record loaded from the store carries no project (the record DAL model
+	// has no projectID system attribute, so it is never persisted); re-derive it
+	// from the namespace so the delete event is still attributed.
+	del.ProjectID = namespace.ProjectID
 
 	del.DeletedAt = nowUTC()
 	del.DeletedBy = invokerID

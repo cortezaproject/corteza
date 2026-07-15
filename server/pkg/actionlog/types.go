@@ -19,6 +19,13 @@ type RbacResourcer interface {
 	RbacResource() string
 }
 
+// ProjectResourcer is implemented by resource types that belong to a project.
+// It lets the action log attribute an event to the project owning the affected
+// resource (Action.ResourceProjectID), independently of the request scope.
+type ProjectResourcer interface {
+	ProjectRef() uint64
+}
+
 // Delta holds the field-level diff (old→new) for an action on a resource.
 type Delta []*revisions.Change
 
@@ -146,8 +153,14 @@ type (
 		TenantID      uint64   `json:"tenantID,string"`
 		ProjectID     uint64   `json:"projectID,string"`
 		RootProjectID uint64   `json:"rootProjectID,string"`
-		Action        string   `json:"action"`
-		Limit         uint     `json:"limit"`
+
+		// ResourceProjectID filters by the project owning the affected resource
+		// (see Action.ResourceProjectID). Unlike ProjectID it does not depend on
+		// the request scope, so it works on routes that carry no project.
+		ResourceProjectID uint64 `json:"resourceProjectID,string"`
+
+		Action string `json:"action"`
+		Limit  uint   `json:"limit"`
 
 		// Standard helpers for sorting
 		filter.Sorting

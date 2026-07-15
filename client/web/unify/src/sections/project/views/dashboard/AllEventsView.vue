@@ -357,9 +357,16 @@ const $SystemAPI = inject('$SystemAPI')
 const userStore = useUserStore()
 
 // The project this dashboard is for; scopes the log to its events (see
-// buildParams). The backend tags each event with the active project from the
-// request scope, so every resource touched in the project (compose, agents,
-// chatbots, roles, users…) is included.
+// buildParams). The backend tags each event with the project owning the
+// affected resource (Action.ResourceProjectID), so every project-scoped
+// resource touched here (compose, agents, chatbots, roles, users…) is included.
+//
+// Caveats, by design:
+// - List/search actions carry no single resource, so they are NOT attributed
+//   and will not appear here.
+// - Events recorded before resource attribution shipped are not backfilled.
+// - Reading the log needs the global `action-log.read` permission, so this is
+//   admin-only until RBAC becomes scope-aware.
 const projectID = computed(() => route.params.projectId || undefined)
 
 const items = ref([])
@@ -458,8 +465,10 @@ function buildParams(beforeActionID) {
     from: filter.from ? filter.from.toISOString() : undefined,
     to: filter.to ? filter.to.toISOString() : undefined,
     resource: filter.resource || undefined,
-    // Scope to this project so the log shows only its events.
-    projectID: projectID.value || undefined,
+    // Scope to this project so the log shows only its events. Filters on the
+    // project owning the affected resource (rel_resource_project), NOT on the
+    // request scope (rel_project) — see the projectID comment above.
+    resourceProjectID: projectID.value || undefined,
     action: filter.action || undefined,
     origin: filter.origin || undefined,
     // actorID can be null when cleared via Select's clear button

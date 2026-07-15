@@ -36,6 +36,15 @@ func (svc *aiConversation) onCreate(ctx context.Context, new *types.AiConversati
 	new.ID = id.Next()
 	new.CreatedAt = *now()
 
+	// A conversation is always held with an agent, so inherit that agent's owning
+	// project; the payload never carries it. A missing agent is not fatal here —
+	// the conversation just stays unattributed.
+	if new.ProjectID == 0 && new.AgentID != 0 {
+		if a, lErr := store.LookupAgentByID(ctx, svc.store, new.AgentID); lErr == nil && a != nil {
+			new.ProjectID = a.ProjectID
+		}
+	}
+
 	if err = store.CreateAiConversation(ctx, svc.store, new); err != nil {
 		return err
 	}

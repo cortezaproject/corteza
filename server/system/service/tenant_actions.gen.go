@@ -226,19 +226,28 @@ func (a *tenantAction) String() string {
 
 func (e *tenantAction) ToAction() *actionlog.Action {
 	resource := e.resource
+	var resourceProjectID uint64
 	if e.props != nil && e.props.tenant != nil {
 		if r, ok := any(e.props.tenant).(actionlog.RbacResourcer); ok {
 			resource = r.RbacResource()
 		}
+
+		// Attribute the event to the project owning the affected resource. This is
+		// independent of the request scope, so the log stays filterable per project
+		// on routes that carry no project.
+		if r, ok := any(e.props.tenant).(actionlog.ProjectResourcer); ok {
+			resourceProjectID = r.ProjectRef()
+		}
 	}
 	return &actionlog.Action{
-		Resource:    resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Meta:        e.props.Serialize(),
-		Delta:       actionlog.Delta(e.props.diff),
-		OldState:    actionlog.OldState(e.props.old),
+		Resource:          resource,
+		ResourceProjectID: resourceProjectID,
+		Action:            e.action,
+		Severity:          e.severity,
+		Description:       e.String(),
+		Meta:              e.props.Serialize(),
+		Delta:             actionlog.Delta(e.props.diff),
+		OldState:          actionlog.OldState(e.props.old),
 	}
 }
 

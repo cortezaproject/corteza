@@ -2672,6 +2672,10 @@ endpoints:
               required: false
               title: Scope to a project
               type: uint64
+            - name: resourceProjectID
+              required: false
+              title: Filter by the project owning the affected resource
+              type: uint64
             - name: action
               required: false
               title: Action

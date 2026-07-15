@@ -62,15 +62,16 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 	var (
 		err error
 		f   = actionlog.Filter{
-			FromTimestamp:  r.From,
-			ToTimestamp:    r.To,
-			BeforeActionID: r.BeforeActionID,
-			ActorID:        r.ActorID,
-			Resource:       r.Resource,
-			ProjectID:      r.ProjectID,
-			Action:         r.Action,
-			Origin:         r.Origin,
-			Limit:          r.Limit,
+			FromTimestamp:     r.From,
+			ToTimestamp:       r.To,
+			BeforeActionID:    r.BeforeActionID,
+			ActorID:           r.ActorID,
+			Resource:          r.Resource,
+			ProjectID:         r.ProjectID,
+			ResourceProjectID: r.ResourceProjectID,
+			Action:            r.Action,
+			Origin:            r.Origin,
+			Limit:             r.Limit,
 		}
 	)
 
