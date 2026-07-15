@@ -1168,6 +1168,11 @@ func (svc *service) getConnection(connectionID uint64, oo ...Operation) (cw *Con
 			return errConnectionNotFound(connectionID)
 		}
 
+		// registered but never dialed (connect() failed)
+		if cw.connection == nil {
+			return errConnectionUnavailable(connectionID)
+		}
+
 		// check if connection supports requested operations
 		if !cw.connection.Can(oo...) {
 			return fmt.Errorf("connection %d does not support requested operations %v", connectionID, OperationSet(oo).Diff(cw.connection.Operations()))

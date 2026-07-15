@@ -16,6 +16,10 @@ func errConnectionNotFound(connectionID uint64) error {
 	return errors.NotFound("connection %d does not exist", connectionID)
 }
 
+func errConnectionUnavailable(connectionID uint64) error {
+	return fmt.Errorf("connection %d is not available: underlying connection was not established (check connection issues)", connectionID)
+}
+
 // Sensitivity level errors
 // - remove
 func errSensitivityLevelRemoveNotFound(sensitivityLevelID uint64) error {
