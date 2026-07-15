@@ -24,21 +24,24 @@ type (
 
 	// auxActionlog is an auxiliary structure used for transporting to/from RDBMS store
 	auxActionlog struct {
-		ID            uint64                 `db:"id"`
-		Timestamp     time.Time              `db:"timestamp"`
-		ActorIPAddr   string                 `db:"actor_ip_addr"`
-		ActorID       uint64                 `db:"actor_id"`
-		RequestOrigin string                 `db:"request_origin"`
-		RequestID     string                 `db:"request_id"`
-		Resource      string                 `db:"resource"`
-		ProjectID     uint64                 `db:"project_id"`
-		Action        string                 `db:"action"`
-		Error         string                 `db:"error"`
-		Severity      actionlogType.Severity `db:"severity"`
-		Description   string                 `db:"description"`
-		Meta          actionlogType.Meta     `db:"meta"`
-		Delta         actionlogType.Delta    `db:"delta"`
-		OldState      actionlogType.OldState `db:"old_state"`
+		ID                uint64                 `db:"id"`
+		Timestamp         time.Time              `db:"timestamp"`
+		ActorIPAddr       string                 `db:"actor_ip_addr"`
+		ActorID           uint64                 `db:"actor_id"`
+		RequestOrigin     string                 `db:"request_origin"`
+		RequestID         string                 `db:"request_id"`
+		Resource          string                 `db:"resource"`
+		TenantID          uint64                 `db:"tenant_id"`
+		ProjectID         uint64                 `db:"project_id"`
+		RootProjectID     uint64                 `db:"root_project_id"`
+		ResourceProjectID uint64                 `db:"resource_project_id"`
+		Action            string                 `db:"action"`
+		Error             string                 `db:"error"`
+		Severity          actionlogType.Severity `db:"severity"`
+		Description       string                 `db:"description"`
+		Meta              actionlogType.Meta     `db:"meta"`
+		Delta             actionlogType.Delta    `db:"delta"`
+		OldState          actionlogType.OldState `db:"old_state"`
 	}
 
 	// auxAgent is an auxiliary structure used for transporting to/from RDBMS store
@@ -1214,7 +1217,10 @@ func (aux *auxActionlog) encode(res *actionlogType.Action) (_ error) {
 	aux.RequestOrigin = res.RequestOrigin
 	aux.RequestID = res.RequestID
 	aux.Resource = res.Resource
+	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
+	aux.RootProjectID = res.RootProjectID
+	aux.ResourceProjectID = res.ResourceProjectID
 	aux.Action = res.Action
 	aux.Error = res.Error
 	aux.Severity = res.Severity
@@ -1237,7 +1243,10 @@ func (aux auxActionlog) decode() (res *actionlogType.Action, _ error) {
 	res.RequestOrigin = aux.RequestOrigin
 	res.RequestID = aux.RequestID
 	res.Resource = aux.Resource
+	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
+	res.RootProjectID = aux.RootProjectID
+	res.ResourceProjectID = aux.ResourceProjectID
 	res.Action = aux.Action
 	res.Error = aux.Error
 	res.Severity = aux.Severity
@@ -1260,7 +1269,10 @@ func (aux *auxActionlog) scan(row scanner) error {
 		&aux.RequestOrigin,
 		&aux.RequestID,
 		&aux.Resource,
+		&aux.TenantID,
 		&aux.ProjectID,
+		&aux.RootProjectID,
+		&aux.ResourceProjectID,
 		&aux.Action,
 		&aux.Error,
 		&aux.Severity,

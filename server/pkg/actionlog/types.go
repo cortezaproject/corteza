@@ -98,9 +98,19 @@ type (
 		// Resource
 		Resource string `json:"resource"`
 
+		// Tenant the event belongs to, taken from the request scope in enrich().
+		TenantID uint64 `json:"tenantID,string"`
+
 		// Project the event belongs to, taken from the request scope in enrich()
 		// so the log can be filtered per project. 0 = tenant-level / no project.
 		ProjectID uint64 `json:"projectID,string"`
+
+		// RootProjectID is the root of the revision chain for ProjectID.
+		// Equals ProjectID when ProjectID is not a revision.
+		RootProjectID uint64 `json:"rootProjectID,string"`
+
+		// ResourceProjectID is the project the accessed/affected resource belongs to.
+		ResourceProjectID uint64 `json:"resourceProjectID,string"`
 
 		// Type of action
 		Action string `json:"action"`
@@ -130,11 +140,13 @@ type (
 
 		BeforeActionID uint64 `json:"beforeActionID"`
 
-		ActorID   []string `json:"actorID"`
-		Origin    string   `json:"origin"`
-		Resource  string   `json:"resource"`
-		ProjectID uint64   `json:"projectID"`
-		Action    string   `json:"action"`
+		ActorID       []string `json:"actorID"`
+		Origin        string   `json:"origin"`
+		Resource      string   `json:"resource"`
+		TenantID      uint64   `json:"tenantID"`
+		ProjectID     uint64   `json:"projectID"`
+		RootProjectID uint64   `json:"rootProjectID"`
+		Action        string   `json:"action"`
 		Limit     uint     `json:"limit"`
 
 		// Standard helpers for sorting

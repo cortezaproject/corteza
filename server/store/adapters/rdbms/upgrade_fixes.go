@@ -89,6 +89,10 @@ var (
 		fix_2026_06_22_addDeltaOnActionlog,
 		fix_2026_06_22_addOldStateOnActionlog,
 		fix_2026_07_13_addRelProjectOnActionlog,
+		fix_2026_07_14_addRelResourceProjectOnActionlog,
+		fix_2026_07_14_addRelTenantOnActionlog,
+		fix_2026_07_14_addRelRootProjectOnActionlog,
+		fix_2026_07_14_makeActionlogJsonColsNullable,
 	}
 )
 
@@ -153,6 +157,124 @@ func fix_2026_07_13_addRelProjectOnActionlog(ctx context.Context, s *Store) erro
 		Type:       "BTREE",
 		Fields:     []*ddl.IndexField{{Column: "rel_project"}},
 	})
+}
+
+func fix_2026_07_14_addRelResourceProjectOnActionlog(ctx context.Context, s *Store) error {
+	if _, err := s.DataDefiner.TableLookup(ctx, "actionlog"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	attr := systemModel.Action.Attributes.FindByIdent("ResourceProjectID")
+	if attr == nil {
+		return fmt.Errorf("actionlog model is missing the ResourceProjectID attribute")
+	}
+	if err := addColumn(ctx, s, "actionlog", attr); err != nil {
+		return err
+	}
+
+	const indexName = "actionlog_rel_resource_project"
+	idx, err := s.DataDefiner.IndexLookup(ctx, indexName, "actionlog")
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	if idx != nil {
+		return nil
+	}
+
+	return s.DataDefiner.IndexCreate(ctx, "actionlog", &ddl.Index{
+		TableIdent: "actionlog",
+		Ident:      indexName,
+		Type:       "BTREE",
+		Fields:     []*ddl.IndexField{{Column: "rel_resource_project"}},
+	})
+}
+
+func fix_2026_07_14_addRelTenantOnActionlog(ctx context.Context, s *Store) error {
+	if _, err := s.DataDefiner.TableLookup(ctx, "actionlog"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	attr := systemModel.Action.Attributes.FindByIdent("TenantID")
+	if attr == nil {
+		return fmt.Errorf("actionlog model is missing the TenantID attribute")
+	}
+	return addColumn(ctx, s, "actionlog", attr)
+}
+
+func fix_2026_07_14_addRelRootProjectOnActionlog(ctx context.Context, s *Store) error {
+	if _, err := s.DataDefiner.TableLookup(ctx, "actionlog"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	attr := systemModel.Action.Attributes.FindByIdent("RootProjectID")
+	if attr == nil {
+		return fmt.Errorf("actionlog model is missing the RootProjectID attribute")
+	}
+	if err := addColumn(ctx, s, "actionlog", attr); err != nil {
+		return err
+	}
+
+	const indexName = "actionlog_rel_root_project"
+	idx, err := s.DataDefiner.IndexLookup(ctx, indexName, "actionlog")
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	if idx != nil {
+		return nil
+	}
+
+	return s.DataDefiner.IndexCreate(ctx, "actionlog", &ddl.Index{
+		TableIdent: "actionlog",
+		Ident:      indexName,
+		Type:       "BTREE",
+		Fields:     []*ddl.IndexField{{Column: "rel_root_project"}},
+	})
+}
+
+// Drops NOT NULL from delta and old_state on actionlog. When the actionlog
+// table is freshly created from the model (UpgradeActionlog on an empty DB),
+// those columns are created as NOT NULL before the model gained Nullable:true.
+func fix_2026_07_14_makeActionlogJsonColsNullable(ctx context.Context, s *Store) error {
+	tbl, err := s.DataDefiner.TableLookup(ctx, "actionlog")
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	driver := s.DB.DriverName()
+	for _, col := range []string{"delta", "old_state"} {
+		c := tbl.ColumnByIdent(col)
+		if c == nil || c.Type.Null {
+			continue
+		}
+
+		var query string
+		switch {
+		case strings.HasPrefix(driver, "postgres"):
+			query = fmt.Sprintf("ALTER TABLE actionlog ALTER COLUMN %s DROP NOT NULL", col)
+		case strings.HasPrefix(driver, "mysql"):
+			query = fmt.Sprintf("ALTER TABLE actionlog MODIFY COLUMN %s JSON NULL", col)
+		default:
+			continue
+		}
+
+		if _, err = s.DB.ExecContext(ctx, query); err != nil {
+			return fmt.Errorf("failed to make actionlog.%s nullable: %w", col, err)
+		}
+	}
+
+	return nil
 }
 
 func fix_2026_06_29_addSourceIdentOnDmlMappings(ctx context.Context, s *Store) error {

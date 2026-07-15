@@ -26,12 +26,10 @@ func ProjectScopeResolver() scope.ProjectResolver {
 
 // Resolve maps a project handle or numeric ID to a project within the tenant,
 // authorises the user, and returns the project ID plus capabilities.
-func (r *projectScopeResolver) Resolve(ctx context.Context, tenantID, userID uint64, handleOrID string) (uint64, scope.Capabilities, error) {
-	var zero scope.Capabilities
-
+func (r *projectScopeResolver) Resolve(ctx context.Context, tenantID, userID uint64, handleOrID string) (projectID, rootProjectID uint64, caps scope.Capabilities, err error) {
 	p, err := r.loadProject(ctx, handleOrID)
 	if err != nil {
-		return 0, zero, err
+		return 0, 0, scope.Capabilities{}, err
 	}
 
 	// Project must belong to the current tenant.
@@ -39,18 +37,18 @@ func (r *projectScopeResolver) Resolve(ctx context.Context, tenantID, userID uin
 	// TODO(multi-tenancy): tenant is mocked to 0. Project.TenantID defaults to
 	// 0 too, so this passes until real tenants land.
 	if p.TenantID != tenantID {
-		return 0, zero, ProjectErrNotFound()
+		return 0, 0, scope.Capabilities{}, ProjectErrNotFound()
 	}
 
-	caps, ok, err := r.authorise(ctx, p, userID)
+	c, ok, err := r.authorise(ctx, p, userID)
 	if err != nil {
-		return 0, zero, err
+		return 0, 0, scope.Capabilities{}, err
 	}
 	if !ok {
-		return 0, zero, ProjectErrNotAllowedToRead()
+		return 0, 0, scope.Capabilities{}, ProjectErrNotAllowedToRead()
 	}
 
-	return p.ID, toScopeCaps(caps), nil
+	return p.ID, p.RootProjectID(), toScopeCaps(c), nil
 }
 
 // loadProject resolves the reference as a numeric ID first, then by handle.

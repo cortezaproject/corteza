@@ -108,7 +108,7 @@ type ProjectResolver interface {
 	//
 	// Returns a NotFound error when the project does not exist in the tenant,
 	// or an Unauthorized error when the user has no access.
-	Resolve(ctx context.Context, tenantID, userID uint64, handleOrID string) (projectID uint64, caps Capabilities, err error)
+	Resolve(ctx context.Context, tenantID, userID uint64, handleOrID string) (projectID, rootProjectID uint64, caps Capabilities, err error)
 }
 
 // TenantValidator reports whether a tenant is active. Injected to avoid an
@@ -212,13 +212,14 @@ func ProjectScopeMiddleware(resolver ProjectResolver, urlParam string) func(http
 
 			userID := auth.GetIdentityFromContext(ctx).Identity()
 
-			projectID, caps, err := resolver.Resolve(ctx, sc.TenantID, userID, ref)
+			projectID, rootProjectID, caps, err := resolver.Resolve(ctx, sc.TenantID, userID, ref)
 			if err != nil {
 				errors.ProperlyServeHTTP(w, r, err, false)
 				return
 			}
 
 			sc.ProjectID = projectID
+			sc.RootProjectID = rootProjectID
 			ctx = SetScopeToContext(ctx, sc)
 			ctx = SetCapabilitiesToContext(ctx, caps)
 

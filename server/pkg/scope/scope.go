@@ -4,8 +4,9 @@ import "context"
 
 type (
 	Scope struct {
-		TenantID  uint64
-		ProjectID uint64 // 0 = tenant-level operation
+		TenantID      uint64
+		ProjectID     uint64 // 0 = tenant-level operation
+		RootProjectID uint64 // root of the revision chain; equals ProjectID when not a revision
 	}
 
 	scopeCtxKey struct{}

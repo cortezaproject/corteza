@@ -200,12 +200,17 @@ func enrich(ctx context.Context, a *Action) *Action {
 		}
 	}
 
-	// Attribute the event to the active project (from the request scope) so the
-	// action log can be filtered per project. Covers every resource touched
-	// inside a project — compose, agents, chatbots, roles, users, etc. 0 means
-	// a tenant-level operation with no project context.
+	// Attribute the event to the active scope (tenant, project, root-project).
+	// 0 means a tenant-level operation with no project context.
+	sc := scope.GetScopeFromContext(ctx)
+	if a.TenantID == 0 {
+		a.TenantID = sc.TenantID
+	}
 	if a.ProjectID == 0 {
-		a.ProjectID = scope.GetScopeFromContext(ctx).ProjectID
+		a.ProjectID = sc.ProjectID
+	}
+	if a.RootProjectID == 0 {
+		a.RootProjectID = sc.RootProjectID
 	}
 
 	return a

@@ -270,8 +270,16 @@ func ActionlogFilter(d drivers.Dialect, f actionlogType.Filter) (ee []goqu.Expre
 		ee = append(ee, goqu.C("actor_id").In(f.ActorID))
 	}
 
+	if f.TenantID > 0 {
+		ee = append(ee, goqu.C("rel_tenant").Eq(f.TenantID))
+	}
+
 	if f.ProjectID > 0 {
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if f.RootProjectID > 0 {
+		ee = append(ee, goqu.C("rel_root_project").Eq(f.RootProjectID))
 	}
 
 	return ee, f, err

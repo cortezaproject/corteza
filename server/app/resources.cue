@@ -268,7 +268,22 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				resource:  {
 					dal: { type: "Text", length: 512 }
 				}
+				tenant_id: schema.TenantRefField
 				project_id: schema.ProjectRefField
+				root_project_id: {
+					ident: "rootProjectID"
+					expIdent: "RootProjectID"
+					goType: "uint64"
+					storeIdent: "rel_root_project"
+					dal: { type: "ID", default: 0 }
+				}
+				resource_project_id: {
+					ident: "resourceProjectID"
+					expIdent: "ResourceProjectID"
+					goType: "uint64"
+					storeIdent: "rel_resource_project"
+					dal: { type: "ID", default: 0 }
+				}
 				action: {
 					dal: { type: "Text", length: 64 }
 				}
@@ -288,11 +303,11 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				}
 				delta: {
 					goType: "types.Delta"
-					dal: { type: "JSON" }
+					dal: { type: "JSON", nullable: true }
 				}
 				old_state: {
 					goType: "types.OldState"
-					dal: { type: "JSON" }
+					dal: { type: "JSON", nullable: true }
 				}
 			}
 
@@ -314,12 +329,14 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				actor_id: { goType: "[]uint64", ident: "actorID" }
 				origin: { storeIdent: "request_origin" }
 				resource: {}
+				tenant_id: schema.TenantFilterField
 				project_id: schema.ProjectFilterField
+				root_project_id: { goType: "uint64", ident: "rootProjectID", storeIdent: "rel_root_project" }
 				action: {}
 				limit: { goType: "uint" }
 			}
 
-			byValue: ["action", "resource", "origin", "actor_id", "project_id" ]
+			byValue: ["action", "resource", "origin", "actor_id", "tenant_id", "project_id", "root_project_id" ]
 		}
 
 		store: {

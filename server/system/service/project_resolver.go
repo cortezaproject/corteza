@@ -40,10 +40,10 @@ func NewProjectResolver(s store.Storer) scope.ProjectResolver {
 	}
 }
 
-func (r *projectResolver) Resolve(ctx context.Context, tenantID, userID uint64, ref string) (projectID uint64, caps scope.Capabilities, err error) {
+func (r *projectResolver) Resolve(ctx context.Context, tenantID, userID uint64, ref string) (projectID, rootProjectID uint64, caps scope.Capabilities, err error) {
 	p, err := r.loadProject(ctx, tenantID, ref)
 	if err != nil {
-		return 0, scope.Capabilities{}, err
+		return 0, 0, scope.Capabilities{}, err
 	}
 
 	// Suspended / archived projects are inaccessible. Do not leak status — same
@@ -51,23 +51,23 @@ func (r *projectResolver) Resolve(ctx context.Context, tenantID, userID uint64, 
 	switch p.Status {
 	case types.ProjectStatusDraft, types.ProjectStatusActive, types.ProjectStatusPublished:
 	default:
-		return 0, scope.Capabilities{}, errNoProjectAccess()
+		return 0, 0, scope.Capabilities{}, errNoProjectAccess()
 	}
 
 	// 1. Explicit project membership wins and carries an explicit RolePreset.
 	if m, e := r.loadMember(ctx, p.ID, userID); e != nil {
-		return 0, scope.Capabilities{}, e
+		return 0, 0, scope.Capabilities{}, e
 	} else if m != nil {
-		return p.ID, toScopeCapabilities(m.RolePreset.Capabilities()), nil
+		return p.ID, p.RootProjectID(), toScopeCapabilities(m.RolePreset.Capabilities()), nil
 	}
 
 	// 2. Tenant membership grants read-only access to open-visibility projects.
 	if p.Config.Visibility == types.ProjectVisibilityOpen && r.memberOfTenant(tenantID, userID) {
-		return p.ID, toScopeCapabilities(types.ProjectRoleMember.Capabilities()), nil
+		return p.ID, p.RootProjectID(), toScopeCapabilities(types.ProjectRoleMember.Capabilities()), nil
 	}
 
 	// 3. No access path. 403 in all denial cases.
-	return 0, scope.Capabilities{}, errNoProjectAccess()
+	return 0, 0, scope.Capabilities{}, errNoProjectAccess()
 }
 
 // loadProject resolves ref (numeric ID or handle) to a project within tenantID.

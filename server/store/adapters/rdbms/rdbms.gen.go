@@ -362,7 +362,7 @@ func (s *Store) LookupActionlogByID(ctx context.Context, id uint64) (_ *actionlo
 func (Store) sortableActionlogFields() map[string]string {
 	return map[string]string{
 		"id":        "id",
-		"timestamp": "timestamp",
+		"timestamp": "ts",
 	}
 }
 
@@ -1534,7 +1534,7 @@ func (s *Store) LookupAiConversationByID(ctx context.Context, id uint64) (_ *sys
 // This function is auto-generated
 func (Store) sortableAiConversationFields() map[string]string {
 	return map[string]string{
-		"agentid":    "agentID",
+		"agentid":    "rel_agent",
 		"created_at": "created_at",
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
@@ -2134,7 +2134,7 @@ func (Store) sortableApigwFilterFields() map[string]string {
 		"enabled":    "enabled",
 		"id":         "id",
 		"kind":       "kind",
-		"route":      "route",
+		"route":      "rel_route",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 		"weight":     "weight",
@@ -2739,7 +2739,7 @@ func (Store) sortableApigwRouteFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"enabled":    "enabled",
 		"endpoint":   "endpoint",
-		"group":      "group",
+		"group":      "rel_group",
 		"id":         "id",
 		"method":     "method",
 		"updated_at": "updated_at",
@@ -4837,12 +4837,12 @@ func (s *Store) LookupAuthConfirmedClientByUserIDClientID(ctx context.Context, u
 // This function is auto-generated
 func (Store) sortableAuthConfirmedClientFields() map[string]string {
 	return map[string]string{
-		"client_id":    "client_id",
-		"clientid":     "client_id",
+		"client_id":    "rel_client",
+		"clientid":     "rel_client",
 		"confirmed_at": "confirmed_at",
 		"confirmedat":  "confirmed_at",
-		"user_id":      "user_id",
-		"userid":       "user_id",
+		"user_id":      "rel_user",
+		"userid":       "rel_user",
 	}
 }
 
@@ -6818,8 +6818,8 @@ func (Store) sortableAutomationSessionFields() map[string]string {
 		"status":        "status",
 		"suspended_at":  "suspended_at",
 		"suspendedat":   "suspended_at",
-		"workflow_id":   "workflow_id",
-		"workflowid":    "workflow_id",
+		"workflow_id":   "rel_workflow",
+		"workflowid":    "rel_workflow",
 	}
 }
 
@@ -7385,8 +7385,8 @@ func (Store) sortableAutomationTriggerFields() map[string]string {
 		"resourcetype":  "resource_type",
 		"updated_at":    "updated_at",
 		"updatedat":     "updated_at",
-		"workflow_id":   "workflow_id",
-		"workflowid":    "workflow_id",
+		"workflow_id":   "rel_workflow",
+		"workflowid":    "rel_workflow",
 	}
 }
 
@@ -9316,8 +9316,8 @@ func (s *Store) LookupChatbotSessionByChatbotID(ctx context.Context, chatbotID u
 // This function is auto-generated
 func (Store) sortableChatbotSessionFields() map[string]string {
 	return map[string]string{
-		"chatbot_id": "chatbot_id",
-		"chatbotid":  "chatbot_id",
+		"chatbot_id": "rel_chatbot",
+		"chatbotid":  "rel_chatbot",
 		"created_at": "created_at",
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
@@ -9966,11 +9966,11 @@ func (Store) sortableChatbotSessionHandoffFields() map[string]string {
 		"id":           "id",
 		"initiated_at": "initiated_at",
 		"initiatedat":  "initiated_at",
-		"session_id":   "session_id",
-		"sessionid":    "session_id",
+		"session_id":   "rel_session",
+		"sessionid":    "rel_session",
 		"status":       "status",
-		"step_id":      "step_id",
-		"stepid":       "step_id",
+		"step_id":      "rel_step",
+		"stepid":       "rel_step",
 		"updated_at":   "updated_at",
 		"updatedat":    "updated_at",
 	}
@@ -10610,15 +10610,15 @@ func (s *Store) LookupChatbotSessionStepByConversationID(ctx context.Context, co
 // This function is auto-generated
 func (Store) sortableChatbotSessionStepFields() map[string]string {
 	return map[string]string{
-		"conversation_id": "conversation_id",
-		"conversationid":  "conversation_id",
+		"conversation_id": "rel_conversation",
+		"conversationid":  "rel_conversation",
 		"created_at":      "created_at",
 		"createdat":       "created_at",
 		"deleted_at":      "deleted_at",
 		"deletedat":       "deleted_at",
 		"id":              "id",
-		"session_id":      "session_id",
-		"sessionid":       "session_id",
+		"session_id":      "rel_session",
+		"sessionid":       "rel_session",
 		"status":          "status",
 		"updated_at":      "updated_at",
 		"updatedat":       "updated_at",
@@ -11176,8 +11176,8 @@ func (Store) sortableComposeAttachmentFields() map[string]string {
 		"id":         "id",
 		"kind":       "kind",
 		"name":       "name",
-		"owner_id":   "owner_id",
-		"ownerid":    "owner_id",
+		"owner_id":   "rel_owner",
+		"ownerid":    "rel_owner",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -15358,8 +15358,8 @@ func (s *Store) LookupConfiguredConnectionByID(ctx context.Context, id uint64) (
 // This function is auto-generated
 func (Store) sortableConfiguredConnectionFields() map[string]string {
 	return map[string]string{
-		"connection_id": "connection_id",
-		"connectionid":  "connection_id",
+		"connection_id": "rel_connection",
+		"connectionid":  "rel_connection",
 		"created_at":    "created_at",
 		"createdat":     "created_at",
 		"deleted_at":    "deleted_at",
@@ -21511,8 +21511,8 @@ func (Store) sortableFederationExposedModuleFields() map[string]string {
 		"handle":     "handle",
 		"id":         "id",
 		"name":       "name",
-		"node_id":    "node_id",
-		"nodeid":     "node_id",
+		"node_id":    "rel_node",
+		"nodeid":     "rel_node",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -22102,12 +22102,12 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Co
 // This function is auto-generated
 func (Store) sortableFederationModuleMappingFields() map[string]string {
 	return map[string]string{
-		"compose_module_id":    "compose_module_id",
-		"compose_namespace_id": "compose_namespace_id",
-		"composemoduleid":      "compose_module_id",
-		"composenamespaceid":   "compose_namespace_id",
-		"federation_module_id": "federation_module_id",
-		"federationmoduleid":   "federation_module_id",
+		"compose_module_id":    "rel_compose_module",
+		"compose_namespace_id": "rel_compose_namespace",
+		"composemoduleid":      "rel_compose_module",
+		"composenamespaceid":   "rel_compose_namespace",
+		"federation_module_id": "rel_federation_module",
+		"federationmoduleid":   "rel_federation_module",
 		"node_id":              "node_id",
 		"nodeid":               "node_id",
 	}
@@ -23338,9 +23338,9 @@ func (s *Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx c
 // This function is auto-generated
 func (Store) sortableFederationNodeSyncFields() map[string]string {
 	return map[string]string{
-		"moduleid":       "rel_module",
+		"moduleid":       "rel_compose_module",
 		"nodeid":         "rel_node",
-		"rel_module":     "rel_module",
+		"rel_module":     "rel_compose_module",
 		"rel_node":       "rel_node",
 		"sync_status":    "sync_status",
 		"sync_type":      "sync_type",
@@ -23891,13 +23891,13 @@ func (Store) sortableFederationSharedModuleFields() map[string]string {
 		"createdat":                     "created_at",
 		"deleted_at":                    "deleted_at",
 		"deletedat":                     "deleted_at",
-		"external_federation_module_id": "external_federation_module_id",
-		"externalfederationmoduleid":    "external_federation_module_id",
+		"external_federation_module_id": "xref_module",
+		"externalfederationmoduleid":    "xref_module",
 		"handle":                        "handle",
 		"id":                            "id",
 		"name":                          "name",
-		"node_id":                       "node_id",
-		"nodeid":                        "node_id",
+		"node_id":                       "rel_node",
+		"nodeid":                        "rel_node",
 		"updated_at":                    "updated_at",
 		"updatedat":                     "updated_at",
 	}
@@ -24243,8 +24243,8 @@ func (Store) sortableFlagFields() map[string]string {
 		"name":        "name",
 		"owned_by":    "owned_by",
 		"ownedby":     "owned_by",
-		"resource_id": "resource_id",
-		"resourceid":  "resource_id",
+		"resource_id": "rel_resource",
+		"resourceid":  "rel_resource",
 	}
 }
 
@@ -25216,8 +25216,8 @@ func (Store) sortableLabelFields() map[string]string {
 	return map[string]string{
 		"kind":        "kind",
 		"name":        "name",
-		"resource_id": "resource_id",
-		"resourceid":  "resource_id",
+		"resource_id": "rel_resource",
+		"resourceid":  "rel_resource",
 	}
 }
 
@@ -28564,8 +28564,8 @@ func (Store) sortableProjectGroupEntryFields() map[string]string {
 	return map[string]string{
 		"created_at":       "created_at",
 		"createdat":        "created_at",
-		"project_group_id": "project_group_id",
-		"projectgroupid":   "project_group_id",
+		"project_group_id": "rel_project_group",
+		"projectgroupid":   "rel_project_group",
 		"resource_ref":     "resource_ref",
 		"resourceref":      "resource_ref",
 	}
@@ -32809,8 +32809,8 @@ func (Store) sortableRbacRuleFields() map[string]string {
 	return map[string]string{
 		"operation": "operation",
 		"resource":  "resource",
-		"role_id":   "role_id",
-		"roleid":    "role_id",
+		"role_id":   "rel_role",
+		"roleid":    "rel_role",
 	}
 }
 
@@ -34297,7 +34297,7 @@ func (s *Store) QueryResourceActivitys(
 func (Store) sortableResourceActivityFields() map[string]string {
 	return map[string]string{
 		"id":        "id",
-		"timestamp": "timestamp",
+		"timestamp": "ts",
 	}
 }
 
@@ -35819,9 +35819,9 @@ func (s *Store) QueryRoleMembers(
 // This function is auto-generated
 func (Store) sortableRoleMemberFields() map[string]string {
 	return map[string]string{
-		"resource": "resource",
-		"role_id":  "role_id",
-		"roleid":   "role_id",
+		"resource": "rel_resource",
+		"role_id":  "rel_role",
+		"roleid":   "rel_role",
 	}
 }
 
@@ -36150,8 +36150,8 @@ func (s *Store) LookupSettingValueByNameOwnedBy(ctx context.Context, name string
 func (Store) sortableSettingValueFields() map[string]string {
 	return map[string]string{
 		"name":       "name",
-		"owned_by":   "owned_by",
-		"ownedby":    "owned_by",
+		"owned_by":   "rel_owner",
+		"ownedby":    "rel_owner",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
