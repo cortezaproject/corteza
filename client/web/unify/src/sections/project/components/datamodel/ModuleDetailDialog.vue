@@ -171,7 +171,7 @@ const visible = computed({
 const cfg = kindConfig('module')
 
 const module = computed(() =>
-  props.resourceId ? store.resourcesFor(props.project?.id).find(r => r.id === props.resourceId) : null,
+  props.resourceId ? store.resourcesFor(props.project?.projectID).find(r => r.id === props.resourceId) : null,
 )
 // Live field list — reflects immediate field mutations without closing.
 const fields = computed(() => module.value?.fields || [])
@@ -195,7 +195,7 @@ const nameError = computed(() => {
   // The handle is the slugified title; another module slugging to the same
   // handle would collide, so flag it and make the user rename.
   const key = fieldName(name).toLowerCase()
-  const clash = store.resourcesFor(props.project?.id).find(m => {
+  const clash = store.resourcesFor(props.project?.projectID).find(m => {
     if (m.kind !== 'module') return false
     if (m.id === props.resourceId) return false
     return fieldName(m.name).toLowerCase() === key

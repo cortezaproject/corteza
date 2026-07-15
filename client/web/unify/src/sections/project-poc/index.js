@@ -33,5 +33,4 @@ export default {
   ],
   sidebar: ProjectSidebar,
   sidebarDisabledRoutes: [],
-  autoExpandSidebar: true,
 }

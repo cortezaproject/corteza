@@ -214,13 +214,51 @@ const handleResize = () => {
   isMobile.value = window.innerWidth < 1024
 }
 
+// Sidebar expand/collapse is remembered per webapp in localStorage. First visit
+// to a section falls back to its `sidebarExpandedByDefault` flag; after that the
+// user's last manual choice wins.
+const SIDEBAR_PREFS_KEY = 'ui.sidebar.expanded'
+
+const loadSidebarPrefs = () => {
+  try {
+    return JSON.parse(localStorage.getItem(SIDEBAR_PREFS_KEY)) || {}
+  } catch {
+    return {}
+  }
+}
+
+const saveSidebarPref = (webapp, value) => {
+  const prefs = loadSidebarPrefs()
+  prefs[webapp] = value
+  localStorage.setItem(SIDEBAR_PREFS_KEY, JSON.stringify(prefs))
+}
+
+const resolveExpanded = () => {
+  if (sidebarDisabled.value || isMobile.value) return false
+  const prefs = loadSidebarPrefs()
+  const key = currentWebapp.value
+  if (key in prefs) return prefs[key]
+  return !!activeSection.value?.sidebarExpandedByDefault
+}
+
+// Guards the persistence watcher against programmatic (resolve-driven) writes so
+// only genuine user toggles are stored. Relies on flush:'sync' below.
+let applyingResolved = false
+const applyResolved = () => {
+  applyingResolved = true
+  expanded.value = resolveExpanded()
+  applyingResolved = false
+}
+
+watch([sidebarDisabled, currentWebapp, isMobile], applyResolved, { immediate: true })
+
 watch(
-  sidebarDisabled,
-  disabled => {
-    if (disabled) expanded.value = false
-    else if (activeSection.value?.autoExpandSidebar && !isMobile.value) expanded.value = true
+  expanded,
+  value => {
+    if (applyingResolved || sidebarDisabled.value || isMobile.value) return
+    saveSidebarPref(currentWebapp.value, value)
   },
-  { immediate: true },
+  { flush: 'sync' },
 )
 
 watch(
@@ -229,6 +267,11 @@ watch(
     if (newSection !== oldSection) rightSidebarStore.closeSectionPanels()
   },
 )
+
+// Sections may declare a `preload` the shell runs when they become active, so
+// section-wide data (e.g. the projects list feeding the sidebar) is loaded on
+// app load / section entry rather than lazily when a drawer is first opened.
+watch(activeSection, section => section?.preload?.(), { immediate: true })
 
 // --- Shell state -------------------------------------------------------------
 const searchRef = ref(null)

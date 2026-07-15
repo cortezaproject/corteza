@@ -120,7 +120,7 @@ const visible = computed({
 const cfg = kindConfig('role')
 
 const role = computed(() =>
-  props.resourceId ? store.rolesFor(props.project?.id).find(r => r.id === props.resourceId) : null,
+  props.resourceId ? store.rolesFor(props.project?.projectID).find(r => r.id === props.resourceId) : null,
 )
 
 // --- Role meta draft (staged; nothing persists until Save) --------------------
@@ -168,7 +168,7 @@ watch(
     const openedFor = props.resourceId
     initDraft() // instant seed from the (possibly stale) cache
     const seeded = { name: draft.name, description: draft.description }
-    await loadContext(props.project?.id)
+    await loadContext(props.project?.projectID)
     // loadContext refetches the roles; re-seed from the fresh copy, but only if
     // the dialog is still open for the same role and the user hasn't started
     // editing — never clobber in-progress input.

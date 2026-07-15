@@ -61,12 +61,17 @@ const eventsStore = useEventsStore()
 
 const project = computed(() => store.findById(route.params.projectId))
 
-// Load the project's events (all five category resources) on entry and whenever
-// the active project changes, so the nav badges, KPIs and lists reflect it.
+// Load the project itself + its events on entry and whenever the active project
+// changes. The project must be fetched here (not left to the sidebar's store
+// load) — the sidebar lives in a lazily-mounted drawer, so landing on the
+// dashboard with it collapsed would otherwise leave `project` undefined and hide
+// the topbar buttons until the drawer is first opened.
 watch(
   () => route.params.projectId,
   id => {
-    if (id) eventsStore.load(id)
+    if (!id) return
+    store.fetchProject(id).catch(err => console.error('Failed to load project', err))
+    eventsStore.load(id)
   },
   { immediate: true },
 )

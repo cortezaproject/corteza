@@ -116,7 +116,7 @@ const cfg = kindConfig('automation')
 
 const automation = computed(() =>
   props.resourceId
-    ? store.automationsFor(props.project?.id).find(a => a.id === props.resourceId)
+    ? store.automationsFor(props.project?.projectID).find(a => a.id === props.resourceId)
     : null,
 )
 

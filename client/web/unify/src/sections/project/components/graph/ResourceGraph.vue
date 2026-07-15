@@ -133,7 +133,7 @@ const loading = ref(false)
 let pending = false
 
 async function reload() {
-  if (!props.project?.id) return
+  if (!props.project?.projectID) return
   if (loading.value) {
     pending = true
     return
@@ -155,7 +155,7 @@ async function reload() {
 // Refetch after every persisting mutation (the store bumps graphVersion) —
 // the backend re-derives the relations from the saved state.
 watch(
-  [() => props.project?.id, () => store.graphVersion],
+  [() => props.project?.projectID, () => store.graphVersion],
   ([id]) => {
     if (id) reload()
     else graph.value = { nodes: [], edges: [] }

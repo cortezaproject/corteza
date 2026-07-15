@@ -138,16 +138,16 @@ type (
 		FromTimestamp *time.Time `json:"from"`
 		ToTimestamp   *time.Time `json:"to"`
 
-		BeforeActionID uint64 `json:"beforeActionID"`
+		BeforeActionID uint64 `json:"beforeActionID,string"`
 
 		ActorID       []string `json:"actorID"`
 		Origin        string   `json:"origin"`
 		Resource      string   `json:"resource"`
-		TenantID      uint64   `json:"tenantID"`
-		ProjectID     uint64   `json:"projectID"`
-		RootProjectID uint64   `json:"rootProjectID"`
+		TenantID      uint64   `json:"tenantID,string"`
+		ProjectID     uint64   `json:"projectID,string"`
+		RootProjectID uint64   `json:"rootProjectID,string"`
 		Action        string   `json:"action"`
-		Limit     uint     `json:"limit"`
+		Limit         uint     `json:"limit"`
 
 		// Standard helpers for sorting
 		filter.Sorting

@@ -19,5 +19,5 @@ export default {
   // Admin shows its sidebar on every route.
   sidebarDisabledRoutes: [],
   // Open the sidebar automatically when navigating into the admin section.
-  autoExpandSidebar: true,
+  sidebarExpandedByDefault: true,
 }

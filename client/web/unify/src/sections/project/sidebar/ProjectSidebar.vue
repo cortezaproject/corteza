@@ -26,7 +26,9 @@ const { t } = useI18n()
 const store = useProjectsStore()
 const { projects } = storeToRefs(store)
 
-store.load()
+// The list is loaded by the section's `preload` (run by the shell on section
+// entry), so it's ready here even before this lazily-mounted drawer opens.
+// Mutations keep the store fresh via `absorb`, so the tree stays current.
 
 // A live (published) project opens its dashboard; a draft opens the wizard.
 // Live status is `active` (BE never sets `published`), matching ProjectList.

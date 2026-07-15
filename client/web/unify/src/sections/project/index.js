@@ -2,9 +2,14 @@
 // (legacy base was /project/ with routes /projects…, so prefixed they become
 // /project/projects…). Legacy `root` redirect → section index `project`.
 import ProjectSidebar from './sidebar/ProjectSidebar.vue'
+import { useProjectsStore } from './stores/projects'
 
 export default {
   id: 'project',
+  // Run by the shell when this section becomes active (app load or navigation
+  // into it), so the projects list feeding the sidebar tree is ready regardless
+  // of whether the lazily-mounted sidebar drawer has been opened.
+  preload: () => useProjectsStore().load(),
   routes: [
     {
       path: '/project',
@@ -66,5 +71,4 @@ export default {
   ],
   sidebar: ProjectSidebar,
   sidebarDisabledRoutes: [],
-  autoExpandSidebar: true,
 }

@@ -110,7 +110,7 @@ export default {
     },
   ],
   sidebar: ComposeSidebar,
-  autoExpandSidebar: true,
+  sidebarExpandedByDefault: true,
   agentContext,
   profileItems,
 }

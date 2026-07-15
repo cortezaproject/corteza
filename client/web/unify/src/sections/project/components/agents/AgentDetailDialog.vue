@@ -114,7 +114,7 @@ const visible = computed({
 const cfg = kindConfig('agent')
 
 const agent = computed(() =>
-  props.resourceId ? store.agentsFor(props.project?.id).find(a => a.id === props.resourceId) : null,
+  props.resourceId ? store.agentsFor(props.project?.projectID).find(a => a.id === props.resourceId) : null,
 )
 
 // --- Draft (staged; nothing persists until Save) -------------------------------

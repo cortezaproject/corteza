@@ -120,7 +120,7 @@ const visible = computed({
 const cfg = kindConfig('page')
 
 const page = computed(() =>
-  props.resourceId ? store.pagesFor(props.project?.id).find(p => p.id === props.resourceId) : null,
+  props.resourceId ? store.pagesFor(props.project?.projectID).find(p => p.id === props.resourceId) : null,
 )
 
 // --- Draft (staged; nothing persists until Save) -------------------------------

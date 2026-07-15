@@ -102,7 +102,7 @@ const nameError = computed(() => {
   // The handle is the slugified title; a different module slugging to the same
   // handle would collide on create, so flag it here and make the user rename.
   const key = fieldName(name).toLowerCase()
-  const clash = store.resourcesFor(props.project?.id).find(m => {
+  const clash = store.resourcesFor(props.project?.projectID).find(m => {
     if (m.kind !== 'module') return false
     if (m.id === createdId.value) return false
     return fieldName(m.name).toLowerCase() === key

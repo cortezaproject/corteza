@@ -130,12 +130,12 @@ const visible = computed({
 
 const cfg = kindConfig('user')
 
-const roles = computed(() => store.rolesFor(props.project?.id))
+const roles = computed(() => store.rolesFor(props.project?.projectID))
 
 // The project-user row carries the userId + the roles they currently hold.
 const entity = computed(() =>
   props.resourceId
-    ? store.projectUsersFor(props.project?.id).find(u => u.userId === props.resourceId)
+    ? store.projectUsersFor(props.project?.projectID).find(u => u.userId === props.resourceId)
     : null,
 )
 
@@ -205,7 +205,7 @@ watch(
     const openedFor = props.resourceId
     initDraft() // instant seed from the (possibly stale) cache
     const seeded = [...draft.roleIds]
-    await loadContext(props.project?.id)
+    await loadContext(props.project?.projectID)
     if (
       props.modelValue &&
       props.resourceId === openedFor &&

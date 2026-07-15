@@ -110,7 +110,7 @@ const visible = computed({
 const cfg = kindConfig('chatbot')
 
 const chatbot = computed(() =>
-  props.resourceId ? store.chatbotsFor(props.project?.id).find(c => c.id === props.resourceId) : null,
+  props.resourceId ? store.chatbotsFor(props.project?.projectID).find(c => c.id === props.resourceId) : null,
 )
 
 // --- Draft (staged; nothing persists until Save) -------------------------------

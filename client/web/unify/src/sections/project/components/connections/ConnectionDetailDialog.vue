@@ -123,7 +123,7 @@ const cfg = kindConfig('connection')
 // response). Keyed by project id.
 const entity = computed(() =>
   props.resourceId
-    ? store.connectionsFor(props.project?.id).find(c => c.id === props.resourceId)
+    ? store.connectionsFor(props.project?.projectID).find(c => c.id === props.resourceId)
     : null,
 )
 

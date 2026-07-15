@@ -16,7 +16,6 @@ export const useProjectsStore = defineStore('projects', () => {
   const $AutomationAPI = inject('$AutomationAPI')
 
   const projects = ref([])
-  const loaded = ref(false)
   let loading = null
 
   const findById = computed(() => id => projects.value.find(p => p.projectID === String(id)))
@@ -325,7 +324,6 @@ export const useProjectsStore = defineStore('projects', () => {
       .projectList({ limit: 500, sort: 'createdAt DESC' })
       .then(({ set = [] } = {}) => {
         for (const raw of set) absorb(raw)
-        loaded.value = true
       })
       .catch(err => console.error('Failed to load projects', err))
       .finally(() => {
@@ -334,23 +332,36 @@ export const useProjectsStore = defineStore('projects', () => {
     return loading
   }
 
-  // Full fetch for the wizard: project + members (capability resolution). The
-  // project's resources are loaded separately into the resourcesByProject
+  // Full fetch for a project view: project + members (capability resolution).
+  // The project's resources are loaded separately into the resourcesByProject
   // cache (fetched by projectID), never attached to the project object.
+  //
+  // Always re-reads (callers want fresh state on entry), but concurrent calls
+  // for the same id share one in-flight request so navigating between a
+  // project's views doesn't fire duplicate read+members+resources waterfalls.
+  const fetchInFlight = new Map()
   async function fetchProject(id) {
-    const raw = await $SystemAPI.projectRead({ projectID: id })
-    const p = absorb(raw)
+    const key = String(id)
+    if (fetchInFlight.has(key)) return fetchInFlight.get(key)
 
-    await loadSensitivityLevels()
+    const promise = (async () => {
+      const raw = await $SystemAPI.projectRead({ projectID: id })
+      const p = absorb(raw)
 
-    const [members] = await Promise.all([
-      $SystemAPI.projectListMembers({ projectID: p.projectID }).catch(() => ({ set: [] })),
-      loadResources(p.projectID),
-    ])
+      await loadSensitivityLevels()
 
-    membersByProject.value[p.projectID] = (members.set || []).map(unmarshalMember)
+      const [members] = await Promise.all([
+        $SystemAPI.projectListMembers({ projectID: p.projectID }).catch(() => ({ set: [] })),
+        loadResources(p.projectID),
+      ])
 
-    return p
+      membersByProject.value[p.projectID] = (members.set || []).map(unmarshalMember)
+
+      return p
+    })().finally(() => fetchInFlight.delete(key))
+
+    fetchInFlight.set(key, promise)
+    return promise
   }
 
   // Fetch a project's resources (compose modules) filtered by projectID and
@@ -412,10 +423,19 @@ export const useProjectsStore = defineStore('projects', () => {
   async function updateProject(id, patch = {}) {
     const p = findById.value(id)
     if (!p) return
+    // Snapshot the fields we touch so a failed push rolls back the optimistic
+    // mutation instead of leaving the instance showing unsaved state.
+    const prev = { status: p.status, meta: { ...p.meta } }
     if (typeof patch.status === 'string') p.status = patch.status
     if (typeof patch.name === 'string') p.meta = { ...p.meta, short: patch.name }
     if (typeof patch.description === 'string') p.meta = { ...p.meta, description: patch.description }
-    return pushProject(p)
+    try {
+      return await pushProject(p)
+    } catch (err) {
+      p.status = prev.status
+      p.meta = prev.meta
+      throw err
+    }
   }
 
   async function removeProject(id) {
@@ -1609,7 +1629,6 @@ export const useProjectsStore = defineStore('projects', () => {
 
   return {
     projects,
-    loaded,
     graphVersion,
     touch,
     load,

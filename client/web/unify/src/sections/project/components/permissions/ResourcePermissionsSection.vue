@@ -33,10 +33,10 @@ const store = useProjectsStore()
 // The project's access roles = the column set. Resource detail dialogs don't
 // load roles on their own, so pull them in when the section mounts / the project
 // changes — without this both the columns and the traced cell states are empty.
-const roles = computed(() => store.rolesFor(props.project?.id) || [])
+const roles = computed(() => store.rolesFor(props.project?.projectID) || [])
 
 watch(
-  () => props.project?.id,
+  () => props.project?.projectID,
   id => {
     if (id) store.loadRoles(id)
   },
