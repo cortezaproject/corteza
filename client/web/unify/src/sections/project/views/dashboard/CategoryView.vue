@@ -75,7 +75,12 @@
       </section>
 
       <template v-else>
-        <CategoryKpiRow :kpis="kpiList" />
+        <CategoryKpiRow
+          :kpis="kpiList"
+          :spark="kpiSpark"
+          :spark-labels="trend.labels"
+          :accent="accentColor"
+        />
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
           <!-- Severity/risk are ordinal (ranked, not parts-of-a-whole) — an
                ordered bar reads rank directly; status/type stay donuts. -->
@@ -387,6 +392,14 @@ const kpiList = computed(() => {
   if (!cfg.value) return []
   return cfg.value.kpis.map(({ key, labelKey }) => ({ labelKey, value: reportBreakdowns[key] }))
 })
+
+// KPI tiles' sparkline — a single weekly-total series derived from the
+// already-loaded trend (no new report call): sum each group's stacked value
+// at every week index. Empty trend (not loaded yet, or an invalid category)
+// ⇒ empty array, so CategoryKpiRow renders its tiles without a strip.
+const kpiSpark = computed(() =>
+  trend.labels.map((_, i) => trend.series.reduce((sum, s) => sum + (s.data[i] || 0), 0)),
+)
 
 // Chart data helper — grouped counts for a report dimension, ordered
 // canonically for ranked variants (severity/risk/status) so bars read

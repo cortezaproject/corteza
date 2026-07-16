@@ -12,16 +12,64 @@
       <div class="text-2xl font-semibold text-color leading-none">
         {{ kpi.value }}
       </div>
+
+      <!-- Optional created-per-week pulse for the category — decorative
+           reinforcement only (the number above stays the primary readout, so
+           the strip is aria-hidden). Every tile shares the same single series
+           (the category's overall weekly volume, not a per-KPI breakdown), so
+           there's one accent colour and no legend. Absent/empty `spark` ⇒ no
+           strip, tile renders exactly as before. -->
+      <div
+        v-if="spark && spark.length"
+        class="h-8 flex items-end gap-0.5 mt-1"
+        aria-hidden="true"
+      >
+        <div
+          v-for="(v, i) in spark"
+          :key="i"
+          class="flex-1 rounded-sm opacity-60"
+          :class="{ 'bg-emphasis': !accent }"
+          :style="{ height: barHeight(v) + '%', background: accent || undefined }"
+          :title="`${sparkLabels[i] || ''}: ${v}`"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 // Presentational KPI row. Parent maps its category config to { labelKey, value }.
-defineProps({
+const props = defineProps({
   kpis: {
     type: Array,
     required: true,
   },
+  // Optional weekly created-per-week totals (number[]), shared by every tile
+  // (the category's overall weekly pulse — tiles differ by number, not by
+  // series). Omitted/empty ⇒ no sparkline strip is rendered.
+  spark: {
+    type: Array,
+    default: () => [],
+  },
+  // Week labels aligned to `spark`, used for the bars' tooltips only.
+  sparkLabels: {
+    type: Array,
+    default: () => [],
+  },
+  // Category accent hex for the bars — a single low-emphasis colour, no
+  // per-bar hue variation (it's one series, not a comparison).
+  accent: {
+    type: String,
+    default: '',
+  },
 })
+
+// Bars scale to the series max; a floor keeps zero (or near-zero) weeks
+// visible as a thin baseline sliver instead of disappearing entirely. When
+// every week is zero, every bar lands on that same floor — reading as an
+// even, empty track rather than a spike.
+const maxVal = computed(() => Math.max(0, ...props.spark))
+const barHeight = v => (maxVal.value > 0 ? Math.max(8, Math.round((v / maxVal.value) * 100)) : 8)
 </script>
