@@ -86,10 +86,12 @@ function go(item) {
   router.push({ name: item.route, params })
 }
 
-// Category items show a LIVE count from the events store; other items keep
-// their static config badge (may be null → no pill).
+// Category items show a LIVE count from the events store; the backlog item
+// shows a live count of distinct backlog-tagged items (same store, cheap);
+// everything else keeps its static config badge (may be null → no pill).
 function badgeValue(item) {
   if (item.category) return eventsStore.countByCategory(item.category)
+  if (item.key === 'backlog') return eventsStore.backlogItemCount
   return item.badge ?? null
 }
 

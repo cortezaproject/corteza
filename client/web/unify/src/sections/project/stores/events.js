@@ -173,6 +173,12 @@ export const useEventsStore = defineStore('events', () => {
 
   const countByCategory = computed(() => cat => byCategory.value(cat).length)
 
+  // Distinct items (across every category) carrying at least one backlog tag —
+  // feeds the Backlog nav item's live badge (see DashboardNav.vue#badgeValue).
+  const backlogItemCount = computed(
+    () => events.value.filter(e => e.backlog && e.backlog.length).length,
+  )
+
   // KPI trio for a category. `open` = not Completed; `overdue` = due in the past
   // and not Completed (bad/blank dates are guarded and never count as overdue).
   const kpis = computed(() => cat => {
@@ -259,6 +265,7 @@ export const useEventsStore = defineStore('events', () => {
     ownerOptions,
     byCategory,
     countByCategory,
+    backlogItemCount,
     kpis,
     breakdown,
     add,

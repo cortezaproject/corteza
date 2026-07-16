@@ -177,8 +177,14 @@ dashboard:
     features: Features
     tasks: Tasks
     reviews: Reviews
-  stub:
-    comingSoon: This view is coming soon.
+  # Backlog view — every category item carrying at least one backlog tag,
+  # grouped by tag (see views/dashboard/BacklogView.vue).
+  backlog:
+    title: Backlog
+    desc: Items tagged for backlog triage across every category, grouped by tag.
+    empty: No backlog items yet.
+    emptyHint: Add a backlog tag to an item from its category page to have it appear here, grouped with others sharing the same tag.
+    itemCount: 1 item | {count} items
   event:
     title: New Event
     step1: Select the type of event you want to create.
