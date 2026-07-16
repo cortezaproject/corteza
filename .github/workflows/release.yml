@@ -84,7 +84,7 @@ jobs:
           name: webconsole-dist
           path: server/webconsole/dist
       - name: 'Copy essentials'
-        run: cp *.md DCO LICENSE server/
+        run: cp DCO LICENSE server/
       - name: 'Copy language files'
         working-directory: server/pkg/locale
         run: make src/en
@@ -109,7 +109,7 @@ jobs:
           go-version: '${{ env.GO_VERSION }}'
           cache-dependency-path: extra/server-discovery/go.sum
       - name: 'Copy essentials'
-        run: cp *.md DCO LICENSE extra/server-discovery/
+        run: cp DCO LICENSE extra/server-discovery/
       - name: 'Build discovery server binary'
         working-directory: extra/server-discovery
         run: make release-clean release BUILD_FLAVOUR=human

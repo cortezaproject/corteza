@@ -11,7 +11,7 @@ test:
 lint:
 	@for dir in $(WEB_SUBDIRS); do \
 		echo "---Linting $$dir---"; \
-		(cd $$dir && pnpm run lint) || (echo "Failed to lint $$dir"; exit 1); \
+		(cd $$dir && pnpm run --if-present lint) || (echo "Failed to lint $$dir"; exit 1); \
 	done
 
 build:

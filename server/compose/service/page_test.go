@@ -49,11 +49,11 @@ func TestPageDeleting(t *testing.T) {
 		}
 
 		svc = &page{
-			store:    s,
-			ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
-			eventbus: eventbus.New(),
+			store: s,
+			ac:    &accessControl{rbac: &rbac.ServiceAllowAll{}},
 			services: &pageServices{
-				locale: ResourceTranslationsManager(locale.Static()),
+				eventbus: eventbus.New(),
+				locale:   ResourceTranslationsManager(locale.Static()),
 			},
 		}
 

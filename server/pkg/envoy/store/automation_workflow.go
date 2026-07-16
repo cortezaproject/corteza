@@ -16,8 +16,6 @@ type (
 		res *resource.AutomationWorkflow
 		wf  *types.Workflow
 		tt  types.TriggerSet
-
-		ux *userIndex
 	}
 	automationWorkflowSet []*automationWorkflow
 

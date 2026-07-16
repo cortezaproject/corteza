@@ -16,8 +16,6 @@ type (
 		rp  *types.Report
 		ss  types.ReportDataSourceSet
 		pp  types.ReportBlockSet
-
-		ux *userIndex
 	}
 	reportSet []*report
 

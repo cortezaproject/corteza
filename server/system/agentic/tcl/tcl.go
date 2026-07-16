@@ -99,11 +99,6 @@ func Master() MasterList {
 	return master
 }
 
-// HardwiredArticleIDs returns the IDs of all hardwired articles.
-func HardwiredArticleIDs() []string {
-	return hardwiredIDs
-}
-
 // DefaultArticleIDs returns the IDs of all defaultSelected articles.
 func DefaultArticleIDs() []string {
 	return defaultIDs

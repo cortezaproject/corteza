@@ -442,8 +442,7 @@ func (svc *page) onSearch(ctx context.Context, filter types.PageFilter, _ *pageA
 
 func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 	var (
-		ns  *types.Namespace
-		err error
+		ns *types.Namespace
 	)
 
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -491,8 +490,6 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 		_ = svc.services.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns, nil))
 		return err
 	})
-	_ = err
-	return nil
 }
 
 func (svc *page) onUpdate(ctx context.Context, s store.Storer, upd *types.Page, res *types.Page, _ *pageActionProps, before func() error, after func() error) error {

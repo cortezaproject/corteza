@@ -1,4 +1,4 @@
-.PHONY: dev pack build help qa critic vet codegen provision docs build auth webapp
+.PHONY: dev build help qa critic vet codegen provision webapp
 
 include Makefile.inc
 

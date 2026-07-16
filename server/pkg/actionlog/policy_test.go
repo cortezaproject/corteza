@@ -24,42 +24,6 @@ func TestPolicyMatchers(t *testing.T) {
 			true,
 		},
 		{
-			"should match resource",
-			&Action{Resource: "foo"},
-			NewPolicyMatchResource("foo"),
-			true,
-		},
-		{
-			"should not match resource",
-			&Action{Resource: "bar"},
-			NewPolicyMatchResource("foo"),
-			false,
-		},
-		{
-			"should match one of resource",
-			&Action{Resource: "baz"},
-			NewPolicyMatchResource("foo", "bar", "baz"),
-			true,
-		},
-		{
-			"should match action",
-			&Action{Action: "foo"},
-			NewPolicyMatchAction("foo"),
-			true,
-		},
-		{
-			"should not match action",
-			&Action{Action: "bar"},
-			NewPolicyMatchAction("foo"),
-			false,
-		},
-		{
-			"should match one of action",
-			&Action{Action: "baz"},
-			NewPolicyMatchAction("foo", "bar", "baz"),
-			true,
-		},
-		{
 			"should match severity",
 			&Action{Severity: Emergency},
 			NewPolicyMatchSeverity(Emergency),
@@ -87,8 +51,6 @@ func TestPolicyMatchers(t *testing.T) {
 			"complex match",
 			&Action{Severity: Warning, Resource: "foo", Action: "do"},
 			NewPolicyAll(
-				NewPolicyMatchResource("foo"),
-				NewPolicyMatchAction("do"),
 				NewPolicyMatchSeverity(Warning),
 			),
 			true,
@@ -97,9 +59,7 @@ func TestPolicyMatchers(t *testing.T) {
 			"complex miss",
 			&Action{Severity: Warning, Resource: "bar", Action: "do"},
 			NewPolicyAll(
-				NewPolicyMatchResource("foo"),
-				NewPolicyMatchAction("do"),
-				NewPolicyMatchSeverity(Warning),
+				NewPolicyMatchSeverity(Emergency),
 			),
 			false,
 		},

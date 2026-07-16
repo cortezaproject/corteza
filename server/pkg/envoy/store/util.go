@@ -112,25 +112,6 @@ func resolveUserstamps(ctx context.Context, s store.Storer, rr []resource.Interf
 	return us, nil
 }
 
-// syncUserStamps tries to resolve any missing userstamp using the userIndex
-func syncUserStamps(us *resource.Userstamps, ux *userIndex) {
-	if us.CreatedBy != nil && us.CreatedBy.UserID > 0 {
-		us.CreatedBy.U = ux.users[us.CreatedBy.UserID]
-	}
-	if us.UpdatedBy != nil && us.UpdatedBy.UserID > 0 {
-		us.UpdatedBy.U = ux.users[us.UpdatedBy.UserID]
-	}
-	if us.DeletedBy != nil && us.DeletedBy.UserID > 0 {
-		us.DeletedBy.U = ux.users[us.DeletedBy.UserID]
-	}
-	if us.OwnedBy != nil && us.OwnedBy.UserID > 0 {
-		us.OwnedBy.U = ux.users[us.OwnedBy.UserID]
-	}
-	if us.RunAs != nil && us.RunAs.UserID > 0 {
-		us.RunAs.U = ux.users[us.RunAs.UserID]
-	}
-}
-
 func mergeConfig(ec *EncoderConfig, rs *resource.EnvoyConfig) *EncoderConfig {
 	// Nothing we can do
 	if rs == nil {

@@ -23,14 +23,6 @@ type (
 		origin map[string]bool
 	}
 
-	logPolicyMatchResource struct {
-		resources map[string]bool
-	}
-
-	logPolicyMatchAction struct {
-		actions map[string]bool
-	}
-
 	logPolicyMatchSeverity struct {
 		severities map[Severity]bool
 	}
@@ -82,24 +74,6 @@ func NewPolicyNegate(m policyMatcher) policyMatcher {
 
 func (p logPolicyNegate) Match(a *Action) bool {
 	return !p.m.Match(a)
-}
-
-// NewPolicyMatchResource matches resources
-func NewPolicyMatchResource(rr ...string) policyMatcher {
-	return &logPolicyMatchResource{resources: slice.ToStringBoolMap(rr)}
-}
-
-func (p logPolicyMatchResource) Match(a *Action) bool {
-	return p.resources[a.Resource]
-}
-
-// NewPolicyMatchAction matches action
-func NewPolicyMatchAction(aa ...string) policyMatcher {
-	return &logPolicyMatchAction{actions: slice.ToStringBoolMap(aa)}
-}
-
-func (p logPolicyMatchAction) Match(a *Action) bool {
-	return p.actions[a.Action]
 }
 
 // NewPolicyMatchSeverity matches severity

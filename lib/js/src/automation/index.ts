@@ -1,3 +1,4 @@
+export { Encode, IsTyped } from './types/values'
 export { Function } from './types/function'
 export { isIconDef, normalizeIcon, DEFAULT_ICONS } from './types/icon'
 export type { IconDef } from './types/icon'
@@ -14,7 +15,6 @@ export type {
   TAQIssueSet,
   TriggerConstraint,
 } from './types/taq'
-export { Encode, IsTyped } from './types/values'
 export type { Typed, Vars } from './types/values'
 export type { StackFrame, ExecutionResult, ExecutionStatus, TraceStatus } from './types/trace'
 export { Workflow } from './types/workflow'

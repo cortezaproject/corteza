@@ -14,8 +14,6 @@ type (
 
 		res *resource.Application
 		app *types.Application
-
-		ux *userIndex
 	}
 )
 

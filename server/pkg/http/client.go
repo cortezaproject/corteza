@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"strings"
 	"time"
-
-	"errors"
 )
 
 type (
@@ -62,25 +59,8 @@ func New(flags *Config) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Debug(level DebugLevel) *Client {
-	c.debugLevel = level
-	return c
-}
-
 func (c *Client) Get(url string) (*http.Request, error) {
 	return c.Request("GET", url, nil)
-}
-
-func (c *Client) Post(url string, body interface{}) (*http.Request, error) {
-	return c.Request("POST", url, body)
-}
-
-func (c *Client) Patch(url string, body interface{}) (*http.Request, error) {
-	return c.Request("PATCH", url, body)
-}
-
-func (c *Client) Delete(url string) (*http.Request, error) {
-	return c.Request("DELETE", url, nil)
 }
 
 func (c *Client) Request(method, url string, body interface{}) (*http.Request, error) {
@@ -153,12 +133,4 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		fmt.Println("HTTP <<< Response", resp.StatusCode)
 	}
 	return resp, nil
-}
-
-func ToError(resp *http.Response) error {
-	body, err := ioutil.ReadAll(resp.Body)
-	if body == nil || err != nil {
-		return fmt.Errorf("unexpected response (%d, %s)", resp.StatusCode, err)
-	}
-	return errors.New(string(body))
 }

@@ -15,8 +15,6 @@ type (
 		res *resource.APIGateway
 		gwr *types.ApigwRoute
 		ff  types.ApigwFilterSet
-
-		ux *userIndex
 	}
 	apiGatewaySet []*apiGateway
 

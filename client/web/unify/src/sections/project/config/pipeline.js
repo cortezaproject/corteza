@@ -1,7 +1,6 @@
 // The project build pipeline — single source of truth for steps, gates and
 // mode visibility. We grow this one verified step at a time; only steps whose
-// persistence and approval flow are fully backend-backed belong here. The full
-// conceptual pipeline lives in the PoC copy (../project-poc).
+// persistence and approval flow are fully backend-backed belong here.
 //
 // Project Members carries Gate 1, closing the section: Summary + Resource
 // Management + Members. Data Sensitivity carries Gate 2, closing the Data Model

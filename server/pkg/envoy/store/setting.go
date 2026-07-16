@@ -11,7 +11,5 @@ type (
 
 		res *resource.Setting
 		st  *types.SettingValue
-
-		ux *userIndex
 	}
 )

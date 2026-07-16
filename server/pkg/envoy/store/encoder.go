@@ -6,13 +6,25 @@ import (
 
 	"github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/envoy"
 	"github.com/crusttech/human/server/pkg/envoy/resource"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/store"
 )
 
 type (
+	dalService interface {
+		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) ([]map[string]any, error)
+		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
+		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
+		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
+
+		ReplaceModel(ctx context.Context, currentAlts []*dal.Alteration, model *dal.Model) (newAlts []*dal.Alteration, err error)
+		GetConnectionByID(uint64) *dal.ConnectionWrap
+	}
+
 	storeEncoder struct {
 		s   store.Storer
 		dal dalService

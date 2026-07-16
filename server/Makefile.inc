@@ -19,7 +19,6 @@ STATICCHECK   = $(GOPATH)/bin/staticcheck
 PROTOGEN      = $(GOPATH)/bin/protoc-gen-go
 PROTOGEN_GRPC = $(GOPATH)/bin/protoc-gen-go-grpc
 GIN           = $(GOPATH)/bin/gin
-STATIK        = $(GOPATH)/bin/statik
 MODOUTDATED   = $(GOPATH)/bin/go-mod-outdated
 CUE           = $(GOPATH)/bin/cue
 CODEGEN       = $(GOPATH)/bin/human-codegen
@@ -29,7 +28,7 @@ PROTOC      = /usr/local/bin/protoc
 FSWATCH     = /usr/local/bin/fswatch
 
 # fswatch is intentionally left out...
-BINS         = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(STATIK)
+BINS         = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN)
 
 # Human's tools
 HUMAN_BINS = $(CODEGEN) $(JSONTPLEXEC)
@@ -57,9 +56,6 @@ $(GIN):
 
 $(GOTEST):
 	$(GOINSTALL) github.com/rakyll/gotest@latest
-
-$(STATIK):
-	$(GOINSTALL) github.com/goware/statik@latest
 
 $(MODOUTDATED):
 	$(GOINSTALL) github.com/psampaz/go-mod-outdated@latest

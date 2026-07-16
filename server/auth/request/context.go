@@ -73,16 +73,6 @@ type (
 
 func (req AuthReq) Context() context.Context { return req.Request.Context() }
 
-func (req *AuthReq) SetInternalError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	req.Status = http.StatusInternalServerError
-	req.Data["error"] = err
-	return true
-}
-
 func (req *AuthReq) PushAlert(text string) {
 	req.NewAlerts = append(req.NewAlerts, Alert{Type: "primary", Text: text})
 }

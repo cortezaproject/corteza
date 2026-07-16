@@ -26,9 +26,6 @@ export * as compose from './compose'
 // System module (users, roles, applications, settings, etc.)
 export * as system from './system'
 
-// Reporter module (reports, data sources, etc.)
-export * as reporter from './reporter'
-
 // Automation module (workflows, triggers, etc.)
 export * as automation from './automation'
 

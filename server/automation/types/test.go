@@ -20,10 +20,6 @@ type (
 	TestSet []*Test
 )
 
-func NewTest(expr, error string) (t *Test, err error) {
-	return &Test{Expr: expr, Error: error}, nil
-}
-
 func (t Test) GetExpr() string              { return t.Expr }
 func (t *Test) SetEval(eval expr.Evaluable) { t.eval = eval }
 func (t Test) Eval(ctx context.Context, scope *expr.Vars) (interface{}, error) {

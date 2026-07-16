@@ -8,7 +8,6 @@ import (
 
 	"github.com/crusttech/human/server/pkg/cast2"
 	"github.com/crusttech/human/server/pkg/dal"
-	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/j7s"
 )
@@ -37,10 +36,6 @@ type (
 
 		Old []any `json:"old,omitempty"`
 		New []any `json:"new,omitempty"`
-	}
-
-	Filter struct {
-		ResourceID uint64 `json:"resourceID,string"`
 	}
 )
 
@@ -216,18 +211,6 @@ func (r *Revision) SetValue(name string, _ uint, value any) error {
 
 	return nil
 }
-
-func (f Filter) Constraints() map[string][]any {
-	return map[string][]any{
-		"rel_resource": {f.ResourceID},
-	}
-}
-
-func (f Filter) Expression() string                        { return "" }
-func (f Filter) OrderBy() filter.SortExprSet               { return nil }
-func (f Filter) Limit() uint                               { return 0 }
-func (f Filter) Cursor() *filter.PagingCursor              { return nil }
-func (f Filter) StateConstraints() map[string]filter.State { return nil }
 
 func (c *Change) MarshalJSON() ([]byte, error) {
 	row, err := j7s.MakeMap("key", c.Key)

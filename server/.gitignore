@@ -18,4 +18,4 @@ profile.coverprofile
 /.act*
 /workflow
 
-/profiles
+/profiles*.test
