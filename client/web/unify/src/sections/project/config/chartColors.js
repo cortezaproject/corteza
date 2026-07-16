@@ -23,40 +23,35 @@ export const STATUS_COLORS = {
   Completed: '#10b981', // emerald — done
 }
 
-// Severity is ordinal (Critical > Serious > Major > Minor > Informational),
-// but renders as a discrete stacked/ranked series (bars, stacked-trend
-// segments) rather than a smooth gradient, so it's validated as a categorical
-// palette (adjacent pairs) — not with --ordinal. Lightness still decreases
-// monotonically with rank (Critical darkest, Informational lightest) —
-// confirmed by hand since the categorical validator doesn't check that.
-// Hue is a warm red→amber→gold family but *alternates* step to step (rather
-// than sweeping smoothly) because the light/dark intersection band (OKLCH L
-// 0.48–0.67) is too narrow for a smooth single-hue sweep to also clear the
-// adjacent-pair CVD/normal-vision floors — see color-formula.md's "themes"
-// section on re-ordering for max min-adjacent ΔE. Informational breaks from
-// the warm family into a cool blue (sky) — the ramp's own lightness ceiling
-// left no room for a 5th warm step, which the skill explicitly allows
-// ("Informational may be … a desaturated cool step").
-// Validated: worst adjacent CVD ΔE 8.1 (deutan, target ≥8) light+dark; worst
-// adjacent normal-vision ΔE 16.6 light+dark (floor ≥15). Contrast: Critical
-// sits at 2.49:1 on the dark surface (WARN/relief) — legal because severity is
-// always rendered with a direct count label (rank bars) or a legend (donuts).
+// Severity is ordinal (Critical > Serious > Major > Minor > Informational)
+// and is treated as a SEQUENTIAL ramp, not a categorical palette: one red
+// family, darker = worse, so the worst→least order is readable at a glance
+// and charts stay in the same warm family as the EventBadge pills.
+// Informational sits outside the scale (it isn't "a bit less bad than
+// Minor") and gets a cool blue instead.
+// The trade (chosen deliberately over a validator-passing categorical
+// zig-zag): adjacent red steps are told apart by darkness, position and
+// labels — severity always renders with a direct count label (rank bars) or
+// a legend + tooltip (donuts, stacked trend) — not by hue distance. For
+// sequential ramps the validation rule is lightness monotonicity (see the
+// dataviz skill's color-formula.md), which holds: L 0.45 < 0.53 < 0.62 <
+// 0.72, Informational off-scale.
 export const SEVERITY_COLORS = {
-  Critical: '#b2004f',
-  Serious: '#a05e00',
-  Major: '#df3a5c',
-  Minor: '#b28d00',
-  Informational: '#449ecd',
+  Critical: '#991b1b', // darkest — worst
+  Serious: '#c32222',
+  Major: '#e04343',
+  Minor: '#f07f74', // lightest warm step
+  Informational: '#449ecd', // cool — outside the badness scale
 }
 
-// Reuses the severity ramp's first four steps 1:1 (Critical/Serious/Major/
+// Reuses the severity ramp's four warm steps 1:1 (Critical/Serious/Major/
 // Minor → Critical/High/Medium/Low) so the two ordinal scales read as one
-// system — same validated adjacent-pair set as SEVERITY_COLORS above.
+// system.
 export const RISK_COLORS = {
-  Critical: '#b2004f',
-  High: '#a05e00',
-  Medium: '#df3a5c',
-  Low: '#b28d00',
+  Critical: '#991b1b',
+  High: '#c32222',
+  Medium: '#e04343',
+  Low: '#f07f74',
 }
 
 // Audit-event activity accent (pulse charts in Overview + All Events). Kept
