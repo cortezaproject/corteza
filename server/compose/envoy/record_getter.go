@@ -21,12 +21,17 @@ type (
 		dalSvc     dal.FullService
 		relModule  types.Module
 		baseFilter types.RecordFilter
+
+		// resolved refs, including misses; imports resolve the same handful
+		// of refs over and over so this saves a query per value
+		cache map[string]uint64
 	}
 )
 
 func makeRecordGetter(dalSvc dal.FullService, tt envoyx.Traverser, n *envoyx.Node, modRef, dsRef envoyx.Ref) (g *recordGetter) {
 	g = &recordGetter{
 		dalSvc: dalSvc,
+		cache:  make(map[string]uint64),
 	}
 
 	// Resolve from dep graph
@@ -49,6 +54,16 @@ func makeRecordGetter(dalSvc dal.FullService, tt envoyx.Traverser, n *envoyx.Nod
 
 // resolve resolves the provided reference into a record ID; 0 if can't be resolved
 func (g *recordGetter) resolve(ctx context.Context, ref any) (out uint64, err error) {
+	key := cast.ToString(ref)
+	if out, ok := g.cache[key]; ok {
+		return out, nil
+	}
+	defer func() {
+		if err == nil {
+			g.cache[key] = out
+		}
+	}()
+
 	// Try to get from datasource
 	if g.relDatasource != nil {
 		out, err = g.getDS(ref)
