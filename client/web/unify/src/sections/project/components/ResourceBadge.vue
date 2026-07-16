@@ -14,7 +14,7 @@
       v-if="removable"
       class="pi pi-times text-xs text-muted-color hover:text-color cursor-pointer ml-0.5"
       role="button"
-      aria-label="Remove"
+      :aria-label="$t('general.label.remove')"
       @click.stop="$emit('remove')"
     />
   </div>

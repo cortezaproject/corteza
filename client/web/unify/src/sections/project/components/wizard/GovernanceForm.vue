@@ -17,7 +17,7 @@
             v-if="field.type === 'text'"
             :model-value="modelValue[field.key]"
             :disabled="disabled"
-            :placeholder="field.placeholder"
+            :placeholder="fieldPlaceholder(field)"
             :invalid="submitted && !!errors[field.key]"
             fluid
             @update:model-value="update(field.key, $event)"
@@ -26,7 +26,7 @@
             v-else-if="field.type === 'textarea'"
             :model-value="modelValue[field.key]"
             :disabled="disabled"
-            :placeholder="field.placeholder"
+            :placeholder="fieldPlaceholder(field)"
             :invalid="submitted && !!errors[field.key]"
             rows="3"
             auto-resize
@@ -93,6 +93,9 @@
 
 <script setup>
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   schema: { type: Array, required: true },
@@ -111,5 +114,11 @@ const emit = defineEmits(['update:modelValue'])
 
 function update(key, value) {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
+}
+
+// Prefer the i18n placeholderKey idiom; fall back to a plain `placeholder`
+// string for any schema that still carries literal text.
+function fieldPlaceholder(field) {
+  return field.placeholderKey ? t(field.placeholderKey) : field.placeholder
 }
 </script>

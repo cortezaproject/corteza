@@ -3,7 +3,7 @@
     <!-- Group selector -->
     <aside class="w-52 shrink-0 h-full border-r border-surface bg-surface flex flex-col">
       <div class="p-3 border-b border-surface">
-        <span class="block text-xs uppercase tracking-wider text-muted-color">Groups</span>
+        <span class="block text-xs uppercase tracking-wider text-muted-color">{{ $t('project.kinds.group.plural') }}</span>
       </div>
       <div class="flex-1 overflow-auto px-2 py-2">
         <button
@@ -13,7 +13,7 @@
           @click="selectedId = '__all__'"
         >
           <i class="pi pi-th-large" />
-          <span class="text-sm font-medium">All groups</span>
+          <span class="text-sm font-medium">{{ $t('project.groups.all') }}</span>
           <span class="ml-auto text-xs text-muted-color">{{ groups.length }}</span>
         </button>
 
@@ -29,7 +29,7 @@
         >
           <div class="flex items-center gap-2 w-full">
             <i class="pi pi-folder text-sm" />
-            <span class="text-sm font-medium truncate flex-1">{{ group.name || 'Untitled' }}</span>
+            <span class="text-sm font-medium truncate flex-1">{{ group.name || $t('project.groups.untitled') }}</span>
             <span class="text-xs text-muted-color">{{ (group.resourceIds || []).length }}</span>
           </div>
           <span v-if="roleLabel(group)" class="text-xs text-muted-color truncate w-full">
@@ -38,7 +38,7 @@
         </button>
 
         <div v-if="!groups.length" class="px-2 py-1.5 text-sm text-muted-color italic">
-          No groups yet.
+          {{ $t('project.groups.empty') }}
         </div>
       </div>
     </aside>
@@ -71,7 +71,7 @@
           />
         </template>
 
-        <div v-else class="text-sm text-muted-color italic">Group not found.</div>
+        <div v-else class="text-sm text-muted-color italic">{{ $t('project.groups.notFound') }}</div>
       </div>
     </div>
   </div>

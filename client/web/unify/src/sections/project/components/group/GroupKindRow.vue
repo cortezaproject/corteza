@@ -23,11 +23,11 @@
         @click="openPicker"
       >
         <i class="pi pi-plus text-xs" />
-        Add {{ singularLabel }}
+        {{ t('project.groups.kindRow.add', { kind: singularLabel }) }}
       </button>
 
       <span v-if="disabled && !linkedItems.length" class="text-sm text-muted-color italic">
-        None linked.
+        {{ t('project.groups.kindRow.empty') }}
       </span>
 
       <Popover ref="pickerRef" :pt="{ content: { class: 'p-0' } }">
@@ -47,13 +47,13 @@
               v-if="!addable.length"
               class="px-3 py-3 text-sm text-muted-color italic text-center"
             >
-              No existing {{ pluralLabel.toLowerCase() }} to link.
+              {{ t('project.groups.kindRow.pickerEmpty', { kind: pluralLabel.toLowerCase() }) }}
             </div>
           </div>
           <div v-if="allowCreate" class="border-t border-surface p-2 bg-emphasis">
             <Button
               icon="pi pi-plus"
-              :label="`Create new ${singularLabel}`"
+              :label="t('project.groups.kindRow.createNew', { kind: singularLabel })"
               severity="secondary"
               size="small"
               class="w-full"
@@ -67,20 +67,20 @@
     <Dialog
       v-model:visible="createOpen"
       modal
-      :header="`New ${singularLabel}`"
+      :header="t('project.groups.kindRow.newTitle', { kind: singularLabel })"
       :style="{ width: '24rem' }"
       :pt="{ footer: { class: 'flex justify-end gap-2' } }"
     >
       <InputText
         v-model="createName"
-        :placeholder="`${singularLabel} name`"
+        :placeholder="t('project.groups.kindRow.namePlaceholder', { kind: singularLabel })"
         fluid
         autofocus
         @keydown.enter="create"
       />
       <template #footer>
-        <Button label="Cancel" severity="secondary" text size="small" @click="createOpen = false" />
-        <Button label="Create & link" size="small" :disabled="!createName.trim()" @click="create" />
+        <Button :label="t('general.label.cancel')" severity="secondary" text size="small" @click="createOpen = false" />
+        <Button :label="t('project.groups.kindRow.createLink')" size="small" :disabled="!createName.trim()" @click="create" />
       </template>
     </Dialog>
   </div>

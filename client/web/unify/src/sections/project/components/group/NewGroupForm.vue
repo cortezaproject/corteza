@@ -2,7 +2,7 @@
   <div class="rounded-lg border border-dashed border-surface p-3 bg-emphasis">
     <InputText
       v-model="draft.name"
-      placeholder="Group title"
+      :placeholder="$t('project.groups.namePlaceholder')"
       class="w-full mb-2"
       size="small"
       fluid
@@ -11,18 +11,18 @@
     <Textarea
       v-model="draft.description"
       rows="2"
-      placeholder="Description (optional)"
+      :placeholder="$t('project.groups.descriptionPlaceholder')"
       class="w-full mb-2"
       size="small"
       fluid
     />
     <div class="flex items-center justify-between">
       <span class="text-xs text-muted-color">
-        Link roles and resources after creating.
+        {{ $t('project.groups.hint') }}
       </span>
       <Button
         icon="pi pi-plus"
-        label="Add group"
+        :label="$t('project.groups.add')"
         severity="secondary"
         size="small"
         :disabled="!draft.name.trim()"

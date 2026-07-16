@@ -4,10 +4,10 @@
       <i :class="['pi', headerIcon, 'text-primary']" />
       <span class="font-semibold uppercase tracking-wider text-muted-color">{{ headerLabel }}</span>
       <span v-if="focusedGroup" class="text-muted-color truncate">
-        · {{ focusedGroup.name || 'Untitled group' }}
+        · {{ focusedGroup.name || t('project.groups.untitledGroup') }}
       </span>
       <span class="text-muted-color ml-auto">
-        {{ visibleResourceCount }} {{ visibleResourceCount === 1 ? 'node' : 'nodes' }}
+        {{ t('project.groups.nodeCount', visibleResourceCount) }}
       </span>
     </div>
 
@@ -46,6 +46,9 @@ import EchartsGraph from '@/sections/project/components/graph/EchartsGraph.vue'
 import { allLinks } from '@/sections/project/utils/links'
 import { PERM_COLORS, permissionEdges } from '@/sections/project/utils/rbac'
 import { computed, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // Provided by the wizard: open the link/permission dialog, or focus a group.
 const configureResource = inject('configureResource', null)

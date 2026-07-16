@@ -1,9 +1,11 @@
 // New Event form — config-driven field sets per category, consumed by the
 // GovernanceForm renderer (schema = array of sections; each field: key,
-// labelKey, type, options?, placeholder?). Field labels are i18n keys. Values
+// labelKey, type, options?, placeholderKey?). Field labels and placeholders are
+// i18n keys — never plain English (see resolution in GovernanceForm.vue). Values
 // persist to the per-project event resources via the events store; owner fields
 // are user references resolved at render time.
 const p = 'project.dashboard.event.f.'
+const pp = 'project.dashboard.event.placeholder.'
 
 // Shared option sets. Statuses are fixed; users are resolved at render time
 // from the project's user directory (see NewEventDialog userOptions) — owner
@@ -29,7 +31,7 @@ const severity = { key: 'severity', labelKey: 'project.dashboard.columns.severit
 const risk = { key: 'risk', labelKey: 'project.dashboard.columns.risk', type: 'select', options: RISK }
 
 // Title text input — shown first in every category form (spans both columns).
-const title = { key: 'title', labelKey: 'project.dashboard.columns.title', type: 'text', full: true, placeholder: 'Short, descriptive title…', required: true }
+const title = { key: 'title', labelKey: 'project.dashboard.columns.title', type: 'text', full: true, placeholderKey: `${pp}title`, required: true }
 
 // The five event categories shown in step 1 (label/desc are i18n keys, icon is
 // a PrimeIcons class). Order mirrors the reference demo.
@@ -49,10 +51,10 @@ export const EVENT_FORMS = {
     { key: 'groupSystem', labelKey: `${p}groupSystem`, type: 'select', options: ['AI Model Layer', 'Data Pipeline', 'API Gateway', 'User Interface', 'Infrastructure', 'Access Control'] },
     severity,
     risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholder: 'Describe the incident in detail…', required: true },
-    { key: 'riskIssue', labelKey: `${p}riskIssue`, type: 'textarea', placeholder: 'Identify the risk, impact, likelihood, and affected parties…' },
-    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholder: 'What corrective action or change is required?…' },
-    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholder: 'Assess the risk of implementing the proposed change…' },
+    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}incident.description`, required: true },
+    { key: 'riskIssue', labelKey: `${p}riskIssue`, type: 'textarea', placeholderKey: `${pp}incident.riskIssue` },
+    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholderKey: `${pp}incident.changeRequired` },
+    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholderKey: `${pp}incident.riskChange` },
     user('issueOwner', true),
     user('changeOwner'),
     { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
@@ -66,10 +68,10 @@ export const EVENT_FORMS = {
     { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
     severity,
     risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholder: 'Describe the feature or update…', required: true },
-    { key: 'riskFeature', labelKey: `${p}riskFeature`, type: 'textarea', placeholder: 'Assess the risk introduced by this feature…' },
-    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholder: 'Any mitigations or changes required?…' },
-    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholder: 'Risk of the corrective change…' },
+    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}feature.description`, required: true },
+    { key: 'riskFeature', labelKey: `${p}riskFeature`, type: 'textarea', placeholderKey: `${pp}feature.riskFeature` },
+    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholderKey: `${pp}feature.changeRequired` },
+    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholderKey: `${pp}feature.riskChange` },
     user('featureOwner', true),
     user('changeOwner'),
     user('changeApprovedBy'),
@@ -81,10 +83,10 @@ export const EVENT_FORMS = {
     { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
     severity,
     risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholder: 'Describe the privacy request…', required: true },
-    { key: 'riskAssessment', labelKey: `${p}riskAssessment`, type: 'textarea', placeholder: 'GDPR / AI Act risk considerations…' },
-    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholder: 'Data deletion steps, systems to update…' },
-    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholder: 'Any downstream impact of fulfilling the request…' },
+    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}privacy.description`, required: true },
+    { key: 'riskAssessment', labelKey: `${p}riskAssessment`, type: 'textarea', placeholderKey: `${pp}privacy.riskAssessment` },
+    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholderKey: `${pp}privacy.changeRequired` },
+    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholderKey: `${pp}privacy.riskChange` },
     user('requestOwner', true),
     user('changeOwner'),
     user('changeApprovedBy'),
@@ -96,7 +98,7 @@ export const EVENT_FORMS = {
     { key: 'taskType', labelKey: `${p}taskType`, type: 'select', options: ['Review/Action', 'Audit', 'Change'] },
     severity,
     risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholder: 'Detail what needs to be done…' },
+    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}task.description` },
     { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
     user('owner', true),
     user('changeOwner'),
@@ -107,7 +109,7 @@ export const EVENT_FORMS = {
     title,
     { key: 'reviewType', labelKey: `${p}reviewType`, type: 'select', options: ['Periodic Compliance Review', 'AI Risk Review', 'Access Control Review', 'Model Performance Review'], required: true },
     { key: 'reviewFrequency', labelKey: `${p}reviewFrequency`, type: 'select', options: ['Monthly', 'Quarterly', 'Bi-Annual', 'Annual'] },
-    { key: 'scope', labelKey: `${p}scope`, type: 'textarea', placeholder: 'What will be reviewed and what outcomes are expected…' },
+    { key: 'scope', labelKey: `${p}scope`, type: 'textarea', placeholderKey: `${pp}review.scope` },
     user('reviewer', true),
     { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS_REVIEW },
     { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },

@@ -219,6 +219,30 @@ dashboard:
       scope: Scope & Objectives
       reviewer: Reviewer
       approvedBy: Approved By
+    # Placeholder text for the New Event forms above. Shared fields (title) have
+    # one entry; fields whose hint text differs per category (description,
+    # changeRequired, riskChange) are nested under that category.
+    placeholder:
+      title: Short, descriptive title…
+      incident:
+        description: Describe the incident in detail…
+        riskIssue: Identify the risk, impact, likelihood, and affected parties…
+        changeRequired: What corrective action or change is required?…
+        riskChange: Assess the risk of implementing the proposed change…
+      feature:
+        description: Describe the feature or update…
+        riskFeature: Assess the risk introduced by this feature…
+        changeRequired: Any mitigations or changes required?…
+        riskChange: Risk of the corrective change…
+      privacy:
+        description: Describe the privacy request…
+        riskAssessment: GDPR / AI Act risk considerations…
+        changeRequired: Data deletion steps, systems to update…
+        riskChange: Any downstream impact of fulfilling the request…
+      task:
+        description: Detail what needs to be done…
+      review:
+        scope: What will be reviewed and what outcomes are expected…
 sidebar:
   allProjects: All Projects
   projects: Projects
@@ -931,6 +955,35 @@ pageDetail:
   visibleHint: Show this page in the namespace navigation. Hidden pages are still reachable by link.
   openEditor: Open builder
   toastSaveFailed: Could not save page
+groups:
+  all: All groups
+  untitled: Untitled
+  untitledGroup: Untitled group
+  empty: No groups yet.
+  notFound: Group not found.
+  namePlaceholder: Group title
+  descriptionPlaceholder: Description (optional)
+  hint: Link roles and resources after creating.
+  add: Add group
+  nodeCount: 1 node | {count} nodes
+  card:
+    roles: 1 role | {count} roles
+    linked: 1 linked | {count} linked
+  kindRow:
+    empty: None linked.
+    add: 'Add {kind}'
+    pickerEmpty: 'No existing {kind} to link.'
+    createNew: 'Create new {kind}'
+    newTitle: 'New {kind}'
+    namePlaceholder: '{kind} name'
+    createLink: Create & link
+  permList:
+    fromGroup: from group
+    empty: Nothing to configure.
+    levels:
+      none: None
+      read: Read
+      write: Write
 graph:
   resources: Resources
   reloadTitle: Reload from the backend

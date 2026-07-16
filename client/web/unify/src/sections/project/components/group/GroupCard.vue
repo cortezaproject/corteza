@@ -9,12 +9,12 @@
         @update:model-value="v => emit('update', { name: v })"
       />
       <Chip
-        :label="`${(group.roleIds || []).length} roles`"
+        :label="t('project.groups.card.roles', (group.roleIds || []).length)"
         icon="pi pi-id-card"
         class="!text-xs !py-0"
       />
       <Chip
-        :label="`${(group.resourceIds || []).length} linked`"
+        :label="t('project.groups.card.linked', (group.resourceIds || []).length)"
         icon="pi pi-link"
         class="!text-xs !py-0"
       />
@@ -34,7 +34,7 @@
       :model-value="group.description"
       :disabled="disabled"
       rows="2"
-      placeholder="Description (optional)"
+      :placeholder="t('project.groups.descriptionPlaceholder')"
       class="!border-0 !shadow-none focus:!ring-0 !bg-transparent w-full px-4 pt-3 !text-sm text-color resize-none"
       auto-resize
       @update:model-value="v => emit('update', { description: v })"
@@ -67,6 +67,9 @@
 <script setup>
 import GroupKindRow from '@/sections/project/components/group/GroupKindRow.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // Resource kinds a group can link (roles are handled in their own row above).
 const RESOURCE_KINDS = ['module', 'page', 'chart', 'automation', 'agent', 'chatbot']
