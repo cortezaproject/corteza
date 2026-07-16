@@ -164,9 +164,9 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 
 	// Prepare getters for related resources
 	recordGetters := e.makeRecordGetters(dl, tree, n)
-	userGetters := e.makeUserGetters(s, dl, tree, mod, n)
+	userGetters, sysUserFields := e.makeUserGetters(s, dl, tree, mod, n)
 
-	maykr := e.recordMaker(ns, mod, recordGetters, userGetters)
+	maykr := e.recordMaker(ns, mod, recordGetters, userGetters, sysUserFields)
 
 	var (
 		rec     types.Record
@@ -314,60 +314,71 @@ func (e StoreEncoder) makeRecordGetters(dl dal.FullService, tree envoyx.Traverse
 	return
 }
 
-func (e StoreEncoder) makeUserGetters(s store.Storer, dl dal.FullService, tree envoyx.Traverser, mod *types.Module, n *envoyx.Node) (getters map[string]*systemEnvoy.UserGetter) {
+// sysUserRefFields are the record system user fields in the spellings
+// types.Record.SetValue understands
+var sysUserRefFields = []string{
+	"ownedBy", "OwnedBy", "owned_by",
+	"createdBy", "CreatedBy", "created_by",
+	"updatedBy", "UpdatedBy", "updated_by",
+	"deletedBy", "DeletedBy", "deleted_by",
+}
+
+func (e StoreEncoder) makeUserGetters(s store.Storer, dl dal.FullService, tree envoyx.Traverser, mod *types.Module, n *envoyx.Node) (getters map[string]*systemEnvoy.UserGetter, sysFields map[string]bool) {
 	userGetter := systemEnvoy.MakeUserGetter(s, tree)
-	getters = map[string]*systemEnvoy.UserGetter{
-		// These are all of the supported sys user ref fields
-		"ownedby":    userGetter,
-		"owned_by":   userGetter,
-		"createdby":  userGetter,
-		"created_by": userGetter,
-		"updatedby":  userGetter,
-		"updated_by": userGetter,
-		"deletedby":  userGetter,
-		"deleted_by": userGetter,
+
+	getters = make(map[string]*systemEnvoy.UserGetter, len(sysUserRefFields))
+	sysFields = make(map[string]bool, len(sysUserRefFields))
+	for _, name := range sysUserRefFields {
+		getters[name] = userGetter
+		sysFields[name] = true
 	}
+
+	// Module fields take precedence over the system field spellings; only
+	// User kind fields resolve through the getter
 	for _, f := range mod.Fields {
 		if f.Kind == "User" {
 			getters[f.Name] = userGetter
+		} else {
+			delete(getters, f.Name)
 		}
+		delete(sysFields, f.Name)
 	}
 
 	return
 }
 
-func (e StoreEncoder) recordMaker(ns *types.Namespace, mod *types.Module, recordGetters map[string]*recordGetter, userGetters map[string]*systemEnvoy.UserGetter) func(ctx context.Context, auxRec datasource.RawRecord) (r types.Record, err error) {
+func (e StoreEncoder) recordMaker(ns *types.Namespace, mod *types.Module, recordGetters map[string]*recordGetter, userGetters map[string]*systemEnvoy.UserGetter, sysUserFields map[string]bool) func(ctx context.Context, auxRec datasource.RawRecord) (r types.Record, err error) {
 	return func(ctx context.Context, auxRec datasource.RawRecord) (rec types.Record, err error) {
 		// Iterate mapified record values and populate the provided values
-		var auxv *types.RecordValue
+		var auxvv types.RecordValueSet
 		for k, vv := range auxRec {
-			if recordGetters[k] != nil {
-				auxv, err = e.resolveRecordRef(ctx, recordGetters, k, vv)
-				if err != nil {
-					return
+			auxvv = nil
+
+			if rg := recordGetters[k]; rg != nil {
+				auxvv, err = resolveRefs(ctx, rg.resolve, k, vv.Values)
+			} else if ug := userGetters[k]; ug != nil {
+				vals := vv.Values
+				// system fields hold a single user; the first value wins
+				if sysUserFields[k] && len(vals) > 1 {
+					vals = vals[:1]
 				}
-				err = rec.SetValue(k, auxv.Place, auxv.Ref)
-				if err != nil {
-					return
+				auxvv, err = resolveRefs(ctx, ug.Resolve, k, vals)
+			} else {
+				// Default is regular values
+				for i, v := range vv.Values {
+					err = rec.SetValue(k, uint(i), v)
+					if err != nil {
+						return
+					}
 				}
 				continue
 			}
-
-			if userGetters[k] != nil {
-				auxv, err = e.resolveUserRef(ctx, userGetters, k, vv)
-				if err != nil {
-					return
-				}
-				err = rec.SetValue(k, auxv.Place, auxv.Ref)
-				if err != nil {
-					return
-				}
-				continue
+			if err != nil {
+				return
 			}
 
-			// Default is regular values
-			for i, v := range vv.Values {
-				err = rec.SetValue(k, uint(i), v)
+			for _, auxv := range auxvv {
+				err = rec.SetValue(k, auxv.Place, auxv.Ref)
 				if err != nil {
 					return
 				}
@@ -378,33 +389,32 @@ func (e StoreEncoder) recordMaker(ns *types.Namespace, mod *types.Module, record
 	}
 }
 
-func (e StoreEncoder) resolveRecordRef(ctx context.Context, getters map[string]*recordGetter, k string, vv datasource.RawRecordValue) (out *types.RecordValue, err error) {
-	if getters[k] == nil {
-		return nil, nil
+// resolveRefs resolves reference values (user or record identifiers) into IDs
+func resolveRefs(ctx context.Context, resolve func(context.Context, any) (uint64, error), k string, vals []string) (out types.RecordValueSet, err error) {
+	var (
+		ref   uint64
+		place uint
+	)
+
+	for _, v := range vals {
+		// mini-csv decoding can produce empty entries; nothing to resolve
+		if strings.TrimSpace(v) == "" {
+			continue
+		}
+
+		ref, err = resolve(ctx, v)
+		if err != nil {
+			return
+		}
+
+		out = append(out, &types.RecordValue{
+			Name:  k,
+			Place: place,
+			Ref:   ref,
+			Value: cast.ToString(ref),
+		})
+		place++
 	}
 
-	out = &types.RecordValue{Name: k}
-	out.Ref, err = getters[out.Name].resolve(ctx, vv.Values[0])
-	if err != nil {
-		return
-	}
-	out.Value = cast.ToString(out.Ref)
-
-	return out, nil
-}
-
-func (e StoreEncoder) resolveUserRef(ctx context.Context, getters map[string]*systemEnvoy.UserGetter, k string, vv datasource.RawRecordValue) (out *types.RecordValue, err error) {
-	k = strings.ToLower(k)
-	if getters[k] == nil {
-		return nil, nil
-	}
-
-	out = &types.RecordValue{Name: k}
-	out.Ref, err = getters[out.Name].Resolve(ctx, vv.Values[0])
-	if err != nil {
-		return
-	}
-	out.Value = cast.ToString(out.Ref)
-
-	return out, nil
+	return
 }

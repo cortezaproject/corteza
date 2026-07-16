@@ -179,11 +179,6 @@ func (d *decoder) flushTemp(r io.Reader) (_ io.Reader, err error) {
 
 // parseComplexCSVCell helps us properly multi value and complex JSON definitions
 func (d *decoder) parseComplexCSVCell(cell string) []string {
-	// Cover complex json definitions (geometry field)
-	if strings.HasPrefix(cell, "{") && strings.HasSuffix(cell, "}") {
-		return []string{cell}
-	}
-
 	// Cover multi value fields
 	//
 	// Multi value fields are "mini csvs" encoded in the csv so we need to
@@ -192,6 +187,14 @@ func (d *decoder) parseComplexCSVCell(cell string) []string {
 		if strings.HasPrefix(cell, "[") && strings.HasSuffix(cell, "]") {
 			cell = cell[1 : len(cell)-1]
 		}
+	}
+
+	// Cover complex json definitions (geometry field)
+	//
+	// Multi value complex fields are delimiter-joined JSON objects; the JSON
+	// itself may contain the delimiter so split on complete objects instead.
+	if strings.HasPrefix(cell, "{") && strings.HasSuffix(cell, "}") {
+		return splitConcatenatedJSON(cell)
 	}
 
 	if len(cell) == 0 {
@@ -209,6 +212,60 @@ func (d *decoder) parseComplexCSVCell(cell string) []string {
 	}
 
 	return records[0]
+}
+
+// splitConcatenatedJSON splits a cell of delimiter-joined JSON objects into
+// the individual objects by tracking brace depth and string literals, so
+// delimiters and braces inside the JSON never produce a false split.
+//
+// A cell holding a single (possibly nested) object comes back as one value;
+// a malformed cell is returned whole so the value fails validation upstream
+// instead of being silently corrupted.
+func splitConcatenatedJSON(cell string) (out []string) {
+	var (
+		depth int
+		inStr bool
+		esc   bool
+		start = -1
+	)
+
+	for i := 0; i < len(cell); i++ {
+		c := cell[i]
+
+		if inStr {
+			switch {
+			case esc:
+				esc = false
+			case c == '\\':
+				esc = true
+			case c == '"':
+				inStr = false
+			}
+			continue
+		}
+
+		switch c {
+		case '"':
+			inStr = true
+		case '{':
+			if depth == 0 {
+				start = i
+			}
+			depth++
+		case '}':
+			depth--
+			if depth == 0 && start >= 0 {
+				out = append(out, cell[start:i+1])
+				start = -1
+			}
+		}
+	}
+
+	if depth != 0 || inStr || len(out) == 0 {
+		return []string{cell}
+	}
+
+	return out
 }
 
 func (d *decoder) parseConfig(cfg map[string]any) error {
