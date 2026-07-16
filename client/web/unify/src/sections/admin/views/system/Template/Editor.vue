@@ -63,6 +63,40 @@
             :description="$t('system.templates.editor.info.partialDescription')"
             class="self-start"
           />
+
+          <CFormGroup
+            v-if="!template.partial"
+            :label="$t('system.templates.editor.info.headerTemplate')"
+            :description="$t('system.templates.editor.info.headerTemplateDescription')"
+            input-id="headerTemplateID"
+          >
+            <Select
+              id="headerTemplateID"
+              v-model="headerTemplateID"
+              :options="partialOptions"
+              option-label="label"
+              option-value="value"
+              filter
+              show-clear
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            v-if="!template.partial"
+            :label="$t('system.templates.editor.info.footerTemplate')"
+            :description="$t('system.templates.editor.info.footerTemplateDescription')"
+            input-id="footerTemplateID"
+          >
+            <Select
+              id="footerTemplateID"
+              v-model="footerTemplateID"
+              :options="partialOptions"
+              option-label="label"
+              option-value="value"
+              filter
+              show-clear
+            />
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -117,7 +151,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { system } from '@planetcrust/human-js'
+import { NoID, system } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import CCodeEditor from '@/sections/admin/components/Template/CCodeEditor.vue'
@@ -158,6 +192,35 @@ const editorLanguage = computed(() => {
   if (template.value?.type === 'text/html') return 'html'
   return 'text'
 })
+
+const partialOptions = computed(() => {
+  const options = partials.value
+    .filter(({ templateID }) => templateID !== template.value?.templateID)
+    .map(({ templateID, meta = {}, handle: h }) => ({
+      value: templateID,
+      label: meta.short || h || templateID,
+    }))
+
+  return [{ value: NoID, label: t('general.label.none') }, ...options]
+})
+
+function useTemplateMetaRef(key) {
+  return computed({
+    get: () => template.value?.meta?.[key] || NoID,
+    set: (value) => {
+      if (!template.value.meta) template.value.meta = {}
+
+      if (value && value !== NoID) {
+        template.value.meta[key] = value
+      } else {
+        delete template.value.meta[key]
+      }
+    },
+  })
+}
+
+const headerTemplateID = useTemplateMetaRef('headerTemplateID')
+const footerTemplateID = useTemplateMetaRef('footerTemplateID')
 
 const initialValues = computed(() => ({
   name: template.value?.meta?.short || '',

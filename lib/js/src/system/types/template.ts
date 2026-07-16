@@ -13,6 +13,11 @@ interface PartialTemplate extends Partial<
 interface Meta {
   short?: string
   description?: string
+  // Referenced templates rendered as header.html / footer.html when this
+  // template is rendered to PDF via Gotenberg. Backend JSON-encodes these
+  // uint64 IDs as strings, so they're handled here like other ID fields.
+  headerTemplateID?: string
+  footerTemplateID?: string
 }
 
 export class Template {

@@ -1207,7 +1207,11 @@ templates:
       createdBy: Created by
       delete: Delete
       deletedAt: Deleted at
+      footerTemplate: Footer template
+      footerTemplateDescription: Partial template rendered as footer.html when this template is rendered to PDF.
       handle: Handle
+      headerTemplate: Header template
+      headerTemplateDescription: Partial template rendered as header.html when this template is rendered to PDF.
       invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       language: Language
       meta:
