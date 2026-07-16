@@ -63,6 +63,28 @@ dashboard:
   overview:
     error: Couldn't load the project overview. Please try again.
     retry: Retry
+  # Reports page (cross-category analytics): time-range filter, KPI band with
+  # deltas vs the equal-length prior window, severity/open-overdue breakdowns
+  # by category, and the created-over-time trend. Loading/error state reuses
+  # overview.error/retry above; the trend chart title reuses chart.trend.
+  reports:
+    range:
+      d30: 30 days
+      d90: 90 days
+      m12: 12 months
+      all: All time
+    kpi:
+      created: Created
+      open: Open
+      overdue: Overdue
+      completionRate: Completion rate
+      deltaUp: 'Up {pct}% vs previous period'
+      deltaDown: 'Down {pct}% vs previous period'
+      deltaFlat: No change vs previous period
+    chart:
+      severityByCategory: Severity by category
+      openOverdueByCategory: Open vs overdue by category
+      openOverdueLabel: '{open} open · {overdue} overdue'
   # Real action-log view (All Events), rendered as an activity timeline.
   # Filter/severity/detail labels are reused from system.actionlog.list.*; only
   # the header, timeline chrome and empty states live here.
