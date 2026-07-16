@@ -37,6 +37,7 @@
 
     <c-template-editor-info
       :template="template"
+      :partials="partials"
       :processing="info.processing"
       :success="info.success"
       :can-create="canCreate"

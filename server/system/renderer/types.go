@@ -16,6 +16,10 @@ type (
 		Options      map[string]string
 		Partials     []*TemplatePartial
 		Attachments  AttachmentIndex
+
+		// Optional header/footer documents, attached by drivers that support them
+		Header io.Reader
+		Footer io.Reader
 	}
 
 	TemplatePartial struct {
@@ -30,6 +34,9 @@ type (
 		Options     map[string]string
 		Partials    map[string]io.Reader
 		Attachments AttachmentIndex
+
+		Header io.Reader
+		Footer io.Reader
 	}
 
 	AttachmentIndex map[string]*Attachment

@@ -103,6 +103,42 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          v-if="!template.partial"
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('headerTemplate')"
+            :description="$t('headerTemplateDescription')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="headerTemplateID"
+              data-test-id="select-header-template"
+              :options="partialOptions"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          v-if="!template.partial"
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('footerTemplate')"
+            :description="$t('footerTemplateDescription')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="footerTemplateID"
+              data-test-id="select-footer-template"
+              :options="partialOptions"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
 
       <c-system-fields
@@ -174,6 +210,11 @@ export default {
       type: Boolean,
       required: true,
     },
+
+    partials: {
+      type: Array,
+      default: () => ([]),
+    },
   },
 
   data () {
@@ -190,6 +231,32 @@ export default {
   },
 
   computed: {
+    partialOptions () {
+      const options = this.partials
+        .filter(({ templateID }) => templateID !== this.template.templateID)
+        .map(({ templateID, meta = {}, handle: h }) => ({ value: templateID, text: meta.short || h || templateID }))
+
+      return [{ value: NoID, text: this.$t('general:label.none') }, ...options]
+    },
+
+    headerTemplateID: {
+      get () {
+        return this.template.meta.headerTemplateID || NoID
+      },
+      set (headerTemplateID) {
+        this.$set(this.template.meta, 'headerTemplateID', headerTemplateID)
+      },
+    },
+
+    footerTemplateID: {
+      get () {
+        return this.template.meta.footerTemplateID || NoID
+      },
+      set (footerTemplateID) {
+        this.$set(this.template.meta, 'footerTemplateID', footerTemplateID)
+      },
+    },
+
     fresh () {
       return !this.template.templateID || this.template.templateID === NoID
     },

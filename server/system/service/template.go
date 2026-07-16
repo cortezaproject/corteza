@@ -386,6 +386,17 @@ func (svc template) Render(ctx context.Context, templateID uint64, dstType strin
 			return err
 		}
 
+		// Optional header/footer templates, used by drivers that support them
+		header, err := svc.getAuxTemplateSource(ctx, tpl.Meta.HeaderTemplateID)
+		if err != nil {
+			return err
+		}
+
+		footer, err := svc.getAuxTemplateSource(ctx, tpl.Meta.FooterTemplateID)
+		if err != nil {
+			return err
+		}
+
 		// Prepare payload
 		p := &renderer.RendererPayload{
 			Template:     svc.getSource(tpl),
@@ -395,6 +406,8 @@ func (svc template) Render(ctx context.Context, templateID uint64, dstType strin
 			Options:      options,
 			Partials:     pp,
 			Attachments:  att,
+			Header:       header,
+			Footer:       footer,
 		}
 
 		// Render the doc
@@ -441,6 +454,21 @@ func (svc template) getPartials(ctx context.Context, tpl *types.Template) ([]*re
 	}
 
 	return pp, nil
+}
+
+// getAuxTemplateSource loads raw source of the referenced header/footer
+// template; (nil, nil) when ID is unset
+func (svc template) getAuxTemplateSource(ctx context.Context, ID uint64) (io.Reader, error) {
+	if ID == 0 {
+		return nil, nil
+	}
+
+	tpl, err := svc.FindByID(ctx, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return svc.getSource(tpl), nil
 }
 
 // @todo...

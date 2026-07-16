@@ -82,6 +82,29 @@ func (d *gotenbergPDFDriver) Render(ctx context.Context, pl *driverPayload) (io.
 		return nil, err
 	}
 
+	// Optional header/footer documents rendered with the same variables/partials
+	if pl.Header != nil {
+		hPart, err := writer.CreateFormFile("file", "header.html")
+		if err != nil {
+			return nil, err
+		}
+
+		if err = d.prepareAux(hPart, pl, pl.Header); err != nil {
+			return nil, err
+		}
+	}
+
+	if pl.Footer != nil {
+		fPart, err := writer.CreateFormFile("file", "footer.html")
+		if err != nil {
+			return nil, err
+		}
+
+		if err = d.prepareAux(fPart, pl, pl.Footer); err != nil {
+			return nil, err
+		}
+	}
+
 	// Document configurations
 	err = d.applyOptions(writer, pl.Options)
 	if err != nil {
@@ -126,6 +149,13 @@ func (d *gotenbergPDFDriver) prepareContent(w io.Writer, pl *driverPayload) erro
 	}
 
 	return t.Execute(w, pl.Variables)
+}
+
+// prepareAux renders an auxiliary document (header/footer) with pl's variables
+func (d *gotenbergPDFDriver) prepareAux(w io.Writer, pl *driverPayload, src io.Reader) error {
+	aux := *pl
+	aux.Template = src
+	return d.prepareContent(w, &aux)
 }
 
 func (d *gotenbergPDFDriver) applyOptions(mw *multipart.Writer, opts map[string]string) (err error) {
