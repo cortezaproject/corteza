@@ -166,6 +166,8 @@ dashboard:
     toast:
       created: Event created
       createFailed: Could not create the event. Please try again.
+    validation:
+      required: This field is required.
     categories:
       incident:
         label: Incident / Issue

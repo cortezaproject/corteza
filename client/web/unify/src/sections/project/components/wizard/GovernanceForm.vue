@@ -18,6 +18,7 @@
             :model-value="modelValue[field.key]"
             :disabled="disabled"
             :placeholder="field.placeholder"
+            :invalid="submitted && !!errors[field.key]"
             fluid
             @update:model-value="update(field.key, $event)"
           />
@@ -26,6 +27,7 @@
             :model-value="modelValue[field.key]"
             :disabled="disabled"
             :placeholder="field.placeholder"
+            :invalid="submitted && !!errors[field.key]"
             rows="3"
             auto-resize
             fluid
@@ -35,6 +37,7 @@
             v-else-if="field.type === 'number'"
             :model-value="modelValue[field.key]"
             :disabled="disabled"
+            :invalid="submitted && !!errors[field.key]"
             fluid
             @update:model-value="update(field.key, $event)"
           />
@@ -42,6 +45,7 @@
             v-else-if="field.type === 'datetime'"
             :model-value="modelValue[field.key]"
             :disabled="disabled"
+            :invalid="submitted && !!errors[field.key]"
             show-time
             hour-format="24"
             show-button-bar
@@ -52,6 +56,7 @@
             v-else-if="field.type === 'date'"
             :model-value="modelValue[field.key]"
             :disabled="disabled"
+            :invalid="submitted && !!errors[field.key]"
             show-button-bar
             fluid
             @update:model-value="update(field.key, $event)"
@@ -64,6 +69,7 @@
             :option-value="field.optionValue"
             :filter="!!field.filter"
             :disabled="disabled"
+            :invalid="submitted && !!errors[field.key]"
             fluid
             @update:model-value="update(field.key, $event)"
           />
@@ -72,11 +78,13 @@
             :model-value="modelValue[field.key]"
             :options="field.options"
             :disabled="disabled"
+            :invalid="submitted && !!errors[field.key]"
             display="chip"
             filter
             fluid
             @update:model-value="update(field.key, $event)"
           />
+          <ValidationMessage :message="submitted ? errors[field.key] : ''" />
         </CFormGroup>
       </div>
     </div>
@@ -84,6 +92,8 @@
 </template>
 
 <script setup>
+import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
+
 const props = defineProps({
   schema: { type: Array, required: true },
   modelValue: { type: Object, default: () => ({}) },
@@ -91,6 +101,11 @@ const props = defineProps({
   // 1 = single column (governance forms); 2 = two-column grid where textareas
   // (and fields flagged `full`) span both columns.
   columns: { type: Number, default: 1 },
+  // Per-field validation messages, keyed by field.key. Only shown once
+  // `submitted` is true, matching the section's other forms (error styling
+  // stays quiet until the user actually tries to submit).
+  errors: { type: Object, default: () => ({}) },
+  submitted: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue'])
 

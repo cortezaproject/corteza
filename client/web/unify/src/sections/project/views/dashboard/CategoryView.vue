@@ -135,7 +135,7 @@
       :category="category"
       :schema="cfg.formSchema"
       :user-options="store.ownerOptions"
-      @create="onCreate"
+      :on-create="onCreate"
     />
   </div>
 </template>
@@ -259,12 +259,24 @@ const filteredItems = computed(() => {
   )
 })
 
+// Columns whose values are ranked enums (see config/chartColors) rather than
+// free text — sort these by canonical rank, not alphabetically, so e.g.
+// severity reads Critical…Informational instead of A→Z.
+const RANKED_COLUMNS = new Set(['severity', 'risk', 'status'])
+
 // Client-side sort (byCategory is already newest-first as the default order).
 const visibleItems = computed(() => {
   const list = [...filteredItems.value]
   const { sortBy, sortDesc } = sorting
   if (sortBy) {
+    const ranked = RANKED_COLUMNS.has(sortBy)
     list.sort((a, b) => {
+      if (ranked) {
+        const ai = orderIndex(sortBy, a[sortBy])
+        const bi = orderIndex(sortBy, b[sortBy])
+        if (ai !== bi) return sortDesc ? bi - ai : ai - bi
+        return 0
+      }
       const av = a[sortBy] ?? ''
       const bv = b[sortBy] ?? ''
       if (av < bv) return sortDesc ? 1 : -1
@@ -293,8 +305,10 @@ watch(category, () => {
 })
 
 // Create handler — persist via the store (list/KPIs/charts/nav badge all react
-// off the returned record), toast, and close. Errors surface as a toast and
-// keep the dialog open so the user can retry.
+// off the returned record) and toast. Passed down to NewEventDialog as its
+// `onCreate` prop: the dialog awaits this and only closes (dropping the draft)
+// when it resolves truthy, so a failed create keeps the dialog open with the
+// user's input intact for a retry.
 const onCreate = async payload => {
   try {
     await store.add(category.value, payload)
@@ -302,10 +316,11 @@ const onCreate = async payload => {
       t('project.dashboard.newButton', { type: t(cfg.value.singularKey) }),
       t('project.dashboard.event.toast.created'),
     )
-    dialogVisible.value = false
+    return true
   } catch (err) {
     console.error('Failed to create event', err)
     $toast.toastErrorHandler(t('project.dashboard.event.toast.createFailed'))(err)
+    return false
   }
 }
 </script>
