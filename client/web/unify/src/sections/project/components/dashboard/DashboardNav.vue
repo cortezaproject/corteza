@@ -13,7 +13,7 @@
           :class="
             isActive(item)
               ? 'bg-primary/10 text-primary font-medium'
-              : 'hover:bg-surface-100 dark:hover:bg-surface-800'
+              : 'hover:bg-emphasis'
           "
           @click="go(item)"
         >
@@ -94,7 +94,7 @@ function badgeValue(item) {
 }
 
 function badgeClass(item) {
-  if (item.badgeTone === 'muted' || badgeValue(item) === 0) return 'bg-surface-200 text-muted-color dark:bg-surface-700'
+  if (item.badgeTone === 'muted' || badgeValue(item) === 0) return 'bg-emphasis text-muted-color'
   return 'bg-primary/15 text-primary'
 }
 </script>

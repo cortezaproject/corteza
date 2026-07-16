@@ -34,11 +34,11 @@
           </div>
           <div class="flex flex-col gap-2 md:col-span-2">
             <label class="text-sm font-medium text-muted-color">{{ $t('system.apigw.profiler.hit.request') }}</label>
-            <pre class="text-xs bg-surface-100 dark:bg-surface-800 p-3 rounded-lg overflow-auto max-h-64">{{ JSON.stringify(hit.request, null, 2) }}</pre>
+            <pre class="text-xs bg-emphasis p-3 rounded-lg overflow-auto max-h-64">{{ JSON.stringify(hit.request, null, 2) }}</pre>
           </div>
           <div class="flex flex-col gap-2 md:col-span-2">
             <label class="text-sm font-medium text-muted-color">{{ $t('system.apigw.profiler.hit.response') }}</label>
-            <pre class="text-xs bg-surface-100 dark:bg-surface-800 p-3 rounded-lg overflow-auto max-h-64">{{ JSON.stringify(hit.response, null, 2) }}</pre>
+            <pre class="text-xs bg-emphasis p-3 rounded-lg overflow-auto max-h-64">{{ JSON.stringify(hit.response, null, 2) }}</pre>
           </div>
         </div>
       </Panel>

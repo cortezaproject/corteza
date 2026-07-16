@@ -8,7 +8,7 @@
     />
 
     <!-- Read-only reference: how @Human Governance satisfies each Article 17 QMS aspect. -->
-    <section class="rounded-xl border border-surface bg-surface-50 dark:bg-surface-950 overflow-hidden">
+    <section class="rounded-xl border border-surface bg-surface overflow-hidden">
       <header class="flex items-start gap-3 px-5 py-4 border-b border-surface">
         <span class="shrink-0 mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <i class="pi pi-verified text-lg" />

@@ -18,7 +18,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
       <!-- Pulse + stats -->
-      <div class="rounded-lg border border-surface bg-surface-0 dark:bg-surface-900 p-4 flex flex-col gap-3">
+      <div class="rounded-lg border border-surface bg-surface p-4 flex flex-col gap-3">
         <div class="flex gap-6">
           <div class="flex flex-col">
             <span class="text-2xl font-semibold text-color leading-none">{{ metrics.total }}</span>
@@ -48,7 +48,7 @@
       </div>
 
       <!-- Recent activity feed -->
-      <div class="rounded-lg border border-surface bg-surface-0 dark:bg-surface-900 p-4">
+      <div class="rounded-lg border border-surface bg-surface p-4">
         <div class="text-sm font-medium text-color mb-2">
           {{ $t('project.dashboard.eventsBand.recent') }}
         </div>

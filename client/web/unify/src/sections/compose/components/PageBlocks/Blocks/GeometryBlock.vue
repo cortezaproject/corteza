@@ -3,7 +3,7 @@
     <div class="flex flex-col h-full relative">
       <div
         v-if="processing"
-        class="absolute inset-0 flex items-center justify-center z-10 bg-surface-0/50"
+        class="absolute inset-0 flex items-center justify-center z-10 loading-overlay"
       >
         <ProgressSpinner style="width: 24px; height: 24px" />
       </div>
@@ -224,3 +224,9 @@ onBeforeUnmount(() => {
   offRefetch?.()
 })
 </script>
+
+<style scoped>
+.loading-overlay {
+  background: var(--p-mask-background);
+}
+</style>

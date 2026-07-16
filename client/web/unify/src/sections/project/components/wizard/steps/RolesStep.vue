@@ -28,7 +28,7 @@
           <div class="group flex items-center hover:bg-emphasis transition-colors">
             <button
               type="button"
-              class="self-stretch flex items-center px-4 shrink-0 cursor-pointer text-muted-color hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
+              class="self-stretch flex items-center px-4 shrink-0 cursor-pointer text-muted-color hover:bg-emphasis transition-colors"
               :aria-label="$t(isCollapsed(r.id) ? 'general.label.expand' : 'general.label.collapse')"
               :title="$t(isCollapsed(r.id) ? 'general.label.expand' : 'general.label.collapse')"
               @click="toggle(r.id)"

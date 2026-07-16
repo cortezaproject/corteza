@@ -36,7 +36,7 @@
       <template v-if="query.length < 2 && recentSearches.length > 0">
         <div class="flex-1 overflow-auto">
           <div
-            class="flex items-center justify-between px-4 py-2 bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700"
+            class="flex items-center justify-between px-4 py-2 bg-surface border-b border-surface"
           >
             <span class="text-xs font-bold uppercase text-muted-color">
               {{ labels.recentSearches }}
@@ -54,7 +54,7 @@
           <div
             v-for="(s, index) in recentSearches"
             :key="index"
-            class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 group"
+            class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-emphasis group"
             @click="useRecentSearch(s)"
           >
             <div class="flex items-center gap-3">
@@ -86,7 +86,7 @@
         <div
           v-for="ns in sortedGroups"
           :key="ns.id"
-          class="border-b border-surface-200 dark:border-surface-700"
+          class="border-b border-surface"
         >
           <ItemGroup
             :title="ns.name"

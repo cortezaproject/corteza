@@ -1,5 +1,5 @@
 <template>
-  <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface-0 dark:bg-surface-900 p-4'">
+  <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface p-4'">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-2">
       <span v-if="accent" class="w-2 h-2 rounded-full shrink-0" :style="{ background: accent }" />
       <div class="text-sm font-medium text-color truncate">{{ $t(titleKey) }}</div>
@@ -26,7 +26,7 @@
         :title="`${row.label}: ${row.value} (${share(row.value)}%)`"
       >
         <span class="w-20 shrink-0 text-xs text-muted-color truncate">{{ row.label }}</span>
-        <span class="flex-1 h-2 rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden">
+        <span class="flex-1 h-2 rounded-full bg-emphasis overflow-hidden">
           <span
             class="block h-full rounded-r"
             :style="{ width: widthPct(row.value) + '%', background: colorFor(variant, row.label) }"

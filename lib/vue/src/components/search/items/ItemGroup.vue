@@ -2,7 +2,7 @@
   <div>
     <div
       class="flex items-center justify-between px-4 py-2 cursor-pointer select-none sticky top-0 z-10"
-      :class="subgroup ? 'bg-surface-50 dark:bg-surface-900 pl-6' : 'bg-surface-100 dark:bg-surface-800'"
+      :class="subgroup ? 'bg-surface pl-6' : 'bg-emphasis'"
       @click="toggle"
     >
       <div class="flex items-center gap-2 min-w-0">

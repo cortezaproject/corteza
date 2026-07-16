@@ -37,7 +37,7 @@
           <div
             v-for="n in CATEGORY_ORDER.length"
             :key="n"
-            class="rounded-xl border border-surface bg-surface-50 dark:bg-surface-950 pl-5 pr-4 py-3 flex flex-col gap-3"
+            class="rounded-xl border border-surface bg-surface pl-5 pr-4 py-3 flex flex-col gap-3"
           >
             <span class="flex items-center gap-2 min-w-0">
               <span
@@ -57,7 +57,7 @@
             v-for="c in cards"
             :key="c.key"
             :to="{ name: 'project.overview.category', params: { projectId, category: c.key } }"
-            class="group relative overflow-hidden rounded-xl border border-surface bg-surface-50 dark:bg-surface-950 pl-5 pr-4 py-3 flex flex-col gap-1 hover:shadow-md transition-all"
+            class="group relative overflow-hidden rounded-xl border border-surface bg-surface pl-5 pr-4 py-3 flex flex-col gap-1 hover:shadow-md transition-all"
           >
             <!-- Left accent rail in the category's colour. -->
             <span class="absolute inset-y-0 left-0 w-1" :style="{ background: c.accentColor }" />
@@ -92,7 +92,7 @@
         </h2>
         <div
           v-if="loading"
-          class="rounded-lg border border-surface bg-surface-0 dark:bg-surface-900 p-4"
+          class="rounded-lg border border-surface bg-surface p-4"
         >
           <div class="h-48 rounded bg-emphasis animate-pulse motion-reduce:animate-none" />
         </div>

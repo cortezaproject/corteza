@@ -92,9 +92,9 @@ export const KIND_CONFIG = {
     labelKey: 'project.kinds.group.plural',
     singularKey: 'project.kinds.group.single',
     icon: 'pi pi-folder',
-    text: 'text-slate-700 dark:text-slate-200',
-    bg: 'bg-slate-100 dark:bg-slate-800',
-    ring: 'ring-slate-300 dark:ring-slate-600',
+    text: 'text-surface-700 dark:text-surface-200',
+    bg: 'bg-surface-100 dark:bg-surface-800',
+    ring: 'ring-surface-300 dark:ring-surface-600',
     stroke: '#475569',
   },
 }

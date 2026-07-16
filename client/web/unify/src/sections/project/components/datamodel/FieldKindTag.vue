@@ -26,7 +26,7 @@ const label = computed(() => {
   >
     <span
       v-if="icon"
-      class="inline-flex items-center justify-center w-5 h-5 rounded-md ring-1 ring-surface bg-surface-100 dark:bg-surface-800 shrink-0"
+      class="inline-flex items-center justify-center w-5 h-5 rounded-md ring-1 ring-surface bg-emphasis shrink-0"
     >
       <i :class="[icon, 'text-muted-color text-[10px]']" />
     </span>

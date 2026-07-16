@@ -1,7 +1,7 @@
 <template>
   <div
     class="metric-item flex flex-col h-full p-3"
-    :class="{ 'cursor-pointer hover:bg-surface-200': metric.drillDown?.enabled }"
+    :class="{ 'cursor-pointer hover:bg-emphasis': metric.drillDown?.enabled }"
     :style="containerStyle"
     @click="onClick"
   >

@@ -9,7 +9,7 @@
             :class="
               step.key === activeKey
                 ? 'bg-primary/10 text-primary font-medium'
-                : 'hover:bg-surface-100 dark:hover:bg-surface-800'
+                : 'hover:bg-emphasis'
             "
             @click="$emit('select', step.key)"
           >
@@ -40,13 +40,13 @@
             :class="
               gateLocked[step.key]
                 ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-surface-100 dark:hover:bg-surface-800'
+                : 'hover:bg-emphasis'
             "
             :disabled="gateLocked[step.key]"
             :title="gateLocked[step.key] ? $t('project.wizard.gate.lockedTitle') : ''"
             @click="$emit('gate-click', step.key)"
           >
-            <span class="h-px flex-1 bg-surface-200 dark:bg-surface-700" />
+            <span class="h-px flex-1 bg-emphasis" />
             <i
               v-if="gateLocked[step.key]"
               class="pi pi-lock text-[10px] text-surface-400"
@@ -56,7 +56,7 @@
               :class="['pi text-[10px]', icon(gateStatuses[step.key]).name, icon(gateStatuses[step.key]).class]"
             />
             <span class="text-muted-color">{{ $t('project.wizard.gate.label', { number: gateNumber[step.key] }) }}</span>
-            <span class="h-px flex-1 bg-surface-200 dark:bg-surface-700" />
+            <span class="h-px flex-1 bg-emphasis" />
           </button>
         </li>
       </template>

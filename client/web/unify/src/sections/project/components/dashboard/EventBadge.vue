@@ -19,7 +19,7 @@ const props = defineProps({
   variant: { type: String, default: 'type' },
 })
 
-const MUTED = 'bg-surface-200 text-muted-color dark:bg-surface-700'
+const MUTED = 'bg-emphasis text-muted-color'
 
 // Tint families track config/chartColors's SEVERITY_COLORS ramp (Tailwind's
 // closest family per hue — exact hex match isn't the goal, family coherence

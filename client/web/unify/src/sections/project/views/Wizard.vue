@@ -173,7 +173,7 @@
 
           <!-- Drag handle -->
           <div
-            class="shrink-0 w-1.5 bg-surface-200 dark:bg-surface-700 hover:bg-primary relative cursor-col-resize group select-none flex items-center justify-center transition-colors"
+            class="shrink-0 w-1.5 bg-emphasis hover:bg-primary relative cursor-col-resize group select-none flex items-center justify-center transition-colors"
             :class="{ '!bg-primary': resizing }"
             @pointerdown="startResize"
           >

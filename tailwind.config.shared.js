@@ -23,6 +23,9 @@ export default {
       borderColor: {
         DEFAULT: 'var(--p-content-border-color)',
       },
+      ringColor: {
+        surface: 'var(--p-content-border-color)',
+      },
     },
   },
   plugins: [PrimeUI],

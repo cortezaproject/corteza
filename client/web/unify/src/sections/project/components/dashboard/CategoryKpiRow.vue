@@ -4,7 +4,7 @@
     <div
       v-for="kpi in kpis"
       :key="kpi.labelKey"
-      class="rounded-xl border border-surface bg-surface-50 dark:bg-surface-950 px-4 py-3 flex flex-col gap-1"
+      class="rounded-xl border border-surface bg-surface px-4 py-3 flex flex-col gap-1"
     >
       <div class="text-[11px] font-semibold uppercase tracking-wide text-muted-color">
         {{ $t(kpi.labelKey) }}

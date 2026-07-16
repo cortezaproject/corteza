@@ -1,5 +1,5 @@
 <template>
-  <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface-0 dark:bg-surface-900 p-4'">
+  <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface p-4'">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-3">
       <span v-if="accent" class="w-2 h-2 rounded-full shrink-0" :style="{ background: accent }" />
       <div class="text-sm font-medium text-color truncate">{{ $t(titleKey) }}</div>

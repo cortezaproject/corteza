@@ -27,7 +27,7 @@
     <div
       v-for="(row, index) in rows"
       :key="index"
-      class="flex flex-col gap-2 border border-surface-200 dark:border-surface-700 rounded p-2"
+      class="flex flex-col gap-2 border border-surface rounded p-2"
     >
       <div class="flex items-start gap-2">
         <div class="flex-1 min-w-0">

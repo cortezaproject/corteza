@@ -59,7 +59,7 @@
       <div ref="containerRef" class="flex-1 min-h-0 overflow-hidden relative">
         <div
           v-if="processing"
-          class="absolute inset-0 flex items-center justify-center z-10 bg-surface-0/50"
+          class="absolute inset-0 flex items-center justify-center z-10 loading-overlay"
         >
           <ProgressSpinner style="width: 24px; height: 24px" />
         </div>
@@ -328,6 +328,10 @@ const offRefetch = $eventBus?.on('refetch-records', refresh)
 </script>
 
 <style>
+.loading-overlay {
+  background: var(--p-mask-background);
+}
+
 .calendar-container .fc {
   font-size: 0.875rem;
 }

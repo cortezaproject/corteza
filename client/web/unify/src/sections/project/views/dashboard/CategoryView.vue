@@ -40,7 +40,7 @@
           <div
             v-for="n in 3"
             :key="n"
-            class="rounded-xl border border-surface bg-surface-50 dark:bg-surface-950 px-4 py-3 flex flex-col gap-2"
+            class="rounded-xl border border-surface bg-surface px-4 py-3 flex flex-col gap-2"
           >
             <span class="h-3 w-1/2 rounded bg-emphasis block animate-pulse motion-reduce:animate-none" />
             <span class="h-6 w-1/3 rounded bg-emphasis block animate-pulse motion-reduce:animate-none" />
@@ -50,12 +50,12 @@
           <div
             v-for="n in cfg.charts.length"
             :key="n"
-            class="rounded-lg border border-surface bg-surface-0 dark:bg-surface-900 p-4"
+            class="rounded-lg border border-surface bg-surface p-4"
           >
             <div class="h-44 rounded bg-emphasis animate-pulse motion-reduce:animate-none" />
           </div>
         </div>
-        <div class="rounded-lg border border-surface bg-surface-0 dark:bg-surface-900 p-4">
+        <div class="rounded-lg border border-surface bg-surface p-4">
           <div class="h-44 rounded bg-emphasis animate-pulse motion-reduce:animate-none" />
         </div>
       </div>
