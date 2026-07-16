@@ -449,6 +449,10 @@ func (svc *userGroup) DeleteByID(ctx context.Context, userGroupID uint64) (err e
 			return UserGroupErrNotAllowedToDelete()
 		}
 
+		if err = svc.referencedByAuthClient(ctx, r.ID); err != nil {
+			return err
+		}
+
 		if err = svc.services.eventbus.WaitFor(ctx, event.UserGroupBeforeDelete(nil, r)); err != nil {
 			return
 		}
@@ -470,6 +474,27 @@ func (svc *userGroup) DeleteByID(ctx context.Context, userGroupID uint64) (err e
 	}()
 
 	return svc.recordAction(ctx, raProps, UserGroupActionDelete, err)
+}
+
+// referencedByAuthClient prevents deleting a user group that is used as the
+// security user group on any auth client
+func (svc *userGroup) referencedByAuthClient(ctx context.Context, userGroupID uint64) error {
+	if userGroupID == 0 {
+		return nil
+	}
+
+	cc, _, err := store.SearchAuthClients(ctx, svc.store, types.AuthClientFilter{})
+	if err != nil {
+		return err
+	}
+
+	for _, c := range cc {
+		if c.Security != nil && c.Security.UserGroup == userGroupID {
+			return UserGroupErrNotAllowedToDelete()
+		}
+	}
+
+	return nil
 }
 
 func (svc *userGroup) UndeleteByID(ctx context.Context, userGroupID uint64) (err error) {
