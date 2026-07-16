@@ -48,7 +48,6 @@ overview:
   backToProjects: Back to projects
   openWizard: Open wizard
 dashboard:
-  backToProjects: Projects
   version: 'v{number}'
   versionDraft: 'v{number} draft'
   nav:
@@ -60,6 +59,10 @@ dashboard:
     events: All Events
     reports: Reports
     backlog: Backlog
+  # Overview page (category cards + activity trend) loading/error states.
+  overview:
+    error: Couldn't load the project overview. Please try again.
+    retry: Retry
   # Real action-log view (All Events), rendered as an activity timeline.
   # Filter/severity/detail labels are reused from system.actionlog.list.*; only
   # the header, timeline chrome and empty states live here.
@@ -94,11 +97,9 @@ dashboard:
     emptyFilteredHint: Try widening the time range or clearing a filter.
     # Metrics band above the timeline (respects the active filters).
     metrics:
-      volume: Event volume
       events: Events
       people: People
       errors: Errors
-      last30: last 30 days
   # "+ New {type}" button label; {type} is a category singular below.
   newButton: 'New {type}'
   # Singular category nouns used in buttons/dialog titles.
@@ -156,7 +157,6 @@ dashboard:
     reviews: Reviews
   stub:
     comingSoon: This view is coming soon.
-    filtered: 'Filtered by: {category}'
   event:
     title: New Event
     step1: Select the type of event you want to create.

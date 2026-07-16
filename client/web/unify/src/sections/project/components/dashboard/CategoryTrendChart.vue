@@ -50,6 +50,19 @@ const empty = computed(() => !props.series.some(s => (s.data || []).some(v => v 
 // Show a legend only when there is more than one series to disambiguate.
 const showLegend = computed(() => props.series.length > 1)
 
+// The 2px gap between stacked segments is drawn as a border in the chart's
+// own surface colour (see the dataviz skill's marks-and-anatomy "surface
+// gap" — separation via gap, never a stroke). Same resolution idiom as
+// CategoryDonutChart/ResourceGraph: echarts' canvas renderer needs a literal
+// colour, so the PrimeVue content-background token is read via
+// getComputedStyle rather than passed as a live CSS variable.
+function surfaceGapColor() {
+  if (typeof document === 'undefined') return '#ffffff'
+  const val = getComputedStyle(document.documentElement).getPropertyValue('--p-content-background').trim()
+  if (val) return val
+  return document.documentElement.classList.contains('dark') ? '#18181b' : '#ffffff'
+}
+
 const option = computed(() => ({
   grid: { left: 8, right: 12, top: 8, bottom: showLegend.value ? 28 : 8, containLabel: true },
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
@@ -74,7 +87,12 @@ const option = computed(() => ({
     type: 'bar',
     stack: 'total',
     data: s.data,
-    itemStyle: { color: s.color, borderRadius: props.series.length > 1 ? 0 : [3, 3, 0, 0] },
+    itemStyle: {
+      color: s.color,
+      borderRadius: props.series.length > 1 ? 0 : [3, 3, 0, 0],
+      borderColor: surfaceGapColor(),
+      borderWidth: 2,
+    },
     barMaxWidth: 28,
   })),
 }))

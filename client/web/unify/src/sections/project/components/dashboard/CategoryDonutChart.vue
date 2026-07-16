@@ -36,8 +36,12 @@ const props = defineProps({
   titleKey: { type: String, default: '' },
   // [{ label: string, value: number }]
   data: { type: Array, default: () => [] },
-  // Colour family for the slices: status | severity | risk | type (default).
+  // Colour family for the slices: status | type (severity/risk use
+  // CategoryRankBar instead — see CategoryView).
   variant: { type: String, default: 'status' },
+  // Which category's option list to index into for variant 'type' (see
+  // colorFor in config/chartColors) — ignored for every other variant.
+  category: { type: String, default: '' },
   // Optional accent dot next to the title (hex).
   accent: { type: String, default: '' },
   // Chrome-less variant: no card wrapper/title, for embedding in a card.
@@ -46,6 +50,19 @@ const props = defineProps({
 })
 
 const total = computed(() => props.data.reduce((s, d) => s + (d.value || 0), 0))
+
+// The 2px gap between slices is drawn as a border in the chart's own surface
+// colour (not a stroke around the data) so it reads as separation, not ink —
+// see the dataviz skill's marks-and-anatomy "surface gap". Resolved from the
+// PrimeVue content-background token (adapts light/dark automatically; same
+// dark-detection idiom as ResourceGraph.vue) since echarts' canvas renderer
+// needs a literal colour, not a live CSS variable.
+function surfaceGapColor() {
+  if (typeof document === 'undefined') return '#ffffff'
+  const val = getComputedStyle(document.documentElement).getPropertyValue('--p-content-background').trim()
+  if (val) return val
+  return document.documentElement.classList.contains('dark') ? '#18181b' : '#ffffff'
+}
 
 const option = computed(() => ({
   tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
@@ -61,10 +78,10 @@ const option = computed(() => ({
   series: [
     {
       type: 'pie',
-      radius: ['54%', '74%'],
+      radius: ['58%', '74%'],
       center: ['50%', '46%'],
       avoidLabelOverlap: true,
-      itemStyle: { borderColor: 'transparent', borderWidth: 2 },
+      itemStyle: { borderColor: surfaceGapColor(), borderWidth: 2 },
       // The donut hole shows the grand total; slices identify via tooltip/legend.
       label: {
         show: true,
@@ -79,7 +96,7 @@ const option = computed(() => ({
       data: props.data.map(d => ({
         name: d.label,
         value: d.value,
-        itemStyle: { color: colorFor(props.variant, d.label) },
+        itemStyle: { color: colorFor(props.variant, d.label, props.category) },
       })),
     },
   ],

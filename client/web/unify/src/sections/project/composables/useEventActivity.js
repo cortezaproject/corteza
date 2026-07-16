@@ -1,3 +1,4 @@
+import { EVENTS_COLOR } from '@/sections/project/config/chartColors'
 import {
   bucketDaily,
   bucketWeekly,
@@ -8,29 +9,37 @@ import {
 } from '@/sections/project/config/trend'
 import { useUserStore } from '@planetcrust/human-vue'
 import { inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 // Project audit-event activity, from the actionlog. Scoped to the project that
 // owns the affected resource (resourceProjectID — works without a request-scope
 // project, unlike scope.ProjectID). Reading needs the global action-log.read
 // permission, so callers should treat a thrown metrics call as "unavailable"
-// and hide the widget for non-admins.
+// and hide/flag the widget for non-admins.
 
 const DAY = 86400000
-const EVENTS_COLOR = '#6366f1'
 
 export function useEventActivity() {
   const $SystemAPI = inject('$SystemAPI')
   const userStore = useUserStore()
+  const { t } = useI18n()
 
   // Pulse (events/day) + grand-total stats over a window. Defaults to 30 days;
-  // adapts day→week buckets past ~10 weeks so wide ranges stay legible.
-  async function loadMetrics(projectID, { from, to } = {}) {
+  // adapts day→week buckets past ~10 weeks so wide ranges stay legible. The
+  // optional resource/action/origin/actorID filters mirror AllEventsView's
+  // filter popover — this is the single place both the Overview activity band
+  // and AllEventsView's metrics band compute this, so it stays one definition.
+  async function loadMetrics(projectID, { from, to, resource, action, origin, actorID } = {}) {
     const end = to || new Date()
     const start = from || new Date(end.getTime() - 30 * DAY)
     const base = {
       from: start.toISOString(),
       to: end.toISOString(),
       resourceProjectID: projectID || undefined,
+      resource: resource || undefined,
+      action: action || undefined,
+      origin: origin || undefined,
+      actorID: actorID ? (Array.isArray(actorID) ? actorID : [actorID]) : undefined,
     }
 
     // Two calls: a day series for the sparkline, and a grand total for the
@@ -53,7 +62,7 @@ export function useEventActivity() {
       labels: starts.map(useWeek ? weekLabel : dayLabel),
       series: [
         {
-          name: 'events',
+          name: t('project.dashboard.allEvents.metrics.events'),
           color: EVENTS_COLOR,
           data: (useWeek ? bucketWeekly : bucketDaily)(points, starts),
         },

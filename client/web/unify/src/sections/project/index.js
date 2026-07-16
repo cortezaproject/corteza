@@ -31,7 +31,7 @@ export default {
     },
     {
       // Published-project dashboard. A layout (in-view left rail + topbar crumb)
-      // with one child per view; each is an empty scaffold stub for now.
+      // with child views for overview, events, and categories; reports/backlog are stubs.
       path: '/project/projects/:projectId',
       component: () => import('./views/dashboard/DashboardLayout.vue'),
       meta: { section: 'project' },

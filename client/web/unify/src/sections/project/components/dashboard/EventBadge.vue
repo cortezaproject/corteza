@@ -21,18 +21,23 @@ const props = defineProps({
 
 const MUTED = 'bg-surface-200 text-muted-color dark:bg-surface-700'
 
+// Tint families track config/chartColors's SEVERITY_COLORS ramp (Tailwind's
+// closest family per hue — exact hex match isn't the goal, family coherence
+// is, since these are labeled pills, not colour-only). The ramp reads
+// red → orange → amber → yellow (worst → least severe warm), Informational
+// stays sky (unchanged — it's the chart ramp's own cool outlier too).
 const SEVERITY = {
   Critical: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
-  Serious: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/15 dark:text-fuchsia-300',
-  Major: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
-  Minor: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+  Serious: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
+  Major: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+  Minor: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300',
   Informational: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
 }
 const SEVERITY_DOT = {
   Critical: 'bg-red-500',
-  Serious: 'bg-fuchsia-500',
-  Major: 'bg-orange-500',
-  Minor: 'bg-amber-500',
+  Serious: 'bg-orange-500',
+  Major: 'bg-amber-500',
+  Minor: 'bg-yellow-500',
   Informational: 'bg-sky-500',
 }
 // Lifecycle ramp — mirrors STATUS_COLORS in config/chartColors so pills and

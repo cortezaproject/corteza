@@ -50,6 +50,13 @@ const CATS = {
 
 const CATEGORIES = Object.keys(CATS)
 
+// The single "open" rule for events/reports: a record is open iff its status
+// is not Completed. Shared by this store's KPI trio and the Overview report
+// cards (views/dashboard/Overview.vue) — do not re-derive it locally.
+export function isOpenStatus(status) {
+  return status !== 'Completed'
+}
+
 // Backlog is stored comma-separated server-side; the list renders it as pills.
 const splitBacklog = v =>
   String(v || '')
@@ -141,7 +148,7 @@ export const useEventsStore = defineStore('events', () => {
     let open = 0
     let overdue = 0
     for (const e of items) {
-      const isOpen = e.status !== 'Completed'
+      const isOpen = isOpenStatus(e.status)
       if (isOpen) open++
       const due = e.dateDue ? new Date(e.dateDue) : null
       if (isOpen && due && !Number.isNaN(due.getTime()) && due < now) overdue++

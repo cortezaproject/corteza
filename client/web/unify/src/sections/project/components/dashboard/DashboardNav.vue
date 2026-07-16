@@ -83,7 +83,7 @@ function iconBox(item) {
 function go(item) {
   const params = { projectId: route.params.projectId }
   if (item.category) params.category = item.category
-  router.push({ name: item.route, params, query: item.query || {} })
+  router.push({ name: item.route, params })
 }
 
 // Category items show a LIVE count from the events store; other items keep
@@ -94,7 +94,6 @@ function badgeValue(item) {
 }
 
 function badgeClass(item) {
-  if (item.badgeTone === 'warning') return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
   if (item.badgeTone === 'muted' || badgeValue(item) === 0) return 'bg-surface-200 text-muted-color dark:bg-surface-700'
   return 'bg-primary/15 text-primary'
 }

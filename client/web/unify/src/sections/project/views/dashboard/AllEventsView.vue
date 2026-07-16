@@ -338,14 +338,7 @@ import {
 } from '@/sections/admin/views/system/ActionLog/vocab'
 import EventTimelineItem from '@/sections/project/components/dashboard/EventTimelineItem.vue'
 import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
-import {
-  bucketDaily,
-  bucketWeekly,
-  dayLabel as axisDayLabel,
-  dayStarts,
-  weekLabel,
-  weekStarts,
-} from '@/sections/project/config/trend'
+import { useEventActivity } from '@/sections/project/composables/useEventActivity'
 
 const { CInputUser, CInputSearch } = components
 const { locDate } = filters
@@ -579,8 +572,11 @@ function reload() {
 
 // Event metrics over the effective range, reflecting the active filters. The
 // report requires an explicit window, so an unset from/to defaults to 30 days.
+// The actual report calls + day/week bucketing live in useEventActivity,
+// shared with the Overview activity band — this just supplies the filters and
+// owns the fail-soft/failed-band behaviour specific to this view.
+const activity = useEventActivity()
 const metrics = reactive({ labels: [], series: [], total: 0, actors: 0, errors: 0, failed: false })
-const EVENTS_COLOR = '#6366f1'
 
 function metricsRange() {
   const to = filter.to || new Date()
@@ -590,41 +586,16 @@ function metricsRange() {
 
 async function loadMetrics() {
   const { from, to } = metricsRange()
-  const base = {
-    from: from.toISOString(),
-    to: to.toISOString(),
-    resource: filter.resource || undefined,
-    resourceProjectID: projectID.value || undefined,
-    action: filter.action || undefined,
-    origin: filter.origin || undefined,
-    actorID: filter.actorID ? [filter.actorID] : undefined,
-  }
   try {
-    // Two calls: a day series for the bar chart, and a grand total for the
-    // stats (distinct actors can't be summed across day buckets).
-    const [daily, totals] = await Promise.all([
-      $SystemAPI.actionlogReport({ ...base, dimensions: ['day'], metrics: ['count'] }),
-      $SystemAPI.actionlogReport({ ...base, metrics: ['count', 'actors', 'errors'] }),
-    ])
-    const points = (daily.set || [])
-      .map(r => ({ date: String(r.dimensions?.day || ''), value: Number(r.metrics?.count || 0) }))
-      .filter(p => p.date)
-    // Adapt granularity to the span so wide ranges don't render hundreds of bars.
-    const span = (to - from) / 86400000
-    const useWeek = span > 70
-    const starts = useWeek ? weekStarts(from, to) : dayStarts(from, to)
-    metrics.labels = starts.map(useWeek ? weekLabel : axisDayLabel)
-    metrics.series = [
-      {
-        name: t('project.dashboard.allEvents.metrics.events'),
-        color: EVENTS_COLOR,
-        data: (useWeek ? bucketWeekly : bucketDaily)(points, starts),
-      },
-    ]
-    const g = (totals.set && totals.set[0]) || {}
-    metrics.total = Number(g.metrics?.count || 0)
-    metrics.actors = Number(g.metrics?.actors || 0)
-    metrics.errors = Number(g.metrics?.errors || 0)
+    const m = await activity.loadMetrics(projectID.value, {
+      from,
+      to,
+      resource: filter.resource,
+      action: filter.action,
+      origin: filter.origin,
+      actorID: filter.actorID,
+    })
+    Object.assign(metrics, m)
     metrics.failed = false
   } catch (e) {
     // Fail soft: hide the band (e.g. the viewer lacks action-log.read) rather

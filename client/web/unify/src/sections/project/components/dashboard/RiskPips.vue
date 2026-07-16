@@ -16,12 +16,14 @@ import { computed } from 'vue'
 
 const props = defineProps({ level: { type: String, default: '' } })
 
-// Pip count + fill color per risk level.
+// Pip count + fill color per risk level. Families track config/chartColors's
+// RISK_COLORS ramp (same red→orange→amber→yellow family as EventBadge's
+// severity tints — the two ordinal scales read as one system).
 const MAP = {
   Critical: { n: 5, c: 'bg-red-500' },
   High: { n: 4, c: 'bg-orange-500' },
   Medium: { n: 3, c: 'bg-amber-500' },
-  Low: { n: 2, c: 'bg-emerald-500' },
+  Low: { n: 2, c: 'bg-yellow-500' },
 }
 const count = computed(() => MAP[props.level]?.n ?? 0)
 const color = computed(() => MAP[props.level]?.c ?? 'bg-surface-400')
