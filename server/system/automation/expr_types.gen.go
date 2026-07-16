@@ -1335,6 +1335,10 @@ func (t *TemplateMeta) Has(k string) bool {
 		return true
 	case "description":
 		return true
+	case "headerTemplateID":
+		return true
+	case "footerTemplateID":
+		return true
 	}
 	return false
 }
@@ -1346,6 +1350,10 @@ func templateMetaGValSelector(res types.TemplateMeta, k string) (interface{}, er
 		return res.Short, nil
 	case "description":
 		return res.Description, nil
+	case "headerTemplateID":
+		return res.HeaderTemplateID, nil
+	case "footerTemplateID":
+		return res.FooterTemplateID, nil
 	}
 
 	return nil, fmt.Errorf("unknown field '%s'", k)
@@ -1358,6 +1366,10 @@ func templateMetaTypedValueSelector(res types.TemplateMeta, k string) (TypedValu
 		return NewString(res.Short)
 	case "description":
 		return NewString(res.Description)
+	case "headerTemplateID":
+		return NewID(res.HeaderTemplateID)
+	case "footerTemplateID":
+		return NewID(res.FooterTemplateID)
 	}
 
 	return nil, fmt.Errorf("unknown field '%s'", k)
@@ -1381,6 +1393,22 @@ func assignToTemplateMeta(res types.TemplateMeta, k string, val interface{}) err
 		}
 
 		res.Description = aux
+		return nil
+	case "headerTemplateID":
+		aux, err := CastToID(val)
+		if err != nil {
+			return err
+		}
+
+		res.HeaderTemplateID = aux
+		return nil
+	case "footerTemplateID":
+		aux, err := CastToID(val)
+		if err != nil {
+			return err
+		}
+
+		res.FooterTemplateID = aux
 		return nil
 	}
 

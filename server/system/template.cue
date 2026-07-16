@@ -8,6 +8,8 @@ _templateDefs: {
 			TemplateMeta: { name: "TemplateMeta", fields: [
 				{ name: "Short", type: "string", json: "short" },
 				{ name: "Description", type: "string", json: "description,omitempty" },
+				{ name: "HeaderTemplateID", type: "uint64", json: "headerTemplateID,string,omitempty" },
+				{ name: "FooterTemplateID", type: "uint64", json: "footerTemplateID,string,omitempty" },
 			]}
 			DocumentType: { name: "DocumentType", values: [
 				{ ident: "DocumentTypePlain", value: "text/plain" },

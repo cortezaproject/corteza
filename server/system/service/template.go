@@ -98,6 +98,17 @@ func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, 
 		return nil, err
 	}
 
+	// Optional header/footer templates, used by drivers that support them
+	header, err := svc.getAuxTemplateSource(ctx, tpl.Meta.HeaderTemplateID)
+	if err != nil {
+		return nil, err
+	}
+
+	footer, err := svc.getAuxTemplateSource(ctx, tpl.Meta.FooterTemplateID)
+	if err != nil {
+		return nil, err
+	}
+
 	p := &renderer.RendererPayload{
 		Template:     svc.getSource(tpl),
 		TemplateType: tpl.Type,
@@ -106,6 +117,8 @@ func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, 
 		Options:      options,
 		Partials:     pp,
 		Attachments:  att,
+		Header:       header,
+		Footer:       footer,
 	}
 
 	return svc.services.renderer.Render(ctx, p)
@@ -159,6 +172,21 @@ func (svc *template) Drivers() []renderer.DriverDefinition {
 
 func (svc *template) getSource(tpl *types.Template) io.Reader {
 	return bytes.NewBuffer([]byte(tpl.Template))
+}
+
+// getAuxTemplateSource loads raw source of the referenced header/footer
+// template; (nil, nil) when ID is unset
+func (svc *template) getAuxTemplateSource(ctx context.Context, ID uint64) (io.Reader, error) {
+	if ID == 0 {
+		return nil, nil
+	}
+
+	tpl, err := svc.FindByID(ctx, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return svc.getSource(tpl), nil
 }
 
 func (svc *template) getPartials(ctx context.Context, tpl *types.Template) ([]*renderer.TemplatePartial, error) {

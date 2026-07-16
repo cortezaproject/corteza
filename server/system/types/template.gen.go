@@ -36,8 +36,10 @@ type (
 	}
 
 	TemplateMeta struct {
-		Short       string `json:"short"`
-		Description string `json:"description,omitempty"`
+		Short            string `json:"short"`
+		Description      string `json:"description,omitempty"`
+		HeaderTemplateID uint64 `json:"headerTemplateID,string,omitempty"`
+		FooterTemplateID uint64 `json:"footerTemplateID,string,omitempty"`
 	}
 
 	DocumentType string
@@ -155,6 +157,14 @@ func (r TemplateMeta) Diff(cmp *TemplateMeta) []*revisions.Change {
 
 	if r.Description != cmp.Description {
 		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	if r.HeaderTemplateID != cmp.HeaderTemplateID {
+		out = append(out, &revisions.Change{Key: "headerTemplateID", Old: []any{cmp.HeaderTemplateID}, New: []any{r.HeaderTemplateID}})
+	}
+
+	if r.FooterTemplateID != cmp.FooterTemplateID {
+		out = append(out, &revisions.Change{Key: "footerTemplateID", Old: []any{cmp.FooterTemplateID}, New: []any{r.FooterTemplateID}})
 	}
 
 	return out

@@ -69,8 +69,10 @@ types:
   TemplateMeta:
     as: 'types.TemplateMeta'
     struct:
-      - { name: 'short',       exprType: 'String', goType: 'string'}
-      - { name: 'description', exprType: 'String', goType: 'string'}
+      - { name: 'short',            exprType: 'String', goType: 'string'}
+      - { name: 'description',      exprType: 'String', goType: 'string'}
+      - { name: 'headerTemplateID', exprType: 'ID',     goType: 'uint64'}
+      - { name: 'footerTemplateID', exprType: 'ID',     goType: 'uint64'}
   RenderedDocument:
    as: '*renderedDocument'
    struct:

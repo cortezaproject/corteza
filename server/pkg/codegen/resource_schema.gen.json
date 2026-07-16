@@ -369,7 +369,9 @@
   "partial": "bool",
   "meta": {
   "short": "string",
-  "description": "string"
+  "description": "string",
+  "headerTemplateID": "uint64",
+  "footerTemplateID": "uint64"
 },
   "template": "string",
   "createdAt": "time.Time",

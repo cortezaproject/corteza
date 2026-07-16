@@ -39,6 +39,8 @@ func (r *renderer) Render(ctx context.Context, pl *RendererPayload) (io.ReadSeek
 				Options:     pl.Options,
 				Partials:    pp,
 				Attachments: pl.Attachments,
+				Header:      pl.Header,
+				Footer:      pl.Footer,
 			}
 
 			return f.Driver().Render(ctx, dpl)
