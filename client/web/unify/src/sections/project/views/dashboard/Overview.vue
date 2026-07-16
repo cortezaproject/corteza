@@ -62,12 +62,7 @@
             <!-- Left accent rail in the category's colour. -->
             <span class="absolute inset-y-0 left-0 w-1" :style="{ background: c.accentColor }" />
             <span class="flex items-center gap-2 min-w-0">
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-                :class="[c.badge.bg, c.badge.ring]"
-              >
-                <i :class="[c.badge.icon, c.badge.text]" />
-              </span>
+              <KindIcon :config="c.badge" size="lg" plain-icon />
               <span class="flex flex-col min-w-0">
                 <span class="text-sm font-medium text-color truncate">{{ $t(c.titleKey) }}</span>
                 <span class="text-xs text-muted-color">
@@ -111,6 +106,7 @@
 import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
 import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
 import EventsActivityPanel from '@/sections/project/components/dashboard/EventsActivityPanel.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
 import { CATEGORY_COLORS } from '@/sections/project/config/chartColors'
 import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/trend'

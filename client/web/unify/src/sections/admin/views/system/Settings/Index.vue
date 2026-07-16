@@ -8,7 +8,7 @@
   </div>
 
   <div v-else class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <!-- Internal Authentication -->
       <Panel
         :header="$t('system.settings.editor.auth.internal.title')"
@@ -446,7 +446,7 @@
           </div>
         </template>
       </Dialog>
-    </div>
+    </CViewContainer>
 
     <CEditorActions>
       <Button
@@ -468,7 +468,7 @@ import ExternalStd from './auth/ExternalStd.vue'
 import ExternalOIDC from './auth/ExternalOIDC.vue'
 import ExternalSAML from './auth/ExternalSAML.vue'
 
-const { CResourceTable, CFileDropZone } = components
+const { CFileDropZone, CResourceTable, CViewContainer } = components
 
 const { t } = useI18n()
 

@@ -8,7 +8,7 @@
   </div>
 
   <div v-else-if="session" class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <Panel :header="$t('automation.sessions.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
@@ -84,7 +84,7 @@
           >{{ session.error }}</pre
         >
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'automation.sessions' }">
       <Button
@@ -110,9 +110,10 @@
 import { computed, inject, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { filters } from '@planetcrust/human-vue'
+import { components, filters } from '@planetcrust/human-vue'
 
 const { locFullDateTime } = filters
+const { CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()

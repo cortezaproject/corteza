@@ -3,7 +3,7 @@
     <span>{{ $t('system.queues.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="queueID"
@@ -92,7 +92,7 @@
         </div>
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -106,7 +106,7 @@ import {
   useRBACStore,
   usePermissions,
 } from '@planetcrust/human-vue'
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()

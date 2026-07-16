@@ -11,12 +11,9 @@
       </div>
 
       <!-- Need roles before users can be assigned to them. -->
-      <div
-        v-if="!roles.length"
-        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-      >
+      <CEmptyState v-if="!roles.length">
         {{ $t('project.accessUsers.noRoles') }}
-      </div>
+      </CEmptyState>
 
       <CFormItemList
         v-else
@@ -68,7 +65,7 @@ import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CRouterLinkButton } = components
+const { CEmptyState, CRouterLinkButton } = components
 
 const props = defineProps({
   project: { type: Object, required: true },

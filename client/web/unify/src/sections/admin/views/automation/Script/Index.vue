@@ -8,7 +8,7 @@
   </div>
 
   <div v-else class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <Panel
         :header="$t('automation.scripts.list.title')"
         toggleable
@@ -123,7 +123,7 @@
           </template>
         </CResourceTable>
       </Panel>
-    </div>
+    </CViewContainer>
   </div>
 </template>
 
@@ -132,7 +132,7 @@ import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 
-const { CResourceTable } = components
+const { CResourceTable, CViewContainer } = components
 const { t } = useI18n()
 
 const $toast = inject('$toast')

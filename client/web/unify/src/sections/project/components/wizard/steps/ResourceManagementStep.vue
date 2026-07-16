@@ -145,12 +145,9 @@
           </div>
         </div>
       </div>
-      <div
-        v-else
-        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-      >
+      <CEmptyState v-else>
         {{ $t('project.resourceManagement.infra.empty') }}
-      </div>
+      </CEmptyState>
 
       <!-- Backup/Restore is project-wide, not per provider. -->
       <CInputToggleCard
@@ -267,12 +264,9 @@
         </div>
       </div>
       <!-- Same empty-state styling as CFormList's empty-message (providers above). -->
-      <div
-        v-else
-        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-      >
+      <CEmptyState v-else>
         {{ $t('project.resourceManagement.connections.empty') }}
-      </div>
+      </CEmptyState>
     </section>
 
     <ConnectorPicker v-model="pickerOpen" @pick="onPick" />
@@ -291,7 +285,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
-const { CInputLLM, CInputModel, CInputToggleCard } = components
+const { CEmptyState, CInputLLM, CInputModel, CInputToggleCard } = components
 
 // Working copy of the governance step values ({ ai, infra, connections });
 // the wizard owns loading and Save, this form only edits the copy.

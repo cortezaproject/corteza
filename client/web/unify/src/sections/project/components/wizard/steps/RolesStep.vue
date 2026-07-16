@@ -10,12 +10,9 @@
         />
       </div>
 
-      <div
-        v-if="!roles.length"
-        class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-      >
+      <CEmptyState v-if="!roles.length">
         {{ $t('project.accessRoles.empty') }}
-      </div>
+      </CEmptyState>
 
       <!-- One card per role — click the header to configure it; each card lists
            the role's members. Mirrors the data-model step's module cards. -->
@@ -101,7 +98,7 @@ import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CRouterLinkButton } = components
+const { CEmptyState, CRouterLinkButton } = components
 
 const props = defineProps({
   project: { type: Object, required: true },

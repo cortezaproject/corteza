@@ -36,32 +36,14 @@
          is selected so the user can switch / browse history before sending
          their first message. Empty tabs render as "New chat"; tabs with
          messages use a truncation of the first user message. -->
-    <div
+    <CConversationTabs
       v-if="agentStore.activeAgentID && visibleAgents.length > 0"
-      class="flex items-center gap-0 border-b border-surface shrink-0 bg-emphasis"
+      :tabs="conversationTabs"
+      :active-index="activeConversationIndex"
+      @update:active-index="idx => agentStore.setActiveConversationIndex(agentStore.activeAgentID, idx)"
+      @close="idx => agentStore.closeConversation(agentStore.activeAgentID, idx)"
     >
-      <div class="flex items-center gap-0 flex-1 overflow-x-auto no-scrollbar">
-        <button
-          v-for="(conv, idx) in conversations"
-          :key="idx"
-          class="group flex items-center gap-1.5 py-2 pl-3 pr-1 border-b border-r border-r-surface whitespace-nowrap transition-colors duration-200 outline-none select-none max-w-[150px]"
-          :class="[
-            activeConversationIndex === idx
-              ? 'border-b-primary text-primary font-medium'
-              : 'border-b-transparent text-muted-color hover:text-color hover:border-b-surface',
-          ]"
-          @click="agentStore.setActiveConversationIndex(agentStore.activeAgentID, idx)"
-        >
-          <span class="whitespace-nowrap truncate">
-            {{ tabLabel(conv) }}
-          </span>
-          <i
-            class="pi pi-times text-xs opacity-0 group-hover:opacity-100 p-1 hover:bg-emphasis rounded-full transition-all shrink-0"
-            @click.stop="agentStore.closeConversation(agentStore.activeAgentID, idx)"
-          />
-        </button>
-      </div>
-      <div class="flex items-center px-1 border-l border-surface shrink-0">
+      <template #actions>
         <Button
           icon="pi pi-plus"
           severity="secondary"
@@ -83,8 +65,8 @@
           v-tooltip.bottom="{ value: translations.history.button, showDelay: 500 }"
           @click="openHistory"
         />
-      </div>
-    </div>
+      </template>
+    </CConversationTabs>
 
     <!-- History popover -->
     <Popover ref="historyPopover" :pt="{ content: { class: 'max-h-96 overflow-y-auto' } }">
@@ -150,6 +132,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useAgentChatStore } from '../../stores/useAgentChatStore'
 import CChatMessages from './CChatMessages.vue'
+import CConversationTabs from './CConversationTabs.vue'
 import type { AgentChatTranslations } from './translations'
 
 const props = defineProps({
@@ -288,6 +271,10 @@ function tabLabel(conv: any): string {
   if (text.length <= 24) return text
   return text.slice(0, 21) + '…'
 }
+
+const conversationTabs = computed(() => conversations.value.map((conv: any) => ({
+  label: tabLabel(conv),
+})))
 
 const executing = ref(false)
 const chatMessagesRef = ref<InstanceType<typeof CChatMessages> | null>(null)

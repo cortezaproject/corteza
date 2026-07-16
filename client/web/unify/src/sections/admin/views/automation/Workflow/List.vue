@@ -3,7 +3,7 @@
     <span>{{ $t('automation.workflows.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="workflowID"
@@ -136,7 +136,7 @@
         </div>
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -152,7 +152,7 @@ import {
 } from '@planetcrust/human-vue'
 import { useWorkflowStore } from '@planetcrust/human-vue'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()

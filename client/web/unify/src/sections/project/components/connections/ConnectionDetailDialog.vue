@@ -7,16 +7,9 @@
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
-        <span
-          class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-          :class="[cfg.bg, cfg.ring]"
-        >
-          <i :class="[cfg.icon, cfg.text]" />
-        </span>
+        <KindIcon kind="connection" size="lg" plain-icon />
         <div class="min-w-0">
-          <div class="text-[10px] uppercase tracking-wider text-muted-color leading-none mb-0.5">
-            {{ $t('project.kinds.connection.single') }}
-          </div>
+          <DialogEyebrow>{{ $t('project.kinds.connection.single') }}</DialogEyebrow>
           <div class="font-semibold truncate leading-tight">
             {{ name || entity?.name || $t('project.connectionDetail.unnamed') }}
           </div>
@@ -91,9 +84,10 @@
 </template>
 
 <script setup>
+import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
 import { connector } from '@/sections/project/config/connectors'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -116,7 +110,6 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-const cfg = kindConfig('connection')
 
 // The configured connection entry from the store — it carries
 // configuredConnectionID (NOT configurationID, which is only on the raw API

@@ -7,16 +7,9 @@
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
-        <span
-          class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-          :class="[cfg.bg, cfg.ring]"
-        >
-          <i :class="[cfg.icon, cfg.text]" />
-        </span>
+        <KindIcon kind="module" size="lg" plain-icon />
         <div class="min-w-0">
-          <div class="text-[10px] uppercase tracking-wider text-muted-color leading-none mb-0.5">
-            {{ $t('project.module.label') }}
-          </div>
+          <DialogEyebrow>{{ $t('project.module.label') }}</DialogEyebrow>
           <div class="font-semibold truncate leading-tight">{{ draft.name || $t('project.module.unnamed') }}</div>
         </div>
       </div>
@@ -130,10 +123,11 @@
 </template>
 
 <script setup>
+import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
 import FieldKindTag from '@/sections/project/components/datamodel/FieldKindTag.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import ResourcePermissionsSection from '@/sections/project/components/permissions/ResourcePermissionsSection.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { fieldName } from '@/sections/project/utils/fields'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'
@@ -167,8 +161,6 @@ const visible = computed({
   get: () => props.modelValue,
   set: v => emit('update:modelValue', v),
 })
-
-const cfg = kindConfig('module')
 
 const module = computed(() =>
   props.resourceId ? store.resourcesFor(props.project?.projectID).find(r => r.id === props.resourceId) : null,

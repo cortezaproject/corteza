@@ -4,7 +4,7 @@
   </Teleport>
 
   <div class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <div class="flex items-center gap-2">
         <Button
           icon="pi pi-arrow-left"
@@ -46,7 +46,7 @@
       <div v-else class="text-center p-8 text-muted-color">
         {{ $t('general.notFound') }}
       </div>
-    </div>
+    </CViewContainer>
   </div>
 </template>
 
@@ -54,7 +54,9 @@
 import { inject, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { components } from '@planetcrust/human-vue'
 
+const { CViewContainer } = components
 const route = useRoute()
 const $SystemAPI = inject('$SystemAPI')
 const $toast = inject('$toast')

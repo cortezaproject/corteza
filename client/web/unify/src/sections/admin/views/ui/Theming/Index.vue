@@ -8,7 +8,7 @@
   </div>
 
   <div v-else class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
+    <CViewContainer scroll gap="5">
       <!-- Branding section -->
       <Panel
         :header="$t('ui.settings.editor.human-studio.branding.title')"
@@ -122,7 +122,7 @@
           </TabPanels>
         </Tabs>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions>
       <Button
@@ -140,7 +140,7 @@ import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { setThemes, useTheme, components, useFileUpload } from '@planetcrust/human-vue'
 
-const { CInputColorPicker, CFileDropZone } = components
+const { CFileDropZone, CInputColorPicker, CViewContainer } = components
 
 const { t } = useI18n()
 

@@ -14,7 +14,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-if="authClient.canGrant"
@@ -304,7 +304,7 @@
           </div>
         </div>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.authClients' }">
       <CInputDelete
@@ -334,7 +334,7 @@ import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import axios from 'axios'
 
-const { CInputDelete, CInputRole, CInputUser, CInputUserGroup, CInputToggleCard } = components
+const { CInputDelete, CInputRole, CInputToggleCard, CInputUser, CInputUserGroup, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()

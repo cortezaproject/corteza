@@ -3,7 +3,7 @@
     <span>{{ $t('system.labels.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="_rowKey"
@@ -43,7 +43,7 @@
         <Tag :value="String(data.resourceCount || 0)" severity="secondary" rounded />
       </template>
     </CResourceList>
-  </div>
+  </CViewContainer>
 
   <Dialog
     v-model:visible="showCreateDialog"
@@ -103,7 +103,7 @@ import {
   useResourceList,
 } from '@planetcrust/human-vue'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 
 const { t } = useI18n()
 const router = useRouter()

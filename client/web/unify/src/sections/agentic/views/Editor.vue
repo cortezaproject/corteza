@@ -637,35 +637,14 @@
               :showTrace="false"
             >
               <template #header>
-                <div
-                  class="flex items-center gap-0 border-b border-surface shrink-0 bg-emphasis"
+                <CConversationTabs
+                  :tabs="conversations"
+                  :active-index="activeConvIndex"
+                  guard-close-when-last
+                  @update:active-index="idx => (activeConvIndex = idx)"
+                  @close="closeConversation"
                 >
-                  <div class="flex items-center gap-0 flex-1 overflow-x-auto no-scrollbar">
-                    <button
-                      v-for="(conv, idx) in conversations"
-                      :key="idx"
-                      type="button"
-                      class="group flex items-center gap-1.5 py-2 pl-3 pr-1 border-b border-r border-r-surface whitespace-nowrap transition-colors duration-200 outline-none select-none max-w-[150px]"
-                      :class="
-                        activeConvIndex === idx
-                          ? 'border-b-primary text-primary font-medium'
-                          : 'border-b-transparent text-muted-color hover:text-color hover:border-b-surface'
-                      "
-                      @click="activeConvIndex = idx"
-                    >
-                      <span class="whitespace-nowrap truncate">{{ conv.label }}</span>
-                      <i
-                        class="pi pi-times text-xs p-1 hover:bg-emphasis rounded-full transition-all shrink-0"
-                        :class="
-                          conversations.length > 1
-                            ? 'opacity-0 group-hover:opacity-100'
-                            : 'invisible'
-                        "
-                        @click.stop="conversations.length > 1 && closeConversation(idx)"
-                      />
-                    </button>
-                  </div>
-                  <div class="flex items-center px-1 border-l border-surface shrink-0">
+                  <template #actions>
                     <Button
                       icon="pi pi-plus"
                       severity="secondary"
@@ -676,8 +655,8 @@
                       :disabled="isCreate"
                       @click="addConversation"
                     />
-                  </div>
-                </div>
+                  </template>
+                </CConversationTabs>
               </template>
             </AiChat>
           </template>
@@ -814,6 +793,7 @@ const {
   CInputNamespace,
   CInputModule,
   CInputLabel,
+  CConversationTabs,
 } = components
 
 const route = useRoute()

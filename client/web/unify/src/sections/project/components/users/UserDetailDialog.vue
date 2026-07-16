@@ -10,16 +10,9 @@
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
-        <span
-          class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-          :class="[cfg.bg, cfg.ring]"
-        >
-          <i :class="[cfg.icon, cfg.text]" />
-        </span>
+        <KindIcon kind="user" size="lg" plain-icon />
         <div class="min-w-0">
-          <div class="text-[10px] uppercase tracking-wider text-muted-color leading-none mb-0.5">
-            {{ $t('project.kinds.user.single') }}
-          </div>
+          <DialogEyebrow>{{ $t('project.kinds.user.single') }}</DialogEyebrow>
           <div class="font-semibold truncate leading-tight">
             {{ displayName || $t('project.userDetail.unnamed') }}
           </div>
@@ -98,9 +91,10 @@
 </template>
 
 <script setup>
+import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
 import KindBadge from '@/sections/project/components/KindBadge.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import ProjectPermissionMatrix from '@/sections/project/components/permissions/ProjectPermissionMatrix.vue'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { components } from '@planetcrust/human-vue'
@@ -128,7 +122,6 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-const cfg = kindConfig('user')
 
 const roles = computed(() => store.rolesFor(props.project?.projectID))
 

@@ -3,7 +3,7 @@
     <span>{{ $t('system.llmProviders.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="llmProviderID"
@@ -63,7 +63,7 @@
       </template>
 
     </CResourceList>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -71,7 +71,7 @@ import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components, filters, useConfirmDelete } from '@planetcrust/human-vue'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()

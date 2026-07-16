@@ -12,10 +12,7 @@
       class="right-sidebar flex flex-row"
       :style="{ width: `${drawerWidth}px` }"
     >
-      <div
-        class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors shrink-0"
-        @mousedown="startDrawerResize"
-      />
+      <CResizeHandle @mousedown="startDrawerResize" />
       <div class="flex-1 flex flex-col min-w-0">
         <CAgentChat
           :translations="translations"
@@ -45,6 +42,7 @@ import { useRightSidebarStore } from '../../stores/useRightSidebarStore'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
 import CAgentChat from './CAgentChat.vue'
 import { makeAgentChatTranslations } from './translations'
+import CResizeHandle from '../CResizeHandle.vue'
 
 defineProps({
   // Optional callable returning an object that gets passed as `context` to

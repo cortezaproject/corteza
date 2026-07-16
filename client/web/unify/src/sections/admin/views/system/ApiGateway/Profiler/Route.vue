@@ -3,7 +3,7 @@
     <span>{{ $t('system.apigw.profiler.title') }} — {{ decodedRoute }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       primary-key="hitID"
       :fields="hitFields"
@@ -51,7 +51,7 @@
         </div>
       </template>
     </CResourceList>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -60,7 +60,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 const route = useRoute()
 const router = useRouter()
 const $SystemAPI = inject('$SystemAPI')

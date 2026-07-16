@@ -13,10 +13,10 @@
           <i :class="[step === 'type' ? 'pi pi-tag' : typeCfg?.icon, 'text-muted-color']" />
         </span>
         <div class="min-w-0">
-          <div class="text-[10px] uppercase tracking-wider text-muted-color leading-none mb-0.5">
+          <DialogEyebrow>
             {{ $t('project.field.label') }}
             <template v-if="moduleName">· {{ moduleName }}</template>
-          </div>
+          </DialogEyebrow>
           <div class="font-semibold truncate leading-tight">
             {{
               step === 'type'
@@ -215,6 +215,7 @@
 </template>
 
 <script setup>
+import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
 import { FIELD_TYPES, fieldType, isRecordRef } from '@/sections/project/config/fieldTypes'
 import { useProjectsStore } from '@/sections/project/stores/projects'

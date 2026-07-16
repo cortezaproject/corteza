@@ -16,7 +16,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-if="taq.canGrant"
@@ -76,7 +76,7 @@
           </div>
         </div>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'automation.taq' }">
       <Button
@@ -113,7 +113,7 @@ import { components, filters, useUnsavedGuard } from '@planetcrust/human-vue'
 import { useAutomationStore } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
-const { CInputDelete } = components
+const { CInputDelete, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const route = useRoute()

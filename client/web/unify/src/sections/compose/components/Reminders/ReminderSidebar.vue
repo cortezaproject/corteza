@@ -12,10 +12,7 @@
       class="right-sidebar flex flex-row"
       :style="{ width: `${drawerWidth}px` }"
     >
-      <div
-        class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors shrink-0"
-        @mousedown="startDrawerResize"
-      />
+      <CResizeHandle @mousedown="startDrawerResize" />
       <div class="flex-1 flex flex-col min-w-0">
       <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
         <h3 class="m-0 text-lg font-semibold">
@@ -46,7 +43,9 @@
 import { computed, watch } from 'vue'
 import { useReminderStore } from '@/sections/compose/stores/reminder'
 import ReminderManager from './ReminderManager.vue'
-import { useRightSidebarResize, useRightSidebarStore } from '@planetcrust/human-vue'
+import { components, useRightSidebarResize, useRightSidebarStore } from '@planetcrust/human-vue'
+
+const { CResizeHandle } = components
 
 const store = useReminderStore()
 const rightSidebarStore = useRightSidebarStore()

@@ -14,7 +14,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
@@ -138,7 +138,7 @@
           </CFormItemList>
         </div>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <!-- Filter config modal -->
     <Dialog
@@ -205,7 +205,7 @@ import { NoID } from '@planetcrust/human-js'
 import { cloneDeep, isEqual } from 'lodash-es'
 import CFilterParamsEditor from '@/sections/admin/components/ApiGateway/CFilterParamsEditor.vue'
 
-const { CInputDelete, CInputToggleCard } = components
+const { CInputDelete, CInputToggleCard, CViewContainer } = components
 
 const vueRoute = useRoute()
 const router = useRouter()

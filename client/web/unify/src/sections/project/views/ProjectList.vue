@@ -3,7 +3,7 @@
     <span>{{ $t('project.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="projectID"
@@ -77,7 +77,7 @@
 
     <NewProjectDialog v-model:visible="newDialogVisible" @created="onCreated" />
     <RenameProjectDialog v-model:visible="renameVisible" :project="renameTarget" @rename="onRename" />
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -91,7 +91,7 @@ import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 
 const { t } = useI18n()
 const router = useRouter()

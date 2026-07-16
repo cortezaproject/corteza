@@ -3,7 +3,7 @@
     <span>{{ $t('system.apigw.profiler.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       primary-key="path"
       :fields="profilerFields"
@@ -56,7 +56,7 @@
       <template #body-time_max="{ data }">{{ (data.time_max || 0).toFixed(2) }} ms</template>
       <template #body-time_avg="{ data }">{{ (data.time_avg || 0).toFixed(2) }} ms</template>
     </CResourceList>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -65,7 +65,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { components } from '@planetcrust/human-vue'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 const router = useRouter()
 const $SystemAPI = inject('$SystemAPI')
 const $toast = inject('$toast')

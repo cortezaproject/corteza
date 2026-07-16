@@ -12,10 +12,7 @@
       class="right-sidebar flex"
       :style="{ width: `${drawerWidth}px` }"
     >
-      <div
-        class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors shrink-0"
-        @mousedown="startDrawerResize"
-      />
+      <CResizeHandle @mousedown="startDrawerResize" />
       <div class="flex-1 flex flex-col min-w-0">
         <!-- Header -->
         <div class="flex items-center gap-2 px-3 py-2 border-b border-surface shrink-0">
@@ -53,6 +50,7 @@
 <script setup>
 import { ref } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
+import CResizeHandle from '../CResizeHandle.vue'
 import CAppList from './CAppList.vue'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
 import { useRightSidebarStore } from '../../stores/useRightSidebarStore'

@@ -22,17 +22,22 @@ const props = defineProps({
   kind: { type: String, default: '' },
   // Pre-resolved config ({ bg, ring, icon, text }); wins over `kind` when set.
   config: { type: Object, default: null },
-  // Square size: sm (w-5), md (w-6), lg (w-8).
+  // Square size: sm (w-5), md (w-6), lg (w-8), xl (w-9).
   size: { type: String, default: 'sm' },
+  // Skip the size's default icon-glyph font-size class — for call sites
+  // whose icon never had an explicit size of its own (glyph just inherits
+  // the ambient font-size).
+  plainIcon: { type: Boolean, default: false },
 })
 
 const SIZES = {
   sm: { box: 'w-5 h-5 rounded', iconText: 'text-[10px]' },
   md: { box: 'w-6 h-6 rounded-md', iconText: 'text-xs' },
   lg: { box: 'w-8 h-8 rounded-md', iconText: 'text-sm' },
+  xl: { box: 'w-9 h-9 rounded-md', iconText: '' },
 }
 
 const cfg = computed(() => props.config || kindConfig(props.kind))
 const box = computed(() => (SIZES[props.size] || SIZES.sm).box)
-const iconText = computed(() => (SIZES[props.size] || SIZES.sm).iconText)
+const iconText = computed(() => (props.plainIcon ? '' : (SIZES[props.size] || SIZES.sm).iconText))
 </script>

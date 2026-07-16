@@ -7,16 +7,9 @@
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
-        <span
-          class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-          :class="[cfg.bg, cfg.ring]"
-        >
-          <i :class="[cfg.icon, cfg.text]" />
-        </span>
+        <KindIcon kind="role" size="lg" plain-icon />
         <div class="min-w-0">
-          <div class="text-[10px] uppercase tracking-wider text-muted-color leading-none mb-0.5">
-            {{ $t('project.kinds.role.single') }}
-          </div>
+          <DialogEyebrow>{{ $t('project.kinds.role.single') }}</DialogEyebrow>
           <div class="font-semibold truncate leading-tight">
             {{ draft.name || $t('project.roleDetail.unnamed') }}
           </div>
@@ -85,10 +78,11 @@
 </template>
 
 <script setup>
+import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import ProjectPermissionMatrix from '@/sections/project/components/permissions/ProjectPermissionMatrix.vue'
 import RoleMemberList from '@/sections/project/components/roles/RoleMemberList.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { components } from '@planetcrust/human-vue'
@@ -117,7 +111,6 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-const cfg = kindConfig('role')
 
 const role = computed(() =>
   props.resourceId ? store.rolesFor(props.project?.projectID).find(r => r.id === props.resourceId) : null,

@@ -221,9 +221,9 @@
       </div>
     </template>
 
-    <div v-else class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center">
+    <CEmptyState v-else>
       {{ $t('project.dataSensitivity.empty') }}
-    </div>
+    </CEmptyState>
   </div>
 </template>
 
@@ -231,6 +231,7 @@
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { SENSITIVITY_OPTIONS, sensitivity } from '@/sections/project/config/sensitivity'
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { components } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -238,6 +239,8 @@ const props = defineProps({
   project: { type: Object, required: true },
   disabled: { type: Boolean, default: false },
 })
+
+const { CEmptyState } = components
 
 const { t } = useI18n()
 const store = useProjectsStore()

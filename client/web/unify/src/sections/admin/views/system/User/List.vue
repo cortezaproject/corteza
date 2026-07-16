@@ -3,7 +3,7 @@
     <span>{{ $t('system.users.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="userID"
@@ -141,7 +141,7 @@
         </div>
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -158,7 +158,7 @@ import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { CResourceList, CRouterLinkButton } = components
+const { CResourceList, CRouterLinkButton, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const router = useRouter()

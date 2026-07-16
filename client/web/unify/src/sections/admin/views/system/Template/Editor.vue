@@ -14,7 +14,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end gap-2">
         <CPermissionsButton
           v-if="template.canGrant"
@@ -126,7 +126,7 @@
       >
         <CTemplatePreview :template="template" />
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.templates' }">
       <CInputDelete
@@ -158,7 +158,7 @@ import CCodeEditor from '@/sections/admin/components/Template/CCodeEditor.vue'
 import CTemplateToolbox from '@/sections/admin/components/Template/CTemplateToolbox.vue'
 import CTemplatePreview from '@/sections/admin/components/Template/CTemplatePreview.vue'
 
-const { CInputDelete, CInputToggleCard } = components
+const { CInputDelete, CInputToggleCard, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()

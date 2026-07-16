@@ -8,7 +8,7 @@
   </div>
 
   <div v-else class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
+    <CViewContainer scroll gap="5">
       <Panel
         :header="$t('ui.settings.editor.topbar.title')"
         toggleable
@@ -181,7 +181,7 @@
           </CFormList>
         </CFormGroup>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions>
       <Button
@@ -197,7 +197,9 @@
 <script setup>
 import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { components } from '@planetcrust/human-vue'
 
+const { CViewContainer } = components
 const { t } = useI18n()
 
 const $toast = inject('$toast')

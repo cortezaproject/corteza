@@ -4,7 +4,7 @@
   </Teleport>
 
   <div class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <!-- Namespaces with this label -->
       <Panel :header="$t('system.labels.editor.namespaces.title')" toggleable>
         <CResourceTable
@@ -115,7 +115,7 @@
           </template>
         </CResourceTable>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.labels' }" />
 
@@ -242,7 +242,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { components, useConfirmDelete, usePermissions, useRBACStore } from '@planetcrust/human-vue'
 
-const { CResourceTable } = components
+const { CResourceTable, CViewContainer } = components
 
 const { t } = useI18n()
 const route = useRoute()

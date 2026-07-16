@@ -3,12 +3,9 @@
     <ProgressSpinner />
   </div>
 
-  <div
-    v-else-if="!items.length && emptyMessage"
-    class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-  >
+  <CEmptyState v-else-if="!items.length && emptyMessage">
     {{ emptyMessage }}
-  </div>
+  </CEmptyState>
 
   <div v-else-if="items.length" class="flex flex-col gap-4">
     <div
@@ -75,6 +72,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import CEmptyState from '../CEmptyState.vue'
 
 const props = defineProps({
   items: { type: Array, required: true },

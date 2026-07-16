@@ -271,10 +271,7 @@
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->
-        <div
-          class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors shrink-0"
-          @mousedown="startDrawerResize"
-        />
+        <CResizeHandle @mousedown="startDrawerResize" />
         <!-- Drawer content -->
         <div class="flex-1 flex flex-col overflow-auto px-3 py-2">
           <!-- Header -->
@@ -511,7 +508,7 @@ import { nextId } from '../lib/id'
 import { getIcon } from '../lib/icon'
 import { NoID } from '@planetcrust/human-js'
 import { components, useRightSidebarResize, useRightSidebarStore } from '@planetcrust/human-vue'
-const { CInputDelete } = components
+const { CInputDelete, CResizeHandle } = components
 
 import Configurator from './Configurator/index.vue'
 import WorkflowConfigurator from './Configurator/Workflow.vue'

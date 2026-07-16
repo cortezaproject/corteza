@@ -11,12 +11,9 @@
           />
         </div>
 
-        <div
-          v-if="!modules.length"
-          class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-        >
+        <CEmptyState v-if="!modules.length">
           {{ $t('project.dataModel.empty') }}
-        </div>
+        </CEmptyState>
 
         <!-- One card per module — click the header to configure it; each card
              lists the module's fields with their type. -->
@@ -162,7 +159,7 @@ import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CRouterLinkButton } = components
+const { CEmptyState, CRouterLinkButton } = components
 
 const props = defineProps({
   project: { type: Object, required: true },

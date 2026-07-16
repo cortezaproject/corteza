@@ -16,7 +16,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
+    <CViewContainer scroll gap="5">
       <div v-if="isEdit" class="flex justify-end gap-2">
         <template v-if="user.canUpdateUser">
           <Button
@@ -117,7 +117,7 @@
       <Panel v-if="isEdit" :header="$t('system.users.editor.externalAuth.title')" toggleable class="shadow">
         <UserExternalAuth ref="externalAuthRef" :userID="user.userID" />
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.users' }">
       <CInputDelete
@@ -147,7 +147,7 @@ import { components, useUnsavedGuard, useUserStore } from '@planetcrust/human-vu
 import { cloneDeep, isEqual } from 'lodash-es'
 import { useConfirm } from 'primevue/useconfirm'
 
-const { CInputDelete, CInputUserGroup } = components
+const { CInputDelete, CInputUserGroup, CViewContainer } = components
 
 import UserSecurity from '@/sections/admin/components/User/UserSecurity.vue'
 import UserRoles from '@/sections/admin/components/User/UserRoles.vue'

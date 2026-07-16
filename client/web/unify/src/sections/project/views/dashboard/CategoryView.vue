@@ -14,12 +14,7 @@
   <div v-else class="flex flex-col h-full min-w-0 overflow-y-auto">
     <!-- Title bar — wizard-style: leading badge + title + description. -->
     <header class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
-      <span
-        class="inline-flex items-center justify-center w-9 h-9 rounded-md ring-1 shrink-0"
-        :class="[cfg.badge.bg, cfg.badge.ring]"
-      >
-        <i :class="[cfg.badge.icon, cfg.badge.text]" />
-      </span>
+      <KindIcon :config="cfg.badge" size="xl" />
       <div class="min-w-0">
         <h2 class="text-xl font-semibold text-color truncate">{{ $t(cfg.titleKey) }}</h2>
         <p class="text-sm text-muted-color">{{ $t(cfg.descKey) }}</p>
@@ -230,6 +225,7 @@ import EventDetailDialog from '@/sections/project/components/dashboard/EventDeta
 import NewEventDialog from '@/sections/project/components/dashboard/NewEventDialog.vue'
 import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { CATEGORY_COLORS, colorFor, orderIndex } from '@/sections/project/config/chartColors'
 import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/trend'

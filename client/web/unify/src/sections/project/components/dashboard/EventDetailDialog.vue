@@ -8,16 +8,9 @@
   >
     <template #header>
       <div v-if="cfg" class="flex items-center gap-2.5 min-w-0">
-        <span
-          class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-          :class="[cfg.badge.bg, cfg.badge.ring]"
-        >
-          <i :class="[cfg.badge.icon, cfg.badge.text]" />
-        </span>
+        <KindIcon :config="cfg.badge" size="lg" plain-icon />
         <div class="min-w-0">
-          <div class="text-[10px] uppercase tracking-wider text-muted-color leading-none mb-0.5">
-            {{ $t(cfg.singularKey) }}
-          </div>
+          <DialogEyebrow>{{ $t(cfg.singularKey) }}</DialogEyebrow>
           <div class="font-semibold truncate leading-tight">
             {{ record?.title || $t('project.dashboard.event.untitled') }}
           </div>
@@ -72,6 +65,8 @@
 </template>
 
 <script setup>
+import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import GovernanceForm from '@/sections/project/components/wizard/GovernanceForm.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { useConfirmDelete } from '@planetcrust/human-vue'

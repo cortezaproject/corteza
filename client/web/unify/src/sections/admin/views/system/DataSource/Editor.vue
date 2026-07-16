@@ -14,7 +14,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
@@ -198,7 +198,7 @@
       >
         {{ $t('system.data-sources.editor.dal.no-access-warning') }}
       </Message>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.dataSources' }">
       <CInputDelete
@@ -227,7 +227,7 @@ import { system } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual, kebabCase } from 'lodash-es'
 
-const { CInputDelete, CInputToggleCard, CInputLocation } = components
+const { CInputDelete, CInputLocation, CInputToggleCard, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()

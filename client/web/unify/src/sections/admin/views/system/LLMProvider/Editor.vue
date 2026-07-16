@@ -14,7 +14,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4 overflow-y-auto">
+    <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end items-center">
         <Tag
           :value="$t(`system.llmProviders.editor.info.statusOptions.${llmProvider.status}`)"
@@ -93,7 +93,7 @@
           </CFormGroup>
         </div>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.llmProviders' }">
       <CInputDelete
@@ -152,7 +152,7 @@ import { system } from '@planetcrust/human-js'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 
-const { CInputDelete } = components
+const { CInputDelete, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()

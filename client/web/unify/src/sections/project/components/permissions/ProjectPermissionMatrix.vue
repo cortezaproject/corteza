@@ -13,18 +13,12 @@
       </span>
     </div>
 
-    <div
-      v-if="!roles.length && !evalUserId"
-      class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-    >
+    <CEmptyState v-if="!roles.length && !evalUserId">
       {{ $t('project.permissions.noRoles') }}
-    </div>
-    <div
-      v-else-if="!visibleRows.length"
-      class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-    >
+    </CEmptyState>
+    <CEmptyState v-else-if="!visibleRows.length">
       {{ $t('project.permissions.noResources') }}
-    </div>
+    </CEmptyState>
 
     <!-- ============ Single-role detail view: all capabilities per row ============ -->
     <div v-else-if="hideRoleHeader" class="min-h-0 overflow-auto">
@@ -352,7 +346,7 @@ import KindIcon from '@/sections/project/components/KindIcon.vue'
 import FieldKindTag from '@/sections/project/components/datamodel/FieldKindTag.vue'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { usePermissions } from '@planetcrust/human-vue'
+import { components, usePermissions } from '@planetcrust/human-vue'
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -378,6 +372,8 @@ const props = defineProps({
   // the columns. Null = the full project matrix (all kinds).
   scope: { type: Object, default: null },
 })
+
+const { CEmptyState } = components
 
 const store = useProjectsStore()
 const { t } = useI18n()

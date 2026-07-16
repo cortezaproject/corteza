@@ -12,10 +12,7 @@
       class="right-sidebar flex flex-row"
       :style="{ width: `${drawerWidth}px` }"
     >
-      <div
-        class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors shrink-0"
-        @mousedown="startDrawerResize"
-      />
+      <CResizeHandle @mousedown="startDrawerResize" />
       <div class="flex-1 flex flex-col min-w-0">
         <CNotificationsPanel>
           <template #actions>
@@ -39,6 +36,7 @@ import { computed } from 'vue'
 import { useRightSidebarStore } from '../../stores/useRightSidebarStore'
 import { useRightSidebarResize } from '../../composables/useRightSidebarResize'
 import CNotificationsPanel from './CNotificationsPanel.vue'
+import CResizeHandle from '../CResizeHandle.vue'
 
 const rightSidebarStore = useRightSidebarStore()
 const { drawerWidth, startDrawerResize } = useRightSidebarResize()

@@ -7,16 +7,9 @@
   >
     <template #header>
       <div class="flex items-center gap-2.5 min-w-0">
-        <span
-          class="inline-flex items-center justify-center w-8 h-8 rounded-md ring-1 shrink-0"
-          :class="[cfg.bg, cfg.ring]"
-        >
-          <i :class="[cfg.icon, cfg.text]" />
-        </span>
+        <KindIcon kind="agent" size="lg" plain-icon />
         <div class="min-w-0">
-          <div class="text-[10px] uppercase tracking-wider text-muted-color leading-none mb-0.5">
-            {{ $t('project.kinds.agent.single') }}
-          </div>
+          <DialogEyebrow>{{ $t('project.kinds.agent.single') }}</DialogEyebrow>
           <div class="font-semibold truncate leading-tight">{{ draft.name || $t('project.agentDetail.unnamed') }}</div>
         </div>
       </div>
@@ -84,9 +77,10 @@
 </template>
 
 <script setup>
+import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
+import KindIcon from '@/sections/project/components/KindIcon.vue'
 import ResourcePermissionsSection from '@/sections/project/components/permissions/ResourcePermissionsSection.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
-import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, reactive, ref, watch } from 'vue'
@@ -111,7 +105,6 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-const cfg = kindConfig('agent')
 
 const agent = computed(() =>
   props.resourceId ? store.agentsFor(props.project?.projectID).find(a => a.id === props.resourceId) : null,

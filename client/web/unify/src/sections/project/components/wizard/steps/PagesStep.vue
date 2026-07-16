@@ -16,12 +16,9 @@
            weight/selfID, which drives the compose namespace sidebar. Standalone
            and module-detail pages share one tree. -->
       <div class="flex flex-col gap-2">
-        <div
-          v-if="!visibleRows.length"
-          class="text-muted-color text-sm p-4 border rounded-lg bg-emphasis text-center"
-        >
+        <CEmptyState v-if="!visibleRows.length">
           {{ $t('project.pages.empty') }}
-        </div>
+        </CEmptyState>
 
         <div
           v-for="item in visibleRows"
@@ -138,7 +135,7 @@ import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CRouterLinkButton } = components
+const { CEmptyState, CRouterLinkButton } = components
 
 const props = defineProps({
   project: { type: Object, required: true },

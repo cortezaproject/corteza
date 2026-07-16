@@ -8,7 +8,7 @@
   </div>
 
   <div v-else class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-5 overflow-y-auto">
+    <CViewContainer scroll gap="5">
       <div class="flex justify-end gap-2">
         <Button
           :label="$t('system.email.editor.server.testSmtpConfigs.button')"
@@ -101,7 +101,7 @@
           </div>
         </div>
       </Panel>
-    </div>
+    </CViewContainer>
 
     <CEditorActions>
       <Button
@@ -117,7 +117,9 @@
 <script setup>
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { components } from '@planetcrust/human-vue'
 
+const { CViewContainer } = components
 const { t } = useI18n()
 
 const $toast = inject('$toast')

@@ -3,7 +3,7 @@
     <span>{{ $t('system.authclients.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="authClientID"
@@ -112,7 +112,7 @@
         </div>
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -127,7 +127,7 @@ import {
   useResourceList,
 } from '@planetcrust/human-vue'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()
