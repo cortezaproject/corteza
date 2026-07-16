@@ -118,7 +118,9 @@ export default {
   .b-sidebar.reminder-sidebar {
     top: calc(var(--topbar-height) + 0.5rem) !important;
     right: 0.5rem !important;
-    height: calc(100% - var(--topbar-height) - 1rem) !important;
+    // Reserve room for the bottom toolbar so sidebar buttons stay visible
+    bottom: 5rem !important;
+    height: auto !important;
     border-radius: 1rem !important;
     border: none !important;
     z-index: 1048 !important;
