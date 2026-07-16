@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 
@@ -21,6 +22,11 @@ func setDefaultUserGroupRefs(ctx context.Context, log *zap.Logger, s store.Store
 	}
 	ug, err := store.LookupUserGroupByHandle(ctx, s, h)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			// Missing/deleted group; nothing to backfill, don't abort provisioning
+			log.Warn("default user group not found or deleted, skipping user/auth-client backfill", zap.String("handle", h))
+			return nil
+		}
 		return
 	}
 

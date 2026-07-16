@@ -247,6 +247,14 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.Storer, aut
 		return nil
 	}
 
+	// Already provisioned; bail out before the user group lookups so a
+	// deleted group can not fail provisioning on every subsequent boot
+	if _, err := store.LookupAuthClientByHandle(ctx, s, authOpt.DefaultClient); err == nil {
+		return nil
+	} else if !errors.IsNotFound(err) {
+		return err
+	}
+
 	var (
 		ug  *types.UserGroup
 		err error
@@ -254,14 +262,30 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.Storer, aut
 
 	if authOpt.DefaultSubUserGroup != "" {
 		ug, err = store.LookupUserGroupByHandle(ctx, s, authOpt.DefaultSubUserGroup)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
-	} else {
+	}
+
+	if ug == nil && authOpt.DefaultUserGroup != "" {
 		ug, err = store.LookupUserGroupByHandle(ctx, s, authOpt.DefaultUserGroup)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
+	}
+
+	if ug == nil {
+		// Missing/deleted group; create the client without it instead of aborting
+		log.Warn(
+			"default (sub) user group not found or deleted, provisioning default auth client without a security user group",
+			zap.String("subUserGroup", authOpt.DefaultSubUserGroup),
+			zap.String("userGroup", authOpt.DefaultUserGroup),
+		)
+	}
+
+	var ugID uint64
+	if ug != nil {
+		ugID = ug.ID
 	}
 
 	c := &types.AuthClient{
@@ -283,7 +307,7 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.Storer, aut
 		Enabled: true,
 		Trusted: true,
 		Security: &types.AuthClientSecurity{
-			UserGroup: ug.ID,
+			UserGroup: ugID,
 		},
 		Labels:    nil,
 		CreatedAt: *now(),
