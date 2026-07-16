@@ -84,6 +84,17 @@ const degreeMap = computed(() => {
   return m
 })
 
+// Chrome colours (node labels, default edge/edge-label colour) follow the
+// active PrimeVue theme instead of hardcoded neutrals. Canvas rendering needs
+// a literal colour value (not a live CSS variable), so these are resolved via
+// getComputedStyle — same idiom as the surface-gap colour in
+// CategoryTrendChart/CategoryDonutChart.
+function themeColor(varName, fallback) {
+  if (typeof document === 'undefined') return fallback
+  const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+  return val || fallback
+}
+
 const option = computed(() => {
   const dimKind = isolatedKind.value
   const hidden = hiddenKinds.value
@@ -112,7 +123,7 @@ const option = computed(() => {
         show: !nodeDim,
         position: 'right',
         fontSize: 11,
-        color: '#334155',
+        color: themeColor('--p-text-color', '#334155'),
         formatter: n.badge ? `{badge|${n.badge}}  ${n.name}` : n.name,
         rich: {
           badge: {
@@ -165,14 +176,19 @@ const option = computed(() => {
       source: e.source,
       target: e.target,
       lineStyle: {
-        color: e.color || '#cbd5e1',
+        color: e.color || themeColor('--p-text-muted-color', '#94a3b8'),
         width: e.width || 1.5,
         opacity: edgeDim ? 0.05 : 0.55,
         curveness,
         type: e.dashed ? 'dashed' : 'solid',
       },
       label: e.label
-        ? { show: true, formatter: e.label, fontSize: 10, color: e.color || '#64748b' }
+        ? {
+            show: true,
+            formatter: e.label,
+            fontSize: 10,
+            color: e.color || themeColor('--p-text-muted-color', '#94a3b8'),
+          }
         : { show: false },
     }
   })

@@ -218,6 +218,16 @@ const degreeMap = computed(() => {
   return m
 })
 
+// Edge lines use the muted-text token so they follow the active theme instead
+// of a hardcoded neutral. Canvas rendering needs a literal colour (not a live
+// CSS variable), so it's resolved via getComputedStyle — same idiom as the
+// surface-gap colour in CategoryTrendChart/CategoryDonutChart.
+function mutedEdgeColor() {
+  if (typeof document === 'undefined') return '#94a3b8'
+  const val = getComputedStyle(document.documentElement).getPropertyValue('--p-text-muted-color').trim()
+  return val || '#94a3b8'
+}
+
 const option = computed(() => {
   const dark = document.documentElement.classList.contains('dark')
   const labelColor = dark ? '#cbd5e1' : '#334155'
@@ -253,7 +263,7 @@ const option = computed(() => {
       target: e.target,
       reason: e.reason,
       lineStyle: {
-        color: '#94a3b8',
+        color: mutedEdgeColor(),
         width: 1.5,
         opacity: 0.6,
         curveness: total === 1 ? 0.16 : -0.45 + (0.9 * (i + 0.5)) / total,

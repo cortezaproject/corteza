@@ -36,7 +36,7 @@
         <div v-for="row in visibleRows" :key="row.key" class="rowcollapse-item">
           <div class="overflow-hidden min-h-0">
             <div
-              class="group flex items-center gap-2 pr-2 min-h-[2.75rem] border-t border-surface transition-colors hover:!bg-highlight"
+              class="group flex items-center gap-2 pr-2 min-h-11 border-t border-surface transition-colors hover:!bg-highlight"
               :class="row.rowBg"
             >
               <div
@@ -185,7 +185,7 @@
               >
                 <!-- Resource name (sticky while the role columns scroll). -->
                 <div
-                  class="sticky left-0 z-10 bg-inherit pr-2 py-2 min-h-[2.75rem] flex items-center min-w-0 overflow-hidden"
+                  class="sticky left-0 z-10 bg-inherit pr-2 py-2 min-h-11 flex items-center min-w-0 overflow-hidden"
                   :class="row.children.length ? 'cursor-pointer select-none' : ''"
                   :style="{ paddingLeft: indentRem(row) }"
                   :aria-expanded="row.children.length ? isOpen(row) : undefined"

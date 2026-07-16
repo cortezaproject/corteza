@@ -24,7 +24,7 @@
           <p class="text-sm leading-relaxed">{{ item.body }}</p>
           <ul v-if="item.points?.length" class="mt-2.5 flex flex-col gap-2">
             <li v-for="(p, i) in item.points" :key="i" class="flex gap-2.5 text-sm text-muted-color leading-relaxed">
-              <span class="w-1.5 h-1.5 rounded-full bg-primary/60 mt-[0.45rem] shrink-0" />
+              <span class="w-1.5 h-1.5 rounded-full bg-primary/60 mt-2 shrink-0" />
               <span>
                 {{ pointText(p) }}
                 <a

@@ -158,7 +158,7 @@
       >
         <template #header>
           <div class="flex items-center justify-center gap-1 whitespace-nowrap">
-            <span class="p-datatable-column-title">
+            <span>
               {{ $t('block.tabs.table.columns.lazy.label') }}
             </span>
             <i

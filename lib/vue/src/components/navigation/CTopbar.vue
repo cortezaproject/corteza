@@ -21,7 +21,7 @@
     <div class="topbar-title-area flex flex-1 min-w-0 items-center gap-2 ml-2">
       <div
         id="topbar-title"
-        class="topbar-title flex items-center min-w-0 overflow-hidden whitespace-nowrap text-truncate text-2xl font-medium text-color mb-0"
+        class="topbar-title flex items-center min-w-0 overflow-hidden whitespace-nowrap truncate text-2xl font-medium text-color mb-0"
       />
 
       <div v-if="visiblePageButtons.length" class="flex items-center gap-2">
@@ -103,7 +103,7 @@
           variant="outlined"
           severity="secondary"
           size="large"
-          class="text-color !p-0 !w-[2.5rem] !h-[2.5rem]"
+          class="text-color !p-0 !w-10 !h-10"
           @click="toggleProfileMenu"
         >
           <template #default>

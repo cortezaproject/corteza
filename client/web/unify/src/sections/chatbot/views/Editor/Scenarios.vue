@@ -4,7 +4,7 @@
       {{ $t('chatbot.editor.scenarios.description') }}
     </p>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 min-h-[320px] pb-3">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 min-h-80 pb-3">
       <Fieldset class="lg:col-span-1">
         <template #legend>
           <div class="flex items-center gap-2">

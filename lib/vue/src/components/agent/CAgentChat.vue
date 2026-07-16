@@ -38,7 +38,7 @@
          messages use a truncation of the first user message. -->
     <div
       v-if="agentStore.activeAgentID && visibleAgents.length > 0"
-      class="flex items-center gap-0 border-b border-surface shrink-0 bg-surface-ground"
+      class="flex items-center gap-0 border-b border-surface shrink-0 bg-emphasis"
     >
       <div class="flex items-center gap-0 flex-1 overflow-x-auto no-scrollbar">
         <button
@@ -48,7 +48,7 @@
           :class="[
             activeConversationIndex === idx
               ? 'border-b-primary text-primary font-medium'
-              : 'border-b-transparent text-muted-color hover:text-color hover:border-b-surface-border',
+              : 'border-b-transparent text-muted-color hover:text-color hover:border-b-surface',
           ]"
           @click="agentStore.setActiveConversationIndex(agentStore.activeAgentID, idx)"
         >
@@ -56,7 +56,7 @@
             {{ tabLabel(conv) }}
           </span>
           <i
-            class="pi pi-times text-xs opacity-0 group-hover:opacity-100 p-1 hover:bg-surface rounded-full transition-all shrink-0"
+            class="pi pi-times text-xs opacity-0 group-hover:opacity-100 p-1 hover:bg-emphasis rounded-full transition-all shrink-0"
             @click.stop="agentStore.closeConversation(agentStore.activeAgentID, idx)"
           />
         </button>

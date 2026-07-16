@@ -1113,7 +1113,7 @@ watch(
 
 /* Override VueFlow styles to match our theme */
 .vue-flow {
-  background-color: var(--p-surface-ground);
+  background-color: var(--p-content-background);
 }
 
 .vue-flow__background {

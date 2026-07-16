@@ -15,7 +15,7 @@
     </Teleport>
 
     <!-- Toolbar strip -->
-    <div class="toolbar flex flex-col h-full bg-topbar">
+    <div class="toolbar flex flex-col h-full topbar-bg">
       <div class="flex flex-col items-center mt-1 overflow-auto gap-1 px-1">
         <template v-for="(item, idx) in toolbarItems" :key="idx">
           <hr v-if="item.kind === 'hr'" class="w-full my-1 border-surface" />
@@ -37,7 +37,7 @@
         </template>
       </div>
 
-      <div class="flex flex-grow-1 items-end justify-center py-3">
+      <div class="flex grow items-end justify-center py-3">
         <Button
           ref="help"
           text
@@ -482,7 +482,7 @@
       >
         <div class="p-4 flex flex-col gap-2">
           <h4 class="font-semibold text-lg text-color m-0">{{ activeToolbarTooltip.title }}</h4>
-          <p class="text-sm text-color-secondary m-0 leading-snug">
+          <p class="text-sm text-muted-color m-0 leading-snug">
             {{ activeToolbarTooltip.tooltip }}
           </p>
         </div>

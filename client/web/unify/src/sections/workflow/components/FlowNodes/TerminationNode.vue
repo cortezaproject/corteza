@@ -132,7 +132,7 @@ const displayDescription = computed(() => props.data?.description || stepDescrip
   display: flex;
   flex-direction: column;
   background: var(--p-content-background);
-  border: 1px solid var(--p-surface-border);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 5px;
   width: 180px;
   min-height: 64px;
@@ -187,7 +187,7 @@ const displayDescription = computed(() => props.data?.description || stepDescrip
 }
 
 .termination-node__description {
-  border-top: 1px solid var(--p-surface-border);
+  border-top: 1px solid var(--p-content-border-color);
   padding: 6px 8px;
   font-size: 12px;
   line-height: 16px;

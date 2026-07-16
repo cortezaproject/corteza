@@ -23,7 +23,7 @@
             </div>
           </template>
           <div
-            class="text-xs bg-surface-ground rounded px-2.5 py-2 overflow-x-auto max-h-60 break-words text-color"
+            class="text-xs bg-emphasis rounded px-2.5 py-2 overflow-x-auto max-h-60 break-words text-color"
             v-html="renderMarkdown(conversation.context)"
           />
         </Panel>
@@ -82,7 +82,7 @@
                 :key="'d' + tIdx + '-' + dIdx"
                 class="border border-surface rounded-md overflow-hidden"
               >
-                <div class="flex items-center gap-2 px-2.5 py-1.5 bg-surface-ground">
+                <div class="flex items-center gap-2 px-2.5 py-1.5 bg-emphasis">
                   <div
                     class="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                     :class="
@@ -150,7 +150,7 @@
                     class="border-t border-surface"
                   >
                     <div
-                      class="flex items-center justify-between px-2.5 py-1.5 cursor-pointer hover:bg-surface-ground/50 transition-colors"
+                      class="flex items-center justify-between px-2.5 py-1.5 cursor-pointer hover:bg-emphasis transition-colors"
                       @click.stop="toggleToolExpand(tIdx, dIdx, toolIdx)"
                     >
                       <div class="flex items-center gap-1.5 min-w-0">
@@ -184,7 +184,7 @@
 
                     <div
                       v-if="isToolExpanded(tIdx, dIdx, toolIdx)"
-                      class="border-t border-surface bg-surface-ground/30 px-2.5 py-2 flex flex-col gap-2"
+                      class="border-t border-surface bg-emphasis px-2.5 py-2 flex flex-col gap-2"
                       @click.stop
                     >
                       <div
@@ -217,7 +217,7 @@
                           </button>
                         </div>
                         <pre
-                          class="text-xs font-mono bg-surface-ground rounded px-2 py-1.5 overflow-x-auto max-h-40 whitespace-pre-wrap break-all text-color"
+                          class="text-xs font-mono bg-emphasis rounded px-2 py-1.5 overflow-x-auto max-h-40 whitespace-pre-wrap break-all text-color"
                           >{{
                             JSON.stringify(
                               getToolCallArgs(traceEntry, toolName),
@@ -250,7 +250,7 @@
                           </button>
                         </div>
                         <pre
-                          class="text-xs font-mono bg-surface-ground rounded px-2 py-1.5 overflow-x-auto max-h-40 whitespace-pre-wrap break-all text-color"
+                          class="text-xs font-mono bg-emphasis rounded px-2 py-1.5 overflow-x-auto max-h-40 whitespace-pre-wrap break-all text-color"
                           >{{
                             JSON.stringify(
                               getToolCallResult(traceEntry, toolName),

@@ -73,7 +73,7 @@
     >
       <InputText
         v-model="createName"
-        :placeholder="`${cfg.label.replace(/s$/, '')} name`"
+        :placeholder="`${singularLabel} name`"
         fluid
         autofocus
         @keydown.enter="create"
@@ -91,6 +91,9 @@ import ResourceBadge from '@/sections/project/components/ResourceBadge.vue'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { computed, inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // Provided by ArchitectureStep: opens the link/permission dialog for a resource.
 const configureResource = inject('configureResource', null)
@@ -116,9 +119,10 @@ const createOpen = ref(false)
 const createName = ref('')
 
 const cfg = computed(() => kindConfig(props.kind))
-// kindConfig labels are plural ("Modules"); derive a singular for action text.
-const singularLabel = computed(() => cfg.value.label.replace(/s$/, '').toLowerCase())
-const pluralLabel = computed(() => cfg.value.label)
+// kindConfig only carries i18n keys (labelKey plural, singularKey singular);
+// resolve them here for display.
+const singularLabel = computed(() => t(cfg.value.singularKey).toLowerCase())
+const pluralLabel = computed(() => t(cfg.value.labelKey))
 
 const allOfKind = computed(() =>
   (props.project?.resources || []).filter(r => r.kind === props.kind),

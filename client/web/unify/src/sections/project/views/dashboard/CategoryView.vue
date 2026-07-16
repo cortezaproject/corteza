@@ -159,7 +159,7 @@
 
           <div v-else-if="col.kind === 'title'" class="flex flex-col">
             <span class="font-medium text-color">{{ data.title }}</span>
-            <span v-if="data.description" class="text-xs text-muted-color truncate max-w-[18rem]">
+            <span v-if="data.description" class="text-xs text-muted-color truncate max-w-72">
               {{ data.description }}
             </span>
           </div>

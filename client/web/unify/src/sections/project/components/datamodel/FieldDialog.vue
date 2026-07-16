@@ -74,7 +74,7 @@
         <CFormGroup :label="$t('general.label.type')">
           <button
             type="button"
-            class="flex items-center gap-2 w-full px-3 min-h-[2.25rem] rounded-md border border-surface text-left transition-colors enabled:hover:bg-emphasis disabled:cursor-default"
+            class="flex items-center gap-2 w-full px-3 min-h-9 rounded-md border border-surface text-left transition-colors enabled:hover:bg-emphasis disabled:cursor-default"
             :disabled="readonly"
             @click="step = 'type'"
           >

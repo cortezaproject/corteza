@@ -126,7 +126,7 @@ const formattedChange = computed(() => {
 }
 
 .change-badge.change-neutral {
-  background-color: rgba(148, 163, 184, 0.15);
-  color: rgb(148, 163, 184);
+  background-color: color-mix(in srgb, var(--p-text-muted-color) 15%, transparent);
+  color: var(--p-text-muted-color);
 }
 </style>

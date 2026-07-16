@@ -16,7 +16,7 @@
       <TabPanels class="p-0">
         <!-- Upstream Tab -->
         <TabPanel value="upstream" class="flex p-0" style="min-height: 400px; max-height: 60vh;">
-          <div class="w-1/3 border-r border-surface overflow-y-auto bg-surface/50">
+          <div class="w-1/3 border-r border-surface overflow-y-auto bg-emphasis">
             <Listbox
               v-model="upstream.active"
               :options="servers"
@@ -104,7 +104,7 @@
 
         <!-- Downstream Tab -->
         <TabPanel value="downstream" class="flex p-0" style="min-height: 400px; max-height: 60vh;">
-          <div class="w-1/3 border-r border-surface overflow-y-auto bg-surface/50">
+          <div class="w-1/3 border-r border-surface overflow-y-auto bg-emphasis">
             <Listbox
               v-model="downstream.active"
               :options="servers"

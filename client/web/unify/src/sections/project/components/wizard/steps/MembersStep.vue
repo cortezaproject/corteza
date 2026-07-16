@@ -38,7 +38,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-surface">
-            <tr v-for="row in rows" :key="row.id" class="group hover:bg-emphasis/50">
+            <tr v-for="row in rows" :key="row.id" class="group hover:bg-emphasis">
               <td class="px-3 py-2">
                 <div class="leading-tight">{{ row.user.name }}</div>
                 <div class="text-xs text-muted-color">{{ row.user.email }}</div>

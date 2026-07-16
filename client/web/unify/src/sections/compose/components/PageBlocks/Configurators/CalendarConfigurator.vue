@@ -179,7 +179,7 @@
 
             <CFormGroup :label="$t('block.calendar.colorLabel')">
               <CInputColorPicker
-                :model-value="feed.options?.color || '#09344E'"
+                :model-value="feed.options?.color || getPrimaryColor()"
                 show-text
                 @update:model-value="feed.options.color = $event"
               />
@@ -239,6 +239,13 @@ const eventDisplayOptions = computed(() => [
 ])
 
 const feeds = computed(() => localOptions.value.feeds || [])
+
+// Default feed colour follows the live theme primary so it doesn't drift
+// from a customized brand colour; the brand hex is kept only as the
+// defensive fallback for when the CSS var isn't available.
+function getPrimaryColor() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() || '#09344E'
+}
 
 const isHeaderHidden = computed(() => localOptions.value.header?.hide || false)
 

@@ -56,7 +56,7 @@
             "
           >
             <div class="grid grid-cols-[auto_1fr] gap-x-4 items-start">
-              <div class="flex flex-col min-w-[8rem]">
+              <div class="flex flex-col min-w-32">
                 <div class="flex items-center gap-1.5">
                   <label class="text-sm font-medium text-muted-color uppercase tracking-wide">
                     {{ fieldLabel(field) }}
@@ -94,7 +94,7 @@
                   {{ fieldDescription(field) }}
                 </small>
               </div>
-              <div class="field-value text-color min-h-[2rem]">
+              <div class="field-value text-color min-h-8">
                 <template v-if="isFieldEditable(field)">
                   <FormField :name="field.name" v-slot="{ invalid, error }">
                     <CFieldEditor
@@ -165,7 +165,7 @@
               {{ fieldDescription(field) }}
             </small>
 
-            <div class="field-value text-color min-h-[2rem]">
+            <div class="field-value text-color min-h-8">
               <!-- Editor -->
               <template v-if="isFieldEditable(field)">
                 <FormField :name="field.name" v-slot="{ invalid, error }">
@@ -345,7 +345,7 @@ const layoutClass = computed(() => {
 
 const fieldContainerClass = computed(() => {
   const layout = options.value.recordFieldLayoutOption || 'default'
-  if (layout === 'noWrap') return 'min-w-[13rem]'
+  if (layout === 'noWrap') return 'min-w-52'
   if (layout === 'wrap') return columnWrapClass.value
   return ''
 })

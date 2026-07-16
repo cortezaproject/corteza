@@ -16,7 +16,7 @@
             class="opacity-70 hover:opacity-100 leading-none focus:outline-none"
             @click="setVisible(lang.tag, false)"
           >
-            <i class="pi pi-times text-[9px]" />
+            <i class="pi pi-times text-[10px]" />
           </button>
         </span>
         <Select
@@ -53,7 +53,7 @@
         <tbody>
           <template v-for="section in sections" :key="section.resource">
             <!-- Section header for non-primary resources -->
-            <tr class="bg-surface/60" v-if="!section.isPrimary">
+            <tr class="bg-emphasis" v-if="!section.isPrimary">
               <td
                 :colspan="visibleLanguages.length + 1"
                 class="px-3 py-1 text-xs font-semibold text-muted-color border-b border-surface"
@@ -82,7 +82,7 @@
                   :value="msg(section.resource, key, lang.tag)"
                   :placeholder="$t('translator.missing')"
                   rows="1"
-                  class="w-full bg-transparent text-sm px-3 py-2 resize-none focus:outline-none placeholder:text-muted-color/50 min-h-[2.25rem]"
+                  class="w-full bg-transparent text-sm px-3 py-2 resize-none focus:outline-none placeholder:text-muted-color placeholder:opacity-50 min-h-9"
                   style="field-sizing: content"
                   @input="onUpdate(section.resource, key, lang.tag, ($event.target as HTMLTextAreaElement).value)"
                 />

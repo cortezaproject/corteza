@@ -41,7 +41,7 @@
 
     <!-- Monthly stacked chart -->
     <div class="rounded-border p-3 sm:p-5 min-w-0">
-      <div class="h-80 sm:h-100">
+      <div class="h-80 sm:h-96">
         <CChart v-if="monthlyChartOptions" :chart="monthlyChartOptions" :key="activeCard" />
         <div v-else class="flex items-center justify-center h-full">
           <ProgressSpinner style="width: 40px; height: 40px" />

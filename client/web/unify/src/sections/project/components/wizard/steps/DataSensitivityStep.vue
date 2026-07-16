@@ -75,7 +75,7 @@
                     <div
                       v-for="f in mod.fields"
                       :key="f.fieldId"
-                      class="flex items-center gap-3 pl-2 pr-1 min-h-[2.5rem] rounded hover:bg-emphasis transition-colors"
+                      class="flex items-center gap-3 pl-2 pr-1 min-h-10 rounded hover:bg-emphasis transition-colors"
                     >
                       <button
                         type="button"
@@ -156,7 +156,7 @@
               <div class="border-t border-surface">
                 <!-- Level column headers -->
                 <div
-                  class="grid items-center bg-emphasis/40 border-b border-surface"
+                  class="grid items-center bg-emphasis border-b border-surface"
                   :style="matrixCols"
                 >
                   <div class="px-3 py-2" />

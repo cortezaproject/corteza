@@ -271,7 +271,7 @@ const valueRows = computed(() => {
   display: flex;
   flex-direction: column;
   background: var(--p-content-background);
-  border: 1px solid var(--p-surface-border);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 5px;
   width: 180px;
   height: 64px;

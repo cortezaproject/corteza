@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-full p-3 gap-0 overflow-hidden bg-surface-ground">
+  <div class="flex h-full p-3 gap-0 overflow-hidden bg-surface">
     <!-- ── Apps column (left) ──────────────────────────────── -->
     <div class="column-panel flex flex-col shrink-0" :style="{ width: menuWidth + 'px' }">
       <div class="flex items-center gap-2 px-3 py-2 border-b border-surface shrink-0">

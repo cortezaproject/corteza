@@ -138,7 +138,7 @@
 
             <CFormGroup :label="$t('block.geometry.feedColor')">
               <CInputColorPicker
-                :model-value="feed.options?.color || '#09344E'"
+                :model-value="feed.options?.color || getPrimaryColor()"
                 show-text
                 @update:model-value="updateFeedOption(i, 'color', $event)"
               />
@@ -211,6 +211,13 @@ const displayOptions = [
   { value: 'newTab', label: t('block.geometry.displayOption.newTab') },
   { value: 'modal', label: t('block.geometry.displayOption.modal') },
 ]
+
+// Default feed colour follows the live theme primary so it doesn't drift
+// from a customized brand colour; the brand hex is kept only as the
+// defensive fallback for when the CSS var isn't available.
+function getPrimaryColor() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() || '#09344E'
+}
 
 function getFields(moduleID) {
   if (!moduleID) return []
@@ -320,7 +327,7 @@ function addFeed() {
       displayPolygon: false,
       options: {
         moduleID: '',
-        color: '#09344E',
+        color: getPrimaryColor(),
         prefilter: '',
       },
     },

@@ -115,7 +115,7 @@ const edgeStyle = computed(() => {
 <style scoped>
 .flow-edge__label {
   background: var(--p-content-background);
-  border: 2px solid var(--p-surface-border);
+  border: 2px solid var(--p-content-border-color);
   border-radius: 5px;
   padding: 2px 12px;
   font-size: 13px;

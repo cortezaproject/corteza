@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="fixed body-bg inset-0 flex items-center justify-center z-[9999] p-6">
-    <img v-if="logoUrl" :src="logoUrl" class="max-h-lg max-w-xl w-auto animate-pulse" />
+    <img v-if="logoUrl" :src="logoUrl" class="max-h-48 max-w-xl w-auto animate-pulse" />
   </div>
 </template>
 

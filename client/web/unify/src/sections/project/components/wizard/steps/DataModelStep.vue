@@ -80,7 +80,7 @@
                   <div
                     v-for="f in m.fields || []"
                     :key="f.id"
-                    class="group flex items-center gap-3 px-3 min-h-[2.75rem] hover:bg-emphasis transition-colors cursor-pointer"
+                    class="group flex items-center gap-3 px-3 min-h-11 hover:bg-emphasis transition-colors cursor-pointer"
                     @click="editField?.(m.id, f.id)"
                   >
                     <div class="min-w-0 flex-1 flex items-center gap-2">
@@ -89,7 +89,7 @@
                       </span>
                       <FieldKindTag :type="f.type" />
                       <template v-if="f.required">
-                        <span class="shrink-0 text-muted-color/50 text-[11px]">·</span>
+                        <span class="shrink-0 text-muted-color opacity-50 text-[11px]">·</span>
                         <span
                           class="shrink-0 text-[11px] font-medium text-amber-600 dark:text-amber-400"
                         >
@@ -97,7 +97,7 @@
                         </span>
                       </template>
                       <template v-if="f.multi">
-                        <span class="shrink-0 text-muted-color/50 text-[11px]">·</span>
+                        <span class="shrink-0 text-muted-color opacity-50 text-[11px]">·</span>
                         <span
                           class="shrink-0 text-[11px] font-medium text-sky-600 dark:text-sky-400"
                         >

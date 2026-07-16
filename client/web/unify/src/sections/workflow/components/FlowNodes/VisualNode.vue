@@ -99,7 +99,7 @@ function onResize ({ params }) {
   font-weight: 600;
   color: var(--p-text-color);
   background: var(--p-content-background);
-  border-right: 1px solid var(--p-surface-border);
+  border-right: 1px solid var(--p-content-border-color);
   border-radius: 0 6px 6px 0;
   flex: 0 0 32px;
   text-align: center;
@@ -157,7 +157,7 @@ function onResize ({ params }) {
 .visual-node__content :deep(blockquote) {
   margin: 0 0 0.5em;
   padding-left: 0.8em;
-  border-left: 3px solid var(--p-surface-border);
+  border-left: 3px solid var(--p-content-border-color);
   color: var(--p-text-muted-color, var(--p-text-color));
 }
 </style>

@@ -56,7 +56,7 @@
 
     <!-- Gallery preview styling -->
     <div v-if="field.options.mode === 'gallery'" class="flex flex-col gap-4">
-      <h4 class="font-semibold text-md m-0">{{ $t('field.kind.file.view.previewStyle') }}</h4>
+      <h4 class="font-semibold text-base m-0">{{ $t('field.kind.file.view.previewStyle') }}</h4>
       <small class="text-muted-color -mt-2">{{ $t('field.kind.file.view.description') }}</small>
 
       <div class="grid grid-cols-2 gap-4">

@@ -54,14 +54,12 @@ const total = computed(() => props.data.reduce((s, d) => s + (d.value || 0), 0))
 // The 2px gap between slices is drawn as a border in the chart's own surface
 // colour (not a stroke around the data) so it reads as separation, not ink —
 // see the dataviz skill's marks-and-anatomy "surface gap". Resolved from the
-// PrimeVue content-background token (adapts light/dark automatically; same
-// dark-detection idiom as ResourceGraph.vue) since echarts' canvas renderer
-// needs a literal colour, not a live CSS variable.
+// PrimeVue content-background token (adapts light/dark automatically) since
+// echarts' canvas renderer needs a literal colour, not a live CSS variable.
 function surfaceGapColor() {
   if (typeof document === 'undefined') return '#ffffff'
   const val = getComputedStyle(document.documentElement).getPropertyValue('--p-content-background').trim()
-  if (val) return val
-  return document.documentElement.classList.contains('dark') ? '#18181b' : '#ffffff'
+  return val || '#ffffff'
 }
 
 const option = computed(() => ({

@@ -143,7 +143,7 @@
                     :model-value="pagination.limit"
                     :options="perPageOptions"
                     size="small"
-                    class="w-25"
+                    class="w-24"
                     @update:model-value="handlePerPageChange"
                   />
                 </div>

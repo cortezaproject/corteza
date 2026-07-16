@@ -22,8 +22,12 @@ export default {
     extend: {
       borderColor: {
         DEFAULT: 'var(--p-content-border-color)',
+        surface: 'var(--p-content-border-color)',
       },
       ringColor: {
+        surface: 'var(--p-content-border-color)',
+      },
+      divideColor: {
         surface: 'var(--p-content-border-color)',
       },
     },

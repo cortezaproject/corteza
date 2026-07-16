@@ -103,7 +103,7 @@
                       size="small"
                       text
                       severity="secondary"
-                      class="!absolute !top-2 !right-2 z-10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity bg-(--p-card-background)"
+                      class="!absolute !top-2 !right-2 z-10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity bg-[--p-card-background]"
                       @click.stop.prevent="showCardMenu($event, namespace)"
                     />
                   </div>

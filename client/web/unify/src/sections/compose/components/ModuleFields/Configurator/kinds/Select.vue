@@ -51,7 +51,7 @@
 
     <!-- Options list -->
     <div class="flex flex-col gap-4">
-      <h4 class="font-semibold text-md m-0">{{ $t('field.kind.select.optionsLabel') }}</h4>
+      <h4 class="font-semibold text-base m-0">{{ $t('field.kind.select.optionsLabel') }}</h4>
 
       <div
         v-for="(opt, index) in optionsList"

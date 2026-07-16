@@ -59,8 +59,21 @@ const showLegend = computed(() => props.series.length > 1)
 function surfaceGapColor() {
   if (typeof document === 'undefined') return '#ffffff'
   const val = getComputedStyle(document.documentElement).getPropertyValue('--p-content-background').trim()
-  if (val) return val
-  return document.documentElement.classList.contains('dark') ? '#18181b' : '#ffffff'
+  return val || '#ffffff'
+}
+
+// Axis/grid chrome uses the muted-text token so it follows the active theme
+// instead of a hardcoded neutral. Echarts' canvas renderer needs a literal
+// colour (not a live CSS variable), so the token is resolved via
+// getComputedStyle — same idiom as surfaceGapColor above — then blended to
+// the desired opacity with a literal-argument color-mix() string (safe for
+// canvas, unlike var(), since it needs no cascade to resolve).
+function mutedAxisColor(alphaPercent) {
+  const resolved =
+    typeof document === 'undefined'
+      ? MUTED
+      : getComputedStyle(document.documentElement).getPropertyValue('--p-text-muted-color').trim() || MUTED
+  return `color-mix(in srgb, ${resolved} ${alphaPercent}%, transparent)`
 }
 
 const option = computed(() => ({
@@ -74,13 +87,13 @@ const option = computed(() => ({
     data: props.labels,
     axisLabel: { color: MUTED, fontSize: 11 },
     axisTick: { show: false },
-    axisLine: { lineStyle: { color: 'rgba(148,163,184,0.25)' } },
+    axisLine: { lineStyle: { color: mutedAxisColor(25) } },
   },
   yAxis: {
     type: 'value',
     minInterval: 1,
     axisLabel: { color: MUTED },
-    splitLine: { lineStyle: { color: 'rgba(148,163,184,0.15)' } },
+    splitLine: { lineStyle: { color: mutedAxisColor(15) } },
   },
   series: props.series.map(s => ({
     name: s.name,

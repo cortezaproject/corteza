@@ -8,7 +8,7 @@
           variant="outlined"
           severity="secondary"
           size="large"
-          class="text-color !p-0 !w-[2.5rem] !h-[2.5rem]"
+          class="text-color !p-0 !w-10 !h-10"
         >
           <template #default>
             <Avatar
