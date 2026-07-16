@@ -110,6 +110,22 @@ project_review: {
 		omit: true
 	}
 
+	service: {
+		extraServices:       false
+		genAccessController: true
+
+		updateFields: [
+			"Title", "Description", "ReviewType", "ReviewFrequency", "Scope",
+			"Reviewer", "ApprovedBy", "Status", "DateDue",
+		]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
+			beforeDelete: true
+		}
+	}
+
 	store: {
 		api: {
 			lookups: [

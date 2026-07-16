@@ -134,6 +134,23 @@ project_privacy: {
 		omit: true
 	}
 
+	service: {
+		extraServices:       false
+		genAccessController: true
+
+		updateFields: [
+			"Title", "Description", "RequestType", "Status", "Severity", "Risk",
+			"RequestOwner", "ChangeOwner", "ChangeApprovedBy", "RiskAssessment", "ChangeRequired", "RiskChange",
+			"Backlog", "DateDue",
+		]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
+			beforeDelete: true
+		}
+	}
+
 	store: {
 		api: {
 			lookups: [

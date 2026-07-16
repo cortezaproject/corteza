@@ -124,6 +124,22 @@ project_task: {
 		omit: true
 	}
 
+	service: {
+		extraServices:       false
+		genAccessController: true
+
+		updateFields: [
+			"Title", "Description", "TaskName", "TaskType", "Status", "Severity", "Risk",
+			"Owner", "ChangeOwner", "Backlog", "DateDue", "CompletedDate",
+		]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
+			beforeDelete: true
+		}
+	}
+
 	store: {
 		api: {
 			lookups: [

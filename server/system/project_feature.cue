@@ -134,6 +134,23 @@ project_feature: {
 		omit: true
 	}
 
+	service: {
+		extraServices:       false
+		genAccessController: true
+
+		updateFields: [
+			"Title", "Description", "FeatureType", "Status", "Severity", "Risk",
+			"FeatureOwner", "ChangeOwner", "ChangeApprovedBy", "RiskFeature", "ChangeRequired", "RiskChange",
+			"Backlog", "DateDue",
+		]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
+			beforeDelete: true
+		}
+	}
+
 	store: {
 		api: {
 			lookups: [

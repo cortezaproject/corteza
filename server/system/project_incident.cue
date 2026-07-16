@@ -144,6 +144,23 @@ project_incident: {
 		omit: true
 	}
 
+	service: {
+		extraServices:       false
+		genAccessController: true
+
+		updateFields: [
+			"Title", "Description", "IncidentType", "GroupSystem", "Status", "Severity", "Risk",
+			"IssueOwner", "ChangeOwner", "ChangeApprovedBy", "RiskIssue", "ChangeRequired", "RiskChange",
+			"Backlog", "DateDue", "CompletedDate",
+		]
+
+		hooks: {
+			beforeCreate: true
+			beforeUpdate: true
+			beforeDelete: true
+		}
+	}
+
 	store: {
 		api: {
 			lookups: [
