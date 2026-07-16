@@ -16,6 +16,9 @@ func ProjectReview() *projectReview {
 }
 
 func (svc *projectReview) beforeCreate(ctx context.Context, new *types.ProjectReview) error {
+	if new.ProjectID == 0 {
+		return ProjectReviewErrMissingProject()
+	}
 	if new.Title == "" {
 		new.Title = firstNonEmpty(new.Description, "(untitled)")
 	}
@@ -28,5 +31,10 @@ func (svc *projectReview) beforeCreate(ctx context.Context, new *types.ProjectRe
 
 func (svc *projectReview) beforeUpdate(ctx context.Context, upd, _ *types.ProjectReview) error {
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return nil
+}
+
+func (svc *projectReview) beforeDelete(ctx context.Context, res *types.ProjectReview) error {
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }

@@ -1734,6 +1734,10 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 // This function is auto-generated
 func ProjectFeatureFilter(d drivers.Dialect, f systemType.ProjectFeatureFilter) (ee []goqu.Expression, _ systemType.ProjectFeatureFilter, err error) {
 
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
 	if len(f.FeatureID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.FeatureID))
 	}
@@ -1819,6 +1823,10 @@ func ProjectGroupEntryFilter(d drivers.Dialect, f systemType.ProjectGroupEntryFi
 // This function is auto-generated
 func ProjectIncidentFilter(d drivers.Dialect, f systemType.ProjectIncidentFilter) (ee []goqu.Expression, _ systemType.ProjectIncidentFilter, err error) {
 
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
 	if len(f.IncidentID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.IncidentID))
 	}
@@ -1878,6 +1886,10 @@ func ProjectMemberFilter(d drivers.Dialect, f systemType.ProjectMemberFilter) (e
 // This function is auto-generated
 func ProjectPrivacyFilter(d drivers.Dialect, f systemType.ProjectPrivacyFilter) (ee []goqu.Expression, _ systemType.ProjectPrivacyFilter, err error) {
 
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
 	if len(f.PrivacyID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.PrivacyID))
 	}
@@ -1909,6 +1921,10 @@ func ProjectPrivacyFilter(d drivers.Dialect, f systemType.ProjectPrivacyFilter) 
 // This function is auto-generated
 func ProjectReviewFilter(d drivers.Dialect, f systemType.ProjectReviewFilter) (ee []goqu.Expression, _ systemType.ProjectReviewFilter, err error) {
 
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
 	if len(f.ReviewID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.ReviewID))
 	}
@@ -1939,6 +1955,10 @@ func ProjectReviewFilter(d drivers.Dialect, f systemType.ProjectReviewFilter) (e
 //
 // This function is auto-generated
 func ProjectTaskFilter(d drivers.Dialect, f systemType.ProjectTaskFilter) (ee []goqu.Expression, _ systemType.ProjectTaskFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
 
 	if len(f.TaskID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.TaskID))

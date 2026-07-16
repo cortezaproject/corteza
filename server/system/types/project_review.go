@@ -12,6 +12,8 @@ type (
 		Status    string   `json:"status"`
 		Query     string   `json:"query"`
 
+		Deleted filter.State `json:"deleted"`
+
 		// Check fn is called by store backend for each resource found; it can
 		// modify the resource and return false if store should not return it.
 		Check func(*ProjectReview) (bool, error) `json:"-"`

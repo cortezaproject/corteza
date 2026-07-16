@@ -104,10 +104,12 @@ project_task: {
 			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
 			status: {goType: "string"}
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		query: ["title", "status"]
 		byValue: ["task_id", "project_id", "status"]
+		byNilState: ["deleted"]
 	}
 
 	rbac: {

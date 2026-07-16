@@ -23,6 +23,9 @@ func ProjectFeature() *projectFeature {
 }
 
 func (svc *projectFeature) beforeCreate(ctx context.Context, new *types.ProjectFeature) error {
+	if new.ProjectID == 0 {
+		return ProjectFeatureErrMissingProject()
+	}
 	if new.Title == "" {
 		new.Title = firstNonEmpty(new.Description, "(untitled)")
 	}
@@ -35,5 +38,10 @@ func (svc *projectFeature) beforeCreate(ctx context.Context, new *types.ProjectF
 
 func (svc *projectFeature) beforeUpdate(ctx context.Context, upd, _ *types.ProjectFeature) error {
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return nil
+}
+
+func (svc *projectFeature) beforeDelete(ctx context.Context, res *types.ProjectFeature) error {
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }

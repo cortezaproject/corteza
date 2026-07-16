@@ -452,6 +452,38 @@ func ProjectReviewErrInvalidID(mm ...*projectReviewActionProps) *errors.Error {
 	return e
 }
 
+// ProjectReviewErrMissingProject returns "system:project-review.missingProject" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectReviewErrMissingProject(mm ...*projectReviewActionProps) *errors.Error {
+	var p = &projectReviewActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("project is required", nil),
+
+		errors.Meta("type", "missingProject"),
+		errors.Meta("resource", "system:project-review"),
+
+		errors.Meta(projectReviewPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-review.errors.missingProject"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectReviewErrStaleData returns "system:project-review.staleData" as *errors.Error
 //
 // This function is auto-generated.

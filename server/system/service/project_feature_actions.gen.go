@@ -452,6 +452,38 @@ func ProjectFeatureErrInvalidID(mm ...*projectFeatureActionProps) *errors.Error 
 	return e
 }
 
+// ProjectFeatureErrMissingProject returns "system:project-feature.missingProject" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectFeatureErrMissingProject(mm ...*projectFeatureActionProps) *errors.Error {
+	var p = &projectFeatureActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("project is required", nil),
+
+		errors.Meta("type", "missingProject"),
+		errors.Meta("resource", "system:project-feature"),
+
+		errors.Meta(projectFeaturePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-feature.errors.missingProject"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectFeatureErrStaleData returns "system:project-feature.staleData" as *errors.Error
 //
 // This function is auto-generated.

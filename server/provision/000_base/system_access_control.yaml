@@ -42,6 +42,16 @@ allow:
       - knowledge-bases.search
       - llm-provider.create
       - llm-providers.search
+      - project-incident.create
+      - project-incidents.search
+      - project-feature.create
+      - project-features.search
+      - project-privacy.create
+      - project-privacys.search
+      - project-task.create
+      - project-tasks.search
+      - project-review.create
+      - project-reviews.search
 
     corteza::system:auth-client/*:
       - read
@@ -118,6 +128,31 @@ allow:
       - update
       - delete
 
+    corteza::system:project-incident/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:project-feature/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:project-privacy/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:project-task/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:project-review/*:
+      - read
+      - update
+      - delete
+
   security-admin:
     corteza::compose/:
       - grant
@@ -164,6 +199,16 @@ allow:
       - knowledge-bases.search
       - llm-provider.create
       - llm-providers.search
+      - project-incident.create
+      - project-incidents.search
+      - project-feature.create
+      - project-features.search
+      - project-privacy.create
+      - project-privacys.search
+      - project-task.create
+      - project-tasks.search
+      - project-review.create
+      - project-reviews.search
 
     corteza::system:auth-client/*:
       - read

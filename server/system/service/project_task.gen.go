@@ -208,6 +208,10 @@ func (svc *projectTask) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return ProjectTaskErrNotAllowedToDelete()
 		}
 
+		if err = svc.beforeDelete(ctx, res); err != nil {
+			return err
+		}
+
 		res.DeletedAt = now()
 		if err = store.UpdateProjectTask(ctx, svc.store, res); err != nil {
 			return

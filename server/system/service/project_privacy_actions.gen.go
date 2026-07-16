@@ -452,6 +452,38 @@ func ProjectPrivacyErrInvalidID(mm ...*projectPrivacyActionProps) *errors.Error 
 	return e
 }
 
+// ProjectPrivacyErrMissingProject returns "system:project-privacy.missingProject" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectPrivacyErrMissingProject(mm ...*projectPrivacyActionProps) *errors.Error {
+	var p = &projectPrivacyActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("project is required", nil),
+
+		errors.Meta("type", "missingProject"),
+		errors.Meta("resource", "system:project-privacy"),
+
+		errors.Meta(projectPrivacyPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-privacy.errors.missingProject"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectPrivacyErrStaleData returns "system:project-privacy.staleData" as *errors.Error
 //
 // This function is auto-generated.

@@ -53,6 +53,10 @@ errors:
     message: "invalid ID"
     severity: warning
 
+  - error: missingProject
+    message: "project is required"
+    severity: warning
+
   - error: staleData
     message: "project incident was modified by someone else after you've opened it. Please refresh to see the latest updated version"
     severity: warning

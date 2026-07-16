@@ -205,6 +205,10 @@ func (svc *projectReview) DeleteByID(ctx context.Context, ID uint64) (err error)
 			return ProjectReviewErrNotAllowedToDelete()
 		}
 
+		if err = svc.beforeDelete(ctx, res); err != nil {
+			return err
+		}
+
 		res.DeletedAt = now()
 		if err = store.UpdateProjectReview(ctx, svc.store, res); err != nil {
 			return

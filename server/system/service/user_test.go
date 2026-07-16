@@ -63,18 +63,20 @@ func TestUser_ProtectedSearch(t *testing.T) {
 	ctx = a.SetIdentityToContext(ctx, testUser)
 
 	svc := &user{
-		settings: &types.AppSettings{},
-		ac:       &accessControl{rbac: acRBAC},
-		eventbus: eventbus.New(),
-		store:    s,
+		ac:    &accessControl{rbac: acRBAC},
+		store: s,
+		services: &userServices{
+			settings: &types.AppSettings{},
+			eventbus: eventbus.New(),
+		},
 	}
 
 	req.NoError(store.CreateUser(ctx, svc.store, masked, unmasked))
 
 	t.Run("with disabled masking", func(t *testing.T) {
 		// Masking disabled, expecting to fetch both users
-		svc.settings.Privacy.Mask.Email = false
-		svc.settings.Privacy.Mask.Name = false
+		svc.services.settings.Privacy.Mask.Email = false
+		svc.services.settings.Privacy.Mask.Name = false
 		set, _, err = svc.Find(ctx, types.UserFilter{Query: "email"})
 		req.NoError(err)
 		req.Len(set, 2)
@@ -84,8 +86,8 @@ func TestUser_ProtectedSearch(t *testing.T) {
 
 	t.Run("with enabled privacy", func(t *testing.T) {
 		// Masking enabled, expecting to fetch only unmasked
-		svc.settings.Privacy.Mask.Email = true
-		svc.settings.Privacy.Mask.Name = true
+		svc.services.settings.Privacy.Mask.Email = true
+		svc.services.settings.Privacy.Mask.Name = true
 
 		set, _, err = svc.Find(ctx, types.UserFilter{Query: "email"})
 		req.NoError(err)
@@ -94,8 +96,8 @@ func TestUser_ProtectedSearch(t *testing.T) {
 
 	t.Run("email search with enabled privacy", func(t *testing.T) {
 		// Masking enabled, expecting to fetch only unmasked
-		svc.settings.Privacy.Mask.Email = true
-		svc.settings.Privacy.Mask.Name = true
+		svc.services.settings.Privacy.Mask.Email = true
+		svc.services.settings.Privacy.Mask.Name = true
 
 		set, _, err = svc.Find(ctx, types.UserFilter{Email: "email.masked@us.er"})
 		req.NoError(err)

@@ -452,6 +452,38 @@ func ProjectTaskErrInvalidID(mm ...*projectTaskActionProps) *errors.Error {
 	return e
 }
 
+// ProjectTaskErrMissingProject returns "system:project-task.missingProject" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectTaskErrMissingProject(mm ...*projectTaskActionProps) *errors.Error {
+	var p = &projectTaskActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("project is required", nil),
+
+		errors.Meta("type", "missingProject"),
+		errors.Meta("resource", "system:project-task"),
+
+		errors.Meta(projectTaskPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-task.errors.missingProject"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectTaskErrStaleData returns "system:project-task.staleData" as *errors.Error
 //
 // This function is auto-generated.

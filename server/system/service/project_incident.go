@@ -16,6 +16,9 @@ func ProjectIncident() *projectIncident {
 }
 
 func (svc *projectIncident) beforeCreate(ctx context.Context, new *types.ProjectIncident) error {
+	if new.ProjectID == 0 {
+		return ProjectIncidentErrMissingProject()
+	}
 	if new.Title == "" {
 		new.Title = firstNonEmpty(new.Description, "(untitled)")
 	}
@@ -28,5 +31,10 @@ func (svc *projectIncident) beforeCreate(ctx context.Context, new *types.Project
 
 func (svc *projectIncident) beforeUpdate(ctx context.Context, upd, _ *types.ProjectIncident) error {
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return nil
+}
+
+func (svc *projectIncident) beforeDelete(ctx context.Context, res *types.ProjectIncident) error {
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }

@@ -452,6 +452,38 @@ func ProjectIncidentErrInvalidID(mm ...*projectIncidentActionProps) *errors.Erro
 	return e
 }
 
+// ProjectIncidentErrMissingProject returns "system:project-incident.missingProject" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectIncidentErrMissingProject(mm ...*projectIncidentActionProps) *errors.Error {
+	var p = &projectIncidentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("project is required", nil),
+
+		errors.Meta("type", "missingProject"),
+		errors.Meta("resource", "system:project-incident"),
+
+		errors.Meta(projectIncidentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-incident.errors.missingProject"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectIncidentErrStaleData returns "system:project-incident.staleData" as *errors.Error
 //
 // This function is auto-generated.

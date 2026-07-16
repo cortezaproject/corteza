@@ -16,6 +16,9 @@ func ProjectPrivacy() *projectPrivacy {
 }
 
 func (svc *projectPrivacy) beforeCreate(ctx context.Context, new *types.ProjectPrivacy) error {
+	if new.ProjectID == 0 {
+		return ProjectPrivacyErrMissingProject()
+	}
 	if new.Title == "" {
 		new.Title = firstNonEmpty(new.Description, "(untitled)")
 	}
@@ -28,5 +31,10 @@ func (svc *projectPrivacy) beforeCreate(ctx context.Context, new *types.ProjectP
 
 func (svc *projectPrivacy) beforeUpdate(ctx context.Context, upd, _ *types.ProjectPrivacy) error {
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return nil
+}
+
+func (svc *projectPrivacy) beforeDelete(ctx context.Context, res *types.ProjectPrivacy) error {
+	res.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }
