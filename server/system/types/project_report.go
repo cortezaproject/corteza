@@ -22,7 +22,7 @@ type (
 		// Group rows by one or more dimensions (e.g. status, severity, day).
 		Dimensions []string
 
-		// Metrics to compute per group (v1: count).
+		// Metrics to compute per group (v1: count, open, overdue).
 		Metrics []string
 
 		// Project scope — required; a report never spans projects.

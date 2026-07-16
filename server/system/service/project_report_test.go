@@ -103,6 +103,120 @@ func TestAggregateProjectReport(t *testing.T) {
 	})
 }
 
+func TestAggregateProjectReportOpenOverdue(t *testing.T) {
+	defer func(orig func() time.Time) { projectReportNowFn = orig }(projectReportNowFn)
+	now := time.Date(2026, 7, 16, 12, 0, 0, 0, time.UTC)
+	projectReportNowFn = func() time.Time { return now }
+
+	day1 := time.Date(2026, 7, 1, 9, 0, 0, 0, time.UTC)
+
+	t.Run("open counts everything not Completed", func(t *testing.T) {
+		samples := []reportSample{
+			{createdAt: day1, dims: map[string]any{"status": "Open"}},
+			{createdAt: day1, dims: map[string]any{"status": "InProgress"}},
+			{createdAt: day1, dims: map[string]any{"status": "Completed"}},
+		}
+		rows := aggregateProjectReport(samples, &types.ProjectReportRequest{Metrics: []string{"open"}})
+		require.Len(t, rows, 1)
+		require.Equal(t, float64(2), rows[0].Metrics["open"])
+	})
+
+	t.Run("overdue counts open rows with a past ISO DateDue", func(t *testing.T) {
+		samples := []reportSample{
+			{createdAt: day1, dateDue: "2020-01-01", dims: map[string]any{"status": "Open"}},
+			{createdAt: day1, dateDue: "2099-01-01", dims: map[string]any{"status": "Open"}},
+		}
+		rows := aggregateProjectReport(samples, &types.ProjectReportRequest{Metrics: []string{"count", "open", "overdue"}})
+		require.Len(t, rows, 1)
+		require.Equal(t, float64(2), rows[0].Metrics["count"])
+		require.Equal(t, float64(2), rows[0].Metrics["open"])
+		require.Equal(t, float64(1), rows[0].Metrics["overdue"])
+	})
+
+	t.Run("overdue skips unparseable or empty DateDue", func(t *testing.T) {
+		samples := []reportSample{
+			{createdAt: day1, dateDue: "", dims: map[string]any{"status": "Open"}},
+			{createdAt: day1, dateDue: "not-a-date", dims: map[string]any{"status": "Open"}},
+		}
+		rows := aggregateProjectReport(samples, &types.ProjectReportRequest{Metrics: []string{"overdue"}})
+		require.Len(t, rows, 1)
+		require.Equal(t, float64(0), rows[0].Metrics["overdue"])
+	})
+
+	t.Run("overdue not counted when Completed", func(t *testing.T) {
+		samples := []reportSample{
+			{createdAt: day1, dateDue: "2020-01-01", dims: map[string]any{"status": "Completed"}},
+		}
+		rows := aggregateProjectReport(samples, &types.ProjectReportRequest{Metrics: []string{"open", "overdue"}})
+		require.Len(t, rows, 1)
+		require.Equal(t, float64(0), rows[0].Metrics["open"])
+		require.Equal(t, float64(0), rows[0].Metrics["overdue"])
+	})
+
+	t.Run("combined metrics with a dimension", func(t *testing.T) {
+		samples := []reportSample{
+			{createdAt: day1, dateDue: "2020-01-01", dims: map[string]any{"status": "Open", "severity": "High"}},
+			{createdAt: day1, dateDue: "2099-01-01", dims: map[string]any{"status": "Open", "severity": "High"}},
+			{createdAt: day1, dateDue: "2020-01-01", dims: map[string]any{"status": "Completed", "severity": "High"}},
+			{createdAt: day1, dateDue: "2020-01-01", dims: map[string]any{"status": "Open", "severity": "Low"}},
+		}
+		rows := aggregateProjectReport(samples, &types.ProjectReportRequest{
+			Dimensions: []string{"severity"},
+			Metrics:    []string{"count", "open", "overdue"},
+		})
+		require.Len(t, rows, 2)
+		// sorted by key: High, Low
+		require.Equal(t, "High", rows[0].Dimensions["severity"])
+		require.Equal(t, float64(3), rows[0].Metrics["count"])
+		require.Equal(t, float64(2), rows[0].Metrics["open"])
+		require.Equal(t, float64(1), rows[0].Metrics["overdue"])
+		require.Equal(t, "Low", rows[1].Dimensions["severity"])
+		require.Equal(t, float64(1), rows[1].Metrics["count"])
+		require.Equal(t, float64(1), rows[1].Metrics["open"])
+		require.Equal(t, float64(1), rows[1].Metrics["overdue"])
+	})
+}
+
+func TestParseReportDueDate(t *testing.T) {
+	t.Run("ISO date", func(t *testing.T) {
+		tm, ok := parseReportDueDate("2026-07-16")
+		require.True(t, ok)
+		require.Equal(t, 2026, tm.Year())
+		require.Equal(t, time.July, tm.Month())
+		require.Equal(t, 16, tm.Day())
+	})
+
+	t.Run("RFC3339", func(t *testing.T) {
+		tm, ok := parseReportDueDate("2026-07-16T10:00:00Z")
+		require.True(t, ok)
+		require.Equal(t, 2026, tm.Year())
+	})
+
+	t.Run("dotted day.month.year", func(t *testing.T) {
+		tm, ok := parseReportDueDate("16.07.2026")
+		require.True(t, ok)
+		require.Equal(t, 16, tm.Day())
+		require.Equal(t, time.July, tm.Month())
+	})
+
+	t.Run("slashed month/day/year", func(t *testing.T) {
+		tm, ok := parseReportDueDate("07/16/2026")
+		require.True(t, ok)
+		require.Equal(t, 16, tm.Day())
+		require.Equal(t, time.July, tm.Month())
+	})
+
+	t.Run("empty is never overdue", func(t *testing.T) {
+		_, ok := parseReportDueDate("")
+		require.False(t, ok)
+	})
+
+	t.Run("unparseable is never overdue", func(t *testing.T) {
+		_, ok := parseReportDueDate("garbage")
+		require.False(t, ok)
+	})
+}
+
 func TestProjectReportReport(t *testing.T) {
 	ctx := context.Background()
 	svc := &projectReport{
@@ -144,5 +258,45 @@ func TestProjectReportReport(t *testing.T) {
 			Resource: "incident", ProjectID: 1, FromTimestamp: &from, ToTimestamp: &to,
 		})
 		require.ErrorContains(t, err, "inverted")
+	})
+
+	t.Run("rejects unknown metric with open/overdue listed as available", func(t *testing.T) {
+		_, err := svc.Report(ctx, &types.ProjectReportRequest{Resource: "incident", ProjectID: 1, Metrics: []string{"nope"}})
+		require.ErrorContains(t, err, "unknown report metric")
+		require.ErrorContains(t, err, "open")
+		require.ErrorContains(t, err, "overdue")
+	})
+
+	t.Run("combined count/open/overdue metrics grouped by status", func(t *testing.T) {
+		defer func(orig func() time.Time) { projectReportNowFn = orig }(projectReportNowFn)
+		projectReportNowFn = func() time.Time { return time.Date(2026, 7, 16, 12, 0, 0, 0, time.UTC) }
+
+		combinedSvc := &projectReport{
+			incident: fakeIncidentSearcher{set: types.ProjectIncidentSet{
+				{Status: "Open", Severity: "High", DateDue: "2020-01-01"},      // open, overdue
+				{Status: "Open", Severity: "Low", DateDue: "2099-01-01"},       // open, not overdue
+				{Status: "Completed", Severity: "High", DateDue: "2020-01-01"}, // closed, never overdue
+			}},
+		}
+
+		res, err := combinedSvc.Report(ctx, &types.ProjectReportRequest{
+			Resource:   "incident",
+			ProjectID:  1,
+			Dimensions: []string{"status"},
+			Metrics:    []string{"count", "open", "overdue"},
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Set, 2)
+
+		// sorted by key: Completed, Open
+		require.Equal(t, "Completed", res.Set[0].Dimensions["status"])
+		require.Equal(t, float64(1), res.Set[0].Metrics["count"])
+		require.Equal(t, float64(0), res.Set[0].Metrics["open"])
+		require.Equal(t, float64(0), res.Set[0].Metrics["overdue"])
+
+		require.Equal(t, "Open", res.Set[1].Dimensions["status"])
+		require.Equal(t, float64(2), res.Set[1].Metrics["count"])
+		require.Equal(t, float64(2), res.Set[1].Metrics["open"])
+		require.Equal(t, float64(1), res.Set[1].Metrics["overdue"])
 	})
 }

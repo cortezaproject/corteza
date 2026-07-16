@@ -16,11 +16,14 @@ import { EVENT_FORMS } from './eventForm'
 // Lifecycle ramp: colour tracks progress toward done (urgency lives in the
 // separate "overdue" metric, not here). Distinct hues, green = done, and Open
 // is off-grey so it never reads as the "unknown/blank" fallback.
+// Validated both modes (ALL PASS, no contrast relief needed): the older
+// amber/emerald steps (#f59e0b, #10b981) overflowed the dark-mode lightness
+// cap, so both sit one family step darker.
 export const STATUS_COLORS = {
   Open: '#3b82f6', // blue — new, logged
-  'In Progress': '#f59e0b', // amber — active, in-flight
+  'In Progress': '#b45309', // amber — active, in-flight
   'Ready to Test': '#8b5cf6', // violet — in review
-  Completed: '#10b981', // emerald — done
+  Completed: '#059669', // emerald — done
 }
 
 // Severity is ordinal (Critical > Serious > Major > Minor > Informational)

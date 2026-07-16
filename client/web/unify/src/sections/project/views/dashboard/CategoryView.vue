@@ -133,7 +133,9 @@
           searchPlaceholder: $t('project.dashboard.list.searchPlaceholder'),
           noItems: $t('project.dashboard.list.empty'),
         }"
+        clickable
         @sort="onSort"
+        @row-click="onRowClick"
       >
         <!-- New-item action lives in the list toolbar. -->
         <template #header>
@@ -204,6 +206,17 @@
       :user-options="store.ownerOptions"
       :on-create="onCreate"
     />
+
+    <!-- Row-click detail/edit dialog — same schema, pre-filled from the
+         clicked record; Save/Delete persist via the store. -->
+    <EventDetailDialog
+      v-model:visible="detailVisible"
+      :category="category"
+      :record="selectedEvent"
+      :user-options="store.ownerOptions"
+      :on-save="onUpdate"
+      :on-delete="onDelete"
+    />
   </div>
 </template>
 
@@ -213,13 +226,14 @@ import CategoryKpiRow from '@/sections/project/components/dashboard/CategoryKpiR
 import CategoryRankBar from '@/sections/project/components/dashboard/CategoryRankBar.vue'
 import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
+import EventDetailDialog from '@/sections/project/components/dashboard/EventDetailDialog.vue'
 import NewEventDialog from '@/sections/project/components/dashboard/NewEventDialog.vue'
 import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { CATEGORY_COLORS, colorFor, orderIndex } from '@/sections/project/config/chartColors'
 import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/trend'
-import { isOpenStatus, useEventsStore } from '@/sections/project/stores/events'
+import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, reactive, ref, watch } from 'vue'
@@ -246,7 +260,7 @@ const accentColor = computed(() => CATEGORY_COLORS[category.value] || '')
 // loadAll/AllEventsView's load()).
 const reportStore = useReportStore()
 const trend = reactive({ labels: [], series: [] })
-const reportBreakdowns = reactive({ total: 0, open: 0, byDim: {} })
+const reportBreakdowns = reactive({ total: 0, open: 0, overdue: 0, byDim: {} })
 const metricsLoading = ref(false)
 const metricsFailed = ref(false)
 let loadSeq = 0
@@ -254,13 +268,15 @@ let loadSeq = 0
 // One report call per breakdown dimension the category's donut charts need
 // (see cfg.charts / config/categories.js — the backend's generic dimension
 // keys are status/severity/risk/type/day, or status/type/scope/day for
-// review). Total/open derive from the status dimension via isOpenStatus, the
-// single "open" rule shared with the events store.
+// review), plus one grand-total call for the KPI trio — count/open/overdue
+// are computed server-side (the "open ⇔ not Completed" rule and the
+// best-effort DateDue parsing live in system/service/project_report.go).
 async function loadReport(pid, key, mySeq) {
   const dims = [...new Set(CATEGORY_CONFIG[key].charts.map(c => c.variant))]
-  const results = await Promise.all(
-    dims.map(dim => reportStore.report(pid, key, { dimensions: [dim] })),
-  )
+  const [totals, ...results] = await Promise.all([
+    reportStore.report(pid, key, { metrics: ['count', 'open', 'overdue'] }),
+    ...dims.map(dim => reportStore.report(pid, key, { dimensions: [dim] })),
+  ])
   if (mySeq !== loadSeq) return // stale response — a newer switch is in flight
 
   const byDim = {}
@@ -271,15 +287,11 @@ async function loadReport(pid, key, mySeq) {
     }))
   })
 
-  let total = 0
-  let open = 0
-  for (const row of byDim.status || []) {
-    total += row.value
-    if (isOpenStatus(row.label)) open += row.value
-  }
+  const g = (totals && totals[0]?.metrics) || {}
   reportBreakdowns.byDim = byDim
-  reportBreakdowns.total = total
-  reportBreakdowns.open = open
+  reportBreakdowns.total = Number(g.count || 0)
+  reportBreakdowns.open = Number(g.open || 0)
+  reportBreakdowns.overdue = Number(g.overdue || 0)
 }
 
 // Created-over-time trend for this category, from the report endpoint.
@@ -314,6 +326,7 @@ async function loadMetrics(pid, key, { silent = false } = {}) {
   if (!pid || !key || !CATEGORY_CONFIG[key]) {
     reportBreakdowns.total = 0
     reportBreakdowns.open = 0
+    reportBreakdowns.overdue = 0
     reportBreakdowns.byDim = {}
     trend.labels = []
     trend.series = []
@@ -344,6 +357,17 @@ watch(
 )
 
 const dialogVisible = ref(false)
+
+// Row-click detail/edit dialog — `selectedEvent` is the clicked row (a
+// store-mapped event); cleared alongside `detailVisible` on category switch.
+const detailVisible = ref(false)
+const selectedEvent = ref(null)
+
+function onRowClick({ data }) {
+  selectedEvent.value = data
+  detailVisible.value = true
+}
+
 const filter = reactive({ query: '' })
 const sorting = reactive({ sortBy: 'dateDue', sortDesc: true })
 const pagination = reactive({
@@ -360,16 +384,12 @@ const fields = computed(() =>
   (cfg.value?.columns ?? []).map(c => ({ key: c.key, header: t(c.headerKey), sortable: true })),
 )
 
-// KPI cards: total/open come from the report breakdown (status dimension);
-// overdue stays store-derived — the report endpoint is count-only and can't
-// yet parse DateDue (future backend work), so it's capped at the events
-// store's 200-row-per-category fetch until the backend grows an overdue
-// metric.
+// KPI cards: the whole trio (total/open/overdue) comes from the report
+// endpoint's grand-total call, so none of it is subject to the events
+// store's 200-row-per-category fetch cap.
 const kpiList = computed(() => {
   if (!cfg.value) return []
-  const overdue = store.kpis(category.value).overdue
-  const vals = { total: reportBreakdowns.total, open: reportBreakdowns.open, overdue }
-  return cfg.value.kpis.map(({ key, labelKey }) => ({ labelKey, value: vals[key] }))
+  return cfg.value.kpis.map(({ key, labelKey }) => ({ labelKey, value: reportBreakdowns[key] }))
 })
 
 // Chart data helper — grouped counts for a report dimension, ordered
@@ -440,6 +460,8 @@ const onSort = ({ sortField, sortOrder }) => {
 watch(category, () => {
   filter.query = ''
   dialogVisible.value = false
+  detailVisible.value = false
+  selectedEvent.value = null
   sorting.sortBy = 'dateDue'
   sorting.sortDesc = true
 })
@@ -463,6 +485,36 @@ const onCreate = async payload => {
   } catch (err) {
     console.error('Failed to create event', err)
     $toast.toastErrorHandler(t('project.dashboard.event.toast.createFailed'))(err)
+    return false
+  }
+}
+
+// Update handler — passed to EventDetailDialog's `onSave` prop; same
+// truthy/falsy-or-throw contract as onCreate.
+const onUpdate = async (id, payload) => {
+  try {
+    await store.update(category.value, id, payload)
+    loadMetrics(route.params.projectId, category.value, { silent: true })
+    $toast.toastSuccess(t(cfg.value.singularKey), t('project.dashboard.event.toast.updated'))
+    return true
+  } catch (err) {
+    console.error('Failed to update event', err)
+    $toast.toastErrorHandler(t('project.dashboard.event.toast.updateFailed'))(err)
+    return false
+  }
+}
+
+// Delete handler — passed to EventDetailDialog's `onDelete` prop (the dialog
+// confirms first).
+const onDelete = async id => {
+  try {
+    await store.remove(category.value, id)
+    loadMetrics(route.params.projectId, category.value, { silent: true })
+    $toast.toastSuccess(t(cfg.value.singularKey), t('project.dashboard.event.toast.deleted'))
+    return true
+  } catch (err) {
+    console.error('Failed to delete event', err)
+    $toast.toastErrorHandler(t('project.dashboard.event.toast.deleteFailed'))(err)
     return false
   }
 }

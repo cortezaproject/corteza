@@ -19,30 +19,40 @@ const CATS = {
   incident: {
     list: 'projectIncidentList',
     create: 'projectIncidentCreate',
+    update: 'projectIncidentUpdate',
+    delete: 'projectIncidentDelete',
     idKey: 'incidentID',
     userKeys: ['issueOwner', 'changeOwner', 'changeApprovedBy'],
   },
   feature: {
     list: 'projectFeatureList',
     create: 'projectFeatureCreate',
+    update: 'projectFeatureUpdate',
+    delete: 'projectFeatureDelete',
     idKey: 'featureID',
     userKeys: ['featureOwner', 'changeOwner', 'changeApprovedBy'],
   },
   privacy: {
     list: 'projectPrivacyList',
     create: 'projectPrivacyCreate',
+    update: 'projectPrivacyUpdate',
+    delete: 'projectPrivacyDelete',
     idKey: 'privacyID',
     userKeys: ['requestOwner', 'changeOwner', 'changeApprovedBy'],
   },
   task: {
     list: 'projectTaskList',
     create: 'projectTaskCreate',
+    update: 'projectTaskUpdate',
+    delete: 'projectTaskDelete',
     idKey: 'taskID',
     userKeys: ['owner', 'changeOwner'],
   },
   review: {
     list: 'projectReviewList',
     create: 'projectReviewCreate',
+    update: 'projectReviewUpdate',
+    delete: 'projectReviewDelete',
     idKey: 'reviewID',
     userKeys: ['reviewer', 'approvedBy'],
   },
@@ -64,6 +74,29 @@ const splitBacklog = v =>
     .map(s => s.trim())
     .filter(Boolean)
 const joinBacklog = v => (Array.isArray(v) ? v.join(',') : String(v || ''))
+
+// GovernanceForm's date fields bind PrimeVue date pickers, which surface
+// `dateDue`/`completedDate` as JS Date objects. The backend stores both as
+// plain YYYY-MM-DD strings (the report endpoint's overdue metric parses them
+// as ISO), so every create/update call normalizes here rather than leaving
+// each dialog to serialize its own payload.
+const DATE_KEYS = ['dateDue', 'completedDate']
+
+function toISODate(v) {
+  if (!(v instanceof Date)) return v
+  if (Number.isNaN(v.getTime())) return ''
+  const y = v.getFullYear()
+  const m = String(v.getMonth() + 1).padStart(2, '0')
+  const d = String(v.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function normalizeDates(body) {
+  for (const k of DATE_KEYS) {
+    if (k in body) body[k] = toISODate(body[k])
+  }
+  return body
+}
 
 export const useEventsStore = defineStore('events', () => {
   const $SystemAPI = inject('$SystemAPI')
@@ -173,16 +206,49 @@ export const useEventsStore = defineStore('events', () => {
     const cfg = CATS[cat]
     if (!cfg) throw new Error(`Unknown category: ${cat}`)
     const pid = currentProjectId.value
-    const body = {
+    const body = normalizeDates({
       ...payload,
       projectID: pid,
       status: payload.status || 'Open',
       backlog: joinBacklog(payload.backlog),
-    }
+    })
     const raw = await $SystemAPI[cfg.create](body)
     const event = mapRow(cat, raw || {})
     events.value.unshift(event)
     return event
+  }
+
+  // Update an event via the category's resource. `id` is the record's category
+  // id (the mapped event's `id`, e.g. incidentID); payload has the same shape
+  // as add() — owner fields as user IDs, dates as Date objects from the picker,
+  // backlog as an array (the edit form doesn't surface it, so callers should
+  // carry the record's current value through untouched rather than dropping
+  // it). Patches the record in place so the list/KPIs/nav badges reflect the
+  // change without a refetch.
+  async function update(cat, id, payload = {}) {
+    const cfg = CATS[cat]
+    if (!cfg) throw new Error(`Unknown category: ${cat}`)
+    const body = normalizeDates({
+      ...payload,
+      [cfg.idKey]: id,
+      backlog: joinBacklog(payload.backlog),
+    })
+    const raw = await $SystemAPI[cfg.update](body)
+    const event = mapRow(cat, raw || {})
+    const idx = events.value.findIndex(e => e.category === cat && e.id === String(id))
+    if (idx !== -1) events.value.splice(idx, 1, event)
+    else events.value.unshift(event)
+    return event
+  }
+
+  // Delete an event via the category's resource, then drop it from the local
+  // list so the list/KPIs/nav badges react without a refetch.
+  async function remove(cat, id) {
+    const cfg = CATS[cat]
+    if (!cfg) throw new Error(`Unknown category: ${cat}`)
+    await $SystemAPI[cfg.delete]({ [cfg.idKey]: id })
+    const idx = events.value.findIndex(e => e.category === cat && e.id === String(id))
+    if (idx !== -1) events.value.splice(idx, 1)
   }
 
   return {
@@ -196,6 +262,8 @@ export const useEventsStore = defineStore('events', () => {
     kpis,
     breakdown,
     add,
+    update,
+    remove,
     categories: CATEGORIES,
   }
 })

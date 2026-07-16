@@ -50,11 +50,14 @@ type (
 	}
 
 	// reportSample is the neutral projected form the aggregator groups over:
-	// the created-at timestamp (for the "day" dimension and windowing) plus the
-	// pre-extracted column dimension values.
+	// the created-at timestamp (for the "day" dimension and windowing), the
+	// pre-extracted column dimension values (dims always includes "status",
+	// used for the "open"/"overdue" metrics regardless of the requested
+	// grouping), and the raw DateDue string used for "overdue".
 	reportSample struct {
 		createdAt time.Time
 		dims      map[string]any
+		dateDue   string
 	}
 
 	// projectReportSource declares the dimensions/metrics a category supports
@@ -66,8 +69,73 @@ type (
 	}
 )
 
-// v1 metrics are the same for every category.
-var projectReportMetrics = map[string]bool{"count": true}
+// v1 metrics are the same for every category: all 5 category types
+// (incident, task, feature, privacy, review) carry both Status and DateDue,
+// so "open" and "overdue" are declared uniformly rather than per-source.
+var projectReportMetrics = map[string]bool{"count": true, "open": true, "overdue": true}
+
+// projectReportCompletedStatus is the single terminal status value used to
+// derive the "open" metric across every category. Kept here as the one
+// server-side source of truth, mirroring the frontend's isOpenStatus in
+// client/web/unify/src/sections/project/stores/events.js (status !==
+// 'Completed'); if that rule ever needs per-category nuance, this is the
+// only place that has to change.
+const projectReportCompletedStatus = "Completed"
+
+// isOpenReportStatus reports whether a category row's Status counts as
+// "open" for the "open"/"overdue" metrics.
+func isOpenReportStatus(status string) bool {
+	return status != projectReportCompletedStatus
+}
+
+// projectReportNowFn is the report's clock, indirected so tests can stub
+// "now" for deterministic "overdue" assertions.
+var projectReportNowFn = time.Now
+
+// reportDueDateFormats is the best-effort set of layouts tried against the
+// free-form DateDue string field (there is no schema/validation on it — it's
+// plain text on all 5 category types). ISO 8601 date-only is tried first
+// since that's what the "date" input widgets on the frontend emit
+// (client/web/unify/src/sections/project/config/eventForm.js), then RFC3339
+// in case a full timestamp lands there, then two locale-formatted layouts
+// (day.month.year and month/day/year) mirroring the format list already used
+// for free-form date strings elsewhere in the codebase
+// (pkg/envoy/resource/util.go toTime). A value that matches none of these —
+// including an empty string — is treated as "never overdue", not as an
+// error: DateDue is unvalidated user input and this metric is best-effort.
+var reportDueDateFormats = []string{
+	"2006-01-02",
+	time.RFC3339,
+	"02.01.2006",
+	"01/02/2006",
+}
+
+// parseReportDueDate parses DateDue against reportDueDateFormats in order,
+// returning ok=false for empty or unparseable values.
+func parseReportDueDate(v string) (time.Time, bool) {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return time.Time{}, false
+	}
+
+	for _, f := range reportDueDateFormats {
+		if t, err := time.Parse(f, v); err == nil {
+			return t, true
+		}
+	}
+
+	return time.Time{}, false
+}
+
+// isReportDueOverdue reports whether a raw DateDue value parses to a point
+// in time before now. Unparseable/empty values are never overdue.
+func isReportDueOverdue(dateDue string, now time.Time) bool {
+	t, ok := parseReportDueDate(dateDue)
+	if !ok {
+		return false
+	}
+	return t.Before(now)
+}
 
 // projectReportSources is the registry: one entry per category. Adding a
 // dimension is a single map key here plus its extraction in the projector.
@@ -86,7 +154,7 @@ var projectReportSources = map[string]projectReportSource{
 					return set, f.NextPage, err
 				},
 				func(r *types.ProjectIncident) reportSample {
-					return reportSample{createdAt: r.CreatedAt, dims: map[string]any{
+					return reportSample{createdAt: r.CreatedAt, dateDue: r.DateDue, dims: map[string]any{
 						"status": r.Status, "severity": r.Severity, "risk": r.Risk, "type": r.IncidentType,
 					}}
 				},
@@ -107,7 +175,7 @@ var projectReportSources = map[string]projectReportSource{
 					return set, f.NextPage, err
 				},
 				func(r *types.ProjectTask) reportSample {
-					return reportSample{createdAt: r.CreatedAt, dims: map[string]any{
+					return reportSample{createdAt: r.CreatedAt, dateDue: r.DateDue, dims: map[string]any{
 						"status": r.Status, "severity": r.Severity, "risk": r.Risk, "type": r.TaskType,
 					}}
 				},
@@ -128,7 +196,7 @@ var projectReportSources = map[string]projectReportSource{
 					return set, f.NextPage, err
 				},
 				func(r *types.ProjectFeature) reportSample {
-					return reportSample{createdAt: r.CreatedAt, dims: map[string]any{
+					return reportSample{createdAt: r.CreatedAt, dateDue: r.DateDue, dims: map[string]any{
 						"status": r.Status, "severity": r.Severity, "risk": r.Risk, "type": r.FeatureType,
 					}}
 				},
@@ -149,7 +217,7 @@ var projectReportSources = map[string]projectReportSource{
 					return set, f.NextPage, err
 				},
 				func(r *types.ProjectPrivacy) reportSample {
-					return reportSample{createdAt: r.CreatedAt, dims: map[string]any{
+					return reportSample{createdAt: r.CreatedAt, dateDue: r.DateDue, dims: map[string]any{
 						"status": r.Status, "severity": r.Severity, "risk": r.Risk, "type": r.RequestType,
 					}}
 				},
@@ -171,7 +239,7 @@ var projectReportSources = map[string]projectReportSource{
 					return set, f.NextPage, err
 				},
 				func(r *types.ProjectReview) reportSample {
-					return reportSample{createdAt: r.CreatedAt, dims: map[string]any{
+					return reportSample{createdAt: r.CreatedAt, dateDue: r.DateDue, dims: map[string]any{
 						"status": r.Status, "type": r.ReviewType, "scope": r.Scope,
 					}}
 				},
@@ -269,13 +337,16 @@ func reportSorting() filter.Sorting {
 // each group. Windowing on created-at is applied here.
 func aggregateProjectReport(samples []reportSample, rr *types.ProjectReportRequest) []*types.ProjectReportRow {
 	type bucket struct {
-		dims  map[string]any
-		count float64
+		dims    map[string]any
+		count   float64
+		open    float64
+		overdue float64
 	}
 
 	var (
 		buckets = map[string]*bucket{}
 		order   = make([]string, 0)
+		now     = projectReportNowFn()
 	)
 
 	for _, s := range samples {
@@ -302,6 +373,14 @@ func aggregateProjectReport(samples []reportSample, rr *types.ProjectReportReque
 			order = append(order, key)
 		}
 		b.count++
+
+		status, _ := s.dims["status"].(string)
+		if isOpenReportStatus(status) {
+			b.open++
+			if isReportDueOverdue(s.dateDue, now) {
+				b.overdue++
+			}
+		}
 	}
 
 	sort.Strings(order)
@@ -315,6 +394,10 @@ func aggregateProjectReport(samples []reportSample, rr *types.ProjectReportReque
 			switch m {
 			case "count":
 				metrics["count"] = b.count
+			case "open":
+				metrics["open"] = b.open
+			case "overdue":
+				metrics["overdue"] = b.overdue
 			}
 		}
 

@@ -163,9 +163,17 @@ dashboard:
     step2: 'New {category}'
     back: Back
     create: Create event
+    untitled: Untitled event
     toast:
       created: Event created
       createFailed: Could not create the event. Please try again.
+      updated: Event updated
+      updateFailed: Could not save the changes. Please try again.
+      deleted: Event deleted
+      deleteFailed: Could not delete the event. Please try again.
+    confirmDelete:
+      header: Delete event
+      message: 'Delete "{name}"? This can''t be undone.'
     validation:
       required: This field is required.
     categories:
