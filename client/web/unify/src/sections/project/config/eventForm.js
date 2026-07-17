@@ -1,9 +1,9 @@
 // New Event form — config-driven field sets per category, consumed by the
 // GovernanceForm renderer (schema = array of sections; each field: key,
-// labelKey, type, options?, placeholderKey?). Field labels and placeholders are
-// i18n keys — never plain English (see resolution in GovernanceForm.vue). Values
-// persist to the per-project event resources via the events store; owner fields
-// are user references resolved at render time.
+// labelKey, type, options?, placeholderKey?, badge?, default?). Field labels
+// and placeholders are i18n keys — never plain English (see resolution in
+// GovernanceForm.vue). Values persist to the per-project event resources via
+// the events store; owner fields are user references resolved at render time.
 const p = 'project.dashboard.event.f.'
 const pp = 'project.dashboard.event.placeholder.'
 
@@ -29,9 +29,19 @@ const user = (key, required = false) => ({
   required,
 })
 
-// Severity/risk selects (shared labels with the list columns).
-const severity = { key: 'severity', labelKey: 'project.dashboard.columns.severity', type: 'select', options: SEVERITY }
-const risk = { key: 'risk', labelKey: 'project.dashboard.columns.risk', type: 'select', options: RISK }
+// Severity/risk/status selects (shared labels with the list columns). `badge`
+// tells GovernanceForm to render the option/value slots with EventBadge
+// (variant = the badge key) instead of plain text, matching how these fields
+// already render in the list/drawer. `default` seeds NewEventDialog's
+// create-mode model (see buildDefaults there) so these required fields never
+// open on an empty selection; EventDetailDialog (edit) ignores it and seeds
+// from the record instead.
+const severity = { key: 'severity', labelKey: 'project.dashboard.columns.severity', type: 'select', options: SEVERITY, badge: 'severity', default: 'Minor' }
+const risk = { key: 'risk', labelKey: 'project.dashboard.columns.risk', type: 'select', options: RISK, badge: 'risk', default: 'Low' }
+// Status is repeated per category below (STATUS vs STATUS_REVIEW options
+// differ), so it's a factory rather than a single shared const like
+// severity/risk.
+const status = options => ({ key: 'status', labelKey: `${p}status`, type: 'select', options, badge: 'status', default: 'Open' })
 
 // Title text input — shown first in every category form (spans both columns).
 const title = { key: 'title', labelKey: 'project.dashboard.columns.title', type: 'text', full: true, placeholderKey: `${pp}title`, required: true }
@@ -60,7 +70,7 @@ export const EVENT_FORMS = {
     { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholderKey: `${pp}incident.riskChange` },
     user('issueOwner', true),
     user('changeOwner'),
-    { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
+    status(STATUS),
     user('changeApprovedBy'),
     { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
     { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
@@ -68,7 +78,7 @@ export const EVENT_FORMS = {
   feature: [{ fields: [
     title,
     { key: 'featureType', labelKey: `${p}featureType`, type: 'select', options: ['Platform', 'Data Model', 'Automation', 'Agent', 'Chatbot', 'Other'], required: true },
-    { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
+    status(STATUS),
     severity,
     risk,
     { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}feature.description`, required: true },
@@ -83,7 +93,7 @@ export const EVENT_FORMS = {
   privacy: [{ fields: [
     title,
     { key: 'requestType', labelKey: `${p}requestType`, type: 'select', options: ['Access (Export)', 'Rectification', 'Deletion'], required: true },
-    { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
+    status(STATUS),
     severity,
     risk,
     { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}privacy.description`, required: true },
@@ -102,7 +112,7 @@ export const EVENT_FORMS = {
     severity,
     risk,
     { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}task.description` },
-    { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS },
+    status(STATUS),
     user('owner', true),
     user('changeOwner'),
     { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
@@ -114,7 +124,7 @@ export const EVENT_FORMS = {
     { key: 'reviewFrequency', labelKey: `${p}reviewFrequency`, type: 'select', options: ['Monthly', 'Quarterly', 'Bi-Annual', 'Annual'] },
     { key: 'scope', labelKey: `${p}scope`, type: 'textarea', placeholderKey: `${pp}review.scope` },
     user('reviewer', true),
-    { key: 'status', labelKey: `${p}status`, type: 'select', options: STATUS_REVIEW },
+    status(STATUS_REVIEW),
     { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
     user('approvedBy'),
   ] }],

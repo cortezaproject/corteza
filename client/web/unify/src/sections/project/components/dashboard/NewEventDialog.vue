@@ -110,8 +110,22 @@ const resolvedSchema = computed(() =>
   })),
 )
 
-// Collected form values, keyed by field.key. Reset on each open.
+// Collected form values, keyed by field.key. Reset on each open, seeded with
+// whatever defaults the (already user-resolved) schema declares — e.g.
+// severity/risk/status — so required fields never open on an empty
+// selection. Fields without a `default` (type selects, user/owner selects,
+// review's frequency/scope, …) are left absent, same as before.
 const model = ref({})
+
+function buildDefaults() {
+  const m = {}
+  for (const section of resolvedSchema.value) {
+    for (const f of section.fields) {
+      if (f.default !== undefined) m[f.key] = f.default
+    }
+  }
+  return m
+}
 
 // Queued backlog-item titles (Step 3's inline widget) — [{ title }]. Reset on
 // each open alongside `model`; flattened to plain strings and handed to
@@ -158,7 +172,7 @@ watch(
   () => props.visible,
   v => {
     if (v) {
-      model.value = {}
+      model.value = buildDefaults()
       backlogDraft.value = []
       newBacklogTitle.value = ''
       submitted.value = false

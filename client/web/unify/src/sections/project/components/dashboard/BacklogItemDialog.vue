@@ -187,12 +187,16 @@ const schema = computed(() => [
         labelKey: 'project.dashboard.backlog.f.priority',
         type: 'select',
         options: PRIORITY_OPTIONS,
+        badge: 'priority',
+        default: 'Medium',
       },
       {
         key: 'status',
         labelKey: 'project.dashboard.event.f.status',
         type: 'select',
         options: EVENT_STATUS,
+        badge: 'status',
+        default: 'Open',
       },
       {
         key: 'dateDue',
@@ -217,23 +221,31 @@ const resolvedSchema = computed(() =>
 )
 
 // Collected form values, keyed by field.key. Reset every time the dialog
-// opens — from the record in edit mode, or sane create-mode defaults
-// (priority Medium / status Open, matching the events store's own default).
+// opens — from the record in edit mode, or blank + schema defaults in create
+// mode (priority Medium / status Open, per the `default` on those fields
+// above — matching the events store's own default and NewEventDialog's same
+// mechanism).
 const model = ref({})
 
 function buildModel() {
   const r = props.record
   if (!r) {
-    return {
+    const m = {
       category: props.lockedEvent?.category || '',
       eventID: props.lockedEvent?.eventID ?? null,
       title: '',
       description: '',
       assignee: null,
-      priority: 'Medium',
-      status: 'Open',
+      priority: null,
+      status: null,
       dateDue: null,
     }
+    for (const section of resolvedSchema.value) {
+      for (const f of section.fields) {
+        if (f.default !== undefined) m[f.key] = f.default
+      }
+    }
+    return m
   }
   const d = r.dateDue ? new Date(r.dateDue) : null
   return {

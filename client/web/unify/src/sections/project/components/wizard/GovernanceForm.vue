@@ -72,7 +72,18 @@
             :invalid="submitted && !!errors[field.key]"
             fluid
             @update:model-value="update(field.key, $event)"
-          />
+          >
+            <template v-if="field.badge" #option="{ option }">
+              <EventBadge :value="option" :variant="field.badge" />
+            </template>
+            <template v-if="field.badge" #value="{ value, placeholder }">
+              <!-- Blank selection falls back to the placeholder text instead
+                   of rendering an empty badge pill (possible on older records
+                   whose optional severity/risk was never set). -->
+              <EventBadge v-if="value" :value="value" :variant="field.badge" />
+              <span v-else class="text-muted-color">{{ placeholder }}</span>
+            </template>
+          </Select>
           <MultiSelect
             v-else-if="field.type === 'multiselect'"
             :model-value="modelValue[field.key]"
@@ -92,6 +103,7 @@
 </template>
 
 <script setup>
+import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
 import { useI18n } from 'vue-i18n'
 
