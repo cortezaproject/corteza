@@ -32,18 +32,11 @@
       </div>
 
       <div class="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-5">
-      <!-- Badge row — type/severity/status, derived from the category's own
-           column config so it stays in sync with CategoryView's list (review
-           has no severity, so that badge is simply absent). -->
-      <div class="flex items-center gap-2 flex-wrap">
-        <EventBadge v-if="typeCol" :value="record?.[typeCol.key]" variant="type" />
-        <EventBadge v-if="severityCol" :value="record?.[severityCol.key]" variant="severity" />
-        <EventBadge v-if="statusCol" :value="record?.[statusCol.key]" variant="status" />
-      </div>
-
       <!-- Read-only summary — every form field except title (already the
            header), label + value pairs. Textareas (and any field flagged
-           `full`) span both columns, same rule GovernanceForm itself uses. -->
+           `full`) span both columns, same rule GovernanceForm itself uses.
+           Badge-like fields (type/severity/risk/status) render as their pills
+           right where they sit in the field order — no separate badge row. -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
         <div
           v-for="field in summaryFields"
@@ -53,7 +46,14 @@
           <div class="text-xs font-medium text-muted-color uppercase tracking-wide mb-1">
             {{ $t(field.labelKey) }}
           </div>
+          <EventBadge
+            v-if="badgeVariant(field) && record?.[field.key]"
+            :value="record[field.key]"
+            :variant="badgeVariant(field)"
+            size="md"
+          />
           <div
+            v-else
             class="text-sm text-color"
             :class="{ 'whitespace-pre-wrap': field.type === 'textarea' }"
           >
@@ -155,12 +155,13 @@ const { confirmDelete } = useConfirmDelete()
 
 const cfg = computed(() => CATEGORY_CONFIG[props.category] || null)
 
-// --- Badge row -----------------------------------------------------------
-// Reuse the category's own column config rather than re-deriving field keys —
-// stays in sync with CategoryView's list by construction.
+// --- Badges in the summary -------------------------------------------------
+// Fields that render as pills instead of plain text: severity/risk/status
+// declare a `badge` hint on their schema config (shared with the dialog
+// selects); the category's type field is identified via the column config
+// (kind === 'type'), same source CategoryView's list uses.
 const typeCol = computed(() => cfg.value?.columns.find(c => c.kind === 'type') || null)
-const severityCol = computed(() => cfg.value?.columns.find(c => c.kind === 'severity') || null)
-const statusCol = computed(() => cfg.value?.columns.find(c => c.kind === 'status') || null)
+const badgeVariant = field => field.badge || (field.key === typeCol.value?.key ? 'type' : '')
 
 // --- Read-only summary -----------------------------------------------------
 // Every field in the category's form schema except title (rendered in the
