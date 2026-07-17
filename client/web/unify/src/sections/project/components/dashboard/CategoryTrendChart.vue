@@ -7,7 +7,7 @@
       v-if="!bare && (titleKey || $slots.actions)"
       class="flex items-center justify-between gap-2 mb-3"
     >
-      <div class="text-sm font-medium text-color truncate">{{ titleKey ? $t(titleKey) : '' }}</div>
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted-color truncate">{{ titleKey ? $t(titleKey) : '' }}</div>
       <slot name="actions" />
     </div>
 
@@ -20,21 +20,29 @@
       —
     </div>
 
-    <v-chart v-else :option="option" autoresize :style="sizeStyle" />
+    <template v-else>
+      <v-chart :option="option" autoresize :style="sizeStyle" />
+      <!-- height="fill" callers (EventsActivityPanel) are all single-series
+           today, so showLegend is always false there in practice and this
+           never has to compete with the chart for the parent's fixed height
+           — no extra layout machinery needed for the fill case. -->
+      <ChartLegend v-if="showLegend && !empty" :items="legendItems" :variant="legendVariant" />
+    </template>
   </div>
 </template>
 
 <script setup>
+import ChartLegend from '@/sections/project/components/dashboard/ChartLegend.vue'
 import { MUTED } from '@/sections/project/config/chartColors'
 import { BarChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { GridComponent, TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import VChart from 'vue-echarts'
 
-use([CanvasRenderer, BarChart, GridComponent, TooltipComponent, LegendComponent])
+use([CanvasRenderer, BarChart, GridComponent, TooltipComponent])
 
 const { t: $t } = useI18n()
 
@@ -42,8 +50,16 @@ const props = defineProps({
   titleKey: { type: String, default: '' },
   // X-axis bucket labels, e.g. ['Jul 1', 'Jul 8', …].
   labels: { type: Array, default: () => [] },
-  // One or more series: [{ name, color, data: number[] }] aligned to `labels`.
+  // Tooltip-facing bucket range strings aligned to `labels` (e.g.
+  // "Jul 13 – 19, 2026" for a week bucket) — see adaptiveWindow's
+  // rangeLabels. Optional; tooltips fall back to the short axis label.
+  rangeLabels: { type: Array, default: () => [] },
+  // One or more series: [{ name, color, data: number[], key? }] aligned to
+  // `labels`. `key` is the category key, when the series are per-category.
   series: { type: Array, default: () => [] },
+  // Badge family for the HTML legend below the chart ('' → colored-dot rows
+  // from each series' own colour). See ChartLegend.
+  legendVariant: { type: String, default: '' },
   // Accepted for caller compatibility; the title accent dot was removed
   // (category color-coding on chart titles carried no information).
   accent: { type: String, default: '' },
@@ -64,6 +80,8 @@ const empty = computed(() => !props.series.some(s => (s.data || []).some(v => v 
 
 // Show a legend only when there is more than one series to disambiguate.
 const showLegend = computed(() => props.series.length > 1)
+
+const legendItems = computed(() => props.series.map(s => ({ label: s.name, key: s.key, color: s.color })))
 
 // The 2px gap between stacked segments is drawn as a border in the chart's
 // own surface colour (see the dataviz skill's marks-and-anatomy "surface
@@ -92,11 +110,22 @@ function mutedAxisColor(alphaPercent) {
 }
 
 const option = computed(() => ({
-  grid: { left: 8, right: 12, top: 8, bottom: showLegend.value ? 28 : 8, containLabel: true },
-  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-  legend: showLegend.value
-    ? { bottom: 0, left: 'center', icon: 'circle', itemHeight: 8, itemWidth: 8, textStyle: { color: MUTED, fontSize: 11 } }
-    : undefined,
+  grid: { left: 8, right: 12, top: 8, bottom: 8, containLabel: true },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    // Header is the bucket's full range (e.g. "Jul 13 – 19, 2026") rather
+    // than the short axis label, so the tooltip disambiguates which days a
+    // bar actually sums — everything else replicates echarts' default
+    // marker + name + value row per series.
+    formatter: params => {
+      const list = Array.isArray(params) ? params : [params]
+      const idx = list[0]?.dataIndex ?? 0
+      const head = props.rangeLabels[idx] || list[0]?.axisValue || ''
+      const rows = list.map(p => `${p.marker}${p.seriesName}: <b>${p.value}</b>`).join('<br/>')
+      return `${head}<br/>${rows}`
+    },
+  },
   xAxis: {
     type: 'category',
     data: props.labels,

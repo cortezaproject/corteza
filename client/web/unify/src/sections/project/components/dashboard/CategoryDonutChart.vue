@@ -1,7 +1,7 @@
 <template>
   <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface p-4'">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-2">
-      <div class="text-sm font-medium text-color truncate">{{ $t(titleKey) }}</div>
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted-color truncate">{{ $t(titleKey) }}</div>
     </div>
 
     <!-- Empty state when there is nothing to plot -->
@@ -13,27 +13,33 @@
       —
     </div>
 
-    <v-chart v-else :option="option" autoresize :style="{ height: height + 'px', width: '100%' }" />
+    <div v-else>
+      <v-chart :option="option" autoresize :style="{ height: height + 'px', width: '100%' }" />
+      <ChartLegend :items="legendItems" :variant="variant" />
+    </div>
   </div>
 </template>
 
 <script setup>
+import ChartLegend from '@/sections/project/components/dashboard/ChartLegend.vue'
 import { colorFor, MUTED } from '@/sections/project/config/chartColors'
 import { PieChart } from 'echarts/charts'
-import { LegendComponent, TooltipComponent } from 'echarts/components'
+import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import VChart from 'vue-echarts'
 
-use([CanvasRenderer, PieChart, TooltipComponent, LegendComponent])
+use([CanvasRenderer, PieChart, TooltipComponent])
 
 const { t: $t } = useI18n()
 
 const props = defineProps({
   titleKey: { type: String, default: '' },
-  // [{ label: string, value: number }]
+  // [{ label: string, value: number, color?: string, key?: string }]. `key`
+  // is the raw category key, used by the 'category' variant's HTML legend
+  // (see ChartLegend) to look up its KindIcon config.
   data: { type: Array, default: () => [] },
   // Colour family for the slices: status | type (severity/risk use
   // CategoryRankBar instead — see CategoryView).
@@ -51,6 +57,16 @@ const props = defineProps({
 
 const total = computed(() => props.data.reduce((s, d) => s + (d.value || 0), 0))
 
+// Legend rows mirror the slice data; `color` only matters for the dot
+// fallback (type/unknown variants) — resolve it the same way the slices do.
+const legendItems = computed(() =>
+  props.data.map(d => ({
+    label: d.label,
+    key: d.key,
+    color: d.color || colorFor(props.variant, d.label, props.category),
+  })),
+)
+
 // The 2px gap between slices is drawn as a border in the chart's own surface
 // colour (not a stroke around the data) so it reads as separation, not ink —
 // see the dataviz skill's marks-and-anatomy "surface gap". Resolved from the
@@ -64,20 +80,11 @@ function surfaceGapColor() {
 
 const option = computed(() => ({
   tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-  legend: {
-    bottom: 0,
-    left: 'center',
-    icon: 'circle',
-    itemHeight: 8,
-    itemWidth: 8,
-    itemGap: 12,
-    textStyle: { color: MUTED, fontSize: 11 },
-  },
   series: [
     {
       type: 'pie',
       radius: ['58%', '74%'],
-      center: ['50%', '46%'],
+      center: ['50%', '50%'],
       avoidLabelOverlap: true,
       itemStyle: { borderColor: surfaceGapColor(), borderWidth: 2 },
       // The donut hole shows the grand total; slices identify via tooltip/legend.
@@ -94,7 +101,9 @@ const option = computed(() => ({
       data: props.data.map(d => ({
         name: d.label,
         value: d.value,
-        itemStyle: { color: colorFor(props.variant, d.label, props.category) },
+        // A row may pin its own colour (e.g. the backlog's by-category donut,
+        // whose labels are translated titles that colorFor can't key on).
+        itemStyle: { color: d.color || colorFor(props.variant, d.label, props.category) },
       })),
     },
   ],

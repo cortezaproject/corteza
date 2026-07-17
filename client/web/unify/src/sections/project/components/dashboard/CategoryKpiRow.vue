@@ -27,10 +27,10 @@
         <div
           v-for="(v, i) in spark"
           :key="i"
+          v-tooltip.top="`${sparkLabels[i] || ''} · ${v}`"
           class="flex-1 rounded-sm opacity-60"
-          :class="{ 'bg-emphasis': !accent }"
-          :style="{ height: barHeight(v) + '%', background: accent || undefined }"
-          :title="`${sparkLabels[i] || ''}: ${v}`"
+          :class="accent ? [accent, 'bg-current'] : 'bg-emphasis'"
+          :style="{ height: barHeight(v) + '%' }"
         />
       </div>
     </div>
@@ -53,13 +53,19 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  // Week labels aligned to `spark`, used for the bars' tooltips only.
+  // Full range strings aligned to `spark` (e.g. "Jul 13 – 19, 2026"), used
+  // for the bars' tooltips only.
   sparkLabels: {
     type: Array,
     default: () => [],
   },
-  // Category accent hex for the bars — a single low-emphasis colour, no
-  // per-bar hue variation (it's one series, not a comparison).
+  // Category accent for the bars — the badge icon's text classes (e.g.
+  // 'text-purple-600 dark:text-purple-400'), applied via bg-current so the
+  // pulse matches the page's identity colour exactly in both themes (same
+  // move as Overview's card rail). One colour, no per-bar hue variation
+  // (it's one series, not a comparison). NOT a chart-palette hex: those
+  // deliberately diverge from the badge colours (privacy is teal there for
+  // CVD separation in stacked charts).
   accent: {
     type: String,
     default: '',

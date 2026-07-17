@@ -125,16 +125,19 @@ dashboard:
     total: Total
     open: Open
     overdue: Overdue
-  # Bar-chart card titles (grouped-by field).
+  # Bar-chart card titles (grouped-by field; titles are the bare dimension
+  # name, no "By " prefix).
   chart:
-    byStatus: 'By status'
-    byType: 'By type'
-    byRequestType: 'By request type'
-    byTaskType: 'By task type'
-    byReviewType: 'By review type'
-    byFeatureType: 'By feature type'
-    bySeverity: 'By severity'
-    byRisk: 'By risk'
+    byStatus: 'Status'
+    byType: 'Type'
+    byRequestType: 'Request type'
+    byTaskType: 'Task type'
+    byReviewType: 'Review type'
+    byFeatureType: 'Feature type'
+    bySeverity: 'Severity'
+    byRisk: 'Risk'
+    byCategory: 'Category'
+    byPriority: 'Priority'
     # Section heading + titles for the created-over-time trend charts.
     activity: Activity
     trend: New items over time
