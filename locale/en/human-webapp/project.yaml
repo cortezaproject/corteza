@@ -178,8 +178,7 @@ dashboard:
       priority: Priority
     section:
       title: Backlog items ({count})
-    quickAdd:
-      placeholder: 'Add a backlog item…'
+      addItem: Add item
     confirmDelete:
       header: Delete backlog item
       message: 'Delete "{name}"? This can''t be undone.'

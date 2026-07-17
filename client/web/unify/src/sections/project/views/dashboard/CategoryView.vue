@@ -120,6 +120,7 @@
          own `h-full`) so the wide table never overflows the page. -->
     <div class="category-list shrink-0 px-4 pb-4">
       <CResourceList
+        ref="resourceListRef"
         class="h-full"
         primary-key="id"
         :fields="fields"
@@ -129,6 +130,7 @@
         :sorting="sorting"
         :pagination="pagination"
         :loading="store.loading"
+        :action-items="actionItemsFor"
         :translations="{
           searchPlaceholder: $t('project.dashboard.list.searchPlaceholder'),
           noItems: $t('project.dashboard.list.empty'),
@@ -226,7 +228,7 @@ import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
-import { components } from '@planetcrust/human-vue'
+import { components, useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -238,6 +240,7 @@ const route = useRoute()
 const store = useEventsStore()
 const backlogStore = useBacklogItemsStore()
 const $toast = inject('$toast')
+const { confirmDelete } = useConfirmDelete()
 
 // Active category comes straight from the route; cfg is null for unknown keys.
 const category = computed(() => route.params.category)
@@ -359,6 +362,42 @@ function onRowClick({ data }) {
   selectedEvent.value = data
   detailVisible.value = true
 }
+
+// Per-row kebab menu — same mechanism as ProjectList.vue (CResourceList's
+// built-in actionItems column/TieredMenu handles the trigger button, popup
+// positioning and stopPropagation so it never also fires row-click).
+const resourceListRef = ref()
+const closeMenu = () => resourceListRef.value?.hideActionsMenu?.()
+
+// "Edit" opens the same detail dialog as a row click.
+function openEdit(row) {
+  closeMenu()
+  onRowClick({ data: row })
+}
+
+// "Delete" confirms first, then reuses the same onDelete handler/toasts the
+// dialog's own Delete button calls.
+function confirmDeleteRow(row) {
+  closeMenu()
+  confirmDelete({
+    header: t('project.dashboard.event.confirmDelete.header'),
+    message: t('project.dashboard.event.confirmDelete.message', {
+      name: row.title || t('project.dashboard.event.untitled'),
+    }),
+    onConfirm: () => onDelete(row.id),
+  })
+}
+
+const actionItemsFor = row => [
+  { label: t('general.label.edit'), icon: 'pi pi-pencil', command: () => openEdit(row) },
+  { separator: true },
+  {
+    label: t('general.label.delete'),
+    icon: 'pi pi-trash',
+    class: 'text-red-500',
+    command: () => confirmDeleteRow(row),
+  },
+]
 
 const filter = reactive({ query: '' })
 const sorting = reactive({ sortBy: 'dateDue', sortDesc: true })

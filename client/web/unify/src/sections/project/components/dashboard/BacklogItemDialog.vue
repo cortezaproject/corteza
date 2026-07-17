@@ -89,6 +89,11 @@ const props = defineProps({
   // The clicked row (a store-mapped backlog item — see stores/
   // backlogItems.js#mapRow) — null for create.
   record: { type: Object, default: null },
+  // Pre-scopes the dialog to one event (e.g. opened from EventDetailDialog's
+  // "Add item" button): { category, eventID }. When set, the category /
+  // linked-event selects are hidden and the payload always carries these
+  // values regardless of what the (absent) fields would otherwise default to.
+  lockedEvent: { type: Object, default: null },
   // [{ label, value }] used to populate the assignee field.
   userOptions: { type: Array, default: () => [] },
   // Async save/delete handlers owned by the parent (it holds the stores +
@@ -130,25 +135,32 @@ const eventOptions = computed(() => {
 const schema = computed(() => [
   {
     fields: [
-      {
-        key: 'category',
-        labelKey: 'project.dashboard.backlog.f.category',
-        type: 'select',
-        options: categoryOptions.value,
-        optionLabel: 'label',
-        optionValue: 'value',
-        required: true,
-      },
-      {
-        key: 'eventID',
-        labelKey: 'project.dashboard.backlog.f.linkedEvent',
-        type: 'select',
-        options: eventOptions.value,
-        optionLabel: 'label',
-        optionValue: 'value',
-        filter: true,
-        required: true,
-      },
+      // Category / linked-event are fixed (not user-editable) when opened via
+      // `lockedEvent` — see EventDetailDialog's "Add item" button — so those
+      // two selects are omitted entirely rather than shown disabled.
+      ...(props.lockedEvent
+        ? []
+        : [
+            {
+              key: 'category',
+              labelKey: 'project.dashboard.backlog.f.category',
+              type: 'select',
+              options: categoryOptions.value,
+              optionLabel: 'label',
+              optionValue: 'value',
+              required: true,
+            },
+            {
+              key: 'eventID',
+              labelKey: 'project.dashboard.backlog.f.linkedEvent',
+              type: 'select',
+              options: eventOptions.value,
+              optionLabel: 'label',
+              optionValue: 'value',
+              filter: true,
+              required: true,
+            },
+          ]),
       {
         key: 'title',
         labelKey: 'project.dashboard.columns.title',
@@ -213,8 +225,8 @@ function buildModel() {
   const r = props.record
   if (!r) {
     return {
-      category: '',
-      eventID: null,
+      category: props.lockedEvent?.category || '',
+      eventID: props.lockedEvent?.eventID ?? null,
       title: '',
       description: '',
       assignee: null,
@@ -288,7 +300,10 @@ async function onSubmit() {
   if (!isValid.value) return
   saving.value = true
   try {
-    const ok = await props.onSave(props.record?.id || null, { ...model.value })
+    // Locked mode omits the category/eventID fields from the form entirely,
+    // so the payload carries them explicitly rather than relying on `model`.
+    const payload = { ...model.value, ...(props.lockedEvent ? props.lockedEvent : {}) }
+    const ok = await props.onSave(props.record?.id || null, payload)
     if (ok !== false) {
       emit('saved')
       close()
