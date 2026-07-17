@@ -237,8 +237,8 @@ import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
-import { components, useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, inject, reactive, ref, watch } from 'vue'
+import { components, useConfirmDelete, useRightSidebarStore } from '@planetcrust/human-vue'
+import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -366,9 +366,20 @@ const dialogVisible = ref(false)
 // edit dialog directly (skipping the drawer). `selectedEvent` is the clicked
 // row (a store-mapped event) and backs both — cleared alongside
 // `drawerVisible`/`editVisible` on category switch.
-const drawerVisible = ref(false)
+// The drawer registers with the shared right-sidebar store so it behaves
+// like every other right panel: opening one (TAQ config, notifications,
+// agent…) closes the rest, and vice versa.
+const rightSidebar = useRightSidebarStore()
+const drawerVisible = computed({
+  get: () => rightSidebar.isOpen('project-event-detail'),
+  set: v => (v ? rightSidebar.open('project-event-detail') : rightSidebar.close('project-event-detail')),
+})
 const editVisible = ref(false)
 const selectedEvent = ref(null)
+
+// Leaving the view with the drawer open would strand the shared store's
+// activePanel on our name — release it.
+onUnmounted(() => rightSidebar.close('project-event-detail'))
 
 function onRowClick({ data }) {
   selectedEvent.value = data

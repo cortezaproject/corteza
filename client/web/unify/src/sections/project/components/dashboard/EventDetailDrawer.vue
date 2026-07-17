@@ -1,23 +1,37 @@
 <template>
-  <Drawer
-    :visible="visible"
-    @update:visible="$emit('update:visible', $event)"
-    position="right"
-    class="event-drawer"
+  <!-- Floating right sidebar — same shell as the app's other right panels
+       (.right-sidebar from useTheme.ts: fixed, rounded, no overlay/dim), so
+       it coexists with the page and is closed by the rightSidebarStore when
+       another panel (TAQ config, notifications, agent…) opens. -->
+  <Transition
+    enter-active-class="transition-transform duration-300 ease-in-out"
+    enter-from-class="translate-x-full"
+    enter-to-class="translate-x-0"
+    leave-active-class="transition-transform duration-300 ease-in-out"
+    leave-from-class="translate-x-0"
+    leave-to-class="translate-x-full"
   >
-    <template #header>
-      <div v-if="cfg" class="flex items-center gap-2.5 min-w-0">
+    <div v-if="visible && cfg" class="right-sidebar event-drawer flex flex-col">
+      <div class="flex items-center gap-2.5 min-w-0 px-4 py-3 border-b border-surface shrink-0">
         <KindIcon :config="cfg.badge" size="lg" plain-icon />
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1">
           <DialogEyebrow>{{ $t(cfg.singularKey) }}</DialogEyebrow>
           <div class="font-semibold truncate leading-tight">
             {{ record?.title || $t('project.dashboard.event.untitled') }}
           </div>
         </div>
+        <Button
+          icon="pi pi-times"
+          severity="secondary"
+          text
+          rounded
+          size="small"
+          :aria-label="$t('general.label.close')"
+          @click="$emit('update:visible', false)"
+        />
       </div>
-    </template>
 
-    <div v-if="cfg" class="flex flex-col gap-5">
+      <div class="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-5">
       <!-- Badge row — type/severity/status, derived from the category's own
            column config so it stays in sync with CategoryView's list (review
            has no severity, so that badge is simply absent). -->
@@ -51,11 +65,9 @@
       <Divider />
 
       <!-- Backlog items linked to this record — see stores/backlogItems.js.
-           Remove-only here + an "Add item" button that opens BacklogItemDialog
-           pre-scoped to this event (see addItemVisible/lockedEvent below);
-           full edit (priority/assignee/status/due) happens from the Backlog
-           page itself. Moved here from EventDetailDialog, which is now the
-           pure edit form. -->
+           Row click inspects/edits the item, "Add item" creates one; both go
+           through BacklogItemDialog pre-scoped to this event (see
+           lockedEvent below). Remove stays inline with a confirm. -->
       <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-sm font-medium text-color">
@@ -67,12 +79,13 @@
             severity="secondary"
             outlined
             size="small"
-            @click="addItemVisible = true"
+            @click="openAddItem"
           />
         </div>
         <CFormItemList
           :items="backlogItems"
           :remove-label="$t('general.label.remove')"
+          @select="onBacklogSelect"
           @remove="onBacklogRemove"
         >
           <template #default="{ item }">
@@ -83,28 +96,28 @@
           </template>
         </CFormItemList>
       </div>
+      </div>
+
+      <div class="px-4 py-3 border-t border-surface shrink-0">
+        <Button
+          :label="$t('general.label.edit')"
+          icon="pi pi-pencil"
+          size="small"
+          class="w-full"
+          @click="$emit('edit')"
+        />
+      </div>
     </div>
+  </Transition>
 
-    <template #footer>
-      <Button
-        :label="$t('general.label.edit')"
-        icon="pi pi-pencil"
-        size="small"
-        class="w-full"
-        @click="$emit('edit')"
-      />
-    </template>
-  </Drawer>
-
-  <!-- "Add item" flow — the full create/edit dialog, pre-scoped to this
+  <!-- Add/inspect flow — the full create/edit dialog, pre-scoped to this
        record via `lockedEvent` (hides the category/linked-event selects; see
-       BacklogItemDialog). A Dialog opened from within a Drawer: both are
-       Portal-teleported and manage their own stacking z-index, so this just
-       works as a sibling. -->
+       BacklogItemDialog). "Add item" opens it blank; clicking a list row
+       opens it on that item for inspect/edit/delete. -->
   <BacklogItemDialog
     v-if="cfg"
-    v-model:visible="addItemVisible"
-    :record="null"
+    v-model:visible="itemDialogVisible"
+    :record="selectedBacklogItem"
     :locked-event="lockedEvent"
     :user-options="userOptions"
     :on-save="onBacklogItemSave"
@@ -178,30 +191,54 @@ const backlogItems = computed(() =>
   props.record ? backlogStore.byEvent(props.category, props.record.id) : [],
 )
 
-// "Add item" dialog — BacklogItemDialog in create mode, locked to this
-// record's category + id so the payload always lands here regardless of what
-// the (hidden) category/linked-event fields would otherwise default to.
-const addItemVisible = ref(false)
+// Add/inspect dialog — BacklogItemDialog locked to this record's category +
+// id so the payload always lands here regardless of what the (hidden)
+// category/linked-event fields would otherwise default to. "Add item" opens
+// it blank (`selectedBacklogItem` null → create); a list-row click opens it
+// on that item (edit/delete).
+const itemDialogVisible = ref(false)
+const selectedBacklogItem = ref(null)
 const lockedEvent = computed(() =>
   props.record ? { category: props.category, eventID: props.record.id } : null,
 )
 
+function openAddItem() {
+  selectedBacklogItem.value = null
+  itemDialogVisible.value = true
+}
+
+function onBacklogSelect(item) {
+  selectedBacklogItem.value = item
+  itemDialogVisible.value = true
+}
+
 async function onBacklogItemSave(id, payload) {
+  const editing = !!id
   try {
-    await backlogStore.add(payload)
-    $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.created'))
+    if (editing) await backlogStore.update(id, payload)
+    else await backlogStore.add(payload)
+    $toast.toastSuccess(
+      t('project.dashboard.backlog.singular'),
+      t(editing ? 'project.dashboard.backlog.toast.updated' : 'project.dashboard.backlog.toast.created'),
+    )
     return true
   } catch (err) {
-    $toast.toastErrorHandler(t('project.dashboard.backlog.toast.createFailed'))(err)
+    $toast.toastErrorHandler(
+      t(editing ? 'project.dashboard.backlog.toast.updateFailed' : 'project.dashboard.backlog.toast.createFailed'),
+    )(err)
     return false
   }
 }
 
-// Unreachable in practice — the dialog is always opened with `record: null`
-// (create-only) here, so it never renders a Delete button, but `onDelete` is
-// a required prop.
-async function onBacklogItemDelete() {
-  return false
+async function onBacklogItemDelete(id) {
+  try {
+    await backlogStore.remove(id)
+    $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.deleted'))
+    return true
+  } catch (err) {
+    $toast.toastErrorHandler(t('project.dashboard.backlog.toast.deleteFailed'))(err)
+    return false
+  }
 }
 
 function onBacklogRemove(item) {
@@ -224,16 +261,20 @@ function onBacklogRemove(item) {
 // showing changes (e.g. a new row click while the drawer stays open) — never
 // leave it locked to a stale record.
 watch([() => props.visible, () => props.record], ([visible]) => {
-  if (visible) addItemVisible.value = false
+  if (visible) {
+    itemDialogVisible.value = false
+    selectedBacklogItem.value = null
+  }
 })
 </script>
 
 <style scoped>
-/* Tailwind's scale has no width utility around 30rem (and arbitrary bracket
-   values are off the table here), so the drawer's width lives in plain CSS —
-   same idiom as CategoryView's .category-list. */
+/* Widen the shared .right-sidebar shell (its default width is the
+   --right-sidebar-width token) — the summary + backlog need more room than
+   the notification-style panels. Plain CSS since Tailwind's scale has no
+   30rem width step. */
 .event-drawer {
   width: 30rem;
-  max-width: 90vw;
+  max-width: calc(100vw - 1.5rem);
 }
 </style>
