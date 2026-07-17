@@ -140,7 +140,6 @@ dashboard:
     title: Title
     severity: Severity
     risk: Risk
-    backlog: Backlog
   # CResourceList chrome for category pages.
   list:
     searchPlaceholder: 'Search…'
@@ -157,14 +156,40 @@ dashboard:
     reviews: Reviews
   stub:
     comingSoon: This view is coming soon.
-  # Backlog view — every category item carrying at least one backlog tag,
-  # grouped by tag (see views/dashboard/BacklogView.vue).
+  # Backlog view — every ProjectBacklogItem across every category, as a flat
+  # table (see views/dashboard/BacklogView.vue), plus the field labels shared
+  # by BacklogItemDialog and the inline sections in EventDetailDialog /
+  # NewEventDialog.
   backlog:
     title: Backlog
-    desc: Items tagged for backlog triage across every category, grouped by tag.
+    desc: Follow-up work items linked to events across every category.
+    searchPlaceholder: 'Search backlog…'
     empty: No backlog items yet.
-    emptyHint: Add a backlog tag to an item from its category page to have it appear here, grouped with others sharing the same tag.
-    itemCount: 1 item | {count} items
+    emptyHint: Create a backlog item here, or add one from any event's detail panel.
+    newButton: New item
+    singular: Backlog item
+    untitled: Untitled item
+    columns:
+      linkedEvent: Linked event
+    f:
+      category: Category
+      linkedEvent: Linked event
+      assignee: Assignee
+      priority: Priority
+    section:
+      title: Backlog items ({count})
+    quickAdd:
+      placeholder: 'Add a backlog item…'
+    confirmDelete:
+      header: Delete backlog item
+      message: 'Delete "{name}"? This can''t be undone.'
+    toast:
+      created: Backlog item created
+      createFailed: Could not create the backlog item. Please try again.
+      updated: Backlog item updated
+      updateFailed: Could not save the changes. Please try again.
+      deleted: Backlog item deleted
+      deleteFailed: Could not delete the backlog item. Please try again.
   event:
     title: New Event
     step1: Select the type of event you want to create.
@@ -184,6 +209,11 @@ dashboard:
       message: 'Delete "{name}"? This can''t be undone.'
     validation:
       required: This field is required.
+    # Inline "Step 3 — Add Backlog Items" widget in NewEventDialog — queues
+    # follow-up work titles, created alongside the event once it's saved.
+    backlogWidget:
+      title: Backlog items
+      placeholder: 'Backlog item title…'
     categories:
       incident:
         label: Incident / Issue

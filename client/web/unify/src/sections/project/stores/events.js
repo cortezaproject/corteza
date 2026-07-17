@@ -1,4 +1,5 @@
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { normalizeDates } from '@/sections/project/stores/dateUtils'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { defineStore } from 'pinia'
 import { computed, inject, ref } from 'vue'
@@ -67,36 +68,11 @@ export function isOpenStatus(status) {
   return status !== 'Completed'
 }
 
-// Backlog is stored comma-separated server-side; the list renders it as pills.
-const splitBacklog = v =>
-  String(v || '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-const joinBacklog = v => (Array.isArray(v) ? v.join(',') : String(v || ''))
-
 // GovernanceForm's date fields bind PrimeVue date pickers, which surface
-// `dateDue`/`completedDate` as JS Date objects. The backend stores both as
-// plain YYYY-MM-DD strings (the report endpoint's overdue metric parses them
-// as ISO), so every create/update call normalizes here rather than leaving
-// each dialog to serialize its own payload.
+// `dateDue`/`completedDate` as JS Date objects; normalizeDates (stores/
+// dateUtils.js) serializes them to the plain YYYY-MM-DD strings the backend
+// stores (the report endpoint's overdue metric parses them as ISO).
 const DATE_KEYS = ['dateDue', 'completedDate']
-
-function toISODate(v) {
-  if (!(v instanceof Date)) return v
-  if (Number.isNaN(v.getTime())) return ''
-  const y = v.getFullYear()
-  const m = String(v.getMonth() + 1).padStart(2, '0')
-  const d = String(v.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function normalizeDates(body) {
-  for (const k of DATE_KEYS) {
-    if (k in body) body[k] = toISODate(body[k])
-  }
-  return body
-}
 
 export const useEventsStore = defineStore('events', () => {
   const $SystemAPI = inject('$SystemAPI')
@@ -110,13 +86,12 @@ export const useEventsStore = defineStore('events', () => {
   const loading = ref(false)
 
   // Map one raw resource record to the loose-bag event shape the dashboard
-  // reads: a stable `id`, its `category`, backlog as an array, and owner refs
-  // resolved to display names. Raw json keys already match the UI field keys
-  // (incidentType, issueOwner, …) so the rest is a straight spread.
+  // reads: a stable `id`, its `category`, and owner refs resolved to display
+  // names. Raw json keys already match the UI field keys (incidentType,
+  // issueOwner, …) so the rest is a straight spread.
   function mapRow(cat, row) {
     const cfg = CATS[cat]
     const e = { ...row, id: String(row[cfg.idKey] ?? ''), category: cat }
-    e.backlog = splitBacklog(row.backlog)
     for (const k of cfg.userKeys) {
       // Keep the raw id under <key>Id so edit flows can round-trip; show name.
       if (row[k]) {
@@ -173,12 +148,6 @@ export const useEventsStore = defineStore('events', () => {
 
   const countByCategory = computed(() => cat => byCategory.value(cat).length)
 
-  // Distinct items (across every category) carrying at least one backlog tag —
-  // feeds the Backlog nav item's live badge (see DashboardNav.vue#badgeValue).
-  const backlogItemCount = computed(
-    () => events.value.filter(e => e.backlog && e.backlog.length).length,
-  )
-
   // KPI trio for a category. `open` = not Completed; `overdue` = due in the past
   // and not Completed (bad/blank dates are guarded and never count as overdue).
   const kpis = computed(() => cat => {
@@ -206,18 +175,16 @@ export const useEventsStore = defineStore('events', () => {
     return [...counts.entries()].map(([label, value]) => ({ label, value }))
   })
 
-  // Create an event via the category's resource. Owner fields in the payload are
-  // user IDs (from the picker); backlog is an array. Returns the mapped event.
+  // Create an event via the category's resource. Owner fields in the payload
+  // are user IDs (from the picker). Returns the mapped event.
   async function add(cat, payload = {}) {
     const cfg = CATS[cat]
     if (!cfg) throw new Error(`Unknown category: ${cat}`)
     const pid = currentProjectId.value
-    const body = normalizeDates({
-      ...payload,
-      projectID: pid,
-      status: payload.status || 'Open',
-      backlog: joinBacklog(payload.backlog),
-    })
+    const body = normalizeDates(
+      { ...payload, projectID: pid, status: payload.status || 'Open' },
+      DATE_KEYS,
+    )
     const raw = await $SystemAPI[cfg.create](body)
     const event = mapRow(cat, raw || {})
     events.value.unshift(event)
@@ -226,19 +193,13 @@ export const useEventsStore = defineStore('events', () => {
 
   // Update an event via the category's resource. `id` is the record's category
   // id (the mapped event's `id`, e.g. incidentID); payload has the same shape
-  // as add() — owner fields as user IDs, dates as Date objects from the picker,
-  // backlog as an array (the edit form doesn't surface it, so callers should
-  // carry the record's current value through untouched rather than dropping
-  // it). Patches the record in place so the list/KPIs/nav badges reflect the
-  // change without a refetch.
+  // as add() — owner fields as user IDs, dates as Date objects from the
+  // picker. Patches the record in place so the list/KPIs/nav badges reflect
+  // the change without a refetch.
   async function update(cat, id, payload = {}) {
     const cfg = CATS[cat]
     if (!cfg) throw new Error(`Unknown category: ${cat}`)
-    const body = normalizeDates({
-      ...payload,
-      [cfg.idKey]: id,
-      backlog: joinBacklog(payload.backlog),
-    })
+    const body = normalizeDates({ ...payload, [cfg.idKey]: id }, DATE_KEYS)
     const raw = await $SystemAPI[cfg.update](body)
     const event = mapRow(cat, raw || {})
     const idx = events.value.findIndex(e => e.category === cat && e.id === String(id))
@@ -265,7 +226,6 @@ export const useEventsStore = defineStore('events', () => {
     ownerOptions,
     byCategory,
     countByCategory,
-    backlogItemCount,
     kpis,
     breakdown,
     add,

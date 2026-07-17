@@ -178,17 +178,6 @@
 
           <UserCell v-else-if="col.kind === 'user'" :name="data[col.key]" />
 
-          <div v-else-if="col.kind === 'backlog'" class="flex flex-wrap gap-1">
-            <span
-              v-for="bl in data.backlog || []"
-              :key="bl"
-              class="font-mono text-[10px] px-1.5 py-0.5 rounded border border-surface text-muted-color"
-            >
-              {{ bl }}
-            </span>
-            <span v-if="!(data.backlog && data.backlog.length)" class="text-muted-color">—</span>
-          </div>
-
           <span v-else-if="col.kind === 'date'" class="text-sm text-muted-color">
             {{ formatDate(data[col.key]) }}
           </span>
@@ -234,6 +223,7 @@ import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { CATEGORY_COLORS, colorFor, orderIndex } from '@/sections/project/config/chartColors'
 import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/trend'
+import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
 import { components } from '@planetcrust/human-vue'
@@ -246,6 +236,7 @@ const { CResourceList } = components
 const { t } = useI18n()
 const route = useRoute()
 const store = useEventsStore()
+const backlogStore = useBacklogItemsStore()
 const $toast = inject('$toast')
 
 // Active category comes straight from the route; cfg is null for unknown keys.
@@ -479,23 +470,46 @@ watch(category, () => {
 // off the returned record) and toast. Passed down to NewEventDialog as its
 // `onCreate` prop: the dialog awaits this and only closes (dropping the draft)
 // when it resolves truthy, so a failed create keeps the dialog open with the
-// user's input intact for a retry.
-const onCreate = async payload => {
+// user's input intact for a retry. `backlogTitles` is the dialog's queued
+// Step-3 widget list (may be empty) — each becomes a backlog item linked to
+// the newly created record. The event itself already exists by the time
+// these run, so a backlog-create failure only toasts; it never reopens the
+// dialog (see NewEventDialog's onSubmit contract).
+const onCreate = async (payload, backlogTitles = []) => {
+  let event
   try {
-    await store.add(category.value, payload)
-    // The metrics band is report-driven, so the new record isn't in it yet —
-    // refresh in place (no skeleton flash).
-    loadMetrics(route.params.projectId, category.value, { silent: true })
-    $toast.toastSuccess(
-      t('project.dashboard.newButton', { type: t(cfg.value.singularKey) }),
-      t('project.dashboard.event.toast.created'),
-    )
-    return true
+    event = await store.add(category.value, payload)
   } catch (err) {
     console.error('Failed to create event', err)
     $toast.toastErrorHandler(t('project.dashboard.event.toast.createFailed'))(err)
     return false
   }
+  // The metrics band is report-driven, so the new record isn't in it yet —
+  // refresh in place (no skeleton flash).
+  loadMetrics(route.params.projectId, category.value, { silent: true })
+  $toast.toastSuccess(
+    t('project.dashboard.newButton', { type: t(cfg.value.singularKey) }),
+    t('project.dashboard.event.toast.created'),
+  )
+  if (backlogTitles.length) {
+    const results = await Promise.allSettled(
+      backlogTitles.map(title =>
+        backlogStore.add({
+          category: category.value,
+          eventID: event.id,
+          title,
+          priority: 'Medium',
+          status: 'Open',
+        }),
+      ),
+    )
+    const failed = results.find(r => r.status === 'rejected')
+    if (failed) {
+      console.error('Failed to create backlog item', failed.reason)
+      $toast.toastErrorHandler(t('project.dashboard.backlog.toast.createFailed'))(failed.reason)
+    }
+  }
+  return true
 }
 
 // Update handler — passed to EventDetailDialog's `onSave` prop; same

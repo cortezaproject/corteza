@@ -45,6 +45,7 @@
 
 <script setup>
 import DashboardNav from '@/sections/project/components/dashboard/DashboardNav.vue'
+import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components } from '@planetcrust/human-vue'
@@ -58,6 +59,7 @@ const { t } = useI18n()
 const route = useRoute()
 const store = useProjectsStore()
 const eventsStore = useEventsStore()
+const backlogStore = useBacklogItemsStore()
 
 const project = computed(() => store.findById(route.params.projectId))
 
@@ -72,6 +74,7 @@ watch(
     if (!id) return
     store.fetchProject(id).catch(err => console.error('Failed to load project', err))
     eventsStore.load(id)
+    backlogStore.load(id)
   },
   { immediate: true },
 )

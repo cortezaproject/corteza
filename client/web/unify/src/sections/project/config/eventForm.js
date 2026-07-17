@@ -11,6 +11,9 @@ const pp = 'project.dashboard.event.placeholder.'
 // from the project's user directory (see NewEventDialog userOptions) — owner
 // and approver fields carry `source: 'users'` instead of static options.
 const STATUS = ['Open', 'In Progress', 'Ready to Test', 'Completed']
+// Exported so other schemas that share the same lifecycle (backlog items —
+// see components/dashboard/BacklogItemDialog.vue) don't redeclare the list.
+export const EVENT_STATUS = STATUS
 const STATUS_REVIEW = ['Open', 'In Progress', 'Completed']
 const SEVERITY = ['Critical', 'Serious', 'Major', 'Minor', 'Informational']
 const RISK = ['Critical', 'High', 'Medium', 'Low']

@@ -15,7 +15,8 @@ import { computed } from 'vue'
 
 const props = defineProps({
   value: { type: String, default: '' },
-  // 'type' (neutral bordered) | 'severity' (dot + tint) | 'status' (tint)
+  // 'type' (neutral bordered) | 'severity' (dot + tint) | 'status' (tint) |
+  // 'priority' (dot + tint)
   variant: { type: String, default: 'type' },
 })
 
@@ -49,12 +50,31 @@ const STATUS = {
   Completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
 }
 
+// Backlog item priority (High/Medium/Low — no Critical tier, unlike
+// severity/risk). Reuses RiskPips's family (red/orange/amber/yellow) but
+// shifted one step warmer per tier since priority tops out at High rather
+// than Critical: High reads as the urgent/red tier, Medium amber, Low
+// yellow — same three-family ramp readers already know from severity/risk.
+const PRIORITY = {
+  High: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+  Medium: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+  Low: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300',
+}
+const PRIORITY_DOT = {
+  High: 'bg-red-500',
+  Medium: 'bg-amber-500',
+  Low: 'bg-yellow-500',
+}
+
 const cls = computed(() => {
   if (props.variant === 'severity') return SEVERITY[props.value] || MUTED
   if (props.variant === 'status') return STATUS[props.value] || MUTED
+  if (props.variant === 'priority') return PRIORITY[props.value] || MUTED
   return 'border border-surface text-muted-color' // type: flat neutral pill
 })
-const dot = computed(() =>
-  props.variant === 'severity' ? SEVERITY_DOT[props.value] || 'bg-surface-400' : null,
-)
+const dot = computed(() => {
+  if (props.variant === 'severity') return SEVERITY_DOT[props.value] || 'bg-surface-400'
+  if (props.variant === 'priority') return PRIORITY_DOT[props.value] || 'bg-surface-400'
+  return null
+})
 </script>

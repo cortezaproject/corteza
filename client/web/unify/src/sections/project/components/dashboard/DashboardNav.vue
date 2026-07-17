@@ -40,12 +40,14 @@
 <script setup>
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { DASHBOARD_NAV } from '@/sections/project/config/dashboard'
+import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
 const eventsStore = useEventsStore()
+const backlogStore = useBacklogItemsStore()
 
 const nav = DASHBOARD_NAV
 
@@ -87,11 +89,11 @@ function go(item) {
 }
 
 // Category items show a LIVE count from the events store; the backlog item
-// shows a live count of distinct backlog-tagged items (same store, cheap);
+// shows a live count of open backlog items (stores/backlogItems.js#openCount);
 // everything else keeps its static config badge (may be null → no pill).
 function badgeValue(item) {
   if (item.category) return eventsStore.countByCategory(item.category)
-  if (item.key === 'backlog') return eventsStore.backlogItemCount
+  if (item.key === 'backlog') return backlogStore.openCount
   return item.badge ?? null
 }
 

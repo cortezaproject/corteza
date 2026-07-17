@@ -32,6 +32,51 @@
       :submitted="submitted"
     />
 
+    <!-- Backlog items linked to this record — see stores/backlogItems.js.
+         Remove-only + a quick-add (title-only, unassigned/Medium/Open); full
+         edit (priority/assignee/status/due) happens from the Backlog page
+         itself. -->
+    <template v-if="cfg">
+      <Divider />
+      <div class="flex flex-col gap-2">
+        <span class="text-sm font-medium text-color">
+          {{ $t('project.dashboard.backlog.section.title', { count: backlogItems.length }) }}
+        </span>
+        <CFormItemList
+          :items="backlogItems"
+          :remove-label="$t('general.label.remove')"
+          :hide-remove="saving || deleting"
+          @remove="onBacklogRemove"
+        >
+          <template #default="{ item }">
+            <CFormItemContent :title="item.title" :subtitle="item.assignee" />
+          </template>
+          <template #actions="{ item }">
+            <EventBadge :value="item.priority" variant="priority" />
+          </template>
+        </CFormItemList>
+        <div class="flex items-center gap-2">
+          <InputText
+            v-model="newBacklogTitle"
+            :placeholder="$t('project.dashboard.backlog.quickAdd.placeholder')"
+            :disabled="saving || deleting"
+            size="small"
+            fluid
+            @keyup.enter="onBacklogQuickAdd"
+          />
+          <Button
+            icon="pi pi-plus"
+            :label="$t('general.label.add')"
+            severity="secondary"
+            outlined
+            size="small"
+            :disabled="saving || deleting || !newBacklogTitle.trim()"
+            @click="onBacklogQuickAdd"
+          />
+        </div>
+      </div>
+    </template>
+
     <template #footer>
       <Button
         :label="$t('general.label.delete')"
@@ -66,19 +111,21 @@
 
 <script setup>
 import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
+import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import GovernanceForm from '@/sections/project/components/wizard/GovernanceForm.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
+import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
   category: { type: String, required: true },
   // The clicked row (a store-mapped event: resolved owner names plus raw
-  // `<key>Id` companions, backlog as an array, and every other field as the
-  // raw record value) — null until a row is clicked.
+  // `<key>Id` companions, and every other field as the raw record value) —
+  // null until a row is clicked.
   record: { type: Object, default: null },
   // [{ label, value }] used to populate fields flagged `source: 'users'`.
   userOptions: { type: Array, default: () => [] },
@@ -89,6 +136,9 @@ const props = defineProps({
   onDelete: { type: Function, required: true },
 })
 const emit = defineEmits(['update:visible', 'saved', 'deleted'])
+
+const $toast = inject('$toast')
+const backlogStore = useBacklogItemsStore()
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
@@ -131,10 +181,6 @@ function buildModel() {
       }
     }
   }
-  // Backlog isn't editable via this form, but the update call still expects it
-  // — carry the record's current value through untouched so saving never
-  // silently clears it.
-  m.backlog = r?.backlog ?? []
   return m
 }
 
@@ -157,11 +203,53 @@ const fieldErrors = computed(() => {
 
 const isValid = computed(() => Object.keys(fieldErrors.value).length === 0)
 
+// --- Backlog items -----------------------------------------------------------
+// Items linked to this record — see stores/backlogItems.js#byEvent.
+const backlogItems = computed(() =>
+  props.record ? backlogStore.byEvent(props.category, props.record.id) : [],
+)
+
+const newBacklogTitle = ref('')
+
+async function onBacklogQuickAdd() {
+  const title = newBacklogTitle.value.trim()
+  if (!title || !props.record) return
+  try {
+    await backlogStore.add({
+      category: props.category,
+      eventID: props.record.id,
+      title,
+      priority: 'Medium',
+      status: 'Open',
+    })
+    newBacklogTitle.value = ''
+  } catch (err) {
+    $toast.toastErrorHandler(t('project.dashboard.backlog.toast.createFailed'))(err)
+  }
+}
+
+function onBacklogRemove(item) {
+  confirmDelete({
+    header: t('project.dashboard.backlog.confirmDelete.header'),
+    message: t('project.dashboard.backlog.confirmDelete.message', {
+      name: item.title || t('project.dashboard.backlog.untitled'),
+    }),
+    onConfirm: async () => {
+      try {
+        await backlogStore.remove(item.id)
+      } catch (err) {
+        $toast.toastErrorHandler(t('project.dashboard.backlog.toast.deleteFailed'))(err)
+      }
+    },
+  })
+}
+
 watch(
   () => props.visible,
   v => {
     if (v) {
       model.value = buildModel()
+      newBacklogTitle.value = ''
       submitted.value = false
     }
   },

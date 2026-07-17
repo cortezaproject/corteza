@@ -18,7 +18,7 @@ const cat = key => EVENT_CATEGORIES.find(c => c.key === key)
 // (its Category column is dropped — it's implied by the page). `kind` tells
 // CategoryView how to render the cell:
 //   id -> muted mono · title -> title + description · type -> neutral tag ·
-//   severity/risk -> level badge · status -> status tag · backlog -> BL pills ·
+//   severity/risk -> level badge · status -> status tag ·
 //   date -> localized date · (undefined) -> plain text (owner names).
 // Header labels reuse the shared event field labels (event.f.*) where they
 // exist, plus a few new dashboard.columns.* keys.
@@ -35,7 +35,6 @@ const richColumns = (typeKey, ownerKey) => [
   col('risk', 'project.dashboard.columns.risk', 'risk'),
   col(ownerKey, `${f}${ownerKey}`, 'user'),
   col('changeOwner', `${f}changeOwner`, 'user'),
-  col('backlog', 'project.dashboard.columns.backlog', 'backlog'),
   col('changeApprovedBy', `${f}changeApprovedBy`, 'user'),
   col('dateDue', `${f}dateDue`, 'date'),
 ]
@@ -54,7 +53,6 @@ const COLUMNS = {
     col('risk', 'project.dashboard.columns.risk', 'risk'),
     col('owner', `${f}owner`, 'user'),
     col('changeOwner', `${f}changeOwner`, 'user'),
-    col('backlog', 'project.dashboard.columns.backlog', 'backlog'),
     col('dateDue', `${f}dateDue`, 'date'),
   ],
   review: [
