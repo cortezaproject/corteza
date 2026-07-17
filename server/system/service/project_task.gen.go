@@ -170,7 +170,6 @@ func (svc *projectTask) Update(ctx context.Context, upd *types.ProjectTask) (res
 		res.Risk = upd.Risk
 		res.Owner = upd.Owner
 		res.ChangeOwner = upd.ChangeOwner
-		res.Backlog = upd.Backlog
 		res.DateDue = upd.DateDue
 		res.CompletedDate = upd.CompletedDate
 		res.UpdatedAt = now()

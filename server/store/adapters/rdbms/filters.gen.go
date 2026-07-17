@@ -174,6 +174,9 @@ type (
 		// optional project filter function called after the generated function
 		Project func(*Store, systemType.ProjectFilter) ([]goqu.Expression, systemType.ProjectFilter, error)
 
+		// optional projectBacklogItem filter function called after the generated function
+		ProjectBacklogItem func(*Store, systemType.ProjectBacklogItemFilter) ([]goqu.Expression, systemType.ProjectBacklogItemFilter, error)
+
 		// optional projectFeature filter function called after the generated function
 		ProjectFeature func(*Store, systemType.ProjectFeatureFilter) ([]goqu.Expression, systemType.ProjectFeatureFilter, error)
 
@@ -1719,6 +1722,44 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 	if f.Query != "" {
 		ee = append(ee, goqu.Or(
 			goqu.C("handle").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ProjectBacklogItemFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectBacklogItems() and can be extended
+// by setting Store.Filters.ProjectBacklogItem. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectBacklogItemFilter(d drivers.Dialect, f systemType.ProjectBacklogItemFilter) (ee []goqu.Expression, _ systemType.ProjectBacklogItemFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if f.EventID > 0 {
+		ee = append(ee, goqu.C("event_id").Eq(f.EventID))
+	}
+
+	if val := strings.TrimSpace(f.Category); len(val) > 0 {
+		ee = append(ee, goqu.C("category").Eq(f.Category))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("title").ILike("%"+f.Query+"%"),
 		))
 	}
 

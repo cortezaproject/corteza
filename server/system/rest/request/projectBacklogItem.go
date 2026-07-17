@@ -33,7 +33,7 @@ var (
 
 type (
 	// Internal API interface
-	ProjectTaskList struct {
+	ProjectBacklogItemList struct {
 		// Query GET parameter
 		//
 		// Search query
@@ -43,6 +43,16 @@ type (
 		//
 		// Filter by project ID
 		ProjectID uint64 `json:",string"`
+
+		// EventID GET parameter
+		//
+		// Filter by parent category item ID
+		EventID uint64 `json:",string"`
+
+		// Category GET parameter
+		//
+		// Filter by category
+		Category string
 
 		// Status GET parameter
 		//
@@ -70,10 +80,10 @@ type (
 		Sort string
 	}
 
-	ProjectTaskCreate struct {
+	ProjectBacklogItemCreate struct {
 		// ProjectID POST parameter
 		//
-		// Project this task belongs to
+		// Project this backlog item belongs to
 		ProjectID uint64 `json:",string"`
 
 		// Title POST parameter
@@ -86,64 +96,49 @@ type (
 		// Description
 		Description string
 
-		// TaskName POST parameter
+		// Category POST parameter
 		//
-		// Task name
-		TaskName string
+		// Parent category (incident|task|feature|privacy|review)
+		Category string
 
-		// TaskType POST parameter
+		// EventID POST parameter
 		//
-		// Task type
-		TaskType string
+		// Parent category item ID
+		EventID uint64 `json:",string"`
+
+		// Assignee POST parameter
+		//
+		// Assignee user ID
+		Assignee uint64 `json:",string"`
+
+		// Priority POST parameter
+		//
+		// Priority
+		Priority string
 
 		// Status POST parameter
 		//
 		// Status
 		Status string
 
-		// Severity POST parameter
-		//
-		// Severity
-		Severity string
-
-		// Risk POST parameter
-		//
-		// Risk
-		Risk string
-
-		// Owner POST parameter
-		//
-		// Owner user ID
-		Owner uint64 `json:",string"`
-
-		// ChangeOwner POST parameter
-		//
-		// Change owner user ID
-		ChangeOwner uint64 `json:",string"`
-
 		// DateDue POST parameter
 		//
 		// Due date (ISO)
 		DateDue string
-
-		// CompletedDate POST parameter
-		//
-		// Completed date (ISO)
-		CompletedDate string
 	}
 
-	ProjectTaskRead struct {
-		// TaskID PATH parameter
+	ProjectBacklogItemRead struct {
+		// BacklogItemID PATH parameter
 		//
-		// Task ID
-		TaskID uint64 `json:",string"`
+		// Backlog item ID
+		BacklogItemID uint64 `json:",string"`
 	}
 
-	ProjectTaskUpdate struct {
-		// TaskID PATH parameter
+	ProjectBacklogItemUpdate struct {
+		// BacklogItemID PATH parameter
 		//
-		// Task ID
-		TaskID uint64 `json:",string"`
+		// Backlog item ID
+		BacklogItemID uint64 `json:",string"`
 
 		// Title POST parameter
 		//
@@ -155,70 +150,57 @@ type (
 		// Description
 		Description string
 
-		// TaskName POST parameter
+		// Category POST parameter
 		//
-		// Task name
-		TaskName string
+		// Parent category (incident|task|feature|privacy|review)
+		Category string
 
-		// TaskType POST parameter
+		// EventID POST parameter
 		//
-		// Task type
-		TaskType string
+		// Parent category item ID
+		EventID uint64 `json:",string"`
+
+		// Assignee POST parameter
+		//
+		// Assignee user ID
+		Assignee uint64 `json:",string"`
+
+		// Priority POST parameter
+		//
+		// Priority
+		Priority string
 
 		// Status POST parameter
 		//
 		// Status
 		Status string
 
-		// Severity POST parameter
-		//
-		// Severity
-		Severity string
-
-		// Risk POST parameter
-		//
-		// Risk
-		Risk string
-
-		// Owner POST parameter
-		//
-		// Owner user ID
-		Owner uint64 `json:",string"`
-
-		// ChangeOwner POST parameter
-		//
-		// Change owner user ID
-		ChangeOwner uint64 `json:",string"`
-
 		// DateDue POST parameter
 		//
 		// Due date (ISO)
 		DateDue string
-
-		// CompletedDate POST parameter
-		//
-		// Completed date (ISO)
-		CompletedDate string
 	}
 
-	ProjectTaskDelete struct {
-		// TaskID PATH parameter
+	ProjectBacklogItemDelete struct {
+		// BacklogItemID PATH parameter
 		//
-		// Task ID
-		TaskID uint64 `json:",string"`
+		// Backlog item ID
+		BacklogItemID uint64 `json:",string"`
 	}
 )
 
-// NewProjectTaskList request
-func NewProjectTaskList() *ProjectTaskList {
-	return &ProjectTaskList{}
+// NewProjectBacklogItemList request
+func NewProjectBacklogItemList() *ProjectBacklogItemList {
+	return &ProjectBacklogItemList{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) Auditable() map[string]interface{} {
+func (r ProjectBacklogItemList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
 		"projectID":  r.ProjectID,
+		"eventID":    r.EventID,
+		"category":   r.Category,
 		"status":     r.Status,
 		"limit":      r.Limit,
 		"incTotal":   r.IncTotal,
@@ -228,42 +210,52 @@ func (r ProjectTaskList) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) GetQuery() string {
+func (r ProjectBacklogItemList) GetQuery() string {
 	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) GetProjectID() uint64 {
+func (r ProjectBacklogItemList) GetProjectID() uint64 {
 	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) GetStatus() string {
+func (r ProjectBacklogItemList) GetEventID() uint64 {
+	return r.EventID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectBacklogItemList) GetCategory() string {
+	return r.Category
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectBacklogItemList) GetStatus() string {
 	return r.Status
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) GetLimit() uint {
+func (r ProjectBacklogItemList) GetLimit() uint {
 	return r.Limit
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) GetIncTotal() bool {
+func (r ProjectBacklogItemList) GetIncTotal() bool {
 	return r.IncTotal
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) GetPageCursor() string {
+func (r ProjectBacklogItemList) GetPageCursor() string {
 	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskList) GetSort() string {
+func (r ProjectBacklogItemList) GetSort() string {
 	return r.Sort
 }
 
 // Fill processes request and fills internal variables
-func (r *ProjectTaskList) Fill(req *http.Request) (err error) {
+func (r *ProjectBacklogItemList) Fill(req *http.Request) (err error) {
 
 	{
 		// GET params
@@ -277,6 +269,18 @@ func (r *ProjectTaskList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
 			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["eventID"]; ok && len(val) > 0 {
+			r.EventID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["category"]; ok && len(val) > 0 {
+			r.Category, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -316,91 +320,73 @@ func (r *ProjectTaskList) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewProjectTaskCreate request
-func NewProjectTaskCreate() *ProjectTaskCreate {
-	return &ProjectTaskCreate{}
+// NewProjectBacklogItemCreate request
+func NewProjectBacklogItemCreate() *ProjectBacklogItemCreate {
+	return &ProjectBacklogItemCreate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) Auditable() map[string]interface{} {
+func (r ProjectBacklogItemCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"projectID":     r.ProjectID,
-		"title":         r.Title,
-		"description":   r.Description,
-		"taskName":      r.TaskName,
-		"taskType":      r.TaskType,
-		"status":        r.Status,
-		"severity":      r.Severity,
-		"risk":          r.Risk,
-		"owner":         r.Owner,
-		"changeOwner":   r.ChangeOwner,
-		"dateDue":       r.DateDue,
-		"completedDate": r.CompletedDate,
+		"projectID":   r.ProjectID,
+		"title":       r.Title,
+		"description": r.Description,
+		"category":    r.Category,
+		"eventID":     r.EventID,
+		"assignee":    r.Assignee,
+		"priority":    r.Priority,
+		"status":      r.Status,
+		"dateDue":     r.DateDue,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetProjectID() uint64 {
+func (r ProjectBacklogItemCreate) GetProjectID() uint64 {
 	return r.ProjectID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetTitle() string {
+func (r ProjectBacklogItemCreate) GetTitle() string {
 	return r.Title
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetDescription() string {
+func (r ProjectBacklogItemCreate) GetDescription() string {
 	return r.Description
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetTaskName() string {
-	return r.TaskName
+func (r ProjectBacklogItemCreate) GetCategory() string {
+	return r.Category
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetTaskType() string {
-	return r.TaskType
+func (r ProjectBacklogItemCreate) GetEventID() uint64 {
+	return r.EventID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetStatus() string {
+func (r ProjectBacklogItemCreate) GetAssignee() uint64 {
+	return r.Assignee
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectBacklogItemCreate) GetPriority() string {
+	return r.Priority
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectBacklogItemCreate) GetStatus() string {
 	return r.Status
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetSeverity() string {
-	return r.Severity
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetRisk() string {
-	return r.Risk
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetOwner() uint64 {
-	return r.Owner
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetChangeOwner() uint64 {
-	return r.ChangeOwner
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetDateDue() string {
+func (r ProjectBacklogItemCreate) GetDateDue() string {
 	return r.DateDue
 }
 
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskCreate) GetCompletedDate() string {
-	return r.CompletedDate
-}
-
 // Fill processes request and fills internal variables
-func (r *ProjectTaskCreate) Fill(req *http.Request) (err error) {
+func (r *ProjectBacklogItemCreate) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -441,15 +427,29 @@ func (r *ProjectTaskCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["taskName"]; ok && len(val) > 0 {
-				r.TaskName, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["category"]; ok && len(val) > 0 {
+				r.Category, err = val[0], nil
 				if err != nil {
 					return err
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["taskType"]; ok && len(val) > 0 {
-				r.TaskType, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["eventID"]; ok && len(val) > 0 {
+				r.EventID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["assignee"]; ok && len(val) > 0 {
+				r.Assignee, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["priority"]; ok && len(val) > 0 {
+				r.Priority, err = val[0], nil
 				if err != nil {
 					return err
 				}
@@ -462,43 +462,8 @@ func (r *ProjectTaskCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["severity"]; ok && len(val) > 0 {
-				r.Severity, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["risk"]; ok && len(val) > 0 {
-				r.Risk, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["owner"]; ok && len(val) > 0 {
-				r.Owner, err = payload.ParseUint64(val[0]), nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["changeOwner"]; ok && len(val) > 0 {
-				r.ChangeOwner, err = payload.ParseUint64(val[0]), nil
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["dateDue"]; ok && len(val) > 0 {
 				r.DateDue, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["completedDate"]; ok && len(val) > 0 {
-				r.CompletedDate, err = val[0], nil
 				if err != nil {
 					return err
 				}
@@ -534,15 +499,29 @@ func (r *ProjectTaskCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["taskName"]; ok && len(val) > 0 {
-			r.TaskName, err = val[0], nil
+		if val, ok := req.Form["category"]; ok && len(val) > 0 {
+			r.Category, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["taskType"]; ok && len(val) > 0 {
-			r.TaskType, err = val[0], nil
+		if val, ok := req.Form["eventID"]; ok && len(val) > 0 {
+			r.EventID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["assignee"]; ok && len(val) > 0 {
+			r.Assignee, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["priority"]; ok && len(val) > 0 {
+			r.Priority, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -555,43 +534,8 @@ func (r *ProjectTaskCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["severity"]; ok && len(val) > 0 {
-			r.Severity, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["risk"]; ok && len(val) > 0 {
-			r.Risk, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["owner"]; ok && len(val) > 0 {
-			r.Owner, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["changeOwner"]; ok && len(val) > 0 {
-			r.ChangeOwner, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["dateDue"]; ok && len(val) > 0 {
 			r.DateDue, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["completedDate"]; ok && len(val) > 0 {
-			r.CompletedDate, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -601,32 +545,32 @@ func (r *ProjectTaskCreate) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewProjectTaskRead request
-func NewProjectTaskRead() *ProjectTaskRead {
-	return &ProjectTaskRead{}
+// NewProjectBacklogItemRead request
+func NewProjectBacklogItemRead() *ProjectBacklogItemRead {
+	return &ProjectBacklogItemRead{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskRead) Auditable() map[string]interface{} {
+func (r ProjectBacklogItemRead) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"taskID": r.TaskID,
+		"backlogItemID": r.BacklogItemID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskRead) GetTaskID() uint64 {
-	return r.TaskID
+func (r ProjectBacklogItemRead) GetBacklogItemID() uint64 {
+	return r.BacklogItemID
 }
 
 // Fill processes request and fills internal variables
-func (r *ProjectTaskRead) Fill(req *http.Request) (err error) {
+func (r *ProjectBacklogItemRead) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
 		// path params
 
-		val = chi.URLParam(req, "taskID")
-		r.TaskID, err = payload.ParseUint64(val), nil
+		val = chi.URLParam(req, "backlogItemID")
+		r.BacklogItemID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
@@ -636,91 +580,73 @@ func (r *ProjectTaskRead) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewProjectTaskUpdate request
-func NewProjectTaskUpdate() *ProjectTaskUpdate {
-	return &ProjectTaskUpdate{}
+// NewProjectBacklogItemUpdate request
+func NewProjectBacklogItemUpdate() *ProjectBacklogItemUpdate {
+	return &ProjectBacklogItemUpdate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) Auditable() map[string]interface{} {
+func (r ProjectBacklogItemUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"taskID":        r.TaskID,
+		"backlogItemID": r.BacklogItemID,
 		"title":         r.Title,
 		"description":   r.Description,
-		"taskName":      r.TaskName,
-		"taskType":      r.TaskType,
+		"category":      r.Category,
+		"eventID":       r.EventID,
+		"assignee":      r.Assignee,
+		"priority":      r.Priority,
 		"status":        r.Status,
-		"severity":      r.Severity,
-		"risk":          r.Risk,
-		"owner":         r.Owner,
-		"changeOwner":   r.ChangeOwner,
 		"dateDue":       r.DateDue,
-		"completedDate": r.CompletedDate,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetTaskID() uint64 {
-	return r.TaskID
+func (r ProjectBacklogItemUpdate) GetBacklogItemID() uint64 {
+	return r.BacklogItemID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetTitle() string {
+func (r ProjectBacklogItemUpdate) GetTitle() string {
 	return r.Title
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetDescription() string {
+func (r ProjectBacklogItemUpdate) GetDescription() string {
 	return r.Description
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetTaskName() string {
-	return r.TaskName
+func (r ProjectBacklogItemUpdate) GetCategory() string {
+	return r.Category
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetTaskType() string {
-	return r.TaskType
+func (r ProjectBacklogItemUpdate) GetEventID() uint64 {
+	return r.EventID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetStatus() string {
+func (r ProjectBacklogItemUpdate) GetAssignee() uint64 {
+	return r.Assignee
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectBacklogItemUpdate) GetPriority() string {
+	return r.Priority
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectBacklogItemUpdate) GetStatus() string {
 	return r.Status
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetSeverity() string {
-	return r.Severity
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetRisk() string {
-	return r.Risk
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetOwner() uint64 {
-	return r.Owner
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetChangeOwner() uint64 {
-	return r.ChangeOwner
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetDateDue() string {
+func (r ProjectBacklogItemUpdate) GetDateDue() string {
 	return r.DateDue
 }
 
-// Auditable returns all auditable/loggable parameters
-func (r ProjectTaskUpdate) GetCompletedDate() string {
-	return r.CompletedDate
-}
-
 // Fill processes request and fills internal variables
-func (r *ProjectTaskUpdate) Fill(req *http.Request) (err error) {
+func (r *ProjectBacklogItemUpdate) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -754,15 +680,29 @@ func (r *ProjectTaskUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["taskName"]; ok && len(val) > 0 {
-				r.TaskName, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["category"]; ok && len(val) > 0 {
+				r.Category, err = val[0], nil
 				if err != nil {
 					return err
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["taskType"]; ok && len(val) > 0 {
-				r.TaskType, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["eventID"]; ok && len(val) > 0 {
+				r.EventID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["assignee"]; ok && len(val) > 0 {
+				r.Assignee, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["priority"]; ok && len(val) > 0 {
+				r.Priority, err = val[0], nil
 				if err != nil {
 					return err
 				}
@@ -775,43 +715,8 @@ func (r *ProjectTaskUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["severity"]; ok && len(val) > 0 {
-				r.Severity, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["risk"]; ok && len(val) > 0 {
-				r.Risk, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["owner"]; ok && len(val) > 0 {
-				r.Owner, err = payload.ParseUint64(val[0]), nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["changeOwner"]; ok && len(val) > 0 {
-				r.ChangeOwner, err = payload.ParseUint64(val[0]), nil
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["dateDue"]; ok && len(val) > 0 {
 				r.DateDue, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["completedDate"]; ok && len(val) > 0 {
-				r.CompletedDate, err = val[0], nil
 				if err != nil {
 					return err
 				}
@@ -840,15 +745,29 @@ func (r *ProjectTaskUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["taskName"]; ok && len(val) > 0 {
-			r.TaskName, err = val[0], nil
+		if val, ok := req.Form["category"]; ok && len(val) > 0 {
+			r.Category, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["taskType"]; ok && len(val) > 0 {
-			r.TaskType, err = val[0], nil
+		if val, ok := req.Form["eventID"]; ok && len(val) > 0 {
+			r.EventID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["assignee"]; ok && len(val) > 0 {
+			r.Assignee, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["priority"]; ok && len(val) > 0 {
+			r.Priority, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -861,43 +780,8 @@ func (r *ProjectTaskUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["severity"]; ok && len(val) > 0 {
-			r.Severity, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["risk"]; ok && len(val) > 0 {
-			r.Risk, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["owner"]; ok && len(val) > 0 {
-			r.Owner, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["changeOwner"]; ok && len(val) > 0 {
-			r.ChangeOwner, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["dateDue"]; ok && len(val) > 0 {
 			r.DateDue, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["completedDate"]; ok && len(val) > 0 {
-			r.CompletedDate, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -908,8 +792,8 @@ func (r *ProjectTaskUpdate) Fill(req *http.Request) (err error) {
 		var val string
 		// path params
 
-		val = chi.URLParam(req, "taskID")
-		r.TaskID, err = payload.ParseUint64(val), nil
+		val = chi.URLParam(req, "backlogItemID")
+		r.BacklogItemID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
@@ -919,32 +803,32 @@ func (r *ProjectTaskUpdate) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewProjectTaskDelete request
-func NewProjectTaskDelete() *ProjectTaskDelete {
-	return &ProjectTaskDelete{}
+// NewProjectBacklogItemDelete request
+func NewProjectBacklogItemDelete() *ProjectBacklogItemDelete {
+	return &ProjectBacklogItemDelete{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskDelete) Auditable() map[string]interface{} {
+func (r ProjectBacklogItemDelete) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"taskID": r.TaskID,
+		"backlogItemID": r.BacklogItemID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ProjectTaskDelete) GetTaskID() uint64 {
-	return r.TaskID
+func (r ProjectBacklogItemDelete) GetBacklogItemID() uint64 {
+	return r.BacklogItemID
 }
 
 // Fill processes request and fills internal variables
-func (r *ProjectTaskDelete) Fill(req *http.Request) (err error) {
+func (r *ProjectBacklogItemDelete) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
 		// path params
 
-		val = chi.URLParam(req, "taskID")
-		r.TaskID, err = payload.ParseUint64(val), nil
+		val = chi.URLParam(req, "backlogItemID")
+		r.BacklogItemID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

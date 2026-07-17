@@ -3892,6 +3892,162 @@ var Project = &dal.Model{
 	},
 }
 
+var ProjectBacklogItem = &dal.Model{
+	Ident:        "project_backlog_items",
+	ResourceType: types.ProjectBacklogItemResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title", Sortable: true,
+			Type:  &dal.TypeText{Length: 255},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "Category", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "category"},
+		},
+
+		&dal.Attribute{
+			Ident: "EventID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "event_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Assignee",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "assignee"},
+		},
+
+		&dal.Attribute{
+			Ident: "Priority",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "priority"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "DateDue",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "date_due"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
 var ProjectFeature = &dal.Model{
 	Ident:        "project_features",
 	ResourceType: types.ProjectFeatureResourceType,
@@ -4004,12 +4160,6 @@ var ProjectFeature = &dal.Model{
 			Ident: "RiskChange",
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "risk_change"},
-		},
-
-		&dal.Attribute{
-			Ident: "Backlog",
-			Type:  &dal.TypeText{},
-			Store: &dal.CodecAlias{Ident: "backlog"},
 		},
 
 		&dal.Attribute{
@@ -4355,12 +4505,6 @@ var ProjectIncident = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Backlog",
-			Type:  &dal.TypeText{},
-			Store: &dal.CodecAlias{Ident: "backlog"},
-		},
-
-		&dal.Attribute{
 			Ident: "DateDue",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "date_due"},
@@ -4656,12 +4800,6 @@ var ProjectPrivacy = &dal.Model{
 			Ident: "RiskChange",
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "risk_change"},
-		},
-
-		&dal.Attribute{
-			Ident: "Backlog",
-			Type:  &dal.TypeText{},
-			Store: &dal.CodecAlias{Ident: "backlog"},
 		},
 
 		&dal.Attribute{
@@ -4998,12 +5136,6 @@ var ProjectTask = &dal.Model{
 				},
 			},
 			Store: &dal.CodecAlias{Ident: "change_owner"},
-		},
-
-		&dal.Attribute{
-			Ident: "Backlog",
-			Type:  &dal.TypeText{},
-			Store: &dal.CodecAlias{Ident: "backlog"},
 		},
 
 		&dal.Attribute{
@@ -6605,6 +6737,7 @@ func init() {
 		LlmProvider,
 		Notification,
 		Project,
+		ProjectBacklogItem,
 		ProjectFeature,
 		ProjectGroup,
 		ProjectGroupEntry,

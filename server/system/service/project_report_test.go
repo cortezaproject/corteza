@@ -52,6 +52,14 @@ func TestNormalizeProjectReport(t *testing.T) {
 		rr := &types.ProjectReportRequest{Resource: "review", Dimensions: []string{"severity"}}
 		require.ErrorContains(t, normalizeProjectReport(rr, projectReportSources["review"]), `unknown report dimension "severity"`)
 	})
+
+	t.Run("backlog-item supports priority/category, rejects severity", func(t *testing.T) {
+		rr := &types.ProjectReportRequest{Resource: "backlog-item", Dimensions: []string{"priority", "category"}}
+		require.NoError(t, normalizeProjectReport(rr, projectReportSources["backlog-item"]))
+
+		rr = &types.ProjectReportRequest{Resource: "backlog-item", Dimensions: []string{"severity"}}
+		require.ErrorContains(t, normalizeProjectReport(rr, projectReportSources["backlog-item"]), `unknown report dimension "severity"`)
+	})
 }
 
 func TestAggregateProjectReport(t *testing.T) {

@@ -165,6 +165,7 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.ProjectPrivacyRbacResource(0)),
 		rbac.NewResource(types.ProjectTaskRbacResource(0)),
 		rbac.NewResource(types.ProjectReviewRbacResource(0)),
+		rbac.NewResource(types.ProjectBacklogItemRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -715,6 +716,21 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.ProjectBacklogItemResourceType,
+			"any":  types.ProjectBacklogItemRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectBacklogItemResourceType,
+			"any":  types.ProjectBacklogItemRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectBacklogItemResourceType,
+			"any":  types.ProjectBacklogItemRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -968,6 +984,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "project-reviews.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-backlog-item.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-backlog-items.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -1907,6 +1933,27 @@ func (svc accessControl) CanDeleteProjectReview(ctx context.Context, r *types.Pr
 	return svc.can(ctx, "delete", r)
 }
 
+// CanReadProjectBacklogItem checks if current user can read project backlog item
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProjectBacklogItem(ctx context.Context, r *types.ProjectBacklogItem) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProjectBacklogItem checks if current user can update project backlog item
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProjectBacklogItem(ctx context.Context, r *types.ProjectBacklogItem) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProjectBacklogItem checks if current user can delete project backlog item
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProjectBacklogItem(ctx context.Context, r *types.ProjectBacklogItem) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -2315,6 +2362,22 @@ func (svc accessControl) CanSearchProjectReviews(ctx context.Context) bool {
 	return svc.can(ctx, "project-reviews.search", r)
 }
 
+// CanCreateProjectBacklogItem checks if current user can create project backlog items
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProjectBacklogItem(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-backlog-item.create", r)
+}
+
+// CanSearchProjectBacklogItems checks if current user can list, search or filter project backlog items
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjectBacklogItems(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-backlog-items.search", r)
+}
+
 // CanCreateAiConversation checks if current user can create ai conversations
 //
 // This function is auto-generated
@@ -2522,6 +2585,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacProjectTaskResourceValidator(r, oo...)
 	case types.ProjectReviewResourceType:
 		return rbacProjectReviewResourceValidator(r, oo...)
+	case types.ProjectBacklogItemResourceType:
+		return rbacProjectBacklogItemResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -2723,6 +2788,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadProjectReview(ctx, svc.store, ids[0])
+	case types.ProjectBacklogItemResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectBacklogItemRbacResource(ids[0])), nil
+		}
+
+		return loadProjectBacklogItem(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -2931,6 +3002,12 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
+	case types.ProjectBacklogItemResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                           true,
@@ -2984,6 +3061,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"project-tasks.search":            true,
 			"project-review.create":           true,
 			"project-reviews.search":          true,
+			"project-backlog-item.create":     true,
+			"project-backlog-items.search":    true,
 			"ai-conversation.create":          true,
 			"ai-conversations.search":         true,
 			"knowledge-base.create":           true,
@@ -4303,6 +4382,51 @@ func rbacProjectReviewResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for projectReview resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectBacklogItemResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectBacklogItemResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectBacklogItemResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for projectBacklogItem resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectBacklogItemResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for projectBacklogItem resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

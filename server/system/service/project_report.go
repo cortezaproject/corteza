@@ -26,11 +26,12 @@ const projectReportPageSize = 1000
 
 type (
 	projectReport struct {
-		incident projectReportIncidentSearcher
-		task     projectReportTaskSearcher
-		feature  projectReportFeatureSearcher
-		privacy  projectReportPrivacySearcher
-		review   projectReportReviewSearcher
+		incident    projectReportIncidentSearcher
+		task        projectReportTaskSearcher
+		feature     projectReportFeatureSearcher
+		privacy     projectReportPrivacySearcher
+		review      projectReportReviewSearcher
+		backlogItem projectReportBacklogItemSearcher
 	}
 
 	projectReportIncidentSearcher interface {
@@ -47,6 +48,9 @@ type (
 	}
 	projectReportReviewSearcher interface {
 		Search(context.Context, types.ProjectReviewFilter) (types.ProjectReviewSet, types.ProjectReviewFilter, error)
+	}
+	projectReportBacklogItemSearcher interface {
+		Search(context.Context, types.ProjectBacklogItemFilter) (types.ProjectBacklogItemSet, types.ProjectBacklogItemFilter, error)
 	}
 
 	// reportSample is the neutral projected form the aggregator groups over:
@@ -246,15 +250,39 @@ var projectReportSources = map[string]projectReportSource{
 			)
 		},
 	},
+	"backlog-item": {
+		// backlog items are sub-issues linked to a category item; they carry
+		// priority + category instead of severity/risk/type.
+		dimensions: map[string]bool{"status": true, "priority": true, "category": true, "day": true},
+		metrics:    projectReportMetrics,
+		load: func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error) {
+			return collectReportSamples(
+				func(cursor *filter.PagingCursor) (types.ProjectBacklogItemSet, *filter.PagingCursor, error) {
+					set, f, err := svc.backlogItem.Search(ctx, types.ProjectBacklogItemFilter{
+						ProjectID: projectID,
+						Sorting:   reportSorting(),
+						Paging:    reportPaging(cursor),
+					})
+					return set, f.NextPage, err
+				},
+				func(r *types.ProjectBacklogItem) reportSample {
+					return reportSample{createdAt: r.CreatedAt, dateDue: r.DateDue, dims: map[string]any{
+						"status": r.Status, "priority": r.Priority, "category": r.Category,
+					}}
+				},
+			)
+		},
+	},
 }
 
 func ProjectReport() *projectReport {
 	return &projectReport{
-		incident: DefaultProjectIncident,
-		task:     DefaultProjectTask,
-		feature:  DefaultProjectFeature,
-		privacy:  DefaultProjectPrivacy,
-		review:   DefaultProjectReview,
+		incident:    DefaultProjectIncident,
+		task:        DefaultProjectTask,
+		feature:     DefaultProjectFeature,
+		privacy:     DefaultProjectPrivacy,
+		review:      DefaultProjectReview,
+		backlogItem: DefaultProjectBacklogItem,
 	}
 }
 

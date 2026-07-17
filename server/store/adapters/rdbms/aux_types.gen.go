@@ -835,6 +835,27 @@ type (
 		DeletedBy        uint64                       `db:"deleted_by"`
 	}
 
+	// auxProjectBacklogItem is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectBacklogItem struct {
+		ID          uint64     `db:"id"`
+		TenantID    uint64     `db:"tenant_id"`
+		ProjectID   uint64     `db:"project_id"`
+		Title       string     `db:"title"`
+		Description string     `db:"description"`
+		Category    string     `db:"category"`
+		EventID     uint64     `db:"event_id"`
+		Assignee    uint64     `db:"assignee"`
+		Priority    string     `db:"priority"`
+		Status      string     `db:"status"`
+		DateDue     string     `db:"date_due"`
+		CreatedAt   time.Time  `db:"created_at"`
+		UpdatedAt   *time.Time `db:"updated_at"`
+		DeletedAt   *time.Time `db:"deleted_at"`
+		CreatedBy   uint64     `db:"created_by"`
+		UpdatedBy   uint64     `db:"updated_by"`
+		DeletedBy   uint64     `db:"deleted_by"`
+	}
+
 	// auxProjectFeature is an auxiliary structure used for transporting to/from RDBMS store
 	auxProjectFeature struct {
 		ID               uint64     `db:"id"`
@@ -852,7 +873,6 @@ type (
 		RiskFeature      string     `db:"risk_feature"`
 		ChangeRequired   string     `db:"change_required"`
 		RiskChange       string     `db:"risk_change"`
-		Backlog          string     `db:"backlog"`
 		DateDue          string     `db:"date_due"`
 		CreatedAt        time.Time  `db:"created_at"`
 		UpdatedAt        *time.Time `db:"updated_at"`
@@ -899,7 +919,6 @@ type (
 		RiskIssue        string     `db:"risk_issue"`
 		ChangeRequired   string     `db:"change_required"`
 		RiskChange       string     `db:"risk_change"`
-		Backlog          string     `db:"backlog"`
 		DateDue          string     `db:"date_due"`
 		CompletedDate    string     `db:"completed_date"`
 		CreatedAt        time.Time  `db:"created_at"`
@@ -940,7 +959,6 @@ type (
 		RiskAssessment   string     `db:"risk_assessment"`
 		ChangeRequired   string     `db:"change_required"`
 		RiskChange       string     `db:"risk_change"`
-		Backlog          string     `db:"backlog"`
 		DateDue          string     `db:"date_due"`
 		CreatedAt        time.Time  `db:"created_at"`
 		UpdatedAt        *time.Time `db:"updated_at"`
@@ -986,7 +1004,6 @@ type (
 		Risk          string     `db:"risk"`
 		Owner         uint64     `db:"owner"`
 		ChangeOwner   uint64     `db:"change_owner"`
-		Backlog       string     `db:"backlog"`
 		DateDue       string     `db:"date_due"`
 		CompletedDate string     `db:"completed_date"`
 		CreatedAt     time.Time  `db:"created_at"`
@@ -4173,6 +4190,80 @@ func (aux *auxProject) scan(row scanner) error {
 	)
 }
 
+// encodes ProjectBacklogItem to auxProjectBacklogItem
+//
+// This function is auto-generated
+func (aux *auxProjectBacklogItem) encode(res *systemType.ProjectBacklogItem) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Title = res.Title
+	aux.Description = res.Description
+	aux.Category = res.Category
+	aux.EventID = res.EventID
+	aux.Assignee = res.Assignee
+	aux.Priority = res.Priority
+	aux.Status = res.Status
+	aux.DateDue = res.DateDue
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ProjectBacklogItem from auxProjectBacklogItem
+//
+// This function is auto-generated
+func (aux auxProjectBacklogItem) decode() (res *systemType.ProjectBacklogItem, _ error) {
+	res = new(systemType.ProjectBacklogItem)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Title = aux.Title
+	res.Description = aux.Description
+	res.Category = aux.Category
+	res.EventID = aux.EventID
+	res.Assignee = aux.Assignee
+	res.Priority = aux.Priority
+	res.Status = aux.Status
+	res.DateDue = aux.DateDue
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxProjectBacklogItem fields
+//
+// This function is auto-generated
+func (aux *auxProjectBacklogItem) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Title,
+		&aux.Description,
+		&aux.Category,
+		&aux.EventID,
+		&aux.Assignee,
+		&aux.Priority,
+		&aux.Status,
+		&aux.DateDue,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
 // encodes ProjectFeature to auxProjectFeature
 //
 // This function is auto-generated
@@ -4192,7 +4283,6 @@ func (aux *auxProjectFeature) encode(res *systemType.ProjectFeature) (_ error) {
 	aux.RiskFeature = res.RiskFeature
 	aux.ChangeRequired = res.ChangeRequired
 	aux.RiskChange = res.RiskChange
-	aux.Backlog = res.Backlog
 	aux.DateDue = res.DateDue
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
@@ -4223,7 +4313,6 @@ func (aux auxProjectFeature) decode() (res *systemType.ProjectFeature, _ error) 
 	res.RiskFeature = aux.RiskFeature
 	res.ChangeRequired = aux.ChangeRequired
 	res.RiskChange = aux.RiskChange
-	res.Backlog = aux.Backlog
 	res.DateDue = aux.DateDue
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
@@ -4254,7 +4343,6 @@ func (aux *auxProjectFeature) scan(row scanner) error {
 		&aux.RiskFeature,
 		&aux.ChangeRequired,
 		&aux.RiskChange,
-		&aux.Backlog,
 		&aux.DateDue,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
@@ -4364,7 +4452,6 @@ func (aux *auxProjectIncident) encode(res *systemType.ProjectIncident) (_ error)
 	aux.RiskIssue = res.RiskIssue
 	aux.ChangeRequired = res.ChangeRequired
 	aux.RiskChange = res.RiskChange
-	aux.Backlog = res.Backlog
 	aux.DateDue = res.DateDue
 	aux.CompletedDate = res.CompletedDate
 	aux.CreatedAt = res.CreatedAt
@@ -4397,7 +4484,6 @@ func (aux auxProjectIncident) decode() (res *systemType.ProjectIncident, _ error
 	res.RiskIssue = aux.RiskIssue
 	res.ChangeRequired = aux.ChangeRequired
 	res.RiskChange = aux.RiskChange
-	res.Backlog = aux.Backlog
 	res.DateDue = aux.DateDue
 	res.CompletedDate = aux.CompletedDate
 	res.CreatedAt = aux.CreatedAt
@@ -4430,7 +4516,6 @@ func (aux *auxProjectIncident) scan(row scanner) error {
 		&aux.RiskIssue,
 		&aux.ChangeRequired,
 		&aux.RiskChange,
-		&aux.Backlog,
 		&aux.DateDue,
 		&aux.CompletedDate,
 		&aux.CreatedAt,
@@ -4511,7 +4596,6 @@ func (aux *auxProjectPrivacy) encode(res *systemType.ProjectPrivacy) (_ error) {
 	aux.RiskAssessment = res.RiskAssessment
 	aux.ChangeRequired = res.ChangeRequired
 	aux.RiskChange = res.RiskChange
-	aux.Backlog = res.Backlog
 	aux.DateDue = res.DateDue
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
@@ -4542,7 +4626,6 @@ func (aux auxProjectPrivacy) decode() (res *systemType.ProjectPrivacy, _ error) 
 	res.RiskAssessment = aux.RiskAssessment
 	res.ChangeRequired = aux.ChangeRequired
 	res.RiskChange = aux.RiskChange
-	res.Backlog = aux.Backlog
 	res.DateDue = aux.DateDue
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
@@ -4573,7 +4656,6 @@ func (aux *auxProjectPrivacy) scan(row scanner) error {
 		&aux.RiskAssessment,
 		&aux.ChangeRequired,
 		&aux.RiskChange,
-		&aux.Backlog,
 		&aux.DateDue,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
@@ -4677,7 +4759,6 @@ func (aux *auxProjectTask) encode(res *systemType.ProjectTask) (_ error) {
 	aux.Risk = res.Risk
 	aux.Owner = res.Owner
 	aux.ChangeOwner = res.ChangeOwner
-	aux.Backlog = res.Backlog
 	aux.DateDue = res.DateDue
 	aux.CompletedDate = res.CompletedDate
 	aux.CreatedAt = res.CreatedAt
@@ -4706,7 +4787,6 @@ func (aux auxProjectTask) decode() (res *systemType.ProjectTask, _ error) {
 	res.Risk = aux.Risk
 	res.Owner = aux.Owner
 	res.ChangeOwner = aux.ChangeOwner
-	res.Backlog = aux.Backlog
 	res.DateDue = aux.DateDue
 	res.CompletedDate = aux.CompletedDate
 	res.CreatedAt = aux.CreatedAt
@@ -4735,7 +4815,6 @@ func (aux *auxProjectTask) scan(row scanner) error {
 		&aux.Risk,
 		&aux.Owner,
 		&aux.ChangeOwner,
-		&aux.Backlog,
 		&aux.DateDue,
 		&aux.CompletedDate,
 		&aux.CreatedAt,

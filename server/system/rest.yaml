@@ -3582,7 +3582,6 @@ endpoints:
             - { type: string, name: riskIssue, title: Risk/issue assessment }
             - { type: string, name: changeRequired, title: Change required }
             - { type: string, name: riskChange, title: Risk of change }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
             - { type: string, name: completedDate, title: Completed date (ISO) }
       - name: read
@@ -3613,7 +3612,6 @@ endpoints:
             - { type: string, name: riskIssue, title: Risk/issue assessment }
             - { type: string, name: changeRequired, title: Change required }
             - { type: string, name: riskChange, title: Risk of change }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
             - { type: string, name: completedDate, title: Completed date (ISO) }
       - name: delete
@@ -3661,7 +3659,6 @@ endpoints:
             - { type: string, name: riskFeature, title: Risk of feature }
             - { type: string, name: changeRequired, title: Change required }
             - { type: string, name: riskChange, title: Risk of change }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
       - name: read
         method: GET
@@ -3690,7 +3687,6 @@ endpoints:
             - { type: string, name: riskFeature, title: Risk of feature }
             - { type: string, name: changeRequired, title: Change required }
             - { type: string, name: riskChange, title: Risk of change }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
       - name: delete
         method: DELETE
@@ -3737,7 +3733,6 @@ endpoints:
             - { type: string, name: riskAssessment, title: Risk assessment }
             - { type: string, name: changeRequired, title: Change required }
             - { type: string, name: riskChange, title: Risk of change }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
       - name: read
         method: GET
@@ -3766,7 +3761,6 @@ endpoints:
             - { type: string, name: riskAssessment, title: Risk assessment }
             - { type: string, name: changeRequired, title: Change required }
             - { type: string, name: riskChange, title: Risk of change }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
       - name: delete
         method: DELETE
@@ -3810,7 +3804,6 @@ endpoints:
             - { type: string, name: risk, title: Risk }
             - { type: uint64, name: owner, title: Owner user ID }
             - { type: uint64, name: changeOwner, title: Change owner user ID }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
             - { type: string, name: completedDate, title: Completed date (ISO) }
       - name: read
@@ -3837,7 +3830,6 @@ endpoints:
             - { type: string, name: risk, title: Risk }
             - { type: uint64, name: owner, title: Owner user ID }
             - { type: uint64, name: changeOwner, title: Change owner user ID }
-            - { type: string, name: backlog, title: Backlog IDs (comma-separated) }
             - { type: string, name: dateDue, title: Due date (ISO) }
             - { type: string, name: completedDate, title: Completed date (ISO) }
       - name: delete
@@ -3913,6 +3905,72 @@ endpoints:
         parameters:
           path:
             - { type: uint64, name: reviewID, required: true, title: Review ID }
+  - title: Project Backlog Items
+    path: '/project-backlog-items'
+    entrypoint: projectBacklogItem
+    genController: true
+    authentication: []
+    apis:
+      - name: list
+        method: GET
+        title: List project backlog items
+        path: '/'
+        parameters:
+          get:
+            - { type: string, name: query, title: Search query }
+            - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: uint64, name: eventID, title: Filter by parent category item ID }
+            - { type: string, name: category, title: Filter by category }
+            - { type: string, name: status, title: Filter by status }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total counter }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort items }
+      - name: create
+        method: POST
+        title: Create project backlog item
+        path: ''
+        parameters:
+          post:
+            - { type: uint64, name: projectID, title: Project this backlog item belongs to }
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: category, title: Parent category (incident|task|feature|privacy|review) }
+            - { type: uint64, name: eventID, title: Parent category item ID }
+            - { type: uint64, name: assignee, title: Assignee user ID }
+            - { type: string, name: priority, title: Priority }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: read
+        method: GET
+        title: Read project backlog item details
+        path: '/{backlogItemID}'
+        parameters:
+          path:
+            - { type: uint64, name: backlogItemID, required: true, title: Backlog item ID }
+      - name: update
+        method: PUT
+        title: Update project backlog item details
+        path: '/{backlogItemID}'
+        parameters:
+          path:
+            - { type: uint64, name: backlogItemID, required: true, title: Backlog item ID }
+          post:
+            - { type: string, name: title, title: Title }
+            - { type: string, name: description, title: Description }
+            - { type: string, name: category, title: Parent category (incident|task|feature|privacy|review) }
+            - { type: uint64, name: eventID, title: Parent category item ID }
+            - { type: uint64, name: assignee, title: Assignee user ID }
+            - { type: string, name: priority, title: Priority }
+            - { type: string, name: status, title: Status }
+            - { type: string, name: dateDue, title: Due date (ISO) }
+      - name: delete
+        method: DELETE
+        title: Delete project backlog item
+        path: '/{backlogItemID}'
+        parameters:
+          path:
+            - { type: uint64, name: backlogItemID, required: true, title: Backlog item ID }
   - title: Project Reports
     entrypoint: projectReport
     path: '/project-report'

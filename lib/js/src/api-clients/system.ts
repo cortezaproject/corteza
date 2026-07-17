@@ -8580,7 +8580,6 @@ export default class System {
       riskIssue,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
       completedDate,
     } = (a as KV) || {}
@@ -8604,7 +8603,6 @@ export default class System {
       riskIssue,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
       completedDate,
     }
@@ -8688,7 +8686,6 @@ export default class System {
       riskIssue,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
       completedDate,
     } = (a as KV) || {}
@@ -8716,7 +8713,6 @@ export default class System {
       riskIssue,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
       completedDate,
     }
@@ -8842,7 +8838,6 @@ export default class System {
       riskFeature,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
@@ -8864,7 +8859,6 @@ export default class System {
       riskFeature,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     }
     return this.api()
@@ -8946,7 +8940,6 @@ export default class System {
       riskFeature,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     } = (a as KV) || {}
     if (!featureID) {
@@ -8972,7 +8965,6 @@ export default class System {
       riskFeature,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     }
     return this.api()
@@ -9097,7 +9089,6 @@ export default class System {
       riskAssessment,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
@@ -9119,7 +9110,6 @@ export default class System {
       riskAssessment,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     }
     return this.api()
@@ -9201,7 +9191,6 @@ export default class System {
       riskAssessment,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     } = (a as KV) || {}
     if (!privacyID) {
@@ -9227,7 +9216,6 @@ export default class System {
       riskAssessment,
       changeRequired,
       riskChange,
-      backlog,
       dateDue,
     }
     return this.api()
@@ -9349,7 +9337,6 @@ export default class System {
       risk,
       owner,
       changeOwner,
-      backlog,
       dateDue,
       completedDate,
     } = (a as KV) || {}
@@ -9369,7 +9356,6 @@ export default class System {
       risk,
       owner,
       changeOwner,
-      backlog,
       dateDue,
       completedDate,
     }
@@ -9449,7 +9435,6 @@ export default class System {
       risk,
       owner,
       changeOwner,
-      backlog,
       dateDue,
       completedDate,
     } = (a as KV) || {}
@@ -9473,7 +9458,6 @@ export default class System {
       risk,
       owner,
       changeOwner,
-      backlog,
       dateDue,
       completedDate,
     }
@@ -9774,6 +9758,240 @@ export default class System {
   projectReviewDeleteEndpoint(a: KV): string {
     const { reviewID } = a || {}
     return `/project-reviews/${reviewID}`
+  }
+
+  // List project backlog items
+  async projectBacklogItemList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { query, projectID, eventID, category, status, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectBacklogItemListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      projectID,
+      eventID,
+      category,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectBacklogItemListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectBacklogItemList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectBacklogItemListEndpoint(): string {
+    return '/project-backlog-items/'
+  }
+
+  // Create project backlog item
+  async projectBacklogItemCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      title,
+      description,
+      category,
+      eventID,
+      assignee,
+      priority,
+      status,
+      dateDue,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectBacklogItemCreateEndpoint(),
+    }
+    cfg.data = {
+      projectID,
+      title,
+      description,
+      category,
+      eventID,
+      assignee,
+      priority,
+      status,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectBacklogItemCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectBacklogItemCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectBacklogItemCreateEndpoint(): string {
+    return '/project-backlog-items'
+  }
+
+  // Read project backlog item details
+  async projectBacklogItemRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { backlogItemID } = (a as KV) || {}
+    if (!backlogItemID) {
+      throw Error('field backlogItemID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectBacklogItemReadEndpoint({
+        backlogItemID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectBacklogItemReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectBacklogItemRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectBacklogItemReadEndpoint(a: KV): string {
+    const { backlogItemID } = a || {}
+    return `/project-backlog-items/${backlogItemID}`
+  }
+
+  // Update project backlog item details
+  async projectBacklogItemUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      backlogItemID,
+      title,
+      description,
+      category,
+      eventID,
+      assignee,
+      priority,
+      status,
+      dateDue,
+    } = (a as KV) || {}
+    if (!backlogItemID) {
+      throw Error('field backlogItemID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectBacklogItemUpdateEndpoint({
+        backlogItemID,
+      }),
+    }
+    cfg.data = {
+      title,
+      description,
+      category,
+      eventID,
+      assignee,
+      priority,
+      status,
+      dateDue,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectBacklogItemUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectBacklogItemUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectBacklogItemUpdateEndpoint(a: KV): string {
+    const { backlogItemID } = a || {}
+    return `/project-backlog-items/${backlogItemID}`
+  }
+
+  // Delete project backlog item
+  async projectBacklogItemDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { backlogItemID } = (a as KV) || {}
+    if (!backlogItemID) {
+      throw Error('field backlogItemID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectBacklogItemDeleteEndpoint({
+        backlogItemID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectBacklogItemDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectBacklogItemDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectBacklogItemDeleteEndpoint(a: KV): string {
+    const { backlogItemID } = a || {}
+    return `/project-backlog-items/${backlogItemID}`
   }
 
   // Aggregated project category report

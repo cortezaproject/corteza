@@ -26,7 +26,6 @@ type (
 		Risk          string     `json:"risk"`
 		Owner         uint64     `json:"owner,string,omitempty"`
 		ChangeOwner   uint64     `json:"changeOwner,string,omitempty"`
-		Backlog       string     `json:"backlog"`
 		DateDue       string     `json:"dateDue,omitempty"`
 		CompletedDate string     `json:"completedDate,omitempty"`
 		CreatedAt     time.Time  `json:"createdAt,omitempty"`
@@ -104,10 +103,6 @@ func (r ProjectTask) Diff(cmp *ProjectTask) []*revisions.Change {
 
 	if r.ChangeOwner != cmp.ChangeOwner {
 		out = append(out, &revisions.Change{Key: "changeOwner", Old: []any{cmp.ChangeOwner}, New: []any{r.ChangeOwner}})
-	}
-
-	if r.Backlog != cmp.Backlog {
-		out = append(out, &revisions.Change{Key: "backlog", Old: []any{cmp.Backlog}, New: []any{r.Backlog}})
 	}
 
 	if r.DateDue != cmp.DateDue {

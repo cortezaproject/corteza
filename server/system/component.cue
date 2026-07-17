@@ -8,63 +8,64 @@ component: schema.#component & {
 	handle: "system"
 
 	resources: {
-    "attachment":                   attachment
-    "application":           				application
-    "apigw-route":           				apigw_route
-    "apigw-filter":          				apigw_filter
-    "auth-client":           				auth_client
-    "auth-confirmed-client": 				auth_confirmed_client
-    "auth-session":          				auth_session
-    "auth-oa2token":         				auth_oa2token
-    "credential":            				credential
-    "data-privacy-request":  				data_privacy_request
-    "data-privacy-request-comment": data_privacy_request_comment
-    "queue":                 				queue
-    "queue-message":         				queue_message
-    "reminder":              				reminder
-		"notification":									notification
-    "report":                				report
-    "resource-translation":  				resource_translation
-    "role":                  				role
-    "role-member":           				role_member
-		"user-group":                  	user_group
-    "settings":              				settings
-    "template":              				template
-    "user":                  				user
-    "dal-connection":        				dal_connection
-    "dal-sensitivity-level": 				dal_sensitivity_level
-    "dal-schema-alteration": 				dal_schema_alteration
-    "connection":             				connection
-    "configured-connection":  				configured_connection
-    "llm-provider":          				llm_provider
-    "agent":                 				agent
-    "ai-conversation":                ai_conversation
-    "knowledge-base":                 knowledge_base
-    "chatbot":                        chatbot
-    "chatbot-session":                chatbot_session
-    "chatbot-session-step":           chatbot_session_step
-    "chatbot-session-handoff":        chatbot_session_handoff
-    "tenant":                         tenant
-    "tenant-membership":              tenant_membership
-    "project":                        project
-    "project-member":                 project_member
-    "project-group":                  project_group
-    "project-group-entry":            project_group_entry
-    "project-incident":               project_incident
-    "project-feature":                project_feature
-    "project-privacy":                project_privacy
-    "project-task":                   project_task
-    "project-review":                 project_review
-    "dml-connection":                 dml_connection
-    "dml-mapping":                    dml_mapping
-    "dml-import-run":                 dml_import_run
+		"attachment":                   attachment
+		"application":                  application
+		"apigw-route":                  apigw_route
+		"apigw-filter":                 apigw_filter
+		"auth-client":                  auth_client
+		"auth-confirmed-client":        auth_confirmed_client
+		"auth-session":                 auth_session
+		"auth-oa2token":                auth_oa2token
+		"credential":                   credential
+		"data-privacy-request":         data_privacy_request
+		"data-privacy-request-comment": data_privacy_request_comment
+		"queue":                        queue
+		"queue-message":                queue_message
+		"reminder":                     reminder
+		"notification":                 notification
+		"report":                       report
+		"resource-translation":         resource_translation
+		"role":                         role
+		"role-member":                  role_member
+		"user-group":                   user_group
+		"settings":                     settings
+		"template":                     template
+		"user":                         user
+		"dal-connection":               dal_connection
+		"dal-sensitivity-level":        dal_sensitivity_level
+		"dal-schema-alteration":        dal_schema_alteration
+		"connection":                   connection
+		"configured-connection":        configured_connection
+		"llm-provider":                 llm_provider
+		"agent":                        agent
+		"ai-conversation":              ai_conversation
+		"knowledge-base":               knowledge_base
+		"chatbot":                      chatbot
+		"chatbot-session":              chatbot_session
+		"chatbot-session-step":         chatbot_session_step
+		"chatbot-session-handoff":      chatbot_session_handoff
+		"tenant":                       tenant
+		"tenant-membership":            tenant_membership
+		"project":                      project
+		"project-member":               project_member
+		"project-group":                project_group
+		"project-group-entry":          project_group_entry
+		"project-incident":             project_incident
+		"project-feature":              project_feature
+		"project-privacy":              project_privacy
+		"project-task":                 project_task
+		"project-review":               project_review
+		"project-backlog-item":         project_backlog_item
+		"dml-connection":               dml_connection
+		"dml-mapping":                  dml_mapping
+		"dml-import-run":               dml_import_run
 	}
 
 	types: {
-		"apigw-profiler-hit":         { noIdField: true }
-		"apigw-profiler-aggregation": { noIdField: true }
-		"privacy-dal-connection":     {}
-		"dml-column-map":             { noIdField: true }
+		"apigw-profiler-hit": {noIdField: true}
+		"apigw-profiler-aggregation": {noIdField: true}
+		"privacy-dal-connection": {}
+		"dml-column-map": {noIdField: true}
 	}
 
 	rbac: operations: {
@@ -87,7 +88,7 @@ component: schema.#component & {
 		"dal-connection.create": description:  "Create DAL connections"
 		"dal-connections.search": description: "List, search or filter DAL connections"
 
-		"dal-sensitivity-level.manage": description:  "Can manage DAL sensitivity levels"
+		"dal-sensitivity-level.manage": description: "Can manage DAL sensitivity levels"
 
 		"application.create": description:      "Create applications"
 		"applications.search": description:     "List, search or filter auth clients"
@@ -112,8 +113,8 @@ component: schema.#component & {
 
 		"dal-schema-alterations.manage": description: "List, search, apply, or dismiss DAL alterations"
 
-		"connection.create": description:            "Create connections"
-		"connections.search": description:           "List, search or filter connections"
+		"connection.create": description:             "Create connections"
+		"connections.search": description:            "List, search or filter connections"
 		"configured-connection.create": description:  "Install connection connections"
 		"configured-connections.search": description: "List, search or filter connection connections"
 
@@ -142,6 +143,9 @@ component: schema.#component & {
 
 		"project-review.create": description:  "Create project reviews"
 		"project-reviews.search": description: "List, search or filter project reviews"
+
+		"project-backlog-item.create": description:  "Create project backlog items"
+		"project-backlog-items.search": description: "List, search or filter project backlog items"
 
 		"ai-conversation.create": description:  "Create AI conversations"
 		"ai-conversations.search": description: "List, search or filter AI conversations"

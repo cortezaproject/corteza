@@ -141,6 +141,7 @@ var (
 	DefaultProjectPrivacy       *projectPrivacy
 	DefaultProjectTask          *projectTask
 	DefaultProjectReview        *projectReview
+	DefaultProjectBacklogItem   *projectBacklogItem
 	DefaultProjectReport        *projectReport
 	DefaultProjectResolver      scope.ProjectResolver
 	DefaultTenant               *tenant
@@ -315,6 +316,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultProjectPrivacy = ProjectPrivacy()
 	DefaultProjectTask = ProjectTask()
 	DefaultProjectReview = ProjectReview()
+	DefaultProjectBacklogItem = ProjectBacklogItem()
 	DefaultProjectReport = ProjectReport()
 	DefaultProjectResolver = NewProjectResolver(DefaultStore)
 	DefaultTenant = Tenant()

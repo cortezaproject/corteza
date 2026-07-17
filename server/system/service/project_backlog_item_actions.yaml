@@ -1,0 +1,90 @@
+# List of loggable service actions
+
+resource: system:project-backlog-item
+service: projectBacklogItem
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectBacklogItem
+    type: "*types.ProjectBacklogItem"
+    fields: [ title, ID ]
+  - name: new
+    type: "*types.ProjectBacklogItem"
+    fields: [ title, ID ]
+  - name: update
+    type: "*types.ProjectBacklogItem"
+    fields: [ title, ID ]
+  - name: filter
+    type: "*types.ProjectBacklogItemFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for project backlog items"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectBacklogItem}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectBacklogItem}}"
+
+  - action: update
+    log: "updated {{projectBacklogItem}}"
+
+  - action: delete
+    log: "deleted {{projectBacklogItem}}"
+
+errors:
+  - error: notFound
+    message: "project backlog item not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: missingProject
+    message: "project is required"
+    severity: warning
+
+  - error: missingEvent
+    message: "parent category item is required"
+    severity: warning
+
+  - error: invalidCategory
+    message: "category must be one of incident, task, feature, privacy, review"
+    severity: warning
+
+  - error: staleData
+    message: "project backlog item was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a project backlog item"
+    log: "failed to create a project backlog item; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this project backlog item"
+    log: "failed to read {{projectBacklogItem.title}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list project backlog items"
+    log: "failed to search or list project backlog items; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this project backlog item"
+    log: "failed to update {{projectBacklogItem.title}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this project backlog item"
+    log: "failed to delete {{projectBacklogItem.title}}; insufficient permissions"

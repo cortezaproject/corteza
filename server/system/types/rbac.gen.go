@@ -893,6 +893,36 @@ func ProjectReviewRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for ProjectBacklogItem by calling ProjectBacklogItemRbacResource fn
+//
+// RBAC resource is in the corteza::system:project-backlog-item/... format
+//
+// This function is auto-generated
+func (r ProjectBacklogItem) RbacResource() string {
+	return ProjectBacklogItemRbacResource(r.ID)
+}
+
+// ProjectBacklogItemRbacResource returns string representation of RBAC resource for ProjectBacklogItem
+//
+// RBAC resource is in the corteza::system:project-backlog-item/... format
+//
+// This function is auto-generated
+func ProjectBacklogItemRbacResource(id uint64) string {
+	cpts := []interface{}{ProjectBacklogItemResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ProjectBacklogItemRbacResourceTpl(), cpts...)
+
+}
+
+func ProjectBacklogItemRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

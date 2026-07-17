@@ -173,7 +173,6 @@ func (svc *projectPrivacy) Update(ctx context.Context, upd *types.ProjectPrivacy
 		res.RiskAssessment = upd.RiskAssessment
 		res.ChangeRequired = upd.ChangeRequired
 		res.RiskChange = upd.RiskChange
-		res.Backlog = upd.Backlog
 		res.DateDue = upd.DateDue
 		res.UpdatedAt = now()
 

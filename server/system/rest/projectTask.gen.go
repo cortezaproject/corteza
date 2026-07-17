@@ -37,7 +37,6 @@ func (ctrl *ProjectTask) Create(ctx context.Context, r *request.ProjectTaskCreat
 		Risk:          r.Risk,
 		Owner:         r.Owner,
 		ChangeOwner:   r.ChangeOwner,
-		Backlog:       r.Backlog,
 		DateDue:       r.DateDue,
 		CompletedDate: r.CompletedDate,
 	}
@@ -67,7 +66,6 @@ func (ctrl *ProjectTask) Update(ctx context.Context, r *request.ProjectTaskUpdat
 		Risk:          r.Risk,
 		Owner:         r.Owner,
 		ChangeOwner:   r.ChangeOwner,
-		Backlog:       r.Backlog,
 		DateDue:       r.DateDue,
 		CompletedDate: r.CompletedDate,
 	}

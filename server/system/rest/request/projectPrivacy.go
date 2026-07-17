@@ -136,11 +136,6 @@ type (
 		// Risk of change
 		RiskChange string
 
-		// Backlog POST parameter
-		//
-		// Backlog IDs (comma-separated)
-		Backlog string
-
 		// DateDue POST parameter
 		//
 		// Due date (ISO)
@@ -219,11 +214,6 @@ type (
 		//
 		// Risk of change
 		RiskChange string
-
-		// Backlog POST parameter
-		//
-		// Backlog IDs (comma-separated)
-		Backlog string
 
 		// DateDue POST parameter
 		//
@@ -367,7 +357,6 @@ func (r ProjectPrivacyCreate) Auditable() map[string]interface{} {
 		"riskAssessment":   r.RiskAssessment,
 		"changeRequired":   r.ChangeRequired,
 		"riskChange":       r.RiskChange,
-		"backlog":          r.Backlog,
 		"dateDue":          r.DateDue,
 	}
 }
@@ -435,11 +424,6 @@ func (r ProjectPrivacyCreate) GetChangeRequired() string {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectPrivacyCreate) GetRiskChange() string {
 	return r.RiskChange
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectPrivacyCreate) GetBacklog() string {
-	return r.Backlog
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -559,13 +543,6 @@ func (r *ProjectPrivacyCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["backlog"]; ok && len(val) > 0 {
-				r.Backlog, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["dateDue"]; ok && len(val) > 0 {
 				r.DateDue, err = val[0], nil
 				if err != nil {
@@ -673,13 +650,6 @@ func (r *ProjectPrivacyCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["backlog"]; ok && len(val) > 0 {
-			r.Backlog, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["dateDue"]; ok && len(val) > 0 {
 			r.DateDue, err = val[0], nil
 			if err != nil {
@@ -747,7 +717,6 @@ func (r ProjectPrivacyUpdate) Auditable() map[string]interface{} {
 		"riskAssessment":   r.RiskAssessment,
 		"changeRequired":   r.ChangeRequired,
 		"riskChange":       r.RiskChange,
-		"backlog":          r.Backlog,
 		"dateDue":          r.DateDue,
 	}
 }
@@ -815,11 +784,6 @@ func (r ProjectPrivacyUpdate) GetChangeRequired() string {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectPrivacyUpdate) GetRiskChange() string {
 	return r.RiskChange
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ProjectPrivacyUpdate) GetBacklog() string {
-	return r.Backlog
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -932,13 +896,6 @@ func (r *ProjectPrivacyUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["backlog"]; ok && len(val) > 0 {
-				r.Backlog, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["dateDue"]; ok && len(val) > 0 {
 				r.DateDue, err = val[0], nil
 				if err != nil {
@@ -1034,13 +991,6 @@ func (r *ProjectPrivacyUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["riskChange"]; ok && len(val) > 0 {
 			r.RiskChange, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["backlog"]; ok && len(val) > 0 {
-			r.Backlog, err = val[0], nil
 			if err != nil {
 				return err
 			}

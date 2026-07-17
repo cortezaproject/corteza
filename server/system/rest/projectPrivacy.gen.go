@@ -40,7 +40,6 @@ func (ctrl *ProjectPrivacy) Create(ctx context.Context, r *request.ProjectPrivac
 		RiskAssessment:   r.RiskAssessment,
 		ChangeRequired:   r.ChangeRequired,
 		RiskChange:       r.RiskChange,
-		Backlog:          r.Backlog,
 		DateDue:          r.DateDue,
 	}
 
@@ -72,7 +71,6 @@ func (ctrl *ProjectPrivacy) Update(ctx context.Context, r *request.ProjectPrivac
 		RiskAssessment:   r.RiskAssessment,
 		ChangeRequired:   r.ChangeRequired,
 		RiskChange:       r.RiskChange,
-		Backlog:          r.Backlog,
 		DateDue:          r.DateDue,
 	}
 

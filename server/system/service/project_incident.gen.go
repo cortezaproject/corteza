@@ -174,7 +174,6 @@ func (svc *projectIncident) Update(ctx context.Context, upd *types.ProjectIncide
 		res.RiskIssue = upd.RiskIssue
 		res.ChangeRequired = upd.ChangeRequired
 		res.RiskChange = upd.RiskChange
-		res.Backlog = upd.Backlog
 		res.DateDue = upd.DateDue
 		res.CompletedDate = upd.CompletedDate
 		res.UpdatedAt = now()

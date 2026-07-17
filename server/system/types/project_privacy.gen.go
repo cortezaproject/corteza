@@ -29,7 +29,6 @@ type (
 		RiskAssessment   string     `json:"riskAssessment,omitempty"`
 		ChangeRequired   string     `json:"changeRequired,omitempty"`
 		RiskChange       string     `json:"riskChange,omitempty"`
-		Backlog          string     `json:"backlog"`
 		DateDue          string     `json:"dateDue,omitempty"`
 		CreatedAt        time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt        *time.Time `json:"updatedAt,omitempty"`
@@ -118,10 +117,6 @@ func (r ProjectPrivacy) Diff(cmp *ProjectPrivacy) []*revisions.Change {
 
 	if r.RiskChange != cmp.RiskChange {
 		out = append(out, &revisions.Change{Key: "riskChange", Old: []any{cmp.RiskChange}, New: []any{r.RiskChange}})
-	}
-
-	if r.Backlog != cmp.Backlog {
-		out = append(out, &revisions.Change{Key: "backlog", Old: []any{cmp.Backlog}, New: []any{r.Backlog}})
 	}
 
 	if r.DateDue != cmp.DateDue {

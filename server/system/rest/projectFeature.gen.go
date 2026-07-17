@@ -40,7 +40,6 @@ func (ctrl *ProjectFeature) Create(ctx context.Context, r *request.ProjectFeatur
 		RiskFeature:      r.RiskFeature,
 		ChangeRequired:   r.ChangeRequired,
 		RiskChange:       r.RiskChange,
-		Backlog:          r.Backlog,
 		DateDue:          r.DateDue,
 	}
 
@@ -72,7 +71,6 @@ func (ctrl *ProjectFeature) Update(ctx context.Context, r *request.ProjectFeatur
 		RiskFeature:      r.RiskFeature,
 		ChangeRequired:   r.ChangeRequired,
 		RiskChange:       r.RiskChange,
-		Backlog:          r.Backlog,
 		DateDue:          r.DateDue,
 	}
 

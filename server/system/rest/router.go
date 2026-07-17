@@ -72,6 +72,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewProjectPrivacy(ProjectPrivacy{}.New()).MountRoutes(r)
 			handlers.NewProjectTask(ProjectTask{}.New()).MountRoutes(r)
 			handlers.NewProjectReview(ProjectReview{}.New()).MountRoutes(r)
+			handlers.NewProjectBacklogItem(ProjectBacklogItem{}.New()).MountRoutes(r)
 			handlers.NewProjectReport(ProjectReport{}.New()).MountRoutes(r)
 
 			handlers.NewTenant(Tenant{}.New()).MountRoutes(r)

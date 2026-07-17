@@ -5762,6 +5762,142 @@ var (
 		}
 	}
 
+	// projectBacklogItemTable represents projectBacklogItems store table
+	//
+	// This value is auto-generated
+	projectBacklogItemTable = goqu.T("project_backlog_items")
+
+	// projectBacklogItemSelectQuery assembles select query for fetching projectBacklogItems
+	//
+	// This function is auto-generated
+	projectBacklogItemSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_tenant",
+			"rel_project",
+			"title",
+			"description",
+			"category",
+			"event_id",
+			"assignee",
+			"priority",
+			"status",
+			"date_due",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(projectBacklogItemTable)
+	}
+
+	// projectBacklogItemInsertQuery assembles query inserting projectBacklogItems
+	//
+	// This function is auto-generated
+	projectBacklogItemInsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectBacklogItem) *goqu.InsertDataset {
+		return d.Insert(projectBacklogItemTable).
+			Rows(goqu.Record{
+				"id":          res.ID,
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"title":       res.Title,
+				"description": res.Description,
+				"category":    res.Category,
+				"event_id":    res.EventID,
+				"assignee":    res.Assignee,
+				"priority":    res.Priority,
+				"status":      res.Status,
+				"date_due":    res.DateDue,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
+			})
+	}
+
+	// projectBacklogItemUpsertQuery assembles (insert+on-conflict) query for replacing projectBacklogItems
+	//
+	// This function is auto-generated
+	projectBacklogItemUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ProjectBacklogItem) *goqu.InsertDataset {
+		var target = `,id`
+
+		return projectBacklogItemInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_tenant":  res.TenantID,
+						"rel_project": res.ProjectID,
+						"title":       res.Title,
+						"description": res.Description,
+						"category":    res.Category,
+						"event_id":    res.EventID,
+						"assignee":    res.Assignee,
+						"priority":    res.Priority,
+						"status":      res.Status,
+						"date_due":    res.DateDue,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// projectBacklogItemUpdateQuery assembles query for updating projectBacklogItems
+	//
+	// This function is auto-generated
+	projectBacklogItemUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ProjectBacklogItem) *goqu.UpdateDataset {
+		return d.Update(projectBacklogItemTable).
+			Set(goqu.Record{
+				"rel_tenant":  res.TenantID,
+				"rel_project": res.ProjectID,
+				"title":       res.Title,
+				"description": res.Description,
+				"category":    res.Category,
+				"event_id":    res.EventID,
+				"assignee":    res.Assignee,
+				"priority":    res.Priority,
+				"status":      res.Status,
+				"date_due":    res.DateDue,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
+			}).
+			Where(projectBacklogItemPrimaryKeys(res))
+	}
+
+	// projectBacklogItemDeleteQuery assembles delete query for removing projectBacklogItems
+	//
+	// This function is auto-generated
+	projectBacklogItemDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(projectBacklogItemTable).Where(ee...)
+	}
+
+	// projectBacklogItemDeleteQuery assembles delete query for removing projectBacklogItems
+	//
+	// This function is auto-generated
+	projectBacklogItemTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(projectBacklogItemTable)
+	}
+
+	// projectBacklogItemPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	projectBacklogItemPrimaryKeys = func(res *systemType.ProjectBacklogItem) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// projectFeatureTable represents projectFeatures store table
 	//
 	// This value is auto-generated
@@ -5787,7 +5923,6 @@ var (
 			"risk_feature",
 			"change_required",
 			"risk_change",
-			"backlog",
 			"date_due",
 			"created_at",
 			"updated_at",
@@ -5819,7 +5954,6 @@ var (
 				"risk_feature":       res.RiskFeature,
 				"change_required":    res.ChangeRequired,
 				"risk_change":        res.RiskChange,
-				"backlog":            res.Backlog,
 				"date_due":           res.DateDue,
 				"created_at":         res.CreatedAt,
 				"updated_at":         res.UpdatedAt,
@@ -5854,7 +5988,6 @@ var (
 						"risk_feature":       res.RiskFeature,
 						"change_required":    res.ChangeRequired,
 						"risk_change":        res.RiskChange,
-						"backlog":            res.Backlog,
 						"date_due":           res.DateDue,
 						"created_at":         res.CreatedAt,
 						"updated_at":         res.UpdatedAt,
@@ -5887,7 +6020,6 @@ var (
 				"risk_feature":       res.RiskFeature,
 				"change_required":    res.ChangeRequired,
 				"risk_change":        res.RiskChange,
-				"backlog":            res.Backlog,
 				"date_due":           res.DateDue,
 				"created_at":         res.CreatedAt,
 				"updated_at":         res.UpdatedAt,
@@ -6127,7 +6259,6 @@ var (
 			"risk_issue",
 			"change_required",
 			"risk_change",
-			"backlog",
 			"date_due",
 			"completed_date",
 			"created_at",
@@ -6161,7 +6292,6 @@ var (
 				"risk_issue":         res.RiskIssue,
 				"change_required":    res.ChangeRequired,
 				"risk_change":        res.RiskChange,
-				"backlog":            res.Backlog,
 				"date_due":           res.DateDue,
 				"completed_date":     res.CompletedDate,
 				"created_at":         res.CreatedAt,
@@ -6198,7 +6328,6 @@ var (
 						"risk_issue":         res.RiskIssue,
 						"change_required":    res.ChangeRequired,
 						"risk_change":        res.RiskChange,
-						"backlog":            res.Backlog,
 						"date_due":           res.DateDue,
 						"completed_date":     res.CompletedDate,
 						"created_at":         res.CreatedAt,
@@ -6233,7 +6362,6 @@ var (
 				"risk_issue":         res.RiskIssue,
 				"change_required":    res.ChangeRequired,
 				"risk_change":        res.RiskChange,
-				"backlog":            res.Backlog,
 				"date_due":           res.DateDue,
 				"completed_date":     res.CompletedDate,
 				"created_at":         res.CreatedAt,
@@ -6398,7 +6526,6 @@ var (
 			"risk_assessment",
 			"change_required",
 			"risk_change",
-			"backlog",
 			"date_due",
 			"created_at",
 			"updated_at",
@@ -6430,7 +6557,6 @@ var (
 				"risk_assessment":    res.RiskAssessment,
 				"change_required":    res.ChangeRequired,
 				"risk_change":        res.RiskChange,
-				"backlog":            res.Backlog,
 				"date_due":           res.DateDue,
 				"created_at":         res.CreatedAt,
 				"updated_at":         res.UpdatedAt,
@@ -6465,7 +6591,6 @@ var (
 						"risk_assessment":    res.RiskAssessment,
 						"change_required":    res.ChangeRequired,
 						"risk_change":        res.RiskChange,
-						"backlog":            res.Backlog,
 						"date_due":           res.DateDue,
 						"created_at":         res.CreatedAt,
 						"updated_at":         res.UpdatedAt,
@@ -6498,7 +6623,6 @@ var (
 				"risk_assessment":    res.RiskAssessment,
 				"change_required":    res.ChangeRequired,
 				"risk_change":        res.RiskChange,
-				"backlog":            res.Backlog,
 				"date_due":           res.DateDue,
 				"created_at":         res.CreatedAt,
 				"updated_at":         res.UpdatedAt,
@@ -6695,7 +6819,6 @@ var (
 			"risk",
 			"owner",
 			"change_owner",
-			"backlog",
 			"date_due",
 			"completed_date",
 			"created_at",
@@ -6725,7 +6848,6 @@ var (
 				"risk":           res.Risk,
 				"owner":          res.Owner,
 				"change_owner":   res.ChangeOwner,
-				"backlog":        res.Backlog,
 				"date_due":       res.DateDue,
 				"completed_date": res.CompletedDate,
 				"created_at":     res.CreatedAt,
@@ -6758,7 +6880,6 @@ var (
 						"risk":           res.Risk,
 						"owner":          res.Owner,
 						"change_owner":   res.ChangeOwner,
-						"backlog":        res.Backlog,
 						"date_due":       res.DateDue,
 						"completed_date": res.CompletedDate,
 						"created_at":     res.CreatedAt,
@@ -6789,7 +6910,6 @@ var (
 				"risk":           res.Risk,
 				"owner":          res.Owner,
 				"change_owner":   res.ChangeOwner,
-				"backlog":        res.Backlog,
 				"date_due":       res.DateDue,
 				"completed_date": res.CompletedDate,
 				"created_at":     res.CreatedAt,

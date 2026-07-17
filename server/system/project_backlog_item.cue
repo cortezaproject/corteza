@@ -4,7 +4,7 @@ import (
 	"github.com/crusttech/human/server/codegen/schema"
 )
 
-project_privacy: {
+project_backlog_item: {
 	features: {
 		labels: false
 	}
@@ -16,7 +16,7 @@ project_privacy: {
 	model: {
 		omitGetterSetter: true
 		attributes: {
-			id: schema.IdField & {json: "privacyID,string"}
+			id:         schema.IdField & {json: "backlogItemID,string"}
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 
@@ -29,57 +29,43 @@ project_privacy: {
 				goType: "string"
 				dal: {type: "Text", length: 0}
 			}
-			request_type: {
+
+			// Category is the parent category table this backlog item is
+			// filed against (incident|task|feature|privacy|review).
+			category: {
 				goType:   "string"
-				json:     "requestType,omitempty"
 				sortable: true
-				dal: {type: "Text", length: 128}
+				dal: {type: "Text", length: 32}
 			}
+
+			// EventID references the parent category item's ID. It is a
+			// polymorphic reference across the 5 category tables (keyed
+			// together with category above) — no FK, plain column.
+			event_id: {
+				ident:    "eventID"
+				expIdent: "EventID"
+				goType:   "uint64"
+				json:     "eventID,string,omitempty"
+				dal: {type: "ID", default: 0}
+			}
+
+			assignee: {
+				goType: "uint64"
+				json:   "assignee,string,omitempty"
+				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+			}
+
+			priority: {
+				goType: "string"
+				dal: {type: "Text", length: 64}
+			}
+
 			status: {
 				goType:   "string"
 				sortable: true
 				dal: {type: "Text", length: 64}
 			}
-			severity: {
-				goType: "string"
-				dal: {type: "Text", length: 64}
-			}
-			risk: {
-				goType: "string"
-				dal: {type: "Text", length: 64}
-			}
 
-			request_owner: {
-				goType: "uint64"
-				json:   "requestOwner,string,omitempty"
-				dal: {type: "Ref", refModelResType: "corteza::system:user"}
-			}
-			change_owner: {
-				goType: "uint64"
-				json:   "changeOwner,string,omitempty"
-				dal: {type: "Ref", refModelResType: "corteza::system:user"}
-			}
-			change_approved_by: {
-				goType: "uint64"
-				json:   "changeApprovedBy,string,omitempty"
-				dal: {type: "Ref", refModelResType: "corteza::system:user"}
-			}
-
-			risk_assessment: {
-				goType: "string"
-				json:   "riskAssessment,omitempty"
-				dal: {type: "Text", length: 0}
-			}
-			change_required: {
-				goType: "string"
-				json:   "changeRequired,omitempty"
-				dal: {type: "Text", length: 0}
-			}
-			risk_change: {
-				goType: "string"
-				json:   "riskChange,omitempty"
-				dal: {type: "Text", length: 0}
-			}
 			// Due date is stored as an ISO string (frontend treats it as a string
 			// and sorts/compares client-side) — avoids timestamp param marshaling
 			// in the generated REST controller.
@@ -104,23 +90,25 @@ project_privacy: {
 
 	filter: {
 		struct: {
-			privacy_id: {goType: "[]uint64", ident: "privacyID", storeIdent: "id"}
+			backlog_item_id: {goType: "[]uint64", ident: "backlogItemID", storeIdent: "id"}
 			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
+			event_id: {ident: "eventID", expIdent: "EventID", goType: "uint64"}
+			category: {goType: "string"}
 			status: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		query: ["title", "status"]
-		byValue: ["privacy_id", "project_id", "status"]
+		query: ["title"]
+		byValue: ["project_id", "event_id", "category", "status"]
 		byNilState: ["deleted"]
 	}
 
 	rbac: {
 		operations: {
-			read: description:   "Read project privacy"
-			update: description: "Update project privacy"
-			delete: description: "Delete project privacy"
+			read: description:   "Read project backlog item"
+			update: description: "Update project backlog item"
+			delete: description: "Delete project backlog item"
 		}
 	}
 
@@ -133,9 +121,7 @@ project_privacy: {
 		genAccessController: true
 
 		updateFields: [
-			"Title", "Description", "RequestType", "Status", "Severity", "Risk",
-			"RequestOwner", "ChangeOwner", "ChangeApprovedBy", "RiskAssessment", "ChangeRequired", "RiskChange",
-			"DateDue",
+			"Title", "Description", "Category", "EventID", "Assignee", "Priority", "Status", "DateDue",
 		]
 
 		hooks: {
@@ -151,9 +137,9 @@ project_privacy: {
 				{
 					fields: ["id"]
 					description: """
-						searches for project privacy by ID
+						searches for project backlog item by ID
 
-						It also returns deleted project privacys.
+						It also returns deleted project backlog items.
 						"""
 				},
 			]

@@ -54,6 +54,7 @@ const (
 	ProjectPrivacyResourceType            = "corteza::system:project-privacy"
 	ProjectTaskResourceType               = "corteza::system:project-task"
 	ProjectReviewResourceType             = "corteza::system:project-review"
+	ProjectBacklogItemResourceType        = "corteza::system:project-backlog-item"
 	DmlConnectionResourceType             = "corteza::system:dml-connection"
 	DmlMappingResourceType                = "corteza::system:dml-mapping"
 	DmlImportRunResourceType              = "corteza::system:dml-import-run"

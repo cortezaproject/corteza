@@ -386,3 +386,16 @@ func SystemProjectReviewRbacReferences(projectReview string) (res *Ref, pp []*Re
 
 	return
 }
+
+// SystemProjectBacklogItemRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectBacklogItemRbacReferences(projectBacklogItem string) (res *Ref, pp []*Ref, err error) {
+	if projectBacklogItem != "*" {
+		res = &Ref{ResourceType: types.ProjectBacklogItemResourceType, Identifiers: MakeIdentifiers(projectBacklogItem)}
+	}
+
+	return
+}

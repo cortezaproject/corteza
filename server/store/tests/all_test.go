@@ -158,6 +158,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("project", func(t *testing.T) {
 		testProjects(t, s)
 	})
+	t.Run("projectBacklogItem", func(t *testing.T) {
+		testProjectBacklogItems(t, s)
+	})
 	t.Run("projectFeature", func(t *testing.T) {
 		testProjectFeatures(t, s)
 	})

@@ -41,7 +41,6 @@ func (ctrl *ProjectIncident) Create(ctx context.Context, r *request.ProjectIncid
 		RiskIssue:        r.RiskIssue,
 		ChangeRequired:   r.ChangeRequired,
 		RiskChange:       r.RiskChange,
-		Backlog:          r.Backlog,
 		DateDue:          r.DateDue,
 		CompletedDate:    r.CompletedDate,
 	}
@@ -75,7 +74,6 @@ func (ctrl *ProjectIncident) Update(ctx context.Context, r *request.ProjectIncid
 		RiskIssue:        r.RiskIssue,
 		ChangeRequired:   r.ChangeRequired,
 		RiskChange:       r.RiskChange,
-		Backlog:          r.Backlog,
 		DateDue:          r.DateDue,
 		CompletedDate:    r.CompletedDate,
 	}

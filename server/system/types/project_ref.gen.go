@@ -315,3 +315,13 @@ func (r ProjectTask) ProjectRef() uint64 {
 func (r ProjectReview) ProjectRef() uint64 {
 	return r.ProjectID
 }
+
+// ProjectRef returns the ID of the project ProjectBacklogItem belongs to.
+//
+// It implements actionlog.ProjectResourcer, letting the action log attribute an
+// event to the project owning the affected resource.
+//
+// This function is auto-generated
+func (r ProjectBacklogItem) ProjectRef() uint64 {
+	return r.ProjectID
+}

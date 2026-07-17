@@ -54,6 +54,7 @@ type (
 	ProjectPrivacySet            []*ProjectPrivacy
 	ProjectTaskSet               []*ProjectTask
 	ProjectReviewSet             []*ProjectReview
+	ProjectBacklogItemSet        []*ProjectBacklogItem
 	DmlConnectionSet             []*DmlConnection
 	DmlMappingSet                []*DmlMapping
 	DmlImportRunSet              []*DmlImportRun
@@ -2022,6 +2023,50 @@ func (set ProjectReviewSet) FindByID(ID uint64) *ProjectReview {
 }
 
 func (set ProjectReviewSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ProjectBacklogItemSet) Walk(w func(*ProjectBacklogItem) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ProjectBacklogItemSet) Filter(f func(*ProjectBacklogItem) (bool, error)) (out ProjectBacklogItemSet, err error) {
+	var ok bool
+	out = ProjectBacklogItemSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ProjectBacklogItemSet) FindByID(ID uint64) *ProjectBacklogItem {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ProjectBacklogItemSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

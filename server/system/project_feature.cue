@@ -80,12 +80,6 @@ project_feature: {
 				json:   "riskChange,omitempty"
 				dal: {type: "Text", length: 0}
 			}
-			// Backlog IDs, stored comma-separated for the PoC.
-			backlog: {
-				goType: "string"
-				dal: {type: "Text", length: 0}
-			}
-
 			// Due date is stored as an ISO string (frontend treats it as a string
 			// and sorts/compares client-side) — avoids timestamp param marshaling
 			// in the generated REST controller.
@@ -141,7 +135,7 @@ project_feature: {
 		updateFields: [
 			"Title", "Description", "FeatureType", "Status", "Severity", "Risk",
 			"FeatureOwner", "ChangeOwner", "ChangeApprovedBy", "RiskFeature", "ChangeRequired", "RiskChange",
-			"Backlog", "DateDue",
+			"DateDue",
 		]
 
 		hooks: {

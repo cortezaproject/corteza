@@ -85,12 +85,6 @@ project_incident: {
 				json:   "riskChange,omitempty"
 				dal: {type: "Text", length: 0}
 			}
-			// Backlog IDs, stored comma-separated for the PoC.
-			backlog: {
-				goType: "string"
-				dal: {type: "Text", length: 0}
-			}
-
 			// Due/completed dates are stored as ISO strings (frontend treats them
 			// as strings and sorts/compares client-side) — avoids timestamp param
 			// marshaling in the generated REST controller.
@@ -151,7 +145,7 @@ project_incident: {
 		updateFields: [
 			"Title", "Description", "IncidentType", "GroupSystem", "Status", "Severity", "Risk",
 			"IssueOwner", "ChangeOwner", "ChangeApprovedBy", "RiskIssue", "ChangeRequired", "RiskChange",
-			"Backlog", "DateDue", "CompletedDate",
+			"DateDue", "CompletedDate",
 		]
 
 		hooks: {

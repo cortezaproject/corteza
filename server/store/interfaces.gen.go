@@ -92,6 +92,7 @@ type (
 		LlmProviders
 		Notifications
 		Projects
+		ProjectBacklogItems
 		ProjectFeatures
 		ProjectGroups
 		ProjectGroupEntrys
@@ -738,6 +739,18 @@ type (
 		TruncateProjects(ctx context.Context) error
 		LookupProjectByID(ctx context.Context, id uint64) (*systemType.Project, error)
 		LookupProjectByHandle(ctx context.Context, handle string) (*systemType.Project, error)
+	}
+
+	ProjectBacklogItems interface {
+		SearchProjectBacklogItems(ctx context.Context, f systemType.ProjectBacklogItemFilter) (systemType.ProjectBacklogItemSet, systemType.ProjectBacklogItemFilter, error)
+		CreateProjectBacklogItem(ctx context.Context, rr ...*systemType.ProjectBacklogItem) error
+		UpdateProjectBacklogItem(ctx context.Context, rr ...*systemType.ProjectBacklogItem) error
+		UpsertProjectBacklogItem(ctx context.Context, rr ...*systemType.ProjectBacklogItem) error
+		DeleteProjectBacklogItem(ctx context.Context, rr ...*systemType.ProjectBacklogItem) error
+
+		DeleteProjectBacklogItemByID(ctx context.Context, id uint64) error
+		TruncateProjectBacklogItems(ctx context.Context) error
+		LookupProjectBacklogItemByID(ctx context.Context, id uint64) (*systemType.ProjectBacklogItem, error)
 	}
 
 	ProjectFeatures interface {
@@ -4141,6 +4154,64 @@ func LookupProjectByID(ctx context.Context, s Projects, id uint64) (*systemType.
 // This function is auto-generated
 func LookupProjectByHandle(ctx context.Context, s Projects, handle string) (*systemType.Project, error) {
 	return s.LookupProjectByHandle(ctx, handle)
+}
+
+// SearchProjectBacklogItems returns all matching ProjectBacklogItems from store
+//
+// This function is auto-generated
+func SearchProjectBacklogItems(ctx context.Context, s ProjectBacklogItems, f systemType.ProjectBacklogItemFilter) (systemType.ProjectBacklogItemSet, systemType.ProjectBacklogItemFilter, error) {
+	return s.SearchProjectBacklogItems(ctx, f)
+}
+
+// CreateProjectBacklogItem creates one or more ProjectBacklogItems in store
+//
+// This function is auto-generated
+func CreateProjectBacklogItem(ctx context.Context, s ProjectBacklogItems, rr ...*systemType.ProjectBacklogItem) error {
+	return s.CreateProjectBacklogItem(ctx, rr...)
+}
+
+// UpdateProjectBacklogItem updates one or more (existing) ProjectBacklogItems in store
+//
+// This function is auto-generated
+func UpdateProjectBacklogItem(ctx context.Context, s ProjectBacklogItems, rr ...*systemType.ProjectBacklogItem) error {
+	return s.UpdateProjectBacklogItem(ctx, rr...)
+}
+
+// UpsertProjectBacklogItem creates new or updates existing one or more ProjectBacklogItems in store
+//
+// This function is auto-generated
+func UpsertProjectBacklogItem(ctx context.Context, s ProjectBacklogItems, rr ...*systemType.ProjectBacklogItem) error {
+	return s.UpsertProjectBacklogItem(ctx, rr...)
+}
+
+// DeleteProjectBacklogItem deletes one or more ProjectBacklogItems from store
+//
+// This function is auto-generated
+func DeleteProjectBacklogItem(ctx context.Context, s ProjectBacklogItems, rr ...*systemType.ProjectBacklogItem) error {
+	return s.DeleteProjectBacklogItem(ctx, rr...)
+}
+
+// DeleteProjectBacklogItemByID deletes one or more ProjectBacklogItems from store
+//
+// This function is auto-generated
+func DeleteProjectBacklogItemByID(ctx context.Context, s ProjectBacklogItems, id uint64) error {
+	return s.DeleteProjectBacklogItemByID(ctx, id)
+}
+
+// TruncateProjectBacklogItems Deletes all ProjectBacklogItems from store
+//
+// This function is auto-generated
+func TruncateProjectBacklogItems(ctx context.Context, s ProjectBacklogItems) error {
+	return s.TruncateProjectBacklogItems(ctx)
+}
+
+// LookupProjectBacklogItemByID searches for project backlog item by ID
+//
+// It also returns deleted project backlog items.
+//
+// This function is auto-generated
+func LookupProjectBacklogItemByID(ctx context.Context, s ProjectBacklogItems, id uint64) (*systemType.ProjectBacklogItem, error) {
+	return s.LookupProjectBacklogItemByID(ctx, id)
 }
 
 // SearchProjectFeatures returns all matching ProjectFeatures from store

@@ -52,6 +52,8 @@ allow:
       - project-tasks.search
       - project-review.create
       - project-reviews.search
+      - project-backlog-item.create
+      - project-backlog-items.search
 
     corteza::system:auth-client/*:
       - read
@@ -153,6 +155,11 @@ allow:
       - update
       - delete
 
+    corteza::system:project-backlog-item/*:
+      - read
+      - update
+      - delete
+
   security-admin:
     corteza::compose/:
       - grant
@@ -209,6 +216,8 @@ allow:
       - project-tasks.search
       - project-review.create
       - project-reviews.search
+      - project-backlog-item.create
+      - project-backlog-items.search
 
     corteza::system:auth-client/*:
       - read

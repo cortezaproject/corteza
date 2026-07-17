@@ -65,12 +65,6 @@ project_task: {
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
 			}
 
-			// Backlog IDs, stored comma-separated for the PoC.
-			backlog: {
-				goType: "string"
-				dal: {type: "Text", length: 0}
-			}
-
 			// Due/completed dates are stored as ISO strings (frontend treats them
 			// as strings and sorts/compares client-side) — avoids timestamp param
 			// marshaling in the generated REST controller.
@@ -130,7 +124,7 @@ project_task: {
 
 		updateFields: [
 			"Title", "Description", "TaskName", "TaskType", "Status", "Severity", "Risk",
-			"Owner", "ChangeOwner", "Backlog", "DateDue", "CompletedDate",
+			"Owner", "ChangeOwner", "DateDue", "CompletedDate",
 		]
 
 		hooks: {
