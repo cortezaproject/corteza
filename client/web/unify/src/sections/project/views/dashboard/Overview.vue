@@ -80,13 +80,18 @@
       <EventsActivityPanel :project-id="projectId" />
 
       <!-- Activity — new items created over time, stacked by category. The
-           project's pulse in one glance. -->
+           project's pulse in one glance. Range control is right-aligned next
+           to the heading; changing it reloads only the trend below, not the
+           category cards above. -->
       <section>
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-color mb-3">
-          {{ $t('project.dashboard.chart.activity') }}
-        </h2>
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-color">
+            {{ $t('project.dashboard.chart.activity') }}
+          </h2>
+          <TimeRangeSelect :model-value="trendRange" @update:model-value="onRangeChange" />
+        </div>
         <div
-          v-if="loading"
+          v-if="loading || trendLoading"
           class="rounded-lg border border-surface bg-surface p-4"
         >
           <div class="h-48 rounded bg-emphasis animate-pulse motion-reduce:animate-none" />
@@ -106,10 +111,11 @@
 import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
 import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
 import EventsActivityPanel from '@/sections/project/components/dashboard/EventsActivityPanel.vue'
+import TimeRangeSelect from '@/sections/project/components/dashboard/TimeRangeSelect.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
 import { CATEGORY_COLORS } from '@/sections/project/config/chartColors'
-import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/trend'
+import { RANGES, adaptiveWindow, rangeFrom } from '@/sections/project/config/trend'
 import { useReportStore } from '@/sections/project/stores/report'
 import { isOpenStatus } from '@/sections/project/stores/events'
 import { computed, reactive, ref, watch } from 'vue'
@@ -125,13 +131,20 @@ const projectId = computed(() => route.params.projectId)
 // Per-category aggregates: key -> { total, open, status: [{ label, value }] }.
 const data = reactive({})
 
-// Stacked created-over-time trend across all categories (last 12 weeks).
+// Stacked created-over-time trend across all categories, windowed by the
+// preset below. Default m6 (6 months): a full year of week/month-adaptive
+// buckets read noisy for a landing-page glance, so 6 months is the starting
+// point — the control lets you widen it in one click.
 const trend = reactive({ labels: [], series: [] })
+const trendRange = ref('m6')
 
 // Loading covers the category cards + trend (EventsActivityPanel manages its
 // own loading/failed state independently). `failed` surfaces a visible error
 // with retry instead of the previous silent "0 items" on a failed report.
+// `trendLoading` is the narrower one: a range-change reload touches only the
+// trend chart, not the category cards, so it gets its own flag.
 const loading = ref(false)
+const trendLoading = ref(false)
 const failed = ref(false)
 
 // Cards join the live aggregates with each category's static visual config,
@@ -164,38 +177,45 @@ async function loadCategory(pid, key, mySeq) {
 }
 
 // Created-over-time, stacked by category. One report per category (grouped by
-// day) bucketed into weeks and aligned to a shared week axis.
+// day), bucketed by the active range's adaptive window (day/week/month) and
+// aligned to a shared axis.
 async function loadTrend(pid, mySeq) {
-  const { fromISO, toISO, starts } = trendWindow(12)
+  const def = RANGES.find(r => r.key === trendRange.value)
+  const { fromISO, toISO, labels, bucket } = adaptiveWindow(rangeFrom(def), new Date())
   const series = await Promise.all(
     CATEGORY_ORDER.map(async key => {
       const points = await report.trend(pid, key, { from: fromISO, to: toISO })
       return {
         name: t(CATEGORY_CONFIG[key].titleKey),
         color: CATEGORY_COLORS[key],
-        data: bucketWeekly(points, starts),
+        data: bucket(points),
       }
     }),
   )
-  if (mySeq !== loadSeq) return // stale response
-  trend.labels = starts.map(weekLabel)
+  if (mySeq !== trendSeq) return // stale response
+  trend.labels = labels
   trend.series = series
 }
 
-// Sequence token: a fast project switch must not let a late response from the
-// previous project overwrite the current one's data (same pattern as
-// AllEventsView's load()).
+// Two sequence tokens: `loadSeq` guards the category cards, `trendSeq` guards
+// the trend chart. They're separate because a range change reloads only the
+// trend — bumping a single shared counter would also orphan an in-flight
+// category-card response from the initial project load. Both still bump
+// together on a project switch (loadAll), so a stale trend from the previous
+// project never lands either (same pattern as AllEventsView's load()).
 let loadSeq = 0
+let trendSeq = 0
 
 async function loadAll(pid) {
   if (!pid) return
   const mySeq = ++loadSeq
+  const myTrendSeq = ++trendSeq
   loading.value = true
   failed.value = false
   try {
     await Promise.all([
       ...CATEGORY_ORDER.map(key => loadCategory(pid, key, mySeq)),
-      loadTrend(pid, mySeq),
+      loadTrend(pid, myTrendSeq),
     ])
   } catch (err) {
     if (mySeq !== loadSeq) return // superseded by a newer project switch
@@ -208,6 +228,24 @@ async function loadAll(pid) {
 
 function retry() {
   loadAll(projectId.value)
+}
+
+// Preset change: reload the trend only — the per-category status reports
+// (cards above) are untouched.
+async function onRangeChange(key) {
+  trendRange.value = key
+  const pid = projectId.value
+  if (!pid) return
+  const myTrendSeq = ++trendSeq
+  trendLoading.value = true
+  try {
+    await loadTrend(pid, myTrendSeq)
+  } catch (err) {
+    if (myTrendSeq !== trendSeq) return
+    console.error('Failed to load project activity trend', err)
+  } finally {
+    if (myTrendSeq === trendSeq) trendLoading.value = false
+  }
 }
 
 watch(projectId, loadAll, { immediate: true })

@@ -1,7 +1,10 @@
-// Weekly bucketing for the created-over-time trend charts. Report data arrives
-// as daily { date: 'YYYY-MM-DD', value }; governance volumes are low, so weekly
-// bars read better than a spiky daily line — and empty weeks render as honest
-// zero bars rather than a line interpolated across gaps.
+// Bucketing + quick time-range presets for the created-over-time trend charts
+// (Overview, CategoryView) and the audit-activity pulses (AllEventsView,
+// EventsActivityPanel via useEventActivity). Report data arrives as daily
+// { date: 'YYYY-MM-DD', value } (optionally { group } for stacked series);
+// governance volumes are low, so day/week/month bars read better than a spiky
+// daily line — and empty buckets render as honest zero bars rather than a
+// line interpolated across gaps.
 
 const DAY = 86400000
 const WEEK = 7 * DAY
@@ -73,10 +76,121 @@ export function bucketDaily(points, starts) {
   return values
 }
 
-// Default trend window: the last `weeks` weeks ending today. Returns ISO
-// strings for the report `from`/`to` params plus the aligned week starts.
-export function trendWindow(weeks = 12) {
-  const to = new Date()
-  const from = new Date(to.getTime() - weeks * WEEK)
-  return { fromISO: from.toISOString(), toISO: to.toISOString(), starts: weekStarts(from, to) }
+// Month-granularity variant, for the widest ranges (1Y/5Y/All). Calendar-
+// accurate — months vary in length, so bucketing walks year/month pairs
+// rather than dividing by a fixed duration like the day/week helpers above.
+function monthStart(d) {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  x.setDate(1)
+  return x
+}
+
+// Ordered first-of-month Dates spanning [from, to] inclusive.
+export function monthStarts(from, to) {
+  const start = monthStart(from)
+  const end = monthStart(to)
+  const out = []
+  const cur = new Date(start)
+  while (cur.getTime() <= end.getTime()) {
+    out.push(new Date(cur))
+    cur.setMonth(cur.getMonth() + 1)
+  }
+  return out
+}
+
+// Sum daily points into month buckets aligned to `starts`. Index is the
+// year/month distance from the first bucket (division by a fixed duration
+// does not work for months).
+export function bucketMonthly(points, starts) {
+  const values = new Array(starts.length).fill(0)
+  if (!starts.length) return values
+  const base = starts[0]
+  const baseIdx = base.getFullYear() * 12 + base.getMonth()
+  for (const p of points) {
+    const d = new Date(p.date)
+    if (Number.isNaN(d.getTime())) continue
+    const idx = d.getFullYear() * 12 + d.getMonth() - baseIdx
+    if (idx >= 0 && idx < values.length) values[idx] += Number(p.value || 0)
+  }
+  return values
+}
+
+// "Jul 2026" — month buckets can span multiple years (1Y/5Y/All), so the
+// label needs the year to disambiguate (unlike day/week's "Jul 1").
+export function monthLabel(d) {
+  return d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+}
+
+// --- Quick time-range presets ------------------------------------------------
+// Shared by AllEventsView's filter window and the Overview/CategoryView trend
+// charts (via TimeRangeSelect). Each preset resolves to a `from` Date (`to`
+// stays open = "until now"); 'all' resolves to null (no lower bound — see
+// adaptiveWindow below for how callers handle that). `months`/`years` walk the
+// calendar (setMonth/setFullYear) rather than approximating with day counts;
+// 'ytd' is Jan 1 of the current year.
+export const RANGES = [
+  { key: 'd1', days: 1 },
+  { key: 'd5', days: 5 },
+  { key: 'm1', months: 1 },
+  { key: 'm6', months: 6 },
+  { key: 'ytd', ytd: true },
+  { key: 'y1', years: 1 },
+  { key: 'y5', years: 5 },
+  { key: 'all', all: true },
+]
+
+export function rangeFrom(r) {
+  if (!r || r.all) return null
+  const d = new Date()
+  if (r.ytd) return new Date(d.getFullYear(), 0, 1)
+  if (r.days) d.setDate(d.getDate() - r.days)
+  if (r.months) d.setMonth(d.getMonth() - r.months)
+  if (r.years) d.setFullYear(d.getFullYear() - r.years)
+  return d
+}
+
+const DAY_BUCKET_MAX_SPAN_DAYS = 70
+const WEEK_BUCKET_MAX_SPAN_DAYS = 400
+const ALL_LOOKBACK_YEARS = 5
+
+// Picks day/week/month buckets for a [from, to] span so charts stay legible
+// at any preset width: day buckets ≤ ~70 days, week buckets ≤ ~400 days,
+// month buckets beyond that. `to` defaults to now; `from` defaults to a
+// generous 5-year lookback — the 'all' preset carries no lower bound
+// (rangeFrom returns null), and a truly unbounded query would ask the
+// backend to scan a project's entire history for a chart with a few dozen
+// bars, so it is capped here instead (and, being > 400 days, always lands on
+// month buckets regardless of the thresholds above).
+//
+// Returns { fromISO, toISO, starts, labels, bucket }: `labels` is the
+// prebuilt axis-label array, `bucket` is `points => number[]` aligned to it —
+// callers just call it against a fetched point series instead of hand-rolling
+// the day/week/month choice themselves.
+export function adaptiveWindow(from, to) {
+  const toDate = to || new Date()
+  let fromDate = from
+  if (!fromDate) {
+    fromDate = new Date(toDate)
+    fromDate.setFullYear(fromDate.getFullYear() - ALL_LOOKBACK_YEARS)
+  }
+
+  const spanDays = (toDate.getTime() - fromDate.getTime()) / DAY
+
+  let starts, labels, bucket
+  if (spanDays <= DAY_BUCKET_MAX_SPAN_DAYS) {
+    starts = dayStarts(fromDate, toDate)
+    labels = starts.map(dayLabel)
+    bucket = points => bucketDaily(points, starts)
+  } else if (spanDays <= WEEK_BUCKET_MAX_SPAN_DAYS) {
+    starts = weekStarts(fromDate, toDate)
+    labels = starts.map(weekLabel)
+    bucket = points => bucketWeekly(points, starts)
+  } else {
+    starts = monthStarts(fromDate, toDate)
+    labels = starts.map(monthLabel)
+    bucket = points => bucketMonthly(points, starts)
+  }
+
+  return { fromISO: fromDate.toISOString(), toISO: toDate.toISOString(), starts, labels, bucket }
 }

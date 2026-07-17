@@ -66,15 +66,7 @@
              in one click; the filter popover's from/to stay the precise
              instrument, and editing those (or removing a chip) releases the
              active preset. -->
-        <SelectButton
-          :model-value="activeRange"
-          :options="rangeOptions"
-          option-label="label"
-          option-value="key"
-          size="small"
-          :allow-empty="false"
-          @update:model-value="applyRange"
-        />
+        <TimeRangeSelect :model-value="activeRange" @update:model-value="applyRange" />
         <Button
           type="button"
           icon="pi pi-filter"
@@ -353,7 +345,9 @@ import {
 } from '@/sections/admin/views/system/ActionLog/vocab'
 import EventTimelineItem from '@/sections/project/components/dashboard/EventTimelineItem.vue'
 import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
+import TimeRangeSelect from '@/sections/project/components/dashboard/TimeRangeSelect.vue'
 import { useEventActivity } from '@/sections/project/composables/useEventActivity'
+import { RANGES, rangeFrom } from '@/sections/project/config/trend'
 
 const { CInputUser, CInputSearch } = components
 const { locDate } = filters
@@ -395,39 +389,14 @@ const filter = reactive({
 })
 
 // --- Quick time-range presets ------------------------------------------------
-// Each preset sets filter.from (to stays open = "until now"); 'all' clears the
-// window. `months`/`years` walk the calendar (setMonth/setFullYear) rather
-// than approximating with day counts; 'ytd' is Jan 1 of the current year.
-const RANGES = [
-  { key: 'd1', days: 1 },
-  { key: 'd5', days: 5 },
-  { key: 'm1', months: 1 },
-  { key: 'm6', months: 6 },
-  { key: 'ytd', ytd: true },
-  { key: 'y1', years: 1 },
-  { key: 'y5', years: 5 },
-  { key: 'all', all: true },
-]
-
-const rangeOptions = RANGES.map(r => ({
-  key: r.key,
-  label: t(`project.dashboard.allEvents.range.${r.key}`),
-}))
-
+// RANGES/rangeFrom are shared (config/trend.js) with the Overview/CategoryView
+// trend charts; this view's own logic is just the filter-window wiring below:
+// applying a preset sets filter.from (to stays open = "until now"), and
+// editing the window by hand releases the active preset (see the watch below).
 const activeRange = ref('all')
 // applyRange edits filter.from/to itself; this flag keeps the release-watcher
 // below from immediately clearing the preset it just set.
 let applyingRange = false
-
-function rangeFrom(r) {
-  if (r.all) return null
-  const d = new Date()
-  if (r.ytd) return new Date(d.getFullYear(), 0, 1)
-  if (r.days) d.setDate(d.getDate() - r.days)
-  if (r.months) d.setMonth(d.getMonth() - r.months)
-  if (r.years) d.setFullYear(d.getFullYear() - r.years)
-  return d
-}
 
 function applyRange(key) {
   const r = RANGES.find(x => x.key === key)

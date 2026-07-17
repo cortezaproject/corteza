@@ -104,13 +104,23 @@
             />
           </template>
         </div>
-        <CategoryTrendChart
-          title-key="project.dashboard.chart.createdOverTime"
-          :labels="trend.labels"
-          :series="trend.series"
-          :accent="accentColor"
-          :height="180"
-        />
+        <!-- Range control right-aligned above the trend chart — same
+             placement pattern as Overview's Activity section heading.
+             Changing it reloads only the trend (and the KPI sparkline, which
+             is derived from it below); loadReport/the KPIs/donuts above are
+             untouched. -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-end">
+            <TimeRangeSelect :model-value="trendRange" @update:model-value="onRangeChange" />
+          </div>
+          <CategoryTrendChart
+            title-key="project.dashboard.chart.createdOverTime"
+            :labels="trend.labels"
+            :series="trend.series"
+            :accent="accentColor"
+            :height="180"
+          />
+        </div>
       </template>
     </div>
 
@@ -229,11 +239,12 @@ import EventDetailDialog from '@/sections/project/components/dashboard/EventDeta
 import EventDetailDrawer from '@/sections/project/components/dashboard/EventDetailDrawer.vue'
 import NewEventDialog from '@/sections/project/components/dashboard/NewEventDialog.vue'
 import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
+import TimeRangeSelect from '@/sections/project/components/dashboard/TimeRangeSelect.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { CATEGORY_COLORS, colorFor, orderIndex } from '@/sections/project/config/chartColors'
-import { bucketWeekly, trendWindow, weekLabel } from '@/sections/project/config/trend'
+import { RANGES, adaptiveWindow, rangeFrom } from '@/sections/project/config/trend'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
@@ -264,10 +275,18 @@ const accentColor = computed(() => CATEGORY_COLORS[category.value] || '')
 // loadAll/AllEventsView's load()).
 const reportStore = useReportStore()
 const trend = reactive({ labels: [], series: [] })
+// Default m6 (6 months) — matches Overview's default; see that view's comment
+// for why.
+const trendRange = ref('m6')
 const reportBreakdowns = reactive({ total: 0, open: 0, overdue: 0, byDim: {} })
 const metricsLoading = ref(false)
 const metricsFailed = ref(false)
+// `loadSeq` guards the KPI/donut report calls (loadReport); `trendSeq` guards
+// the trend chart separately so a range-change reload (trend only) can't
+// orphan an in-flight loadReport response from a category/project switch,
+// and vice versa — same split as Overview.vue's loadSeq/trendSeq.
 let loadSeq = 0
+let trendSeq = 0
 
 // One report call per breakdown dimension the category's donut charts need
 // (see cfg.charts / config/categories.js — the backend's generic dimension
@@ -299,11 +318,13 @@ async function loadReport(pid, key, mySeq) {
 }
 
 // Created-over-time trend for this category, from the report endpoint.
+// Bucketed by the active range's adaptive window (day/week/month).
 async function loadTrend(pid, key, mySeq) {
-  const { fromISO, toISO, starts } = trendWindow(12)
+  const def = RANGES.find(r => r.key === trendRange.value)
+  const { fromISO, toISO, labels, bucket } = adaptiveWindow(rangeFrom(def), new Date())
   const groupBy = CATEGORY_CONFIG[key].trendGroupBy
   const points = await reportStore.trend(pid, key, { from: fromISO, to: toISO, groupBy })
-  if (mySeq !== loadSeq) return // stale response
+  if (mySeq !== trendSeq) return // stale response
 
   // Pivot the day×group points into one stacked series per group value
   // (e.g. per severity), ordered canonically and coloured to match its badge.
@@ -316,11 +337,11 @@ async function loadTrend(pid, key, mySeq) {
   const keys = [...byGroup.keys()].sort(
     (a, b) => orderIndex(groupBy, a) - orderIndex(groupBy, b) || a.localeCompare(b),
   )
-  trend.labels = starts.map(weekLabel)
+  trend.labels = labels
   trend.series = keys.map(g => ({
     name: g,
     color: colorFor(groupBy, g),
-    data: bucketWeekly(byGroup.get(g), starts),
+    data: bucket(byGroup.get(g)),
   }))
 }
 
@@ -328,6 +349,7 @@ async function loadTrend(pid, key, mySeq) {
 // flashing the skeleton.
 async function loadMetrics(pid, key, { silent = false } = {}) {
   if (!pid || !key || !CATEGORY_CONFIG[key]) {
+    ++trendSeq // invalidate any in-flight trend call (e.g. a pending range change)
     reportBreakdowns.total = 0
     reportBreakdowns.open = 0
     reportBreakdowns.overdue = 0
@@ -337,10 +359,11 @@ async function loadMetrics(pid, key, { silent = false } = {}) {
     return
   }
   const mySeq = ++loadSeq
+  const myTrendSeq = ++trendSeq
   if (!silent) metricsLoading.value = true
   metricsFailed.value = false
   try {
-    await Promise.all([loadReport(pid, key, mySeq), loadTrend(pid, key, mySeq)])
+    await Promise.all([loadReport(pid, key, mySeq), loadTrend(pid, key, myTrendSeq)])
   } catch (err) {
     if (mySeq !== loadSeq) return // superseded by a newer switch
     console.error('Failed to load category metrics', err)
@@ -359,6 +382,22 @@ watch(
   () => loadMetrics(route.params.projectId, category.value),
   { immediate: true },
 )
+
+// Preset change: reload the trend only — loadReport (KPIs/donuts) is
+// untouched. The KPI sparkline (kpiSpark, below) is derived from `trend` so
+// it follows automatically.
+async function onRangeChange(key) {
+  trendRange.value = key
+  const pid = route.params.projectId
+  if (!pid || !category.value || !CATEGORY_CONFIG[category.value]) return
+  const myTrendSeq = ++trendSeq
+  try {
+    await loadTrend(pid, category.value, myTrendSeq)
+  } catch (err) {
+    if (myTrendSeq !== trendSeq) return
+    console.error('Failed to load category activity trend', err)
+  }
+}
 
 const dialogVisible = ref(false)
 

@@ -1,12 +1,5 @@
 import { EVENTS_COLOR } from '@/sections/project/config/chartColors'
-import {
-  bucketDaily,
-  bucketWeekly,
-  dayLabel,
-  dayStarts,
-  weekLabel,
-  weekStarts,
-} from '@/sections/project/config/trend'
+import { adaptiveWindow } from '@/sections/project/config/trend'
 import { useUserStore } from '@planetcrust/human-vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -25,10 +18,12 @@ export function useEventActivity() {
   const { t } = useI18n()
 
   // Pulse (events/day) + grand-total stats over a window. Defaults to 30 days;
-  // adapts day→week buckets past ~10 weeks so wide ranges stay legible. The
-  // optional resource/action/origin/actorID filters mirror AllEventsView's
-  // filter popover — this is the single place both the Overview activity band
-  // and AllEventsView's metrics band compute this, so it stays one definition.
+  // adapts day→week→month buckets (see adaptiveWindow) so wide ranges —
+  // including the 1Y/5Y/All presets — stay legible instead of rendering
+  // hundreds of daily bars. The optional resource/action/origin/actorID
+  // filters mirror AllEventsView's filter popover — this is the single place
+  // both the Overview activity band and AllEventsView's metrics band compute
+  // this, so it stays one definition.
   async function loadMetrics(projectID, { from, to, resource, action, origin, actorID } = {}) {
     const end = to || new Date()
     const start = from || new Date(end.getTime() - 30 * DAY)
@@ -53,18 +48,16 @@ export function useEventActivity() {
       .map(r => ({ date: String(r.dimensions?.day || ''), value: Number(r.metrics?.count || 0) }))
       .filter(p => p.date)
 
-    const span = (end - start) / DAY
-    const useWeek = span > 70
-    const starts = useWeek ? weekStarts(start, end) : dayStarts(start, end)
+    const { labels, bucket } = adaptiveWindow(start, end)
     const g = (totals.set && totals.set[0]) || {}
 
     return {
-      labels: starts.map(useWeek ? weekLabel : dayLabel),
+      labels,
       series: [
         {
           name: t('project.dashboard.allEvents.metrics.events'),
           color: EVENTS_COLOR,
-          data: (useWeek ? bucketWeekly : bucketDaily)(points, starts),
+          data: bucket(points),
         },
       ],
       total: Number(g.metrics?.count || 0),
