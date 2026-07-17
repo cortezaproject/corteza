@@ -62,6 +62,19 @@
       </div>
 
       <div class="flex-1 flex items-center justify-end gap-2">
+        <!-- Quick time ranges (stock-chart style) — window the list + metrics
+             in one click; the filter popover's from/to stay the precise
+             instrument, and editing those (or removing a chip) releases the
+             active preset. -->
+        <SelectButton
+          :model-value="activeRange"
+          :options="rangeOptions"
+          option-label="label"
+          option-value="key"
+          size="small"
+          :allow-empty="false"
+          @update:model-value="applyRange"
+        />
         <Button
           type="button"
           icon="pi pi-filter"
@@ -320,7 +333,7 @@
 </template>
 
 <script setup>
-import { inject, reactive, ref, computed, onMounted } from 'vue'
+import { inject, reactive, ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { components, filters, useUserStore } from '@planetcrust/human-vue'
@@ -378,6 +391,61 @@ const filter = reactive({
   origin: '',
   actorID: '',
 })
+
+// --- Quick time-range presets ------------------------------------------------
+// Each preset sets filter.from (to stays open = "until now"); 'all' clears the
+// window. `months`/`years` walk the calendar (setMonth/setFullYear) rather
+// than approximating with day counts; 'ytd' is Jan 1 of the current year.
+const RANGES = [
+  { key: 'd1', days: 1 },
+  { key: 'd5', days: 5 },
+  { key: 'm1', months: 1 },
+  { key: 'm6', months: 6 },
+  { key: 'ytd', ytd: true },
+  { key: 'y1', years: 1 },
+  { key: 'y5', years: 5 },
+  { key: 'all', all: true },
+]
+
+const rangeOptions = RANGES.map(r => ({
+  key: r.key,
+  label: t(`project.dashboard.allEvents.range.${r.key}`),
+}))
+
+const activeRange = ref('all')
+// applyRange edits filter.from/to itself; this flag keeps the release-watcher
+// below from immediately clearing the preset it just set.
+let applyingRange = false
+
+function rangeFrom(r) {
+  if (r.all) return null
+  const d = new Date()
+  if (r.ytd) return new Date(d.getFullYear(), 0, 1)
+  if (r.days) d.setDate(d.getDate() - r.days)
+  if (r.months) d.setMonth(d.getMonth() - r.months)
+  if (r.years) d.setFullYear(d.getFullYear() - r.years)
+  return d
+}
+
+function applyRange(key) {
+  const r = RANGES.find(x => x.key === key)
+  if (!r) return
+  activeRange.value = key
+  applyingRange = true
+  filter.from = rangeFrom(r)
+  filter.to = null
+  applyingRange = false
+  reload()
+}
+
+// Manually editing the window (filter popover, chip removal, clear-all) means
+// the preset no longer describes it — release the selection.
+watch(
+  () => [filter.from, filter.to],
+  () => {
+    if (!applyingRange) activeRange.value = null
+  },
+)
 
 const PAGE_SIZE = 50
 

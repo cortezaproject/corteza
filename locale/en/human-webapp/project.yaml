@@ -100,6 +100,16 @@ dashboard:
       events: Events
       people: People
       errors: Errors
+    # Quick time-range presets (stock-chart style) in the toolbar.
+    range:
+      d1: 1D
+      d5: 5D
+      m1: 1M
+      m6: 6M
+      ytd: YTD
+      y1: 1Y
+      y5: 5Y
+      all: All
   # "+ New {type}" button label; {type} is a category singular below.
   newButton: 'New {type}'
   # Singular category nouns used in buttons/dialog titles.
