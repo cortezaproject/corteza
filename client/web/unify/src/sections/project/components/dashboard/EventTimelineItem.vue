@@ -11,13 +11,16 @@
        Severity is not tinted for routine events either: in practice nearly every
        row is `info`, so colouring them all would spend the row's one accent on
        noise and leave a genuine error with nothing left to shout with. -->
-  <!-- The whole row toggles the details disclosure — the chevron next to the
-       title is the visible affordance, the row is the hit target. Inner
-       interactive elements (resource filter, more-changes, links) stop
-       propagation so they don't double as a toggle. -->
+  <!-- The whole row toggles the details disclosure (when `collapsible`) — the
+       chevron next to the title is the visible affordance, the row is the hit
+       target. Inner interactive elements (resource filter, more-changes,
+       links) stop propagation so they don't double as a toggle. The row owns
+       its own padding — no negative-margin bleed, so it can never be clipped
+       by (or poke out of) whatever container hosts it. -->
   <div
-    class="group flex gap-3 rounded-md px-2 py-2 -mx-2 transition-colors hover:bg-emphasis motion-reduce:transition-none cursor-pointer"
-    @click="open = !open"
+    class="group flex gap-3 rounded-md px-2 py-2 transition-colors hover:bg-emphasis motion-reduce:transition-none"
+    :class="{ 'cursor-pointer': collapsible }"
+    @click="collapsible && (open = !open)"
   >
     <!-- KindIcon owns the kind icon-square recipe (bg + ring + coloured glyph),
          so an event about an agent wears the same mark that agent wears
@@ -52,6 +55,7 @@
              part of the row's headline. Stops propagation: the row itself also
              toggles, and both firing would cancel out. -->
         <button
+          v-if="collapsible"
           type="button"
           class="ml-1.5 shrink-0 align-middle cursor-pointer rounded-sm text-muted-color hover:text-color focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           :aria-expanded="open"
@@ -67,7 +71,7 @@
       <EventDiff v-if="changeCount" :delta="data.delta" :limit="open ? 0 : INLINE_DIFF_LIMIT" />
 
       <button
-        v-if="hiddenChanges"
+        v-if="collapsible && hiddenChanges"
         type="button"
         class="self-start text-xs text-primary-500 hover:underline cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         @click.stop="open = true"
@@ -158,6 +162,10 @@ const props = defineProps({
   actorName: { type: String, default: '' },
   // Currently active resource filter, so the sentence can show it as engaged.
   activeResource: { type: String, default: '' },
+  // Compact hosts (the overview's recent-activity card) turn the disclosure
+  // off entirely: no chevron, no row toggle, no more-changes reveal — the row
+  // is a static summary and the full view is one "View all" away.
+  collapsible: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['filter'])
