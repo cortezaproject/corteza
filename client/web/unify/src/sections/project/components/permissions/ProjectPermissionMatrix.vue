@@ -137,7 +137,7 @@
                band + lock icon mark it non-editable (changed via the role columns). -->
           <div
             v-if="evalUserId"
-            class="flex items-center justify-center gap-1.5 px-3 py-2 min-w-0 font-medium bg-black/[0.04] dark:bg-white/[0.04]"
+            class="flex items-center justify-center gap-1.5 px-3 py-2 min-w-0 font-medium bg-emphasis"
           >
             <KindIcon kind="user" />
             <span class="truncate">
@@ -235,7 +235,7 @@
                   :class="
                     isHeaderRow(row)
                       ? ''
-                      : 'border-l border-surface bg-black/[0.04] dark:bg-white/[0.04]'
+                      : 'border-l border-surface bg-emphasis'
                   "
                 >
                   <span
@@ -259,7 +259,7 @@
                   <button
                     v-if="!isHeaderRow(row)"
                     type="button"
-                    class="absolute inset-0 w-full h-full flex items-center justify-center transition-colors enabled:cursor-pointer enabled:hover:bg-black/10 dark:enabled:hover:bg-white/10 disabled:cursor-default"
+                    class="absolute inset-0 w-full h-full flex items-center justify-center transition-colors enabled:cursor-pointer enabled:hover:bg-emphasis disabled:cursor-default"
                     :disabled="
                       disabled ||
                       !laneOps(row).length ||

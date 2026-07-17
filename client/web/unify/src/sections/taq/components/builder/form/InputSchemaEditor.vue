@@ -19,7 +19,7 @@
 
     <div
       v-if="!rows.length"
-      class="text-xs text-muted-color italic border border-dashed border-surface-300 dark:border-surface-700 rounded px-3 py-4 text-center"
+      class="text-xs text-muted-color italic border border-dashed border-surface rounded px-3 py-4 text-center"
     >
       {{ $t('builder.inputSchema.empty') }}
     </div>
