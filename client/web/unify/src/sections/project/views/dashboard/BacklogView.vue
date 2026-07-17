@@ -40,64 +40,93 @@
         />
       </CEmptyState>
 
-      <div v-else class="backlog-list shrink-0">
-        <CResourceList
-          class="h-full"
-          primary-key="id"
-          :fields="fields"
-          :items="visibleItems"
-          :filter="filter"
-          @update:filter="Object.assign(filter, $event)"
-          :sorting="sorting"
-          :pagination="pagination"
-          :translations="{
-            searchPlaceholder: $t('project.dashboard.backlog.searchPlaceholder'),
-            noItems: $t('project.dashboard.list.empty'),
-          }"
-          clickable
-          @sort="onSort"
-          @row-click="onRowClick"
-        >
-          <template #header>
-            <Button
-              icon="pi pi-plus"
-              :label="$t('project.dashboard.backlog.newButton')"
-              size="small"
-              @click="openCreate"
-            />
-          </template>
+      <template v-else>
+        <CategoryKpiRow :kpis="kpiList" />
 
-          <template #body-title="{ data }">
-            <span class="font-medium text-color">{{ data.title || '—' }}</span>
-          </template>
+        <!-- Chart band — same shape as CategoryView's, computed client-side
+             from the loaded items (no report endpoint, same trade as the KPI
+             trio above; the created-over-time trend is omitted for the same
+             reason — the 200-row load cap would silently truncate it). -->
+        <div class="grid grid-cols-2 xl:grid-cols-3 gap-3">
+          <CategoryDonutChart
+            title-key="project.dashboard.chart.byStatus"
+            :data="statusBreakdown"
+            variant="status"
+            :height="180"
+          />
+          <CategoryDonutChart
+            title-key="project.dashboard.chart.byCategory"
+            :data="categoryBreakdown"
+            variant="category"
+            :height="180"
+          />
+          <CategoryRankBar
+            title-key="project.dashboard.chart.byPriority"
+            :data="priorityBreakdown"
+            variant="priority"
+            :height="180"
+          />
+        </div>
 
-          <template #body-eventID="{ data }">
-            <div v-if="linkedEventFor(data)" class="flex items-center gap-2 min-w-0">
-              <KindIcon :config="CATEGORY_CONFIG[data.category]?.badge" size="sm" />
-              <span class="truncate max-w-40 text-sm text-color">
-                {{ linkedEventFor(data).title || $t('project.dashboard.event.untitled') }}
-              </span>
-            </div>
-            <span v-else class="font-mono text-xs text-muted-color">#{{ data.eventID }}</span>
-          </template>
+        <div class="backlog-list shrink-0">
+          <CResourceList
+            class="h-full"
+            primary-key="id"
+            :fields="fields"
+            :items="visibleItems"
+            :filter="filter"
+            @update:filter="Object.assign(filter, $event)"
+            :sorting="sorting"
+            :pagination="pagination"
+            :translations="{
+              searchPlaceholder: $t('project.dashboard.backlog.searchPlaceholder'),
+              noItems: $t('project.dashboard.list.empty'),
+            }"
+            clickable
+            @sort="onSort"
+            @row-click="onRowClick"
+          >
+            <template #header>
+              <Button
+                icon="pi pi-plus"
+                :label="$t('project.dashboard.backlog.newButton')"
+                size="small"
+                @click="openCreate"
+              />
+            </template>
 
-          <template #body-assignee="{ data }">
-            <UserCell :name="data.assignee" />
-          </template>
+            <template #body-title="{ data }">
+              <span class="font-medium text-color">{{ data.title || '—' }}</span>
+            </template>
 
-          <template #body-priority="{ data }">
-            <EventBadge :value="data.priority" variant="priority" />
-          </template>
+            <template #body-eventID="{ data }">
+              <div v-if="linkedEventFor(data)" class="flex items-center gap-2 min-w-0">
+                <KindIcon :config="CATEGORY_CONFIG[data.category]?.badge" size="sm" />
+                <span class="truncate max-w-40 text-sm text-color">
+                  {{ linkedEventFor(data).title || $t('project.dashboard.event.untitled') }}
+                </span>
+              </div>
+              <span v-else class="font-mono text-xs text-muted-color">#{{ data.eventID }}</span>
+            </template>
 
-          <template #body-status="{ data }">
-            <EventBadge :value="data.status" variant="status" />
-          </template>
+            <template #body-assignee="{ data }">
+              <UserCell :name="data.assignee" />
+            </template>
 
-          <template #body-dateDue="{ data }">
-            <span class="text-sm text-muted-color">{{ formatDate(data.dateDue) }}</span>
-          </template>
-        </CResourceList>
-      </div>
+            <template #body-priority="{ data }">
+              <EventBadge :value="data.priority" variant="priority" />
+            </template>
+
+            <template #body-status="{ data }">
+              <EventBadge :value="data.status" variant="status" />
+            </template>
+
+            <template #body-dateDue="{ data }">
+              <span class="text-sm text-muted-color">{{ formatDate(data.dateDue) }}</span>
+            </template>
+          </CResourceList>
+        </div>
+      </template>
     </div>
 
     <!-- Create + row-click edit share one dialog — see BacklogItemDialog. -->
@@ -108,20 +137,54 @@
       :on-save="onSave"
       :on-delete="onDelete"
     />
+
+    <!-- Row-click detail drawer — read-only summary; its Edit button opens the
+         edit dialog above without closing the drawer, and clicking the linked
+         event opens that event's edit dialog below. -->
+    <BacklogItemDrawer
+      v-model:visible="drawerVisible"
+      :record="selectedItem"
+      @edit="dialogVisible = true"
+      @open-event="openLinkedEvent"
+    />
+
+    <!-- Linked event's edit dialog — opened from the drawer's linked-event
+         row; saves/deletes go through the events store (same handlers idiom
+         as CategoryView's). -->
+    <EventDetailDialog
+      v-if="selectedItem"
+      v-model:visible="eventDialogVisible"
+      :category="selectedItem.category"
+      :record="linkedEventRecord"
+      :user-options="eventsStore.ownerOptions"
+      :on-save="onEventSave"
+      :on-delete="onEventDelete"
+    />
   </div>
 </template>
 
 <script setup>
 import BacklogItemDialog from '@/sections/project/components/dashboard/BacklogItemDialog.vue'
+import BacklogItemDrawer from '@/sections/project/components/dashboard/BacklogItemDrawer.vue'
+import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
+import CategoryKpiRow from '@/sections/project/components/dashboard/CategoryKpiRow.vue'
+import CategoryRankBar from '@/sections/project/components/dashboard/CategoryRankBar.vue'
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
+import EventDetailDialog from '@/sections/project/components/dashboard/EventDetailDialog.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
-import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
-import { orderIndex } from '@/sections/project/config/chartColors'
+import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
+import {
+  CATEGORY_COLORS,
+  orderIndex,
+  PRIORITY_ORDER,
+  STATUS_ORDER,
+} from '@/sections/project/config/chartColors'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
-import { useEventsStore } from '@/sections/project/stores/events'
-import { components } from '@planetcrust/human-vue'
-import { computed, inject, reactive, ref, watch } from 'vue'
+import { toISODate } from '@/sections/project/stores/dateUtils'
+import { isOpenStatus, useEventsStore } from '@/sections/project/stores/events'
+import { components, useRightSidebarStore } from '@planetcrust/human-vue'
+import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -165,6 +228,57 @@ const pagination = reactive({
   page: 1,
 })
 
+// KPI trio above the table — computed client-side from the loaded items
+// (backlog has no report endpoint; CategoryView's trio comes from one).
+// Same rules as everywhere else: open = not Completed (stores/events.js#
+// isOpenStatus), overdue = open with a due date before today (dateDue is a
+// plain YYYY-MM-DD string, so a string compare against today's ISO date works).
+const kpiList = computed(() => {
+  const items = store.items
+  const todayISO = toISODate(new Date())
+  const open = items.filter(i => isOpenStatus(i.status))
+  const overdue = open.filter(i => i.dateDue && i.dateDue < todayISO)
+  return [
+    { labelKey: 'project.dashboard.kpi.total', value: items.length },
+    { labelKey: 'project.dashboard.kpi.open', value: open.length },
+    { labelKey: 'project.dashboard.kpi.overdue', value: overdue.length },
+  ]
+})
+
+// Chart breakdowns — counts over the loaded items, in each dimension's
+// canonical order, zero labels dropped (the donut/rank-bar empty states
+// handle the all-zero case).
+const countBy = field => {
+  const counts = {}
+  for (const i of store.items) {
+    const key = String(i[field] ?? '')
+    if (key) counts[key] = (counts[key] || 0) + 1
+  }
+  return counts
+}
+
+const statusBreakdown = computed(() => {
+  const counts = countBy('status')
+  return STATUS_ORDER.filter(l => counts[l]).map(label => ({ label, value: counts[label] }))
+})
+
+const priorityBreakdown = computed(() => {
+  const counts = countBy('priority')
+  return PRIORITY_ORDER.filter(l => counts[l]).map(label => ({ label, value: counts[label] }))
+})
+
+// Labels are the translated category titles (colorFor can't key on those, so
+// each row pins its colour — see CategoryDonutChart's data prop).
+const categoryBreakdown = computed(() => {
+  const counts = countBy('category')
+  return CATEGORY_ORDER.filter(k => counts[k]).map(key => ({
+    label: t(CATEGORY_CONFIG[key].titleKey),
+    value: counts[key],
+    color: CATEGORY_COLORS[key],
+    key,
+  }))
+})
+
 const fields = computed(() => [
   { key: 'title', header: t('project.dashboard.columns.title'), sortable: true },
   { key: 'eventID', header: t('project.dashboard.backlog.columns.linkedEvent'), sortable: false },
@@ -184,13 +298,12 @@ const filteredItems = computed(() => {
 })
 
 // Priority is ordinal (High > Medium > Low) like severity/risk/status, so it
-// sorts by rank rather than alphabetically.
-const PRIORITY_ORDER = ['High', 'Medium', 'Low']
-const priorityIndex = label => {
-  const i = PRIORITY_ORDER.indexOf(String(label ?? ''))
-  return i === -1 ? Number.MAX_SAFE_INTEGER : i
+// sorts by rank rather than alphabetically — chartColors.js owns the
+// canonical order (PRIORITY_ORDER), resolved here via orderIndex.
+const RANKED_COLUMNS = {
+  status: label => orderIndex('status', label),
+  priority: label => orderIndex('priority', label),
 }
-const RANKED_COLUMNS = { status: label => orderIndex('status', label), priority: priorityIndex }
 
 const visibleItems = computed(() => {
   const list = [...filteredItems.value]
@@ -225,6 +338,19 @@ const onSort = ({ sortField, sortOrder }) => {
 const dialogVisible = ref(false)
 const selectedItem = ref(null)
 
+// The drawer registers with the shared right-sidebar store so it behaves
+// like the app's other right panels (exclusive with TAQ/notifications/the
+// event drawer — opening one closes the others).
+const rightSidebar = useRightSidebarStore()
+const drawerVisible = computed({
+  get: () => rightSidebar.isOpen('project-backlog-item-detail'),
+  set: v => (v ? rightSidebar.open('project-backlog-item-detail') : rightSidebar.close('project-backlog-item-detail')),
+})
+
+// Leaving the view with the drawer open would strand the shared store's
+// active panel — close it on unmount.
+onUnmounted(() => rightSidebar.close('project-backlog-item-detail'))
+
 function openCreate() {
   selectedItem.value = null
   dialogVisible.value = true
@@ -232,7 +358,7 @@ function openCreate() {
 
 function onRowClick({ data }) {
   selectedItem.value = data
-  dialogVisible.value = true
+  drawerVisible.value = true
 }
 
 // Save handler — passed to BacklogItemDialog's `onSave` prop; branches
@@ -242,6 +368,9 @@ const onSave = async (id, payload) => {
   try {
     if (id) {
       await store.update(id, payload)
+      if (selectedItem.value?.id === String(id)) {
+        selectedItem.value = store.items.find(i => i.id === String(id)) || selectedItem.value
+      }
       $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.updated'))
     } else {
       await store.add(payload)
@@ -259,11 +388,57 @@ const onSave = async (id, payload) => {
 const onDelete = async id => {
   try {
     await store.remove(id)
+    if (selectedItem.value?.id === String(id)) {
+      drawerVisible.value = false
+      selectedItem.value = null
+    }
     $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.deleted'))
     return true
   } catch (err) {
     console.error('Failed to delete backlog item', err)
     $toast.toastErrorHandler(t('project.dashboard.backlog.toast.deleteFailed'))(err)
+    return false
+  }
+}
+
+// Linked event's edit dialog — opened from the drawer. `linkedEventRecord` is
+// resolved live from the events store so a save repoints it automatically
+// (store.update splices a fresh object into the list).
+const eventDialogVisible = ref(false)
+const linkedEventRecord = computed(() =>
+  selectedItem.value ? linkedEventFor(selectedItem.value) : null,
+)
+
+function openLinkedEvent() {
+  if (!linkedEventRecord.value) return
+  eventDialogVisible.value = true
+}
+
+// Save/delete for the linked event — events store + toasts, same contract as
+// CategoryView's onUpdate/onDelete (no metrics reload: this page's charts
+// count backlog items, not events).
+const onEventSave = async (id, payload) => {
+  const category = selectedItem.value?.category
+  try {
+    await eventsStore.update(category, id, payload)
+    $toast.toastSuccess(t(CATEGORY_CONFIG[category].singularKey), t('project.dashboard.event.toast.updated'))
+    return true
+  } catch (err) {
+    console.error('Failed to update event', err)
+    $toast.toastErrorHandler(t('project.dashboard.event.toast.updateFailed'))(err)
+    return false
+  }
+}
+
+const onEventDelete = async id => {
+  const category = selectedItem.value?.category
+  try {
+    await eventsStore.remove(category, id)
+    $toast.toastSuccess(t(CATEGORY_CONFIG[category].singularKey), t('project.dashboard.event.toast.deleted'))
+    return true
+  } catch (err) {
+    console.error('Failed to delete event', err)
+    $toast.toastErrorHandler(t('project.dashboard.event.toast.deleteFailed'))(err)
     return false
   }
 }
@@ -276,6 +451,8 @@ watch(
   () => {
     filter.query = ''
     dialogVisible.value = false
+    drawerVisible.value = false
+    eventDialogVisible.value = false
     selectedItem.value = null
   },
 )
