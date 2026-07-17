@@ -104,23 +104,19 @@
             />
           </template>
         </div>
-        <!-- Range control right-aligned above the trend chart — same
-             placement pattern as Overview's Activity section heading.
-             Changing it reloads only the trend (and the KPI sparkline, which
-             is derived from it below); loadReport/the KPIs/donuts above are
-             untouched. -->
-        <div class="flex flex-col gap-2">
-          <div class="flex items-center justify-end">
+        <CategoryTrendChart
+          title-key="project.dashboard.chart.createdOverTime"
+          :labels="trend.labels"
+          :series="trend.series"
+          :accent="accentColor"
+          :height="180"
+        >
+          <!-- Windows this chart (and the KPI sparkline derived from it)
+               only — the KPIs/donuts above stay on the report loads. -->
+          <template #actions>
             <TimeRangeSelect :model-value="trendRange" @update:model-value="onRangeChange" />
-          </div>
-          <CategoryTrendChart
-            title-key="project.dashboard.chart.createdOverTime"
-            :labels="trend.labels"
-            :series="trend.series"
-            :accent="accentColor"
-            :height="180"
-          />
-        </div>
+          </template>
+        </CategoryTrendChart>
       </template>
     </div>
 

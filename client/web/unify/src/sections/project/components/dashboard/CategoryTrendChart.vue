@@ -1,7 +1,14 @@
 <template>
   <div :class="[bare ? '' : 'rounded-lg border border-surface bg-surface p-4', fill ? 'h-full' : '']">
-    <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-3">
-      <div class="text-sm font-medium text-color truncate">{{ $t(titleKey) }}</div>
+    <!-- Card header — title left, caller-supplied controls (e.g. the
+         TimeRangeSelect that windows this chart) top right, inside the card
+         where the thing they act on lives. -->
+    <div
+      v-if="!bare && (titleKey || $slots.actions)"
+      class="flex items-center justify-between gap-2 mb-3"
+    >
+      <div class="text-sm font-medium text-color truncate">{{ titleKey ? $t(titleKey) : '' }}</div>
+      <slot name="actions" />
     </div>
 
     <!-- Empty state when every bucket is zero. -->

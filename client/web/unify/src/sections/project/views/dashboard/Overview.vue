@@ -84,12 +84,9 @@
            to the heading; changing it reloads only the trend below, not the
            category cards above. -->
       <section>
-        <div class="flex items-center justify-between gap-3 mb-3">
-          <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-color">
-            {{ $t('project.dashboard.chart.activity') }}
-          </h2>
-          <TimeRangeSelect :model-value="trendRange" @update:model-value="onRangeChange" />
-        </div>
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-color mb-3">
+          {{ $t('project.dashboard.chart.activity') }}
+        </h2>
         <div
           v-if="loading || trendLoading"
           class="rounded-lg border border-surface bg-surface p-4"
@@ -101,7 +98,12 @@
           title-key="project.dashboard.chart.trend"
           :labels="trend.labels"
           :series="trend.series"
-        />
+        >
+          <!-- Windows this chart only — lives in the card it acts on. -->
+          <template #actions>
+            <TimeRangeSelect :model-value="trendRange" @update:model-value="onRangeChange" />
+          </template>
+        </CategoryTrendChart>
       </section>
     </template>
   </div>
