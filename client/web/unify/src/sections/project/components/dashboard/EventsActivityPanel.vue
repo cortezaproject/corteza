@@ -57,7 +57,10 @@
         <div class="text-sm font-medium text-color mb-2">
           {{ $t('project.dashboard.eventsBand.recent') }}
         </div>
-        <div v-if="recent.length" class="flex flex-col max-h-72 overflow-y-auto overflow-x-hidden">
+        <!-- No overflow-x clipping here: the rows' -mx-2 hover bleed pokes past
+             this box by design, and long tokens wrap via the row's own
+             break-words. -->
+        <div v-if="recent.length" class="flex flex-col max-h-72 overflow-y-auto">
           <EventTimelineItem
             v-for="e in recent"
             :key="e.actionID"

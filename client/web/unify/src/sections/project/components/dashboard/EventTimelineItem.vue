@@ -11,8 +11,13 @@
        Severity is not tinted for routine events either: in practice nearly every
        row is `info`, so colouring them all would spend the row's one accent on
        noise and leave a genuine error with nothing left to shout with. -->
+  <!-- The whole row toggles the details disclosure — the chevron next to the
+       title is the visible affordance, the row is the hit target. Inner
+       interactive elements (resource filter, more-changes, links) stop
+       propagation so they don't double as a toggle. -->
   <div
-    class="group flex gap-3 rounded-md px-2 py-2 -mx-2 transition-colors hover:bg-emphasis motion-reduce:transition-none"
+    class="group flex gap-3 rounded-md px-2 py-2 -mx-2 transition-colors hover:bg-emphasis motion-reduce:transition-none cursor-pointer"
+    @click="open = !open"
   >
     <!-- KindIcon owns the kind icon-square recipe (bg + ring + coloured glyph),
          so an event about an agent wears the same mark that agent wears
@@ -43,6 +48,19 @@
           {{ typeLabel }}
         </span>
         <span v-if="subject" class="font-medium">&nbsp;{{ subject }}</span>
+        <!-- Disclosure chevron — sits right after the sentence so it reads as
+             part of the row's headline. Stops propagation: the row itself also
+             toggles, and both firing would cancel out. -->
+        <button
+          type="button"
+          class="ml-1.5 shrink-0 align-middle cursor-pointer rounded-sm text-muted-color hover:text-color focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          :aria-expanded="open"
+          :aria-controls="detailsID"
+          :aria-label="t('project.dashboard.allEvents.details')"
+          @click.stop="open = !open"
+        >
+          <i class="pi text-xs" :class="open ? 'pi-chevron-up' : 'pi-chevron-down'" />
+        </button>
       </p>
 
       <!-- The signature: what actually changed, without a click. -->
@@ -52,7 +70,7 @@
         v-if="hiddenChanges"
         type="button"
         class="self-start text-xs text-primary-500 hover:underline cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        @click="open = true"
+        @click.stop="open = true"
       >
         {{ t('project.dashboard.allEvents.moreChanges', hiddenChanges) }}
       </button>
@@ -69,21 +87,6 @@
           <span aria-hidden="true">·</span>
           <span>{{ originText }}</span>
         </template>
-        <!-- Always rendered, never hover-gated: there is no hover on touch, and a
-             control you cannot reach is worse than one more quiet glyph.
-             aria-controls/id pair the toggle with its region — the contract
-             PrimeVue's AccordionHeader/AccordionContent implement for us
-             elsewhere; see the note in <script> on why this row is not one. -->
-        <button
-          type="button"
-          class="ml-auto shrink-0 cursor-pointer rounded-sm hover:text-color focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          :aria-expanded="open"
-          :aria-controls="detailsID"
-          :aria-label="t('project.dashboard.allEvents.details')"
-          @click="open = !open"
-        >
-          <i class="pi text-xs" :class="open ? 'pi-chevron-up' : 'pi-chevron-down'" />
-        </button>
       </p>
 
       <!-- Everything the row deliberately did not say. One disclosure, not three:
@@ -95,6 +98,7 @@
         role="region"
         :aria-label="t('project.dashboard.allEvents.details')"
         class="grid grid-cols-1 gap-x-4 gap-y-1 pt-1 sm:grid-cols-2"
+        @click.stop
       >
         <div v-for="row in detailRows" :key="row.k" class="flex gap-2 min-w-0 text-xs">
           <span class="text-muted-color shrink-0">{{ row.k }}</span>
