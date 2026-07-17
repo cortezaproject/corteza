@@ -2,10 +2,14 @@
   <!-- Flat tinted pill used for the type / severity / status columns, matching
        the demo's badges. Severity carries a leading colored dot. -->
   <span
-    class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap"
-    :class="cls"
+    class="inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap"
+    :class="[cls, size === 'md' ? 'px-2.5 py-1 text-xs' : 'px-2 py-0.5 text-[11px]']"
   >
-    <span v-if="dot" class="w-1.5 h-1.5 rounded-full shrink-0" :class="dot" />
+    <span
+      v-if="dot"
+      class="rounded-full shrink-0"
+      :class="[dot, size === 'md' ? 'w-2 h-2' : 'w-1.5 h-1.5']"
+    />
     {{ value || '—' }}
   </span>
 </template>
@@ -18,6 +22,9 @@ const props = defineProps({
   // 'type' (neutral bordered) | 'severity' (dot + tint) | 'status' (tint) |
   // 'priority' (dot + tint) | 'risk' (dot + tint)
   variant: { type: String, default: 'type' },
+  // 'sm' (default — table/list density) | 'md' (form selects, where the list
+  // pill reads undersized against a ~2.5rem control).
+  size: { type: String, default: 'sm' },
 })
 
 const MUTED = 'bg-emphasis text-muted-color'

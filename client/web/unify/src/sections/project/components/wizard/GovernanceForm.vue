@@ -74,13 +74,17 @@
             @update:model-value="update(field.key, $event)"
           >
             <template v-if="field.badge" #option="{ option }">
-              <EventBadge :value="option" :variant="field.badge" />
+              <span class="flex items-center">
+                <EventBadge :value="option" :variant="field.badge" size="md" />
+              </span>
             </template>
             <template v-if="field.badge" #value="{ value, placeholder }">
               <!-- Blank selection falls back to the placeholder text instead
                    of rendering an empty badge pill (possible on older records
                    whose optional severity/risk was never set). -->
-              <EventBadge v-if="value" :value="value" :variant="field.badge" />
+              <span v-if="value" class="flex items-center h-full">
+                <EventBadge :value="value" :variant="field.badge" size="md" />
+              </span>
               <span v-else class="text-muted-color">{{ placeholder }}</span>
             </template>
           </Select>
