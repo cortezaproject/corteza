@@ -406,6 +406,16 @@ const rowClass = () => {
   color: var(--p-primary-color);
 }
 
+/* The actively sorted column reads primary — label and sort arrow both — so
+   the sort state is visible at a glance, not just by the small arrow. Done in
+   CSS (not a conditional header class) because the Aura theme colours the
+   sorted th/icon via its own higher-specificity token rules, which quietly win
+   over a single utility class. */
+:deep(th.p-datatable-column-sorted),
+:deep(th.p-datatable-column-sorted .p-sortable-column-icon) {
+  color: var(--p-primary-color);
+}
+
 :deep(.row-action-btn) {
   opacity: 0;
   transition: opacity 0.15s ease;
