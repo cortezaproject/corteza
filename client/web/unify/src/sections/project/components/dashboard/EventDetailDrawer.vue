@@ -46,8 +46,15 @@
           <div class="text-xs font-medium text-muted-color uppercase tracking-wide mb-1">
             {{ $t(field.labelKey) }}
           </div>
+          <span
+            v-if="badgeVariant(field) === 'risk' && record?.[field.key]"
+            class="flex items-center gap-2"
+          >
+            <RiskPips :level="record[field.key]" />
+            <span class="text-sm text-color">{{ record[field.key] }}</span>
+          </span>
           <EventBadge
-            v-if="badgeVariant(field) && record?.[field.key]"
+            v-else-if="badgeVariant(field) && record?.[field.key]"
             :value="record[field.key]"
             :variant="badgeVariant(field)"
             size="md"
@@ -130,6 +137,7 @@ import BacklogItemDialog from '@/sections/project/components/dashboard/BacklogIt
 import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
+import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useConfirmDelete } from '@planetcrust/human-vue'

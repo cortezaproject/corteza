@@ -73,8 +73,15 @@
             fluid
             @update:model-value="update(field.key, $event)"
           >
+            <!-- Risk keeps its list identity — the 5-pip meter — with the
+                 label alongside (a bare meter is unreadable in a select);
+                 every other badge-hinted field renders its pill. -->
             <template v-if="field.badge" #option="{ option }">
-              <span class="flex items-center">
+              <span v-if="field.badge === 'risk'" class="flex items-center gap-2">
+                <RiskPips :level="option" />
+                <span class="text-sm">{{ option }}</span>
+              </span>
+              <span v-else class="flex items-center">
                 <EventBadge :value="option" :variant="field.badge" size="md" />
               </span>
             </template>
@@ -82,7 +89,11 @@
               <!-- Blank selection falls back to the placeholder text instead
                    of rendering an empty badge pill (possible on older records
                    whose optional severity/risk was never set). -->
-              <span v-if="value" class="flex items-center h-full">
+              <span v-if="value && field.badge === 'risk'" class="flex items-center gap-2 h-full">
+                <RiskPips :level="value" />
+                <span class="text-sm">{{ value }}</span>
+              </span>
+              <span v-else-if="value" class="flex items-center h-full">
                 <EventBadge :value="value" :variant="field.badge" size="md" />
               </span>
               <span v-else class="text-muted-color">{{ placeholder }}</span>
@@ -108,6 +119,7 @@
 
 <script setup>
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
+import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
 import { useI18n } from 'vue-i18n'
 

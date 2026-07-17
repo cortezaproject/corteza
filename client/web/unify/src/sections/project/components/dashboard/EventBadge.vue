@@ -56,6 +56,12 @@ const STATUS = {
   'Ready to Test': 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
   Completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
 }
+const STATUS_DOT = {
+  Open: 'bg-blue-500',
+  'In Progress': 'bg-amber-500',
+  'Ready to Test': 'bg-violet-500',
+  Completed: 'bg-emerald-500',
+}
 
 // Backlog item priority (High/Medium/Low — no Critical tier, unlike
 // severity/risk). Reuses RiskPips's family (red/orange/amber/yellow) but
@@ -73,34 +79,19 @@ const PRIORITY_DOT = {
   Low: 'bg-yellow-500',
 }
 
-// Risk (Critical/High/Medium/Low — used in selects, where RiskPips' bare pip
-// meter reads poorly without its label alongside). Same red/orange/amber/
-// yellow family as RiskPips' own MAP, so the select and the list pips agree
-// on what each level means even though they're two different mark types.
-const RISK = {
-  Critical: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
-  High: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
-  Medium: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
-  Low: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300',
-}
-const RISK_DOT = {
-  Critical: 'bg-red-500',
-  High: 'bg-orange-500',
-  Medium: 'bg-amber-500',
-  Low: 'bg-yellow-500',
-}
+// (No `risk` variant: risk keeps its 5-pip meter identity everywhere —
+// RiskPips — with a text label alongside in selects/summaries.)
 
 const cls = computed(() => {
   if (props.variant === 'severity') return SEVERITY[props.value] || MUTED
   if (props.variant === 'status') return STATUS[props.value] || MUTED
   if (props.variant === 'priority') return PRIORITY[props.value] || MUTED
-  if (props.variant === 'risk') return RISK[props.value] || MUTED
   return 'border border-surface text-muted-color' // type: flat neutral pill
 })
 const dot = computed(() => {
   if (props.variant === 'severity') return SEVERITY_DOT[props.value] || 'bg-surface-400'
+  if (props.variant === 'status') return STATUS_DOT[props.value] || 'bg-surface-400'
   if (props.variant === 'priority') return PRIORITY_DOT[props.value] || 'bg-surface-400'
-  if (props.variant === 'risk') return RISK_DOT[props.value] || 'bg-surface-400'
   return null
 })
 </script>
