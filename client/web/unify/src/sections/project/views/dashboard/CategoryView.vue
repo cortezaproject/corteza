@@ -79,7 +79,7 @@
           :kpis="kpiList"
           :spark="spark.values"
           :spark-labels="spark.labels"
-          :accent="accentColor"
+          :accent="accentClass"
         />
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
           <!-- Severity/risk are ordinal (ranked, not parts-of-a-whole) — an
@@ -90,7 +90,6 @@
               :title-key="chart.titleKey"
               :data="breakdownFor(chart.variant)"
               :variant="chart.variant"
-              :accent="accentColor"
               :height="180"
             />
             <CategoryDonutChart
@@ -99,7 +98,6 @@
               :data="breakdownFor(chart.variant)"
               :variant="chart.variant"
               :category="category"
-              :accent="accentColor"
               :height="180"
             />
           </template>
@@ -107,8 +105,9 @@
         <CategoryTrendChart
           title-key="project.dashboard.chart.createdOverTime"
           :labels="trend.labels"
+          :range-labels="trend.rangeLabels"
           :series="trend.series"
-          :accent="accentColor"
+          :legend-variant="cfg.trendGroupBy"
           :height="180"
         >
           <!-- Windows this chart (and the KPI sparkline derived from it)
@@ -239,8 +238,8 @@ import TimeRangeSelect from '@/sections/project/components/dashboard/TimeRangeSe
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
-import { CATEGORY_COLORS, colorFor, orderIndex } from '@/sections/project/config/chartColors'
-import { RANGES, adaptiveWindow, rangeFrom } from '@/sections/project/config/trend'
+import { colorFor, orderIndex } from '@/sections/project/config/chartColors'
+import { RANGES, adaptiveWindow, earliestPointDate, rangeFrom } from '@/sections/project/config/trend'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
@@ -261,7 +260,11 @@ const { confirmDelete } = useConfirmDelete()
 // Active category comes straight from the route; cfg is null for unknown keys.
 const category = computed(() => route.params.category)
 const cfg = computed(() => CATEGORY_CONFIG[category.value] || null)
-const accentColor = computed(() => CATEGORY_COLORS[category.value] || '')
+// KPI sparkline accent — the badge icon's text classes (via bg-current in
+// CategoryKpiRow), NOT the chart-palette hex: identity surfaces track the
+// icon colour exactly (same move as Overview's card rail), while multi-series
+// charts keep the CVD-validated palette (where e.g. privacy is teal).
+const accentClass = computed(() => cfg.value?.badge.text || '')
 
 // Metrics band (KPIs + donuts + trend) — all from the report endpoint
 // (accurate, not subject to the events store's per-category 200-row list
@@ -270,7 +273,7 @@ const accentColor = computed(() => CATEGORY_COLORS[category.value] || '')
 // switch overwriting the current one's data (same pattern as Overview's
 // loadAll/AllEventsView's load()).
 const reportStore = useReportStore()
-const trend = reactive({ labels: [], series: [] })
+const trend = reactive({ labels: [], rangeLabels: [], series: [] })
 // Default m6 (6 months) — matches Overview's default; see that view's comment
 // for why.
 const trendRange = ref('m6')
@@ -317,10 +320,17 @@ async function loadReport(pid, key, mySeq) {
 // Bucketed by the active range's adaptive window (day/week/month).
 async function loadTrend(pid, key, mySeq) {
   const def = RANGES.find(r => r.key === trendRange.value)
-  const { fromISO, toISO, labels, bucket } = adaptiveWindow(rangeFrom(def), new Date())
+  const from = rangeFrom(def)
+  const now = new Date()
+  // Fetch first: a bounded preset windows the query itself; 'all' (from =
+  // null) fetches unbounded and sizes the axis from the earliest point below.
   const groupBy = CATEGORY_CONFIG[key].trendGroupBy
-  const points = await reportStore.trend(pid, key, { from: fromISO, to: toISO, groupBy })
+  const points = await reportStore.trend(pid, key, { from: from?.toISOString(), to: now.toISOString(), groupBy })
   if (mySeq !== trendSeq) return // stale response
+  // `points` is the flat, date-ascending array before the group pivot below —
+  // its first element is the earliest overall point, which is all
+  // earliestPointDate needs for the 'all' preset.
+  const { labels, rangeLabels, bucket } = adaptiveWindow(from || earliestPointDate(points), now)
 
   // Pivot the day×group points into one stacked series per group value
   // (e.g. per severity), ordered canonically and coloured to match its badge.
@@ -334,6 +344,7 @@ async function loadTrend(pid, key, mySeq) {
     (a, b) => orderIndex(groupBy, a) - orderIndex(groupBy, b) || a.localeCompare(b),
   )
   trend.labels = labels
+  trend.rangeLabels = rangeLabels
   trend.series = keys.map(g => ({
     name: g,
     color: colorFor(groupBy, g),
@@ -351,6 +362,7 @@ async function loadMetrics(pid, key, { silent = false } = {}) {
     reportBreakdowns.overdue = 0
     reportBreakdowns.byDim = {}
     trend.labels = []
+    trend.rangeLabels = []
     trend.series = []
     spark.labels = []
     spark.values = []
@@ -490,16 +502,18 @@ const kpiList = computed(() => {
 // KPI tiles' sparkline — its own FIXED 12-week weekly pulse, deliberately
 // decoupled from the trend chart's range control (the tiles give steady
 // temporal context; the chart is the thing you window). One extra ungrouped
-// report call per category load.
+// report call per category load. `labels` holds the tooltip-facing range
+// strings (e.g. "Jul 13 – 19, 2026"), not the short axis labels — the bars
+// have no axis, so the fuller string is what CategoryKpiRow's tooltip shows.
 const spark = reactive({ labels: [], values: [] })
 
 async function loadSpark(pid, key, mySeq) {
   const from = new Date()
   from.setDate(from.getDate() - 12 * 7)
-  const { fromISO, toISO, labels, bucket } = adaptiveWindow(from, new Date())
+  const { fromISO, toISO, rangeLabels, bucket } = adaptiveWindow(from, new Date())
   const points = await reportStore.trend(pid, key, { from: fromISO, to: toISO })
   if (mySeq !== loadSeq) return // stale response
-  spark.labels = labels
+  spark.labels = rangeLabels
   spark.values = bucket(points)
 }
 

@@ -133,6 +133,42 @@ export function monthLabel(d) {
   return d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
 }
 
+// --- Tooltip-facing range labels ---------------------------------------------
+// Full, unambiguous strings for one bucket — axis labels above stay short, but
+// a tooltip has room to spell out the exact range being summed. One helper
+// per granularity, mirrored to *Label above.
+
+// "Jul 13, 2026" — day-bucket tooltip range.
+function dayRangeLabel(d) {
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// "Jul 13 – 19, 2026" / "Jun 29 – Jul 5, 2026" / "Dec 29, 2025 – Jan 4, 2026"
+// — week-bucket tooltip range. `end` is `start` + 6 days, clamped to `toDate`
+// so the current, still-partial week doesn't claim days that haven't
+// happened yet.
+function weekRangeLabel(start, toDate) {
+  const end = new Date(start)
+  end.setDate(end.getDate() + 6)
+  const clampEnd = dayStart(toDate)
+  if (end.getTime() > clampEnd.getTime()) end.setTime(clampEnd.getTime())
+
+  const startMonthDay = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  if (start.getFullYear() === end.getFullYear()) {
+    if (start.getMonth() === end.getMonth()) return `${startMonthDay} – ${end.getDate()}, ${end.getFullYear()}`
+    const endMonthDay = end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    return `${startMonthDay} – ${endMonthDay}, ${end.getFullYear()}`
+  }
+  const startFull = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  const endFull = end.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  return `${startFull} – ${endFull}`
+}
+
+// "July 2026" — month-bucket tooltip range.
+function monthRangeLabel(d) {
+  return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+}
+
 // --- Quick time-range presets ------------------------------------------------
 // Shared by AllEventsView's filter window and the Overview/CategoryView trend
 // charts (via TimeRangeSelect). Each preset resolves to a `from` Date (`to`
@@ -163,45 +199,65 @@ export function rangeFrom(r) {
 
 const DAY_BUCKET_MAX_SPAN_DAYS = 70
 const WEEK_BUCKET_MAX_SPAN_DAYS = 400
-const ALL_LOOKBACK_YEARS = 5
+const EMPTY_LOOKBACK_MONTHS = 6
 
 // Picks day/week/month buckets for a [from, to] span so charts stay legible
 // at any preset width: day buckets ≤ ~70 days, week buckets ≤ ~400 days,
 // month buckets beyond that. `to` defaults to now; `from` defaults to a
-// generous 5-year lookback — the 'all' preset carries no lower bound
-// (rangeFrom returns null), and a truly unbounded query would ask the
-// backend to scan a project's entire history for a chart with a few dozen
-// bars, so it is capped here instead (and, being > 400 days, always lands on
-// month buckets regardless of the thresholds above).
+// 6-month lookback, but that only matters when the caller has no data to
+// size the window from — the 'all' preset carries no lower bound (rangeFrom
+// returns null), so its callers fetch unbounded first and pass in the
+// earliest fetched point's date instead (see earliestPointDate below, and
+// Overview/CategoryView's loadTrend). 6 empty months reads as a sane empty
+// chart for a project with nothing in it, where a multi-year fallback did not.
 //
-// Returns { fromISO, toISO, starts, labels, bucket }: `labels` is the
-// prebuilt axis-label array, `bucket` is `points => number[]` aligned to it —
-// callers just call it against a fetched point series instead of hand-rolling
-// the day/week/month choice themselves.
+// Returns { fromISO, toISO, starts, labels, rangeLabels, bucket }: `labels`
+// is the prebuilt axis-label array, `rangeLabels` is the tooltip-facing
+// full-range string per bucket (aligned to `labels` — see the range-label
+// helpers above), `bucket` is `points => number[]` aligned to it — callers
+// just call it against a fetched point series instead of hand-rolling the
+// day/week/month choice themselves.
 export function adaptiveWindow(from, to) {
   const toDate = to || new Date()
   let fromDate = from
   if (!fromDate) {
     fromDate = new Date(toDate)
-    fromDate.setFullYear(fromDate.getFullYear() - ALL_LOOKBACK_YEARS)
+    fromDate.setMonth(fromDate.getMonth() - EMPTY_LOOKBACK_MONTHS)
   }
 
   const spanDays = (toDate.getTime() - fromDate.getTime()) / DAY
 
-  let starts, labels, bucket
+  let starts, labels, rangeLabels, bucket
   if (spanDays <= DAY_BUCKET_MAX_SPAN_DAYS) {
     starts = dayStarts(fromDate, toDate)
     labels = starts.map(dayLabel)
+    rangeLabels = starts.map(dayRangeLabel)
     bucket = points => bucketDaily(points, starts)
   } else if (spanDays <= WEEK_BUCKET_MAX_SPAN_DAYS) {
     starts = weekStarts(fromDate, toDate)
     labels = starts.map(weekLabel)
+    rangeLabels = starts.map(s => weekRangeLabel(s, toDate))
     bucket = points => bucketWeekly(points, starts)
   } else {
     starts = monthStarts(fromDate, toDate)
     labels = starts.map(monthLabel)
+    rangeLabels = starts.map(monthRangeLabel)
     bucket = points => bucketMonthly(points, starts)
   }
 
-  return { fromISO: fromDate.toISOString(), toISO: toDate.toISOString(), starts, labels, bucket }
+  return { fromISO: fromDate.toISOString(), toISO: toDate.toISOString(), starts, labels, rangeLabels, bucket }
+}
+
+// Earliest point date across one or more fetched series, as a Date — how the
+// 'all' preset sizes its window (rangeFrom returns null for it, so the chart
+// starts at the first real data point instead of an arbitrary lookback).
+// Points arrive date-ascending from the report store, so the first element
+// of each series is its earliest. Null when every series is empty.
+export function earliestPointDate(...seriesPoints) {
+  let min = null
+  for (const points of seriesPoints) {
+    const d = points?.[0]?.date
+    if (d && (!min || d < min)) min = d
+  }
+  return min ? new Date(min) : null
 }

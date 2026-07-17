@@ -48,11 +48,12 @@ export function useEventActivity() {
       .map(r => ({ date: String(r.dimensions?.day || ''), value: Number(r.metrics?.count || 0) }))
       .filter(p => p.date)
 
-    const { labels, bucket } = adaptiveWindow(start, end)
+    const { labels, rangeLabels, bucket } = adaptiveWindow(start, end)
     const g = (totals.set && totals.set[0]) || {}
 
     return {
       labels,
+      rangeLabels,
       series: [
         {
           name: t('project.dashboard.allEvents.metrics.events'),

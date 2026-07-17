@@ -220,7 +220,13 @@
         </div>
       </div>
       <div class="w-full min-w-0">
-        <CategoryTrendChart bare :height="96" :labels="metrics.labels" :series="metrics.series" />
+        <CategoryTrendChart
+          bare
+          :height="128"
+          :labels="metrics.labels"
+          :range-labels="metrics.rangeLabels"
+          :series="metrics.series"
+        />
       </div>
     </div>
 
@@ -615,7 +621,7 @@ function reload() {
 // shared with the Overview activity band — this just supplies the filters and
 // owns the fail-soft/failed-band behaviour specific to this view.
 const activity = useEventActivity()
-const metrics = reactive({ labels: [], series: [], total: 0, actors: 0, errors: 0, failed: false })
+const metrics = reactive({ labels: [], rangeLabels: [], series: [], total: 0, actors: 0, errors: 0, failed: false })
 
 function metricsRange() {
   const to = filter.to || new Date()

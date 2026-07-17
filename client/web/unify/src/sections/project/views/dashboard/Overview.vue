@@ -59,8 +59,9 @@
             :to="{ name: 'project.overview.category', params: { projectId, category: c.key } }"
             class="group relative overflow-hidden rounded-xl border border-surface bg-surface pl-5 pr-4 py-3 flex flex-col gap-1 hover:shadow-md transition-all"
           >
-            <!-- Left accent rail in the category's colour. -->
-            <span class="absolute inset-y-0 left-0 w-1" :style="{ background: c.accentColor }" />
+            <!-- Left accent rail takes the badge icon's exact text colour via
+                 bg-current — light+dark for free. -->
+            <span class="absolute inset-y-0 left-0 w-1 bg-current" :class="c.badge.text" />
             <span class="flex items-center gap-2 min-w-0">
               <KindIcon :config="c.badge" size="lg" plain-icon />
               <span class="flex flex-col min-w-0">
@@ -97,7 +98,9 @@
           v-else
           title-key="project.dashboard.chart.trend"
           :labels="trend.labels"
+          :range-labels="trend.rangeLabels"
           :series="trend.series"
+          legend-variant="category"
         >
           <!-- Windows this chart only — lives in the card it acts on. -->
           <template #actions>
@@ -117,7 +120,7 @@ import TimeRangeSelect from '@/sections/project/components/dashboard/TimeRangeSe
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
 import { CATEGORY_COLORS } from '@/sections/project/config/chartColors'
-import { RANGES, adaptiveWindow, rangeFrom } from '@/sections/project/config/trend'
+import { RANGES, adaptiveWindow, earliestPointDate, rangeFrom } from '@/sections/project/config/trend'
 import { useReportStore } from '@/sections/project/stores/report'
 import { isOpenStatus } from '@/sections/project/stores/events'
 import { computed, reactive, ref, watch } from 'vue'
@@ -137,7 +140,7 @@ const data = reactive({})
 // preset below. Default m6 (6 months): a full year of week/month-adaptive
 // buckets read noisy for a landing-page glance, so 6 months is the starting
 // point — the control lets you widen it in one click.
-const trend = reactive({ labels: [], series: [] })
+const trend = reactive({ labels: [], rangeLabels: [], series: [] })
 const trendRange = ref('m6')
 
 // Loading covers the category cards + trend (EventsActivityPanel manages its
@@ -156,7 +159,7 @@ const cards = computed(() =>
   CATEGORY_ORDER.map(key => {
     const cfg = CATEGORY_CONFIG[key]
     const d = data[key] || { total: 0, open: 0, status: [] }
-    return { key, titleKey: cfg.titleKey, badge: cfg.badge, accentColor: CATEGORY_COLORS[key], ...d }
+    return { key, titleKey: cfg.titleKey, badge: cfg.badge, ...d }
   }),
 )
 
@@ -183,20 +186,24 @@ async function loadCategory(pid, key, mySeq) {
 // aligned to a shared axis.
 async function loadTrend(pid, mySeq) {
   const def = RANGES.find(r => r.key === trendRange.value)
-  const { fromISO, toISO, labels, bucket } = adaptiveWindow(rangeFrom(def), new Date())
-  const series = await Promise.all(
-    CATEGORY_ORDER.map(async key => {
-      const points = await report.trend(pid, key, { from: fromISO, to: toISO })
-      return {
-        name: t(CATEGORY_CONFIG[key].titleKey),
-        color: CATEGORY_COLORS[key],
-        data: bucket(points),
-      }
-    }),
+  const from = rangeFrom(def)
+  const now = new Date()
+  // Fetch first: a bounded preset windows the query itself; 'all' (from =
+  // null) fetches unbounded and sizes the axis from the earliest point below.
+  const toISO = now.toISOString()
+  const perCategory = await Promise.all(
+    CATEGORY_ORDER.map(key => report.trend(pid, key, { from: from?.toISOString(), to: toISO })),
   )
   if (mySeq !== trendSeq) return // stale response
+  const { labels, rangeLabels, bucket } = adaptiveWindow(from || earliestPointDate(...perCategory), now)
   trend.labels = labels
-  trend.series = series
+  trend.rangeLabels = rangeLabels
+  trend.series = CATEGORY_ORDER.map((key, i) => ({
+    name: t(CATEGORY_CONFIG[key].titleKey),
+    key,
+    color: CATEGORY_COLORS[key],
+    data: bucket(perCategory[i]),
+  }))
 }
 
 // Two sequence tokens: `loadSeq` guards the category cards, `trendSeq` guards

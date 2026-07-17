@@ -44,6 +44,7 @@
             bare
             height="fill"
             :labels="metrics.labels"
+            :range-labels="metrics.rangeLabels"
             :series="metrics.series"
           />
         </div>
@@ -132,7 +133,7 @@ function dayLabel(d) {
   return locDate(d)
 }
 
-const metrics = reactive({ labels: [], series: [], total: 0, actors: 0, errors: 0 })
+const metrics = reactive({ labels: [], rangeLabels: [], series: [], total: 0, actors: 0, errors: 0 })
 const recent = ref([])
 const failed = ref(false)
 
