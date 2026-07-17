@@ -77,8 +77,8 @@
       <template v-else>
         <CategoryKpiRow
           :kpis="kpiList"
-          :spark="kpiSpark"
-          :spark-labels="trend.labels"
+          :spark="spark.values"
+          :spark-labels="spark.labels"
           :accent="accentColor"
         />
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -352,6 +352,8 @@ async function loadMetrics(pid, key, { silent = false } = {}) {
     reportBreakdowns.byDim = {}
     trend.labels = []
     trend.series = []
+    spark.labels = []
+    spark.values = []
     return
   }
   const mySeq = ++loadSeq
@@ -359,7 +361,11 @@ async function loadMetrics(pid, key, { silent = false } = {}) {
   if (!silent) metricsLoading.value = true
   metricsFailed.value = false
   try {
-    await Promise.all([loadReport(pid, key, mySeq), loadTrend(pid, key, myTrendSeq)])
+    await Promise.all([
+      loadReport(pid, key, mySeq),
+      loadSpark(pid, key, mySeq),
+      loadTrend(pid, key, myTrendSeq),
+    ])
   } catch (err) {
     if (mySeq !== loadSeq) return // superseded by a newer switch
     console.error('Failed to load category metrics', err)
@@ -379,9 +385,8 @@ watch(
   { immediate: true },
 )
 
-// Preset change: reload the trend only — loadReport (KPIs/donuts) is
-// untouched. The KPI sparkline (kpiSpark, below) is derived from `trend` so
-// it follows automatically.
+// Preset change: reload the trend only — loadReport (KPIs/donuts) and the
+// KPI sparkline (its own fixed 12-week pulse, see loadSpark) are untouched.
 async function onRangeChange(key) {
   trendRange.value = key
   const pid = route.params.projectId
@@ -482,13 +487,21 @@ const kpiList = computed(() => {
   return cfg.value.kpis.map(({ key, labelKey }) => ({ labelKey, value: reportBreakdowns[key] }))
 })
 
-// KPI tiles' sparkline — a single weekly-total series derived from the
-// already-loaded trend (no new report call): sum each group's stacked value
-// at every week index. Empty trend (not loaded yet, or an invalid category)
-// ⇒ empty array, so CategoryKpiRow renders its tiles without a strip.
-const kpiSpark = computed(() =>
-  trend.labels.map((_, i) => trend.series.reduce((sum, s) => sum + (s.data[i] || 0), 0)),
-)
+// KPI tiles' sparkline — its own FIXED 12-week weekly pulse, deliberately
+// decoupled from the trend chart's range control (the tiles give steady
+// temporal context; the chart is the thing you window). One extra ungrouped
+// report call per category load.
+const spark = reactive({ labels: [], values: [] })
+
+async function loadSpark(pid, key, mySeq) {
+  const from = new Date()
+  from.setDate(from.getDate() - 12 * 7)
+  const { fromISO, toISO, labels, bucket } = adaptiveWindow(from, new Date())
+  const points = await reportStore.trend(pid, key, { from: fromISO, to: toISO })
+  if (mySeq !== loadSeq) return // stale response
+  spark.labels = labels
+  spark.values = bucket(points)
+}
 
 // Chart data helper — grouped counts for a report dimension, ordered
 // canonically for ranked variants (severity/risk/status) so bars read

@@ -7,7 +7,6 @@
 // line interpolated across gaps.
 
 const DAY = 86400000
-const WEEK = 7 * DAY
 
 // Monday 00:00 (local) on or before d.
 function weekStart(d) {
@@ -18,26 +17,34 @@ function weekStart(d) {
   return x
 }
 
-// Ordered week-start Dates spanning [from, to] inclusive.
+// Ordered week-start Dates spanning [from, to] inclusive. Walks the calendar
+// (setDate +7) rather than adding WEEK milliseconds: a DST transition inside
+// the span shifts ms-stepped "Mondays" by an hour, which silently dropped the
+// final (current) week bucket — and with it anything created this week.
 export function weekStarts(from, to) {
-  const start = weekStart(from).getTime()
   const end = weekStart(to).getTime()
   const out = []
-  for (let t = start; t <= end; t += WEEK) out.push(new Date(t))
+  const cur = weekStart(from)
+  while (cur.getTime() <= end) {
+    out.push(new Date(cur))
+    cur.setDate(cur.getDate() + 7)
+  }
   return out
 }
 
 // Sum daily points into week buckets aligned to `starts`. Returns a number[]
-// the same length/order as `starts`. points: [{ date, value }].
+// the same length/order as `starts`. points: [{ date, value }]. Buckets are
+// matched by exact week-start lookup (not ms division — same DST hazard as
+// above).
 export function bucketWeekly(points, starts) {
   const values = new Array(starts.length).fill(0)
   if (!starts.length) return values
-  const base = starts[0].getTime()
+  const idxByStart = new Map(starts.map((s, i) => [s.getTime(), i]))
   for (const p of points) {
     const d = new Date(p.date)
     if (Number.isNaN(d.getTime())) continue
-    const idx = Math.round((weekStart(d).getTime() - base) / WEEK)
-    if (idx >= 0 && idx < values.length) values[idx] += Number(p.value || 0)
+    const idx = idxByStart.get(weekStart(d).getTime())
+    if (idx !== undefined) values[idx] += Number(p.value || 0)
   }
   return values
 }
@@ -55,23 +62,27 @@ function dayStart(d) {
   return x
 }
 
+// Calendar-walked for the same DST reason as weekStarts above.
 export function dayStarts(from, to) {
-  const start = dayStart(from).getTime()
   const end = dayStart(to).getTime()
   const out = []
-  for (let t = start; t <= end; t += DAY) out.push(new Date(t))
+  const cur = dayStart(from)
+  while (cur.getTime() <= end) {
+    out.push(new Date(cur))
+    cur.setDate(cur.getDate() + 1)
+  }
   return out
 }
 
 export function bucketDaily(points, starts) {
   const values = new Array(starts.length).fill(0)
   if (!starts.length) return values
-  const base = starts[0].getTime()
+  const idxByStart = new Map(starts.map((s, i) => [s.getTime(), i]))
   for (const p of points) {
     const d = new Date(p.date)
     if (Number.isNaN(d.getTime())) continue
-    const idx = Math.round((dayStart(d).getTime() - base) / DAY)
-    if (idx >= 0 && idx < values.length) values[idx] += Number(p.value || 0)
+    const idx = idxByStart.get(dayStart(d).getTime())
+    if (idx !== undefined) values[idx] += Number(p.value || 0)
   }
   return values
 }
