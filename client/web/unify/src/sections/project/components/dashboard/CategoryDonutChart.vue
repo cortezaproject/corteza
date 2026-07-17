@@ -1,7 +1,6 @@
 <template>
   <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface p-4'">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-2">
-      <span v-if="accent" class="w-2 h-2 rounded-full shrink-0" :style="{ background: accent }" />
       <div class="text-sm font-medium text-color truncate">{{ $t(titleKey) }}</div>
     </div>
 
@@ -42,7 +41,8 @@ const props = defineProps({
   // Which category's option list to index into for variant 'type' (see
   // colorFor in config/chartColors) — ignored for every other variant.
   category: { type: String, default: '' },
-  // Optional accent dot next to the title (hex).
+  // Accepted for caller compatibility; the title accent dot was removed
+  // (category color-coding on chart titles carried no information).
   accent: { type: String, default: '' },
   // Chrome-less variant: no card wrapper/title, for embedding in a card.
   bare: { type: Boolean, default: false },

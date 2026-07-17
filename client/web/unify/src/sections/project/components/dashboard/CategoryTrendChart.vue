@@ -1,7 +1,6 @@
 <template>
   <div :class="[bare ? '' : 'rounded-lg border border-surface bg-surface p-4', fill ? 'h-full' : '']">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-3">
-      <span v-if="accent" class="w-2 h-2 rounded-full shrink-0" :style="{ background: accent }" />
       <div class="text-sm font-medium text-color truncate">{{ $t(titleKey) }}</div>
     </div>
 
@@ -38,7 +37,8 @@ const props = defineProps({
   labels: { type: Array, default: () => [] },
   // One or more series: [{ name, color, data: number[] }] aligned to `labels`.
   series: { type: Array, default: () => [] },
-  // Optional accent dot next to the title (hex).
+  // Accepted for caller compatibility; the title accent dot was removed
+  // (category color-coding on chart titles carried no information).
   accent: { type: String, default: '' },
   // Chrome-less variant: no card wrapper/title, for embedding in a band.
   bare: { type: Boolean, default: false },
