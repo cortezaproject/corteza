@@ -64,10 +64,11 @@
         </div>
         <div v-if="recent.length" class="flex flex-col max-h-72 overflow-y-auto">
           <template v-for="group in recentGroups" :key="group.key">
-            <!-- Same day separators as All Events; sticky within the card's
-                 own scroll, solid bg so rows don't show through underneath. -->
+            <!-- Same day separators as All Events — the identical bg-emphasis
+                 band, sticky within the card's own scroll (solid token, so
+                 rows never show through underneath). -->
             <div
-              class="sticky top-0 z-10 py-1 bg-surface text-xs font-semibold uppercase tracking-wide text-muted-color"
+              class="sticky top-0 z-10 px-2 py-1.5 bg-emphasis rounded text-xs font-semibold uppercase tracking-wide text-muted-color"
             >
               {{ group.label }}
             </div>

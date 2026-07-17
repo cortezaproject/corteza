@@ -200,9 +200,9 @@
          see the timeline. -->
     <div
       v-if="!metrics.failed"
-      class="shrink-0 border-b border-surface px-4 py-3 flex flex-col sm:flex-row items-stretch gap-4"
+      class="shrink-0 border-b border-surface px-4 py-3 flex flex-col items-stretch gap-3"
     >
-      <div class="flex sm:flex-col justify-around sm:justify-center gap-4 sm:w-36 shrink-0">
+      <div class="flex justify-start gap-8">
         <div class="flex flex-col">
           <span class="text-xl font-semibold text-color leading-none">{{ metrics.total }}</span>
           <span class="text-xs text-muted-color">
@@ -227,16 +227,18 @@
           </span>
         </div>
       </div>
-      <div class="flex-1 min-w-0">
+      <div class="w-full min-w-0">
         <CategoryTrendChart bare :height="96" :labels="metrics.labels" :series="metrics.series" />
       </div>
     </div>
 
-    <!-- The timeline — fills the remaining space and owns its scroll. -->
-    <div ref="scroller" class="flex-1 min-h-0 overflow-y-auto px-4 py-4" @scroll.passive="onScroll">
+    <!-- The timeline — fills the remaining space full-width and owns its
+         scroll. No horizontal padding: rows carry their own px, and the
+         sticky day headings must span edge to edge without -mx hacks. -->
+    <div ref="scroller" class="flex-1 min-h-0 overflow-y-auto pb-4" @scroll.passive="onScroll">
       <!-- First load: skeleton rows rather than a spinner, so the layout does
            not jump when the events land. -->
-      <div v-if="loading && !items.length" class="flex flex-col gap-4">
+      <div v-if="loading && !items.length" class="flex flex-col gap-4 px-4 pt-4">
         <div v-for="n in 5" :key="n" class="flex gap-3">
           <div
             class="w-7 h-7 rounded-full bg-emphasis shrink-0 animate-pulse motion-reduce:animate-none"
@@ -294,11 +296,11 @@
                solid token: a translucent one would let rows show through while
                they scroll underneath. -->
           <h3
-            class="sticky top-0 z-10 -mx-4 px-4 py-1.5 bg-emphasis text-xs font-semibold uppercase tracking-wide text-muted-color"
+            class="sticky top-0 z-10 px-4 py-1.5 bg-emphasis text-xs font-semibold uppercase tracking-wide text-muted-color"
           >
             {{ group.label }}
           </h3>
-          <div class="pt-2 pb-2 flex flex-col gap-1">
+          <div class="pt-2 pb-2 px-2 flex flex-col gap-1">
             <EventTimelineItem
               v-for="item in group.items"
               :key="item.actionID"
