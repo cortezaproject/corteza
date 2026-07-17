@@ -26,6 +26,7 @@
     :namespace-i-d="namespaceID"
     :module-i-d="field.options.moduleID"
     :label-field="field.options.labelField"
+    :record-label-field="field.options.recordLabelField || ''"
     :prefilter="field.options.prefilter || ''"
     :query-fields="field.options.queryFields || []"
     placeholder=""
@@ -35,8 +36,10 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useModuleStore } from '../../../stores/useModuleStore'
+import { useRecordStore } from '../../../stores/useRecordStore'
 import CInputRecord from '../../input/CInputRecord.vue'
 
 const { t: $t } = useI18n()
@@ -64,6 +67,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $namespace = inject('$namespace', null)
+const moduleStore = useModuleStore()
+const recordStore = useRecordStore()
 
 const namespaceID = computed(
   () => props.namespace?.namespaceID || $namespace?.value?.namespaceID || '',
@@ -84,12 +89,46 @@ const multiValue = computed(() => {
   return props.modelValue ? [props.modelValue] : []
 })
 
+// When labelField is itself a Record field, labels come from the nested
+// module's recordLabelField instead of the raw nested recordID
+const nestedModuleID = computed(() => {
+  const { moduleID, labelField, recordLabelField } = props.field.options || {}
+  if (!moduleID || !labelField || !recordLabelField) return ''
+  const lf = moduleStore.getByID(moduleID)?.fields?.find(f => f.name === labelField)
+  return lf?.kind === 'Record' ? lf.options?.moduleID || '' : ''
+})
+
+function nestedRecordLabel(nestedID) {
+  if (!nestedModuleID.value || !nestedID) return ''
+  const rec = recordStore.getByID(nestedID)
+  if (!rec) return ''
+  const rlf = props.field.options.recordLabelField
+  const v = Array.isArray(rec.values)
+    ? rec.values.find(v => v.name === rlf)?.value
+    : rec.values?.[rlf]
+  return (Array.isArray(v) ? v.filter(Boolean).join(', ') : v) || ''
+}
+
+function resolveNestedLabels(records) {
+  if (!nestedModuleID.value || !records.length) return
+  const lf = props.field.options.labelField
+  const recordIDs = records
+    .map(r => r.values?.find?.(v => v.name === lf)?.value)
+    .filter(Boolean)
+  if (!recordIDs.length) return
+  recordStore.resolveRecordLabels({
+    namespaceID: namespaceID.value,
+    moduleID: nestedModuleID.value,
+    recordIDs,
+  })
+}
+
 function getOptionLabel(record) {
   if (!record) return ''
   const lf = props.field.options?.labelField
   if (lf && record.values) {
     const v = record.values.find(v => v.name === lf)
-    if (v?.value) return v.value
+    if (v?.value) return nestedRecordLabel(v.value) || v.value
   }
   if (record.values?.length) {
     const first = record.values.find(v => v.value)
@@ -134,6 +173,7 @@ async function fetchRecords(searchQuery = '') {
     cancelCurrentRequest = cancel
     const result = await response()
     recordOptions.value = result.set || []
+    resolveNestedLabels(recordOptions.value)
   } catch (e) {
     if (e?.message !== 'canceled') recordOptions.value = []
   } finally {
@@ -170,7 +210,8 @@ async function resolveExisting() {
           moduleID,
           recordID: id,
         })
-        if (record) {
+        // re-check after await: concurrent resolves may have added it meanwhile
+        if (record && !recordOptions.value.find(r => r.recordID === id)) {
           recordOptions.value = [...recordOptions.value, record]
         }
       } catch {
@@ -178,6 +219,8 @@ async function resolveExisting() {
       }
     }
   }
+
+  resolveNestedLabels(recordOptions.value)
 }
 
 onMounted(async () => {
@@ -185,6 +228,12 @@ onMounted(async () => {
     await fetchRecords()
     await resolveExisting()
   }
+})
+
+// Resolve selected IDs whenever the value changes (workflow-prefilled
+// values, external mutations) — not just at mount
+watch(multiValue, () => {
+  if (isMultipleType.value) resolveExisting()
 })
 
 onBeforeUnmount(() => {

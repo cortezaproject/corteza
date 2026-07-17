@@ -39,6 +39,8 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useModuleStore } from '../../stores/useModuleStore'
+import { useRecordStore } from '../../stores/useRecordStore'
 
 defineOptions({ inheritAttrs: false })
 
@@ -57,6 +59,12 @@ const props = defineProps({
   },
   // Field to use as display label (e.g., 'name', 'title')
   labelField: {
+    type: String,
+    default: '',
+  },
+  // When labelField is itself a Record field, field in the nested module
+  // to display instead of the raw nested recordID
+  recordLabelField: {
     type: String,
     default: '',
   },
@@ -84,6 +92,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $namespace = inject('$namespace', null)
+const moduleStore = useModuleStore()
+const recordStore = useRecordStore()
 
 // Resolve namespaceID from prop, falling back to injected $namespace
 const resolvedNamespaceID = computed(
@@ -114,13 +124,44 @@ const effectivePlaceholder = computed(() => {
   return props.placeholder
 })
 
+// When labelField is itself a Record field, labels come from the nested
+// module's recordLabelField instead of the raw nested recordID
+const nestedModuleID = computed(() => {
+  if (!props.recordLabelField || !props.labelField || !props.moduleID) return ''
+  const lf = moduleStore.getByID(props.moduleID)?.fields?.find(f => f.name === props.labelField)
+  return lf?.kind === 'Record' ? lf.options?.moduleID || '' : ''
+})
+
+function nestedRecordLabel(nestedID) {
+  if (!nestedModuleID.value || !nestedID) return ''
+  const rec = recordStore.getByID(nestedID)
+  if (!rec) return ''
+  const v = Array.isArray(rec.values)
+    ? rec.values.find(v => v.name === props.recordLabelField)?.value
+    : rec.values?.[props.recordLabelField]
+  return (Array.isArray(v) ? v.filter(Boolean).join(', ') : v) || ''
+}
+
+async function resolveNestedLabels(records) {
+  if (!nestedModuleID.value || !records.length) return
+  const recordIDs = records
+    .map(r => r.values?.find?.(v => v.name === props.labelField)?.value)
+    .filter(Boolean)
+  if (!recordIDs.length) return
+  await recordStore.resolveRecordLabels({
+    namespaceID: resolvedNamespaceID.value,
+    moduleID: nestedModuleID.value,
+    recordIDs,
+  })
+}
+
 function getOptionLabel(record) {
   if (!record) return ''
 
   // Try labelField if provided
   if (props.labelField && record.values) {
     const value = record.values.find(v => v.name === props.labelField)
-    if (value?.value) return value.value
+    if (value?.value) return nestedRecordLabel(value.value) || value.value
   }
 
   // Fallback to first value with content, or recordID
@@ -189,7 +230,10 @@ async function fetchRecords(searchQuery = '', pageCursor = '') {
 
     const result = await $ComposeAPI.recordList(params)
     const records = result.set || []
-    
+
+    // Labels are baked in, so nested records must be resolved before mapping
+    await resolveNestedLabels(records)
+
     options.value = records.map(r => ({ ...r, label: getOptionLabel(r) }))
     
     nextPageCursor.value = result.filter?.nextPage || ''
@@ -260,6 +304,7 @@ async function loadRecordById(recordID) {
     })
     
     if (record) {
+      await resolveNestedLabels([record])
       record.label = getOptionLabel(record)
       if (!options.value.find(r => r.recordID === recordID)) {
         options.value = [...options.value, record]
