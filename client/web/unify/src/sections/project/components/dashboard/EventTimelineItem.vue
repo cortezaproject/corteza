@@ -24,9 +24,12 @@
   >
     <!-- KindIcon owns the kind icon-square recipe (bg + ring + coloured glyph),
          so an event about an agent wears the same mark that agent wears
-         everywhere else in the project. Resources outside the project's kinds
-         (settings, queues, templates…) fall through to kindConfig's neutral
-         fallback, which is honest: they are not project resources. -->
+         everywhere else in the project. Project-dashboard resources (project,
+         backlog items, the five event categories) wear their own category/
+         backlog/project badges via eventBadge(); everything else outside the
+         project's kinds (settings, queues, templates…) falls through to
+         kindConfig's neutral fallback, which is honest: they are not project
+         resources. -->
     <KindIcon :config="iconConfig" size="lg" class="mt-0.5" />
 
     <div class="min-w-0 flex-1 flex flex-col gap-1">
@@ -125,7 +128,7 @@ import {
   resourceTypeLabel,
 } from '@/sections/admin/views/system/ActionLog/vocab'
 import { kindConfig } from '@/sections/project/config/kinds'
-import { eventKind, severityTone } from '@/sections/project/config/eventKinds'
+import { eventBadge, eventKind, severityTone } from '@/sections/project/config/eventKinds'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import EventDiff from './EventDiff.vue'
 import UserCell from './UserCell.vue'
@@ -182,7 +185,7 @@ const typeValue = computed(() => resourceType(props.data.resource))
 // tone spreads OVER the config so the icon survives — a failed agent update
 // should still look like an agent, just alarmed.
 const iconConfig = computed(() => {
-  const base = kindConfig(eventKind(typeValue.value))
+  const base = eventBadge(typeValue.value) || kindConfig(eventKind(typeValue.value))
   const tone = severityTone(props.data.severity)
   return tone ? { ...base, ...tone } : base
 })
