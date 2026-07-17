@@ -32,44 +32,6 @@
       :submitted="submitted"
     />
 
-    <!-- Backlog items linked to this record — see stores/backlogItems.js.
-         Remove-only here + an "Add item" button that opens BacklogItemDialog
-         pre-scoped to this event (see addItemVisible/lockedEvent below); full
-         edit (priority/assignee/status/due) happens from the Backlog page
-         itself. -->
-    <template v-if="cfg">
-      <Divider />
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-sm font-medium text-color">
-            {{ $t('project.dashboard.backlog.section.title', { count: backlogItems.length }) }}
-          </span>
-          <Button
-            icon="pi pi-plus"
-            :label="$t('project.dashboard.backlog.section.addItem')"
-            severity="secondary"
-            outlined
-            size="small"
-            :disabled="saving || deleting"
-            @click="addItemVisible = true"
-          />
-        </div>
-        <CFormItemList
-          :items="backlogItems"
-          :remove-label="$t('general.label.remove')"
-          :hide-remove="saving || deleting"
-          @remove="onBacklogRemove"
-        >
-          <template #default="{ item }">
-            <CFormItemContent :title="item.title" :subtitle="item.assignee" />
-          </template>
-          <template #actions="{ item }">
-            <EventBadge :value="item.priority" variant="priority" />
-          </template>
-        </CFormItemList>
-      </div>
-    </template>
-
     <template #footer>
       <Button
         :label="$t('general.label.delete')"
@@ -100,34 +62,15 @@
       </div>
     </template>
   </Dialog>
-
-  <!-- "Add item" flow — the full create/edit dialog, pre-scoped to this
-       record via `lockedEvent` (hides the category/linked-event selects; see
-       BacklogItemDialog). A Dialog opened from within a Dialog: PrimeVue's
-       Dialog teleports to the body and manages its own stacking z-index (same
-       as confirmDelete already stacking over this dialog), so this just works
-       as a sibling — closing it doesn't touch `visible` above. -->
-  <BacklogItemDialog
-    v-if="cfg"
-    v-model:visible="addItemVisible"
-    :record="null"
-    :locked-event="lockedEvent"
-    :user-options="userOptions"
-    :on-save="onBacklogItemSave"
-    :on-delete="onBacklogItemDelete"
-  />
 </template>
 
 <script setup>
-import BacklogItemDialog from '@/sections/project/components/dashboard/BacklogItemDialog.vue'
 import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
-import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import GovernanceForm from '@/sections/project/components/wizard/GovernanceForm.vue'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
-import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, inject, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -146,9 +89,6 @@ const props = defineProps({
   onDelete: { type: Function, required: true },
 })
 const emit = defineEmits(['update:visible', 'saved', 'deleted'])
-
-const $toast = inject('$toast')
-const backlogStore = useBacklogItemsStore()
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
@@ -213,60 +153,11 @@ const fieldErrors = computed(() => {
 
 const isValid = computed(() => Object.keys(fieldErrors.value).length === 0)
 
-// --- Backlog items -----------------------------------------------------------
-// Items linked to this record — see stores/backlogItems.js#byEvent.
-const backlogItems = computed(() =>
-  props.record ? backlogStore.byEvent(props.category, props.record.id) : [],
-)
-
-// "Add item" dialog — BacklogItemDialog in create mode, locked to this
-// record's category + id so the payload always lands here regardless of what
-// the (hidden) category/linked-event fields would otherwise default to.
-const addItemVisible = ref(false)
-const lockedEvent = computed(() =>
-  props.record ? { category: props.category, eventID: props.record.id } : null,
-)
-
-async function onBacklogItemSave(id, payload) {
-  try {
-    await backlogStore.add(payload)
-    $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.created'))
-    return true
-  } catch (err) {
-    $toast.toastErrorHandler(t('project.dashboard.backlog.toast.createFailed'))(err)
-    return false
-  }
-}
-
-// Unreachable in practice — the dialog is always opened with `record: null`
-// (create-only) here, so it never renders a Delete button, but `onDelete` is
-// a required prop.
-async function onBacklogItemDelete() {
-  return false
-}
-
-function onBacklogRemove(item) {
-  confirmDelete({
-    header: t('project.dashboard.backlog.confirmDelete.header'),
-    message: t('project.dashboard.backlog.confirmDelete.message', {
-      name: item.title || t('project.dashboard.backlog.untitled'),
-    }),
-    onConfirm: async () => {
-      try {
-        await backlogStore.remove(item.id)
-      } catch (err) {
-        $toast.toastErrorHandler(t('project.dashboard.backlog.toast.deleteFailed'))(err)
-      }
-    },
-  })
-}
-
 watch(
   () => props.visible,
   v => {
     if (v) {
       model.value = buildModel()
-      addItemVisible.value = false
       submitted.value = false
     }
   },

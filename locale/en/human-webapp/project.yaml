@@ -136,7 +136,6 @@ dashboard:
     noRecent: No recent activity yet.
   # Extra CResourceList column headers not covered by event.f.*.
   columns:
-    id: ID
     title: Title
     severity: Severity
     risk: Risk

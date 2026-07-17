@@ -27,7 +27,6 @@ const col = (key, headerKey, kind) => ({ key, headerKey, kind })
 // The "rich" event categories (incident/feature/privacy) share the demo's full
 // column set. typeKey/ownerKey are the category's own field names.
 const richColumns = (typeKey, ownerKey) => [
-  col('id', 'project.dashboard.columns.id', 'id'),
   col('title', 'project.dashboard.columns.title', 'title'),
   col(typeKey, `${f}${typeKey}`, 'type'),
   col('severity', 'project.dashboard.columns.severity', 'severity'),
@@ -45,7 +44,6 @@ const COLUMNS = {
   feature: richColumns('featureType', 'featureOwner'),
   privacy: richColumns('requestType', 'requestOwner'),
   task: [
-    col('id', 'project.dashboard.columns.id', 'id'),
     col('title', 'project.dashboard.columns.title', 'title'),
     col('taskType', `${f}taskType`, 'type'),
     col('severity', 'project.dashboard.columns.severity', 'severity'),
@@ -56,7 +54,6 @@ const COLUMNS = {
     col('dateDue', `${f}dateDue`, 'date'),
   ],
   review: [
-    col('id', 'project.dashboard.columns.id', 'id'),
     col('title', 'project.dashboard.columns.title', 'title'),
     col('reviewType', `${f}reviewType`, 'type'),
     col('reviewFrequency', `${f}reviewFrequency`),

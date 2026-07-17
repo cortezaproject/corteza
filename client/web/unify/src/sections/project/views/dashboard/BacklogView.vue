@@ -67,10 +67,6 @@
             />
           </template>
 
-          <template #body-id="{ data }">
-            <span class="font-mono text-xs text-muted-color">{{ data.id }}</span>
-          </template>
-
           <template #body-title="{ data }">
             <span class="font-medium text-color">{{ data.title || '—' }}</span>
           </template>
@@ -170,7 +166,6 @@ const pagination = reactive({
 })
 
 const fields = computed(() => [
-  { key: 'id', header: t('project.dashboard.columns.id'), sortable: true },
   { key: 'title', header: t('project.dashboard.columns.title'), sortable: true },
   { key: 'eventID', header: t('project.dashboard.backlog.columns.linkedEvent'), sortable: false },
   { key: 'assignee', header: t('project.dashboard.backlog.f.assignee'), sortable: true },

@@ -155,11 +155,7 @@
           :key="col.key"
           #[`body-${col.key}`]="{ data }"
         >
-          <span v-if="col.kind === 'id'" class="font-mono text-xs text-muted-color">
-            {{ data[col.key] }}
-          </span>
-
-          <div v-else-if="col.kind === 'title'" class="flex flex-col">
+          <div v-if="col.kind === 'title'" class="flex flex-col">
             <span class="font-medium text-color">{{ data.title }}</span>
             <span v-if="data.description" class="text-xs text-muted-color truncate max-w-72">
               {{ data.description }}
@@ -198,10 +194,22 @@
       :on-create="onCreate"
     />
 
-    <!-- Row-click detail/edit dialog — same schema, pre-filled from the
-         clicked record; Save/Delete persist via the store. -->
+    <!-- Row-click detail drawer — read-only summary + backlog items; its own
+         Edit button opens the edit dialog below without closing the drawer. -->
+    <EventDetailDrawer
+      v-model:visible="drawerVisible"
+      :category="category"
+      :record="selectedEvent"
+      :user-options="store.ownerOptions"
+      @edit="editVisible = true"
+    />
+
+    <!-- Edit dialog — same schema, pre-filled from the clicked record;
+         Save/Delete persist via the store. Opened directly from the kebab
+         menu (skipping the drawer), or from the drawer's own Edit button
+         (stacks above it). -->
     <EventDetailDialog
-      v-model:visible="detailVisible"
+      v-model:visible="editVisible"
       :category="category"
       :record="selectedEvent"
       :user-options="store.ownerOptions"
@@ -218,6 +226,7 @@ import CategoryRankBar from '@/sections/project/components/dashboard/CategoryRan
 import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import EventDetailDialog from '@/sections/project/components/dashboard/EventDetailDialog.vue'
+import EventDetailDrawer from '@/sections/project/components/dashboard/EventDetailDrawer.vue'
 import NewEventDialog from '@/sections/project/components/dashboard/NewEventDialog.vue'
 import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
@@ -353,14 +362,17 @@ watch(
 
 const dialogVisible = ref(false)
 
-// Row-click detail/edit dialog — `selectedEvent` is the clicked row (a
-// store-mapped event); cleared alongside `detailVisible` on category switch.
-const detailVisible = ref(false)
+// Row-click opens the read-only detail drawer; the kebab's "Edit" opens the
+// edit dialog directly (skipping the drawer). `selectedEvent` is the clicked
+// row (a store-mapped event) and backs both — cleared alongside
+// `drawerVisible`/`editVisible` on category switch.
+const drawerVisible = ref(false)
+const editVisible = ref(false)
 const selectedEvent = ref(null)
 
 function onRowClick({ data }) {
   selectedEvent.value = data
-  detailVisible.value = true
+  drawerVisible.value = true
 }
 
 // Per-row kebab menu — same mechanism as ProjectList.vue (CResourceList's
@@ -369,10 +381,11 @@ function onRowClick({ data }) {
 const resourceListRef = ref()
 const closeMenu = () => resourceListRef.value?.hideActionsMenu?.()
 
-// "Edit" opens the same detail dialog as a row click.
+// "Edit" opens the edit dialog directly — no drawer detour.
 function openEdit(row) {
   closeMenu()
-  onRowClick({ data: row })
+  selectedEvent.value = row
+  editVisible.value = true
 }
 
 // "Delete" confirms first, then reuses the same onDelete handler/toasts the
@@ -499,7 +512,8 @@ const onSort = ({ sortField, sortOrder }) => {
 watch(category, () => {
   filter.query = ''
   dialogVisible.value = false
-  detailVisible.value = false
+  drawerVisible.value = false
+  editVisible.value = false
   selectedEvent.value = null
   sorting.sortBy = 'dateDue'
   sorting.sortDesc = true
@@ -552,12 +566,19 @@ const onCreate = async (payload, backlogTitles = []) => {
 }
 
 // Update handler — passed to EventDetailDialog's `onSave` prop; same
-// truthy/falsy-or-throw contract as onCreate.
+// truthy/falsy-or-throw contract as onCreate. store.update() splices a fresh
+// mapped object into the store's list rather than mutating the old one in
+// place, so `selectedEvent` (captured at row-click/edit-open time) is
+// repointed at that fresh row — otherwise the drawer behind the edit dialog
+// would keep showing stale values after a save.
 const onUpdate = async (id, payload) => {
   try {
     await store.update(category.value, id, payload)
     loadMetrics(route.params.projectId, category.value, { silent: true })
     $toast.toastSuccess(t(cfg.value.singularKey), t('project.dashboard.event.toast.updated'))
+    if (selectedEvent.value?.id === String(id)) {
+      selectedEvent.value = store.byCategory(category.value).find(e => e.id === String(id)) || selectedEvent.value
+    }
     return true
   } catch (err) {
     console.error('Failed to update event', err)
@@ -567,12 +588,17 @@ const onUpdate = async (id, payload) => {
 }
 
 // Delete handler — passed to EventDetailDialog's `onDelete` prop (the dialog
-// confirms first).
+// confirms first) and to the kebab's confirmDeleteRow. If the deleted record
+// is the one the drawer is showing, close the drawer along with it.
 const onDelete = async id => {
   try {
     await store.remove(category.value, id)
     loadMetrics(route.params.projectId, category.value, { silent: true })
     $toast.toastSuccess(t(cfg.value.singularKey), t('project.dashboard.event.toast.deleted'))
+    if (selectedEvent.value?.id === String(id)) {
+      drawerVisible.value = false
+      selectedEvent.value = null
+    }
     return true
   } catch (err) {
     console.error('Failed to delete event', err)
