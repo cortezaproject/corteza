@@ -80,12 +80,12 @@ func initDalSvc(ctx context.Context) {
 		Handle: sysTypes.DalPrimaryConnectionHandle,
 		Type:   sysTypes.DalPrimaryConnectionResourceType,
 
-		Meta: sysTypes.ConnectionMeta{
+		Meta: sysTypes.DalConnectionMeta{
 			Name: "Primary Database",
 		},
 
-		Config: sysTypes.ConnectionConfig{
-			DAL: &sysTypes.ConnectionConfigDAL{
+		Config: sysTypes.DalConnectionConfig{
+			DAL: &sysTypes.DalConnectionConfigDAL{
 				ModelIdent: "compose_record",
 			},
 		},

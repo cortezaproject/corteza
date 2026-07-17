@@ -1,0 +1,5 @@
+locale:
+  en:
+    corteza::compose:namespace/test_ns_1:
+      res_tr_1: res_tr_1_text_duplicate
+      res_tr_2: res_tr_2_text
