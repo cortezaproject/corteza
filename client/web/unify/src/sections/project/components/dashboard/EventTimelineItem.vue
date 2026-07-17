@@ -22,8 +22,11 @@
     <KindIcon :config="iconConfig" size="lg" class="mt-0.5" />
 
     <div class="min-w-0 flex-1 flex flex-col gap-1">
-      <!-- The sentence. Clicking the resource type filters by it. -->
-      <p class="text-sm text-color">
+      <!-- The sentence. Clicking the resource type filters by it. break-words
+           keeps long unbroken tokens (raw resource strings, snowflake IDs)
+           from forcing the row — and narrow containers like the overview's
+           activity card — to overflow horizontally. -->
+      <p class="text-sm text-color break-words">
         <UserCell v-if="actorName" :name="actorName" class="align-middle" />
         <span v-else class="text-muted-color">{{ t('project.dashboard.allEvents.system') }}</span>
         <span class="mx-1">{{ verb }}</span>

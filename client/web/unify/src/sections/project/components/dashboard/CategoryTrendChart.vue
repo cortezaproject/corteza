@@ -1,5 +1,5 @@
 <template>
-  <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface p-4'">
+  <div :class="[bare ? '' : 'rounded-lg border border-surface bg-surface p-4', fill ? 'h-full' : '']">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-3">
       <span v-if="accent" class="w-2 h-2 rounded-full shrink-0" :style="{ background: accent }" />
       <div class="text-sm font-medium text-color truncate">{{ $t(titleKey) }}</div>
@@ -9,12 +9,12 @@
     <div
       v-if="empty"
       class="flex items-center justify-center text-muted-color text-sm"
-      :style="{ height: height + 'px' }"
+      :style="sizeStyle"
     >
       —
     </div>
 
-    <v-chart v-else :option="option" autoresize :style="{ height: height + 'px', width: '100%' }" />
+    <v-chart v-else :option="option" autoresize :style="sizeStyle" />
   </div>
 </template>
 
@@ -42,8 +42,16 @@ const props = defineProps({
   accent: { type: String, default: '' },
   // Chrome-less variant: no card wrapper/title, for embedding in a band.
   bare: { type: Boolean, default: false },
-  height: { type: Number, default: 200 },
+  // Pixel height, or 'fill' to stretch to the parent's height (the parent
+  // must then have a concrete height, e.g. a flex-1 min-h-* wrapper —
+  // echarts' autoresize follows the container).
+  height: { type: [Number, String], default: 200 },
 })
+
+const fill = computed(() => props.height === 'fill')
+const sizeStyle = computed(() =>
+  fill.value ? { height: '100%', width: '100%' } : { height: props.height + 'px', width: '100%' },
+)
 
 const empty = computed(() => !props.series.some(s => (s.data || []).some(v => v > 0)))
 

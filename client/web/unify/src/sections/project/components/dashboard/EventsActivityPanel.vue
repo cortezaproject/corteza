@@ -44,7 +44,12 @@
             </span>
           </div>
         </div>
-        <CategoryTrendChart bare :height="88" :labels="metrics.labels" :series="metrics.series" />
+        <!-- The pulse fills whatever height the grid row gives the card (the
+             feed next door usually decides it); min-h keeps it readable when
+             the cards stack on one column. -->
+        <div class="flex-1 min-h-24">
+          <CategoryTrendChart bare height="fill" :labels="metrics.labels" :series="metrics.series" />
+        </div>
       </div>
 
       <!-- Recent activity feed -->
@@ -52,7 +57,7 @@
         <div class="text-sm font-medium text-color mb-2">
           {{ $t('project.dashboard.eventsBand.recent') }}
         </div>
-        <div v-if="recent.length" class="flex flex-col max-h-72 overflow-y-auto">
+        <div v-if="recent.length" class="flex flex-col max-h-72 overflow-y-auto overflow-x-hidden">
           <EventTimelineItem
             v-for="e in recent"
             :key="e.actionID"
