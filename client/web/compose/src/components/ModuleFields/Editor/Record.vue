@@ -449,6 +449,13 @@ export default {
         }
       },
     },
+
+    value: {
+      immediate: true,
+      handler (value) {
+        this.resolveSelected(value)
+      },
+    },
   },
 
   beforeDestroy () {
@@ -460,8 +467,6 @@ export default {
     this.createEvents()
 
     this.loadLatest()
-
-    this.formatRecordValues(this.value)
   },
 
   methods: {
@@ -622,6 +627,32 @@ export default {
 
     sortString () {
       return [this.field.options.labelField].filter(f => !!f).join(', ')
+    },
+
+    // Resolves selected records that are not part of the paginated option results,
+    // e.g. default values or workflow-prefilled values from deeper pages
+    resolveSelected (value) {
+      const recordIDs = (Array.isArray(value) ? value : [value]).filter(v => v && v !== NoID)
+      const { namespaceID = NoID } = this.namespace
+      const { moduleID = NoID, recordLabelField } = this.field.options
+
+      if (!recordIDs.length || [moduleID, namespaceID].includes(NoID)) {
+        return
+      }
+
+      this.$store.dispatch('record/resolveRecords', { namespaceID, moduleID, recordIDs }).then(() => {
+        if (!this.labelField || !this.module) {
+          return
+        }
+
+        const records = this.findRecordsByIDs(recordIDs, moduleID).map(r => new compose.Record(this.module, r))
+
+        if (this.labelField.kind === 'Record' && recordLabelField) {
+          return this.fetchRecords(namespaceID, [this.labelField], records)
+        } else if (this.labelField.kind === 'User') {
+          return this.fetchUsers([this.labelField], records)
+        }
+      })
     },
 
     formatRecordValues (recordIDs) {
