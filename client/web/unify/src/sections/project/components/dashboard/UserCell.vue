@@ -1,8 +1,11 @@
 <template>
-  <!-- Owner cell: initials avatar + name (mirrors the demo's user-cell). Avatar
-       color is derived deterministically from the name. Blank → em-dash. -->
+  <!-- Owner cell: name, optionally led by an initials avatar (avatar color is
+       derived deterministically from the name). Avatars are opt-in for now —
+       the list rows dropped them pending a proper user rendering; the events
+       timeline still shows them. Blank → em-dash. -->
   <span v-if="name" class="inline-flex items-center gap-2 whitespace-nowrap">
     <span
+      v-if="avatar"
       class="w-5 h-5 rounded-full text-[10px] font-semibold flex items-center justify-center shrink-0"
       :class="avatarCls"
     >
@@ -16,7 +19,11 @@
 <script setup>
 import { computed } from 'vue'
 
-const props = defineProps({ name: { type: String, default: '' } })
+const props = defineProps({
+  name: { type: String, default: '' },
+  // Show the leading initials avatar (timeline actors); list rows omit it.
+  avatar: { type: Boolean, default: false },
+})
 
 const PALETTE = [
   'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',

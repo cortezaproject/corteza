@@ -38,7 +38,7 @@
            from forcing the row — and narrow containers like the overview's
            activity card — to overflow horizontally. -->
       <p class="text-sm text-color break-words">
-        <UserCell v-if="actorName" :name="actorName" class="align-middle" />
+        <UserCell v-if="actorName" :name="actorName" avatar class="align-middle" />
         <span v-else class="text-muted-color">{{ t('project.dashboard.allEvents.system') }}</span>
         <span class="mx-1">{{ verb }}</span>
         <span
