@@ -77,6 +77,7 @@ var (
 		fix_2026_04_00_addChatbotColumnToAgents,
 		fix_2026_05_00_addSourceOnConnections,
 		fix_2026_05_00_addStateOnChatbotSessions,
+		fix_2026_07_17_dropBacklogOnProjectCategories,
 		// Re-run the scope migration after createTablesFromModels: tables that
 		// didn't exist during the pre phase (fresh or partially-old databases)
 		// are covered here; existing columns make it a no-op.
@@ -302,6 +303,21 @@ func fix_2026_06_29_addDeletedAtOnDmlTables(ctx context.Context, s *Store) error
 // fix_2026_06_00_addGovernanceOnProjects adds the JSON `governance` column
 // (per-step build/approval workflow state) to projects created before the
 // column landed in the model.
+// fix_2026_07_17_dropBacklogOnProjectCategories removes the legacy `backlog`
+// comma-tags column from the project category tables. The field was dropped
+// from the cue schemas when backlog items became their own resource
+// (project_backlog_items), but existing databases keep the physical NOT NULL
+// column — inserts that no longer mention it then fail. project_reviews never
+// had the column; dropColumns no-ops per table/column when already gone.
+func fix_2026_07_17_dropBacklogOnProjectCategories(ctx context.Context, s *Store) (err error) {
+	for _, table := range []string{"project_incidents", "project_tasks", "project_features", "project_privacys"} {
+		if err = dropColumns(ctx, s, table, "backlog"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func fix_2026_06_00_addGovernanceOnProjects(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
 		"projects",
