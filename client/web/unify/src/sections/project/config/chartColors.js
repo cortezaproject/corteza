@@ -49,9 +49,27 @@ export const SEVERITY_COLORS = {
 
 // Reuses the severity ramp's four warm steps 1:1 (Critical/Serious/Major/
 // Minor → Critical/High/Medium/Low) so the two ordinal scales read as one
-// system.
+// system. Very Low continues the same warm ramp one step lighter still
+// (lightness stays monotonic, per the sequential-ramp rule above). None sits
+// outside the badness scale like Informational, but neutral (MUTED) rather
+// than cool blue — "no risk" carries no signal.
 export const RISK_COLORS = {
   Critical: '#991b1b',
+  High: '#c32222',
+  Medium: '#e04343',
+  Low: '#f07f74',
+  'Very Low': '#f8b4ab',
+  None: '#94a3b8',
+}
+
+// Backlog-item priority (High/Medium/Low — no Critical tier). Same move as
+// RISK_COLORS: reuses the severity ramp's warm steps (High/Medium/Low →
+// Serious/Major/Minor) so all three ordinal scales read as one sequential
+// system (darker = more urgent; lightness monotonic, already validated as
+// part of SEVERITY_COLORS). Note the EventBadge priority pills use a
+// red/amber/yellow tint family instead — pills and charts already diverge
+// like this for risk (pips), so the chart family stays the ramp.
+export const PRIORITY_COLORS = {
   High: '#c32222',
   Medium: '#e04343',
   Low: '#f07f74',
@@ -84,9 +102,15 @@ export const CATEGORY_COLORS = {
 // worst→best (or lifecycle order) rather than first-seen.
 export const STATUS_ORDER = ['Open', 'In Progress', 'Ready to Test', 'Completed']
 export const SEVERITY_ORDER = ['Critical', 'Serious', 'Major', 'Minor', 'Informational']
-export const RISK_ORDER = ['Critical', 'High', 'Medium', 'Low']
+export const RISK_ORDER = ['Critical', 'High', 'Medium', 'Low', 'Very Low', 'None']
+export const PRIORITY_ORDER = ['High', 'Medium', 'Low']
 
-const ORDERS = { status: STATUS_ORDER, severity: SEVERITY_ORDER, risk: RISK_ORDER }
+const ORDERS = {
+  status: STATUS_ORDER,
+  severity: SEVERITY_ORDER,
+  risk: RISK_ORDER,
+  priority: PRIORITY_ORDER,
+}
 
 // Sort index for a label within a variant's canonical order; unknown labels
 // sort last (stable, alphabetical among themselves).
@@ -113,7 +137,12 @@ export const MUTED = '#94a3b8'
 // light+dark, well clear of the 8/15 targets).
 const FALLBACK = ['#007df4', '#007900', '#f5008a', '#865900', '#00a26f', '#a83a00', '#7e6fff', '#bc001d']
 
-const MAPS = { status: STATUS_COLORS, severity: SEVERITY_COLORS, risk: RISK_COLORS }
+const MAPS = {
+  status: STATUS_COLORS,
+  severity: SEVERITY_COLORS,
+  risk: RISK_COLORS,
+  priority: PRIORITY_COLORS,
+}
 
 // The type-select field key per category (mirrors FIELDS in config/
 // categories.js) — the single source for "what are this category's type

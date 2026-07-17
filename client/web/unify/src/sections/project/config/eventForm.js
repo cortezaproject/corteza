@@ -16,7 +16,7 @@ const STATUS = ['Open', 'In Progress', 'Ready to Test', 'Completed']
 export const EVENT_STATUS = STATUS
 const STATUS_REVIEW = ['Open', 'In Progress', 'Completed']
 const SEVERITY = ['Critical', 'Serious', 'Major', 'Minor', 'Informational']
-const RISK = ['Critical', 'High', 'Medium', 'Low']
+const RISK = ['Critical', 'High', 'Medium', 'Low', 'Very Low', 'None']
 
 // A user-reference select — options/labels/values are injected from the project
 // user directory at render time (backend stores these as user IDs).
