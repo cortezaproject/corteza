@@ -77,10 +77,6 @@ var (
 		fix_2026_04_00_addChatbotColumnToAgents,
 		fix_2026_05_00_addSourceOnConnections,
 		fix_2026_05_00_addStateOnChatbotSessions,
-		fix_2026_07_17_dropBacklogOnProjectCategories,
-		// Re-run the scope migration after createTablesFromModels: tables that
-		// didn't exist during the pre phase (fresh or partially-old databases)
-		// are covered here; existing columns make it a no-op.
 		fix_2026_06_00_addTenancyScopeColumns,
 	}, actionlogFixes...)
 
@@ -294,24 +290,6 @@ func fix_2026_06_29_addDeletedAtOnDmlTables(ctx context.Context, s *Store) error
 	}
 	for _, table := range []string{"dml_connections", "dml_mappings", "dml_import_runs"} {
 		if err := addColumn(ctx, s, table, attr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// fix_2026_06_00_addGovernanceOnProjects adds the JSON `governance` column
-// (per-step build/approval workflow state) to projects created before the
-// column landed in the model.
-// fix_2026_07_17_dropBacklogOnProjectCategories removes the legacy `backlog`
-// comma-tags column from the project category tables. The field was dropped
-// from the cue schemas when backlog items became their own resource
-// (project_backlog_items), but existing databases keep the physical NOT NULL
-// column — inserts that no longer mention it then fail. project_reviews never
-// had the column; dropColumns no-ops per table/column when already gone.
-func fix_2026_07_17_dropBacklogOnProjectCategories(ctx context.Context, s *Store) (err error) {
-	for _, table := range []string{"project_incidents", "project_tasks", "project_features", "project_privacys"} {
-		if err = dropColumns(ctx, s, table, "backlog"); err != nil {
 			return err
 		}
 	}
@@ -1336,8 +1314,8 @@ func fix_2024_9_7_migrateLabelsValueToJsonbPostgres(ctx context.Context, s *Stor
 		rows       *sql.Rows
 	)
 	checkQuery := `
-  			SELECT data_type 
-  			FROM information_schema.columns 
+  			SELECT data_type
+  			FROM information_schema.columns
   			WHERE table_name = 'labels' AND column_name = 'value'`
 
 	exists, err := func() (bool, error) {
@@ -1376,9 +1354,9 @@ func fix_2024_9_7_migrateLabelsValueToJsonbPostgres(ctx context.Context, s *Stor
 	log.Info("migrating labels.value column from text to jsonb")
 
 	updateQuery := `
-  			UPDATE labels 
+  			UPDATE labels
   			SET value = jsonb_build_object('value', value::text)
-  			WHERE value IS NOT NULL 
+  			WHERE value IS NOT NULL
   			  AND value::text NOT LIKE '{%'`
 
 	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
@@ -1441,9 +1419,9 @@ func fix_2024_9_7_migrateLabelsValueToJsonbMySql(ctx context.Context, s *Store) 
 	log.Info("migrating labels.value column from text to json")
 
 	updateQuery := `
-  			UPDATE labels 
+  			UPDATE labels
   			SET value = JSON_OBJECT('value', value)
-  			WHERE value IS NOT NULL 
+  			WHERE value IS NOT NULL
   			  AND value NOT LIKE '{%'`
 
 	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
