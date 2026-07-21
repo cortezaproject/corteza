@@ -51,7 +51,10 @@
       </template>
 
       <template #body-status="{ data }">
-        <Tag :value="$t(`project.status.${data.status}`)" :severity="statusSeverity(data.status)" />
+        <CChip
+          v-bind="statusChipConfig[data.status] ?? {}"
+          :label="$t(`project.status.${data.status}`)"
+        />
       </template>
 
       <template #body-updatedAt="{ data }">
@@ -108,11 +111,11 @@ import NewProjectDialog from '@/sections/project/components/project/NewProjectDi
 import RenameProjectDialog from '@/sections/project/components/project/RenameProjectDialog.vue'
 import { NoID, system } from '@planetcrust/human-js'
 import { components, useResourceList } from '@planetcrust/human-vue'
+import CChip from '@planetcrust/human-vue/src/components/chip/CChip.vue'
 import { useConfirm } from 'primevue/useconfirm'
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-
 const { CResourceList, CViewContainer } = components
 
 const { t } = useI18n()
@@ -178,10 +181,25 @@ const filterMenu = ref()
 function toggleFilterMenu(event) {
   filterMenu.value.toggle(event)
 }
+const statusChipConfig = {
+  published: {
+    icon: 'pi pi-check',
+    bg: 'bg-green-100',
+    ring: 'ring-green-200',
+  },
 
-const statusSeverity = status =>
-  ({ active: 'success', published: 'success', draft: 'info', archived: 'secondary' })[status] ??
-  null
+  draft: {
+    icon: 'pi pi-briefcase',
+    bg: 'bg-blue-100',
+    ring: 'ring-blue-200',
+  },
+
+  archived: {
+    icon: 'pi pi-inbox',
+    bg: 'bg-gray-100',
+    ring: 'ring-gray-200',
+  },
+}
 
 const formatDate = date => {
   if (!date) return ''

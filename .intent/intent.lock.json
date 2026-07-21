@@ -3336,6 +3336,16 @@
       "doc": "lib/vue/src/components/chatbot/chatbot.intent.md",
       "t": "2026-07-23"
     },
+    "lib/vue/src/components/chip/CChip.vue": {
+      "h": "991446c6060f",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-07-26"
+    },
+    "lib/vue/src/components/chip/index.ts": {
+      "h": "c52f1423ecb4",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-07-26"
+    },
     "lib/vue/src/components/CResizeHandle.vue": {
       "h": "e671b073a98c",
       "doc": "lib/vue/src/components/components.intent.md",
@@ -3522,9 +3532,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/index.ts": {
-      "h": "4f0fca564a65",
+      "h": "62e168229cc9",
       "doc": "lib/vue/src/components/components.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-26"
     },
     "lib/vue/src/components/input/CEditorActions.vue": {
       "h": "44d6acc63bea",
@@ -4067,9 +4077,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/plugins/primevue-components.ts": {
-      "h": "dd68708a2219",
+      "h": "0b382d54be65",
       "doc": "lib/vue/src/plugins/plugins.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-26"
     },
     "lib/vue/src/plugins/settings.ts": {
       "h": "e3ac865de7f1",
