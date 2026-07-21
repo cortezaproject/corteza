@@ -43,7 +43,6 @@
           :steps="navSteps"
           :active-key="activeKey"
           :statuses="statuses"
-          :gated="project.mode === 'gated'"
           @select="goStep"
         />
       </div>
