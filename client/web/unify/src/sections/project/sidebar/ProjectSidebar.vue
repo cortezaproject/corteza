@@ -8,6 +8,7 @@
       icon-key="_icon"
       divider-key="_divider"
       route-key="_route"
+      badge-key="_badge"
       expand-all
     />
   </div>
@@ -37,6 +38,23 @@ const routeFor = p => ({
   params: { projectId: p.projectID },
 })
 
+// Trailing one-letter status tag; severities match ProjectList's mapping,
+// extended with the statuses the list view doesn't color yet.
+const STATUS_SEVERITY = {
+  active: 'success',
+  published: 'success',
+  draft: 'info',
+  suspended: 'warn',
+  deprecated: 'danger',
+}
+
+const badgeFor = p =>
+  STATUS_SEVERITY[p.status] && {
+    value: t(`project.statusShort.${p.status}`),
+    severity: STATUS_SEVERITY[p.status],
+    title: t(`project.status.${p.status}`),
+  }
+
 const navItems = computed(() => [
   {
     _id: 'list',
@@ -52,7 +70,10 @@ const navItems = computed(() => [
     _icon: 'pi pi-folder-open',
     _divider: true,
   },
-  ...[...projects.value]
+  // Archived projects are hidden here (deleted ones never reach the store);
+  // the All Projects list still shows everything.
+  ...projects.value
+    .filter(p => p.status !== 'archived')
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     .map(p => ({
       _id: p.projectID,
@@ -60,6 +81,7 @@ const navItems = computed(() => [
       _label: p.name || t('project.list.untitled'),
       _icon: p.mode === 'gated' ? 'pi pi-shield' : 'pi pi-unlock',
       _route: routeFor(p),
+      _badge: badgeFor(p),
     })),
 ])
 </script>

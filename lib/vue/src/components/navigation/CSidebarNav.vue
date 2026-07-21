@@ -10,6 +10,7 @@
       :icon="icon"
       :divider-key="dividerKey"
       :route-key="routeKey"
+      :badge-key="badgeKey"
       :active-id="activeId"
       :expanded-ids="expandedIds"
       :depth="0"
@@ -75,6 +76,10 @@ const props = defineProps({
     default: undefined,
   },
   routeKey: {
+    type: String,
+    default: undefined,
+  },
+  badgeKey: {
     type: String,
     default: undefined,
   },

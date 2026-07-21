@@ -16,15 +16,17 @@
     >
       <template #default>
         <div class="flex items-center gap-2 flex-1 cursor-pointer overflow-hidden">
-          <img
-            v-if="itemIconIsImage"
-            :src="itemIcon"
-            class="h-4 w-4 object-contain"
-            :alt="label"
-          />
+          <img v-if="itemIconIsImage" :src="itemIcon" class="h-4 w-4 object-contain" :alt="label" />
           <i v-else-if="itemIcon" :class="itemIcon" />
           <span class="truncate">{{ label }}</span>
         </div>
+        <Tag
+          v-if="badge"
+          :value="badge.value"
+          :severity="badge.severity"
+          :title="badge.title"
+          class="shrink-0 !px-1 !py-0 !text-[10px] !leading-4"
+        />
         <i
           v-if="hasChildren"
           class="text-xs cursor-pointer transition-transform ml-auto p-2 -m-2"
@@ -53,6 +55,7 @@
           :icon="icon"
           :divider-key="dividerKey"
           :route-key="routeKey"
+          :badge-key="badgeKey"
           :active-id="activeId"
           :expanded-ids="expandedIds"
           :depth="depth + 1"
@@ -100,6 +103,10 @@ const props = defineProps({
     default: undefined,
   },
   routeKey: {
+    type: String,
+    default: undefined,
+  },
+  badgeKey: {
     type: String,
     default: undefined,
   },
@@ -210,6 +217,11 @@ function onLeave(el) {
 
 const showDivider = computed(() => {
   return props.dividerKey && props.node[props.dividerKey]
+})
+
+// Optional trailing badge: node[badgeKey] is { value, severity?, title? }
+const badge = computed(() => {
+  return (props.badgeKey && props.node[props.badgeKey]) || null
 })
 
 const label = computed(() => {
