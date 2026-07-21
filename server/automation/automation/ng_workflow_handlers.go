@@ -52,7 +52,7 @@ func (h ngWorkflowHandler) Exec() atypes.ConstructFunction {
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       "Run Workflow",
 			Description: "Run a workflow and return its results",
-			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "share-2"},
+			Icon:        &atypes.NgAutomationIcon{Type: "name", Value: "share-alt"},
 		},
 
 		Parameters: []*atypes.Param{
