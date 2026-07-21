@@ -3760,12 +3760,6 @@ var Project = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Mode", Sortable: true,
-			Type:  &dal.TypeText{Length: 32},
-			Store: &dal.CodecAlias{Ident: "mode"},
-		},
-
-		&dal.Attribute{
 			Ident: "Meta",
 			Type: &dal.TypeJSON{
 				DefaultValue: "{}",

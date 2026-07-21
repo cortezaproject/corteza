@@ -42,61 +42,47 @@
       />
     </div>
 
-    <!-- Right: Save (form steps only — see showSave) plus the per-step
-         "Request changes" flag (gated mode, every step but Publish, any
-         status, any time — see showRequestChanges). Per-section approval
-         (submit/approve/reopen) is gone: the only step with its own
-         submit/approve cycle is Publish, which renders its panel inline
-         instead of using this toolbar (see Wizard.vue's showStepSave, which
-         gates this toolbar's Save button to form-type steps only). -->
+    <!-- Right: Save (form steps only — see showSave) plus the per-step direct
+         review actions — Approve and Request changes — for members with
+         grant-approval capability, on every step, at any status, any time.
+         There is no per-step submit stage any more; only the Publish
+         governance step (surfaced in the topbar, not this toolbar) keeps a
+         submit → approve/request-changes cycle. -->
     <div class="flex-1 flex items-center justify-end gap-2">
-      <!-- Free mode: just save, no approval concepts at all. -->
-      <template v-if="mode !== 'gated'">
-        <Button
-          v-if="showSave"
-          :label="$t('general.label.save')"
-          icon="pi pi-save"
-          @click="$emit('save')"
-        />
-      </template>
-      <!-- Gated mode: writers save; a step never locks on its own status any
-           more (only Publish does), so Save just needs write access. -->
-      <template v-else>
-        <Button
-          v-if="canWrite && showSave"
-          :label="$t('general.label.save')"
-          icon="pi pi-save"
-          @click="$emit('save')"
-        />
-      </template>
+      <Button
+        v-if="canWrite && showSave"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        @click="$emit('save')"
+      />
 
       <Button
-        v-if="showRequestChanges"
+        v-if="canGrant"
         :label="$t('project.wizard.requestChanges.action')"
         icon="pi pi-replay"
         severity="secondary"
         outlined
         @click="$emit('request-changes')"
       />
+      <Button
+        v-if="canGrant"
+        :label="$t('project.wizard.approve.action')"
+        icon="pi pi-check"
+        severity="success"
+        @click="$emit('approve')"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
-const props = defineProps({
+defineProps({
   // Capability flags of the current member (from their role preset).
   canWrite: { type: Boolean, default: false },
   canGrant: { type: Boolean, default: false },
-  mode: { type: String, default: 'gated' },
-  // The Publish step carries its own approval panel (see PublishStep.vue)
-  // rather than the generic per-step "Request changes" flag — it's excluded
-  // here so a granter can't flag the very step that panel already governs.
-  isPublish: { type: Boolean, default: false },
   // Whether the Save button is shown; false on steps that persist each
-  // change immediately (members, sensitivity, resource steps) rather than
-  // through a save button.
+  // change immediately (sensitivity, resource steps) rather than through a
+  // save button.
   showSave: { type: Boolean, default: true },
   // --- Stepper ---
   canPrev: { type: Boolean, default: false },
@@ -104,13 +90,5 @@ const props = defineProps({
   stepIndex: { type: Number, default: 1 },
   stepCount: { type: Number, default: 1 },
 })
-defineEmits(['save', 'request-changes', 'prev', 'next', 'back'])
-
-// A granter may flag any non-publish step at any time, gated mode only —
-// unlike the old per-step approval flow, this doesn't depend on the step's
-// current status (see server/system/service/project_governance.go's
-// "flag anytime" behaviour).
-const showRequestChanges = computed(
-  () => props.mode === 'gated' && props.canGrant && !props.isPublish,
-)
+defineEmits(['save', 'request-changes', 'approve', 'prev', 'next', 'back'])
 </script>

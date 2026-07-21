@@ -4717,7 +4717,6 @@ endpoints:
           post:
             - { type: string, name: handle, title: Project handle }
             - { type: string, name: status, title: Project status, genHook: true }
-            - { type: string, name: mode, title: Project mode, genHook: true }
             - {
                 type: 'types.ProjectConfig',
                 name: config,

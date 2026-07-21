@@ -144,13 +144,6 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 		return err
 	}
 
-	if new.Mode == "" {
-		new.Mode = types.ProjectModeFree
-	}
-	if !new.Mode.Valid() {
-		return ProjectErrInvalidMode()
-	}
-
 	// FRIA requirement is derived from the deployer answers once, at
 	// creation, so the pipeline shape doesn't silently change later.
 	new.Config.FriaRequired = friaRequired(new.Config.DeployerCategories)
@@ -208,7 +201,7 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 	}
 
 	// The creator becomes the first member, as a developer: read/write plus
-	// the ability to submit the project for publish approval in gated mode.
+	// the ability to submit the project for publish approval.
 	creator := &types.ProjectMember{
 		ID:         nextID(),
 		ProjectID:  new.ID,
@@ -243,9 +236,8 @@ func (svc *project) beforeUpdate(ctx context.Context, upd, res *types.Project) e
 
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	// Mode, namespace binding, deployer answers, and FRIA derivation are
-	// immutable after creation. Mode is a top-level column not in updateFields,
-	// so it's never written on update — no need to copy it here.
+	// Namespace binding, deployer answers, and FRIA derivation are immutable
+	// after creation.
 	upd.Config.NamespaceID = res.Config.NamespaceID
 	upd.Config.DeployerCategories = res.Config.DeployerCategories
 	upd.Config.FriaRequired = res.Config.FriaRequired

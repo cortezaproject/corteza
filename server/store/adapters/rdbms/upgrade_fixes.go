@@ -69,6 +69,7 @@ var (
 		fix_2026_06_29_addSourceIdentOnDmlMappings,
 		fix_2026_07_00_addRevisionColumnsOnProjects,
 		fix_2026_07_14_addModeOnProjects,
+		fix_2026_07_21_dropModeOnProjects,
 	}
 
 	fixesPost = append([]func(context.Context, *Store) error{
@@ -1659,6 +1660,16 @@ func fix_2026_07_14_addModeOnProjects(ctx context.Context, s *Store) error {
 	q := fmt.Sprintf("UPDATE projects SET mode = %s WHERE %s IS NOT NULL AND %s <> ''", expr, expr, expr)
 	_, err := s.DB.ExecContext(ctx, q)
 	return err
+}
+
+// fix_2026_07_21_dropModeOnProjects removes the projects.mode column. Build
+// modes (free/gated) were dropped from the product — all projects now behave
+// identically and go through the same publish-approval flow — so the column is
+// obsolete. Registered after fix_2026_07_14_addModeOnProjects so upgrades from
+// any prior version add-then-drop cleanly; dropColumns no-ops when the column
+// is already absent (fresh DBs, where the model never defined it).
+func fix_2026_07_21_dropModeOnProjects(ctx context.Context, s *Store) error {
+	return dropColumns(ctx, s, "projects", "mode")
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

@@ -125,13 +125,13 @@ errors:
     message: "user is already a member of this project"
     severity: warning
 
-  - error: invalidMode
-    message: "invalid project build mode"
-    severity: warning
-
   - error: notAllowedToEditGovernance
     message: "not allowed to edit governance state of this project"
     log: "failed to edit governance of {{project.handle}}; insufficient capabilities"
+
+  - error: approvalBlockedByChangesRequested
+    message: "cannot approve the project while one or more steps still have requested changes"
+    severity: warning
 
   - error: governanceStepLocked
     message: "governance step is locked; it was submitted or approved"

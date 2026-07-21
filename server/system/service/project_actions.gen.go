@@ -1013,38 +1013,6 @@ func ProjectErrMemberAlreadyExists(mm ...*projectActionProps) *errors.Error {
 	return e
 }
 
-// ProjectErrInvalidMode returns "system:project.invalidMode" as *errors.Error
-//
-// This function is auto-generated.
-func ProjectErrInvalidMode(mm ...*projectActionProps) *errors.Error {
-	var p = &projectActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("invalid project build mode", nil),
-
-		errors.Meta("type", "invalidMode"),
-		errors.Meta("resource", "system:project"),
-
-		errors.Meta(projectPropsMetaKey{}, p),
-
-		// translation namespace & key
-		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "project.errors.invalidMode"),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
 // ProjectErrNotAllowedToEditGovernance returns "system:project.notAllowedToEditGovernance" as *errors.Error
 //
 // This function is auto-generated.
@@ -1069,6 +1037,38 @@ func ProjectErrNotAllowedToEditGovernance(mm ...*projectActionProps) *errors.Err
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notAllowedToEditGovernance"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrApprovalBlockedByChangesRequested returns "system:project.approvalBlockedByChangesRequested" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrApprovalBlockedByChangesRequested(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("cannot approve the project while one or more steps still have requested changes", nil),
+
+		errors.Meta("type", "approvalBlockedByChangesRequested"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.approvalBlockedByChangesRequested"),
 
 		errors.StackSkip(1),
 	)

@@ -23,7 +23,6 @@ type (
 		Handle           string                           `json:"handle"`
 		Status           ProjectStatus                    `json:"status"`
 		Config           ProjectConfig                    `json:"config"`
-		Mode             ProjectMode                      `json:"mode"`
 		Meta             ProjectMeta                      `json:"meta"`
 		Governance       ProjectGovernance                `json:"governance"`
 		ProjectID        uint64                           `json:"rootProjectID,string,omitempty"`
@@ -89,8 +88,6 @@ type (
 
 	ProjectVisibility string
 
-	ProjectMode string
-
 	ProjectMemberRole string
 
 	ProjectGovernanceStatus string
@@ -145,10 +142,6 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 	for _, c := range r.Config.Diff(&cmp.Config) {
 		c.Key = "config." + c.Key
 		out = append(out, c)
-	}
-
-	if !reflect.DeepEqual(r.Mode, cmp.Mode) {
-		out = append(out, &revisions.Change{Key: "mode", Old: []any{cmp.Mode}, New: []any{r.Mode}})
 	}
 
 	for _, c := range r.Meta.Diff(&cmp.Meta) {
@@ -470,11 +463,6 @@ const (
 const (
 	ProjectVisibilityOpen       ProjectVisibility = "open"
 	ProjectVisibilityInviteOnly ProjectVisibility = "invite-only"
-)
-
-const (
-	ProjectModeFree  ProjectMode = "free"
-	ProjectModeGated ProjectMode = "gated"
 )
 
 const (

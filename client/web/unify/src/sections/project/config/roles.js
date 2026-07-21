@@ -3,20 +3,20 @@
 //
 // Project Members are human beings with roles to either (1) build part or all of
 // the project and its AI systems, or (2) manage project governance and approve
-// (or send back) the project's publishes.
+// (or send back) the project's steps and publishes.
 //
 // `resources` summarises what the role can reach; `description` is the role's
 // responsibility statement — together they form the accountability framework
 // (EU AI Act Article 17(m)).
 //
-// Tab visibility (see Wizard): a member who can request OR grant approval works
-// in the Governance view; everyone else gets the Build view only.
+// Every project behaves identically (there is no build mode): the Build,
+// Govern and Manage & Monitor tabs are visible to every member — capability
+// flags gate individual review ACTIONS (per-step Approve/Request changes, the
+// project-level Request approval/Approve/Publish cluster) rather than tab or
+// step visibility. See Wizard.vue and components/project/MembersDialog.vue.
 
 // `labelKey`/`resourcesKey`/`descriptionKey` are i18n keys; components resolve
 // them with $t for display. Capability flags drive behaviour and stay literal.
-// `descriptionFreeKey` (optional) replaces `descriptionKey` in free-mode
-// projects, where publish approval does not exist and the standard copy would
-// reference it.
 export const ROLE_PRESETS = [
   {
     id: 'developer',
@@ -27,7 +27,6 @@ export const ROLE_PRESETS = [
     grantApproval: false,
     resourcesKey: 'project.roles.developer.resources',
     descriptionKey: 'project.roles.developer.description',
-    descriptionFreeKey: 'project.roles.developer.descriptionFree',
   },
   {
     id: 'governance-owner',
@@ -58,7 +57,6 @@ export const ROLE_PRESETS = [
     grantApproval: false,
     resourcesKey: 'project.roles.junior-developer.resources',
     descriptionKey: 'project.roles.junior-developer.description',
-    descriptionFreeKey: 'project.roles.junior-developer.descriptionFree',
   },
   {
     id: 'executive-authority',
@@ -93,19 +91,3 @@ const FALLBACK = {
 }
 
 export const rolePreset = id => ROLE_PRESETS.find(r => r.id === id) || FALLBACK
-
-// Approval-centric presets only make sense where approval exists at all —
-// Free-mode projects publish directly, with no submit/approve step, so these
-// presets are hidden from the Free-mode role picker (Gated-mode picker shows
-// all of ROLE_PRESETS).
-const APPROVAL_PRESET_IDS = ['governance-owner', 'security-owner', 'executive-authority']
-
-// Presets to offer for a given build mode. `extraIds` keeps any already-
-// assigned preset selectable even if it would otherwise be hidden (e.g. a
-// member holding an approval-centric role, defensively — mode is immutable
-// after a project is created, so this should not occur in practice).
-export const rolePresetsForMode = (mode, extraIds = []) => {
-  if (mode !== 'free') return ROLE_PRESETS
-  const keep = new Set(extraIds)
-  return ROLE_PRESETS.filter(r => keep.has(r.id) || !APPROVAL_PRESET_IDS.includes(r.id))
-}

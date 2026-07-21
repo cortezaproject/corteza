@@ -1,18 +1,22 @@
-// The project build pipeline — single source of truth for steps and mode
-// visibility. We grow this one verified step at a time; only steps whose
-// persistence flow is fully backend-backed belong here.
+// The project build pipeline — single source of truth for steps and which
+// wizard tab each belongs to. We grow this one verified step at a time; only
+// steps whose persistence flow is fully backend-backed belong here.
 //
-// Free mode skips the governance-only steps entirely and starts at the Data
-// Model. Gated mode shows every step; approval only gates publishing itself
-// (see the Publish step), not any individual step here.
+// Every project behaves identically now (there is no build mode): the wizard
+// always shows all three tabs — Build, Govern, Manage & Monitor — to every
+// member. `tab` below assigns each step to Build or Govern; Manage & Monitor
+// has no steps of its own (see Wizard.vue).
 // `labelKey` is an i18n key; components resolve it with $t for display.
 // `icon` (PrimeIcons class) is shown in the step nav for steps without a resource
 // `kind`; resource steps take their icon from config/kinds so the sidebar matches
 // the metrics strip and resource graph exactly.
 // The well-known governance step key that drives the publish-time submit →
-// approve/request-changes cycle (gated mode only) — mirrors the backend's
-// types.ProjectGovernanceStepPublish. Every other step key only ever persists
-// form values via SaveGovernanceStep and never locks (see stores/projects.js).
+// approve/request-changes cycle — mirrors the backend's
+// types.ProjectGovernanceStepPublish. It is not a wizard step any more (Publish
+// lives in the topbar toolbar cluster instead — see Wizard.vue); every other
+// step key only ever persists form values via SaveGovernanceStep and its
+// governance status via the direct approve/request-changes actions (see
+// stores/projects.js transitionStep).
 export const PUBLISH_GOVERNANCE_STEP_KEY = 'publish'
 
 export const STEPS = [
@@ -21,98 +25,89 @@ export const STEPS = [
     labelKey: 'project.steps.summary.label',
     type: 'form',
     icon: 'pi-file',
-    gatedOnly: true,
+    tab: 'govern',
   },
   {
     key: 'resource-management',
     labelKey: 'project.steps.resource-management.label',
     type: 'form',
     icon: 'pi-sliders-h',
-    gatedOnly: true,
-  },
-  {
-    key: 'members',
-    labelKey: 'project.steps.members.label',
-    type: 'members',
-    icon: 'pi-users',
-    gatedOnly: false,
+    tab: 'govern',
   },
   {
     key: 'data-model',
     labelKey: 'project.steps.data-model.label',
     type: 'resource',
     kind: 'module',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
+    // Positioned right after data-model (not with the other Govern steps)
+    // so kindsThroughStep('data-sensitivity') already includes 'module' —
+    // this step classifies the fields data-model just built, so the graph
+    // should show those modules while you're on it. Tab membership (Govern)
+    // is independent of this array position; see stepsForTab.
     key: 'data-sensitivity',
     labelKey: 'project.steps.data-sensitivity.label',
     type: 'sensitivity',
     icon: 'pi-eye-slash',
-    gatedOnly: true,
+    tab: 'govern',
   },
   {
     key: 'connections',
     labelKey: 'project.steps.connections.label',
     type: 'resource',
     kind: 'connection',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
     key: 'automations',
     labelKey: 'project.steps.automations.label',
     type: 'resource',
     kind: 'automation',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
     key: 'agents',
     labelKey: 'project.steps.agents.label',
     type: 'resource',
     kind: 'agent',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
     key: 'chatbots',
     labelKey: 'project.steps.chatbots.label',
     type: 'resource',
     kind: 'chatbot',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
     key: 'pages',
     labelKey: 'project.steps.pages.label',
     type: 'resource',
     kind: 'page',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
     key: 'roles',
     labelKey: 'project.steps.roles.label',
     type: 'resource',
     kind: 'role',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
     key: 'permissions',
     labelKey: 'project.steps.permissions.label',
     type: 'permissions',
     icon: 'pi-lock',
-    gatedOnly: false,
+    tab: 'build',
   },
   {
     key: 'users',
     labelKey: 'project.steps.users.label',
     type: 'resource',
     kind: 'user',
-    gatedOnly: false,
-  },
-  {
-    key: 'publish',
-    labelKey: 'project.steps.publish.label',
-    type: 'publish',
-    icon: 'pi-cloud-upload',
-    gatedOnly: false,
+    tab: 'build',
   },
 ]
 
@@ -120,12 +115,9 @@ export const STEPS = [
 // conditional steps (e.g. FRIA); currently the pipeline is static.
 export const resolveSteps = () => STEPS.map(s => ({ ...s }))
 
-// Steps visible for a given build mode (Free hides the governance-only steps).
-export const stepsForMode = mode => resolveSteps().filter(s => mode === 'gated' || !s.gatedOnly)
-
-// Steps shown in a wizard tab. Build = the Free-mode subset; Governance = everything.
-export const stepsForTab = tab =>
-  resolveSteps().filter(s => (tab === 'build' ? !s.gatedOnly : true))
+// Steps shown in a wizard tab ('build' | 'govern'). Manage & Monitor has no
+// steps of its own — callers should treat it as an empty list.
+export const stepsForTab = tab => resolveSteps().filter(s => s.tab === tab)
 
 // The build is a process: a resource kind only exists once its step is reached.
 // Returns the resource kinds introduced by every step up to and including

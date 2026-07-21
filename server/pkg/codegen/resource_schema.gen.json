@@ -939,7 +939,6 @@
   "connections": "*ProjectPermittedConnection"
 }
 },
-  "mode": "ProjectMode",
   "meta": {
   "short": "string",
   "description": "string",

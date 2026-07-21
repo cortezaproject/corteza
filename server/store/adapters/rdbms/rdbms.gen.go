@@ -27011,7 +27011,6 @@ func (Store) sortableProjectFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
-		"mode":       "mode",
 		"status":     "status",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
@@ -27049,8 +27048,6 @@ func (s *Store) collectProjectCursorValues(res *systemType.Project, cc ...*filte
 					return res.Handle
 				case "status":
 					return res.Status
-				case "mode":
-					return res.Mode
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":

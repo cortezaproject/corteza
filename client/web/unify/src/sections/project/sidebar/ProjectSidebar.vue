@@ -79,7 +79,7 @@ const navItems = computed(() => [
       _id: p.projectID,
       _parentId: 'projects',
       _label: p.name || t('project.list.untitled'),
-      _icon: p.mode === 'gated' ? 'pi pi-shield' : 'pi pi-unlock',
+      _icon: 'pi pi-sitemap',
       _route: routeFor(p),
       _badge: badgeFor(p),
     })),

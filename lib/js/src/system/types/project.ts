@@ -1,16 +1,9 @@
 import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
-export type ProjectStatus =
-  | 'draft'
-  | 'active'
-  | 'published'
-  | 'archived'
-  | 'suspended'
+export type ProjectStatus = 'draft' | 'active' | 'published' | 'archived' | 'suspended'
 
 export type ProjectVisibility = 'open' | 'invite-only'
-
-export type ProjectMode = 'free' | 'gated'
 
 export type ProjectMemberRole =
   | 'governance-owner'
@@ -21,59 +14,50 @@ export type ProjectMemberRole =
   | 'executive-authority'
   | 'infrastructure-administrator'
 
-export type ProjectGovernanceStatus =
-  | 'draft'
-  | 'submitted'
-  | 'approved'
-  | 'changes-requested'
+export type ProjectGovernanceStatus = 'draft' | 'submitted' | 'approved' | 'changes-requested'
 
-export type ProjectGovernanceAction =
-  | 'submit'
-  | 'approve'
-  | 'request-changes'
-  | 'reopen'
-  | 'recall'
+export type ProjectGovernanceAction = 'submit' | 'approve' | 'request-changes'
 
 export interface ProjectGovernanceStep {
-  values: Record<string, unknown>;
-  status: ProjectGovernanceStatus;
-  reviewNote: string;
+  values: Record<string, unknown>
+  status: ProjectGovernanceStatus
+  reviewNote: string
 }
 
 export type ProjectGovernance = Record<string, ProjectGovernanceStep>
 
 export interface ProjectDeployerCategories {
-  publicAuthorityAnnex3: boolean;
-  privateEssentialServices: boolean;
-  insuranceBanking: boolean;
+  publicAuthorityAnnex3: boolean
+  privateEssentialServices: boolean
+  insuranceBanking: boolean
 }
 
 export interface ProjectPermittedConnection {
-  id: string;
-  name: string;
-  connector?: string;
-  type?: string;
-  description?: string;
-  actionIfUnavailable?: string;
-  replacement?: string;
-  isAiSystem?: string;
+  id: string
+  name: string
+  connector?: string
+  type?: string
+  description?: string
+  actionIfUnavailable?: string
+  replacement?: string
+  isAiSystem?: string
 }
 
 export interface ProjectResourceManagement {
-  ai: Record<string, unknown>;
-  infra: Record<string, unknown>;
-  connections: ProjectPermittedConnection[];
+  ai: Record<string, unknown>
+  infra: Record<string, unknown>
+  connections: ProjectPermittedConnection[]
 }
 
 interface Config {
-  visibility?: ProjectVisibility;
-  defaultMemberRole?: ProjectMemberRole;
-  featureFlags?: Record<string, boolean>;
+  visibility?: ProjectVisibility
+  defaultMemberRole?: ProjectMemberRole
+  featureFlags?: Record<string, boolean>
 
-  namespaceID: string;
-  deployerCategories: ProjectDeployerCategories;
-  friaRequired: boolean;
-  resourceManagement: ProjectResourceManagement;
+  namespaceID: string
+  deployerCategories: ProjectDeployerCategories
+  friaRequired: boolean
+  resourceManagement: ProjectResourceManagement
 }
 
 const defaultConfig = (): Config => ({
@@ -88,11 +72,11 @@ const defaultConfig = (): Config => ({
 })
 
 interface Meta {
-  short: string;
-  description: string;
-  icon?: string;
-  color?: string;
-  tags?: string[];
+  short: string
+  description: string
+  icon?: string
+  color?: string
+  tags?: string[]
 }
 
 const defaultMeta = (): Meta => ({
@@ -100,12 +84,10 @@ const defaultMeta = (): Meta => ({
   description: '',
 })
 
-interface PartialProject extends Partial<
-  Omit<Project, 'createdAt' | 'updatedAt' | 'deletedAt'>
-> {
-  createdAt?: string | number | Date;
-  updatedAt?: string | number | Date;
-  deletedAt?: string | number | Date;
+interface PartialProject extends Partial<Omit<Project, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export class Project {
@@ -113,9 +95,6 @@ export class Project {
   public tenantID = NoID
   public handle = ''
   public status: ProjectStatus = 'draft'
-
-  // Chosen at creation, immutable after. Top-level column (not config JSON).
-  public mode: ProjectMode = 'free'
 
   // Revision chain. Originals leave these at NoID/0; rootProjectID falls back
   // to the project's own ID (mirrors the backend RootProjectID()).
@@ -144,8 +123,17 @@ export class Project {
   }
 
   apply(p?: PartialProject): void {
-    Apply(this, p, HumanID, 'projectID', 'tenantID', 'createdBy', 'rootProjectID', 'parentRevisionID')
-    Apply(this, p, String, 'handle', 'status', 'mode')
+    Apply(
+      this,
+      p,
+      HumanID,
+      'projectID',
+      'tenantID',
+      'createdBy',
+      'rootProjectID',
+      'parentRevisionID',
+    )
+    Apply(this, p, String, 'handle', 'status')
     Apply(this, p, Number, 'revision')
     Apply(this, p, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
 
@@ -153,15 +141,7 @@ export class Project {
     if (this.rootProjectID === NoID) {
       this.rootProjectID = this.projectID
     }
-    Apply(
-      this,
-      p,
-      Boolean,
-      'canGrant',
-      'canUpdateProject',
-      'canDeleteProject',
-      'canManageMembers',
-    )
+    Apply(this, p, Boolean, 'canGrant', 'canUpdateProject', 'canDeleteProject', 'canManageMembers')
 
     if (IsOf(p, 'config')) {
       this.config = { ...defaultConfig(), ...p.config }
@@ -192,10 +172,6 @@ export class Project {
    */
   get name(): string {
     return this.meta.short || this.handle
-  }
-
-  get isGated(): boolean {
-    return this.mode === 'gated'
   }
 
   get namespaceID(): string {
@@ -239,18 +215,18 @@ export class Project {
 }
 
 export interface ProjectCapabilities {
-  canRead: boolean;
-  canWrite: boolean;
-  canRequestApproval: boolean;
-  canGrantApproval: boolean;
+  canRead: boolean
+  canWrite: boolean
+  canRequestApproval: boolean
+  canGrantApproval: boolean
 }
 
 interface PartialProjectMember extends Partial<
   Omit<ProjectMember, 'createdAt' | 'updatedAt' | 'deletedAt'>
 > {
-  createdAt?: string | number | Date;
-  updatedAt?: string | number | Date;
-  deletedAt?: string | number | Date;
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export class ProjectMember {
@@ -301,22 +277,22 @@ export class ProjectMember {
 }
 
 export interface ProjectGroupEntry {
-  projectGroupID: string;
-  resourceRef: string;
-  createdAt?: string;
+  projectGroupID: string
+  resourceRef: string
+  createdAt?: string
 }
 
 interface GroupMeta {
-  short: string;
-  description: string;
+  short: string
+  description: string
 }
 
 interface PartialProjectGroup extends Partial<
   Omit<ProjectGroup, 'createdAt' | 'updatedAt' | 'deletedAt'>
 > {
-  createdAt?: string | number | Date;
-  updatedAt?: string | number | Date;
-  deletedAt?: string | number | Date;
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export class ProjectGroup {

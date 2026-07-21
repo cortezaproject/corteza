@@ -396,11 +396,11 @@ export const useProjectsStore = defineStore('projects', () => {
 
   // Create a draft project. The backend generates the internal handle, creates
   // the compose namespace and adds the creator as a developer; `deployer`
-  // carries the AI Act deployer answers.
-  async function create({ name, description = '', mode = 'free', deployer = {} } = {}) {
+  // carries the AI Act deployer-category answers collected in
+  // NewProjectDialog.vue, which drive the backend's FriaRequired derivation.
+  async function create({ name, description = '', deployer = {} } = {}) {
     const raw = await $SystemAPI.projectCreate({
       status: 'draft',
-      mode,
       config: {
         deployerCategories: {
           publicAuthorityAnnex3: !!deployer.publicAuthorityAnnex3,
@@ -429,8 +429,7 @@ export const useProjectsStore = defineStore('projects', () => {
     return absorb(raw)
   }
 
-  // Patch a project. Name/description live in meta; `mode` is immutable (also
-  // enforced server-side).
+  // Patch a project. Name/description live in meta.
   async function updateProject(id, patch = {}) {
     const p = findById.value(id)
     if (!p) return
@@ -462,11 +461,11 @@ export const useProjectsStore = defineStore('projects', () => {
   // carries its new status, which we absorb into the cache. `mappings` stays
   // empty until the revision/migration flow is wired.
   //
-  // Gated-mode projects also require the `'publish'` governance step to be
-  // approved (enforced server-side); on success the backend resets that step
-  // back to `draft` and returns it that way, so absorbing the response here
-  // already leaves the UI showing the fresh, unapproved cycle for next time —
-  // no separate governance refetch needed.
+  // Every project also requires the `'publish'` governance step to be
+  // approved (enforced server-side, unconditionally); on success the backend
+  // resets that step back to `draft` and returns it that way, so absorbing
+  // the response here already leaves the UI showing the fresh, unapproved
+  // cycle for next time — no separate governance refetch needed.
   async function publishProject(id) {
     const p = findById.value(id)
     if (!p) return
@@ -664,32 +663,31 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // --- per-step governance ----------------------------------------------------------
-  // Per-section approval gates are gone: every step but one only ever uses
-  // saveStepForm to persist FORM VALUES, kept in memory ONLY (never sent to the
-  // backend) — see MembersStep and the form/sensitivity steps. That's a
-  // separate concern from *governance status*, which transitionStep() below
-  // drives and which IS always backend-persisted, for every step key:
+  // Form-type steps (summary, resource-management) use saveStepForm to persist
+  // FORM VALUES, kept in memory ONLY (never sent to the backend as part of
+  // governance) — see the form/sensitivity steps. That's a separate concern
+  // from *governance status*, which transitionStep() below drives and which IS
+  // always backend-persisted, for every step key:
   //
-  //   - the well-known `'publish'` step key (PUBLISH_GOVERNANCE_STEP_KEY)
-  //     runs the full submit -> approve/request-changes cycle that gates
-  //     publishing itself in gated mode (server/system/service/
+  //   - the well-known `'publish'` step key (PUBLISH_GOVERNANCE_STEP_KEY) runs
+  //     the full submit -> approve/request-changes cycle that gates
+  //     publishing itself, unconditionally (server/system/service/
   //     project_revision.go's Publish() requires it approved, and resets it
   //     back to draft on success — see publishProject() below, whose
   //     response already carries that reset);
-  //   - every OTHER step key only ever receives the 'request-changes' action,
-  //     fired by a member with grant-approval capability at any time (see
-  //     Wizard.vue's per-step "Request changes" button/dialog) — the
-  //     backend "flags" that step to changes-requested regardless of its
-  //     current status, and sends 'publish' back for review too if it was
-  //     submitted/approved (server/system/service/project_governance.go).
+  //   - every OTHER (Build/Govern) step key has NO submit stage: a member with
+  //     grant-approval capability can send either 'approve' or
+  //     'request-changes' directly, from any current status, at any time (see
+  //     Wizard.vue's per-step Approve / "Request changes" toolbar actions).
+  //     'request-changes' flags that step to changes-requested and sends
+  //     'publish' back for review too if it was submitted/approved
+  //     (server/system/service/project_governance.go); 'approve' clears a
+  //     changes-requested flag (or simply marks a draft step approved).
   //
-  // A previous version of this store mocked the state machine in memory for
-  // every non-publish step key (submit/approve/reopen/recall included), since
-  // the backend only supported it for 'publish'. The backend now accepts
-  // 'request-changes' for any step key — the only action any caller ever
-  // sends for a non-publish key — so that mock is gone: every transition,
-  // regardless of stepKey, round-trips through the real governance API and
-  // absorbs the response, keeping every viewer in sync with the same state.
+  // Every transition, regardless of stepKey or action, round-trips through the
+  // real governance API and absorbs the response, keeping every viewer in
+  // sync with the same state — there is no in-memory mock of the state
+  // machine here.
 
   function ensureGovStep(p, stepKey) {
     if (!p.governance) p.governance = {}
@@ -742,7 +740,7 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // Permitted connection catalogIDs from the Resource Management whitelist, or
-  // null when no whitelist exists (e.g. Free mode) — meaning "no constraint".
+  // null when no whitelist has been declared yet — meaning "no constraint".
   function allowedConnectorIds(projectId) {
     const p = findById.value(projectId)
     const wl = p?.governance?.['resource-management']?.values?.connections

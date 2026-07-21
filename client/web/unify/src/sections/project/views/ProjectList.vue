@@ -50,14 +50,6 @@
         </div>
       </template>
 
-      <template #body-mode="{ data }">
-        <Tag
-          :value="$t(`project.mode.${data.mode}`)"
-          :severity="data.mode === 'gated' ? 'warn' : 'secondary'"
-          :icon="data.mode === 'gated' ? 'pi pi-shield' : 'pi pi-unlock'"
-        />
-      </template>
-
       <template #body-status="{ data }">
         <Tag :value="$t(`project.status.${data.status}`)" :severity="statusSeverity(data.status)" />
       </template>
@@ -97,7 +89,7 @@ const $SystemAPI = inject('$SystemAPI')
 // Backend-driven list: fetch/filter/sort/paginate all happen server-side via
 // the shared composable (same pattern as every other resource list). Raw
 // records are wrapped in the lib Project class so the template reads its
-// getters (name, mode, …) instead of a hand-rolled unmarshal.
+// getters (name, status, …) instead of a hand-rolled unmarshal.
 const {
   items: projects,
   loading,
@@ -130,11 +122,9 @@ const newDialogVisible = ref(false)
 const renameVisible = ref(false)
 const renameTarget = ref(null)
 
-// name (meta.short) is a JSON column with no sort ident, so it's not sortable;
-// mode is a top-level column, sortable server-side.
+// name (meta.short) is a JSON column with no sort ident, so it's not sortable.
 const fields = [
   { key: 'name', sortable: false, header: t('general.label.name') },
-  { key: 'mode', sortable: true, header: t('project.list.columns.mode') },
   { key: 'status', sortable: true, header: t('general.label.status') },
   {
     key: 'updatedAt',
@@ -166,9 +156,19 @@ const onRowClick = ({ data }) => {
   router.push({ name, params: { projectId: data.projectID } })
 }
 
+// Just-created-project flag: a `new=1` query param on the very first
+// navigation into the wizard. Members are the first thing to define on a
+// fresh project, so the wizard (see views/Wizard.vue / a follow-up members
+// dialog) should read `route.query.new === '1'` once on mount to auto-open
+// the members dialog, then strip it via router.replace so it never re-opens
+// on a later visit, refresh or back-navigation.
 const onCreated = project => {
   $toast.toastSuccess(project.name, t('project.list.toast.created'))
-  router.push({ name: 'project.wizard', params: { projectId: project.projectID } })
+  router.push({
+    name: 'project.wizard',
+    params: { projectId: project.projectID },
+    query: { new: '1' },
+  })
 }
 
 // Run an API mutation and report the outcome — success toast only when the call
@@ -184,8 +184,8 @@ async function apiCall(fn, success) {
   }
 }
 
-// Update payload from a Project instance, overriding only the changed fields.
-// Mode is immutable (also enforced server-side), so config round-trips whole.
+// Update payload from a Project instance, overriding only the changed fields;
+// config round-trips whole.
 const updateProject = (project, patch = {}) =>
   $SystemAPI.projectUpdate({
     projectID: project.projectID,

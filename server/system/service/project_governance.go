@@ -13,24 +13,25 @@ import (
 // Governance operations on a project's steps. Capability checks run against
 // the caller's project membership (role preset), not system RBAC:
 //
-//	save step values  → CanWrite, step must be editable (draft/changes-requested)
-//	submit / recall   → CanRequestApproval
-//	approve / request-changes / reopen → CanGrantApproval
+//	save step values          → CanWrite, step must be editable (draft/changes-requested)
+//	submit (publish step)     → CanRequestApproval
+//	approve / request-changes → CanGrantApproval
 //
-// Per-section approval gates are gone: every step but one only ever uses
-// SaveGovernanceStep to persist form values and stays in the draft status,
-// so it never locks. The exception is the "publish" step key
-// (types.ProjectGovernanceStepPublish): in gated mode, project.Publish()
-// requires it to be approved before it will run, and resets it back to
-// draft on success — see service/project_revision.go.
+// TransitionGovernanceStep handles two shapes of step:
 //
-// On top of that, TransitionGovernanceStep implements one more piece of
-// cross-step orchestration, all gated-mode only:
+//   - Ordinary Build/Govern steps: reviewed directly, with no submit stage.
+//     A granter approves the step (types.Step.Approve) or requests changes on
+//     it (types.Step.Flag) in any status, at any time, including a step with
+//     no entry yet. Approving clears a prior changes-requested flag.
+//   - The "publish" step (types.ProjectGovernanceStepPublish): the
+//     project-level approval state machine (submit → approve /
+//     request-changes, types.Step.Transition). project.Publish() requires it
+//     to be approved before it will run and resets it back to draft on
+//     success — see service/project_revision.go.
 //
-//   - "flag anytime": a request-changes on any step other than "publish"
-//     bypasses that step's own submitted-only rule (types.Step.Flag instead
-//     of types.Step.Transition) — a granter can raise it on any step, in any
-//     status, at any time, including a step with no entry yet.
+// On top of that, TransitionGovernanceStep implements cross-step
+// orchestration:
+//
 //   - "immediate send-back": flagging a non-publish step while "publish" is
 //     currently submitted or approved sends "publish" back to
 //     changes-requested too, since whatever was about to ship now has open
@@ -39,10 +40,9 @@ import (
 //   - "auto-clear on resubmit": submitting "publish" resets every other step
 //     currently flagged (changes-requested) back to draft with its note
 //     cleared, since resubmission asserts the feedback was addressed.
-//
-// Free-mode projects have no approval concepts at all, so the flag-anytime
-// path is rejected outright for them (same types.ProjectModeGated check
-// project.Publish() uses to decide whether the publish gate applies).
+//   - "approval gate": approving the "publish" step (approving the project)
+//     is rejected while any other step still has changes requested — each
+//     flag must be resolved by approving that step first.
 
 func (svc *project) SaveGovernanceStep(ctx context.Context, projectID uint64, stepKey string, values map[string]any) (p *types.Project, err error) {
 	var (
@@ -105,21 +105,33 @@ func (svc *project) TransitionGovernanceStep(ctx context.Context, projectID uint
 			return ProjectErrNotAllowedToEditGovernance()
 		}
 
-		if action == types.ProjectGovernanceActionRequestChanges && stepKey != types.ProjectGovernanceStepPublish {
-			// Flag-anytime: a granter may request changes on any non-publish
-			// step regardless of its current status, but only in gated mode
-			// — free-mode projects have no approval concepts to flag.
-			if p.Mode != types.ProjectModeGated {
+		if stepKey == types.ProjectGovernanceStepPublish {
+			// Publish step: the project-level submit → approve /
+			// request-changes machine. Approving the project (approve on the
+			// publish step) is blocked while any other step still has changes
+			// requested — each flag must be resolved (approved) first.
+			if action == types.ProjectGovernanceActionApprove && hasFlaggedSteps(p) {
+				return ProjectErrApprovalBlockedByChangesRequested()
+			}
+			if !p.Governance.Step(stepKey).Transition(action, note) {
 				return ProjectErrInvalidGovernanceTransition()
 			}
-			p.Governance.Step(stepKey).Flag(note)
-			sendPublishBack(p, stepKey, note)
-		} else if !p.Governance.Step(stepKey).Transition(action, note) {
-			return ProjectErrInvalidGovernanceTransition()
-		}
-
-		if action == types.ProjectGovernanceActionSubmit && stepKey == types.ProjectGovernanceStepPublish {
-			clearFlaggedSteps(p)
+			if action == types.ProjectGovernanceActionSubmit {
+				clearFlaggedSteps(p)
+			}
+		} else {
+			// Ordinary Build/Govern step: direct review, no submit stage. A
+			// granter either approves the step or requests changes on it, in
+			// any status, at any time.
+			switch action {
+			case types.ProjectGovernanceActionApprove:
+				p.Governance.Step(stepKey).Approve()
+			case types.ProjectGovernanceActionRequestChanges:
+				p.Governance.Step(stepKey).Flag(note)
+				sendPublishBack(p, stepKey, note)
+			default:
+				return ProjectErrInvalidGovernanceTransition()
+			}
 		}
 
 		if err = svc.storeGovernance(ctx, p); err != nil {
@@ -164,6 +176,22 @@ func clearFlaggedSteps(p *types.Project) {
 			step.Reset()
 		}
 	}
+}
+
+// hasFlaggedSteps reports whether any step other than "publish" currently has
+// changes requested. It backs the "approval gate": the project can't be
+// approved (publish step approved) while an open change request remains on any
+// step — that request must first be resolved by approving the flagged step.
+func hasFlaggedSteps(p *types.Project) bool {
+	for key, step := range p.Governance {
+		if key == types.ProjectGovernanceStepPublish {
+			continue
+		}
+		if step.Status == types.ProjectGovernanceStatusChangesRequested {
+			return true
+		}
+	}
+	return false
 }
 
 func (svc *project) storeGovernance(ctx context.Context, p *types.Project) error {

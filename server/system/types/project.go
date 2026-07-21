@@ -34,7 +34,3 @@ func (r Project) RootProjectID() uint64 {
 	}
 	return r.ID
 }
-
-func (m ProjectMode) Valid() bool {
-	return m == ProjectModeFree || m == ProjectModeGated
-}

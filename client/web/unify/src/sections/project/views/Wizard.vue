@@ -11,10 +11,69 @@
     </span>
   </Teleport>
 
-  <!-- Right-aligned topbar tools: for a live project, jump to its dashboard;
-       always offer opening the project's compose namespace. -->
+  <!-- Right-aligned topbar tools: the project-level publish approval cluster
+       (draft projects only — see publishAction), the Members dialog opener,
+       then navigation — jump to a live project's dashboard, or open its
+       compose namespace. -->
   <Teleport to="#topbar-tools" defer>
     <span class="flex items-center gap-2">
+      <!-- Publish approval cluster — one state-driven primary control reading
+           the well-known 'publish' governance step (see publishAction), next
+           to a compact status Tag. Only relevant pre-publish: once a project
+           is live, "View dashboard" (below) takes over and a fresh cycle only
+           resumes with a future revision. -->
+      <template v-if="project && !isLive">
+        <Tag
+          :value="publishStatusLabel"
+          :severity="publishStatusSeverity"
+          v-tooltip.bottom="publishStatusTooltip"
+        />
+        <Button
+          v-if="publishAction === 'request'"
+          :label="
+            publishStatus === 'changes-requested'
+              ? $t('project.publish.actions.resubmit')
+              : $t('project.publish.actions.requestApproval')
+          "
+          icon="pi pi-send"
+          size="small"
+          :severity="publishStatus === 'changes-requested' ? 'warn' : undefined"
+          :loading="requestApprovalLoading"
+          @click="requestApproval"
+        />
+        <Button
+          v-else-if="publishAction === 'approve'"
+          :label="$t('project.publish.actions.approveProject')"
+          icon="pi pi-check"
+          severity="success"
+          size="small"
+          :disabled="anyStepFlagged"
+          :loading="approveProjectLoading"
+          v-tooltip.bottom="
+            anyStepFlagged ? $t('project.publish.actions.approveBlockedTooltip') : null
+          "
+          @click="approveProject"
+        />
+        <Button
+          v-else-if="publishAction === 'publish'"
+          :label="$t('project.publish.actions.publish')"
+          icon="pi pi-cloud-upload"
+          size="small"
+          :loading="publishing"
+          @click="confirmPublish"
+        />
+      </template>
+
+      <Button
+        v-if="project"
+        :label="$t('project.wizard.toolbar.members')"
+        icon="pi pi-users"
+        size="small"
+        severity="secondary"
+        outlined
+        @click="membersOpen = true"
+      />
+
       <Button
         v-if="isLive"
         :label="$t('project.viewDashboard')"
@@ -34,8 +93,24 @@
     </span>
   </Teleport>
 
+  <!-- Members dialog — top-right toolbar button opener (replaces the old
+       members wizard step). Auto-opened once for a just-created project; see
+       the route.query.new watcher below. -->
+  <MembersDialog v-if="project" v-model:visible="membersOpen" :project="project" />
+
   <div v-if="project" class="h-full flex flex-col min-h-0">
-    <div class="flex-1 flex gap-4 p-3 min-h-0">
+    <!-- Fixed three-tab switcher — Build / Govern / Manage & Monitor — visible
+         to every member regardless of capability (only the per-step and
+         per-project review ACTIONS are capability-gated, not tab access). -->
+    <Tabs v-model:value="activeTab" class="shrink-0 px-3 pt-2">
+      <TabList>
+        <Tab value="build">{{ $t('project.wizard.tabs.build') }}</Tab>
+        <Tab value="govern">{{ $t('project.wizard.tabs.govern') }}</Tab>
+        <Tab value="manage">{{ $t('project.wizard.tabs.manageMonitor') }}</Tab>
+      </TabList>
+    </Tabs>
+
+    <div v-if="activeTab !== 'manage'" class="flex-1 flex gap-4 p-3 min-h-0">
       <!-- Left: step nav -->
       <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
         <StepNav
@@ -152,20 +227,10 @@
                 v-model="working"
                 :disabled="locked"
               />
-              <MembersStep v-else-if="isMembers" :project="project" :disabled="membersLocked" />
               <DataSensitivityStep
                 v-else-if="isSensitivity"
                 :project="project"
                 :disabled="locked"
-              />
-              <PublishStep
-                v-else-if="isPublish"
-                :project="project"
-                :publishing="publishing"
-                :can-request="canRequest"
-                :can-grant="canGrant"
-                @publish="onPublish"
-                @open-dashboard="goDashboard"
               />
             </template>
           </div>
@@ -184,9 +249,21 @@
           </div>
 
           <div class="overflow-hidden p-4 min-h-0 flex-1">
-            <ResourceGraph :project="project" :locked="status === 'submitted'" />
+            <ResourceGraph :project="project" />
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Manage & Monitor: placeholder until this tab's screens are built. No
+         step sidebar — this tab carries no wizard steps. -->
+    <div v-else class="flex-1 flex items-center justify-center p-3 min-h-0">
+      <div class="max-w-sm text-center text-muted-color">
+        <i class="pi pi-gauge text-4xl mb-3 block" />
+        <p class="text-base font-medium text-color mb-1">
+          {{ $t('project.wizard.manageMonitor.title') }}
+        </p>
+        <p class="text-sm">{{ $t('project.wizard.manageMonitor.description') }}</p>
       </div>
     </div>
 
@@ -194,8 +271,6 @@
       v-if="showToolbar"
       :can-write="canWrite"
       :can-grant="canGrant"
-      :mode="project.mode"
-      :is-publish="isPublish"
       :show-save="showStepSave"
       :can-prev="canPrev"
       :can-next="canNext"
@@ -203,6 +278,7 @@
       :step-count="navSteps.length"
       @save="onSave"
       @request-changes="openRequestChanges"
+      @approve="onApprove"
       @prev="onPrev"
       @next="onNext"
       @back="onBack"
@@ -344,8 +420,8 @@
   </div>
 
   <!-- Per-step "Request changes" — a granter can flag the active step (any
-       step but Publish, see WizardToolbar) at any time with a required note.
-       Mirrors PublishStep.vue's own request-changes dialog. -->
+       Build or Govern step, any status, any time) with a required note.
+       Approving directly (WizardToolbar's Approve button) needs no dialog. -->
   <Dialog
     v-model:visible="requestChanges.visible"
     modal
@@ -401,6 +477,7 @@ import RoleDetailDialog from '@/sections/project/components/roles/RoleDetailDial
 import UserCreateDialog from '@/sections/project/components/users/UserCreateDialog.vue'
 import UserDetailDialog from '@/sections/project/components/users/UserDetailDialog.vue'
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
+import MembersDialog from '@/sections/project/components/project/MembersDialog.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
@@ -414,17 +491,21 @@ import PermissionsStep from '@/sections/project/components/wizard/steps/Permissi
 import UsersStep from '@/sections/project/components/wizard/steps/UsersStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
-import MembersStep from '@/sections/project/components/wizard/steps/MembersStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
-import PublishStep from '@/sections/project/components/wizard/steps/PublishStep.vue'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
-import { STEPS, kindsThroughStep, stepsForTab } from '@/sections/project/config/pipeline'
+import {
+  PUBLISH_GOVERNANCE_STEP_KEY,
+  STEPS,
+  kindsThroughStep,
+  stepsForTab,
+} from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
+import { useConfirm } from 'primevue/useconfirm'
 import { computed, inject, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -435,6 +516,7 @@ const router = useRouter()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
 const $toast = inject('$toast')
+const confirm = useConfirm()
 
 const project = computed(() => store.findById(route.params.projectId))
 
@@ -465,22 +547,225 @@ watch(
 )
 
 // --- Current member & role -------------------------------------------------
-// Tab access follows the logged-in user's role: a member who can request OR
-// grant approval works in the Governance view; everyone else sees Build only.
+// Every project behaves identically now (no build modes): capability flags
+// only gate individual review ACTIONS (Approve / Request changes on a step,
+// and the topbar toolbar's project approval cluster below), never tab or
+// step visibility.
 const currentMember = computed(() =>
   store.membersFor(project.value?.projectID).find(m => m.userId === usersStore.currentUserID),
 )
 const currentRole = computed(() => rolePreset(currentMember.value?.role))
 const canWrite = computed(() => !!currentRole.value.write)
-const canRequest = computed(() => !!currentRole.value.requestApproval)
 const canGrant = computed(() => !!currentRole.value.grantApproval)
-const canGovern = computed(() => canRequest.value || canGrant.value)
+const canRequestApproval = computed(() => !!currentRole.value.requestApproval)
 
-// --- Tabs (derived, not chosen) --------------------------------------------
-const effectiveTab = computed(() =>
-  project.value?.mode === 'gated' && canGovern.value ? 'governance' : 'build',
+// --- Members dialog ----------------------------------------------------
+// Members are no longer a wizard step — the topbar "Members" button opens
+// this dialog instead (see the Teleport above); it wraps exactly the table
+// the old MembersStep held.
+const membersOpen = ref(false)
+
+// Just-created-project flag: ProjectList.vue's onCreated() lands here with
+// `?new=1` right after creating a project — members are the first thing to
+// define on a fresh one, so auto-open the dialog once. Reactive (not a
+// one-shot top-level check) so it also fires if this same wizard instance is
+// reused for a different just-created project. Strips the flag immediately
+// via router.replace so a refresh or back-navigation never re-opens it.
+watch(
+  () => route.query.new,
+  val => {
+    if (val !== '1') return
+    membersOpen.value = true
+    router.replace({ query: { ...route.query, new: undefined } })
+  },
+  { immediate: true },
 )
-const navSteps = computed(() => (project.value ? stepsForTab(effectiveTab.value) : []))
+
+// --- Project-level publish approval cluster (topbar) ------------------------
+// Drives the single state-machine button + status Tag Teleported into
+// #topbar-tools above, built around the well-known 'publish' governance step
+// key (PUBLISH_GOVERNANCE_STEP_KEY): draft/changes-requested → submitted →
+// approved, then a successful publish resets it to draft for the next cycle.
+// Distinct from the direct per-step Approve/Request changes review on
+// Build/Govern steps below (no submit stage there) — see
+// server/system/service/project_governance.go for the shared backend rules.
+const publishGovStep = computed(
+  () =>
+    project.value?.governance?.[PUBLISH_GOVERNANCE_STEP_KEY] || { status: 'draft', reviewNote: '' },
+)
+const publishStatus = computed(() => publishGovStep.value.status)
+
+// Whether any OTHER (Build/Govern) step currently has changes requested —
+// the "publish" step can't be approved while true (BE-enforced; this only
+// keeps the button from firing a request that's certain to be rejected, and
+// explains why via the disabled button's tooltip).
+const anyStepFlagged = computed(() =>
+  STEPS.some(s => project.value?.governance?.[s.key]?.status === 'changes-requested'),
+)
+
+// Which action the topbar button represents right now, or null when the
+// current member holds neither capability for it (the status Tag still
+// shows either way).
+const publishAction = computed(() => {
+  switch (publishStatus.value) {
+    case 'approved':
+      return 'publish'
+    case 'submitted':
+      return canGrant.value ? 'approve' : null
+    default: // draft | changes-requested
+      return canRequestApproval.value ? 'request' : null
+  }
+})
+
+const publishStatusLabel = computed(
+  () =>
+    ({
+      draft: t('project.governance.status.draft'),
+      submitted: t('project.governance.status.submitted'),
+      approved: t('project.governance.status.approved'),
+      'changes-requested': t('project.governance.status.changesRequested'),
+    })[publishStatus.value],
+)
+const publishStatusSeverity = computed(
+  () =>
+    ({ draft: 'secondary', submitted: 'info', approved: 'success', 'changes-requested': 'warn' })[
+      publishStatus.value
+    ],
+)
+// Tooltip on the status Tag — the only place the review note surfaces for a
+// changes-requested publish (there is no per-step banner for it, unlike
+// Build/Govern steps), plus a status+capability-aware hint mirroring what the
+// old full-page PublishStep panel used to spell out inline.
+const publishStatusTooltip = computed(() => {
+  let hint
+  switch (publishStatus.value) {
+    case 'approved':
+      hint = t('project.publish.hint.approved')
+      break
+    case 'submitted':
+      hint = t(
+        canGrant.value
+          ? 'project.publish.hint.submitted.grantor'
+          : 'project.publish.hint.submitted.viewer',
+      )
+      break
+    case 'changes-requested':
+      hint = t(
+        canRequestApproval.value
+          ? 'project.publish.hint.changesRequested.requester'
+          : 'project.publish.hint.changesRequested.viewer',
+      )
+      break
+    default:
+      hint = t(
+        canRequestApproval.value
+          ? 'project.publish.hint.draft.requester'
+          : 'project.publish.hint.draft.viewer',
+      )
+  }
+  if (publishStatus.value === 'changes-requested' && publishGovStep.value.reviewNote) {
+    return `${hint} ${t('project.publish.note.label')} "${publishGovStep.value.reviewNote}"`
+  }
+  return hint
+})
+
+function publishFail(err) {
+  $toast.toastErrorHandler(t('project.publish.toast.actionFailed'))(err)
+}
+
+const requestApprovalLoading = ref(false)
+async function requestApproval() {
+  if (requestApprovalLoading.value) return
+  requestApprovalLoading.value = true
+  try {
+    await store.transitionStep(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY, 'submit')
+    $toast.toastSuccess(t('project.publish.toast.submitted'))
+  } catch (err) {
+    publishFail(err)
+  } finally {
+    requestApprovalLoading.value = false
+  }
+}
+
+const approveProjectLoading = ref(false)
+async function approveProject() {
+  if (approveProjectLoading.value || anyStepFlagged.value) return
+  approveProjectLoading.value = true
+  try {
+    await store.transitionStep(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY, 'approve')
+    $toast.toastSuccess(t('project.publish.toast.approved'))
+  } catch (err) {
+    publishFail(err)
+  } finally {
+    approveProjectLoading.value = false
+  }
+}
+
+// Publish itself needs a confirmation — it's a one-way door (the project goes
+// live and further changes are made through revisions). Reuses the exact
+// store action + success/dashboard handoff PublishStep.vue used to run.
+function confirmPublish() {
+  confirm.require({
+    header: t('project.publish.confirm.header'),
+    message: t('project.publish.confirm.message'),
+    icon: 'pi pi-cloud-upload',
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
+    acceptProps: { label: t('project.publish.confirm.accept'), size: 'small' },
+    accept: doPublish,
+  })
+}
+const publishing = ref(false)
+async function doPublish() {
+  if (publishing.value) return
+  publishing.value = true
+  try {
+    await store.publishProject(project.value.projectID)
+    $toast.toastSuccess(t('project.publish.toast.published'))
+    goDashboard()
+  } catch (err) {
+    $toast.toastErrorHandler(t('project.publish.toast.publishFailed'))(err)
+  } finally {
+    publishing.value = false
+  }
+}
+
+// --- Tabs --------------------------------------------------------------
+// Three fixed tabs, all visible to every member: Build, Govern, Manage &
+// Monitor. The active tab is persisted in its own `tab` query param (Manage &
+// Monitor has no steps, so it can't be recovered from route.query.step alone
+// — a reload or deep link without it falls back to whichever tab owns the
+// current step, or Build.
+const VALID_TABS = ['build', 'govern', 'manage']
+const tabForStepKey = key => STEPS.find(s => s.key === key)?.tab
+const activeTab = ref(
+  (VALID_TABS.includes(route.query.tab) && route.query.tab) ||
+    tabForStepKey(route.query.step) ||
+    'build',
+)
+const navSteps = computed(() => {
+  if (!project.value || activeTab.value === 'manage') return []
+  return stepsForTab(activeTab.value)
+})
+// Switching tabs away from the step the URL currently points at snaps to
+// that tab's first step, so the header/content/URL stay in sync. Manage &
+// Monitor carries no steps, so its step is left alone (nothing to snap to) —
+// the previous Build/Govern step stays in the query for when the member
+// returns. `tab` itself is always written so the choice survives a reload.
+watch(activeTab, tab => {
+  if (tab === 'manage') {
+    router.replace({ query: { ...route.query, tab } })
+    return
+  }
+  const list = stepsForTab(tab)
+  const query = { ...route.query, tab }
+  if (!list.some(s => s.key === route.query.step)) query.step = list[0]?.key || undefined
+  router.replace({ query })
+})
 
 // --- Active step -----------------------------------------------------------
 const activeKey = computed(() => {
@@ -497,7 +782,6 @@ const activeStep = computed(
 )
 const isSummary = computed(() => activeKey.value === 'summary')
 const isResourceMgmt = computed(() => activeKey.value === 'resource-management')
-const isMembers = computed(() => activeKey.value === 'members')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
 const isAutomations = computed(() => activeKey.value === 'automations')
@@ -507,7 +791,6 @@ const isPages = computed(() => activeKey.value === 'pages')
 const isRoles = computed(() => activeKey.value === 'roles')
 const isPermissions = computed(() => activeKey.value === 'permissions')
 const isUsers = computed(() => activeKey.value === 'users')
-const isPublish = computed(() => activeKey.value === 'publish')
 // Resource steps render full-height with the live resource graph beside them.
 const isResourceStep = computed(
   () =>
@@ -625,32 +908,23 @@ const startResize = () => {
 }
 
 // --- Per-step governance state --------------------------------------------
-// Per-section approval gates are gone: a non-publish step only ever carries
-// 'draft' (the default) or 'changes-requested' (raised anytime by a granter
-// via the per-step "Request changes" action below) — 'submitted'/'approved'
-// belong to the Publish step alone, which drives its own dedicated cycle.
+// Direct review, no submit stage: a Build/Govern step only ever carries
+// 'draft' (the default), 'changes-requested' (raised anytime by a granter via
+// the per-step "Request changes" action) or 'approved' (raised anytime by a
+// granter via the per-step "Approve" action — see WizardToolbar). 'submitted'
+// belongs to the Publish governance step alone, which lives in the topbar
+// toolbar cluster now, not in this step dispatch.
 const stepStatus = key => project.value?.governance?.[key]?.status || 'draft'
 const status = computed(() => stepStatus(activeKey.value))
 const reviewNote = computed(() => project.value?.governance?.[activeKey.value]?.reviewNote || '')
-const locked = computed(
-  () => !canWrite.value || status.value === 'submitted' || status.value === 'approved',
-)
-// Member management is RBAC-checked (project members.manage), not the role
-// preset's write flag.
-const membersLocked = computed(
-  () =>
-    !project.value?.canManageMembers || status.value === 'submitted' || status.value === 'approved',
-)
-// The Publish step renders its own dedicated approval panel (see
-// PublishStep.vue) with wording specific to publish-time approval; the generic
-// header badge + StepStatusBanner (which only ever has a
-// "changes-requested" note to show now) are suppressed for it.
-const showStatus = computed(
-  () => project.value?.mode === 'gated' && !!activeStep.value && activeKey.value !== 'publish',
-)
+// Editing is gated purely on the write capability — a step's governance
+// status never locks it, so a granter can always re-review after a change
+// (there is no reopen/unlock action to undo an approve otherwise).
+const locked = computed(() => !canWrite.value)
+const showStatus = computed(() => !!activeStep.value)
 const showToolbar = computed(() => !!activeStep.value)
-// Save only makes sense on form steps — members/sensitivity/resource steps
-// persist each change immediately through their own store calls instead.
+// Save only makes sense on form steps — sensitivity/resource steps persist
+// each change immediately through their own store calls instead.
 const showStepSave = computed(() => activeStep.value?.type === 'form')
 
 const statuses = computed(() => {
@@ -703,7 +977,6 @@ const activeBadge = computed(() => {
 const STEP_BLURB = {
   summary: 'project.wizard.blurb.summary',
   'resource-management': 'project.wizard.blurb.resourceManagement',
-  members: 'project.wizard.blurb.members',
   'data-model': 'project.wizard.blurb.dataModel',
   'data-sensitivity': 'project.wizard.blurb.dataSensitivity',
   connections: 'project.wizard.blurb.connections',
@@ -714,11 +987,7 @@ const STEP_BLURB = {
   roles: 'project.wizard.blurb.roles',
   permissions: 'project.wizard.blurb.permissions',
   users: 'project.wizard.blurb.users',
-  publish: 'project.wizard.blurb.publish',
 }
-// Per-section approval gates are gone, so no step but Publish carries real
-// governance status any more (every other step key stays in `draft` forever)
-// — the header hint is always just the step's own blurb.
 const headerHint = computed(() => {
   const blurbKey = STEP_BLURB[activeKey.value]
   return blurbKey ? t(blurbKey) : ''
@@ -772,30 +1041,16 @@ function openProject() {
   }
 }
 
-// --- Publish ---------------------------------------------------------------
-// First publish promotes the draft to active (no record migration); on success
-// we land on the project's dashboard. Guarded against double-submit.
-const publishing = ref(false)
+// --- Dashboard handoff -------------------------------------------------------
+// The "View dashboard" topbar button (live projects) lands here — also
+// reused by doPublish() above once a publish succeeds, since a project only
+// gets a dashboard the moment it goes live.
 function goDashboard() {
   router.push({ name: 'project.overview', params: { projectId: project.value.projectID } })
 }
-async function onPublish() {
-  if (publishing.value || !project.value) return
-  publishing.value = true
-  try {
-    await store.publishProject(project.value.projectID)
-    $toast.toastSuccess(t('project.publishStep.toast.success'))
-    goDashboard()
-  } catch (err) {
-    $toast.toastErrorHandler(t('project.publishStep.toast.failed'))(err)
-  } finally {
-    publishing.value = false
-  }
-}
 
 // --- Prev / Next stepper ---------------------------------------------------
-// Walk the role-visible step list (navSteps is already filtered by Build vs
-// Governance). The arrows disable at the ends.
+// Walk the active tab's step list (navSteps). The arrows disable at the ends.
 const stepPos = computed(() => navSteps.value.findIndex(s => s.key === activeKey.value))
 const stepIndex = computed(() => stepPos.value + 1) // 1-based, for display
 const canPrev = computed(() => stepPos.value > 0)
@@ -826,15 +1081,22 @@ function onSave() {
   )
 }
 
+// Direct "Approve" — a member with grant-approval capability can approve the
+// active step at any time, from any status (including re-approving after a
+// changes-requested flag was addressed). See WizardToolbar's Approve button.
+function onApprove() {
+  governanceAction(
+    () => store.transitionStep(project.value.projectID, activeKey.value, 'approve'),
+    t('project.wizard.approve.toast.approved'),
+  )
+}
+
 // --- Per-step "Request changes" ---------------------------------------------
-// Gated mode only: a member with grant-approval capability can flag the
-// active step (any step but Publish — see WizardToolbar's showRequestChanges)
-// at any time, with a required note. The backend flags that step to
+// A member with grant-approval capability can flag the active Build/Govern
+// step at any time, with a required note. The backend flags that step to
 // changes-requested regardless of its current status, and sends the Publish
 // step back for review too if it was pending (see stores/projects.js
-// transitionStep + server/system/service/project_governance.go). This dialog
-// reuses the single-required-note pattern the retired per-step approve/reopen
-// flow used, and mirrors PublishStep.vue's own request-changes dialog.
+// transitionStep + server/system/service/project_governance.go).
 const requestChanges = ref({ visible: false, note: '', sending: false })
 const requestChangesHeader = computed(() =>
   t('project.wizard.requestChanges.dialog.header', {

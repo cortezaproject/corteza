@@ -11844,7 +11844,7 @@ export default class System {
 
   // Create project
   async projectCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, status, mode, config, meta, labels } = (a as KV) || {}
+    const { handle, status, config, meta, labels } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -11853,7 +11853,6 @@ export default class System {
     cfg.data = {
       handle,
       status,
-      mode,
       config,
       meta,
       labels,

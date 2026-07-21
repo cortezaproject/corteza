@@ -42,10 +42,7 @@
             </div>
           </button>
         </div>
-        <div
-          v-if="!filtered.length"
-          class="text-sm text-muted-color italic text-center py-6"
-        >
+        <div v-if="!filtered.length" class="text-sm text-muted-color italic text-center py-6">
           {{ $t('project.connectorPicker.noResults', { query }) }}
         </div>
       </div>
@@ -163,8 +160,8 @@ const cfg = kindConfig('connection')
 const iconForConnector = id => connector(id)?.icon || cfg.icon
 
 // Picker offers the live library, mapped to the picker's item shape and
-// filtered to the Resource Management whitelist. With no whitelist (Free mode)
-// the full library is offered.
+// filtered to the Resource Management whitelist. With no whitelist declared
+// yet, the full library is offered.
 const pickerItems = computed(() => {
   const allowed = store.allowedConnectorIds(props.project.projectID)
   return store.connectionLibrary
@@ -183,9 +180,7 @@ const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
   if (!q) return pickerItems.value
   return pickerItems.value.filter(
-    c =>
-      c.label.toLowerCase().includes(q) ||
-      (c.description || '').toLowerCase().includes(q),
+    c => c.label.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q),
   )
 })
 

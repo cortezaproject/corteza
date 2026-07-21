@@ -12,15 +12,22 @@
         >
           <!-- Every step shows its own icon in the same badge used by the
                metrics strip and resource item lists (resource steps reuse the
-               kind icon/colour). Approval only exists at publish now, so the
-               single governance signal surfaced here is "changes requested"
-               on the reviewed step. -->
+               kind icon/colour) — unless a granter has reviewed it: amber for
+               "changes requested", green for "approved" (see Wizard.vue's
+               per-step Approve / Request changes toolbar actions). -->
           <span
             v-if="changesRequested(step)"
             class="inline-flex items-center justify-center w-6 h-6 rounded-md shrink-0 ring-1 bg-amber-500/10 ring-amber-500/30"
-            :title="$t('project.publish.approval.status.changesRequested')"
+            :title="$t('project.governance.status.changesRequested')"
           >
             <i class="pi pi-exclamation-circle text-amber-500 text-xs" />
+          </span>
+          <span
+            v-else-if="approved(step)"
+            class="inline-flex items-center justify-center w-6 h-6 rounded-md shrink-0 ring-1 bg-green-500/10 ring-green-500/30"
+            :title="$t('project.governance.status.approved')"
+          >
+            <i class="pi pi-check-circle text-green-500 text-xs" />
           </span>
           <span
             v-else
@@ -48,6 +55,9 @@ defineEmits(['select'])
 
 function changesRequested(step) {
   return props.statuses[step.key] === 'changes-requested'
+}
+function approved(step) {
+  return props.statuses[step.key] === 'approved'
 }
 
 // Free-build leading icon — rendered in the same rounded badge the metrics strip

@@ -19,11 +19,6 @@ _projectDefs: {
 					{ident: "ProjectVisibilityInviteOnly", value: "invite-only"},
 	]}
 
-	ProjectMode: {name: "ProjectMode", values: [
-				{ident: "ProjectModeFree", value:  "free"},
-				{ident: "ProjectModeGated", value: "gated"},
-	]}
-
 	ProjectMemberRole: {name: "ProjectMemberRole", values: [
 					{ident: "ProjectRoleGovernanceOwner", value:             "governance-owner"},
 					{ident: "ProjectRoleSecurityOwner", value:               "security-owner"},
@@ -117,15 +112,6 @@ project: {
 			config: {
 				type: _projectDefs.ProjectConfig
 				dal: {type: "JSON", defaultEmptyObject: true}
-				omitSetter: true
-				omitGetter: true
-			}
-			// Top-level, sortable. Mode is chosen at creation and immutable after;
-			// it lives here (not in config JSON) so it's a plain sortable column.
-			mode: {
-				sortable: true
-				type:     _projectDefs.ProjectMode
-				dal: {length: 32}
 				omitSetter: true
 				omitGetter: true
 			}
