@@ -25,10 +25,10 @@
               <th class="text-center font-medium px-3 py-2">
                 {{ $t('project.members.columns.write') }}
               </th>
-              <th class="text-center font-medium px-3 py-2">
+              <th v-if="showApproval" class="text-center font-medium px-3 py-2">
                 {{ $t('project.members.columns.requestApproval') }}
               </th>
-              <th class="text-center font-medium px-3 py-2">
+              <th v-if="showApproval" class="text-center font-medium px-3 py-2">
                 {{ $t('project.members.columns.grantApproval') }}
               </th>
               <th class="text-left font-medium px-3 py-2">
@@ -57,10 +57,10 @@
               </td>
               <td class="text-center px-3 py-2"><YesNo :on="row.capabilities.canRead" /></td>
               <td class="text-center px-3 py-2"><YesNo :on="row.capabilities.canWrite" /></td>
-              <td class="text-center px-3 py-2">
+              <td v-if="showApproval" class="text-center px-3 py-2">
                 <YesNo :on="row.capabilities.canRequestApproval" />
               </td>
-              <td class="text-center px-3 py-2">
+              <td v-if="showApproval" class="text-center px-3 py-2">
                 <YesNo :on="row.capabilities.canGrantApproval" />
               </td>
               <td class="px-3 py-2 text-muted-color">{{ $t(row.preset.resourcesKey) }}</td>
@@ -78,7 +78,7 @@
               </td>
             </tr>
             <tr v-if="!rows.length">
-              <td colspan="8" class="px-3 py-4 text-center text-muted-color">
+              <td :colspan="showApproval ? 8 : 6" class="px-3 py-4 text-center text-muted-color">
                 {{ $t('project.members.empty') }}
               </td>
             </tr>
@@ -98,7 +98,7 @@
             <span class="text-xs text-muted-color">{{ $t(r.resourcesKey) }}</span>
           </div>
           <p class="text-sm text-muted-color leading-relaxed mt-1">
-            {{ r.descriptionKey ? $t(r.descriptionKey) : '' }}
+            {{ descriptionFor(r) }}
           </p>
         </div>
       </div>
@@ -195,6 +195,18 @@ const roleOptions = computed(() => presets.value.map(r => ({ id: r.id, label: t(
 // Mutations need the members.manage RBAC permission; the backend enforces the
 // same rule. `disabled` lets the wizard turn the step read-only on top of that.
 const canManage = computed(() => !props.disabled && props.project.canManageMembers)
+
+// Free-mode projects have no publish approval, so the request/grant-approval
+// capability columns and any approval-flavoured role copy are hidden there.
+const showApproval = computed(() => props.project.mode === 'gated')
+
+function descriptionFor(preset) {
+  const key =
+    !showApproval.value && preset.descriptionFreeKey
+      ? preset.descriptionFreeKey
+      : preset.descriptionKey
+  return key ? t(key) : ''
+}
 
 const members = computed(() => store.membersFor(props.project.projectID))
 // Capability flags come from the backend (derived from the role preset);

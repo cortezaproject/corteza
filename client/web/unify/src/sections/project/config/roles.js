@@ -14,6 +14,9 @@
 
 // `labelKey`/`resourcesKey`/`descriptionKey` are i18n keys; components resolve
 // them with $t for display. Capability flags drive behaviour and stay literal.
+// `descriptionFreeKey` (optional) replaces `descriptionKey` in free-mode
+// projects, where publish approval does not exist and the standard copy would
+// reference it.
 export const ROLE_PRESETS = [
   {
     id: 'developer',
@@ -24,6 +27,7 @@ export const ROLE_PRESETS = [
     grantApproval: false,
     resourcesKey: 'project.roles.developer.resources',
     descriptionKey: 'project.roles.developer.description',
+    descriptionFreeKey: 'project.roles.developer.descriptionFree',
   },
   {
     id: 'governance-owner',
@@ -54,6 +58,7 @@ export const ROLE_PRESETS = [
     grantApproval: false,
     resourcesKey: 'project.roles.junior-developer.resources',
     descriptionKey: 'project.roles.junior-developer.description',
+    descriptionFreeKey: 'project.roles.junior-developer.descriptionFree',
   },
   {
     id: 'executive-authority',

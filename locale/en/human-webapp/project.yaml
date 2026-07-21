@@ -1152,6 +1152,7 @@ roles:
     label: Developer
     resources: All Pages
     description: Builds part or all of the project and its AI systems, and requests governance approval before publishing to production.
+    descriptionFree: Builds part or all of the project and its AI systems, and publishes them to production.
   governance-owner:
     label: Governance Owner
     resources: All Pages
@@ -1164,6 +1165,7 @@ roles:
     label: Junior Developer
     resources: Technical Architecture, Data Model, Connections, Automations
     description: Builds the technical architecture, data model, connections and automations. Cannot request or grant approvals.
+    descriptionFree: Builds the technical architecture, data model, connections and automations.
   executive-authority:
     label: Executive Authority
     resources: Read all, Approve publishing
