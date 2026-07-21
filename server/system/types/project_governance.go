@@ -5,13 +5,21 @@ type (
 	// step key. Most steps (e.g. "summary", "data-sensitivity") only ever use
 	// it to persist form values via SaveGovernanceStep and stay in the draft
 	// status forever — per-section approval gates were removed, so those
-	// steps never lock. The one step that drives the full submit →
-	// approve/request-changes state machine is the well-known "publish" key
-	// (see ProjectGovernanceStepPublish): in gated-mode projects, Publish()
-	// requires it to be approved and resets it back to draft on success, so
-	// every publish needs its own fresh approval cycle. The pipeline shape
-	// itself (steps, ordering) is client-side config; the server only stores
-	// and transitions step state.
+	// steps never lock via their own submit/approve cycle. The one step that
+	// drives the full submit → approve/request-changes state machine is the
+	// well-known "publish" key (see ProjectGovernanceStepPublish): in
+	// gated-mode projects, Publish() requires it to be approved and resets it
+	// back to draft on success, so every publish needs its own fresh approval
+	// cycle. The pipeline shape itself (steps, ordering) is client-side
+	// config; the server only stores and transitions step state.
+	//
+	// The one other way a non-publish step's status moves is the "flag"
+	// escalation (see Flag): a granter can request changes on any step, at
+	// any time, as an out-of-band review comment — this bypasses the normal
+	// submitted-only request-changes rule. The cross-step orchestration that
+	// comes with it (sending "publish" back for review, clearing flags on
+	// resubmit) lives in service.TransitionGovernanceStep, not here — this
+	// type only models a single step's own state.
 	ProjectGovernance map[string]*ProjectGovernanceStep
 
 	ProjectGovernanceAction string
@@ -96,9 +104,31 @@ func (s *ProjectGovernanceStep) Editable() bool {
 // Reset unconditionally returns the step to its initial draft state, clearing
 // any review note. Unlike the reopen action, this is not a user-facing
 // transition gated by CanGrantApproval — it's the system-driven counterpart
-// used by the publish flow to require a fresh approval cycle for the next
-// publish, regardless of the step's current status.
+// used by:
+//
+//   - the publish flow, to require a fresh approval cycle for the next
+//     publish once one succeeds, regardless of the step's current status;
+//   - the auto-clear-on-resubmit side effect, which resets every flagged
+//     (changes-requested) step other than "publish" back to draft when
+//     "publish" is resubmitted, since resubmission asserts the feedback was
+//     addressed.
 func (s *ProjectGovernanceStep) Reset() {
 	s.Status = ProjectGovernanceStatusDraft
 	s.ReviewNote = ""
+}
+
+// Flag unconditionally moves the step to changes-requested with the given
+// note, regardless of its current status — including a step with no prior
+// entry, which the *ProjectGovernance.Step accessor auto-creates as a draft
+// before Flag overwrites it. This is the counterpart to Transition's own
+// request-changes case (which only fires from "submitted"): it models an
+// out-of-band review flag that a granter can raise on any step at any time,
+// not the normal submitted → changes-requested review response. Like Reset,
+// it is not itself gated by a capability check — callers (see
+// service.TransitionGovernanceStep) are responsible for requiring
+// CanGrantApproval and restricting it to gated-mode projects before calling
+// it.
+func (s *ProjectGovernanceStep) Flag(note string) {
+	s.Status = ProjectGovernanceStatusChangesRequested
+	s.ReviewNote = note
 }

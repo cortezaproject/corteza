@@ -192,23 +192,17 @@
 
     <WizardToolbar
       v-if="showToolbar"
-      :status="status"
       :can-write="canWrite"
-      :can-request="canRequest"
       :can-grant="canGrant"
       :mode="project.mode"
-      :reopened="isReopened"
-      :show-actions="showStepActions"
+      :is-publish="isPublish"
       :show-save="showStepSave"
       :can-prev="canPrev"
       :can-next="canNext"
       :step-index="stepIndex"
       :step-count="navSteps.length"
       @save="onSave"
-      @approve="onApprove"
-      @request-changes="openReason('request-changes')"
-      @resubmit="onResubmit"
-      @reopen="openReason('reopen')"
+      @request-changes="openRequestChanges"
       @prev="onPrev"
       @next="onNext"
       @back="onBack"
@@ -349,19 +343,22 @@
     />
   </div>
 
+  <!-- Per-step "Request changes" — a granter can flag the active step (any
+       step but Publish, see WizardToolbar) at any time with a required note.
+       Mirrors PublishStep.vue's own request-changes dialog. -->
   <Dialog
-    v-model:visible="reason.visible"
+    v-model:visible="requestChanges.visible"
     modal
-    :header="reasonText.header"
+    :header="requestChangesHeader"
     :style="{ width: '32rem' }"
   >
-    <CFormGroup :label="reasonText.label" required>
+    <CFormGroup :label="$t('project.wizard.requestChanges.dialog.label')" required>
       <Textarea
-        v-model="reason.note"
+        v-model="requestChanges.note"
         rows="3"
         auto-resize
         fluid
-        :placeholder="reasonText.placeholder"
+        :placeholder="$t('project.wizard.requestChanges.dialog.placeholder')"
       />
     </CFormGroup>
     <template #footer>
@@ -371,13 +368,14 @@
           severity="secondary"
           text
           size="small"
-          @click="reason.visible = false"
+          @click="requestChanges.visible = false"
         />
         <Button
-          :label="reasonText.confirm"
+          :label="$t('project.wizard.requestChanges.dialog.confirm')"
           size="small"
-          :disabled="!reason.note.trim()"
-          @click="confirmReason"
+          :loading="requestChanges.sending"
+          :disabled="!requestChanges.note.trim()"
+          @click="confirmRequestChanges"
         />
       </div>
     </template>
@@ -627,12 +625,13 @@ const startResize = () => {
 }
 
 // --- Per-step governance state --------------------------------------------
+// Per-section approval gates are gone: a non-publish step only ever carries
+// 'draft' (the default) or 'changes-requested' (raised anytime by a granter
+// via the per-step "Request changes" action below) — 'submitted'/'approved'
+// belong to the Publish step alone, which drives its own dedicated cycle.
 const stepStatus = key => project.value?.governance?.[key]?.status || 'draft'
 const status = computed(() => stepStatus(activeKey.value))
 const reviewNote = computed(() => project.value?.governance?.[activeKey.value]?.reviewNote || '')
-// A previously-approved step that was reopened sits back in `draft` but carries
-// a review note — it needs its own resubmit path.
-const isReopened = computed(() => status.value === 'draft' && !!reviewNote.value)
 const locked = computed(
   () => !canWrite.value || status.value === 'submitted' || status.value === 'approved',
 )
@@ -644,17 +643,14 @@ const membersLocked = computed(
 )
 // The Publish step renders its own dedicated approval panel (see
 // PublishStep.vue) with wording specific to publish-time approval; the generic
-// header badge + StepStatusBanner (written for the toolbar's reopen/resubmit
-// flow, which the Publish step doesn't use) are suppressed for it.
+// header badge + StepStatusBanner (which only ever has a
+// "changes-requested" note to show now) are suppressed for it.
 const showStatus = computed(
   () => project.value?.mode === 'gated' && !!activeStep.value && activeKey.value !== 'publish',
 )
 const showToolbar = computed(() => !!activeStep.value)
-// Step-level approval buttons apply to form, members and sensitivity steps.
-// Save only makes sense on form steps (members/sensitivity persist immediately).
-const showStepActions = computed(() =>
-  ['form', 'members', 'sensitivity'].includes(activeStep.value?.type),
-)
+// Save only makes sense on form steps — members/sensitivity/resource steps
+// persist each change immediately through their own store calls instead.
 const showStepSave = computed(() => activeStep.value?.type === 'form')
 
 const statuses = computed(() => {
@@ -829,50 +825,37 @@ function onSave() {
     t('project.wizard.toast.saved'),
   )
 }
-function onApprove() {
-  governanceAction(
-    () => store.transitionStep(project.value.projectID, activeKey.value, 'approve'),
-    t('project.wizard.toast.approved'),
-  )
-}
-function onResubmit() {
-  governanceAction(
-    () => store.transitionStep(project.value.projectID, activeKey.value, 'submit'),
-    t('project.wizard.toast.resubmitted'),
-  )
-}
 
-// Reason dialog, shared by Request changes and Reopen.
-const reason = ref({ visible: false, action: '', note: '' })
-const reasonText = computed(() =>
-  reason.value.action === 'reopen'
-    ? {
-        header: t('project.wizard.reason.reopen.header'),
-        label: t('project.wizard.reason.reopen.label'),
-        placeholder: t('project.wizard.reason.reopen.placeholder'),
-        confirm: t('project.wizard.reason.reopen.confirm'),
-      }
-    : {
-        header: t('project.wizard.reason.requestChanges.header'),
-        label: t('project.wizard.reason.requestChanges.label'),
-        placeholder: t('project.wizard.reason.requestChanges.placeholder'),
-        confirm: t('project.wizard.reason.requestChanges.confirm'),
-      },
+// --- Per-step "Request changes" ---------------------------------------------
+// Gated mode only: a member with grant-approval capability can flag the
+// active step (any step but Publish — see WizardToolbar's showRequestChanges)
+// at any time, with a required note. The backend flags that step to
+// changes-requested regardless of its current status, and sends the Publish
+// step back for review too if it was pending (see stores/projects.js
+// transitionStep + server/system/service/project_governance.go). This dialog
+// reuses the single-required-note pattern the retired per-step approve/reopen
+// flow used, and mirrors PublishStep.vue's own request-changes dialog.
+const requestChanges = ref({ visible: false, note: '', sending: false })
+const requestChangesHeader = computed(() =>
+  t('project.wizard.requestChanges.dialog.header', {
+    step: activeStep.value ? t(activeStep.value.labelKey) : '',
+  }),
 )
-function openReason(action) {
-  reason.value = { visible: true, action, note: '' }
+function openRequestChanges() {
+  requestChanges.value = { visible: true, note: '', sending: false }
 }
-async function confirmReason() {
-  const { action, note } = reason.value
-  if (!note.trim()) return
+async function confirmRequestChanges() {
+  const note = requestChanges.value.note.trim()
+  if (!note || requestChanges.value.sending) return
+  requestChanges.value.sending = true
   try {
-    await store.transitionStep(project.value.projectID, activeKey.value, action, note.trim())
-    reason.value.visible = false
-    $toast.toastInfo(
-      action === 'reopen' ? t('project.wizard.toast.reopened') : t('project.wizard.toast.sentBack'),
-    )
+    await store.transitionStep(project.value.projectID, activeKey.value, 'request-changes', note)
+    requestChanges.value.visible = false
+    $toast.toastInfo(t('project.wizard.requestChanges.toast.sent'))
   } catch (err) {
     $toast.toastErrorHandler(t('project.wizard.toast.actionFailed'))(err)
+  } finally {
+    requestChanges.value.sending = false
   }
 }
 </script>

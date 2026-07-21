@@ -74,21 +74,23 @@
         </div>
       </div>
 
+      <!-- The publish action itself stays hidden — not just disabled — until
+           the approval panel above reports 'approved' (gated mode); free mode
+           has no gate, so canPublish is always true there and this always
+           shows. -->
       <Button
+        v-if="canPublish"
         :label="$t('project.publishStep.action')"
         icon="pi pi-cloud-upload"
         size="small"
         :loading="publishing"
-        :disabled="!canPublish"
         @click="emit('publish')"
       />
-      <p v-if="isGated && !canPublish" class="max-w-prose text-xs text-muted-color">
-        {{ $t('project.publish.approval.publishLocked') }}
-      </p>
     </template>
 
-    <!-- Request changes: the same note-required pattern as the rest of the
-         wizard's governance dialogs (see Wizard.vue's reason dialog). -->
+    <!-- Request changes: the same note-required pattern as the wizard's
+         per-step "Request changes" dialog (see Wizard.vue's requestChanges
+         dialog). -->
     <Dialog
       v-model:visible="requestChanges.visible"
       modal

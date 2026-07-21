@@ -341,27 +341,23 @@ wizard:
   toolbar:
     projects: Projects
     previous: Previous
-    reopen: Reopen
-    requestChanges: Request changes
-    approve: Approve
-    resubmit: Resubmit
-  reason:
-    reopen:
-      header: Reopen for changes
-      label: Why are you reopening this?
-      placeholder: Explain why this approved step is being reopened
-      confirm: Reopen
-    requestChanges:
-      header: Request changes
-      label: What needs to change?
-      placeholder: Explain what the developer should revise
+  # Per-step "Request changes" — gated mode only, available on every step but
+  # Publish (which has its own submit/approve/request-changes panel — see
+  # publish.approval below). A member with grant-approval capability can
+  # raise this at any time, regardless of the step's current status, to flag
+  # it as needing rework before the project is ready to resubmit for
+  # publish. See views/Wizard.vue and stores/projects.js transitionStep.
+  requestChanges:
+    action: Request changes
+    dialog:
+      header: Request changes on “{step}”
+      label: What needs to change on this step?
+      placeholder: Explain what should be revised here before it's considered ready again.
       confirm: Send back
+    toast:
+      sent: Changes requested — this step is flagged until it's reworked and the project is resubmitted for publish.
   toast:
     saved: Saved
-    approved: Approved
-    resubmitted: Resubmitted
-    reopened: Reopened
-    sentBack: Sent back for changes
     actionFailed: Action failed
   blurb:
     summary: Fill in the project's name, purpose and organisational role, then save.
@@ -386,9 +382,6 @@ governance:
     changesRequested: Changes requested
   banner:
     changesRequestedLabel: 'Changes requested:'
-    reopenedLabel: 'Reopened:'
-    submitted: Submitted for review — editing is locked until it's approved or sent back.
-    approved: Approved. Reopen from the toolbar to make changes.
 steps:
   summary:
     label: Project Summary
@@ -431,8 +424,8 @@ publishStep:
 # Gated-mode-only publish-time approval workflow, built around the single
 # well-known 'publish' governance step key: every publish (first and every
 # later one) needs a fresh submit -> approve cycle before the Publish button
-# on the step above is unlocked. Free mode never shows any of this — it
-# publishes directly.
+# on the step above even appears (it stays hidden, not just disabled, until
+# approved). Free mode never shows any of this — it publishes directly.
 publish:
   approval:
     status:
@@ -476,9 +469,6 @@ publish:
       label: What needs to change before this publish can be approved?
       placeholder: Explain what should be revised before this is resubmitted for approval.
       confirm: Send back
-    publishLocked: >-
-      Publishing is locked until this step is approved. Submit this project for approval, then
-      wait for an approver to review it.
     toast:
       submitted: Submitted for approval
       approved: Approved — this project is ready to publish

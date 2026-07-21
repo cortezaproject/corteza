@@ -1,5 +1,4 @@
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
-import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
 import { compose, NoID, system } from '@planetcrust/human-js'
@@ -666,15 +665,31 @@ export const useProjectsStore = defineStore('projects', () => {
 
   // --- per-step governance ----------------------------------------------------------
   // Per-section approval gates are gone: every step but one only ever uses
-  // saveStepForm to persist form values, kept in memory ONLY (never sent to the
-  // backend), so it stays in `draft` and never locks — see MembersStep and the
-  // form/sensitivity steps. The exception is the well-known `'publish'` step key
-  // (PUBLISH_GOVERNANCE_STEP_KEY): it drives the real, backend-persisted submit
-  // -> approve/request-changes cycle that gates publishing itself in gated mode
-  // (server/system/service/project_revision.go's Publish() requires it approved,
-  // and resets it back to draft on success — see publishProject() below, whose
-  // response already carries that reset). transitionStep() branches on stepKey
-  // so the one API-backed step and the many in-memory ones share one call site.
+  // saveStepForm to persist FORM VALUES, kept in memory ONLY (never sent to the
+  // backend) — see MembersStep and the form/sensitivity steps. That's a
+  // separate concern from *governance status*, which transitionStep() below
+  // drives and which IS always backend-persisted, for every step key:
+  //
+  //   - the well-known `'publish'` step key (PUBLISH_GOVERNANCE_STEP_KEY)
+  //     runs the full submit -> approve/request-changes cycle that gates
+  //     publishing itself in gated mode (server/system/service/
+  //     project_revision.go's Publish() requires it approved, and resets it
+  //     back to draft on success — see publishProject() below, whose
+  //     response already carries that reset);
+  //   - every OTHER step key only ever receives the 'request-changes' action,
+  //     fired by a member with grant-approval capability at any time (see
+  //     Wizard.vue's per-step "Request changes" button/dialog) — the
+  //     backend "flags" that step to changes-requested regardless of its
+  //     current status, and sends 'publish' back for review too if it was
+  //     submitted/approved (server/system/service/project_governance.go).
+  //
+  // A previous version of this store mocked the state machine in memory for
+  // every non-publish step key (submit/approve/reopen/recall included), since
+  // the backend only supported it for 'publish'. The backend now accepts
+  // 'request-changes' for any step key — the only action any caller ever
+  // sends for a non-publish key — so that mock is gone: every transition,
+  // regardless of stepKey, round-trips through the real governance API and
+  // absorbs the response, keeping every viewer in sync with the same state.
 
   function ensureGovStep(p, stepKey) {
     if (!p.governance) p.governance = {}
@@ -692,44 +707,17 @@ export const useProjectsStore = defineStore('projects', () => {
     touch()
   }
 
-  // Local mirror of the (server-side) state machine: submit
-  // (draft|changes-requested → submitted), approve (submitted → approved),
-  // request-changes (submitted → changes-requested), reopen (approved → draft),
-  // recall (submitted → draft). Used for every step key except `'publish'`.
-  const GOV_TRANSITIONS = {
-    submit: { from: ['draft', 'changes-requested'], to: 'submitted', clearNote: true },
-    approve: { from: ['submitted'], to: 'approved', clearNote: true },
-    'request-changes': { from: ['submitted'], to: 'changes-requested' },
-    reopen: { from: ['approved'], to: 'draft' },
-    recall: { from: ['submitted'], to: 'draft', clearNote: true },
-  }
-
   async function transitionStep(projectId, stepKey, action, note = '') {
     const p = findById.value(projectId)
     if (!p) return
-
-    // The publish step is real: submit/approve/request-changes round-trip
-    // through the actual governance API so the backend's publish-time approval
-    // check (and every other viewer) sees the same state. `note` only matters
-    // for request-changes (and reopen, unused here) — the backend clears it for
-    // submit/approve regardless of what's passed.
-    if (stepKey === PUBLISH_GOVERNANCE_STEP_KEY) {
-      const raw = await $SystemAPI.projectGovernanceTransition({
-        projectID: p.projectID,
-        stepKey,
-        action,
-        note,
-      })
-      touch()
-      return absorb(raw)
-    }
-
-    const step = ensureGovStep(p, stepKey)
-    const t = GOV_TRANSITIONS[action]
-    if (!t || !t.from.includes(step.status)) return
-    step.status = t.to
-    step.reviewNote = t.clearNote ? '' : note
+    const raw = await $SystemAPI.projectGovernanceTransition({
+      projectID: p.projectID,
+      stepKey,
+      action,
+      note,
+    })
     touch()
+    return absorb(raw)
   }
 
   // --- connections ---------------------------------------------------------------

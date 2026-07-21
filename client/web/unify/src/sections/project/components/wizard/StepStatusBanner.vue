@@ -1,15 +1,13 @@
 <template>
+  <!-- The only governance status a non-publish step can reach is
+       'changes-requested', raised anytime by a granter via the wizard's
+       per-step "Request changes" action (see Wizard.vue) — every other step
+       stays in 'draft' forever, carrying no note. Shown to every member
+       viewing the step, gated-mode only (see Wizard.vue's showStatus), so
+       whoever picks up the work sees exactly what needs fixing. -->
   <Message v-if="status === 'changes-requested' && reviewNote" severity="warn" :closable="false">
-    <span class="font-medium">{{ $t('project.governance.banner.changesRequestedLabel') }}</span> {{ reviewNote }}
-  </Message>
-  <Message v-else-if="status === 'submitted'" severity="info" :closable="false">
-    {{ $t('project.governance.banner.submitted') }}
-  </Message>
-  <Message v-else-if="status === 'approved'" severity="success" :closable="false">
-    {{ $t('project.governance.banner.approved') }}
-  </Message>
-  <Message v-else-if="status === 'draft' && reviewNote" severity="warn" :closable="false">
-    <span class="font-medium">{{ $t('project.governance.banner.reopenedLabel') }}</span> {{ reviewNote }}
+    <span class="font-medium">{{ $t('project.governance.banner.changesRequestedLabel') }}</span>
+    {{ reviewNote }}
   </Message>
 </template>
 
