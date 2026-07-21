@@ -28,8 +28,8 @@ const (
 	ProjectRoleDeveloper       ProjectMemberRole = "developer"
 	ProjectRoleJuniorDeveloper ProjectMemberRole = "junior-developer"
 	ProjectRoleMember          ProjectMemberRole = "member"
-	// ProjectRoleExecutiveAuthority reads the whole project and signs off at
-	// the first governance gate; it never edits.
+	// ProjectRoleExecutiveAuthority reads the whole project and grants (or
+	// requests changes on) the publish approval; it never edits.
 	ProjectRoleExecutiveAuthority ProjectMemberRole = "executive-authority"
 	// ProjectRoleInfrastructureAdministrator maintains platform infrastructure;
 	// it carries no project-content access at all.

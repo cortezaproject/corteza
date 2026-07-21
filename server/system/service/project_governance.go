@@ -9,12 +9,19 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-// Governance operations on the project build pipeline. Capability checks run
-// against the caller's project membership (role preset), not system RBAC:
+// Governance operations on a project's steps. Capability checks run against
+// the caller's project membership (role preset), not system RBAC:
 //
 //	save step values  → CanWrite, step must be editable (draft/changes-requested)
 //	submit / recall   → CanRequestApproval
 //	approve / request-changes / reopen → CanGrantApproval
+//
+// Per-section approval gates are gone: every step but one only ever uses
+// SaveGovernanceStep to persist form values and stays in the draft status,
+// so it never locks. The exception is the "publish" step key
+// (types.ProjectGovernanceStepPublish): in gated mode, project.Publish()
+// requires it to be approved before it will run, and resets it back to
+// draft on success — see service/project_revision.go.
 
 func (svc *project) SaveGovernanceStep(ctx context.Context, projectID uint64, stepKey string, values map[string]any) (p *types.Project, err error) {
 	var (

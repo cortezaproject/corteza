@@ -2,8 +2,8 @@
 // sets these capability flags (they are not edited per member).
 //
 // Project Members are human beings with roles to either (1) build part or all of
-// the project and its AI systems, or (2) manage project governance and make
-// approvals at governance gates.
+// the project and its AI systems, or (2) manage project governance and approve
+// (or send back) the project's publishes.
 //
 // `resources` summarises what the role can reach; `description` is the role's
 // responsibility statement — together they form the accountability framework
@@ -88,3 +88,19 @@ const FALLBACK = {
 }
 
 export const rolePreset = id => ROLE_PRESETS.find(r => r.id === id) || FALLBACK
+
+// Approval-centric presets only make sense where approval exists at all —
+// Free-mode projects publish directly, with no submit/approve step, so these
+// presets are hidden from the Free-mode role picker (Gated-mode picker shows
+// all of ROLE_PRESETS).
+const APPROVAL_PRESET_IDS = ['governance-owner', 'security-owner', 'executive-authority']
+
+// Presets to offer for a given build mode. `extraIds` keeps any already-
+// assigned preset selectable even if it would otherwise be hidden (e.g. a
+// member holding an approval-centric role, defensively — mode is immutable
+// after a project is created, so this should not occur in practice).
+export const rolePresetsForMode = (mode, extraIds = []) => {
+  if (mode !== 'free') return ROLE_PRESETS
+  const keep = new Set(extraIds)
+  return ROLE_PRESETS.filter(r => keep.has(r.id) || !APPROVAL_PRESET_IDS.includes(r.id))
+}

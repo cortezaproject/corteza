@@ -207,8 +207,8 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 		return err
 	}
 
-	// The creator becomes the first member: in gated mode they drive the
-	// pipeline as a developer.
+	// The creator becomes the first member, as a developer: read/write plus
+	// the ability to submit the project for publish approval in gated mode.
 	creator := &types.ProjectMember{
 		ID:         nextID(),
 		ProjectID:  new.ID,
@@ -444,4 +444,3 @@ func validateProjectStatus(s types.ProjectStatus) error {
 func friaRequired(d types.ProjectDeployerCategories) bool {
 	return d.PublicAuthorityAnnex3 || d.PrivateEssentialServices || d.InsuranceBanking
 }
-

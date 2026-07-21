@@ -26,17 +26,18 @@
         :disabled="!canPrev"
         @click="$emit('prev')"
       />
-      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap text-center">{{ $t('project.wizard.stepCounter', { index: stepIndex, count: stepCount }) }}</span>
+      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap text-center">
+        {{ $t('project.wizard.stepCounter', { index: stepIndex, count: stepCount }) }}
+      </span>
       <Button
-        :title="nextIsGate ? $t('project.wizard.submitSectionTitle') : undefined"
-        :label="nextIsGate ? $t('project.wizard.toolbar.requestApproval') : $t('general.label.next')"
+        :label="$t('general.label.next')"
         icon="pi pi-chevron-right"
         icon-pos="right"
         severity="secondary"
         text
         size="small"
         class="justify-self-start"
-        :disabled="!nextIsGate && !canNext"
+        :disabled="!canNext"
         @click="$emit('next')"
       />
     </div>
@@ -46,7 +47,12 @@
       <template v-if="showActions">
         <!-- Free mode: just save, no approval -->
         <template v-if="mode !== 'gated'">
-          <Button v-if="showSave" :label="$t('general.label.save')" icon="pi pi-save" @click="$emit('save')" />
+          <Button
+            v-if="showSave"
+            :label="$t('general.label.save')"
+            icon="pi pi-save"
+            @click="$emit('save')"
+          />
         </template>
 
         <!-- Approved: anyone who works in governance can reopen -->
@@ -69,7 +75,12 @@
             outlined
             @click="$emit('request-changes')"
           />
-          <Button :label="$t('project.wizard.toolbar.approve')" icon="pi pi-check" severity="success" @click="$emit('approve')" />
+          <Button
+            :label="$t('project.wizard.toolbar.approve')"
+            icon="pi pi-check"
+            severity="success"
+            @click="$emit('approve')"
+          />
         </template>
 
         <!-- Editable (draft / changes-requested): writers save, requesters submit -->
@@ -105,8 +116,8 @@ const props = defineProps({
   canRequest: { type: Boolean, default: false },
   canGrant: { type: Boolean, default: false },
   mode: { type: String, default: 'gated' },
-  // A reopened step sits in `draft` but was previously approved; it needs a
-  // resubmit path of its own (the gate only handles first-time submission).
+  // A reopened step sits in `draft` but was previously approved; it needs its
+  // own resubmit path.
   reopened: { type: Boolean, default: false },
   // Blocks resubmission until prerequisites are met (e.g. architecture unsaved).
   submitDisabled: { type: Boolean, default: false },
@@ -121,14 +132,14 @@ const props = defineProps({
   canNext: { type: Boolean, default: false },
   stepIndex: { type: Number, default: 1 },
   stepCount: { type: Number, default: 1 },
-  // When true, "Next" submits the current gate section instead of advancing.
-  nextIsGate: { type: Boolean, default: false },
 })
 defineEmits(['save', 'approve', 'request-changes', 'resubmit', 'reopen', 'prev', 'next', 'back'])
 
 // Resubmit appears for a member who can request approval when a step is being
 // re-worked (changes requested, or a reopened-then-draft step).
 const showResubmit = computed(
-  () => props.canRequest && (props.status === 'changes-requested' || (props.status === 'draft' && props.reopened)),
+  () =>
+    props.canRequest &&
+    (props.status === 'changes-requested' || (props.status === 'draft' && props.reopened)),
 )
 </script>

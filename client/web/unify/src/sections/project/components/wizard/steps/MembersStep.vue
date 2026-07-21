@@ -87,10 +87,12 @@
       </div>
     </CFormGroup>
 
-    <!-- Role descriptions — the accountability framework (Article 17(m)). -->
+    <!-- Role descriptions — the accountability framework (Article 17(m)). Mirrors
+         the role picker: approval-centric presets only appear here when they're
+         actually assignable (Gated mode, or an existing member already holds one). -->
     <CFormGroup>
       <div class="rounded-lg border border-surface bg-surface divide-y divide-surface">
-        <div v-for="r in ROLE_PRESETS" :key="r.id" class="px-4 py-3">
+        <div v-for="r in presets" :key="r.id" class="px-4 py-3">
           <div class="flex items-center gap-2">
             <span class="font-medium">{{ $t(r.labelKey) }}</span>
             <span class="text-xs text-muted-color">{{ $t(r.resourcesKey) }}</span>
@@ -159,7 +161,7 @@
 
 <script setup>
 import YesNo from '@/sections/project/components/wizard/YesNo.vue'
-import { ROLE_PRESETS, rolePreset } from '@/sections/project/config/roles'
+import { rolePreset, rolePresetsForMode } from '@/sections/project/config/roles'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { useConfirmDelete } from '@planetcrust/human-vue'
@@ -179,10 +181,19 @@ const $toast = inject('$toast')
 usersStore.load()
 
 // Localized role choices for the Select inputs (id is the persisted value).
-const roleOptions = computed(() => ROLE_PRESETS.map(r => ({ id: r.id, label: t(r.labelKey) })))
+// Free-mode projects have no approval step, so the approval-centric presets
+// (governance-owner, security-owner, executive-authority) are hidden there —
+// except for a role an existing member already holds, which stays selectable.
+const presets = computed(() =>
+  rolePresetsForMode(
+    props.project.mode,
+    members.value.map(m => m.role),
+  ),
+)
+const roleOptions = computed(() => presets.value.map(r => ({ id: r.id, label: t(r.labelKey) })))
 
-// Mutations need the members.manage RBAC permission (the `disabled` prop adds
-// the gate lock on top); the backend enforces the same rule.
+// Mutations need the members.manage RBAC permission; the backend enforces the
+// same rule. `disabled` lets the wizard turn the step read-only on top of that.
 const canManage = computed(() => !props.disabled && props.project.canManageMembers)
 
 const members = computed(() => store.membersFor(props.project.projectID))

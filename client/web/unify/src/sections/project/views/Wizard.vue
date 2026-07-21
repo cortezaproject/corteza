@@ -43,18 +43,16 @@
           :steps="navSteps"
           :active-key="activeKey"
           :statuses="statuses"
-          :gate-statuses="gateStatuses"
-          :gate-locked="gateLocked"
-          :show-gates="showGates"
           :gated="project.mode === 'gated'"
           @select="goStep"
-          @gate-click="onGateClick"
         />
       </div>
 
       <!-- Step panel — an outlined panel on the background (border + rounded, no
            fill); the step header's bottom border delineates it from the content. -->
-      <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden rounded-xl border border-surface">
+      <div
+        class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden rounded-xl border border-surface"
+      >
         <!-- Step header -->
         <div class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
           <!-- Leading badge mirrors the sidebar/metrics strip: resource steps take
@@ -165,6 +163,8 @@
                 v-else-if="isPublish"
                 :project="project"
                 :publishing="publishing"
+                :can-request="canRequest"
+                :can-grant="canGrant"
                 @publish="onPublish"
                 @open-dashboard="goDashboard"
               />
@@ -205,7 +205,6 @@
       :can-next="canNext"
       :step-index="stepIndex"
       :step-count="navSteps.length"
-      :next-is-gate="nextIsGate"
       @save="onSave"
       @approve="onApprove"
       @request-changes="openReason('request-changes')"
@@ -423,13 +422,12 @@ import ProjectSummaryStep from '@/sections/project/components/wizard/steps/Proje
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import PublishStep from '@/sections/project/components/wizard/steps/PublishStep.vue'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
-import { STEPS, kindsThroughStep, sections, stepsForTab } from '@/sections/project/config/pipeline'
+import { STEPS, kindsThroughStep, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
-import { useConfirm } from 'primevue/useconfirm'
 import { computed, inject, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -439,7 +437,6 @@ const route = useRoute()
 const router = useRouter()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
-const confirm = useConfirm()
 const $toast = inject('$toast')
 
 const project = computed(() => store.findById(route.params.projectId))
@@ -487,9 +484,6 @@ const effectiveTab = computed(() =>
   project.value?.mode === 'gated' && canGovern.value ? 'governance' : 'build',
 )
 const navSteps = computed(() => (project.value ? stepsForTab(effectiveTab.value) : []))
-const showGates = computed(
-  () => project.value?.mode === 'gated' && effectiveTab.value === 'governance',
-)
 
 // --- Active step -----------------------------------------------------------
 const activeKey = computed(() => {
@@ -638,22 +632,26 @@ const stepStatus = key => project.value?.governance?.[key]?.status || 'draft'
 const status = computed(() => stepStatus(activeKey.value))
 const reviewNote = computed(() => project.value?.governance?.[activeKey.value]?.reviewNote || '')
 // A previously-approved step that was reopened sits back in `draft` but carries
-// a review note — it needs its own resubmit path (the gate only does first-time
-// submission for the whole section).
+// a review note — it needs its own resubmit path.
 const isReopened = computed(() => status.value === 'draft' && !!reviewNote.value)
 const locked = computed(
   () => !canWrite.value || status.value === 'submitted' || status.value === 'approved',
 )
 // Member management is RBAC-checked (project members.manage), not the role
-// preset's write flag; the gate lock still applies once the section is sent.
+// preset's write flag.
 const membersLocked = computed(
   () =>
     !project.value?.canManageMembers || status.value === 'submitted' || status.value === 'approved',
 )
-const showStatus = computed(() => project.value?.mode === 'gated' && !!activeStep.value)
+// The Publish step renders its own dedicated approval panel (see
+// PublishStep.vue) with wording specific to publish-time approval; the generic
+// header badge + StepStatusBanner (written for the toolbar's reopen/resubmit
+// flow, which the Publish step doesn't use) are suppressed for it.
+const showStatus = computed(
+  () => project.value?.mode === 'gated' && !!activeStep.value && activeKey.value !== 'publish',
+)
 const showToolbar = computed(() => !!activeStep.value)
-// Step-level approval buttons apply to form, members and sensitivity steps;
-// resource steps persist each change immediately and only lock via their gate.
+// Step-level approval buttons apply to form, members and sensitivity steps.
 // Save only makes sense on form steps (members/sensitivity persist immediately).
 const showStepActions = computed(() =>
   ['form', 'members', 'sensitivity'].includes(activeStep.value?.type),
@@ -682,52 +680,6 @@ const statusSeverity = computed(
     ],
 )
 
-// --- Gate sections ---------------------------------------------------------
-const sectionList = computed(() => sections(stepsForTab('governance')))
-const sectionByGate = computed(() =>
-  Object.fromEntries(sectionList.value.filter(s => s.gateKey).map(s => [s.gateKey, s])),
-)
-const orderedGateKeys = computed(() => sectionList.value.filter(s => s.gateKey).map(s => s.gateKey))
-const gateStatuses = computed(() => {
-  const out = {}
-  for (const sec of sectionList.value) {
-    if (!sec.gateKey) continue
-    const sts = sec.steps.map(s => stepStatus(s.key))
-    if (sts.some(s => s === 'changes-requested')) out[sec.gateKey] = 'changes-requested'
-    else if (sts.every(s => s === 'approved')) out[sec.gateKey] = 'approved'
-    else if (sts.some(s => s === 'submitted')) out[sec.gateKey] = 'submitted'
-    else out[sec.gateKey] = 'draft'
-  }
-  return out
-})
-
-// A step is submittable when it's editable (draft/changes-requested).
-const stepSubmittable = key => ['draft', 'changes-requested'].includes(stepStatus(key))
-
-// Gates unlock sequentially: a gate can only be requested once every earlier
-// gate has been approved.
-const gateLocked = computed(() => {
-  const out = {}
-  const keys = orderedGateKeys.value
-  for (let i = 0; i < keys.length; i++) {
-    out[keys[i]] = keys.slice(0, i).some(k => gateStatuses.value[k] !== 'approved')
-  }
-  return out
-})
-
-// --- Header hint -----------------------------------------------------------
-function statusHint(draftText) {
-  if (canGrant.value) {
-    if (status.value === 'submitted') return t('project.wizard.hint.grant.submitted')
-    if (status.value === 'approved') return t('project.wizard.hint.grant.approved')
-    if (status.value === 'changes-requested') return t('project.wizard.hint.grant.changesRequested')
-    return t('project.wizard.hint.grant.nothing')
-  }
-  if (status.value === 'submitted') return t('project.wizard.hint.submitted')
-  if (status.value === 'approved') return t('project.wizard.hint.approved')
-  if (status.value === 'changes-requested') return t('project.wizard.hint.changesRequested')
-  return draftText
-}
 // Leading icon badge for the active step's header — resolved exactly like the
 // sidebar (StepNav): resource steps borrow their kind's icon/colour, other steps
 // fall back to a neutral badge carrying the step's own icon.
@@ -741,7 +693,10 @@ const activeBadge = computed(() => {
   // outlined secondary — surface fill, border-surface (--p-content-border-color,
   // the token the outlined-secondary Button uses), full-tone lock.
   if (s?.type === 'permissions') {
-    return { wrap: ['border', 'border-surface', 'bg-surface'], icon: ['pi', s?.icon || 'pi-lock', 'text-color'] }
+    return {
+      wrap: ['border', 'border-surface', 'bg-surface'],
+      icon: ['pi', s?.icon || 'pi-lock', 'text-color'],
+    }
   }
   return {
     wrap: ['ring-1', 'bg-emphasis', 'ring-surface'],
@@ -766,11 +721,12 @@ const STEP_BLURB = {
   users: 'project.wizard.blurb.users',
   publish: 'project.wizard.blurb.publish',
 }
+// Per-section approval gates are gone, so no step but Publish carries real
+// governance status any more (every other step key stays in `draft` forever)
+// — the header hint is always just the step's own blurb.
 const headerHint = computed(() => {
   const blurbKey = STEP_BLURB[activeKey.value]
-  const blurb = blurbKey ? t(blurbKey) : ''
-  // In gated mode a governance status message takes precedence over the blurb.
-  return project.value?.mode === 'gated' ? statusHint(blurb) : blurb
+  return blurbKey ? t(blurbKey) : ''
 })
 
 // --- Working copy of the active form step's values -------------------------
@@ -789,7 +745,7 @@ function loadWorking() {
 }
 watch([activeKey, project], loadWorking, { immediate: true })
 
-// Gate the live resource graph to the process: each step shows only the
+// Scope the live resource graph to the process: each step shows only the
 // resources of steps reached so far. Re-seeded on every step change; the graph's
 // own layer chips still refine (or peek past) it within a step.
 watch(
@@ -850,69 +806,11 @@ const stepIndex = computed(() => stepPos.value + 1) // 1-based, for display
 const canPrev = computed(() => stepPos.value > 0)
 const canNext = computed(() => stepPos.value < navSteps.value.length - 1)
 
-// "Next" turns into a gate submission when the current step is the last of its
-// section (a gate step), we're a requester looking at gates, and the section is
-// still submittable and unlocked. Otherwise it just advances.
-const nextIsGate = computed(() => {
-  const step = activeStep.value
-  if (!step?.gate || !showGates.value || !canRequest.value) return false
-  if (gateLocked.value[step.key]) return false
-  return sectionByGate.value[step.key]?.steps.some(s => stepSubmittable(s.key)) || false
-})
-
 function onPrev() {
   if (canPrev.value) goStep(navSteps.value[stepPos.value - 1].key)
 }
 function onNext() {
-  // At a ready gate boundary, submit the section (reuses the gate confirm flow)
-  // instead of advancing — you cross into the next section only once approved.
-  if (nextIsGate.value) {
-    onGateClick(activeStep.value.key)
-    return
-  }
   if (canNext.value) goStep(navSteps.value[stepPos.value + 1].key)
-}
-
-// --- Gate submission -------------------------------------------------------
-function onGateClick(gateKey) {
-  const sec = sectionByGate.value[gateKey]
-  if (!sec) return
-  // Locked gates (previous gate not yet approved) can't be acted on.
-  if (gateLocked.value[gateKey]) {
-    $toast.toastWarning(
-      t('project.wizard.gate.lockedToast.detail'),
-      t('project.wizard.gate.lockedToast.summary'),
-    )
-    return
-  }
-  const submittable = sec.steps.some(s => stepSubmittable(s.key))
-  if (canRequest.value && submittable) {
-    confirm.require({
-      header: t('project.wizard.gate.requestHeader'),
-      message: t('project.wizard.gate.requestMessage'),
-      icon: 'pi pi-lock',
-      rejectProps: {
-        label: t('general.label.cancel'),
-        severity: 'secondary',
-        text: true,
-        size: 'small',
-      },
-      acceptProps: { label: t('project.wizard.gate.requestConfirm'), size: 'small' },
-      accept: async () => {
-        try {
-          await store.submitSection(
-            project.value.projectID,
-            sec.steps.map(s => s.key),
-          )
-          $toast.toastSuccess(t('project.wizard.gate.requestedToast'))
-        } catch (err) {
-          $toast.toastErrorHandler(t('project.wizard.gate.requestFailed'))(err)
-        }
-      },
-    })
-  } else {
-    goStep(sec.steps[0].key)
-  }
 }
 
 // --- Per-step actions ------------------------------------------------------

@@ -33,13 +33,20 @@
       @page-change="handlePageChange"
     >
       <template #header>
-        <Button icon="pi pi-plus" :label="$t('project.list.newProject')" size="small" @click="newDialogVisible = true" />
+        <Button
+          icon="pi pi-plus"
+          :label="$t('project.list.newProject')"
+          size="small"
+          @click="newDialogVisible = true"
+        />
       </template>
 
       <template #body-name="{ data }">
         <div class="flex flex-col">
           <span class="font-medium">{{ data.name }}</span>
-          <span v-if="data.meta.description" class="text-xs text-muted-color">{{ data.meta.description }}</span>
+          <span v-if="data.meta.description" class="text-xs text-muted-color">
+            {{ data.meta.description }}
+          </span>
         </div>
       </template>
 
@@ -55,35 +62,23 @@
         <Tag :value="$t(`project.status.${data.status}`)" :severity="statusSeverity(data.status)" />
       </template>
 
-      <template #body-progress="{ data }">
-        <div v-if="showProgress(data)" class="flex items-center gap-2">
-          <ProgressBar
-            :value="progressPct(data)"
-            :show-value="false"
-            class="w-24"
-            :pt="{ root: { style: 'height: 6px' } }"
-          />
-          <span class="text-xs text-muted-color whitespace-nowrap">
-            {{ $t('project.list.gates', { approved: gatesApproved(data.governance), total: totalGates(data) }) }}
-          </span>
-        </div>
-        <span v-else class="text-muted-color">—</span>
-      </template>
-
       <template #body-updatedAt="{ data }">
         <span class="text-sm text-muted-color">{{ formatDate(data.updatedAt) }}</span>
       </template>
     </CResourceList>
 
     <NewProjectDialog v-model:visible="newDialogVisible" @created="onCreated" />
-    <RenameProjectDialog v-model:visible="renameVisible" :project="renameTarget" @rename="onRename" />
+    <RenameProjectDialog
+      v-model:visible="renameVisible"
+      :project="renameTarget"
+      @rename="onRename"
+    />
   </CViewContainer>
 </template>
 
 <script setup>
 import NewProjectDialog from '@/sections/project/components/project/NewProjectDialog.vue'
 import RenameProjectDialog from '@/sections/project/components/project/RenameProjectDialog.vue'
-import { gateCount, gatesApproved } from '@/sections/project/config/pipeline'
 import { system } from '@planetcrust/human-js'
 import { components, useResourceList } from '@planetcrust/human-vue'
 import { useConfirm } from 'primevue/useconfirm'
@@ -141,7 +136,6 @@ const fields = [
   { key: 'name', sortable: false, header: t('general.label.name') },
   { key: 'mode', sortable: true, header: t('project.list.columns.mode') },
   { key: 'status', sortable: true, header: t('general.label.status') },
-  { key: 'progress', sortable: false, header: t('project.list.columns.progress') },
   {
     key: 'updatedAt',
     sortable: true,
@@ -154,11 +148,6 @@ const fields = [
 const statusSeverity = status =>
   ({ active: 'success', published: 'success', draft: 'info', archived: 'secondary' })[status] ??
   null
-
-const totalGates = data => gateCount(data.mode)
-const showProgress = data =>
-  data.mode === 'gated' && data.status === 'draft' && totalGates(data) > 0
-const progressPct = data => Math.round((gatesApproved(data.governance) / totalGates(data)) * 100)
 
 const formatDate = date => {
   if (!date) return ''
@@ -241,8 +230,17 @@ const confirmDelete = project => {
     header: t('project.list.confirmDelete.header'),
     message: t('project.list.confirmDelete.message', { name: project.name }),
     icon: 'pi pi-exclamation-triangle',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
-    acceptProps: { label: t('project.list.confirmDelete.accept'), severity: 'danger', size: 'small' },
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: t('project.list.confirmDelete.accept'),
+      severity: 'danger',
+      size: 'small',
+    },
     accept: () =>
       apiCall(() => $SystemAPI.projectDelete({ projectID: project.projectID }), {
         summary: t('project.list.toast.deleted'),
@@ -252,13 +250,25 @@ const confirmDelete = project => {
 }
 
 const actionItemsFor = project => [
-  { label: t('project.list.actions.rename'), icon: 'pi pi-pencil', command: () => openRename(project) },
   {
-    label: project.status === 'archived' ? t('project.list.actions.unarchive') : t('project.list.actions.archive'),
+    label: t('project.list.actions.rename'),
+    icon: 'pi pi-pencil',
+    command: () => openRename(project),
+  },
+  {
+    label:
+      project.status === 'archived'
+        ? t('project.list.actions.unarchive')
+        : t('project.list.actions.archive'),
     icon: 'pi pi-inbox',
     command: () => toggleArchive(project),
   },
   { separator: true },
-  { label: t('general.label.delete'), icon: 'pi pi-trash', class: 'text-red-500', command: () => confirmDelete(project) },
+  {
+    label: t('general.label.delete'),
+    icon: 'pi pi-trash',
+    class: 'text-red-500',
+    command: () => confirmDelete(project),
+  },
 ]
 </script>

@@ -1,4 +1,5 @@
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
+import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
 import { compose, NoID, system } from '@planetcrust/human-js'
@@ -75,7 +76,9 @@ export const useProjectsStore = defineStore('projects', () => {
   // filtered by projectID — fetching is the only way to get a project's
   // resources, and a mutation always refetches rather than patching in place.
   const resourcesByProject = ref({})
-  const resourcesFor = computed(() => projectId => resourcesByProject.value[String(projectId)] || [])
+  const resourcesFor = computed(
+    () => projectId => resourcesByProject.value[String(projectId)] || [],
+  )
 
   // The connection library (catalog + already-configured connections) — the
   // same set the Admin connection screen lists. Loaded once and shared across
@@ -83,13 +86,17 @@ export const useProjectsStore = defineStore('projects', () => {
   // whitelist. A project's own connections are kept separately, keyed by id.
   const connectionLibrary = ref([])
   const connectionsByProject = ref({})
-  const connectionsFor = computed(() => projectId => connectionsByProject.value[String(projectId)] || [])
+  const connectionsFor = computed(
+    () => projectId => connectionsByProject.value[String(projectId)] || [],
+  )
 
   // A project's automations (TAQs) — NgAutomation records stamped with its
   // projectID. Kept separately, keyed by projectID, and (re)fetched on demand
   // like connections.
   const automationsByProject = ref({})
-  const automationsFor = computed(() => projectId => automationsByProject.value[String(projectId)] || [])
+  const automationsFor = computed(
+    () => projectId => automationsByProject.value[String(projectId)] || [],
+  )
 
   // A project's agents — system Agent records stamped with its projectID. Kept
   // separately, keyed by projectID, and (re)fetched on demand like automations.
@@ -232,7 +239,12 @@ export const useProjectsStore = defineStore('projects', () => {
       // Text: render across multiple lines.
       multiLine: f.kind === 'String' ? !!f.options?.multiLine : false,
       // Number: digits after the decimal point (defaults to 0 = whole numbers).
-      precision: f.kind === 'Number' ? (Number.isFinite(f.options?.precision) ? f.options.precision : 0) : null,
+      precision:
+        f.kind === 'Number'
+          ? Number.isFinite(f.options?.precision)
+            ? f.options.precision
+            : 0
+          : null,
       // DateTime: 'date' | 'time' | 'datetime' (derived from the two flags).
       dateMode:
         f.kind === 'DateTime'
@@ -428,7 +440,8 @@ export const useProjectsStore = defineStore('projects', () => {
     const prev = { status: p.status, meta: { ...p.meta } }
     if (typeof patch.status === 'string') p.status = patch.status
     if (typeof patch.name === 'string') p.meta = { ...p.meta, short: patch.name }
-    if (typeof patch.description === 'string') p.meta = { ...p.meta, description: patch.description }
+    if (typeof patch.description === 'string')
+      p.meta = { ...p.meta, description: patch.description }
     try {
       return await pushProject(p)
     } catch (err) {
@@ -449,6 +462,12 @@ export const useProjectsStore = defineStore('projects', () => {
   // promotes it draft→active with no record migration; the returned project
   // carries its new status, which we absorb into the cache. `mappings` stays
   // empty until the revision/migration flow is wired.
+  //
+  // Gated-mode projects also require the `'publish'` governance step to be
+  // approved (enforced server-side); on success the backend resets that step
+  // back to `draft` and returns it that way, so absorbing the response here
+  // already leaves the UI showing the fresh, unapproved cycle for next time —
+  // no separate governance refetch needed.
   async function publishProject(id) {
     const p = findById.value(id)
     if (!p) return
@@ -601,7 +620,9 @@ export const useProjectsStore = defineStore('projects', () => {
     selectOptions:
       f.type === 'Select'
         ? (f.selectOptions || []).map(o =>
-            typeof o === 'string' ? { value: o, text: o } : { value: o.value ?? '', text: o.text ?? '' },
+            typeof o === 'string'
+              ? { value: o, text: o }
+              : { value: o.value ?? '', text: o.text ?? '' },
           )
         : [],
     sensitivity: f.sensitivity || null,
@@ -644,11 +665,16 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // --- per-step governance ----------------------------------------------------------
-  // Governance is kept in memory ONLY for now — nothing is persisted to the
-  // backend. The project object carries the working governance state
-  // (project.governance[stepKey] = { values, status, reviewNote }) but it is
-  // never saved, so it resets on reload. (Backend governance endpoints still
-  // exist; the FE just doesn't call them yet.)
+  // Per-section approval gates are gone: every step but one only ever uses
+  // saveStepForm to persist form values, kept in memory ONLY (never sent to the
+  // backend), so it stays in `draft` and never locks — see MembersStep and the
+  // form/sensitivity steps. The exception is the well-known `'publish'` step key
+  // (PUBLISH_GOVERNANCE_STEP_KEY): it drives the real, backend-persisted submit
+  // -> approve/request-changes cycle that gates publishing itself in gated mode
+  // (server/system/service/project_revision.go's Publish() requires it approved,
+  // and resets it back to draft on success — see publishProject() below, whose
+  // response already carries that reset). transitionStep() branches on stepKey
+  // so the one API-backed step and the many in-memory ones share one call site.
 
   function ensureGovStep(p, stepKey) {
     if (!p.governance) p.governance = {}
@@ -669,7 +695,7 @@ export const useProjectsStore = defineStore('projects', () => {
   // Local mirror of the (server-side) state machine: submit
   // (draft|changes-requested → submitted), approve (submitted → approved),
   // request-changes (submitted → changes-requested), reopen (approved → draft),
-  // recall (submitted → draft).
+  // recall (submitted → draft). Used for every step key except `'publish'`.
   const GOV_TRANSITIONS = {
     submit: { from: ['draft', 'changes-requested'], to: 'submitted', clearNote: true },
     approve: { from: ['submitted'], to: 'approved', clearNote: true },
@@ -681,25 +707,29 @@ export const useProjectsStore = defineStore('projects', () => {
   async function transitionStep(projectId, stepKey, action, note = '') {
     const p = findById.value(projectId)
     if (!p) return
+
+    // The publish step is real: submit/approve/request-changes round-trip
+    // through the actual governance API so the backend's publish-time approval
+    // check (and every other viewer) sees the same state. `note` only matters
+    // for request-changes (and reopen, unused here) — the backend clears it for
+    // submit/approve regardless of what's passed.
+    if (stepKey === PUBLISH_GOVERNANCE_STEP_KEY) {
+      const raw = await $SystemAPI.projectGovernanceTransition({
+        projectID: p.projectID,
+        stepKey,
+        action,
+        note,
+      })
+      touch()
+      return absorb(raw)
+    }
+
     const step = ensureGovStep(p, stepKey)
     const t = GOV_TRANSITIONS[action]
     if (!t || !t.from.includes(step.status)) return
     step.status = t.to
     step.reviewNote = t.clearNote ? '' : note
     touch()
-  }
-
-  // Submit a whole gate section: every editable step (draft/changes-requested)
-  // in the section is sent for approval and locked.
-  async function submitSection(projectId, stepKeys = []) {
-    const p = findById.value(projectId)
-    if (!p) return
-    for (const key of stepKeys) {
-      const status = p.governance?.[key]?.status || 'draft'
-      if (status === 'draft' || status === 'changes-requested') {
-        await transitionStep(projectId, key, 'submit')
-      }
-    }
   }
 
   // --- connections ---------------------------------------------------------------
@@ -1186,7 +1216,9 @@ export const useProjectsStore = defineStore('projects', () => {
         byApi.get(api).push({ resource, operation: op, access })
       }
       await Promise.all(
-        [...byApi.entries()].map(([api, rules]) => api.permissionsUpdate({ roleID: roleId, rules })),
+        [...byApi.entries()].map(([api, rules]) =>
+          api.permissionsUpdate({ roleID: roleId, rules }),
+        ),
       )
     } finally {
       touch() // re-trace effective access (and refresh the resource graph)
@@ -1262,7 +1294,10 @@ export const useProjectsStore = defineStore('projects', () => {
       }
       // Only the latest run for this project writes (empty map = no roles/resources).
       if (isLatest()) {
-        effectiveAccessByProject.value = { ...effectiveAccessByProject.value, [key]: { version, map } }
+        effectiveAccessByProject.value = {
+          ...effectiveAccessByProject.value,
+          [key]: { version, map },
+        }
       }
     } finally {
       // Only the latest run clears the flags — a superseded run must not hide the
@@ -1425,7 +1460,8 @@ export const useProjectsStore = defineStore('projects', () => {
     const { set = [] } = await $SystemAPI.userGroupList({ limit: 100 }).catch(() => ({ set: [] }))
     const g =
       set.find(
-        x => x.handle === 'default-root' || x.handle === 'users' || x.meta?.short?.includes('Default'),
+        x =>
+          x.handle === 'default-root' || x.handle === 'users' || x.meta?.short?.includes('Default'),
       ) || set[0]
     defaultUserGroupID = g ? String(g.userGroupID) : null
     return defaultUserGroupID
@@ -1700,7 +1736,6 @@ export const useProjectsStore = defineStore('projects', () => {
     removeField,
     setFields,
     saveStepForm,
-    submitSection,
     transitionStep,
     graph,
     graphVisibleKinds,

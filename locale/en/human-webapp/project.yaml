@@ -20,9 +20,7 @@ list:
   untitled: Untitled project
   columns:
     mode: Mode
-    progress: Build progress
     updatedAt: Last modified
-  gates: '{approved}/{total} gates'
   actions:
     rename: Rename
     archive: Archive
@@ -89,8 +87,7 @@ dashboard:
     # Empty states. This view is legitimately empty more often than most, and for
     # non-obvious reasons, so the hints explain why rather than leaving a dead end.
     empty: No events recorded yet.
-    emptyHint:
-      Events appear here when someone creates, updates or deletes a resource in this
+    emptyHint: Events appear here when someone creates, updates or deletes a resource in this
       project. Viewing and listing are not recorded, and activity from before event
       tracking was enabled is not shown.
     emptyFiltered: No events match your filters.
@@ -304,13 +301,13 @@ newDialog:
   gated:
     tag: Governance
     description: >-
-      Steps flow through governance gates; approvers sign off and publishing requires full
-      approval. Members & roles are set up inside the project.
+      Members and roles are set up inside the project, and every publish — the first release and
+      every later revision — must be submitted for review and approved before it goes live.
   free:
     tag: No review
     description: >-
-      No team, no governance, no gates. Build and publish freely. Best for solo work and quick
-      prototypes.
+      No required approvals — publish whenever you're ready. You can still add teammates and
+      assign them roles. Best for solo work and quick prototypes.
   namePlaceholder: e.g. CRM & Sales
   descriptionPlaceholder: Optional short description
   createProject: Create project
@@ -332,28 +329,14 @@ deployer:
 wizard:
   fallbackName: Project
   toastLoadFailed: Could not load project
-  submitSectionTitle: Submit this section for approval
   stepCounter: '{index} / {count}'
   toolbar:
     projects: Projects
     previous: Previous
-    requestApproval: Request approval
     reopen: Reopen
     requestChanges: Request changes
     approve: Approve
     resubmit: Resubmit
-  gate:
-    label: Gate {number}
-    gatedOnlyStep: Gated-only step
-    lockedTitle: Approve the previous gate first
-    lockedToast:
-      summary: Gate locked
-      detail: Approve the previous gate before requesting this one.
-    requestHeader: Request approval
-    requestMessage: This submits every step in this section for approval and locks them until reviewed. Continue?
-    requestConfirm: Request approval
-    requestedToast: Requested approval
-    requestFailed: Request failed
   reason:
     reopen:
       header: Reopen for changes
@@ -373,9 +356,9 @@ wizard:
     sentBack: Sent back for changes
     actionFailed: Action failed
   blurb:
-    summary: Fill in the form, then submit the section for approval at the gate.
+    summary: Fill in the project's name, purpose and organisational role, then save.
     resourceManagement: Declare the permitted AI providers, infrastructure and third-party connections, then save. Later steps choose from these.
-    members: Assign people to project roles. Changes save as you go, and the section locks at the gate.
+    members: Assign people to project roles.
     dataModel: Define the modules (data tables) that hold your project's data, along with the fields on each.
     dataSensitivity: Classify every field by its data sensitivity level so governance and access controls can protect it appropriately.
     connections: Connect the external systems and data sources this project draws on. Pick one from the catalogue and enter its credentials so later steps can reuse it.
@@ -387,15 +370,6 @@ wizard:
     permissions: Grant each role access to the project's resources. Pick a capability, then toggle it per role.
     users: Add people to the project and assign them roles. A user's effective access is the sum of the roles they hold.
     publish: Review the project, then publish it to mark it as the live, active version and open its dashboard.
-  hint:
-    grant:
-      submitted: Review this step, then approve or request changes.
-      approved: Approved.
-      changesRequested: Changes requested — waiting for the developer.
-      nothing: Nothing to review yet.
-    submitted: Submitted — waiting for an approver.
-    approved: Approved. Reopen to make changes.
-    changesRequested: Changes requested — update and resubmit.
 governance:
   status:
     draft: Draft
@@ -446,6 +420,62 @@ publishStep:
   toast:
     success: Project published
     failed: Could not publish the project
+# Gated-mode-only publish-time approval workflow, built around the single
+# well-known 'publish' governance step key: every publish (first and every
+# later one) needs a fresh submit -> approve cycle before the Publish button
+# on the step above is unlocked. Free mode never shows any of this — it
+# publishes directly.
+publish:
+  approval:
+    status:
+      draft: Draft
+      submitted: Submitted
+      approved: Approved
+      changesRequested: Changes requested
+    hint:
+      draft:
+        requester: >-
+          This project is ready to be submitted for approval whenever you are — publishing stays
+          locked until a reviewer approves it.
+        viewer: >-
+          Waiting for a project member who can request approval to submit this project for review
+          before it can be published.
+      changesRequested:
+        requester: >-
+          Changes were requested on this publish — review the note below, make the adjustments
+          needed, then submit it again for approval.
+        viewer: >-
+          Changes were requested on this publish — waiting for a project member who can request
+          approval to address them and resubmit.
+      submitted:
+        grantor: >-
+          This publish is awaiting your review — approve it to unlock publishing, or send it back
+          with a note explaining what needs to change.
+        viewer: >-
+          Submitted for approval — waiting for a project member who can grant approval to review
+          it.
+      approved: >-
+        Approved — this project is ready to publish. Publishing uses up this approval, so the next
+        publish will need a fresh one.
+    note:
+      label: 'Reviewer note:'
+    actions:
+      submit: Submit for approval
+      approve: Approve
+      requestChanges: Request changes
+    requestChangesDialog:
+      header: Request changes
+      label: What needs to change before this publish can be approved?
+      placeholder: Explain what should be revised before this is resubmitted for approval.
+      confirm: Send back
+    publishLocked: >-
+      Publishing is locked until this step is approved. Submit this project for approval, then
+      wait for an approver to review it.
+    toast:
+      submitted: Submitted for approval
+      approved: Approved — this project is ready to publish
+      changesRequested: Sent back for changes
+      actionFailed: Action failed
 summaryForm:
   sections:
     general: General
@@ -473,14 +503,14 @@ qms:
         assessment procedures and procedures for the management of modifications to the high-risk
         AI systems.
       point1: Conformity Assessment Procedures are documented and implemented in the Conformity Assessment section.
-      point2: Management of modifications to a high-risk AI system in production must go through a gated change management procedure documented in the Incident, Issue and Change Management section.
-      point3: By following the full gated development process for AI Systems, EU AI Act Annex IV documentation will be programmatically delivered and updated (after change management).
+      point2: Management of modifications to a high-risk AI system in production must go through a controlled change management procedure, requiring review and approval before the change goes live, documented in the Incident, Issue and Change Management section.
+      point3: By following the full governed development process for AI Systems, EU AI Act Annex IV documentation will be programmatically delivered and updated (after change management).
     b:
       body: Techniques, procedures and systematic actions to be used for the design, design control and design verification of high-risk AI systems.
     c:
       body: Techniques, procedures and systematic actions to be used for the development, quality control and quality assurance of high-risk AI systems.
       point1: '@Human Governance delivers a wizard-like user journey for building high-risk AI systems.'
-      point2: 'The design and development process for any high-risk AI system project is gated for governance verification at multiple strategic points: 1. Executive Authority is required to sign off the project after the Project Summary, Quality Management Systems and Project Members have been defined; 2. etc.'
+      point2: 'The design and development process for any high-risk AI system project is verified for governance at a single, consistent point: every publish — the first release and every later revision — requires an Executive Authority (or other approval-capable role) to review and approve the project before it goes live.'
       point3: After an AI System Project is in production, changes can only be made via a request, approval and review system.
       point4: Multi-factor authentication is enforced for all Project Members.
     d:
@@ -1112,26 +1142,26 @@ roles:
     resources: —
   developer:
     label: Developer
-    resources: All Pages, All Gates
-    description: Builds part or all of the project and its AI systems, and requests governance approval at the gates.
+    resources: All Pages
+    description: Builds part or all of the project and its AI systems, and requests governance approval before publishing to production.
   governance-owner:
     label: Governance Owner
-    resources: All Pages, All Gates
-    description: Owns project governance and grants approvals at every governance gate.
+    resources: All Pages
+    description: Owns project governance and grants approval before every publish to production.
   security-owner:
     label: Security Owner
-    resources: RBAC, Security, Gate 6
-    description: Responsible for RBAC and security configuration; grants approval at the security gate (Gate 6).
+    resources: RBAC, Security
+    description: Responsible for RBAC and security configuration; grants approval before publishing to production.
   junior-developer:
     label: Junior Developer
     resources: Technical Architecture, Data Model, Connections, Automations
     description: Builds the technical architecture, data model, connections and automations. Cannot request or grant approvals.
   executive-authority:
     label: Executive Authority
-    resources: Read all, Approve at Gate 1
+    resources: Read all, Approve publishing
     description: >-
-      Has read access across the project and signs off the project at Gate 1, once the Project
-      Summary, Quality Management System and Project Members have been defined.
+      Has read access across the project and signs off on every publish to production, from the
+      first release through every later revision.
   infrastructure-administrator:
     label: Infrastructure Administrator
     resources: —
