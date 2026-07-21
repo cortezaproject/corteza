@@ -114,7 +114,6 @@ func (svc *user) Update(ctx context.Context, upd *types.User) (res *types.User, 
 			return
 		}
 		res.Email = upd.Email
-		res.EmailConfirmed = upd.EmailConfirmed
 		res.UserGroupID = upd.UserGroupID
 		res.Username = upd.Username
 		res.Name = upd.Name

@@ -200,6 +200,10 @@ user: {
 
 		undelete: true
 
+		// confirmation flag is only changeable through ToggleEmailConfirmation;
+		// generic updates must not clobber it (REST update payload has no such field)
+		omitUpdateFields: ["email_confirmed"]
+
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
 		customFunctions: [
