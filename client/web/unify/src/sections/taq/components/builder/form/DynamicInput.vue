@@ -118,7 +118,7 @@ const isReferenceActive = computed(() => {
 })
 
 // Aggregate types handle their own per-row references (no whole-argument reference)
-const AGGREGATE_TYPES = ['FieldValueMap', 'Array']
+const AGGREGATE_TYPES = ['FieldValueMap', 'WorkflowInputMap', 'Array']
 const isAggregate = computed(() => props.aggregate || AGGREGATE_TYPES.includes(props.type))
 
 // Options support: map stored ID ↔ option object for CInputSelect
@@ -157,8 +157,11 @@ function onInputFocusOrClick() {
   }
 }
 
-// Handle per-row reference toggle from aggregate inputs (e.g. FieldValueMap)
-function onRowReferenceToggle(targetField) {
-  emit('toggleReference', { argument: props.argument, target: targetField })
+// Per-row reference toggle from aggregate inputs. Payload is either a field
+// name (FieldValueMap) or { target, types } (WorkflowInputMap, typed rows).
+function onRowReferenceToggle(payload) {
+  const target = typeof payload === 'string' ? payload : payload.target
+  const types = typeof payload === 'object' ? payload.types : undefined
+  emit('toggleReference', { argument: props.argument, target, types })
 }
 </script>

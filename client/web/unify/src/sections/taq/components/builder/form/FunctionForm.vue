@@ -294,11 +294,15 @@ function handleValueUpdate(argumentName, value) {
 function onToggleReference(payload) {
   const argumentName = typeof payload === 'string' ? payload : payload.argument
   const target = typeof payload === 'object' ? payload.target : undefined
+  const rowTypes = typeof payload === 'object' ? payload.types : undefined
   const param = getParam(argumentName)
 
   // If selecting a reference for an entire array argument, use param.types.
-  // If selecting a reference for a single ELEMENT in the array (target is defined), it can be Any (or String).
-  const expectedTypes = target ? ['Any'] : (param?.types || ['Any'])
+  // If selecting a reference for a single ELEMENT (target is defined), prefer the
+  // declared row types when provided (e.g. WorkflowInputMap), else fall back to Any.
+  const expectedTypes = target
+    ? (rowTypes?.length ? rowTypes : ['Any'])
+    : (param?.types || ['Any'])
 
   emit('toggleReference', {
     name: argumentName,

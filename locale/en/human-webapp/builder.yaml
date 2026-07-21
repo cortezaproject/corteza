@@ -230,3 +230,7 @@ unsavedChanges:
     Please save your work before executing a run to ensure your latest changes are tested.'
   header: Unsaved Changes Detected
 welcome: Welcome to the TAQ workflow automation builder.
+workflowInputMap:
+  loading: Loading inputs…
+  noInputs: This workflow has no declared inputs.
+  selectWorkflowFirst: Select a workflow first.

@@ -13,6 +13,31 @@ handle:
   invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
   label: Handle
   placeholder: handle (a - z, 0 - 9, underscore, dash)
+io:
+  columns:
+    label: Label
+    name: Name
+    required: Required
+    type: Type
+  inputs:
+    addField: Add input
+    description: Named values this workflow expects. Each becomes a referenceable field on the Run Workflow step.
+    empty: No inputs defined yet.
+    label: Inputs
+  outputs:
+    addField: Add output
+    description: Named values this workflow returns, exposed downstream as results.
+    empty: No outputs defined yet.
+    label: Outputs
+  types:
+    any: Any
+    boolean: Boolean
+    dateTime: Date & Time
+    handle: Handle
+    id: ID
+    number: Number
+    record: Record
+    text: Text
 labels:
   label: Labels
 name:

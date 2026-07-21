@@ -1,11 +1,20 @@
 import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
+interface WorkflowIODef {
+  name: string
+  label?: string
+  types?: string[]
+  required?: boolean
+}
+
 interface Meta {
   name?: string
   description?: string
   visual?: Record<string, unknown>
   subWorkflow?: boolean
+  input?: WorkflowIODef[]
+  output?: WorkflowIODef[]
 }
 
 interface PartialWorkflow extends Partial<

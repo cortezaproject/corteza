@@ -66,7 +66,8 @@ func (h ngWorkflowHandler) Exec() atypes.ConstructFunction {
 			},
 			{
 				ArgumentName: "input",
-				Types:        []string{"Vars"},
+				Types:        []string{"Vars", "Any"},
+				Aggregate:    true,
 				Meta: &atypes.ParamMeta{
 					Label:       "Input",
 					Description: "Scope passed to the workflow as its input.",
@@ -87,10 +88,43 @@ func (h ngWorkflowHandler) Exec() atypes.ConstructFunction {
 				Meta: atypes.ConstructSectionMeta{},
 				Elements: []atypes.SectionElement{
 					{Input: atypes.SectionElementInput{Type: "WorkflowSelector", Label: "Workflow", Argument: "workflow", Required: true}},
-					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Input", Argument: "input"}},
+					{Input: atypes.SectionElementInput{
+						Type:     "WorkflowInputMap",
+						Label:    "Input",
+						Argument: "input",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{"workflowID": "workflow"},
+						},
+					}},
 				},
 			}},
 		}},
+
+		// Fold the per-field input rows (each targeting a declared input name)
+		// into a single nested Vars, preserving each value's evaluated type
+		ArgsMerger: func(ctx context.Context, args atypes.ExprSet, raw []expr.TypedValue) (*expr.Vars, error) {
+			aux := map[string]any{}
+			inputMap := map[string]any{}
+			for i, e := range args {
+				if e.ArgumentName == "input" {
+					if e.Target != "" {
+						inputMap[e.Target] = raw[i]
+					}
+					continue
+				}
+				aux[e.ArgumentName] = raw[i]
+			}
+
+			if len(inputMap) > 0 {
+				inputVars, err := expr.NewVars(inputMap)
+				if err != nil {
+					return nil, err
+				}
+				aux["input"] = inputVars
+			}
+
+			return expr.NewVars(aux)
+		},
 
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var wf *atypes.Workflow

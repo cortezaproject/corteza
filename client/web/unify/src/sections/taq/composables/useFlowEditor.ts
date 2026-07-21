@@ -989,6 +989,7 @@ export function useFlowEditor() {
         expandable?: boolean
         namespaceID?: string
         moduleID?: string
+        workflowID?: string
       }>
       properties?: Array<{
         name: string
@@ -997,6 +998,7 @@ export function useFlowEditor() {
         expandable?: boolean
         namespaceID?: string
         moduleID?: string
+        workflowID?: string
       }>
       description?: string
     }> = []
@@ -1177,6 +1179,13 @@ export function useFlowEditor() {
                 result.namespaceID = getFunctionArgumentValue(node.data, 'namespace')
                 result.moduleID = getFunctionArgumentValue(node.data, 'module')
               }
+            }
+
+            // The Run Workflow result is an opaque Vars blob; expand it into the
+            // selected workflow's declared outputs (results.<field>).
+            if (funcDef.ref === 'workflowExec') {
+              result.expandable = true
+              result.workflowID = getFunctionArgumentValue(node.data, 'workflow')
             }
 
             return result

@@ -370,7 +370,7 @@
       "
       modal
       :pt="{ content: 'p-0' }"
-      class="w-full max-w-3xl"
+      class="w-full max-w-5xl"
     >
       <workflow-configurator
         v-if="workflow.workflowID"
@@ -417,23 +417,81 @@
       class="w-full max-w-3xl"
     >
       <div class="flex flex-col gap-4">
-        <div v-if="dryRun.lookup">
-          <small class="text-muted-color">
-            {{ $t('editor.input-ids-or-handles') }}
-            <br />
-            {{ $t('editor.modify-initial-scope-if-no-variables-are-loaded') }}
-            <br />
-            {{ $t('editor.auto-initialize-empty-variable') }}
-            <br />
-            <br />
-            {{ $t('editor.open-webapp-on-prompt-use') }}
-          </small>
-          <div v-for="(p, index) in Object.values(dryRun.initialScope)" :key="index" class="mt-4">
-            <div v-if="p.lookup" class="flex flex-col gap-1">
-              <label class="font-medium text-sm">{{ p.label }}</label>
-              <InputText v-model="p.value" class="w-full" />
-              <small v-if="p.description" class="text-muted-color">{{ p.description }}</small>
+        <div v-if="dryRun.lookup" class="flex flex-col gap-4">
+          <div v-if="hasScopeLookups">
+            <small class="text-muted-color">
+              {{ $t('editor.input-ids-or-handles') }}
+              <br />
+              {{ $t('editor.modify-initial-scope-if-no-variables-are-loaded') }}
+              <br />
+              {{ $t('editor.auto-initialize-empty-variable') }}
+              <br />
+              <br />
+              {{ $t('editor.open-webapp-on-prompt-use') }}
+            </small>
+            <div v-for="(p, index) in Object.values(dryRun.initialScope)" :key="index" class="mt-4">
+              <div v-if="p.lookup" class="flex flex-col gap-1">
+                <label class="font-medium text-sm">{{ p.label }}</label>
+                <InputText v-model="p.value" class="w-full" />
+                <small v-if="p.description" class="text-muted-color">{{ p.description }}</small>
+              </div>
             </div>
+          </div>
+
+          <div v-if="dryRun.inputs.length" class="flex flex-col gap-3">
+            <small class="text-muted-color">{{ $t('editor.provide-workflow-inputs') }}</small>
+            <template v-for="inp in dryRun.inputs" :key="inp.name">
+              <!-- Boolean: checkbox sits inline with its label -->
+              <div v-if="inp.type === 'Boolean'" class="flex items-center gap-2">
+                <Checkbox v-model="inp.value" :binary="true" :inputId="`wf-input-${inp.name}`" />
+                <label :for="`wf-input-${inp.name}`" class="font-medium text-sm">
+                  {{ inp.label }}
+                  <span v-if="inp.required" class="text-red-500">*</span>
+                </label>
+              </div>
+
+              <div v-else class="flex flex-col gap-1">
+                <label class="font-medium text-sm">
+                  {{ inp.label }}
+                  <span v-if="inp.required" class="text-red-500">*</span>
+                </label>
+
+                <!-- Records resolve to the full object, so pick namespace → module → record -->
+                <div
+                  v-if="inp.type === 'ComposeRecord'"
+                  class="flex flex-col gap-3 p-3 rounded-border border border-surface"
+                >
+                  <CFormGroup :label="$t('editor.namespace')">
+                    <CInputNamespace
+                      v-model="inp.namespaceID"
+                      class="w-full"
+                      @update:model-value="resetRecordModule(inp)"
+                    />
+                  </CFormGroup>
+                  <CFormGroup :label="$t('editor.module')">
+                    <CInputModule
+                      v-model="inp.moduleID"
+                      :namespaceID="inp.namespaceID || undefined"
+                      :disabled="!inp.namespaceID"
+                      :placeholder="inp.namespaceID ? undefined : $t('editor.select-namespace-first')"
+                      class="w-full"
+                      @update:model-value="inp.value = undefined"
+                    />
+                  </CFormGroup>
+                  <CFormGroup :label="$t('editor.record')">
+                    <CInputRecord
+                      v-model="inp.value"
+                      :namespaceID="inp.namespaceID || undefined"
+                      :moduleID="inp.moduleID || undefined"
+                      :disabled="!inp.namespaceID || !inp.moduleID"
+                      class="w-full"
+                    />
+                  </CFormGroup>
+                </div>
+
+                <InputText v-else v-model="inp.value" class="w-full" :placeholder="inp.type" />
+              </div>
+            </template>
           </div>
         </div>
         <div v-else>
@@ -507,7 +565,7 @@ import { nextId } from '../lib/id'
 import { getIcon } from '../lib/icon'
 import { NoID } from '@planetcrust/human-js'
 import { components, useRightSidebarResize, useRightSidebarStore } from '@planetcrust/human-vue'
-const { CInputDelete } = components
+const { CInputDelete, CInputNamespace, CInputModule, CInputRecord } = components
 
 import Configurator from './Configurator/index.vue'
 import WorkflowConfigurator from './Configurator/Workflow.vue'
@@ -679,10 +737,15 @@ const dryRun = ref({
   lookup: false,
   cellID: undefined,
   initialScope: {},
+  inputs: [],
   input: {},
   inputEdited: {},
   sessionID: undefined,
 })
+
+const hasScopeLookups = computed(() =>
+  Object.values(dryRun.value.initialScope || {}).some(p => p.lookup),
+)
 
 /* ─── Sidebar Edges Bridge ─── */
 // The Configurator expects edges as an object map { [id]: { node, config } }
@@ -1777,6 +1840,83 @@ function checkExistingTriggerPaths() {
 }
 
 /* ─── Dry Run / Test ─── */
+
+// Build editable fields from the workflow's declared inputs (meta.input).
+// Record fields also track the namespace/module needed to resolve them.
+function buildInputFields() {
+  return (workflow.value?.meta?.input || []).map(def => {
+    const type = (def.types || [])[0] || 'Any'
+    const field = {
+      name: def.name,
+      label: def.label || def.name,
+      type,
+      required: !!def.required,
+      value: type === 'Boolean' ? false : undefined,
+    }
+    if (type === 'ComposeRecord') {
+      field.namespaceID = undefined
+      field.moduleID = undefined
+    }
+    return field
+  })
+}
+
+// Clear the module/record selection when a record input's namespace changes
+function resetRecordModule(inp) {
+  inp.moduleID = undefined
+  inp.value = undefined
+}
+
+// Cast a filled-in input field to a typed expr value based on its declared
+// type. Resource types (record) are fetched so the engine gets the full object.
+async function typedFromInput(inp) {
+  const { type, value } = inp
+
+  // Boolean always resolves — false is a valid value to inject
+  if (type === 'Boolean') {
+    return { '@type': 'Boolean', '@value': value === true || value === 'true' }
+  }
+
+  if (value === '' || value === null || value === undefined) return undefined
+
+  switch (type) {
+    case 'Number': {
+      const n = Number(value)
+      if (Number.isNaN(n)) return { '@type': 'String', '@value': value }
+      return { '@type': Number.isInteger(n) ? 'Integer' : 'Float', '@value': n }
+    }
+    case 'DateTime':
+      return { '@type': 'DateTime', '@value': value }
+    case 'ID':
+      return { '@type': 'ID', '@value': String(value) }
+    case 'Handle':
+      return { '@type': 'Handle', '@value': String(value) }
+    case 'String':
+      return { '@type': 'String', '@value': String(value) }
+    case 'ComposeRecord': {
+      if (!inp.namespaceID || !inp.moduleID) return undefined
+      const record = await $ComposeAPI.recordRead({
+        namespaceID: String(inp.namespaceID),
+        moduleID: String(inp.moduleID),
+        recordID: String(value),
+      })
+      return { '@type': 'ComposeRecord', '@value': record }
+    }
+    default:
+      return { '@type': 'Any', '@value': value }
+  }
+}
+
+// Encode filled-in workflow inputs into a Vars map, skipping empty fields
+async function encodeWorkflowInputs(inputs = []) {
+  const out = {}
+  for (const inp of inputs) {
+    const typed = await typedFromInput(inp)
+    if (typed !== undefined) out[inp.name] = typed
+  }
+  return out
+}
+
 function startTest(cellID) {
   dryRun.value.cellID = cellID
   loadTestScope()
@@ -1823,6 +1963,10 @@ async function loadTestScope() {
   const trg = triggerNode?.data?.triggers
   if (!trg) return
 
+  // Named inputs the workflow declares 
+  dryRun.value.inputs = buildInputFields()
+  const hasInputs = dryRun.value.inputs.length > 0
+
   const { resourceType, eventType } = trg
   const et = (
     eventTypes.value.find(et => resourceType === et.resourceType && eventType === et.eventType) ||
@@ -1856,7 +2000,7 @@ async function loadTestScope() {
       encodeInput(dryRun.value.initialScope, $ComposeAPI, $SystemAPI)
         .then(input => {
           dryRun.value.input = input
-          dryRun.value.lookup = lookup
+          dryRun.value.lookup = lookup || hasInputs
           dryRun.value.show = true
         })
         .catch(e =>
@@ -1869,7 +2013,14 @@ async function loadTestScope() {
         )
     } else {
       dryRun.value.initialScope = {}
-      testWorkflow()
+      if (hasInputs) {
+        dryRun.value.input = {}
+        dryRun.value.inputEdited = {}
+        dryRun.value.lookup = true
+        dryRun.value.show = true
+      } else {
+        testWorkflow()
+      }
     }
   } else {
     toast.add({
@@ -1884,20 +2035,20 @@ async function loadTestScope() {
 async function dryRunOk(e) {
   if (dryRun.value.lookup) {
     e.preventDefault()
-    encodeInput(dryRun.value.initialScope, $ComposeAPI, $SystemAPI)
-      .then(input => {
-        dryRun.value.input = input
-        dryRun.value.inputEdited = input
-        dryRun.value.lookup = false
+    try {
+      const scope = await encodeInput(dryRun.value.initialScope, $ComposeAPI, $SystemAPI)
+      const merged = { ...scope, ...(await encodeWorkflowInputs(dryRun.value.inputs)) }
+      dryRun.value.input = merged
+      dryRun.value.inputEdited = merged
+      dryRun.value.lookup = false
+    } catch (err) {
+      toast.add({
+        severity: 'error',
+        summary: t('notification.initial-scope-load-failed'),
+        detail: err?.message,
+        life: 5000,
       })
-      .catch(e =>
-        toast.add({
-          severity: 'error',
-          summary: t('notification.initial-scope-load-failed'),
-          detail: e?.message,
-          life: 5000,
-        }),
-      )
+    }
   } else {
     dryRun.value.show = false
     testWorkflow(dryRun.value.inputEdited)

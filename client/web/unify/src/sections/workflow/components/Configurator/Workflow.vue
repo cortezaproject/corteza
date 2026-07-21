@@ -111,6 +111,59 @@
           {{ $t('configurator.sub-workflow.description') }}
         </small>
       </div>
+
+      <Divider class="!my-1" />
+
+      <!-- Named input/output contract, read by the "Run Workflow" step -->
+      <CFormGroup
+        v-for="section in ioSections"
+        :key="section.key"
+        :label="section.label"
+      >
+        <small class="text-muted-color block mb-2">{{ section.description }}</small>
+
+        <div class="flex items-center mb-2">
+          <Button
+            :label="section.addLabel"
+            icon="pi pi-plus"
+            severity="secondary"
+            size="small"
+            @click="addIODef(section.key)"
+          />
+        </div>
+
+        <CFormList
+          v-model="localWorkflow.meta[section.key]"
+          :columns="ioColumns"
+          :empty-message="section.emptyMessage"
+        >
+          <template #row="{ item }">
+            <InputText
+              v-model="item.name"
+              class="w-full"
+              size="small"
+              :placeholder="$t('configurator.io.columns.name')"
+            />
+            <InputText
+              v-model="item.label"
+              class="w-full"
+              size="small"
+              :placeholder="$t('configurator.io.columns.label')"
+            />
+            <Select
+              v-model="item.types[0]"
+              :options="ioTypeOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              size="small"
+            />
+            <div class="flex justify-center">
+              <Checkbox v-model="item.required" :binary="true" />
+            </div>
+          </template>
+        </CFormList>
+      </CFormGroup>
     </div>
 
     <div class="flex items-center w-full p-3 mt-auto border-t surface-border">
@@ -177,6 +230,18 @@ const { CInputUser } = components
 
 const handleRe = /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$/
 
+// Types a workflow input/output field can declare (label resolved via $t)
+const IO_TYPES = [
+  { key: 'text', value: 'String' },
+  { key: 'number', value: 'Number' },
+  { key: 'boolean', value: 'Boolean' },
+  { key: 'dateTime', value: 'DateTime' },
+  { key: 'id', value: 'ID' },
+  { key: 'handle', value: 'Handle' },
+  { key: 'record', value: 'ComposeRecord' },
+  { key: 'any', value: 'Any' },
+]
+
 export default {
   i18nOptions: {
     namespaces: 'configurator',
@@ -228,6 +293,38 @@ export default {
   },
 
   computed: {
+    ioTypeOptions() {
+      return IO_TYPES.map(t => ({ label: this.$t(`configurator.io.types.${t.key}`), value: t.value }))
+    },
+
+    ioColumns() {
+      return [
+        { label: this.$t('configurator.io.columns.name'), width: 'minmax(140px, 1.2fr)' },
+        { label: this.$t('configurator.io.columns.label'), width: 'minmax(140px, 1.2fr)' },
+        { label: this.$t('configurator.io.columns.type'), width: 'minmax(140px, 1fr)' },
+        { label: this.$t('configurator.io.columns.required'), width: '90px', headerClass: 'text-center' },
+      ]
+    },
+
+    ioSections() {
+      return [
+        {
+          key: 'input',
+          label: this.$t('configurator.io.inputs.label'),
+          description: this.$t('configurator.io.inputs.description'),
+          addLabel: this.$t('configurator.io.inputs.addField'),
+          emptyMessage: this.$t('configurator.io.inputs.empty'),
+        },
+        {
+          key: 'output',
+          label: this.$t('configurator.io.outputs.label'),
+          description: this.$t('configurator.io.outputs.description'),
+          addLabel: this.$t('configurator.io.outputs.addField'),
+          emptyMessage: this.$t('configurator.io.outputs.empty'),
+        },
+      ]
+    },
+
     nameState() {
       return this.localWorkflow?.meta?.name ? null : false
     },
@@ -263,12 +360,28 @@ export default {
         // Create a new Workflow instance from the existing workflow
         // This properly clones the workflow and avoids circular references
         this.localWorkflow = new automation.Workflow(newWorkflow)
+
+        // Normalize the input/output declaration lists for direct editor binding
+        for (const key of ['input', 'output']) {
+          if (!Array.isArray(this.localWorkflow.meta[key])) {
+            this.localWorkflow.meta[key] = []
+          }
+          for (const row of this.localWorkflow.meta[key]) {
+            if (!Array.isArray(row.types) || row.types.length === 0) {
+              row.types = ['String']
+            }
+          }
+        }
       },
       immediate: true,
     },
   },
 
   methods: {
+    addIODef(key) {
+      this.localWorkflow.meta[key].push({ name: '', label: '', types: ['String'], required: false })
+    },
+
     handleLabelsChange({ namespaceLabels, moduleLabels }) {
       if (!this.localWorkflow.labels) {
         this.localWorkflow.labels = {}

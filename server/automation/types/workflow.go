@@ -16,11 +16,11 @@ import (
 type (
 	// Workflow represents entire workflow definition
 	Workflow struct {
-		ID      uint64            `json:"workflowID,string"`
-		Handle  string            `json:"handle"`
+		ID      uint64                           `json:"workflowID,string"`
+		Handle  string                           `json:"handle"`
 		Labels  map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Meta    *WorkflowMeta     `json:"meta,omitempty"`
-		Enabled bool              `json:"enabled"`
+		Meta    *WorkflowMeta                    `json:"meta,omitempty"`
+		Enabled bool                             `json:"enabled"`
 
 		Trace bool `json:"trace"`
 
@@ -60,7 +60,7 @@ type (
 		// include sub-workflows
 		SubWorkflow filter.State `json:"subWorkflow"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
@@ -82,6 +82,18 @@ type (
 		// list as one of the sub-workflows, when set to true
 		// there should be no enabled triggers on this workflow
 		SubWorkflow bool `json:"subWorkflow,omitempty"`
+
+		// Named input/output contract, read by the "Run Workflow" step
+		Input  []WorkflowIODef `json:"input,omitempty"`
+		Output []WorkflowIODef `json:"output,omitempty"`
+	}
+
+	// WorkflowIODef declares a single named input or output field of a workflow
+	WorkflowIODef struct {
+		Name     string   `json:"name"`
+		Label    string   `json:"label,omitempty"`
+		Types    []string `json:"types,omitempty"`
+		Required bool     `json:"required,omitempty"`
 	}
 
 	WorkflowIssue struct {

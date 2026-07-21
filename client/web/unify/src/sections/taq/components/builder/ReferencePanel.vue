@@ -373,6 +373,7 @@ const props = defineProps({
 const emit = defineEmits(['select', 'close'])
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $AutomationAPI = inject('$AutomationAPI')
 const moduleStore = useModuleStore()
 
 // Check if a reference item matches the currently active reference
@@ -482,6 +483,27 @@ async function fetchFields(step, result) {
   for (const t of result.types || []) {
     if (STRUCT_FIELDS[t]) {
       resolvedFields = [...resolvedFields, ...STRUCT_FIELDS[t]]
+    }
+  }
+
+  // Fetch the workflow's declared outputs (results.<field>)
+  if (result.workflowID && $AutomationAPI) {
+    loadingFields[key] = true
+    try {
+      const wf = await $AutomationAPI.workflowRead({ workflowID: result.workflowID })
+      const outputs = (wf?.meta?.output || [])
+        .filter(f => f.name)
+        .map(f => ({
+          name: f.name,
+          label: f.label || f.name,
+          kind: (f.types && f.types[0]) || 'Any',
+          isProperty: true,
+        }))
+      resolvedFields = [...resolvedFields, ...outputs]
+    } catch {
+      // Gracefully continue with no output fields
+    } finally {
+      loadingFields[key] = false
     }
   }
 

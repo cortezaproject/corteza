@@ -13,6 +13,7 @@ import {
   CInputWorkflow,
 } from '@planetcrust/human-vue/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
+import CInputWorkflowInputMap from './CInputWorkflowInputMap.vue'
 import CInputArray from './CInputArray.vue'
 
 /**
@@ -66,6 +67,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
 
   // Field-value map (for aggregate record values)
   FieldValueMap: CInputFieldValueMap,
+
+  // Workflow input map (one referenceable field per declared workflow input)
+  WorkflowInputMap: CInputWorkflowInputMap,
 }
 
 /**
