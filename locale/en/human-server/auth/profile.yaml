@@ -13,7 +13,7 @@ template:
       placeholder: Short name, nickname or handle
     avatar:
       label: Avatar
-      delete: Delete
+      delete: Delete Avatar
       upload: Upload avatar
     avatar-initial:
       label: Avatar initial

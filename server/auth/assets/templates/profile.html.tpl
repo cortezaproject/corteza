@@ -114,7 +114,7 @@
                     </label>
                     <input id="avatar" name="avatar" value="avatar" type="file" class="sr-only" accept="image/*">
 
-                    {{  if .isAvatar }}
+                    {{ if .isUploadedAvatar }}
                     <button
                         name="avatar-delete"
                         value="avatar-delete"

@@ -56,6 +56,7 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) (err error) {
 
 	if h.Settings.ProfileAvatarEnabled {
 		req.Data["isAvatar"] = u.Meta.AvatarID != 0
+		req.Data["isUploadedAvatar"] = u.Meta.AvatarID != 0 && u.Meta.AvatarKind == types.AttachmentKindAvatar
 	}
 
 	return nil
