@@ -390,8 +390,9 @@ endpoints:
         required: false
         title: Parent Page ID
       # moduleID is the page's record binding, set at create and immutable on
-      # update — omitting it here keeps the service from overwriting (wiping) it
-      # when a caller (e.g. the page builder save) doesn't resend it.
+      # update, so it is not a request param here. The generated Update wrapper
+      # still copies res.ModuleID = upd.ModuleID, so the service's onUpdate
+      # carries the stored value forward (page.go) to keep it from being wiped.
       - type: string
         name: title
         required: true
