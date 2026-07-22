@@ -238,9 +238,11 @@ export function useFlowEditor() {
         }
       }
 
+      const incomingTargets = new Set(edges.value.map(e => e.target))
+
       // Process in order: 1) triggers, 2) terminations, 3) other steps
       nodes.value.filter(n => n.type === 'trigger').forEach(processNode)
-      nodes.value.filter(n => n.type === 'end').forEach(processNode)
+      nodes.value.filter(n => n.type === 'end' && incomingTargets.has(n.id)).forEach(processNode)
       nodes.value
         .filter(n => n.type !== 'trigger' && n.type !== 'end' && n.type !== 'loop')
         .forEach(processNode)

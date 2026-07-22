@@ -279,8 +279,16 @@ export function automationToVueFlow(
     }
   })
 
+  // Drop orphaned termination/loop nodes
+  const incomingTargets = new Set(edges.map(e => e.target))
+  const keptNodes = nodes.filter(
+    n => !((n.type === 'end' || n.type === 'loop') && !incomingTargets.has(n.id)),
+  )
+  const keptNodeIds = new Set(keptNodes.map(n => n.id))
+  const keptEdges = edges.filter(e => keptNodeIds.has(e.source) && keptNodeIds.has(e.target))
+
   // Apply automatic layout
-  return applyDagreLayout({ nodes, edges })
+  return applyDagreLayout({ nodes: keptNodes, edges: keptEdges })
 }
 
 /**

@@ -181,6 +181,7 @@
         :zoom-on-scroll="false"
         :zoom-on-double-click="false"
         :selection-key-code="null"
+        :delete-key-code="null"
         @node-click="onNodeClick"
         @pane-click="onPaneClick"
       >
