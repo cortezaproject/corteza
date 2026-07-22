@@ -489,7 +489,13 @@ func (svc *pageLayout) onUpdate(ctx context.Context, s store.Storer, upd *types.
 	if err != nil {
 		return err
 	}
-	_, err = svc.updater(ctx, s, ns, nil, res, PageLayoutActionUpdate, svc.handleUpdate(ctx, upd))
+	// handleUpdate dereferences pg.Meta.AllowPersonalLayouts; loading the page
+	// is required — passing nil panics on any owned (personal) layout.
+	pg, err := loadPage(ctx, s, res.PageID)
+	if err != nil {
+		return err
+	}
+	_, err = svc.updater(ctx, s, ns, pg, res, PageLayoutActionUpdate, svc.handleUpdate(ctx, upd))
 	if err != nil {
 		return err
 	}
@@ -501,8 +507,11 @@ func (svc *pageLayout) onDelete(ctx context.Context, s store.Storer, namespaceID
 	if err != nil {
 		return err
 	}
-	_ = pageID
-	_, err = svc.updater(ctx, s, ns, nil, res, PageLayoutActionDelete, svc.handleDelete)
+	pg, err := loadPage(ctx, s, pageID)
+	if err != nil {
+		return err
+	}
+	_, err = svc.updater(ctx, s, ns, pg, res, PageLayoutActionDelete, svc.handleDelete)
 	return err
 }
 
@@ -511,8 +520,11 @@ func (svc *pageLayout) onUndelete(ctx context.Context, s store.Storer, namespace
 	if err != nil {
 		return err
 	}
-	_ = pageID
-	_, err = svc.updater(ctx, s, ns, nil, res, PageLayoutActionUpdate, svc.handleUndelete)
+	pg, err := loadPage(ctx, s, pageID)
+	if err != nil {
+		return err
+	}
+	_, err = svc.updater(ctx, s, ns, pg, res, PageLayoutActionUpdate, svc.handleUndelete)
 	return err
 }
 

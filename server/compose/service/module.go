@@ -94,6 +94,10 @@ const (
 	// Generally the upper most limit
 	urlLength = 2048
 
+	// Fixed total precision for DECIMAL number-field columns; the field's
+	// configured Precision() is the scale (decimal places).
+	maxPrecisionLength = 15
+
 	sysID          = "ID"
 	sysNamespaceID = "namespaceID"
 	sysModuleID    = "moduleID"
@@ -1304,7 +1308,12 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "number":
 		at := &dal.TypeNumber{
-			Precision: int(f.Options.Precision()),
+			// @todo precision/scale need a proper rework. Options.Precision() is
+			// the number of decimal places, so it is the SCALE; the column keeps
+			// a fixed total precision. Emitting it as Precision (with scale 0)
+			// produced DECIMAL(<places>,0) and silently truncated every decimal.
+			Precision: maxPrecisionLength,
+			Scale:     int(f.Options.Precision()),
 			Nullable:  !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)

@@ -118,8 +118,37 @@ func (svc *namespace) onSearch(ctx context.Context, filter types.NamespaceFilter
 }
 
 func (svc *namespace) onCreate(ctx context.Context, new *types.Namespace) error {
-	_, err := svc.Create(ctx, new)
-	return err
+	// NOTE: must NOT call svc.Create here — the generated Create wrapper invokes
+	// onCreate, so delegating back to Create is unbounded recursion. This holds
+	// the actual create logic (mirrors module's createModule).
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if !handle.IsValid(new.Slug) {
+			return NamespaceErrInvalidHandle()
+		}
+
+		if !svc.ac.CanCreateNamespace(ctx) {
+			return NamespaceErrNotAllowedToCreate()
+		}
+
+		if err = svc.uniqueCheck(ctx, new); err != nil {
+			return err
+		}
+
+		new.ID = nextID()
+		new.CreatedAt = *now()
+		new.UpdatedAt = nil
+		new.DeletedAt = nil
+
+		if err = store.CreateComposeNamespace(ctx, s, new); err != nil {
+			return err
+		}
+
+		if err = updateTranslations(ctx, svc.ac, svc.services.locale, new.EncodeTranslations()...); err != nil {
+			return err
+		}
+
+		return label.Create(ctx, s, new)
+	})
 }
 
 func (svc *namespace) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Namespace, aProps *namespaceActionProps, before, after func() error) error {
@@ -834,4 +863,3 @@ func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup 
 		return nn, err
 	})
 }
-
