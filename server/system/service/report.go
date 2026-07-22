@@ -69,7 +69,11 @@ func (svc *report) beforeUpdate(_ context.Context, upd *types.Report, res *types
 	if upd.Meta != nil {
 		res.Meta = upd.Meta
 	}
-	svc.setIDs(res)
+	// setIDs must run on upd, not res: the generated Update copies
+	// res.Scenarios/Sources/Blocks = upd.* AFTER this hook, so IDs assigned to
+	// res here are overwritten. Assigning on upd makes the copied content carry
+	// its new scenario/block IDs.
+	svc.setIDs(upd)
 	return nil
 }
 

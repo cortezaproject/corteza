@@ -131,8 +131,18 @@ func (svc *chart) onDelete(ctx context.Context, s store.Storer, namespaceID uint
 	if !svc.ac.CanDeleteChart(ctx, res) {
 		return ChartErrNotAllowedToDelete()
 	}
+
+	if res.DeletedAt != nil {
+		return nil
+	}
+
 	res.DeletedAt = now()
-	return store.UpdateComposeChart(ctx, s, res)
+
+	if err := store.UpdateComposeChart(ctx, s, res); err != nil {
+		return err
+	}
+
+	return updateTranslations(ctx, svc.ac, svc.services.locale, res.EncodeTranslations()...)
 }
 
 func (svc *chart) onUndelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Chart, aProps *chartActionProps) error {

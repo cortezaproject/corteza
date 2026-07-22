@@ -29,8 +29,10 @@ func (svc *projectReview) beforeCreate(ctx context.Context, new *types.ProjectRe
 	return nil
 }
 
-func (svc *projectReview) beforeUpdate(ctx context.Context, upd, _ *types.ProjectReview) error {
-	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+func (svc *projectReview) beforeUpdate(ctx context.Context, upd, res *types.ProjectReview) error {
+	// Stamp res (the persisted record); updated_by is not in the generated
+	// field-copy, so stamping upd would be dropped.
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }
 

@@ -29,8 +29,10 @@ func (svc *projectTask) beforeCreate(ctx context.Context, new *types.ProjectTask
 	return nil
 }
 
-func (svc *projectTask) beforeUpdate(ctx context.Context, upd, _ *types.ProjectTask) error {
-	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+func (svc *projectTask) beforeUpdate(ctx context.Context, upd, res *types.ProjectTask) error {
+	// Stamp res (the persisted record); updated_by is not in the generated
+	// field-copy, so stamping upd would be dropped.
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }
 

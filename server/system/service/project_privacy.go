@@ -29,8 +29,10 @@ func (svc *projectPrivacy) beforeCreate(ctx context.Context, new *types.ProjectP
 	return nil
 }
 
-func (svc *projectPrivacy) beforeUpdate(ctx context.Context, upd, _ *types.ProjectPrivacy) error {
-	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+func (svc *projectPrivacy) beforeUpdate(ctx context.Context, upd, res *types.ProjectPrivacy) error {
+	// Stamp res (the persisted record); updated_by is not in the generated
+	// field-copy, so stamping upd would be dropped.
+	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }
 
