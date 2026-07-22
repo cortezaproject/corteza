@@ -645,6 +645,7 @@ func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.U
 		return err
 	}
 
+	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, res))
 	return nil
 }
 
