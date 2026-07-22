@@ -117,9 +117,7 @@ func (svc *aiConversation) Update(ctx context.Context, upd *types.AiConversation
 		}
 		res.AgentID = upd.AgentID
 		res.TokenCount = upd.TokenCount
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateAiConversation(ctx, s, res); err != nil {

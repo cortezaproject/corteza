@@ -107,9 +107,7 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		}
 		res.Handle = upd.Handle
 		res.Level = upd.Level
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateDalSensitivityLevel(ctx, s, res); err != nil {

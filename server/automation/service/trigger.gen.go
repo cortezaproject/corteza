@@ -97,9 +97,7 @@ func (svc *trigger) Update(ctx context.Context, upd *types.Trigger) (res *types.
 		res.ResourceType = upd.ResourceType
 		res.EventType = upd.EventType
 		res.OwnedBy = upd.OwnedBy
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateAutomationTrigger(ctx, s, res); err != nil {

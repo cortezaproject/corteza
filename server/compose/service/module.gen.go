@@ -113,7 +113,6 @@ func (svc *module) Update(ctx context.Context, upd *types.Module) (res *types.Mo
 		res.NamespaceID = upd.NamespaceID
 		res.Handle = upd.Handle
 		res.Name = upd.Name
-		res.CreatedByAgent = upd.CreatedByAgent
 		res.UpdatedAt = now()
 
 		if err = store.UpdateComposeModule(ctx, s, res); err != nil {

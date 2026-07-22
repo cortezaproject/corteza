@@ -108,9 +108,7 @@ func (svc *resourceTranslation) Update(ctx context.Context, upd *types.ResourceT
 		res.K = upd.K
 		res.Message = upd.Message
 		res.OwnedBy = upd.OwnedBy
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateResourceTranslation(ctx, s, res); err != nil {

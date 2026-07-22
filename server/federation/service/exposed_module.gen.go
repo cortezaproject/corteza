@@ -108,9 +108,7 @@ func (svc *exposedModule) Update(ctx context.Context, upd *types.ExposedModule) 
 		res.Handle = upd.Handle
 		res.Name = upd.Name
 		res.NodeID = upd.NodeID
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateFederationExposedModule(ctx, s, res); err != nil {

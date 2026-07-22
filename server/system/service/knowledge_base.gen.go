@@ -164,9 +164,7 @@ func (svc *knowledgeBase) Update(ctx context.Context, upd *types.KnowledgeBase) 
 		res.Handle = upd.Handle
 		res.Title = upd.Title
 		res.Description = upd.Description
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateKnowledgeBase(ctx, s, res); err != nil {

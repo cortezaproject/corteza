@@ -116,7 +116,6 @@ func (svc *pageLayout) Update(ctx context.Context, upd *types.PageLayout) (res *
 		res.NamespaceID = upd.NamespaceID
 		res.Weight = upd.Weight
 		res.OwnedBy = upd.OwnedBy
-		res.CreatedByAgent = upd.CreatedByAgent
 		res.UpdatedAt = now()
 
 		if err = store.UpdateComposePageLayout(ctx, s, res); err != nil {

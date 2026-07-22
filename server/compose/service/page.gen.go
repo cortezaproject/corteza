@@ -113,12 +113,10 @@ func (svc *page) Update(ctx context.Context, upd *types.Page) (res *types.Page, 
 		res.Title = upd.Title
 		res.Handle = upd.Handle
 		res.SelfID = upd.SelfID
-		res.ModuleID = upd.ModuleID
 		res.NamespaceID = upd.NamespaceID
 		res.Visible = upd.Visible
 		res.Weight = upd.Weight
 		res.Description = upd.Description
-		res.CreatedByAgent = upd.CreatedByAgent
 		res.UpdatedAt = now()
 
 		if err = store.UpdateComposePage(ctx, s, res); err != nil {

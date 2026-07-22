@@ -127,9 +127,7 @@ func (svc *agent) Update(ctx context.Context, upd *types.Agent) (res *types.Agen
 		res.Handle = upd.Handle
 		res.Status = upd.Status
 		res.Revision = upd.Revision
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateAgent(ctx, s, res); err != nil {

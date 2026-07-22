@@ -493,14 +493,6 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 }
 
 func (svc *page) onUpdate(ctx context.Context, s store.Storer, upd *types.Page, res *types.Page, _ *pageActionProps, before func() error, after func() error) error {
-	// moduleID is the page's record binding: set at create, immutable on update
-	// and intentionally not a pageUpdate request param (see compose/rest.yaml).
-	// The generated Update wrapper still assigns res.ModuleID = upd.ModuleID
-	// after this handler returns, and upd.ModuleID is always 0 (never decoded),
-	// so without carrying the stored value forward every page update wipes the
-	// binding — turning a record page back into an unbound page.
-	upd.ModuleID = res.ModuleID
-
 	if err := before(); err != nil {
 		return err
 	}

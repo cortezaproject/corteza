@@ -256,6 +256,12 @@ page: {
 
 		undelete: true
 
+		// moduleID is the page's record binding: set at create, immutable on
+		// update, and not a pageUpdate request param. Without this the generated
+		// Update would copy res.ModuleID = upd.ModuleID (upd.ModuleID always 0)
+		// and wipe the binding on every save.
+		omitUpdateFields: ["module_id"]
+
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
 		customFunctions: [

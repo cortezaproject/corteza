@@ -111,7 +111,6 @@ func (svc *namespace) Update(ctx context.Context, upd *types.Namespace) (res *ty
 		res.Slug = upd.Slug
 		res.Enabled = upd.Enabled
 		res.Name = upd.Name
-		res.CreatedByAgent = upd.CreatedByAgent
 		res.UpdatedAt = now()
 
 		if err = store.UpdateComposeNamespace(ctx, s, res); err != nil {

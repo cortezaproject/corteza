@@ -140,9 +140,7 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *
 		res.Method = upd.Method
 		res.Enabled = upd.Enabled
 		res.Group = upd.Group
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateApigwRoute(ctx, s, res); err != nil {

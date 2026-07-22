@@ -107,9 +107,7 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 		}
 		res.Handle = upd.Handle
 		res.Type = upd.Type
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateDalConnection(ctx, s, res); err != nil {

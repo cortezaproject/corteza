@@ -133,9 +133,7 @@ func (svc *chatbot) Update(ctx context.Context, upd *types.Chatbot) (res *types.
 		res.Enabled = upd.Enabled
 		res.WidgetKey = upd.WidgetKey
 		res.SessionTTL = upd.SessionTTL
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateChatbot(ctx, s, res); err != nil {

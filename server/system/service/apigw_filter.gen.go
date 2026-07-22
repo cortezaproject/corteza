@@ -105,9 +105,7 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (res
 		res.Kind = upd.Kind
 		res.Ref = upd.Ref
 		res.Enabled = upd.Enabled
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateApigwFilter(ctx, s, res); err != nil {

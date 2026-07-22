@@ -71,11 +71,21 @@ _ServiceResource: {
 	// Update field-copy list: explicit when provided, otherwise derived.
 	// The derived form is best-effort only (omitSetter is a DAL concern, not a
 	// reliable service-settability signal) -- prefer setting updateFields.
+	//
+	// The generated Update copies each of these verbatim from the request onto
+	// the loaded record (res.X = upd.X). These actor/provenance refs are never
+	// part of an update request, so copying them zeroes the stored value: exclude
+	// them here so the loaded value is preserved (created_by / created_by_agent
+	// are set once at create, deleted_by only by the delete flow). updated_by is
+	// intentionally NOT excluded: several handlers stamp upd.UpdatedBy = current
+	// identity and rely on this copy to apply it.
+	_auditActorFields: ["created_by", "created_by_agent", "deleted_by"]
 	_derivedSettable: [
 		for attr in res.model.attributes
 		if attr.store
 		if !attr.omitSetter
 		if !list.Contains(res.service.omitUpdateFields, attr.name)
+		if !list.Contains(_auditActorFields, attr.name)
 		if attr.dal != _|_
 		if attr.dal.type != "ID"
 		if attr.dal.type != "Timestamp" {

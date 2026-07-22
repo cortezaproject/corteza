@@ -96,9 +96,7 @@ func (svc *node) Update(ctx context.Context, upd *types.Node) (res *types.Node, 
 		res.Contact = upd.Contact
 		res.PairToken = upd.PairToken
 		res.AuthToken = upd.AuthToken
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateFederationNode(ctx, s, res); err != nil {

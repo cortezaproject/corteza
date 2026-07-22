@@ -103,7 +103,6 @@ func (svc *notification) Update(ctx context.Context, upd *types.Notification) (r
 		res.Kind = upd.Kind
 		res.Config = upd.Config
 		res.Recipient = upd.Recipient
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateNotification(ctx, s, res); err != nil {

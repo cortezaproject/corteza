@@ -107,9 +107,7 @@ func (svc *sharedModule) Update(ctx context.Context, upd *types.SharedModule) (r
 		}
 		res.Handle = upd.Handle
 		res.Name = upd.Name
-		res.CreatedBy = upd.CreatedBy
 		res.UpdatedBy = upd.UpdatedBy
-		res.DeletedBy = upd.DeletedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateFederationSharedModule(ctx, s, res); err != nil {
