@@ -63,9 +63,12 @@
             :description="$t('system.templates.editor.info.partialDescription')"
             class="self-start"
           />
+        </div>
+      </Panel>
 
+      <Panel :header="$t('system.templates.editor.tabs.content')" toggleable :collapsed="false">
+        <div v-if="!template.partial" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <CFormGroup
-            v-if="!template.partial"
             :label="$t('system.templates.editor.info.headerTemplate')"
             :description="$t('system.templates.editor.info.headerTemplateDescription')"
             input-id="headerTemplateID"
@@ -82,7 +85,6 @@
           </CFormGroup>
 
           <CFormGroup
-            v-if="!template.partial"
             :label="$t('system.templates.editor.info.footerTemplate')"
             :description="$t('system.templates.editor.info.footerTemplateDescription')"
             input-id="footerTemplateID"
@@ -98,9 +100,7 @@
             />
           </CFormGroup>
         </div>
-      </Panel>
 
-      <Panel :header="$t('system.templates.editor.tabs.content')" toggleable :collapsed="false">
         <div class="flex gap-3">
           <!-- Toolbox sidebar -->
           <div class="w-64 shrink-0">
@@ -137,12 +137,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
@@ -207,7 +202,7 @@ const partialOptions = computed(() => {
 function useTemplateMetaRef(key) {
   return computed({
     get: () => template.value?.meta?.[key] || NoID,
-    set: (value) => {
+    set: value => {
       if (!template.value.meta) template.value.meta = {}
 
       if (value && value !== NoID) {
@@ -275,7 +270,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -329,7 +326,12 @@ async function handleDelete() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!template.value && !!initialTemplate.value && !isEqual(template.value, initialTemplate.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!template.value &&
+    !!initialTemplate.value &&
+    !isEqual(template.value, initialTemplate.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 
