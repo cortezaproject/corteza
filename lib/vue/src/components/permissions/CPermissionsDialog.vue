@@ -264,6 +264,27 @@ const evaluate = ref([])
 const showAddEval = ref(false)
 const addEval = ref({ roleIDs: [], userID: null })
 
+// The role the user last picked in this dialog, sticky across dialog opens and
+// page reloads. Only an explicit pick in the role selector is recorded — a
+// roleID preselected by the opener stays contextual and doesn't overwrite it.
+const LAST_ROLE_KEY = 'permissionsDialog.lastRoleID'
+
+function readLastRoleID() {
+  try {
+    return localStorage.getItem(LAST_ROLE_KEY) || null
+  } catch {
+    return null
+  }
+}
+
+function storeLastRoleID(roleID) {
+  try {
+    localStorage.setItem(LAST_ROLE_KEY, String(roleID))
+  } catch {
+    // localStorage not available
+  }
+}
+
 // Dialog visibility is controlled by the composable
 const dialogVisible = computed({
   get: () => visible.value,
@@ -340,7 +361,7 @@ watch(
           currentRoleID.value = String(opts.roleID)
           await fetchRules(currentRoleID.value)
         } else {
-          await autoSelectFirstRole()
+          await selectInitialRole()
         }
       } finally {
         processing.value = false
@@ -403,6 +424,21 @@ function describePermission(operation) {
   const description = te(descKey) ? t(descKey) : ''
 
   return { title, description }
+}
+
+// Restore the last-picked role; fall back to the first available role when
+// nothing is remembered or the remembered role no longer resolves (a successful
+// fetch always yields one rule per operation, so empty rules means the read
+// failed — e.g. the role was deleted).
+async function selectInitialRole() {
+  const remembered = readLastRoleID()
+  if (remembered) {
+    currentRoleID.value = remembered
+    await fetchRules(remembered)
+    if (rules.value.length) return
+    currentRoleID.value = null
+  }
+  await autoSelectFirstRole()
 }
 
 // Auto-select first available role
@@ -554,6 +590,7 @@ async function onAddEvalColumn() {
 
 function onRoleChange(role) {
   if (role?.roleID) {
+    storeLastRoleID(role.roleID)
     fetchRules(role.roleID)
   }
 }
