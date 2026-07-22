@@ -879,6 +879,21 @@ func (svc namespace) reloadServices(ctx context.Context, ns *types.Namespace) (e
 }
 
 func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup *types.Namespace) (*types.Namespace, error) {
+	srcNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, sourceNsID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Scope every child resource type to the source namespace, otherwise the
+	// decode returns only the namespace shell and the clone (used by project
+	// revision/publish) loses all modules, fields, pages, layouts and charts.
+	nsScope := envoyx.ResourceFilter{
+		Scope: envoyx.Scope{
+			ResourceType: types.NamespaceResourceType,
+			Identifiers:  envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID),
+		},
+	}
+
 	return svc.Clone(ctx, sourceNsID, dup, func() (envoyx.NodeSet, error) {
 		nn, _, err := svc.services.envoy.Decode(ctx, envoyx.DecodeParams{
 			Type: envoyx.DecodeTypeStore,
@@ -887,9 +902,12 @@ func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup 
 				"dal":    dal.Service(),
 			},
 			Filter: map[string]envoyx.ResourceFilter{
-				types.NamespaceResourceType: {
-					Identifiers: envoyx.MakeIdentifiers(sourceNsID),
-				},
+				types.NamespaceResourceType:   {Identifiers: envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID)},
+				types.ModuleResourceType:      nsScope,
+				types.ModuleFieldResourceType: nsScope,
+				types.PageResourceType:        nsScope,
+				types.PageLayoutResourceType:  nsScope,
+				types.ChartResourceType:       nsScope,
 			},
 		})
 		return nn, err
