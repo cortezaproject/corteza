@@ -208,11 +208,37 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 
 	old := res.Clone()
 
+	// Highest validatorID per field before the update, so newly-added field
+	// validators can be assigned the next free ID (rather than 0).
+	vvID := make(map[uint64]uint64)
+	for _, f := range old.Fields {
+		for _, v := range f.Expressions.Validators {
+			if vvID[f.ID] < v.ValidatorID {
+				vvID[f.ID] = v.ValidatorID
+			}
+		}
+	}
+
 	res.Name = upd.Name
 	res.Handle = upd.Handle
 	res.Meta = upd.Meta
 	res.Config = upd.Config
 	res.Fields = upd.Fields
+
+	// Keep the system-field DAL encoding intact (an update payload must not be
+	// able to disable it).
+	_ = handleDalSysFieldEncodingUpdate(res)
+
+	// Assure validatorIDs for validators added in this update.
+	for _, f := range res.Fields {
+		for j, v := range f.Expressions.Validators {
+			if v.ValidatorID == 0 {
+				vvID[f.ID]++
+				v.ValidatorID = vvID[f.ID]
+				f.Expressions.Validators[j] = v
+			}
+		}
+	}
 
 	if err = svc.services.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(res, old, ns)); err != nil {
 		return err
@@ -223,6 +249,16 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 	// records), matching the behaviour before the codegen refactor.
 	hasRecords := false
 	if err := updateModuleFields(ctx, s, res, old, hasRecords); err != nil {
+		return err
+	}
+
+	// Persist module + field translations (a renamed module/field must write
+	// its locale strings).
+	tt := res.EncodeTranslations()
+	for _, f := range res.Fields {
+		tt = append(tt, f.EncodeTranslations()...)
+	}
+	if err := updateTranslations(ctx, svc.ac, svc.services.locale, tt...); err != nil {
 		return err
 	}
 
