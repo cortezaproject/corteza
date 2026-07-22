@@ -19,7 +19,7 @@
       class="mb-3"
     >
       <b-card
-        v-if="!template.partial"
+        v-if="!template.partial && !fresh"
         body-class="p-0"
         header-class="border-bottom"
         footer-class="border-top d-flex justify-content-end flex-wrap flex-fill-child gap-1"
@@ -217,6 +217,10 @@ export default {
   },
 
   computed: {
+    fresh () {
+      return !this.template.templateID || this.template.templateID === NoID
+    },
+
     partialOptions () {
       const options = this.partials
         .filter(({ templateID }) => templateID !== this.template.templateID)
