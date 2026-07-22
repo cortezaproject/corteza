@@ -92,10 +92,7 @@ func (svc *node) Update(ctx context.Context, upd *types.Node) (res *types.Node, 
 		}
 		res.Name = upd.Name
 		res.BaseURL = upd.BaseURL
-		res.Status = upd.Status
 		res.Contact = upd.Contact
-		res.PairToken = upd.PairToken
-		res.AuthToken = upd.AuthToken
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()
 

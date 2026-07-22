@@ -103,10 +103,8 @@ func (svc *reminder) Update(ctx context.Context, upd *types.Reminder) (res *type
 		}
 		res.Resource = upd.Resource
 		res.Payload = upd.Payload
-		res.SnoozeCount = upd.SnoozeCount
 		res.AssignedTo = upd.AssignedTo
 		res.AssignedBy = upd.AssignedBy
-		res.DismissedBy = upd.DismissedBy
 		res.UpdatedAt = now()
 
 		if err = store.UpdateReminder(ctx, s, res); err != nil {

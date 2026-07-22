@@ -201,8 +201,9 @@ user: {
 		undelete: true
 
 		// confirmation flag is only changeable through ToggleEmailConfirmation;
-		// generic updates must not clobber it (REST update payload has no such field)
-		omitUpdateFields: ["email_confirmed"]
+		// generic updates must not clobber it (REST update payload has no such field).
+		// username is likewise not an update param, so keep the stored value.
+		omitUpdateFields: ["email_confirmed", "username"]
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 

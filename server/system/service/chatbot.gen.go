@@ -131,7 +131,6 @@ func (svc *chatbot) Update(ctx context.Context, upd *types.Chatbot) (res *types.
 		res.Handle = upd.Handle
 		res.Name = upd.Name
 		res.Enabled = upd.Enabled
-		res.WidgetKey = upd.WidgetKey
 		res.SessionTTL = upd.SessionTTL
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()

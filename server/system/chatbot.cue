@@ -207,6 +207,10 @@ chatbot: {
 
 		undelete: true
 
+		// widget_key is generated at create and rotated only via
+		// RegenerateWidgetKey; a plain update must not wipe it.
+		omitUpdateFields: ["widget_key"]
+
 		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
 		customFunctions: [

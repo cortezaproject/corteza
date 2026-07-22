@@ -61,6 +61,11 @@ reminder: {
 		// The action-log Update prop is named "updated" (not the default "update").
 		updateProp: "updated"
 
+		// snooze_count and dismissed_by are managed by onSnooze/onDismiss (and the
+		// onUpdate remind-at reset), not by a plain update payload; excluding them
+		// keeps a generic update from zeroing them.
+		omitUpdateFields: ["snooze_count", "dismissed_by"]
+
 		undelete: false
 
 		customBodyOps:   ["lookup", "search", "create", "update", "delete"]

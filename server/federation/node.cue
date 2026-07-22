@@ -73,6 +73,11 @@ node: {
 		lookup:   false
 		undelete: true
 
+		// status and the pairing tokens are managed by the pairing/handshake
+		// flow, not by a plain node update; excluding them keeps a metadata
+		// update (name/baseURL/contact) from wiping the node's auth to zero.
+		omitUpdateFields: ["status", "pair_token", "auth_token"]
+
 		actionProp:     "node"
 		omitCreateProp: true
 		updateProp:     "node"

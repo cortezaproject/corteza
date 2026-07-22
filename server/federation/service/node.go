@@ -104,7 +104,9 @@ func (svc *node) onUpdate(ctx context.Context, s store.Storer, upd *types.Node, 
 	res.Name = upd.Name
 	res.BaseURL = upd.BaseURL
 	res.Contact = upd.Contact
-	res.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+	// Stamp upd so the generated field-copy (res.UpdatedBy = upd.UpdatedBy) that
+	// runs after this hook applies it; stamping res would be overwritten with 0.
+	upd.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 	return nil
 }
 
