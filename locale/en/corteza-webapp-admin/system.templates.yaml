@@ -2,6 +2,10 @@ editor:
   content:
     editor:
       unsupported: Unsupported editor
+    footerTemplate: Footer template
+    footerTemplateDescription: Partial template rendered below the main content when this template is rendered.
+    headerTemplate: Header template
+    headerTemplateDescription: Partial template rendered above the main content when this template is rendered.
     partial: Partial template
     preview:
       html: Preview HTML
@@ -32,10 +36,6 @@ editor:
       short: Short name *
     partial: Partial template
     partialDescription: Partial templates may be used inside other templates such as headers and footers. Partial templates may not be used on their own.
-    headerTemplate: Header template
-    headerTemplateDescription: Partial template rendered and attached as the PDF header when this template is converted to PDF.
-    footerTemplate: Footer template
-    footerTemplateDescription: Partial template rendered and attached as the PDF footer when this template is converted to PDF.
     title: Basic information
     type: Template type
     undelete: Undelete
