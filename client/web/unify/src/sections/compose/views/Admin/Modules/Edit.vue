@@ -215,23 +215,28 @@
                     </div>
 
                     <div class="flex flex-col gap-1">
-                      <div class="flex items-center gap-1">
+                      <InputGroup>
                         <InputText
                           v-model="field.label"
                           class="w-full"
                           size="small"
                           :invalid="validationTriggered && (!field.label || !field.label.trim())"
                         />
-                        <Button
-                          v-if="showTranslatorButton && isEdit && field.fieldID && field.fieldID !== '0'"
-                          icon="pi pi-language"
-                          text
-                          size="small"
-                          severity="secondary"
-                          v-tooltip.top="$t('field.translate.label')"
-                          @click="openFieldTranslation(field)"
-                        />
-                      </div>
+                        <InputGroupAddon
+                          v-if="
+                            showTranslatorButton && isEdit && field.fieldID && field.fieldID !== '0'
+                          "
+                        >
+                          <Button
+                            icon="pi pi-language"
+                            severity="secondary"
+                            size="small"
+                            class="w-full border-none"
+                            v-tooltip.top="$t('field.translate.label')"
+                            @click="openFieldTranslation(field)"
+                          />
+                        </InputGroupAddon>
+                      </InputGroup>
                       <Message
                         v-if="validationTriggered && (!field.label || !field.label.trim())"
                         severity="error"
@@ -269,7 +274,16 @@
                       <Checkbox v-model="field.isMulti" :binary="true" />
                     </div>
 
-                    <div class="flex justify-center">
+                    <div class="flex items-center justify-end gap-1">
+                      <Button
+                        v-if="canGrantField(field)"
+                        icon="pi pi-lock"
+                        text
+                        severity="secondary"
+                        size="small"
+                        v-tooltip.top="$t('general.label.permissions')"
+                        @click="openFieldPermissions(field)"
+                      />
                       <Button
                         v-if="fieldActionsMenuItems(field, index).length"
                         icon="pi pi-ellipsis-v"
@@ -411,7 +425,11 @@ import ModuleIssues from '@/sections/compose/components/Admin/Module/ModuleIssue
 import ModuleTranslator from '@/sections/compose/components/Admin/Module/ModuleTranslator.vue'
 import { useTranslatorStore } from '@/sections/compose/stores/translator'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
-import { applyFieldTranslations, applySelectTranslations, applyBoolTranslations } from '@/sections/compose/lib/resource-translations'
+import {
+  applyFieldTranslations,
+  applySelectTranslations,
+  applyBoolTranslations,
+} from '@/sections/compose/lib/resource-translations'
 
 const { CInputDelete, CRouterLinkButton } = components
 import { useI18n } from 'vue-i18n'
@@ -573,7 +591,7 @@ const fieldFormListColumns = computed(() => [
     width: '6rem',
     headerClass: 'text-center',
   },
-  { width: '2.5rem' },
+  { width: '5rem' },
 ])
 
 const systemFieldsForDisplay = computed(() => {
@@ -747,15 +765,44 @@ function openFieldTranslation(field) {
   const fieldRes = `compose:module-field/${nsID}/${modID}/${field.fieldID}`
   translatorStore.open({
     resource: fieldRes,
-    titles: { [fieldRes]: t('translator.resources.module.field.title', { name: field.label || field.name }) },
-    fetcher: () => $ComposeAPI.moduleListTranslations({ namespaceID: nsID, moduleID: modID })
-      .then((set) => set.filter((tr) => tr.resource === fieldRes)
-        .filter((tr) => !tr.key.startsWith('meta.options') && !tr.key.startsWith('meta.bool'))),
-    updater: async (changes) => {
-      await $ComposeAPI.moduleUpdateTranslations({ namespaceID: nsID, moduleID: modID, translations: changes })
+    titles: {
+      [fieldRes]: t('translator.resources.module.field.title', { name: field.label || field.name }),
+    },
+    fetcher: () =>
+      $ComposeAPI
+        .moduleListTranslations({ namespaceID: nsID, moduleID: modID })
+        .then(set =>
+          set
+            .filter(tr => tr.resource === fieldRes)
+            .filter(tr => !tr.key.startsWith('meta.options') && !tr.key.startsWith('meta.bool')),
+        ),
+    updater: async changes => {
+      await $ComposeAPI.moduleUpdateTranslations({
+        namespaceID: nsID,
+        moduleID: modID,
+        translations: changes,
+      })
       const fresh = await $ComposeAPI.moduleListTranslations({ namespaceID: nsID, moduleID: modID })
       applyFieldTranslations(field, fresh, currentLanguage.value, fieldRes)
     },
+  })
+}
+
+function canGrantField(field) {
+  return !!(
+    field &&
+    !field.isSystem &&
+    isEdit.value &&
+    field.fieldID &&
+    field.fieldID !== '0' &&
+    module.value?.canGrant
+  )
+}
+
+function openFieldPermissions(field) {
+  openPermissions({
+    resource: `corteza::compose:module-field/${module.value.namespaceID}/${module.value.moduleID}/${field.fieldID}`,
+    title: field.label || field.name || field.fieldID,
   })
 }
 
@@ -764,29 +811,10 @@ function fieldActionsMenuItems(field, index) {
 
   const items = []
 
-  if (isEdit.value && field.fieldID && field.fieldID !== '0' && module.value?.canGrant) {
-    items.push({
-      label: t('general.label.permissions'),
-      icon: 'pi pi-lock',
-      command: () => {
-        openPermissions({
-          resource: `corteza::compose:module-field/${module.value.namespaceID}/${module.value.moduleID}/${field.fieldID}`,
-          title: field.label || field.name || field.fieldID,
-        })
-      },
-    })
-  }
-
   if (showTranslatorButton.value && isEdit.value && field.fieldID && field.fieldID !== '0') {
     const nsID = props.namespace.namespaceID
     const modID = module.value.moduleID
     const fieldRes = `compose:module-field/${nsID}/${modID}/${field.fieldID}`
-
-    items.push({
-      label: t('field.translate.label'),
-      icon: 'pi pi-language',
-      command: () => openFieldTranslation(field),
-    })
 
     if (field.kind === 'Select') {
       items.push({
@@ -795,17 +823,33 @@ function fieldActionsMenuItems(field, index) {
         command: () => {
           translatorStore.open({
             resource: fieldRes,
-            titles: { [fieldRes]: t('translator.resources.module.field.selectOptions', { name: field.label || field.name }) },
-            keyPrettifier: (key) => {
+            titles: {
+              [fieldRes]: t('translator.resources.module.field.selectOptions', {
+                name: field.label || field.name,
+              }),
+            },
+            keyPrettifier: key => {
               const match = key.match(/^meta\.options\.(.+)\.text$/)
               return match ? match[1] : key
             },
-            fetcher: () => $ComposeAPI.moduleListTranslations({ namespaceID: nsID, moduleID: modID })
-              .then((set) => set.filter((tr) => tr.resource === fieldRes)
-                .filter((tr) => tr.key.startsWith('meta.options') && tr.key.endsWith('.text'))),
-            updater: async (changes) => {
-              await $ComposeAPI.moduleUpdateTranslations({ namespaceID: nsID, moduleID: modID, translations: changes })
-              const fresh = await $ComposeAPI.moduleListTranslations({ namespaceID: nsID, moduleID: modID })
+            fetcher: () =>
+              $ComposeAPI
+                .moduleListTranslations({ namespaceID: nsID, moduleID: modID })
+                .then(set =>
+                  set
+                    .filter(tr => tr.resource === fieldRes)
+                    .filter(tr => tr.key.startsWith('meta.options') && tr.key.endsWith('.text')),
+                ),
+            updater: async changes => {
+              await $ComposeAPI.moduleUpdateTranslations({
+                namespaceID: nsID,
+                moduleID: modID,
+                translations: changes,
+              })
+              const fresh = await $ComposeAPI.moduleListTranslations({
+                namespaceID: nsID,
+                moduleID: modID,
+              })
               applySelectTranslations(field, fresh, currentLanguage.value, fieldRes)
             },
           })
@@ -820,13 +864,29 @@ function fieldActionsMenuItems(field, index) {
         command: () => {
           translatorStore.open({
             resource: fieldRes,
-            titles: { [fieldRes]: t('translator.resources.module.field.boolLabels', { name: field.label || field.name }) },
-            fetcher: () => $ComposeAPI.moduleListTranslations({ namespaceID: nsID, moduleID: modID })
-              .then((set) => set.filter((tr) => tr.resource === fieldRes)
-                .filter((tr) => tr.key.startsWith('meta.bool') && tr.key.endsWith('.label'))),
-            updater: async (changes) => {
-              await $ComposeAPI.moduleUpdateTranslations({ namespaceID: nsID, moduleID: modID, translations: changes })
-              const fresh = await $ComposeAPI.moduleListTranslations({ namespaceID: nsID, moduleID: modID })
+            titles: {
+              [fieldRes]: t('translator.resources.module.field.boolLabels', {
+                name: field.label || field.name,
+              }),
+            },
+            fetcher: () =>
+              $ComposeAPI
+                .moduleListTranslations({ namespaceID: nsID, moduleID: modID })
+                .then(set =>
+                  set
+                    .filter(tr => tr.resource === fieldRes)
+                    .filter(tr => tr.key.startsWith('meta.bool') && tr.key.endsWith('.label')),
+                ),
+            updater: async changes => {
+              await $ComposeAPI.moduleUpdateTranslations({
+                namespaceID: nsID,
+                moduleID: modID,
+                translations: changes,
+              })
+              const fresh = await $ComposeAPI.moduleListTranslations({
+                namespaceID: nsID,
+                moduleID: modID,
+              })
               applyBoolTranslations(field, fresh, currentLanguage.value, fieldRes)
             },
           })
@@ -1087,4 +1147,3 @@ function exportModule() {
   URL.revokeObjectURL(url)
 }
 </script>
-
