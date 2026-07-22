@@ -206,7 +206,6 @@ func toLabeledAgents(set []*types.Agent) []label.LabeledResource {
 
 	return ll
 }
-func (svc *agent) guard(_ context.Context, _ *types.Agent) error { return nil }
 
 func (svc *agent) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

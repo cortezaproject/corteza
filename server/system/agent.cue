@@ -210,6 +210,9 @@ agent: {
 	}
 
 	service: {
+		// project-state lock: block writes unless the owning project is a draft
+		guard: true
+
 		genAccessController: true
 
 		undelete: false

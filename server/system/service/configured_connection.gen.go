@@ -73,9 +73,6 @@ func toLabeledConfiguredConnections(set []*types.ConfiguredConnection) []label.L
 
 	return ll
 }
-func (svc *configuredConnection) guard(_ context.Context, _ *types.ConfiguredConnection) error {
-	return nil
-}
 
 func (svc *configuredConnection) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

@@ -171,6 +171,10 @@ func (svc *trigger) FindByID(ctx context.Context, triggerID uint64) (res *types.
 // new is mutated in place so the generated res=new carries the created trigger.
 // It adds a new trigger resource, saves it into the store and updates the
 // service's registrations.
+func (svc *trigger) guard(ctx context.Context, res *types.Trigger) error {
+	return guardProjectWritable(ctx, svc.store, res.ProjectID)
+}
+
 func (svc *trigger) onCreate(ctx context.Context, new *types.Trigger) (err error) {
 	var (
 		cUser = auth.GetIdentityFromContext(ctx).Identity()

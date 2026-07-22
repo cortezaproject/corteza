@@ -90,7 +90,6 @@ func toLabeledWorkflows(set []*types.Workflow) []label.LabeledResource {
 
 	return ll
 }
-func (svc *workflow) guard(_ context.Context, _ *types.Workflow) error { return nil }
 
 func (svc *workflow) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

@@ -52,6 +52,10 @@ func (svc *agent) Get(ctx context.Context, ID uint64) (*types.Agent, error) {
 // onLookup is the custom body for the generated FindByID. The generated method
 // owns the action-log scaffold + recordAction; the load, read access check and
 // label load (which the standard template does not emit) live here.
+func (svc *agent) guard(ctx context.Context, res *types.Agent) error {
+	return guardProjectWritable(ctx, svc.store, res.ProjectID)
+}
+
 func (svc *agent) onLookup(ctx context.Context, ID uint64, aProps *agentActionProps) (a *types.Agent, err error) {
 	if a, err = loadAgent(ctx, svc.store, ID); err != nil {
 		return nil, err

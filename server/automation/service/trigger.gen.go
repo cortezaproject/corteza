@@ -194,7 +194,6 @@ func toLabeledTriggers(set []*types.Trigger) []label.LabeledResource {
 
 	return ll
 }
-func (svc *trigger) guard(_ context.Context, _ *types.Trigger) error { return nil }
 
 func (svc *trigger) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

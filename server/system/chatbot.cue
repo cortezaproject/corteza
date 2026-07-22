@@ -202,6 +202,9 @@ chatbot: {
 	}
 
 	service: {
+		// project-state lock: block writes unless the owning project is a draft
+		guard: true
+
 		extraServices:       false
 		genAccessController: true
 

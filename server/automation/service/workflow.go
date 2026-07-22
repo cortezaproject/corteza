@@ -24,11 +24,11 @@ import (
 
 type (
 	workflowServices struct {
-		eventbus    workflowEventTriggerHandler
-		triggers    *trigger
-		session     *session
-		opt         options.WorkflowOpt
-		log         *zap.Logger
+		eventbus workflowEventTriggerHandler
+		triggers *trigger
+		session  *session
+		opt      options.WorkflowOpt
+		log      *zap.Logger
 		// cache of workflows, graphs to workflow ID (key, uint64)
 		cache    map[uint64]*wfCacheItem
 		muxCache *sync.RWMutex
@@ -136,6 +136,10 @@ func (svc *workflow) LookupByHandle(ctx context.Context, handle string) (*types.
 
 // Create adds new workflow resource and saves it into store
 // It updates service's cache
+func (svc *workflow) guard(ctx context.Context, res *types.Workflow) error {
+	return guardProjectWritable(ctx, svc.store, res.ProjectID)
+}
+
 func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types.Workflow, err error) {
 	var (
 		wap   = &workflowActionProps{workflow: new}

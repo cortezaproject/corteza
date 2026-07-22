@@ -229,7 +229,6 @@ func toLabeledChatbots(set []*types.Chatbot) []label.LabeledResource {
 
 	return ll
 }
-func (svc *chatbot) guard(_ context.Context, _ *types.Chatbot) error { return nil }
 
 func (svc *chatbot) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

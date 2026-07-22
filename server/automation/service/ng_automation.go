@@ -156,6 +156,10 @@ func (svc *ngAutomation) LookupByHandle(ctx context.Context, handle string) (*ty
 
 // Create adds new ngAutomation resource and saves it into store
 // It updates service's cache
+func (svc *ngAutomation) guard(ctx context.Context, res *types.NgAutomation) error {
+	return guardProjectWritable(ctx, svc.store, res.ProjectID)
+}
+
 func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (automation *types.NgAutomation, err error) {
 	var (
 		wap   = &ngAutomationActionProps{ngAutomation: new}

@@ -76,6 +76,10 @@ func ConfiguredConnectionSvc() *configuredConnection {
 	}
 }
 
+func (svc *configuredConnection) guard(ctx context.Context, res *types.ConfiguredConnection) error {
+	return guardProjectWritable(ctx, svc.store, res.ProjectID)
+}
+
 func (svc *configuredConnection) WithDalConnection(s dalConMngmntSvc) *configuredConnection {
 	svc.services.dalConnection = s
 	return svc

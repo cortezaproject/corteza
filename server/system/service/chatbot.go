@@ -23,6 +23,10 @@ func (svc *chatbot) Get(ctx context.Context, ID uint64) (*types.Chatbot, error) 
 	return svc.FindByID(ctx, ID)
 }
 
+func (svc *chatbot) guard(ctx context.Context, res *types.Chatbot) error {
+	return guardProjectWritable(ctx, svc.store, res.ProjectID)
+}
+
 func (svc *chatbot) onLookup(ctx context.Context, ID uint64, aProps *chatbotActionProps) (c *types.Chatbot, err error) {
 	if c, err = loadChatbot(ctx, svc.store, ID); err != nil {
 		return nil, err

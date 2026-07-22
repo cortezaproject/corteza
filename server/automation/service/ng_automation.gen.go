@@ -91,7 +91,6 @@ func toLabeledNgAutomations(set []*types.NgAutomation) []label.LabeledResource {
 
 	return ll
 }
-func (svc *ngAutomation) guard(_ context.Context, _ *types.NgAutomation) error { return nil }
 
 func (svc *ngAutomation) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

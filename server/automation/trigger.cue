@@ -159,6 +159,9 @@ trigger: {
 	}
 
 	service: {
+		// project-state lock: block writes unless the owning project is a draft
+		guard: true
+
 		// trigger exposes a bespoke LookupByID (custom name + label load), kept in
 		// the companion file -- do not generate FindByID.
 		lookup: false
