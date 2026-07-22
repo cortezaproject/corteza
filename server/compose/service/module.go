@@ -15,9 +15,11 @@ import (
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/filter"
 
+	"github.com/crusttech/human/server/compose/service/event"
 	"github.com/crusttech/human/server/compose/service/values"
 	"github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/locale"
@@ -31,6 +33,7 @@ type (
 		locale           ResourceTranslationsManagerService
 		dal              dal.FullService
 		schemaAltManager schemaAltManager
+		eventbus         eventDispatcher
 	}
 
 	moduleAccessController interface {
@@ -149,6 +152,7 @@ func Module(am schemaAltManager) *module {
 			locale:           DefaultResourceTranslation,
 			dal:              dal.Service(),
 			schemaAltManager: am,
+			eventbus:         eventbus.Service(),
 		},
 	}
 }
@@ -210,6 +214,10 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 	res.Config = upd.Config
 	res.Fields = upd.Fields
 
+	if err = svc.services.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(res, old, ns)); err != nil {
+		return err
+	}
+
 	// hasRecords protects field name/kind changes once a module holds data; it
 	// stays false here (the DAL model is the source of truth for materialized
 	// records), matching the behaviour before the codegen refactor.
@@ -224,6 +232,8 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 		return err
 	}
 
+	_ = svc.services.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(res, old, ns))
+
 	svc.procDal(res)
 	return nil
 }
@@ -232,11 +242,28 @@ func (svc *module) onDelete(ctx context.Context, s store.Storer, namespaceID uin
 	if !svc.ac.CanDeleteModule(ctx, res) {
 		return ModuleErrNotAllowedToDelete()
 	}
-	res.DeletedAt = now()
-	if err := store.UpdateComposeModule(ctx, s, res); err != nil {
+
+	ns, err := loadNamespace(ctx, s, res.NamespaceID)
+	if err != nil {
 		return err
 	}
-	return DalModelRemove(ctx, svc.services.dal, res)
+
+	old := res.Clone()
+
+	if err = svc.services.eventbus.WaitFor(ctx, event.ModuleBeforeDelete(res, old, ns)); err != nil {
+		return err
+	}
+
+	res.DeletedAt = now()
+	if err = store.UpdateComposeModule(ctx, s, res); err != nil {
+		return err
+	}
+	if err = DalModelRemove(ctx, svc.services.dal, res); err != nil {
+		return err
+	}
+
+	_ = svc.services.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns))
+	return nil
 }
 
 func (svc *module) onUndelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Module, aProps *moduleActionProps) error {
@@ -465,6 +492,10 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 
 		aProps.setChanged(new)
 
+		if err = svc.services.eventbus.WaitFor(ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
+			return err
+		}
+
 		if err = store.CreateComposeModule(ctx, s, new); err != nil {
 			return err
 		}
@@ -489,6 +520,8 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 		if err = DalModelReplace(ctx, s, svc.services.schemaAltManager, svc.services.dal, ns, new); err != nil {
 			return err
 		}
+
+		_ = svc.services.eventbus.WaitFor(ctx, event.ModuleAfterCreate(new, nil, ns))
 
 		svc.procDal(new)
 		return nil

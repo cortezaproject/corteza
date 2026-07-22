@@ -5,7 +5,9 @@ import (
 	"time"
 
 	intAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service/event"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
@@ -19,6 +21,7 @@ type (
 	reminderServices struct {
 		log            *zap.Logger
 		reminderSender reminderSender
+		eventbus       eventDispatcher
 	}
 
 	reminderAccessController interface {
@@ -51,6 +54,7 @@ func Reminder(ctx context.Context, log *zap.Logger, rs reminderSender) ReminderS
 		services: &reminderServices{
 			log:            log,
 			reminderSender: rs,
+			eventbus:       eventbus.Service(),
 		},
 	}
 }
@@ -89,7 +93,14 @@ func (svc *reminder) onCreate(ctx context.Context, new *types.Reminder) error {
 	new.ID = nextID()
 	new.CreatedAt = *now()
 
-	return store.CreateReminder(ctx, svc.store, new)
+	if err := svc.services.eventbus.WaitFor(ctx, event.ReminderBeforeCreate(new, nil)); err != nil {
+		return err
+	}
+	if err := store.CreateReminder(ctx, svc.store, new); err != nil {
+		return err
+	}
+	svc.services.eventbus.Dispatch(ctx, event.ReminderAfterCreate(new, nil))
+	return nil
 }
 
 func (svc *reminder) onUpdate(ctx context.Context, s store.Storer, upd *types.Reminder, res *types.Reminder, aProps *reminderActionProps, before func() error, after func() error) error {
@@ -120,12 +131,26 @@ func (svc *reminder) onUpdate(ctx context.Context, s store.Storer, upd *types.Re
 
 	res.RemindAt = upd.RemindAt
 
-	return after()
+	if err := svc.services.eventbus.WaitFor(ctx, event.ReminderBeforeUpdate(upd, res)); err != nil {
+		return err
+	}
+	if err := after(); err != nil {
+		return err
+	}
+	svc.services.eventbus.Dispatch(ctx, event.ReminderAfterUpdate(upd, res))
+	return nil
 }
 
 func (svc *reminder) onDelete(ctx context.Context, s store.Storer, res *types.Reminder, aProps *reminderActionProps) error {
+	if err := svc.services.eventbus.WaitFor(ctx, event.ReminderBeforeDelete(nil, res)); err != nil {
+		return err
+	}
 	res.DeletedAt = now()
-	return store.UpdateReminder(ctx, s, res)
+	if err := store.UpdateReminder(ctx, s, res); err != nil {
+		return err
+	}
+	svc.services.eventbus.Dispatch(ctx, event.ReminderAfterDelete(nil, res))
+	return nil
 }
 
 func (svc *reminder) onFindByIDs(ctx context.Context, aProps *reminderActionProps, IDs []uint64) (types.ReminderSet, error) {
@@ -160,7 +185,14 @@ func (svc *reminder) onDismiss(ctx context.Context, aProps *reminderActionProps,
 	r.DismissedAt = &n
 	r.DismissedBy = svc.currentUser(ctx)
 
-	return store.UpdateReminder(ctx, svc.store, r)
+	if err = svc.services.eventbus.WaitFor(ctx, event.ReminderBeforeDismiss(nil, r)); err != nil {
+		return err
+	}
+	if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
+		return err
+	}
+	svc.services.eventbus.Dispatch(ctx, event.ReminderAfterDismiss(nil, r))
+	return nil
 }
 
 func (svc *reminder) onUndismiss(ctx context.Context, aProps *reminderActionProps, ID uint64) error {
@@ -200,7 +232,14 @@ func (svc *reminder) onSnooze(ctx context.Context, aProps *reminderActionProps, 
 	r.SnoozeCount++
 	r.RemindAt = remindAt
 
-	return store.UpdateReminder(ctx, svc.store, r)
+	if err = svc.services.eventbus.WaitFor(ctx, event.ReminderBeforeSnooze(nil, r)); err != nil {
+		return err
+	}
+	if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
+		return err
+	}
+	svc.services.eventbus.Dispatch(ctx, event.ReminderAfterSnooze(nil, r))
+	return nil
 }
 
 func (svc *reminder) checkAssignee(ctx context.Context, rm *types.Reminder) error {

@@ -9,11 +9,13 @@ import (
 	"time"
 
 	automationService "github.com/crusttech/human/server/automation/service"
+	"github.com/crusttech/human/server/compose/service/event"
 	"github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/envoyx"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/locale"
@@ -25,11 +27,12 @@ import (
 
 type (
 	namespaceServices struct {
-		locale  ResourceTranslationsManagerService
-		modAc   moduleAccessController
-		pageAc  pageAccessController
-		chartAc chartAccessController
-		envoy   *envoyx.Service
+		locale   ResourceTranslationsManagerService
+		modAc    moduleAccessController
+		pageAc   pageAccessController
+		chartAc  chartAccessController
+		envoy    *envoyx.Service
+		eventbus eventDispatcher
 	}
 
 	namespaceImportSession struct {
@@ -94,11 +97,12 @@ func Namespace() *namespace {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		services: &namespaceServices{
-			locale:  DefaultResourceTranslation,
-			modAc:   DefaultAccessControl,
-			pageAc:  DefaultAccessControl,
-			chartAc: DefaultAccessControl,
-			envoy:   envoyx.Global(),
+			locale:   DefaultResourceTranslation,
+			modAc:    DefaultAccessControl,
+			pageAc:   DefaultAccessControl,
+			chartAc:  DefaultAccessControl,
+			envoy:    envoyx.Global(),
+			eventbus: eventbus.Service(),
 		},
 	}
 }
@@ -134,6 +138,10 @@ func (svc *namespace) onCreate(ctx context.Context, new *types.Namespace) error 
 			return err
 		}
 
+		if err = svc.services.eventbus.WaitFor(ctx, event.NamespaceBeforeCreate(new, nil)); err != nil {
+			return err
+		}
+
 		new.ID = nextID()
 		new.CreatedAt = *now()
 		new.UpdatedAt = nil
@@ -147,7 +155,12 @@ func (svc *namespace) onCreate(ctx context.Context, new *types.Namespace) error 
 			return err
 		}
 
-		return label.Create(ctx, s, new)
+		if err = label.Create(ctx, s, new); err != nil {
+			return err
+		}
+
+		_ = svc.services.eventbus.WaitFor(ctx, event.NamespaceAfterCreate(new, nil))
+		return nil
 	})
 }
 
@@ -160,15 +173,22 @@ func (svc *namespace) onUpdate(ctx context.Context, s store.Storer, upd, res *ty
 		return err
 	}
 
+	old := res.Clone()
+
 	res.Name = upd.Name
 	res.Slug = upd.Slug
 	res.Enabled = upd.Enabled
 	res.Meta = upd.Meta
 
+	if err := svc.services.eventbus.WaitFor(ctx, event.NamespaceBeforeUpdate(res, old)); err != nil {
+		return err
+	}
+
 	if err := updateTranslations(ctx, svc.ac, svc.services.locale, res.EncodeTranslations()...); err != nil {
 		return err
 	}
 
+	_ = svc.services.eventbus.WaitFor(ctx, event.NamespaceAfterUpdate(res, old))
 	return nil
 }
 
@@ -176,8 +196,20 @@ func (svc *namespace) onDelete(ctx context.Context, s store.Storer, res *types.N
 	if !svc.ac.CanDeleteNamespace(ctx, res) {
 		return NamespaceErrNotAllowedToDelete()
 	}
+
+	old := res.Clone()
+
+	if err := svc.services.eventbus.WaitFor(ctx, event.NamespaceBeforeDelete(res, old)); err != nil {
+		return err
+	}
+
 	res.DeletedAt = now()
-	return store.UpdateComposeNamespace(ctx, s, res)
+	if err := store.UpdateComposeNamespace(ctx, s, res); err != nil {
+		return err
+	}
+
+	_ = svc.services.eventbus.WaitFor(ctx, event.NamespaceAfterDelete(nil, old))
+	return nil
 }
 
 // search fn() orchestrates pages search, namespace preload and check
