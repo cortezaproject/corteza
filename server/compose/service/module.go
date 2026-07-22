@@ -178,11 +178,49 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 	if err := validateModuleDedupRules(ctx, upd); err != nil {
 		return ModuleErrDedupConfigurationInvalidMissingConstraint()
 	}
+
+	// The generated Update wrapper loads only the module row, not its fields.
+	// Load the stored fields so updateModuleFields can diff the incoming set
+	// against them (deciding what to create/update/delete) and backfill each
+	// field's namespace, module and project IDs.
+	//
+	// Skipping this has two effects: field add/edit/delete silently never
+	// persist, and the returned fields carry zero namespace/module IDs — which
+	// collapses their RBAC resource to a wildcard, so CanReadRecordValue /
+	// CanUpdateRecordValue report false for every field (even for a super-admin,
+	// because wildcard resources are rejected before the bypass check).
+	if err := loadModuleFields(ctx, s, res); err != nil {
+		return err
+	}
+
+	ns, err := loadNamespace(ctx, s, res.NamespaceID)
+	if err != nil {
+		return err
+	}
+
+	old := res.Clone()
+
 	res.Name = upd.Name
 	res.Handle = upd.Handle
 	res.Meta = upd.Meta
 	res.Config = upd.Config
 	res.Fields = upd.Fields
+
+	// hasRecords protects field name/kind changes once a module holds data; it
+	// stays false here (the DAL model is the source of truth for materialized
+	// records), matching the behaviour before the codegen refactor.
+	hasRecords := false
+	if err := updateModuleFields(ctx, s, res, old, hasRecords); err != nil {
+		return err
+	}
+
+	// Reflect the field changes into the DAL model so records can use the new
+	// schema without a reload.
+	if err := DalModelReplace(ctx, s, svc.services.schemaAltManager, svc.services.dal, ns, res); err != nil {
+		return err
+	}
+
+	svc.procDal(res)
 	return nil
 }
 
@@ -276,7 +314,6 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 
 	return set, f, svc.recordAction(ctx, aProps, ModuleActionSearch, err)
 }
-
 
 // FindByName tries to find module by name
 func (svc module) FindByName(ctx context.Context, namespaceID uint64, name string) (m *types.Module, err error) {
@@ -515,7 +552,6 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 	return set, filter, err
 }
 
-
 // lookup fn() orchestrates module lookup, namespace preload and check, module reading...
 func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
 	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
@@ -569,7 +605,6 @@ func (svc module) uniqueCheck(ctx context.Context, m *types.Module) (err error) 
 
 	return nil
 }
-
 
 // updates module fields
 // expecting to receive all module fields, as it deletes the rest
