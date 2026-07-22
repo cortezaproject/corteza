@@ -508,13 +508,80 @@ func (svc *page) onUpdate(ctx context.Context, s store.Storer, upd *types.Page, 
 }
 
 func (svc *page) onDelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Page, strategy types.PageChildrenDeleteStrategy, _ *pageActionProps) error {
+	var (
+		validChildren, pp types.PageSet
+
+		skipUndeleted = func(p *types.Page) (bool, error) {
+			return p.DeletedAt == nil, nil
+		}
+	)
+
+	deleteOne := func(ns *types.Namespace, p *types.Page) error {
+		_, err := svc.updater(ctx, s, ns, p, PageActionDelete, svc.handleDelete)
+		return err
+	}
+
+	// Force skips the family-tree resolution and deletes only this page.
+	if strategy == types.PageChildrenOnDeleteForce {
+		ns, err := loadNamespace(ctx, svc.store, namespaceID)
+		if err != nil {
+			return err
+		}
+		return deleteOne(ns, res)
+	}
+
+	// Load all pages in the namespace to resolve the family tree.
+	pp, _, err := store.SearchComposePages(ctx, s, types.PageFilter{NamespaceID: namespaceID})
+	if err != nil {
+		return err
+	}
+
+	// res was loaded by the generated wrapper; use the copy from the full set so
+	// FindByParent/RecursiveWalk operate on the same instances.
+	if ppRes := pp.FindByID(res.ID); ppRes != nil {
+		res = ppRes
+	}
+
+	validChildren, _ = pp.FindByParent(res.ID).Filter(skipUndeleted)
+
 	ns, err := loadNamespace(ctx, svc.store, namespaceID)
 	if err != nil {
 		return err
 	}
-	_ = strategy
-	_, err = svc.updater(ctx, s, ns, res, PageActionDelete, svc.handleDelete)
-	return err
+
+	switch strategy {
+	case types.PageChildrenOnDeleteAbort:
+		if len(validChildren) > 0 {
+			return PageErrDeleteAbortedForPageWithSubpages()
+		}
+
+	case types.PageChildrenOnDeleteRebase:
+		err = validChildren.Walk(func(child *types.Page) error {
+			updChild := child.Clone()
+			updChild.SelfID = res.SelfID
+			_, err := svc.updater(ctx, s, ns, child, PageActionUpdate, svc.handleUpdate(ctx, updChild))
+			return err
+		})
+		if err != nil {
+			return err
+		}
+
+	case types.PageChildrenOnDeleteCascade:
+		err = pp.RecursiveWalk(res, func(child *types.Page, _ *types.Page) error {
+			if child.DeletedAt != nil {
+				return nil
+			}
+			return deleteOne(ns, child)
+		})
+		if err != nil {
+			return err
+		}
+
+	default:
+		return PageErrUnknownDeleteStrategy()
+	}
+
+	return deleteOne(ns, res)
 }
 
 func (svc *page) onUndelete(ctx context.Context, s store.Storer, namespaceID uint64, res *types.Page, _ *pageActionProps) error {
