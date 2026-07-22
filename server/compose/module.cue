@@ -199,6 +199,9 @@ module: {
 	}
 
 	service: {
+		// project-state lock: writes are blocked unless the owning project is a draft
+		guard: true
+
 		scoped: true
 
 		undelete: true

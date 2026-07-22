@@ -426,6 +426,10 @@ func (svc *page) UpdateConfig(ss *systemTypes.AppSettings) {
 	}
 }
 
+func (svc *page) guard(ctx context.Context, res *types.Page) error {
+	return guardNamespaceWritable(ctx, svc.store, res.NamespaceID)
+}
+
 func (svc *page) onLookup(ctx context.Context, namespaceID uint64, ID uint64, aProps *pageActionProps) (*types.Page, error) {
 	return svc.lookup(ctx, namespaceID, func(props *pageActionProps) (*types.Page, error) {
 		if ID == 0 {

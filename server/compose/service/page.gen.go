@@ -213,7 +213,6 @@ func toLabeledPages(set []*types.Page) []label.LabeledResource {
 
 	return ll
 }
-func (svc *page) guard(_ context.Context, _ *types.Page) error { return nil }
 
 func (svc *page) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

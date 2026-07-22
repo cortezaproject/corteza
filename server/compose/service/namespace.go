@@ -107,6 +107,10 @@ func Namespace() *namespace {
 	}
 }
 
+func (svc *namespace) guard(ctx context.Context, res *types.Namespace) error {
+	return guardProjectWritable(ctx, svc.store, res.ProjectID)
+}
+
 func (svc *namespace) onLookup(ctx context.Context, ID uint64, aProps *namespaceActionProps) (*types.Namespace, error) {
 	return svc.lookup(ctx, func(p *namespaceActionProps) (*types.Namespace, error) {
 		if ID == 0 {

@@ -209,7 +209,6 @@ func toLabeledCharts(set []*types.Chart) []label.LabeledResource {
 
 	return ll
 }
-func (svc *chart) guard(_ context.Context, _ *types.Chart) error { return nil }
 
 func (svc *chart) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

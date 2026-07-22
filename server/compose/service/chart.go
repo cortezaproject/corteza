@@ -51,6 +51,10 @@ func Chart() *chart {
 	}
 }
 
+func (svc *chart) guard(ctx context.Context, res *types.Chart) error {
+	return guardNamespaceWritable(ctx, svc.store, res.NamespaceID)
+}
+
 func (svc *chart) onLookup(ctx context.Context, namespaceID, ID uint64, aProps *chartActionProps) (*types.Chart, error) {
 	return svc.lookup(ctx, namespaceID, func(p *chartActionProps) (*types.Chart, error) {
 		if ID == 0 {

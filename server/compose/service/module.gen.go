@@ -209,7 +209,6 @@ func toLabeledModules(set []*types.Module) []label.LabeledResource {
 
 	return ll
 }
-func (svc *module) guard(_ context.Context, _ *types.Module) error { return nil }
 
 func (svc *module) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

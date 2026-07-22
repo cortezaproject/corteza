@@ -408,6 +408,10 @@ func (svc *pageLayout) UpdateConfig(ss *systemTypes.AppSettings) {
 	}
 }
 
+func (svc *pageLayout) guard(ctx context.Context, res *types.PageLayout) error {
+	return guardNamespaceWritable(ctx, svc.store, res.NamespaceID)
+}
+
 func (svc *pageLayout) onLookup(ctx context.Context, namespaceID uint64, ID uint64, aProps *pageLayoutActionProps) (*types.PageLayout, error) {
 	return svc.lookup(ctx, namespaceID, func(props *pageLayoutActionProps) (*types.PageLayout, error) {
 		if ID == 0 {

@@ -181,7 +181,6 @@ func toLabeledNamespaces(set []*types.Namespace) []label.LabeledResource {
 
 	return ll
 }
-func (svc *namespace) guard(_ context.Context, _ *types.Namespace) error { return nil }
 
 func (svc *namespace) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

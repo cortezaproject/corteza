@@ -100,6 +100,9 @@ namespace: {
 	}
 
 	service: {
+		// project-state lock: writes are blocked unless the owning project is a draft
+		guard: true
+
 
 		customBodyOps: ["lookup", "search", "create", "update", "delete"]
 

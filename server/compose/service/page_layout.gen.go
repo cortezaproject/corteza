@@ -212,7 +212,6 @@ func toLabeledPageLayouts(set []*types.PageLayout) []label.LabeledResource {
 
 	return ll
 }
-func (svc *pageLayout) guard(_ context.Context, _ *types.PageLayout) error { return nil }
 
 func (svc *pageLayout) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

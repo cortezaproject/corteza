@@ -157,6 +157,10 @@ func Module(am schemaAltManager) *module {
 	}
 }
 
+func (svc *module) guard(ctx context.Context, res *types.Module) error {
+	return guardNamespaceWritable(ctx, svc.store, res.NamespaceID)
+}
+
 func (svc *module) onLookup(ctx context.Context, namespaceID uint64, ID uint64, aProps *moduleActionProps) (*types.Module, error) {
 	return svc.lookup(ctx, namespaceID, func(p *moduleActionProps) (*types.Module, error) {
 		if ID == 0 {
