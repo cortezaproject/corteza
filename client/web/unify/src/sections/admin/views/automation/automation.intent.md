@@ -16,7 +16,7 @@ tests: []
 Admin area for everything automation-related on the server's automation component:
 classic workflows, the newer TAQ (Trigger Action Query) automations, corredor server
 scripts, execution/session monitoring, and component-wide automation permissions.
-Each resource lives in its own subfolder with its own INTENT.md.
+Each resource lives in its own subfolder with its own intent doc.
 
 ## Map
 

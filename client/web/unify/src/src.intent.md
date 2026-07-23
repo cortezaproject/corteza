@@ -20,7 +20,7 @@ chrome (topbar, per-section sidebar, global overlays) around the active section.
 - `config-check.js` — hard-fails boot when `window.HumanAPI` is missing (imported first by `main.js`)
 - `main.js` — createApp → `setupAndAuthenticate` → mount on `body`; nothing renders before auth resolves
 - `App.vue` — shell chrome (own `App.intent.md`)
-- `router/`, `plugins/`, `utils/`, `sections/` — own INTENT.md each
+- `router/`, `plugins/`, `utils/`, `sections/` — own intent doc each
 
 ## When changing this
 

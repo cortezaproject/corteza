@@ -16,22 +16,7 @@ export default {
 
   // Roots (dirs or single files) where check/sync/coverage are ENFORCED today.
   // Grows as backfill phases land. Phase 1 = friction pilot.
-  enforced: [
-    'client/web/unify/src/App.vue',
-    'client/web/unify/src/main.js',
-    'client/web/unify/src/config-check.js',
-    'client/web/unify/src/router',
-    'client/web/unify/src/plugins',
-    'client/web/unify/src/utils',
-    'client/web/unify/src/sections/index.js',
-    'client/web/unify/src/sections/home',
-    'client/web/unify/src/sections/admin',
-    'client/web/unify/src/sections/compose',
-    'client/web/unify/src/sections/workflow',
-    'client/web/unify/src/sections/taq',
-    'client/web/unify/src/sections/chatbot',
-    'client/web/unify/src/sections/agentic',
-  ],
+  enforced: ['client/web/unify'],
 
   // Never covered, never checked (glob-ish: * = segment, ** = any depth).
   exclude: [
@@ -42,6 +27,7 @@ export default {
     '**/*.gen.*',
     '**/assets/**',
     'client/web/unify/src/sections/project/**', // POC, still iterating
+    'client/web/unify/public/**', // runtime instance config + static assets
     'extra/**',
   ],
 

@@ -146,6 +146,7 @@ function findDocs() {
     const abs = join(ROOT, root)
     if (existsSync(abs) && statSync(abs).isDirectory()) walkDocs(rel(root))
   }
+  if (existsSync(join(ROOT, 'INTENT.md'))) out.push('INTENT.md')
   return out
 }
 

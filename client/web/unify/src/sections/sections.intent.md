@@ -15,7 +15,7 @@ tests: []
 
 Feature areas of the unified app. Each section is a self-contained module the shell
 consumes via a fixed contract; adding a section = drop a folder + register it in
-`index.js`. Each section folder carries its own INTENT.md.
+`index.js`. Each section folder carries its own intent doc.
 
 ## Contract (what a section's `index.js` default export declares)
 

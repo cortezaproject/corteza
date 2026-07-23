@@ -36,12 +36,12 @@ only the section entry (`index.js`) and route table (`routes.js`); `sidebar/`,
 
 - `index.js` — section-contract entry: prefixes paths, renames `root`, tags `meta.section`, wires the sidebar.
 - `routes.js` — raw route table (lazy imports into `views/**`), grouped dashboard / system / compose / automation / federation / ui.
-- `sidebar/` — admin navigation tree (own INTENT.md).
-- `views/` — route-target views (own INTENT.md per area).
-- `components/` — reusable editor sub-panels (own INTENT.md).
+- `sidebar/` — admin navigation tree (own intent doc).
+- `views/` — route-target views (own intent doc per area).
+- `components/` — reusable editor sub-panels (own intent doc).
 
 ## When changing this
 
 - Route names are the API: the sidebar, cross-view `router.push` calls and external deep links reference them. Renaming one requires sweeping sidebar + views.
 - New resource areas follow the List / Editor (/ Configure) route convention and must also get a sidebar entry to be discoverable.
-- Route-name uniqueness across sections is convention-only — nothing enforces it (see `sections/INTENT.md`).
+- Route-name uniqueness across sections is convention-only — nothing enforces it (see `sections/intent doc`).

@@ -7,7 +7,7 @@ depends-on:
   - lib/vue/src/stores/useChartStore.js
   - client/web/unify/src/sections/compose/components/Chart/ChartRenderer.vue
   - client/web/unify/src/sections/compose/components/Chart/Report
-  - client/web/unify/src/sections/compose/lib/charts
+  - client/web/unify/src/sections/compose/lib/charts.js
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
 tests: []

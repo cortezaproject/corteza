@@ -25,5 +25,5 @@ plugin registration, settings, Pinia, router, i18n, theming, PrimeVue services.
 
 ## When changing this
 
-- Order is a contract (see `../INTENT.md`). Settings must be initialized before PrimeVue theming.
+- Order is a contract (see `../intent doc`). Settings must be initialized before PrimeVue theming.
 - New global plugins/services belong here, not in `main.js` or `App.vue`.

@@ -15,12 +15,12 @@ tests: []
 
 The single web client for the whole platform. Replaces the old multi-SPA setup with
 one shell app whose feature areas are self-contained **sections** (see
-`src/sections/INTENT.md`). One bootstrap, one router, one Pinia, one merged i18n
+`src/sections/intent doc`). One bootstrap, one router, one Pinia, one merged i18n
 bundle (`human-webapp`).
 
 ## Map
 
-- `src/` — app shell and bootstrap (own INTENT.md)
+- `src/` — app shell and bootstrap (own intent doc)
 - `index.html`, `vite.config.js` — Vite entry; `public/config.js` must define `window.HumanAPI`
 - `jsconfig.json` — `@/` alias → `src/`
 - `tailwind.config.js`, `postcss.config.js` — extend shared root configs

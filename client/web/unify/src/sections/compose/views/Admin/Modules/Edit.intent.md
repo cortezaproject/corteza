@@ -9,7 +9,7 @@ depends-on:
   - lib/vue/src/stores/usePageLayoutStore.js
   - client/web/unify/src/sections/compose/components/ModuleFields/Configurator/index.vue
   - client/web/unify/src/sections/compose/components/Admin/Module
-  - client/web/unify/src/sections/compose/lib/resource-translations.js
+  - client/web/unify/src/sections/compose/lib/resource-translations.ts
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
 tests: []

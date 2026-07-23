@@ -15,7 +15,7 @@ tests: []
 
 Admin UI for the "system" server component: identity, access, integration and
 platform configuration. Each child folder is one resource area; every folder
-carries its own recursive INTENT.md. No loose files live directly here.
+carries its own recursive intent doc. No loose files live directly here.
 
 ## Map
 

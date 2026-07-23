@@ -1,6 +1,21 @@
 {
   "version": 1,
   "files": {
+    "client/web/unify/eslint.config.js": {
+      "h": "bb961567d66b",
+      "doc": "client/web/unify/unify.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/index.html": {
+      "h": "88b65acdaa92",
+      "doc": "client/web/unify/unify.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/postcss.config.js": {
+      "h": "dd2a277d042f",
+      "doc": "client/web/unify/unify.intent.md",
+      "t": "2026-07-23"
+    },
     "client/web/unify/src/App.vue": {
       "h": "9dfda3cccda3",
       "doc": "client/web/unify/src/App.intent.md",
@@ -888,7 +903,7 @@
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/registry.ts": {
       "h": "d7a5b034df6d",
-      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/registry.intent.md",
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.vue": {
@@ -1188,7 +1203,7 @@
     },
     "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.ts": {
       "h": "e67eb3e9fe29",
-      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "doc": "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.intent.md",
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/taq/components/builder/form/InputSchemaEditor.vue": {
@@ -1243,7 +1258,7 @@
     },
     "client/web/unify/src/sections/taq/components/builder/form/viewers/registry.ts": {
       "h": "243b71c2b2d8",
-      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "doc": "client/web/unify/src/sections/taq/components/builder/form/viewers/registry.intent.md",
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/taq/components/builder/NodePicker.vue": {
@@ -1649,6 +1664,21 @@
     "client/web/unify/src/utils/appIcons.js": {
       "h": "4da821803d2f",
       "doc": "client/web/unify/src/utils/utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/tailwind.config.js": {
+      "h": "7224bac9794f",
+      "doc": "client/web/unify/unify.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/vite.config.js": {
+      "h": "5e343e53349a",
+      "doc": "client/web/unify/unify.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/vitest.config.js": {
+      "h": "2de12b0e3777",
+      "doc": "client/web/unify/unify.intent.md",
       "t": "2026-07-23"
     }
   }
