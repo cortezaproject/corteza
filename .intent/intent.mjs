@@ -33,8 +33,9 @@ function globToRegex(glob) {
 
 const excludeRes = config.exclude.map(globToRegex)
 const fileTierRes = config.fileTier.map(globToRegex)
+const fileTierExclRes = (config.fileTierExclude ?? []).map(globToRegex)
 const isExcluded = (p) => excludeRes.some((r) => r.test(p))
-const isFileTier = (p) => fileTierRes.some((r) => r.test(p))
+const isFileTier = (p) => fileTierRes.some((r) => r.test(p)) && !fileTierExclRes.some((r) => r.test(p))
 const isSource = (p) => config.sourceExt.includes(extname(p)) && !p.endsWith('.intent.md')
 
 function walk(dir, out) {

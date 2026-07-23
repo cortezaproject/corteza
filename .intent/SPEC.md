@@ -106,7 +106,6 @@ depends-on:                    # best-effort in phase 1, hardened in phase 2
 touched-by: []                 # known reverse dependencies (consumers)
 tests:                         # specs that must pass when covered code changes
   - client/web/unify/src/sections/taq/__tests__/runWorkflow.spec.js
-verified: true                 # schema kept for future use; backfill writes true
 ---
 ```
 

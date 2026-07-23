@@ -26,6 +26,11 @@ export default {
     'client/web/unify/src/sections/index.js',
     'client/web/unify/src/sections/home',
     'client/web/unify/src/sections/admin',
+    'client/web/unify/src/sections/compose',
+    'client/web/unify/src/sections/workflow',
+    'client/web/unify/src/sections/taq',
+    'client/web/unify/src/sections/chatbot',
+    'client/web/unify/src/sections/agentic',
   ],
 
   // Never covered, never checked (glob-ish: * = segment, ** = any depth).
@@ -59,12 +64,21 @@ export default {
     '**/views/**/Hit.vue',
     '**/views/**/Route.vue',
     '**/views/**/Home.vue',
+    '**/views/**/Edit.vue',
+    '**/views/**/Create.vue',
+    '**/views/**/Builder.vue',
+    '**/views/**/RecordView.vue',
+    '**/views/**/Sessions.vue',
     '**/views/Dashboard.vue',
     '**/views/Home.vue',
     '**/stores/**/*.js',
+    '**/stores/**/*.ts',
     '**/store/**/*.js',
     '**/registry.ts',
   ],
+
+  // Matched against fileTier hits to exempt them from the sidecar requirement.
+  fileTierExclude: ['**/*.test.*'],
 
   // Hard cap on prose lines (frontmatter excluded, blank lines not counted).
   docMaxLines: 60,

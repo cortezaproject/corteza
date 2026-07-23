@@ -391,6 +391,736 @@
       "doc": "client/web/unify/src/sections/admin/views/ui/Theming/Index.intent.md",
       "t": "2026-07-23"
     },
+    "client/web/unify/src/sections/agentic/components/AiChat.vue": {
+      "h": "35b88461d71a",
+      "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/agentic/components/AiTrace.vue": {
+      "h": "d65cd87c5ff7",
+      "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/agentic/composables/useEditorSplit.js": {
+      "h": "ab210243856a",
+      "doc": "client/web/unify/src/sections/agentic/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/agentic/index.js": {
+      "h": "16604f12b9a9",
+      "doc": "client/web/unify/src/sections/agentic/agentic.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/agentic/sidebar/AgenticSidebar.vue": {
+      "h": "5be372c847a7",
+      "doc": "client/web/unify/src/sections/agentic/sidebar/sidebar.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/agentic/views/Editor.vue": {
+      "h": "02e4533fe736",
+      "doc": "client/web/unify/src/sections/agentic/views/Editor.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/agentic/views/Home.vue": {
+      "h": "5c95dd8d0158",
+      "doc": "client/web/unify/src/sections/agentic/views/Home.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/composables/usePreviewClient.ts": {
+      "h": "0566a4e37d26",
+      "doc": "client/web/unify/src/sections/chatbot/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/index.js": {
+      "h": "5a6275b62fb5",
+      "doc": "client/web/unify/src/sections/chatbot/chatbot.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/sidebar/ChatbotSidebar.vue": {
+      "h": "f50b1dab3721",
+      "doc": "client/web/unify/src/sections/chatbot/sidebar/sidebar.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/views/Editor.vue": {
+      "h": "99a12f50f1c1",
+      "doc": "client/web/unify/src/sections/chatbot/views/Editor.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/views/Editor/General.vue": {
+      "h": "f9089d07ec07",
+      "doc": "client/web/unify/src/sections/chatbot/views/Editor/Editor.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/views/Editor/Preview.vue": {
+      "h": "01e3aa93c9ed",
+      "doc": "client/web/unify/src/sections/chatbot/views/Editor/Editor.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/views/Editor/Scenarios.vue": {
+      "h": "2aaa78523b54",
+      "doc": "client/web/unify/src/sections/chatbot/views/Editor/Editor.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/views/Editor/Styling.vue": {
+      "h": "cfd024b02eaa",
+      "doc": "client/web/unify/src/sections/chatbot/views/Editor/Editor.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/views/List.vue": {
+      "h": "687f47d5f931",
+      "doc": "client/web/unify/src/sections/chatbot/views/List.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/chatbot/views/Sessions.vue": {
+      "h": "f59297219366",
+      "doc": "client/web/unify/src/sections/chatbot/views/Sessions.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Chart/ChartTranslator.vue": {
+      "h": "55256efb2faf",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/DalFieldStoreEncoding.vue": {
+      "h": "44aa95e8b288",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/DalSchemaAlterations.vue": {
+      "h": "1afc7dff9387",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/DalSettings.vue": {
+      "h": "457dc576531c",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/DiscoverySettings.vue": {
+      "h": "7329074c6c4b",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/encoding-strategy.js": {
+      "h": "6d5096ab8e86",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/FederationSettings.vue": {
+      "h": "7bcc8b966cc5",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/ModuleIssues.vue": {
+      "h": "b45c6456d62c",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/ModuleTranslator.vue": {
+      "h": "a9f658b35f1a",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/RecordRevisionsSettings.vue": {
+      "h": "cb4471105f65",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/UniqueValues.vue": {
+      "h": "1fa7aee94641",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Page/PageTranslator.vue": {
+      "h": "51ab686e78df",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/ChartRenderer.vue": {
+      "h": "2711621196e6",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/Report/FunnelChart.vue": {
+      "h": "0aab958b50ce",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/Report/GaugeChart.vue": {
+      "h": "ded82dcc3016",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/Report/GenericChart.vue": {
+      "h": "e2f7d6a44b40",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/Report/index.js": {
+      "h": "b36c3ce53b4e",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/Report/RadarChart.vue": {
+      "h": "da832d72010e",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/Report/ReportEdit.vue": {
+      "h": "8c0364d6ae98",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Common/RecordListFilter.vue": {
+      "h": "176016922ec9",
+      "doc": "client/web/unify/src/sections/compose/components/Common/Common.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/CSidebarNamespaceSwitcher.vue": {
+      "h": "547601bbe13e",
+      "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/CSidebarNavigation.vue": {
+      "h": "ca8c05d4da5a",
+      "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/CConfiguratorBasic.vue": {
+      "h": "054644600279",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/CConfiguratorMultiDelimiter.vue": {
+      "h": "1aa1e371f7f5",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/CConfiguratorValidation.vue": {
+      "h": "b8a87289e0aa",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/index.vue": {
+      "h": "eb07092ee695",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Bool.vue": {
+      "h": "e662f47bfefa",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/DateTime.vue": {
+      "h": "38bf59749c54",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Email.vue": {
+      "h": "b9dc506bdfc2",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/File.vue": {
+      "h": "c82728527b87",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Geometry.vue": {
+      "h": "037c27a01567",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Number.vue": {
+      "h": "719e9c360d4a",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Record.vue": {
+      "h": "71c1f89c87e7",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Select.vue": {
+      "h": "3e3a0366e19a",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/String.vue": {
+      "h": "f12683eb71ea",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Url.vue": {
+      "h": "1993f997fbeb",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/User.vue": {
+      "h": "8db4555cc4f3",
+      "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Modules/ModuleImporter.vue": {
+      "h": "794e71a8f593",
+      "doc": "client/web/unify/src/sections/compose/components/Modules/Modules.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Namespaces/NamespaceImporter.vue": {
+      "h": "c272688f997f",
+      "doc": "client/web/unify/src/sections/compose/components/Namespaces/Namespaces.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Namespaces/NamespaceTranslator.vue": {
+      "h": "5fa8c1835fac",
+      "doc": "client/web/unify/src/sections/compose/components/Namespaces/Namespaces.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/AgentChatBlock.vue": {
+      "h": "1949001109d7",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/AutomationBlock.vue": {
+      "h": "7f2a7a319bde",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CalendarBlock.vue": {
+      "h": "dff3894eb3e3",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CBulkRecordEditModal.vue": {
+      "h": "6491d7446566",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ChartBlock.vue": {
+      "h": "156f6a1de84e",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ChatbotInboxBlock.vue": {
+      "h": "53f81ef67a9c",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/Comment/CommentItem.vue": {
+      "h": "60ff192d06ec",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/Comment/CommentReply.vue": {
+      "h": "df03b5051de9",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CommentBlock.vue": {
+      "h": "0c3074465bf0",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ContentBlock.vue": {
+      "h": "604ad63e1915",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/FileBlock.vue": {
+      "h": "6fb969924d9d",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/GeometryBlock.vue": {
+      "h": "5e07ed10c824",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/IFrameBlock.vue": {
+      "h": "8dca3981187d",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/Metric/MetricItem.vue": {
+      "h": "56f63b603974",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/MetricBlock.vue": {
+      "h": "b70051beea37",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/NavigationBlock.vue": {
+      "h": "a2f5c167df45",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/PageBlock.vue": {
+      "h": "e02203304546",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ProgressBlock.vue": {
+      "h": "a917d78d56ff",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordBlock.vue": {
+      "h": "b160f34d2fc1",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordListBlock.vue": {
+      "h": "7f3a1bb47198",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordOrganizerBlock.vue": {
+      "h": "b2afb2f6ba16",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordRevisionsBlock.vue": {
+      "h": "d8357f2fe6cf",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/TabsBlock.vue": {
+      "h": "41dc4a9d41fb",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/AgentChatConfigurator.vue": {
+      "h": "49a695cacc84",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/AutomationConfigurator.vue": {
+      "h": "111d05346672",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/CalendarConfigurator.vue": {
+      "h": "684dcd5fc03b",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/ChartConfigurator.vue": {
+      "h": "49fc792c5e2e",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/ChatbotInboxConfigurator.vue": {
+      "h": "98f19dd0ffe4",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/CommentConfigurator.vue": {
+      "h": "972106d259c3",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/ContentConfigurator.vue": {
+      "h": "e72de0fea2ae",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/FileConfigurator.vue": {
+      "h": "b28dc3b731f0",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/GeometryConfigurator.vue": {
+      "h": "0521721e5c9e",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/IFrameConfigurator.vue": {
+      "h": "fd01caf4b901",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/MetricConfigurator.vue": {
+      "h": "534149121272",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/NavigationConfigurator.vue": {
+      "h": "355c504db409",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/ProgressConfigurator.vue": {
+      "h": "918af8fe07e8",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordConfigurator.vue": {
+      "h": "58a38ea878af",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordListConfigurator.vue": {
+      "h": "123ec8b4ded7",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue": {
+      "h": "ea6fd454c359",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue": {
+      "h": "4f6b449c934d",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/TabsConfigurator.vue": {
+      "h": "89ff86bf5db4",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Grid.vue": {
+      "h": "2c2ca1f02bfa",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/registry.ts": {
+      "h": "d7a5b034df6d",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.vue": {
+      "h": "3bddfd1a8d52",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtonsEditor.vue": {
+      "h": "04d6bbe4b03b",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Public/Record/Exporter/index.vue": {
+      "h": "4cef21fc051b",
+      "doc": "client/web/unify/src/sections/compose/components/Public/Public.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Public/Record/Importer/index.vue": {
+      "h": "44721dfdb766",
+      "doc": "client/web/unify/src/sections/compose/components/Public/Public.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Record/RecordModal.vue": {
+      "h": "b405d1f13005",
+      "doc": "client/web/unify/src/sections/compose/components/Record/Record.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Reminders/ReminderEdit.vue": {
+      "h": "0b4873977b84",
+      "doc": "client/web/unify/src/sections/compose/components/Reminders/Reminders.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Reminders/ReminderList.vue": {
+      "h": "a67c5ca8b5d3",
+      "doc": "client/web/unify/src/sections/compose/components/Reminders/Reminders.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Reminders/ReminderManager.vue": {
+      "h": "695ced6a1581",
+      "doc": "client/web/unify/src/sections/compose/components/Reminders/Reminders.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Reminders/ReminderSidebar.vue": {
+      "h": "4377431d1e20",
+      "doc": "client/web/unify/src/sections/compose/components/Reminders/Reminders.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Reminders/ReminderToastHost.vue": {
+      "h": "ef1f37767864",
+      "doc": "client/web/unify/src/sections/compose/components/Reminders/Reminders.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Translator/CTranslatorButton.vue": {
+      "h": "d3a64f1a0e5d",
+      "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Translator/CTranslatorDialog.vue": {
+      "h": "9d7b885b3441",
+      "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/components/Translator/CTranslatorForm.vue": {
+      "h": "dbbdd3647527",
+      "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/composables/usePageVisibility.test.ts": {
+      "h": "d043b5da7bcd",
+      "doc": "client/web/unify/src/sections/compose/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/composables/usePageVisibility.ts": {
+      "h": "dc5bf31efb2c",
+      "doc": "client/web/unify/src/sections/compose/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/composables/useResourceTranslations.ts": {
+      "h": "e73627cab8a2",
+      "doc": "client/web/unify/src/sections/compose/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/ComposeHost.vue": {
+      "h": "52e69a22b8df",
+      "doc": "client/web/unify/src/sections/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/index.js": {
+      "h": "8cf8a8e62dc7",
+      "doc": "client/web/unify/src/sections/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/lib/charts.js": {
+      "h": "cca127aebe3b",
+      "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/lib/record-filter.js": {
+      "h": "a760c5fb1476",
+      "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/lib/record-filter.test.ts": {
+      "h": "11da9253f039",
+      "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
+      "h": "aa600022741b",
+      "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/routes.js": {
+      "h": "8fa5b9cd9e40",
+      "doc": "client/web/unify/src/sections/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/sidebar/ComposeSidebar.vue": {
+      "h": "b954733dd1bd",
+      "doc": "client/web/unify/src/sections/compose/sidebar/sidebar.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/stores/languages.ts": {
+      "h": "42e0bfe1033b",
+      "doc": "client/web/unify/src/sections/compose/stores/languages.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/stores/module.test.ts": {
+      "h": "6fad9a3c4412",
+      "doc": "client/web/unify/src/sections/compose/stores/stores.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/stores/namespace.test.ts": {
+      "h": "09baafffe181",
+      "doc": "client/web/unify/src/sections/compose/stores/stores.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/stores/record.test.ts": {
+      "h": "5f282f3f7a28",
+      "doc": "client/web/unify/src/sections/compose/stores/stores.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/stores/reminder.js": {
+      "h": "b929485fa200",
+      "doc": "client/web/unify/src/sections/compose/stores/reminder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/stores/translator.ts": {
+      "h": "946016ab2251",
+      "doc": "client/web/unify/src/sections/compose/stores/translator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue": {
+      "h": "51ae5504105a",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Charts/List.vue": {
+      "h": "12b64e3b136f",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Charts/List.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.vue": {
+      "h": "3b6950063f32",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Modules/List.vue": {
+      "h": "1131bf08dd7a",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/List.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Modules/Records/Create.vue": {
+      "h": "69e305b6ad44",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Records/Create.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Modules/Records/Edit.vue": {
+      "h": "0140422232ce",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Records/Edit.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Modules/Records/List.vue": {
+      "h": "b329ebe7c41b",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Records/List.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.vue": {
+      "h": "fe96ef491f9d",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.vue": {
+      "h": "827282285273",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Admin/Pages/List.vue": {
+      "h": "3d3675cfa5fa",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/List.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Namespace/Edit.vue": {
+      "h": "6bdce052a2eb",
+      "doc": "client/web/unify/src/sections/compose/views/Namespace/Edit.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Namespace/List.vue": {
+      "h": "a41c3e59ee8b",
+      "doc": "client/web/unify/src/sections/compose/views/Namespace/List.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Namespace/View.vue": {
+      "h": "48b05d8951bc",
+      "doc": "client/web/unify/src/sections/compose/views/Namespace/View.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Pages/Index.vue": {
+      "h": "5d7d37237733",
+      "doc": "client/web/unify/src/sections/compose/views/Pages/Index.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Pages/RecordView.vue": {
+      "h": "d494a17be808",
+      "doc": "client/web/unify/src/sections/compose/views/Pages/RecordView.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/compose/views/Pages/View.vue": {
+      "h": "9b0d12916b2e",
+      "doc": "client/web/unify/src/sections/compose/views/Pages/View.intent.md",
+      "t": "2026-07-23"
+    },
     "client/web/unify/src/sections/home/composables/useColumnResize.js": {
       "h": "74640d41a1e7",
       "doc": "client/web/unify/src/sections/home/home.intent.md",
@@ -409,6 +1139,511 @@
     "client/web/unify/src/sections/index.js": {
       "h": "d324e0e64f32",
       "doc": "client/web/unify/src/sections/sections.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/condition/ConditionBuilder.vue": {
+      "h": "de9585325ab4",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/condition/ConditionRow.vue": {
+      "h": "7dc2f44f50a7",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/ConfigSidebar.vue": {
+      "h": "2e0a0c02faf6",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/CReferenceChip.vue": {
+      "h": "ef2990901333",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/DynamicForm.vue": {
+      "h": "14d7ab558c22",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/DynamicInput.vue": {
+      "h": "c2c08c4d7a9d",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/FunctionForm.vue": {
+      "h": "22090c913973",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/inputs/CInputArray.vue": {
+      "h": "74ae2c6ea2cb",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/inputs/CInputFieldValueMap.vue": {
+      "h": "c8404fc1cb5e",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.ts": {
+      "h": "e67eb3e9fe29",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/InputSchemaEditor.vue": {
+      "h": "74b609ec0114",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/TriggerForm.vue": {
+      "h": "f89e85ff862d",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewAgent.vue": {
+      "h": "7f63615f2e68",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewFieldValueMap.vue": {
+      "h": "99848cadfa47",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewModule.vue": {
+      "h": "a43f13d1577e",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewNamespace.vue": {
+      "h": "727e78c75e44",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewReference.vue": {
+      "h": "6ad274b4d9ac",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewSelect.vue": {
+      "h": "5c58683b0710",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewText.vue": {
+      "h": "dc63651a3080",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewUser.vue": {
+      "h": "f11fa26530b9",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/registry.ts": {
+      "h": "243b71c2b2d8",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/NodePicker.vue": {
+      "h": "1443d99caa32",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/ReferencePanel.vue": {
+      "h": "f3ee61122be2",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/RunModal.vue": {
+      "h": "aca626d9e64c",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/TracePanel.vue": {
+      "h": "a2134b5156eb",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/TraceValueRow.vue": {
+      "h": "feb5b54061f0",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/TraceValueTree.vue": {
+      "h": "2f2eaa3e5a4b",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/common/TaqConfigModal.vue": {
+      "h": "f63d6705a036",
+      "doc": "client/web/unify/src/sections/taq/components/common/common.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/common/TaqIcon.vue": {
+      "h": "1a592ce82ca9",
+      "doc": "client/web/unify/src/sections/taq/components/common/common.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/AddableEdge.vue": {
+      "h": "ccd21f32a4cb",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/BranchNode.vue": {
+      "h": "b74193065497",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/EndNode.vue": {
+      "h": "b4ac75021415",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/IteratorNode.vue": {
+      "h": "9e36980649d0",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/LoopNode.vue": {
+      "h": "1a6f47de7e7f",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/StepNode.vue": {
+      "h": "72312b9ea16c",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/StepPreviewPopover.vue": {
+      "h": "78dcdb1af840",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/flow/TriggerNode.vue": {
+      "h": "a7cd9d5a8ffb",
+      "doc": "client/web/unify/src/sections/taq/components/flow/flow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/composables/useFlowEditor.ts": {
+      "h": "b58b85eb9610",
+      "doc": "client/web/unify/src/sections/taq/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/composables/useSegmentForm.ts": {
+      "h": "3024d8b3af8b",
+      "doc": "client/web/unify/src/sections/taq/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/index.js": {
+      "h": "efb14212fd1a",
+      "doc": "client/web/unify/src/sections/taq/taq.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/sidebar/TaqSidebar.vue": {
+      "h": "a2d28ae369fa",
+      "doc": "client/web/unify/src/sections/taq/sidebar/sidebar.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/utils/flow-constants.ts": {
+      "h": "ba2ca4be834c",
+      "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/utils/taq-parser.ts": {
+      "h": "75b4757e45b6",
+      "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/views/Builder.vue": {
+      "h": "4c9b8ec374d7",
+      "doc": "client/web/unify/src/sections/taq/views/Builder.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/views/List.vue": {
+      "h": "db9af6f122de",
+      "doc": "client/web/unify/src/sections/taq/views/List.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/C3.js": {
+      "h": "fe6449cc83ee",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/base.vue": {
+      "h": "0b3f20348b20",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Content.vue": {
+      "h": "75ba9824231f",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Delay.vue": {
+      "h": "38e2a39d214d",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Edge.vue": {
+      "h": "b261c6d0e02c",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Error.vue": {
+      "h": "2d651a6e2e9b",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/ErrorHandler.vue": {
+      "h": "5420e27190b0",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/ExecWorkflow.vue": {
+      "h": "63f796aabb7b",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Expressions.vue": {
+      "h": "b0dfab21b475",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Function.vue": {
+      "h": "40a0092bd622",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Gateway.vue": {
+      "h": "724f12384bb9",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/index.vue": {
+      "h": "c75ce49ef196",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Iterator.vue": {
+      "h": "8a4c14e078e0",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/loader.js": {
+      "h": "f419665eda82",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Prompt.vue": {
+      "h": "6127c157afed",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Trigger.vue": {
+      "h": "0472f67ce5ae",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Configurator/Workflow.vue": {
+      "h": "ef27bc03e0df",
+      "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Export.vue": {
+      "h": "b8e7cbddcf07",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/ExpressionEditor.vue": {
+      "h": "40d45246cbd1",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/ExpressionTable.vue": {
+      "h": "47283bd9b496",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/FlowEdge.vue": {
+      "h": "bc2e034be48e",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/FlowNodes/NodePreview.vue": {
+      "h": "15099e3fa8e2",
+      "doc": "client/web/unify/src/sections/workflow/components/FlowNodes/FlowNodes.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/FlowNodes/TerminationNode.vue": {
+      "h": "118a80336555",
+      "doc": "client/web/unify/src/sections/workflow/components/FlowNodes/FlowNodes.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/FlowNodes/TriggerNode.vue": {
+      "h": "20dbe81ee748",
+      "doc": "client/web/unify/src/sections/workflow/components/FlowNodes/FlowNodes.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/FlowNodes/VisualNode.vue": {
+      "h": "8cd4bda8bf56",
+      "doc": "client/web/unify/src/sections/workflow/components/FlowNodes/FlowNodes.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/FlowNodes/WorkflowNode.test.js": {
+      "h": "f9034cb941cf",
+      "doc": "client/web/unify/src/sections/workflow/components/FlowNodes/FlowNodes.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/FlowNodes/WorkflowNode.vue": {
+      "h": "a2f59f7c4448",
+      "doc": "client/web/unify/src/sections/workflow/components/FlowNodes/FlowNodes.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Help.vue": {
+      "h": "6ebb0584c58c",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/Import.vue": {
+      "h": "40aa684f6b6f",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/NamespaceModuleSelector.vue": {
+      "h": "3c1bcc9df414",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/WorkflowEditor.c3.js": {
+      "h": "7348f832caff",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/components/WorkflowEditor.vue": {
+      "h": "0e59089db284",
+      "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/composables/useNodePreview.js": {
+      "h": "abd0933bb8ce",
+      "doc": "client/web/unify/src/sections/workflow/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/composables/useWorkflowClipboard.js": {
+      "h": "291f73bb4835",
+      "doc": "client/web/unify/src/sections/workflow/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/composables/useWorkflowDnD.js": {
+      "h": "a946569e6de7",
+      "doc": "client/web/unify/src/sections/workflow/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/composables/useWorkflowHighlight.js": {
+      "h": "434e0a01db28",
+      "doc": "client/web/unify/src/sections/workflow/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/composables/useWorkflowHistory.js": {
+      "h": "735509546aba",
+      "doc": "client/web/unify/src/sections/workflow/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/index.js": {
+      "h": "488f858d9bf3",
+      "doc": "client/web/unify/src/sections/workflow/workflow.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/codec.js": {
+      "h": "0e9be5e8b12c",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/codec.test.js": {
+      "h": "bec6ce7d5b79",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/connectionRules.js": {
+      "h": "cfcd88795613",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/connectionRules.test.js": {
+      "h": "3416b7b5b132",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/constraint.js": {
+      "h": "9b7e27483eb1",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/dry-run.js": {
+      "h": "3d36796d76d3",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/editor-auto-complete.js": {
+      "h": "a8a971f42c7c",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/eventBus.js": {
+      "h": "8e2f27821bc2",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/icon.js": {
+      "h": "1fb5e3dc36df",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/id.js": {
+      "h": "e3a926ff5e58",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/string.js": {
+      "h": "246574cee5cb",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/style.js": {
+      "h": "c7ff0ff82585",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/toolbar.js": {
+      "h": "4fcfd59074a1",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/lib/version.js": {
+      "h": "21be16b0c1ea",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/sidebar/WorkflowSidebar.vue": {
+      "h": "9fef2c77ab77",
+      "doc": "client/web/unify/src/sections/workflow/sidebar/sidebar.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/stores/labels.js": {
+      "h": "0eec2fa3d156",
+      "doc": "client/web/unify/src/sections/workflow/stores/labels.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/views/Editor.vue": {
+      "h": "fa8c178d657a",
+      "doc": "client/web/unify/src/sections/workflow/views/Editor.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/workflow/views/Home.vue": {
+      "h": "e6dd5cc22de4",
+      "doc": "client/web/unify/src/sections/workflow/views/Home.intent.md",
       "t": "2026-07-23"
     },
     "client/web/unify/src/utils/appIcons.js": {
