@@ -54,7 +54,10 @@
 
   <div v-else-if="page" class="flex flex-col h-full">
     <!-- No layout: the builder can't render a page without one. Offer to add it. -->
-    <div v-if="!pageLayout" class="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
+    <div
+      v-if="!pageLayout"
+      class="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center"
+    >
       <i class="pi pi-table text-4xl text-muted-color" />
       <p class="text-muted-color">{{ $t('page.build.noLayout') }}</p>
       <Button
@@ -1032,7 +1035,12 @@ function confirmRemoveBlock(blockId) {
     header: t('page.build.removeBlock.header'),
     message: t('page.build.removeBlock.message'),
     icon: 'pi pi-exclamation-triangle',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
     acceptProps: { label: t('page.tooltip.removeFromLayout'), size: 'small' },
     accept: () => deleteBlock(blockId),
   })
@@ -1076,7 +1084,12 @@ function confirmDeletePageBlock(pageBlock) {
     header: t('page.build.deleteBlock.header'),
     message: t('page.build.deleteBlock.message'),
     icon: 'pi pi-exclamation-triangle',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
     acceptProps: { label: t('general.label.delete'), severity: 'danger', size: 'small' },
     accept: () => deletePageBlock(pageBlock),
   })
@@ -1145,7 +1158,9 @@ function buildLayoutBlocks(pg, layout) {
   return layout.blocks
     .map(lb => {
       const pb = pg.blocks.find(b => String(b.blockID) === String(lb.blockID))
-      return pb ? compose.PageBlockMaker({ ...pb, xywh: lb.xywh || pb.xywh || [0, 0, 48, 15] }) : null
+      return pb
+        ? compose.PageBlockMaker({ ...pb, xywh: lb.xywh || pb.xywh || [0, 0, 48, 15] })
+        : null
     })
     .filter(Boolean)
 }
@@ -1311,10 +1326,13 @@ async function loadPage() {
 
     // Load all layouts for this page
     layouts.value = pageLayoutStore.getByPageID(pageID)
-    // Keep current layout if still in the list, otherwise pick the first
+    // Deep link (?layoutID) wins, then the current layout if still in the
+    // list, otherwise the first
+    const requestedID = route.query.layoutID
+    const requested = requestedID && layouts.value.find(l => l.pageLayoutID === requestedID)
     const currentID = pageLayout.value?.pageLayoutID
     const keepLayout = currentID && layouts.value.find(l => l.pageLayoutID === currentID)
-    pageLayout.value = keepLayout || layouts.value[0] || null
+    pageLayout.value = requested || keepLayout || layouts.value[0] || null
 
     // Show only the current layout's blocks (the view does the same); page
     // blocks not in the layout are orphans, addable via the Add block dialog.
