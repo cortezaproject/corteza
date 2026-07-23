@@ -24,6 +24,7 @@ before implementation, then code is brought into agreement with them.
 | `INTENT.md` (repo root) | `/` | Monorepo map: apps, libs, server components, how they relate. The only doc named `INTENT.md` (root dir name varies per clone) |
 | `AGENTS.md` (repo root) | `/` | Thin pointer for AGENTS.md-standard tools: describes the intent system and directs any agent to the governing intent docs |
 | `.intent/SPEC.md` | this file | The system's own rules |
+| `.intent/TODO.md` | outstanding-work checklist | What the system still needs; updated in the same commit as the resolving work |
 | `.intent/config.mjs` | coverage manifest | Covered roots, exclusions, file-tier rules, enforced rollout roots |
 | `.intent/hooks/` | git + Claude hook scripts | `pre-commit`, Claude `PostToolUse`/`Stop` handlers |
 | `.intent/intent.lock.json` | lockfile | Machine-managed: `path → { hash, docs[] }` at last sync |
