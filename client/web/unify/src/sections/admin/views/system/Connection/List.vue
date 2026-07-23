@@ -43,7 +43,7 @@
           />
           <CPermissionsButton
             v-if="canGrant"
-            resource="corteza::system:dal-connection/*"
+            resource="corteza::system:connection/*"
             v-tooltip.bottom="$t('general.label.permissions')"
           />
         </div>
@@ -139,7 +139,7 @@ const $SystemAPI = inject('$SystemAPI')
 
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
-const canCreate = computed(() => rbac.can('system/', 'dal-connection.create'))
+const canCreate = computed(() => rbac.can('system/', 'connection.create'))
 const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
@@ -218,7 +218,7 @@ function getActionsMenuItems(connection) {
       command: () => {
         resourceListRef.value?.hideActionsMenu?.()
         openPermissions({
-          resource: `corteza::system:dal-connection/${connection.connectionID}`,
+          resource: `corteza::system:connection/${connection.connectionID}`,
           title: connection.meta?.short || connection.handle || connection.connectionID,
         })
       },

@@ -29,7 +29,7 @@
         />
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
-          :resource="`corteza::system:dal-connection/${connection.connectionID}`"
+          :resource="`corteza::system:connection/${connection.connectionID}`"
           :title="connection.meta?.short || connection.handle || connection.connectionID"
           :target="connection.meta?.short || connection.handle || connection.connectionID"
         />
@@ -55,7 +55,11 @@
               <TabPanel value="general" class="p-4 overflow-y-auto h-full">
                 <div class="flex flex-col gap-6">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CFormGroup name="name" :label="$t('system.connections.editor.info.name')" required>
+                    <CFormGroup
+                      name="name"
+                      :label="$t('system.connections.editor.info.name')"
+                      required
+                    >
                       <InputText id="name" name="name" v-model="connection.meta.short" />
                     </CFormGroup>
 
@@ -148,12 +152,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
