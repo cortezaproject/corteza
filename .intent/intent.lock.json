@@ -1,6 +1,46 @@
 {
   "version": 1,
   "files": {
+    "client/web/chatbot-widget/index.html": {
+      "h": "4c5122f3ef7a",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/chatbot-widget/src/api.ts": {
+      "h": "a243cd2e8d7e",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/chatbot-widget/src/engine.ts": {
+      "h": "2a5c9813773c",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/chatbot-widget/src/entry.ts": {
+      "h": "e7243cf82b78",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/chatbot-widget/src/styles.ts": {
+      "h": "cadc46b7be70",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/chatbot-widget/src/types.ts": {
+      "h": "d192e4cfd9f2",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/chatbot-widget/src/ui.ts": {
+      "h": "1e7e9617863d",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
+    "client/web/chatbot-widget/vite.config.ts": {
+      "h": "af75ad789d32",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-07-23"
+    },
     "client/web/unify/eslint.config.js": {
       "h": "bb961567d66b",
       "doc": "client/web/unify/unify.intent.md",
@@ -1679,6 +1719,1721 @@
     "client/web/unify/vitest.config.js": {
       "h": "2de12b0e3777",
       "doc": "client/web/unify/unify.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/.mocharc.cjs": {
+      "h": "7bd15a036334",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/eslint.config.js": {
+      "h": "a286776095cf",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/rollup.config.js": {
+      "h": "3110853c2dbf",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/index.ts": {
+      "h": "3c5dcdc9ce7c",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/function.ts": {
+      "h": "2158a47b7dc4",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/icon.ts": {
+      "h": "b44ef7befdbb",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/param.ts": {
+      "h": "474c1c071e1b",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/prompt.ts": {
+      "h": "429853d25133",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/taq.ts": {
+      "h": "e2f396521227",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/trace.ts": {
+      "h": "f5a136fba668",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/values.ts": {
+      "h": "71d5d072b763",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/automation/types/workflow.ts": {
+      "h": "f20198cea882",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/cast.test.ts": {
+      "h": "bafed836e07d",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/cast.ts": {
+      "h": "ace0b2c33589",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/events.ts": {
+      "h": "d6999ce19c1c",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/helpers/idgen.ts": {
+      "h": "0ff01748cdeb",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/index.ts": {
+      "h": "d2aa3e8f7bd9",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/chart/base.ts": {
+      "h": "8a74a005a782",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/chart/chart.ts": {
+      "h": "fa7335fc3c51",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/chart/funnel.ts": {
+      "h": "b8aa69317c27",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/chart/gauge.ts": {
+      "h": "3182449985dc",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/chart/index.ts": {
+      "h": "b1f6bf3beff1",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/chart/radar.ts": {
+      "h": "b036382218c6",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/chart/util.ts": {
+      "h": "1fa52d297019",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/base.test.ts": {
+      "h": "3f59d503b454",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/base.ts": {
+      "h": "5cab86ebb8c6",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/bool.ts": {
+      "h": "58ce9d472cb8",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/datetime.ts": {
+      "h": "881eeb54e5a2",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/email.ts": {
+      "h": "d2e04df487c2",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/file.ts": {
+      "h": "ac173bde5dbd",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/geometry.ts": {
+      "h": "fbb08bfad02e",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/index.ts": {
+      "h": "4a2cb12a6646",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/number.ts": {
+      "h": "43ebadb6197d",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/record.ts": {
+      "h": "7cbb44b885e4",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/select.ts": {
+      "h": "062e63e81888",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/string.ts": {
+      "h": "13052aa9e36f",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/url.ts": {
+      "h": "a1b78614e8dc",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module-field/user.ts": {
+      "h": "3fc9ae47f3aa",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module.test.ts": {
+      "h": "74abb457a31a",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/module.ts": {
+      "h": "f68a6813ecaa",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/namespace.test.ts": {
+      "h": "d606efcf8d21",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/namespace.ts": {
+      "h": "26b8443b9a82",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/agent-chat.ts": {
+      "h": "d1a6f4ff6b73",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/automation.ts": {
+      "h": "25bd03bbc689",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/base.ts": {
+      "h": "22715871ea9e",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/feed-record.ts": {
+      "h": "32842b4910c7",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/feed-reminder.ts": {
+      "h": "e92a3d069c50",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/feed.ts": {
+      "h": "45be85c348e0",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/index.ts": {
+      "h": "d1ea3103e666",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/page-block.test.ts": {
+      "h": "13b5a95be14f",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/page-block.ts": {
+      "h": "1fa9a95ba41b",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/resources.ts": {
+      "h": "6ec92ea352b9",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/calendar/shared.ts": {
+      "h": "d0737e8669c1",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/chart.ts": {
+      "h": "559685c71bea",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/chatbot-inbox.ts": {
+      "h": "db50ab3d5804",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/comment.ts": {
+      "h": "c4db3920d8e3",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/content.ts": {
+      "h": "b218b78154a1",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/file.ts": {
+      "h": "888109d2f661",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/geometry/feed-record.ts": {
+      "h": "9cb7c3a1c150",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/geometry/feed.ts": {
+      "h": "9db37a050afd",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/geometry/index.ts": {
+      "h": "c6429d1b4ac8",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/geometry/page-block.ts": {
+      "h": "920930ae876d",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/geometry/resources.ts": {
+      "h": "0d7901a8a195",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/iframe.ts": {
+      "h": "51a7146a792b",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/index.ts": {
+      "h": "af53f948c266",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/metric.ts": {
+      "h": "85b370d743f9",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/navigation/index.ts": {
+      "h": "ea2dec7f696b",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/navigation/navigation-item.ts": {
+      "h": "848778c4d2fe",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/progress.ts": {
+      "h": "cf309ea5c5ab",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/record-list.ts": {
+      "h": "86167263fe7a",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/record-organizer.ts": {
+      "h": "19b9ea5f7450",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/record-revisions.ts": {
+      "h": "d8a45f8a9ce2",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/record.ts": {
+      "h": "18f0232aeb58",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/tabs.ts": {
+      "h": "9d25f2730744",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-block/types.ts": {
+      "h": "d1eec1eed842",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page-layout.ts": {
+      "h": "a1d51d01d1b2",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page.test.ts": {
+      "h": "c5cae07ecfe0",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/page.ts": {
+      "h": "6cc81a01511a",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/record.test.ts": {
+      "h": "5af0f9d851e4",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/record.ts": {
+      "h": "844635af2397",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/compose/types/revision.ts": {
+      "h": "320fb1410b3d",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/args-human.ts": {
+      "h": "84454556a293",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/args.test.ts": {
+      "h": "1683572ea34c",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/args.ts": {
+      "h": "23acaf773645",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/ctx.test.ts": {
+      "h": "114742049d20",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/ctx.ts": {
+      "h": "c47121234bd7",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/exec.test.ts": {
+      "h": "9ffc91d252fe",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/exec.ts": {
+      "h": "5f4d0e8e87a4",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/helpers/compose.test.ts": {
+      "h": "d4e38b4e44aa",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/helpers/compose.ts": {
+      "h": "a235c07dc3a4",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/helpers/index.ts": {
+      "h": "e681178ddffd",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/helpers/shared.test.ts": {
+      "h": "8b58ef05a480",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/helpers/shared.ts": {
+      "h": "9ec5913daf50",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/helpers/system.test.ts": {
+      "h": "7a7d5665aecd",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/helpers/system.ts": {
+      "h": "7b0ac1a7446b",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/index.ts": {
+      "h": "e64b3d46d42a",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/corredor/shared.ts": {
+      "h": "244245f29202",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/constraints.test.ts": {
+      "h": "4ec0b815793f",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/constraints.ts": {
+      "h": "106682ef6622",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/eventbus.test.ts": {
+      "h": "2332fb527eb7",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/eventbus.ts": {
+      "h": "5dd26dcc314b",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/handlers.test.ts": {
+      "h": "ee705894ed31",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/handlers.ts": {
+      "h": "6f784d68aca5",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/index.ts": {
+      "h": "64401c4a05b2",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/eventbus/shared.ts": {
+      "h": "af3c9a90b417",
+      "doc": "lib/js/src/eventbus/eventbus.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/formatting/datetime.ts": {
+      "h": "be0a7d821bd4",
+      "doc": "lib/js/src/formatting/formatting.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/formatting/index.ts": {
+      "h": "156031af4d67",
+      "doc": "lib/js/src/formatting/formatting.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/formatting/locale.ts": {
+      "h": "2b75e2a9e8fb",
+      "doc": "lib/js/src/formatting/formatting.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/formatting/number.ts": {
+      "h": "6b113477f626",
+      "doc": "lib/js/src/formatting/formatting.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/guards.test.ts": {
+      "h": "24725f7de300",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/guards.ts": {
+      "h": "ecbf50922fb6",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/index.ts": {
+      "h": "6a56430a6a42",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/markdown.ts": {
+      "h": "210067baf389",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/shared/index.ts": {
+      "h": "9bc5dd27c070",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/shared/types/attachment.ts": {
+      "h": "38edef52cec6",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/shared/types/chart/colorschemes/brewer.ts": {
+      "h": "f0186be2ecbe",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/shared/types/chart/colorschemes/index.ts": {
+      "h": "8646e2376784",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/shared/types/chart/colorschemes/office.ts": {
+      "h": "2541faa1b268",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/shared/types/chart/colorschemes/tableau.ts": {
+      "h": "3abbf09d1db7",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/shared/types/chart/helper.ts": {
+      "h": "216795b2a734",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/events.ts": {
+      "h": "0e120fd570bc",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/index.ts": {
+      "h": "e02c3f7e5115",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/agent.ts": {
+      "h": "f96a5064269e",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/application.ts": {
+      "h": "89b8a7006a9b",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/authClient.ts": {
+      "h": "8edca48cfb88",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/chatbot.ts": {
+      "h": "263525d54016",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/connection.ts": {
+      "h": "84016147fdef",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/dalConnection.ts": {
+      "h": "e93b0224ad69",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/llmProvider.ts": {
+      "h": "5f420e247413",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/notification.ts": {
+      "h": "81b6f0bcc3bd",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/project.ts": {
+      "h": "1a3091bb3d26",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/reminder.ts": {
+      "h": "ea0494288bf7",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/role.ts": {
+      "h": "825e1c1b1824",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/sink.ts": {
+      "h": "945c286e8999",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/template.ts": {
+      "h": "438c458adba5",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/user.ts": {
+      "h": "52c63008650e",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/system/types/userGroup.ts": {
+      "h": "0fa3eb29cac7",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/validator/validator.test.ts": {
+      "h": "0ed79ee56228",
+      "doc": "lib/js/src/validator/validator.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/src/validator/validator.ts": {
+      "h": "181483c0de46",
+      "doc": "lib/js/src/validator/validator.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/tools/codegen/human-api-client.js": {
+      "h": "ec6c4cf12554",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/js/tools/codegen/template.js": {
+      "h": "54b869ca1117",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/api/automation.ts": {
+      "h": "2e732f9f4c08",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/api/compose.ts": {
+      "h": "93ce2aaa015e",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/api/index.ts": {
+      "h": "8be8addee2fe",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/api/system.ts": {
+      "h": "18132040d22f",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/fixtures/index.ts": {
+      "h": "39aadcfe0247",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/fixtures/module.ts": {
+      "h": "e807dec3e1a1",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/fixtures/namespace.ts": {
+      "h": "4d9afaac254f",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/fixtures/record.ts": {
+      "h": "cb6b4a41cd09",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/fixtures/user.ts": {
+      "h": "d2605d43e8aa",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/index.ts": {
+      "h": "166243f23bcc",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/mount/index.ts": {
+      "h": "505b482d21bd",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/mount/withProvides.ts": {
+      "h": "5844896b69f9",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/stores/index.ts": {
+      "h": "52a5e42abef2",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/test-utils/src/stores/setupPinia.ts": {
+      "h": "a9feb97be78f",
+      "doc": "lib/test-utils/test-utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/eslint.config.js": {
+      "h": "766e0d09b137",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/CAgentChat.vue": {
+      "h": "50a5c8599015",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/CAgentSidebar.vue": {
+      "h": "201b72621bee",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/CAgentSidebarButton.vue": {
+      "h": "9cb2eaefafcd",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/CChatComposer.vue": {
+      "h": "dba599b09bd7",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/CChatMessages.vue": {
+      "h": "406c41738c39",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/CConversationTabs.vue": {
+      "h": "3a49c195b1a4",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/index.ts": {
+      "h": "e25e8f06e957",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/agent/translations.ts": {
+      "h": "901c1541d424",
+      "doc": "lib/vue/src/components/agent/agent.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/app/CAppDisabled.vue": {
+      "h": "57720ad9855e",
+      "doc": "lib/vue/src/components/app/app.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/app/index.ts": {
+      "h": "c27484411b83",
+      "doc": "lib/vue/src/components/app/app.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/CEmojiPicker.vue": {
+      "h": "1cf5ef85fffc",
+      "doc": "lib/vue/src/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/CEmptyState.vue": {
+      "h": "98cce7f8935b",
+      "doc": "lib/vue/src/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/chart/CChart.vue": {
+      "h": "c4dcda20a8f1",
+      "doc": "lib/vue/src/components/chart/chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/chart/index.ts": {
+      "h": "831042eb51ea",
+      "doc": "lib/vue/src/components/chart/chart.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/chatbot/CChatbotInbox.vue": {
+      "h": "31761fc6ac46",
+      "doc": "lib/vue/src/components/chatbot/chatbot.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/chatbot/index.ts": {
+      "h": "ca8f4ea80afe",
+      "doc": "lib/vue/src/components/chatbot/chatbot.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/chatbot/translations.ts": {
+      "h": "33b886a698ed",
+      "doc": "lib/vue/src/components/chatbot/chatbot.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/CResizeHandle.vue": {
+      "h": "e671b073a98c",
+      "doc": "lib/vue/src/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/CViewContainer.vue": {
+      "h": "60b708e72554",
+      "doc": "lib/vue/src/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/CFieldEditor.test.ts": {
+      "h": "8d5f1364b724",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/CFieldEditor.vue": {
+      "h": "f9468983ef1a",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/CFieldViewer.vue": {
+      "h": "317f0f0723f5",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldBoolEditor.vue": {
+      "h": "cfcfe1ed75fb",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldDateTimeEditor.vue": {
+      "h": "86c76444300a",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldEmailEditor.vue": {
+      "h": "74d2e45df38f",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldFileEditor.vue": {
+      "h": "299e9d7f73c5",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldGeometryEditor.vue": {
+      "h": "a794feb2baa2",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldNumberEditor.vue": {
+      "h": "b18d884b3a10",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldRecordEditor.vue": {
+      "h": "71bb4562b0cc",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldSelectEditor.vue": {
+      "h": "ae8f92d5804e",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldStringEditor.vue": {
+      "h": "c314fa830b81",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldUrlEditor.vue": {
+      "h": "1ba225b8e87e",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/editors/CFieldUserEditor.vue": {
+      "h": "bfe5cc743ac0",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/index.ts": {
+      "h": "a8e2e0693e36",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/registry.ts": {
+      "h": "87a131608df3",
+      "doc": "lib/vue/src/components/field/registry.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/url.ts": {
+      "h": "dea6112d19b1",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldBoolViewer.test.ts": {
+      "h": "1ba9d61b52cc",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldBoolViewer.vue": {
+      "h": "6142864b0195",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldDateTimeViewer.test.ts": {
+      "h": "de0bc4b9d685",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldDateTimeViewer.vue": {
+      "h": "50e4485bf5d9",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldEmailViewer.vue": {
+      "h": "fce63272948e",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldFileViewer.vue": {
+      "h": "6ea4ee37a00f",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldGeometryViewer.vue": {
+      "h": "7de3c55dbcb0",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldNumberViewer.test.ts": {
+      "h": "15270bb4b6e6",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldNumberViewer.vue": {
+      "h": "8fdd97132b7e",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldRecordViewer.test.ts": {
+      "h": "3539eee29697",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldRecordViewer.vue": {
+      "h": "77a36e6f94e5",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldSelectViewer.test.ts": {
+      "h": "9ba67736f063",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldSelectViewer.vue": {
+      "h": "72f5a9c22436",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldStringViewer.test.ts": {
+      "h": "01d4a3464b1d",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldStringViewer.vue": {
+      "h": "7c6ff5fa8067",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldUrlViewer.vue": {
+      "h": "8900e6d7ca6b",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldUserViewer.test.ts": {
+      "h": "a1838563f303",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/field/viewers/CFieldUserViewer.vue": {
+      "h": "e58a003624d6",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/index.ts": {
+      "h": "4f0fca564a65",
+      "doc": "lib/vue/src/components/components.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CEditorActions.vue": {
+      "h": "44d6acc63bea",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CFieldPicker.vue": {
+      "h": "41a9b8517b55",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CFileDropZone.vue": {
+      "h": "d158000afaa6",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CFormGroup.vue": {
+      "h": "f2d6748488f5",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CFormItemContent.vue": {
+      "h": "058d0990e8a7",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CFormItemList.vue": {
+      "h": "bf9da38464e3",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CFormList.vue": {
+      "h": "d4d523ece4b1",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputAgent.vue": {
+      "h": "d13d7a6a6eec",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputChart.vue": {
+      "h": "f2b37bb12c74",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputColorPicker.vue": {
+      "h": "f1f397a568c1",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputCron.vue": {
+      "h": "32fe2a20841a",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputDateTime.vue": {
+      "h": "5fd9bdad0e8b",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputDelete.vue": {
+      "h": "4e26c0ad8ed3",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputFile.vue": {
+      "h": "1e2710bd9268",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputKnowledgeBase.vue": {
+      "h": "6878aee4fb37",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputLabel.vue": {
+      "h": "508d65309f6f",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputLLM.vue": {
+      "h": "38004cee7a3b",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputLocation.vue": {
+      "h": "d1522a905f94",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputModel.vue": {
+      "h": "65e740fc5583",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputModule.vue": {
+      "h": "b3a66a933af6",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputNamespace.vue": {
+      "h": "e124a6ee5098",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputRecord.vue": {
+      "h": "bb82225bbbe1",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputRole.vue": {
+      "h": "6da2f5e3e71e",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputSearch.vue": {
+      "h": "1357b07dbf77",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputSelect.vue": {
+      "h": "7376f01b2f2b",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputSwitch.vue": {
+      "h": "d46cb86a724a",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputTAQ.vue": {
+      "h": "3f186729654c",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputToggleCard.vue": {
+      "h": "a19129d0feff",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputUser.vue": {
+      "h": "2db81b7f1889",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputUserGroup.vue": {
+      "h": "22556c9e3e84",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CInputWorkflow.vue": {
+      "h": "0363c090fc1d",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CRichTextInput.vue": {
+      "h": "274a3742204e",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CRichTextInput/emoji/EmojiList.vue": {
+      "h": "4c00e8bcc17c",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/CRichTextInput/emoji/suggestion.js": {
+      "h": "046637916c76",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/input/index.ts": {
+      "h": "07386bcdfd75",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/loader/CLoaderLogo.vue": {
+      "h": "5b257053930e",
+      "doc": "lib/vue/src/components/loader/loader.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/loader/index.ts": {
+      "h": "6d166c3c2a2c",
+      "doc": "lib/vue/src/components/loader/loader.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/map/CMap.vue": {
+      "h": "690b006abc8c",
+      "doc": "lib/vue/src/components/map/map.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CAppList.vue": {
+      "h": "4d579a449c9e",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CAppListSidebar.vue": {
+      "h": "bf7271410bbe",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CRouterLinkButton.vue": {
+      "h": "bea7df21f522",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CSidebar.vue": {
+      "h": "5742b6a87ffa",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CSidebarNav.vue": {
+      "h": "b9c3fe21ddfc",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CSidebarNavItem.vue": {
+      "h": "1ee7aea6b12a",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CToolbar.vue": {
+      "h": "13fd1e926e85",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/CTopbar.vue": {
+      "h": "53ebc4a81b65",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/navigation/index.ts": {
+      "h": "8a1e0cf55eef",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/CNotificationButton.vue": {
+      "h": "67c3a01ac43f",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/CNotificationSidebar.vue": {
+      "h": "94cfb508c951",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/CNotificationsPanel.vue": {
+      "h": "204546bcda29",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/index.ts": {
+      "h": "3bf6d3f876bf",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/NotificationItem.vue": {
+      "h": "b02bb4ef1854",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/NotificationList.vue": {
+      "h": "b3eec7910c83",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/Notifications.vue": {
+      "h": "378afdac1190",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/types/index.ts": {
+      "h": "75bdeae39c40",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/types/NotificationRecord.vue": {
+      "h": "beacc97de88b",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/notifications/types/NotificationSimple.vue": {
+      "h": "beacc97de88b",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/permissions/CPermissionsButton.vue": {
+      "h": "c65f3ebafac1",
+      "doc": "lib/vue/src/components/permissions/permissions.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/permissions/CPermissionsDialog.vue": {
+      "h": "7f3c72b712cc",
+      "doc": "lib/vue/src/components/permissions/permissions.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/permissions/index.ts": {
+      "h": "694f59f55d8b",
+      "doc": "lib/vue/src/components/permissions/permissions.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/CPromptModal.vue": {
+      "h": "f64fbcb9a895",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/CPrompts.vue": {
+      "h": "b31e0547fcfa",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/CPromptToast.vue": {
+      "h": "2e25fdaca790",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/definitions.ts": {
+      "h": "f5ef16d4b99f",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/index.ts": {
+      "h": "a5d062457831",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/base.vue": {
+      "h": "c3566a076362",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/CPromptAlert.vue": {
+      "h": "2170687d7d54",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/CPromptChoice.vue": {
+      "h": "1abbeafbfe97",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/CPromptComposeRecordPicker.vue": {
+      "h": "e803f6061b84",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/CPromptInput.vue": {
+      "h": "993bd8362104",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/CPromptNotification.vue": {
+      "h": "980d2edb14a6",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/CPromptOptions.vue": {
+      "h": "65445705cd47",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/kinds/index.ts": {
+      "h": "09b03bbb18f3",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/prompts/utils.ts": {
+      "h": "8c5e0b128bee",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/resource-list/CResourceList.vue": {
+      "h": "cac90deea881",
+      "doc": "lib/vue/src/components/resource-list/resource-list.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/resource-list/index.ts": {
+      "h": "0f046ff1c49a",
+      "doc": "lib/vue/src/components/resource-list/resource-list.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/resource-table/CResourceTable.vue": {
+      "h": "8fbce89f8eb9",
+      "doc": "lib/vue/src/components/resource-table/resource-table.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/resource-table/index.ts": {
+      "h": "1cf66f1349a5",
+      "doc": "lib/vue/src/components/resource-table/resource-table.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/search/CTopbarSearch.vue": {
+      "h": "8cbfce2d7b59",
+      "doc": "lib/vue/src/components/search/search.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/search/index.ts": {
+      "h": "3675e24b74a8",
+      "doc": "lib/vue/src/components/search/search.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/search/items/ItemGroup.vue": {
+      "h": "3d20ea0303b1",
+      "doc": "lib/vue/src/components/search/search.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/components/search/items/RecordItem.vue": {
+      "h": "e738719ca0bb",
+      "doc": "lib/vue/src/components/search/search.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useAgentRouteContextProvider.ts": {
+      "h": "cd17fd067b77",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useConfirmDelete.ts": {
+      "h": "31d2718d6132",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useFileUpload.ts": {
+      "h": "869a01322ce8",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useInternalLink.ts": {
+      "h": "7864f2158268",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useMinDuration.test.ts": {
+      "h": "da55fa299186",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useMinDuration.ts": {
+      "h": "00c1fba5f3cd",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/usePermissions.ts": {
+      "h": "cd607ffe3489",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useRBAC.test.ts": {
+      "h": "198df0350f56",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useRBAC.ts": {
+      "h": "c6f9566f03c3",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useResourceList.test.ts": {
+      "h": "47bfae3223e6",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useResourceList.ts": {
+      "h": "8c41b33405e8",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useRightSidebarResize.ts": {
+      "h": "2d501bcad76e",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useTheme.ts": {
+      "h": "c5a7c5616c35",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useUnsavedGuard.test.ts": {
+      "h": "ddc3851f49e9",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useUnsavedGuard.ts": {
+      "h": "0ab45f691128",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useUserResolver.test.ts": {
+      "h": "156709b21488",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/composables/useUserResolver.ts": {
+      "h": "fae608129e09",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/filters/date.ts": {
+      "h": "4ee074b441fe",
+      "doc": "lib/vue/src/filters/filters.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/filters/index.ts": {
+      "h": "26fab9161f6e",
+      "doc": "lib/vue/src/filters/filters.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/index.ts": {
+      "h": "7077e743cce8",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/libs/url.ts": {
+      "h": "37531d3f4ff7",
+      "doc": "lib/vue/src/libs/libs.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/libs/websocket.ts": {
+      "h": "14e7a5c2d2dc",
+      "doc": "lib/vue/src/libs/libs.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/plugins/auth.ts": {
+      "h": "2f75078b0b7f",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/plugins/event-bus.ts": {
+      "h": "4bef04a29b54",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/plugins/human-api.ts": {
+      "h": "f37d25618a33",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/plugins/i18n.ts": {
+      "h": "9bc19663945a",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/plugins/primevue-components.ts": {
+      "h": "dd68708a2219",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/plugins/settings.ts": {
+      "h": "e3ac865de7f1",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/plugins/toast.ts": {
+      "h": "3a89cc9b5e89",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useAgentChatStore.ts": {
+      "h": "d39187227718",
+      "doc": "lib/vue/src/stores/useAgentChatStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useAgentStore.js": {
+      "h": "3de26d636753",
+      "doc": "lib/vue/src/stores/useAgentStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useApplicationsStore.js": {
+      "h": "b115d4ecf5a3",
+      "doc": "lib/vue/src/stores/useApplicationsStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useAutomationStore.js": {
+      "h": "9654b9bcd25b",
+      "doc": "lib/vue/src/stores/useAutomationStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useChartStore.js": {
+      "h": "53de292baa82",
+      "doc": "lib/vue/src/stores/useChartStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useChatbotStore.js": {
+      "h": "c6999807c91f",
+      "doc": "lib/vue/src/stores/useChatbotStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useModuleStore.js": {
+      "h": "de0ef9c609bd",
+      "doc": "lib/vue/src/stores/useModuleStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useNamespaceStore.js": {
+      "h": "e3cc3bcdf2ed",
+      "doc": "lib/vue/src/stores/useNamespaceStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useNotificationsStore.ts": {
+      "h": "f808e721a4c8",
+      "doc": "lib/vue/src/stores/useNotificationsStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/usePageLayoutStore.js": {
+      "h": "1046949edd26",
+      "doc": "lib/vue/src/stores/usePageLayoutStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/usePageStore.js": {
+      "h": "ba5c06ffc149",
+      "doc": "lib/vue/src/stores/usePageStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useRecordStore.js": {
+      "h": "a357b11fcaa9",
+      "doc": "lib/vue/src/stores/useRecordStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useRightSidebarStore.ts": {
+      "h": "de0764a6c7ee",
+      "doc": "lib/vue/src/stores/useRightSidebarStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useUserStore.js": {
+      "h": "7aac2d2fd3f8",
+      "doc": "lib/vue/src/stores/useUserStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useWorkflowPromptsStore.ts": {
+      "h": "e868182d3aa2",
+      "doc": "lib/vue/src/stores/useWorkflowPromptsStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/stores/useWorkflowStore.js": {
+      "h": "446d14c13837",
+      "doc": "lib/vue/src/stores/useWorkflowStore.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/test/setup.ts": {
+      "h": "3fd050c62263",
+      "doc": "lib/vue/src/test/test.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/utils/appIcons.ts": {
+      "h": "f83f1709abdf",
+      "doc": "lib/vue/src/utils/utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/utils/internalNav.ts": {
+      "h": "3d9c232ea0ec",
+      "doc": "lib/vue/src/utils/utils.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/src/vue.d.ts": {
+      "h": "4d6b461d45de",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-07-23"
+    },
+    "lib/vue/vitest.config.ts": {
+      "h": "920b3566f74f",
+      "doc": "lib/vue/vue.intent.md",
       "t": "2026-07-23"
     }
   }

@@ -16,7 +16,13 @@ export default {
 
   // Roots (dirs or single files) where check/sync/coverage are ENFORCED today.
   // Grows as backfill phases land. Phase 1 = friction pilot.
-  enforced: ['client/web/unify'],
+  enforced: [
+    'client/web/unify',
+    'client/web/chatbot-widget',
+    'lib/vue',
+    'lib/js',
+    'lib/test-utils',
+  ],
 
   // Never covered, never checked (glob-ish: * = segment, ** = any depth).
   exclude: [
@@ -28,6 +34,8 @@ export default {
     '**/assets/**',
     'client/web/unify/src/sections/project/**', // POC, still iterating
     'client/web/unify/public/**', // runtime instance config + static assets
+    'client/web/chatbot-widget/public/**',
+    'lib/js/src/api-clients/**', // codegen-owned (generated from server rest.yaml)
     'extra/**',
   ],
 
@@ -64,7 +72,10 @@ export default {
   ],
 
   // Matched against fileTier hits to exempt them from the sidecar requirement.
-  fileTierExclude: ['**/*.test.*'],
+  fileTierExclude: [
+    '**/*.test.*',
+    'lib/test-utils/**', // fixture/mock helpers, not real stores/views
+  ],
 
   // Hard cap on prose lines (frontmatter excluded, blank lines not counted).
   docMaxLines: 60,
