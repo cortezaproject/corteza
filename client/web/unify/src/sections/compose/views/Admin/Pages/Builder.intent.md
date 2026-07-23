@@ -1,7 +1,6 @@
 ---
 kind: file
 covers: Builder.vue
-backfilled: true
 owner: fe
 depends-on:
   - client/web/unify/src/sections/compose/components/PageBlocks/Grid.vue
@@ -31,8 +30,7 @@ positions a subset of them.
 - New blocks are staged: they join the page/layout only on the first save of their configurator; cancelling discards them entirely.
 - Block configurator dialog with three tabs: General (title, description, custom ID/CSS class, header style, magnify, wrap/border, refresh rate, visibility expression + roles), a per-kind configurator (registry of ~18 kinds; draft shared via `blockDraft` provide), and Automation (RecordList selection buttons only).
 - Tabs blocks manage child blocks through the provided `$pageBuilder` API (edit/remove/clone tab entries); children are kept `meta.hidden` in sync so they render only inside their tab.
-- Saving a record page must be blocked while required module fields are not covered by any Record block.
-  > **DRIFT:** currently only warns (toast) and saves anyway — fix pending.
+- Saving a record page is blocked (error toast, no request) while required module fields are not covered by any Record block.
 
 ## Routes
 
@@ -43,5 +41,4 @@ positions a subset of them.
 - Save contract: page blocks = preserved (not in this layout) first + working set tail; new blockIDs are mapped back by index from the response, Tabs children remapped in a second save if needed, then the layout is updated with `{blockID, xywh}` only. Breaking the preserved/tail order corrupts the ID mapping and can orphan or delete other layouts' blocks.
 - Unsaved blockIDs are NoID (`'0'`); identity falls back to `meta.tempID` — all lookups must go through that fallback.
 - `?layoutID` deep link (passed by the page editor's layout-builder buttons) selects that layout on load; falls back to the previously selected, then first, layout when absent or unknown.
-- Deleting an orphan block should be staged like every other edit and persist on Save.
-  > **DRIFT:** currently persists immediately (page + every referencing layout) — fix pending; nontrivial because other layouts reference the block.
+- Deleting an orphan block is staged like every other edit: applied on Save (dropped from the page payload and every referencing layout), discarded when leaving without saving.

@@ -15,7 +15,7 @@ build:
   addLayout: Add layout
   deleteBlock:
     header: Delete block
-    message: Delete this block from the page entirely? It will be removed from every layout. This can't be undone.
+    message: Delete this block from the page entirely? It will be removed from the page and every layout when you save. Leaving the builder without saving discards the deletion.
   existingBlocks: Existing blocks
   layout:
     delete: Delete layout

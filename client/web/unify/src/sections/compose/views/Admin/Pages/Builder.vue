@@ -1046,39 +1046,6 @@ function confirmRemoveBlock(blockId) {
   })
 }
 
-// Delete a block from the page entirely — removes it from the page and every
-// layout that references it. Used from the Add block dialog's orphan list.
-async function deletePageBlock(pageBlock) {
-  const blockID = String(pageBlock.blockID)
-  saving.value = true
-  try {
-    const updatedPage = await pageStore.update({
-      ...toRaw(page.value),
-      blocks: (page.value.blocks || []).filter(b => String(b.blockID) !== blockID),
-    })
-    page.value = new compose.Page({ ...updatedPage })
-
-    for (const layout of layouts.value) {
-      if ((layout.blocks || []).some(lb => String(lb.blockID) === blockID)) {
-        await pageLayoutStore.update({
-          ...toRaw(layout),
-          blocks: (layout.blocks || []).filter(lb => String(lb.blockID) !== blockID),
-        })
-      }
-    }
-    layouts.value = pageLayoutStore.getByPageID(page.value.pageID)
-    pageLayout.value =
-      layouts.value.find(l => l.pageLayoutID === pageLayout.value?.pageLayoutID) || pageLayout.value
-
-    $toast.toastSuccess(t('notification.page.saved'))
-  } catch (e) {
-    console.error('Failed to delete block:', e)
-    $toast.toastDanger(t('notification.page.saveFailed'))
-  } finally {
-    saving.value = false
-  }
-}
-
 function confirmDeletePageBlock(pageBlock) {
   confirm.require({
     header: t('page.build.deleteBlock.header'),
@@ -1091,7 +1058,9 @@ function confirmDeletePageBlock(pageBlock) {
       size: 'small',
     },
     acceptProps: { label: t('general.label.delete'), severity: 'danger', size: 'small' },
-    accept: () => deletePageBlock(pageBlock),
+    accept: () => {
+      stagedBlockDeletes.value = new Set([...stagedBlockDeletes.value, String(pageBlock.blockID)])
+    },
   })
 }
 
@@ -1165,12 +1134,21 @@ function buildLayoutBlocks(pg, layout) {
     .filter(Boolean)
 }
 
+// Orphan-block deletions are staged like every other edit and applied on Save;
+// navigating away discards them.
+const stagedBlockDeletes = ref(new Set())
+
 // Page blocks not placed in the current layout — offered in the Add block dialog
 // so the user can re-add an existing (orphaned) block instead of creating one.
 const orphanBlocks = computed(() => {
   if (!page.value?.blocks?.length) return []
   const placed = new Set(blocks.value.map(b => String(getBlockId(b))))
-  return page.value.blocks.filter(b => b.blockID && !placed.has(String(b.blockID)))
+  return page.value.blocks.filter(
+    b =>
+      b.blockID &&
+      !placed.has(String(b.blockID)) &&
+      !stagedBlockDeletes.value.has(String(b.blockID)),
+  )
 })
 
 // kind -> { icon, label }, for rendering orphan tiles in the Add block dialog.
@@ -1349,9 +1327,11 @@ async function loadPage() {
 async function handleSave() {
   if (!page.value) return
 
-  // Warn if required module fields are not covered by any Record block
+  // A record page whose required module fields are not covered by any Record
+  // block would render a form users can't complete — refuse to save it.
   if (!validateRequiredFields()) {
-    $toast.toastWarning(t('notification.page.requiredFields.missing'))
+    $toast.toastDanger(t('notification.page.saveFailedRequired'))
+    return
   }
 
   saving.value = true
@@ -1364,9 +1344,12 @@ async function handleSave() {
     // Preserve page blocks not in this layout (orphans + blocks owned by other
     // layouts) so saving a layout never deletes them from the page. They go
     // first; the working set is the tail, aligned by index with the response.
+    // Staged orphan deletions are applied here: dropped from the page payload.
     const preserved = (page.value.blocks || [])
       .map(b => toRaw(b))
-      .filter(b => !workingIds.has(String(b.blockID)))
+      .filter(
+        b => !workingIds.has(String(b.blockID)) && !stagedBlockDeletes.value.has(String(b.blockID)),
+      )
 
     const pageBlocks = [...preserved, ...working]
 
@@ -1420,6 +1403,22 @@ async function handleSave() {
         ...toRaw(pageLayout.value),
         blocks: layoutBlocks,
       })
+    }
+
+    // Staged block deletions: drop references from every other layout too
+    if (stagedBlockDeletes.value.size) {
+      for (const layout of layouts.value) {
+        if (layout.pageLayoutID === pageLayout.value?.pageLayoutID) continue
+        if ((layout.blocks || []).some(lb => stagedBlockDeletes.value.has(String(lb.blockID)))) {
+          await pageLayoutStore.update({
+            ...toRaw(layout),
+            blocks: (layout.blocks || []).filter(
+              lb => !stagedBlockDeletes.value.has(String(lb.blockID)),
+            ),
+          })
+        }
+      }
+      stagedBlockDeletes.value = new Set()
     }
 
     $toast.toastSuccess(t('notification.page.saved'))
