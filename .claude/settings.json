@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "node .intent/hooks/claude-posttooluse.mjs" }]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [{ "type": "command", "command": "node .intent/hooks/claude-stop.mjs" }]
+      }
+    ]
+  }
+}

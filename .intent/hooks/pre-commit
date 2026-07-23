@@ -1,0 +1,8 @@
+#!/bin/sh
+# Intent system pre-commit: fail the commit when staged covered files drifted
+# from their intent docs. Install with: make intent-hooks
+node .intent/intent.mjs check --staged || {
+  echo ""
+  echo "Commit blocked by intent drift. Reconcile docs, then: node .intent/intent.mjs sync && git add .intent/intent.lock.json"
+  exit 1
+}

@@ -1,4 +1,4 @@
-.PHONY: dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
+.PHONY: intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
 WEB_APPS := unify
 
@@ -81,3 +81,11 @@ endif
 	git push -f origin $(TAG_NAME)
 
 .DEFAULT_GOAL := dev
+
+# --- Intent system (see .intent/SPEC.md) ---
+intent-check:
+	@node .intent/intent.mjs check && node .intent/intent.mjs coverage
+
+intent-hooks:
+	@git config core.hooksPath .intent/hooks
+	@echo "git hooks path set to .intent/hooks (pre-commit intent check active)"
