@@ -1,15 +1,19 @@
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
+import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
 import { compose, NoID, system } from '@planetcrust/human-js'
 import { defineStore } from 'pinia'
 import { computed, inject, ref } from 'vue'
 
-// API-backed projects store. Everything here persists on the backend; the
-// store grows alongside the pipeline, one verified step at a time. Current
-// surface: project CRUD, members (role-preset CRUD + capability resolution),
-// the per-step governance workflow, and modules (real compose modules in the
-// project's namespace).
+// Projects store. Most of this persists on the backend and grows alongside
+// the pipeline, one verified step at a time. Current surface: project CRUD,
+// members (role-preset CRUD + capability resolution), and modules (real
+// compose modules in the project's namespace).
+//
+// The one exception is the per-step GOVERNANCE workflow (see the dedicated
+// section below): it is intentionally session-local scaffolding, not
+// backend-persisted — see that section's comment for why.
 export const useProjectsStore = defineStore('projects', () => {
   const $SystemAPI = inject('$SystemAPI')
   const $ComposeAPI = inject('$ComposeAPI')
@@ -461,11 +465,12 @@ export const useProjectsStore = defineStore('projects', () => {
   // carries its new status, which we absorb into the cache. `mappings` stays
   // empty until the revision/migration flow is wired.
   //
-  // Every project also requires the `'publish'` governance step to be
-  // approved (enforced server-side, unconditionally); on success the backend
-  // resets that step back to `draft` and returns it that way, so absorbing
-  // the response here already leaves the UI showing the fresh, unapproved
-  // cycle for next time — no separate governance refetch needed.
+  // The endpoint itself is unguarded now (the governance approval gate that
+  // used to block it server-side is gone along with the rest of the removed
+  // governance backend — see the governance section below), so we reset the
+  // local `'publish'` governance step back to draft ourselves on success,
+  // mirroring what the old backend used to do — every publish, first or
+  // subsequent, needs its own fresh submit → approve cycle.
   async function publishProject(id) {
     const p = findById.value(id)
     if (!p) return
@@ -475,7 +480,11 @@ export const useProjectsStore = defineStore('projects', () => {
       mappings: [],
     })
     touch()
-    return absorb(raw)
+    const result = absorb(raw)
+    const step = govStep(id, PUBLISH_GOVERNANCE_STEP_KEY)
+    step.status = GOVERNANCE_STATUS_DRAFT
+    step.note = ''
+    return result
   }
 
   // --- members --------------------------------------------------------------
@@ -662,60 +671,173 @@ export const useProjectsStore = defineStore('projects', () => {
     await pushModule(findById.value(projectId), m)
   }
 
-  // --- per-step governance ----------------------------------------------------------
-  // Form-type steps (summary, resource-management) use saveStepForm to persist
-  // FORM VALUES, kept in memory ONLY (never sent to the backend as part of
-  // governance) — see the form/sensitivity steps. That's a separate concern
-  // from *governance status*, which transitionStep() below drives and which IS
-  // always backend-persisted, for every step key:
+  // --- per-step governance (SESSION-LOCAL SCAFFOLDING) -------------------------
+  // INTENTIONAL SCAFFOLDING, NOT A BUG: the real governance backend (the
+  // SaveGovernanceStep/TransitionGovernanceStep RPCs and the project's
+  // `governance` field) has been removed while the governance model is being
+  // redesigned. Until that lands, every project's governance state — both
+  // step status/note AND form-type steps' (summary, resource-management)
+  // working values — lives ONLY here, in memory, keyed by projectID. Nothing
+  // here is sent to the API or read from an API response; a fresh page load
+  // starts every step at 'draft' with no note. This is deliberate — it lets
+  // the FE UX keep iterating quickly — so don't "fix" the lack of
+  // persistence.
   //
-  //   - the well-known `'publish'` step key (PUBLISH_GOVERNANCE_STEP_KEY) runs
-  //     the full submit -> approve/request-changes cycle that gates
-  //     publishing itself, unconditionally (server/system/service/
-  //     project_revision.go's Publish() requires it approved, and resets it
-  //     back to draft on success — see publishProject() below, whose
-  //     response already carries that reset);
-  //   - every OTHER (Build/Govern) step key has NO submit stage: a member with
-  //     grant-approval capability can send either 'approve' or
-  //     'request-changes' directly, from any current status, at any time (see
-  //     Wizard.vue's per-step Approve / "Request changes" toolbar actions).
-  //     'request-changes' flags that step to changes-requested and sends
-  //     'publish' back for review too if it was submitted/approved
-  //     (server/system/service/project_governance.go); 'approve' clears a
-  //     changes-requested flag (or simply marks a draft step approved).
+  // The rules below mirror the removed backend 1:1 (see git history for
+  // server/system/service/project_governance.go, the file this replaces):
   //
-  // Every transition, regardless of stepKey or action, round-trips through the
-  // real governance API and absorbs the response, keeping every viewer in
-  // sync with the same state — there is no in-memory mock of the state
-  // machine here.
+  //   - Ordinary Build/Govern steps have no submit stage: a granter can
+  //     approve (any status -> approved, note cleared) or request changes
+  //     (any status, including no entry yet -> changes-requested, note set)
+  //     at any time (see Wizard.vue's per-step Approve / "Request changes"
+  //     toolbar actions).
+  //   - The well-known `'publish'` step key (PUBLISH_GOVERNANCE_STEP_KEY) runs
+  //     its own submit -> approve/request-changes cycle: submit
+  //     (draft/changes-requested -> submitted, clearing every OTHER flagged
+  //     step back to draft — "auto-clear on resubmit"); approve (submitted ->
+  //     approved, but rejected while any other step is still
+  //     changes-requested — "approval gate"); request-changes (submitted ->
+  //     changes-requested, note set).
+  //   - "immediate send-back": flagging a non-publish step while 'publish' is
+  //     currently submitted or approved sends 'publish' back to
+  //     changes-requested too, with a note pointing at the step that was
+  //     flagged. A draft/absent 'publish' step is left alone.
+  //
+  // publishProject() (above) resets the local 'publish' step back to draft
+  // after a successful publish, mirroring what the old backend used to do.
 
-  function ensureGovStep(p, stepKey) {
-    if (!p.governance) p.governance = {}
-    if (!p.governance[stepKey]) {
-      p.governance[stepKey] = { values: {}, status: 'draft', reviewNote: '' }
+  const GOVERNANCE_STATUS_DRAFT = 'draft'
+  const GOVERNANCE_STATUS_SUBMITTED = 'submitted'
+  const GOVERNANCE_STATUS_APPROVED = 'approved'
+  const GOVERNANCE_STATUS_CHANGES_REQUESTED = 'changes-requested'
+
+  // { [projectID]: { [stepKey]: { status, note, values } } } — never persisted.
+  const governanceByProject = ref({})
+
+  // All step entries for a project, auto-vivifying the per-project bucket.
+  function govSteps(projectId) {
+    const key = String(projectId)
+    return governanceByProject.value[key] || (governanceByProject.value[key] = {})
+  }
+
+  // One step's entry, auto-vivifying a fresh draft entry on first touch —
+  // mirrors the removed backend's *ProjectGovernance.Step accessor.
+  function govStep(projectId, stepKey) {
+    const steps = govSteps(projectId)
+    if (!steps[stepKey]) {
+      steps[stepKey] = { status: GOVERNANCE_STATUS_DRAFT, note: '', values: {} }
     }
-    return p.governance[stepKey]
+    return steps[stepKey]
+  }
+
+  function governanceStatus(projectId, stepKey) {
+    return govSteps(projectId)[stepKey]?.status || GOVERNANCE_STATUS_DRAFT
+  }
+
+  function governanceNote(projectId, stepKey) {
+    return govSteps(projectId)[stepKey]?.note || ''
+  }
+
+  function governanceValues(projectId, stepKey) {
+    return govSteps(projectId)[stepKey]?.values || {}
+  }
+
+  // Whether any step OTHER than `excludeKey` currently has changes requested
+  // — backs the publish step's "approval gate" (mirrors the removed backend's
+  // hasFlaggedSteps). Only looks at steps actually touched so far, same as
+  // the backend did over its stored map.
+  function hasOtherFlaggedSteps(projectId, excludeKey) {
+    return Object.entries(govSteps(projectId)).some(
+      ([key, step]) => key !== excludeKey && step.status === GOVERNANCE_STATUS_CHANGES_REQUESTED,
+    )
+  }
+
+  // "immediate send-back" (mirrors the removed backend's sendPublishBack).
+  function sendPublishBack(projectId, flaggedStepKey, note) {
+    const publish = govSteps(projectId)[PUBLISH_GOVERNANCE_STEP_KEY]
+    if (!publish) return
+    if (
+      publish.status !== GOVERNANCE_STATUS_SUBMITTED &&
+      publish.status !== GOVERNANCE_STATUS_APPROVED
+    ) {
+      return
+    }
+    publish.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
+    publish.note = `Changes requested on step "${flaggedStepKey}": ${note}`
+  }
+
+  // "auto-clear on resubmit" (mirrors the removed backend's clearFlaggedSteps).
+  function clearFlaggedSteps(projectId) {
+    for (const [key, step] of Object.entries(govSteps(projectId))) {
+      if (key === PUBLISH_GOVERNANCE_STEP_KEY) continue
+      if (step.status === GOVERNANCE_STATUS_CHANGES_REQUESTED) {
+        step.status = GOVERNANCE_STATUS_DRAFT
+        step.note = ''
+      }
+    }
   }
 
   async function saveStepForm(projectId, stepKey, values) {
-    const p = findById.value(projectId)
-    if (!p) return
-    const step = ensureGovStep(p, stepKey)
+    const step = govStep(projectId, stepKey)
     step.values = { ...values }
     touch()
   }
 
   async function transitionStep(projectId, stepKey, action, note = '') {
-    const p = findById.value(projectId)
-    if (!p) return
-    const raw = await $SystemAPI.projectGovernanceTransition({
-      projectID: p.projectID,
-      stepKey,
-      action,
-      note,
-    })
+    const step = govStep(projectId, stepKey)
+
+    if (stepKey === PUBLISH_GOVERNANCE_STEP_KEY) {
+      switch (action) {
+        case 'submit':
+          if (
+            step.status !== GOVERNANCE_STATUS_DRAFT &&
+            step.status !== GOVERNANCE_STATUS_CHANGES_REQUESTED
+          ) {
+            throw new Error(`Cannot submit "publish" from status "${step.status}"`)
+          }
+          step.status = GOVERNANCE_STATUS_SUBMITTED
+          step.note = ''
+          clearFlaggedSteps(projectId)
+          break
+        case 'approve':
+          if (step.status !== GOVERNANCE_STATUS_SUBMITTED) {
+            throw new Error(`Cannot approve "publish" from status "${step.status}"`)
+          }
+          if (hasOtherFlaggedSteps(projectId, PUBLISH_GOVERNANCE_STEP_KEY)) {
+            throw new Error(
+              'Cannot approve the project while one or more steps still have changes requested',
+            )
+          }
+          step.status = GOVERNANCE_STATUS_APPROVED
+          step.note = ''
+          break
+        case 'request-changes':
+          if (step.status !== GOVERNANCE_STATUS_SUBMITTED) {
+            throw new Error(`Cannot request changes on "publish" from status "${step.status}"`)
+          }
+          step.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
+          step.note = note
+          break
+        default:
+          throw new Error(`Invalid governance action "${action}" for the "publish" step`)
+      }
+    } else {
+      switch (action) {
+        case 'approve':
+          step.status = GOVERNANCE_STATUS_APPROVED
+          step.note = ''
+          break
+        case 'request-changes':
+          step.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
+          step.note = note
+          sendPublishBack(projectId, stepKey, note)
+          break
+        default:
+          throw new Error(`Invalid governance action "${action}" for step "${stepKey}"`)
+      }
+    }
+
     touch()
-    return absorb(raw)
   }
 
   // --- connections ---------------------------------------------------------------
@@ -742,8 +864,7 @@ export const useProjectsStore = defineStore('projects', () => {
   // Permitted connection catalogIDs from the Resource Management whitelist, or
   // null when no whitelist has been declared yet — meaning "no constraint".
   function allowedConnectorIds(projectId) {
-    const p = findById.value(projectId)
-    const wl = p?.governance?.['resource-management']?.values?.connections
+    const wl = governanceValues(projectId, 'resource-management')?.connections
     if (!wl || !wl.length) return null
     return new Set(wl.map(c => c.connector).filter(Boolean))
   }
@@ -1723,6 +1844,9 @@ export const useProjectsStore = defineStore('projects', () => {
     setFields,
     saveStepForm,
     transitionStep,
+    governanceStatus,
+    governanceNote,
+    governanceValues,
     graph,
     graphVisibleKinds,
     graphVisibleAccessKinds,

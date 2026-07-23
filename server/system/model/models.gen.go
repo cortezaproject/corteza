@@ -3768,14 +3768,6 @@ var Project = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Governance",
-			Type: &dal.TypeJSON{
-				DefaultValue: "{}",
-			},
-			Store: &dal.CodecAlias{Ident: "governance"},
-		},
-
-		&dal.Attribute{
 			Ident: "ProjectID",
 			Type: &dal.TypeID{HasDefault: true,
 				DefaultValue: 0,

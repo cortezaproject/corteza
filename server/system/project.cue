@@ -59,21 +59,6 @@ _projectDefs: {
 				{name: "Tags", slice:       true, type:     "string", json: "tags,omitempty"},
 	]}
 
-	ProjectGovernanceStatus: {name: "ProjectGovernanceStatus", values: [
-					{ident: "ProjectGovernanceStatusDraft", value:            "draft"},
-					{ident: "ProjectGovernanceStatusSubmitted", value:        "submitted"},
-					{ident: "ProjectGovernanceStatusApproved", value:         "approved"},
-					{ident: "ProjectGovernanceStatusChangesRequested", value: "changes-requested"},
-	]}
-
-	ProjectGovernanceStep: {name: "ProjectGovernanceStep", fields: [
-					{name: "Values", goType:   "map[string]any", json:                     "values,omitempty"},
-					{name: "Status", type:     _projectDefs.ProjectGovernanceStatus, json: "status"},
-					{name: "ReviewNote", type: "string", json:                             "reviewNote,omitempty"},
-	]}
-
-	ProjectGovernance: {name: "ProjectGovernance", key: "string", value: _projectDefs.ProjectGovernanceStep, valuePtr: true}
-
 	ProjectPermittedConnection: {name: "ProjectPermittedConnection", fields: [
 						{name: "ID", type:                  "string", json: "id"},
 						{name: "Name", type:                "string", json: "name"},
@@ -117,12 +102,6 @@ project: {
 			}
 			meta: {
 				type: _projectDefs.ProjectMeta
-				dal: {type: "JSON", defaultEmptyObject: true}
-				omitSetter: true
-				omitGetter: true
-			}
-			governance: {
-				type: _projectDefs.ProjectGovernance
 				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true

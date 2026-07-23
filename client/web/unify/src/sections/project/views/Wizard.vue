@@ -587,20 +587,27 @@ watch(
 // key (PUBLISH_GOVERNANCE_STEP_KEY): draft/changes-requested → submitted →
 // approved, then a successful publish resets it to draft for the next cycle.
 // Distinct from the direct per-step Approve/Request changes review on
-// Build/Govern steps below (no submit stage there) — see
-// server/system/service/project_governance.go for the shared backend rules.
-const publishGovStep = computed(
-  () =>
-    project.value?.governance?.[PUBLISH_GOVERNANCE_STEP_KEY] || { status: 'draft', reviewNote: '' },
+// Build/Govern steps below (no submit stage there) — see the governance
+// section of stores/projects.js for the shared rules (session-local
+// scaffolding pending a governance redesign).
+const publishStatus = computed(() =>
+  project.value
+    ? store.governanceStatus(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY)
+    : 'draft',
 )
-const publishStatus = computed(() => publishGovStep.value.status)
+const publishReviewNote = computed(() =>
+  project.value ? store.governanceNote(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY) : '',
+)
 
 // Whether any OTHER (Build/Govern) step currently has changes requested —
-// the "publish" step can't be approved while true (BE-enforced; this only
-// keeps the button from firing a request that's certain to be rejected, and
-// explains why via the disabled button's tooltip).
-const anyStepFlagged = computed(() =>
-  STEPS.some(s => project.value?.governance?.[s.key]?.status === 'changes-requested'),
+// the "publish" step can't be approved while true (mirrored client-side by
+// stores/projects.js transitionStep; this only keeps the button from firing a
+// request that's certain to be rejected, and explains why via the disabled
+// button's tooltip).
+const anyStepFlagged = computed(
+  () =>
+    !!project.value &&
+    STEPS.some(s => store.governanceStatus(project.value.projectID, s.key) === 'changes-requested'),
 )
 
 // Which action the topbar button represents right now, or null when the
@@ -663,8 +670,8 @@ const publishStatusTooltip = computed(() => {
           : 'project.publish.hint.draft.viewer',
       )
   }
-  if (publishStatus.value === 'changes-requested' && publishGovStep.value.reviewNote) {
-    return `${hint} ${t('project.publish.note.label')} "${publishGovStep.value.reviewNote}"`
+  if (publishStatus.value === 'changes-requested' && publishReviewNote.value) {
+    return `${hint} ${t('project.publish.note.label')} "${publishReviewNote.value}"`
   }
   return hint
 })
@@ -914,9 +921,12 @@ const startResize = () => {
 // granter via the per-step "Approve" action — see WizardToolbar). 'submitted'
 // belongs to the Publish governance step alone, which lives in the topbar
 // toolbar cluster now, not in this step dispatch.
-const stepStatus = key => project.value?.governance?.[key]?.status || 'draft'
+const stepStatus = key =>
+  project.value ? store.governanceStatus(project.value.projectID, key) : 'draft'
 const status = computed(() => stepStatus(activeKey.value))
-const reviewNote = computed(() => project.value?.governance?.[activeKey.value]?.reviewNote || '')
+const reviewNote = computed(() =>
+  project.value ? store.governanceNote(project.value.projectID, activeKey.value) : '',
+)
 // Editing is gated purely on the write capability — a step's governance
 // status never locks it, so a granter can always re-review after a change
 // (there is no reopen/unlock action to undo an approve otherwise).
@@ -996,7 +1006,9 @@ const headerHint = computed(() => {
 // --- Working copy of the active form step's values -------------------------
 const working = ref({})
 function loadWorking() {
-  const saved = project.value?.governance?.[activeKey.value]?.values || {}
+  const saved = project.value
+    ? store.governanceValues(project.value.projectID, activeKey.value)
+    : {}
   if (isSummary.value) {
     const vals = { ...summaryDefaults(), ...saved }
     if (!vals.systemName) vals.systemName = project.value?.name || ''
@@ -1064,8 +1076,10 @@ function onNext() {
 }
 
 // --- Per-step actions ------------------------------------------------------
-// Governance mutations persist via the API; report failures instead of
-// assuming success.
+// Governance mutations are session-local (see stores/projects.js), but still
+// routed through a try/catch — a store call can throw (e.g. the "publish"
+// approval gate while a step is flagged), so report that instead of assuming
+// success.
 async function governanceAction(fn, summary) {
   try {
     await fn()
@@ -1093,10 +1107,10 @@ function onApprove() {
 
 // --- Per-step "Request changes" ---------------------------------------------
 // A member with grant-approval capability can flag the active Build/Govern
-// step at any time, with a required note. The backend flags that step to
+// step at any time, with a required note. This flags that step to
 // changes-requested regardless of its current status, and sends the Publish
 // step back for review too if it was pending (see stores/projects.js
-// transitionStep + server/system/service/project_governance.go).
+// transitionStep).
 const requestChanges = ref({ visible: false, note: '', sending: false })
 const requestChangesHeader = computed(() =>
   t('project.wizard.requestChanges.dialog.header', {

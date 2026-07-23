@@ -14,18 +14,6 @@ export type ProjectMemberRole =
   | 'executive-authority'
   | 'infrastructure-administrator'
 
-export type ProjectGovernanceStatus = 'draft' | 'submitted' | 'approved' | 'changes-requested'
-
-export type ProjectGovernanceAction = 'submit' | 'approve' | 'request-changes'
-
-export interface ProjectGovernanceStep {
-  values: Record<string, unknown>
-  status: ProjectGovernanceStatus
-  reviewNote: string
-}
-
-export type ProjectGovernance = Record<string, ProjectGovernanceStep>
-
 export interface ProjectDeployerCategories {
   publicAuthorityAnnex3: boolean
   privateEssentialServices: boolean
@@ -104,7 +92,6 @@ export class Project {
 
   public config: Config = defaultConfig()
   public meta: Meta = defaultMeta()
-  public governance: ProjectGovernance = {}
   public labels: object = {}
 
   // Payload capability flags
@@ -158,10 +145,6 @@ export class Project {
       this.meta = { ...defaultMeta(), ...p.meta }
     }
 
-    if (IsOf(p, 'governance')) {
-      this.governance = { ...p.governance }
-    }
-
     if (IsOf(p, 'labels')) {
       this.labels = { ...p.labels }
     }
@@ -188,13 +171,6 @@ export class Project {
 
   get friaRequired(): boolean {
     return this.config.friaRequired
-  }
-
-  /**
-   * Governance entry for a step; a virgin step is an editable draft
-   */
-  governanceStep(key: string): ProjectGovernanceStep {
-    return this.governance[key] || { values: {}, status: 'draft', reviewNote: '' }
   }
 
   get resourceID(): string {

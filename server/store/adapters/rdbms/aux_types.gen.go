@@ -816,22 +816,21 @@ type (
 
 	// auxProject is an auxiliary structure used for transporting to/from RDBMS store
 	auxProject struct {
-		ID               uint64                       `db:"id"`
-		TenantID         uint64                       `db:"tenant_id"`
-		Handle           string                       `db:"handle"`
-		Status           systemType.ProjectStatus     `db:"status"`
-		Config           systemType.ProjectConfig     `db:"config"`
-		Meta             systemType.ProjectMeta       `db:"meta"`
-		Governance       systemType.ProjectGovernance `db:"governance"`
-		ProjectID        uint64                       `db:"root_project_id"`
-		ParentRevisionID uint64                       `db:"parent_revision_id"`
-		Revision         int                          `db:"revision"`
-		CreatedAt        time.Time                    `db:"created_at"`
-		UpdatedAt        *time.Time                   `db:"updated_at"`
-		DeletedAt        *time.Time                   `db:"deleted_at"`
-		CreatedBy        uint64                       `db:"created_by"`
-		UpdatedBy        uint64                       `db:"updated_by"`
-		DeletedBy        uint64                       `db:"deleted_by"`
+		ID               uint64                   `db:"id"`
+		TenantID         uint64                   `db:"tenant_id"`
+		Handle           string                   `db:"handle"`
+		Status           systemType.ProjectStatus `db:"status"`
+		Config           systemType.ProjectConfig `db:"config"`
+		Meta             systemType.ProjectMeta   `db:"meta"`
+		ProjectID        uint64                   `db:"root_project_id"`
+		ParentRevisionID uint64                   `db:"parent_revision_id"`
+		Revision         int                      `db:"revision"`
+		CreatedAt        time.Time                `db:"created_at"`
+		UpdatedAt        *time.Time               `db:"updated_at"`
+		DeletedAt        *time.Time               `db:"deleted_at"`
+		CreatedBy        uint64                   `db:"created_by"`
+		UpdatedBy        uint64                   `db:"updated_by"`
+		DeletedBy        uint64                   `db:"deleted_by"`
 	}
 
 	// auxProjectBacklogItem is an auxiliary structure used for transporting to/from RDBMS store
@@ -4125,7 +4124,6 @@ func (aux *auxProject) encode(res *systemType.Project) (_ error) {
 	aux.Status = res.Status
 	aux.Config = res.Config
 	aux.Meta = res.Meta
-	aux.Governance = res.Governance
 	aux.ProjectID = res.ProjectID
 	aux.ParentRevisionID = res.ParentRevisionID
 	aux.Revision = res.Revision
@@ -4149,7 +4147,6 @@ func (aux auxProject) decode() (res *systemType.Project, _ error) {
 	res.Status = aux.Status
 	res.Config = aux.Config
 	res.Meta = aux.Meta
-	res.Governance = aux.Governance
 	res.ProjectID = aux.ProjectID
 	res.ParentRevisionID = aux.ParentRevisionID
 	res.Revision = aux.Revision
@@ -4173,7 +4170,6 @@ func (aux *auxProject) scan(row scanner) error {
 		&aux.Status,
 		&aux.Config,
 		&aux.Meta,
-		&aux.Governance,
 		&aux.ProjectID,
 		&aux.ParentRevisionID,
 		&aux.Revision,

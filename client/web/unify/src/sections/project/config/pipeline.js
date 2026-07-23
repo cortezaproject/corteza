@@ -11,12 +11,12 @@
 // `kind`; resource steps take their icon from config/kinds so the sidebar matches
 // the metrics strip and resource graph exactly.
 // The well-known governance step key that drives the publish-time submit →
-// approve/request-changes cycle — mirrors the backend's
-// types.ProjectGovernanceStepPublish. It is not a wizard step any more (Publish
+// approve/request-changes cycle. It is not a wizard step any more (Publish
 // lives in the topbar toolbar cluster instead — see Wizard.vue); every other
-// step key only ever persists form values via SaveGovernanceStep and its
-// governance status via the direct approve/request-changes actions (see
-// stores/projects.js transitionStep).
+// step key only ever persists form values, and its governance status via the
+// direct approve/request-changes actions (see stores/projects.js
+// transitionStep — the whole governance workflow is session-local scaffolding
+// there, pending a redesign).
 export const PUBLISH_GOVERNANCE_STEP_KEY = 'publish'
 
 export const STEPS = [

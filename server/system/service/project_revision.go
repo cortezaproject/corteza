@@ -96,7 +96,6 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		Status:           types.ProjectStatusDraft,
 		Meta:             parent.Meta,
 		Config:           parent.Config,
-		Governance:       parent.Governance,
 		CreatedAt:        *now(),
 		CreatedBy:        a.GetIdentityFromContext(ctx).Identity(),
 	}
@@ -168,11 +167,8 @@ func (svc *project) DeploymentPlan(ctx context.Context, projectID uint64) (*type
 // Publish migrates records from the parent namespace to the draft, flips statuses,
 // and soft-deletes the old namespace. The request must carry confirm=true.
 //
-// Every project requires the well-known "publish" governance step
-// (types.ProjectGovernanceStepPublish) to be approved before it publishes —
-// every publish, first or subsequent, needs its own submit → approve cycle. On
-// success the step is reset back to draft so the next publish requires fresh
-// approval.
+// The approval flow that gates publishing is enforced client-side; the backend
+// publishes directly once confirm=true and the project is a draft.
 func (svc *project) Publish(ctx context.Context, projectID uint64, req types.PublishRequest) (*types.Project, error) {
 	if !req.Confirm {
 		return nil, fmt.Errorf("publish requires confirm=true")
@@ -186,11 +182,6 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 		return nil, fmt.Errorf("only draft projects can be published")
 	}
 
-	publishStep := draft.Governance.Step(types.ProjectGovernanceStepPublish)
-	if publishStep.Status != types.ProjectGovernanceStatusApproved {
-		return nil, fmt.Errorf("publish requires the %q governance step to be approved first (currently %q)", types.ProjectGovernanceStepPublish, publishStep.Status)
-	}
-
 	// First publish: a project with no parent revision has no prior namespace to
 	// migrate from — its namespace is already the live one. Publishing simply
 	// promotes the draft to active; no record migration, no namespace swap.
@@ -198,7 +189,6 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 		draft.Status = types.ProjectStatusActive
 		draft.UpdatedAt = now()
 		draft.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
-		publishStep.Reset()
 		if err = store.UpdateProject(ctx, svc.store, draft); err != nil {
 			return nil, err
 		}
@@ -255,7 +245,6 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 		draft.UpdatedAt = now()
 		draft.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 		draft.Config.NamespaceID = newNs.ID
-		publishStep.Reset()
 		return store.UpdateProject(ctx, s, draft)
 	})
 	if err != nil {

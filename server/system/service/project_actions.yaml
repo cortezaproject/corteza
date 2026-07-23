@@ -45,12 +45,6 @@ actions:
   - action: undelete
     log: "undeleted {{project}}"
 
-  - action: governanceSave
-    log: "saved governance step on {{project}}"
-
-  - action: governanceTransition
-    log: "transitioned governance step on {{project}}"
-
   - action: searchMembers
     log: "searched members of {{project}}"
     severity: info
@@ -123,20 +117,4 @@ errors:
 
   - error: memberAlreadyExists
     message: "user is already a member of this project"
-    severity: warning
-
-  - error: notAllowedToEditGovernance
-    message: "not allowed to edit governance state of this project"
-    log: "failed to edit governance of {{project.handle}}; insufficient capabilities"
-
-  - error: approvalBlockedByChangesRequested
-    message: "cannot approve the project while one or more steps still have requested changes"
-    severity: warning
-
-  - error: governanceStepLocked
-    message: "governance step is locked; it was submitted or approved"
-    severity: warning
-
-  - error: invalidGovernanceTransition
-    message: "invalid governance step transition"
     severity: warning

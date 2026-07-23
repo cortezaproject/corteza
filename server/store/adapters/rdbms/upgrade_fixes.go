@@ -43,7 +43,6 @@ var (
 		// No-ops on fresh databases (tables don't exist yet; they're created
 		// from the models, columns included).
 		fix_2026_06_00_addTenancyScopeColumns,
-		fix_2026_06_00_addGovernanceOnProjects,
 		fix_2026_05_00_addCreatedByAgentToComposeResources,
 
 		fix_2022_09_00_extendComposeModuleForPrivacyAndDAL,
@@ -295,17 +294,6 @@ func fix_2026_06_29_addDeletedAtOnDmlTables(ctx context.Context, s *Store) error
 		}
 	}
 	return nil
-}
-
-func fix_2026_06_00_addGovernanceOnProjects(ctx context.Context, s *Store) (err error) {
-	return addColumn(ctx, s,
-		"projects",
-		&dal.Attribute{
-			Ident: "Governance",
-			Type:  &dal.TypeJSON{DefaultValue: "{}"},
-			Store: &dal.CodecAlias{Ident: "governance"},
-		},
-	)
 }
 
 // fix_2026_05_00_addStateOnChatbotSessions backfills the JSON `state` column

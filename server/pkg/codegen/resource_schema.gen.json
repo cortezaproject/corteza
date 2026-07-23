@@ -946,7 +946,6 @@
   "color": "string",
   "tags": "string"
 },
-  "governance": "ProjectGovernance",
   "rootProjectID": "uint64",
   "parentRevisionID": "uint64",
   "revision": "int",

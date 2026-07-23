@@ -30,8 +30,6 @@ type (
 		UpdateMember(context.Context, *request.ProjectUpdateMember) (interface{}, error)
 		RemoveMember(context.Context, *request.ProjectRemoveMember) (interface{}, error)
 		Graph(context.Context, *request.ProjectGraph) (interface{}, error)
-		GovernanceSave(context.Context, *request.ProjectGovernanceSave) (interface{}, error)
-		GovernanceTransition(context.Context, *request.ProjectGovernanceTransition) (interface{}, error)
 		CreateRevision(context.Context, *request.ProjectCreateRevision) (interface{}, error)
 		ListRevisions(context.Context, *request.ProjectListRevisions) (interface{}, error)
 		GetDeploymentPlan(context.Context, *request.ProjectGetDeploymentPlan) (interface{}, error)
@@ -40,23 +38,21 @@ type (
 
 	// HTTP API interface
 	Project struct {
-		List                 func(http.ResponseWriter, *http.Request)
-		Create               func(http.ResponseWriter, *http.Request)
-		Read                 func(http.ResponseWriter, *http.Request)
-		Update               func(http.ResponseWriter, *http.Request)
-		Delete               func(http.ResponseWriter, *http.Request)
-		Undelete             func(http.ResponseWriter, *http.Request)
-		ListMembers          func(http.ResponseWriter, *http.Request)
-		AddMember            func(http.ResponseWriter, *http.Request)
-		UpdateMember         func(http.ResponseWriter, *http.Request)
-		RemoveMember         func(http.ResponseWriter, *http.Request)
-		Graph                func(http.ResponseWriter, *http.Request)
-		GovernanceSave       func(http.ResponseWriter, *http.Request)
-		GovernanceTransition func(http.ResponseWriter, *http.Request)
-		CreateRevision       func(http.ResponseWriter, *http.Request)
-		ListRevisions        func(http.ResponseWriter, *http.Request)
-		GetDeploymentPlan    func(http.ResponseWriter, *http.Request)
-		Publish              func(http.ResponseWriter, *http.Request)
+		List              func(http.ResponseWriter, *http.Request)
+		Create            func(http.ResponseWriter, *http.Request)
+		Read              func(http.ResponseWriter, *http.Request)
+		Update            func(http.ResponseWriter, *http.Request)
+		Delete            func(http.ResponseWriter, *http.Request)
+		Undelete          func(http.ResponseWriter, *http.Request)
+		ListMembers       func(http.ResponseWriter, *http.Request)
+		AddMember         func(http.ResponseWriter, *http.Request)
+		UpdateMember      func(http.ResponseWriter, *http.Request)
+		RemoveMember      func(http.ResponseWriter, *http.Request)
+		Graph             func(http.ResponseWriter, *http.Request)
+		CreateRevision    func(http.ResponseWriter, *http.Request)
+		ListRevisions     func(http.ResponseWriter, *http.Request)
+		GetDeploymentPlan func(http.ResponseWriter, *http.Request)
+		Publish           func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -238,38 +234,6 @@ func NewProject(h ProjectAPI) *Project {
 
 			api.Send(w, r, value)
 		},
-		GovernanceSave: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewProjectGovernanceSave()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.GovernanceSave(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		GovernanceTransition: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewProjectGovernanceTransition()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.GovernanceTransition(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
 		CreateRevision: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewProjectCreateRevision()
@@ -351,8 +315,6 @@ func (h Project) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Put("/projects/{projectID}/members/{userID}", h.UpdateMember)
 		r.Delete("/projects/{projectID}/members/{userID}", h.RemoveMember)
 		r.Get("/projects/{projectID}/graph", h.Graph)
-		r.Put("/projects/{projectID}/governance/{stepKey}", h.GovernanceSave)
-		r.Post("/projects/{projectID}/governance/{stepKey}/transition", h.GovernanceTransition)
 		r.Post("/projects/{projectID}/revision", h.CreateRevision)
 		r.Get("/projects/{projectID}/revisions", h.ListRevisions)
 		r.Get("/projects/{projectID}/publish", h.GetDeploymentPlan)

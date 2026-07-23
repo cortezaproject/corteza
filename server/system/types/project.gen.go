@@ -24,7 +24,6 @@ type (
 		Status           ProjectStatus                    `json:"status"`
 		Config           ProjectConfig                    `json:"config"`
 		Meta             ProjectMeta                      `json:"meta"`
-		Governance       ProjectGovernance                `json:"governance"`
 		ProjectID        uint64                           `json:"rootProjectID,string,omitempty"`
 		ParentRevisionID uint64                           `json:"parentRevisionID,string,omitempty"`
 		Revision         int                              `json:"revision,omitempty"`
@@ -67,12 +66,6 @@ type (
 		Tags        []string `json:"tags,omitempty"`
 	}
 
-	ProjectGovernanceStep struct {
-		Values     map[string]any          `json:"values,omitempty"`
-		Status     ProjectGovernanceStatus `json:"status"`
-		ReviewNote string                  `json:"reviewNote,omitempty"`
-	}
-
 	ProjectPermittedConnection struct {
 		ID                  string `json:"id"`
 		Name                string `json:"name"`
@@ -89,8 +82,6 @@ type (
 	ProjectVisibility string
 
 	ProjectMemberRole string
-
-	ProjectGovernanceStatus string
 )
 
 func (r Project) Clone() *Project {
@@ -147,10 +138,6 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 	for _, c := range r.Meta.Diff(&cmp.Meta) {
 		c.Key = "meta." + c.Key
 		out = append(out, c)
-	}
-
-	if !reflect.DeepEqual(r.Governance, cmp.Governance) {
-		out = append(out, &revisions.Change{Key: "governance", Old: []any{cmp.Governance}, New: []any{r.Governance}})
 	}
 
 	if r.ProjectID != cmp.ProjectID {
@@ -368,41 +355,6 @@ func (r ProjectMeta) Diff(cmp *ProjectMeta) []*revisions.Change {
 func (r *ProjectMeta) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ProjectMeta) Value() (driver.Value, error) { return json.Marshal(r) }
 
-func (r ProjectGovernanceStep) Clone() *ProjectGovernanceStep {
-	dup := r
-	if r.Values != nil {
-		dup.Values = make(map[string]any, len(r.Values))
-		for k, v := range r.Values {
-			dup.Values[k] = v
-		}
-	}
-
-	return &dup
-}
-
-func (r ProjectGovernanceStep) Diff(cmp *ProjectGovernanceStep) []*revisions.Change {
-	out := make([]*revisions.Change, 0)
-	if cmp == nil {
-		cmp = &ProjectGovernanceStep{}
-	}
-	if !reflect.DeepEqual(r.Values, cmp.Values) {
-		out = append(out, &revisions.Change{Key: "values", Old: []any{cmp.Values}, New: []any{r.Values}})
-	}
-
-	if !reflect.DeepEqual(r.Status, cmp.Status) {
-		out = append(out, &revisions.Change{Key: "status", Old: []any{cmp.Status}, New: []any{r.Status}})
-	}
-
-	if r.ReviewNote != cmp.ReviewNote {
-		out = append(out, &revisions.Change{Key: "reviewNote", Old: []any{cmp.ReviewNote}, New: []any{r.ReviewNote}})
-	}
-
-	return out
-}
-
-func (r *ProjectGovernanceStep) Scan(src any) error          { return sql.ParseJSON(src, r) }
-func (r ProjectGovernanceStep) Value() (driver.Value, error) { return json.Marshal(r) }
-
 func (r ProjectPermittedConnection) Clone() *ProjectPermittedConnection {
 	dup := r
 	return &dup
@@ -475,13 +427,6 @@ const (
 	ProjectMemberRoleProjectRoleInfrastructureAdministrator ProjectMemberRole = "infrastructure-administrator"
 )
 
-const (
-	ProjectGovernanceStatusDraft            ProjectGovernanceStatus = "draft"
-	ProjectGovernanceStatusSubmitted        ProjectGovernanceStatus = "submitted"
-	ProjectGovernanceStatusApproved         ProjectGovernanceStatus = "approved"
-	ProjectGovernanceStatusChangesRequested ProjectGovernanceStatus = "changes-requested"
-)
-
 func ParseProjectConfig(ss []string) (p ProjectConfig, err error) {
 	if len(ss) == 0 {
 		return
@@ -490,16 +435,6 @@ func ParseProjectConfig(ss []string) (p ProjectConfig, err error) {
 }
 
 func ParseProjectMeta(ss []string) (p ProjectMeta, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func (m *ProjectGovernance) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ProjectGovernance) Value() (driver.Value, error) { return json.Marshal(m) }
-
-func ParseProjectGovernance(ss []string) (p ProjectGovernance, err error) {
 	if len(ss) == 0 {
 		return
 	}
