@@ -1,7 +1,8 @@
 # The Intent System
 
-**Status: draft — pending approval. This file is the constitution of the intent system.
-Every rule the tooling enforces and every doc the backfill produces derives from here.**
+**Status: active since 2026-07-23 (phases 0–3 landed: tooling + all FE packages).
+This file is the constitution of the intent system. Every rule the tooling
+enforces and every doc the backfill produces derives from here.**
 
 ## 1. What this is
 

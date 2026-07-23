@@ -261,6 +261,8 @@ function cmdStatus() {
   }
   console.log('drift-age (oldest sync per enforced root — audit oldest first):')
   for (const [root, t] of [...byRoot].sort((a, b) => String(a[1]).localeCompare(String(b[1])))) console.log(`  ${t}  ${root}`)
+  const pending = config.covered.filter((c) => !config.enforced.some((e) => c === e || c.startsWith(e + '/') || e.startsWith(c + '/')))
+  if (pending.length) console.log(`backfill pending (covered, not yet enforced): ${pending.join(', ')}`)
 }
 
 function cmdCoverage() {
@@ -278,7 +280,13 @@ function cmdCoverage() {
     console.error('files with NO governing doc:')
     for (const f of uncovered) console.error(`  ${f}`)
   }
-  for (const d of orphanDocs) console.log(`  note: doc governs no covered files: ${d}`)
+  // Folder docs legitimately govern nothing directly when every child carries
+  // its own doc — count them. File-kind orphans are real problems and print.
+  // (Moved/deleted sources are the lockfile's job, not this note.)
+  const unexpected = orphanDocs.filter((d) => frontmatter(d).kind !== 'folder')
+  for (const d of unexpected) console.log(`  note: orphaned file doc: ${d}`)
+  const idx = orphanDocs.length - unexpected.length
+  if (idx) console.log(`  (${idx} folder docs govern no files directly — expected)`)
   if (uncovered.length || missingSidecar.length) process.exit(1)
   console.log(`intent coverage OK (${files.length} files all governed)`)
 }

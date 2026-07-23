@@ -1,7 +1,6 @@
 ---
 kind: folder
 covers: '.'
-backfilled: true
 owner: fe
 depends-on:
   - lib/vue
