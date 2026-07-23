@@ -64,12 +64,16 @@ function enforcedFiles() {
 
 const hashFile = (p) => createHash('sha256').update(readFileSync(join(ROOT, p))).digest('hex').slice(0, 12)
 
-// sidecar wins; else nearest INTENT.md up the tree ("." docs only govern their own dir)
+function sidecarPath(p) {
+  const base = basename(p)
+  return rel(join(dirname(p), base.slice(0, base.length - extname(base).length) + '.intent.md'))
+}
+
+// sidecar wins; else nearest folder doc up the tree ("." docs only govern their own dir)
 function governingDoc(p) {
   const dir = dirname(p)
-  const base = basename(p)
-  const sidecar = join(dir, base.slice(0, base.length - extname(base).length) + '.intent.md')
-  if (existsSync(join(ROOT, sidecar))) return rel(sidecar)
+  const sidecar = sidecarPath(p)
+  if (existsSync(join(ROOT, sidecar))) return sidecar
   let d = dir
   let hops = 0
   while (true) {
@@ -261,7 +265,7 @@ function cmdCoverage() {
   const files = enforcedFiles()
   const uncovered = files.filter((f) => !governingDoc(f))
   // file-tier paths must be governed by their own sidecar, not just a folder doc
-  const missingSidecar = files.filter((f) => isFileTier(f) && !(governingDoc(f) ?? '').endsWith('.intent.md'))
+  const missingSidecar = files.filter((f) => isFileTier(f) && governingDoc(f) !== sidecarPath(f))
   if (missingSidecar.length) {
     console.error('file-tier files MISSING their <name>.intent.md sidecar:')
     for (const f of missingSidecar) console.error(`  ${f}`)

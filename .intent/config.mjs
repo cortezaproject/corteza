@@ -16,7 +16,17 @@ export default {
 
   // Roots (dirs or single files) where check/sync/coverage are ENFORCED today.
   // Grows as backfill phases land. Phase 1 = friction pilot.
-  enforced: [],
+  enforced: [
+    'client/web/unify/src/App.vue',
+    'client/web/unify/src/main.js',
+    'client/web/unify/src/config-check.js',
+    'client/web/unify/src/router',
+    'client/web/unify/src/plugins',
+    'client/web/unify/src/utils',
+    'client/web/unify/src/sections/index.js',
+    'client/web/unify/src/sections/home',
+    'client/web/unify/src/sections/admin',
+  ],
 
   // Never covered, never checked (glob-ish: * = segment, ** = any depth).
   exclude: [
@@ -35,10 +45,22 @@ export default {
 
   // Files that must have their own <name>.intent.md sidecar (beyond folder docs).
   // Globs, matched against repo-relative paths.
-  // Admin-style CRUD views are governed per-resource-folder instead (List+Editor
-  // share one INTENT.md); sidecars are for singular load-bearing files.
+  // Route-target views (view = one screen = one UX contract) get their own
+  // sidecar; non-route sub-components stay governed by the resource folder doc.
+  // The filename set below matches exactly the components referenced in routes.
   fileTier: [
     'client/web/unify/src/App.vue',
+    '**/views/**/List.vue',
+    '**/views/**/Editor.vue',
+    '**/views/**/Index.vue',
+    '**/views/**/View.vue',
+    '**/views/**/Configure.vue',
+    '**/views/**/Dashboard.vue',
+    '**/views/**/Hit.vue',
+    '**/views/**/Route.vue',
+    '**/views/**/Home.vue',
+    '**/views/Dashboard.vue',
+    '**/views/Home.vue',
     '**/stores/**/*.js',
     '**/store/**/*.js',
     '**/registry.ts',

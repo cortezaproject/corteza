@@ -76,12 +76,15 @@ Coverage is declared in `.intent/config.mjs`, not implied. `intent coverage` rep
 covered-without-doc and doc-without-covered-path (orphans) — both are CI failures.
 
 ### File tier (which files get their own `*.intent.md`)
-Automatic (via `fileTier` globs in config): Pinia stores, registries
-(`field/registry.ts`), `App.vue`, server files defining a service or RBAC surface.
-CRUD view families (admin List/Editor pairs) are governed **per resource folder**
-(one folder doc with `covers: recursive`) rather than per-file sidecars —
-pilot finding: sidecars on every view file forced docs onto non-route
-sub-components with nothing contractual to say.
+Automatic (via `fileTier` globs in config): **route-target views**, Pinia stores,
+registries (`field/registry.ts`), `App.vue`, server files defining a service or
+RBAC surface.
+View = one screen = one UX contract: every view a route points at carries its own
+sidecar (Intention, UX capabilities, Routes, tests — tests attach per screen).
+Non-route sub-components under `views/` are governed by their resource folder doc,
+which stays thin: shared data-touched notes + map. The fileTier view globs must
+match exactly the filenames referenced as route components — never blanket
+`views/**/*.vue` (pilot finding: that forced empty docs onto sub-components).
 Everything else is covered by the nearest folder intent doc; a sidecar always
 wins over folder docs when present, so any file can be promoted ad hoc.
 

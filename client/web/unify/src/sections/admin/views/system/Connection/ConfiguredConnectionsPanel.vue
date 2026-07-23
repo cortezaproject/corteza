@@ -34,7 +34,11 @@
           @click="createConfiguredConnection"
         />
         <CPermissionsButton
-          v-if="canGrant && connection?.connectionID && (connection.source === 'catalog' ? connection.status === 'active' : true)"
+          v-if="
+            canGrant &&
+            connection?.connectionID &&
+            (connection.source === 'catalog' ? connection.status === 'active' : true)
+          "
           v-tooltip.bottom="$t('general.label.permissions')"
           resource="corteza::system:configured-connection/*"
           :title="connection.meta?.short || connection.handle || connection.connectionID"
