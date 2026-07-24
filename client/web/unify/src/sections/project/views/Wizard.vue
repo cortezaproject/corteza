@@ -104,9 +104,18 @@
          per-project review ACTIONS are capability-gated, not tab access). -->
     <Tabs v-model:value="activeTab" class="shrink-0 px-3 pt-2">
       <TabList>
-        <Tab value="build">{{ $t('project.wizard.tabs.build') }}</Tab>
-        <Tab value="govern">{{ $t('project.wizard.tabs.govern') }}</Tab>
-        <Tab value="manage">{{ $t('project.wizard.tabs.manageMonitor') }}</Tab>
+        <Tab value="build" class="flex items-center gap-2">
+          <i class="pi pi-wrench" />
+          <span>{{ $t('project.wizard.tabs.build') }}</span>
+        </Tab>
+        <Tab value="govern" class="flex items-center gap-2">
+          <i class="pi pi-shield" />
+          <span>{{ $t('project.wizard.tabs.govern') }}</span>
+        </Tab>
+        <Tab value="manage" class="flex items-center gap-2">
+          <i class="pi pi-chart-line" />
+          <span>{{ $t('project.wizard.tabs.manageMonitor') }}</span>
+        </Tab>
       </TabList>
     </Tabs>
 
