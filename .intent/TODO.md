@@ -83,11 +83,9 @@ commit as the work that resolves an item.
 
 ## Recorded product backlog (from doc reviews)
 
-- [ ] **Project list search is dead** (2026-07-24, found by e2e wave 1):
-      backend matches `query` against `handle` only and the create flow never
-      sets a handle — ruling needed on the fix side (BE name/meta match vs FE
-      handle derivation). DRIFT note in `views/ProjectList.intent.md`.
-- [ ] **Dev-stack e2e prerequisite**: full-suite runs trip the auth server's
-      per-IP rate limit (`AUTH_REQUEST_RATE_LIMIT`, default 60/min — every
-      fresh browser context does an oauth roundtrip). Raise/disable it in the
-      dev stack env for e2e runs; document in `.env.e2e.example` when ruled.
+- [x] ~~Project list search is dead~~ — ruled BE-side and fixed 2026-07-24:
+      rdbms filter override matches handle OR `meta.short`; verified live,
+      DRIFT note resolved, e2e specs use the search box again.
+- [x] ~~Dev-stack e2e prerequisite~~ — ruled 2026-07-24:
+      `AUTH_REQUEST_RATE_LIMIT=0` set in the dev server env; documented in
+      `.env.e2e.example` + `e2e.intent.md`. Full project suite green (14/14).

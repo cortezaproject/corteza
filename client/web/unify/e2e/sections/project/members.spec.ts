@@ -116,9 +116,9 @@ test.describe.serial('project members dialog', () => {
       await page.goto('/project/projects')
       await page.waitForLoadState('networkidle')
 
-      // No search here: the server matches `query` against `handle` only and
-      // created projects have no handle — the fresh row sits on page one
-      // (last-modified desc), so match it by text.
+      // Search narrows server-side (handle OR meta name since the 2026-07-24
+      // filter fix); the text filter still pins the exact row.
+      await page.getByPlaceholder('Search projects').fill(projectName)
       const row = page.locator('tbody tr').filter({ hasText: projectName })
       await expect(row).toHaveCount(1)
 

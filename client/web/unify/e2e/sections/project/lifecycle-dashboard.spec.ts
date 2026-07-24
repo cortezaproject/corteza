@@ -33,11 +33,14 @@ test.describe.serial('project lifecycle & dashboard', () => {
   let isLive = false
 
   async function findRow(page: Page, name: string): Promise<Locator> {
-    // Deliberately NOT using the list's search box: the server matches
-    // `query` against `handle` only (ProjectFilter, store layer) and
-    // NewProjectDialog never sets a handle, so name search finds nothing.
-    // Fresh e2e projects sort to page one (last-modified desc) — match the
-    // row by text instead.
+    // Search narrows server-side (handle OR meta name since the 2026-07-24
+    // filter fix); the text filter still pins the exact row. The search is
+    // debounced and rewrites the URL (?query=) when it lands — wait for that
+    // rewrite BEFORE returning, or a row click races it and its navigation
+    // is lost.
+    await page.getByPlaceholder('Search projects').fill(name)
+    await page.waitForURL(u => u.searchParams.get('query') === name)
+    await page.waitForLoadState('networkidle')
     return page.locator('tbody tr').filter({ hasText: name })
   }
 

@@ -42,12 +42,9 @@ archived or deleted.
 - Live means status `active` — the locked contract says the backend never
   sets `published`; the extra `published` check here is defensive only.
 
-> **DRIFT (fix pending verification):** the search box was dead — the
-> generated filter matched `query` against `handle` only and the create flow
-> never sets a handle. Ruled 2026-07-24: fix BE-side; the rdbms filter
-> override (`server/store/adapters/rdbms/filter.go` `f.Project`) now matches
-> handle OR the meta JSON name. Verify against a rebuilt dev stack, then drop
-> this note and let the e2e specs use the search box again.
+- Search matches handle OR the meta JSON name (`meta.short`) via the rdbms
+  filter override (`server/store/adapters/rdbms/filter.go` `f.Project`) —
+  ruled and verified 2026-07-24; the generated filter alone is handle-only.
 
 - The name column is not sortable (meta JSON column has no sort ident).
 - Keep the `?new=1` handoff contract in sync with Wizard.vue.

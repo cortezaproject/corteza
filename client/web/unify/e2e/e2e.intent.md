@@ -21,7 +21,13 @@ to the specs to run.
 
 - Specs attach to a running dev stack (`E2E_BASE_URL`, default localhost:5173)
   — they never boot or seed anything, and must tolerate existing dev data
-  (skip, don't fail, when required data is absent).
+  (skip, don't fail, when required data is absent). The stack must run with
+  `AUTH_REQUEST_RATE_LIMIT=0`: full-suite runs trip the default 60/min per-IP
+  auth limit (every fresh context does an oauth roundtrip) and fail on blank
+  429 pages.
+- Specs that create data use an `e2e-` name prefix and delete what they
+  created in teardown hooks (hooks, not tests — a failing test inside a
+  serial block skips the remaining tests but hooks still run).
 - Auth: `auth.setup.ts` logs in once via the real auth form (credentials from
   gitignored `.env.e2e`) and shares the session via storageState.
 - Serial workers by design: the stack's data is shared, runs stay deterministic.
