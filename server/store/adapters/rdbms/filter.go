@@ -200,6 +200,35 @@ func DefaultFilters() (f *extendedFilters) {
 		return ee, f, nil
 	}
 
+	f.Project = func(s *Store, f systemType.ProjectFilter) (ee []goqu.Expression, _ systemType.ProjectFilter, err error) {
+		// Query matching happens here, not in the generated filter: projects
+		// carry their human-facing name in the meta JSON (there is no name
+		// column, and the create flow leaves handle empty), so the generated
+		// handle-only ILIKE finds nothing users can see. Blank Query around
+		// the generated call, then match handle OR meta name together.
+		q := f.Query
+		f.Query = ""
+		if ee, f, err = ProjectFilter(s.Dialect, f); err != nil {
+			return
+		}
+		f.Query = q
+
+		if q != "" {
+			var nameExpr exp.Expression
+			nameExpr, err = s.Dialect.JsonExtractUnquote(goqu.C("meta"), "name")
+			if err != nil {
+				return
+			}
+
+			ee = append(ee, goqu.Or(
+				goqu.C("handle").ILike("%"+q+"%"),
+				goqu.L("?", nameExpr).ILike("%"+q+"%"),
+			))
+		}
+
+		return ee, f, nil
+	}
+
 	f.Reminder = func(s *Store, f systemType.ReminderFilter) (ee []goqu.Expression, _ systemType.ReminderFilter, err error) {
 		if ee, f, err = ReminderFilter(s.Dialect, f); err != nil {
 			return
@@ -497,7 +526,7 @@ func stateFalseComparison(d drivers.Dialect, lit string, fs filter.State) goqu.E
 // or a JSON sentinel of the form "json:<column>.<key>[.<key>...]"
 // (e.g. "json:meta.name") to sort on a value extracted from a JSON column. When
 // a sentinel is encountered, the dialect's JsonExtractUnquote is used to build
-// the sort expression, wrapped in COALESCE(..., '') so NULL values sort
+// the sort expression, wrapped in COALESCE(..., ”) so NULL values sort
 // deterministically across backends.
 func generateSorting(dialect drivers.Dialect, sortables map[string]string, s *filter.SortExpr) (out goqu.Expression, err error) {
 	const COALESCE string = "coalesce"
