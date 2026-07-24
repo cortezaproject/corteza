@@ -29,7 +29,7 @@ consumes via a fixed contract; adding a section = drop a folder + register it in
 ## Map
 
 - `index.js` — section registry: ordered `sections` list, flattened `routes`, `sectionById()`.
-- `home`, `agentic`, `workflow`, `taq`, `admin`, `compose`, `chatbot` — the sections (order = app-list order).
+- `home`, `agentic`, `workflow`, `taq`, `admin`, `compose`, `chatbot`, `project` — the sections (order = app-list order). `project` is WIP in parts; its locked contracts live in `project/project.intent.md`.
 
 ## When changing this
 

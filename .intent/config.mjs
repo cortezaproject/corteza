@@ -32,7 +32,6 @@ export default {
     '**/.build/**',
     '**/*.gen.*',
     '**/assets/**',
-    'client/web/unify/src/sections/project/**', // POC, still iterating
     'client/web/unify/public/**', // runtime instance config + static assets
     'client/web/chatbot-widget/public/**',
     'lib/js/src/api-clients/**', // codegen-owned (generated from server rest.yaml)
@@ -65,6 +64,9 @@ export default {
     '**/views/**/Sessions.vue',
     '**/views/Dashboard.vue',
     '**/views/Home.vue',
+    '**/views/ProjectList.vue',
+    '**/views/Wizard.vue',
+    '**/views/dashboard/*.vue',
     '**/stores/**/*.js',
     '**/stores/**/*.ts',
     '**/store/**/*.js',

@@ -40,10 +40,20 @@ commit as the work that resolves an item.
 - [ ] When `main` merges into this lineage: `lib/vue` field docs must gain the
       PrimeVue `$pcFormField`/`$pcForm` severing contract (fix `928c3bc50`,
       currently absent here — the multivalue-input bug is live on this branch).
-- [ ] When the project POC stabilizes: document `sections/project` (+ its
-      server code), remove its exclusions from `.intent/config.mjs`, and
-      restore `project` to the section list in `sections/sections.intent.md`
-      (currently deliberately omitted).
+- [x] ~~Document `sections/project` when the POC stabilizes~~ — done 2026-07-24
+      via interview-first (rulings in `project/project.intent.md`). Remaining
+      project-section follow-ups:
+  - [ ] Approval **backend persistence** (session-local scaffolding in
+        `stores/projects.js` `governanceByProject`; BE planned).
+  - [ ] **Govern tab + FRIA content** lock-in — re-interview when governance
+        content settles (incl. Govern steps summary/resource-management/
+        data-sensitivity).
+  - [ ] **Groups** build-out — part of the intended members model; prior broken
+        experiment deleted 2026-07-24, build fresh.
+  - [ ] **M&M build-time dashboard** — replace the wizard tab placeholder
+        (current-version categories + backlog, version-shared with live).
+  - [ ] **Permission create-ops** ruling (Bucket A/B split) + matrix support.
+  - [ ] Project-only **server code** still excluded — Phase 4 scoping.
 
 ## Recorded product backlog (from doc reviews)
 

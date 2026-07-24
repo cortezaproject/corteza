@@ -66,12 +66,14 @@ separate sidecar — the folder doc governs it.
 - Generated files: `*.gen.go`, `*.gen.ts`, anything codegen-owned
 - Lockfiles, assets (fonts, icons)
 
-### Excluded for now (POC, still iterating — documented when it stabilizes)
-- `client/web/unify/src/sections/project`
+### Excluded for now (documented when it stabilizes)
+- ~~`client/web/unify/src/sections/project`~~ — covered since 2026-07-24 via
+  interview-first documentation: locked contracts + `> **WIP:**` zones recorded
+  in `project/project.intent.md`.
 - Server-side code that exists **only** for the projects feature and cannot work
   standalone (project resource packages, project-only endpoints). Rule of thumb:
   if deleting projects would delete the file, it is excluded; if projects merely
-  *uses* it (TAQ, automation, compose), it is covered.
+  *uses* it (TAQ, automation, compose), it is covered. Revisit in Phase 4 scoping.
 - `extra/server-discovery` — separate service, documented on first touch.
 
 Coverage is declared in `.intent/config.mjs`, not implied. `intent coverage` reports
@@ -159,6 +161,11 @@ Enforcement points:
 Escape hatch: none in CI. If code and intent genuinely must diverge temporarily, the
 doc gets a `> **DRIFT:** …` note and is synced — the divergence is then itself recorded
 intent.
+
+WIP zones: areas whose intent is deliberately not locked yet carry a
+`> **WIP:** …` note stating what must not be relied on. Locked contracts and WIP
+notes may coexist in one doc; reviewers vet only the locked parts. A WIP note is a
+promise that the area will be re-interviewed and locked later, tracked in TODO.md.
 
 ## 6. Workflows
 
