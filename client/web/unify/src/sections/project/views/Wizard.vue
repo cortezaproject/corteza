@@ -11,113 +11,114 @@
     </span>
   </Teleport>
 
-  <!-- Right-aligned topbar tools: the project-level publish approval cluster
-       (draft projects only — see publishAction), the Members dialog opener,
-       then navigation — jump to a live project's dashboard, or open its
-       compose namespace. -->
-  <Teleport to="#topbar-tools" defer>
-    <span class="flex items-center gap-2">
-      <!-- Publish approval cluster — one state-driven primary control reading
-           the well-known 'publish' governance step (see publishAction), next
-           to a compact status Tag. Only relevant pre-publish: once a project
-           is live, "View dashboard" (below) takes over and a fresh cycle only
-           resumes with a future revision. -->
-      <template v-if="project && !isLive">
-        <Tag
-          :value="publishStatusLabel"
-          :severity="publishStatusSeverity"
-          v-tooltip.bottom="publishStatusTooltip"
-        />
-        <Button
-          v-if="publishAction === 'request'"
-          :label="
-            publishStatus === 'changes-requested'
-              ? $t('project.publish.actions.resubmit')
-              : $t('project.publish.actions.requestApproval')
-          "
-          icon="pi pi-send"
-          size="small"
-          :severity="publishStatus === 'changes-requested' ? 'warn' : undefined"
-          :loading="requestApprovalLoading"
-          @click="requestApproval"
-        />
-        <Button
-          v-else-if="publishAction === 'approve'"
-          :label="$t('project.publish.actions.approveProject')"
-          icon="pi pi-check"
-          severity="success"
-          size="small"
-          :disabled="anyStepFlagged"
-          :loading="approveProjectLoading"
-          v-tooltip.bottom="
-            anyStepFlagged ? $t('project.publish.actions.approveBlockedTooltip') : null
-          "
-          @click="approveProject"
-        />
-        <Button
-          v-else-if="publishAction === 'publish'"
-          :label="$t('project.publish.actions.publish')"
-          icon="pi pi-cloud-upload"
-          size="small"
-          :loading="publishing"
-          @click="confirmPublish"
-        />
-      </template>
-
-      <Button
-        v-if="project"
-        :label="$t('project.wizard.toolbar.members')"
-        icon="pi pi-users"
-        size="small"
-        severity="secondary"
-        outlined
-        @click="membersOpen = true"
-      />
-
-      <Button
-        v-if="isLive"
-        :label="$t('project.viewDashboard')"
-        icon="pi pi-gauge"
-        size="small"
-        severity="secondary"
-        outlined
-        @click="goDashboard"
-      />
-      <Button
-        v-if="project?.hasNamespace"
-        :label="$t('project.viewProject')"
-        icon="pi pi-external-link"
-        size="small"
-        @click="openProject"
-      />
-    </span>
-  </Teleport>
-
   <!-- Members dialog — top-right toolbar button opener (replaces the old
        members wizard step). Auto-opened once for a just-created project; see
        the route.query.new watcher below. -->
   <MembersDialog v-if="project" v-model:visible="membersOpen" :project="project" />
 
   <div v-if="project" class="h-full flex flex-col min-h-0">
-    <!-- Fixed three-tab switcher — Build / Govern / Manage & Monitor — visible
-         to every member regardless of capability (only the per-step and
-         per-project review ACTIONS are capability-gated, not tab access). -->
-    <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0 px-3 pt-2">
-      <TabList>
-        <Tab value="build" class="flex items-center gap-2">
-          <i class="pi pi-wrench" />
-          <span>{{ $t('project.wizard.tabs.build') }}</span>
-        </Tab>
-        <Tab value="govern" class="flex items-center gap-2">
-          <i class="pi pi-shield" />
-          <span>{{ $t('project.wizard.tabs.govern') }}</span>
-        </Tab>
-        <Tab value="manage" class="flex items-center gap-2">
-          <i class="pi pi-chart-line" />
-          <span>{{ $t('project.wizard.tabs.manageMonitor') }}</span>
-        </Tab>
-      </TabList>
-    </Tabs>
+    <!-- Header row: the fixed three-tab switcher — Build / Govern / Manage &
+         Monitor, visible to every member regardless of capability (only the
+         per-step and per-project review ACTIONS are capability-gated, not tab
+         access) — with the wizard tool cluster right-aligned beside it. -->
+    <div class="shrink-0 flex items-center justify-between gap-3 px-3 pt-2">
+      <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0">
+        <TabList>
+          <Tab value="build" class="flex items-center gap-2">
+            <i class="pi pi-wrench" />
+            <span>{{ $t('project.wizard.tabs.build') }}</span>
+          </Tab>
+          <Tab value="govern" class="flex items-center gap-2">
+            <i class="pi pi-shield" />
+            <span>{{ $t('project.wizard.tabs.govern') }}</span>
+          </Tab>
+          <Tab value="manage" class="flex items-center gap-2">
+            <i class="pi pi-chart-line" />
+            <span>{{ $t('project.wizard.tabs.manageMonitor') }}</span>
+          </Tab>
+        </TabList>
+      </Tabs>
+
+      <!-- Wizard tools: the project-level publish approval cluster (draft
+           projects only — see publishAction), the Members dialog opener, then
+           navigation — jump to a live project's dashboard, or open its
+           compose namespace. -->
+      <span class="flex items-center justify-end gap-2 flex-wrap">
+        <!-- Publish approval cluster — one state-driven primary control
+             reading the well-known 'publish' governance step (see
+             publishAction), next to a compact status Tag. Only relevant
+             pre-publish: once a project is live, "View dashboard" (below)
+             takes over and a fresh cycle only resumes with a future
+             revision. -->
+        <template v-if="!isLive">
+          <Tag
+            :value="publishStatusLabel"
+            :severity="publishStatusSeverity"
+            v-tooltip.bottom="publishStatusTooltip"
+          />
+          <Button
+            v-if="publishAction === 'request'"
+            :label="
+              publishStatus === 'changes-requested'
+                ? $t('project.publish.actions.resubmit')
+                : $t('project.publish.actions.requestApproval')
+            "
+            icon="pi pi-send"
+            size="small"
+            :severity="publishStatus === 'changes-requested' ? 'warn' : undefined"
+            :loading="requestApprovalLoading"
+            @click="requestApproval"
+          />
+          <Button
+            v-else-if="publishAction === 'approve'"
+            :label="$t('project.publish.actions.approveProject')"
+            icon="pi pi-check"
+            severity="success"
+            size="small"
+            :disabled="anyStepFlagged"
+            :loading="approveProjectLoading"
+            v-tooltip.bottom="
+              anyStepFlagged ? $t('project.publish.actions.approveBlockedTooltip') : null
+            "
+            @click="approveProject"
+          />
+          <Button
+            v-else-if="publishAction === 'publish'"
+            :label="$t('project.publish.actions.publish')"
+            icon="pi pi-cloud-upload"
+            size="small"
+            :loading="publishing"
+            @click="confirmPublish"
+          />
+        </template>
+
+        <Button
+          :label="$t('project.wizard.toolbar.members')"
+          icon="pi pi-users"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="membersOpen = true"
+        />
+
+        <Button
+          v-if="isLive"
+          :label="$t('project.viewDashboard')"
+          icon="pi pi-gauge"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="goDashboard"
+        />
+        <Button
+          v-if="project?.hasNamespace"
+          :label="$t('project.viewProject')"
+          icon="pi pi-external-link"
+          size="small"
+          @click="openProject"
+        />
+      </span>
+    </div>
 
     <div v-if="activeTab !== 'manage'" class="flex-1 flex gap-4 p-3 min-h-0">
       <!-- Left: step nav -->

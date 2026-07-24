@@ -32,7 +32,7 @@ Wizard.vue; `kindsThroughStep` then scopes the graph automatically.
 Request changes (required note) on any Build/Govern step, any status, any
 time; there is no per-step submit stage. Only the well-known `publish`
 governance step keeps a request → approve → publish cycle, surfaced in the
-topbar (Wizard.vue), not in this toolbar. Capabilities gate ACTIONS only,
+wizard header row beside the tabs (Wizard.vue), not in this toolbar. Capabilities gate ACTIONS only,
 never tab/step visibility; governance status never locks editing.
 
 ## Map

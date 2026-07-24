@@ -24,7 +24,9 @@ publishable unit, built through a wizard. This doc records what is **locked**
 - **Wizard tabs**: Build / Govern / Manage & Monitor — the wizard's shape.
 - **Create flow**: projects are created through the create flow, which contains
   the governance (FRIA) questions.
-- **Approval UX**: topbar request → approve → publish, with direct per-step
+- **Approval UX**: wizard-header request → approve → publish (right-aligned in
+  the wizard's tab row; ruled 2026-07-24, moved out of the app topbar), with
+  direct per-step
   review. First publish flips status; the live status is `active` — the backend
   never sets a `published` status.
 - **Lifecycle**: `draft` → `active` (via publish), plus `archived`,
