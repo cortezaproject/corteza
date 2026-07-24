@@ -21,7 +21,10 @@
          Monitor, visible to every member regardless of capability (only the
          per-step and per-project review ACTIONS are capability-gated, not tab
          access) — with the wizard tool cluster right-aligned beside it. -->
-    <div class="shrink-0 flex items-center justify-between gap-3 px-3 pt-2">
+    <!-- flex-wrap + ml-auto on the tool cluster: the tools sit beside the
+         tabs while they fit and drop to their own right-aligned row when
+         they don't (no fixed breakpoint). -->
+    <div class="shrink-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 pt-2">
       <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0">
         <TabList>
           <Tab value="build" class="flex items-center gap-2">
@@ -43,7 +46,7 @@
            approval cluster (draft projects only — see publishAction), then
            navigation — jump to a live project's dashboard, or open its
            compose namespace. -->
-      <span class="flex items-center justify-end gap-2 flex-wrap">
+      <span class="ml-auto flex items-center justify-end gap-2 flex-wrap">
         <Button
           :label="$t('project.wizard.toolbar.members')"
           icon="pi pi-users"

@@ -22,7 +22,9 @@ The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs
 - Steps (set + tab membership locked, owned by `config/pipeline.js`) in a left
   nav beside the ever-present resource graph (resizable split) — the primary
   canvas, seeded per step to the kinds built so far (layer chips peek past).
-- Wizard-header tool cluster, right-aligned in the tab row (only the project
+- Wizard-header tool cluster, right-aligned in the tab row — wrapping to its
+  own right-aligned row when the tabs leave no room, content-driven, no fixed
+  breakpoint (only the project
   title + version Tag remain Teleported to the app topbar): approval controls
   on the well-known `publish` governance step: request
   → approve → publish (confirmed, then dashboard handoff). No status Tag in
