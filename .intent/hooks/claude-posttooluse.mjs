@@ -25,9 +25,10 @@ try {
   process.exit(0)
 } catch (e) {
   const report = (e.stderr ?? '').toString()
-  if (!report.includes(rel)) process.exit(0)
-  const line = report.split('\n').find((l) => l.includes(rel) && l.includes('→'))
-  const doc = line?.split('→').pop()?.replace(/update & sync:/, '').trim()
+  // Match only actual drift lines ("  <file>  (why)  → …"), not advice text
+  const line = report.split('\n').find((l) => l.trim().startsWith(rel + '  ') && l.includes('→'))
+  if (!line) process.exit(0)
+  const doc = line.split('→').pop()?.replace(/update & sync:/, '').trim()
   console.log(
     JSON.stringify({
       hookSpecificOutput: {
