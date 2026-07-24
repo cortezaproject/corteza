@@ -41,6 +41,26 @@
       "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
       "t": "2026-07-23"
     },
+    "client/web/unify/e2e/auth.setup.ts": {
+      "h": "e3cc84c3432a",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
+    "client/web/unify/e2e/sections/admin/users.spec.ts": {
+      "h": "0194e17f4752",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
+    "client/web/unify/e2e/sections/home/home.spec.ts": {
+      "h": "3d28c13581e2",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
+    "client/web/unify/e2e/sections/project/wizard.spec.ts": {
+      "h": "cd69670b2d38",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
     "client/web/unify/eslint.config.js": {
       "h": "bb961567d66b",
       "doc": "client/web/unify/unify.intent.md",
@@ -50,6 +70,11 @@
       "h": "88b65acdaa92",
       "doc": "client/web/unify/unify.intent.md",
       "t": "2026-07-23"
+    },
+    "client/web/unify/playwright.config.ts": {
+      "h": "0e481c3eb612",
+      "doc": "client/web/unify/unify.intent.md",
+      "t": "2026-07-24"
     },
     "client/web/unify/postcss.config.js": {
       "h": "dd2a277d042f",

@@ -24,9 +24,16 @@ commit as the work that resolves an item.
       no consumers (found by 2026-07-24 sections/home audit — the agent column
       uses the `agent.sidebar.*` namespace instead).
 - [ ] **Phase 6 — dependency/test-map hardening**: densify `depends-on` /
-      `touched-by`, populate `tests:` as specs get written, implement
-      `intent affected` properly (currently a stub) and wire selective test
-      runs into CI.
+      `touched-by`, populate `tests:` as specs get written. Started 2026-07-24:
+      Playwright e2e layer at `client/web/unify/e2e/` (3 seed specs wired into
+      `tests:` fields), `intent affected` implemented (governing doc +
+      depends-on consumers). Remaining:
+  - [ ] E2E backfill: smoke specs per section (agent fan-out) with `tests:`
+        wiring; grow beyond smoke as screens stabilize.
+  - [ ] First real e2e run — needs the dev stack up + `.env.e2e` (user).
+  - [ ] CI story for e2e: boot + seed a test instance (currently attach-only,
+        excluded from CI).
+  - [ ] Wire `intent affected` into CI selective runs once e2e runs in CI.
 
 ## Tooling
 

@@ -291,15 +291,27 @@ function cmdCoverage() {
   console.log(`intent coverage OK (${files.length} files all governed)`)
 }
 
+// Tests to run for a set of changed files:
+// 1. the governing doc's `tests` for each changed file, plus
+// 2. `tests` of any doc that declares a changed file (or its folder) in
+//    `depends-on` — consumers whose contract may be affected.
 function cmdAffected(argv) {
+  const changed = argv.filter((a) => !a.startsWith('--')).map(rel)
   const tests = new Set()
-  for (const p of argv.map(rel)) {
-    const doc = existsSync(join(ROOT, p)) && governingDoc(p)
-    if (!doc) continue
-    const fm = frontmatter(doc)
+  const addTests = (fm) => {
     for (const t of Array.isArray(fm.tests) ? fm.tests : []) tests.add(t)
   }
-  for (const t of tests) console.log(t)
+  for (const p of changed) {
+    const doc = existsSync(join(ROOT, p)) && governingDoc(p)
+    if (doc) addTests(frontmatter(doc))
+  }
+  for (const doc of findDocs()) {
+    const fm = frontmatter(doc)
+    const deps = Array.isArray(fm['depends-on']) ? fm['depends-on'] : []
+    if (deps.some((d) => changed.some((c) => c === d || c.startsWith(d + '/')))) addTests(fm)
+  }
+  for (const t of [...tests].sort()) console.log(t)
+  if (!tests.size) console.error('(no mapped tests for the given files)')
 }
 
 const [cmd, ...argv] = process.argv.slice(2)

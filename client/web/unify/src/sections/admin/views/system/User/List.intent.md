@@ -7,7 +7,8 @@ depends-on:
   - client/web/unify/src/sections/admin/routes.js
   - lib/vue
 touched-by: []
-tests: []
+tests:
+  - client/web/unify/e2e/sections/admin/users.spec.ts
 ---
 
 # User List view

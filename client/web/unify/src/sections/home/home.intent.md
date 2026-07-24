@@ -7,7 +7,8 @@ depends-on:
   - client/web/unify/src/sections/index.js
 touched-by:
   - client/web/unify/src/router/index.js
-tests: []
+tests:
+  - client/web/unify/e2e/sections/home/home.spec.ts
 ---
 
 # Home section

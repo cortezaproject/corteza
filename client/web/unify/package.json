@@ -22,16 +22,17 @@
     "@vue-flow/core": "^1.48.2",
     "@vue-flow/node-resizer": "^1.4.0",
     "dagre": "^0.8.5",
-    "human-webapp-chatbot-widget": "workspace:*",
     "echarts": "^6.0.0",
     "file-saver": "^2.0.5",
     "gridstack": "^11.5.1",
+    "human-webapp-chatbot-widget": "workspace:*",
     "mitt": "^3.0.1",
     "moment": "2.30.1",
     "numeral": "^2.0.6",
     "vue-echarts": "^8.0.1"
   },
   "devDependencies": {
-    "@planetcrust/human-test-utils": "workspace:*"
+    "@planetcrust/human-test-utils": "workspace:*",
+    "@playwright/test": "^1.61.1"
   }
 }

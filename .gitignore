@@ -17,3 +17,6 @@ config.js
 !.claude/settings.json
 !.claude/skills/
 .claude/settings.local.json
+.env.e2e
+client/web/unify/e2e/.auth
+client/web/unify/e2e/.results

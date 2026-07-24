@@ -38,7 +38,11 @@ Only proceed on approval.
 ## Phase 4 — Verify & close
 
 1. prettier (FE) / gofmt (Go) on changed files only.
-2. Run the touched package's tests; report results honestly.
+2. Run the touched package's unit tests, plus the e2e specs mapped to the
+   change: `node .intent/intent.mjs affected <changed files>` prints them;
+   run via `cd client/web/unify && npx playwright test <specs>` (requires the
+   dev stack running + `.env.e2e`; if unavailable, say so in the report
+   instead of skipping silently). Report results honestly.
 3. `node .intent/intent.mjs sync <changed files>` then
    `node .intent/intent.mjs check` — must be green (never pipe through
    tail/head; read exit codes).

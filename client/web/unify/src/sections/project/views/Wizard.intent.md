@@ -8,7 +8,8 @@ depends-on:
   - client/web/unify/src/sections/project/stores/projects.js
 touched-by:
   - client/web/unify/src/sections/project/index.js
-tests: []
+tests:
+  - client/web/unify/e2e/sections/project/wizard.spec.ts
 ---
 
 # Wizard view

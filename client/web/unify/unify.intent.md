@@ -21,6 +21,9 @@ bundle (`human-webapp`).
 ## Map
 
 - `src/` — app shell and bootstrap (own intent doc)
+- `e2e/` — Playwright suite mirroring the section tree (own intent doc);
+  `playwright.config.ts` attaches it to a running dev stack via gitignored
+  `.env.e2e` (`.env.e2e.example` documents the shape)
 - `index.html`, `vite.config.js` — Vite entry; `public/config.js` must define `window.HumanAPI`
 - `jsconfig.json` — `@/` alias → `src/`
 - `tailwind.config.js`, `postcss.config.js` — extend shared root configs
