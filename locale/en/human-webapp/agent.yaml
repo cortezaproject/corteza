@@ -96,6 +96,7 @@ editor:
   model:
     help: The specific model to use from the selected provider
     label: Model
+    required: Model is required
   name:
     help: A short, human-readable name for this agent
     label: Name
@@ -117,6 +118,7 @@ editor:
   provider:
     help: The LLM provider to use for this agent
     label: LLM Provider
+    required: LLM provider is required
   serviceAccount:
     help: The user account this agent impersonates when running system invocations
     label: Service Account

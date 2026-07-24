@@ -6,6 +6,7 @@
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled"
+    :form-control="{ novalidate: true }"
     :loading="loading"
     :size="size"
     class="w-full"

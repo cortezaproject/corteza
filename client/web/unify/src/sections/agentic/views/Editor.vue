@@ -114,21 +114,30 @@
                   <Panel :header="$t('agent.editor.panels.execution')" toggleable>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <CFormGroup
+                        name="llmProvider"
                         :label="$t('agent.editor.provider.label')"
                         :description="$t('agent.editor.provider.help')"
                         input-id="provider"
+                        required
                       >
-                        <CInputLLM id="provider" v-model="agent.execution.model.llmProviderID" />
+                        <CInputLLM
+                          id="provider"
+                          v-model="agent.execution.model.llmProviderID"
+                          @update:model-value="revalidateField('llmProvider')"
+                        />
                       </CFormGroup>
                       <CFormGroup
+                        name="llmModel"
                         :label="$t('agent.editor.model.label')"
                         :description="$t('agent.editor.model.help')"
                         input-id="model"
+                        required
                       >
                         <CInputModel
                           id="model"
                           v-model="agent.execution.model.model"
                           :llmProviderID="agent.execution.model.llmProviderID"
+                          @update:model-value="revalidateField('llmModel')"
                         />
                       </CFormGroup>
                       <CInputToggleCard
@@ -1015,8 +1024,21 @@ const resolver = ref(({ values }) => {
   if (!values.systemPrompt || values.systemPrompt.trim().length === 0) {
     errors.systemPrompt = [{ message: t('agent.editor.systemPrompt.required') }]
   }
+  // Provider/model selects are severed from form binding (novalidate), so
+  // their values come from the agent itself, not from form values.
+  const { llmProviderID, model } = agent.value?.execution?.model || {}
+  if (!llmProviderID || llmProviderID === '0') {
+    errors.llmProvider = [{ message: t('agent.editor.provider.required') }]
+  }
+  if (!model || model.trim().length === 0) {
+    errors.llmModel = [{ message: t('agent.editor.model.required') }]
+  }
   return { errors }
 })
+
+function revalidateField(name) {
+  nextTick(() => formRef.value?.validate?.(name))
+}
 
 async function loadAgent() {
   const agentID = route.params.agentID
@@ -1392,7 +1414,10 @@ function resolveToolAllowResources() {
         for (const modID of rule.moduleIDs) {
           if (!resolvedModNames.value[modID]) {
             moduleStore
-              .findByID($ComposeAPI, { namespaceID: String(rule.namespaceID), moduleID: String(modID) })
+              .findByID($ComposeAPI, {
+                namespaceID: String(rule.namespaceID),
+                moduleID: String(modID),
+              })
               .then(mod => {
                 if (mod) {
                   resolvedModNames.value = {

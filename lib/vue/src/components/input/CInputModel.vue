@@ -7,6 +7,7 @@
     option-value="id"
     :placeholder="placeholder"
     :disabled="disabled || !llmProviderID || llmProviderID === '0'"
+    :form-control="{ novalidate: true }"
     :loading="loading"
     :size="size"
     class="w-full"
@@ -82,10 +83,10 @@ async function fetchModels() {
 
     const result = await response()
     const rawModels = Array.isArray(result) ? result : result.models || result.set || []
-    
+
     options.value = rawModels.map(m => {
       const isStr = typeof m === 'string'
-      const id = isStr ? m : (m.model || m.name || m.id)
+      const id = isStr ? m : m.model || m.name || m.id
       const label = getOptionLabel(m)
       return isStr ? { id, label } : { ...m, id, label }
     })
