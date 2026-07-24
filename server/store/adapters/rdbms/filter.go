@@ -202,10 +202,10 @@ func DefaultFilters() (f *extendedFilters) {
 
 	f.Project = func(s *Store, f systemType.ProjectFilter) (ee []goqu.Expression, _ systemType.ProjectFilter, err error) {
 		// Query matching happens here, not in the generated filter: projects
-		// carry their human-facing name in the meta JSON (there is no name
-		// column, and the create flow leaves handle empty), so the generated
-		// handle-only ILIKE finds nothing users can see. Blank Query around
-		// the generated call, then match handle OR meta name together.
+		// carry their human-facing name in the meta JSON key "short" (there
+		// is no name column, and the create flow leaves handle empty), so the
+		// generated handle-only ILIKE finds nothing users can see. Blank
+		// Query around the generated call, then match handle OR meta short.
 		q := f.Query
 		f.Query = ""
 		if ee, f, err = ProjectFilter(s.Dialect, f); err != nil {
@@ -215,7 +215,7 @@ func DefaultFilters() (f *extendedFilters) {
 
 		if q != "" {
 			var nameExpr exp.Expression
-			nameExpr, err = s.Dialect.JsonExtractUnquote(goqu.C("meta"), "name")
+			nameExpr, err = s.Dialect.JsonExtractUnquote(goqu.C("meta"), "short")
 			if err != nil {
 				return
 			}
