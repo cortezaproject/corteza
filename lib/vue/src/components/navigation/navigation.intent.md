@@ -40,6 +40,14 @@ so branding/visibility changes need no code.
   navigation by patching `history.pushState/replaceState` (restored on unmount).
 - `#tools` slot and the `#topbar-title` / `#topbar-tools` div ids are teleport
   targets apps mount page titles/actions into — ids are API.
+- Topbar rows wrap content-driven (ruled 2026-07-24): the title keeps its
+  natural width and the tools + right-icon cluster drops to its own
+  right-aligned row when the bar runs out of room — the title truncates only
+  past a full row's width. The bar is `min-height` sized, so wrapping grows
+  it; fixed-position elements offset by `--topbar-height` (right sidebar,
+  toasts, search overlay) accept the overlap on wrapped bars, same as the
+  pre-existing ≤550px container-query layout (title on its own row, tools
+  hidden), which stays as-is.
 - All string labels come in via the required `labels` prop (no i18n inside).
 
 ## When changing this

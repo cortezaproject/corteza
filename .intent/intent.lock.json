@@ -3507,9 +3507,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/navigation/CTopbar.vue": {
-      "h": "53ebc4a81b65",
+      "h": "5cb404008362",
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-24"
     },
     "lib/vue/src/components/navigation/index.ts": {
       "h": "8a1e0cf55eef",

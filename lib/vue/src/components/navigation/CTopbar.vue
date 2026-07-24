@@ -18,7 +18,10 @@
       </template>
     </div>
 
-    <div class="topbar-title-area flex flex-1 min-w-0 items-center gap-2 ml-2">
+    <!-- grow/shrink-0: the title keeps its natural width so the tools + right
+         cluster wrap below it (root flex-wrap) instead of squeezing it into
+         truncation; max-w-full still caps pathological titles (truncate). -->
+    <div class="topbar-title-area flex grow shrink-0 basis-auto max-w-full items-center gap-2 ml-2">
       <div
         id="topbar-title"
         class="topbar-title flex items-center min-w-0 overflow-hidden whitespace-nowrap truncate text-2xl font-medium text-color mb-0"
@@ -45,79 +48,83 @@
       </div>
     </div>
 
-    <div id="topbar-tools" class="topbar-tools tools-wrapper ml-auto flex items-center gap-2">
-      <slot name="tools" />
-    </div>
-
-    <div class="topbar-right flex items-center gap-1 ml-2">
-      <a
-        v-if="!settings?.hideHomeButton"
-        :href="homeURL"
-        class="no-underline"
-        @click="onAnchorClick($event, homeURL)"
-      >
-        <Button
-          v-tooltip.bottom="labels.home || 'Home'"
-          icon="pi pi-home"
-          severity="secondary"
-          variant="text"
-          rounded
-        />
-      </a>
-
-      <Button
-        v-if="!hideAppSelector && !settings?.hideAppSelector"
-        v-tooltip.bottom="labels.appMenu"
-        data-test-id="app-selector"
-        icon="pi pi-th-large"
-        severity="secondary"
-        variant="text"
-        rounded
-        @click="onAppMenuClick"
-      />
-
-      <slot name="right-tools" />
-
-      <CAgentSidebarButton v-if="!settings?.hideAgentSidebar" />
-      <CNotificationButton v-if="!settings?.hideNotifications" />
-
-      <div v-if="!settings?.hideHelp" class="help-dropdown">
-        <Button
-          ref="helpMenuRef"
-          data-test-id="dropdown-helper"
-          icon="pi pi-dollar"
-          severity="success"
-          variant="text"
-          rounded
-          @click="toggleHelpMenu"
-        />
-
-        <Menu ref="helpMenu" :model="helpMenuItems" :popup="true" class="mt-2" />
+    <!-- One wrapper so tools + right icons wrap below the title as a single
+         right-aligned unit when the row runs out of room. -->
+    <div class="ml-auto flex items-center gap-2">
+      <div id="topbar-tools" class="topbar-tools tools-wrapper flex items-center gap-2">
+        <slot name="tools" />
       </div>
 
-      <div v-if="!settings?.hideProfile" class="flex">
-        <Button
-          ref="profileMenuRef"
-          data-test-id="dropdown-profile"
-          rounded
-          variant="outlined"
-          severity="secondary"
-          size="large"
-          class="text-color !p-0 !w-10 !h-10"
-          @click="toggleProfileMenu"
+      <div class="topbar-right flex items-center gap-1">
+        <a
+          v-if="!settings?.hideHomeButton"
+          :href="homeURL"
+          class="no-underline"
+          @click="onAnchorClick($event, homeURL)"
         >
-          <template #default>
-            <Avatar
-              :image="avatar || undefined"
-              :label="!avatar ? userInitials : undefined"
-              :icon="!avatar && !userInitials ? 'pi pi-user' : undefined"
-              shape="circle"
-              class="!w-full !h-full !text-sm"
-            />
-          </template>
-        </Button>
+          <Button
+            v-tooltip.bottom="labels.home || 'Home'"
+            icon="pi pi-home"
+            severity="secondary"
+            variant="text"
+            rounded
+          />
+        </a>
 
-        <TieredMenu ref="profileMenu" :model="profileMenuItems" popup />
+        <Button
+          v-if="!hideAppSelector && !settings?.hideAppSelector"
+          v-tooltip.bottom="labels.appMenu"
+          data-test-id="app-selector"
+          icon="pi pi-th-large"
+          severity="secondary"
+          variant="text"
+          rounded
+          @click="onAppMenuClick"
+        />
+
+        <slot name="right-tools" />
+
+        <CAgentSidebarButton v-if="!settings?.hideAgentSidebar" />
+        <CNotificationButton v-if="!settings?.hideNotifications" />
+
+        <div v-if="!settings?.hideHelp" class="help-dropdown">
+          <Button
+            ref="helpMenuRef"
+            data-test-id="dropdown-helper"
+            icon="pi pi-dollar"
+            severity="success"
+            variant="text"
+            rounded
+            @click="toggleHelpMenu"
+          />
+
+          <Menu ref="helpMenu" :model="helpMenuItems" :popup="true" class="mt-2" />
+        </div>
+
+        <div v-if="!settings?.hideProfile" class="flex">
+          <Button
+            ref="profileMenuRef"
+            data-test-id="dropdown-profile"
+            rounded
+            variant="outlined"
+            severity="secondary"
+            size="large"
+            class="text-color !p-0 !w-10 !h-10"
+            @click="toggleProfileMenu"
+          >
+            <template #default>
+              <Avatar
+                :image="avatar || undefined"
+                :label="!avatar ? userInitials : undefined"
+                :icon="!avatar && !userInitials ? 'pi pi-user' : undefined"
+                shape="circle"
+                class="!w-full !h-full !text-sm"
+              />
+            </template>
+          </Button>
+
+          <TieredMenu ref="profileMenu" :model="profileMenuItems" popup />
+        </div>
       </div>
     </div>
   </div>
@@ -197,8 +204,14 @@ onMounted(() => {
   // Patch pushState/replaceState to detect SPA route changes
   const origPush = history.pushState.bind(history)
   const origReplace = history.replaceState.bind(history)
-  history.pushState = (...args) => { origPush(...args); updateHref() }
-  history.replaceState = (...args) => { origReplace(...args); updateHref() }
+  history.pushState = (...args) => {
+    origPush(...args)
+    updateHref()
+  }
+  history.replaceState = (...args) => {
+    origReplace(...args)
+    updateHref()
+  }
 
   // Store originals so we can restore later
   window.__pageButtonsOrigPush = origPush
@@ -220,7 +233,9 @@ const visiblePageButtons = computed(() => {
   let pathname = ''
   try {
     pathname = new URL(href).pathname
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   const isRoot = pathname === '' || pathname === '/'
   return buttons.filter(btn => {
     if (!btn.label || !btn.url) return false
