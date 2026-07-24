@@ -594,9 +594,9 @@ watch(
   { immediate: true },
 )
 
-// --- Project-level publish approval cluster (topbar) ------------------------
-// Drives the single state-machine button + status Tag Teleported into
-// #topbar-tools above, built around the well-known 'publish' governance step
+// --- Project-level publish approval cluster (wizard header) -----------------
+// Drives the single state-machine button in the header tool row above, built
+// around the well-known 'publish' governance step
 // key (PUBLISH_GOVERNANCE_STEP_KEY): draft/changes-requested → submitted →
 // approved, then a successful publish resets it to draft for the next cycle.
 // Distinct from the direct per-step Approve/Request changes review on
