@@ -209,8 +209,9 @@ func (svc *agent) onSearch(ctx context.Context, filter types.AgentFilter, aProps
 // prepareTCL ensures TCL is properly initialized on the agent behavior:
 // - if enabled and no articles selected, populate defaults
 // - always merge hardwired articles back in (user cannot remove them)
+// TCL is opt-in: only an explicit true enables it; nil (unset) means off.
 func prepareTCL(b *types.AgentBehavior) {
-	if b.TreatyCLEnabled != nil && !*b.TreatyCLEnabled {
+	if b.TreatyCLEnabled == nil || !*b.TreatyCLEnabled {
 		return
 	}
 	if len(b.TreatyCLArticles) == 0 {

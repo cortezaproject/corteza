@@ -292,7 +292,7 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 			systemPrompt += "\n\n" + kbContext
 		}
 	}
-	if (agent.Behavior.TreatyCLEnabled == nil || *agent.Behavior.TreatyCLEnabled) && len(agent.Behavior.TreatyCLArticles) > 0 {
+	if agent.Behavior.TreatyCLEnabled != nil && *agent.Behavior.TreatyCLEnabled && len(agent.Behavior.TreatyCLArticles) > 0 {
 		temp := agent.Behavior.TreatyCLTemperature
 		if temp == 0 {
 			temp = 5
@@ -725,8 +725,8 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 		}
 		if call.Name == "discovery_search" {
 			type allowedNS struct {
-				id      uint64
-				modIDs  []uint64
+				id     uint64
+				modIDs []uint64
 			}
 			var allowed []allowedNS
 			for _, t := range agent.Access.Tools {
