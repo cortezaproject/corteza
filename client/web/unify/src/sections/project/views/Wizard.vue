@@ -39,11 +39,20 @@
         </TabList>
       </Tabs>
 
-      <!-- Wizard tools: the project-level publish approval cluster (draft
-           projects only — see publishAction), the Members dialog opener, then
+      <!-- Wizard tools: the Members dialog opener, the project-level publish
+           approval cluster (draft projects only — see publishAction), then
            navigation — jump to a live project's dashboard, or open its
            compose namespace. -->
       <span class="flex items-center justify-end gap-2 flex-wrap">
+        <Button
+          :label="$t('project.wizard.toolbar.members')"
+          icon="pi pi-users"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="membersOpen = true"
+        />
+
         <!-- Publish approval cluster — one state-driven primary control
              reading the well-known 'publish' governance step (see
              publishAction). No status Tag (ruled 2026-07-24): the button's
@@ -91,15 +100,6 @@
             @click="confirmPublish"
           />
         </template>
-
-        <Button
-          :label="$t('project.wizard.toolbar.members')"
-          icon="pi pi-users"
-          size="small"
-          severity="secondary"
-          outlined
-          @click="membersOpen = true"
-        />
 
         <Button
           v-if="isLive"
