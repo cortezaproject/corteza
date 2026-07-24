@@ -1,4 +1,4 @@
-.PHONY: intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
+.PHONY: setup intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
 WEB_APPS := unify
 
@@ -89,3 +89,16 @@ intent-check:
 intent-hooks:
 	@git config core.hooksPath .intent/hooks
 	@echo "git hooks path set to .intent/hooks (pre-commit intent check active)"
+
+# One-command onboarding for a fresh clone (idempotent).
+setup:
+	@echo "---Installing dependencies---"
+	@pnpm install
+	@echo "---Installing Playwright browser---"
+	@cd $(CURDIR)/client/web/unify && npx playwright install chromium
+	@test -f $(CURDIR)/client/web/unify/.env.e2e || cp $(CURDIR)/client/web/unify/.env.e2e.example $(CURDIR)/client/web/unify/.env.e2e
+	@echo ""
+	@echo "Setup done. Remaining manual steps:"
+	@echo "  1. Fill client/web/unify/.env.e2e (dev URL + test login) — created if it was missing"
+	@echo "  2. First Claude Code session: approve the project hooks and the Playwright MCP server"
+	@echo "  3. Optional stricter local commit gate: make intent-hooks"
