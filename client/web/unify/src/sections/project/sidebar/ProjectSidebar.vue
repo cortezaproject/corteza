@@ -6,7 +6,6 @@
       parent-key="_parentId"
       label-key="_label"
       icon-key="_icon"
-      divider-key="_divider"
       route-key="_route"
       badge-key="_badge"
       expand-all
@@ -54,20 +53,16 @@ const badgeFor = p =>
     title: t(`project.status.${p.status}`),
   }
 
+// One root entry: the label routes to the list (CSidebarNavItem auto-expands
+// on navigate, never collapses), the right chevron toggles the children
+// independently.
 const navItems = computed(() => [
-  {
-    _id: 'list',
-    _parentId: '0',
-    _label: t('project.sidebar.allProjects'),
-    _icon: 'pi pi-folder',
-    _route: { name: 'project.list' },
-  },
   {
     _id: 'projects',
     _parentId: '0',
     _label: t('project.sidebar.projects'),
-    _icon: 'pi pi-folder-open',
-    _divider: true,
+    _icon: 'pi pi-folder',
+    _route: { name: 'project.list' },
   },
   // Archived projects are hidden here (deleted ones never reach the store);
   // the All Projects list still shows everything.

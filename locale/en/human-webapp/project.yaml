@@ -294,7 +294,6 @@ dashboard:
       review:
         scope: What will be reviewed and what outcomes are expected…
 sidebar:
-  allProjects: All Projects
   projects: Projects
 newDialog:
   headerDetails: Project details

@@ -15,9 +15,9 @@ tests: []
 
 ## Intention
 
-The shell drawer for the project section: a flat tree of the user's projects
-plus an "All projects" entry, so any project is one click away from anywhere
-in the section.
+The shell drawer for the project section: one "Projects" root entry that
+routes to the list, with the user's projects as its collapsible children — so
+any project is one click away from anywhere in the section.
 
 ## Map
 
@@ -34,8 +34,12 @@ mutations.
 
 ## Structure & contracts
 
-- Entries: "All projects" (routes to `project.list`), then a divider group of
-  projects sorted by name.
+- Single root entry "Projects" (ruled 2026-07-24, replacing the earlier
+  "All projects" link + divider group): clicking the label routes to
+  `project.list` (auto-expanding the children, never collapsing them); the
+  right-side chevron toggles the children independently — behavior inherited
+  from `CSidebarNavItem`, not implemented here. Children: the projects,
+  sorted by name.
 - Routing rule (locked lifecycle): a live project (`status: active`; the BE
   never sets `published`, handled only defensively) opens its dashboard
   (`project.overview`); anything else opens the wizard (`project.wizard`).
