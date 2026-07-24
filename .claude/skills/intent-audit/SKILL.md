@@ -14,9 +14,13 @@ this audit proves they are _true_.
    `node .intent/intent.mjs status` drift-age. Confirm scope with the human if
    it exceeds one section/package.
 2. **Gather**: list the area's intent docs and covered files. For large areas
-   fan out read-only subagents (one per subfolder); each returns findings with
-   `file:line` evidence, never prose summaries of code.
-3. **Verify, per doc**:
+   fan out read-only subagents (model: sonnet, one per subfolder), all
+   launched in one message; each returns findings with `file:line` evidence
+   and verbatim doc excerpts, never prose summaries of code. Don't barrier:
+   start verifying (step 3) a subfolder's docs as soon as its gather returns,
+   while the other gathers still run.
+3. **Verify, per doc** — main-agent work; subagent evidence feeds it but the
+   verdicts are never delegated:
    - Every stated contract against actual code behavior.
    - **Locked contracts** (area constitutions): does code still honor them?
    - **WIP / DRIFT notes**: still accurate? (Resolved drift must lose its note;
