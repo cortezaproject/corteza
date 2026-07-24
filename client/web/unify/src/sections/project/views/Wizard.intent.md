@@ -25,7 +25,11 @@ The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs
 - Wizard-header tool cluster, right-aligned in the tab row (only the project
   title + version Tag remain Teleported to the app topbar): approval controls
   on the well-known `publish` governance step: request
-  → approve → publish (confirmed, then dashboard handoff); direct per-step
+  → approve → publish (confirmed, then dashboard handoff). No status Tag in
+  the row (ruled 2026-07-24) — the single state-driven button carries the
+  status, and its tooltip is the only surface for the reviewer's note on a
+  changes-requested publish; members without a capability for the current
+  state get no publish control at all. Direct per-step
   review — Approve / Request changes (note required) by grant-capable members
   on any step, any time; a flagged step blocks project approval.
 - Provides `inspectResource(kind, id)` / `createResource(kind)`; each kind's

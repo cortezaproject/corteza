@@ -46,16 +46,12 @@
       <span class="flex items-center justify-end gap-2 flex-wrap">
         <!-- Publish approval cluster — one state-driven primary control
              reading the well-known 'publish' governance step (see
-             publishAction), next to a compact status Tag. Only relevant
-             pre-publish: once a project is live, "View dashboard" (below)
-             takes over and a fresh cycle only resumes with a future
-             revision. -->
+             publishAction). No status Tag (ruled 2026-07-24): the button's
+             state carries the status; its tooltip carries the hint + the
+             reviewer's note. Only relevant pre-publish: once a project is
+             live, "View dashboard" (below) takes over and a fresh cycle only
+             resumes with a future revision. -->
         <template v-if="!isLive">
-          <Tag
-            :value="publishStatusLabel"
-            :severity="publishStatusSeverity"
-            v-tooltip.bottom="publishStatusTooltip"
-          />
           <Button
             v-if="publishAction === 'request'"
             :label="
@@ -67,6 +63,7 @@
             size="small"
             :severity="publishStatus === 'changes-requested' ? 'warn' : undefined"
             :loading="requestApprovalLoading"
+            v-tooltip.bottom="publishStatusTooltip"
             @click="requestApproval"
           />
           <Button
@@ -78,7 +75,9 @@
             :disabled="anyStepFlagged"
             :loading="approveProjectLoading"
             v-tooltip.bottom="
-              anyStepFlagged ? $t('project.publish.actions.approveBlockedTooltip') : null
+              anyStepFlagged
+                ? $t('project.publish.actions.approveBlockedTooltip')
+                : publishStatusTooltip
             "
             @click="approveProject"
           />
@@ -88,6 +87,7 @@
             icon="pi pi-cloud-upload"
             size="small"
             :loading="publishing"
+            v-tooltip.bottom="publishStatusTooltip"
             @click="confirmPublish"
           />
         </template>
@@ -620,9 +620,9 @@ const anyStepFlagged = computed(
     STEPS.some(s => store.governanceStatus(project.value.projectID, s.key) === 'changes-requested'),
 )
 
-// Which action the topbar button represents right now, or null when the
-// current member holds neither capability for it (the status Tag still
-// shows either way).
+// Which action the header button represents right now, or null when the
+// current member holds neither capability for it (no control renders then —
+// such members follow status via the per-step review chips instead).
 const publishAction = computed(() => {
   switch (publishStatus.value) {
     case 'approved':
@@ -634,25 +634,11 @@ const publishAction = computed(() => {
   }
 })
 
-const publishStatusLabel = computed(
-  () =>
-    ({
-      draft: t('project.governance.status.draft'),
-      submitted: t('project.governance.status.submitted'),
-      approved: t('project.governance.status.approved'),
-      'changes-requested': t('project.governance.status.changesRequested'),
-    })[publishStatus.value],
-)
-const publishStatusSeverity = computed(
-  () =>
-    ({ draft: 'secondary', submitted: 'info', approved: 'success', 'changes-requested': 'warn' })[
-      publishStatus.value
-    ],
-)
-// Tooltip on the status Tag — the only place the review note surfaces for a
-// changes-requested publish (there is no per-step banner for it, unlike
-// Build/Govern steps), plus a status+capability-aware hint mirroring what the
-// old full-page PublishStep panel used to spell out inline.
+// Tooltip on the publish-action button — the only place the review note
+// surfaces for a changes-requested publish (there is no per-step banner for
+// it, unlike Build/Govern steps), plus a status+capability-aware hint
+// mirroring what the old full-page PublishStep panel used to spell out
+// inline.
 const publishStatusTooltip = computed(() => {
   let hint
   switch (publishStatus.value) {
