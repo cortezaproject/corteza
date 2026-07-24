@@ -12,5 +12,8 @@ ignore
 dist
 .docker-build
 config.js
-.claude
-CLAUDE.md
+# .claude is shared via git (hooks config + team skills); local-only files stay ignored
+.claude/*
+!.claude/settings.json
+!.claude/skills/
+.claude/settings.local.json

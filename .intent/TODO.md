@@ -26,9 +26,9 @@ commit as the work that resolves an item.
 
 ## Tooling
 
-- [ ] **`/intent-audit` skill** (SPEC §6) — the semantic-drift audit is
-      designed but not built. Required for the mandatory audit cadence
-      (pre-release + oldest-first rotation via `intent status` drift-age).
+- [x] ~~`/intent-audit` skill~~ — built 2026-07-24 (`.claude/skills/intent-audit/`),
+      alongside `/intent-task` (standard change workflow) and a root CLAUDE.md.
+      First real audit run still pending — exercise it on a section soon.
 - [ ] **First CI run**: `intent.yml` has never executed on GitHub — validated
       locally only. Resolves on the next push of this branch (user pushes).
 
