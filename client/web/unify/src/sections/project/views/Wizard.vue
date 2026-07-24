@@ -102,7 +102,7 @@
     <!-- Fixed three-tab switcher — Build / Govern / Manage & Monitor — visible
          to every member regardless of capability (only the per-step and
          per-project review ACTIONS are capability-gated, not tab access). -->
-    <Tabs v-model:value="activeTab" class="shrink-0 px-3 pt-2">
+    <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0 px-3 pt-2">
       <TabList>
         <Tab value="build" class="flex items-center gap-2">
           <i class="pi pi-wrench" />
@@ -1144,3 +1144,49 @@ async function confirmRequestChanges() {
   }
 }
 </script>
+
+<style scoped>
+/* Segmented pill switcher — restyles PrimeVue's default underline tabs into
+   a rounded track with a raised pill for the active tab. Visual only; the
+   tab set and its always-visible behavior are the locked contract. */
+.wizard-tabs :deep(.p-tablist) {
+  background: transparent;
+}
+
+.wizard-tabs :deep(.p-tablist-tab-list) {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.3rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 9999px;
+  background: var(--p-content-hover-background);
+}
+
+.wizard-tabs :deep(.p-tab) {
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  padding: 0.5rem 1.125rem;
+  color: var(--p-text-muted-color);
+  transition:
+    background-color 150ms,
+    color 150ms,
+    box-shadow 150ms;
+}
+
+.wizard-tabs :deep(.p-tab:not(.p-tab-active):hover) {
+  color: var(--p-text-color);
+  background: var(--p-content-background);
+}
+
+.wizard-tabs :deep(.p-tab-active) {
+  background: var(--p-content-background);
+  border-color: var(--p-content-border-color);
+  color: var(--p-primary-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+}
+
+.wizard-tabs :deep(.p-tablist-active-bar) {
+  display: none;
+}
+</style>
