@@ -1,4 +1,4 @@
-.PHONY: setup intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
+.PHONY: e2e e2e-ui setup intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
 WEB_APPS := unify
 
@@ -102,3 +102,10 @@ setup:
 	@echo "  1. Fill client/web/unify/.env.e2e (dev URL + test login) — created if it was missing"
 	@echo "  2. First Claude Code session: approve the project hooks and the Playwright MCP server"
 	@echo "  3. Optional stricter local commit gate: make intent-hooks"
+
+# E2E (Playwright) — needs the dev stack running and client/web/unify/.env.e2e filled.
+e2e:
+	@(cd $(CURDIR)/client/web/unify && npx playwright test) || (echo "e2e failed (is the dev stack running and .env.e2e filled?)"; exit 1)
+
+e2e-ui:
+	@cd $(CURDIR)/client/web/unify && npx playwright test --ui
