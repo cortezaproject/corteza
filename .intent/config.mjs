@@ -33,6 +33,8 @@ export default {
     '**/*.gen.*',
     '**/assets/**',
     'client/web/unify/public/**', // runtime instance config + static assets
+    'client/web/unify/e2e/.results/**', // playwright run artifacts (gitignored)
+    'client/web/unify/e2e/.auth/**', // playwright session state (gitignored)
     'client/web/chatbot-widget/public/**',
     'lib/js/src/api-clients/**', // codegen-owned (generated from server rest.yaml)
     'extra/**',
