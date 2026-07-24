@@ -19,6 +19,10 @@ commit as the work that resolves an item.
       templates (hand-written, drives generation), `provision/`.
       `extra/server-discovery` stays on-touch. `lib/eslint-client` has no
       matching source files — decide: cover config file or drop from `covered`.
+      Known locale cleanup for when coverage lands: `locale/en/human-webapp/home.yaml`
+      keys `assistant.noAgents`, `column.assistant`, `column.notifications` have
+      no consumers (found by 2026-07-24 sections/home audit — the agent column
+      uses the `agent.sidebar.*` namespace instead).
 - [ ] **Phase 6 — dependency/test-map hardening**: densify `depends-on` /
       `touched-by`, populate `tests:` as specs get written, implement
       `intent affected` properly (currently a stub) and wire selective test
@@ -28,7 +32,8 @@ commit as the work that resolves an item.
 
 - [x] ~~`/intent-audit` skill~~ — built 2026-07-24 (`.claude/skills/intent-audit/`),
       alongside `/intent-task` (standard change workflow) and a root CLAUDE.md.
-      First real audit run still pending — exercise it on a section soon.
+      First real audit run: `sections/home` 2026-07-24 — both docs verified
+      accurate, zero drift, no fixes needed.
 - [ ] **First CI run**: `intent.yml` has never executed on GitHub — validated
       locally only. Resolves on the next push of this branch (user pushes).
 
