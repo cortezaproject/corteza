@@ -7,7 +7,9 @@ depends-on:
   - client/web/unify/src/sections/project/components/project/NewProjectDialog.vue
 touched-by:
   - client/web/unify/src/sections/project/index.js
-tests: []
+tests:
+  - client/web/unify/e2e/sections/project/project-list.spec.ts
+  - client/web/unify/e2e/sections/project/lifecycle-dashboard.spec.ts
 ---
 
 # ProjectList view
@@ -39,5 +41,13 @@ archived or deleted.
 
 - Live means status `active` — the locked contract says the backend never
   sets `published`; the extra `published` check here is defensive only.
+
+> **DRIFT:** the search box is dead in practice (found 2026-07-24 via e2e):
+> the backend `ProjectFilter` matches `query` against `handle` only
+> (`server/store/adapters/rdbms/filters.gen.go`), and the create flow never
+> sets a handle — so searching by the visible name finds nothing. Which side
+> to fix (BE matches name/meta vs FE derives a handle on create) awaits a
+> ruling; the e2e specs deliberately avoid the search box until then.
+
 - The name column is not sortable (meta JSON column has no sort ident).
 - Keep the `?new=1` handoff contract in sync with Wizard.vue.

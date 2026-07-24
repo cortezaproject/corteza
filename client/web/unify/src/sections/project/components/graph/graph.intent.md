@@ -9,7 +9,8 @@ depends-on:
   - client/web/unify/src/sections/project/utils/kindIcons.js
 touched-by:
   - client/web/unify/src/sections/project/views/Wizard.vue
-tests: []
+tests:
+  - client/web/unify/e2e/sections/project/wizard-steps-graph.spec.ts
 ---
 
 # Resource graph

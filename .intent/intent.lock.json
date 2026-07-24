@@ -56,6 +56,26 @@
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/e2e/sections/project/lifecycle-dashboard.spec.ts": {
+      "h": "b6e1d691babd",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
+    "client/web/unify/e2e/sections/project/members.spec.ts": {
+      "h": "82d241721fa0",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
+    "client/web/unify/e2e/sections/project/project-list.spec.ts": {
+      "h": "594bdebfd984",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
+    "client/web/unify/e2e/sections/project/wizard-steps-graph.spec.ts": {
+      "h": "304f5e4b7125",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-07-24"
+    },
     "client/web/unify/e2e/sections/project/wizard.spec.ts": {
       "h": "ea86eea02562",
       "doc": "client/web/unify/e2e/e2e.intent.md",

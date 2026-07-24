@@ -28,8 +28,19 @@ commit as the work that resolves an item.
       Playwright e2e layer at `client/web/unify/e2e/` (3 seed specs wired into
       `tests:` fields), `intent affected` implemented (governing doc +
       depends-on consumers). Remaining:
-  - [ ] E2E backfill: smoke specs per section (agent fan-out) with `tests:`
-        wiring; grow beyond smoke as screens stabilize.
+  - [ ] E2E backfill (waves ruled 2026-07-24; contract-shape assertions only —
+        never WIP content; created data uses `e2e-` name prefix + teardown
+        delete):
+    - [ ] **Wave 1 — project locked shapes**: list CRUD + create flow (FRIA
+          placement), wizard step pipeline + graph→editable-dialog, lifecycle
+          routing + publish flip + dashboard view set, members dialog `?new=1`.
+    - [ ] **Wave 2 — route integrity sweeps**: frozen compose routes resolve;
+          admin sidebar → every screen renders.
+    - [ ] **Wave 3 — core CRUD flows**: compose record page create/edit +
+          RecordModal URL contract; admin user/role editors; workflow list +
+          save round-trip; TAQ list + builder save.
+    - [ ] **Wave 4 — agentic + chatbot**: agent list/editor CRUD (exec
+          skip-if-no-LLM), chatbot list/editor, sessions inbox.
   - [x] ~~First e2e run triage~~ — done 2026-07-24: both failures were
         spec-wrong (users.spec strict-mode multi-match assertion; wizard.spec
         false-skip — looked for anchors in a row-click DataTable). Code and
@@ -72,5 +83,11 @@ commit as the work that resolves an item.
 
 ## Recorded product backlog (from doc reviews)
 
-- (none open — Builder staged-deletes and required-fields blocking landed
-  2026-07-23)
+- [ ] **Project list search is dead** (2026-07-24, found by e2e wave 1):
+      backend matches `query` against `handle` only and the create flow never
+      sets a handle — ruling needed on the fix side (BE name/meta match vs FE
+      handle derivation). DRIFT note in `views/ProjectList.intent.md`.
+- [ ] **Dev-stack e2e prerequisite**: full-suite runs trip the auth server's
+      per-IP rate limit (`AUTH_REQUEST_RATE_LIMIT`, default 60/min — every
+      fresh browser context does an oauth roundtrip). Raise/disable it in the
+      dev stack env for e2e runs; document in `.env.e2e.example` when ruled.

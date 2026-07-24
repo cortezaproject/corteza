@@ -10,6 +10,9 @@ touched-by:
   - client/web/unify/src/sections/project/index.js
 tests:
   - client/web/unify/e2e/sections/project/wizard.spec.ts
+  - client/web/unify/e2e/sections/project/wizard-steps-graph.spec.ts
+  - client/web/unify/e2e/sections/project/lifecycle-dashboard.spec.ts
+  - client/web/unify/e2e/sections/project/members.spec.ts
 ---
 
 # Wizard view

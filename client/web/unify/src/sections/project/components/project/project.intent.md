@@ -10,7 +10,9 @@ depends-on:
 touched-by:
   - client/web/unify/src/sections/project/views/ProjectList.vue
   - client/web/unify/src/sections/project/views/Wizard.vue
-tests: []
+tests:
+  - client/web/unify/e2e/sections/project/project-list.spec.ts
+  - client/web/unify/e2e/sections/project/members.spec.ts
 ---
 
 # Project-level dialogs

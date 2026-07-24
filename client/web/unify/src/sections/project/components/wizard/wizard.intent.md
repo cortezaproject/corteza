@@ -10,7 +10,9 @@ depends-on:
 touched-by:
   - client/web/unify/src/sections/project/views/Wizard.vue
   - client/web/unify/src/sections/project/components/dashboard
-tests: []
+tests:
+  - client/web/unify/e2e/sections/project/wizard-steps-graph.spec.ts
+  - client/web/unify/e2e/sections/project/lifecycle-dashboard.spec.ts
 ---
 
 # Wizard machinery

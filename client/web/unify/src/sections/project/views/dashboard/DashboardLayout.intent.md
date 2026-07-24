@@ -7,7 +7,8 @@ depends-on:
   - client/web/unify/src/sections/project/components/dashboard/DashboardNav.vue
 touched-by:
   - client/web/unify/src/sections/project/index.js
-tests: []
+tests:
+  - client/web/unify/e2e/sections/project/lifecycle-dashboard.spec.ts
 ---
 
 # DashboardLayout view
