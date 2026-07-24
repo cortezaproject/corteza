@@ -461,16 +461,12 @@ const logout = () => {
   flex-wrap: wrap;
 }
 
+/* Mobile trims only — the title is never force-moved; it wraps content-driven
+   like every other row (see the template classes). Note the query measures the
+   topbar's own width (window minus sidebar), not the viewport. */
 @container (max-width: 550px) {
   .header-navigation {
     row-gap: 0.25rem;
-  }
-
-  .topbar-title-area {
-    order: 99;
-    flex-basis: 100%;
-    margin-left: 0;
-    padding-left: 0.5rem;
   }
 
   .topbar-title {
@@ -479,10 +475,6 @@ const logout = () => {
 
   .topbar-tools {
     display: none !important;
-  }
-
-  .topbar-right {
-    margin-left: auto;
   }
 }
 </style>
