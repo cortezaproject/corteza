@@ -45,7 +45,6 @@ const STATUS_SEVERITY = {
   published: 'success',
   draft: 'info',
   suspended: 'warn',
-  deprecated: 'danger',
 }
 
 const badgeFor = p =>
