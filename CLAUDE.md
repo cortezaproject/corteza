@@ -19,8 +19,9 @@ These docs are verifiable contracts, not notes.
    then implement.
 4. **After changing covered code**: reconcile the governing doc (update it, or
    confirm intent is unchanged), then `node .intent/intent.mjs sync <file>`.
-   `node .intent/intent.mjs check` must pass before committing — pre-commit and
-   CI enforce it. Fresh clone: `make intent-hooks` once.
+   `node .intent/intent.mjs check` must pass before committing — CI enforces it.
+   (Optional stricter local gate: `make intent-hooks` activates a pre-commit
+   check; not part of the standard setup.)
 5. Use `/intent-task` for changes and `/intent-audit` for drift audits — they
    encode the standard procedures; don't improvise your own flow.
 

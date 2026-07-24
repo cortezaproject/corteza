@@ -11,7 +11,6 @@ Rules for any AI agent working here:
 2. After changing covered code, reconcile the doc (update it, or confirm intent is
    unchanged), then run `node .intent/intent.mjs sync <file>`.
 3. `node .intent/intent.mjs check` must pass before committing (CI enforces it).
-   Fresh clones: run `make intent-hooks` once to activate the pre-commit check.
 4. New features are intent-first: update the intent docs, then implement.
 
 Build/test basics: pnpm workspace (`pnpm install` at root), web apps under

@@ -155,7 +155,9 @@ Enforcement points:
      intent doc path(s) into context with the instruction to reconcile.
    - `Stop`: run `intent check --changed`; block ending the turn while drift exists.
 2. **Pre-commit** (via `core.hooksPath`, installed by `make intent-hooks`, no husky):
-   `intent check --staged` — fails the commit on drift.
+   `intent check --staged` — fails the commit on drift. **Opt-in, not part of the
+   standard team setup** (decision 2026-07-24): Claude hooks + CI are the
+   enforced layers.
 3. **CI** (GitHub workflow): `intent check` + `intent coverage` on every PR. Hard fail.
 
 Escape hatch: none in CI. If code and intent genuinely must diverge temporarily, the
