@@ -30,10 +30,10 @@ commit as the work that resolves an item.
       depends-on consumers). Remaining:
   - [ ] E2E backfill: smoke specs per section (agent fan-out) with `tests:`
         wiring; grow beyond smoke as screens stabilize.
-  - [ ] First e2e run happened 2026-07-24: SOME SPECS FAIL — triage needed
-        (classify each: spec-wrong vs code-wrong vs env/auth assumption wrong;
-        auth.setup.ts flow was never verified against the live stack and is
-        the prime suspect). Fix via /intent-task.
+  - [x] ~~First e2e run triage~~ — done 2026-07-24: both failures were
+        spec-wrong (users.spec strict-mode multi-match assertion; wizard.spec
+        false-skip — looked for anchors in a row-click DataTable). Code and
+        auth.setup.ts were correct; suite green (4/4) after spec fixes.
   - [ ] CI story for e2e: boot + seed a test instance (currently attach-only,
         excluded from CI).
   - [ ] Wire `intent affected` into CI selective runs once e2e runs in CI.

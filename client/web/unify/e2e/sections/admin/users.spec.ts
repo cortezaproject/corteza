@@ -9,5 +9,6 @@ test('user list renders and opens a user editor', async ({ page }) => {
 
   await rows.first().click()
   await page.waitForURL(/\/admin\/system\/users\//)
-  await expect(page.locator('input[type="password"], form')).toBeVisible()
+  // The editor's required identity field (Editor.intent.md: email is required)
+  await expect(page.locator('input[name="email"]')).toBeVisible()
 })

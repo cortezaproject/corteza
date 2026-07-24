@@ -2,13 +2,21 @@ import { expect, test } from '@playwright/test'
 
 // Smoke: the wizard's locked three-tab shape (Build / Govern / Manage &
 // Monitor, per sections/project/project.intent.md) renders with icons and
-// switches tabs. Uses the first project in the list; skips when none exist.
+// switches tabs. Uses the first non-live project in the list (live rows open
+// the overview, not the wizard); skips when none exist.
 test('wizard shows the three tabs and switches between them', async ({ page }) => {
   await page.goto('/project/projects')
-  const firstProject = page.locator('[data-pc-section="content"] a, tbody tr a').first()
-  if ((await firstProject.count()) === 0) test.skip(true, 'no projects in dev data')
+  await page.waitForLoadState('networkidle')
 
-  await firstProject.click()
+  // Rows navigate on click (no anchors in the list); filter out live projects
+  // by their status tag — those route to project.overview instead.
+  const editable = page
+    .locator('tbody tr')
+    .filter({ hasNot: page.getByText('Active', { exact: true }) })
+    .filter({ hasNot: page.getByText('Published', { exact: true }) })
+  if ((await editable.count()) === 0) test.skip(true, 'no non-live projects in dev data')
+
+  await editable.first().click()
   await page.waitForURL(/\/wizard/)
 
   const tabs = page.getByRole('tab')
