@@ -4701,6 +4701,11 @@ endpoints:
             - { type: string, name: handle, title: Search by handle }
             - { type: string, name: status, title: Filter by status }
             - {
+                type: bool,
+                name: headsOnly,
+                title: 'Return one row per revision chain (the head revision only)',
+              }
+            - {
                 type: uint,
                 name: deleted,
                 title: 'Exclude (0, default), include (1) or return only (2) deleted projects',

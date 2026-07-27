@@ -226,6 +226,21 @@ func DefaultFilters() (f *extendedFilters) {
 			))
 		}
 
+		if f.HeadsOnly {
+			// A chain head is the row no other (non-deleted) row points at via
+			// parent_revision_id — the revision a user would act on. Excluding
+			// deleted referencers matters: deleting a draft revision must let
+			// its parent re-surface as the head again, not vanish from the list.
+			referenced := projectSelectQuery(s.Dialect.GOQU()).
+				Select("parent_revision_id").
+				Where(
+					goqu.C("parent_revision_id").Gt(0),
+					goqu.C("deleted_at").IsNull(),
+				)
+
+			ee = append(ee, goqu.C("id").NotIn(referenced))
+		}
+
 		return ee, f, nil
 	}
 

@@ -351,8 +351,11 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function load() {
     if (loading) return loading
+    // headsOnly: one row per revision chain — this is the section-wide seed
+    // (sidebar tree, preload cache), not a chain-detail fetch. Non-head
+    // revisions still enter the cache on demand via fetchProject/listRevisions.
     loading = $SystemAPI
-      .projectList({ limit: 500, sort: 'createdAt DESC' })
+      .projectList({ limit: 500, sort: 'createdAt DESC', headsOnly: true })
       .then(({ set = [] } = {}) => {
         for (const raw of set) absorb(raw)
       })

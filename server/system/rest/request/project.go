@@ -53,6 +53,11 @@ type (
 		// Filter by status
 		Status string
 
+		// HeadsOnly GET parameter
+		//
+		// Return one row per revision chain (the head revision only)
+		HeadsOnly bool
+
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted projects
@@ -279,6 +284,7 @@ func (r ProjectList) Auditable() map[string]interface{} {
 		"query":      r.Query,
 		"handle":     r.Handle,
 		"status":     r.Status,
+		"headsOnly":  r.HeadsOnly,
 		"deleted":    r.Deleted,
 		"labels":     r.Labels,
 		"limit":      r.Limit,
@@ -301,6 +307,11 @@ func (r ProjectList) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectList) GetStatus() string {
 	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectList) GetHeadsOnly() bool {
+	return r.HeadsOnly
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -354,6 +365,12 @@ func (r *ProjectList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["status"]; ok && len(val) > 0 {
 			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["headsOnly"]; ok && len(val) > 0 {
+			r.HeadsOnly, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

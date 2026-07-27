@@ -24,8 +24,13 @@ archived or deleted.
 
 - Server-side searched, sorted and paginated project list (name + description,
   lifecycle status tag, updated date); mutations re-list from the backend.
-- One row per project, not per revision: a chain is grouped by its root and
-  shown once, carrying the state of the revision a user would act on.
+- Filter by lifecycle status from the toolbar. It is a user-facing filter and
+  rides the reactive filter state; the chain-head constraint below is not —
+  that one is structural and must never be clearable from the UI.
+- One row per project, not per revision: the list requests chain HEADS
+  (`headsOnly`) — the row no other revision names as parent. Server-side by
+  necessity, since the list is paginated and searched on the backend;
+  grouping after fetch would split chains across pages.
 - Create a project — on success the user lands in the wizard with `?new=1`,
   the just-created flag the Wizard uses to auto-open the members dialog once.
 - Row click routes to the revision worth opening: a chain with a draft

@@ -136,7 +136,11 @@ const {
   filterList,
 } = useResourceList(
   params => {
-    const { response, cancel } = $SystemAPI.projectListCancellable(params)
+    // headsOnly: one row per revision chain (the row a user would act on),
+    // not one row per revision — see project.intent.md / ProjectList.intent.md.
+    // Sent unconditionally here (not via the reactive `filter`) so it can
+    // never be cleared by a filter-menu change and never pollutes the URL.
+    const { response, cancel } = $SystemAPI.projectListCancellable({ ...params, headsOnly: true })
     return {
       cancel,
       response: async () => {
@@ -188,8 +192,9 @@ const formatDate = date => {
   }
 }
 
-// A live project (active/published) opens its dashboard; anything still in the
-// build/draft lifecycle opens the wizard.
+// Each row is a chain head (headsOnly, see the list request above), so its
+// status IS the status of the revision worth opening: a draft head opens its
+// wizard; a live (active/published) head opens the live dashboard.
 const onRowClick = ({ data }) => {
   const live = ['active', 'published'].includes(data.status)
   const name = live ? 'project.overview' : 'project.wizard'

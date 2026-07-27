@@ -11820,7 +11820,7 @@ export default class System {
 
   // List projects
   async projectList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =
+    const { query, handle, status, headsOnly, deleted, labels, limit, incTotal, pageCursor, sort } =
       (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -11831,6 +11831,7 @@ export default class System {
       query,
       handle,
       status,
+      headsOnly,
       deleted,
       labels,
       limit,

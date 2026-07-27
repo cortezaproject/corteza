@@ -165,6 +165,12 @@ project: {
 			tenant_id: schema.TenantFilterField
 			handle: {goType: "string"}
 			status: {goType: "types.ProjectStatus"}
+			// Chain-head filtering: return only the row in each revision chain
+			// that no other row points at via parent_revision_id. Not a simple
+			// column comparison (it's a NOT IN subquery), so it can't ride the
+			// byValue mechanism — handled by the rdbms filter override
+			// (f.Project in server/store/adapters/rdbms/filter.go).
+			heads_only: {goType: "bool"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}

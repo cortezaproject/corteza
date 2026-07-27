@@ -88,11 +88,12 @@ func (ctrl *Project) makeFilter(ctx context.Context, r *request.ProjectList) (ty
 	var (
 		err error
 		f   = types.ProjectFilter{
-			Query:   r.Query,
-			Handle:  r.Handle,
-			Status:  types.ProjectStatus(r.Status),
-			Labels:  r.Labels,
-			Deleted: filter.State(r.Deleted),
+			Query:     r.Query,
+			Handle:    r.Handle,
+			Status:    types.ProjectStatus(r.Status),
+			HeadsOnly: r.HeadsOnly,
+			Labels:    r.Labels,
+			Deleted:   filter.State(r.Deleted),
 		}
 	)
 

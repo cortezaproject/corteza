@@ -14,6 +14,10 @@ type (
 		Status        ProjectStatus `json:"status"`
 		Query         string        `json:"query"`
 
+		// HeadsOnly returns one row per revision chain: the row no other row
+		// points at via ParentRevisionID. See the rdbms f.Project override.
+		HeadsOnly bool `json:"headsOnly"`
+
 		Deleted filter.State `json:"deleted"`
 
 		LabeledIDs []uint64                         `json:"-"`

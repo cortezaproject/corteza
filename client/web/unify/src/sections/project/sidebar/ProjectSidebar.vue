@@ -15,6 +15,7 @@
 
 <script setup>
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { NoID } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
@@ -29,6 +30,22 @@ const { projects } = storeToRefs(store)
 // The list is loaded by the section's `preload` (run by the shell on section
 // entry), so it's ready here even before this lazily-mounted drawer opens.
 // Mutations keep the store fresh via `absorb`, so the tree stays current.
+
+// One row per chain, not per revision (see ProjectList.intent.md). The
+// `projects` cache isn't guaranteed heads-only like the list's own fetch: a
+// chain's non-head revisions get absorbed too once its wizard is visited
+// (store.listRevisions loads the whole chain), so filter here instead of
+// trusting what's in the cache. A project is a chain head when no other
+// cached project points at it via parentRevisionID — mirrors the backend's
+// `heads_only` subquery (server/store/adapters/rdbms/filter.go f.Project).
+const referencedRevisionIds = computed(() => {
+  const ids = new Set()
+  for (const p of projects.value) {
+    if (p.parentRevisionID !== NoID) ids.add(p.parentRevisionID)
+  }
+  return ids
+})
+const isChainHead = p => !referencedRevisionIds.value.has(p.projectID)
 
 // A live (published) project opens its dashboard; a draft opens the wizard.
 // Live status is `active` (BE never sets `published`), matching ProjectList.
@@ -67,7 +84,7 @@ const navItems = computed(() => [
   // Archived projects are hidden here (deleted ones never reach the store);
   // the All Projects list still shows everything.
   ...projects.value
-    .filter(p => p.status !== 'archived')
+    .filter(p => p.status !== 'archived' && isChainHead(p))
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     .map(p => ({
       _id: p.projectID,

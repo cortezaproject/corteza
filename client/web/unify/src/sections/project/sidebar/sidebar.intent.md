@@ -45,6 +45,10 @@ mutations.
   (`project.overview`); anything else opens the wizard (`project.wizard`).
 - Archived projects are hidden from the tree (soft-deleted ones never reach
   the store); the All Projects list still shows everything.
+- One entry per revision chain, not per revision. The filter is client-side
+  here — unlike ProjectList, which asks the backend for heads — because the
+  shared store cache stops being heads-only as soon as a wizard visit absorbs
+  a whole chain. Detect heads by which rows are named as a `parentRevisionID`.
 - Each project carries a one-letter status badge; severity mapping mirrors
   ProjectList's and must stay in sync with it.
 
