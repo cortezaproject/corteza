@@ -44,6 +44,11 @@ never tab/step visibility; governance status never locks editing.
 - `ManageNav.vue` — the Manage & Monitor rail. Deliberately NOT a step list:
   prop-driven (`activeKey` in, `select` out) over `config/manageNav.js`, so
   that tab navigates without steps. Visual twin of the dashboard's own rail.
+- `manage/` — one component per M&M section, mounted by Wizard.vue's
+  key→component map. `ManageBoard.vue` is the kanban (revision-scoped, six
+  item types, four shared status columns, optimistic drag writes); the rest
+  are placeholders awaiting their own build-out. One file per section is
+  deliberate: sections are built independently and must not collide.
 - `WizardToolbar.vue` — back, centered prev/next stepper, Save (form steps
   only), capability-gated Approve / Request changes.
 - `StepStatusBanner.vue` — surfaces the changes-requested review note.

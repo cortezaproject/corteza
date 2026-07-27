@@ -105,7 +105,13 @@ export const useEventsStore = defineStore('events', () => {
   }
 
   // Load every category for a project, flatten, and cache as the active list.
-  async function load(projectId) {
+  // `revisionId` is optional: omitted, the live dashboard's usual call reads
+  // every revision in the project (its locked scope is the whole project
+  // across revisions); passed, only items filed against that revision come
+  // back — the wizard's Manage & Monitor board's scope (one revision, like an
+  // issue filed against a milestone). `projectId` is always the chain ROOT in
+  // the revision-scoped case (work items are filed against the root project).
+  async function load(projectId, revisionId) {
     const pid = String(projectId || '')
     if (!pid) return
     currentProjectId.value = pid
@@ -116,7 +122,11 @@ export const useEventsStore = defineStore('events', () => {
       await Promise.all([users.load(), projects.loadProjectUsers(pid).catch(() => {})])
       const results = await Promise.all(
         CATEGORIES.map(cat =>
-          $SystemAPI[CATS[cat].list]({ projectID: pid, limit: 200 })
+          $SystemAPI[CATS[cat].list]({
+            projectID: pid,
+            revisionID: revisionId || undefined,
+            limit: 200,
+          })
             .then(({ set = [] } = {}) => (set || []).map(row => mapRow(cat, row)))
             .catch(err => {
               console.error(`Failed to load ${cat} events`, err)
@@ -208,6 +218,39 @@ export const useEventsStore = defineStore('events', () => {
     return event
   }
 
+  // Status-only update — the Manage & Monitor board's drag interaction (see
+  // components/wizard/manage/ManageBoard.vue) moving a card to another
+  // column. Unlike update() above (which waits for the server before
+  // touching the list), this patches the cached item's status in place
+  // FIRST so the card visibly moves right away, then persists it; a failed
+  // push rolls the status back and rethrows so the caller can toast (mirrors
+  // stores/projects.js#updateProject's snapshot/mutate/rollback idiom). The
+  // update endpoint is a full PUT, so the push still carries every other
+  // field off the cached (already-mapped) item, remapping owner fields back
+  // to their raw `<key>Id` — same shape EventDetailDialog's buildModel sends.
+  async function updateStatus(cat, id, status) {
+    const cfg = CATS[cat]
+    if (!cfg) throw new Error(`Unknown category: ${cat}`)
+    const item = events.value.find(e => e.category === cat && e.id === String(id))
+    if (!item) return
+    const prevStatus = item.status
+    item.status = status
+    try {
+      const body = { ...item, status }
+      for (const k of cfg.userKeys) body[k] = item[`${k}Id`] || null
+      const raw = await $SystemAPI[cfg.update](
+        normalizeDates({ ...body, [cfg.idKey]: id }, DATE_KEYS),
+      )
+      const event = mapRow(cat, raw || {})
+      const idx = events.value.findIndex(e => e.category === cat && e.id === String(id))
+      if (idx !== -1) events.value.splice(idx, 1, event)
+      return event
+    } catch (err) {
+      item.status = prevStatus
+      throw err
+    }
+  }
+
   // Delete an event via the category's resource, then drop it from the local
   // list so the list/KPIs/nav badges react without a refetch.
   async function remove(cat, id) {
@@ -230,6 +273,7 @@ export const useEventsStore = defineStore('events', () => {
     breakdown,
     add,
     update,
+    updateStatus,
     remove,
     categories: CATEGORIES,
   }

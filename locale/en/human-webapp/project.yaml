@@ -306,10 +306,25 @@ manage:
     board: Board
     metrics: Metrics
     activity: Activity
-  # Placeholder body for each section's shell panel until its board/metrics/
-  # activity content is built.
+  # Placeholder body for the sections that aren't built yet (metrics,
+  # activity, the five per-category panels) — see components/wizard/manage/
+  # ManagePlaceholder.vue.
   panel:
-    comingSoon: This section isn't built yet. Board, metrics and activity content are coming soon.
+    comingSoon: This section isn't built yet.
+  # The board panel — components/wizard/manage/ManageBoard.vue. Column
+  # headers render the raw status strings themselves (config/eventForm.js
+  # EVENT_STATUS): like every other status pill in this section, status is an
+  # enum value that persists to the backend, not translated copy.
+  board:
+    blurb: Work items assigned to this revision, grouped by status. Drag a card to move it between
+      statuses.
+    empty:
+      title: No work items assigned to this revision yet.
+      hint: Work items are filed against the project, then assigned to a revision individually —
+        like an issue assigned to a milestone. None have been assigned to this revision yet, so the
+        board has nothing to show.
+    toast:
+      moveFailed: Could not move the item. Please try again.
 sidebar:
   projects: Projects
 newDialog:

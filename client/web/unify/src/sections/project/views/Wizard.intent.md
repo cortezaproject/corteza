@@ -44,7 +44,9 @@ The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs
 - Manage & Monitor tab — the build-time dashboard for the revision being
   worked on: a grouped left rail (monitor + the five categories) rendered from
   its own nav config, never from `pipeline.js` STEPS, so the "Manage & Monitor
-  has no steps" contract holds. Its header carries the revision, that
+  has no steps" contract holds. The content pane is a key→component map over
+  `components/wizard/manage/`, one file per section, so sections stay
+  independently buildable. Its header carries the revision, that
   revision's work-item completeness, and a new-item action; the same
   completeness is shown again at publish, where unfinished work warns but
   never blocks.

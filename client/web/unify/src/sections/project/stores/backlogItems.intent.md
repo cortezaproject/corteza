@@ -24,8 +24,9 @@ mirrors the events store's shape and idioms so the two read as one layer.
 ## State owned
 
 - `items` — the active project's backlog items, wholesale replaced per
-  `load(projectId)`; stable `id`, assignee resolved to a display name (raw
-  ID kept as `assigneeId`).
+  `load(projectId, revisionId)`; stable `id`, assignee resolved to a display
+  name (raw ID kept as `assigneeId`). Same revision scoping as events.js:
+  omit for the whole project, pass one for a single revision's board.
 - `byEvent(category, eventID)` — items linked to one category event.
 - `openCount` — open (per events' `isOpenStatus`) items project-wide; feeds
   the Backlog nav item's live badge.
@@ -43,7 +44,9 @@ DashboardNav (badge).
 ## Invariants
 
 - Same 200-row load cap and local in-place mutation idiom as events.js —
-  lists and badges react without a refetch.
+  lists and badges react without a refetch. The cap is a known ceiling for a
+  board spanning all six item types; revisit when it bites.
+- `updateStatus` is optimistic with rollback, mirroring events.js.
 - `assignee` is a display name on read, a user ID (or blank) on write;
   `dateDue` normalized to YYYY-MM-DD via `dateUtils.js`.
 - The open rule is imported from events.js, never redefined.

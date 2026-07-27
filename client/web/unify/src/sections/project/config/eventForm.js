@@ -10,11 +10,16 @@ const pp = 'project.dashboard.event.placeholder.'
 // Shared option sets. Statuses are fixed; users are resolved at render time
 // from the project's user directory (see NewEventDialog userOptions) — owner
 // and approver fields carry `source: 'users'` instead of static options.
+// All six work-item types (the five categories below, plus backlog items)
+// share this one four-value set — AGREED INTENT (2026-07-28): review used to
+// carry a shorter STATUS_REVIEW (no "Ready to Test"), but the Manage & Monitor
+// board renders one shared column set across every type, so review's schema
+// now uses the same STATUS list as everything else. Status is a free-text
+// string in the backend, so this is a frontend-only change.
 const STATUS = ['Open', 'In Progress', 'Ready to Test', 'Completed']
 // Exported so other schemas that share the same lifecycle (backlog items —
 // see components/dashboard/BacklogItemDialog.vue) don't redeclare the list.
 export const EVENT_STATUS = STATUS
-const STATUS_REVIEW = ['Open', 'In Progress', 'Completed']
 const SEVERITY = ['Critical', 'Serious', 'Major', 'Minor', 'Informational']
 const RISK = ['Critical', 'High', 'Medium', 'Low', 'Very Low', 'None']
 
@@ -36,15 +41,44 @@ const user = (key, required = false) => ({
 // create-mode model (see buildDefaults there) so these required fields never
 // open on an empty selection; EventDetailDialog (edit) ignores it and seeds
 // from the record instead.
-const severity = { key: 'severity', labelKey: 'project.dashboard.columns.severity', type: 'select', options: SEVERITY, badge: 'severity', default: 'Minor' }
-const risk = { key: 'risk', labelKey: 'project.dashboard.columns.risk', type: 'select', options: RISK, badge: 'risk', default: 'Low' }
-// Status is repeated per category below (STATUS vs STATUS_REVIEW options
-// differ), so it's a factory rather than a single shared const like
-// severity/risk.
-const status = options => ({ key: 'status', labelKey: `${p}status`, type: 'select', options, badge: 'status', default: 'Open' })
+const severity = {
+  key: 'severity',
+  labelKey: 'project.dashboard.columns.severity',
+  type: 'select',
+  options: SEVERITY,
+  badge: 'severity',
+  default: 'Minor',
+}
+const risk = {
+  key: 'risk',
+  labelKey: 'project.dashboard.columns.risk',
+  type: 'select',
+  options: RISK,
+  badge: 'risk',
+  default: 'Low',
+}
+// Status is repeated per category below (each category's schema pulls in its
+// own `status(...)` field) so it's a factory rather than a single shared
+// const like severity/risk — every category currently passes the same
+// STATUS list (see the note above).
+const status = options => ({
+  key: 'status',
+  labelKey: `${p}status`,
+  type: 'select',
+  options,
+  badge: 'status',
+  default: 'Open',
+})
 
 // Title text input — shown first in every category form (spans both columns).
-const title = { key: 'title', labelKey: 'project.dashboard.columns.title', type: 'text', full: true, placeholderKey: `${pp}title`, required: true }
+const title = {
+  key: 'title',
+  labelKey: 'project.dashboard.columns.title',
+  type: 'text',
+  full: true,
+  placeholderKey: `${pp}title`,
+  required: true,
+}
 
 // The five event categories shown in step 1 (label/desc are i18n keys, icon is
 // a PrimeIcons class). Order mirrors the reference demo.
@@ -58,74 +92,230 @@ export const EVENT_CATEGORIES = [
 
 // Per-category schemas (single section each). GovernanceForm renders these.
 export const EVENT_FORMS = {
-  incident: [{ fields: [
-    title,
-    { key: 'incidentType', labelKey: `${p}incidentType`, type: 'select', options: ['Serious Incident', 'Critical', 'Major', 'Minor', 'Informational'], required: true },
-    { key: 'groupSystem', labelKey: `${p}groupSystem`, type: 'select', options: ['AI Model Layer', 'Data Pipeline', 'API Gateway', 'User Interface', 'Infrastructure', 'Access Control'] },
-    severity,
-    risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}incident.description`, required: true },
-    { key: 'riskIssue', labelKey: `${p}riskIssue`, type: 'textarea', placeholderKey: `${pp}incident.riskIssue` },
-    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholderKey: `${pp}incident.changeRequired` },
-    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholderKey: `${pp}incident.riskChange` },
-    user('issueOwner', true),
-    user('changeOwner'),
-    status(STATUS),
-    user('changeApprovedBy'),
-    { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
-    { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
-  ] }],
-  feature: [{ fields: [
-    title,
-    { key: 'featureType', labelKey: `${p}featureType`, type: 'select', options: ['Platform', 'Data Model', 'Automation', 'Agent', 'Chatbot', 'Other'], required: true },
-    status(STATUS),
-    severity,
-    risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}feature.description`, required: true },
-    { key: 'riskFeature', labelKey: `${p}riskFeature`, type: 'textarea', placeholderKey: `${pp}feature.riskFeature` },
-    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholderKey: `${pp}feature.changeRequired` },
-    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholderKey: `${pp}feature.riskChange` },
-    user('featureOwner', true),
-    user('changeOwner'),
-    user('changeApprovedBy'),
-    { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
-  ] }],
-  privacy: [{ fields: [
-    title,
-    { key: 'requestType', labelKey: `${p}requestType`, type: 'select', options: ['Access (Export)', 'Rectification', 'Deletion'], required: true },
-    status(STATUS),
-    severity,
-    risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}privacy.description`, required: true },
-    { key: 'riskAssessment', labelKey: `${p}riskAssessment`, type: 'textarea', placeholderKey: `${pp}privacy.riskAssessment` },
-    { key: 'changeRequired', labelKey: `${p}changeRequired`, type: 'textarea', placeholderKey: `${pp}privacy.changeRequired` },
-    { key: 'riskChange', labelKey: `${p}riskChange`, type: 'textarea', placeholderKey: `${pp}privacy.riskChange` },
-    user('requestOwner', true),
-    user('changeOwner'),
-    user('changeApprovedBy'),
-    { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date', required: true },
-  ] }],
-  task: [{ fields: [
-    title,
-    { key: 'taskName', labelKey: `${p}taskName`, type: 'select', options: ['RBAC Review', 'AI Model Change', 'Risk Register Update', 'Compliance Audit', 'Custom…'], required: true },
-    { key: 'taskType', labelKey: `${p}taskType`, type: 'select', options: ['Review/Action', 'Audit', 'Change'] },
-    severity,
-    risk,
-    { key: 'description', labelKey: `${p}description`, type: 'textarea', placeholderKey: `${pp}task.description` },
-    status(STATUS),
-    user('owner', true),
-    user('changeOwner'),
-    { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
-    { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
-  ] }],
-  review: [{ fields: [
-    title,
-    { key: 'reviewType', labelKey: `${p}reviewType`, type: 'select', options: ['Periodic Compliance Review', 'AI Risk Review', 'Access Control Review', 'Model Performance Review'], required: true },
-    { key: 'reviewFrequency', labelKey: `${p}reviewFrequency`, type: 'select', options: ['Monthly', 'Quarterly', 'Bi-Annual', 'Annual'] },
-    { key: 'scope', labelKey: `${p}scope`, type: 'textarea', placeholderKey: `${pp}review.scope` },
-    user('reviewer', true),
-    status(STATUS_REVIEW),
-    { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
-    user('approvedBy'),
-  ] }],
+  incident: [
+    {
+      fields: [
+        title,
+        {
+          key: 'incidentType',
+          labelKey: `${p}incidentType`,
+          type: 'select',
+          options: ['Serious Incident', 'Critical', 'Major', 'Minor', 'Informational'],
+          required: true,
+        },
+        {
+          key: 'groupSystem',
+          labelKey: `${p}groupSystem`,
+          type: 'select',
+          options: [
+            'AI Model Layer',
+            'Data Pipeline',
+            'API Gateway',
+            'User Interface',
+            'Infrastructure',
+            'Access Control',
+          ],
+        },
+        severity,
+        risk,
+        {
+          key: 'description',
+          labelKey: `${p}description`,
+          type: 'textarea',
+          placeholderKey: `${pp}incident.description`,
+          required: true,
+        },
+        {
+          key: 'riskIssue',
+          labelKey: `${p}riskIssue`,
+          type: 'textarea',
+          placeholderKey: `${pp}incident.riskIssue`,
+        },
+        {
+          key: 'changeRequired',
+          labelKey: `${p}changeRequired`,
+          type: 'textarea',
+          placeholderKey: `${pp}incident.changeRequired`,
+        },
+        {
+          key: 'riskChange',
+          labelKey: `${p}riskChange`,
+          type: 'textarea',
+          placeholderKey: `${pp}incident.riskChange`,
+        },
+        user('issueOwner', true),
+        user('changeOwner'),
+        status(STATUS),
+        user('changeApprovedBy'),
+        { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
+        { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
+      ],
+    },
+  ],
+  feature: [
+    {
+      fields: [
+        title,
+        {
+          key: 'featureType',
+          labelKey: `${p}featureType`,
+          type: 'select',
+          options: ['Platform', 'Data Model', 'Automation', 'Agent', 'Chatbot', 'Other'],
+          required: true,
+        },
+        status(STATUS),
+        severity,
+        risk,
+        {
+          key: 'description',
+          labelKey: `${p}description`,
+          type: 'textarea',
+          placeholderKey: `${pp}feature.description`,
+          required: true,
+        },
+        {
+          key: 'riskFeature',
+          labelKey: `${p}riskFeature`,
+          type: 'textarea',
+          placeholderKey: `${pp}feature.riskFeature`,
+        },
+        {
+          key: 'changeRequired',
+          labelKey: `${p}changeRequired`,
+          type: 'textarea',
+          placeholderKey: `${pp}feature.changeRequired`,
+        },
+        {
+          key: 'riskChange',
+          labelKey: `${p}riskChange`,
+          type: 'textarea',
+          placeholderKey: `${pp}feature.riskChange`,
+        },
+        user('featureOwner', true),
+        user('changeOwner'),
+        user('changeApprovedBy'),
+        { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
+      ],
+    },
+  ],
+  privacy: [
+    {
+      fields: [
+        title,
+        {
+          key: 'requestType',
+          labelKey: `${p}requestType`,
+          type: 'select',
+          options: ['Access (Export)', 'Rectification', 'Deletion'],
+          required: true,
+        },
+        status(STATUS),
+        severity,
+        risk,
+        {
+          key: 'description',
+          labelKey: `${p}description`,
+          type: 'textarea',
+          placeholderKey: `${pp}privacy.description`,
+          required: true,
+        },
+        {
+          key: 'riskAssessment',
+          labelKey: `${p}riskAssessment`,
+          type: 'textarea',
+          placeholderKey: `${pp}privacy.riskAssessment`,
+        },
+        {
+          key: 'changeRequired',
+          labelKey: `${p}changeRequired`,
+          type: 'textarea',
+          placeholderKey: `${pp}privacy.changeRequired`,
+        },
+        {
+          key: 'riskChange',
+          labelKey: `${p}riskChange`,
+          type: 'textarea',
+          placeholderKey: `${pp}privacy.riskChange`,
+        },
+        user('requestOwner', true),
+        user('changeOwner'),
+        user('changeApprovedBy'),
+        { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date', required: true },
+      ],
+    },
+  ],
+  task: [
+    {
+      fields: [
+        title,
+        {
+          key: 'taskName',
+          labelKey: `${p}taskName`,
+          type: 'select',
+          options: [
+            'RBAC Review',
+            'AI Model Change',
+            'Risk Register Update',
+            'Compliance Audit',
+            'Custom…',
+          ],
+          required: true,
+        },
+        {
+          key: 'taskType',
+          labelKey: `${p}taskType`,
+          type: 'select',
+          options: ['Review/Action', 'Audit', 'Change'],
+        },
+        severity,
+        risk,
+        {
+          key: 'description',
+          labelKey: `${p}description`,
+          type: 'textarea',
+          placeholderKey: `${pp}task.description`,
+        },
+        status(STATUS),
+        user('owner', true),
+        user('changeOwner'),
+        { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
+        { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
+      ],
+    },
+  ],
+  review: [
+    {
+      fields: [
+        title,
+        {
+          key: 'reviewType',
+          labelKey: `${p}reviewType`,
+          type: 'select',
+          options: [
+            'Periodic Compliance Review',
+            'AI Risk Review',
+            'Access Control Review',
+            'Model Performance Review',
+          ],
+          required: true,
+        },
+        {
+          key: 'reviewFrequency',
+          labelKey: `${p}reviewFrequency`,
+          type: 'select',
+          options: ['Monthly', 'Quarterly', 'Bi-Annual', 'Annual'],
+        },
+        {
+          key: 'scope',
+          labelKey: `${p}scope`,
+          type: 'textarea',
+          placeholderKey: `${pp}review.scope`,
+        },
+        user('reviewer', true),
+        status(STATUS),
+        { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
+        user('approvedBy'),
+      ],
+    },
+  ],
 }

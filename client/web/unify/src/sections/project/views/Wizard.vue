@@ -316,19 +316,27 @@
 
     <!-- Manage & Monitor: its own left rail (grouped nav, never STEPS — see
          config/manageNav.js) beside a content pane. No step sidebar — this
-         tab carries no wizard steps. Sections are shell-only for now: a
-         titled empty panel per section, no board/metrics/activity content
-         yet. -->
+         tab carries no wizard steps. The content pane is a per-section
+         COMPONENT DISPATCH (key → component, see MANAGE_SECTION_COMPONENTS
+         below), never inline markup here — each section (board, metrics,
+         activity, the five categories) owns its own file under
+         components/wizard/manage/, so they can be built out independently
+         without every one of them editing this region of Wizard.vue. -->
     <div v-else class="flex-1 flex gap-4 p-3 min-h-0">
       <aside class="w-72 shrink-0 h-full">
         <ManageNav :active-key="activeSection" @select="activeSection = $event" />
       </aside>
 
-      <div class="flex-1 min-w-0 min-h-0 overflow-y-auto rounded-xl border border-surface p-4">
-        <h2 class="text-lg font-medium mb-1">
-          {{ activeSectionItem ? $t(activeSectionItem.labelKey) : '' }}
-        </h2>
-        <p class="text-sm text-muted-color">{{ $t('project.manage.panel.comingSoon') }}</p>
+      <div
+        class="flex-1 min-w-0 min-h-0 overflow-hidden rounded-xl border border-surface flex flex-col"
+      >
+        <component
+          :is="activeSectionComponent"
+          v-if="activeSectionComponent"
+          :project="project"
+          :disabled="locked"
+          class="flex-1 min-h-0"
+        />
       </div>
     </div>
 
@@ -544,6 +552,14 @@ import UserDetailDialog from '@/sections/project/components/users/UserDetailDial
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import MembersDialog from '@/sections/project/components/project/MembersDialog.vue'
 import ManageNav from '@/sections/project/components/wizard/ManageNav.vue'
+import ManageActivity from '@/sections/project/components/wizard/manage/ManageActivity.vue'
+import ManageBoard from '@/sections/project/components/wizard/manage/ManageBoard.vue'
+import ManageFeature from '@/sections/project/components/wizard/manage/ManageFeature.vue'
+import ManageIncident from '@/sections/project/components/wizard/manage/ManageIncident.vue'
+import ManageMetrics from '@/sections/project/components/wizard/manage/ManageMetrics.vue'
+import ManagePrivacy from '@/sections/project/components/wizard/manage/ManagePrivacy.vue'
+import ManageReview from '@/sections/project/components/wizard/manage/ManageReview.vue'
+import ManageTask from '@/sections/project/components/wizard/manage/ManageTask.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
@@ -939,15 +955,23 @@ const activeSection = ref(
 watch(activeSection, section => {
   router.replace({ query: { ...route.query, section } })
 })
-// The active item's own config entry (label, icon/category) — drives the
-// shell panel's heading below.
-const activeSectionItem = computed(() => {
-  for (const section of MANAGE_NAV) {
-    const item = section.items.find(i => i.key === activeSection.value)
-    if (item) return item
-  }
-  return null
-})
+// Section key → panel component (see the template comment above). Every
+// MANAGE_NAV item key needs an entry here; each component owns its own file
+// under components/wizard/manage/ so the sections due to be built out next
+// (metrics, activity, the five categories) don't collide editing this file.
+const MANAGE_SECTION_COMPONENTS = {
+  board: ManageBoard,
+  metrics: ManageMetrics,
+  activity: ManageActivity,
+  incident: ManageIncident,
+  feature: ManageFeature,
+  privacy: ManagePrivacy,
+  task: ManageTask,
+  review: ManageReview,
+}
+const activeSectionComponent = computed(
+  () => MANAGE_SECTION_COMPONENTS[activeSection.value] || null,
+)
 
 // --- Active step -----------------------------------------------------------
 const activeKey = computed(() => {

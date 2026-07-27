@@ -36,15 +36,24 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
   }
 
   // Load every backlog item for a project. Same 200-row cap idiom as
-  // stores/events.js#load — acceptable for v1, no fix needed.
-  async function load(projectId) {
+  // stores/events.js#load — acceptable for v1, no fix needed. `revisionId` is
+  // optional and mirrors events.js#load exactly: omitted, every revision in
+  // the project comes back (the live dashboard's whole-project scope);
+  // passed, only items filed against that one revision do (the wizard's
+  // Manage & Monitor board's scope). `projectId` is always the chain ROOT in
+  // the revision-scoped case (work items are filed against the root project).
+  async function load(projectId, revisionId) {
     const pid = String(projectId || '')
     if (!pid) return
     currentProjectId.value = pid
     loading.value = true
     try {
       await users.load()
-      const { set = [] } = await $SystemAPI.projectBacklogItemList({ projectID: pid, limit: 200 })
+      const { set = [] } = await $SystemAPI.projectBacklogItemList({
+        projectID: pid,
+        revisionID: revisionId || undefined,
+        limit: 200,
+      })
       items.value = (set || []).map(mapRow)
     } catch (err) {
       console.error('Failed to load backlog items', err)
@@ -70,7 +79,10 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
   // list (byEvent/openCount) react without a refetch.
   async function add(payload = {}) {
     const pid = currentProjectId.value
-    const body = normalizeDates({ ...payload, projectID: pid, status: payload.status || 'Open' }, DATE_KEYS)
+    const body = normalizeDates(
+      { ...payload, projectID: pid, status: payload.status || 'Open' },
+      DATE_KEYS,
+    )
     const raw = await $SystemAPI.projectBacklogItemCreate(body)
     const item = mapRow(raw || {})
     items.value.unshift(item)
@@ -86,6 +98,34 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
     if (idx !== -1) items.value.splice(idx, 1, item)
     else items.value.unshift(item)
     return item
+  }
+
+  // Status-only update — the Manage & Monitor board's drag interaction (see
+  // components/wizard/manage/ManageBoard.vue) moving a card to another
+  // column. Mirrors stores/events.js#updateStatus exactly: patches the
+  // cached item's status in place FIRST (the card visibly moves right away),
+  // then persists it; a failed push rolls the status back and rethrows so
+  // the caller can toast. The update endpoint is a full PUT, so the push
+  // carries every other field off the cached item, remapping `assignee` back
+  // to its raw `assigneeId`.
+  async function updateStatus(id, status) {
+    const item = items.value.find(i => i.id === String(id))
+    if (!item) return
+    const prevStatus = item.status
+    item.status = status
+    try {
+      const body = { ...item, status, assignee: item.assigneeId || null }
+      const raw = await $SystemAPI.projectBacklogItemUpdate(
+        normalizeDates({ ...body, backlogItemID: id }, DATE_KEYS),
+      )
+      const updated = mapRow(raw || {})
+      const idx = items.value.findIndex(i => i.id === String(id))
+      if (idx !== -1) items.value.splice(idx, 1, updated)
+      return updated
+    } catch (err) {
+      item.status = prevStatus
+      throw err
+    }
   }
 
   // Delete a backlog item, then drop it from the local list so the
@@ -105,6 +145,7 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
     openCount,
     add,
     update,
+    updateStatus,
     remove,
   }
 })
