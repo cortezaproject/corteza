@@ -276,36 +276,27 @@
         <TabPanel value="general">
           <div class="flex flex-col gap-3">
             <!-- Title -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.general.titleLabel') }}
-              </label>
+            <CFormGroup :label="$t('block.general.titleLabel')">
               <InputText
                 v-model="editingBlock.title"
                 :placeholder="$t('block.general.titlePlaceholder')"
                 class="w-full"
               />
-            </div>
+            </CFormGroup>
 
             <!-- Description -->
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('block.general.descriptionLabel') }}
-              </label>
+            <CFormGroup :label="$t('block.general.descriptionLabel')">
               <Textarea
                 v-model="editingBlock.description"
                 :placeholder="$t('block.general.descriptionPlaceholder')"
                 rows="2"
                 class="w-full"
               />
-            </div>
+            </CFormGroup>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <!-- Custom ID -->
-              <div class="flex flex-col gap-1">
-                <label class="text-primary font-medium text-sm">
-                  {{ $t('block.general.customID.label') }}
-                </label>
+              <CFormGroup :label="$t('block.general.customID.label')">
                 <InputText
                   v-model="editingBlock.meta.customID"
                   :placeholder="$t('block.general.customID.placeholder')"
@@ -318,13 +309,10 @@
                 <small v-else class="text-muted-color">
                   {{ $t('block.general.customID.description') }}
                 </small>
-              </div>
+              </CFormGroup>
 
               <!-- Custom CSS Class -->
-              <div class="flex flex-col gap-1">
-                <label class="text-primary font-medium text-sm">
-                  {{ $t('block.general.customCSSClass.label') }}
-                </label>
+              <CFormGroup :label="$t('block.general.customCSSClass.label')">
                 <InputText
                   v-model="editingBlock.meta.customCSSClass"
                   :placeholder="$t('block.general.customCSSClass.placeholder')"
@@ -337,17 +325,14 @@
                 <small v-else class="text-muted-color">
                   {{ $t('block.general.customCSSClass.description') }}
                 </small>
-              </div>
+              </CFormGroup>
             </div>
 
             <Divider />
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <!-- Header style -->
-              <div class="flex flex-col gap-1">
-                <label class="text-primary font-medium text-sm">
-                  {{ $t('block.general.headerStyle') }}
-                </label>
+              <CFormGroup :label="$t('block.general.headerStyle')">
                 <Select
                   v-model="editingBlock.style.variants.headerText"
                   :options="headerTextVariantOptions"
@@ -355,13 +340,10 @@
                   option-value="value"
                   class="w-full"
                 />
-              </div>
+              </CFormGroup>
 
               <!-- Magnify option -->
-              <div class="flex flex-col gap-1">
-                <label class="text-primary font-medium text-sm">
-                  {{ $t('block.general.magnifyLabel') }}
-                </label>
+              <CFormGroup :label="$t('block.general.magnifyLabel')">
                 <Select
                   v-model="editingBlock.options.magnifyOption"
                   :options="magnifyOptions"
@@ -369,7 +351,7 @@
                   option-value="value"
                   class="w-full"
                 />
-              </div>
+              </CFormGroup>
             </div>
 
             <!-- Wrap and border -->
@@ -399,10 +381,10 @@
             <template v-if="editingBlock.options?.showRefresh !== undefined">
               <Divider />
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                  <label class="text-primary font-medium text-sm">
-                    {{ $t('block.general.refresh.auto') }}
-                  </label>
+                <CFormGroup
+                  :label="$t('block.general.refresh.auto')"
+                  :description="$t('block.general.refresh.description')"
+                >
                   <div class="flex items-center gap-2">
                     <InputNumber
                       v-model="editingBlock.options.refreshRate"
@@ -412,10 +394,7 @@
                       @blur="clampRefreshRate"
                     />
                   </div>
-                  <small class="text-muted-color">
-                    {{ $t('block.general.refresh.description') }}
-                  </small>
-                </div>
+                </CFormGroup>
                 <div class="flex gap-2">
                   <CInputSwitch
                     v-model="editingBlock.options.showRefresh"
@@ -427,18 +406,21 @@
 
             <Divider />
 
-            <Fieldset :legend="$t('block.general.visibility.label')">
+            <Fieldset>
+              <template #legend>
+                <span class="flex items-center gap-1">
+                  {{ $t('block.general.visibility.label') }}
+                  <i
+                    class="pi pi-exclamation-triangle text-orange-500 text-xs"
+                    v-tooltip="$t('block.general.visibility.tooltip.performance.condition')"
+                  />
+                </span>
+              </template>
               <div class="flex flex-col gap-3">
-                <CFormGroup :description="visibilityConditionDescription">
-                  <template #label>
-                    <span class="flex items-center gap-1">
-                      {{ $t('block.general.visibility.condition.label') }}
-                      <i
-                        class="pi pi-exclamation-triangle text-orange-500 text-xs"
-                        v-tooltip="$t('block.general.visibility.tooltip.performance.condition')"
-                      />
-                    </span>
-                  </template>
+                <CFormGroup
+                  :label="$t('block.general.visibility.condition.label')"
+                  :description="visibilityConditionDescription"
+                >
                   <Textarea
                     v-model="editingBlock.meta.visibility.expression"
                     :placeholder="$t('block.general.visibility.condition.placeholder')"
