@@ -201,7 +201,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, reactive, ref, watch, nextTick } from 'vue'
+import { computed, inject, onBeforeUnmount, provide, reactive, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
@@ -232,7 +232,7 @@ const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 const $ComposeAPI = inject('$ComposeAPI')
 const $SystemAPI = inject('$SystemAPI', null)
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $toast = inject('$toast', null)
 
 // Inject edit context from RecordView (may be null on non-record pages)
@@ -306,6 +306,10 @@ const activeRecord = computed(() => {
   }
   return localRecord.value
 })
+
+// Provide the resolved record so nested field editors (e.g. a Record field's
+// prefilter) can interpolate ${record...}/${recordID}/${ownerID} expressions
+provide('$recordContext', activeRecord)
 
 // Determine which fields to display (before condition filtering)
 const visibleFields = computed(() => {
@@ -535,15 +539,25 @@ function canDisplay({ fieldID, name }) {
   return !hiddenConditions.value.includes(id)
 }
 
-async function evaluateExpressions() {
+let _fieldConditionTimer = null
+let _fieldConditionSeq = 0
+
+/**
+ * Field conditions follow the record as it is edited — they re-evaluate on
+ * every value change, debounced so that typing does not fire a request per
+ * keystroke.
+ */
+function evaluateExpressions() {
+  clearTimeout(_fieldConditionTimer)
+  _fieldConditionTimer = setTimeout(runFieldConditions, 300)
+}
+
+async function runFieldConditions() {
   const fieldConditions = options.value.fieldConditions || []
   if (!fieldConditions.length) return
   // Don't evaluate in builder mode
   if (route.name === 'admin.pages.builder') return
   if (!$SystemAPI) return
-
-  // Small delay to batch rapid changes
-  await new Promise(resolve => setTimeout(resolve, 300))
 
   const expressions = {}
   const record = activeRecord.value
@@ -551,7 +565,7 @@ async function evaluateExpressions() {
   const isNew = ctx?.isNew?.value ?? false
   const isEditMode = ctx ? ctx.mode.value !== 'view' && !isNew : false
   const variables = {
-    user: $auth?.user || {},
+    user: $Auth?.user || {},
     record: serialized,
     screen: {
       width: window.innerWidth,
@@ -579,8 +593,14 @@ async function evaluateExpressions() {
 
   if (Object.keys(expressions).length === 0) return
 
+  const seq = ++_fieldConditionSeq
+
   try {
     const res = await $SystemAPI.expressionEvaluate({ variables, expressions })
+
+    // A slower earlier response must not overwrite a newer one, nor clear
+    // values based on a stale view of the record
+    if (seq !== _fieldConditionSeq) return
 
     const previousConditions = [...hiddenConditions.value]
     const newHidden = []
