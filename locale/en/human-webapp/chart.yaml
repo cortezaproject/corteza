@@ -92,7 +92,7 @@ edit:
     timeLabels: Time labels
   filter:
     customize: Customize filter
-    footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    footnote: Simplified SQL condition (WHERE ...) syntax is supported.
     label: Filter
     noFilter: Select a filter
     placeholder: field1 = 1 AND field2 = 232

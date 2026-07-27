@@ -117,10 +117,7 @@
             />
           </CFormGroup>
 
-          <CFormGroup
-            v-if="showSearch"
-            :label="$t('block.recordList.record.searchSubmitMode')"
-          >
+          <CFormGroup v-if="showSearch" :label="$t('block.recordList.record.searchSubmitMode')">
             <Select
               v-model="searchSubmitMode"
               :options="searchSubmitModeOptions"
@@ -139,6 +136,7 @@
               class="w-full"
               :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
             />
+            <InterpolationFootnote :is-record-page="isRecordPage" />
           </CFormGroup>
 
           <!-- Filter Presets -->
@@ -548,6 +546,7 @@ import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
 import RecordListFilter from '@/sections/compose/components/Common/RecordListFilter.vue'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { t } = useI18n()
 
@@ -574,6 +573,10 @@ const parentModule = computed(() => {
 })
 
 const onRecordPage = computed(() => !!parentModule.value)
+
+// Independent of module loading — the footnote must not flip variable lists
+// while the parent module is still being fetched.
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const recordDisplayOptions = [
   { value: 'sameTab', text: t('block.recordList.record.openInSameTab') },

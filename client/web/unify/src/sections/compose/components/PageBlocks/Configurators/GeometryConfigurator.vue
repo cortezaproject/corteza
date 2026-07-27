@@ -11,7 +11,7 @@
             :max-bounds="lockBounds ? lockedBounds : null"
             :hide-geo-search="hideGeoSearch"
             hide-current-location-button
-            style="height: 40vh;"
+            style="height: 40vh"
             @update:center="onMapCenter"
             @update:zoom="onMapZoom"
             @update:bounds="onMapBounds"
@@ -62,10 +62,7 @@
     <Fieldset :legend="$t('block.geometry.feeds')">
       <div class="flex flex-col gap-3">
         <div class="grid grid-cols-12 gap-3">
-          <CFormGroup
-            :label="$t('block.geometry.displayOption.label')"
-            class="col-span-6"
-          >
+          <CFormGroup :label="$t('block.geometry.displayOption.label')" class="col-span-6">
             <Select
               v-model="displayOption"
               :options="displayOptions"
@@ -153,6 +150,7 @@
               class="w-full"
               @update:model-value="updateFeedOption(i, 'prefilter', $event || '')"
             />
+            <InterpolationFootnote :is-record-page="isRecordPage" />
           </CFormGroup>
 
           <div class="flex gap-4">
@@ -191,16 +189,19 @@ import { components } from '@planetcrust/human-vue'
 import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { CInputColorPicker, CInputToggleCard } = components
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-defineProps({
+const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
+
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 
@@ -216,7 +217,10 @@ const displayOptions = [
 // from a customized brand colour; the brand hex is kept only as the
 // defensive fallback for when the CSS var isn't available.
 function getPrimaryColor() {
-  return getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() || '#09344E'
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() ||
+    '#09344E'
+  )
 }
 
 function getFields(moduleID) {
@@ -262,10 +266,7 @@ const zoomStarting = computed(() => block.value.options?.zoomStarting ?? 2)
 
 function onMapCenter([lat, lng]) {
   updateOptions({
-    center: [
-      Math.round(lat * 1e6) / 1e6,
-      Math.round(lng * 1e6) / 1e6,
-    ],
+    center: [Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6],
   })
 }
 

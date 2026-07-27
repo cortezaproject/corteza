@@ -19,6 +19,7 @@
           :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
           class="w-full"
         />
+        <InterpolationFootnote :is-record-page="isRecordPage" />
       </CFormGroup>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -133,14 +134,17 @@
 import { computed, inject, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { t } = useI18n()
 
-defineProps({
+const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
   record: { type: Object, default: undefined },
 })
+
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 

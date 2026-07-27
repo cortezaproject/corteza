@@ -103,6 +103,7 @@
           rows="3"
           class="w-full"
         />
+        <InterpolationFootnote :is-record-page="isRecordPage" />
       </CFormGroup>
     </template>
   </div>
@@ -112,14 +113,17 @@
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-defineProps({
+const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
+
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 

@@ -57,19 +57,28 @@
           <template #icons>
             <Button
               icon="pi pi-chevron-up"
-              text rounded size="small" severity="secondary"
+              text
+              rounded
+              size="small"
+              severity="secondary"
               :disabled="index === 0"
               @click="moveItem(index, -1)"
             />
             <Button
               icon="pi pi-chevron-down"
-              text rounded size="small" severity="secondary"
+              text
+              rounded
+              size="small"
+              severity="secondary"
               :disabled="index === navItems.length - 1"
               @click="moveItem(index, 1)"
             />
             <Button
               icon="pi pi-trash"
-              text rounded size="small" severity="danger"
+              text
+              rounded
+              size="small"
+              severity="danger"
               @click="removeNavItem(index)"
             />
           </template>
@@ -102,6 +111,7 @@
                   class="w-full"
                   @update:model-value="updateNavItemOption(index, 'url', $event)"
                 />
+                <InterpolationFootnote :is-record-page="isRecordPage" />
               </CFormGroup>
               <CFormGroup :label="$t('block.navigation.target')">
                 <Select
@@ -161,7 +171,7 @@
                 </template>
 
                 <div
-                  v-for="(dItem, dIndex) in (item.options?.item?.dropdown?.items || [])"
+                  v-for="(dItem, dIndex) in item.options?.item?.dropdown?.items || []"
                   :key="dIndex"
                   class="border border-surface rounded-border p-2 flex flex-col gap-2"
                 >
@@ -174,7 +184,10 @@
                     />
                     <Button
                       icon="pi pi-trash"
-                      text rounded size="small" severity="danger"
+                      text
+                      rounded
+                      size="small"
+                      severity="danger"
                       @click="removeDropdownItem(index, dIndex)"
                     />
                   </div>
@@ -236,15 +249,18 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { CInputColorPicker, CInputToggleCard } = components
 
 const { t } = useI18n()
 
-defineProps({
+const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
+
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 
@@ -309,10 +325,13 @@ function updateOptions(key, value) {
 }
 
 function addNavItem() {
-  const items = [...navItems.value, {
-    type: 'url',
-    options: { enabled: true, item: { label: '', url: '', textColor: '', backgroundColor: '' } },
-  }]
+  const items = [
+    ...navItems.value,
+    {
+      type: 'url',
+      options: { enabled: true, item: { label: '', url: '', textColor: '', backgroundColor: '' } },
+    },
+  ]
   updateOptions('navigationItems', items)
 }
 
@@ -344,7 +363,10 @@ function updateNavItemOption(index, key, value) {
 function addDropdownItem(index) {
   const items = [...navItems.value]
   const dropdown = items[index].options?.item?.dropdown || { items: [] }
-  const dItems = [...(dropdown.items || []), { label: '', url: '', target: 'sameTab', delimiter: false }]
+  const dItems = [
+    ...(dropdown.items || []),
+    { label: '', url: '', target: 'sameTab', delimiter: false },
+  ]
   items[index] = {
     ...items[index],
     options: {

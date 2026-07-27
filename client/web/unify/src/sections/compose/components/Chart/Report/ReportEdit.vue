@@ -49,6 +49,7 @@
             rows="2"
           />
           <small class="text-muted-color">{{ $t('chart.edit.filter.footnote') }}</small>
+          <InterpolationFootnote is-record-page depends-on-placement class="block" />
         </div>
       </div>
     </div>
@@ -278,6 +279,7 @@
 import { computed, inject, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@planetcrust/human-js'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { t } = useI18n()
 
@@ -380,7 +382,9 @@ const metricFields = computed(() => {
 const dimensionFields = computed(() => {
   if (!module.value) return []
   return [
-    ...[...module.value.fields].sort((a, b) => (a.label || a.name).localeCompare(b.label || b.name)),
+    ...[...module.value.fields].sort((a, b) =>
+      (a.label || a.name).localeCompare(b.label || b.name),
+    ),
     ...(module.value.systemFields
       ? module.value.systemFields().map(sf => {
           sf.label = t(`field.system.${sf.name}`)

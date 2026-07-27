@@ -88,7 +88,11 @@
 
     <Fieldset :legend="$t('block.calendar.feedLabel')">
       <div class="flex flex-col gap-3">
-        <div v-for="(feed, i) in feeds" :key="i" class="flex flex-col gap-2 p-3 border border-surface rounded-border">
+        <div
+          v-for="(feed, i) in feeds"
+          :key="i"
+          class="flex flex-col gap-2 p-3 border border-surface rounded-border"
+        >
           <div class="flex items-center justify-between">
             <span class="font-semibold text-sm">
               {{ $t('block.calendar.source.label') }} {{ i + 1 }}
@@ -97,10 +101,7 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <CFormGroup
-              :label="$t('block.calendar.recordFeed.resourceType')"
-              class="md:col-span-2"
-            >
+            <CFormGroup :label="$t('block.calendar.recordFeed.resourceType')" class="md:col-span-2">
               <Select
                 :model-value="feed.resourceType || 'record'"
                 :options="resourceTypeOptions"
@@ -175,6 +176,7 @@
                 :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
                 class="w-full"
               />
+              <InterpolationFootnote :is-record-page="isRecordPage" />
             </CFormGroup>
 
             <CFormGroup :label="$t('block.calendar.colorLabel')">
@@ -206,16 +208,19 @@ import { compose } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { CInputColorPicker } = components
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-defineProps({
+const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
+
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 
@@ -244,7 +249,10 @@ const feeds = computed(() => localOptions.value.feeds || [])
 // from a customized brand colour; the brand hex is kept only as the
 // defensive fallback for when the CSS var isn't available.
 function getPrimaryColor() {
-  return getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() || '#09344E'
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() ||
+    '#09344E'
+  )
 }
 
 const isHeaderHidden = computed(() => localOptions.value.header?.hide || false)

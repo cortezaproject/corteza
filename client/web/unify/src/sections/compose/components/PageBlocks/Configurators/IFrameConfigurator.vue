@@ -28,23 +28,14 @@
       />
     </CFormGroup>
 
-    <!-- Interpolation footnote -->
-    <small class="text-muted-color">
-      {{ $t('block.content.interpolationFootnote') }}
-      <code>${record.values.fieldName}</code>,
-      <code>${recordID}</code>,
-      <code>${ownerID}</code>,
-      <code>${userID}</code>,
-      <code>${user.name}</code>
-    </small>
-
-
+    <InterpolationFootnote :is-record-page="isRecordPage" />
   </div>
 </template>
 
 <script setup>
 import { computed, inject } from 'vue'
 import { useModuleStore } from '@planetcrust/human-vue'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
@@ -81,6 +72,4 @@ const srcField = computed({
   get: () => block.value.options?.srcField || '',
   set: v => updateOptions('srcField', v),
 })
-
-
 </script>

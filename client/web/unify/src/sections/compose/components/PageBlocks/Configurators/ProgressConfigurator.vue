@@ -67,6 +67,7 @@
               rows="2"
               class="w-full"
             />
+            <InterpolationFootnote :is-record-page="isRecordPage" />
           </template>
         </div>
       </Fieldset>
@@ -139,6 +140,7 @@
               rows="2"
               class="w-full"
             />
+            <InterpolationFootnote :is-record-page="isRecordPage" />
           </template>
         </div>
       </Fieldset>
@@ -211,6 +213,7 @@
               rows="2"
               class="w-full"
             />
+            <InterpolationFootnote :is-record-page="isRecordPage" />
           </template>
         </div>
       </Fieldset>
@@ -364,9 +367,7 @@
     </div>
 
     <!-- Sticky live preview -->
-    <div
-      class="sticky bottom-0 left-0 w-full bg-surface rounded-border shadow p-3 z-10"
-    >
+    <div class="sticky bottom-0 left-0 w-full bg-surface rounded-border shadow p-3 z-10">
       <CFormGroup :label="$t('block.progress.preview')">
         <div class="h-14">
           <ProgressBlock :key="previewFetchKey" :block="previewBlock" :namespace="namespace" />
@@ -381,14 +382,17 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
 import ProgressBlock from '../Blocks/ProgressBlock.vue'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-defineProps({
+const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
+
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 
