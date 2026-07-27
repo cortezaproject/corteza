@@ -41,6 +41,9 @@ persist (statuses, AI Act options) stay literal.
   mirroring the Admin connection catalog.
 - `dashboard.js` — the dashboard left-rail nav (locked view set: Overview,
   Events, five Categories, Backlog, Reports stub).
+- `manageNav.js` — the Manage & Monitor left-rail sections (monitor group +
+  the five categories). The M&M tab renders from this, never from STEPS —
+  that is what keeps "Manage & Monitor has no steps" true.
 - `categories.js` — per-category dashboard config: columns, charts, KPIs,
   badges, trend grouping; reuses eventForm's schemas and visual identity.
 - `eventForm.js` — New Event form schemas per category + EVENT_STATUS;

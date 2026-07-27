@@ -25,9 +25,9 @@ APIs directly for this state; they read stores and call store actions.
 
 Each store file carries its own sidecar doc:
 
-- `projects.js` — the canonical project store: CRUD + lifecycle, per-project
-  resource caches, graph view state, effective access, and the session-local
-  governance scaffolding (see its WIP note).
+- `projects.js` — the canonical project store: CRUD + lifecycle + the revision
+  chain, per-project resource caches, graph view state, effective access, and
+  the session-local governance scaffolding (see its WIP note).
 - `events.js` — dashboard events across the five category resources.
 - `backlogItems.js` — dashboard backlog sub-issues linked to category events.
 - `report.js` — thin wrapper over the server-side aggregation endpoint.

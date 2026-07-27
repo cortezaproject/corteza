@@ -24,10 +24,13 @@ archived or deleted.
 
 - Server-side searched, sorted and paginated project list (name + description,
   lifecycle status tag, updated date); mutations re-list from the backend.
+- One row per project, not per revision: a chain is grouped by its root and
+  shown once, carrying the state of the revision a user would act on.
 - Create a project — on success the user lands in the wizard with `?new=1`,
   the just-created flag the Wizard uses to auto-open the members dialog once.
-- Row click routes by lifecycle: a live project opens its dashboard
-  (`project.overview`), anything still draft opens the wizard.
+- Row click routes to the revision worth opening: a chain with a draft
+  revision opens that revision's wizard; an all-published chain opens the
+  live dashboard (`project.overview`).
 - Per-row actions: rename (edits `meta.short`), archive/unarchive
   (status `archived` ↔ `draft`), delete with confirmation.
 

@@ -73,11 +73,23 @@ commit as the work that resolves an item.
         `stores/projects.js` `governanceByProject`; BE planned).
   - [ ] **Govern tab + FRIA content** lock-in — re-interview when governance
         content settles (incl. Govern steps summary/resource-management/
-        data-sensitivity).
+        data-sensitivity). Phasing agreed 2026-07-28: risk scenarios first
+        (inherent severity + safeguards, taxonomies as FE config, linked to
+        project resources), risk-management/detection rules after — the latter
+        needs project-scoped actionlog, so it is gated on that work.
+  - [ ] **Create-flow governance removal** (ruled 2026-07-28) — delete the
+        deployer-category questions, `DEPLOYER_QUESTIONS`, the `create()`
+        mapping, BE `ProjectDeployerCategories`/`FriaRequired`/`friaRequired()`
+        and the `project.deployer.*` i18n keys. Lands WITH the Govern FRIA
+        flow that replaces the determination, never before it.
   - [ ] **Groups** build-out — part of the intended members model; prior broken
         experiment deleted 2026-07-24, build fresh.
-  - [ ] **M&M build-time dashboard** — replace the wizard tab placeholder
-        (current-version categories + backlog, version-shared with live).
+  - [ ] **M&M build-time dashboard** — replace the wizard tab placeholder.
+        Intent agreed 2026-07-28 (`project.intent.md`, `Wizard.intent.md`):
+        revision-as-milestone, board + metrics + activity for one revision,
+        rendered from a manage-nav config rather than STEPS. Blocked on the
+        BE change repointing the six work-item resources to the root project
+        with a nullable revision ref.
   - [ ] **Permission create-ops** ruling (Bucket A/B split) + matrix support.
   - [ ] Project-only **server code** still excluded — Phase 4 scoping.
 

@@ -54,6 +54,11 @@ permissions) — routed per resource string by `apiForResource`.
 
 - Lifecycle is the locked set: publish promotes `draft` → `active` (BE never
   sets `published`); `archived`, `suspended`, soft-`deleted` complete it.
+- Revisions are project rows in a chain (root / parent / number), not a field
+  to increment: `createRevision` branches from an active project and the BE
+  allows one draft per chain; `listRevisions` loads the chain. Work items are
+  filed against the root project and point at the revision they're assigned
+  to, so a revision reads as a milestone over one shared item pool.
 - Resources are fetched-by-projectID only; mutations resync via load, and
   every persisting mutation calls `touch()`.
 - Update flows are optimistic with rollback on push failure.
@@ -64,8 +69,11 @@ permissions) — routed per resource string by `apiForResource`.
 > resubmit, immediate send-back) mirror it 1:1 in memory only. A reload
 > resets all approval state. Deliberate; do not persist it ad hoc.
 
-> **WIP:** FRIA content — `create()` sends the deployer-category answers
-> (drives the BE FriaRequired derivation); question content is unlocked.
+> **WIP:** FRIA content — `create()` still sends the deployer-category answers
+> that drive the BE `FriaRequired` derivation, but that is ruled for removal
+> (2026-07-28): creation becomes name + description only and the Govern FRIA
+> flow owns the determination. Removal lands with that flow, never before —
+> deleting it early leaves nothing deciding whether a FRIA is required.
 
 > **WIP:** permission create-ops — the effective-access matrix omits
 > parent-scoped create/list/app-access operations; scoping awaits a ruling.

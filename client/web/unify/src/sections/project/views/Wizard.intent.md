@@ -41,6 +41,13 @@ The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs
 - Provides `inspectResource(kind, id)` / `createResource(kind)`; each kind's
   Create + Detail dialog mounts here exactly once; graph and step clicks always
   open the editable detail dialog (`editField`/`createField` for module fields).
+- Manage & Monitor tab — the build-time dashboard for the revision being
+  worked on: a grouped left rail (monitor + the five categories) rendered from
+  its own nav config, never from `pipeline.js` STEPS, so the "Manage & Monitor
+  has no steps" contract holds. Its header carries the revision, that
+  revision's work-item completeness, and a new-item action; the same
+  completeness is shown again at publish, where unfinished work warns but
+  never blocks.
 - Members dialog opens from the wizard-header cluster; `?new=1` auto-opens it once for a
   just-created project, then is stripped via `router.replace`.
 - Capabilities gate review actions and editing only, never tab/step visibility.
@@ -50,12 +57,11 @@ The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs
 - `project.wizard` at `/project/projects/:projectId/wizard`, query `step` /
   `tab` / `new`; links to `project.list`, `project.overview`, `namespace.view`.
 
-> **WIP:** approval **persistence** is session-local (`stores/projects.js`);
+> **WIP:** approval **persistence** is session-local (`stores/projects.js`) —
+> the M&M completeness bar must derive from work items, never from it;
 > **Govern/FRIA content** will change (flow shapes only are locked; Govern
-> steps summary/resource-management/data-sensitivity may change); the
-> **Manage & Monitor tab body** is a placeholder — intended to hold the
-> build-time dashboard (current-version categories + backlog, partially shared
-> with the live dashboard via version assignment);
+> steps summary/resource-management/data-sensitivity may change, and the FRIA
+> flow is due to absorb the governance questions leaving the create flow);
 > **permission create-ops** are missing from the matrix pending a ruling.
 
 ## When changing this
