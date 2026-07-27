@@ -250,8 +250,8 @@ comment:
   contentField:
     footnote: Field value will be used as record content
     label: Content field
-  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
-  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  invalidOwnerVar: 'Can not use {0} variable in non-record pages'
+  invalidRecordVar: 'Can not use {0} variable in non-record pages'
   label: Comments
   load:
     newer: Load newer comments
@@ -290,6 +290,8 @@ comment:
   yesterday: Yesterday
 content:
   interpolationFootnote: 'Available variables (evaluated when present):'
+  interpolationFootnoteNonRecord: 'Available variables (evaluated when present). Record variables are not available on this page — they require a record page:'
+  interpolationFootnotePlacement: Record variables are evaluated only when this is placed on a record page.
   label: Content
   ok: Ok
   placeholder: Write your content here...
@@ -389,8 +391,8 @@ general:
   visibility:
     condition:
       description:
-        non-record-page: 'You can use {0}, {1} inside  the expression, for example: {2} or {3}'
-        record-page: 'You can use {0}, {1}, {2}, {3} inside  the expression, for example: {4} or {5}'
+        non-record-page: 'You can use {0}, {1} inside the expression, for example: {2} or {3}. Evaluated when the page opens.'
+        record-page: 'You can use {0}, {1}, {2}, {3} inside the expression, for example: {4} or {5}. Re-evaluated as the record is edited, so the block can appear and disappear while values change.'
       label: Condition
       placeholder: When will the block be shown
     label: Visibility
@@ -483,7 +485,7 @@ iframe:
   srcFieldLabel: Field (URL) from record to use for the iframe
   srcLabel: URL to show in the iframe
 metric:
-  add: + Add
+  add: Add
   comparison:
     customFilter: Custom comparison filter
     enabled: Enable change indicator
@@ -510,7 +512,8 @@ metric:
     dimensionFieldLabel: Field
     dimensionFieldPlaceholder: Dimension field
     dimensionLabel: Dimension
-    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    empty: No metrics yet. Add one to get started.
+    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported.
     filterLabel: Filter
     labelLabel: Label
     labelPlaceholder: Label
@@ -703,7 +706,7 @@ record:
     clearOnHide: Clear On Hide
     clearOnHideTooltip: Automatically clear this field's value when it becomes hidden
     condition: Condition
-    description: Configure conditions to show or hide fields based on values
+    description: Configure conditions to show or hide fields based on values. Re-evaluated as the record is edited, so fields appear and disappear as values change.
     field: Field
     label: Conditional fields
     placeholder: When should this field be displayed?
@@ -736,8 +739,8 @@ record:
       title: Update record values
     saveError: Failed to save
     saveErrorSummary: Error
-  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
-  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  invalidOwnerVar: 'Can not use {0} variable in non-record pages'
+  invalidRecordVar: 'Can not use {0} variable in non-record pages'
   label: Record
   listLoadFailed: Could not load record list
   moduleMismatch: Module incompatible, module mismatch
@@ -1065,7 +1068,7 @@ recordList:
     perPage: Records per page
     perPageHint: Displaying a large amount of records per page will impact performance, especially with record/user fields
     prefilterCommand: Prefilter
-    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {0}, {1}, {2} and {3} are evaluated (when available)
+    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported.
     prefilterHideSearch: Show search bar
     prefilterHideSearchDescription: Display a search bar above the list so users can search records by configured searchable fields.
     prefilterLabel: Filtering

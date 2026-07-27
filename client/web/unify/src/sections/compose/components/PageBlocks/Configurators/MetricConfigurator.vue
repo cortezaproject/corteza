@@ -1,35 +1,39 @@
 <template>
   <div class="flex flex-col gap-3">
-    <Fieldset :legend="$t('block.metric.edit.tabTitle')">
-      <div class="flex flex-col gap-3">
-        <div
-          v-for="(metric, i) in metrics"
-          :key="i"
-          class="flex flex-col gap-2 p-3 border border-surface rounded-border"
-        >
-          <div class="flex items-center gap-2 justify-between">
-            <span class="text-sm font-semibold">
-              {{ metric.label || $t('block.metric.defaultMetricLabel') }}
-            </span>
-            <div class="flex gap-1">
-              <Button
-                :icon="expandedMetric === i ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                text
-                size="small"
-                @click="expandedMetric = expandedMetric === i ? -1 : i"
-              />
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                size="small"
-                @click="removeMetric(i)"
-              />
-            </div>
-          </div>
+    <div class="flex justify-end">
+      <Button
+        :label="$t('block.metric.add')"
+        icon="pi pi-plus"
+        severity="secondary"
+        size="small"
+        @click="addMetric"
+      />
+    </div>
 
-          <template v-if="expandedMetric === i">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <CFormList
+      v-model="metrics"
+      draggable
+      :empty-message="$t('block.metric.edit.empty')"
+      :columns="[{ width: '3rem' }, { width: '1fr' }]"
+      @change="expandedMetric = -1"
+      @reorder="expandedMetric = -1"
+    >
+      <template #row="{ item: metric, index: i }">
+        <Button
+          :icon="expandedMetric === i ? 'pi pi-chevron-up' : 'pi pi-pencil'"
+          text
+          rounded
+          size="small"
+          @click="expandedMetric = expandedMetric === i ? -1 : i"
+        />
+        <span class="text-sm font-semibold truncate justify-self-start">
+          {{ metric.label || $t('block.metric.defaultMetricLabel') }}
+        </span>
+      </template>
+
+      <template #extra="{ item: metric, index: i }">
+        <div v-if="expandedMetric === i" class="flex flex-col gap-3 border-t border-surface pt-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <CFormGroup :label="$t('block.metric.edit.labelLabel')">
                 <InputText
                   v-model="metric.label"
@@ -96,12 +100,17 @@
                 <InputText v-model="metric.suffix" class="w-full" placeholder="USD/mo" />
               </CFormGroup>
 
-              <CFormGroup :label="$t('block.metric.edit.filterLabel')" class="md:col-span-2">
+              <CFormGroup
+                :label="$t('block.metric.edit.filterLabel')"
+                :description="$t('block.metric.edit.filterFootnote')"
+                class="md:col-span-2"
+              >
                 <InputText
                   v-model="metric.filter"
                   class="w-full"
                   placeholder="field1 = 1 AND field2 > 0"
                 />
+                <InterpolationFootnote :is-record-page="isRecordPage" />
               </CFormGroup>
             </div>
 
@@ -219,19 +228,9 @@
                 </CFormGroup>
               </template>
             </div>
-          </template>
         </div>
-
-        <Button
-          :label="$t('block.metric.add')"
-          icon="pi pi-plus"
-          severity="secondary"
-          size="small"
-          class="self-start"
-          @click="addMetric"
-        />
-      </div>
-    </Fieldset>
+      </template>
+    </CFormList>
   </div>
 </template>
 
@@ -240,16 +239,19 @@ import { ref, computed, inject, onMounted } from 'vue'
 import { components } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
+import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
 
 const { CInputColorPicker } = components
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 
-defineProps({
+const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
 })
+
+const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 
@@ -305,8 +307,9 @@ function updateOptions(key, value) {
   block.value.options[key] = value
 }
 
-const metrics = computed(() => {
-  return block.value.options?.metrics || []
+const metrics = computed({
+  get: () => block.value.options?.metrics || [],
+  set: val => updateOptions('metrics', val),
 })
 
 function addMetric() {
@@ -349,16 +352,6 @@ function addMetric() {
   const m = [...metrics.value, newMetric]
   updateOptions('metrics', m)
   expandedMetric.value = m.length - 1
-}
-
-function removeMetric(index) {
-  const m = [...metrics.value]
-  m.splice(index, 1)
-  updateOptions('metrics', m)
-
-  if (expandedMetric.value >= m.length) {
-    expandedMetric.value = m.length - 1
-  }
 }
 
 function onModuleChange(metric, moduleID) {
