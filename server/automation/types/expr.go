@@ -101,6 +101,24 @@ func (set ExprSet) GetByArgumentName(arg string) *Expr {
 	return nil
 }
 
+// exprArgKey mirrors paramArgKey: NG automation keys arguments by ArgumentName,
+// legacy editor payloads only set Target. Fall back to Target so both match.
+func exprArgKey(e *Expr) string {
+	if e.ArgumentName != "" {
+		return e.ArgumentName
+	}
+	return e.Target
+}
+
+func (set ExprSet) getByArgKey(key string) *Expr {
+	for _, e := range set {
+		if exprArgKey(e) == key {
+			return e
+		}
+	}
+	return nil
+}
+
 func (set ExprSet) Validate(ctx context.Context, in *expr.Vars) (TestSet, error) {
 	var (
 		out TestSet

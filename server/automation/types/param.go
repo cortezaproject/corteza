@@ -75,21 +75,40 @@ func (set ParamSet) GetByArgumentName(name string) *Param {
 	return nil
 }
 
+// paramArgKey resolves the identifier used to pair a parameter with an argument
+// expression. NG automation keys params by ArgumentName; legacy functions only
+// set Name. Fall back to Name so both stay matchable.
+func paramArgKey(p *Param) string {
+	if p.ArgumentName != "" {
+		return p.ArgumentName
+	}
+	return p.Name
+}
+
+func (set ParamSet) getByArgKey(key string) *Param {
+	for _, p := range set {
+		if paramArgKey(p) == key {
+			return p
+		}
+	}
+	return nil
+}
+
 // CheckArguments validates (at compile-time) input data (arguments)
 func (set ParamSet) VerifyArguments(ee ExprSet) error {
 	for _, e := range ee {
-		if set.GetByArgumentName(e.ArgumentName) == nil {
-			return fmt.Errorf("unknown parameter %s is used", e.ArgumentName)
+		if set.getByArgKey(exprArgKey(e)) == nil {
+			return fmt.Errorf("unknown parameter %s is used", exprArgKey(e))
 
 		}
 	}
 
 	for _, p := range set {
-		e := ee.GetByArgumentName(p.ArgumentName)
+		e := ee.getByArgKey(paramArgKey(p))
 
 		if e == nil {
 			if p.Required {
-				return fmt.Errorf("parameter %s is required", p.ArgumentName)
+				return fmt.Errorf("parameter %s is required", paramArgKey(p))
 			}
 
 			continue
@@ -109,7 +128,7 @@ func (set ParamSet) VerifyArguments(ee ExprSet) error {
 
 			return fmt.Errorf(
 				msg,
-				e.Type, p.ArgumentName,
+				e.Type, paramArgKey(p),
 				strings.Join(p.Types, ", "),
 			)
 		}
@@ -131,14 +150,14 @@ func (set ParamSet) VerifyResults(ee ExprSet) error {
 	}
 
 	for _, p := range set {
-		e := ee.GetByArgumentName(p.Name)
+		e := ee.getByArgKey(paramArgKey(p))
 		if e == nil {
 			continue
 		}
 
 		if e.Type != "" && !p.HasType(e.Type) {
 			return fmt.Errorf("incompatible type %s for result %s, expecting %s",
-				e.Type, p.Name,
+				e.Type, paramArgKey(p),
 				strings.Join(p.Types, ", "),
 			)
 		}
