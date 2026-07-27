@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   escapeQlString,
+  evaluatePrefilter,
   getFieldFilter,
   getRecordListFilterSql,
   queryToFilter,
@@ -47,9 +48,7 @@ describe('lib/record-filter', () => {
     })
 
     it('builds LIKE with wildcards', () => {
-      expect(getFieldFilter('Name', 'String', 'foo', 'LIKE')).toBe(
-        "(Name LIKE '%foo%')",
-      )
+      expect(getFieldFilter('Name', 'String', 'foo', 'LIKE')).toBe("(Name LIKE '%foo%')")
     })
 
     it('treats empty value as a NULL check', () => {
@@ -74,8 +73,41 @@ describe('lib/record-filter', () => {
 
     it('builds an inclusive date-only BETWEEN range on the field date', () => {
       expect(
-        getFieldFilter('created_at', 'DateTime', { start: '2024-06-26', end: '2024-06-29' }, 'BETWEEN'),
+        getFieldFilter(
+          'created_at',
+          'DateTime',
+          { start: '2024-06-26', end: '2024-06-29' },
+          'BETWEEN',
+        ),
       ).toBe("(DATE(created_at) BETWEEN DATE('2024-06-26') DATE('2024-06-29'))")
+    })
+  })
+
+  describe('evaluatePrefilter', () => {
+    it('interpolates record/recordID/ownerID/userID template expressions', () => {
+      const record = { values: { status: 'open' } }
+      const user = { userID: '42' }
+      expect(
+        evaluatePrefilter('status = ${record.values.status} AND recordID = ${recordID}', {
+          record,
+          user,
+          recordID: '7',
+          ownerID: '3',
+          userID: user.userID,
+        }),
+      ).toBe('status = open AND recordID = 7')
+    })
+
+    it('passes through plain strings with no expressions unchanged', () => {
+      expect(
+        evaluatePrefilter('LocalGroupID = 5', {
+          record: undefined,
+          user: undefined,
+          recordID: '0',
+          ownerID: '0',
+          userID: '0',
+        }),
+      ).toBe('LocalGroupID = 5')
     })
   })
 
@@ -105,9 +137,7 @@ describe('lib/record-filter', () => {
     })
 
     it('AND-joins a single user filter group to the prefilter', () => {
-      expect(queryToFilter('', PRE, [], [group([field('A', '1')])])).toBe(
-        `${PRE} AND ((A = '1'))`,
-      )
+      expect(queryToFilter('', PRE, [], [group([field('A', '1')])])).toBe(`${PRE} AND ((A = '1'))`)
     })
 
     // The regression this suite primarily guards: a top-level OR in the user
@@ -115,10 +145,12 @@ describe('lib/record-filter', () => {
     // Before the fix the result was `PRE AND (a) OR (b)`, which SQL reads as
     // `(PRE AND a) OR b`, letting branch `b` escape the prefilter entirely.
     it('wraps a top-level OR so the prefilter applies to every branch', () => {
-      const out = queryToFilter('', PRE, [], [
-        group([field('A', '1')]),
-        group([field('B', '2')], 'OR'),
-      ])
+      const out = queryToFilter(
+        '',
+        PRE,
+        [],
+        [group([field('A', '1')]), group([field('B', '2')], 'OR')],
+      )
       expect(out).toBe(`${PRE} AND (((A = '1')) OR ((B = '2')))`)
 
       // Semantic invariant: everything after the prefilter's AND is a single
@@ -129,22 +161,23 @@ describe('lib/record-filter', () => {
     })
 
     it('does not add a redundant outer wrap for pure AND groups', () => {
-      const out = queryToFilter('', PRE, [], [
-        group([field('A', '1')]),
-        group([field('B', '2')], 'AND'),
-      ])
+      const out = queryToFilter(
+        '',
+        PRE,
+        [],
+        [group([field('A', '1')]), group([field('B', '2')], 'AND')],
+      )
       expect(out).toBe(`${PRE} AND (((A = '1')) AND ((B = '2')))`)
     })
 
     it('handles mixed AND/OR with correct precedence grouping', () => {
-      const out = queryToFilter('', PRE, [], [
-        group([field('A', '1')]),
-        group([field('B', '2')], 'AND'),
-        group([field('C', '3')], 'OR'),
-      ])
-      expect(out).toBe(
-        `${PRE} AND ((((A = '1')) AND ((B = '2'))) OR ((C = '3')))`,
+      const out = queryToFilter(
+        '',
+        PRE,
+        [],
+        [group([field('A', '1')]), group([field('B', '2')], 'AND'), group([field('C', '3')], 'OR')],
       )
+      expect(out).toBe(`${PRE} AND ((((A = '1')) AND ((B = '2'))) OR ((C = '3')))`)
     })
 
     it('keeps the prefilter applied when an OR filter is combined with a search query', () => {
@@ -153,16 +186,16 @@ describe('lib/record-filter', () => {
         group([field('A', '1')]),
         group([field('B', '2')], 'OR'),
       ])
-      expect(out).toBe(
-        `${PRE} AND (((A = '1')) OR ((B = '2'))) AND ((A LIKE '%foo%'))`,
-      )
+      expect(out).toBe(`${PRE} AND (((A = '1')) OR ((B = '2'))) AND ((A LIKE '%foo%'))`)
     })
 
     it('works without a prefilter (OR still grouped on its own)', () => {
-      const out = queryToFilter('', '', [], [
-        group([field('A', '1')]),
-        group([field('B', '2')], 'OR'),
-      ])
+      const out = queryToFilter(
+        '',
+        '',
+        [],
+        [group([field('A', '1')]), group([field('B', '2')], 'OR')],
+      )
       expect(out).toBe("(((A = '1')) OR ((B = '2')))")
     })
   })

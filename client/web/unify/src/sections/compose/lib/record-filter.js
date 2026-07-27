@@ -1,3 +1,4 @@
+import { compose } from '@planetcrust/human-js'
 import moment from 'moment'
 
 export const nonQueryableFieldNames = ['recordID']
@@ -293,17 +294,13 @@ export function queryToFilter(
       andGroup.push(sql)
     } else {
       // OR encountered - flush AND group as its own segment
-      orSegments.push(
-        andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0],
-      )
+      orSegments.push(andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0])
       andGroup = [sql]
     }
   }
   // Flush remaining
   if (andGroup.length) {
-    orSegments.push(
-      andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0],
-    )
+    orSegments.push(andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0])
   }
 
   let recordListFilterSql = orSegments.join(' OR ')
@@ -322,11 +319,8 @@ export function queryToFilter(
 
 // Evaluates the given prefilter. Allows JS template literal expressions
 // such as id = ${recordID}
-// eslint-disable-next-line no-unused-vars
 export function evaluatePrefilter(prefilter, { record, user, recordID, ownerID, userID }) {
-  return (function (prefilter) {
-    return eval('`' + prefilter + '`')
-  })(prefilter)
+  return compose.interpolateTemplate(prefilter, { record, user, recordID, ownerID, userID })
 }
 
 // Removes char from end of string

@@ -8,6 +8,8 @@ export { PageLayout } from './types/page-layout'
 export * from './types/page-block'
 export * from './types/chart'
 
+export { interpolateTemplate } from './helpers/interpolate'
+
 export {
   ComposeEvent,
   NamespaceEvent,
