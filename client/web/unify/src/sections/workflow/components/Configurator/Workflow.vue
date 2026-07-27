@@ -136,6 +136,7 @@
           v-model="localWorkflow.meta[section.key]"
           :columns="ioColumns"
           :empty-message="section.emptyMessage"
+          :confirm-remove="section.removeConfirm"
         >
           <template #row="{ item }">
             <InputText
@@ -236,9 +237,6 @@ const IO_TYPES = [
   { key: 'number', value: 'Number' },
   { key: 'boolean', value: 'Boolean' },
   { key: 'dateTime', value: 'DateTime' },
-  { key: 'id', value: 'ID' },
-  { key: 'handle', value: 'Handle' },
-  { key: 'record', value: 'ComposeRecord' },
   { key: 'any', value: 'Any' },
 ]
 
@@ -314,6 +312,7 @@ export default {
           description: this.$t('configurator.io.inputs.description'),
           addLabel: this.$t('configurator.io.inputs.addField'),
           emptyMessage: this.$t('configurator.io.inputs.empty'),
+          removeConfirm: this.$t('configurator.io.inputs.removeConfirm'),
         },
         {
           key: 'output',
@@ -321,6 +320,7 @@ export default {
           description: this.$t('configurator.io.outputs.description'),
           addLabel: this.$t('configurator.io.outputs.addField'),
           emptyMessage: this.$t('configurator.io.outputs.empty'),
+          removeConfirm: this.$t('configurator.io.outputs.removeConfirm'),
         },
       ]
     },

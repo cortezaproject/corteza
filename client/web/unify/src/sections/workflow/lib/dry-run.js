@@ -1,146 +1,186 @@
 import { automation } from '@planetcrust/human-js'
 
-export async function encodeInput (initialScope, ComposeAPI, SystemAPI) {
-  const ev = { args: {} }
+// Every scope property the dry-run form knows how to render and resolve.
+// `widget` picks the input component in DryRunField; `deps` names sibling
+// scope fields whose picked IDs are needed to render (cascade) and resolve
+// this one; `resolve` fetches the full object injected into the scope.
+// Scope properties without a definition have no sensible form input — they
+// are hidden and auto-initialized as empty variables at encode time.
+const SCOPE_DEFS = {
+  namespace: {
+    widget: 'namespace',
+    resolve: ({ value }, deps, { ComposeAPI }) =>
+      ComposeAPI.namespaceRead({ namespaceID: value })
+        .then(ns => ({ ...ns, resourceType: 'compose:namespace' })),
+  },
+  module: {
+    widget: 'module',
+    deps: ['namespace'],
+    resolve: ({ value }, deps, { ComposeAPI }) =>
+      deps.namespace &&
+      ComposeAPI.moduleRead({ namespaceID: deps.namespace, moduleID: value })
+        .then(m => ({ ...m, resourceType: 'compose:module' })),
+  },
+  page: {
+    widget: 'text',
+    idInput: true,
+    deps: ['namespace'],
+    descriptionKey: 'editor.required-namespace',
+    resolve: ({ value }, deps, { ComposeAPI }) =>
+      deps.namespace &&
+      ComposeAPI.pageRead({ namespaceID: deps.namespace, pageID: value })
+        .then(p => ({ ...p })),
+  },
+  record: {
+    widget: 'record',
+    deps: ['namespace', 'module'],
+    resolve: ({ value }, deps, { ComposeAPI }) =>
+      deps.namespace && deps.module &&
+      ComposeAPI.recordRead({ namespaceID: deps.namespace, moduleID: deps.module, recordID: value })
+        .then(r => ({ ...r, resourceType: 'compose:record' })),
+  },
+  user: {
+    widget: 'user',
+    resolve: ({ value }, deps, { SystemAPI }) =>
+      SystemAPI.userRead({ userID: value })
+        .then(u => ({ ...u, resourceType: 'User' })),
+  },
+  role: {
+    widget: 'role',
+    resolve: ({ value }, deps, { SystemAPI }) =>
+      SystemAPI.roleRead({ roleID: value })
+        .then(r => ({ ...r, resourceType: 'Role' })),
+  },
+  application: {
+    widget: 'text',
+    idInput: true,
+    resolve: ({ value }, deps, { SystemAPI }) =>
+      SystemAPI.applicationRead({ applicationID: value })
+        .then(a => ({ ...a })),
+  },
+}
 
-  // Types that can and must be fetched
-  const {
-    namespace,
-    oldNamespace,
-    module,
-    oldModule,
-    page,
-    oldPage,
-    record,
-    oldRecord,
-    user,
-    oldUser,
-    role,
-    oldRole,
-    application,
-    oldApplication,
-  } = initialScope
+// old* properties (oldRecord, oldNamespace, ...) share the definition of
+// their base property; their deps still point at the current (non-old)
+// namespace/module fields, matching how the scope is resolved server-side.
+function baseName (name) {
+  return name.replace(/^old(.)/, (_, c) => c.toLowerCase())
+}
 
-  if (namespace && namespace.value) {
-    await ComposeAPI.namespaceList({ slug: namespace.value })
-      .then(({ set = [] }) => {
-        const [ns] = set
-        if (ns) {
-          ev.args.namespace = { ...ns, resourceType: 'compose:namespace' }
-        }
-      })
-      .catch(() => {})
-  }
+function scopeDef (name) {
+  return SCOPE_DEFS[name] || SCOPE_DEFS[baseName(name)]
+}
 
-  if (oldNamespace && oldNamespace.value) {
-    await ComposeAPI.namespaceList({ slug: oldNamespace.value })
-      .then(({ set = [] }) => {
-        const [ns] = set
-        if (ns) {
-          ev.args.oldNamespace = { ...ns, resourceType: 'compose:namespace' }
-        }
-      })
-      .catch(() => {})
-  }
+// Event types list properties leaf-first (record, module, namespace); the
+// form wants dependencies first (namespace, module, record), old* variants
+// right after their base property
+const SCOPE_ORDER = Object.keys(SCOPE_DEFS)
 
-  if (module && module.value && ev.args.namespace) {
-    await ComposeAPI.moduleList({ namespaceID: ev.args.namespace.namespaceID, handle: module.value })
-      .then(({ set = [] }) => {
-        const [m] = set
-        if (m) {
-          ev.args.module = { ...m, resourceType: 'compose:module' }
-        }
-      })
-      .catch(() => {})
-  }
+function scopeOrder (name) {
+  const base = SCOPE_ORDER.indexOf(baseName(name))
+  if (base < 0) return SCOPE_ORDER.length * 2
+  return base * 2 + (name === baseName(name) ? 0 : 1)
+}
 
-  if (oldModule && oldModule.value && ev.args.namespace) {
-    await ComposeAPI.moduleList({ namespaceID: ev.args.namespace.namespaceID, handle: oldModule.value })
-      .then(({ set = [] }) => {
-        const [m] = set
-        if (m) {
-          ev.args.oldModule = { ...m, resourceType: 'compose:module' }
-        }
-      })
-      .catch(() => {})
-  }
+// Build form field descriptors for the trigger's scope properties.
+// `previous` (name → field) keeps already-entered values when re-opening.
+export function buildScopeFields (properties = [], t, previous = {}) {
+  return [...properties].sort((a, b) => scopeOrder(a.name) - scopeOrder(b.name)).map(({ name }) => {
+    const def = scopeDef(name) || {}
 
-  if (page && page.value && ev.args.namespace) {
-    await ComposeAPI.pageRead({ pageID: page.value, namespaceID: ev.args.namespace.namespaceID })
-      .then(p => {
-        ev.args.page = { ...p }
-      })
-  }
-
-  if (oldPage && oldPage.value && ev.args.namespace) {
-    await ComposeAPI.pageRead({ pageID: page.value, namespaceID: ev.args.namespace.namespaceID })
-      .then(p => {
-        ev.args.oldPage = { ...p }
-      })
-  }
-
-  if (record && record.value && ev.args.module && ev.args.namespace) {
-    await ComposeAPI.recordRead({ recordID: record.value, moduleID: ev.args.module.moduleID, namespaceID: ev.args.namespace.namespaceID })
-      .then(r => {
-        ev.args.record = { ...r, resourceType: 'compose:record' }
-      })
-  }
-
-  if (oldRecord && oldRecord.value && ev.args.module && ev.args.namespace) {
-    await ComposeAPI.recordRead({ recordID: oldRecord.value, moduleID: ev.args.module.moduleID, namespaceID: ev.args.namespace.namespaceID })
-      .then(r => {
-        ev.args.oldRecord = { ...r, resourceType: 'compose:record' }
-      })
-  }
-
-  if (user && user.value) {
-    await SystemAPI.userRead({ userID: user.value })
-      .then(u => {
-        ev.args.user = { ...u, resourceType: 'User' }
-      })
-  }
-
-  if (oldUser && oldUser.value) {
-    await SystemAPI.oldUserRead({ userID: oldUser.value })
-      .then(u => {
-        ev.args.oldUser = { ...u, resourceType: 'User' }
-      })
-  }
-
-  if (role && role.value) {
-    await SystemAPI.roleRead({ roleID: role.value })
-      .then(r => {
-        ev.args.role = { ...r, resourceType: 'Role' }
-      })
-  }
-
-  if (oldRole && oldRole.value) {
-    await SystemAPI.roleRead({ roleID: oldRole.value })
-      .then(r => {
-        ev.args.oldRole = { ...r, resourceType: 'Role' }
-      })
-  }
-
-  if (application && application.value) {
-    await SystemAPI.applicationRead({ applicationID: application.value })
-      .then(a => {
-        ev.args.application = { ...a }
-      })
-  }
-
-  if (oldApplication && oldApplication.value) {
-    await SystemAPI.applicationRead({ applicationID: oldApplication.value })
-      .then(a => {
-        ev.args.oldApplication = { ...a }
-      })
-  }
-
-  // Add rest to args
-  Object.keys(initialScope).forEach(key => {
-    if (!ev.args[key]) {
-      ev.args[key] = {}
+    return {
+      name,
+      section: 'scope',
+      label: `${name}${def.idInput ? t('editor.id-parenthesis') : ''}`,
+      description: def.descriptionKey ? t(def.descriptionKey) : '',
+      widget: def.widget,
+      deps: def.deps,
+      value: (previous[name] || {}).value,
     }
   })
+}
 
-  return automation.Encode(ev.args)
+// Named-input types (workflow.meta.input) → form widget
+const INPUT_WIDGETS = {
+  Boolean: 'boolean',
+  DateTime: 'datetime',
+  Number: 'number',
+}
+
+// Build form field descriptors for the workflow's declared named inputs.
+// `previous` (name → field) keeps already-entered values when re-opening,
+// unless the input's declared type changed in the meantime.
+export function buildInputFields (defs = [], previous = {}) {
+  return defs.map(def => {
+    const type = (def.types || [])[0] || 'String'
+    const prev = (previous[def.name] || {}).type === type ? previous[def.name] : {}
+    return {
+      name: def.name,
+      section: 'input',
+      label: def.label || def.name,
+      type,
+      widget: INPUT_WIDGETS[type] || 'text',
+      required: !!def.required,
+      value: prev.value ?? (type === 'Boolean' ? false : undefined),
+    }
+  })
+}
+
+// Cast a filled-in named input to a typed expr value based on its declared type
+function typedFromInput ({ type, value }) {
+  // Boolean always resolves — false is a valid value to inject
+  if (type === 'Boolean') {
+    return { '@type': 'Boolean', '@value': value === true || value === 'true' }
+  }
+
+  if (value === '' || value === null || value === undefined) return undefined
+
+  switch (type) {
+    case 'Number': {
+      const n = Number(value)
+      if (Number.isNaN(n)) return { '@type': 'String', '@value': value }
+      return { '@type': 'Float', '@value': n }
+    }
+    case 'DateTime':
+      return { '@type': 'DateTime', '@value': value }
+    case 'Any':
+      return { '@type': 'Any', '@value': value }
+    // String, plus inputs declared before their type was retired
+    default:
+      return { '@type': 'String', '@value': String(value) }
+  }
+}
+
+// Values of a field's dependency siblings, keyed by dependency name
+function depValues (field, fields) {
+  return (field.deps || []).reduce((deps, name) => {
+    deps[name] = (fields.find(f => f.name === name) || {}).value
+    return deps
+  }, {})
+}
+
+// Resolve all filled-in fields into the Vars map sent to workflowExec.
+// Scope fields fetch their full objects (unresolvable ones become empty
+// variables), named inputs are cast to typed expr values and merged on top.
+export async function encodeFields (fields, { ComposeAPI, SystemAPI }) {
+  const args = {}
+
+  for (const f of fields.filter(f => f.section === 'scope')) {
+    const def = scopeDef(f.name)
+    if (f.value && def) {
+      // Unmet dependencies resolve to undefined; a failed fetch of a provided
+      // value propagates so the dialog can surface it
+      args[f.name] = await def.resolve(f, depValues(f, fields), { ComposeAPI, SystemAPI })
+    }
+    if (!args[f.name]) args[f.name] = {}
+  }
+
+  const vars = automation.Encode(args)
+
+  for (const f of fields.filter(f => f.section === 'input')) {
+    const typed = typedFromInput(f)
+    if (typed !== undefined) vars[f.name] = typed
+  }
+
+  return vars
 }

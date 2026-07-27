@@ -9,22 +9,21 @@ detected-changes: 'Changes detected '
 detected-issues: Issues detected
 disabled: Disabled
 editor: Editor
-handle: (Handle)
 help: Help
 id: 'ID:'
 id-parenthesis: ' (ID)'
 initial-scope: Initial scope
-input-ids-or-handles: The initial scope gets injected into the workflow at execution. To load available variables, input the related IDs/Handles below
+inputs: Inputs
 issues: Issues
 load-and-configure: Load and Configure
 modify-initial-scope-if-no-variables-are-loaded: If you do not wish to load any variables, click "Configure" to modify the initial scope before running workflow
 module: Module
 namespace: Namespace
 open-webapp-on-prompt-use: 'WARNING: If prompts are used in the workflow, make sure that the related webapp is also opened. Otherwise workflow will timeout'
+provide-initial-scope: The initial scope gets injected into the workflow at execution. To load available variables, provide them below
 provide-workflow-inputs: Provide values for the workflow inputs
 record: Record
 required-namespace: Namespace required
-required-namespace-and-module: Namespace and Module required
 reset: Reset
 run-as: Run as
 run-workflow: Run Workflow

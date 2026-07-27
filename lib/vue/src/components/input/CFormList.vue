@@ -52,8 +52,16 @@
           <i v-if="draggable" class="pi pi-bars text-muted-color cursor-grab text-center" />
           <slot name="row" :item="item" :index="index" />
           <div v-if="!hideRemove" class="w-10 flex justify-end">
+            <CInputDelete
+              v-if="items.length > minItems && confirmRemove"
+              icon="pi pi-trash"
+              text
+              size="small"
+              :message="confirmRemove"
+              @confirm="remove(index)"
+            />
             <Button
-              v-if="items.length > minItems"
+              v-else-if="items.length > minItems"
               icon="pi pi-trash"
               severity="danger"
               text
@@ -77,6 +85,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import CInputDelete from './CInputDelete.vue'
 
 const items = defineModel({ type: Array, required: true })
 
@@ -86,6 +95,8 @@ const props = defineProps({
   minItems: { type: Number, default: 0 },
   hideRemove: { type: Boolean, default: false },
   draggable: { type: Boolean, default: false },
+  // When set, removing a row asks for confirmation with this message
+  confirmRemove: { type: String, default: '' },
 })
 
 const emit = defineEmits(['change', 'reorder'])
