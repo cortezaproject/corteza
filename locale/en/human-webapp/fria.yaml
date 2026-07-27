@@ -1,0 +1,273 @@
+# Labels for the FRIA (Fundamental Rights Impact Assessment, EU AI Act
+# Art. 27) taxonomies defined in client/web/unify/src/sections/project/
+# config/friaTaxonomies.js. That file is the source of truth for which
+# entries exist and their stable `key`s; this file only supplies the
+# strings each entry's labelKey/descriptionKey/sublabelKey points at — see
+# its header comment for the full accuracy notes (what was corrected against
+# the actual EU Charter of Fundamental Rights, and why).
+#
+# This is a SEPARATE file from project.yaml on purpose: every top-level
+# *.yaml file in this locale/en/human-webapp/ directory becomes its own
+# i18n namespace, keyed by filename (see server/pkg/locale/load.go's
+# loadTranslations — appDir "human-webapp", namespace = file basename minus
+# extension), and every file in this directory is picked up automatically
+# via `cp -r locale/en ./src` + `go:embed src/*` in server/pkg/locale — no
+# registration list to update. block.yaml -> block.*, chart.yaml -> chart.*,
+# project.yaml -> project.*, and this file -> fria.* the same way. Keeping
+# FRIA labels in their own file avoids touching project.yaml, which another
+# task owns concurrently.
+
+rightsChapters:
+  dignity: Dignity
+  freedoms: Freedoms
+  equality: Equality
+  solidarity: Solidarity
+  citizens: Citizens' Rights
+  justice: Justice
+  dataPrivacy: Data & Privacy
+
+rights:
+  humanDignity:
+    label: Human Dignity
+    description: AI systems that demean or treat persons as mere data objects — e.g. dehumanising scoring systems that reduce individuals to a risk number with no possibility of human consideration.
+  rightToLife:
+    label: Right to Life
+    description: AI systems in critical infrastructure, autonomous vehicles, or medical diagnosis that may directly or indirectly endanger life through failure, error, or misuse.
+  integrityOfThePerson:
+    label: Integrity of the Person
+    description: Biometric systems, emotion-recognition AI, or systems that infer physical or mental state without consent may interfere with bodily and mental integrity.
+  prohibitionTortureInhumanTreatment:
+    label: Prohibition of Torture & Inhuman Treatment
+    description: AI used in detention or border control that may expose persons to degrading treatment, or predictive systems that contribute to disproportionate sentences.
+  prohibitionSlaveryForcedLabour:
+    label: Prohibition of Slavery & Forced Labour
+    description: Algorithmic management systems that impose inhumane working conditions or remove worker agency to such a degree as to constitute forced labour by design.
+  rightToLibertySecurity:
+    label: Right to Liberty & Security
+    description: Predictive policing, risk-scoring for pre-trial detention, or border AI that contributes to unjustified detention or movement restrictions without adequate grounds or oversight.
+  respectPrivateFamilyLife:
+    label: Respect for Private & Family Life
+    description: Surveillance, tracking, or inference systems that intrude into personal communications, home life, or family relationships without legal basis or proportionality.
+  freedomThoughtConscienceReligion:
+    label: Freedom of Thought, Conscience & Religion
+    description: Profiling systems that infer or act on religious belief, political conviction, or conscience — including content moderation that disproportionately restricts certain worldviews.
+  freedomExpressionInformation:
+    label: Freedom of Expression & Information
+    description: Content recommendation algorithms, automated moderation, or disinformation detection tools that suppress legitimate speech, limit information access, or create filter bubbles at scale.
+  freedomAssemblyAssociation:
+    label: Freedom of Assembly & Association
+    description: Social network analysis, protest monitoring, or political risk-scoring tools that identify, penalise, or chill participation in associations, unions, or political movements.
+  rightToEducation:
+    label: Right to Education
+    description: AI systems that allocate educational resources or predict academic potential in ways that entrench inequalities or limit access based on demographic proxies. Especially relevant for children.
+  freedomChooseOccupation:
+    label: Freedom to Choose an Occupation
+    description: Recruitment AI, automated CV screening, or workforce management tools that restrict occupational access or create unjustified barriers to employment or career mobility.
+  freedomConductBusiness:
+    label: Freedom to Conduct a Business
+    description: AI-driven market access decisions, algorithmic platform rules, or automated regulatory enforcement that unfairly restricts or terminates a business's ability to operate.
+  rightToProperty:
+    label: Right to Property
+    description: Credit scoring, automated property valuation, or insurance pricing AI that unjustifiably restricts access to financial products, property, or wealth accumulation.
+  rightToAsylum:
+    label: Right to Asylum
+    description: Automated asylum processing, risk-scoring of applicants, or border AI that may return persons to unsafe countries or deny protection to those entitled to it.
+  equalityBeforeTheLaw:
+    label: Equality Before the Law
+    description: AI systems that apply different rules, thresholds, or procedures to individuals in relevantly similar situations without objective justification — the foundational equality guarantee underlying every more specific right in this chapter, including cases with no link to a protected characteristic.
+  nonDiscrimination:
+    label: Non-Discrimination
+    description: The most directly relevant right for most AI systems. Prohibited grounds include sex, race, colour, ethnic or social origin, genetic features, language, religion, political opinion, disability, age, or sexual orientation.
+  culturalReligiousLinguisticDiversity:
+    label: Cultural, Religious & Linguistic Diversity
+    description: AI systems trained primarily on dominant-language or culturally specific data may systematically disadvantage minorities through performance disparities or cultural erasure.
+  equalityWomenMen:
+    label: Equality between Women and Men
+    description: Recruitment and promotion AI that perpetuates historical gender imbalances in hiring, salary recommendations, or performance evaluation due to biased training data.
+  rightsOfTheChild:
+    label: Rights of the Child
+    description: Systems making decisions about minors — educational AI, social care tools, online platforms — must prioritise the best interests of the child, their right to be heard, and protection from exploitation or profiling.
+  rightsOfTheElderly:
+    label: Rights of the Elderly
+    description: AI systems in care, healthcare allocation, or social benefit systems must not discriminate by age or exclude older persons from services they are entitled to.
+  integrationPersonsDisabilities:
+    label: Integration of Persons with Disabilities
+    description: AI systems that create new barriers to participation for disabled persons, or that are not designed with accessibility and reasonable accommodation as core requirements.
+  workersRightInformation:
+    label: Workers' Rights & Right to Information
+    description: Automated workforce management, AI-driven performance monitoring, or algorithmic scheduling that undermines workers' right to information, consultation, and collective bargaining.
+  collectiveBargainingAction:
+    label: Right of Collective Bargaining & Action
+    description: Platform AI or algorithmic management that undermines collective worker power, identifies union organisers, or makes collective action structurally impossible.
+  fairJustWorkingConditions:
+    label: Fair & Just Working Conditions
+    description: Algorithmic management platforms that impose unsafe working conditions, unrealistic pace targets, or deny rest periods through automated monitoring and discipline.
+  socialSecurityAssistance:
+    label: Social Security & Social Assistance
+    description: Automated benefits eligibility systems, fraud detection AI, or social services tools that wrongly deny or delay entitlements, disproportionately affecting vulnerable groups.
+  rightToHealthcare:
+    label: Right to Healthcare
+    description: Medical AI that produces differential diagnostic accuracy across demographic groups, or that allocates healthcare resources in ways that create or perpetuate health inequalities.
+  environmentalProtection:
+    label: Environmental Protection
+    description: AI systems optimising for narrow economic objectives while externalising environmental costs, or facilitating resource extraction with disproportionate impact on specific communities.
+  consumerProtection:
+    label: Consumer Protection
+    description: Personalised pricing, manipulative recommendation engines, or AI-generated content that exploits consumers through information asymmetry or dark patterns.
+  rightToVoteStandElection:
+    label: Right to Vote & Stand for Election
+    description: Micro-targeting, voter manipulation, disinformation amplification, or electoral AI that interferes with the integrity of democratic processes or dissuades participation.
+  rightToGoodAdministration:
+    label: Right to Good Administration
+    description: Automated administrative decisions that lack impartiality, fail to give reasons, deny the right to be heard, or are issued without any accessible means of challenge — e.g. fully automated public service decisions.
+  accessToDocumentsTransparency:
+    label: Access to Documents & Transparency
+    description: AI systems whose logic, training data, or decision criteria are opaque and cannot be accessed or audited by affected individuals or oversight authorities, undermining democratic accountability.
+  rightOfPetitionOmbudsman:
+    label: Right of Petition & Access to the Ombudsman
+    description: AI-mediated gatekeeping of public services that prevents individuals from reaching human officials, filing complaints, or petitioning public bodies for redress.
+  rightToEffectiveRemedyFairTrial:
+    label: Right to an Effective Remedy & Fair Trial
+    description: The right most directly implicated by opaque AI decisions. Individuals must be able to contest automated decisions affecting their rights. Systems with no meaningful explanation or appeal mechanism violate this right.
+  presumptionInnocenceRightDefence:
+    label: Presumption of Innocence & Right of Defence
+    description: Predictive policing, criminal risk-scoring, or pre-crime profiling that treats statistical probability of offending as a ground for action, effectively punishing persons for crimes not yet committed.
+  legalityProportionalityPenalties:
+    label: Legality & Proportionality of Penalties
+    description: AI tools in sentencing or parole that result in disproportionate punishment, or that apply unclear criteria enabling arbitrary differences in outcomes for similar cases.
+  neBisInIdem:
+    label: Right Not to Be Tried Twice (Ne Bis in Idem)
+    description: Automated enforcement systems that apply multiple penalties for the same conduct — particularly relevant in multi-agency AI systems sharing data for compliance or enforcement purposes.
+  protectionOfPersonalData:
+    label: Protection of Personal Data
+    description: Processing personal data beyond original purpose, inadequate security, or use of sensitive categories (health, biometrics, race, religion, political opinion) without legal basis, consent, or necessity.
+  rightNotSubjectAutomatedDecisions:
+    label: Right Not to Be Subject to Automated Decisions
+    description: Fully automated decisions with significant effects on individuals — loan refusal, job rejection, benefits denial — must include meaningful human review and the right to contest the outcome.
+  rightToExplanation:
+    label: Right to Explanation
+    description: Individuals are entitled to meaningful information about the logic of AI decisions affecting them — including main factors, their weights, and how to challenge the outcome. Opaque black-box outputs violate this right.
+  rightsAccessRectificationErasure:
+    label: Rights of Access, Rectification & Erasure
+    description: AI systems built on data that individuals cannot access, correct, or delete undermine the ability of affected persons to identify errors, challenge decisions, or exercise control over their digital profile.
+
+vulnerableGroups:
+  childrenMinors:
+    label: Children & Minors
+    sublabel: Under 18 · UNCRC · Charter Art. 24 · heightened protection
+  olderAdultsElderly:
+    label: Older Adults / Elderly
+    sublabel: Increased dependency; potential digital literacy gaps
+  personsWithDisabilities:
+    label: Persons with Disabilities
+    sublabel: Physical, sensory, cognitive, psychosocial · CRPD
+  ethnicRacialMinorities:
+    label: Ethnic & Racial Minorities
+    sublabel: Including Roma, travellers, and racialised communities
+  religiousMinorities:
+    label: Religious Minorities
+    sublabel: Faith communities at risk of profiling or discrimination
+  womenGenderMinorities:
+    label: Women & Gender Minorities
+    sublabel: Including non-binary and gender-nonconforming persons
+  lgbtqiaPersons:
+    label: LGBTQIA+ Persons
+    sublabel: Sexual orientation & gender identity · outing/profiling risk
+  migrantsAsylumSeekers:
+    label: Migrants & Asylum Seekers
+    sublabel: Including refugees · language and legal status risks
+  lowIncomeSocioeconomicDisadvantage:
+    label: Low-Income / Socioeconomic Disadvantage
+    sublabel: Poverty, unemployment, precarious housing
+  neurodivergentPersons:
+    label: Neurodivergent Persons
+    sublabel: Autism, ADHD, dyslexia · interaction effects with AI
+  languageMinorities:
+    label: Language Minorities
+    sublabel: Non-dominant languages · NLP performance gaps
+  personsWithMentalHealthConditions:
+    label: Persons with Mental Health Conditions
+    sublabel: Including those under psychiatric care or in crisis
+  unhousedHomelessPersons:
+    label: Unhoused / Homeless Persons
+    sublabel: Address-dependent systems structurally exclude this group
+  digitallyExcludedLowLiteracy:
+    label: Digitally Excluded / Low Digital Literacy
+    sublabel: Unable to exercise rights, seek remedy, or understand AI decisions
+  prisonersPersonsInDetention:
+    label: Prisoners / Persons in Detention
+    sublabel: Limited agency · high-stakes decisions about liberty
+  victimsDomesticGenderBasedViolence:
+    label: Victims of Domestic / Gender-Based Violence
+    sublabel: AI may be weaponised for stalking, surveillance, or control
+
+aiHarmVectors:
+  scaleAutomation:
+    label: Scale & Automation
+    description: The AI processes thousands of cases per second, meaning a single bias or error is replicated at a scale no human process could match — transforming an edge case into systemic injustice.
+  opacityInexplicability:
+    label: Opacity / Inexplicability
+    description: The model's decision logic cannot be audited, explained to affected parties, or meaningfully contested — making effective remedy practically impossible even when a legal right exists.
+  historicalBiasEncoding:
+    label: Historical Bias Encoding
+    description: The AI learns from historical data that reflects past discrimination, converting past injustice into future predictions and conferring an air of objectivity on structural inequality.
+  misplacedEpistemicAuthority:
+    label: Misplaced Epistemic Authority
+    description: AI outputs are treated as more objective than human judgment. Decision-makers defer to AI even when it is wrong, silencing contextual knowledge and professional discretion.
+  proxyVariableUse:
+    label: Proxy Variable Use
+    description: The model uses seemingly neutral features (postcode, device type, school name) correlated with protected characteristics, producing discriminatory outcomes without explicit protected-attribute inputs.
+  feedbackLoopSelfFulfillingProphecy:
+    label: Feedback Loop / Self-Fulfilling Prophecy
+    description: The AI's outputs shape future training data — e.g. predicting high crime in an area leads to more policing, generating more crime data, which reinforces the prediction cycle.
+  automationBiasInOversight:
+    label: Automation Bias in Oversight
+    description: Human reviewers nominally present in the loop systematically fail to override AI outputs — due to time pressure, interface design, or perceived AI authority — rendering oversight a rubber stamp.
+  dataAggregationReIdentification:
+    label: Data Aggregation / Re-identification
+    description: Combining individually innocuous datasets enables inference of sensitive attributes (health, sexuality, political beliefs) that were never disclosed, enabling profiling beyond the original consent.
+  systemicEcosystemEffects:
+    label: Systemic / Ecosystem Effects
+    description: Many organisations deploying the same AI system compound individual-level harms into sector-wide or societal effects that no single deployer's impact assessment would capture.
+  lockInDependency:
+    label: Lock-in & Dependency
+    description: Individuals become dependent on AI-mediated access to services or benefits, removing the ability to opt out or find alternative routes when the AI fails or discriminates.
+
+triggerConditions:
+  dataQualityIssue:
+    label: Data Quality Issue
+    description: Training or input data is unrepresentative, outdated, or contains historical biases that skew outputs.
+  modelDrift:
+    label: Model Drift
+    description: The world changes but the model does not, causing decisions based on stale statistical patterns.
+  misuseRepurposing:
+    label: Misuse / Repurposing
+    description: The system is used outside its intended context or for a purpose it was not designed for.
+  automationBias:
+    label: Automation Bias
+    description: Humans over-rely on AI outputs, reducing or eliminating effective oversight of consequential decisions.
+  edgeCaseOodInput:
+    label: Edge Case / OOD Input
+    description: An input falls outside the training distribution, causing unpredictable or erroneous model behaviour.
+  adversarialInput:
+    label: Adversarial Input
+    description: Deliberate manipulation of inputs by bad actors to cause the system to fail or produce harmful outputs.
+  integrationFailure:
+    label: Integration Failure
+    description: Errors arise at the boundary between the AI system and the broader process or data pipelines it connects to.
+  bypassedSafeguard:
+    label: Bypassed Safeguard
+    description: A protection mechanism is circumvented, disabled, or rendered ineffective in practice.
+
+impactedParties:
+  jobSeekersApplicants: Job Seekers / Applicants
+  employeesWorkers: Employees / Workers
+  customersServiceUsers: Customers / Service Users
+  citizensGeneralPublic: Citizens / General Public
+  patientsHealthcareRecipients: Patients / Healthcare Recipients
+  studentsLearners: Students / Learners
+  tenantsHousingApplicants: Tenants / Housing Applicants
+  suspectsAccusedPersons: Suspects / Accused Persons
+  societyLabourMarket: Society / Labour Market
+  bystandersThirdParties: Bystanders / Third Parties
+  competitorsOtherBusinesses: Competitors / Other Businesses

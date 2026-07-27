@@ -47,7 +47,13 @@ persist (statuses, AI Act options) stay literal.
 - `categories.js` — per-category dashboard config: columns, charts, KPIs,
   badges, trend grouping; reuses eventForm's schemas and visual identity.
 - `eventForm.js` — New Event form schemas per category + EVENT_STATUS;
-  consumed by the GovernanceForm renderer.
+  consumed by the GovernanceForm renderer. All five categories share one
+  four-value status set (review included) so the M&M board's columns hold
+  every item type.
+- `friaTaxonomies.js` — the FRIA regulatory taxonomies (Charter rights by
+  chapter, vulnerable groups, AI harm vectors, trigger conditions, impacted
+  parties). Entry `key`s are persisted the moment a scenario stores a
+  selection — treat them as an interface, never rename to relabel.
 - `eventKinds.js` — action-log resource type → project kind mapping so audit
   events wear their resource's icon/color; unmapped types fall back neutral.
 - `chartColors.js` — validated chart palettes (status/severity/risk/…) with
