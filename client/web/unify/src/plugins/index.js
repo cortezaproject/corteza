@@ -23,6 +23,7 @@ import DialogService from 'primevue/dialogservice'
 import Ripple from 'primevue/ripple'
 import ToastService from 'primevue/toastservice'
 import router from '../router'
+import TrimOnBlurPlugin from './trimOnBlur'
 
 /**
  * Sets up PrimeVue with theming and services
@@ -61,6 +62,9 @@ function setupPrimeVue(app, theme) {
  */
 export function setupAndAuthenticate(app) {
   app.use(AuthPlugin, { app: import.meta.env.VITE_APP_ID, rootApp: true })
+
+  // Global trim-on-blur for text inputs/textareas across the app.
+  app.use(TrimOnBlurPlugin)
 
   const $Auth = app.config.globalProperties.$Auth
 
