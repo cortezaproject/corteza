@@ -93,7 +93,7 @@ const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 
@@ -180,18 +180,18 @@ function initRecord() {
           newRec.setValue(field.name, source.values[field.name])
         }
         // Prefill ownedBy with current user
-        newRec.ownedBy = $auth?.user?.userID || undefined
+        newRec.ownedBy = $Auth?.user?.userID || undefined
         prefillRefField(newRec)
         record.value = newRec
       })
       .catch(e => {
         console.error('Failed to load source record for clone:', e)
-        const newRec = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+        const newRec = new compose.Record(recordModule.value, { ownedBy: $Auth?.user?.userID })
         prefillRefField(newRec)
         record.value = newRec
       })
   } else {
-    const newRec = new compose.Record(recordModule.value, { ownedBy: $auth?.user?.userID })
+    const newRec = new compose.Record(recordModule.value, { ownedBy: $Auth?.user?.userID })
     prefillRefField(newRec)
     record.value = newRec
   }

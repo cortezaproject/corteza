@@ -28,7 +28,7 @@ const props = defineProps({
   record: { type: Object, default: undefined },
 })
 
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const iframeRef = ref(null)
 const refreshKey = ref(0)
 
@@ -54,7 +54,7 @@ const src = computed(() => {
   try {
     // Interpolate variables like ${record.values.X}, ${userID}, etc.
     const record = props.record
-    const user = $auth?.user || {}
+    const user = $Auth?.user || {}
 
     const interpolatedURL = evaluatePrefilter(url, {
       record,

@@ -77,7 +77,7 @@ const props = defineProps({
   record: { type: Object, default: undefined },
 })
 
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 const router = useRouter()
 const route = useRoute()
@@ -127,7 +127,7 @@ async function pullRecords() {
 
     if (prefilter) {
       const record = props.record
-      const user = $auth?.user || {}
+      const user = $Auth?.user || {}
       filterParts.push(`(${evaluatePrefilter(prefilter, {
         record, user,
         recordID: record?.recordID || '0',

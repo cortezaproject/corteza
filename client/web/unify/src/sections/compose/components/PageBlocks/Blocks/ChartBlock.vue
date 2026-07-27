@@ -158,7 +158,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI')
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 const chartStore = useChartStore()
 
@@ -255,7 +255,7 @@ function reporter(r = {}) {
   // Evaluate prefilter with record context if available
   if (filter) {
     const record = props.record
-    const user = $auth?.user || {}
+    const user = $Auth?.user || {}
 
     // If filter uses ${record} or ${ownerID} and there is no record, return empty
     if (!record && (filter.includes('${record') || filter.includes('${ownerID}'))) {

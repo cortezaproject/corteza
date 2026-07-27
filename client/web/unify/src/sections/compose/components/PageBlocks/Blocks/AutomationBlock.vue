@@ -34,7 +34,7 @@ const props = defineProps({
 })
 
 const $toast = inject('$toast')
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $AutomationAPI = inject('$AutomationAPI', null)
 
 const processingIDs = ref([])
@@ -57,7 +57,7 @@ function mapVariant(variant) {
 function buttonLabel(label = '') {
   try {
     const record = props.record
-    const user = $auth?.user || {}
+    const user = $Auth?.user || {}
     return evaluatePrefilter(label, {
       record,
       user,

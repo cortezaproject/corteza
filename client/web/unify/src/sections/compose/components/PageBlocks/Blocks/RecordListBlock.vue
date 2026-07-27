@@ -639,7 +639,7 @@ const router = useRouter()
 const { confirmDelete } = useConfirmDelete()
 const { open: openPermissions } = usePermissions()
 const $ComposeAPI = inject('$ComposeAPI')
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 const $toast = inject('$toast')
 const moduleStore = useModuleStore()
@@ -1142,7 +1142,7 @@ function buildPrefilter() {
 
   if (prefilter) {
     const record = props.record
-    const user = $auth?.user || {}
+    const user = $Auth?.user || {}
     const pf = evaluatePrefilter(prefilter, {
       record,
       user,

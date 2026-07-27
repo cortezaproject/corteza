@@ -33,7 +33,7 @@ const props = defineProps({
 const emit = defineEmits(['refresh'])
 
 const $toast = inject('$toast', null)
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $AutomationAPI = inject('$AutomationAPI', null)
 
 const processingIDs = ref([])
@@ -51,7 +51,7 @@ const mapVariant = key => variantSeverityMap[key]
 function evaluatedLabel(btn) {
   try {
     const record = props.record
-    const user = $auth?.user || {}
+    const user = $Auth?.user || {}
     return evaluatePrefilter(btn.label || '', {
       record,
       user,

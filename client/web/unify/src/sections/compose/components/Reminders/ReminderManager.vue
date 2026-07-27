@@ -33,7 +33,7 @@ import ReminderList from './ReminderList.vue'
 const route = useRoute()
 const namespaceStore = useNamespaceStore()
 const store = useReminderStore()
-const $Auth = inject('$Auth', inject('$auth', {}))
+const $Auth = inject('$Auth', {})
 
 const currentNamespace = computed(() => {
   const slug = route.params.slug?.toString()

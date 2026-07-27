@@ -24,7 +24,7 @@ const props = defineProps({
   },
 })
 
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 
 const contentBody = computed(() => {
   const { body = '' } = props.block.options || {}
@@ -32,7 +32,7 @@ const contentBody = computed(() => {
 
   try {
     const record = props.record
-    const user = $auth?.user || {}
+    const user = $Auth?.user || {}
 
     return evaluatePrefilter(body, {
       record,

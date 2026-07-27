@@ -38,7 +38,7 @@ function reminderVersion (reminder) {
 
 export const useReminderStore = defineStore('compose-reminder', () => {
   const $SystemAPI = inject('$SystemAPI')
-  const $Auth = inject('$Auth', inject('$auth', {}))
+  const $Auth = inject('$Auth', {})
   const rightSidebarStore = useRightSidebarStore()
 
   const state = reactive({

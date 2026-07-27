@@ -5,7 +5,7 @@ import { computed, inject, ref } from 'vue'
 // Loaded once from the system API; `currentUserID` comes from the session.
 export const useProjectUsersStore = defineStore('project-users', () => {
   const $SystemAPI = inject('$SystemAPI')
-  const $Auth = inject('$Auth', inject('$auth', {}))
+  const $Auth = inject('$Auth', {})
 
   const users = ref([])
   const loaded = ref(false)

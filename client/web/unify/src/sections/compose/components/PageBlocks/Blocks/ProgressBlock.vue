@@ -31,7 +31,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI', null)
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 
 const loading = ref(false)
@@ -112,7 +112,7 @@ async function refresh() {
 
   try {
     const record = props.record
-    const user = $auth?.user || {}
+    const user = $Auth?.user || {}
 
     const additionalOptions = {
       value: {
