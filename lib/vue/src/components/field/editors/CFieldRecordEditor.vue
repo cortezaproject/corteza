@@ -38,6 +38,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { compose } from '@planetcrust/human-js'
 import { useModuleStore } from '../../../stores/useModuleStore'
 import { useRecordStore } from '../../../stores/useRecordStore'
 import CInputRecord from '../../input/CInputRecord.vue'
@@ -67,6 +68,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $namespace = inject('$namespace', null)
+const $recordContext = inject('$recordContext', null)
+const $Auth = inject('$Auth', null)
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 
@@ -112,9 +115,7 @@ function nestedRecordLabel(nestedID) {
 function resolveNestedLabels(records) {
   if (!nestedModuleID.value || !records.length) return
   const lf = props.field.options.labelField
-  const recordIDs = records
-    .map(r => r.values?.find?.(v => v.name === lf)?.value)
-    .filter(Boolean)
+  const recordIDs = records.map(r => r.values?.find?.(v => v.name === lf)?.value).filter(Boolean)
   if (!recordIDs.length) return
   recordStore.resolveRecordLabels({
     namespaceID: namespaceID.value,
@@ -137,10 +138,33 @@ function getOptionLabel(record) {
   return `Record ${record.recordID}`
 }
 
+// Interpolates ${record...}/${recordID}/${ownerID}/${userID} expressions in the
+// prefilter. Falls back to the raw prefilter on failure so existing (non-templated)
+// configurations can't start throwing.
+function resolvePrefilter() {
+  const prefilter = props.field.options?.prefilter
+  if (!prefilter) return ''
+
+  try {
+    const record = $recordContext?.value || null
+    const user = $Auth?.user || {}
+    return compose.interpolateTemplate(prefilter, {
+      record,
+      user,
+      recordID: record?.recordID || '0',
+      ownerID: record?.ownedBy || '0',
+      userID: user?.userID || '0',
+    })
+  } catch {
+    return prefilter
+  }
+}
+
 function buildFilter(searchQuery) {
   const parts = []
-  if (props.field.options?.prefilter) {
-    parts.push(`(${props.field.options.prefilter})`)
+  const prefilter = resolvePrefilter()
+  if (prefilter) {
+    parts.push(`(${prefilter})`)
   }
   const qf = props.field.options?.queryFields || []
   if (searchQuery && qf.length > 0) {

@@ -39,6 +39,7 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { compose } from '@planetcrust/human-js'
 import { useModuleStore } from '../../stores/useModuleStore'
 import { useRecordStore } from '../../stores/useRecordStore'
 
@@ -92,6 +93,11 @@ const emit = defineEmits(['update:modelValue'])
 
 const $ComposeAPI = inject('$ComposeAPI')
 const $namespace = inject('$namespace', null)
+// Record context is only present when rendered under a compose record page/form (e.g. via
+// RecordBlock -> CFieldEditor -> CFieldRecordEditor). Elsewhere (e.g. workflow prompt inputs)
+// this stays null and prefilters that don't reference record/recordID/ownerID are unaffected.
+const $recordContext = inject('$recordContext', null)
+const $Auth = inject('$Auth', null)
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 
@@ -173,6 +179,27 @@ function getOptionLabel(record) {
   return `Record ${record.recordID}`
 }
 
+// Interpolates ${record...}/${recordID}/${ownerID}/${userID} expressions in the
+// prefilter. Falls back to the raw prefilter on failure so existing (non-templated)
+// configurations can't start throwing.
+function resolvePrefilter() {
+  if (!props.prefilter) return ''
+
+  try {
+    const record = $recordContext?.value || null
+    const user = $Auth?.user || {}
+    return compose.interpolateTemplate(props.prefilter, {
+      record,
+      user,
+      recordID: record?.recordID || '0',
+      ownerID: record?.ownedBy || '0',
+      userID: user?.userID || '0',
+    })
+  } catch {
+    return props.prefilter
+  }
+}
+
 /**
  * Build a CQL filter string from search query and queryFields
  */
@@ -180,8 +207,9 @@ function buildQueryFilter(searchQuery) {
   const parts = []
 
   // Add prefilter if provided
-  if (props.prefilter) {
-    parts.push(`(${props.prefilter})`)
+  const prefilter = resolvePrefilter()
+  if (prefilter) {
+    parts.push(`(${prefilter})`)
   }
 
   // Add search across queryFields
@@ -235,7 +263,7 @@ async function fetchRecords(searchQuery = '', pageCursor = '') {
     await resolveNestedLabels(records)
 
     options.value = records.map(r => ({ ...r, label: getOptionLabel(r) }))
-    
+
     nextPageCursor.value = result.filter?.nextPage || ''
     prevPageCursor.value = result.filter?.prevPage || ''
     hasNextPage.value = !!nextPageCursor.value
@@ -302,7 +330,7 @@ async function loadRecordById(recordID) {
       moduleID: props.moduleID,
       recordID,
     })
-    
+
     if (record) {
       await resolveNestedLabels([record])
       record.label = getOptionLabel(record)
@@ -360,4 +388,3 @@ onBeforeUnmount(() => {
   }
 })
 </script>
-
