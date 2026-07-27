@@ -880,5 +880,42 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 		}
 	}
 
+	ii = append(ii, verifyStepScopeTargets(s)...)
+
+	return ii
+}
+
+// verifyStepScopeTargets flags scope-variable targets that shadow a built-in
+// expression function. Such a variable stores fine, but any expression that
+// READS it resolves to the function instead of the variable, silently yielding
+// the function's zero value (e.g. a variable named "sum" always reads as 0).
+//
+// Only targets that become scope variables are checked: expressions-step
+// arguments, and any step's results. Function/prompt/iterator/delay argument
+// targets are parameter names (e.g. "message", "namespace"), not scope
+// variables, so they are intentionally excluded.
+func verifyStepScopeTargets(s *types.WorkflowStep) types.WorkflowIssueSet {
+	var ii types.WorkflowIssueSet
+
+	var scopeTargets types.ExprSet
+	if s.Kind == types.WorkflowStepKindExpressions {
+		scopeTargets = append(scopeTargets, s.Arguments...)
+	}
+	scopeTargets = append(scopeTargets, s.Results...)
+
+	for _, e := range scopeTargets {
+		if e == nil || e.Target == "" {
+			continue
+		}
+
+		name := expr.PathBase(e.Target)
+		if expr.IsBuiltInFunction(name) {
+			ii = ii.Append(fmt.Errorf(
+				"variable %q shadows a built-in function; expressions that read it resolve to the function, not the variable — rename the variable",
+				name,
+			), nil)
+		}
+	}
+
 	return ii
 }
