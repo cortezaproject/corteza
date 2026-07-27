@@ -77,9 +77,9 @@ const router = useRouter()
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 const $SystemAPI = inject('$SystemAPI', null)
-const $auth = inject('$auth', null)
+const $Auth = inject('$Auth', null)
 
-const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $auth)
+const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $Auth)
 const { showTranslatorButton } = useResourceTranslations()
 
 const loading = ref(false)
@@ -134,7 +134,15 @@ async function loadPage() {
     if (page.value) {
       const layouts = pageLayoutStore.getByPageID(pageID)
       const vars = buildExpressionVariables()
-      layout.value = await determineLayout(layouts, vars)
+
+      // An explicitly requested layout (?layoutID=, e.g. from a navigation
+      // block) wins over automatic selection.
+      const requested = route.query.layoutID
+      layout.value = await determineLayout(
+        layouts,
+        vars,
+        typeof requested === 'string' ? requested : undefined,
+      )
 
       // Evaluate block visibility after layout is resolved
       if (page.value.blocks?.length) {

@@ -427,94 +427,97 @@
             v-model="configLayout.config.actions"
             draggable
             :empty-message="$t('page.page-layout.recordToolbar.actions.empty')"
-          :columns="[
-            { label: $t('page.page-layout.recordToolbar.actions.buttonLabel'), width: '1fr' },
-            { label: $t('page.page-layout.recordToolbar.actions.kind.label'), width: '180px' },
-            { label: $t('page.page-layout.recordToolbar.actions.variant'), width: '140px' },
-            { label: $t('page.page-layout.recordToolbar.actions.placement.label'), width: '120px' },
-            {
-              label: $t('page.page-layout.recordToolbar.actions.visible'),
-              width: '5rem',
-              headerClass: 'text-center',
-            },
-          ]"
-        >
-          <template #row="{ item }">
-            <InputText v-model="item.meta.label" class="w-full" size="small" />
+            :columns="[
+              { label: $t('page.page-layout.recordToolbar.actions.buttonLabel'), width: '1fr' },
+              { label: $t('page.page-layout.recordToolbar.actions.kind.label'), width: '180px' },
+              { label: $t('page.page-layout.recordToolbar.actions.variant'), width: '140px' },
+              {
+                label: $t('page.page-layout.recordToolbar.actions.placement.label'),
+                width: '120px',
+              },
+              {
+                label: $t('page.page-layout.recordToolbar.actions.visible'),
+                width: '5rem',
+                headerClass: 'text-center',
+              },
+            ]"
+          >
+            <template #row="{ item }">
+              <InputText v-model="item.meta.label" class="w-full" size="small" />
 
-            <Select
-              v-model="item.kind"
-              :options="actionKindOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              size="small"
-              @change="onActionKindChange(item)"
-            />
+              <Select
+                v-model="item.kind"
+                :options="actionKindOptions"
+                option-label="label"
+                option-value="value"
+                class="w-full"
+                size="small"
+                @change="onActionKindChange(item)"
+              />
 
-            <Select
-              v-model="item.meta.style.variant"
-              :options="actionVariantOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              size="small"
-            />
+              <Select
+                v-model="item.meta.style.variant"
+                :options="actionVariantOptions"
+                option-label="label"
+                option-value="value"
+                class="w-full"
+                size="small"
+              />
 
-            <Select
-              v-model="item.placement"
-              :options="actionPlacementOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-              size="small"
-            />
+              <Select
+                v-model="item.placement"
+                :options="actionPlacementOptions"
+                option-label="label"
+                option-value="value"
+                class="w-full"
+                size="small"
+              />
 
-            <div class="flex justify-center">
-              <Checkbox v-model="item.enabled" :binary="true" />
-            </div>
-          </template>
+              <div class="flex justify-center">
+                <Checkbox v-model="item.enabled" :binary="true" />
+              </div>
+            </template>
 
-          <template #extra="{ item }">
-            <div
-              v-if="item.kind === 'toLayout' || item.kind === 'toURL'"
-              class="border-t border-surface pt-3 mt-1 grid grid-cols-1 md:grid-cols-2 gap-3"
-            >
-              <CFormGroup
-                v-if="item.kind === 'toLayout'"
-                :label="$t('page.page-layout.recordToolbar.actions.toLayout.label')"
+            <template #extra="{ item }">
+              <div
+                v-if="item.kind === 'toLayout' || item.kind === 'toURL'"
+                class="border-t border-surface pt-3 mt-1 grid grid-cols-1 md:grid-cols-2 gap-3"
               >
-                <Select
-                  v-model="item.params.pageLayoutID"
-                  :options="actionLayoutOptions"
-                  option-label="label"
-                  option-value="value"
-                  class="w-full"
-                  size="small"
-                />
-              </CFormGroup>
-
-              <template v-else-if="item.kind === 'toURL'">
-                <CFormGroup :label="$t('page.page-layout.recordToolbar.actions.toURL.label')">
-                  <InputText
-                    v-model="item.params.url"
-                    :placeholder="$t('page.page-layout.recordToolbar.actions.toURL.placeholder')"
-                    size="small"
-                  />
-                </CFormGroup>
-                <CFormGroup :label="$t('page.page-layout.recordToolbar.actions.openIn.label')">
+                <CFormGroup
+                  v-if="item.kind === 'toLayout'"
+                  :label="$t('page.page-layout.recordToolbar.actions.toLayout.label')"
+                >
                   <Select
-                    v-model="item.params.openIn"
-                    :options="actionOpenInOptions"
+                    v-model="item.params.pageLayoutID"
+                    :options="actionLayoutOptions"
                     option-label="label"
                     option-value="value"
                     class="w-full"
                     size="small"
                   />
                 </CFormGroup>
-              </template>
-            </div>
-          </template>
+
+                <template v-else-if="item.kind === 'toURL'">
+                  <CFormGroup :label="$t('page.page-layout.recordToolbar.actions.toURL.label')">
+                    <InputText
+                      v-model="item.params.url"
+                      :placeholder="$t('page.page-layout.recordToolbar.actions.toURL.placeholder')"
+                      size="small"
+                    />
+                  </CFormGroup>
+                  <CFormGroup :label="$t('page.page-layout.recordToolbar.actions.openIn.label')">
+                    <Select
+                      v-model="item.params.openIn"
+                      :options="actionOpenInOptions"
+                      option-label="label"
+                      option-value="value"
+                      class="w-full"
+                      size="small"
+                    />
+                  </CFormGroup>
+                </template>
+              </div>
+            </template>
           </CFormList>
         </CFormGroup>
       </template>
@@ -591,9 +594,7 @@
               :alt="a.name"
               class="h-12 w-auto rounded cursor-pointer p-1 border-2"
               :class="
-                selectedAttachmentID === a.attachmentID
-                  ? 'border-primary'
-                  : 'border-transparent'
+                selectedAttachmentID === a.attachmentID ? 'border-primary' : 'border-transparent'
               "
               @click="toggleSelectedIcon(a.attachmentID)"
             />
@@ -621,11 +622,7 @@
             size="small"
             @click="closeIconModal"
           />
-          <Button
-            :label="$t('general.label.saveAndClose')"
-            size="small"
-            @click="saveIconModal"
-          />
+          <Button :label="$t('general.label.saveAndClose')" size="small" @click="saveIconModal" />
         </div>
       </div>
     </template>
@@ -1293,8 +1290,7 @@ function setCurrentIcon() {
 }
 
 function toggleSelectedIcon(attachmentID = '') {
-  selectedAttachmentID.value =
-    selectedAttachmentID.value === attachmentID ? '' : attachmentID
+  selectedAttachmentID.value = selectedAttachmentID.value === attachmentID ? '' : attachmentID
 }
 
 function openIconModal() {

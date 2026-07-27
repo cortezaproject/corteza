@@ -11,10 +11,7 @@ function makeAuth(roles: string[] = []) {
   return { user: { roles } }
 }
 
-function makeLayout(
-  pageLayoutID: string,
-  opts: { expression?: string; roles?: string[] } = {},
-) {
+function makeLayout(pageLayoutID: string, opts: { expression?: string; roles?: string[] } = {}) {
   return {
     pageLayoutID,
     config: {
@@ -28,7 +25,13 @@ function makeLayout(
 
 function makeBlock(
   blockID: string,
-  opts: { expression?: string; roles?: string[]; kind?: string; tempID?: string; tabs?: any[] } = {},
+  opts: {
+    expression?: string
+    roles?: string[]
+    kind?: string
+    tempID?: string
+    tabs?: any[]
+  } = {},
 ) {
   return {
     blockID,
@@ -140,6 +143,20 @@ describe('usePageVisibility', () => {
       expect(await determineLayout([layout], {})).toBe(layout)
     })
 
+    it('passes the record on to layout expressions', async () => {
+      const api = makeSystemAPI({ L1: true })
+      const { buildExpressionVariables, determineLayout } = usePageVisibility(api, null)
+      const record = { serialize: () => ({ values: { status: 'closed' } }) }
+      const vars = buildExpressionVariables({ record, isRecordPage: true, mode: 'view' })
+
+      const layout = makeLayout('L1', { expression: 'record.values.status == "closed"' })
+      expect(await determineLayout([layout], vars)).toBe(layout)
+      expect(api.expressionEvaluate).toHaveBeenCalledWith({
+        variables: expect.objectContaining({ record: { values: { status: 'closed' } } }),
+        expressions: { L1: 'record.values.status == "closed"' },
+      })
+    })
+
     it('retries without requestedLayoutID when specific layout does not match', async () => {
       const api = makeSystemAPI({ L1: false, L2: true })
       const { determineLayout } = usePageVisibility(api, null)
@@ -147,6 +164,24 @@ describe('usePageVisibility', () => {
       const L2 = makeLayout('L2', { expression: 'true' })
       const result = await determineLayout([L1, L2], {}, 'L1')
       expect(result?.pageLayoutID).toBe('L2')
+    })
+
+    it('opens the requested layout when its own condition passes', async () => {
+      const api = makeSystemAPI({ L1: true, L2: true })
+      const { determineLayout } = usePageVisibility(api, null)
+      const L1 = makeLayout('L1', { expression: 'true' })
+      const L2 = makeLayout('L2', { expression: 'true' })
+      // L1 comes first in default order, so picking L2 proves the request won
+      const result = await determineLayout([L1, L2], {}, 'L2')
+      expect(result?.pageLayoutID).toBe('L2')
+    })
+
+    it('falls back to default order when the requested layout is barred by roles', async () => {
+      const { determineLayout } = usePageVisibility(null, makeAuth(['viewer']))
+      const L1 = makeLayout('L1')
+      const L2 = makeLayout('L2', { roles: ['admin-role'] })
+      const result = await determineLayout([L1, L2], {}, 'L2')
+      expect(result?.pageLayoutID).toBe('L1')
     })
 
     it('treats expression as failed when API throws', async () => {
@@ -204,8 +239,8 @@ describe('usePageVisibility', () => {
 
     it('Tabs with at least one visible child stays visible', async () => {
       const { evaluateBlocks } = usePageVisibility(null, makeAuth(['admin']))
-      const child1 = makeBlock('C1', { roles: ['admin'] })  // visible
-      const child2 = makeBlock('C2', { roles: ['other'] })  // invisible
+      const child1 = makeBlock('C1', { roles: ['admin'] }) // visible
+      const child2 = makeBlock('C2', { roles: ['other'] }) // invisible
       const tabs: any = {
         blockID: 'T1',
         kind: 'Tabs',

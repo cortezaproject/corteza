@@ -85,8 +85,8 @@ page-layout:
   add: Add layout
   condition:
     description:
-      non-record-page: 'You can use {0}, {1} inside the expression, for example: {2} or {3}'
-      record-page: 'You can use {0}, {1}, {2}, {3} inside the expression, for example: {4} or {5}'
+      non-record-page: 'You can use {0}, {1} inside the expression, for example: {2} or {3}. Evaluated when the page opens.'
+      record-page: 'You can use {0}, {1}, {2}, {3} inside the expression, for example: {4} or {5}. Evaluated when the page opens, when another record is opened and when switching between view, edit and create — not while field values are being edited.'
     label: Condition
     placeholder: When will the layout be shown
   configure: Configure layout - "{title}"
@@ -141,7 +141,7 @@ page-layout:
     label: Roles
     placeholder: Pick roles that the layout will be shown to
   title: Title
-  titleExpressionPlaceholder: Title expression
+  titleExpressionPlaceholder: Custom title
   tooltip:
     builder: Open layout in builder
     configure: Configure layout
@@ -151,7 +151,7 @@ page-layout:
       requiredFields: Using required fields will impact performance
     title: Display title shown for this layout
   useTitle: Use layout title
-  useTitleDescription: Use a custom title (with record value expressions) instead of the default record page title
+  useTitleDescription: Use a custom title for this layout instead of the default record page title
   visibility: Visibility
 pageMoveFailed: Could not move this page
 placeholder:

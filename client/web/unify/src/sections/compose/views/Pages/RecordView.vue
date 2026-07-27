@@ -198,10 +198,10 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 const $SystemAPI = inject('$SystemAPI', null)
-const $auth = inject('$auth', {})
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 
-const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $auth)
+const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $Auth)
 
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
@@ -334,6 +334,41 @@ function abortRecordLoad() {
   }
 }
 
+/**
+ * Picks the layout for the current record and mode.
+ *
+ * Layout conditions see the record, so this must run *after* the record is
+ * resolved. It is deliberately not reactive to field edits: switching layout
+ * swaps the rendered block set, which would remount blocks and discard
+ * in-progress input. It re-runs only on the transitions that change what the
+ * page is about — a different record, or a move between view/edit/create.
+ */
+let _layoutSeq = 0
+async function resolveLayout() {
+  if (!page.value) return
+
+  const layouts = pageLayoutStore.getByPageID(page.value.pageID)
+  const vars = buildExpressionVariables({
+    record: record.value,
+    isRecordPage: true,
+    mode: mode.value,
+  })
+
+  // An explicitly requested layout (?layoutID=, e.g. from a navigation block)
+  // wins over automatic selection.
+  const requested = props.inModal ? undefined : route.query.layoutID
+  const requestedLayoutID = typeof requested === 'string' ? requested : undefined
+
+  const seq = ++_layoutSeq
+  const resolved = await determineLayout(layouts, vars, requestedLayoutID)
+
+  // A superseded resolution (rapid record swap, mode toggle mid-load) must not
+  // overwrite the layout picked for the record now on screen
+  if (seq === _layoutSeq) {
+    layout.value = resolved
+  }
+}
+
 async function loadRecord(recordID) {
   if (!page.value || !recordID || recordID === '0') return
   const moduleID = page.value.moduleID
@@ -356,6 +391,9 @@ async function loadRecord(recordID) {
     pristineRecord.value = loaded
     record.value = loaded
     serverErrors.value = {}
+    // Fast-swapping to another record skips loadPage(), so the layout has to be
+    // re-picked here or the previous record's layout would stay on screen.
+    await resolveLayout()
   } catch (e) {
     if (ac.signal.aborted) return
     console.error('Failed to load record:', e)
@@ -395,10 +433,6 @@ async function loadPage() {
         return
       }
 
-      const layouts = pageLayoutStore.getByPageID(pageID)
-      const vars = buildExpressionVariables({ isRecordPage: true, mode: mode.value })
-      layout.value = await determineLayout(layouts, vars)
-
       const moduleID = page.value.moduleID
       if (moduleID) {
         const mod = moduleStore.getByID(moduleID)
@@ -420,15 +454,15 @@ async function loadPage() {
                   newRec.setValue(field.name, source.values[field.name])
                 }
                 // Prefill ownedBy with current user
-                newRec.ownedBy = $auth?.user?.userID || undefined
+                newRec.ownedBy = $Auth?.user?.userID || undefined
                 record.value = newRec
               } catch (e) {
                 if (ac.signal.aborted) return
                 console.error('Failed to load source record for clone:', e)
-                record.value = new compose.Record(mod, { ownedBy: $auth?.user?.userID })
+                record.value = new compose.Record(mod, { ownedBy: $Auth?.user?.userID })
               }
             } else {
-              record.value = new compose.Record(mod, { ownedBy: $auth?.user?.userID })
+              record.value = new compose.Record(mod, { ownedBy: $Auth?.user?.userID })
             }
 
             const refField = route.query.refField
@@ -466,6 +500,11 @@ async function loadPage() {
       }
     }
 
+    // Layout conditions read the record, so pick the layout once it is resolved
+    if (page.value?.isRecordPage) {
+      await resolveLayout()
+    }
+
     // Evaluate block visibility before revealing content (no flash)
     if (page.value?.blocks?.length) {
       const vars = buildExpressionVariables({
@@ -485,9 +524,10 @@ async function loadPage() {
 }
 
 let _blockVisibilityTimer = null
+let _blockVisibilitySeq = 0
 async function evaluateBlockVisibility() {
   if (!page.value?.blocks?.length) return
-  // Debounce rapid changes (e.g. mode switch, record swap)
+  // Debounce rapid changes (e.g. typing in a field, mode switch, record swap)
   clearTimeout(_blockVisibilityTimer)
   _blockVisibilityTimer = setTimeout(async () => {
     const vars = buildExpressionVariables({
@@ -495,12 +535,18 @@ async function evaluateBlockVisibility() {
       isRecordPage: true,
       mode: mode.value,
     })
-    invisibleBlockIDs.value = await evaluateBlocks(page.value.blocks, vars)
+    const seq = ++_blockVisibilitySeq
+    const invisible = await evaluateBlocks(page.value.blocks, vars)
+    // A slower earlier response must not overwrite a newer one
+    if (seq === _blockVisibilitySeq) {
+      invisibleBlockIDs.value = invisible
+    }
   }, 300)
 }
 
-// Re-evaluate when mode switches (view ↔ edit) or record reference changes
-watch([record, mode], evaluateBlockVisibility, { deep: false })
+// Block conditions follow the record as it is edited: re-evaluate on value
+// changes as well as on mode switches and record swaps.
+watch([() => record.value?.values, mode], evaluateBlockVisibility, { deep: true })
 
 function resolver() {
   const errors = {}
@@ -577,6 +623,10 @@ async function handleSave({ valid }) {
     )
 
     pristineRecord.value = saved
+
+    // Saved values can satisfy a different layout condition than the ones the
+    // record was opened with
+    await resolveLayout()
 
     if (props.inModal) {
       if (isNew.value) {
@@ -789,6 +839,10 @@ watch(
     } else if (newMode === 'view' && oldMode === 'edit') {
       record.value = pristineRecord.value
     }
+
+    // isView/isCreate/isEdit are layout condition variables, so a mode switch
+    // is one of the transitions that can change which layout applies.
+    resolveLayout()
   },
 )
 
@@ -805,13 +859,16 @@ watch(
 )
 
 // Load on mount and when pageID, recordID, or cloneFromID changes (not on edit-query toggle)
+// Separate getters, not one getter returning an array: an array source is
+// compared by identity, so it re-fires on every touched dependency — including
+// the edit-query toggle this watcher is meant to ignore.
 watch(
-  () => [
-    props.inModal ? props.modalPageID : route.params.pageID,
-    props.inModal ? props.modalRecordID : route.params.recordID,
-    route.query.cloneFromID,
-    route.query.refField,
-    route.query.refValue,
+  [
+    () => (props.inModal ? props.modalPageID : route.params.pageID),
+    () => (props.inModal ? props.modalRecordID : route.params.recordID),
+    () => route.query.cloneFromID,
+    () => route.query.refField,
+    () => route.query.refValue,
   ],
   ([newPageID, newRecordID, newCloneFromID, newRefField, newRefValue], old) => {
     const [oldPageID, oldRecordID, oldCloneFromID, oldRefField, oldRefValue] = old || []
