@@ -302,6 +302,12 @@ func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *typ
 		return WorkflowErrStaleData()
 	}
 
+	// res is loaded from the store, so res.Issues holds the persisted issue set.
+	// Capture it before validateWorkflow recomputes it so we can detect issue
+	// transitions (e.g. issues resolved) and re-persist even when no other field
+	// changed — otherwise the read endpoint keeps serving stale issues.
+	priorIssues := res.Issues
+
 	if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
 		return WorkflowErrInvalidHandle()
 	}
@@ -376,7 +382,7 @@ func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *typ
 		}
 	}
 
-	if changed || len(res.Issues) > 0 {
+	if changed || !reflect.DeepEqual(priorIssues, res.Issues) {
 		if err = store.UpdateAutomationWorkflow(ctx, s, res); err != nil {
 			return err
 		}
