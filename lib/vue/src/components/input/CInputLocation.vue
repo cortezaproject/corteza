@@ -2,12 +2,16 @@
   <div class="flex flex-col gap-2">
     <div class="flex gap-2 items-center overflow-hidden">
       <InputGroup class="flex-1 min-w-0">
+        <!-- novalidate: these inner inputs commit on blur; letting them register
+             with an enclosing FormField triggers validation per keystroke while
+             the bound value is still stale -->
         <InputNumber
           :model-value="latitude"
           :disabled="disabled"
           :step="0.000001"
           :max-fraction-digits="7"
           :placeholder="$t('field.kind.geometry.latitude')"
+          :form-control="{ novalidate: true }"
           class="flex-1 min-w-0"
           @update:model-value="onLatChange"
         />
@@ -17,6 +21,7 @@
           :step="0.000001"
           :max-fraction-digits="7"
           :placeholder="$t('field.kind.geometry.longitude')"
+          :form-control="{ novalidate: true }"
           class="flex-1 min-w-0"
           @update:model-value="onLngChange"
         />
