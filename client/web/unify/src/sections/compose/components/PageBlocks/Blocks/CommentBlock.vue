@@ -143,14 +143,19 @@
           />
 
           <!-- Attachment previews -->
-          <div v-if="attachmentField && newComment.attachmentIDs.length" class="flex flex-wrap gap-2 px-2 py-1">
+          <div
+            v-if="attachmentField && newComment.attachmentIDs.length"
+            class="flex flex-wrap gap-2 px-2 py-1"
+          >
             <div
               v-for="(attID, idx) in newComment.attachmentIDs"
               :key="attID"
               class="flex items-center gap-1 bg-highlight rounded-lg px-2 py-1 text-sm"
             >
               <i class="pi pi-file text-muted-color" />
-              <span class="text-muted-color">{{ $t('block.comment.attachment.file') }} {{ idx + 1 }}</span>
+              <span class="text-muted-color">
+                {{ $t('block.comment.attachment.file') }} {{ idx + 1 }}
+              </span>
               <Button
                 icon="pi pi-times"
                 text
@@ -329,8 +334,11 @@ const reactionsField = computed(() => {
 
 const canAddRecord = computed(() => roModule.value?.canCreateRecord)
 
-const isValid = computed(() =>
-  (!!newComment.value.title || !!newComment.value.content || newComment.value.attachmentIDs.length > 0),
+const isValid = computed(
+  () =>
+    !!newComment.value.title ||
+    !!newComment.value.content ||
+    newComment.value.attachmentIDs.length > 0,
 )
 
 const isConfigured = computed(() => !!contentField.value)
@@ -499,11 +507,13 @@ async function fetchReplyRecords(records) {
   const mod = roModule.value
   await Promise.all(
     uniqueIDs.map(recordID =>
-      recordStore.findByID({
-        namespaceID: props.namespace.namespaceID,
-        moduleID: mod.moduleID,
-        recordID,
-      }).catch(() => null),
+      recordStore
+        .findByID({
+          namespaceID: props.namespace.namespaceID,
+          moduleID: mod.moduleID,
+          recordID,
+        })
+        .catch(() => null),
     ),
   )
 }
@@ -524,11 +534,19 @@ function getReplyComment(comment) {
 }
 
 function showTitle(comment) {
-  return Boolean(titleField.value && titleField.value.canReadRecordValue && comment.values[titleField.value.name])
+  return Boolean(
+    titleField.value &&
+    titleField.value.canReadRecordValue &&
+    comment.values[titleField.value.name],
+  )
 }
 
 function showContent(comment) {
-  return Boolean(contentField.value && contentField.value.canReadRecordValue && comment.values[contentField.value.name])
+  return Boolean(
+    contentField.value &&
+    contentField.value.canReadRecordValue &&
+    comment.values[contentField.value.name],
+  )
 }
 
 // ---- Merge message groups for auto-refresh ----
@@ -577,8 +595,12 @@ const lastCommentTimestamp = computed(() => {
 async function loadNewComments() {
   const filter = [
     expandFilter(),
-    lastCommentTimestamp.value ? `${getFieldFilter('createdAt', 'DateTime', lastCommentTimestamp.value, '>')}` : '',
-  ].filter(Boolean).join(' AND ')
+    lastCommentTimestamp.value
+      ? `${getFieldFilter('createdAt', 'DateTime', lastCommentTimestamp.value, '>')}`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' AND ')
 
   const wasAtBottom = isScrollAtBottom()
   const newGroups = await fetchCommentRecords(filter, false)
@@ -952,16 +974,15 @@ function isScrollAtBottom() {
 // ---- Prefilter ----
 
 function expandFilter() {
-   
   if (!props.record) {
     // If there is no current record and we are using recordID/ownerID variable in (pre)filter
     // we should disable the block
     if ((options.value.filter || '').includes('${record')) {
-      throw Error(t('block.comment.invalidRecordVar'))
+      throw Error(t('block.comment.invalidRecordVar', ['${record...}']))
     }
 
     if ((options.value.filter || '').includes('${ownerID}')) {
-      throw Error(t('block.comment.invalidOwnerVar'))
+      throw Error(t('block.comment.invalidOwnerVar', ['${ownerID}']))
     }
   }
 

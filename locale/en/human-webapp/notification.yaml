@@ -406,8 +406,8 @@ record:
   deleteSuccess: Record deleted
   fieldConditions:
     failed: Failed to evaluate record block conditional fields
-  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
-  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  invalidOwnerVar: 'Can not use {0} variable in non-record pages'
+  invalidRecordVar: 'Can not use {0} variable in non-record pages'
   listLoadFailed: Could not load record list
   loadFailed: Could not load record
   moduleMismatch: Module incompatible, module mismatch
