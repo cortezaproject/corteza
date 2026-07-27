@@ -60,23 +60,17 @@
 
       <Divider />
 
-      <Fieldset :legend="$t('block.record.inlineEdit.label')">
-        <CInputToggleCard
-          v-model="inlineEditEnabled"
-          :label="$t('block.record.inlineEdit.enabled')"
-          :description="$t('block.record.inlineEdit.description')"
-        />
-      </Fieldset>
+      <CInputToggleCard
+        v-model="inlineEditEnabled"
+        :label="$t('block.record.inlineEdit.enabled')"
+        :description="$t('block.record.inlineEdit.description')"
+      />
 
-      <Divider />
-
-      <Fieldset :legend="$t('block.record.inlineCopy.label')">
-        <CInputToggleCard
-          v-model="inlineCopyEnabled"
-          :label="$t('block.record.inlineCopy.enabled')"
-          :description="$t('block.record.inlineCopy.description')"
-        />
-      </Fieldset>
+      <CInputToggleCard
+        v-model="inlineCopyEnabled"
+        :label="$t('block.record.inlineCopy.enabled')"
+        :description="$t('block.record.inlineCopy.description')"
+      />
 
       <Divider />
 
