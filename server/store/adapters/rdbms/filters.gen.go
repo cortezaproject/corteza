@@ -1745,6 +1745,10 @@ func ProjectBacklogItemFilter(d drivers.Dialect, f systemType.ProjectBacklogItem
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
+	if f.RevisionID > 0 {
+		ee = append(ee, goqu.C("rel_revision").Eq(f.RevisionID))
+	}
+
 	if f.EventID > 0 {
 		ee = append(ee, goqu.C("event_id").Eq(f.EventID))
 	}
@@ -1785,6 +1789,10 @@ func ProjectFeatureFilter(d drivers.Dialect, f systemType.ProjectFeatureFilter) 
 
 	if f.ProjectID > 0 {
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if f.RevisionID > 0 {
+		ee = append(ee, goqu.C("rel_revision").Eq(f.RevisionID))
 	}
 
 	if val := strings.TrimSpace(f.Status); len(val) > 0 {
@@ -1876,6 +1884,10 @@ func ProjectIncidentFilter(d drivers.Dialect, f systemType.ProjectIncidentFilter
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
+	if f.RevisionID > 0 {
+		ee = append(ee, goqu.C("rel_revision").Eq(f.RevisionID))
+	}
+
 	if val := strings.TrimSpace(f.Status); len(val) > 0 {
 		ee = append(ee, goqu.C("status").Eq(f.Status))
 	}
@@ -1939,6 +1951,10 @@ func ProjectPrivacyFilter(d drivers.Dialect, f systemType.ProjectPrivacyFilter) 
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
+	if f.RevisionID > 0 {
+		ee = append(ee, goqu.C("rel_revision").Eq(f.RevisionID))
+	}
+
 	if val := strings.TrimSpace(f.Status); len(val) > 0 {
 		ee = append(ee, goqu.C("status").Eq(f.Status))
 	}
@@ -1974,6 +1990,10 @@ func ProjectReviewFilter(d drivers.Dialect, f systemType.ProjectReviewFilter) (e
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
+	if f.RevisionID > 0 {
+		ee = append(ee, goqu.C("rel_revision").Eq(f.RevisionID))
+	}
+
 	if val := strings.TrimSpace(f.Status); len(val) > 0 {
 		ee = append(ee, goqu.C("status").Eq(f.Status))
 	}
@@ -2007,6 +2027,10 @@ func ProjectTaskFilter(d drivers.Dialect, f systemType.ProjectTaskFilter) (ee []
 
 	if f.ProjectID > 0 {
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if f.RevisionID > 0 {
+		ee = append(ee, goqu.C("rel_revision").Eq(f.RevisionID))
 	}
 
 	if val := strings.TrimSpace(f.Status); len(val) > 0 {

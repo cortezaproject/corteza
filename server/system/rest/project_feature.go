@@ -56,9 +56,10 @@ func (ctrl *ProjectFeature) makeFilter(ctx context.Context, r *request.ProjectFe
 	var (
 		err error
 		f   = types.ProjectFeatureFilter{
-			Query:     r.Query,
-			ProjectID: r.ProjectID,
-			Status:    r.Status,
+			Query:      r.Query,
+			ProjectID:  r.ProjectID,
+			RevisionID: r.RevisionID,
+			Status:     r.Status,
 		}
 	)
 

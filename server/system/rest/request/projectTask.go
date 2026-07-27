@@ -44,6 +44,11 @@ type (
 		// Filter by project ID
 		ProjectID uint64 `json:",string"`
 
+		// RevisionID GET parameter
+		//
+		// Filter by revision ID
+		RevisionID uint64 `json:",string"`
+
 		// Status GET parameter
 		//
 		// Filter by status
@@ -219,6 +224,7 @@ func (r ProjectTaskList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
 		"projectID":  r.ProjectID,
+		"revisionID": r.RevisionID,
 		"status":     r.Status,
 		"limit":      r.Limit,
 		"incTotal":   r.IncTotal,
@@ -235,6 +241,11 @@ func (r ProjectTaskList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectTaskList) GetProjectID() uint64 {
 	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectTaskList) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -277,6 +288,12 @@ func (r *ProjectTaskList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
 			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

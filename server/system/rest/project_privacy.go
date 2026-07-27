@@ -56,9 +56,10 @@ func (ctrl *ProjectPrivacy) makeFilter(ctx context.Context, r *request.ProjectPr
 	var (
 		err error
 		f   = types.ProjectPrivacyFilter{
-			Query:     r.Query,
-			ProjectID: r.ProjectID,
-			Status:    r.Status,
+			Query:      r.Query,
+			ProjectID:  r.ProjectID,
+			RevisionID: r.RevisionID,
+			Status:     r.Status,
 		}
 	)
 

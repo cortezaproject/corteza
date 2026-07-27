@@ -16,9 +16,20 @@ project_feature: {
 	model: {
 		omitGetterSetter: true
 		attributes: {
-			id: schema.IdField & {json: "featureID,string"}
+			id:         schema.IdField & {json: "featureID,string"}
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
+
+			// RevisionID points at the revision (a projects row) this item is
+			// assigned to. Null means unassigned.
+			revision_id: {
+				ident:      "revisionID"
+				expIdent:   "RevisionID"
+				goType:     "uint64"
+				json:       "revisionID,string,omitempty"
+				storeIdent: "rel_revision"
+				dal: {type: "ID", default: 0}
+			}
 
 			title: {
 				goType:   "string"
@@ -107,12 +118,13 @@ project_feature: {
 			feature_id: {goType: "[]uint64", ident: "featureID", storeIdent: "id"}
 			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
+			revision_id: {goType: "uint64", ident: "revisionID", storeIdent: "rel_revision"}
 			status: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		query: ["title", "status"]
-		byValue: ["feature_id", "project_id", "status"]
+		byValue: ["feature_id", "project_id", "revision_id", "status"]
 		byNilState: ["deleted"]
 	}
 

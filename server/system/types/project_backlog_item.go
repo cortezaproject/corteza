@@ -9,6 +9,7 @@ type (
 		BacklogItemID []uint64 `json:"backlogItemID"`
 		TenantID      uint64   `json:"tenantID,string,omitempty"`
 		ProjectID     uint64   `json:"projectID,string,omitempty"`
+		RevisionID    uint64   `json:"revisionID,string,omitempty"`
 		EventID       uint64   `json:"eventID,string,omitempty"`
 		Category      string   `json:"category"`
 		Status        string   `json:"status"`

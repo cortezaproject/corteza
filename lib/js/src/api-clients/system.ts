@@ -8523,7 +8523,8 @@ export default class System {
 
   // List project incidents
   async projectIncidentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, projectID, revisionID, status, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8532,6 +8533,7 @@ export default class System {
     cfg.params = {
       query,
       projectID,
+      revisionID,
       status,
       limit,
       incTotal,
@@ -8782,7 +8784,8 @@ export default class System {
 
   // List project features
   async projectFeatureList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, projectID, revisionID, status, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -8791,6 +8794,7 @@ export default class System {
     cfg.params = {
       query,
       projectID,
+      revisionID,
       status,
       limit,
       incTotal,
@@ -9033,7 +9037,8 @@ export default class System {
 
   // List project privacy items
   async projectPrivacyList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, projectID, revisionID, status, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9042,6 +9047,7 @@ export default class System {
     cfg.params = {
       query,
       projectID,
+      revisionID,
       status,
       limit,
       incTotal,
@@ -9284,7 +9290,8 @@ export default class System {
 
   // List project tasks
   async projectTaskList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, projectID, revisionID, status, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9293,6 +9300,7 @@ export default class System {
     cfg.params = {
       query,
       projectID,
+      revisionID,
       status,
       limit,
       incTotal,
@@ -9527,7 +9535,8 @@ export default class System {
 
   // List project reviews
   async projectReviewList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, projectID, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { query, projectID, revisionID, status, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9536,6 +9545,7 @@ export default class System {
     cfg.params = {
       query,
       projectID,
+      revisionID,
       status,
       limit,
       incTotal,
@@ -9762,8 +9772,18 @@ export default class System {
 
   // List project backlog items
   async projectBacklogItemList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, projectID, eventID, category, status, limit, incTotal, pageCursor, sort } =
-      (a as KV) || {}
+    const {
+      query,
+      projectID,
+      revisionID,
+      eventID,
+      category,
+      status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -9772,6 +9792,7 @@ export default class System {
     cfg.params = {
       query,
       projectID,
+      revisionID,
       eventID,
       category,
       status,

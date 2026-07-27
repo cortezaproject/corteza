@@ -20,6 +20,17 @@ project_backlog_item: {
 			tenant_id:  schema.TenantRefField
 			project_id: schema.ProjectRefField
 
+			// RevisionID points at the revision (a projects row) this item is
+			// assigned to. Null means unassigned.
+			revision_id: {
+				ident:      "revisionID"
+				expIdent:   "RevisionID"
+				goType:     "uint64"
+				json:       "revisionID,string,omitempty"
+				storeIdent: "rel_revision"
+				dal: {type: "ID", default: 0}
+			}
+
 			title: {
 				goType:   "string"
 				sortable: true
@@ -93,6 +104,7 @@ project_backlog_item: {
 			backlog_item_id: {goType: "[]uint64", ident: "backlogItemID", storeIdent: "id"}
 			tenant_id:  schema.TenantFilterField
 			project_id: schema.ProjectFilterField
+			revision_id: {goType: "uint64", ident: "revisionID", storeIdent: "rel_revision"}
 			event_id: {ident: "eventID", expIdent: "EventID", goType: "uint64"}
 			category: {goType: "string"}
 			status: {goType: "string"}
@@ -100,7 +112,7 @@ project_backlog_item: {
 		}
 
 		query: ["title"]
-		byValue: ["project_id", "event_id", "category", "status"]
+		byValue: ["project_id", "revision_id", "event_id", "category", "status"]
 		byNilState: ["deleted"]
 	}
 

@@ -26,6 +26,16 @@ func (svc *projectFeature) beforeCreate(ctx context.Context, new *types.ProjectF
 	if new.ProjectID == 0 {
 		return ProjectFeatureErrMissingProject()
 	}
+
+	// Work items always file against the chain root, never a revision, so a
+	// revision reads like a milestone over one shared item pool. New items are
+	// deliberately left unassigned (RevisionID stays 0) here.
+	project, err := loadProject(ctx, svc.store, new.ProjectID)
+	if err != nil {
+		return err
+	}
+	new.ProjectID = project.RootProjectID()
+
 	if new.Title == "" {
 		new.Title = firstNonEmpty(new.Description, "(untitled)")
 	}

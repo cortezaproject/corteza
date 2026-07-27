@@ -838,6 +838,7 @@ type (
 		ID          uint64     `db:"id"`
 		TenantID    uint64     `db:"tenant_id"`
 		ProjectID   uint64     `db:"project_id"`
+		RevisionID  uint64     `db:"revision_id"`
 		Title       string     `db:"title"`
 		Description string     `db:"description"`
 		Category    string     `db:"category"`
@@ -859,6 +860,7 @@ type (
 		ID               uint64     `db:"id"`
 		TenantID         uint64     `db:"tenant_id"`
 		ProjectID        uint64     `db:"project_id"`
+		RevisionID       uint64     `db:"revision_id"`
 		Title            string     `db:"title"`
 		Description      string     `db:"description"`
 		FeatureType      string     `db:"feature_type"`
@@ -904,6 +906,7 @@ type (
 		ID               uint64     `db:"id"`
 		TenantID         uint64     `db:"tenant_id"`
 		ProjectID        uint64     `db:"project_id"`
+		RevisionID       uint64     `db:"revision_id"`
 		Title            string     `db:"title"`
 		Description      string     `db:"description"`
 		IncidentType     string     `db:"incident_type"`
@@ -945,6 +948,7 @@ type (
 		ID               uint64     `db:"id"`
 		TenantID         uint64     `db:"tenant_id"`
 		ProjectID        uint64     `db:"project_id"`
+		RevisionID       uint64     `db:"revision_id"`
 		Title            string     `db:"title"`
 		Description      string     `db:"description"`
 		RequestType      string     `db:"request_type"`
@@ -971,6 +975,7 @@ type (
 		ID              uint64     `db:"id"`
 		TenantID        uint64     `db:"tenant_id"`
 		ProjectID       uint64     `db:"project_id"`
+		RevisionID      uint64     `db:"revision_id"`
 		Title           string     `db:"title"`
 		Description     string     `db:"description"`
 		ReviewType      string     `db:"review_type"`
@@ -993,6 +998,7 @@ type (
 		ID            uint64     `db:"id"`
 		TenantID      uint64     `db:"tenant_id"`
 		ProjectID     uint64     `db:"project_id"`
+		RevisionID    uint64     `db:"revision_id"`
 		Title         string     `db:"title"`
 		Description   string     `db:"description"`
 		TaskName      string     `db:"task_name"`
@@ -4189,6 +4195,7 @@ func (aux *auxProjectBacklogItem) encode(res *systemType.ProjectBacklogItem) (_ 
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
+	aux.RevisionID = res.RevisionID
 	aux.Title = res.Title
 	aux.Description = res.Description
 	aux.Category = res.Category
@@ -4214,6 +4221,7 @@ func (aux auxProjectBacklogItem) decode() (res *systemType.ProjectBacklogItem, _
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
+	res.RevisionID = aux.RevisionID
 	res.Title = aux.Title
 	res.Description = aux.Description
 	res.Category = aux.Category
@@ -4239,6 +4247,7 @@ func (aux *auxProjectBacklogItem) scan(row scanner) error {
 		&aux.ID,
 		&aux.TenantID,
 		&aux.ProjectID,
+		&aux.RevisionID,
 		&aux.Title,
 		&aux.Description,
 		&aux.Category,
@@ -4263,6 +4272,7 @@ func (aux *auxProjectFeature) encode(res *systemType.ProjectFeature) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
+	aux.RevisionID = res.RevisionID
 	aux.Title = res.Title
 	aux.Description = res.Description
 	aux.FeatureType = res.FeatureType
@@ -4293,6 +4303,7 @@ func (aux auxProjectFeature) decode() (res *systemType.ProjectFeature, _ error) 
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
+	res.RevisionID = aux.RevisionID
 	res.Title = aux.Title
 	res.Description = aux.Description
 	res.FeatureType = aux.FeatureType
@@ -4323,6 +4334,7 @@ func (aux *auxProjectFeature) scan(row scanner) error {
 		&aux.ID,
 		&aux.TenantID,
 		&aux.ProjectID,
+		&aux.RevisionID,
 		&aux.Title,
 		&aux.Description,
 		&aux.FeatureType,
@@ -4431,6 +4443,7 @@ func (aux *auxProjectIncident) encode(res *systemType.ProjectIncident) (_ error)
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
+	aux.RevisionID = res.RevisionID
 	aux.Title = res.Title
 	aux.Description = res.Description
 	aux.IncidentType = res.IncidentType
@@ -4463,6 +4476,7 @@ func (aux auxProjectIncident) decode() (res *systemType.ProjectIncident, _ error
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
+	res.RevisionID = aux.RevisionID
 	res.Title = aux.Title
 	res.Description = aux.Description
 	res.IncidentType = aux.IncidentType
@@ -4495,6 +4509,7 @@ func (aux *auxProjectIncident) scan(row scanner) error {
 		&aux.ID,
 		&aux.TenantID,
 		&aux.ProjectID,
+		&aux.RevisionID,
 		&aux.Title,
 		&aux.Description,
 		&aux.IncidentType,
@@ -4576,6 +4591,7 @@ func (aux *auxProjectPrivacy) encode(res *systemType.ProjectPrivacy) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
+	aux.RevisionID = res.RevisionID
 	aux.Title = res.Title
 	aux.Description = res.Description
 	aux.RequestType = res.RequestType
@@ -4606,6 +4622,7 @@ func (aux auxProjectPrivacy) decode() (res *systemType.ProjectPrivacy, _ error) 
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
+	res.RevisionID = aux.RevisionID
 	res.Title = aux.Title
 	res.Description = aux.Description
 	res.RequestType = aux.RequestType
@@ -4636,6 +4653,7 @@ func (aux *auxProjectPrivacy) scan(row scanner) error {
 		&aux.ID,
 		&aux.TenantID,
 		&aux.ProjectID,
+		&aux.RevisionID,
 		&aux.Title,
 		&aux.Description,
 		&aux.RequestType,
@@ -4665,6 +4683,7 @@ func (aux *auxProjectReview) encode(res *systemType.ProjectReview) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
+	aux.RevisionID = res.RevisionID
 	aux.Title = res.Title
 	aux.Description = res.Description
 	aux.ReviewType = res.ReviewType
@@ -4691,6 +4710,7 @@ func (aux auxProjectReview) decode() (res *systemType.ProjectReview, _ error) {
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
+	res.RevisionID = aux.RevisionID
 	res.Title = aux.Title
 	res.Description = aux.Description
 	res.ReviewType = aux.ReviewType
@@ -4717,6 +4737,7 @@ func (aux *auxProjectReview) scan(row scanner) error {
 		&aux.ID,
 		&aux.TenantID,
 		&aux.ProjectID,
+		&aux.RevisionID,
 		&aux.Title,
 		&aux.Description,
 		&aux.ReviewType,
@@ -4742,6 +4763,7 @@ func (aux *auxProjectTask) encode(res *systemType.ProjectTask) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
+	aux.RevisionID = res.RevisionID
 	aux.Title = res.Title
 	aux.Description = res.Description
 	aux.TaskName = res.TaskName
@@ -4770,6 +4792,7 @@ func (aux auxProjectTask) decode() (res *systemType.ProjectTask, _ error) {
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
+	res.RevisionID = aux.RevisionID
 	res.Title = aux.Title
 	res.Description = aux.Description
 	res.TaskName = aux.TaskName
@@ -4798,6 +4821,7 @@ func (aux *auxProjectTask) scan(row scanner) error {
 		&aux.ID,
 		&aux.TenantID,
 		&aux.ProjectID,
+		&aux.RevisionID,
 		&aux.Title,
 		&aux.Description,
 		&aux.TaskName,

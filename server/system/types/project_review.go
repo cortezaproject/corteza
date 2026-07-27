@@ -6,11 +6,12 @@ import (
 
 type (
 	ProjectReviewFilter struct {
-		ReviewID  []uint64 `json:"reviewID"`
-		TenantID  uint64   `json:"tenantID,string,omitempty"`
-		ProjectID uint64   `json:"projectID,string,omitempty"`
-		Status    string   `json:"status"`
-		Query     string   `json:"query"`
+		ReviewID   []uint64 `json:"reviewID"`
+		TenantID   uint64   `json:"tenantID,string,omitempty"`
+		ProjectID  uint64   `json:"projectID,string,omitempty"`
+		RevisionID uint64   `json:"revisionID,string,omitempty"`
+		Status     string   `json:"status"`
+		Query      string   `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 

@@ -17,6 +17,7 @@ type (
 		ID               uint64     `json:"privacyID,string"`
 		TenantID         uint64     `json:"tenantID,string,omitempty"`
 		ProjectID        uint64     `json:"projectID,string,omitempty"`
+		RevisionID       uint64     `json:"revisionID,string,omitempty"`
 		Title            string     `json:"title"`
 		Description      string     `json:"description"`
 		RequestType      string     `json:"requestType,omitempty"`
@@ -69,6 +70,10 @@ func (r ProjectPrivacy) Diff(cmp *ProjectPrivacy) []*revisions.Change {
 
 	if r.ProjectID != cmp.ProjectID {
 		out = append(out, &revisions.Change{Key: "projectID", Old: []any{cmp.ProjectID}, New: []any{r.ProjectID}})
+	}
+
+	if r.RevisionID != cmp.RevisionID {
+		out = append(out, &revisions.Change{Key: "revisionID", Old: []any{cmp.RevisionID}, New: []any{r.RevisionID}})
 	}
 
 	if r.Title != cmp.Title {

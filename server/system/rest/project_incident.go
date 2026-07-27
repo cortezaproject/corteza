@@ -56,9 +56,10 @@ func (ctrl *ProjectIncident) makeFilter(ctx context.Context, r *request.ProjectI
 	var (
 		err error
 		f   = types.ProjectIncidentFilter{
-			Query:     r.Query,
-			ProjectID: r.ProjectID,
-			Status:    r.Status,
+			Query:      r.Query,
+			ProjectID:  r.ProjectID,
+			RevisionID: r.RevisionID,
+			Status:     r.Status,
 		}
 	)
 

@@ -56,9 +56,10 @@ func (ctrl *ProjectReview) makeFilter(ctx context.Context, r *request.ProjectRev
 	var (
 		err error
 		f   = types.ProjectReviewFilter{
-			Query:     r.Query,
-			ProjectID: r.ProjectID,
-			Status:    r.Status,
+			Query:      r.Query,
+			ProjectID:  r.ProjectID,
+			RevisionID: r.RevisionID,
+			Status:     r.Status,
 		}
 	)
 

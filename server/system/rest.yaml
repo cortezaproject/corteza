@@ -3557,6 +3557,7 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: uint64, name: revisionID, title: Filter by revision ID }
             - { type: string, name: status, title: Filter by status }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
@@ -3635,6 +3636,7 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: uint64, name: revisionID, title: Filter by revision ID }
             - { type: string, name: status, title: Filter by status }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
@@ -3709,6 +3711,7 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: uint64, name: revisionID, title: Filter by revision ID }
             - { type: string, name: status, title: Filter by status }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
@@ -3783,6 +3786,7 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: uint64, name: revisionID, title: Filter by revision ID }
             - { type: string, name: status, title: Filter by status }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
@@ -3853,6 +3857,7 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: uint64, name: revisionID, title: Filter by revision ID }
             - { type: string, name: status, title: Filter by status }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total counter }
@@ -3919,6 +3924,7 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: uint64, name: projectID, title: Filter by project ID }
+            - { type: uint64, name: revisionID, title: Filter by revision ID }
             - { type: uint64, name: eventID, title: Filter by parent category item ID }
             - { type: string, name: category, title: Filter by category }
             - { type: string, name: status, title: Filter by status }

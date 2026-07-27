@@ -3906,6 +3906,14 @@ var ProjectBacklogItem = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "RevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_revision"},
+		},
+
+		&dal.Attribute{
 			Ident: "Title", Sortable: true,
 			Type:  &dal.TypeText{Length: 255},
 			Store: &dal.CodecAlias{Ident: "title"},
@@ -4059,6 +4067,14 @@ var ProjectFeature = &dal.Model{
 				DefaultValue: 0,
 			},
 			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "RevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_revision"},
 		},
 
 		&dal.Attribute{
@@ -4398,6 +4414,14 @@ var ProjectIncident = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "RevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_revision"},
+		},
+
+		&dal.Attribute{
 			Ident: "Title", Sortable: true,
 			Type:  &dal.TypeText{Length: 255},
 			Store: &dal.CodecAlias{Ident: "title"},
@@ -4702,6 +4726,14 @@ var ProjectPrivacy = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "RevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_revision"},
+		},
+
+		&dal.Attribute{
 			Ident: "Title", Sortable: true,
 			Type:  &dal.TypeText{Length: 255},
 			Store: &dal.CodecAlias{Ident: "title"},
@@ -4896,6 +4928,14 @@ var ProjectReview = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "RevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_revision"},
+		},
+
+		&dal.Attribute{
 			Ident: "Title", Sortable: true,
 			Type:  &dal.TypeText{Length: 255},
 			Store: &dal.CodecAlias{Ident: "title"},
@@ -5058,6 +5098,14 @@ var ProjectTask = &dal.Model{
 				DefaultValue: 0,
 			},
 			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "RevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_revision"},
 		},
 
 		&dal.Attribute{

@@ -78,6 +78,7 @@ var (
 		fix_2026_05_00_addSourceOnConnections,
 		fix_2026_05_00_addStateOnChatbotSessions,
 		fix_2026_06_00_addTenancyScopeColumns,
+		fix_2026_07_28_addRelRevisionOnProjectWorkItems,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -1658,6 +1659,64 @@ func fix_2026_07_14_addModeOnProjects(ctx context.Context, s *Store) error {
 // is already absent (fresh DBs, where the model never defined it).
 func fix_2026_07_21_dropModeOnProjects(ctx context.Context, s *Store) error {
 	return dropColumns(ctx, s, "projects", "mode")
+}
+
+// fix_2026_07_28_addRelRevisionOnProjectWorkItems adds the rel_revision column
+// (+ BTREE index) to the six project work-item tables: project backlog items
+// and the five category tables (incident/feature/task/privacy/review). Work
+// items always file against the chain root project (rel_project) and
+// optionally point at the revision they're assigned to via rel_revision, so a
+// revision reads like a GitHub milestone over one shared item pool. Existing
+// rows are left unassigned (null/0) by design — no backfill.
+func fix_2026_07_28_addRelRevisionOnProjectWorkItems(ctx context.Context, s *Store) error {
+	workItemModels := []struct {
+		table string
+		model *dal.Model
+	}{
+		{"project_backlog_items", systemModel.ProjectBacklogItem},
+		{"project_incidents", systemModel.ProjectIncident},
+		{"project_features", systemModel.ProjectFeature},
+		{"project_privacys", systemModel.ProjectPrivacy},
+		{"project_reviews", systemModel.ProjectReview},
+		{"project_tasks", systemModel.ProjectTask},
+	}
+
+	for _, wi := range workItemModels {
+		if _, err := s.DataDefiner.TableLookup(ctx, wi.table); err != nil {
+			if errors.IsNotFound(err) {
+				continue
+			}
+			return err
+		}
+
+		attr := wi.model.Attributes.FindByIdent("RevisionID")
+		if attr == nil {
+			return fmt.Errorf("%s model is missing the RevisionID attribute", wi.table)
+		}
+		if err := addColumn(ctx, s, wi.table, attr); err != nil {
+			return err
+		}
+
+		indexName := wi.table + "_rel_revision"
+		idx, err := s.DataDefiner.IndexLookup(ctx, indexName, wi.table)
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+		if idx != nil {
+			continue
+		}
+
+		if err := s.DataDefiner.IndexCreate(ctx, wi.table, &ddl.Index{
+			TableIdent: wi.table,
+			Ident:      indexName,
+			Type:       "BTREE",
+			Fields:     []*ddl.IndexField{{Column: "rel_revision"}},
+		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

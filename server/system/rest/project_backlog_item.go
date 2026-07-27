@@ -56,11 +56,12 @@ func (ctrl *ProjectBacklogItem) makeFilter(ctx context.Context, r *request.Proje
 	var (
 		err error
 		f   = types.ProjectBacklogItemFilter{
-			Query:     r.Query,
-			ProjectID: r.ProjectID,
-			EventID:   r.EventID,
-			Category:  r.Category,
-			Status:    r.Status,
+			Query:      r.Query,
+			ProjectID:  r.ProjectID,
+			RevisionID: r.RevisionID,
+			EventID:    r.EventID,
+			Category:   r.Category,
+			Status:     r.Status,
 		}
 	)
 
