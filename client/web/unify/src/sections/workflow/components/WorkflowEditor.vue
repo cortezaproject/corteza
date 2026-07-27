@@ -1934,7 +1934,9 @@ async function testWorkflow(input = {}) {
   const testParams = {
     workflowID: workflow.value.workflowID,
     stepID: trg?.stepID || '0',
-    trace: workflow.value.canManageWorkflowSessions || false,
+    // Dry run is the design/test path — always trace so the session records a
+    // stacktrace to render. Server only stores the stacktrace when trace is on.
+    trace: true,
     wait: false,
     async: true,
     input,
