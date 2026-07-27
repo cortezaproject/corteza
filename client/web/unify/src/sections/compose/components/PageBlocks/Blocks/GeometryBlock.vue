@@ -33,6 +33,7 @@ import { useModuleStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
+import { evaluatePrefilter } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -42,6 +43,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 const route = useRoute()
 const router = useRouter()
@@ -71,11 +73,9 @@ const boundsPair = computed(() => {
   if (!b.every(p => Array.isArray(p) && p.length === 2)) return null
   return b
 })
-const lockedBounds = computed(() =>
-  options.value.lockBounds ? boundsPair.value : null,
-)
+const lockedBounds = computed(() => (options.value.lockBounds ? boundsPair.value : null))
 
-function parseCoords (raw) {
+function parseCoords(raw) {
   if (!raw) return null
   try {
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
@@ -90,7 +90,7 @@ function parseCoords (raw) {
  * Extract all valid [lat,lng] pairs from a record's geometry field
  * (handles multi-value fields).
  */
-function recordPoints (record, feed, module) {
+function recordPoints(record, feed, module) {
   const field = module.fields.find(f => f.name === feed.geometryField)
   if (!field) return []
 
@@ -99,7 +99,7 @@ function recordPoints (record, feed, module) {
   return values.map(parseCoords).filter(Boolean)
 }
 
-async function loadFeeds () {
+async function loadFeeds() {
   if (!$ComposeAPI) return
 
   processing.value = true
@@ -129,6 +129,28 @@ async function loadFeeds () {
       let records = []
       try {
         const feedClone = compose.PageBlockGeometry.makeFeed(feed)
+        const prefilter = feedClone.options.prefilter
+
+        if (prefilter) {
+          const record = props.record
+          const user = $Auth?.user || {}
+
+          if (!record && (prefilter.includes('${record') || prefilter.includes('${ownerID}'))) {
+            console.warn(
+              'Skipping geometry feed: prefilter uses record variables outside a record page',
+            )
+            continue
+          }
+
+          feedClone.options.prefilter = evaluatePrefilter(prefilter, {
+            record,
+            user,
+            recordID: record?.recordID || '0',
+            ownerID: record?.ownedBy || '0',
+            userID: user?.userID || '0',
+          })
+        }
+
         records = await compose.PageBlockGeometry.RecordFeed(
           $ComposeAPI,
           module,
@@ -181,7 +203,7 @@ async function loadFeeds () {
 /**
  * Marker click → navigate to the record page (same pattern as CalendarBlock).
  */
-function onMarkerClick ({ marker }) {
+function onMarkerClick({ marker }) {
   const { recordID, moduleID } = marker || {}
   if (!recordID || !moduleID) return
 
@@ -209,7 +231,7 @@ function onMarkerClick ({ marker }) {
   }
 }
 
-function refresh () {
+function refresh() {
   loadFeeds()
 }
 

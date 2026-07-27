@@ -14,10 +14,7 @@
             size="small"
             @click="calendarApi?.prev()"
           />
-          <span
-            v-if="!header.hideTitle"
-            class="text-xl font-semibold"
-          >
+          <span v-if="!header.hideTitle" class="text-xl font-semibold">
             {{ title }}
           </span>
           <Button
@@ -40,10 +37,7 @@
               @click="changeView(view)"
             />
           </div>
-          <div
-            v-if="!header.hideToday"
-            class="col-span-12 sm:col-span-3 flex justify-end"
-          >
+          <div v-if="!header.hideToday" class="col-span-12 sm:col-span-3 flex justify-end">
             <Button
               :label="$t('block.calendar.today')"
               size="small"
@@ -64,11 +58,7 @@
           <ProgressSpinner style="width: 24px; height: 24px" />
         </div>
 
-        <FullCalendar
-          ref="calendarRef"
-          class="h-full"
-          :options="calendarOptions"
-        />
+        <FullCalendar ref="calendarRef" class="h-full" :options="calendarOptions" />
       </div>
     </div>
   </PageBlock>
@@ -85,6 +75,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list'
+import { evaluatePrefilter } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -94,6 +85,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 const route = useRoute()
 const router = useRouter()
@@ -119,7 +111,7 @@ const views = computed(() => {
   const h = header.value
   return props.block.reorderViews
     ? props.block.reorderViews(h.views)
-    : (h.views || ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listMonth'])
+    : h.views || ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listMonth']
 })
 
 const calendarApi = computed(() => {
@@ -143,7 +135,7 @@ const calendarOptions = computed(() => ({
 /**
  * Called when the calendar date range changes (navigation, view change).
  */
-function onDatesSet (info) {
+function onDatesSet(info) {
   title.value = info.view.title
   currentView.value = info.view.type
   loadEvents(info.start, info.end)
@@ -152,14 +144,14 @@ function onDatesSet (info) {
 /**
  * Changes the current calendar view.
  */
-function changeView (view) {
+function changeView(view) {
   calendarApi.value?.changeView(view)
 }
 
 /**
  * Loads events for all feeds within the given date range.
  */
-async function loadEvents (start, end) {
+async function loadEvents(start, end) {
   if (!start || !end) return
   if (!$ComposeAPI) return
 
@@ -202,6 +194,28 @@ async function loadEvents (start, end) {
         try {
           // Clone feed to avoid mutating the original (prefilter interpolation)
           const feedClone = compose.PageBlockCalendar.makeFeed(feed)
+          const prefilter = feedClone.options.prefilter
+
+          if (prefilter) {
+            const record = props.record
+            const user = $Auth?.user || {}
+
+            if (!record && (prefilter.includes('${record') || prefilter.includes('${ownerID}'))) {
+              console.warn(
+                'Skipping calendar feed: prefilter uses record variables outside a record page',
+              )
+              continue
+            }
+
+            feedClone.options.prefilter = evaluatePrefilter(prefilter, {
+              record,
+              user,
+              recordID: record?.recordID || '0',
+              ownerID: record?.ownedBy || '0',
+              userID: user?.userID || '0',
+            })
+          }
+
           const feedEvents = await compose.PageBlockCalendar.RecordFeed(
             $ComposeAPI,
             module,
@@ -230,7 +244,7 @@ async function loadEvents (start, end) {
 /**
  * Handles click on a calendar event — navigates to the record page.
  */
-function handleEventClick ({ event }) {
+function handleEventClick({ event }) {
   const { recordID, moduleID } = event.extendedProps || {}
   if (!moduleID || !recordID) return
 
@@ -247,7 +261,7 @@ function handleEventClick ({ event }) {
         ...route.query,
         recordPageID: recordPage.pageID,
         recordID: recordID,
-      }
+      },
     })
     return
   }

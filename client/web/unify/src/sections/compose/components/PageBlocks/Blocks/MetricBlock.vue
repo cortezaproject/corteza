@@ -62,6 +62,7 @@ import { compose } from '@planetcrust/human-js'
 import numeral from 'numeral'
 import PageBlock from './PageBlock.vue'
 import MetricItem from './Metric/MetricItem.vue'
+import { evaluatePrefilter } from '../../../lib/record-filter'
 const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
 
 const props = defineProps({
@@ -72,6 +73,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 
 const processing = ref(false)
@@ -170,6 +172,25 @@ function computeChange(current, previous) {
   return change
 }
 
+function usesRecordVars(filter) {
+  return !!filter && (filter.includes('${record') || filter.includes('${ownerID}'))
+}
+
+function interpolateFilter(filter) {
+  if (!filter) return filter
+
+  const record = props.record
+  const user = $Auth?.user || {}
+
+  return evaluatePrefilter(filter, {
+    record,
+    user,
+    recordID: record?.recordID || '0',
+    ownerID: record?.ownedBy || '0',
+    userID: user?.userID || '0',
+  })
+}
+
 /**
  * Pulls fresh data from the API using PageBlockMetric.fetch().
  */
@@ -194,9 +215,30 @@ async function refresh() {
       const m = metrics[mi]
       if (!m.moduleID) continue
 
+      const customFilter = m.comparison?.customFilter
+
+      if (!props.record && (usesRecordVars(m.filter) || usesRecordVars(customFilter))) {
+        console.warn('Skipping metric: filter uses record variables outside a record page')
+        continue
+      }
+
+      // Evaluated copies — reused for both the current and comparison fetch so
+      // interpolation (e.g. ${recordID}) runs once against the same values.
+      let evaluatedMetric
+      let evaluatedCustomFilter
+      try {
+        evaluatedMetric = { ...m, filter: interpolateFilter(m.filter) }
+        evaluatedCustomFilter = interpolateFilter(customFilter)
+      } catch (e) {
+        console.warn('Skipping metric: filter interpolation failed', mi, e)
+        continue
+      }
+
       // Fetch current value
-      const vals = await props.block.fetch({ m }, reporter)
-      rtr.push(vals)
+      const vals = await props.block.fetch({ m: evaluatedMetric }, reporter)
+      // Keyed by the configured metric index — formatResponse() looks values up
+      // by that index, and skipped metrics must not shift the ones after them.
+      rtr[mi] = vals
 
       // Fetch comparison if enabled
       if (m.comparison?.enabled && m.comparison?.period) {
@@ -206,11 +248,11 @@ async function refresh() {
 
           // Previous value = total as of N periods ago (records before the cutoff)
           const cutoffFilter = buildPreviousCutoffFilter(m.comparison.period)
-          const prevFilter = m.comparison.customFilter
-            ? combineFilters(m.comparison.customFilter, cutoffFilter)
-            : combineFilters(m.filter, cutoffFilter)
+          const prevFilter = evaluatedCustomFilter
+            ? combineFilters(evaluatedCustomFilter, cutoffFilter)
+            : combineFilters(evaluatedMetric.filter, cutoffFilter)
 
-          const prevMetric = { ...m, filter: prevFilter }
+          const prevMetric = { ...evaluatedMetric, filter: prevFilter }
           const prevVals = await props.block.fetch({ m: prevMetric }, reporter)
           const previousValue = extractValue(prevVals)
 
@@ -245,7 +287,11 @@ async function refresh() {
   }
 }
 
-watch(() => props.block.options, () => refresh(), { deep: true })
+watch(
+  () => props.block.options,
+  () => refresh(),
+  { deep: true },
+)
 
 onMounted(() => {
   refresh()
@@ -268,6 +314,7 @@ function drillDown(metric, value) {
   if (!drillDownOpts.enabled) return
 
   const drillDownValue = metric.label || value?.label || value?.value || ''
+  // Raw filter — the child RecordListBlock evaluates the prefilter itself.
   const prefilter = metric.filter ? `(${metric.filter})` : ''
 
   if (drillDownOpts.blockID) {

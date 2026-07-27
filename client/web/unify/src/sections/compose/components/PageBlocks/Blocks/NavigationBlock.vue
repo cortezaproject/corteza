@@ -1,14 +1,14 @@
 <template>
   <PageBlock :block="block">
-    <div v-if="!navigationItems.length" class="flex items-center justify-center h-full p-3 text-muted-color italic">
+    <div
+      v-if="!navigationItems.length"
+      class="flex items-center justify-center h-full p-3 text-muted-color italic"
+    >
       {{ $t('block.navigation.noNavigationItems') }}
     </div>
 
     <div v-else class="h-full w-full overflow-auto">
-      <div
-        class="flex h-full"
-        :class="navContainerClass"
-      >
+      <div class="flex h-full" :class="navContainerClass">
         <template v-for="(navItem, index) in navigationItems" :key="`nav-${index}`">
           <!-- Dropdown type -->
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
@@ -68,16 +68,19 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import PageBlock from './PageBlock.vue'
+import { evaluatePrefilter } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
+  record: { type: Object, default: undefined },
 })
 
+const $Auth = inject('$Auth', {})
 const route = useRoute()
 const menuRefs = ref({})
 
@@ -119,22 +122,53 @@ function displayDropdownText(navItem) {
 
 function getDropdownItems(navItem) {
   if (navItem.type === 'dropdown') {
-    return (navItem.options?.item?.dropdown?.items || []).map(item => ({
-      label: item.label,
-      url: item.url,
-      target: selectTargetOption(item.target),
-      command: () => { if (item.url) window.open(item.url, selectTargetOption(item.target)) },
-      separator: item.delimiter,
-    }))
+    return (navItem.options?.item?.dropdown?.items || []).map(item => {
+      const url = evaluateUrl(item.url)
+      return {
+        label: item.label,
+        url,
+        target: selectTargetOption(item.target),
+        command: () => {
+          if (url) window.open(url, selectTargetOption(item.target))
+        },
+        separator: item.delimiter,
+      }
+    })
   }
   return []
 }
 
+// A URL that isn't a valid template (or uses record vars without a record) keeps working unchanged.
+function evaluateUrl(url) {
+  if (!url) return url
+
+  const record = props.record
+  if (!record && (url.includes('${record') || url.includes('${ownerID}'))) {
+    return url
+  }
+
+  try {
+    const user = $Auth?.user || {}
+    return evaluatePrefilter(url, {
+      record,
+      user,
+      recordID: record?.recordID || '0',
+      ownerID: record?.ownedBy || '0',
+      userID: user?.userID || '0',
+    })
+  } catch {
+    return url
+  }
+}
+
 function selectTargetOption(target) {
   switch (target) {
-    case 'sameTab': return '_self'
-    case 'newTab': return '_blank'
-    default: return '_self'
+    case 'sameTab':
+      return '_self'
+    case 'newTab':
+      return '_blank'
+    default:
+      return '_self'
   }
 }
 
@@ -147,7 +181,8 @@ function itemStyle(navItem) {
 }
 
 function getRouterLink(navItem) {
-  if (['dropdown', 'text-section'].includes(navItem.type) || isComposeDropdownPage(navItem)) return null
+  if (['dropdown', 'text-section'].includes(navItem.type) || isComposeDropdownPage(navItem))
+    return null
 
   if (navItem.type === 'compose') {
     const pageID = navItem.options?.item?.pageID
@@ -158,17 +193,16 @@ function getRouterLink(navItem) {
     const isSamePage = pageID === route.params?.pageID
     const query = pageLayoutID ? { layoutID: pageLayoutID } : {}
 
-    return isSamePage
-      ? { ...route, query }
-      : { name: 'page', params: { pageID }, query }
+    return isSamePage ? { ...route, query } : { name: 'page', params: { pageID }, query }
   }
 
   return null
 }
 
 function getHrefLink(navItem) {
-  if (['dropdown', 'text-section'].includes(navItem.type) || isComposeDropdownPage(navItem)) return null
-  return navItem.type === 'url' ? navItem.options?.item?.url : null
+  if (['dropdown', 'text-section'].includes(navItem.type) || isComposeDropdownPage(navItem))
+    return null
+  return navItem.type === 'url' ? evaluateUrl(navItem.options?.item?.url) : null
 }
 </script>
 
