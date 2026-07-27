@@ -41,6 +41,9 @@ never tab/step visibility; governance status never locks editing.
 
 - `StepNav.vue` — step list; badges flip to amber (changes-requested) /
   green (approved) from per-step governance status.
+- `ManageNav.vue` — the Manage & Monitor rail. Deliberately NOT a step list:
+  prop-driven (`activeKey` in, `select` out) over `config/manageNav.js`, so
+  that tab navigates without steps. Visual twin of the dashboard's own rail.
 - `WizardToolbar.vue` — back, centered prev/next stepper, Save (form steps
   only), capability-gated Approve / Request changes.
 - `StepStatusBanner.vue` — surfaces the changes-requested review note.

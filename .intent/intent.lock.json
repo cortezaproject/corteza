@@ -1511,6 +1511,11 @@
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/src/sections/project/components/wizard/ManageNav.vue": {
+      "h": "c421d3a85d81",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-27"
+    },
     "client/web/unify/src/sections/project/components/wizard/StepNav.vue": {
       "h": "77faaa19f631",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
@@ -1636,6 +1641,11 @@
       "doc": "client/web/unify/src/sections/project/config/config.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/src/sections/project/config/manageNav.js": {
+      "h": "0152cf1b58f1",
+      "doc": "client/web/unify/src/sections/project/config/config.intent.md",
+      "t": "2026-07-27"
+    },
     "client/web/unify/src/sections/project/config/pipeline.js": {
       "h": "409bfaecaf83",
       "doc": "client/web/unify/src/sections/project/config/config.intent.md",
@@ -1692,9 +1702,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/stores/projects.js": {
-      "h": "ee8d975ff1a4",
+      "h": "d36b5e11eaf6",
       "doc": "client/web/unify/src/sections/project/stores/projects.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/stores/report.js": {
       "h": "8a5bc6dbc3c4",
@@ -1752,9 +1762,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "1d3ad13a8eeb",
+      "h": "a9a31a0fbfae",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/taq/components/builder/condition/ConditionBuilder.vue": {
       "h": "de9585325ab4",

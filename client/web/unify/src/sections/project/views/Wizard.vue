@@ -2,12 +2,58 @@
   <Teleport to="#topbar-title" defer>
     <span class="flex items-center gap-2">
       <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
-      <Tag
-        v-if="project"
-        :value="versionLabel"
-        :severity="isLive ? 'secondary' : 'warn'"
-        class="!text-xs"
-      />
+      <template v-if="project">
+        <!-- Revision switcher trigger — replaces the old static version Tag.
+             role="button"/tabindex mirror the icon-trigger idiom used for
+             other popup Menus in this app (e.g. TabsBlock.vue's tab menu). -->
+        <span
+          role="button"
+          tabindex="0"
+          class="inline-flex items-center gap-1 cursor-pointer rounded px-1 hover:bg-emphasis"
+          :aria-label="$t('project.wizard.revisionSwitcher.trigger')"
+          v-tooltip.bottom="$t('project.wizard.revisionSwitcher.trigger')"
+          @click="toggleRevisionMenu"
+          @keydown.enter.stop.prevent="toggleRevisionMenu"
+          @keydown.space.stop.prevent="toggleRevisionMenu"
+        >
+          <Tag :value="versionLabel" :severity="isLive ? 'secondary' : 'warn'" class="!text-xs" />
+          <i class="pi pi-chevron-down text-xs text-muted-color" />
+        </span>
+
+        <!-- Popup menu: the revision chain (see stores/projects.js
+             listRevisions/revisionsFor), each entry showing its 1-based
+             version + lifecycle status with the open one marked, then a
+             separator and the "New revision from this one" action. -->
+        <Menu ref="revisionMenuRef" :model="revisionMenuItems" popup>
+          <template #item="{ item, props }">
+            <a
+              v-if="item.kind === 'revision'"
+              v-ripple
+              v-bind="props.action"
+              class="flex items-center gap-3"
+              :class="{ 'font-semibold': item.current }"
+            >
+              <i class="pi pi-check text-primary text-xs" :class="{ invisible: !item.current }" />
+              <span class="flex-1">{{ item.label }}</span>
+              <Tag
+                :value="$t(`project.status.${item.status}`)"
+                :severity="revisionStatusSeverity(item.status)"
+                class="!text-xs"
+              />
+            </a>
+            <a
+              v-else-if="item.kind === 'new-revision'"
+              v-ripple
+              v-bind="props.action"
+              v-tooltip.bottom="item.tooltip"
+              class="flex items-center gap-2"
+            >
+              <i class="pi pi-plus text-xs" />
+              <span>{{ item.label }}</span>
+            </a>
+          </template>
+        </Menu>
+      </template>
     </span>
   </Teleport>
 
@@ -268,15 +314,21 @@
       </div>
     </div>
 
-    <!-- Manage & Monitor: placeholder until this tab's screens are built. No
-         step sidebar — this tab carries no wizard steps. -->
-    <div v-else class="flex-1 flex items-center justify-center p-3 min-h-0">
-      <div class="max-w-sm text-center text-muted-color">
-        <i class="pi pi-gauge text-4xl mb-3 block" />
-        <p class="text-base font-medium text-color mb-1">
-          {{ $t('project.wizard.manageMonitor.title') }}
-        </p>
-        <p class="text-sm">{{ $t('project.wizard.manageMonitor.description') }}</p>
+    <!-- Manage & Monitor: its own left rail (grouped nav, never STEPS — see
+         config/manageNav.js) beside a content pane. No step sidebar — this
+         tab carries no wizard steps. Sections are shell-only for now: a
+         titled empty panel per section, no board/metrics/activity content
+         yet. -->
+    <div v-else class="flex-1 flex gap-4 p-3 min-h-0">
+      <aside class="w-72 shrink-0 h-full">
+        <ManageNav :active-key="activeSection" @select="activeSection = $event" />
+      </aside>
+
+      <div class="flex-1 min-w-0 min-h-0 overflow-y-auto rounded-xl border border-surface p-4">
+        <h2 class="text-lg font-medium mb-1">
+          {{ activeSectionItem ? $t(activeSectionItem.labelKey) : '' }}
+        </h2>
+        <p class="text-sm text-muted-color">{{ $t('project.manage.panel.comingSoon') }}</p>
       </div>
     </div>
 
@@ -491,6 +543,7 @@ import UserCreateDialog from '@/sections/project/components/users/UserCreateDial
 import UserDetailDialog from '@/sections/project/components/users/UserDetailDialog.vue'
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import MembersDialog from '@/sections/project/components/project/MembersDialog.vue'
+import ManageNav from '@/sections/project/components/wizard/ManageNav.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
@@ -507,6 +560,7 @@ import DataSensitivityStep from '@/sections/project/components/wizard/steps/Data
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
+import { MANAGE_NAV } from '@/sections/project/config/manageNav'
 import {
   PUBLISH_GOVERNANCE_STEP_KEY,
   STEPS,
@@ -545,6 +599,90 @@ const versionLabel = computed(() =>
   }),
 )
 
+// --- Revision switcher (wizard-header topbar) -------------------------------
+// Drives the popup Menu Teleported above, replacing the old static version
+// Tag. The chain comes from stores/projects.js's revisionsFor getter (keyed
+// by chain root, but reads by any project in the chain) — falls back to just
+// the open revision while the chain is still loading (or its fetch silently
+// failed), so the switcher is never an empty shell.
+const revisionMenuRef = ref()
+function toggleRevisionMenu(event) {
+  revisionMenuRef.value?.toggle(event)
+}
+const revisionChain = computed(() => {
+  if (!project.value) return []
+  const chain = store.revisionsFor(project.value.projectID)
+  return (chain.length ? chain : [project.value]).slice().sort((a, b) => a.revision - b.revision)
+})
+
+// Severities mirror ProjectList.vue / ProjectSidebar.vue's project-status Tag
+// mapping (active/published live, draft in review, suspended flagged).
+const REVISION_STATUS_SEVERITY = {
+  active: 'success',
+  published: 'success',
+  draft: 'info',
+  suspended: 'warn',
+  archived: 'secondary',
+}
+const revisionStatusSeverity = status => REVISION_STATUS_SEVERITY[status] || 'secondary'
+
+// Selecting another revision navigates to its own wizard; selecting the
+// already-open one (or re-clicking through the menu) is a harmless no-op.
+function goToRevision(projectId) {
+  if (String(projectId) === String(project.value?.projectID)) return
+  router.push({ name: 'project.wizard', params: { projectId } })
+}
+
+// AGREED BEHAVIOUR: prevent rather than fail. The "New revision from this
+// one" entry is disabled — with a tooltip explaining why — whenever the
+// backend would reject createRevision, derived from state already loaded
+// above: this revision isn't active, or the chain already has a draft (the
+// backend allows only one draft per chain). onCreateRevision's catch below is
+// only a backstop for the race where someone else created a draft first.
+const currentNotActive = computed(() => project.value?.status !== 'active')
+const chainHasDraft = computed(() => revisionChain.value.some(r => r.status === 'draft'))
+const newRevisionDisabled = computed(() => currentNotActive.value || chainHasDraft.value)
+const newRevisionDisabledReason = computed(() => {
+  if (currentNotActive.value)
+    return t('project.wizard.revisionSwitcher.newRevisionDisabledNotActive')
+  if (chainHasDraft.value)
+    return t('project.wizard.revisionSwitcher.newRevisionDisabledDraftExists')
+  return ''
+})
+
+const revisionMenuItems = computed(() => {
+  const items = revisionChain.value.map(rev => ({
+    kind: 'revision',
+    label: t('project.dashboard.version', { number: rev.revision + 1 }),
+    status: rev.status,
+    current: rev.projectID === project.value?.projectID,
+    command: () => goToRevision(rev.projectID),
+  }))
+  items.push({ separator: true })
+  items.push({
+    kind: 'new-revision',
+    label: t('project.wizard.revisionSwitcher.newRevision'),
+    disabled: newRevisionDisabled.value,
+    tooltip: newRevisionDisabled.value ? newRevisionDisabledReason.value : '',
+    command: onCreateRevision,
+  })
+  return items
+})
+
+const creatingRevision = ref(false)
+async function onCreateRevision() {
+  if (creatingRevision.value || newRevisionDisabled.value) return
+  creatingRevision.value = true
+  try {
+    const draft = await store.createRevision(project.value.projectID)
+    router.push({ name: 'project.wizard', params: { projectId: draft.projectID } })
+  } catch (err) {
+    $toast.toastErrorHandler(t('project.wizard.revisionSwitcher.toastCreateFailed'))(err)
+  } finally {
+    creatingRevision.value = false
+  }
+}
+
 // Load the full project (members for capability resolution) + user directory.
 usersStore.load()
 watch(
@@ -555,6 +693,20 @@ watch(
       console.error('Failed to load project', err)
       $toast.toastErrorHandler(t('project.wizard.toastLoadFailed'))(err)
     })
+  },
+  { immediate: true },
+)
+
+// Revision switcher's chain (see stores/projects.js listRevisions) — same
+// load-on-projectId-change shape as the project fetch above, kept as its own
+// watcher since it's an independent request. A failure just leaves the
+// switcher showing only the open revision (see revisionChain's fallback
+// below); it isn't critical enough to toast.
+watch(
+  () => route.params.projectId,
+  id => {
+    if (!id) return
+    store.listRevisions(id).catch(err => console.error('Failed to load project revisions', err))
   },
   { immediate: true },
 )
@@ -771,6 +923,30 @@ watch(activeTab, tab => {
   const query = { ...route.query, tab }
   if (!list.some(s => s.key === route.query.step)) query.step = list[0]?.key || undefined
   router.replace({ query })
+})
+
+// --- Manage & Monitor section --------------------------------------------
+// The M&M tab's own left rail (ManageNav) switches its content pane via a
+// `section` query param — the tab carries no wizard steps (config/manageNav.js),
+// so this is the only navigation state it needs. Same ref + watch shape as
+// activeTab above: ManageNav's @select sets activeSection directly (like
+// Tabs' v-model:value does for activeTab), and the watcher keeps the query in
+// sync so a reload or deep link resumes on the same section.
+const VALID_SECTIONS = MANAGE_NAV.flatMap(section => section.items.map(item => item.key))
+const activeSection = ref(
+  (VALID_SECTIONS.includes(route.query.section) && route.query.section) || 'board',
+)
+watch(activeSection, section => {
+  router.replace({ query: { ...route.query, section } })
+})
+// The active item's own config entry (label, icon/category) — drives the
+// shell panel's heading below.
+const activeSectionItem = computed(() => {
+  for (const section of MANAGE_NAV) {
+    const item = section.items.find(i => i.key === activeSection.value)
+    if (item) return item
+  }
+  return null
 })
 
 // --- Active step -----------------------------------------------------------

@@ -138,6 +138,22 @@ export const useProjectsStore = defineStore('projects', () => {
   const membersByProject = ref({})
   const membersFor = computed(() => projectId => membersByProject.value[String(projectId)] || [])
 
+  // A project's revision chain — the project rows that share its
+  // rootProjectID (see the Project class' rootProjectID/parentRevisionID).
+  // Each entry is a project row, so it's absorbed into the shared `projects`
+  // cache like `load()`; the ordered chain itself is kept separately here.
+  // Always keyed by the chain ROOT, never by the revision asked about, so
+  // every member of a chain reads and writes one cache entry.
+  const revisionsByProject = ref({})
+  const revisionsFor = computed(
+    () => projectId => revisionsByProject.value[String(rootIdFor(projectId))] || [],
+  )
+
+  // The chain root for any project in it; originals fall back to their own ID.
+  function rootIdFor(projectId) {
+    return findById.value(projectId)?.rootProjectID || projectId
+  }
+
   // --- payload mapping --------------------------------------------------------
 
   // Merge a fresh backend payload into the cached project (or insert it).
@@ -484,6 +500,37 @@ export const useProjectsStore = defineStore('projects', () => {
     const step = govStep(id, PUBLISH_GOVERNANCE_STEP_KEY)
     step.status = GOVERNANCE_STATUS_DRAFT
     step.note = ''
+    return result
+  }
+
+  // --- revisions --------------------------------------------------------------
+  // Revisions are project rows in a chain (root / parent / number), not a
+  // field to increment — see the intent doc. `listRevisions` loads the whole
+  // chain; `createRevision` branches a new draft off an active project.
+
+  // Load a project's revision chain. Each entry is a project row, so it's
+  // absorbed into the shared `projects` cache the same way `load()` absorbs
+  // the plain project list; the ordered chain is then cached here.
+  async function listRevisions(projectId) {
+    const { set = [] } = await $SystemAPI.projectListRevisions({ projectID: projectId })
+    const chain = set.map(raw => absorb(raw))
+    // Key by the root, not by what was asked for: the chain is one thing, and
+    // asking about revision 2 must not shadow the entry written for revision 1.
+    const rootId = chain[0]?.rootProjectID || rootIdFor(projectId)
+    revisionsByProject.value[String(rootId)] = chain
+    return chain
+  }
+
+  // Branch a new draft revision off an active project. The backend enforces
+  // its own rules (parent must be `active`; only one draft allowed per chain)
+  // and rejects otherwise — those errors propagate to the caller rather than
+  // being swallowed here. Resync the chain cache for the root afterwards,
+  // same as other mutations resync via load rather than patching in place.
+  async function createRevision(projectId) {
+    const raw = await $SystemAPI.projectCreateRevision({ projectID: projectId })
+    touch()
+    const result = absorb(raw)
+    await listRevisions(result.rootProjectID)
     return result
   }
 
@@ -1784,6 +1831,9 @@ export const useProjectsStore = defineStore('projects', () => {
     updateProject,
     removeProject,
     publishProject,
+    revisionsFor,
+    listRevisions,
+    createRevision,
     addMember,
     updateMember,
     removeMember,

@@ -294,6 +294,22 @@ dashboard:
         description: Detail what needs to be done…
       review:
         scope: What will be reviewed and what outcomes are expected…
+# The wizard's Manage & Monitor tab left rail (see config/manageNav.js) —
+# section headers and monitor-group item labels. Category item labels reuse
+# the shared dashboard.categories.* keys above: same five categories, same
+# wording, on both the live dashboard and this per-revision surface.
+manage:
+  nav:
+    monitor: Monitor
+    categories: Categories
+  views:
+    board: Board
+    metrics: Metrics
+    activity: Activity
+  # Placeholder body for each section's shell panel until its board/metrics/
+  # activity content is built.
+  panel:
+    comingSoon: This section isn't built yet. Board, metrics and activity content are coming soon.
 sidebar:
   projects: Projects
 newDialog:
@@ -328,22 +344,34 @@ wizard:
     # members are no longer a wizard step, just a topbar button next to the
     # publish approval cluster (see project.publish below).
     members: Members
+  # Revision switcher — replaces the old static version Tag Teleported to the
+  # app topbar. Lists every revision in the open project's chain (see
+  # stores/projects.js listRevisions/createRevision/revisionsFor and the
+  # "Lifecycle & revisions" locked contract in project.intent.md), each
+  # showing its 1-based version (project.dashboard.version above) and
+  # lifecycle status (project.status above), with the open one marked. The
+  # last entry branches a new draft off an active revision — disabled, never
+  # left to fail, whenever the backend would reject it: the open revision
+  # isn't active, or the chain already has a draft (one draft per chain).
+  revisionSwitcher:
+    trigger: Switch to another revision of this project, or start a new one
+    newRevision: New revision from this one
+    newRevisionDisabledNotActive: >-
+      Only an active revision can branch a new draft — publish this revision first.
+    newRevisionDisabledDraftExists: >-
+      This chain already has a draft revision — open or publish it before starting another.
+    toastCreateFailed: Could not create a new revision. Please try again.
   # Three fixed tabs, shown to every member regardless of capability — only
   # the review actions inside them (per-step Approve/Request changes, and the
   # project-level Request approval/Approve/Publish cluster) are
   # capability-gated. Build and Govern each carry their own step sidebar (see
-  # config/pipeline.js's `tab` field); Manage & Monitor has no steps of its
-  # own yet (see manageMonitor below).
+  # config/pipeline.js's `tab` field); Manage & Monitor deliberately has no
+  # steps — it renders its own left rail from config/manageNav.js instead, and
+  # its labels live under project.manage.* rather than here.
   tabs:
     build: Build
     govern: Govern
     manageMonitor: Manage & Monitor
-  manageMonitor:
-    title: Monitoring is coming soon
-    description: >-
-      Once a project is live, this tab will bring together its post-market monitoring, incident
-      and change management, and periodic review activity in one place — everything this
-      project's Quality Management System tracks after publish.
   # Per-step "Request changes" and "Approve" — available on every Build/Govern
   # step, any current status, any time, for a member with grant-approval
   # capability. There is no per-step submit stage: approving directly needs no
