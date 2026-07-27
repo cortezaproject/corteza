@@ -10,6 +10,7 @@ depends-on:
   - lib/vue/src/stores/useModuleStore.js
   - lib/vue/src/stores/usePageStore.js
   - lib/vue/src/stores/useUserStore.js
+  - lib/js/src/compose
 touched-by:
   - client/web/unify/src/sections/compose/components/PageBlocks
   - client/web/unify/src/sections/compose/components/Common/RecordListFilter.vue
@@ -63,6 +64,13 @@ pages, page blocks, filters and the TAQ builder.
 - CFieldRecordViewer resolves labels via `recordStore.resolveRecordLabels` and
   navigates on click (injected `$recordRoutes` wins; else page-store record page,
   honoring `extraOptions.recordSelectorDisplayOption`: sameTab/newTab/modal).
+- CFieldRecordEditor resolves its Record field's `prefilter` through
+  `compose.interpolateTemplate` before splicing it into the CQL filter, using
+  `inject('$recordContext', null)` (the record being edited, provided by
+  compose's RecordBlock) and `inject('$Auth', null)` (app-wide auth plugin) as
+  the source of the `record`/`recordID`/`ownerID`/`user`/`userID` template
+  variables. Falls back to the raw prefilter string on any interpolation
+  failure, so existing non-templated configurations can't start throwing.
 
 ## When changing this
 

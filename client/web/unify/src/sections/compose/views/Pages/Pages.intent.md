@@ -11,7 +11,8 @@ depends-on:
   - lib/vue/src/stores/useRecordStore.js
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/views/Pages/RecordView.layout.test.js
 ---
 
 # Public page views
@@ -37,6 +38,9 @@ produces — they never define pages, only display them.
 - `View.vue` — renders a non-record page's block grid.
 - `RecordView.vue` — record page in view/create/edit mode; also embedded by
   `RecordModal` (see its sidecar).
+- `RecordView.layout.test.js` — layout-selection/block-visibility ordering:
+  each re-resolve trigger, the save case, and that block conditions react to
+  value edits while layout does not.
 
 ## When changing this
 
@@ -45,3 +49,7 @@ produces — they never define pages, only display them.
   dropped. `meta.hidden` blocks stay in the list (Grid/tabs need them) while
   expression/role-invisible blocks are removed entirely. Keep `View.vue`,
   `RecordView.vue`, and the builder's mirror logic consistent.
+- On record pages, layout selection runs only after the record resolves and
+  re-runs at transitions that change what the page is about (record swap,
+  mode change, save) — never on field-value edits, unlike block visibility,
+  which does react to them. See `RecordView.intent.md` for specifics.

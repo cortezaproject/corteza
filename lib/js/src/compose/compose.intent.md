@@ -33,7 +33,7 @@ classes, never with raw API payloads.
 - `types/namespace.ts`, `types/page.ts`, `types/page-layout.ts`, `types/page-block/` — page tree; one block class per page-block kind, registered in `page-block/index.ts`.
 - `types/chart/` — chart config classes (generic, funnel, gauge, radar).
 - `types/revision.ts` — record revision types.
-- `events.ts` — compose event/trigger constructors for the eventbus; `helpers/idgen.ts` — `tempID-…` UID generator for not-yet-saved entities.
+- `events.ts` — compose event/trigger constructors for the eventbus; `helpers/idgen.ts` — `tempID-…` UID generator for not-yet-saved entities; `helpers/interpolate.ts` — `interpolateTemplate` evaluates a JS template literal against record/user variables.
 
 ## Contract (what apps may rely on)
 
@@ -42,6 +42,7 @@ classes, never with raw API payloads.
 - `Record.cleanValues` is the frozen snapshot from construction — dirty-checking in editors depends on it.
 - IDs are strings (`NoID = '0'`); date fields are `Date` objects, cast from ISO8601 strings.
 - `toJSON` emits the wire shape (values back to the raw array), so classes can be posted directly to the API.
+- `interpolateTemplate(template, { record, user, recordID, ownerID, userID })` (exported from the barrel as `compose.interpolateTemplate`) evaluates `template` as a JS template literal via `new Function`; `template` must be trusted page-author configuration (a prefilter, URL, label, … typed into a page/field builder by an admin), never end-user input. The variables are passed as explicit function parameters rather than closed over from the enclosing scope: bindings referenced only inside the template string are invisible to bundlers and can be dropped or renamed when minified.
 
 ## When changing this
 

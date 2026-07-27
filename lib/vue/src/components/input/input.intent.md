@@ -8,6 +8,7 @@ depends-on:
   - lib/vue/src/stores/useModuleStore.js
   - lib/vue/src/stores/useRecordStore.js
   - lib/vue/src/stores/useChartStore.js
+  - lib/js/src/compose
 touched-by:
   - client/web/unify/src/sections/taq/components/builder/form/inputs/registry.ts
   - client/web/unify/src/sections/admin
@@ -46,6 +47,12 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 ## Cross-cutting
 
 - Selectors resolve their APIs via inject (`$SystemAPI`, `$ComposeAPI`, `$AutomationAPI`) — host app must provide them.
+- `CInputRecord` interpolates its `prefilter` prop through `compose.interpolateTemplate`
+  before querying, using `inject('$recordContext', null)` (the record currently being
+  edited; only present under compose's RecordBlock → CFieldEditor → CFieldRecordEditor
+  chain, so record variables fall back to `'0'` for other hosts, e.g. workflow prompt
+  inputs) and `inject('$Auth', null)` (app-wide auth plugin) for the `user`/`userID`
+  variables. Falls back to the raw prefilter string on any interpolation failure.
 - The TAQ builder input registry maps automation input types onto these components; renaming an export or changing a v-model shape breaks TAQ step config forms.
 - `CInputLLM` / `CInputModel` mark their inner Select `formControl: { novalidate: true }`: hosts may wrap them in a named `FormField`/`CFormGroup` for resolver error display without PrimeVue form state hijacking the select value — v-model stays the only value channel.
 

@@ -23,7 +23,7 @@ blocks whose visibility rules fail.
 
 ## UX capabilities
 
-- Blocks render through the shared `Grid`; with no matching layout the page's own block positions are used as fallback.
+- Blocks render through the shared `Grid`; layout selection honours an explicit `?layoutID=` (e.g. from a navigation block) when that layout's own condition/roles pass, else falls back to normal order; with no matching layout the page's own block positions are used as fallback.
 - Editors (`canUpdatePage`) get topbar shortcuts to the page builder and page editor; a translator button appears per resource-translation settings.
 - Distinct empty states for "page has no blocks" and "page not found".
 

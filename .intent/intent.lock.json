@@ -667,9 +667,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/Chart/Report/ReportEdit.vue": {
-      "h": "8c0364d6ae98",
+      "h": "27d93f117a09",
       "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
+    },
+    "client/web/unify/src/sections/compose/components/Common/InterpolationFootnote.vue": {
+      "h": "081cffd3c800",
+      "doc": "client/web/unify/src/sections/compose/components/Common/Common.intent.md",
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/Common/RecordListFilter.vue": {
       "h": "176016922ec9",
@@ -782,14 +787,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/AutomationBlock.vue": {
-      "h": "7f2a7a319bde",
+      "h": "840a4573d6f4",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CalendarBlock.vue": {
-      "h": "dff3894eb3e3",
+      "h": "8cce8f0e3cd2",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CBulkRecordEditModal.vue": {
       "h": "6491d7446566",
@@ -797,9 +802,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ChartBlock.vue": {
-      "h": "156f6a1de84e",
+      "h": "9844e66682d7",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ChatbotInboxBlock.vue": {
       "h": "53f81ef67a9c",
@@ -817,14 +822,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CommentBlock.vue": {
-      "h": "0c3074465bf0",
+      "h": "a2e1e0e36a5b",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ContentBlock.vue": {
-      "h": "604ad63e1915",
+      "h": "2b605d3c9c40",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/FileBlock.vue": {
       "h": "6fb969924d9d",
@@ -832,14 +837,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/GeometryBlock.vue": {
-      "h": "5e07ed10c824",
+      "h": "567b42d3181f",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/IFrameBlock.vue": {
-      "h": "8dca3981187d",
+      "h": "1c3f21acdfed",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/Metric/MetricItem.vue": {
       "h": "56f63b603974",
@@ -847,14 +852,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/MetricBlock.vue": {
-      "h": "b70051beea37",
+      "h": "8d5053adcd6e",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/NavigationBlock.vue": {
-      "h": "a2f5c167df45",
+      "h": "3bc28f3fab49",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/PageBlock.vue": {
       "h": "e02203304546",
@@ -862,24 +867,24 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ProgressBlock.vue": {
-      "h": "a917d78d56ff",
+      "h": "6ceb6b61a9b3",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordBlock.vue": {
-      "h": "b160f34d2fc1",
+      "h": "3e07de1e1cc5",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordListBlock.vue": {
-      "h": "7f3a1bb47198",
+      "h": "e32dc37eb40d",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordOrganizerBlock.vue": {
-      "h": "b2afb2f6ba16",
+      "h": "40b1f9cef9b6",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordRevisionsBlock.vue": {
       "h": "d8357f2fe6cf",
@@ -897,14 +902,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/AutomationConfigurator.vue": {
-      "h": "111d05346672",
+      "h": "e1283de4dd3a",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/CalendarConfigurator.vue": {
-      "h": "684dcd5fc03b",
+      "h": "a1e3b22707d9",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/ChartConfigurator.vue": {
       "h": "49fc792c5e2e",
@@ -917,14 +922,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/CommentConfigurator.vue": {
-      "h": "972106d259c3",
+      "h": "e0fd096b5595",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/ContentConfigurator.vue": {
-      "h": "e72de0fea2ae",
+      "h": "5a420c4c114d",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/FileConfigurator.vue": {
       "h": "b28dc3b731f0",
@@ -932,29 +937,29 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/GeometryConfigurator.vue": {
-      "h": "0521721e5c9e",
+      "h": "d7c3760a8b40",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/IFrameConfigurator.vue": {
-      "h": "fd01caf4b901",
+      "h": "2ce382e8f365",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/MetricConfigurator.vue": {
-      "h": "534149121272",
+      "h": "be16b7b09d0e",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/NavigationConfigurator.vue": {
-      "h": "355c504db409",
+      "h": "de7f39371c95",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/ProgressConfigurator.vue": {
-      "h": "918af8fe07e8",
+      "h": "18219c0b26ee",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordConfigurator.vue": {
       "h": "58a38ea878af",
@@ -962,14 +967,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordListConfigurator.vue": {
-      "h": "123ec8b4ded7",
+      "h": "0cee5b348590",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue": {
-      "h": "ea6fd454c359",
+      "h": "82a49a484693",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordRevisionsConfigurator.vue": {
       "h": "4f6b449c934d",
@@ -992,9 +997,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.vue": {
-      "h": "3bddfd1a8d52",
+      "h": "9167a38d0a8a",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtonsEditor.vue": {
       "h": "04d6bbe4b03b",
@@ -1027,9 +1032,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/Reminders/ReminderManager.vue": {
-      "h": "695ced6a1581",
+      "h": "7f3945726172",
       "doc": "client/web/unify/src/sections/compose/components/Reminders/Reminders.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/Reminders/ReminderSidebar.vue": {
       "h": "4377431d1e20",
@@ -1057,9 +1062,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/composables/usePageVisibility.test.ts": {
-      "h": "d043b5da7bcd",
+      "h": "6cd8087979bd",
       "doc": "client/web/unify/src/sections/compose/composables/composables.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/composables/usePageVisibility.ts": {
       "h": "dc5bf31efb2c",
@@ -1087,14 +1092,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/lib/record-filter.js": {
-      "h": "a760c5fb1476",
+      "h": "62af0eb1d573",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/lib/record-filter.test.ts": {
-      "h": "11da9253f039",
+      "h": "3d359a048c5c",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
       "h": "aa600022741b",
@@ -1132,9 +1137,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/stores/reminder.js": {
-      "h": "b929485fa200",
+      "h": "84788965f63f",
       "doc": "client/web/unify/src/sections/compose/stores/reminder.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/stores/translator.ts": {
       "h": "946016ab2251",
@@ -1162,9 +1167,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/views/Admin/Modules/Records/Create.vue": {
-      "h": "69e305b6ad44",
+      "h": "46744861fcc9",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Records/Create.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/views/Admin/Modules/Records/Edit.vue": {
       "h": "0140422232ce",
@@ -1182,9 +1187,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.vue": {
-      "h": "827282285273",
+      "h": "4b591703c8c2",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/List.vue": {
       "h": "3d3675cfa5fa",
@@ -1211,15 +1216,20 @@
       "doc": "client/web/unify/src/sections/compose/views/Pages/Index.intent.md",
       "t": "2026-07-23"
     },
+    "client/web/unify/src/sections/compose/views/Pages/RecordView.layout.test.js": {
+      "h": "890e5f6557c0",
+      "doc": "client/web/unify/src/sections/compose/views/Pages/Pages.intent.md",
+      "t": "2026-07-27"
+    },
     "client/web/unify/src/sections/compose/views/Pages/RecordView.vue": {
-      "h": "d494a17be808",
+      "h": "66b99c8e19d9",
       "doc": "client/web/unify/src/sections/compose/views/Pages/RecordView.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/views/Pages/View.vue": {
-      "h": "9b0d12916b2e",
+      "h": "ef0fe138144c",
       "doc": "client/web/unify/src/sections/compose/views/Pages/View.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/home/composables/useColumnResize.js": {
       "h": "74640d41a1e7",
@@ -1692,9 +1702,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/stores/users.js": {
-      "h": "6f763e5e1657",
+      "h": "b98016d4cbff",
       "doc": "client/web/unify/src/sections/project/stores/users.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/utils/fields.js": {
       "h": "2e09090ca5c6",
@@ -2351,10 +2361,15 @@
       "doc": "lib/js/src/compose/compose.intent.md",
       "t": "2026-07-23"
     },
-    "lib/js/src/compose/index.ts": {
-      "h": "d2aa3e8f7bd9",
+    "lib/js/src/compose/helpers/interpolate.ts": {
+      "h": "5d9c72f5fecf",
       "doc": "lib/js/src/compose/compose.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
+    },
+    "lib/js/src/compose/index.ts": {
+      "h": "a6ac557ad43e",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-07-27"
     },
     "lib/js/src/compose/types/chart/base.ts": {
       "h": "8a74a005a782",
@@ -3192,9 +3207,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/field/editors/CFieldRecordEditor.vue": {
-      "h": "71bb4562b0cc",
+      "h": "34afc1163fe1",
       "doc": "lib/vue/src/components/field/field.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "lib/vue/src/components/field/editors/CFieldSelectEditor.vue": {
       "h": "ae8f92d5804e",
@@ -3357,9 +3372,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/input/CFormList.vue": {
-      "h": "d4d523ece4b1",
+      "h": "e4870d844c80",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "lib/vue/src/components/input/CInputAgent.vue": {
       "h": "d13d7a6a6eec",
@@ -3432,9 +3447,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/input/CInputRecord.vue": {
-      "h": "bb82225bbbe1",
+      "h": "9841f53af87c",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-27"
     },
     "lib/vue/src/components/input/CInputRole.vue": {
       "h": "6da2f5e3e71e",

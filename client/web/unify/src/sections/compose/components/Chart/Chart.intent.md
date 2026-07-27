@@ -5,6 +5,7 @@ backfilled: true
 owner: fe
 depends-on:
   - client/web/unify/src/sections/compose/lib/charts.js
+  - client/web/unify/src/sections/compose/components/Common/InterpolationFootnote.vue
 touched-by:
   - client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ChartBlock.vue
   - client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue
@@ -29,7 +30,7 @@ Chart model classes and echarts option assembly come from
 ## Map
 
 - ChartRenderer.vue — props `chart` (model) + `reporter` (+ optional `record` for prefilter vars); renders via CChart, emits `updated` and `drill-down` on datapoint click
-- Report/ReportEdit.vue — builder editor for one report: source module, preset/custom filters, and the per-chart-type option editor
+- Report/ReportEdit.vue — builder editor for one report: source module, preset/custom filters (renders Common's `InterpolationFootnote` with `dependsOnPlacement`, since a chart is namespace-level and may end up placed on a record or non-record page), and the per-chart-type option editor
 - Report/GenericChart.vue, FunnelChart.vue, GaugeChart.vue, RadarChart.vue — per-chart-type metric/dimension config editors, exported through Report/index.js and dispatched by chart type
 
 ## When changing this

@@ -44,3 +44,9 @@ screen: page/block visibility evaluation and resource-translation settings.
   hides the layout/block rather than showing it.
 - `fetchBlockID` is the identity contract between builder (tempID) and saved
   pages — RecordView/View.vue and Builder.vue rely on identical behavior.
+- The composable itself has no timing or reactivity: `determineLayout` and
+  `evaluateBlocks` are pure per-call evaluations. Callers decide when to
+  invoke them — `RecordView.vue` re-resolves layout only at major mode/record
+  transitions but re-evaluates block visibility on every record-value edit
+  (see its sidecar); don't add caching or reactivity here that would fight
+  that split.
