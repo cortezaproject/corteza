@@ -517,6 +517,7 @@ metric:
     filterLabel: Filter
     labelLabel: Label
     labelPlaceholder: Label
+    listTitle: Metrics
     metricAggregateLabel: Aggregation operation
     metricFieldLabel: Field
     metricFieldPlaceholder: Dimension field

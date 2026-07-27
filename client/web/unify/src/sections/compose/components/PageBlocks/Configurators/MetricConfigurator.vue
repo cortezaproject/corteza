@@ -1,16 +1,17 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex justify-end">
-      <Button
-        :label="$t('block.metric.add')"
-        icon="pi pi-plus"
-        severity="secondary"
-        size="small"
-        @click="addMetric"
-      />
-    </div>
+    <CFormGroup :label="$t('block.metric.edit.listTitle')">
+      <template #actions>
+        <Button
+          :label="$t('block.metric.add')"
+          icon="pi pi-plus"
+          severity="secondary"
+          size="small"
+          @click="addMetric"
+        />
+      </template>
 
-    <CFormList
+      <CFormList
       v-model="metrics"
       draggable
       :empty-message="$t('block.metric.edit.empty')"
@@ -20,13 +21,16 @@
     >
       <template #row="{ item: metric, index: i }">
         <Button
-          :icon="expandedMetric === i ? 'pi pi-chevron-up' : 'pi pi-pencil'"
+          :icon="expandedMetric === i ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
           text
           rounded
           size="small"
-          @click="expandedMetric = expandedMetric === i ? -1 : i"
+          @click="toggleMetric(i)"
         />
-        <span class="text-sm font-semibold truncate justify-self-start">
+        <span
+          class="text-sm font-semibold truncate cursor-pointer select-none w-full"
+          @click="toggleMetric(i)"
+        >
           {{ metric.label || $t('block.metric.defaultMetricLabel') }}
         </span>
       </template>
@@ -231,6 +235,7 @@
         </div>
       </template>
     </CFormList>
+    </CFormGroup>
   </div>
 </template>
 
@@ -258,6 +263,10 @@ const block = inject('blockDraft')
 const expandedMetric = ref(0)
 
 const modules = computed(() => moduleStore.set || [])
+
+function toggleMetric(i) {
+  expandedMetric.value = expandedMetric.value === i ? -1 : i
+}
 
 // Resolve the theme's text color for the swatch preview
 const defaultTextColor = ref('')
