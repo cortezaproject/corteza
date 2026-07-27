@@ -1,29 +1,11 @@
 # Working in this repo
 
-This repo runs on the **intent system** (`.intent/SPEC.md` is the constitution,
-`.intent/TODO.md` the outstanding work). Every covered folder has a
-`<foldername>.intent.md`, load-bearing files have `<name>.intent.md` sidecars.
-These docs are verifiable contracts, not notes.
+## Intent system (opt-in)
 
-## The law (every session, every task)
-
-1. **Before editing a covered file**: read its governing intent doc — the
-   sibling `<name>.intent.md` if present, else the nearest folder doc up the
-   tree. Section-level constitutions (e.g. `sections/project/project.intent.md`)
-   record human-ruled **locked contracts** and **WIP zones**.
-2. **Locked contracts change only by human ruling** — ask via AskUserQuestion
-   (interview style: targeted questions, concrete options) before touching one.
-   `> **WIP:**` zones: do not rely on them; interview before building on them.
-   `> **DRIFT:**` notes: recorded intent the code doesn't meet yet.
-3. **New features are intent-first**: update the intent docs, get confirmation,
-   then implement.
-4. **After changing covered code**: reconcile the governing doc (update it, or
-   confirm intent is unchanged), then `node .intent/intent.mjs sync <file>`.
-   `node .intent/intent.mjs check` must pass before committing — CI enforces it.
-   (Optional stricter local gate: `make intent-hooks` activates a pre-commit
-   check; not part of the standard setup.)
-5. Use `/intent-task` for changes and `/intent-audit` for drift audits — they
-   encode the standard procedures; don't improvise your own flow.
+The intent system (`.intent/SPEC.md`, `*.intent.md` contract docs) is
+**opt-in**: it applies only when the human invokes `/intent-task` (changes) or
+`/intent-audit` (drift audits) — those skills carry the full procedure. When
+not opted in, do not edit `*.intent.md` files or run intent tooling.
 
 ## Conventions
 

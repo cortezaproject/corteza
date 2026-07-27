@@ -1,8 +1,6 @@
 name: intent
 on:
-  pull_request:
-  push:
-    branches: ['2026.*.x', 'feature-*']
+  workflow_dispatch:
 jobs:
   check:
     runs-on: ubuntu-latest

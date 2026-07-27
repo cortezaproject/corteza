@@ -48,23 +48,23 @@ Only proceed on approval.
    governing intent docs as constraints and end with prettier/gofmt on the
    files they changed. Anything needing judgment — or touching locked/WIP
    territory — stays in the main context.
-3. PostToolUse hooks will name governing docs on every edit — reconcile as you
-   go, not in a batch at the end. Edits made by subagents are yours to
-   reconcile: review their diffs against the governing docs before Phase 4.
+3. Run `node .intent/intent.mjs check --changed` as you edit to see which
+   governing docs need reconciling — reconcile as you go, not in a batch at
+   the end. Edits made by subagents are yours to reconcile: review their
+   diffs against the governing docs before Phase 4.
 
 ## Phase 4 — Verify & close
 
 1. prettier (FE) / gofmt (Go) on changed files only.
-2. Run the touched package's unit tests, plus the e2e specs mapped to the
-   change: `node .intent/intent.mjs affected <changed files>` prints them;
-   run via `cd client/web/unify && npx playwright test <specs>` (requires the
-   dev stack running + `.env.e2e`; if unavailable, say so in the report
-   instead of skipping silently). Report results honestly.
+2. Run the touched package's unit tests. Do NOT run e2e specs — they are slow
+   and human-run for now. Instead, list the affected specs in the report:
+   `node .intent/intent.mjs affected <changed files>` prints them; the human
+   runs `npx playwright test <specs>` themselves.
 
-   Parallelize with background Bash, not agents: launch unit tests and e2e as
-   background commands in one message, and run the format→sync→check chain
-   (steps 1 and 3, which must stay sequential with each other) while they run.
-   Read every exit code yourself; a background failure is still a failure.
+   Parallelize with background Bash, not agents: launch unit tests as
+   background commands and run the format→sync→check chain (steps 1 and 3,
+   which must stay sequential with each other) while they run. Read every
+   exit code yourself; a background failure is still a failure.
 
 3. `node .intent/intent.mjs sync <changed files>` then
    `node .intent/intent.mjs check` — must be green (never pipe through
