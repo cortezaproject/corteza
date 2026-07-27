@@ -2,7 +2,7 @@
   <div class="overflow-x-auto">
     <div
       v-if="!items.length && !$slots.footer && emptyMessage"
-      class="text-muted-color text-sm p-3 border border-surface rounded-border bg-highlight text-center"
+      class="text-muted-color text-sm p-3 border border-surface rounded-border bg-emphasis text-center"
     >
       {{ emptyMessage }}
     </div>

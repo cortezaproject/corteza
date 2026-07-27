@@ -6,7 +6,7 @@
   >
     <div class="flex flex-col flex-1 min-w-0" :class="textOpacityClass">
       <div class="flex items-center gap-1">
-        <span class="font-medium text-primary text-sm">
+        <span class="font-medium text-muted-color text-sm uppercase tracking-wide">
           <slot name="label">{{ label }}</slot>
         </span>
         <i
