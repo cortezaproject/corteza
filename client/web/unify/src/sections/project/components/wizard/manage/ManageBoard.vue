@@ -38,7 +38,6 @@
             class="w-72 shrink-0"
             :status="col.status"
             :items="col.items"
-            :disabled="disabled"
             :dragged-key="draggedKey"
             :add-label="quickAddLabel"
             @drop-item="onDropItem(col.status, $event)"
@@ -155,6 +154,11 @@ const props = defineProps({
   // IS the revision row; its rootProjectID is the chain root work items are
   // filed against (see stores/projects.js's Project class).
   project: { type: Object, required: true },
+  // Passed by Wizard.vue to every M&M section, but deliberately NOT enforced
+  // here: creating and moving work items is ungated, matching the dashboard's
+  // own New-event button (views/dashboard/CategoryView.vue), which has never
+  // been capability-gated. Ruled 2026-07-28 — revisit when member roles and
+  // what each may do are refined.
   disabled: { type: Boolean, default: false },
 })
 
@@ -255,7 +259,6 @@ const draggedKey = ref(null)
 // "Update flows are optimistic with rollback on push failure", applied to
 // these two stores' updateStatus() actions.
 async function onDropItem(status, key) {
-  if (props.disabled) return
   const item = findItem(key)
   if (!item || item.status === status) return
   try {
@@ -302,7 +305,6 @@ const quickAddSchema = computed(() =>
 )
 
 function onQuickAdd(status) {
-  if (props.disabled) return
   createStatus.value = status
   createDialogVisible.value = true
 }

@@ -1522,7 +1522,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/BoardColumn.vue": {
-      "h": "212a927a38d3",
+      "h": "005252a5e95b",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1532,7 +1532,7 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageBoard.vue": {
-      "h": "a6110709bd86",
+      "h": "abee0616b839",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1687,9 +1687,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/config/eventForm.js": {
-      "h": "4c16f996deb8",
+      "h": "1b6000c7c700",
       "doc": "client/web/unify/src/sections/project/config/config.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/config/eventKinds.js": {
       "h": "b0c7a39791aa",

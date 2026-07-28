@@ -11,8 +11,25 @@
     @dragleave="onDragLeave"
     @drop="onDrop"
   >
+    <!-- Status accent — the SAME hex the status donut and the EventBadge
+         pills use (config/chartColors STATUS_COLORS), so a column, a chart
+         slice and a badge for the same status always read as one colour.
+         Inline style, not a Tailwind class: these are validated hexes owned
+         by chartColors, and there is no class equivalent for them. -->
+    <div
+      class="shrink-0 h-1 rounded-t-lg"
+      :style="{ backgroundColor: statusColor }"
+      aria-hidden="true"
+    />
     <div class="shrink-0 px-3 py-2 flex items-center justify-between gap-2 border-b border-surface">
-      <span class="text-sm font-medium truncate">{{ status }}</span>
+      <span class="flex items-center gap-2 min-w-0">
+        <span
+          class="w-2 h-2 rounded-full shrink-0"
+          :style="{ backgroundColor: statusColor }"
+          aria-hidden="true"
+        />
+        <span class="text-sm font-medium truncate">{{ status }}</span>
+      </span>
       <span class="flex items-center gap-1 shrink-0">
         <span class="text-xs text-muted-color rounded-full bg-surface px-1.5 py-0.5">
           {{ items.length }}
@@ -62,7 +79,8 @@
 
 <script setup>
 import BoardCard from './BoardCard.vue'
-import { ref } from 'vue'
+import { colorFor } from '@/sections/project/config/chartColors'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   status: { type: String, required: true },
@@ -77,6 +95,10 @@ const props = defineProps({
   addLabel: { type: String, default: '' },
 })
 const emit = defineEmits(['drop-item', 'card-dragstart', 'card-dragend', 'add-item', 'card-click'])
+
+// Resolved through colorFor rather than reading STATUS_COLORS directly, so an
+// unrecognised status degrades to the shared MUTED grey instead of undefined.
+const statusColor = computed(() => colorFor('status', props.status))
 
 const over = ref(false)
 

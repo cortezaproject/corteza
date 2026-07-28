@@ -248,19 +248,9 @@ export const EVENT_FORMS = {
     {
       fields: [
         title,
-        {
-          key: 'taskName',
-          labelKey: `${p}taskName`,
-          type: 'select',
-          options: [
-            'RBAC Review',
-            'AI Model Change',
-            'Risk Register Update',
-            'Compliance Audit',
-            'Custom…',
-          ],
-          required: true,
-        },
+        // `taskName` (a fixed preset list) was dropped from the form — it
+        // duplicated `title` without adding meaning. The backend column still
+        // exists and old rows keep their value; nothing writes it any more.
         {
           key: 'taskType',
           labelKey: `${p}taskType`,
@@ -276,7 +266,7 @@ export const EVENT_FORMS = {
           placeholderKey: `${pp}task.description`,
         },
         status(STATUS),
-        user('owner', true),
+        user('owner'),
         user('changeOwner'),
         { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
         { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
