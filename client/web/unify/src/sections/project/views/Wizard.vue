@@ -140,8 +140,31 @@
             <p class="text-sm text-muted-color">{{ headerHint }}</p>
           </div>
 
-          <div class="ml-auto flex items-center gap-3">
+          <!-- Per-step review lives HERE, not in a bottom bar (ruled
+               2026-07-28): it acts on the step whose header this is, so it
+               belongs beside its title and status. The PROJECT-level
+               request → approve → publish cluster is a different thing and
+               stays right-aligned in the tab row, where 2026-07-24 locked
+               it. Capability-gated: only a granter sees these at all. -->
+          <div class="ml-auto flex items-center gap-2 shrink-0">
             <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
+            <template v-if="activeStep && canGrant">
+              <Button
+                :label="$t('project.wizard.toolbar.requestChanges')"
+                icon="pi pi-exclamation-circle"
+                severity="secondary"
+                outlined
+                size="small"
+                @click="openRequestChanges"
+              />
+              <Button
+                :label="$t('project.wizard.toolbar.approve')"
+                icon="pi pi-check"
+                severity="success"
+                size="small"
+                @click="onApprove"
+              />
+            </template>
           </div>
         </div>
 
@@ -261,6 +284,23 @@
             <ResourceGraph :project="project" />
           </div>
         </div>
+
+        <!-- Save footer — INSIDE the step panel, not a bar across the whole
+             screen (ruled 2026-07-28). Form steps only: resource and
+             sensitivity steps persist each change as it's made and have
+             nothing to save. -->
+        <div
+          v-if="showStepSave"
+          class="shrink-0 border-t border-surface px-4 py-3 flex items-center justify-end"
+        >
+          <Button
+            :label="$t('project.wizard.toolbar.save')"
+            icon="pi pi-save"
+            size="small"
+            :disabled="!canWrite"
+            @click="onSave"
+          />
+        </div>
       </div>
     </div>
 
@@ -304,23 +344,6 @@
         />
       </div>
     </div>
-
-    <WizardToolbar
-      v-if="showToolbar"
-      :can-write="canWrite"
-      :can-grant="canGrant"
-      :show-save="showStepSave"
-      :can-prev="canPrev"
-      :can-next="canNext"
-      :step-index="stepIndex"
-      :step-count="navSteps.length"
-      @save="onSave"
-      @request-changes="openRequestChanges"
-      @approve="onApprove"
-      @prev="onPrev"
-      @next="onNext"
-      @back="onBack"
-    />
 
     <!-- Per-resource dialogs — every kind's Create + Detail dialog is mounted
          here exactly once and opened through the inspectResource/createResource
@@ -459,7 +482,7 @@
 
   <!-- Per-step "Request changes" — a granter can flag the active step (any
        Build or Govern step, any status, any time) with a required note.
-       Approving directly (WizardToolbar's Approve button) needs no dialog. -->
+       Approving directly (the step header's Approve button) needs no dialog. -->
   <Dialog
     v-model:visible="requestChanges.visible"
     modal
@@ -529,7 +552,6 @@ import ManageTask from '@/sections/project/components/wizard/manage/ManageTask.v
 import RevisionCompletenessBar from '@/sections/project/components/wizard/RevisionCompletenessBar.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
-import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
 import AgentsStep from '@/sections/project/components/wizard/steps/AgentsStep.vue'
 import AutomationsStep from '@/sections/project/components/wizard/steps/AutomationsStep.vue'
 import ChatbotsStep from '@/sections/project/components/wizard/steps/ChatbotsStep.vue'
@@ -1007,7 +1029,7 @@ const startResize = () => {
 // Direct review, no submit stage: a Build/Govern step only ever carries
 // 'draft' (the default), 'changes-requested' (raised anytime by a granter via
 // the per-step "Request changes" action) or 'approved' (raised anytime by a
-// granter via the per-step "Approve" action — see WizardToolbar). 'submitted'
+// granter via the per-step "Approve" action in the step header). 'submitted'
 // belongs to the Publish governance step alone, which lives in the topbar
 // toolbar cluster now, not in this step dispatch.
 const stepStatus = key =>
@@ -1021,7 +1043,6 @@ const reviewNote = computed(() =>
 // (there is no reopen/unlock action to undo an approve otherwise).
 const locked = computed(() => !canWrite.value)
 const showStatus = computed(() => !!activeStep.value)
-const showToolbar = computed(() => !!activeStep.value)
 // Save only makes sense on form steps — sensitivity/resource steps persist
 // each change immediately through their own store calls instead.
 const showStepSave = computed(() => activeStep.value?.type === 'form')
@@ -1134,25 +1155,6 @@ function goStep(key) {
   router.replace({ query: { ...route.query, step: key } })
 }
 
-// Leave the wizard and return to the project list.
-function onBack() {
-  router.push({ name: 'project.list' })
-}
-
-// --- Prev / Next stepper ---------------------------------------------------
-// Walk the active tab's step list (navSteps). The arrows disable at the ends.
-const stepPos = computed(() => navSteps.value.findIndex(s => s.key === activeKey.value))
-const stepIndex = computed(() => stepPos.value + 1) // 1-based, for display
-const canPrev = computed(() => stepPos.value > 0)
-const canNext = computed(() => stepPos.value < navSteps.value.length - 1)
-
-function onPrev() {
-  if (canPrev.value) goStep(navSteps.value[stepPos.value - 1].key)
-}
-function onNext() {
-  if (canNext.value) goStep(navSteps.value[stepPos.value + 1].key)
-}
-
 // --- Per-step actions ------------------------------------------------------
 // Governance mutations are session-local (see stores/projects.js), but still
 // routed through a try/catch — a store call can throw (e.g. the "publish"
@@ -1175,7 +1177,7 @@ function onSave() {
 
 // Direct "Approve" — a member with grant-approval capability can approve the
 // active step at any time, from any status (including re-approving after a
-// changes-requested flag was addressed). See WizardToolbar's Approve button.
+// changes-requested flag was addressed). See the step header's Approve button.
 function onApprove() {
   governanceAction(
     () => store.transitionStep(project.value.projectID, activeKey.value, 'approve'),
@@ -1222,24 +1224,29 @@ async function confirmRequestChanges() {
   background: transparent;
 }
 
+/* Squared segmented control (ruled 2026-07-28). The radii deliberately match
+   the rest of the section rather than the pill shape this used to have:
+   0.5rem on the track is the step/content panels' own rounding, 0.375rem on a
+   tab is what StepNav items and the step-header badge use. A fully-rounded
+   pill was the only element in the wizard speaking that language. */
 .wizard-tabs :deep(.p-tablist-tab-list) {
   display: inline-flex;
   gap: 0.25rem;
-  padding: 0.3rem;
+  padding: 0.25rem;
   border: 1px solid var(--p-content-border-color);
-  border-radius: 9999px;
+  border-radius: 0.5rem;
   background: var(--p-content-hover-background);
 }
 
 .wizard-tabs :deep(.p-tab) {
   border: 1px solid transparent;
-  border-radius: 9999px;
-  padding: 0.5rem 1.125rem;
+  border-radius: 0.375rem;
+  padding: 0.4rem 0.9rem;
   color: var(--p-text-muted-color);
   transition:
     background-color 150ms,
     color 150ms,
-    box-shadow 150ms;
+    border-color 150ms;
 }
 
 .wizard-tabs :deep(.p-tab:not(.p-tab-active):hover) {
@@ -1247,11 +1254,13 @@ async function confirmRequestChanges() {
   background: var(--p-content-background);
 }
 
+/* No drop shadow: the active tab is distinguished by fill + border + weight,
+   the same way an active StepNav item is. The shadow was the other half of
+   the borrowed pill look. */
 .wizard-tabs :deep(.p-tab-active) {
   background: var(--p-content-background);
   border-color: var(--p-content-border-color);
   color: var(--p-primary-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   font-weight: 600;
 }
 

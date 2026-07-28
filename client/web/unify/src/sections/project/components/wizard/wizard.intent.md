@@ -19,9 +19,8 @@ tests:
 
 ## Intention
 
-The moving parts of the project wizard: step-nav chrome, toolbar, review
-banner, the generic governance form renderer, and one panel per pipeline step
-(`steps/`). The Wizard view (`views/Wizard.vue`) owns state and dispatch;
+The moving parts of the project wizard: step-nav chrome, review banner, the
+generic governance form renderer, and one panel per pipeline step (`steps/`). The Wizard view (`views/Wizard.vue`) owns state and dispatch;
 everything here is presentational or a thin list over store caches.
 
 **Locked:** the step mechanism AND the step set. `config/pipeline.js` `STEPS`
@@ -32,10 +31,11 @@ Wizard.vue; `kindsThroughStep` then scopes the graph automatically.
 
 **Locked approval UX:** direct per-step review — a granter may Approve or
 Request changes (required note) on any Build/Govern step, any status, any
-time; there is no per-step submit stage. Only the well-known `publish`
-governance step keeps a request → approve → publish cycle, surfaced in the
-wizard header row beside the tabs (Wizard.vue), not in this toolbar. Capabilities gate ACTIONS only,
-never tab/step visibility; governance status never locks editing.
+time; there is no per-step submit stage — those actions live in the step
+header (ruled 2026-07-28). Only the well-known `publish` governance step keeps
+a request → approve → publish cycle, surfaced in the wizard header row beside
+the tabs. Capabilities gate ACTIONS only, never tab/step visibility;
+governance status never locks editing.
 
 ## Map
 
@@ -46,20 +46,19 @@ never tab/step visibility; governance status never locks editing.
   that tab navigates without steps. Visual twin of the dashboard's own rail.
 - `manage/` — one component per M&M section, mounted by Wizard.vue's
   key→component map; most just mount a shared panel from
-  `components/dashboard/` with the open revision. `ManageBoard.vue` is the
-  kanban (six item types, four shared status columns, optimistic drag
-  writes). One file per section is deliberate: sections are built
-  independently and must not collide. The board's columns always render — an
-  empty revision must stay usable, with per-column quick-add. Item viewing
-  and editing REUSE the dashboard's dialogs and drawers; never fork a
-  board-local editor, or the two surfaces drift.
-- `WizardToolbar.vue` — back, centered prev/next stepper, Save (form steps
-  only), capability-gated Approve / Request changes.
+  `components/dashboard/` with the open revision. One file per section is
+  deliberate: they are built independently and must not collide. The board's
+  columns always render — an empty revision must stay usable, with per-column
+  quick-add. Item viewing/editing REUSE the dashboard's dialogs and drawers;
+  never fork a board-local editor, or the two surfaces drift.
+- No bottom toolbar (ruled 2026-07-28): per-step review moved to the step
+  header, Save to a footer inside the step panel (form steps only), prev/next
+  dropped — the step nav already lists every step.
 - `StepStatusBanner.vue` — surfaces the changes-requested review note.
 - `GovernanceForm.vue` — schema-driven form renderer; also reused by the
   dashboard event/backlog dialogs (cross-folder consumer).
-- `LlmProviderDialog.vue` — LLM provider create (ResourceManagementStep);
-  `YesNo.vue` — boolean glyph (also used by project/MembersDialog).
+- `LlmProviderDialog.vue` (ResourceManagementStep); `YesNo.vue` — boolean
+  glyph, also used by project/MembersDialog.
 - `fria/` + Fria* step panels — the Art. 27 assessment: a determination step
   plus a scenarios step. Taxonomy keys are persisted data; scenario state is
   session-local scaffolding like other Govern steps, resetting on reload.

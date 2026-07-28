@@ -1731,11 +1731,6 @@
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-24"
     },
-    "client/web/unify/src/sections/project/components/wizard/WizardToolbar.vue": {
-      "h": "fd51abd2e7af",
-      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
-    },
     "client/web/unify/src/sections/project/components/wizard/YesNo.vue": {
       "h": "03b812887bc1",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
@@ -1942,7 +1937,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "d8c25e276248",
+      "h": "36685bae0e75",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
       "t": "2026-07-28"
     },
