@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/errors"
-	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service/dml"
 	"github.com/crusttech/human/server/system/types"
@@ -148,9 +148,15 @@ func (svc *project) ListRevisions(ctx context.Context, projectID uint64) (types.
 	}
 
 	rootID := p.RootProjectID()
+	// Deliberately unsorted at the store: `revision` is not declared sortable
+	// in project.cue, so asking the store to order by it fails outright with
+	// "invalid column name: revision" — which took the whole endpoint down, and
+	// with it the UI's revision switcher. A chain is a handful of rows, so we
+	// sort in Go below, after the root has been folded in (it has to be sorted
+	// after that anyway: the root is fetched separately and would otherwise
+	// just be prepended regardless of its revision number).
 	set, _, err := store.SearchProjects(ctx, svc.store, types.ProjectFilter{
 		RootProjectID: rootID,
-		Sorting:       filter.Sorting{Sort: filter.SortExprSet{{Column: "revision"}}},
 	})
 	if err != nil {
 		return nil, err
@@ -171,6 +177,9 @@ func (svc *project) ListRevisions(ctx context.Context, projectID uint64) (types.
 			set = append(types.ProjectSet{root}, set...)
 		}
 	}
+
+	// Oldest revision first — the order the switcher and any chain UI expect.
+	sort.SliceStable(set, func(i, j int) bool { return set[i].Revision < set[j].Revision })
 
 	return set, nil
 }
