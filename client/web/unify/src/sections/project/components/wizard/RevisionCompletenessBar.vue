@@ -1,28 +1,33 @@
 <template>
   <!-- Revision completeness — completed work items ÷ items assigned to the
        OPEN revision, across all six work-item types (five categories +
-       backlog items). Mounted once in Wizard.vue's tab row, right-aligned as
-       a sibling of the locked publish/approval cluster (see Wizard.vue) —
-       always visible on all three tabs, not gated on the publish flow.
-       Entirely board-endpoint-driven (GET /project-board/, see the script
-       below), never the events/backlog stores (nor, any more, the report
-       endpoint — see the script's own comment for why this moved off six
-       report() calls onto one board call), so it stays accurate past those
-       stores' 200-row-per-category cap. -->
-  <span v-if="hasData" class="flex items-center gap-2 shrink-0" v-tooltip.bottom="tooltip">
-    <template v-if="hasItems">
-      <ProgressBar :value="percent" :show-value="false" :style="progressStyle" class="w-24" />
-      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap">
-        {{ $t('project.wizard.completeness.label', { percent }) }}
+       backlog items). Sits at the FOOT OF THE MANAGE & MONITOR RAIL and
+       nowhere else (ruled 2026-07-28): it measures work items, so it only
+       appears on the tab that is about work items — it used to live in the
+       tab row and therefore also sat over Build and Govern, next to work it
+       wasn't measuring. Entirely board-endpoint-driven (GET /project-board/,
+       see the script below), never the events/backlog stores (nor, any more,
+       the report endpoint — see the script's own comment for why this moved
+       off six report() calls onto one board call), so it stays accurate past
+       those stores' 200-row-per-category cap. -->
+  <div v-if="hasData" class="flex flex-col gap-1.5" v-tooltip.top="tooltip">
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-xs font-medium text-muted-color uppercase tracking-wide">
+        {{ $t('project.wizard.completeness.title') }}
       </span>
-    </template>
-    <!-- Honest empty case: nothing assigned to this revision yet has no
-         meaningful percentage — say so rather than rendering "0%" or
-         dividing by zero. -->
-    <span v-else class="text-xs text-muted-color whitespace-nowrap">
-      {{ $t('project.wizard.completeness.empty') }}
-    </span>
-  </span>
+      <span class="text-xs text-muted-color tabular-nums whitespace-nowrap">
+        {{
+          hasItems
+            ? $t('project.wizard.completeness.label', { percent })
+            : $t('project.wizard.completeness.empty')
+        }}
+      </span>
+    </div>
+    <!-- Nothing assigned still renders the track, drawn at zero, so the rail
+         keeps its shape whether or not work exists. The tooltip carries the
+         explanation the old text-only empty state used to spell out inline. -->
+    <ProgressBar :value="percent" :show-value="false" :style="progressStyle" />
+  </div>
 </template>
 
 <script setup>

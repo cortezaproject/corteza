@@ -103,21 +103,6 @@
           />
         </template>
       </span>
-
-      <!-- Revision completeness — a SIBLING of the publish cluster above, not
-           nested inside it: the cluster span keeps its own ml-auto untouched
-           (LOCKED, ruled 2026-07-24) and stays the thing that pushes the
-           right-hand group off the tabs; this bar simply follows it in DOM
-           order, riding that same push rightward, so it never needs its own
-           margin/wrap handling and the cluster's flex-wrap-to-its-own-row
-           behaviour carries both together unchanged. Always visible on every
-           tab (not gated on !isLive like the cluster) — see
-           RevisionCompletenessBar.vue. -->
-      <RevisionCompletenessBar
-        v-if="project"
-        :project-id="rootProjectId"
-        :revision-id="project.projectID"
-      />
     </div>
 
     <div v-if="activeTab !== 'manage'" class="flex-1 flex gap-4 p-3 min-h-0">
@@ -288,8 +273,22 @@
          components/wizard/manage/, so they can be built out independently
          without every one of them editing this region of Wizard.vue. -->
     <div v-else class="flex-1 flex gap-4 p-3 min-h-0">
-      <aside class="w-72 shrink-0 h-full">
-        <ManageNav :active-key="activeSection" @select="activeSection = $event" />
+      <!-- Rail + revision progress. The bar lives at the FOOT OF THIS RAIL and
+           on no other tab (ruled 2026-07-28): it measures work items assigned
+           to the open revision, so it belongs beside the sections that show
+           them, not in the tab row where it also sat over Build and Govern. -->
+      <aside class="w-72 shrink-0 h-full flex flex-col gap-3 min-h-0">
+        <ManageNav
+          class="flex-1 min-h-0"
+          :active-key="activeSection"
+          @select="activeSection = $event"
+        />
+        <RevisionCompletenessBar
+          v-if="project"
+          :project-id="rootProjectId"
+          :revision-id="project.projectID"
+          class="shrink-0 rounded-xl border border-surface bg-surface p-3"
+        />
       </aside>
 
       <div

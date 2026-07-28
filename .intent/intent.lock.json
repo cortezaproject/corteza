@@ -1647,7 +1647,7 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/components/wizard/RevisionCompletenessBar.vue": {
-      "h": "355c8f619ea0",
+      "h": "e59478499328",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1942,7 +1942,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "0e383fffbbd7",
+      "h": "d8c25e276248",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
       "t": "2026-07-28"
     },

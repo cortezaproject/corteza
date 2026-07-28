@@ -500,12 +500,17 @@ wizard:
   # cluster, always visible (see components/wizard/RevisionCompletenessBar.vue).
   # Completed ÷ assigned across all six work-item types (five categories plus
   # backlog items) for the open revision.
+  # Foot of the Manage & Monitor rail (components/wizard/RevisionCompletenessBar
+  # .vue) — that tab only, since it measures work items. The empty case still
+  # draws the track at zero and leans on emptyTooltip for the explanation.
   completeness:
+    title: Revision progress
     label: '{percent}% complete'
     tooltip: '{completed} of {total} work items assigned to this revision are completed.'
-    empty: Nothing assigned yet
-    emptyTooltip: Nothing has been assigned to this revision yet, so there's no completeness
-      percentage to show.
+    empty: Nothing assigned
+    emptyTooltip: No work items are assigned to this revision yet. Assign items to it from any
+      item's editor, or create them on this tab's board, and this bar tracks how many are
+      completed.
 governance:
   status:
     draft: Draft
