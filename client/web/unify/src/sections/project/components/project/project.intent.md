@@ -26,13 +26,12 @@ contract lives one level up in `sections/project/project.intent.md`.
 
 ## Map
 
-- `NewProjectDialog.vue` — two-step create: (1) name/description, (2) the AI
-  Act **Deployer category questions**, which drive the backend's FriaRequired
-  derivation. Their placement here was locked, but that ruling was REVERSED
-  on 2026-07-28: creation becomes name + description only and the Govern
-  tab's FRIA flow takes over the determination. The questions come out when
-  that flow lands, never before — deleting them early leaves nothing deciding
-  whether a FRIA is required.
+- `NewProjectDialog.vue` — name + description only. The AI Act deployer
+  questions that used to be step 2 moved to the Govern tab's FRIA
+  determination step (ruled 2026-07-28, reversing the earlier lock that kept
+  them here). Note the backend still derives `FriaRequired` from fields
+  creation no longer sends, so nothing durable decides it until the FRIA
+  backend lands — the Govern determination is session-local for now.
 - `MembersDialog.vue` — THE members management surface (replaced the old
   members wizard step): per-member role preset select (config/roles),
   derived capability columns (read / write / request / grant approval), add

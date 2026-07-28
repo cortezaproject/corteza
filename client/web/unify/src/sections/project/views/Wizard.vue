@@ -150,7 +150,7 @@
           <div
             class="min-h-0"
             :class="isResourceStep ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
-            :style="{ width: leftPct + '%' }"
+            :style="{ width: activeTab === 'build' ? leftPct + '%' : '100%' }"
           >
             <template v-if="isResourceStep">
               <StepStatusBanner
@@ -227,11 +227,27 @@
                 :project="project"
                 :disabled="locked"
               />
+              <FriaDeterminationStep
+                v-else-if="isFriaDetermination"
+                v-model="working"
+                :disabled="locked"
+              />
+              <FriaScenariosStep
+                v-else-if="isFriaScenarios"
+                :project="project"
+                :disabled="locked"
+              />
+              <FriaHarmStep v-else-if="isFriaHarm" :project="project" :disabled="locked" />
+              <FriaTriggerStep v-else-if="isFriaTrigger" :project="project" :disabled="locked" />
+              <FriaPartiesStep v-else-if="isFriaParties" :project="project" :disabled="locked" />
+              <FriaRightsStep v-else-if="isFriaRights" :project="project" :disabled="locked" />
+              <FriaVectorsStep v-else-if="isFriaVectors" :project="project" :disabled="locked" />
             </template>
           </div>
 
-          <!-- Drag handle -->
+          <!-- Drag handle — Build only, like the graph it resizes. -->
           <div
+            v-if="activeTab === 'build'"
             class="shrink-0 w-1.5 bg-emphasis hover:bg-primary relative cursor-col-resize group select-none flex items-center justify-center transition-colors"
             :class="{ '!bg-primary': resizing }"
             @pointerdown="startResize"
@@ -243,7 +259,10 @@
             />
           </div>
 
-          <div class="overflow-hidden p-4 min-h-0 flex-1">
+          <!-- Resource graph — Build only. The Build tab is canvas-centric by
+               locked contract; Govern is form work and the graph added nothing
+               there, so the step panel takes the full width instead. -->
+          <div v-if="activeTab === 'build'" class="overflow-hidden p-4 min-h-0 flex-1">
             <ResourceGraph :project="project" />
           </div>
         </div>
@@ -493,7 +512,7 @@ import ManageActivity from '@/sections/project/components/wizard/manage/ManageAc
 import ManageBoard from '@/sections/project/components/wizard/manage/ManageBoard.vue'
 import ManageFeature from '@/sections/project/components/wizard/manage/ManageFeature.vue'
 import ManageIncident from '@/sections/project/components/wizard/manage/ManageIncident.vue'
-import ManageMetrics from '@/sections/project/components/wizard/manage/ManageMetrics.vue'
+import ManageOverview from '@/sections/project/components/wizard/manage/ManageOverview.vue'
 import ManagePrivacy from '@/sections/project/components/wizard/manage/ManagePrivacy.vue'
 import ManageReview from '@/sections/project/components/wizard/manage/ManageReview.vue'
 import ManageTask from '@/sections/project/components/wizard/manage/ManageTask.vue'
@@ -510,9 +529,17 @@ import PermissionsStep from '@/sections/project/components/wizard/steps/Permissi
 import UsersStep from '@/sections/project/components/wizard/steps/UsersStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
+import FriaDeterminationStep from '@/sections/project/components/wizard/steps/FriaDeterminationStep.vue'
+import FriaHarmStep from '@/sections/project/components/wizard/steps/FriaHarmStep.vue'
+import FriaPartiesStep from '@/sections/project/components/wizard/steps/FriaPartiesStep.vue'
+import FriaRightsStep from '@/sections/project/components/wizard/steps/FriaRightsStep.vue'
+import FriaScenariosStep from '@/sections/project/components/wizard/steps/FriaScenariosStep.vue'
+import FriaTriggerStep from '@/sections/project/components/wizard/steps/FriaTriggerStep.vue'
+import FriaVectorsStep from '@/sections/project/components/wizard/steps/FriaVectorsStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
+import { friaDeterminationValues } from '@/sections/project/config/friaDeterminationForm'
 import { MANAGE_NAV } from '@/sections/project/config/manageNav'
 import {
   PUBLISH_GOVERNANCE_STEP_KEY,
@@ -783,7 +810,7 @@ watch(activeTab, tab => {
 // sync so a reload or deep link resumes on the same section.
 const VALID_SECTIONS = MANAGE_NAV.flatMap(section => section.items.map(item => item.key))
 const activeSection = ref(
-  (VALID_SECTIONS.includes(route.query.section) && route.query.section) || 'board',
+  (VALID_SECTIONS.includes(route.query.section) && route.query.section) || 'overview',
 )
 watch(activeSection, section => {
   router.replace({ query: { ...route.query, section } })
@@ -793,8 +820,8 @@ watch(activeSection, section => {
 // under components/wizard/manage/ so the sections due to be built out next
 // (metrics, activity, the five categories) don't collide editing this file.
 const MANAGE_SECTION_COMPONENTS = {
+  overview: ManageOverview,
   board: ManageBoard,
-  metrics: ManageMetrics,
   activity: ManageActivity,
   incident: ManageIncident,
   feature: ManageFeature,
@@ -821,6 +848,13 @@ const activeStep = computed(
 )
 const isSummary = computed(() => activeKey.value === 'summary')
 const isResourceMgmt = computed(() => activeKey.value === 'resource-management')
+const isFriaDetermination = computed(() => activeKey.value === 'fria-determination')
+const isFriaScenarios = computed(() => activeKey.value === 'fria-scenarios')
+const isFriaHarm = computed(() => activeKey.value === 'fria-harm')
+const isFriaTrigger = computed(() => activeKey.value === 'fria-trigger')
+const isFriaParties = computed(() => activeKey.value === 'fria-parties')
+const isFriaRights = computed(() => activeKey.value === 'fria-rights')
+const isFriaVectors = computed(() => activeKey.value === 'fria-vectors')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
 const isAutomations = computed(() => activeKey.value === 'automations')
@@ -1021,6 +1055,13 @@ const STEP_BLURB = {
   'resource-management': 'project.wizard.blurb.resourceManagement',
   'data-model': 'project.wizard.blurb.dataModel',
   'data-sensitivity': 'project.wizard.blurb.dataSensitivity',
+  'fria-determination': 'fria.wizard.blurb.determination',
+  'fria-scenarios': 'fria.wizard.blurb.scenarios',
+  'fria-harm': 'fria.wizard.blurb.harm',
+  'fria-trigger': 'fria.wizard.blurb.trigger',
+  'fria-parties': 'fria.wizard.blurb.parties',
+  'fria-rights': 'fria.wizard.blurb.rights',
+  'fria-vectors': 'fria.wizard.blurb.vectors',
   connections: 'project.wizard.blurb.connections',
   automations: 'project.wizard.blurb.automations',
   agents: 'project.wizard.blurb.agents',
@@ -1047,6 +1088,8 @@ function loadWorking() {
     working.value = vals
   } else if (isResourceMgmt.value) {
     working.value = resourceManagementValues(saved)
+  } else if (isFriaDetermination.value) {
+    working.value = friaDeterminationValues(saved)
   } else {
     working.value = {}
   }

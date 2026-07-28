@@ -53,6 +53,66 @@ export const STEPS = [
     icon: 'pi-eye-slash',
     tab: 'govern',
   },
+  // --- FRIA (Fundamental Rights Impact Assessment, EU AI Act Art. 27) -----
+  // Several Govern steps, one per section of the design mockup (see
+  // client/web/unify/src/sections/project/components/wizard/steps/Fria*.vue):
+  // a determination step (the AI Act deployer-category questions, moved here
+  // from the create flow per the 2026-07-28 ruling), a scenario list/summary
+  // step, and five section-editor steps that each edit one slice of whichever
+  // scenario is currently active (see composables/useFriaActiveScenario.js —
+  // the `scenario` route query param threads the active scenario id through
+  // all five, since there can be many scenarios per project but the mockup's
+  // five sections are one continuous per-scenario form). All FRIA copy lives
+  // in locale/en/human-webapp/fria.yaml, not project.yaml, on purpose.
+  {
+    key: 'fria-determination',
+    labelKey: 'fria.steps.determination.label',
+    type: 'form',
+    icon: 'pi-question-circle',
+    tab: 'govern',
+  },
+  {
+    key: 'fria-scenarios',
+    labelKey: 'fria.steps.scenarios.label',
+    type: 'fria-scenarios',
+    icon: 'pi-table',
+    tab: 'govern',
+  },
+  {
+    key: 'fria-harm',
+    labelKey: 'fria.steps.harm.label',
+    type: 'fria-scenario',
+    icon: 'pi-exclamation-triangle',
+    tab: 'govern',
+  },
+  {
+    key: 'fria-trigger',
+    labelKey: 'fria.steps.trigger.label',
+    type: 'fria-scenario',
+    icon: 'pi-bolt',
+    tab: 'govern',
+  },
+  {
+    key: 'fria-parties',
+    labelKey: 'fria.steps.parties.label',
+    type: 'fria-scenario',
+    icon: 'pi-users',
+    tab: 'govern',
+  },
+  {
+    key: 'fria-rights',
+    labelKey: 'fria.steps.rights.label',
+    type: 'fria-scenario',
+    icon: 'pi-verified',
+    tab: 'govern',
+  },
+  {
+    key: 'fria-vectors',
+    labelKey: 'fria.steps.vectors.label',
+    type: 'fria-scenario',
+    icon: 'pi-sitemap',
+    tab: 'govern',
+  },
   {
     key: 'connections',
     labelKey: 'project.steps.connections.label',
@@ -112,7 +172,8 @@ export const STEPS = [
 ]
 
 // Resolve the pipeline for a project context. Kept as a hook for future
-// conditional steps (e.g. FRIA); currently the pipeline is static.
+// conditional steps; currently the pipeline is static (the FRIA steps above
+// are unconditional too — every project gets them, same as every other step).
 export const resolveSteps = () => STEPS.map(s => ({ ...s }))
 
 // Steps shown in a wizard tab ('build' | 'govern'). Manage & Monitor has no

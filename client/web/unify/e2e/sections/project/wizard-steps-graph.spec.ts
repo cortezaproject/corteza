@@ -46,22 +46,15 @@ test.describe.serial('wizard Build pipeline + resource graph contract', () => {
     try {
       const page = await context.newPage()
 
-      // Create flow (project.intent.md: "projects are created through the
-      // create flow, which contains the governance (FRIA) questions").
+      // Create flow (project.intent.md, locked 2026-07-28: name + description
+      // only — the AI Act Deployer/FRIA questions moved to the Govern tab).
       await page.goto('/project/projects')
       await page.getByRole('button', { name: 'New Project' }).click()
 
       const detailsDialog = page.getByRole('dialog', { name: 'Project details' })
       await expect(detailsDialog).toBeVisible()
       await detailsDialog.getByRole('textbox').first().fill(projectName)
-      await detailsDialog.getByRole('button', { name: 'Next' }).click()
-
-      // Deployer yes/no step — its content is governance-content (WIP, see
-      // project.intent.md), so it's just clicked through with the defaults
-      // rather than answered or asserted on.
-      const deployerDialog = page.getByRole('dialog', { name: 'Deployer categories' })
-      await expect(deployerDialog).toBeVisible()
-      await deployerDialog.getByRole('button', { name: 'Create project' }).click()
+      await detailsDialog.getByRole('button', { name: 'Create project' }).click()
 
       await page.waitForURL(/\/wizard/)
       wizardPath = new URL(page.url()).pathname

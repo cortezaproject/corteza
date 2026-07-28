@@ -23,15 +23,11 @@ test.describe.serial('project members dialog', () => {
 
     await page.getByRole('button', { name: 'New Project' }).click()
 
-    // Step 1 — name/description (ProjectList/NewProjectDialog two-step create).
+    // Name/description only (ProjectList/NewProjectDialog create flow,
+    // locked 2026-07-28 — the AI Act Deployer/FRIA questions moved to the
+    // Govern tab's FRIA flow instead of riding along here).
     const createDialog = page.getByRole('dialog')
     await createDialog.getByPlaceholder('e.g. CRM & Sales').fill(projectName)
-    await createDialog.getByRole('button', { name: 'Next' }).click()
-
-    // Step 2 — deployer categories. Every question already defaults to "No"
-    // (NewProjectDialog.vue's defaultDeployer()), so creating needs no
-    // further input; this only proves the step is traversable, not its
-    // content (per the deployer/FRIA WIP note in project.intent.md).
     await createDialog.getByRole('button', { name: 'Create project' }).click()
 
     await page.waitForURL(/\/project\/projects\/[^/]+\/wizard/)

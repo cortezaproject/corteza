@@ -98,13 +98,11 @@ test.describe.serial('project lifecycle & dashboard', () => {
     await page.goto('/project/projects')
     await page.waitForLoadState('networkidle')
 
-    // --- Create: two-step dialog (details, then deployer categories) -------
+    // --- Create: name/description only (deployer questions moved to Govern) ---
     await page.getByRole('button', { name: 'New Project' }).click()
     const createDialog = page.getByRole('dialog')
     await expect(createDialog).toBeVisible()
     await createDialog.getByPlaceholder('e.g. CRM & Sales').fill(projectName)
-    await createDialog.getByRole('button', { name: 'Next' }).click()
-    // Step 2 (deployer categories) — defaults are fine; not asserting content.
     await createDialog.getByRole('button', { name: 'Create project' }).click()
 
     await page.waitForURL(/\/project\/projects\/[^/]+\/wizard/)

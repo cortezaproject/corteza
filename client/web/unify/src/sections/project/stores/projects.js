@@ -1,3 +1,4 @@
+import { newFriaScenario } from '@/sections/project/config/friaScenario'
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
 import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
@@ -418,19 +419,19 @@ export const useProjectsStore = defineStore('projects', () => {
   // --- project CRUD --------------------------------------------------------------
 
   // Create a draft project. The backend generates the internal handle, creates
-  // the compose namespace and adds the creator as a developer; `deployer`
-  // carries the AI Act deployer-category answers collected in
-  // NewProjectDialog.vue, which drive the backend's FriaRequired derivation.
-  async function create({ name, description = '', deployer = {} } = {}) {
+  // the compose namespace and adds the creator as a developer. Name and
+  // description only — the AI Act deployer-category questions that used to
+  // ride along here (driving the backend's FriaRequired derivation) moved out
+  // of the create flow per the 2026-07-28 ruling: they're now the Govern
+  // tab's own 'fria-determination' step (see config/pipeline.js and
+  // components/wizard/steps/FriaDeterminationStep.vue), so nothing here
+  // populates config.deployerCategories any more. The backend fields
+  // (ProjectDeployerCategories, FriaRequired) are untouched — this is a
+  // frontend-only change; wiring the new step's answers to them is a
+  // separate backend slice.
+  async function create({ name, description = '' } = {}) {
     const raw = await $SystemAPI.projectCreate({
       status: 'draft',
-      config: {
-        deployerCategories: {
-          publicAuthorityAnnex3: !!deployer.publicAuthorityAnnex3,
-          privateEssentialServices: !!deployer.privateEssentialServices,
-          insuranceBanking: !!deployer.insuranceBanking,
-        },
-      },
       meta: { short: (name || '').trim() || 'Untitled project', description: description.trim() },
     })
     return fetchProject(raw.projectID)
@@ -888,6 +889,56 @@ export const useProjectsStore = defineStore('projects', () => {
     }
 
     touch()
+  }
+
+  // --- FRIA risk scenarios --------------------------------------------------------
+  // Session-local, like the rest of governance above: every risk scenario for
+  // a project lives under the well-known 'fria-scenarios' governance step's
+  // values, as { scenarios: FriaScenario[] } (see config/friaScenario.js for
+  // the shape). The scenario list step AND the five section-editor steps
+  // (fria-harm/trigger/parties/rights/vectors — see config/pipeline.js) all
+  // read and patch entries of this SAME array, keyed by scenario id, so
+  // there's exactly one array per project no matter which step nav entry is
+  // active; composables/useFriaActiveScenario.js threads which scenario id
+  // each editor step is currently looking at.
+  //
+  // Unlike saveStepForm/transitionStep above, these mutators deliberately do
+  // NOT call touch(): scenario edits happen at keystroke frequency (title,
+  // narrative text areas) and carry no resource-graph, kind, or
+  // effective-access implications — bumping graphVersion per keystroke would
+  // just churn the resource graph pane for no reason. touch() a fresh Save
+  // only applies to steps that actually change resources/kinds.
+  function friaScenariosFor(projectId) {
+    return governanceValues(projectId, 'fria-scenarios').scenarios || []
+  }
+
+  function friaScenario(projectId, scenarioId) {
+    return friaScenariosFor(projectId).find(s => s.id === scenarioId) || null
+  }
+
+  function setFriaScenarios(projectId, scenarios) {
+    const step = govStep(projectId, 'fria-scenarios')
+    step.values = { ...step.values, scenarios }
+  }
+
+  function createFriaScenario(projectId) {
+    const scenario = newFriaScenario()
+    setFriaScenarios(projectId, [...friaScenariosFor(projectId), scenario])
+    return scenario.id
+  }
+
+  function updateFriaScenario(projectId, scenarioId, patch) {
+    setFriaScenarios(
+      projectId,
+      friaScenariosFor(projectId).map(s => (s.id === scenarioId ? { ...s, ...patch } : s)),
+    )
+  }
+
+  function removeFriaScenario(projectId, scenarioId) {
+    setFriaScenarios(
+      projectId,
+      friaScenariosFor(projectId).filter(s => s.id !== scenarioId),
+    )
   }
 
   // --- connections ---------------------------------------------------------------
@@ -1900,6 +1951,11 @@ export const useProjectsStore = defineStore('projects', () => {
     governanceStatus,
     governanceNote,
     governanceValues,
+    friaScenariosFor,
+    friaScenario,
+    createFriaScenario,
+    updateFriaScenario,
+    removeFriaScenario,
     graph,
     graphVisibleKinds,
     graphVisibleAccessKinds,

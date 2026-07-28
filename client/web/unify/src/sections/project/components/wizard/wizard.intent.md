@@ -45,21 +45,24 @@ never tab/step visibility; governance status never locks editing.
   prop-driven (`activeKey` in, `select` out) over `config/manageNav.js`, so
   that tab navigates without steps. Visual twin of the dashboard's own rail.
 - `manage/` — one component per M&M section, mounted by Wizard.vue's
-  key→component map. `ManageBoard.vue` is the kanban (revision-scoped, six
-  item types, four shared status columns, optimistic drag writes) and
-  `ManageMetrics.vue` the KPI/chart panel; the rest await build-out. One file
-  per section is deliberate: sections are built independently and must not
-  collide. The board's columns always render — an empty revision must stay
-  usable, with per-column quick-add rather than a dead end. Item viewing and
-  editing REUSE the dashboard's dialogs and drawers (card → drawer → Edit →
-  dialog); never fork a board-local editor, or the two surfaces drift.
+  key→component map; most just mount a shared panel from
+  `components/dashboard/` with the open revision. `ManageBoard.vue` is the
+  kanban (six item types, four shared status columns, optimistic drag
+  writes). One file per section is deliberate: sections are built
+  independently and must not collide. The board's columns always render — an
+  empty revision must stay usable, with per-column quick-add. Item viewing
+  and editing REUSE the dashboard's dialogs and drawers; never fork a
+  board-local editor, or the two surfaces drift.
 - `WizardToolbar.vue` — back, centered prev/next stepper, Save (form steps
   only), capability-gated Approve / Request changes.
 - `StepStatusBanner.vue` — surfaces the changes-requested review note.
 - `GovernanceForm.vue` — schema-driven form renderer; also reused by the
   dashboard event/backlog dialogs (cross-folder consumer).
-- `LlmProviderDialog.vue` — LLM provider create (ResourceManagementStep).
-- `YesNo.vue` — boolean glyph (also used by project/MembersDialog).
+- `LlmProviderDialog.vue` — LLM provider create (ResourceManagementStep);
+  `YesNo.vue` — boolean glyph (also used by project/MembersDialog).
+- `fria/` + Fria* step panels — the Art. 27 assessment: a determination step
+  plus a scenarios step. Taxonomy keys are persisted data; scenario state is
+  session-local scaffolding like other Govern steps, resetting on reload.
 - `steps/` — one panel per STEPS entry. Resource steps are lists that open
   the Wizard-mounted dialogs via injected `createResource(kind)` /
   `inspectResource(kind, id)` (module fields: `editField`/`createField`) —

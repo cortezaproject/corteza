@@ -3,10 +3,9 @@ import { expect, test } from '@playwright/test'
 // Contract: sections/project/views/ProjectList.intent.md (list at
 // /project/projects: list/create/open/archive/delete) and
 // sections/project/components/project/project.intent.md (NewProjectDialog's
-// locked two-step create — name/description, then the AI Act Deployer
-// category questions, which must stay in the create flow for every project).
-// The deployer/FRIA question CONTENT is WIP (see project.intent.md) — only
-// their placement in step 2 is asserted here, never their wording.
+// locked create flow — name/description only; the AI Act Deployer category
+// questions moved out per the 2026-07-28 ruling and now live in the Govern
+// tab's FRIA flow instead — see FriaDeterminationStep.vue).
 
 // Tracks the project created by the "create flow" test below so the shared
 // afterEach can clean it up from the dev stack — set as soon as the name is
@@ -49,7 +48,7 @@ test('project list renders at /project/projects', async ({ page }) => {
   await expect(rows.first().or(empty)).toBeVisible()
 })
 
-test('create flow: two-step create lands in the wizard', async ({ page }) => {
+test('create flow: name + description lands in the wizard', async ({ page }) => {
   await page.goto('/project/projects')
   await page.waitForLoadState('networkidle')
 
@@ -57,7 +56,8 @@ test('create flow: two-step create lands in the wizard', async ({ page }) => {
 
   await page.getByRole('button', { name: 'New Project' }).click()
 
-  // Step 1 — name + description.
+  // Single step — name + description only (locked 2026-07-28: the AI Act
+  // Deployer category questions moved out to the Govern tab's FRIA flow).
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await expect(dialog.getByText('Project details')).toBeVisible()
@@ -67,15 +67,6 @@ test('create flow: two-step create lands in the wizard', async ({ page }) => {
   await expect(nameInput).toBeVisible()
   await expect(descriptionInput).toBeVisible()
   await nameInput.fill(createdName)
-
-  await dialog.getByRole('button', { name: 'Next' }).click()
-
-  // Step 2 — Deployer categories. Locked: this step must stay in the create
-  // flow for every project. Only presence/placement of yes/no controls is
-  // asserted — question wording is WIP and out of scope here.
-  await expect(dialog.getByText('Deployer categories')).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Yes' }).first()).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'No' }).first()).toBeVisible()
 
   await dialog.getByRole('button', { name: 'Create project' }).click()
 

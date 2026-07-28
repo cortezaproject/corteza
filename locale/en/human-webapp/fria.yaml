@@ -271,3 +271,150 @@ impactedParties:
   societyLabourMarket: Society / Labour Market
   bystandersThirdParties: Bystanders / Third Parties
   competitorsOtherBusinesses: Competitors / Other Businesses
+
+# ─────────────────────────────────────────────────────────────────────────
+# UI copy for the Govern tab's FRIA flow (config/pipeline.js's fria-* steps
+# and components/wizard/steps/Fria*.vue) — separate from the taxonomy labels
+# above, which config/friaTaxonomies.js's entries resolve directly. Kept in
+# this file rather than project.yaml per the 2026-07-28 ruling (see
+# project.intent.md): all new FRIA copy lives here.
+
+steps:
+  determination:
+    label: FRIA Determination
+  scenarios:
+    label: Risk Scenarios
+  harm:
+    label: Harm Scenario
+  trigger:
+    label: Trigger
+  parties:
+    label: Parties & Groups
+  rights:
+    label: Rights & Values
+  vectors:
+    label: AI Amplification
+
+wizard:
+  blurb:
+    determination: >-
+      Answer whether your organisation deploys AI in any of these regulated categories — any "yes"
+      means a Fundamental Rights Impact Assessment is required under EU AI Act Art. 27.
+    scenarios: >-
+      Every documented risk scenario for this project, with its severity and completion status at
+      a glance. Open one to edit it, or document a new one.
+    harm: >-
+      Describe the harm as a narrative: what goes wrong, who is affected, and what the consequence
+      is, then rate its potential severity.
+    trigger: >-
+      What condition or event causes this harm? Select every trigger that applies, then describe
+      how it manifests in this system.
+    parties: >-
+      Identify who is directly and indirectly affected, and flag any vulnerable groups — these
+      require heightened analysis under EU AI Act Art. 27 and Recital 58.
+    rights: >-
+      Select every fundamental right this scenario may infringe, limit, or put at risk. Filter by
+      Charter chapter to work through them systematically.
+    vectors: >-
+      AI does not merely replicate human error — identify which AI-specific mechanisms enable or
+      amplify this harm beyond what an equivalent human process would produce.
+
+determination:
+  required: A Fundamental Rights Impact Assessment is required for this project.
+  notRequired: Based on these answers, a Fundamental Rights Impact Assessment is not required.
+  outcomeHint: >-
+    Answering "yes" to any category above means this project deploys AI in a way the EU AI Act
+    treats as requiring a FRIA — document your risk scenarios below regardless, since the
+    assessment is good practice for any consequential AI system.
+
+editor:
+  newScenario: New scenario
+  allScenarios: All scenarios
+  noActiveScenario: >-
+    No scenario selected. Open an existing one from the list, or start documenting a new one.
+
+scenarios:
+  stats:
+    total: Total scenarios
+    complete: Completed
+  searchPlaceholder: Search scenarios…
+  newScenario: New risk scenario
+  documentNew: Document new risk scenario
+  empty: No risk scenarios documented yet for this project.
+  untitled: 'Scenario {index}'
+  noDescription: No description yet.
+  tagRights: '{count} right | {count} rights'
+  tagVectors: '{count} AI vector | {count} AI vectors'
+  tagVulnerableGroups: '{count} vulnerable group | {count} vulnerable groups'
+  statusComplete: Complete
+  statusInProgress: '{filled} / {total} required sections filled'
+  removeConfirm:
+    header: Remove risk scenario
+    message: Remove "{title}"? This cannot be undone.
+
+severity:
+  unset: Not rated
+  low:
+    label: Low
+    description: Minor inconvenience; easily remedied; no lasting harm.
+  medium:
+    label: Medium
+    description: Moderate impact; rights temporarily limited; remediable.
+  high:
+    label: High
+    description: Significant harm; lasting effects on rights or welfare.
+  critical:
+    label: Critical
+    description: Severe or irreversible harm; dignity or life at stake.
+
+harm:
+  exampleTitle: Good scenario framing
+  exampleBody: >-
+    "A job applicant from a minority ethnic background is scored lower by the CV screening model
+    because the training data over-represented candidates from one demographic, causing systematic
+    under-ranking — with no human review triggered for low-scoring cases."
+  titleLabel: Scenario title
+  titlePlaceholder: e.g. Ethnic bias in automated CV screening
+  descriptionLabel: Scenario description
+  descriptionPlaceholder: >-
+    Describe the scenario in plain language. Include what the AI does, what goes wrong, who is
+    harmed, and how.
+  severityLabel: Potential severity
+
+trigger:
+  typesLabel: Trigger type(s)
+  contextLabel: Contextual trigger description
+  contextPlaceholder: Describe how the trigger manifests in this specific system or deployment context…
+
+parties:
+  impactedLabel: Impacted parties
+  vulnerableGroupsLabel: Impacted vulnerable groups
+  proxyCalloutTitle: EU AI Act Art. 27 — Proxy Attribute Risk & Intersectionality
+  proxyCalloutBody: >-
+    Even if the AI system does not explicitly process protected attributes, it may use proxy
+    variables — postcode, school name, browsing history — correlated with them. Interactions
+    between group memberships (intersectionality) compound harm. Consider all applicable groups,
+    including children, who receive heightened protection under UNCRC and Art. 24 of the EU
+    Charter.
+  notesLabel: Vulnerable group additional precisions
+  notesPlaceholder: >-
+    Describe intersecting vulnerabilities, specific sub-populations, or contextual factors that
+    heighten risk for the identified groups…
+
+# NOTE: named rightsPicker, not "rights" — a top-level `rights:` key already
+# exists above (the FUNDAMENTAL_RIGHTS taxonomy labels/descriptions); reusing
+# it here would silently clobber all 40 of those entries under YAML's
+# duplicate-key-overwrites rule.
+rightsPicker:
+  intro: >-
+    Rights are drawn from the EU Charter (all 7 chapters), the ECHR, and the GDPR. Filter by
+    chapter to explore systematically.
+
+vectors:
+  intro: >-
+    AI does not merely replicate human errors — it can produce, scale, and entrench harms in
+    qualitatively different ways. Identify which AI-specific vectors apply to this scenario.
+  descriptionLabel: AI amplification description
+  descriptionPlaceholder: >-
+    Describe specifically how this AI system enables or amplifies the harm — connecting the
+    selected vectors to the concrete features of this deployment…
