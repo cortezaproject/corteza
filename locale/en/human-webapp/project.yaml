@@ -181,6 +181,11 @@ dashboard:
     # and tasks carry a real completion date; the other types fall back to
     # their last-updated timestamp, so this reads as a trend, not a record.
     completedOverTime: Completed over time
+    # ChartLegend.vue's toggle buttons — aria-label only (the pill itself
+    # already shows the label visually), so these read as a full sentence.
+    legend:
+      hide: 'Hide {label} in chart'
+      show: 'Show {label} in chart'
   # Overview "Events" band — audit activity summary + recent feed (admin-only).
   eventsBand:
     title: Events

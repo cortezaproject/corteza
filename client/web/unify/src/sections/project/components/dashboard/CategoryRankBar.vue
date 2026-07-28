@@ -1,7 +1,9 @@
 <template>
   <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface p-4'">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-2">
-      <div class="text-xs font-semibold uppercase tracking-wide text-muted-color truncate">{{ $t(titleKey) }}</div>
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted-color truncate">
+        {{ $t(titleKey) }}
+      </div>
     </div>
 
     <!-- Empty state when there is nothing to plot -->

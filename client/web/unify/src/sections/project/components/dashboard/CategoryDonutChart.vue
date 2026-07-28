@@ -1,7 +1,9 @@
 <template>
   <div :class="bare ? '' : 'rounded-lg border border-surface bg-surface p-4'">
     <div v-if="!bare && titleKey" class="flex items-center gap-2 mb-2">
-      <div class="text-xs font-semibold uppercase tracking-wide text-muted-color truncate">{{ $t(titleKey) }}</div>
+      <div class="text-xs font-semibold uppercase tracking-wide text-muted-color truncate">
+        {{ $t(titleKey) }}
+      </div>
     </div>
 
     <!-- Empty state when there is nothing to plot -->
@@ -15,7 +17,12 @@
 
     <div v-else>
       <v-chart :option="option" autoresize :style="{ height: height + 'px', width: '100%' }" />
-      <ChartLegend :items="legendItems" :variant="variant" />
+      <ChartLegend
+        :items="legendItems"
+        :variant="variant"
+        :hidden="hiddenKeys"
+        @toggle="onLegendToggle"
+      />
     </div>
   </div>
 </template>
@@ -27,7 +34,7 @@ import { PieChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import VChart from 'vue-echarts'
 
@@ -55,10 +62,31 @@ const props = defineProps({
   height: { type: Number, default: 200 },
 })
 
+// Grand total across every slice — the donut hole's own number. Deliberately
+// NOT recomputed off the legend-filtered slices below: toggling a slice off is
+// presentation-only (hide from the ring), and re-summing the hole around it
+// would make "total" lie about what the category actually holds.
 const total = computed(() => props.data.reduce((s, d) => s + (d.value || 0), 0))
 
-// Legend rows mirror the slice data; `color` only matters for the dot
-// fallback (type/unknown variants) — resolve it the same way the slices do.
+// Same identity ChartLegend's own keyFor uses for a row — `key` when the data
+// carries one (the 'category' variant, or a row with a pinned colour), else
+// the label itself.
+const itemKey = d => d.key ?? d.label
+
+// Legend-toggled-off slice keys — presentation-only (see ChartLegend); reset
+// implicitly whenever a stale key no longer matches anything (a project/
+// category switch), since filtering below is a plain `includes` check.
+const hiddenKeys = ref([])
+function onLegendToggle(key) {
+  hiddenKeys.value = hiddenKeys.value.includes(key)
+    ? hiddenKeys.value.filter(k => k !== key)
+    : [...hiddenKeys.value, key]
+}
+
+// Legend rows mirror the FULL slice data (not the filtered-for-the-ring set
+// below) — every entry stays clickable to toggle back on. `color` only
+// matters for the dot fallback (type/unknown variants) — resolve it the same
+// way the slices do.
 const legendItems = computed(() =>
   props.data.map(d => ({
     label: d.label,
@@ -67,6 +95,11 @@ const legendItems = computed(() =>
   })),
 )
 
+// What actually reaches the ring — legend-hidden slices dropped entirely
+// (rather than zeroed) so echarts' own d% recomputes over what's left, same
+// as toggling off a series in its canvas legend.
+const visibleData = computed(() => props.data.filter(d => !hiddenKeys.value.includes(itemKey(d))))
+
 // The 2px gap between slices is drawn as a border in the chart's own surface
 // colour (not a stroke around the data) so it reads as separation, not ink —
 // see the dataviz skill's marks-and-anatomy "surface gap". Resolved from the
@@ -74,12 +107,39 @@ const legendItems = computed(() =>
 // echarts' canvas renderer needs a literal colour, not a live CSS variable.
 function surfaceGapColor() {
   if (typeof document === 'undefined') return '#ffffff'
-  const val = getComputedStyle(document.documentElement).getPropertyValue('--p-content-background').trim()
+  const val = getComputedStyle(document.documentElement)
+    .getPropertyValue('--p-content-background')
+    .trim()
   return val || '#ffffff'
 }
 
 const option = computed(() => ({
-  tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+  tooltip: {
+    trigger: 'item',
+    // A FUNCTION formatter, not a string template — echarts' string-template
+    // substitution (`formatTpl` in echarts' own dist/echarts.esm.js) only
+    // ever rewrites the fixed {a}/{b}/{c}/{d} aliases off each data param's
+    // own `$vars` list; `marker` is never one of them there. `params.marker`
+    // (a ready-made <span> dot in that slice's own itemStyle colour) is only
+    // populated for the formatter to CONSUME as a function — confirmed via
+    // TooltipView.prototype._showSeriesItemTooltip in that same file, which
+    // sets `params.marker` immediately before invoking the formatter, with
+    // its own comment: "Users can assemble richText text in `formatter`
+    // callback and use those markers style." Building the string ourselves
+    // like this (rather than hand-rolling a swatch) means the marker and the
+    // slice can never disagree on colour.
+    formatter: params => `${params.marker}${params.name}: ${params.value} (${params.percent}%)`,
+    // Charts sit inside overflow-hidden cards (see OverviewPanel's category
+    // cards) and inside scrollable panels — confine (the other echarts
+    // tooltip-clipping knob) does the OPPOSITE of what's wanted here (it
+    // clamps the tooltip TO the container). appendTo:'body' instead mounts
+    // the tooltip's DOM node straight onto <body>, so it escapes every
+    // ancestor's overflow/scroll clipping entirely. Confirmed present on the
+    // installed echarts@6.0.0 (node_modules/echarts/types/dist/shared.d.ts
+    // TooltipOption#appendTo; appendToBody is the same idea but deprecated in
+    // this version in its favour).
+    appendTo: 'body',
+  },
   series: [
     {
       type: 'pie',
@@ -87,7 +147,9 @@ const option = computed(() => ({
       center: ['50%', '50%'],
       avoidLabelOverlap: true,
       itemStyle: { borderColor: surfaceGapColor(), borderWidth: 2 },
-      // The donut hole shows the grand total; slices identify via tooltip/legend.
+      // The donut hole shows the grand total (see `total` above — always the
+      // FULL data, never the legend-filtered set); slices identify via
+      // tooltip/legend.
       label: {
         show: true,
         position: 'center',
@@ -98,7 +160,7 @@ const option = computed(() => ({
       },
       emphasis: { scale: true, scaleSize: 4, label: { show: true } },
       labelLine: { show: false },
-      data: props.data.map(d => ({
+      data: visibleData.value.map(d => ({
         name: d.label,
         value: d.value,
         // A row may pin its own colour (e.g. the backlog's by-category donut,

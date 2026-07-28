@@ -19,11 +19,7 @@
            (the category's overall weekly volume, not a per-KPI breakdown), so
            there's one accent colour and no legend. Absent/empty `spark` ⇒ no
            strip, tile renders exactly as before. -->
-      <div
-        v-if="spark && spark.length"
-        class="h-8 flex items-end gap-0.5 mt-1"
-        aria-hidden="true"
-      >
+      <div v-if="spark && spark.length" class="h-8 flex items-end gap-0.5 mt-1" aria-hidden="true">
         <div
           v-for="(v, i) in spark"
           :key="i"

@@ -1327,14 +1327,14 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryDonutChart.vue": {
-      "h": "3f614c03f1cc",
+      "h": "a7f7a07c61b1",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryKpiRow.vue": {
-      "h": "2788e74679c1",
+      "h": "82ea3002f5ff",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryPanel.vue": {
       "h": "f0f6dec42121",
@@ -1342,19 +1342,19 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryRankBar.vue": {
-      "h": "4bc7f9c4aca2",
+      "h": "fbe3627b5f24",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryTrendChart.vue": {
-      "h": "66b5a93ad944",
+      "h": "4c6acc8beb4e",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/ChartLegend.vue": {
-      "h": "f89bdf8294ee",
+      "h": "d8830a3f8377",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/DashboardNav.vue": {
       "h": "7c9d0a9808f3",
