@@ -3963,7 +3963,7 @@ var ProjectBacklogItem = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "DateDue",
+			Ident: "DateDue", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "date_due"},
 		},
@@ -4165,7 +4165,7 @@ var ProjectFeature = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "DateDue",
+			Ident: "DateDue", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "date_due"},
 		},
@@ -4515,7 +4515,7 @@ var ProjectIncident = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "DateDue",
+			Ident: "DateDue", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "date_due"},
 		},
@@ -4821,7 +4821,7 @@ var ProjectPrivacy = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "DateDue",
+			Ident: "DateDue", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "date_due"},
 		},
@@ -4994,7 +4994,7 @@ var ProjectReview = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "DateDue",
+			Ident: "DateDue", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "date_due"},
 		},
@@ -5173,7 +5173,7 @@ var ProjectTask = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "DateDue",
+			Ident: "DateDue", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "date_due"},
 		},

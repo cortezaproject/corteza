@@ -98,6 +98,7 @@ project_feature: {
 				goType: "string"
 				json:   "dateDue,omitempty"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 
 			created_at: schema.SortableTimestampNowField

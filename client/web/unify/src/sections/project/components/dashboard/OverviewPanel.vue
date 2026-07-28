@@ -161,14 +161,12 @@
           :series="trend.series"
           legend-variant="category"
         >
-          <!-- Windows this chart only — lives in the card it acts on.
-               Chain-wide only: a single revision's item count is small
-               (often zero pre-assignment), so the revision-scoped path skips
-               the selector and stays on the fixed ~6-month adaptiveWindow
-               default (mirrors CategoryPanel.vue's own revision-scoped trend
-               / the old ManageMetrics.vue throughput chart, same
-               rationale). -->
-          <template v-if="!isRevisionScoped" #actions>
+          <!-- Windows this chart only — lives in the card it acts on. Shown in
+               BOTH scopes: the dashboard and the wizard's Manage & Monitor
+               render the same panel and must look identical (ruled
+               2026-07-28), so the revision-scoped path no longer drops the
+               selector. -->
+          <template #actions>
             <TimeRangeSelect :model-value="trendRange" @update:model-value="onRangeChange" />
           </template>
         </CategoryTrendChart>
@@ -299,14 +297,21 @@ const cards = computed(() =>
 )
 
 // Card element/props/listeners — RouterLink chain-wide (the dashboard's
-// per-category route, untouched), a `button` revision-scoped (see the
-// template comment above for why there's nothing to route to there — it
-// emits category-selected instead, picked up the same way ManageNav's own
-// item clicks are).
-const cardTag = computed(() => (isRevisionScoped.value ? 'button' : RouterLink))
+// per-category route, untouched); revision-scoped there is nothing to route
+// to (the wizard's category sections live behind a `section` query param, not
+// routes), so the card emits category-selected instead.
+//
+// A DIV with button semantics, deliberately NOT a real <button>: a native
+// button inherits a theme background that beats this card's `bg-surface`,
+// which rendered the revision-scoped cards dark-on-dark in a light theme
+// while the chain-wide (anchor) cards looked correct. Same reason
+// components/project/RevisionSwitcher.vue uses `span role="button"` for its
+// trigger. Keyboard activation is wired explicitly below since a div gives
+// none of it for free.
+const cardTag = computed(() => (isRevisionScoped.value ? 'div' : RouterLink))
 const cardProps = key =>
   isRevisionScoped.value
-    ? { type: 'button' }
+    ? { role: 'button', tabindex: 0, 'aria-label': key }
     : {
         to: {
           name: 'project.overview.category',
@@ -314,7 +319,17 @@ const cardProps = key =>
         },
       }
 const cardListeners = key =>
-  isRevisionScoped.value ? { click: () => emit('category-selected', key) } : {}
+  isRevisionScoped.value
+    ? {
+        click: () => emit('category-selected', key),
+        keydown: e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            emit('category-selected', key)
+          }
+        },
+      }
+    : {}
 
 // One report per category (grouped by status) yields the total (sum), the open
 // count (sum of non-Completed — see stores/events.js#isOpenStatus, the single

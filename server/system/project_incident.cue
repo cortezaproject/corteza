@@ -103,6 +103,7 @@ project_incident: {
 				goType: "string"
 				json:   "dateDue,omitempty"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 			completed_date: {
 				goType: "string"

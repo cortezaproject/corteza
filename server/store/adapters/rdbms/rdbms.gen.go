@@ -27592,6 +27592,8 @@ func (Store) sortableProjectBacklogItemFields() map[string]string {
 		"category":   "category",
 		"created_at": "created_at",
 		"createdat":  "created_at",
+		"date_due":   "date_due",
+		"datedue":    "date_due",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
 		"id":         "id",
@@ -27634,6 +27636,8 @@ func (s *Store) collectProjectBacklogItemCursorValues(res *systemType.ProjectBac
 					return res.Category
 				case "status":
 					return res.Status
+				case "dateDue":
+					return res.DateDue
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":
@@ -28150,6 +28154,8 @@ func (Store) sortableProjectFeatureFields() map[string]string {
 	return map[string]string{
 		"created_at":   "created_at",
 		"createdat":    "created_at",
+		"date_due":     "date_due",
+		"datedue":      "date_due",
 		"deleted_at":   "deleted_at",
 		"deletedat":    "deleted_at",
 		"feature_type": "feature_type",
@@ -28194,6 +28200,8 @@ func (s *Store) collectProjectFeatureCursorValues(res *systemType.ProjectFeature
 					return res.FeatureType
 				case "status":
 					return res.Status
+				case "dateDue":
+					return res.DateDue
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":
@@ -29673,6 +29681,8 @@ func (Store) sortableProjectIncidentFields() map[string]string {
 	return map[string]string{
 		"created_at":    "created_at",
 		"createdat":     "created_at",
+		"date_due":      "date_due",
+		"datedue":       "date_due",
 		"deleted_at":    "deleted_at",
 		"deletedat":     "deleted_at",
 		"id":            "id",
@@ -29717,6 +29727,8 @@ func (s *Store) collectProjectIncidentCursorValues(res *systemType.ProjectIncide
 					return res.IncidentType
 				case "status":
 					return res.Status
+				case "dateDue":
+					return res.DateDue
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":
@@ -30858,6 +30870,8 @@ func (Store) sortableProjectPrivacyFields() map[string]string {
 	return map[string]string{
 		"created_at":   "created_at",
 		"createdat":    "created_at",
+		"date_due":     "date_due",
+		"datedue":      "date_due",
 		"deleted_at":   "deleted_at",
 		"deletedat":    "deleted_at",
 		"id":           "id",
@@ -30902,6 +30916,8 @@ func (s *Store) collectProjectPrivacyCursorValues(res *systemType.ProjectPrivacy
 					return res.RequestType
 				case "status":
 					return res.Status
+				case "dateDue":
+					return res.DateDue
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":
@@ -31418,6 +31434,8 @@ func (Store) sortableProjectReviewFields() map[string]string {
 	return map[string]string{
 		"created_at":  "created_at",
 		"createdat":   "created_at",
+		"date_due":    "date_due",
+		"datedue":     "date_due",
 		"deleted_at":  "deleted_at",
 		"deletedat":   "deleted_at",
 		"id":          "id",
@@ -31462,6 +31480,8 @@ func (s *Store) collectProjectReviewCursorValues(res *systemType.ProjectReview, 
 					return res.ReviewType
 				case "status":
 					return res.Status
+				case "dateDue":
+					return res.DateDue
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":
@@ -31978,6 +31998,8 @@ func (Store) sortableProjectTaskFields() map[string]string {
 	return map[string]string{
 		"created_at": "created_at",
 		"createdat":  "created_at",
+		"date_due":   "date_due",
+		"datedue":    "date_due",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
 		"id":         "id",
@@ -32022,6 +32044,8 @@ func (s *Store) collectProjectTaskCursorValues(res *systemType.ProjectTask, cc .
 					return res.TaskName
 				case "status":
 					return res.Status
+				case "dateDue":
+					return res.DateDue
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":
