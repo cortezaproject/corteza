@@ -248,8 +248,15 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 
 	// Flip statuses and namespaces in a single transaction.
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		// Rename old namespace to mark it as a deprecated revision.
-		oldNs.Slug = oldNs.Slug + "-deprecated-" + strconv.FormatInt(time.Now().Unix(), 10)
+		// Rename old namespace to mark it as a deprecated revision. The
+		// timestamp alone is NOT a sufficient disambiguator: a project created
+		// without a handle has an empty namespace slug (and newNs.Slug below
+		// resets it to that same empty handle on every publish), so two such
+		// projects publishing within the same second would both want
+		// "-deprecated-<ts>" and collide on the slug's unique index. Prefixing
+		// the project id makes it unique per project, the same fallback shape
+		// CreateRevision uses for an empty handle/slug.
+		oldNs.Slug = fmt.Sprintf("%s-deprecated-%d-%d", oldNs.Slug, draft.RootProjectID(), time.Now().Unix())
 		oldNs.Enabled = false
 		if e := store.UpdateComposeNamespace(ctx, s, oldNs); e != nil {
 			return e
