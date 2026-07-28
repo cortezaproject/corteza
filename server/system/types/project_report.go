@@ -28,6 +28,14 @@ type (
 		// Project scope — required; a report never spans projects.
 		ProjectID uint64
 
+		// Optional revision scope. Zero (default) aggregates chain-wide,
+		// across every revision plus unassigned (rel_revision = 0) rows,
+		// same as before this field existed. Non-zero constrains every
+		// underlying query to rel_revision = RevisionID, which — same as
+		// the existing revisionID list/filter param on the six category
+		// resources — excludes unassigned rows rather than folding them in.
+		RevisionID uint64
+
 		// Optional created-at window; applied in-memory over each row.
 		FromTimestamp *time.Time
 		ToTimestamp   *time.Time

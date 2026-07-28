@@ -45,6 +45,11 @@ type (
 		// Project scope
 		ProjectID uint64 `json:",string"`
 
+		// RevisionID GET parameter
+		//
+		// Scope the report to a single revision (default aggregates the whole chain)
+		RevisionID uint64 `json:",string"`
+
 		// Dimensions GET parameter
 		//
 		// Group rows by one or more dimensions
@@ -77,6 +82,7 @@ func (r ProjectReportReport) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"resource":   r.Resource,
 		"projectID":  r.ProjectID,
+		"revisionID": r.RevisionID,
 		"dimensions": r.Dimensions,
 		"metrics":    r.Metrics,
 		"from":       r.From,
@@ -92,6 +98,11 @@ func (r ProjectReportReport) GetResource() string {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectReportReport) GetProjectID() uint64 {
 	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectReportReport) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -129,6 +140,12 @@ func (r *ProjectReportReport) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["projectID"]; ok && len(val) > 0 {
 			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

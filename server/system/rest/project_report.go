@@ -28,6 +28,7 @@ func (ctrl *ProjectReport) Report(ctx context.Context, r *request.ProjectReportR
 	return ctrl.reportSvc.Report(ctx, &types.ProjectReportRequest{
 		Resource:      r.Resource,
 		ProjectID:     r.ProjectID,
+		RevisionID:    r.RevisionID,
 		Dimensions:    r.Dimensions,
 		Metrics:       r.Metrics,
 		FromTimestamp: r.From,

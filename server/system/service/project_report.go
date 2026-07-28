@@ -66,10 +66,16 @@ type (
 
 	// projectReportSource declares the dimensions/metrics a category supports
 	// and how to load its project-scoped rows as samples.
+	//
+	// revisionID is 0 (chain-wide, includes unassigned rel_revision=0 rows —
+	// today's behaviour) or a single revision to scope to; a non-zero value
+	// is passed straight through to the category's Filter.RevisionID, which
+	// the store already lowers to "rel_revision = revisionID", excluding
+	// unassigned rows rather than folding them in.
 	projectReportSource struct {
 		dimensions map[string]bool
 		metrics    map[string]bool
-		load       func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error)
+		load       func(ctx context.Context, svc *projectReport, projectID, revisionID uint64) ([]reportSample, error)
 	}
 )
 
@@ -147,13 +153,14 @@ var projectReportSources = map[string]projectReportSource{
 	"incident": {
 		dimensions: map[string]bool{"status": true, "severity": true, "risk": true, "type": true, "day": true},
 		metrics:    projectReportMetrics,
-		load: func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error) {
+		load: func(ctx context.Context, svc *projectReport, projectID, revisionID uint64) ([]reportSample, error) {
 			return collectReportSamples(
 				func(cursor *filter.PagingCursor) (types.ProjectIncidentSet, *filter.PagingCursor, error) {
 					set, f, err := svc.incident.Search(ctx, types.ProjectIncidentFilter{
-						ProjectID: projectID,
-						Sorting:   reportSorting(),
-						Paging:    reportPaging(cursor),
+						ProjectID:  projectID,
+						RevisionID: revisionID,
+						Sorting:    reportSorting(),
+						Paging:     reportPaging(cursor),
 					})
 					return set, f.NextPage, err
 				},
@@ -168,13 +175,14 @@ var projectReportSources = map[string]projectReportSource{
 	"task": {
 		dimensions: map[string]bool{"status": true, "severity": true, "risk": true, "type": true, "day": true},
 		metrics:    projectReportMetrics,
-		load: func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error) {
+		load: func(ctx context.Context, svc *projectReport, projectID, revisionID uint64) ([]reportSample, error) {
 			return collectReportSamples(
 				func(cursor *filter.PagingCursor) (types.ProjectTaskSet, *filter.PagingCursor, error) {
 					set, f, err := svc.task.Search(ctx, types.ProjectTaskFilter{
-						ProjectID: projectID,
-						Sorting:   reportSorting(),
-						Paging:    reportPaging(cursor),
+						ProjectID:  projectID,
+						RevisionID: revisionID,
+						Sorting:    reportSorting(),
+						Paging:     reportPaging(cursor),
 					})
 					return set, f.NextPage, err
 				},
@@ -189,13 +197,14 @@ var projectReportSources = map[string]projectReportSource{
 	"feature": {
 		dimensions: map[string]bool{"status": true, "severity": true, "risk": true, "type": true, "day": true},
 		metrics:    projectReportMetrics,
-		load: func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error) {
+		load: func(ctx context.Context, svc *projectReport, projectID, revisionID uint64) ([]reportSample, error) {
 			return collectReportSamples(
 				func(cursor *filter.PagingCursor) (types.ProjectFeatureSet, *filter.PagingCursor, error) {
 					set, f, err := svc.feature.Search(ctx, types.ProjectFeatureFilter{
-						ProjectID: projectID,
-						Sorting:   reportSorting(),
-						Paging:    reportPaging(cursor),
+						ProjectID:  projectID,
+						RevisionID: revisionID,
+						Sorting:    reportSorting(),
+						Paging:     reportPaging(cursor),
 					})
 					return set, f.NextPage, err
 				},
@@ -210,13 +219,14 @@ var projectReportSources = map[string]projectReportSource{
 	"privacy": {
 		dimensions: map[string]bool{"status": true, "severity": true, "risk": true, "type": true, "day": true},
 		metrics:    projectReportMetrics,
-		load: func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error) {
+		load: func(ctx context.Context, svc *projectReport, projectID, revisionID uint64) ([]reportSample, error) {
 			return collectReportSamples(
 				func(cursor *filter.PagingCursor) (types.ProjectPrivacySet, *filter.PagingCursor, error) {
 					set, f, err := svc.privacy.Search(ctx, types.ProjectPrivacyFilter{
-						ProjectID: projectID,
-						Sorting:   reportSorting(),
-						Paging:    reportPaging(cursor),
+						ProjectID:  projectID,
+						RevisionID: revisionID,
+						Sorting:    reportSorting(),
+						Paging:     reportPaging(cursor),
 					})
 					return set, f.NextPage, err
 				},
@@ -232,13 +242,14 @@ var projectReportSources = map[string]projectReportSource{
 		// review has no severity/risk; it carries scope + review type instead.
 		dimensions: map[string]bool{"status": true, "type": true, "scope": true, "day": true},
 		metrics:    projectReportMetrics,
-		load: func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error) {
+		load: func(ctx context.Context, svc *projectReport, projectID, revisionID uint64) ([]reportSample, error) {
 			return collectReportSamples(
 				func(cursor *filter.PagingCursor) (types.ProjectReviewSet, *filter.PagingCursor, error) {
 					set, f, err := svc.review.Search(ctx, types.ProjectReviewFilter{
-						ProjectID: projectID,
-						Sorting:   reportSorting(),
-						Paging:    reportPaging(cursor),
+						ProjectID:  projectID,
+						RevisionID: revisionID,
+						Sorting:    reportSorting(),
+						Paging:     reportPaging(cursor),
 					})
 					return set, f.NextPage, err
 				},
@@ -255,13 +266,14 @@ var projectReportSources = map[string]projectReportSource{
 		// priority + category instead of severity/risk/type.
 		dimensions: map[string]bool{"status": true, "priority": true, "category": true, "day": true},
 		metrics:    projectReportMetrics,
-		load: func(ctx context.Context, svc *projectReport, projectID uint64) ([]reportSample, error) {
+		load: func(ctx context.Context, svc *projectReport, projectID, revisionID uint64) ([]reportSample, error) {
 			return collectReportSamples(
 				func(cursor *filter.PagingCursor) (types.ProjectBacklogItemSet, *filter.PagingCursor, error) {
 					set, f, err := svc.backlogItem.Search(ctx, types.ProjectBacklogItemFilter{
-						ProjectID: projectID,
-						Sorting:   reportSorting(),
-						Paging:    reportPaging(cursor),
+						ProjectID:  projectID,
+						RevisionID: revisionID,
+						Sorting:    reportSorting(),
+						Paging:     reportPaging(cursor),
 					})
 					return set, f.NextPage, err
 				},
@@ -306,7 +318,7 @@ func (svc *projectReport) Report(ctx context.Context, rr *types.ProjectReportReq
 		return nil, errors.InvalidData("%v", err)
 	}
 
-	samples, err := src.load(ctx, svc, rr.ProjectID)
+	samples, err := src.load(ctx, svc, rr.ProjectID, rr.RevisionID)
 	if err != nil {
 		return nil, err
 	}

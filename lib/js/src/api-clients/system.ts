@@ -10041,7 +10041,7 @@ export default class System {
 
   // Aggregated project category report
   async projectReportReport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { resource, projectID, dimensions, metrics, from, to } = (a as KV) || {}
+    const { resource, projectID, revisionID, dimensions, metrics, from, to } = (a as KV) || {}
     if (!resource) {
       throw Error('field resource is empty')
     }
@@ -10056,6 +10056,7 @@ export default class System {
     cfg.params = {
       resource,
       projectID,
+      revisionID,
       dimensions,
       metrics,
       from,

@@ -4010,6 +4010,10 @@ endpoints:
               type: uint64
               required: true
               title: Project scope
+            - name: revisionID
+              type: uint64
+              required: false
+              title: Scope the report to a single revision (default aggregates the whole chain)
             - name: dimensions
               type: '[]string'
               required: false

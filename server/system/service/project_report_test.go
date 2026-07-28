@@ -11,9 +11,14 @@ import (
 
 type fakeIncidentSearcher struct {
 	set types.ProjectIncidentSet
+
+	// lastFilter records the filter passed on the most recent Search call,
+	// so tests can assert on what the service threaded through (e.g. RevisionID).
+	lastFilter *types.ProjectIncidentFilter
 }
 
-func (f fakeIncidentSearcher) Search(_ context.Context, flt types.ProjectIncidentFilter) (types.ProjectIncidentSet, types.ProjectIncidentFilter, error) {
+func (f *fakeIncidentSearcher) Search(_ context.Context, flt types.ProjectIncidentFilter) (types.ProjectIncidentSet, types.ProjectIncidentFilter, error) {
+	f.lastFilter = &flt
 	// single page: NextPage stays nil
 	return f.set, flt, nil
 }
@@ -227,13 +232,12 @@ func TestParseReportDueDate(t *testing.T) {
 
 func TestProjectReportReport(t *testing.T) {
 	ctx := context.Background()
-	svc := &projectReport{
-		incident: fakeIncidentSearcher{set: types.ProjectIncidentSet{
-			{Status: "Open", Severity: "High"},
-			{Status: "Open", Severity: "Low"},
-			{Status: "Closed", Severity: "High"},
-		}},
-	}
+	incidentSearcher := &fakeIncidentSearcher{set: types.ProjectIncidentSet{
+		{Status: "Open", Severity: "High"},
+		{Status: "Open", Severity: "Low"},
+		{Status: "Closed", Severity: "High"},
+	}}
+	svc := &projectReport{incident: incidentSearcher}
 
 	t.Run("groups incidents by status", func(t *testing.T) {
 		res, err := svc.Report(ctx, &types.ProjectReportRequest{
@@ -252,6 +256,24 @@ func TestProjectReportReport(t *testing.T) {
 	t.Run("requires project scope", func(t *testing.T) {
 		_, err := svc.Report(ctx, &types.ProjectReportRequest{Resource: "incident"})
 		require.ErrorContains(t, err, "project scope")
+	})
+
+	t.Run("zero RevisionID stays chain-wide: no RevisionID constraint on the filter", func(t *testing.T) {
+		_, err := svc.Report(ctx, &types.ProjectReportRequest{
+			Resource: "incident", ProjectID: 1, Dimensions: []string{"status"},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, incidentSearcher.lastFilter)
+		require.Zero(t, incidentSearcher.lastFilter.RevisionID)
+	})
+
+	t.Run("non-zero RevisionID is threaded through to the underlying filter", func(t *testing.T) {
+		_, err := svc.Report(ctx, &types.ProjectReportRequest{
+			Resource: "incident", ProjectID: 1, RevisionID: 42, Dimensions: []string{"status"},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, incidentSearcher.lastFilter)
+		require.Equal(t, uint64(42), incidentSearcher.lastFilter.RevisionID)
 	})
 
 	t.Run("rejects unknown resource", func(t *testing.T) {
@@ -280,7 +302,7 @@ func TestProjectReportReport(t *testing.T) {
 		projectReportNowFn = func() time.Time { return time.Date(2026, 7, 16, 12, 0, 0, 0, time.UTC) }
 
 		combinedSvc := &projectReport{
-			incident: fakeIncidentSearcher{set: types.ProjectIncidentSet{
+			incident: &fakeIncidentSearcher{set: types.ProjectIncidentSet{
 				{Status: "Open", Severity: "High", DateDue: "2020-01-01"},      // open, overdue
 				{Status: "Open", Severity: "Low", DateDue: "2099-01-01"},       // open, not overdue
 				{Status: "Completed", Severity: "High", DateDue: "2020-01-01"}, // closed, never overdue
