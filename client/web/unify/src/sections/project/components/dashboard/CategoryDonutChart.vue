@@ -8,7 +8,7 @@
 
     <!-- Empty state when there is nothing to plot -->
     <div
-      v-if="!total"
+      v-if="!fullTotal"
       class="flex items-center justify-center text-muted-color text-sm"
       :style="{ height: height + 'px' }"
     >
@@ -62,11 +62,14 @@ const props = defineProps({
   height: { type: Number, default: 200 },
 })
 
-// Grand total across every slice — the donut hole's own number. Deliberately
-// NOT recomputed off the legend-filtered slices below: toggling a slice off is
-// presentation-only (hide from the ring), and re-summing the hole around it
-// would make "total" lie about what the category actually holds.
-const total = computed(() => props.data.reduce((s, d) => s + (d.value || 0), 0))
+// The donut hole's number, summed over the VISIBLE slices (ruled 2026-07-28):
+// filtering the legend re-sums the hole, so hiding "Completed" reads the open
+// total straight off the ring. The trade, accepted deliberately: while a filter
+// is active this number no longer matches the KPI tiles or board totals beside
+// it — it answers "what's showing" rather than "what the category holds".
+// `fullTotal` still gates the empty state, so a chart with data never renders
+// as empty just because every slice was toggled off.
+const fullTotal = computed(() => props.data.reduce((s, d) => s + (d.value || 0), 0))
 
 // Same identity ChartLegend's own keyFor uses for a row — `key` when the data
 // carries one (the 'category' variant, or a row with a pinned colour), else
@@ -99,6 +102,8 @@ const legendItems = computed(() =>
 // (rather than zeroed) so echarts' own d% recomputes over what's left, same
 // as toggling off a series in its canvas legend.
 const visibleData = computed(() => props.data.filter(d => !hiddenKeys.value.includes(itemKey(d))))
+// Declared after visibleData on purpose — it reads it.
+const total = computed(() => visibleData.value.reduce((s, d) => s + (d.value || 0), 0))
 
 // The 2px gap between slices is drawn as a border in the chart's own surface
 // colour (not a stroke around the data) so it reads as separation, not ink —

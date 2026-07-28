@@ -224,7 +224,9 @@ const degreeMap = computed(() => {
 // surface-gap colour in CategoryTrendChart/CategoryDonutChart.
 function mutedEdgeColor() {
   if (typeof document === 'undefined') return '#94a3b8'
-  const val = getComputedStyle(document.documentElement).getPropertyValue('--p-text-muted-color').trim()
+  const val = getComputedStyle(document.documentElement)
+    .getPropertyValue('--p-text-muted-color')
+    .trim()
   return val || '#94a3b8'
 }
 
@@ -274,6 +276,9 @@ const option = computed(() => {
   return {
     tooltip: {
       trigger: 'item',
+      // Mount on <body> so the tooltip escapes the graph pane's own
+      // overflow-hidden (same fix as the dashboard charts, 2026-07-28).
+      appendTo: 'body',
       enterable: false,
       backgroundColor: 'transparent',
       borderColor: 'transparent',

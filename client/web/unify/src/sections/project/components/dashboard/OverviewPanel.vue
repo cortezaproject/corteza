@@ -64,26 +64,19 @@
         </div>
 
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3">
-          <!-- Chain-wide: RouterLinks to the dashboard's own category route.
-               Revision-scoped: no child route to link to (the wizard's
-               category sections live behind ManageNav's `section` query
-               param, not real routes — see config/manageNav.js), so the card
-               renders as a button emitting category-selected instead, picked
-               up by components/wizard/manage/ManageOverview.vue (re-emits)
-               and Wizard.vue (sets activeSection) — see cardTag/cardProps/
-               cardListeners below. -->
+          <!-- Cards are divs with button semantics in BOTH scopes, never a
+               RouterLink: they contain the chart legend's own toggle buttons,
+               and a <button> inside an <a> is invalid HTML. Chain-wide pushes
+               the dashboard's category route; revision-scoped emits
+               category-selected (the wizard's category sections live behind a
+               `section` query param, not routes) — see cardTag/cardListeners. -->
           <component
             :is="cardTag"
             v-for="c in cards"
             :key="c.key"
             v-bind="cardProps(c.key)"
             v-on="cardListeners(c.key)"
-            class="group relative overflow-hidden rounded-xl border border-surface bg-surface pl-5 pr-4 py-3 flex flex-col gap-1 hover:shadow-md transition-all"
-            :class="
-              isRevisionScoped
-                ? 'w-full text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
-                : ''
-            "
+            class="group relative overflow-hidden rounded-xl border border-surface bg-surface pl-5 pr-4 py-3 flex flex-col gap-1 w-full text-left cursor-pointer hover:shadow-md transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <!-- Left accent rail takes the badge icon's exact text colour via
                  bg-current — light+dark for free. -->
@@ -217,7 +210,7 @@ import { useReportStore } from '@/sections/project/stores/report'
 import { isOpenStatus } from '@/sections/project/stores/events'
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const report = useReportStore()
@@ -245,9 +238,10 @@ const props = defineProps({
 
 // Revision-scoped only: a category card switches the wizard's Manage &
 // Monitor section instead of navigating (see cardTag/cardListeners below).
-// Chain-wide never emits this — its cards stay plain RouterLinks.
+// Chain-wide never emits this — it pushes a route instead.
 const emit = defineEmits(['category-selected'])
 
+const router = useRouter()
 const isRevisionScoped = computed(() => !!props.revisionId)
 
 // Per-category aggregates: key -> { total, open, status: [{ label, value }] }.
@@ -296,7 +290,7 @@ const cards = computed(() =>
   }),
 )
 
-// Card element/props/listeners — RouterLink chain-wide (the dashboard's
+// Card element/props/listeners — a div in both scopes (the dashboard's
 // per-category route, untouched); revision-scoped there is nothing to route
 // to (the wizard's category sections live behind a `section` query param, not
 // routes), so the card emits category-selected instead.
@@ -308,28 +302,40 @@ const cards = computed(() =>
 // components/project/RevisionSwitcher.vue uses `span role="button"` for its
 // trigger. Keyboard activation is wired explicitly below since a div gives
 // none of it for free.
-const cardTag = computed(() => (isRevisionScoped.value ? 'div' : RouterLink))
-const cardProps = key =>
-  isRevisionScoped.value
-    ? { role: 'button', tabindex: 0, 'aria-label': key }
-    : {
-        to: {
-          name: 'project.overview.category',
-          params: { projectId: props.projectId, category: key },
-        },
-      }
-const cardListeners = key =>
-  isRevisionScoped.value
-    ? {
-        click: () => emit('category-selected', key),
-        keydown: e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            emit('category-selected', key)
-          }
-        },
-      }
-    : {}
+// BOTH scopes render a div with button semantics — chain-wide used to be a
+// RouterLink, but the card now contains the chart legend's own toggle buttons,
+// and interactive-inside-interactive (<button> inside <a>) is invalid HTML.
+// The stopPropagation guards in ChartLegend make it BEHAVE correctly either
+// way; this removes the invalid nesting itself (ruled 2026-07-28).
+//
+// The cost, accepted deliberately: chain-wide cards lose real anchor semantics
+// — no ctrl/cmd-click into a new tab, no copy-link — because a programmatic
+// push replaces the href.
+const cardTag = computed(() => 'div')
+const cardProps = key => ({ role: 'button', tabindex: 0, 'aria-label': key })
+
+// Revision-scoped switches the wizard's Manage & Monitor section (no route to
+// go to — those sections live behind a `section` query param); chain-wide
+// pushes the dashboard's own category route.
+const activateCard = key => {
+  if (isRevisionScoped.value) {
+    emit('category-selected', key)
+    return
+  }
+  router.push({
+    name: 'project.overview.category',
+    params: { projectId: props.projectId, category: key },
+  })
+}
+const cardListeners = key => ({
+  click: () => activateCard(key),
+  keydown: e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      activateCard(key)
+    }
+  },
+})
 
 // One report per category (grouped by status) yields the total (sum), the open
 // count (sum of non-Completed — see stores/events.js#isOpenStatus, the single

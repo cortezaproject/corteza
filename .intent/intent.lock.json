@@ -1327,7 +1327,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryDonutChart.vue": {
-      "h": "a7f7a07c61b1",
+      "h": "e31aa821cb8a",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1402,7 +1402,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/OverviewPanel.vue": {
-      "h": "d7e6cba4fdea",
+      "h": "49c3d6ca80ea",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1447,9 +1447,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/graph/ResourceGraph.vue": {
-      "h": "fd39a69bedba",
+      "h": "de9c2c080e7f",
       "doc": "client/web/unify/src/sections/project/components/graph/graph.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/KindBadge.vue": {
       "h": "52c2ea3ed82f",
