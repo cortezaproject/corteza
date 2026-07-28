@@ -50,8 +50,12 @@ The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs
   revision's work-item completeness, and a new-item action; the same
   completeness is shown again at publish, where unfinished work warns but
   never blocks.
-- Members dialog opens from the wizard-header cluster; `?new=1` auto-opens it once for a
-  just-created project, then is stripped via `router.replace`.
+- Topbar carries the shared `RevisionSwitcher` + `ProjectTopbarTools`
+  (Members, View project) — defined once in `components/project/` and mounted
+  by the dashboard too, so neither surface redefines them. `?new=1` still
+  auto-opens Members once for a just-created project, then is stripped via
+  `router.replace`. There is no "View dashboard" button: the switcher's
+  Dashboard entry is that navigation.
 - Capabilities gate review actions and editing only, never tab/step visibility.
 
 ## Routes

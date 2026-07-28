@@ -9,10 +9,18 @@
     </span>
   </Teleport>
 
-  <!-- Members dialog — top-right toolbar button opener (replaces the old
-       members wizard step). Auto-opened once for a just-created project; see
-       the route.query.new watcher below. -->
-  <MembersDialog v-if="project" v-model:visible="membersOpen" :project="project" />
+  <!-- Members + View project — shared with the dashboard topbar, right-
+       aligned tools slot (see components/project/ProjectTopbarTools.vue);
+       owns the Members button, the MembersDialog mount, and the "View
+       project" compose namespace link that used to live in the tab-row tool
+       cluster below. auto-open-members carries the `?new=1`
+       just-created-project deep link (see membersAutoOpen below) into the
+       shared dialog. -->
+  <Teleport to="#topbar-tools" defer>
+    <span class="flex items-center gap-2">
+      <ProjectTopbarTools :project="project" :auto-open-members="membersAutoOpen" />
+    </span>
+  </Teleport>
 
   <div v-if="project" class="h-full flex flex-col min-h-0">
     <!-- Header row: the fixed three-tab switcher — Build / Govern / Manage &
@@ -40,27 +48,20 @@
         </TabList>
       </Tabs>
 
-      <!-- Wizard tools: the Members dialog opener, the project-level publish
-           approval cluster (draft projects only — see publishAction), then
-           navigation — jump to a live project's dashboard, or open its
-           compose namespace. -->
+      <!-- Publish approval cluster — right-aligned in the tab row (LOCKED,
+           ruled 2026-07-24 — see Wizard.intent.md). Members and the "View
+           project"/"View dashboard" navigation used to live in this cluster
+           too; they've moved to the shared ProjectTopbarTools in the topbar
+           (see the Teleport above) and the RevisionSwitcher's Dashboard
+           entry, respectively. -->
       <span class="ml-auto flex items-center justify-end gap-2 flex-wrap">
-        <Button
-          :label="$t('project.wizard.toolbar.members')"
-          icon="pi pi-users"
-          size="small"
-          severity="secondary"
-          outlined
-          @click="membersOpen = true"
-        />
-
-        <!-- Publish approval cluster — one state-driven primary control
-             reading the well-known 'publish' governance step (see
-             publishAction). No status Tag (ruled 2026-07-24): the button's
-             state carries the status; its tooltip carries the hint + the
-             reviewer's note. Only relevant pre-publish: once a project is
-             live, "View dashboard" (below) takes over and a fresh cycle only
-             resumes with a future revision. -->
+        <!-- One state-driven primary control reading the well-known
+             'publish' governance step (see publishAction). No status Tag
+             (ruled 2026-07-24): the button's state carries the status; its
+             tooltip carries the hint + the reviewer's note. Only relevant
+             pre-publish: once a project is live, the RevisionSwitcher's
+             Dashboard entry takes over and a fresh cycle only resumes with a
+             future revision. -->
         <template v-if="!isLive">
           <Button
             v-if="publishAction === 'request'"
@@ -101,23 +102,6 @@
             @click="confirmPublish"
           />
         </template>
-
-        <Button
-          v-if="isLive"
-          :label="$t('project.viewDashboard')"
-          icon="pi pi-gauge"
-          size="small"
-          severity="secondary"
-          outlined
-          @click="goDashboard"
-        />
-        <Button
-          v-if="project?.hasNamespace"
-          :label="$t('project.viewProject')"
-          icon="pi pi-external-link"
-          size="small"
-          @click="openProject"
-        />
       </span>
     </div>
 
@@ -502,7 +486,7 @@ import RoleDetailDialog from '@/sections/project/components/roles/RoleDetailDial
 import UserCreateDialog from '@/sections/project/components/users/UserCreateDialog.vue'
 import UserDetailDialog from '@/sections/project/components/users/UserDetailDialog.vue'
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
-import MembersDialog from '@/sections/project/components/project/MembersDialog.vue'
+import ProjectTopbarTools from '@/sections/project/components/project/ProjectTopbarTools.vue'
 import RevisionSwitcher from '@/sections/project/components/project/RevisionSwitcher.vue'
 import ManageNav from '@/sections/project/components/wizard/ManageNav.vue'
 import ManageActivity from '@/sections/project/components/wizard/manage/ManageActivity.vue'
@@ -586,23 +570,23 @@ const canWrite = computed(() => !!currentRole.value.write)
 const canGrant = computed(() => !!currentRole.value.grantApproval)
 const canRequestApproval = computed(() => !!currentRole.value.requestApproval)
 
-// --- Members dialog ----------------------------------------------------
-// Members are no longer a wizard step — the topbar "Members" button opens
-// this dialog instead (see the Teleport above); it wraps exactly the table
-// the old MembersStep held.
-const membersOpen = ref(false)
-
-// Just-created-project flag: ProjectList.vue's onCreated() lands here with
+// --- Members dialog auto-open signal ----------------------------------------
+// Members are no longer a wizard step — the shared ProjectTopbarTools (see
+// the Teleport above) owns both the "Members" button and the MembersDialog
+// mount now; it wraps exactly the table the old MembersStep held. Just-
+// created-project flag: ProjectList.vue's onCreated() lands here with
 // `?new=1` right after creating a project — members are the first thing to
-// define on a fresh one, so auto-open the dialog once. Reactive (not a
-// one-shot top-level check) so it also fires if this same wizard instance is
-// reused for a different just-created project. Strips the flag immediately
-// via router.replace so a refresh or back-navigation never re-opens it.
+// define on a fresh one, so this signals the shared component to auto-open
+// the dialog once (its auto-open-members prop). Derived directly from the
+// query param (not a manually-toggled ref) so the transition re-fires
+// correctly if this same wizard instance is reused for a different
+// just-created project. Stripped immediately via router.replace so a
+// refresh or back-navigation never re-opens it.
+const membersAutoOpen = computed(() => route.query.new === '1')
 watch(
-  () => route.query.new,
+  membersAutoOpen,
   val => {
-    if (val !== '1') return
-    membersOpen.value = true
+    if (!val) return
     router.replace({ query: { ...route.query, new: undefined } })
   },
   { immediate: true },
@@ -746,7 +730,10 @@ async function doPublish() {
   try {
     await store.publishProject(project.value.projectID)
     $toast.toastSuccess(t('project.publish.toast.published'))
-    goDashboard()
+    // Dashboard handoff — a project only gets a dashboard the moment it goes
+    // live, so a successful publish lands here automatically (see
+    // Wizard.intent.md: "publish (confirmed, then dashboard handoff)").
+    router.push({ name: 'project.overview', params: { projectId: project.value.projectID } })
   } catch (err) {
     $toast.toastErrorHandler(t('project.publish.toast.publishFailed'))(err)
   } finally {
@@ -1089,21 +1076,6 @@ function goStep(key) {
 // Leave the wizard and return to the project list.
 function onBack() {
   router.push({ name: 'project.list' })
-}
-
-// Open the project's compose namespace (resolved by namespaceID).
-function openProject() {
-  if (project.value?.hasNamespace) {
-    router.push({ name: 'namespace.view', params: { slug: project.value.namespaceID } })
-  }
-}
-
-// --- Dashboard handoff -------------------------------------------------------
-// The "View dashboard" topbar button (live projects) lands here — also
-// reused by doPublish() above once a publish succeeds, since a project only
-// gets a dashboard the moment it goes live.
-function goDashboard() {
-  router.push({ name: 'project.overview', params: { projectId: project.value.projectID } })
 }
 
 // --- Prev / Next stepper ---------------------------------------------------

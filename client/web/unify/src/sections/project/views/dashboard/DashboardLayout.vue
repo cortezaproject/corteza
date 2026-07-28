@@ -1,8 +1,8 @@
 <template>
   <!-- Topbar: the current project's name + the shared revision switcher
        (components/project/RevisionSwitcher.vue — same component the Wizard
-       header mounts). Replaces the old static version Tag AND the old
-       jump-back-to-wizard button below: the switcher's own "Dashboard" entry
+       header mounts). Replaces the old static version Tag and the old
+       jump-back-to-wizard button: the switcher's own "Dashboard" entry
        (marked current here) and its per-revision entries cover both. This
        layout owns the topbar — children must not Teleport into it (see
        DashboardLayout.intent.md). (Back-to-projects lives in the global
@@ -14,17 +14,13 @@
     </span>
   </Teleport>
 
-  <!-- Right-aligned topbar tools: always offer opening the project's compose
-       namespace. -->
+  <!-- Right-aligned topbar tools: the shared Members/View project cluster
+       (components/project/ProjectTopbarTools.vue — same component the
+       Wizard header mounts), replacing this view's own bespoke namespace
+       link. The dashboard gains a Members button as a result. -->
   <Teleport to="#topbar-tools" defer>
     <span class="flex items-center gap-2">
-      <CRouterLinkButton
-        v-if="project?.hasNamespace"
-        :to="{ name: 'namespace.view', params: { slug: project.namespaceID } }"
-        :label="$t('project.viewProject')"
-        icon="pi pi-external-link"
-        size="small"
-      />
+      <ProjectTopbarTools :project="project" />
     </span>
   </Teleport>
 
@@ -42,15 +38,13 @@
 
 <script setup>
 import DashboardNav from '@/sections/project/components/dashboard/DashboardNav.vue'
+import ProjectTopbarTools from '@/sections/project/components/project/ProjectTopbarTools.vue'
 import RevisionSwitcher from '@/sections/project/components/project/RevisionSwitcher.vue'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { components } from '@planetcrust/human-vue'
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-
-const { CRouterLinkButton } = components
 
 const route = useRoute()
 const store = useProjectsStore()

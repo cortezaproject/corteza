@@ -28,11 +28,13 @@ view.
   project-wide view, so it loads items across every revision and shows which
   revision each belongs to. The wizard's Manage & Monitor tab is the
   single-revision counterpart (ruled 2026-07-28).
-- Topbar carries the shared revision switcher — the same component the wizard
-  header uses. Its entries are this chain-wide Dashboard plus every revision
-  (each opening that revision's wizard), and the action to branch a new
-  revision. It replaces both the old version tag and the old jump-back-to-
-  wizard button; the compose namespace link stays.
+- Topbar carries the shared revision switcher and `ProjectTopbarTools` — the
+  same components the wizard header mounts, defined once in
+  `components/project/` so neither surface redefines them. The switcher's
+  entries are this chain-wide Dashboard plus every revision (each opening
+  that revision's wizard), and the action to branch a new revision; the tools
+  hold Members and View project. Together they replaced the old version tag,
+  the jump-back-to-wizard button and this layout's own namespace link.
 
 ## Routes
 

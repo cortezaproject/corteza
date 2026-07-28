@@ -1461,6 +1461,11 @@
       "doc": "client/web/unify/src/sections/project/components/project/project.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/src/sections/project/components/project/ProjectTopbarTools.vue": {
+      "h": "38211fccc778",
+      "doc": "client/web/unify/src/sections/project/components/project/project.intent.md",
+      "t": "2026-07-28"
+    },
     "client/web/unify/src/sections/project/components/project/RenameProjectDialog.vue": {
       "h": "1c55e9cf475a",
       "doc": "client/web/unify/src/sections/project/components/project/project.intent.md",
@@ -1812,7 +1817,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/dashboard/DashboardLayout.vue": {
-      "h": "8f7e76b25fef",
+      "h": "b6de84eebc97",
       "doc": "client/web/unify/src/sections/project/views/dashboard/DashboardLayout.intent.md",
       "t": "2026-07-28"
     },
@@ -1832,7 +1837,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "e489d31f1818",
+      "h": "7158b99699dd",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
       "t": "2026-07-28"
     },
