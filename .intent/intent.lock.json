@@ -1527,12 +1527,12 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/BoardCard.vue": {
-      "h": "ae2e5e33f479",
+      "h": "97eb3c8778f8",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/BoardColumn.vue": {
-      "h": "005252a5e95b",
+      "h": "0c7c5db56973",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1542,7 +1542,7 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageBoard.vue": {
-      "h": "abee0616b839",
+      "h": "0beef24dcaee",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },

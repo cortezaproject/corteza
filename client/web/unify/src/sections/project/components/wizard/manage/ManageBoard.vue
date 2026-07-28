@@ -35,7 +35,7 @@
           <BoardColumn
             v-for="col in columns"
             :key="col.status"
-            class="w-72 shrink-0"
+            class="w-80 shrink-0"
             :status="col.status"
             :items="col.items"
             :dragged-key="draggedKey"
@@ -259,6 +259,12 @@ const draggedKey = ref(null)
 // "Update flows are optimistic with rollback on push failure", applied to
 // these two stores' updateStatus() actions.
 async function onDropItem(status, key) {
+  // Clear the drag flag here rather than relying on @card-dragend alone: a
+  // card that changes column unmounts from its source list, so the native
+  // dragend never reaches it and the dimmed styling would stick until some
+  // later interaction re-rendered it. Cleared before the early returns so it
+  // resets on a no-op drop too.
+  draggedKey.value = null
   const item = findItem(key)
   if (!item || item.status === status) return
   try {

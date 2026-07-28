@@ -5,7 +5,7 @@
        still keeps a single `draggedKey` for the dimmed-source-card styling,
        threaded down as a prop. -->
   <div
-    class="flex flex-col min-h-0 rounded-lg border bg-emphasis/40 transition-colors"
+    class="flex flex-col min-h-0 rounded-lg border bg-surface transition-colors"
     :class="over ? 'border-primary ring-1 ring-primary' : 'border-surface'"
     @dragover="onDragOver"
     @dragleave="onDragLeave"
@@ -29,11 +29,15 @@
           aria-hidden="true"
         />
         <span class="text-sm font-medium truncate">{{ status }}</span>
-      </span>
-      <span class="flex items-center gap-1 shrink-0">
-        <span class="text-xs text-muted-color rounded-full bg-surface px-1.5 py-0.5">
+        <!-- Count sits with the title, not in the right-hand group: it
+             describes the column, whereas the right side is for actions.
+             bg-emphasis, not bg-surface — the column itself is bg-surface now,
+             so a surface-toned pill would be invisible against it. -->
+        <span class="text-xs text-muted-color rounded-full bg-emphasis px-1.5 py-0.5 shrink-0">
           {{ items.length }}
         </span>
+      </span>
+      <span class="flex items-center shrink-0">
         <!-- Quick-add — opens ManageBoard's create dialog pre-filled with
              this column's status: every column gets one so an empty revision
              can still be filled in from cold. Unlike BoardCard's click

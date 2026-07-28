@@ -11,7 +11,7 @@
   <div
     role="button"
     tabindex="0"
-    class="rounded-md border border-surface bg-surface p-2.5 shadow-sm transition-opacity"
+    class="rounded-md border border-surface bg-surface p-2.5 shadow-sm transition hover:bg-emphasis"
     :class="[dragging ? 'opacity-40' : '', disabled ? '' : 'cursor-grab active:cursor-grabbing']"
     :draggable="!disabled"
     @dragstart="onDragStart"
