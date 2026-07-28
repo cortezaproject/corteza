@@ -15,13 +15,18 @@ import { computed, inject, ref } from 'vue'
 // on create.
 
 // Per-category API binding: which $SystemAPI methods to call, the record's id
-// field, and the user-reference keys to resolve for display.
-const CATS = {
+// field, and the user-reference keys to resolve for display. Exported (as
+// EVENT_RESOURCES) so callers that page a category's list directly against
+// the resource endpoint (CategoryPanel.vue, via useResourceList — see its own
+// module comment) can build the same list/read calls this store uses,
+// without a second, drifting copy of the per-category API binding.
+export const EVENT_RESOURCES = {
   incident: {
     list: 'projectIncidentList',
     create: 'projectIncidentCreate',
     update: 'projectIncidentUpdate',
     delete: 'projectIncidentDelete',
+    read: 'projectIncidentRead',
     idKey: 'incidentID',
     userKeys: ['issueOwner', 'changeOwner', 'changeApprovedBy'],
   },
@@ -30,6 +35,7 @@ const CATS = {
     create: 'projectFeatureCreate',
     update: 'projectFeatureUpdate',
     delete: 'projectFeatureDelete',
+    read: 'projectFeatureRead',
     idKey: 'featureID',
     userKeys: ['featureOwner', 'changeOwner', 'changeApprovedBy'],
   },
@@ -38,6 +44,7 @@ const CATS = {
     create: 'projectPrivacyCreate',
     update: 'projectPrivacyUpdate',
     delete: 'projectPrivacyDelete',
+    read: 'projectPrivacyRead',
     idKey: 'privacyID',
     userKeys: ['requestOwner', 'changeOwner', 'changeApprovedBy'],
   },
@@ -46,6 +53,7 @@ const CATS = {
     create: 'projectTaskCreate',
     update: 'projectTaskUpdate',
     delete: 'projectTaskDelete',
+    read: 'projectTaskRead',
     idKey: 'taskID',
     userKeys: ['owner', 'changeOwner'],
   },
@@ -54,10 +62,12 @@ const CATS = {
     create: 'projectReviewCreate',
     update: 'projectReviewUpdate',
     delete: 'projectReviewDelete',
+    read: 'projectReviewRead',
     idKey: 'reviewID',
     userKeys: ['reviewer', 'approvedBy'],
   },
 }
+const CATS = EVENT_RESOURCES
 
 const CATEGORIES = Object.keys(CATS)
 
@@ -74,6 +84,31 @@ export function isOpenStatus(status) {
 // stores (the report endpoint's overdue metric parses them as ISO).
 const DATE_KEYS = ['dateDue', 'completedDate']
 
+// Map one raw resource record (from this store's own load()/add()/update(),
+// or a category list/read call made directly by another consumer — see
+// CategoryPanel.vue's server-paged list) to the loose-bag event shape the
+// dashboard reads everywhere: a stable `id`, its `category`, and owner refs
+// resolved to display names. Raw json keys already match the UI field keys
+// (incidentType, issueOwner, …) so the rest is a straight spread. Module-level
+// (not a store action) and exported so it can be called outside this store's
+// setup — it only needs the shared user directory, resolved fresh each call
+// via useProjectUsersStore() rather than a captured closure.
+export function mapEventRow(cat, row) {
+  const users = useProjectUsersStore()
+  const cfg = CATS[cat]
+  const e = { ...row, id: String(row[cfg.idKey] ?? ''), category: cat }
+  for (const k of cfg.userKeys) {
+    // Keep the raw id under <key>Id so edit flows can round-trip; show name.
+    if (row[k]) {
+      e[`${k}Id`] = String(row[k])
+      e[k] = users.userName(row[k])
+    } else {
+      e[k] = ''
+    }
+  }
+  return e
+}
+
 export const useEventsStore = defineStore('events', () => {
   const $SystemAPI = inject('$SystemAPI')
   const users = useProjectUsersStore()
@@ -85,24 +120,7 @@ export const useEventsStore = defineStore('events', () => {
   const currentProjectId = ref('')
   const loading = ref(false)
 
-  // Map one raw resource record to the loose-bag event shape the dashboard
-  // reads: a stable `id`, its `category`, and owner refs resolved to display
-  // names. Raw json keys already match the UI field keys (incidentType,
-  // issueOwner, …) so the rest is a straight spread.
-  function mapRow(cat, row) {
-    const cfg = CATS[cat]
-    const e = { ...row, id: String(row[cfg.idKey] ?? ''), category: cat }
-    for (const k of cfg.userKeys) {
-      // Keep the raw id under <key>Id so edit flows can round-trip; show name.
-      if (row[k]) {
-        e[`${k}Id`] = String(row[k])
-        e[k] = users.userName(row[k])
-      } else {
-        e[k] = ''
-      }
-    }
-    return e
-  }
+  const mapRow = mapEventRow
 
   // Load every category for a project, flatten, and cache as the active list.
   // `revisionId` is optional: omitted, the live dashboard's usual call reads
@@ -235,26 +253,51 @@ export const useEventsStore = defineStore('events', () => {
     return event
   }
 
-  // Status-only update — the Manage & Monitor board's drag interaction (see
-  // components/wizard/manage/ManageBoard.vue) moving a card to another
-  // column. Unlike update() above (which waits for the server before
-  // touching the list), this patches the cached item's status in place
-  // FIRST so the card visibly moves right away, then persists it; a failed
+  // Fetch and map a single record fresh off the resource's own `read` call —
+  // for a category id that isn't (or isn't known to be) in this store's own
+  // capped `events` list (see load()'s 200-row-per-category cap). Used by
+  // updateStatus below, and by BoardPanel.vue to resolve a clicked card's
+  // full detail when the card came off the board endpoint rather than this
+  // store (a board past its own 200-row cache reaches items this store never
+  // loaded).
+  async function fetchOne(cat, id) {
+    const cfg = CATS[cat]
+    if (!cfg) throw new Error(`Unknown category: ${cat}`)
+    const raw = await $SystemAPI[cfg.read]({ [cfg.idKey]: id })
+    return mapRow(cat, raw || {})
+  }
+
+  // Status-only update — the board's drag interaction (BoardPanel.vue,
+  // mounted chain-wide by views/dashboard/BoardView.vue and revision-scoped
+  // by components/wizard/manage/ManageBoard.vue) moving a card to another
+  // column. When the item is already cached (the common case), this patches
+  // its status in place FIRST so any other view reading this store's
+  // reactive list reflects the move right away, then persists it; a failed
   // push rolls the status back and rethrows so the caller can toast (mirrors
-  // stores/projects.js#updateProject's snapshot/mutate/rollback idiom). The
-  // update endpoint is a full PUT, so the push still carries every other
-  // field off the cached (already-mapped) item, remapping owner fields back
-  // to their raw `<key>Id` — same shape EventDetailDialog's buildModel sends.
+  // stores/projects.js#updateProject's snapshot/mutate/rollback idiom).
+  // BoardPanel.vue does NOT rely on this in-place patch for its own
+  // rendering though — it now pages the board endpoint directly (past this
+  // store's 200-row cap) and keeps its own optimistic column state, rolling
+  // that back independently on the same failure.
+  //
+  // Not cached: fetched fresh via fetchOne rather than silently no-op'ing
+  // (the old cache-only behaviour) — a card the board endpoint can show but
+  // this store never loaded (beyond its 200-row cap) must still be able to
+  // change status. Either way the push carries every OTHER field off the
+  // base record unchanged, remapping owner fields back to their raw
+  // `<key>Id` — the update endpoint is a full PUT (see
+  // server/system/service/project_incident.go#Update, a total field
+  // replace, not a merge), so a status-only body would blank out the rest.
   async function updateStatus(cat, id, status) {
     const cfg = CATS[cat]
     if (!cfg) throw new Error(`Unknown category: ${cat}`)
-    const item = events.value.find(e => e.category === cat && e.id === String(id))
-    if (!item) return
-    const prevStatus = item.status
-    item.status = status
+    const cachedItem = events.value.find(e => e.category === cat && e.id === String(id))
+    const prevStatus = cachedItem?.status
+    if (cachedItem) cachedItem.status = status
     try {
-      const body = { ...item, status }
-      for (const k of cfg.userKeys) body[k] = item[`${k}Id`] || null
+      const base = cachedItem || (await fetchOne(cat, id))
+      const body = { ...base, status }
+      for (const k of cfg.userKeys) body[k] = base[`${k}Id`] || null
       const raw = await $SystemAPI[cfg.update](
         normalizeDates({ ...body, [cfg.idKey]: id }, DATE_KEYS),
       )
@@ -263,7 +306,7 @@ export const useEventsStore = defineStore('events', () => {
       if (idx !== -1) events.value.splice(idx, 1, event)
       return event
     } catch (err) {
-      item.status = prevStatus
+      if (cachedItem) cachedItem.status = prevStatus
       throw err
     }
   }
@@ -288,6 +331,7 @@ export const useEventsStore = defineStore('events', () => {
     countByCategory,
     kpis,
     breakdown,
+    fetchOne,
     add,
     update,
     updateStatus,

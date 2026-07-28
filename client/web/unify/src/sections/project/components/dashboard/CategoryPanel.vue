@@ -140,54 +140,46 @@
          `.category-list` below) rather than "whatever's left" after the
          metrics; the list scrolls internally (both axes, via CResourceList's
          own `h-full`) so the wide table never overflows the page. `items`
-         comes straight off the events store's `byCategory` getter — whichever
-         scope the mounting host loaded it with (chain-wide for the dashboard,
-         one revision for the wizard — see the module doc comment below), so
-         this component never re-filters by revision itself. -->
+         comes off the resource's own list endpoint (e.g. GET
+         /project-incidents/), paged server-side via useResourceList — see the
+         module doc comment below for why this replaced the events store's
+         `byCategory` getter (that store still exists, but is no longer this
+         list's source). -->
     <div class="category-list shrink-0 px-4 pb-4">
       <CResourceList
         ref="resourceListRef"
         class="h-full"
         primary-key="id"
         :fields="fields"
-        :items="visibleItems"
+        :items="listItems"
         :filter="filter"
         @update:filter="Object.assign(filter, $event)"
         :sorting="sorting"
         :pagination="pagination"
-        :loading="store.loading"
+        :loading="listLoading"
         :action-items="actionItemsFor"
         :translations="{
           searchPlaceholder: $t('project.dashboard.list.searchPlaceholder'),
           noItems: $t('project.dashboard.list.empty'),
         }"
         clickable
-        @sort="onSort"
+        @sort="handleSort"
         @row-click="onRowClick"
+        @page-change="handlePageChange"
       >
-        <!-- New-item action + active-filter chips live in the list toolbar's
-             left side (CResourceList toolbar convention: chips left; filter →
-             refresh → search right). The Unassigned chip/filter only makes
-             sense chain-wide — revision-scoped mode (the wizard board) never
-             loads an unassigned row in the first place (its list call is
-             scoped to one revisionID), same reason the revisionID column
-             itself is hidden there (see `fields` below). -->
+        <!-- New-item action lives in the list toolbar's left side
+             (CResourceList toolbar convention: chips left; filter → refresh →
+             search right). There WAS an "Unassigned" filter chip/checkbox
+             here — dropped (see the module doc comment's UNASSIGNED FILTER
+             note): a server page can't honestly claim "N unassigned" when it
+             only means "N unassigned on this page". -->
         <template #header>
-          <div class="flex items-center gap-2 flex-wrap">
-            <Button
-              icon="pi pi-plus"
-              :label="$t('project.dashboard.newButton', { type: $t(cfg.singularKey) })"
-              size="small"
-              @click="dialogVisible = true"
-            />
-            <Chip
-              v-if="!isRevisionScoped && filter.unassignedOnly"
-              :label="$t('project.dashboard.revision.unassigned')"
-              removable
-              class="text-xs"
-              @remove="filter.unassignedOnly = false"
-            />
-          </div>
+          <Button
+            icon="pi pi-plus"
+            :label="$t('project.dashboard.newButton', { type: $t(cfg.singularKey) })"
+            size="small"
+            @click="dialogVisible = true"
+          />
         </template>
 
         <!-- One dynamic #body-<col.key> slot per configured column. -->
@@ -242,33 +234,8 @@
             class="!text-xs"
           />
         </template>
-
-        <!-- Filter button — same icon-only shape + Popover idiom as every
-             other CResourceList consumer (see ProjectList.vue). Chain-wide
-             only, same reasoning as the chip above. -->
-        <template v-if="!isRevisionScoped" #filter>
-          <Button
-            type="button"
-            icon="pi pi-filter"
-            severity="secondary"
-            size="small"
-            text
-            :aria-label="$t('project.dashboard.list.filters')"
-            v-tooltip.top="$t('project.dashboard.list.filters')"
-            @click="toggleFilterMenu"
-          />
-        </template>
       </CResourceList>
     </div>
-
-    <Popover v-if="!isRevisionScoped" ref="filterMenu">
-      <div class="flex items-center gap-2 p-2 w-56">
-        <Checkbox v-model="filter.unassignedOnly" inputId="unassignedOnlyFilter" binary />
-        <label for="unassignedOnlyFilter" class="text-sm cursor-pointer">
-          {{ $t('project.dashboard.list.unassignedFilter') }}
-        </label>
-      </div>
-    </Popover>
 
     <!-- New-item dialog — reuses the per-category GovernanceForm schema.
          `allow-revision-select` offers the revisionID field only chain-wide —
@@ -326,9 +293,10 @@
 // under the locked views/dashboard/ set.
 //
 // DATA LOADING: this component does NOT call eventsStore.load()/
-// backlogStore.load() itself — it only reads their already-loaded state
-// (byCategory/kpis/breakdown getters). Whoever mounts it owns the load, at
-// whatever scope that host needs:
+// backlogStore.load() itself — it only reads their already-loaded state for
+// the metrics band (kpis/breakdown getters, revision-scoped path only — see
+// isRevisionScoped) and for ownerOptions/drawer-record resolution. Whoever
+// mounts it owns that load, at whatever scope that host needs:
 //   - views/dashboard/DashboardLayout.vue loads both stores chain-wide (no
 //     revisionId) for every child route, CategoryView.vue included — that
 //     mirrors this component's pre-extraction behaviour exactly.
@@ -339,6 +307,38 @@
 //     category section stays independently editable (see wizard.intent.md).
 // This keeps exactly one load per (stores, scope) pair per screen instead of
 // this component re-loading on top of a host that already did.
+//
+// THE LIST ITSELF is no longer store-driven, though — see the useResourceList call
+// below, built with useResourceList (the same server-paged idiom
+// views/ProjectList.vue uses) directly against the category's own resource
+// endpoint (e.g. GET /project-incidents/), with `incTotal` for a true count.
+// The store's own `events` (capped at 200 rows per category — load()'s own
+// comment) stays the source for the revision-scoped metrics band and for
+// resolving a clicked row's owner options, but is no longer this component's
+// row source, so a category with more than 200 items now lists (and counts)
+// correctly instead of silently truncating.
+//
+// ROOT PROJECT ID for the list call: `props.projectId` chain-wide (see its
+// own prop comment), but that prop is NEVER passed revision-scoped (see e.g.
+// components/wizard/manage/ManageIncident.vue's `<CategoryPanel category=".."
+// :revision-id="revisionId" />` — no project-id) since it used to matter only
+// for the chain-wide report calls, which are skipped entirely when
+// isRevisionScoped. The list call needs the chain ROOT regardless of scope
+// though, so `effectiveProjectId` below falls back to the events store's own
+// `currentProjectId` — already set to that same root by the mounting
+// Manage<Category>.vue's own `eventsStore.load(rootProjectId, revisionId)`
+// call (see that store's load()), synchronously before this component's
+// setup runs, rather than requiring every Manage<Category>.vue file to grow
+// a redundant prop.
+//
+// UNASSIGNED FILTER — DROPPED, not just hidden revision-scoped (see the old
+// template's Popover/Chip, now gone): the generated resource filters treat
+// `revisionID = 0` as "no constraint", not "unassigned only" (see
+// server/store/adapters/rdbms/filters.gen.go's `if f.RevisionID > 0` guard,
+// applied identically across every one of these six resources) — there is no
+// server-side way to ask for "only unassigned rows" today. Client-filtering
+// one fetched PAGE to fake it would misreport a page's own unassigned count
+// as the whole category's, which is worse than not offering the filter.
 import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
 import CategoryKpiRow from '@/sections/project/components/dashboard/CategoryKpiRow.vue'
 import CategoryRankBar from '@/sections/project/components/dashboard/CategoryRankBar.vue'
@@ -362,9 +362,14 @@ import {
 } from '@/sections/project/config/trend'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { toISODate } from '@/sections/project/stores/dateUtils'
-import { useEventsStore } from '@/sections/project/stores/events'
+import { EVENT_RESOURCES, mapEventRow, useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
-import { components, useConfirmDelete, useRightSidebarStore } from '@planetcrust/human-vue'
+import {
+  components,
+  useConfirmDelete,
+  useResourceList,
+  useRightSidebarStore,
+} from '@planetcrust/human-vue'
 import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -391,6 +396,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const $SystemAPI = inject('$SystemAPI')
 const store = useEventsStore()
 const backlogStore = useBacklogItemsStore()
 const { revisionInfo } = useRevisionLabel()
@@ -412,6 +418,58 @@ const accentClass = computed(() => cfg.value?.badge.text || '')
 // revision-scoped rows instead of trying to (impossibly) scope the report
 // calls themselves.
 const isRevisionScoped = computed(() => !!props.revisionId)
+
+// The chain-root project id the LIST call needs — see the module doc
+// comment's "ROOT PROJECT ID" note for why this can't just be
+// `props.projectId` revision-scoped.
+const effectiveProjectId = computed(() => props.projectId || store.currentProjectId)
+
+// --- Server-paged list -------------------------------------------------------
+// Same idiom views/ProjectList.vue uses: useResourceList owns filter/sorting/
+// pagination state and the actual fetch, calling straight through to the
+// category's own resource list endpoint (EVENT_RESOURCES[cat].list, e.g.
+// projectIncidentList) rather than a new endpoint — `incTotal` gives a true
+// count instead of the events store's 200-row cache. `cat`/`cfg` are read
+// fresh from `category.value` on every call (not captured once) because this
+// same component instance can swap categories live on the chain-wide
+// dashboard route without remounting (see CategoryView.vue's own comment) —
+// the watcher below re-triggers a fetch when that happens.
+const {
+  items: listItems,
+  loading: listLoading,
+  filter,
+  sorting,
+  pagination,
+  handleSort,
+  handlePageChange,
+  fetchItems: refetchList,
+  filterList,
+} = useResourceList(
+  params => {
+    const cat = category.value
+    const resourceCfg = EVENT_RESOURCES[cat]
+    if (!resourceCfg) {
+      return { cancel: () => {}, response: async () => ({ set: [], filter: {} }) }
+    }
+    const { response, cancel } = $SystemAPI[`${resourceCfg.list}Cancellable`]({
+      ...params,
+      projectID: effectiveProjectId.value,
+      revisionID: props.revisionId || undefined,
+    })
+    return {
+      cancel,
+      response: async () => {
+        const result = await response()
+        return { ...result, set: (result.set || []).map(row => mapEventRow(cat, row)) }
+      },
+    }
+  },
+  {
+    filter: { query: '' },
+    sorting: { sortBy: 'dateDue', sortDesc: true },
+    pagination: { limit: 50 },
+  },
+)
 
 // --- Chain-wide metrics band (KPIs + donuts + trend), report-endpoint-driven —
 // all from the report endpoint (accurate, not subject to the events store's
@@ -738,24 +796,6 @@ const actionItemsFor = row => [
   },
 ]
 
-// `unassignedOnly` only applies chain-wide (see the #filter slot's v-if) —
-// revision-scoped mode never has an unassigned row to begin with (its store
-// load is itself scoped to one revisionID).
-const filter = reactive({ query: '', unassignedOnly: false })
-const filterMenu = ref()
-function toggleFilterMenu(event) {
-  filterMenu.value?.toggle(event)
-}
-const sorting = reactive({ sortBy: 'dateDue', sortDesc: true })
-const pagination = reactive({
-  limit: 50,
-  pageCursor: undefined,
-  prevPage: '',
-  nextPage: '',
-  total: 0,
-  page: 1,
-})
-
 // Columns → CResourceList fields (all sortable, headers resolved via i18n).
 // The trailing revisionID column is fixed (every category gets it, see the
 // #body-revisionID slot above) rather than part of cfg.columns, and only
@@ -780,74 +820,25 @@ const formatDate = v => {
   return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString()
 }
 
-// Client-side query filter across the item's string values.
-const filteredItems = computed(() => {
-  let list = cfg.value ? store.byCategory(category.value) : []
-  if (!isRevisionScoped.value && filter.unassignedOnly) {
-    list = list.filter(item => revisionInfo(item.revisionID).unassigned)
-  }
-  const q = (filter.query || '').trim().toLowerCase()
-  if (!q) return list
-  return list.filter(item =>
-    Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(q)),
-  )
-})
-
-// Columns whose values are ranked enums (see config/chartColors) rather than
-// free text — sort these by canonical rank, not alphabetically, so e.g.
-// severity reads Critical…Informational instead of A→Z.
-const RANKED_COLUMNS = new Set(['severity', 'risk', 'status'])
-
-// Client-side sort (byCategory is already newest-first as the default order).
-const visibleItems = computed(() => {
-  const list = [...filteredItems.value]
-  const { sortBy, sortDesc } = sorting
-  if (sortBy) {
-    const ranked = RANKED_COLUMNS.has(sortBy)
-    list.sort((a, b) => {
-      if (ranked) {
-        const ai = orderIndex(sortBy, a[sortBy])
-        const bi = orderIndex(sortBy, b[sortBy])
-        if (ai !== bi) return sortDesc ? bi - ai : ai - bi
-        return 0
-      }
-      const av = a[sortBy] ?? ''
-      const bv = b[sortBy] ?? ''
-      if (av < bv) return sortDesc ? 1 : -1
-      if (av > bv) return sortDesc ? -1 : 1
-      return 0
-    })
-  }
-  return list
-})
-
-watch(
-  visibleItems,
-  list => {
-    pagination.total = list.length
-  },
-  { immediate: true },
-)
-
-const onSort = ({ sortField, sortOrder }) => {
-  if (!sortField) return
-  sorting.sortBy = sortField
-  sorting.sortDesc = sortOrder === -1
-}
-
 // Switching categories (the dashboard route can swap `category` on a live
 // instance without remounting — the wizard's dispatch remounts instead, so
-// this is a no-op there): reset the transient list/dialog state so the new
-// page starts clean (store data stays live).
-watch(category, () => {
+// this is a no-op there) or, revision-scoped, the wizard's open revision
+// switching on a live instance: reset the transient list/dialog state and
+// re-run the server-paged list from its first page (filterList — the
+// category/revision scope baked into the useResourceList call's apiFn has changed, so
+// whatever page/sort/filter was showing for the OLD scope doesn't carry
+// over). `effectiveProjectId` is included so a revision switch (which
+// changes the events store's currentProjectId, see that computed's own
+// comment) also re-triggers even though `category` itself didn't change.
+watch([category, () => props.revisionId, effectiveProjectId], () => {
   filter.query = ''
-  filter.unassignedOnly = false
   dialogVisible.value = false
   drawerVisible.value = false
   editVisible.value = false
   selectedEvent.value = null
   sorting.sortBy = 'dateDue'
   sorting.sortDesc = true
+  filterList()
 })
 
 // Create handler — persist via the store (list/KPIs/charts/nav badge all react
@@ -904,6 +895,11 @@ const onCreate = async (payload, backlogTitles = []) => {
       $toast.toastErrorHandler(t('project.dashboard.backlog.toast.createFailed'))(failed.reason)
     }
   }
+  // The list is now server-paged off the resource endpoint directly (see
+  // the useResourceList call above), independent of the store's own cached rows —
+  // filterList() resets to the first page and refetches so the new row
+  // actually shows up (mirrors ProjectList.vue's own apiCall() helper).
+  filterList()
   return true
 }
 
@@ -924,6 +920,10 @@ const onUpdate = async (id, payload) => {
       selectedEvent.value =
         store.byCategory(category.value).find(e => e.id === String(id)) || selectedEvent.value
     }
+    // Refetch the current page in place (not filterList — an edit shouldn't
+    // bounce the user back to page 1) so the row's new values show without
+    // waiting for the next natural refresh.
+    refetchList()
     return true
   } catch (err) {
     console.error('Failed to update event', err)
@@ -946,6 +946,7 @@ const onDelete = async id => {
       drawerVisible.value = false
       selectedEvent.value = null
     }
+    refetchList()
     return true
   } catch (err) {
     console.error('Failed to delete event', err)

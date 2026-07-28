@@ -15,14 +15,17 @@
        matches CategoryPanel/OverviewPanel, which also sit transparent inside
        DashboardLayout's bordered panel.
 
-       DATA LOADING: like CategoryPanel, this component does NOT call
-       eventsStore.load()/backlogStore.load() itself — it only reads their
-       already-loaded state (events/items). Whoever mounts it owns the load:
-       views/dashboard/DashboardLayout.vue loads both stores chain-wide (no
-       revisionId) for every child route, BoardView.vue included; each
-       components/wizard/manage/ManageBoard.vue loads them scoped to (root
-       project, open revision) itself, watching [rootProjectId, revisionId] —
-       the same pattern the Manage<Category>.vue files use. -->
+       DATA LOADING: unlike CategoryPanel/ActivityPanel, this component DOES
+       own its own load — it pages the board endpoint (GET /project-board/,
+       server/system/types/project_board.go) directly rather than reading
+       eventsStore/backlogStore's already-loaded state, so it stays correct
+       past those stores' 200-row-per-category cache (see loadBoard/
+       loadMoreColumn below). It still injects both stores for their WRITES
+       (create/save/delete/status-change — see the Drag & Drop / Quick-add /
+       Detail drawer sections below) and for `ownerOptions`, which is why
+       views/dashboard/DashboardLayout.vue and
+       components/wizard/manage/ManageBoard.vue still load them chain-wide /
+       revision-scoped respectively — unchanged, see those files. -->
   <div class="h-full flex flex-col min-h-0">
     <header class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
       <span
@@ -42,6 +45,29 @@
       <ProgressSpinner />
     </div>
 
+    <!-- A board-fetch failure (network/backend error) gets a visible retry —
+         same shape as CategoryPanel's own report-load failure state — rather
+         than silently rendering four columns that all read as empty. -->
+    <section
+      v-else-if="loadFailed"
+      class="flex-1 flex flex-col items-center justify-center text-center gap-2 py-8"
+    >
+      <span
+        class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emphasis text-red-500"
+      >
+        <i class="pi pi-exclamation-triangle text-xl" />
+      </span>
+      <p class="text-sm font-medium text-color">{{ $t('project.dashboard.overview.error') }}</p>
+      <Button
+        type="button"
+        size="small"
+        severity="secondary"
+        outlined
+        :label="$t('project.dashboard.overview.retry')"
+        @click="loadBoard"
+      />
+    </section>
+
     <!-- Columns always render, even with zero items — an empty board (chain-
          wide, or a fresh revision) must stay usable, with per-column quick-add
          (see BoardColumn.vue). The old whole-board "no work items" note that
@@ -56,6 +82,9 @@
           class="w-80 shrink-0"
           :status="col.status"
           :items="col.items"
+          :total="col.total"
+          :has-more="!!col.nextPage"
+          :loading-more="col.loadingMore"
           :disabled="disabled"
           :dragged-key="draggedKey"
           :add-label="quickAddLabel"
@@ -65,6 +94,7 @@
           @card-dragstart="draggedKey = $event"
           @card-dragend="draggedKey = null"
           @card-click="onCardClick"
+          @load-more="loadMoreColumn(col.status)"
         />
       </div>
     </div>
@@ -164,14 +194,23 @@ import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { EVENT_STATUS } from '@/sections/project/config/eventForm'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
+import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { useRightSidebarStore } from '@planetcrust/human-vue'
-import { computed, inject, onUnmounted, ref } from 'vue'
+import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // The project's board — six item types share it: the five event categories
 // (stores/events.js) plus backlog items (stores/backlogItems.js), grouped
 // into the shared four-status column set (config/eventForm.js EVENT_STATUS —
-// review now carries the same four statuses as everything else).
+// review now carries the same four statuses as everything else). Rows come
+// off the board endpoint (GET /project-board/, see server/system/types/
+// project_board.go), NOT stores/events.js#events / stores/backlogItems.js#items
+// — those cap at 200 rows per category (their own load()'s comment), so a
+// board built on them silently drops cards and undercounts past that; the
+// board endpoint pages each column server-side instead (see loadBoard/
+// loadMoreColumn below). Both stores are still injected here, but only for
+// their WRITE actions (add/update/remove/updateStatus/fetchOne) and
+// `ownerOptions` — see each usage below.
 const props = defineProps({
   // Chain-root project id. Chain-wide: views/dashboard/BoardView.vue passes
   // route.params.projectId (a chain HEAD, which is the chain ROOT for an
@@ -200,80 +239,140 @@ const props = defineProps({
 
 const { t } = useI18n()
 const $toast = inject('$toast')
+const $SystemAPI = inject('$SystemAPI')
 const eventsStore = useEventsStore()
 const backlogStore = useBacklogItemsStore()
+const users = useProjectUsersStore()
 const { revisionInfo } = useRevisionLabel()
 
 const isRevisionScoped = computed(() => !!props.revisionId)
-const loading = computed(() => eventsStore.loading || backlogStore.loading)
 
-// Per-category field maps needed to normalize the five event resources into
-// one card shape below — which field on the raw (store-mapped) record holds
-// the primary owner. Severity/risk are on every category but review (see
-// config/eventForm.js's EVENT_FORMS); backlog items carry `priority` instead
-// of severity, and their own `assignee` field rather than a category-named
-// owner.
-const OWNER_KEY = {
-  incident: 'issueOwner',
-  feature: 'featureOwner',
-  privacy: 'requestOwner',
-  task: 'owner',
-  review: 'reviewer',
-}
+// Cards per column page — small enough that a full four-column load (the
+// board's initial fetch, no `status`) stays cheap, generous enough that most
+// projects never need "load more" at all. Also the `limit` passed to a single
+// column's continuation fetch (see loadMoreColumn).
+const BOARD_PAGE_LIMIT = 20
 
-// One normalized shape for every board item, regardless of which of the six
-// underlying resources it came from: { key, id, itemType, linkedCategory?,
-// title, status, severity?, priority?, assignee, dueDate, revisionLabel }.
-// `key` is the drag payload BoardCard/BoardColumn round-trip through
-// dataTransfer — also reused as the click payload (see onCardClick) so both
-// interactions share one lookup (findItem). `revisionLabel` is resolved HERE,
-// once per item via the shared useRevisionLabel composable (same treatment
-// CategoryPanel/BacklogView use for their revisionID column, including the
-// explicit "Unassigned" state) rather than in BoardCard itself — keeps that
-// component a pure presentational leaf, like it already is for typeBadge/
-// typeLabel, and avoids every rendered card independently subscribing to the
-// revision chain. Only rendered chain-wide (BoardCard's showRevision), but
-// always resolved so that stays a pure display decision.
-const boardItems = computed(() => {
-  const evItems = eventsStore.events.map(e => ({
-    key: `${e.category}:${e.id}`,
-    id: e.id,
-    itemType: e.category,
-    title: e.title,
-    status: e.status,
-    severity: e.severity || '',
-    assignee: e[OWNER_KEY[e.category]] || '',
-    dueDate: e.dateDue || '',
-    revisionLabel: revisionInfo(e.revisionID),
-  }))
-  const blItems = backlogStore.items.map(i => ({
-    key: `backlog:${i.id}`,
-    id: i.id,
-    itemType: 'backlog',
-    linkedCategory: i.category,
-    title: i.title,
-    status: i.status,
-    priority: i.priority || '',
-    assignee: i.assignee || '',
-    dueDate: i.dateDue || '',
-    revisionLabel: revisionInfo(i.revisionID),
-  }))
-  return [...evItems, ...blItems]
-})
-
+// --- Board state (loadBoard/loadMoreColumn own every write to this) --------
 // EVENT_STATUS's order is the board's fixed column order (Open / In Progress
 // / Ready to Test / Completed) — every item type shares it. Columns render
 // unconditionally (see template) so the board is usable from cold; this list
-// itself never collapses to nothing.
-const columns = computed(() =>
-  EVENT_STATUS.map(status => ({
-    status,
-    items: boardItems.value.filter(it => it.status === status),
-  })),
+// itself never collapses to nothing. Each column tracks its own items/total/
+// nextPage/loadingMore — independent server-paged state, not a client-side
+// grouping of some larger loaded set.
+const columns = reactive(
+  EVENT_STATUS.map(status => ({ status, items: [], total: 0, nextPage: null, loadingMore: false })),
 )
+const loading = ref(true)
+const loadFailed = ref(false)
+
+// One raw board-endpoint item (server/system/types/project_board.go's
+// ProjectBoardItem) -> the shape BoardCard.vue renders: { key, id, itemType,
+// linkedCategory?, title, status, severity?, priority?, assignee, dueDate,
+// revisionLabel }. `owner` comes back as a raw user id (0 = unassigned) — the
+// endpoint deliberately leaves name resolution to the frontend (see that
+// type's own doc comment), same directory (stores/users.js) every other view
+// resolves owners through. `key` is the drag/click payload BoardCard/
+// BoardColumn round-trip through dataTransfer (see onDropItem/onCardClick).
+function mapBoardItem(raw) {
+  return {
+    key: raw.itemType === 'backlog' ? `backlog:${raw.id}` : `${raw.itemType}:${raw.id}`,
+    id: raw.id,
+    itemType: raw.itemType,
+    linkedCategory: raw.linkedCategory || '',
+    title: raw.title,
+    status: raw.status,
+    severity: raw.severity || '',
+    priority: raw.priority || '',
+    assignee: raw.owner ? users.userName(raw.owner) : '',
+    dueDate: raw.dueDate || '',
+    revisionLabel: revisionInfo(raw.revisionID),
+  }
+}
+
+// Initial (or full-refresh) load — every column, first page each. Sequence-
+// guarded like OverviewPanel's loadAll: a project/revision switch (or a rapid
+// retry click) mid-flight must not let a stale response overwrite a newer
+// one's columns.
+let loadSeq = 0
+async function loadBoard() {
+  if (!props.projectId) {
+    loading.value = false
+    return
+  }
+  const mySeq = ++loadSeq
+  loading.value = true
+  loadFailed.value = false
+  try {
+    const { columns: cols = [] } = await $SystemAPI.projectBoardBoard({
+      projectID: props.projectId,
+      revisionID: props.revisionId || undefined,
+      limit: BOARD_PAGE_LIMIT,
+    })
+    if (mySeq !== loadSeq) return // stale — a newer load/retry is in flight
+    for (const col of cols) {
+      const target = columns.find(c => c.status === col.status)
+      if (!target) continue
+      target.items = (col.items || []).map(mapBoardItem)
+      // Fresh load (no cursor): the endpoint omits `total` (json
+      // `omitempty`) both for a genuinely empty column AND would for a
+      // zero total in general — either way, missing here means 0, never
+      // undefined/NaN in the column header's count pill.
+      target.total = Number(col.total || 0)
+      target.nextPage = col.nextPage || null
+      target.loadingMore = false
+    }
+  } catch (err) {
+    if (mySeq !== loadSeq) return
+    console.error('Failed to load board', err)
+    loadFailed.value = true
+  } finally {
+    if (mySeq === loadSeq) loading.value = false
+  }
+}
+
+// One column's next page — status + pageCursor, per the endpoint's paging
+// contract (server/system/service/project_board.go's Board/loadColumn).
+async function loadMoreColumn(status) {
+  const col = columns.find(c => c.status === status)
+  if (!col || !col.nextPage || col.loadingMore) return
+  col.loadingMore = true
+  try {
+    const { columns: cols = [] } = await $SystemAPI.projectBoardBoard({
+      projectID: props.projectId,
+      revisionID: props.revisionId || undefined,
+      status,
+      pageCursor: col.nextPage,
+      limit: BOARD_PAGE_LIMIT,
+    })
+    const page = cols[0] // Board() with `status` set returns exactly that one column.
+    if (page) {
+      col.items.push(...(page.items || []).map(mapBoardItem))
+      col.nextPage = page.nextPage || null
+      // Continuation page: the endpoint NEVER sends `total` here by design
+      // (loadColumn's own doc comment — total can't be combined with a page
+      // cursor), so `page.total` is always undefined at this point. Do NOT
+      // coalesce that to 0 the way loadBoard does for a fresh load — this
+      // branch only exists in case that contract ever changes server-side,
+      // and even then only overwrites when a value is actually present.
+      if (page.total !== undefined) col.total = Number(page.total)
+    }
+  } catch (err) {
+    console.error('Failed to load more board items', err)
+    $toast.toastErrorHandler(t('project.dashboard.board.toast.loadMoreFailed'))(err)
+  } finally {
+    col.loadingMore = false
+  }
+}
+
+watch([() => props.projectId, () => props.revisionId], () => loadBoard(), { immediate: true })
 
 function findItem(key) {
-  return boardItems.value.find(it => it.key === key)
+  for (const col of columns) {
+    const item = col.items.find(it => it.key === key)
+    if (item) return item
+  }
+  return null
 }
 
 // --- Drag & drop -------------------------------------------------------------
@@ -284,19 +383,36 @@ function findItem(key) {
 // provide/inject.
 const draggedKey = ref(null)
 
-// Write immediately, optimistically (the store patches the item's status in
-// place before the request resolves, so the card visibly moves to the target
-// column right away), rolling back on failure — stores/projects.intent.md's
-// "Update flows are optimistic with rollback on push failure", applied to
-// these two stores' updateStatus() actions.
+// Move the card between this component's own column state immediately
+// (optimistic), persist via the store, and roll the move back on failure —
+// stores/projects.intent.md's "Update flows are optimistic with rollback on
+// push failure", now implemented at the board's own column-state level
+// rather than relying on a store mutation to ripple into this component's
+// rendering (see the DATA LOADING note above: this component doesn't read
+// the stores' cached lists for its rows any more, so their own optimistic
+// patch — still there, see stores/events.js#updateStatus — is invisible to
+// it either way).
 //
-// STATUS-ONLY, chain-wide included: eventsStore.updateStatus/
-// backlogStore.updateStatus (stores/events.js / stores/backlogItems.js) both
-// build their PUT body off the store's own cached record (`{ ...item, status }`),
-// which already carries that record's existing `revisionID` untouched — this
-// function never reads or sets revisionID itself, so dropping a card into
-// another column changes ONLY its status. A chain-wide drag can never clear
-// or reassign the item's revision.
+// WHY STILL CALL eventsStore.updateStatus/backlogStore.updateStatus rather
+// than writing to $SystemAPI directly here: the update endpoint is a full PUT
+// (server/system/service/project_incident.go#Update replaces every field,
+// not a merge), and the board's own card shape (ProjectBoardItem) is a slim
+// projection — no description/risk/dates-other-than-due/etc — so this
+// component can't safely build that PUT body itself. The stores already own
+// the correct full-record body construction (including remapping owner
+// fields back to `<key>Id`); reusing them keeps that logic in one place.
+// Both stores' updateStatus was hardened alongside this change (see
+// stores/events.js/backlogItems.js) to fetch the record fresh when it isn't
+// already cached, rather than silently no-op'ing — needed here specifically,
+// since the board can now show (and so drag) cards well past either store's
+// own 200-row cache.
+//
+// STATUS-ONLY, chain-wide included: both stores' updateStatus build their PUT
+// body off the full record (cached or freshly fetched), which already
+// carries that record's existing `revisionID` untouched — this function
+// never reads or sets revisionID itself, so dropping a card into another
+// column changes ONLY its status. A chain-wide drag can never clear or
+// reassign the item's revision.
 async function onDropItem(status, key) {
   // Clear the drag flag here rather than relying on @card-dragend alone: a
   // card that changes column unmounts from its source list, so the native
@@ -306,6 +422,18 @@ async function onDropItem(status, key) {
   draggedKey.value = null
   const item = findItem(key)
   if (!item || item.status === status) return
+  const sourceCol = columns.find(c => c.status === item.status)
+  const targetCol = columns.find(c => c.status === status)
+  const idx = sourceCol?.items.findIndex(it => it.key === key) ?? -1
+  if (!sourceCol || !targetCol || idx === -1) return
+
+  const prevStatus = item.status
+  const [moved] = sourceCol.items.splice(idx, 1)
+  moved.status = status
+  targetCol.items.unshift(moved)
+  sourceCol.total = Math.max(0, sourceCol.total - 1)
+  targetCol.total += 1
+
   try {
     if (item.itemType === 'backlog') {
       await backlogStore.updateStatus(item.id, status)
@@ -313,6 +441,16 @@ async function onDropItem(status, key) {
       await eventsStore.updateStatus(item.itemType, item.id, status)
     }
   } catch (err) {
+    // Roll back the optimistic move — best-effort re-insert at the source's
+    // original index; exact position among same-status cards doesn't matter
+    // (the board endpoint's own ordering is "all of one source before the
+    // next", not chronological — see project_board.go's doc comment).
+    const revertIdx = targetCol.items.findIndex(it => it.key === key)
+    if (revertIdx !== -1) targetCol.items.splice(revertIdx, 1)
+    moved.status = prevStatus
+    sourceCol.items.splice(Math.min(idx, sourceCol.items.length), 0, moved)
+    sourceCol.total += 1
+    targetCol.total = Math.max(0, targetCol.total - 1)
     $toast.toastErrorHandler(t('project.dashboard.board.toast.moveFailed'))(err)
   }
 }
@@ -357,7 +495,11 @@ function onQuickAdd(status) {
 
 // Passed to NewEventDialog's `on-create` prop — same contract/shape as
 // CategoryPanel's onCreate (including the inline backlog widget's queued
-// titles), plus the revisionID assignment described above.
+// titles), plus the revisionID assignment described above. Refreshes the
+// whole board on success (loadBoard) rather than splicing the new card into
+// local state by hand — creation is comparatively rare (a deliberate,
+// dialog-driven action, not a hot interaction like drag), so the simplicity
+// of one authoritative refetch outweighs the extra round trip.
 async function onQuickCreate(payload, backlogTitles = []) {
   let event
   try {
@@ -383,6 +525,7 @@ async function onQuickCreate(payload, backlogTitles = []) {
       $toast.toastErrorHandler(t('project.dashboard.backlog.toast.createFailed'))(failed.reason)
     }
   }
+  loadBoard()
   return true
 }
 
@@ -405,32 +548,72 @@ const drawerVisible = computed({
 onUnmounted(() => rightSidebar.close(DRAWER_PANEL))
 
 // The clicked board item (the normalized card shape, not the full record —
-// see boardItems above); null until a card is clicked.
+// see mapBoardItem above); null until a card is clicked.
 const selectedItem = ref(null)
 const editVisible = ref(false)
 const isBacklogSelected = computed(() => selectedItem.value?.itemType === 'backlog')
 
-// Resolve the full store-mapped record behind the clicked card — the
-// drawers/dialogs need every field (description, risk, owners…), not just
-// the board's slim projection. A computed (not a captured snapshot) so a
-// save elsewhere in the same record (store.update splices a fresh object
-// into the list) is reflected live without re-pointing anything by hand.
+// Fallback full record for a clicked card that ISN'T in either store's own
+// cached list (see selectedRecord below) — fetched fresh on click (see
+// onCardClick) via the stores' fetchOne, reset on every new click so a stale
+// fallback never lingers behind a different selection.
+const selectedRecordFallback = ref(null)
+
+// Resolve the full record behind the clicked card — the drawers/dialogs need
+// every field (description, risk, owners…), not just the board's slim
+// projection. A computed (not a captured snapshot) so a save elsewhere in
+// the same record (store.update splices a fresh object into the list) is
+// reflected live without re-pointing anything by hand.
+//
+// Checks the store's own cache FIRST (cheap, synchronous, and already the
+// freshest copy after a save/delete via this drawer): most boards are small
+// enough that every card is inside the store's 200-row-per-category load.
+// Falls back to selectedRecordFallback for a card the board endpoint reaches
+// but the store's own capped load never cached (see onCardClick) — the exact
+// scenario this whole slice exists to stop silently breaking.
 const selectedRecord = computed(() => {
   const item = selectedItem.value
   if (!item) return null
-  if (item.itemType === 'backlog') return backlogStore.items.find(i => i.id === item.id) || null
-  return eventsStore.events.find(e => e.category === item.itemType && e.id === item.id) || null
+  if (item.itemType === 'backlog') {
+    return backlogStore.items.find(i => i.id === item.id) || selectedRecordFallback.value
+  }
+  return (
+    eventsStore.events.find(e => e.category === item.itemType && e.id === item.id) ||
+    selectedRecordFallback.value
+  )
 })
 
-function onCardClick(key) {
+async function onCardClick(key) {
   const item = findItem(key)
   if (!item) return
   selectedItem.value = item
+  selectedRecordFallback.value = null
   editVisible.value = false
   drawerVisible.value = true
+
+  const cached =
+    item.itemType === 'backlog'
+      ? backlogStore.items.find(i => i.id === item.id)
+      : eventsStore.events.find(e => e.category === item.itemType && e.id === item.id)
+  if (cached) return
+  try {
+    selectedRecordFallback.value =
+      item.itemType === 'backlog'
+        ? await backlogStore.fetchOne(item.id)
+        : await eventsStore.fetchOne(item.itemType, item.id)
+  } catch (err) {
+    // The drawer stays open with an empty record (its own title/summary
+    // fields read blank) rather than a dedicated failure state — a secondary
+    // detail fetch failing is rare and the user can just close and re-click.
+    console.error('Failed to load board item details', err)
+  }
 }
 
 // --- Event save/delete (drawer's Edit -> EventDetailDialog) -----------------
+// Every save/delete below also refreshes the board (loadBoard) — an edit can
+// change the card's status (moving it to another column), title, severity or
+// owner, none of which this component would otherwise see since it no longer
+// reads the stores' cached lists for its rows (see the DATA LOADING note).
 async function onEventSave(id, payload) {
   const cat = selectedItem.value?.itemType
   try {
@@ -439,6 +622,7 @@ async function onEventSave(id, payload) {
       t(CATEGORY_CONFIG[cat].singularKey),
       t('project.dashboard.event.toast.updated'),
     )
+    loadBoard()
     return true
   } catch (err) {
     console.error('Failed to update event', err)
@@ -457,6 +641,7 @@ async function onEventDelete(id) {
     )
     drawerVisible.value = false
     selectedItem.value = null
+    loadBoard()
     return true
   } catch (err) {
     console.error('Failed to delete event', err)
@@ -473,6 +658,7 @@ async function onBacklogSave(id, payload) {
       t('project.dashboard.backlog.singular'),
       t('project.dashboard.backlog.toast.updated'),
     )
+    loadBoard()
     return true
   } catch (err) {
     console.error('Failed to update backlog item', err)
@@ -490,6 +676,7 @@ async function onBacklogDelete(id) {
     )
     drawerVisible.value = false
     selectedItem.value = null
+    loadBoard()
     return true
   } catch (err) {
     console.error('Failed to delete backlog item', err)
@@ -526,6 +713,7 @@ async function onLinkedEventSave(id, payload) {
       t(CATEGORY_CONFIG[cat].singularKey),
       t('project.dashboard.event.toast.updated'),
     )
+    loadBoard()
     return true
   } catch (err) {
     console.error('Failed to update event', err)
@@ -543,6 +731,7 @@ async function onLinkedEventDelete(id) {
       t('project.dashboard.event.toast.deleted'),
     )
     linkedEventVisible.value = false
+    loadBoard()
     return true
   } catch (err) {
     console.error('Failed to delete event', err)

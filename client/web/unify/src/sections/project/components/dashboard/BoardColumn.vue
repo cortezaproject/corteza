@@ -33,8 +33,12 @@
              describes the column, whereas the right side is for actions.
              bg-emphasis, not bg-surface — the column itself is bg-surface now,
              so a surface-toned pill would be invisible against it. -->
+        <!-- The endpoint's TRUE per-column total (server/system/types/
+             project_board.go's ProjectBoardColumn.Total), not just how many
+             cards this page has loaded — a column past its first page still
+             reads its real count, not "20+". -->
         <span class="text-xs text-muted-color rounded-full bg-emphasis px-1.5 py-0.5 shrink-0">
-          {{ items.length }}
+          {{ total }}
         </span>
       </span>
       <span class="flex items-center shrink-0">
@@ -57,7 +61,7 @@
         />
       </span>
     </div>
-    <div class="flex-1 min-h-0 overflow-y-auto p-2 flex flex-col gap-2">
+    <div class="flex-1 min-h-0 overflow-y-auto p-2 flex flex-col gap-2" @scroll="onScroll">
       <template v-if="items.length">
         <BoardCard
           v-for="item in items"
@@ -80,6 +84,23 @@
       <div v-else class="flex-1 flex items-center justify-center px-2">
         <p class="text-xs text-muted-color text-center">{{ $t('project.dashboard.list.empty') }}</p>
       </div>
+
+      <!-- This column's next page — server-paged off the board endpoint's
+           own cursor (BoardPanel.vue's loadMoreColumn), never a client-side
+           slice. Scrolling near the bottom auto-triggers it (onScroll
+           below); the button underneath is the same action, for anyone who'd
+           rather click than scroll. -->
+      <div v-if="hasMore" class="shrink-0 flex items-center justify-center py-1">
+        <ProgressSpinner v-if="loadingMore" style="width: 1rem; height: 1rem" stroke-width="6" />
+        <button
+          v-else
+          type="button"
+          class="text-xs text-muted-color hover:text-color underline-offset-2 hover:underline"
+          @click="$emit('load-more')"
+        >
+          {{ $t('project.dashboard.board.loadMore') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -92,6 +113,15 @@ import { computed, ref } from 'vue'
 const props = defineProps({
   status: { type: String, required: true },
   items: { type: Array, default: () => [] },
+  // The endpoint's TRUE per-column total (see the header pill above) —
+  // defaults to 0 so this column still reads sensibly before its first load
+  // resolves.
+  total: { type: Number, default: 0 },
+  // Whether this column has a further page to fetch (BoardPanel's
+  // column.nextPage, threaded through as a plain boolean).
+  hasMore: { type: Boolean, default: false },
+  // A load-more request for this column is in flight.
+  loadingMore: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   // The key of the card currently being dragged (shared across every
   // column so only the true source card dims, not just the one under it).
@@ -107,7 +137,25 @@ const props = defineProps({
   // to drop its revision column when scoped).
   showRevision: { type: Boolean, default: false },
 })
-const emit = defineEmits(['drop-item', 'card-dragstart', 'card-dragend', 'add-item', 'card-click'])
+const emit = defineEmits([
+  'drop-item',
+  'card-dragstart',
+  'card-dragend',
+  'add-item',
+  'card-click',
+  'load-more',
+])
+
+// Infinite-scroll trigger — fires once per approach to the bottom (loadingMore
+// guards re-entrancy; BoardPanel also no-ops a load-more call with no
+// nextPage, so a stray extra emit near the boundary is harmless).
+function onScroll(e) {
+  if (!props.hasMore || props.loadingMore) return
+  const el = e.target
+  if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) {
+    emit('load-more')
+  }
+}
 
 // Resolved through colorFor rather than reading STATUS_COLORS directly, so an
 // unrecognised status degrades to the shared MUTED grey instead of undefined.

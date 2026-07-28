@@ -1317,12 +1317,12 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/BoardColumn.vue": {
-      "h": "5d204edbfc11",
+      "h": "3abcc8b04c59",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/BoardPanel.vue": {
-      "h": "932c9a8d699e",
+      "h": "27b864db268d",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1337,7 +1337,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryPanel.vue": {
-      "h": "3e6713369599",
+      "h": "1f4e5881fe30",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1647,7 +1647,7 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/components/wizard/RevisionCompletenessBar.vue": {
-      "h": "4c563dd6845d",
+      "h": "355c8f619ea0",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1862,7 +1862,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/stores/backlogItems.js": {
-      "h": "45c08de8e58b",
+      "h": "66315c4450d9",
       "doc": "client/web/unify/src/sections/project/stores/backlogItems.intent.md",
       "t": "2026-07-28"
     },
@@ -1872,7 +1872,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/stores/events.js": {
-      "h": "595b2221704b",
+      "h": "3ef62492d6a5",
       "doc": "client/web/unify/src/sections/project/stores/events.intent.md",
       "t": "2026-07-28"
     },
@@ -1907,7 +1907,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/dashboard/BacklogView.vue": {
-      "h": "78c9dc958ed8",
+      "h": "be88bcd5da02",
       "doc": "client/web/unify/src/sections/project/views/dashboard/BacklogView.intent.md",
       "t": "2026-07-28"
     },

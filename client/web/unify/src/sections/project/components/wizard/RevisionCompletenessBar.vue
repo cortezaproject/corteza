@@ -4,9 +4,11 @@
        backlog items). Mounted once in Wizard.vue's tab row, right-aligned as
        a sibling of the locked publish/approval cluster (see Wizard.vue) —
        always visible on all three tabs, not gated on the publish flow.
-       Entirely report-endpoint-driven (stores/report.js), never the events/
-       backlog stores, so it stays accurate past their 200-row-per-category
-       cap. -->
+       Entirely board-endpoint-driven (GET /project-board/, see the script
+       below), never the events/backlog stores (nor, any more, the report
+       endpoint — see the script's own comment for why this moved off six
+       report() calls onto one board call), so it stays accurate past those
+       stores' 200-row-per-category cap. -->
   <span v-if="hasData" class="flex items-center gap-2 shrink-0" v-tooltip.bottom="tooltip">
     <template v-if="hasItems">
       <ProgressBar :value="percent" :show-value="false" :style="progressStyle" class="w-24" />
@@ -24,32 +26,33 @@
 </template>
 
 <script setup>
-// Six report calls (five categories + backlog items — the same
-// KPI_RESOURCES set OverviewPanel.vue's revision-scoped KPI trio uses), each
-// asking for the 'count'/'open' metrics. 'open' already applies the single
-// Completed-status rule server-side (server/system/service/project_report.go
-// projectReportCompletedStatus, the same rule stores/events.js#isOpenStatus
-// names client-side) — completed = count - open is plain arithmetic on top
-// of that, never a re-derivation of the open/closed rule itself.
-import { CATEGORY_ORDER } from '@/sections/project/config/categories'
+// One board call (GET /project-board/, see server/system/types/project_board.go),
+// asking for every column's true total and no cards (`limit: 1` — the board
+// endpoint decouples its total-probe from the caller's requested item-page
+// limit specifically for callers like this one, see service/project_board.go's
+// loadColumn doc comment). `assigned` = the sum of all four column totals;
+// `completed` = the Completed column's own total. The backend's board service
+// verified this sum is mathematically identical to the six-report-call
+// count/open arithmetic this component used before — the single Completed
+// status bucket IS the "not open" set, so summing every column equals the old
+// `count` total and the Completed column alone equals the old `count - open`.
+// Nothing here re-derives that rule; it's just addition over the endpoint's
+// own totals.
 import { colorFor } from '@/sections/project/config/chartColors'
-import { useReportStore } from '@/sections/project/stores/report'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const report = useReportStore()
+const $SystemAPI = inject('$SystemAPI')
 
 const props = defineProps({
-  // Chain-root project id — the report endpoint's required ProjectID scope.
+  // Chain-root project id — the board endpoint's required ProjectID scope.
   projectId: { type: [String, Number], required: true },
   // The open revision (the wizard's current project row's own projectID).
   // This bar only ever renders revision-scoped — there is no chain-wide mode
   // (unlike OverviewPanel, which this mirrors the report-call shape of).
   revisionId: { type: [String, Number], required: true },
 })
-
-const RESOURCES = [...CATEGORY_ORDER, 'backlog-item']
 
 const totals = reactive({ assigned: 0, completed: 0 })
 const loaded = ref(false)
@@ -65,21 +68,21 @@ async function load(pid, revId) {
   }
   const mySeq = ++seq
   try {
-    const rowsets = await Promise.all(
-      RESOURCES.map(key =>
-        report.report(pid, key, { metrics: ['count', 'open'], revisionId: revId }),
-      ),
-    )
+    const { columns = [] } = await $SystemAPI.projectBoardBoard({
+      projectID: pid,
+      revisionID: revId,
+      limit: 1,
+    })
     if (mySeq !== seq) return // stale — a newer revision switch is in flight
     let assigned = 0
-    let open = 0
-    for (const rows of rowsets) {
-      const g = rows?.[0]?.metrics || {}
-      assigned += Number(g.count || 0)
-      open += Number(g.open || 0)
+    let completed = 0
+    for (const col of columns) {
+      const total = Number(col.total || 0)
+      assigned += total
+      if (col.status === 'Completed') completed += total
     }
     totals.assigned = assigned
-    totals.completed = assigned - open
+    totals.completed = completed
     failed.value = false
     loaded.value = true
   } catch (err) {

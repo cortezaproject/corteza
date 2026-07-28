@@ -128,8 +128,13 @@ dashboard:
   board:
     title: Board
     desc: Work items grouped by status — drag a card to move it between statuses.
+    # A column's "load more" affordance (BoardColumn.vue) — shown once its
+    # server-paged next page (see BoardPanel.vue's loadMoreColumn) is loading
+    # or ready to fetch.
+    loadMore: Load more
     toast:
       moveFailed: Could not move the item. Please try again.
+      loadMoreFailed: Could not load more items. Please try again.
   # Quick time-range presets (stock-chart style), shared by ActivityPanel's
   # toolbar and the Overview/CategoryView trend charts (see TimeRangeSelect).
   range:
@@ -190,15 +195,14 @@ dashboard:
     revision: Revision
   # CResourceList chrome for category pages, shared by BacklogView.vue's own
   # list (same toolbar idiom: chips left; filter → refresh → search right).
+  # There used to be an Unassigned filter (button + popover + removable chip)
+  # here too — dropped when these lists moved to server-side paging: the
+  # generated resource filters treat `revisionID = 0` as "no constraint", not
+  # "unassigned only", so there's no honest way to serve it server-side (see
+  # CategoryPanel.vue/BacklogView.vue's own module doc comments).
   list:
     searchPlaceholder: 'Search…'
     empty: 'Nothing here yet.'
-    # Filter button (icon-only) + its popover, and the removable chip shown
-    # in the toolbar's left side while the filter is active — the chip label
-    # reuses `dashboard.revision.unassigned` so the wording matches the
-    # revision column's own unassigned state exactly.
-    filters: Filters
-    unassignedFilter: Show unassigned items only
   categories:
     incident: Incidents
     feature: Features

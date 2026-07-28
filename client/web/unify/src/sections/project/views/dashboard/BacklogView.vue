@@ -73,35 +73,32 @@
             class="h-full"
             primary-key="id"
             :fields="fields"
-            :items="visibleItems"
+            :items="listItems"
             :filter="filter"
             @update:filter="Object.assign(filter, $event)"
             :sorting="sorting"
             :pagination="pagination"
+            :loading="listLoading"
             :translations="{
               searchPlaceholder: $t('project.dashboard.backlog.searchPlaceholder'),
               noItems: $t('project.dashboard.list.empty'),
             }"
             clickable
-            @sort="onSort"
+            @sort="handleSort"
             @row-click="onRowClick"
+            @page-change="handlePageChange"
           >
+            <!-- There WAS an "Unassigned" filter chip/checkbox in this
+                 toolbar — dropped, see the module doc comment's UNASSIGNED
+                 FILTER note: a server page can't honestly claim "N
+                 unassigned" when it only means "N unassigned on this page". -->
             <template #header>
-              <div class="flex items-center gap-2 flex-wrap">
-                <Button
-                  icon="pi pi-plus"
-                  :label="$t('project.dashboard.backlog.newButton')"
-                  size="small"
-                  @click="openCreate"
-                />
-                <Chip
-                  v-if="filter.unassignedOnly"
-                  :label="$t('project.dashboard.revision.unassigned')"
-                  removable
-                  class="text-xs"
-                  @remove="filter.unassignedOnly = false"
-                />
-              </div>
+              <Button
+                icon="pi pi-plus"
+                :label="$t('project.dashboard.backlog.newButton')"
+                size="small"
+                @click="openCreate"
+              />
             </template>
 
             <template #body-title="{ data }">
@@ -153,32 +150,8 @@
             <template #body-dateDue="{ data }">
               <span class="text-sm text-muted-color">{{ formatDate(data.dateDue) }}</span>
             </template>
-
-            <!-- Filter button — same icon-only shape + Popover idiom as every
-                 other CResourceList consumer (see ProjectList.vue). -->
-            <template #filter>
-              <Button
-                type="button"
-                icon="pi pi-filter"
-                severity="secondary"
-                size="small"
-                text
-                :aria-label="$t('project.dashboard.list.filters')"
-                v-tooltip.top="$t('project.dashboard.list.filters')"
-                @click="toggleFilterMenu"
-              />
-            </template>
           </CResourceList>
         </div>
-
-        <Popover ref="filterMenu">
-          <div class="flex items-center gap-2 p-2 w-56">
-            <Checkbox v-model="filter.unassignedOnly" inputId="unassignedOnlyFilter" binary />
-            <label for="unassignedOnlyFilter" class="text-sm cursor-pointer">
-              {{ $t('project.dashboard.list.unassignedFilter') }}
-            </label>
-          </div>
-        </Popover>
       </template>
     </div>
 
@@ -221,6 +194,23 @@
 </template>
 
 <script setup>
+// THE LIST is server-paged directly off the backlog-item resource endpoint
+// (GET /project-backlog-items/, see the useResourceList call below) via the same
+// useResourceList idiom views/ProjectList.vue uses, with `incTotal` for a
+// true count — NOT store.items (capped at 200 rows — that store's own load()
+// comment), which stays the source for the KPI trio and chart band below
+// (unchanged by this — backlog has no report endpoint, so those were already
+// a client-side trade against the store's own cap, not something this pass
+// fixes) and for linkedEventFor's lookup into the events store.
+//
+// UNASSIGNED FILTER — DROPPED, not just hidden (see the old template's
+// Popover/Chip, now gone): the generated resource filters treat
+// `revisionID = 0` as "no constraint", not "unassigned only" (see
+// server/store/adapters/rdbms/filters.gen.go's `if f.RevisionID > 0` guard,
+// applied identically across every one of these six resources) — there is no
+// server-side way to ask for "only unassigned rows" today. Client-filtering
+// one fetched PAGE to fake it would misreport a page's own unassigned count
+// as the whole backlog's, which is worse than not offering the filter.
 import BacklogItemDialog from '@/sections/project/components/dashboard/BacklogItemDialog.vue'
 import BacklogItemDrawer from '@/sections/project/components/dashboard/BacklogItemDrawer.vue'
 import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
@@ -234,15 +224,14 @@ import { useRevisionLabel } from '@/sections/project/composables/useRevisionLabe
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
 import {
   CATEGORY_COLORS,
-  orderIndex,
   PRIORITY_ORDER,
   STATUS_ORDER,
 } from '@/sections/project/config/chartColors'
-import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
+import { mapBacklogRow, useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { toISODate } from '@/sections/project/stores/dateUtils'
 import { isOpenStatus, useEventsStore } from '@/sections/project/stores/events'
-import { components, useRightSidebarStore } from '@planetcrust/human-vue'
-import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue'
+import { components, useResourceList, useRightSidebarStore } from '@planetcrust/human-vue'
+import { computed, inject, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -251,6 +240,7 @@ const { CResourceList, CEmptyState } = components
 defineOptions({ name: 'BacklogView' })
 
 const { t } = useI18n()
+const $SystemAPI = inject('$SystemAPI')
 const route = useRoute()
 const store = useBacklogItemsStore()
 const eventsStore = useEventsStore()
@@ -281,20 +271,44 @@ const formatDate = v => {
   return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString()
 }
 
-const filter = reactive({ query: '', unassignedOnly: false })
-const filterMenu = ref()
-function toggleFilterMenu(event) {
-  filterMenu.value?.toggle(event)
-}
-const sorting = reactive({ sortBy: 'dateDue', sortDesc: true })
-const pagination = reactive({
-  limit: 50,
-  pageCursor: undefined,
-  prevPage: '',
-  nextPage: '',
-  total: 0,
-  page: 1,
-})
+// --- Server-paged list -------------------------------------------------------
+// Same idiom views/ProjectList.vue uses: useResourceList owns filter/sorting/
+// pagination state and the actual fetch, calling straight through to
+// projectBacklogItemList (with `incTotal`) rather than a new endpoint. This
+// view is always chain-wide (no revisionId scope — see the class-level
+// comment), so `projectID` is just `route.params.projectId`, read fresh on
+// every call so a project switch (this component's instance is reused across
+// one, see the route.params.projectId watcher below) picks it up.
+const {
+  items: listItems,
+  loading: listLoading,
+  filter,
+  sorting,
+  pagination,
+  handleSort,
+  handlePageChange,
+  fetchItems: refetchList,
+  filterList,
+} = useResourceList(
+  params => {
+    const { response, cancel } = $SystemAPI.projectBacklogItemListCancellable({
+      ...params,
+      projectID: route.params.projectId,
+    })
+    return {
+      cancel,
+      response: async () => {
+        const result = await response()
+        return { ...result, set: (result.set || []).map(mapBacklogRow) }
+      },
+    }
+  },
+  {
+    filter: { query: '' },
+    sorting: { sortBy: 'dateDue', sortDesc: true },
+    pagination: { limit: 50 },
+  },
+)
 
 // KPI trio above the table — computed client-side from the loaded items
 // (backlog has no report endpoint; CategoryView's trio comes from one).
@@ -357,61 +371,6 @@ const fields = computed(() => [
   { key: 'dateDue', header: t('project.dashboard.event.f.dateDue'), sortable: true },
 ])
 
-// Client-side query filter across the item's string values.
-const filteredItems = computed(() => {
-  let list = store.items
-  if (filter.unassignedOnly) list = list.filter(item => revisionInfo(item.revisionID).unassigned)
-  const q = (filter.query || '').trim().toLowerCase()
-  if (!q) return list
-  return list.filter(item =>
-    Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(q)),
-  )
-})
-
-// Priority is ordinal (High > Medium > Low) like severity/risk/status, so it
-// sorts by rank rather than alphabetically — chartColors.js owns the
-// canonical order (PRIORITY_ORDER), resolved here via orderIndex.
-const RANKED_COLUMNS = {
-  status: label => orderIndex('status', label),
-  priority: label => orderIndex('priority', label),
-}
-
-const visibleItems = computed(() => {
-  const list = [...filteredItems.value]
-  const { sortBy, sortDesc } = sorting
-  if (sortBy) {
-    const rank = RANKED_COLUMNS[sortBy]
-    list.sort((a, b) => {
-      if (rank) {
-        const ai = rank(a[sortBy])
-        const bi = rank(b[sortBy])
-        if (ai !== bi) return sortDesc ? bi - ai : ai - bi
-        return 0
-      }
-      const av = a[sortBy] ?? ''
-      const bv = b[sortBy] ?? ''
-      if (av < bv) return sortDesc ? 1 : -1
-      if (av > bv) return sortDesc ? -1 : 1
-      return 0
-    })
-  }
-  return list
-})
-
-watch(
-  visibleItems,
-  list => {
-    pagination.total = list.length
-  },
-  { immediate: true },
-)
-
-const onSort = ({ sortField, sortOrder }) => {
-  if (!sortField) return
-  sorting.sortBy = sortField
-  sorting.sortDesc = sortOrder === -1
-}
-
 const dialogVisible = ref(false)
 const selectedItem = ref(null)
 
@@ -443,7 +402,12 @@ function onRowClick({ data }) {
 
 // Save handler — passed to BacklogItemDialog's `onSave` prop; branches
 // create/update off whether `id` is set (see the dialog's own contract
-// comment). Same truthy/falsy-or-throw idiom as the event dialogs.
+// comment). Same truthy/falsy-or-throw idiom as the event dialogs. Refreshes
+// the server-paged list on success — it's no longer store-driven (see the
+// module doc comment), so a create/update wouldn't otherwise show up:
+// refetchList() (keep the current page) for an in-place edit, filterList()
+// (back to page 1) for a create, mirroring CategoryPanel's own onUpdate/
+// onCreate split.
 const onSave = async (id, payload) => {
   try {
     if (id) {
@@ -455,12 +419,14 @@ const onSave = async (id, payload) => {
         t('project.dashboard.backlog.singular'),
         t('project.dashboard.backlog.toast.updated'),
       )
+      refetchList()
     } else {
       await store.add(payload)
       $toast.toastSuccess(
         t('project.dashboard.backlog.singular'),
         t('project.dashboard.backlog.toast.created'),
       )
+      filterList()
     }
     return true
   } catch (err) {
@@ -484,6 +450,7 @@ const onDelete = async id => {
       t('project.dashboard.backlog.singular'),
       t('project.dashboard.backlog.toast.deleted'),
     )
+    refetchList()
     return true
   } catch (err) {
     console.error('Failed to delete backlog item', err)
@@ -541,17 +508,20 @@ const onEventDelete = async id => {
 }
 
 // Switching projects resets transient list/dialog state (mirrors
-// CategoryView's category-switch watch); store data stays live (reloaded by
+// CategoryPanel's category-switch watch) and re-runs the server-paged list
+// from its first page (filterList) — store data stays live (reloaded by
 // DashboardLayout).
 watch(
   () => route.params.projectId,
   () => {
     filter.query = ''
-    filter.unassignedOnly = false
     dialogVisible.value = false
     drawerVisible.value = false
     eventDialogVisible.value = false
     selectedItem.value = null
+    sorting.sortBy = 'dateDue'
+    sorting.sortDesc = true
+    filterList()
   },
 )
 </script>

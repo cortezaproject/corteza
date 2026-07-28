@@ -13,6 +13,26 @@ import { computed, inject, ref } from 'vue'
 
 const DATE_KEYS = ['dateDue']
 
+// Map one raw backlog-item record (from this store's own load()/add()/
+// update(), or a list/read call made directly by another consumer — see
+// BacklogView.vue's server-paged list) to the loose-bag shape the dashboard
+// reads everywhere: a stable `id`, and assignee resolved to a display name
+// (raw id kept under `assigneeId` so edit flows can round-trip it).
+// Module-level (not a store action) and exported, same reasoning as
+// stores/events.js#mapEventRow — resolves the shared user directory fresh
+// each call via useProjectUsersStore() rather than a captured closure.
+export function mapBacklogRow(row) {
+  const users = useProjectUsersStore()
+  const item = { ...row, id: String(row.backlogItemID ?? '') }
+  if (row.assignee) {
+    item.assigneeId = String(row.assignee)
+    item.assignee = users.userName(row.assignee)
+  } else {
+    item.assignee = ''
+  }
+  return item
+}
+
 export const useBacklogItemsStore = defineStore('backlog-items', () => {
   const $SystemAPI = inject('$SystemAPI')
   const users = useProjectUsersStore()
@@ -21,19 +41,7 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
   const currentProjectId = ref('')
   const loading = ref(false)
 
-  // Map one raw backlog-item record to the loose-bag shape the dashboard
-  // reads: a stable `id`, and assignee resolved to a display name (raw id
-  // kept under `assigneeId` so edit flows can round-trip it).
-  function mapRow(row) {
-    const item = { ...row, id: String(row.backlogItemID ?? '') }
-    if (row.assignee) {
-      item.assigneeId = String(row.assignee)
-      item.assignee = users.userName(row.assignee)
-    } else {
-      item.assignee = ''
-    }
-    return item
-  }
+  const mapRow = mapBacklogRow
 
   // Load every backlog item for a project. Same 200-row cap idiom as
   // stores/events.js#load — acceptable for v1, no fix needed. `revisionId` is
@@ -115,21 +123,43 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
     return item
   }
 
-  // Status-only update — the Manage & Monitor board's drag interaction (see
-  // components/wizard/manage/ManageBoard.vue) moving a card to another
-  // column. Mirrors stores/events.js#updateStatus exactly: patches the
-  // cached item's status in place FIRST (the card visibly moves right away),
+  // Fetch and map a single record fresh off the resource's own `read` call —
+  // mirrors stores/events.js#fetchOne exactly, for a backlog item id that
+  // isn't (or isn't known to be) in this store's own capped `items` list
+  // (see load()'s 200-row cap). Used by updateStatus below, and by
+  // BoardPanel.vue to resolve a clicked backlog card's full detail when it
+  // came off the board endpoint rather than this store.
+  async function fetchOne(id) {
+    const raw = await $SystemAPI.projectBacklogItemRead({ backlogItemID: id })
+    return mapRow(raw || {})
+  }
+
+  // Status-only update — the board's drag interaction (BoardPanel.vue,
+  // mounted chain-wide by views/dashboard/BoardView.vue and revision-scoped
+  // by components/wizard/manage/ManageBoard.vue) moving a card to another
+  // column. Mirrors stores/events.js#updateStatus exactly: when the item is
+  // already cached, this patches its status in place FIRST (so any other
+  // view reading this store's reactive list reflects the move right away),
   // then persists it; a failed push rolls the status back and rethrows so
-  // the caller can toast. The update endpoint is a full PUT, so the push
-  // carries every other field off the cached item, remapping `assignee` back
-  // to its raw `assigneeId`.
+  // the caller can toast. BoardPanel.vue does NOT rely on this in-place
+  // patch for its own rendering — it pages the board endpoint directly (past
+  // this store's 200-row cap) and keeps its own optimistic column state,
+  // rolling that back independently on the same failure.
+  //
+  // Not cached: fetched fresh via fetchOne rather than silently no-op'ing
+  // (the old cache-only behaviour) — a card the board endpoint can show but
+  // this store never loaded (beyond its 200-row cap) must still be able to
+  // change status. Either way the push carries every OTHER field off the
+  // base record unchanged, remapping `assignee` back to its raw
+  // `assigneeId` — the update endpoint is a full PUT, not a merge, so a
+  // status-only body would blank out the rest.
   async function updateStatus(id, status) {
-    const item = items.value.find(i => i.id === String(id))
-    if (!item) return
-    const prevStatus = item.status
-    item.status = status
+    const cachedItem = items.value.find(i => i.id === String(id))
+    const prevStatus = cachedItem?.status
+    if (cachedItem) cachedItem.status = status
     try {
-      const body = { ...item, status, assignee: item.assigneeId || null }
+      const base = cachedItem || (await fetchOne(id))
+      const body = { ...base, status, assignee: base.assigneeId || null }
       const raw = await $SystemAPI.projectBacklogItemUpdate(
         normalizeDates({ ...body, backlogItemID: id }, DATE_KEYS),
       )
@@ -138,7 +168,7 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
       if (idx !== -1) items.value.splice(idx, 1, updated)
       return updated
     } catch (err) {
-      item.status = prevStatus
+      if (cachedItem) cachedItem.status = prevStatus
       throw err
     }
   }
@@ -158,6 +188,7 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
     load,
     byEvent,
     openCount,
+    fetchOne,
     add,
     update,
     updateStatus,
