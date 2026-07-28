@@ -135,6 +135,7 @@ project_task: {
 		genAccessController: true
 
 		updateFields: [
+			"RevisionID",
 			"Title", "Description", "TaskName", "TaskType", "Status", "Severity", "Risk",
 			"Owner", "ChangeOwner", "DateDue", "CompletedDate",
 		]

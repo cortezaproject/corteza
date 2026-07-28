@@ -3570,6 +3570,7 @@ endpoints:
         parameters:
           post:
             - { type: uint64, name: projectID, title: Project this incident belongs to }
+            - { type: uint64, name: revisionID, title: Revision to assign this incident to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: incidentType, title: Incident type }
@@ -3600,6 +3601,7 @@ endpoints:
           path:
             - { type: uint64, name: incidentID, required: true, title: Incident ID }
           post:
+            - { type: uint64, name: revisionID, title: Revision to assign this incident to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: incidentType, title: Incident type }
@@ -3649,6 +3651,7 @@ endpoints:
         parameters:
           post:
             - { type: uint64, name: projectID, title: Project this feature belongs to }
+            - { type: uint64, name: revisionID, title: Revision to assign this feature to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: featureType, title: Feature type }
@@ -3677,6 +3680,7 @@ endpoints:
           path:
             - { type: uint64, name: featureID, required: true, title: Feature ID }
           post:
+            - { type: uint64, name: revisionID, title: Revision to assign this feature to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: featureType, title: Feature type }
@@ -3724,6 +3728,7 @@ endpoints:
         parameters:
           post:
             - { type: uint64, name: projectID, title: Project this item belongs to }
+            - { type: uint64, name: revisionID, title: Revision to assign this privacy item to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: requestType, title: Request type }
@@ -3752,6 +3757,7 @@ endpoints:
           path:
             - { type: uint64, name: privacyID, required: true, title: Privacy item ID }
           post:
+            - { type: uint64, name: revisionID, title: Revision to assign this privacy item to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: requestType, title: Request type }
@@ -3799,6 +3805,7 @@ endpoints:
         parameters:
           post:
             - { type: uint64, name: projectID, title: Project this task belongs to }
+            - { type: uint64, name: revisionID, title: Revision to assign this task to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: taskName, title: Task name }
@@ -3825,6 +3832,7 @@ endpoints:
           path:
             - { type: uint64, name: taskID, required: true, title: Task ID }
           post:
+            - { type: uint64, name: revisionID, title: Revision to assign this task to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: taskName, title: Task name }
@@ -3870,6 +3878,7 @@ endpoints:
         parameters:
           post:
             - { type: uint64, name: projectID, title: Project this review belongs to }
+            - { type: uint64, name: revisionID, title: Revision to assign this review to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: reviewType, title: Review type }
@@ -3894,6 +3903,7 @@ endpoints:
           path:
             - { type: uint64, name: reviewID, required: true, title: Review ID }
           post:
+            - { type: uint64, name: revisionID, title: Revision to assign this review to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: reviewType, title: Review type }
@@ -3939,6 +3949,7 @@ endpoints:
         parameters:
           post:
             - { type: uint64, name: projectID, title: Project this backlog item belongs to }
+            - { type: uint64, name: revisionID, title: Revision to assign this backlog item to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: category, title: Parent category (incident|task|feature|privacy|review) }
@@ -3962,6 +3973,7 @@ endpoints:
           path:
             - { type: uint64, name: backlogItemID, required: true, title: Backlog item ID }
           post:
+            - { type: uint64, name: revisionID, title: Revision to assign this backlog item to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
             - { type: string, name: category, title: Parent category (incident|task|feature|privacy|review) }

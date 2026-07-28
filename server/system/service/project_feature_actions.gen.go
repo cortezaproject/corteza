@@ -484,6 +484,38 @@ func ProjectFeatureErrMissingProject(mm ...*projectFeatureActionProps) *errors.E
 	return e
 }
 
+// ProjectFeatureErrInvalidRevision returns "system:project-feature.invalidRevision" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectFeatureErrInvalidRevision(mm ...*projectFeatureActionProps) *errors.Error {
+	var p = &projectFeatureActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("revision does not belong to this project's revision chain", nil),
+
+		errors.Meta("type", "invalidRevision"),
+		errors.Meta("resource", "system:project-feature"),
+
+		errors.Meta(projectFeaturePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-feature.errors.invalidRevision"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectFeatureErrStaleData returns "system:project-feature.staleData" as *errors.Error
 //
 // This function is auto-generated.

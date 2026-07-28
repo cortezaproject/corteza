@@ -145,6 +145,7 @@ project_feature: {
 		genAccessController: true
 
 		updateFields: [
+			"RevisionID",
 			"Title", "Description", "FeatureType", "Status", "Severity", "Risk",
 			"FeatureOwner", "ChangeOwner", "ChangeApprovedBy", "RiskFeature", "ChangeRequired", "RiskChange",
 			"DateDue",

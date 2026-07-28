@@ -161,6 +161,7 @@ func (svc *projectTask) Update(ctx context.Context, upd *types.ProjectTask) (res
 		if err = svc.beforeUpdate(ctx, upd, res); err != nil {
 			return err
 		}
+		res.RevisionID = upd.RevisionID
 		res.Title = upd.Title
 		res.Description = upd.Description
 		res.TaskName = upd.TaskName

@@ -28,6 +28,7 @@ func (ctrl *ProjectReview) List(ctx context.Context, r *request.ProjectReviewLis
 func (ctrl *ProjectReview) Create(ctx context.Context, r *request.ProjectReviewCreate) (interface{}, error) {
 	res := &types.ProjectReview{
 		ProjectID:       r.ProjectID,
+		RevisionID:      r.RevisionID,
 		Title:           r.Title,
 		Description:     r.Description,
 		ReviewType:      r.ReviewType,
@@ -55,6 +56,7 @@ func (ctrl *ProjectReview) Read(ctx context.Context, r *request.ProjectReviewRea
 func (ctrl *ProjectReview) Update(ctx context.Context, r *request.ProjectReviewUpdate) (interface{}, error) {
 	res := &types.ProjectReview{
 		ID:              r.ReviewID,
+		RevisionID:      r.RevisionID,
 		Title:           r.Title,
 		Description:     r.Description,
 		ReviewType:      r.ReviewType,

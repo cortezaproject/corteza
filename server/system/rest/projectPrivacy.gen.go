@@ -28,6 +28,7 @@ func (ctrl *ProjectPrivacy) List(ctx context.Context, r *request.ProjectPrivacyL
 func (ctrl *ProjectPrivacy) Create(ctx context.Context, r *request.ProjectPrivacyCreate) (interface{}, error) {
 	res := &types.ProjectPrivacy{
 		ProjectID:        r.ProjectID,
+		RevisionID:       r.RevisionID,
 		Title:            r.Title,
 		Description:      r.Description,
 		RequestType:      r.RequestType,
@@ -59,6 +60,7 @@ func (ctrl *ProjectPrivacy) Read(ctx context.Context, r *request.ProjectPrivacyR
 func (ctrl *ProjectPrivacy) Update(ctx context.Context, r *request.ProjectPrivacyUpdate) (interface{}, error) {
 	res := &types.ProjectPrivacy{
 		ID:               r.PrivacyID,
+		RevisionID:       r.RevisionID,
 		Title:            r.Title,
 		Description:      r.Description,
 		RequestType:      r.RequestType,

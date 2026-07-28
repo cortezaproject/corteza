@@ -133,6 +133,7 @@ project_backlog_item: {
 		genAccessController: true
 
 		updateFields: [
+			"RevisionID",
 			"Title", "Description", "Category", "EventID", "Assignee", "Priority", "Status", "DateDue",
 		]
 

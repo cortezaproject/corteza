@@ -28,6 +28,7 @@ func (ctrl *ProjectFeature) List(ctx context.Context, r *request.ProjectFeatureL
 func (ctrl *ProjectFeature) Create(ctx context.Context, r *request.ProjectFeatureCreate) (interface{}, error) {
 	res := &types.ProjectFeature{
 		ProjectID:        r.ProjectID,
+		RevisionID:       r.RevisionID,
 		Title:            r.Title,
 		Description:      r.Description,
 		FeatureType:      r.FeatureType,
@@ -59,6 +60,7 @@ func (ctrl *ProjectFeature) Read(ctx context.Context, r *request.ProjectFeatureR
 func (ctrl *ProjectFeature) Update(ctx context.Context, r *request.ProjectFeatureUpdate) (interface{}, error) {
 	res := &types.ProjectFeature{
 		ID:               r.FeatureID,
+		RevisionID:       r.RevisionID,
 		Title:            r.Title,
 		Description:      r.Description,
 		FeatureType:      r.FeatureType,

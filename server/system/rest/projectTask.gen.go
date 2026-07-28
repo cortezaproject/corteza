@@ -28,6 +28,7 @@ func (ctrl *ProjectTask) List(ctx context.Context, r *request.ProjectTaskList) (
 func (ctrl *ProjectTask) Create(ctx context.Context, r *request.ProjectTaskCreate) (interface{}, error) {
 	res := &types.ProjectTask{
 		ProjectID:     r.ProjectID,
+		RevisionID:    r.RevisionID,
 		Title:         r.Title,
 		Description:   r.Description,
 		TaskName:      r.TaskName,
@@ -57,6 +58,7 @@ func (ctrl *ProjectTask) Read(ctx context.Context, r *request.ProjectTaskRead) (
 func (ctrl *ProjectTask) Update(ctx context.Context, r *request.ProjectTaskUpdate) (interface{}, error) {
 	res := &types.ProjectTask{
 		ID:            r.TaskID,
+		RevisionID:    r.RevisionID,
 		Title:         r.Title,
 		Description:   r.Description,
 		TaskName:      r.TaskName,

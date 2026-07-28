@@ -107,6 +107,26 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 	return rev, nil
 }
 
+// revisionInChain reports whether revisionID (if non-zero) names a project
+// row belonging to the same revision chain as rootProjectID — i.e. its own
+// chain root matches. Zero revisionID is always valid: work items are
+// deliberately allowed to be unassigned. A non-zero revisionID that fails to
+// load is surfaced as-is (loadProject's not-found/invalid-ID error); a
+// revision that loads fine but belongs to a different chain reports ok=false
+// so the caller can reject it with its own resource-specific error.
+func revisionInChain(ctx context.Context, s store.Storer, rootProjectID, revisionID uint64) (ok bool, err error) {
+	if revisionID == 0 {
+		return true, nil
+	}
+
+	rev, err := loadProject(ctx, s, revisionID)
+	if err != nil {
+		return false, err
+	}
+
+	return rev.RootProjectID() == rootProjectID, nil
+}
+
 // ListRevisions returns all projects in the same revision chain, sorted by revision number.
 func (svc *project) ListRevisions(ctx context.Context, projectID uint64) (types.ProjectSet, error) {
 	p, err := loadProject(ctx, svc.store, projectID)

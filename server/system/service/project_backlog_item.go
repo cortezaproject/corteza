@@ -40,6 +40,12 @@ func (svc *projectBacklogItem) beforeCreate(ctx context.Context, new *types.Proj
 	}
 	new.ProjectID = project.RootProjectID()
 
+	if ok, err := revisionInChain(ctx, svc.store, new.ProjectID, new.RevisionID); err != nil {
+		return err
+	} else if !ok {
+		return ProjectBacklogItemErrInvalidRevision()
+	}
+
 	if new.EventID == 0 {
 		return ProjectBacklogItemErrMissingEvent()
 	}
@@ -56,9 +62,14 @@ func (svc *projectBacklogItem) beforeCreate(ctx context.Context, new *types.Proj
 	return nil
 }
 
-func (svc *projectBacklogItem) beforeUpdate(ctx context.Context, upd, _ *types.ProjectBacklogItem) error {
+func (svc *projectBacklogItem) beforeUpdate(ctx context.Context, upd, res *types.ProjectBacklogItem) error {
 	if upd.Category != "" && !projectBacklogItemValidCategories[upd.Category] {
 		return ProjectBacklogItemErrInvalidCategory()
+	}
+	if ok, err := revisionInChain(ctx, svc.store, res.ProjectID, upd.RevisionID); err != nil {
+		return err
+	} else if !ok {
+		return ProjectBacklogItemErrInvalidRevision()
 	}
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil

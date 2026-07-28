@@ -484,6 +484,38 @@ func ProjectTaskErrMissingProject(mm ...*projectTaskActionProps) *errors.Error {
 	return e
 }
 
+// ProjectTaskErrInvalidRevision returns "system:project-task.invalidRevision" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectTaskErrInvalidRevision(mm ...*projectTaskActionProps) *errors.Error {
+	var p = &projectTaskActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("revision does not belong to this project's revision chain", nil),
+
+		errors.Meta("type", "invalidRevision"),
+		errors.Meta("resource", "system:project-task"),
+
+		errors.Meta(projectTaskPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-task.errors.invalidRevision"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectTaskErrStaleData returns "system:project-task.staleData" as *errors.Error
 //
 // This function is auto-generated.

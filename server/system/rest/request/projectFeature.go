@@ -81,6 +81,11 @@ type (
 		// Project this feature belongs to
 		ProjectID uint64 `json:",string"`
 
+		// RevisionID POST parameter
+		//
+		// Revision to assign this feature to
+		RevisionID uint64 `json:",string"`
+
 		// Title POST parameter
 		//
 		// Title
@@ -159,6 +164,11 @@ type (
 		//
 		// Feature ID
 		FeatureID uint64 `json:",string"`
+
+		// RevisionID POST parameter
+		//
+		// Revision to assign this feature to
+		RevisionID uint64 `json:",string"`
 
 		// Title POST parameter
 		//
@@ -362,6 +372,7 @@ func NewProjectFeatureCreate() *ProjectFeatureCreate {
 func (r ProjectFeatureCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"projectID":        r.ProjectID,
+		"revisionID":       r.RevisionID,
 		"title":            r.Title,
 		"description":      r.Description,
 		"featureType":      r.FeatureType,
@@ -381,6 +392,11 @@ func (r ProjectFeatureCreate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectFeatureCreate) GetProjectID() uint64 {
 	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectFeatureCreate) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -471,6 +487,13 @@ func (r *ProjectFeatureCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
 				r.ProjectID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["revisionID"]; ok && len(val) > 0 {
+				r.RevisionID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -578,6 +601,13 @@ func (r *ProjectFeatureCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
 			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -722,6 +752,7 @@ func NewProjectFeatureUpdate() *ProjectFeatureUpdate {
 func (r ProjectFeatureUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"featureID":        r.FeatureID,
+		"revisionID":       r.RevisionID,
 		"title":            r.Title,
 		"description":      r.Description,
 		"featureType":      r.FeatureType,
@@ -741,6 +772,11 @@ func (r ProjectFeatureUpdate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectFeatureUpdate) GetFeatureID() uint64 {
 	return r.FeatureID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectFeatureUpdate) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -828,6 +864,13 @@ func (r *ProjectFeatureUpdate) Fill(req *http.Request) (err error) {
 			return err
 		} else if err == nil {
 			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["revisionID"]; ok && len(val) > 0 {
+				r.RevisionID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
 
 			if val, ok := req.MultipartForm.Value["title"]; ok && len(val) > 0 {
 				r.Title, err = val[0], nil
@@ -928,6 +971,13 @@ func (r *ProjectFeatureUpdate) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
+
+		if val, ok := req.Form["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 
 		if val, ok := req.Form["title"]; ok && len(val) > 0 {
 			r.Title, err = val[0], nil

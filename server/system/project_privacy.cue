@@ -145,6 +145,7 @@ project_privacy: {
 		genAccessController: true
 
 		updateFields: [
+			"RevisionID",
 			"Title", "Description", "RequestType", "Status", "Severity", "Risk",
 			"RequestOwner", "ChangeOwner", "ChangeApprovedBy", "RiskAssessment", "ChangeRequired", "RiskChange",
 			"DateDue",

@@ -57,6 +57,10 @@ errors:
     message: "project is required"
     severity: warning
 
+  - error: invalidRevision
+    message: "revision does not belong to this project's revision chain"
+    severity: warning
+
   - error: staleData
     message: "project review was modified by someone else after you've opened it. Please refresh to see the latest updated version"
     severity: warning

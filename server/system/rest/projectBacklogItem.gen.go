@@ -28,6 +28,7 @@ func (ctrl *ProjectBacklogItem) List(ctx context.Context, r *request.ProjectBack
 func (ctrl *ProjectBacklogItem) Create(ctx context.Context, r *request.ProjectBacklogItemCreate) (interface{}, error) {
 	res := &types.ProjectBacklogItem{
 		ProjectID:   r.ProjectID,
+		RevisionID:  r.RevisionID,
 		Title:       r.Title,
 		Description: r.Description,
 		Category:    r.Category,
@@ -54,6 +55,7 @@ func (ctrl *ProjectBacklogItem) Read(ctx context.Context, r *request.ProjectBack
 func (ctrl *ProjectBacklogItem) Update(ctx context.Context, r *request.ProjectBacklogItemUpdate) (interface{}, error) {
 	res := &types.ProjectBacklogItem{
 		ID:          r.BacklogItemID,
+		RevisionID:  r.RevisionID,
 		Title:       r.Title,
 		Description: r.Description,
 		Category:    r.Category,

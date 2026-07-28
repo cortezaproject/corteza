@@ -28,6 +28,7 @@ func (ctrl *ProjectIncident) List(ctx context.Context, r *request.ProjectInciden
 func (ctrl *ProjectIncident) Create(ctx context.Context, r *request.ProjectIncidentCreate) (interface{}, error) {
 	res := &types.ProjectIncident{
 		ProjectID:        r.ProjectID,
+		RevisionID:       r.RevisionID,
 		Title:            r.Title,
 		Description:      r.Description,
 		IncidentType:     r.IncidentType,
@@ -61,6 +62,7 @@ func (ctrl *ProjectIncident) Read(ctx context.Context, r *request.ProjectInciden
 func (ctrl *ProjectIncident) Update(ctx context.Context, r *request.ProjectIncidentUpdate) (interface{}, error) {
 	res := &types.ProjectIncident{
 		ID:               r.IncidentID,
+		RevisionID:       r.RevisionID,
 		Title:            r.Title,
 		Description:      r.Description,
 		IncidentType:     r.IncidentType,

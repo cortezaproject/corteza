@@ -127,6 +127,7 @@ project_review: {
 		genAccessController: true
 
 		updateFields: [
+			"RevisionID",
 			"Title", "Description", "ReviewType", "ReviewFrequency", "Scope",
 			"Reviewer", "ApprovedBy", "Status", "DateDue",
 		]

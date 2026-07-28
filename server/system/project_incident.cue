@@ -155,6 +155,7 @@ project_incident: {
 		genAccessController: true
 
 		updateFields: [
+			"RevisionID",
 			"Title", "Description", "IncidentType", "GroupSystem", "Status", "Severity", "Risk",
 			"IssueOwner", "ChangeOwner", "ChangeApprovedBy", "RiskIssue", "ChangeRequired", "RiskChange",
 			"DateDue", "CompletedDate",

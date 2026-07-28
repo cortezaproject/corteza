@@ -81,6 +81,11 @@ type (
 		// Project this item belongs to
 		ProjectID uint64 `json:",string"`
 
+		// RevisionID POST parameter
+		//
+		// Revision to assign this privacy item to
+		RevisionID uint64 `json:",string"`
+
 		// Title POST parameter
 		//
 		// Title
@@ -159,6 +164,11 @@ type (
 		//
 		// Privacy item ID
 		PrivacyID uint64 `json:",string"`
+
+		// RevisionID POST parameter
+		//
+		// Revision to assign this privacy item to
+		RevisionID uint64 `json:",string"`
 
 		// Title POST parameter
 		//
@@ -362,6 +372,7 @@ func NewProjectPrivacyCreate() *ProjectPrivacyCreate {
 func (r ProjectPrivacyCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"projectID":        r.ProjectID,
+		"revisionID":       r.RevisionID,
 		"title":            r.Title,
 		"description":      r.Description,
 		"requestType":      r.RequestType,
@@ -381,6 +392,11 @@ func (r ProjectPrivacyCreate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectPrivacyCreate) GetProjectID() uint64 {
 	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectPrivacyCreate) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -471,6 +487,13 @@ func (r *ProjectPrivacyCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["projectID"]; ok && len(val) > 0 {
 				r.ProjectID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["revisionID"]; ok && len(val) > 0 {
+				r.RevisionID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -578,6 +601,13 @@ func (r *ProjectPrivacyCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["projectID"]; ok && len(val) > 0 {
 			r.ProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -722,6 +752,7 @@ func NewProjectPrivacyUpdate() *ProjectPrivacyUpdate {
 func (r ProjectPrivacyUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"privacyID":        r.PrivacyID,
+		"revisionID":       r.RevisionID,
 		"title":            r.Title,
 		"description":      r.Description,
 		"requestType":      r.RequestType,
@@ -741,6 +772,11 @@ func (r ProjectPrivacyUpdate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectPrivacyUpdate) GetPrivacyID() uint64 {
 	return r.PrivacyID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectPrivacyUpdate) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -828,6 +864,13 @@ func (r *ProjectPrivacyUpdate) Fill(req *http.Request) (err error) {
 			return err
 		} else if err == nil {
 			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["revisionID"]; ok && len(val) > 0 {
+				r.RevisionID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
 
 			if val, ok := req.MultipartForm.Value["title"]; ok && len(val) > 0 {
 				r.Title, err = val[0], nil
@@ -928,6 +971,13 @@ func (r *ProjectPrivacyUpdate) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
+
+		if val, ok := req.Form["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 
 		if val, ok := req.Form["title"]; ok && len(val) > 0 {
 			r.Title, err = val[0], nil

@@ -484,6 +484,38 @@ func ProjectIncidentErrMissingProject(mm ...*projectIncidentActionProps) *errors
 	return e
 }
 
+// ProjectIncidentErrInvalidRevision returns "system:project-incident.invalidRevision" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectIncidentErrInvalidRevision(mm ...*projectIncidentActionProps) *errors.Error {
+	var p = &projectIncidentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("revision does not belong to this project's revision chain", nil),
+
+		errors.Meta("type", "invalidRevision"),
+		errors.Meta("resource", "system:project-incident"),
+
+		errors.Meta(projectIncidentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-incident.errors.invalidRevision"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectIncidentErrStaleData returns "system:project-incident.staleData" as *errors.Error
 //
 // This function is auto-generated.

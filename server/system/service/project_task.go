@@ -29,6 +29,12 @@ func (svc *projectTask) beforeCreate(ctx context.Context, new *types.ProjectTask
 	}
 	new.ProjectID = project.RootProjectID()
 
+	if ok, err := revisionInChain(ctx, svc.store, new.ProjectID, new.RevisionID); err != nil {
+		return err
+	} else if !ok {
+		return ProjectTaskErrInvalidRevision()
+	}
+
 	if new.Title == "" {
 		new.Title = firstNonEmpty(new.Description, "(untitled)")
 	}
@@ -40,6 +46,11 @@ func (svc *projectTask) beforeCreate(ctx context.Context, new *types.ProjectTask
 }
 
 func (svc *projectTask) beforeUpdate(ctx context.Context, upd, res *types.ProjectTask) error {
+	if ok, err := revisionInChain(ctx, svc.store, res.ProjectID, upd.RevisionID); err != nil {
+		return err
+	} else if !ok {
+		return ProjectTaskErrInvalidRevision()
+	}
 	// Stamp res (the persisted record); updated_by is not in the generated
 	// field-copy, so stamping upd would be dropped.
 	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()

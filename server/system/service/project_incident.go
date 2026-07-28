@@ -29,6 +29,12 @@ func (svc *projectIncident) beforeCreate(ctx context.Context, new *types.Project
 	}
 	new.ProjectID = project.RootProjectID()
 
+	if ok, err := revisionInChain(ctx, svc.store, new.ProjectID, new.RevisionID); err != nil {
+		return err
+	} else if !ok {
+		return ProjectIncidentErrInvalidRevision()
+	}
+
 	if new.Title == "" {
 		new.Title = firstNonEmpty(new.Description, "(untitled)")
 	}
@@ -39,7 +45,12 @@ func (svc *projectIncident) beforeCreate(ctx context.Context, new *types.Project
 	return nil
 }
 
-func (svc *projectIncident) beforeUpdate(ctx context.Context, upd, _ *types.ProjectIncident) error {
+func (svc *projectIncident) beforeUpdate(ctx context.Context, upd, res *types.ProjectIncident) error {
+	if ok, err := revisionInChain(ctx, svc.store, res.ProjectID, upd.RevisionID); err != nil {
+		return err
+	} else if !ok {
+		return ProjectIncidentErrInvalidRevision()
+	}
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 	return nil
 }

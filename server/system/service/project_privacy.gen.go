@@ -161,6 +161,7 @@ func (svc *projectPrivacy) Update(ctx context.Context, upd *types.ProjectPrivacy
 		if err = svc.beforeUpdate(ctx, upd, res); err != nil {
 			return err
 		}
+		res.RevisionID = upd.RevisionID
 		res.Title = upd.Title
 		res.Description = upd.Description
 		res.RequestType = upd.RequestType

@@ -548,6 +548,38 @@ func ProjectBacklogItemErrInvalidCategory(mm ...*projectBacklogItemActionProps) 
 	return e
 }
 
+// ProjectBacklogItemErrInvalidRevision returns "system:project-backlog-item.invalidRevision" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectBacklogItemErrInvalidRevision(mm ...*projectBacklogItemActionProps) *errors.Error {
+	var p = &projectBacklogItemActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("revision does not belong to this project's revision chain", nil),
+
+		errors.Meta("type", "invalidRevision"),
+		errors.Meta("resource", "system:project-backlog-item"),
+
+		errors.Meta(projectBacklogItemPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project-backlog-item.errors.invalidRevision"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectBacklogItemErrStaleData returns "system:project-backlog-item.staleData" as *errors.Error
 //
 // This function is auto-generated.
