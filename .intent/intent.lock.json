@@ -1316,6 +1316,11 @@
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/src/sections/project/components/dashboard/CategoryPanel.vue": {
+      "h": "3947d04ea28b",
+      "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
+      "t": "2026-07-28"
+    },
     "client/web/unify/src/sections/project/components/dashboard/CategoryRankBar.vue": {
       "h": "4bc7f9c4aca2",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
@@ -1542,14 +1547,14 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageFeature.vue": {
-      "h": "8302ee3a467a",
+      "h": "6b3badf03ce5",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageIncident.vue": {
-      "h": "dac19532552b",
+      "h": "5402054b2d82",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageMetrics.vue": {
       "h": "b9352b9b0630",
@@ -1562,19 +1567,19 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManagePrivacy.vue": {
-      "h": "8f57c6f266d7",
+      "h": "153a9c75ecd2",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageReview.vue": {
-      "h": "90116ba891a4",
+      "h": "e28a09dd06ce",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageTask.vue": {
-      "h": "b51cde417043",
+      "h": "1b5dbfa324d4",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/ManageNav.vue": {
       "h": "c421d3a85d81",
@@ -1812,7 +1817,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/dashboard/CategoryView.vue": {
-      "h": "b217289404c7",
+      "h": "b816f223b667",
       "doc": "client/web/unify/src/sections/project/views/dashboard/CategoryView.intent.md",
       "t": "2026-07-28"
     },

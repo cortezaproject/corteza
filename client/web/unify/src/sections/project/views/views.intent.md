@@ -36,4 +36,10 @@ sidecar intent doc — this folder doc only maps the family.
 ## When changing this
 
 - New route-target views need their own sidecar (SPEC §3 file tier).
-- The dashboard view set is locked; adding/removing one needs a ruling.
+- The dashboard view set is locked; adding/removing one needs a ruling. Set
+  re-ruled and PINNED 2026-07-28: Overview, Board, Activity (the renamed All
+  Events), Category, Backlog, Reports. Pinned because panels were twice built
+  against a set that then moved — treat further changes as expensive. The dashboard and the wizard's Manage & Monitor
+  tab are ONE surface differing only in scope — same sections, same shared
+  panel components, chain-wide here and revision-filtered there. A section
+  built for one must be built as a panel taking an optional revision.

@@ -44,7 +44,11 @@ view.
 
 ## When changing this
 
-- The view set is locked — adding/removing a child view needs a ruling.
+- The view set is locked — adding/removing a child view needs a ruling. As of
+  2026-07-28 it is Overview, Board, Activity, Category, Backlog, Reports, and
+  it must stay in step with the wizard's Manage & Monitor sections: the two are
+  one surface differing only in scope, so a section added to either belongs on
+  both, as a shared panel taking an optional revision.
 - The layout must fetch the project itself (the sidebar drawer is lazily
   mounted; relying on its store load leaves the topbar empty).
 - Children must not Teleport into the topbar — this layout owns it.

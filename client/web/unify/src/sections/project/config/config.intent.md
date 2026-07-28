@@ -41,9 +41,12 @@ persist (statuses, AI Act options) stay literal.
   mirroring the Admin connection catalog.
 - `dashboard.js` — the dashboard left-rail nav (locked view set: Overview,
   Events, five Categories, Backlog, Reports stub).
-- `manageNav.js` — the Manage & Monitor left-rail sections (monitor group +
-  the five categories). The M&M tab renders from this, never from STEPS —
-  that is what keeps "Manage & Monitor has no steps" true.
+- `manageNav.js` — the Manage & Monitor left-rail sections. The M&M tab
+  renders from this, never from STEPS — that is what keeps "Manage & Monitor
+  has no steps" true. It describes the SAME section set as `dashboard.js`
+  (ruled 2026-07-28: one surface, two scopes); the two configs differ only in
+  how each surface navigates — real child routes there, a `?section=` query
+  param here. Keep the section sets in step.
 - `categories.js` — per-category dashboard config: columns, charts, KPIs,
   badges, trend grouping; reuses eventForm's schemas and visual identity.
 - `eventForm.js` — New Event form schemas per category + EVENT_STATUS;

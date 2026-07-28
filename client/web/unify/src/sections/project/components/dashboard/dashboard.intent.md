@@ -29,6 +29,15 @@ and the event/backlog dialogs and drawers.
 
 - `DashboardNav.vue` — rail; category entries own a `:category` route param
   and reuse the same coloured badge as their view.
+- `CategoryPanel.vue` — the whole category screen (header, metrics band,
+  table, dialogs), route-free so both surfaces mount it: `views/dashboard/
+  CategoryView.vue` is now a thin route wrapper, and each
+  `components/wizard/manage/Manage<Category>.vue` mounts it with a revision.
+  An optional `revisionId` flips it to single-revision mode. IMPORTANT: the
+  report endpoint has no revision parameter, so revision-scoped metrics are
+  computed client-side from loaded store rows — accurate only within the
+  stores' 200-row cap. Chain-wide mode still uses the aggregate-correct
+  report endpoint.
 - Charts (presentational — parents map store data in): `CategoryKpiRow`,
   `CategoryDonutChart`, `CategoryTrendChart`, `CategoryRankBar`,
   `ChartLegend`; colours come from `config/chartColors`.
