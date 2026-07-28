@@ -1402,7 +1402,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/OverviewPanel.vue": {
-      "h": "e3f4552cfbfd",
+      "h": "d7e6cba4fdea",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1502,7 +1502,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/project/RevisionSwitcher.vue": {
-      "h": "3646f439af31",
+      "h": "ae526eff44c7",
       "doc": "client/web/unify/src/sections/project/components/project/project.intent.md",
       "t": "2026-07-28"
     },

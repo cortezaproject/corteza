@@ -35,9 +35,11 @@ publishable unit, built through a wizard. This doc records what is **locked**
   direct per-step review. First publish flips status; the live status is
   `active` — the backend never sets a `published` status.
 - **Lifecycle & revisions**: `draft` → `active` (via publish), plus `archived`,
-  `suspended`, soft-`deleted`. A project is a revision chain — each revision is
-  its own row (root/parent/number); publish locks what that revision built, and
-  a new revision branches from an active one (one draft per chain).
+  `suspended`, soft-`deleted`, and `deprecated` — publish assigns that to the
+  PARENT revision as its successor goes live (found against a running stack
+  2026-07-28, previously missing here). A project is a revision chain — each
+  revision is its own row (root/parent/number); publish locks what it built,
+  and a new revision branches from an active one (one draft per chain).
 - **Build tab is canvas-centric**: the graph is the primary surface. Default
   visibility is progressive by design — seeded to the kinds introduced by steps
   up to the active one — the full graph is always reachable via layer chips.
@@ -55,14 +57,13 @@ publishable unit, built through a wizard. This doc records what is **locked**
 - **Members**: users hold per-project roles; the members dialog (with `?new=1`
   auto-open deep link) is the management surface. Groups are intended but
   **not built** — a prior broken experiment was removed (2026-07-24).
-- **Dashboards**: two surfaces. The live dashboard on its own routes (view set
-  locked: Overview, Category, Backlog, All Events) covers the whole project
-  across revisions; the wizard's Manage & Monitor tab covers one revision —
-  board, metrics and activity over the same items. Work items carry a revision
-  the way an issue carries a milestone: filed against the project, assigned to
-  a revision, reassignable, and left behind when a revision publishes. Where
-  an item is created decides its revision — created on a revision board it
-  joins that revision, created anywhere else it starts unassigned.
+- **Dashboards**: ONE surface, two scopes — the live dashboard covers the whole
+  chain, the wizard's Manage & Monitor tab one revision, from the same shared
+  panels (view set in `views/views.intent.md`). Work items carry a revision the
+  way an issue carries a milestone: filed against the project, assigned to a
+  revision, reassignable, left behind when a revision publishes. Where an item
+  is created decides its revision — on a revision board it joins that revision,
+  anywhere else it starts unassigned.
 
 > **WIP:** approval **persistence** — the flow is session-local FE scaffolding
 > (governance backend dropped); backend persistence is planned. Do not rely on
@@ -76,9 +77,8 @@ publishable unit, built through a wizard. This doc records what is **locked**
 
 ## Map
 
-- `views/` — ProjectList, Wizard, dashboard views; `components/` — wizard
-  machinery, graph, dialog families, permissions, members, dashboards.
-- `sidebar/`, `composables/`, `stores/`, `utils/`, `config/` — own docs.
+- `views/`, `components/`, `sidebar/`, `composables/`, `stores/`, `utils/`,
+  `config/` — each carries its own doc.
 
 ## When changing this
 

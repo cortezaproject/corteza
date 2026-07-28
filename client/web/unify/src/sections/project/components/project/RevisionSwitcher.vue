@@ -154,6 +154,10 @@ const REVISION_STATUS_SEVERITY = {
   draft: 'info',
   suspended: 'warn',
   archived: 'secondary',
+  // Publish stamps the outgoing revision `deprecated` — the single most common
+  // status to meet in a chain of any age, so it gets its own tone rather than
+  // the unknown-status fallback below.
+  deprecated: 'secondary',
 }
 const revisionStatusSeverity = status => REVISION_STATUS_SEVERITY[status] || 'secondary'
 
