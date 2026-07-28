@@ -74,13 +74,22 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
   const openCount = computed(() => items.value.filter(i => isOpenStatus(i.status)).length)
 
   // Create a backlog item. `payload.assignee` is a user ID (or blank/null for
-  // unassigned); dates are Date objects from the picker. Returns the mapped
-  // item and prepends it to the local list so callers relying on the flat
-  // list (byEvent/openCount) react without a refetch.
-  async function add(payload = {}) {
+  // unassigned); dates are Date objects from the picker. `revisionId` is
+  // optional, same contract as events.js#add — the Manage & Monitor board's
+  // quick-add (ManageBoard.vue) passes the open revision so items queued via
+  // NewEventDialog's inline backlog widget land assigned too. WIP: sent
+  // regardless of backend support landing yet, same note as events.js#add.
+  // Returns the mapped item and prepends it to the local list so callers
+  // relying on the flat list (byEvent/openCount) react without a refetch.
+  async function add(payload = {}, revisionId) {
     const pid = currentProjectId.value
     const body = normalizeDates(
-      { ...payload, projectID: pid, status: payload.status || 'Open' },
+      {
+        ...payload,
+        projectID: pid,
+        revisionID: revisionId || undefined,
+        status: payload.status || 'Open',
+      },
       DATE_KEYS,
     )
     const raw = await $SystemAPI.projectBacklogItemCreate(body)

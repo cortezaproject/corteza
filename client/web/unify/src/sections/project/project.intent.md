@@ -60,7 +60,9 @@ publishable unit, built through a wizard. This doc records what is **locked**
   across revisions; the wizard's Manage & Monitor tab covers one revision —
   board, metrics and activity over the same items. Work items carry a revision
   the way an issue carries a milestone: filed against the project, assigned to
-  a revision, reassignable, and left behind when a revision publishes.
+  a revision, reassignable, and left behind when a revision publishes. Where
+  an item is created decides its revision — created on a revision board it
+  joins that revision, created anywhere else it starts unassigned.
 
 > **WIP:** approval **persistence** — the flow is session-local FE scaffolding
 > (governance backend dropped); backend persistence is planned. Do not rely on
@@ -74,9 +76,8 @@ publishable unit, built through a wizard. This doc records what is **locked**
 
 ## Map
 
-- `views/` — ProjectList, Wizard, dashboard views (own docs).
-- `components/` — wizard machinery, graph, per-resource-kind dialog families,
-  permissions, members (roles/users/group), dashboards (own docs).
+- `views/` — ProjectList, Wizard, dashboard views; `components/` — wizard
+  machinery, graph, dialog families, permissions, members, dashboards.
 - `sidebar/`, `composables/`, `stores/`, `utils/`, `config/` — own docs.
 
 ## When changing this

@@ -4,13 +4,21 @@
        this section, e.g. wizard/steps/PagesStep.vue and lib/vue's
        CFormItemList.vue, for the same idiom). `dragging` dims the card while
        it's the drag source; the actual move happens in ManageBoard.vue once
-       a BoardColumn reports a drop. -->
+       a BoardColumn reports a drop. Also click/keyboard-activatable — opens
+       the read-only detail drawer in ManageBoard.vue (mirrors the dashboard's
+       row-click idiom); this stays enabled even while `disabled` (viewing
+       never needs write capability, only the drag move does). -->
   <div
+    role="button"
+    tabindex="0"
     class="rounded-md border border-surface bg-surface p-2.5 shadow-sm transition-opacity"
     :class="[dragging ? 'opacity-40' : '', disabled ? '' : 'cursor-grab active:cursor-grabbing']"
     :draggable="!disabled"
     @dragstart="onDragStart"
     @dragend="$emit('dragend')"
+    @click="onClick"
+    @keydown.enter.prevent="onClick"
+    @keydown.space.prevent="onClick"
   >
     <!-- Type chip — reuses CATEGORY_CONFIG's badge colors (same bg/ring/icon/
          text families as the category screens and the M&M nav rail), so a
@@ -69,7 +77,7 @@ const props = defineProps({
   // True while this exact card is the active drag source.
   dragging: { type: Boolean, default: false },
 })
-const emit = defineEmits(['dragstart', 'dragend'])
+const emit = defineEmits(['dragstart', 'dragend', 'click'])
 
 // Neutral fallback badge — mirrors BacklogItemDialog.vue's NEUTRAL_BADGE, used
 // only if a backlog item's linked category ever fails to resolve.
@@ -109,5 +117,12 @@ function onDragStart(e) {
   // Firefox's benefit).
   e.dataTransfer.setData('text/plain', props.item.key)
   emit('dragstart', props.item.key)
+}
+
+// Same key-based payload as dragstart — ManageBoard.vue looks the full item
+// back up by key (findItem) rather than this component threading the whole
+// object through two emit hops.
+function onClick() {
+  emit('click', props.item.key)
 }
 </script>

@@ -52,6 +52,12 @@ overview:
 dashboard:
   version: 'v{number}'
   versionDraft: 'v{number} draft'
+  # Which revision a work item belongs to — shown as a column in the
+  # chain-wide list views (BacklogView.vue/CategoryView.vue), which span every
+  # revision in the chain now. Assigned items reuse `version` above; this
+  # covers items with no revisionID (legitimately unassigned).
+  revision:
+    unassigned: Unassigned
   nav:
     monitor: Monitor
     categories: Categories
@@ -143,6 +149,10 @@ dashboard:
     activity: Activity
     trend: New items over time
     createdOverTime: Created over time
+    # Throughput trend on the manage tab's metrics panel. Note only incidents
+    # and tasks carry a real completion date; the other types fall back to
+    # their last-updated timestamp, so this reads as a trend, not a record.
+    completedOverTime: Completed over time
   # Overview "Events" band — audit activity summary + recent feed (admin-only).
   eventsBand:
     title: Events
@@ -154,6 +164,7 @@ dashboard:
     title: Title
     severity: Severity
     risk: Risk
+    revision: Revision
   # CResourceList chrome for category pages.
   list:
     searchPlaceholder: 'Search…'
@@ -311,6 +322,17 @@ manage:
   # ManagePlaceholder.vue.
   panel:
     comingSoon: This section isn't built yet.
+  # The metrics panel — components/wizard/manage/ManageMetrics.vue. Scoped to
+  # the open revision, same as the board.
+  metrics:
+    blurb: Work items assigned to this revision, summarized by status, priority and completion over
+      time.
+    empty:
+      title: No work items assigned to this revision yet.
+      hint:
+        Work items are filed against the project, then assigned to a revision individually — like
+        an issue assigned to a milestone. None have been assigned to this revision yet, so there are
+        no metrics to show.
   # The board panel — components/wizard/manage/ManageBoard.vue. Column
   # headers render the raw status strings themselves (config/eventForm.js
   # EVENT_STATUS): like every other status pill in this section, status is an

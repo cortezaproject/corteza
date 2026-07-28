@@ -32,77 +32,77 @@
       </div>
 
       <div class="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-5">
-      <!-- Read-only summary — every form field except title (already the
+        <!-- Read-only summary — every form field except title (already the
            header), label + value pairs. Textareas (and any field flagged
            `full`) span both columns, same rule GovernanceForm itself uses.
            Badge-like fields (type/severity/risk/status) render as their pills
            right where they sit in the field order — no separate badge row. -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-        <div
-          v-for="field in summaryFields"
-          :key="field.key"
-          :class="{ 'sm:col-span-2': isFullField(field) }"
-        >
-          <div class="text-xs font-medium text-muted-color uppercase tracking-wide mb-1">
-            {{ $t(field.labelKey) }}
-          </div>
-          <span
-            v-if="badgeVariant(field) === 'risk' && record?.[field.key]"
-            class="flex items-center gap-2"
-          >
-            <RiskPips :level="record[field.key]" />
-            <span class="text-sm text-color">{{ record[field.key] }}</span>
-          </span>
-          <EventBadge
-            v-else-if="badgeVariant(field) && record?.[field.key]"
-            :value="record[field.key]"
-            :variant="badgeVariant(field)"
-            size="md"
-          />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
           <div
-            v-else
-            class="text-sm text-color"
-            :class="{ 'whitespace-pre-wrap': field.type === 'textarea' }"
+            v-for="field in summaryFields"
+            :key="field.key"
+            :class="{ 'sm:col-span-2': isFullField(field) }"
           >
-            {{ fieldValue(field) }}
+            <div class="text-xs font-medium text-muted-color uppercase tracking-wide mb-1">
+              {{ $t(field.labelKey) }}
+            </div>
+            <span
+              v-if="badgeVariant(field) === 'risk' && record?.[field.key]"
+              class="flex items-center gap-2"
+            >
+              <RiskPips :level="record[field.key]" />
+              <span class="text-sm text-color">{{ record[field.key] }}</span>
+            </span>
+            <EventBadge
+              v-else-if="badgeVariant(field) && record?.[field.key]"
+              :value="record[field.key]"
+              :variant="badgeVariant(field)"
+              size="md"
+            />
+            <div
+              v-else
+              class="text-sm text-color"
+              :class="{ 'whitespace-pre-wrap': field.type === 'textarea' }"
+            >
+              {{ fieldValue(field) }}
+            </div>
           </div>
         </div>
-      </div>
 
-      <Divider />
+        <Divider />
 
-      <!-- Backlog items linked to this record — see stores/backlogItems.js.
+        <!-- Backlog items linked to this record — see stores/backlogItems.js.
            Row click inspects/edits the item, "Add item" creates one; both go
            through BacklogItemDialog pre-scoped to this event (see
            lockedEvent below). Remove stays inline with a confirm. -->
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-sm font-medium text-color">
-            {{ $t('project.dashboard.backlog.section.title', { count: backlogItems.length }) }}
-          </span>
-          <Button
-            icon="pi pi-plus"
-            :label="$t('project.dashboard.backlog.section.addItem')"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="openAddItem"
-          />
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-medium text-color">
+              {{ $t('project.dashboard.backlog.section.title', { count: backlogItems.length }) }}
+            </span>
+            <Button
+              icon="pi pi-plus"
+              :label="$t('project.dashboard.backlog.section.addItem')"
+              severity="secondary"
+              outlined
+              size="small"
+              @click="openAddItem"
+            />
+          </div>
+          <CFormItemList
+            :items="backlogItems"
+            :remove-label="$t('general.label.remove')"
+            @select="onBacklogSelect"
+            @remove="onBacklogRemove"
+          >
+            <template #default="{ item }">
+              <CFormItemContent :title="item.title" :subtitle="item.assignee" />
+            </template>
+            <template #actions="{ item }">
+              <EventBadge :value="item.priority" variant="priority" />
+            </template>
+          </CFormItemList>
         </div>
-        <CFormItemList
-          :items="backlogItems"
-          :remove-label="$t('general.label.remove')"
-          @select="onBacklogSelect"
-          @remove="onBacklogRemove"
-        >
-          <template #default="{ item }">
-            <CFormItemContent :title="item.title" :subtitle="item.assignee" />
-          </template>
-          <template #actions="{ item }">
-            <EventBadge :value="item.priority" variant="priority" />
-          </template>
-        </CFormItemList>
-      </div>
       </div>
 
       <div class="px-4 py-3 border-t border-surface shrink-0">
@@ -153,6 +153,12 @@ const props = defineProps({
   record: { type: Object, default: null },
   // [{ label, value }] used to populate BacklogItemDialog's assignee field.
   userOptions: { type: Array, default: () => [] },
+  // Revision that backlog items created from this drawer are assigned to.
+  // The dashboard omits it — it spans every revision, so items filed there
+  // stay unassigned. The wizard's board passes its open revision, so a
+  // sub-issue created from a board card stays on the board it was created
+  // from instead of silently vanishing.
+  revisionId: { type: [String, Number], default: null },
 })
 defineEmits(['update:visible', 'edit'])
 
@@ -225,15 +231,23 @@ async function onBacklogItemSave(id, payload) {
   const editing = !!id
   try {
     if (editing) await backlogStore.update(id, payload)
-    else await backlogStore.add(payload)
+    else await backlogStore.add(payload, props.revisionId)
     $toast.toastSuccess(
       t('project.dashboard.backlog.singular'),
-      t(editing ? 'project.dashboard.backlog.toast.updated' : 'project.dashboard.backlog.toast.created'),
+      t(
+        editing
+          ? 'project.dashboard.backlog.toast.updated'
+          : 'project.dashboard.backlog.toast.created',
+      ),
     )
     return true
   } catch (err) {
     $toast.toastErrorHandler(
-      t(editing ? 'project.dashboard.backlog.toast.updateFailed' : 'project.dashboard.backlog.toast.createFailed'),
+      t(
+        editing
+          ? 'project.dashboard.backlog.toast.updateFailed'
+          : 'project.dashboard.backlog.toast.createFailed',
+      ),
     )(err)
     return false
   }
@@ -242,7 +256,10 @@ async function onBacklogItemSave(id, payload) {
 async function onBacklogItemDelete(id) {
   try {
     await backlogStore.remove(id)
-    $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.deleted'))
+    $toast.toastSuccess(
+      t('project.dashboard.backlog.singular'),
+      t('project.dashboard.backlog.toast.deleted'),
+    )
     return true
   } catch (err) {
     $toast.toastErrorHandler(t('project.dashboard.backlog.toast.deleteFailed'))(err)

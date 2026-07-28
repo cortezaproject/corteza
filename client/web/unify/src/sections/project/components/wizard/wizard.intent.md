@@ -46,9 +46,13 @@ never tab/step visibility; governance status never locks editing.
   that tab navigates without steps. Visual twin of the dashboard's own rail.
 - `manage/` — one component per M&M section, mounted by Wizard.vue's
   key→component map. `ManageBoard.vue` is the kanban (revision-scoped, six
-  item types, four shared status columns, optimistic drag writes); the rest
-  are placeholders awaiting their own build-out. One file per section is
-  deliberate: sections are built independently and must not collide.
+  item types, four shared status columns, optimistic drag writes) and
+  `ManageMetrics.vue` the KPI/chart panel; the rest await build-out. One file
+  per section is deliberate: sections are built independently and must not
+  collide. The board's columns always render — an empty revision must stay
+  usable, with per-column quick-add rather than a dead end. Item viewing and
+  editing REUSE the dashboard's dialogs and drawers (card → drawer → Edit →
+  dialog); never fork a board-local editor, or the two surfaces drift.
 - `WizardToolbar.vue` — back, centered prev/next stepper, Save (form steps
   only), capability-gated Approve / Request changes.
 - `StepStatusBanner.vue` — surfaces the changes-requested review note.

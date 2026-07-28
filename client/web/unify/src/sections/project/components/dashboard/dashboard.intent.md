@@ -40,6 +40,12 @@ and the event/backlog dialogs and drawers.
   `NewEventDialog`, `BacklogItemDialog`/`BacklogItemDrawer` — all render
   per-category field schemas (config/eventForm, config/categories) through
   the wizard folder's `GovernanceForm` (deliberate cross-folder reuse).
+  These are the ONLY item editors: the wizard's Manage & Monitor board
+  mounts these same components rather than owning board-local copies, so
+  they must stay free of dashboard-route assumptions. `EventDetailDrawer`
+  takes an optional `revisionId` for that reason — the board passes its open
+  revision so sub-issues created there stay on it; the dashboard omits it
+  because it spans every revision.
 
 ## Data touched
 

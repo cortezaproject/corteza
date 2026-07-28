@@ -186,13 +186,25 @@ export const useEventsStore = defineStore('events', () => {
   })
 
   // Create an event via the category's resource. Owner fields in the payload
-  // are user IDs (from the picker). Returns the mapped event.
-  async function add(cat, payload = {}) {
+  // are user IDs (from the picker). `revisionId` is optional: the Manage &
+  // Monitor board's quick-add (components/wizard/manage/ManageBoard.vue)
+  // passes the open revision so the new card doesn't vanish the instant it's
+  // created (items default unassigned otherwise — see load()'s comment).
+  // WIP: the generated client already carries `revisionID` on this endpoint,
+  // but the backend doesn't persist it yet (concurrent slice in flight) — the
+  // value is sent regardless so this starts working the moment it lands.
+  // Returns the mapped event.
+  async function add(cat, payload = {}, revisionId) {
     const cfg = CATS[cat]
     if (!cfg) throw new Error(`Unknown category: ${cat}`)
     const pid = currentProjectId.value
     const body = normalizeDates(
-      { ...payload, projectID: pid, status: payload.status || 'Open' },
+      {
+        ...payload,
+        projectID: pid,
+        revisionID: revisionId || undefined,
+        status: payload.status || 'Open',
+      },
       DATE_KEYS,
     )
     const raw = await $SystemAPI[cfg.create](body)
