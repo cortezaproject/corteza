@@ -7,7 +7,7 @@
     :title="$t('fria.sections.vectors.title')"
     :description="$t('fria.sections.vectors.description')"
   >
-    <div class="flex flex-col gap-6 max-w-4xl">
+    <div class="flex flex-col gap-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
         <FriaToggleCard
           v-for="v in AI_HARM_VECTORS"

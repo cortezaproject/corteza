@@ -77,7 +77,11 @@
       </header>
 
       <div v-if="infraProviders.length" class="flex flex-col gap-3">
-        <div v-for="p in infraProviders" :key="p.id" class="group rounded-lg border border-surface bg-surface p-4">
+        <div
+          v-for="p in infraProviders"
+          :key="p.id"
+          class="group rounded-lg border border-surface bg-surface p-4"
+        >
           <div class="flex items-start gap-3">
             <div class="flex flex-col gap-4 flex-1 min-w-0">
               <CInputToggleCard
@@ -87,7 +91,10 @@
                 :disabled="disabled"
                 @update:model-value="v => updateInfra(p.id, { selfHosting: v })"
               />
-              <CFormGroup v-if="!p.selfHosting" :label="$t('project.resourceManagement.infra.providerName')">
+              <CFormGroup
+                v-if="!p.selfHosting"
+                :label="$t('project.resourceManagement.infra.providerName')"
+              >
                 <InputText
                   :model-value="p.name"
                   fluid
@@ -122,7 +129,10 @@
                 :disabled="disabled"
                 @update:model-value="v => updateInfra(p.id, { failover: v })"
               />
-              <CFormGroup v-if="p.failover" :label="$t('project.resourceManagement.infra.failoverRegion')">
+              <CFormGroup
+                v-if="p.failover"
+                :label="$t('project.resourceManagement.infra.failoverRegion')"
+              >
                 <InputText
                   :model-value="p.failoverRegion"
                   fluid
@@ -163,7 +173,9 @@
     <section class="flex flex-col gap-3">
       <header class="flex items-center justify-between gap-3">
         <div>
-          <h3 class="text-base font-medium">{{ $t('project.resourceManagement.connections.title') }}</h3>
+          <h3 class="text-base font-medium">
+            {{ $t('project.resourceManagement.connections.title') }}
+          </h3>
           <p class="text-sm text-muted-color">
             {{ $t('project.resourceManagement.connections.description') }}
           </p>
@@ -187,7 +199,9 @@
           <div class="flex items-start gap-3">
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 flex-1 min-w-0">
               <CFormGroup :label="$t('project.resourceManagement.connections.name')">
-                <div class="flex items-center gap-2 h-10 px-3 rounded-md border border-surface bg-emphasis min-w-0">
+                <div
+                  class="flex items-center gap-2 h-10 px-3 rounded-md border border-surface bg-emphasis min-w-0"
+                >
                   <i :class="[iconForConnector(c.connector), 'text-primary shrink-0']" />
                   <span class="truncate">{{ c.name }}</span>
                 </div>
@@ -215,19 +229,30 @@
                   @update:model-value="v => updateConn(c.id, { actionIfUnavailable: v })"
                 />
               </CFormGroup>
-              <CFormGroup v-if="c.actionIfUnavailable === 'Replace'" :label="$t('project.resourceManagement.connections.replacement')">
+              <CFormGroup
+                v-if="c.actionIfUnavailable === 'Replace'"
+                :label="$t('project.resourceManagement.connections.replacement')"
+              >
                 <button
                   type="button"
-                  class="flex items-center gap-2 w-full h-10 px-3 rounded-md border border-surface bg-surface min-w-0 text-left transition-colors"
-                  :class="disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-primary'"
+                  class="flex items-center gap-2 w-full h-10 px-3 rounded-md border border-surface bg-emphasis min-w-0 text-left transition-colors"
+                  :class="
+                    disabled
+                      ? 'opacity-60 cursor-not-allowed'
+                      : 'cursor-pointer hover:border-primary'
+                  "
                   :disabled="disabled"
                   @click="openPicker(c.id)"
                 >
                   <template v-if="c.replacement">
-                    <i :class="[iconForConnector(c.replacementConnector), 'text-primary shrink-0']" />
+                    <i
+                      :class="[iconForConnector(c.replacementConnector), 'text-primary shrink-0']"
+                    />
                     <span class="truncate flex-1">{{ c.replacement }}</span>
                   </template>
-                  <span v-else class="text-muted-color flex-1">{{ $t('project.resourceManagement.connections.selectReplacement') }}</span>
+                  <span v-else class="text-muted-color flex-1">
+                    {{ $t('project.resourceManagement.connections.selectReplacement') }}
+                  </span>
                   <i class="pi pi-chevron-down text-xs text-muted-color shrink-0" />
                 </button>
               </CFormGroup>
@@ -298,7 +323,10 @@ const emit = defineEmits(['update:modelValue'])
 // Persisted enum values stay literal; only the displayed label is localized.
 const CONNECTION_TYPES = computed(() => [
   { label: t('project.resourceManagement.connections.typeDatabase'), value: 'Database (DAL)' },
-  { label: t('project.resourceManagement.connections.typeApplication'), value: 'Application (TAQ)' },
+  {
+    label: t('project.resourceManagement.connections.typeApplication'),
+    value: 'Application (TAQ)',
+  },
 ])
 const ACTIONS = computed(() => [
   { label: t('project.resourceManagement.connections.actionDeactivate'), value: 'Deactivate' },

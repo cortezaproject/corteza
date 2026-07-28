@@ -8,7 +8,7 @@
     :title="$t('fria.sections.harm.title')"
     :description="$t('fria.sections.harm.description')"
   >
-    <div class="flex flex-col gap-6 max-w-3xl">
+    <div class="flex flex-col gap-6">
       <div class="flex items-start gap-3 rounded-lg border border-surface bg-emphasis p-4">
         <i class="pi pi-info-circle text-primary mt-0.5" />
         <div class="text-xs leading-relaxed">
@@ -51,7 +51,7 @@
             :class="[
               scenario.severity === level
                 ? FRIA_SEVERITY_CARD_CLASSES[level]
-                : 'border-surface hover:border-primary/60',
+                : 'border-surface bg-surface hover:border-primary/60',
               disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer',
             ]"
             :disabled="disabled"

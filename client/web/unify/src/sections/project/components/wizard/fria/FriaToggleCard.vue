@@ -7,7 +7,9 @@
     type="button"
     class="text-left rounded-lg border-2 p-4 transition-colors"
     :class="[
-      selected ? 'border-primary bg-primary/5' : 'border-surface hover:border-primary/60',
+      selected
+        ? 'border-primary bg-primary/5'
+        : 'border-surface bg-surface hover:border-primary/60',
       disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer',
     ]"
     :disabled="disabled"

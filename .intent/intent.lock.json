@@ -1542,22 +1542,22 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/wizard/fria/FriaHarmSection.vue": {
-      "h": "00527cbe89c2",
+      "h": "4026d2ac141f",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/fria/FriaPartiesSection.vue": {
-      "h": "7b21dd1d9dfc",
+      "h": "16ab59257c7e",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/fria/FriaRightsSection.vue": {
-      "h": "e4753df1878c",
+      "h": "e4f69ead4ef2",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/fria/FriaScenarioEditor.vue": {
-      "h": "22d47aeb3013",
+      "h": "484af6aa8c5d",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1572,17 +1572,17 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/fria/FriaToggleCard.vue": {
-      "h": "b0a00ecaf929",
+      "h": "b2d23523bd5b",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/fria/FriaTriggerSection.vue": {
-      "h": "ba84b8df36da",
+      "h": "181f5466e705",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/fria/FriaVectorsSection.vue": {
-      "h": "d6314c54e1ff",
+      "h": "33925c38515c",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1662,9 +1662,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/ChatbotsStep.vue": {
-      "h": "5cee543d90fd",
+      "h": "836672dad78c",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/ConnectionsStep.vue": {
       "h": "84592f8fc0e7",
@@ -1672,17 +1672,17 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/DataModelStep.vue": {
-      "h": "d9964ab04761",
+      "h": "e44b3f3948e3",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/DataSensitivityStep.vue": {
-      "h": "02fa15f40238",
+      "h": "5c68b6357a84",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/FriaDeterminationStep.vue": {
-      "h": "530a062e2c9c",
+      "h": "5b9008b9fcf4",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1702,24 +1702,24 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/ProjectSummaryStep.vue": {
-      "h": "c1130885614b",
+      "h": "032726c1a15f",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/ResourceManagementStep.vue": {
-      "h": "80803634ad90",
+      "h": "162266776eda",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/RolesStep.vue": {
-      "h": "d89f425eb20d",
+      "h": "1e2fa8ff7839",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/steps/UsersStep.vue": {
-      "h": "93c5a0dda893",
+      "h": "3d7779a8a058",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/StepStatusBanner.vue": {
       "h": "2b740116b8b2",

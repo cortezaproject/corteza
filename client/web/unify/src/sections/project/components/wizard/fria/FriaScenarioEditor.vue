@@ -33,24 +33,41 @@
            draft (see the `draft` ref below); nothing reaches the store
            until Save, and Cancel just drops the draft. Sticky so it stays
            reachable at the bottom of a long scroll, mirroring the design
-           mockup's sticky action bar. -->
+           mockup's sticky action bar. Negative-margined past the p-4 padding
+           of its scrolling ancestor (views/Wizard.vue's step content pane)
+           so it reads as a real full-bleed bottom bar — square, top border
+           only, opaque bg-surface — rather than an inset floating card that
+           scrolled content shows around and underneath. -->
       <div
-        class="sticky bottom-0 rounded-lg border border-surface bg-surface p-3 flex justify-end gap-2"
+        class="sticky bottom-0 -mx-4 -mb-4 border-t border-surface bg-surface px-4 py-3 flex items-center justify-between gap-3"
       >
-        <Button
-          :label="$t('general.label.cancel')"
-          severity="secondary"
-          text
-          size="small"
-          @click="cancel"
-        />
-        <Button
-          v-if="!disabled"
-          :label="$t('fria.editor.saveScenario')"
-          icon="pi pi-check"
-          size="small"
-          @click="save"
-        />
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-28 h-1.5 rounded-full bg-emphasis overflow-hidden shrink-0">
+            <div
+              class="h-full bg-primary rounded-full transition-all"
+              :style="{ width: `${(progress.filled / progress.total) * 100}%` }"
+            />
+          </div>
+          <span class="text-xs text-muted-color whitespace-nowrap truncate">
+            {{ $t('fria.editor.sectionsProgress', progress) }}
+          </span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            text
+            size="small"
+            @click="cancel"
+          />
+          <Button
+            v-if="!disabled"
+            :label="$t('fria.editor.saveScenario')"
+            icon="pi pi-check"
+            size="small"
+            @click="save"
+          />
+        </div>
       </div>
     </template>
 
@@ -78,9 +95,13 @@ import FriaSeverityBadge from './FriaSeverityBadge.vue'
 import FriaTriggerSection from './FriaTriggerSection.vue'
 import FriaVectorsSection from './FriaVectorsSection.vue'
 import { useProjectsStore } from '@/sections/project/stores/projects'
-import { cloneFriaScenario, newFriaScenario } from '@/sections/project/config/friaScenario'
+import {
+  cloneFriaScenario,
+  friaScenarioCompletion,
+  newFriaScenario,
+} from '@/sections/project/config/friaScenario'
 import { components } from '@planetcrust/human-vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const { CEmptyState } = components
 
@@ -113,6 +134,14 @@ const draft = ref(
 function update(patch) {
   draft.value = { ...draft.value, ...patch }
 }
+
+// Live completion for the sticky bar's progress indicator, recomputed as the
+// user edits sections above. Reuses the exact same required-field definition
+// as the scenario list's Complete/In Progress badge (FriaScenariosStep.vue)
+// so the two views can never disagree — see friaScenarioCompletion's own
+// comment for which fields count. Only rendered while `draft` is truthy (see
+// the template's v-if above), so draft.value is never null here.
+const progress = computed(() => friaScenarioCompletion(draft.value))
 
 // Commits the draft to the store in one shot — the only place any of this
 // screen's edits reach stores/projects.js. See that file's FRIA risk

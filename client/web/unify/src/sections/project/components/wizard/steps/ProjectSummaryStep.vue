@@ -10,11 +10,15 @@
     <!-- Read-only reference: how @Human Governance satisfies each Article 17 QMS aspect. -->
     <section class="rounded-xl border border-surface bg-surface overflow-hidden">
       <header class="flex items-start gap-3 px-5 py-4 border-b border-surface">
-        <span class="shrink-0 mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <span
+          class="shrink-0 mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"
+        >
           <i class="pi pi-verified text-lg" />
         </span>
         <div class="min-w-0 flex-1">
-          <p class="text-xs font-semibold uppercase tracking-wide text-muted-color">{{ $t('project.qms.article17') }}</p>
+          <p class="text-xs font-semibold uppercase tracking-wide text-muted-color">
+            {{ $t('project.qms.article17') }}
+          </p>
           <h3 class="text-lg font-medium leading-tight">{{ $t('project.qms.title') }}</h3>
         </div>
       </header>
@@ -23,7 +27,11 @@
         <li v-for="item in QMS_ARTICLE_17" :key="item.label" class="px-5 py-4">
           <p class="text-sm leading-relaxed">{{ item.body }}</p>
           <ul v-if="item.points?.length" class="mt-2.5 flex flex-col gap-2">
-            <li v-for="(p, i) in item.points" :key="i" class="flex gap-2.5 text-sm text-muted-color leading-relaxed">
+            <li
+              v-for="(p, i) in item.points"
+              :key="i"
+              class="flex gap-2.5 text-sm text-muted-color leading-relaxed"
+            >
               <span class="w-1.5 h-1.5 rounded-full bg-primary/60 mt-2 shrink-0" />
               <span>
                 {{ pointText(p) }}
@@ -33,7 +41,9 @@
                   target="_blank"
                   rel="noopener noreferrer"
                   class="text-primary hover:underline break-all"
-                >{{ pointUrl(p) }}</a>
+                >
+                  {{ pointUrl(p) }}
+                </a>
               </span>
             </li>
           </ul>

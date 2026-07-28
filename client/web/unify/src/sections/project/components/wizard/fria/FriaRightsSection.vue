@@ -19,7 +19,7 @@
           :class="
             chapterFilter === 'all'
               ? 'bg-primary border-primary text-primary-contrast'
-              : 'border-surface hover:border-primary/60'
+              : 'border-surface bg-surface hover:border-primary/60'
           "
           @click="chapterFilter = 'all'"
         >
@@ -33,7 +33,7 @@
           :class="
             chapterFilter === c.key
               ? 'bg-primary border-primary text-primary-contrast'
-              : 'border-surface hover:border-primary/60'
+              : 'border-surface bg-surface hover:border-primary/60'
           "
           @click="chapterFilter = c.key"
         >
@@ -52,7 +52,7 @@
           :class="[
             scenario.rights.includes(r.key)
               ? 'border-primary bg-primary/5'
-              : 'border-surface hover:border-primary/60',
+              : 'border-surface bg-surface hover:border-primary/60',
             disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer',
           ]"
           :disabled="disabled"

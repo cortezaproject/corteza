@@ -91,9 +91,7 @@ const rows = computed(() =>
     return {
       userId: u.userId,
       roleIds: u.roleIds,
-      roleNames: u.roleIds
-        .map(id => roles.value.find(r => r.id === id)?.name)
-        .filter(Boolean),
+      roleNames: u.roleIds.map(id => roles.value.find(r => r.id === id)?.name).filter(Boolean),
       name: dir?.name || u.userId,
       email: dir?.email || '',
     }

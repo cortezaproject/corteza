@@ -7,7 +7,7 @@
     :title="$t('fria.sections.parties.title')"
     :description="$t('fria.sections.parties.description')"
   >
-    <div class="flex flex-col gap-6 max-w-4xl">
+    <div class="flex flex-col gap-6">
       <CFormGroup :label="$t('fria.parties.impactedLabel')" required>
         <div class="flex flex-wrap gap-2">
           <button
@@ -18,7 +18,7 @@
             :class="[
               scenario.impactedParties.includes(p.key)
                 ? 'border-primary bg-primary/10 text-primary'
-                : 'border-surface hover:border-primary/60',
+                : 'border-surface bg-surface hover:border-primary/60',
               disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer',
             ]"
             :disabled="disabled"
@@ -52,7 +52,7 @@
             :class="[
               scenario.vulnerableGroups.includes(g.key)
                 ? 'border-primary bg-primary/10'
-                : 'border-surface hover:border-primary/60',
+                : 'border-surface bg-surface hover:border-primary/60',
               disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer',
             ]"
             :disabled="disabled"

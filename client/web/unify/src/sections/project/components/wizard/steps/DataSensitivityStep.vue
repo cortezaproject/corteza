@@ -5,7 +5,9 @@
            where you classify each field inline (grouped by module). -->
       <div class="flex items-center justify-end gap-2">
         <span class="text-sm text-muted-color">{{ $t('project.dataSensitivity.groupBy') }}</span>
-        <div class="inline-flex rounded-md border border-surface overflow-hidden text-sm">
+        <div
+          class="inline-flex rounded-md border border-surface bg-surface overflow-hidden text-sm"
+        >
           <button
             type="button"
             class="px-3 py-1.5 transition-colors"
@@ -39,7 +41,7 @@
         <div
           v-for="g in nonEmptyGroups"
           :key="g.id"
-          class="border border-surface rounded-border shadow-sm overflow-hidden"
+          class="border border-surface bg-surface rounded-border shadow-sm overflow-hidden"
         >
           <button
             type="button"
@@ -129,7 +131,7 @@
         <div
           v-for="mod in moduleRows"
           :key="mod.id"
-          class="border border-surface rounded-border shadow-sm overflow-hidden"
+          class="border border-surface bg-surface rounded-border shadow-sm overflow-hidden"
         >
           <button
             type="button"
@@ -371,7 +373,9 @@ function countLabel(n) {
 
 async function setLevel(f, level) {
   try {
-    await store.updateField(props.project.projectID, f.moduleId, f.fieldId, { sensitivity: level || null })
+    await store.updateField(props.project.projectID, f.moduleId, f.fieldId, {
+      sensitivity: level || null,
+    })
   } catch (err) {
     $toast.toastErrorHandler(t('project.dataSensitivity.toastUpdateFailed'))(err)
   }

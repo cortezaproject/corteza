@@ -27,7 +27,9 @@
               <button
                 type="button"
                 class="self-stretch flex items-center px-4 shrink-0 cursor-pointer text-muted-color hover:bg-emphasis transition-colors"
-                :aria-label="$t(isCollapsed(m.id) ? 'general.label.expand' : 'general.label.collapse')"
+                :aria-label="
+                  $t(isCollapsed(m.id) ? 'general.label.expand' : 'general.label.collapse')
+                "
                 :title="$t(isCollapsed(m.id) ? 'general.label.expand' : 'general.label.collapse')"
                 @click="toggle(m.id)"
               >
@@ -45,7 +47,10 @@
                 <CFormItemContent :title="m.name" :subtitle="fieldSummary(m)" />
               </button>
               <CRouterLinkButton
-                :to="{ name: 'admin.modules.edit', params: { slug: project.namespaceID, moduleID: m.id } }"
+                :to="{
+                  name: 'admin.modules.edit',
+                  params: { slug: project.namespaceID, moduleID: m.id },
+                }"
                 icon="pi pi-external-link"
                 severity="secondary"
                 text
@@ -175,7 +180,9 @@ const createResource = inject('createResource', null)
 const editField = inject('editField', null)
 const createField = inject('createField', null)
 
-const modules = computed(() => store.resourcesFor(props.project.projectID).filter(r => r.kind === 'module'))
+const modules = computed(() =>
+  store.resourcesFor(props.project.projectID).filter(r => r.kind === 'module'),
+)
 
 // Modules collapsed by default; the set holds the expanded ones.
 const expandedIds = ref(new Set())

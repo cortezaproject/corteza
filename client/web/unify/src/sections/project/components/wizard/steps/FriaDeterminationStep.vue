@@ -6,7 +6,7 @@
       <div
         v-for="(q, i) in DEPLOYER_QUESTIONS"
         :key="q.key"
-        class="flex items-start gap-4 rounded-lg border border-surface p-3"
+        class="flex items-start gap-4 rounded-lg border border-surface bg-surface p-3"
       >
         <p class="text-sm flex-1 min-w-0">
           <span class="font-medium mr-1">{{ i + 1 }}.</span>

@@ -28,9 +28,7 @@
           <template #actions="{ item }">
             <Tag
               :value="
-                item.enabled
-                  ? $t('project.chatbots.enabled')
-                  : $t('project.chatbots.disabled')
+                item.enabled ? $t('project.chatbots.enabled') : $t('project.chatbots.disabled')
               "
               :severity="item.enabled ? 'success' : 'secondary'"
               class="!text-xs shrink-0 me-2"

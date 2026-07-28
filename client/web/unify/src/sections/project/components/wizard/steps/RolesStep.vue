@@ -26,7 +26,9 @@
             <button
               type="button"
               class="self-stretch flex items-center px-4 shrink-0 cursor-pointer text-muted-color hover:bg-emphasis transition-colors"
-              :aria-label="$t(isCollapsed(r.id) ? 'general.label.expand' : 'general.label.collapse')"
+              :aria-label="
+                $t(isCollapsed(r.id) ? 'general.label.expand' : 'general.label.collapse')
+              "
               :title="$t(isCollapsed(r.id) ? 'general.label.expand' : 'general.label.collapse')"
               @click="toggle(r.id)"
             >
@@ -44,7 +46,7 @@
               <CFormItemContent :title="r.name">
                 <template #subtitle>
                   <div class="text-xs text-muted-color truncate">
-                    <template v-if="r.description">{{ r.description }} · </template>
+                    <template v-if="r.description">{{ r.description }} ·</template>
                     {{ memberSummary(r) }}
                   </div>
                 </template>

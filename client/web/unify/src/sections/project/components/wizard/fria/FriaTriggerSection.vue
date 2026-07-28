@@ -7,7 +7,7 @@
     :title="$t('fria.sections.trigger.title')"
     :description="$t('fria.sections.trigger.description')"
   >
-    <div class="flex flex-col gap-6 max-w-4xl">
+    <div class="flex flex-col gap-6">
       <CFormGroup :label="$t('fria.trigger.typesLabel')" required>
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
           <FriaToggleCard
