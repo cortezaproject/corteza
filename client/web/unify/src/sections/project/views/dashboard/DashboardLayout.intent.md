@@ -15,17 +15,24 @@ tests:
 
 ## Intention
 
-Shell for a live project's dashboards — the locked Manage & Monitor content
-family. Owns the topbar (project name + 1-based version tag, jump back to the
-wizard, open the compose namespace) and an in-view left rail (DashboardNav)
-beside the routed child view.
+Shell for a project's dashboards — the locked Manage & Monitor content
+family. Owns the topbar (project name, revision switcher, open the compose
+namespace) and an in-view left rail (DashboardNav) beside the routed child
+view.
 
 ## UX capabilities
 
 - Left-rail navigation between the locked dashboard view set; the child view
   renders in a bordered panel and owns its own scroll.
-- Loads the project itself plus the events and backlog stores on entry and on
-  every project switch — child views assume these stores are loading/loaded.
+- Scope is the whole revision CHAIN, not one revision: the dashboard is the
+  project-wide view, so it loads items across every revision and shows which
+  revision each belongs to. The wizard's Manage & Monitor tab is the
+  single-revision counterpart (ruled 2026-07-28).
+- Topbar carries the shared revision switcher — the same component the wizard
+  header uses. Its entries are this chain-wide Dashboard plus every revision
+  (each opening that revision's wizard), and the action to branch a new
+  revision. It replaces both the old version tag and the old jump-back-to-
+  wizard button; the compose namespace link stays.
 
 ## Routes
 

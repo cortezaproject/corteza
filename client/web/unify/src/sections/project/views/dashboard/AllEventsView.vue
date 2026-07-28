@@ -621,7 +621,15 @@ function reload() {
 // shared with the Overview activity band — this just supplies the filters and
 // owns the fail-soft/failed-band behaviour specific to this view.
 const activity = useEventActivity()
-const metrics = reactive({ labels: [], rangeLabels: [], series: [], total: 0, actors: 0, errors: 0, failed: false })
+const metrics = reactive({
+  labels: [],
+  rangeLabels: [],
+  series: [],
+  total: 0,
+  actors: 0,
+  errors: 0,
+  failed: false,
+})
 
 function metricsRange() {
   const to = filter.to || new Date()

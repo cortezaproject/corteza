@@ -37,8 +37,12 @@
             :key="n"
             class="rounded-xl border border-surface bg-surface px-4 py-3 flex flex-col gap-2"
           >
-            <span class="h-3 w-1/2 rounded bg-emphasis block animate-pulse motion-reduce:animate-none" />
-            <span class="h-6 w-1/3 rounded bg-emphasis block animate-pulse motion-reduce:animate-none" />
+            <span
+              class="h-3 w-1/2 rounded bg-emphasis block animate-pulse motion-reduce:animate-none"
+            />
+            <span
+              class="h-6 w-1/3 rounded bg-emphasis block animate-pulse motion-reduce:animate-none"
+            />
           </div>
         </div>
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -155,11 +159,7 @@
         </template>
 
         <!-- One dynamic #body-<col.key> slot per configured column. -->
-        <template
-          v-for="col in cfg.columns"
-          :key="col.key"
-          #[`body-${col.key}`]="{ data }"
-        >
+        <template v-for="col in cfg.columns" :key="col.key" #[`body-${col.key}`]="{ data }">
           <div v-if="col.kind === 'title'" class="flex flex-col">
             <span class="font-medium text-color">{{ data.title }}</span>
             <span v-if="data.description" class="text-xs text-muted-color truncate max-w-72">
@@ -186,6 +186,28 @@
           </span>
 
           <span v-else>{{ data[col.key] || '—' }}</span>
+        </template>
+
+        <!-- Chain-wide scope (project.intent.md "Dashboards"): this list
+             spans every revision, so each row says which one it belongs to —
+             unassigned items (no revisionID) render distinctly rather than
+             as a blank cell (see useRevisionLabel). Not part of cfg.columns
+             (config/categories.js) since it's the same fixed extra column on
+             every category, not a per-category field. -->
+        <template #body-revisionID="{ data }">
+          <span
+            v-if="revisionInfo(data.revisionID).unassigned"
+            class="inline-flex items-center gap-1 text-xs text-muted-color italic"
+          >
+            <i class="pi pi-question-circle" />
+            {{ revisionInfo(data.revisionID).label }}
+          </span>
+          <Tag
+            v-else
+            :value="revisionInfo(data.revisionID).label"
+            :severity="revisionInfo(data.revisionID).severity"
+            class="!text-xs"
+          />
         </template>
       </CResourceList>
     </div>
@@ -237,9 +259,15 @@ import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import TimeRangeSelect from '@/sections/project/components/dashboard/TimeRangeSelect.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
+import { useRevisionLabel } from '@/sections/project/composables/useRevisionLabel'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { colorFor, orderIndex } from '@/sections/project/config/chartColors'
-import { RANGES, adaptiveWindow, earliestPointDate, rangeFrom } from '@/sections/project/config/trend'
+import {
+  RANGES,
+  adaptiveWindow,
+  earliestPointDate,
+  rangeFrom,
+} from '@/sections/project/config/trend'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
@@ -254,6 +282,7 @@ const { t } = useI18n()
 const route = useRoute()
 const store = useEventsStore()
 const backlogStore = useBacklogItemsStore()
+const { revisionInfo } = useRevisionLabel()
 const $toast = inject('$toast')
 const { confirmDelete } = useConfirmDelete()
 
@@ -325,7 +354,11 @@ async function loadTrend(pid, key, mySeq) {
   // Fetch first: a bounded preset windows the query itself; 'all' (from =
   // null) fetches unbounded and sizes the axis from the earliest point below.
   const groupBy = CATEGORY_CONFIG[key].trendGroupBy
-  const points = await reportStore.trend(pid, key, { from: from?.toISOString(), to: now.toISOString(), groupBy })
+  const points = await reportStore.trend(pid, key, {
+    from: from?.toISOString(),
+    to: now.toISOString(),
+    groupBy,
+  })
   if (mySeq !== trendSeq) return // stale response
   // `points` is the flat, date-ascending array before the group pivot below —
   // its first element is the earliest overall point, which is all
@@ -424,7 +457,8 @@ const dialogVisible = ref(false)
 const rightSidebar = useRightSidebarStore()
 const drawerVisible = computed({
   get: () => rightSidebar.isOpen('project-event-detail'),
-  set: v => (v ? rightSidebar.open('project-event-detail') : rightSidebar.close('project-event-detail')),
+  set: v =>
+    v ? rightSidebar.open('project-event-detail') : rightSidebar.close('project-event-detail'),
 })
 const editVisible = ref(false)
 const selectedEvent = ref(null)
@@ -487,9 +521,13 @@ const pagination = reactive({
 })
 
 // Columns → CResourceList fields (all sortable, headers resolved via i18n).
-const fields = computed(() =>
-  (cfg.value?.columns ?? []).map(c => ({ key: c.key, header: t(c.headerKey), sortable: true })),
-)
+// The trailing revisionID column is fixed (every category gets it, see the
+// #body-revisionID slot above) rather than part of cfg.columns — this list
+// spans every revision in the chain now, so it isn't per-category config.
+const fields = computed(() => [
+  ...(cfg.value?.columns ?? []).map(c => ({ key: c.key, header: t(c.headerKey), sortable: true })),
+  { key: 'revisionID', header: t('project.dashboard.columns.revision'), sortable: false },
+])
 
 // KPI cards: the whole trio (total/open/overdue) comes from the report
 // endpoint's grand-total call, so none of it is subject to the events
@@ -524,7 +562,8 @@ const breakdownFor = variant => {
   const rows = reportBreakdowns.byDim[variant] || []
   if (!variant || variant === 'type') return rows
   return [...rows].sort(
-    (a, b) => orderIndex(variant, a.label) - orderIndex(variant, b.label) || a.label.localeCompare(b.label),
+    (a, b) =>
+      orderIndex(variant, a.label) - orderIndex(variant, b.label) || a.label.localeCompare(b.label),
   )
 }
 
@@ -572,7 +611,13 @@ const visibleItems = computed(() => {
   return list
 })
 
-watch(visibleItems, list => { pagination.total = list.length }, { immediate: true })
+watch(
+  visibleItems,
+  list => {
+    pagination.total = list.length
+  },
+  { immediate: true },
+)
 
 const onSort = ({ sortField, sortOrder }) => {
   if (!sortField) return
@@ -650,7 +695,8 @@ const onUpdate = async (id, payload) => {
     loadMetrics(route.params.projectId, category.value, { silent: true })
     $toast.toastSuccess(t(cfg.value.singularKey), t('project.dashboard.event.toast.updated'))
     if (selectedEvent.value?.id === String(id)) {
-      selectedEvent.value = store.byCategory(category.value).find(e => e.id === String(id)) || selectedEvent.value
+      selectedEvent.value =
+        store.byCategory(category.value).find(e => e.id === String(id)) || selectedEvent.value
     }
     return true
   } catch (err) {

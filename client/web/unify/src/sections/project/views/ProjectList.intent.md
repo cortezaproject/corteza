@@ -33,9 +33,11 @@ archived or deleted.
   grouping after fetch would split chains across pages.
 - Create a project — on success the user lands in the wizard with `?new=1`,
   the just-created flag the Wizard uses to auto-open the members dialog once.
-- Row click routes to the revision worth opening: a chain with a draft
-  revision opens that revision's wizard; an all-published chain opens the
-  live dashboard (`project.overview`).
+- Row click favours the dashboard once a chain has ever published (ruled
+  2026-07-28): it opens `project.overview` even when a draft is in progress,
+  because the dashboard is the project's home and the wizard is entered
+  deliberately from its revision switcher. Only a chain that has never
+  published — draft, no parent revision — opens the wizard directly.
 - Per-row actions: rename (edits `meta.short`), archive/unarchive
   (status `archived` ↔ `draft`), delete with confirmation.
 

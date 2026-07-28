@@ -106,7 +106,7 @@
 <script setup>
 import NewProjectDialog from '@/sections/project/components/project/NewProjectDialog.vue'
 import RenameProjectDialog from '@/sections/project/components/project/RenameProjectDialog.vue'
-import { system } from '@planetcrust/human-js'
+import { NoID, system } from '@planetcrust/human-js'
 import { components, useResourceList } from '@planetcrust/human-vue'
 import { useConfirm } from 'primevue/useconfirm'
 import { inject, ref } from 'vue'
@@ -192,12 +192,16 @@ const formatDate = date => {
   }
 }
 
-// Each row is a chain head (headsOnly, see the list request above), so its
-// status IS the status of the revision worth opening: a draft head opens its
-// wizard; a live (active/published) head opens the live dashboard.
+// Each row is a chain head (headsOnly, see the list request above). Routing
+// favours the dashboard once a chain has ever published (ruled 2026-07-28):
+// it's the project's home, and the wizard is entered deliberately from its
+// revision switcher from here on. Only a chain that has never published —
+// draft, no parent revision — opens the wizard directly; that covers a draft
+// head with a parent too (branching a revision requires an active parent, so
+// a parent revision means the chain published before).
 const onRowClick = ({ data }) => {
-  const live = ['active', 'published'].includes(data.status)
-  const name = live ? 'project.overview' : 'project.wizard'
+  const neverPublished = data.status === 'draft' && data.parentRevisionID === NoID
+  const name = neverPublished ? 'project.wizard' : 'project.overview'
   router.push({ name, params: { projectId: data.projectID } })
 }
 

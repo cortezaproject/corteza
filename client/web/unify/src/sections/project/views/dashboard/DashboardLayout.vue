@@ -1,26 +1,23 @@
 <template>
-  <!-- Topbar: the current project's name + which revision we're viewing.
-       (Back-to-projects lives in the global sidebar's projects list.) -->
+  <!-- Topbar: the current project's name + the shared revision switcher
+       (components/project/RevisionSwitcher.vue — same component the Wizard
+       header mounts). Replaces the old static version Tag AND the old
+       jump-back-to-wizard button below: the switcher's own "Dashboard" entry
+       (marked current here) and its per-revision entries cover both. This
+       layout owns the topbar — children must not Teleport into it (see
+       DashboardLayout.intent.md). (Back-to-projects lives in the global
+       sidebar's projects list.) -->
   <Teleport to="#topbar-title" defer>
     <span class="flex items-center gap-2">
       <span>{{ project?.name || $t('project.overview.fallbackName') }}</span>
-      <Tag v-if="project" :value="versionLabel" severity="secondary" class="!text-xs" />
+      <RevisionSwitcher :project="project" />
     </span>
   </Teleport>
 
-  <!-- Right-aligned topbar tools: jump back to the build wizard (project
-       overview); always offer opening the project's compose namespace. -->
+  <!-- Right-aligned topbar tools: always offer opening the project's compose
+       namespace. -->
   <Teleport to="#topbar-tools" defer>
     <span class="flex items-center gap-2">
-      <CRouterLinkButton
-        v-if="project"
-        :to="{ name: 'project.wizard', params: { projectId: route.params.projectId } }"
-        :label="$t('project.viewOverview')"
-        icon="pi pi-sitemap"
-        size="small"
-        severity="secondary"
-        outlined
-      />
       <CRouterLinkButton
         v-if="project?.hasNamespace"
         :to="{ name: 'namespace.view', params: { slug: project.namespaceID } }"
@@ -45,17 +42,16 @@
 
 <script setup>
 import DashboardNav from '@/sections/project/components/dashboard/DashboardNav.vue'
+import RevisionSwitcher from '@/sections/project/components/project/RevisionSwitcher.vue'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components } from '@planetcrust/human-vue'
 import { computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { CRouterLinkButton } = components
 
-const { t } = useI18n()
 const route = useRoute()
 const store = useProjectsStore()
 const eventsStore = useEventsStore()
@@ -63,25 +59,39 @@ const backlogStore = useBacklogItemsStore()
 
 const project = computed(() => store.findById(route.params.projectId))
 
-// Load the project itself + its events on entry and whenever the active project
-// changes. The project must be fetched here (not left to the sidebar's store
-// load) — the sidebar lives in a lazily-mounted drawer, so landing on the
-// dashboard with it collapsed would otherwise leave `project` undefined and hide
-// the topbar buttons until the drawer is first opened.
+// Load the project itself on entry and whenever the active project changes.
+// The project must be fetched here (not left to the sidebar's store load) —
+// the sidebar lives in a lazily-mounted drawer, so landing on the dashboard
+// with it collapsed would otherwise leave `project` undefined and hide the
+// topbar buttons until the drawer is first opened.
 watch(
   () => route.params.projectId,
   id => {
     if (!id) return
     store.fetchProject(id).catch(err => console.error('Failed to load project', err))
-    eventsStore.load(id)
-    backlogStore.load(id)
   },
   { immediate: true },
 )
 
-// Which version of the project we're viewing. User-facing versions are 1-based
-// (the original live project is v1), so we display the backend revision + 1.
-const versionLabel = computed(() =>
-  t('project.dashboard.version', { number: (project.value?.revision ?? 0) + 1 }),
+// CHAIN-WIDE SCOPE (project.intent.md "Dashboards"): the dashboard covers the
+// whole revision chain, not just the one revision named in the route — the
+// route's projectId is a chain HEAD, which is only the chain ROOT for an
+// original, never-revised project (see system.Project#rootProjectID, which
+// falls back to its own id). Load events/backlog for that root with no
+// revisionId, which both stores read as "every revision in the project" (see
+// stores/events.js#load / stores/backlogItems.js#load) — the wizard's Manage
+// & Monitor tab is the one-revision counterpart, scoped by revisionId
+// instead. Watches the resolved root rather than the raw route param, so a
+// route landing on a non-root head still reloads once the project fetch
+// above resolves its rootProjectID.
+const chainRootId = computed(() => project.value?.rootProjectID || route.params.projectId)
+watch(
+  chainRootId,
+  id => {
+    if (!id) return
+    eventsStore.load(id)
+    backlogStore.load(id)
+  },
+  { immediate: true },
 )
 </script>

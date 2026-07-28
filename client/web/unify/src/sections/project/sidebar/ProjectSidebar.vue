@@ -47,10 +47,15 @@ const referencedRevisionIds = computed(() => {
 })
 const isChainHead = p => !referencedRevisionIds.value.has(p.projectID)
 
-// A live (published) project opens its dashboard; a draft opens the wizard.
-// Live status is `active` (BE never sets `published`), matching ProjectList.
+// Routing favours the dashboard once a chain has ever published (ruled
+// 2026-07-28, mirrors ProjectList.vue's onRowClick): it's the project's home,
+// and the wizard is entered deliberately from its revision switcher from here
+// on. Only a chain that has never published — draft, no parent revision —
+// opens the wizard directly; a draft WITH a parent still opens the dashboard
+// (branching a revision requires an active parent, so a parent revision means
+// the chain published before).
 const routeFor = p => ({
-  name: ['active', 'published'].includes(p.status) ? 'project.overview' : 'project.wizard',
+  name: p.status === 'draft' && p.parentRevisionID === NoID ? 'project.wizard' : 'project.overview',
   params: { projectId: p.projectID },
 })
 

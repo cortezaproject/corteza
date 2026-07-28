@@ -109,6 +109,26 @@
               <span v-else class="font-mono text-xs text-muted-color">#{{ data.eventID }}</span>
             </template>
 
+            <!-- Chain-wide scope (project.intent.md "Dashboards"): this list
+                 spans every revision, so each row says which one it belongs
+                 to — unassigned items (no revisionID) render distinctly
+                 rather than as a blank cell (see useRevisionLabel). -->
+            <template #body-revisionID="{ data }">
+              <span
+                v-if="revisionInfo(data.revisionID).unassigned"
+                class="inline-flex items-center gap-1 text-xs text-muted-color italic"
+              >
+                <i class="pi pi-question-circle" />
+                {{ revisionInfo(data.revisionID).label }}
+              </span>
+              <Tag
+                v-else
+                :value="revisionInfo(data.revisionID).label"
+                :severity="revisionInfo(data.revisionID).severity"
+                class="!text-xs"
+              />
+            </template>
+
             <template #body-assignee="{ data }">
               <UserCell :name="data.assignee" />
             </template>
@@ -173,6 +193,7 @@ import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import EventDetailDialog from '@/sections/project/components/dashboard/EventDetailDialog.vue'
 import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
+import { useRevisionLabel } from '@/sections/project/composables/useRevisionLabel'
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
 import {
   CATEGORY_COLORS,
@@ -196,12 +217,18 @@ const { t } = useI18n()
 const route = useRoute()
 const store = useBacklogItemsStore()
 const eventsStore = useEventsStore()
+const { revisionInfo } = useRevisionLabel()
 const $toast = inject('$toast')
 
 // Title-bar badge — neutral (this page spans every category, so it doesn't
 // borrow any single category's colour), same icon-square shape as
 // CategoryView's per-category badge.
-const BADGE = { icon: 'pi pi-th-large', bg: 'bg-emphasis', ring: 'ring-surface', text: 'text-color' }
+const BADGE = {
+  icon: 'pi pi-th-large',
+  bg: 'bg-emphasis',
+  ring: 'ring-surface',
+  text: 'text-color',
+}
 
 // Resolve a backlog item's linked event via the events store (already loaded
 // alongside this store by DashboardLayout) — null when the event no longer
@@ -282,6 +309,7 @@ const categoryBreakdown = computed(() => {
 const fields = computed(() => [
   { key: 'title', header: t('project.dashboard.columns.title'), sortable: true },
   { key: 'eventID', header: t('project.dashboard.backlog.columns.linkedEvent'), sortable: false },
+  { key: 'revisionID', header: t('project.dashboard.columns.revision'), sortable: false },
   { key: 'assignee', header: t('project.dashboard.backlog.f.assignee'), sortable: true },
   { key: 'priority', header: t('project.dashboard.backlog.f.priority'), sortable: true },
   { key: 'status', header: t('project.dashboard.event.f.status'), sortable: true },
@@ -327,7 +355,13 @@ const visibleItems = computed(() => {
   return list
 })
 
-watch(visibleItems, list => { pagination.total = list.length }, { immediate: true })
+watch(
+  visibleItems,
+  list => {
+    pagination.total = list.length
+  },
+  { immediate: true },
+)
 
 const onSort = ({ sortField, sortOrder }) => {
   if (!sortField) return
@@ -344,7 +378,10 @@ const selectedItem = ref(null)
 const rightSidebar = useRightSidebarStore()
 const drawerVisible = computed({
   get: () => rightSidebar.isOpen('project-backlog-item-detail'),
-  set: v => (v ? rightSidebar.open('project-backlog-item-detail') : rightSidebar.close('project-backlog-item-detail')),
+  set: v =>
+    v
+      ? rightSidebar.open('project-backlog-item-detail')
+      : rightSidebar.close('project-backlog-item-detail'),
 })
 
 // Leaving the view with the drawer open would strand the shared store's
@@ -371,15 +408,23 @@ const onSave = async (id, payload) => {
       if (selectedItem.value?.id === String(id)) {
         selectedItem.value = store.items.find(i => i.id === String(id)) || selectedItem.value
       }
-      $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.updated'))
+      $toast.toastSuccess(
+        t('project.dashboard.backlog.singular'),
+        t('project.dashboard.backlog.toast.updated'),
+      )
     } else {
       await store.add(payload)
-      $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.created'))
+      $toast.toastSuccess(
+        t('project.dashboard.backlog.singular'),
+        t('project.dashboard.backlog.toast.created'),
+      )
     }
     return true
   } catch (err) {
     console.error('Failed to save backlog item', err)
-    const key = id ? 'project.dashboard.backlog.toast.updateFailed' : 'project.dashboard.backlog.toast.createFailed'
+    const key = id
+      ? 'project.dashboard.backlog.toast.updateFailed'
+      : 'project.dashboard.backlog.toast.createFailed'
     $toast.toastErrorHandler(t(key))(err)
     return false
   }
@@ -392,7 +437,10 @@ const onDelete = async id => {
       drawerVisible.value = false
       selectedItem.value = null
     }
-    $toast.toastSuccess(t('project.dashboard.backlog.singular'), t('project.dashboard.backlog.toast.deleted'))
+    $toast.toastSuccess(
+      t('project.dashboard.backlog.singular'),
+      t('project.dashboard.backlog.toast.deleted'),
+    )
     return true
   } catch (err) {
     console.error('Failed to delete backlog item', err)
@@ -421,7 +469,10 @@ const onEventSave = async (id, payload) => {
   const category = selectedItem.value?.category
   try {
     await eventsStore.update(category, id, payload)
-    $toast.toastSuccess(t(CATEGORY_CONFIG[category].singularKey), t('project.dashboard.event.toast.updated'))
+    $toast.toastSuccess(
+      t(CATEGORY_CONFIG[category].singularKey),
+      t('project.dashboard.event.toast.updated'),
+    )
     return true
   } catch (err) {
     console.error('Failed to update event', err)
@@ -434,7 +485,10 @@ const onEventDelete = async id => {
   const category = selectedItem.value?.category
   try {
     await eventsStore.remove(category, id)
-    $toast.toastSuccess(t(CATEGORY_CONFIG[category].singularKey), t('project.dashboard.event.toast.deleted'))
+    $toast.toastSuccess(
+      t(CATEGORY_CONFIG[category].singularKey),
+      t('project.dashboard.event.toast.deleted'),
+    )
     return true
   } catch (err) {
     console.error('Failed to delete event', err)

@@ -2,58 +2,10 @@
   <Teleport to="#topbar-title" defer>
     <span class="flex items-center gap-2">
       <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
-      <template v-if="project">
-        <!-- Revision switcher trigger — replaces the old static version Tag.
-             role="button"/tabindex mirror the icon-trigger idiom used for
-             other popup Menus in this app (e.g. TabsBlock.vue's tab menu). -->
-        <span
-          role="button"
-          tabindex="0"
-          class="inline-flex items-center gap-1 cursor-pointer rounded px-1 hover:bg-emphasis"
-          :aria-label="$t('project.wizard.revisionSwitcher.trigger')"
-          v-tooltip.bottom="$t('project.wizard.revisionSwitcher.trigger')"
-          @click="toggleRevisionMenu"
-          @keydown.enter.stop.prevent="toggleRevisionMenu"
-          @keydown.space.stop.prevent="toggleRevisionMenu"
-        >
-          <Tag :value="versionLabel" :severity="isLive ? 'secondary' : 'warn'" class="!text-xs" />
-          <i class="pi pi-chevron-down text-xs text-muted-color" />
-        </span>
-
-        <!-- Popup menu: the revision chain (see stores/projects.js
-             listRevisions/revisionsFor), each entry showing its 1-based
-             version + lifecycle status with the open one marked, then a
-             separator and the "New revision from this one" action. -->
-        <Menu ref="revisionMenuRef" :model="revisionMenuItems" popup>
-          <template #item="{ item, props }">
-            <a
-              v-if="item.kind === 'revision'"
-              v-ripple
-              v-bind="props.action"
-              class="flex items-center gap-3"
-              :class="{ 'font-semibold': item.current }"
-            >
-              <i class="pi pi-check text-primary text-xs" :class="{ invisible: !item.current }" />
-              <span class="flex-1">{{ item.label }}</span>
-              <Tag
-                :value="$t(`project.status.${item.status}`)"
-                :severity="revisionStatusSeverity(item.status)"
-                class="!text-xs"
-              />
-            </a>
-            <a
-              v-else-if="item.kind === 'new-revision'"
-              v-ripple
-              v-bind="props.action"
-              v-tooltip.bottom="item.tooltip"
-              class="flex items-center gap-2"
-            >
-              <i class="pi pi-plus text-xs" />
-              <span>{{ item.label }}</span>
-            </a>
-          </template>
-        </Menu>
-      </template>
+      <!-- Revision switcher — shared with the dashboard topbar (see
+           components/project/RevisionSwitcher.vue); replaces what used to be
+           an inline trigger + Menu here. -->
+      <RevisionSwitcher :project="project" />
     </span>
   </Teleport>
 
@@ -551,6 +503,7 @@ import UserCreateDialog from '@/sections/project/components/users/UserCreateDial
 import UserDetailDialog from '@/sections/project/components/users/UserDetailDialog.vue'
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import MembersDialog from '@/sections/project/components/project/MembersDialog.vue'
+import RevisionSwitcher from '@/sections/project/components/project/RevisionSwitcher.vue'
 import ManageNav from '@/sections/project/components/wizard/ManageNav.vue'
 import ManageActivity from '@/sections/project/components/wizard/manage/ManageActivity.vue'
 import ManageBoard from '@/sections/project/components/wizard/manage/ManageBoard.vue'
@@ -606,99 +559,6 @@ const project = computed(() => store.findById(route.params.projectId))
 // A live (published) project has a dashboard to switch to; drafts are wizard-only.
 const isLive = computed(() => ['active', 'published'].includes(project.value?.status))
 
-// User-facing versions are 1-based (the original live project is v1), so we
-// display the backend revision + 1 — mirrors the dashboard topbar crumb. An
-// unpublished project is flagged as a draft (e.g. "v1 draft").
-const versionLabel = computed(() =>
-  t(isLive.value ? 'project.dashboard.version' : 'project.dashboard.versionDraft', {
-    number: (project.value?.revision ?? 0) + 1,
-  }),
-)
-
-// --- Revision switcher (wizard-header topbar) -------------------------------
-// Drives the popup Menu Teleported above, replacing the old static version
-// Tag. The chain comes from stores/projects.js's revisionsFor getter (keyed
-// by chain root, but reads by any project in the chain) — falls back to just
-// the open revision while the chain is still loading (or its fetch silently
-// failed), so the switcher is never an empty shell.
-const revisionMenuRef = ref()
-function toggleRevisionMenu(event) {
-  revisionMenuRef.value?.toggle(event)
-}
-const revisionChain = computed(() => {
-  if (!project.value) return []
-  const chain = store.revisionsFor(project.value.projectID)
-  return (chain.length ? chain : [project.value]).slice().sort((a, b) => a.revision - b.revision)
-})
-
-// Severities mirror ProjectList.vue / ProjectSidebar.vue's project-status Tag
-// mapping (active/published live, draft in review, suspended flagged).
-const REVISION_STATUS_SEVERITY = {
-  active: 'success',
-  published: 'success',
-  draft: 'info',
-  suspended: 'warn',
-  archived: 'secondary',
-}
-const revisionStatusSeverity = status => REVISION_STATUS_SEVERITY[status] || 'secondary'
-
-// Selecting another revision navigates to its own wizard; selecting the
-// already-open one (or re-clicking through the menu) is a harmless no-op.
-function goToRevision(projectId) {
-  if (String(projectId) === String(project.value?.projectID)) return
-  router.push({ name: 'project.wizard', params: { projectId } })
-}
-
-// AGREED BEHAVIOUR: prevent rather than fail. The "New revision from this
-// one" entry is disabled — with a tooltip explaining why — whenever the
-// backend would reject createRevision, derived from state already loaded
-// above: this revision isn't active, or the chain already has a draft (the
-// backend allows only one draft per chain). onCreateRevision's catch below is
-// only a backstop for the race where someone else created a draft first.
-const currentNotActive = computed(() => project.value?.status !== 'active')
-const chainHasDraft = computed(() => revisionChain.value.some(r => r.status === 'draft'))
-const newRevisionDisabled = computed(() => currentNotActive.value || chainHasDraft.value)
-const newRevisionDisabledReason = computed(() => {
-  if (currentNotActive.value)
-    return t('project.wizard.revisionSwitcher.newRevisionDisabledNotActive')
-  if (chainHasDraft.value)
-    return t('project.wizard.revisionSwitcher.newRevisionDisabledDraftExists')
-  return ''
-})
-
-const revisionMenuItems = computed(() => {
-  const items = revisionChain.value.map(rev => ({
-    kind: 'revision',
-    label: t('project.dashboard.version', { number: rev.revision + 1 }),
-    status: rev.status,
-    current: rev.projectID === project.value?.projectID,
-    command: () => goToRevision(rev.projectID),
-  }))
-  items.push({ separator: true })
-  items.push({
-    kind: 'new-revision',
-    label: t('project.wizard.revisionSwitcher.newRevision'),
-    disabled: newRevisionDisabled.value,
-    tooltip: newRevisionDisabled.value ? newRevisionDisabledReason.value : '',
-    command: onCreateRevision,
-  })
-  return items
-})
-
-const creatingRevision = ref(false)
-async function onCreateRevision() {
-  if (creatingRevision.value || newRevisionDisabled.value) return
-  creatingRevision.value = true
-  try {
-    const draft = await store.createRevision(project.value.projectID)
-    router.push({ name: 'project.wizard', params: { projectId: draft.projectID } })
-  } catch (err) {
-    $toast.toastErrorHandler(t('project.wizard.revisionSwitcher.toastCreateFailed'))(err)
-  } finally {
-    creatingRevision.value = false
-  }
-}
-
 // Load the full project (members for capability resolution) + user directory.
 usersStore.load()
 watch(
@@ -709,20 +569,6 @@ watch(
       console.error('Failed to load project', err)
       $toast.toastErrorHandler(t('project.wizard.toastLoadFailed'))(err)
     })
-  },
-  { immediate: true },
-)
-
-// Revision switcher's chain (see stores/projects.js listRevisions) — same
-// load-on-projectId-change shape as the project fetch above, kept as its own
-// watcher since it's an independent request. A failure just leaves the
-// switcher showing only the open revision (see revisionChain's fallback
-// below); it isn't critical enough to toast.
-watch(
-  () => route.params.projectId,
-  id => {
-    if (!id) return
-    store.listRevisions(id).catch(err => console.error('Failed to load project revisions', err))
   },
   { immediate: true },
 )
