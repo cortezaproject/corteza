@@ -120,21 +120,27 @@ export const RIGHTS_CHAPTER_ICONS = {
   dataPrivacy: 'pi-lock',
 }
 
-// Required-field completion, mirroring the design mockup's own progress
-// calculation 1:1 (its prog() function): title, description, severity, >=1
-// trigger type, >=1 impacted party, >=1 right. Vulnerable groups and harm
-// vectors are supporting detail in the mockup's own logic, not required for
-// "complete" — kept identical here so the summary list's Complete / In
-// Progress status matches what the section-editor steps' own required
-// markers (*) promise.
+// Completion = how many of the editor's FIVE sections carry any content
+// (ruled 2026-07-28). This deliberately DIVERGES from the design mockup's own
+// prog(), which counted six required fields and never looked at vulnerable
+// groups or harm vectors at all — so a scenario could read "complete" having
+// identified no AI harm vector, the very thing Art. 27 is asking about.
+// One definition, used by both the summary list's Complete / In Progress
+// status and the editor's progress bar, so the two can never disagree.
 export function friaScenarioCompletion(scenario) {
   const checks = [
-    !!scenario?.title?.trim(),
-    !!scenario?.description?.trim(),
-    !!scenario?.severity,
-    (scenario?.triggerTypes?.length || 0) > 0,
-    (scenario?.impactedParties?.length || 0) > 0,
+    // 1. Harm narrative + severity
+    !!scenario?.title?.trim() || !!scenario?.description?.trim() || !!scenario?.severity,
+    // 2. Trigger conditions
+    (scenario?.triggerTypes?.length || 0) > 0 || !!scenario?.triggerDescription?.trim(),
+    // 3. Impacted parties + vulnerable groups
+    (scenario?.impactedParties?.length || 0) > 0 ||
+      (scenario?.vulnerableGroups?.length || 0) > 0 ||
+      !!scenario?.vulnerableGroupsNotes?.trim(),
+    // 4. Fundamental rights
     (scenario?.rights?.length || 0) > 0,
+    // 5. AI harm vectors
+    (scenario?.harmVectors?.length || 0) > 0 || !!scenario?.harmVectorsDescription?.trim(),
   ]
   const filled = checks.filter(Boolean).length
   return { filled, total: checks.length, complete: filled === checks.length }

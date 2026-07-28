@@ -345,7 +345,7 @@ editor:
   saveScenario: Save scenario
   noActiveScenario: >-
     This risk scenario could not be found — it may have been removed.
-  sectionsProgress: '{filled} of {total} required sections filled'
+  sectionsProgress: '{filled} of {total} sections started'
 
 scenarios:
   stats:
