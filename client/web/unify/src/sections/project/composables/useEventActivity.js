@@ -21,16 +21,26 @@ export function useEventActivity() {
   // adapts day→week→month buckets (see adaptiveWindow) so wide ranges —
   // including the 1Y/5Y/All presets — stay legible instead of rendering
   // hundreds of daily bars. The optional resource/action/origin/actorID
-  // filters mirror AllEventsView's filter popover — this is the single place
-  // both the Overview activity band and AllEventsView's metrics band compute
+  // filters mirror ActivityPanel's filter popover — this is the single place
+  // both the Overview activity band and ActivityPanel's metrics band compute
   // this, so it stays one definition.
-  async function loadMetrics(projectID, { from, to, resource, action, origin, actorID } = {}) {
+  //
+  // `revisionId` narrows to one revision once the backend actionlog endpoints
+  // accept that filter — they do NOT yet, so it is forwarded unconditionally
+  // (dropped by the generated client today) and has no effect until that
+  // lands. See components/dashboard/ActivityPanel.vue's revisionId prop
+  // comment for what will and won't actually narrow once it does.
+  async function loadMetrics(
+    projectID,
+    { from, to, resource, action, origin, actorID, revisionId } = {},
+  ) {
     const end = to || new Date()
     const start = from || new Date(end.getTime() - 30 * DAY)
     const base = {
       from: start.toISOString(),
       to: end.toISOString(),
       resourceProjectID: projectID || undefined,
+      revisionID: revisionId ? String(revisionId) : undefined,
       resource: resource || undefined,
       action: action || undefined,
       origin: origin || undefined,
@@ -56,7 +66,7 @@ export function useEventActivity() {
       rangeLabels,
       series: [
         {
-          name: t('project.dashboard.allEvents.metrics.events'),
+          name: t('project.dashboard.activity.metrics.events'),
           color: EVENTS_COLOR,
           data: bucket(points),
         },

@@ -11,7 +11,7 @@ export const DASHBOARD_NAV = [
     labelKey: 'project.dashboard.nav.monitor',
     items: [
       { key: 'dashboard', labelKey: 'project.dashboard.views.dashboard', icon: 'pi-gauge', route: 'project.overview' },
-      { key: 'events', labelKey: 'project.dashboard.views.events', icon: 'pi-list', route: 'project.overview.events', iconTone: 'primary' },
+      { key: 'activity', labelKey: 'project.dashboard.views.activity', icon: 'pi-list', route: 'project.overview.activity', iconTone: 'primary' },
     ],
   },
   {

@@ -1,6 +1,6 @@
 <template>
   <!-- Quick time-range presets (stock-chart style). Purely the button row —
-       callers own what a preset selection actually does (AllEventsView wires
+       callers own what a preset selection actually does (ActivityPanel wires
        it to its filter window and releases the selection on manual edits;
        Overview/CategoryView wire it straight to their trend reload), so this
        stays a dumb v-model over the preset key. -->

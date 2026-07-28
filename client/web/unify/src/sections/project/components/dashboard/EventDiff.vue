@@ -41,9 +41,9 @@ const props = defineProps({
 // join for display. An absent/empty side means the field was unset, which reads
 // far better as "(empty)" than as a blank gap the eye skips over.
 function side(v) {
-  if (v === null || v === undefined) return t('project.dashboard.allEvents.diff.empty')
+  if (v === null || v === undefined) return t('project.dashboard.activity.diff.empty')
   const parts = (Array.isArray(v) ? v : [v]).filter(x => x !== null && x !== undefined && x !== '')
-  return parts.length ? parts.join(', ') : t('project.dashboard.allEvents.diff.empty')
+  return parts.length ? parts.join(', ') : t('project.dashboard.activity.diff.empty')
 }
 
 const rows = computed(() => {

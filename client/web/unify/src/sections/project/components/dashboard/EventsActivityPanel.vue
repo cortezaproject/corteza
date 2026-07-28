@@ -15,13 +15,13 @@
           <div class="flex flex-col">
             <span class="text-2xl font-semibold text-color leading-none">{{ metrics.total }}</span>
             <span class="text-xs text-muted-color">
-              {{ $t('project.dashboard.allEvents.metrics.events') }}
+              {{ $t('project.dashboard.activity.metrics.events') }}
             </span>
           </div>
           <div class="flex flex-col">
             <span class="text-2xl font-semibold text-color leading-none">{{ metrics.actors }}</span>
             <span class="text-xs text-muted-color">
-              {{ $t('project.dashboard.allEvents.metrics.people') }}
+              {{ $t('project.dashboard.activity.metrics.people') }}
             </span>
           </div>
           <div class="flex flex-col">
@@ -32,7 +32,7 @@
               {{ metrics.errors }}
             </span>
             <span class="text-xs text-muted-color">
-              {{ $t('project.dashboard.allEvents.metrics.errors') }}
+              {{ $t('project.dashboard.activity.metrics.errors') }}
             </span>
           </div>
         </div>
@@ -57,7 +57,7 @@
             {{ $t('project.dashboard.eventsBand.recent') }}
           </div>
           <RouterLink
-            :to="{ name: 'project.overview.events', params: { projectId } }"
+            :to="{ name: 'project.overview.activity', params: { projectId } }"
             class="text-xs text-primary-500 hover:underline shrink-0"
           >
             {{ $t('project.dashboard.eventsBand.viewAll') }}
@@ -65,9 +65,9 @@
         </div>
         <div v-if="recent.length" class="flex flex-col max-h-72 overflow-y-auto">
           <template v-for="group in recentGroups" :key="group.key">
-            <!-- Same day separators as All Events — the identical bg-emphasis
-                 band, sticky within the card's own scroll (solid token, so
-                 rows never show through underneath). -->
+            <!-- Same day separators as the Activity panel — the identical
+                 bg-emphasis band, sticky within the card's own scroll (solid
+                 token, so rows never show through underneath). -->
             <div
               class="sticky top-0 z-10 px-2 py-1.5 bg-emphasis rounded text-xs font-semibold uppercase tracking-wide text-muted-color"
             >
@@ -106,8 +106,8 @@ const { t } = useI18n()
 const { locDate } = filters
 const events = useEventActivity()
 
-// Group the feed by calendar day, newest first — same labels as All Events
-// (Today/Yesterday/date), so the two views read as one system.
+// Group the feed by calendar day, newest first — same labels as the Activity
+// panel (Today/Yesterday/date), so the two views read as one system.
 const recentGroups = computed(() => {
   const out = []
   let current = null
@@ -124,12 +124,12 @@ const recentGroups = computed(() => {
 })
 
 function dayLabel(d) {
-  if (!d || Number.isNaN(d.getTime())) return t('project.dashboard.allEvents.unknownDate')
+  if (!d || Number.isNaN(d.getTime())) return t('project.dashboard.activity.unknownDate')
   const today = new Date()
   const yesterday = new Date()
   yesterday.setDate(today.getDate() - 1)
-  if (d.toDateString() === today.toDateString()) return t('project.dashboard.allEvents.today')
-  if (d.toDateString() === yesterday.toDateString()) return t('project.dashboard.allEvents.yesterday')
+  if (d.toDateString() === today.toDateString()) return t('project.dashboard.activity.today')
+  if (d.toDateString() === yesterday.toDateString()) return t('project.dashboard.activity.yesterday')
   return locDate(d)
 }
 

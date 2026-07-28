@@ -7,7 +7,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 // - sidebar/sidebar.intent.md: routing rule — a live (active) project opens
 //   its dashboard (project.overview), anything else opens the wizard.
 // - views/dashboard/*.intent.md: locked dashboard view set — Overview,
-//   Category, Backlog, All Events, + a Reports stub — behind DashboardLayout's
+//   Category, Backlog, Activity, + a Reports stub — behind DashboardLayout's
 //   left-rail nav.
 //
 // project.intent.md's WIP note: approval PERSISTENCE is session-local FE
@@ -180,7 +180,7 @@ test.describe.serial('project lifecycle & dashboard', () => {
     expect(page.url()).not.toMatch(/\/wizard/)
   })
 
-  test('dashboard view set renders: Overview, All Events, Backlog (+ nav entries for Category/Reports)', async ({
+  test('dashboard view set renders: Overview, Activity, Backlog (+ nav entries for Category/Reports)', async ({
     page,
   }) => {
     test.skip(!isLive, 'publish cycle did not complete in the first test')
@@ -192,16 +192,16 @@ test.describe.serial('project lifecycle & dashboard', () => {
     // (also a nav landmark) via its unique 'Monitor' section heading.
     const nav = page.getByRole('navigation').filter({ hasText: 'Monitor' })
     await expect(nav).toBeVisible()
-    for (const name of ['Dashboard', 'All Events', 'Backlog', 'Reports', 'Incidents']) {
+    for (const name of ['Dashboard', 'Activity', 'Backlog', 'Reports', 'Incidents']) {
       await expect(nav.getByRole('button', { name })).toBeVisible()
     }
 
     // Overview — already landed here on the initial navigation.
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
 
-    await nav.getByRole('button', { name: 'All Events' }).click()
-    await page.waitForURL(/\/events$/)
-    await expect(page.getByRole('heading', { name: 'All Events' })).toBeVisible()
+    await nav.getByRole('button', { name: 'Activity' }).click()
+    await page.waitForURL(/\/activity$/)
+    await expect(page.getByRole('heading', { name: 'Activity' })).toBeVisible()
 
     await nav.getByRole('button', { name: 'Backlog' }).click()
     await page.waitForURL(/\/backlog$/)

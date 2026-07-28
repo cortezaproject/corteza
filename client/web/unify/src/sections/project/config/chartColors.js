@@ -75,7 +75,7 @@ export const PRIORITY_COLORS = {
   Low: '#f07f74',
 }
 
-// Audit-event activity accent (pulse charts in Overview + All Events). Kept
+// Audit-event activity accent (pulse charts in Overview + Activity). Kept
 // distinct from the category/status palettes above.
 export const EVENTS_COLOR = '#6366f1'
 

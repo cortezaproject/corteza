@@ -38,6 +38,11 @@ and the event/backlog dialogs and drawers.
   computed client-side from loaded store rows — accurate only within the
   stores' 200-row cap. Chain-wide mode still uses the aggregate-correct
   report endpoint.
+- `ActivityPanel.vue` — the Activity timeline, shared the same way: the
+  dashboard route mounts it chain-wide, the wizard's Activity section with a
+  revision. CAVEAT worth keeping: work items file against the chain root, so
+  their audit events are never revision-attributable — only a revision's own
+  build artifacts filter. The UI copy says so; don't let it drift.
 - Charts (presentational — parents map store data in): `CategoryKpiRow`,
   `CategoryDonutChart`, `CategoryTrendChart`, `CategoryRankBar`,
   `ChartLegend`; colours come from `config/chartColors`.

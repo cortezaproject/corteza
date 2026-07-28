@@ -1,5 +1,5 @@
 // Bucketing + quick time-range presets for the created-over-time trend charts
-// (Overview, CategoryView) and the audit-activity pulses (AllEventsView,
+// (Overview, CategoryView) and the audit-activity pulses (ActivityPanel,
 // EventsActivityPanel via useEventActivity). Report data arrives as daily
 // { date: 'YYYY-MM-DD', value } (optionally { group } for stacked series);
 // governance volumes are low, so day/week/month bars read better than a spiky
@@ -170,7 +170,7 @@ function monthRangeLabel(d) {
 }
 
 // --- Quick time-range presets ------------------------------------------------
-// Shared by AllEventsView's filter window and the Overview/CategoryView trend
+// Shared by ActivityPanel's filter window and the Overview/CategoryView trend
 // charts (via TimeRangeSelect). Each preset resolves to a `from` Date (`to`
 // stays open = "until now"); 'all' resolves to null (no lower bound — see
 // adaptiveWindow below for how callers handle that). `months`/`years` walk the

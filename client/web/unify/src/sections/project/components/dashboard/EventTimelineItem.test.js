@@ -91,7 +91,7 @@ describe('EventTimelineItem', () => {
     const w = mountItem(many)
     expect(w.text()).toContain('field2')
     expect(w.text()).not.toContain('field3')
-    expect(w.text()).toContain('project.dashboard.allEvents.moreChanges:2')
+    expect(w.text()).toContain('project.dashboard.activity.moreChanges:2')
   })
 
   it('reveals the capped fields on request', async () => {
@@ -106,12 +106,12 @@ describe('EventTimelineItem', () => {
     const w = mountItem(many)
     await w.find('button').trigger('click')
     expect(w.text()).toContain('field4')
-    expect(w.text()).not.toContain('project.dashboard.allEvents.moreChanges')
+    expect(w.text()).not.toContain('project.dashboard.activity.moreChanges')
   })
 
   it('offers no "more" affordance when every change already fits', () => {
     const w = mountItem(updateEvent) // 2 fields, under the cap
-    expect(w.text()).not.toContain('project.dashboard.allEvents.moreChanges')
+    expect(w.text()).not.toContain('project.dashboard.activity.moreChanges')
   })
 
   it('renders no diff for events without one', () => {
@@ -132,7 +132,7 @@ describe('EventTimelineItem', () => {
 
   it('falls back to System when there is no actor', () => {
     const w = mountItem(updateEvent, { actorName: '' })
-    expect(w.text()).toContain('project.dashboard.allEvents.system')
+    expect(w.text()).toContain('project.dashboard.activity.system')
   })
 
   // Icons must come from the project's own KIND_CONFIG, not a bespoke map — an

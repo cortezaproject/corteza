@@ -64,7 +64,7 @@ dashboard:
     insights: Insights
   views:
     dashboard: Dashboard
-    events: All Events
+    activity: Activity
     reports: Reports
     backlog: Backlog
   # Overview page (category cards + activity trend) loading/error states.
@@ -73,12 +73,15 @@ dashboard:
     retry: Retry
     # Heading above the KPI trio when the overview is scoped to one revision.
     kpiHeading: Key numbers
-  # Real action-log view (All Events), rendered as an activity timeline.
-  # Filter/severity/detail labels are reused from system.actionlog.list.*; only
-  # the header, timeline chrome and empty states live here.
-  allEvents:
-    title: All Events
-    desc: Activity and action log for this project workspace.
+  # Real action-log view (Activity — the project's audit trail), rendered as an
+  # activity timeline. Filter/severity/detail labels are reused from
+  # system.actionlog.list.*; only the header, timeline chrome and empty states
+  # live here. Shared by the dashboard route (chain-wide) and the wizard's
+  # Manage & Monitor Activity section (revision-scoped) — see
+  # components/dashboard/ActivityPanel.vue.
+  activity:
+    title: Activity
+    desc: Audit and action log for this project workspace.
     searchPlaceholder: Search events…
     filters: Filters
     refresh: Refresh
@@ -109,7 +112,7 @@ dashboard:
       events: Events
       people: People
       errors: Errors
-  # Quick time-range presets (stock-chart style), shared by AllEventsView's
+  # Quick time-range presets (stock-chart style), shared by ActivityPanel's
   # toolbar and the Overview/CategoryView trend charts (see TimeRangeSelect).
   range:
     d1: 1D
@@ -338,9 +341,19 @@ manage:
   overview:
     blurb: Work items assigned to this revision, summarized by category, key numbers and activity
       over time.
-  # Placeholder body for the sections that aren't built yet (activity, the
-  # five per-category panels) — see components/wizard/manage/
-  # ManagePlaceholder.vue.
+  # The activity panel — components/dashboard/ActivityPanel.vue, shared with
+  # the live dashboard and scoped to the open revision here once the backend
+  # actionlog revisionID filter lands (see ActivityPanel.vue's revisionId prop
+  # comment). Work items (incidents, features, privacy requests, tasks,
+  # reviews) are filed against the project chain, not a single revision, so
+  # their audit events are never revision-attributable — only this revision's
+  # own build artifacts (namespaces, workflows, agents, etc.) actually narrow.
+  activity:
+    blurb: This revision's own build-artifact activity — namespaces, workflows, agents and the
+      like. Work items are filed against the project as a whole rather than a single revision, so
+      their activity isn't shown here; see the project-wide dashboard for the full picture.
+  # Placeholder body for the sections that aren't built yet (the five
+  # per-category panels) — see components/wizard/manage/ManagePlaceholder.vue.
   panel:
     comingSoon: This section isn't built yet.
   # The metrics panel — components/wizard/manage/ManageMetrics.vue. Scoped to

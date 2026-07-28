@@ -14,9 +14,12 @@ tests: []
 
 ## Intention
 
-The project's real audit-event log as an activity timeline: who did what to
-which project resource, day-grouped, newest first, with an at-a-glance
-metrics band over the effective window.
+Route target for **Activity** (renamed from All Events, 2026-07-28, route
+`project.overview.activity` — renamed outright, no redirect). A thin wrapper
+now: the screen itself is `components/dashboard/ActivityPanel.vue`, shared
+with the wizard's Manage & Monitor Activity section. The project's real
+audit-event log as a timeline: who did what to which project resource,
+day-grouped, newest first, with a metrics band over the effective window.
 
 ## UX capabilities
 

@@ -31,7 +31,7 @@ export default {
     },
     {
       // Published-project dashboard. A layout (in-view left rail + topbar crumb)
-      // with child views for overview, events, categories and backlog; reports
+      // with child views for overview, activity, categories and backlog; reports
       // is a stub until the custom-reports design lands.
       path: '/project/projects/:projectId',
       component: () => import('./views/dashboard/DashboardLayout.vue'),
@@ -44,10 +44,10 @@ export default {
           meta: { section: 'project', titleKey: 'project.dashboard.views.dashboard', icon: 'pi-gauge' },
         },
         {
-          path: 'events',
-          name: 'project.overview.events',
+          path: 'activity',
+          name: 'project.overview.activity',
           component: () => import('./views/dashboard/AllEventsView.vue'),
-          meta: { section: 'project', titleKey: 'project.dashboard.views.events', icon: 'pi-list' },
+          meta: { section: 'project', titleKey: 'project.dashboard.views.activity', icon: 'pi-list' },
         },
         {
           path: 'category/:category',

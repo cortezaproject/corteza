@@ -39,7 +39,7 @@
            activity card — to overflow horizontally. -->
       <p class="text-sm text-color break-words">
         <UserCell v-if="actorName" :name="actorName" avatar class="align-middle" />
-        <span v-else class="text-muted-color">{{ t('project.dashboard.allEvents.system') }}</span>
+        <span v-else class="text-muted-color">{{ t('project.dashboard.activity.system') }}</span>
         <span class="mx-1">{{ verb }}</span>
         <span
           v-tooltip.top="data.resource"
@@ -63,7 +63,7 @@
           class="ml-1.5 shrink-0 align-middle cursor-pointer rounded-sm text-muted-color hover:text-color focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           :aria-expanded="open"
           :aria-controls="detailsID"
-          :aria-label="t('project.dashboard.allEvents.details')"
+          :aria-label="t('project.dashboard.activity.details')"
           @click.stop="open = !open"
         >
           <i class="pi text-xs" :class="open ? 'pi-chevron-up' : 'pi-chevron-down'" />
@@ -79,7 +79,7 @@
         class="self-start text-xs text-primary-500 hover:underline cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         @click.stop="open = true"
       >
-        {{ t('project.dashboard.allEvents.moreChanges', hiddenChanges) }}
+        {{ t('project.dashboard.activity.moreChanges', hiddenChanges) }}
       </button>
 
       <!-- Error is the exception colour is saved for. -->
@@ -103,7 +103,7 @@
         v-if="open"
         :id="detailsID"
         role="region"
-        :aria-label="t('project.dashboard.allEvents.details')"
+        :aria-label="t('project.dashboard.activity.details')"
         class="grid grid-cols-1 gap-x-4 gap-y-1 pt-1 sm:grid-cols-2"
         @click.stop
       >

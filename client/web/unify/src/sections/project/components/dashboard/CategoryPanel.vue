@@ -418,7 +418,7 @@ const isRevisionScoped = computed(() => !!props.revisionId)
 // per-category 200-row list cap). `reportLoading`/`reportFailed` mirror the
 // idiom in Overview.vue; `loadSeq` guards against a late response from a
 // superseded project/category switch overwriting the current one's data
-// (same pattern as Overview's loadAll/AllEventsView's load()).
+// (same pattern as Overview's loadAll/ActivityPanel's load()).
 const reportStore = useReportStore()
 const reportTrend = reactive({ labels: [], rangeLabels: [], series: [] })
 // Default m6 (6 months) — matches Overview's default; see that view's comment
