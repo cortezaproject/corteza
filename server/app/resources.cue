@@ -284,6 +284,13 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 					storeIdent: "rel_resource_project"
 					dal: { type: "ID", default: 0 }
 				}
+				resource_revision_id: {
+					ident: "resourceRevisionID"
+					expIdent: "ResourceRevisionID"
+					goType: "uint64"
+					storeIdent: "rel_resource_revision"
+					dal: { type: "ID", default: 0 }
+				}
 				action: {
 					dal: { type: "Text", length: 64 }
 				}
@@ -333,11 +340,12 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				project_id: schema.ProjectFilterField
 				root_project_id: { goType: "uint64", ident: "rootProjectID", storeIdent: "rel_root_project" }
 				resource_project_id: { goType: "uint64", ident: "resourceProjectID", storeIdent: "rel_resource_project" }
+				resource_revision_id: { goType: "uint64", ident: "resourceRevisionID", storeIdent: "rel_resource_revision" }
 				action: {}
 				limit: { goType: "uint" }
 			}
 
-			byValue: ["action", "resource", "origin", "actor_id", "tenant_id", "project_id", "root_project_id", "resource_project_id" ]
+			byValue: ["action", "resource", "origin", "actor_id", "tenant_id", "project_id", "root_project_id", "resource_project_id", "resource_revision_id" ]
 		}
 
 		store: {

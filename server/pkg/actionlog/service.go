@@ -213,5 +213,36 @@ func enrich(ctx context.Context, a *Action) *Action {
 		a.RootProjectID = sc.RootProjectID
 	}
 
+	// Default ResourceRevisionID to ResourceProjectID: every projects row is
+	// itself a revision (a fresh project is revision 1 of its own chain), so
+	// whatever revision project row a ProjectResourcer-implementing resource
+	// lives under already denotes its revision. This covers build artifacts
+	// (compose namespaces, workflows, agents, ...) without each of their
+	// ToAction() implementations needing to know about revisions.
+	//
+	// Work items are the deliberate exception: their ProjectRef() (and so
+	// ResourceProjectID) points at the chain ROOT, not a revision, and they
+	// populate ResourceRevisionID themselves from their own nullable
+	// revision_id (via RevisionResourcer, see the actions template) — which
+	// may legitimately be 0 (unassigned). Applying the default to them would
+	// silently mis-attribute unassigned/assigned work items to the chain
+	// root, so they're excluded here by resource identifier.
+	if a.ResourceRevisionID == 0 && a.ResourceProjectID != 0 && !workItemResources[a.Resource] {
+		a.ResourceRevisionID = a.ResourceProjectID
+	}
+
 	return a
+}
+
+// workItemResources are the resource identifiers of the project work item
+// types (see server/system/service/project_*_actions.yaml `resource:`).
+// They're the sole RevisionResourcer implementers today, so enrich() must
+// not apply the generic ResourceRevisionID default to them (see above).
+var workItemResources = map[string]bool{
+	"system:project-incident":     true,
+	"system:project-feature":      true,
+	"system:project-privacy":      true,
+	"system:project-task":         true,
+	"system:project-review":       true,
+	"system:project-backlog-item": true,
 }

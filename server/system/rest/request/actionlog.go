@@ -65,6 +65,11 @@ type (
 		// Filter by the project owning the affected resource
 		ResourceProjectID uint64 `json:",string"`
 
+		// RevisionID GET parameter
+		//
+		// Filter by the revision owning (or assigned to) the affected resource
+		RevisionID uint64 `json:",string"`
+
 		// Action GET parameter
 		//
 		// Action
@@ -122,6 +127,11 @@ type (
 		// Filter by the project owning the affected resource
 		ResourceProjectID uint64 `json:",string"`
 
+		// RevisionID GET parameter
+		//
+		// Filter by the revision owning (or assigned to) the affected resource
+		RevisionID uint64 `json:",string"`
+
 		// Action GET parameter
 		//
 		// Action
@@ -158,6 +168,7 @@ func (r ActionlogList) Auditable() map[string]interface{} {
 		"resource":          r.Resource,
 		"projectID":         r.ProjectID,
 		"resourceProjectID": r.ResourceProjectID,
+		"revisionID":        r.RevisionID,
 		"action":            r.Action,
 		"actorID":           r.ActorID,
 		"origin":            r.Origin,
@@ -193,6 +204,11 @@ func (r ActionlogList) GetProjectID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) GetResourceProjectID() uint64 {
 	return r.ResourceProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogList) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -258,6 +274,12 @@ func (r *ActionlogList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["action"]; ok && len(val) > 0 {
 			r.Action, err = val[0], nil
 			if err != nil {
@@ -307,6 +329,7 @@ func (r ActionlogReport) Auditable() map[string]interface{} {
 		"resource":          r.Resource,
 		"projectID":         r.ProjectID,
 		"resourceProjectID": r.ResourceProjectID,
+		"revisionID":        r.RevisionID,
 		"action":            r.Action,
 		"actorID":           r.ActorID,
 		"origin":            r.Origin,
@@ -347,6 +370,11 @@ func (r ActionlogReport) GetProjectID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogReport) GetResourceProjectID() uint64 {
 	return r.ResourceProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogReport) GetRevisionID() uint64 {
+	return r.RevisionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -424,6 +452,12 @@ func (r *ActionlogReport) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["resourceProjectID"]; ok && len(val) > 0 {
 			r.ResourceProjectID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["revisionID"]; ok && len(val) > 0 {
+			r.RevisionID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

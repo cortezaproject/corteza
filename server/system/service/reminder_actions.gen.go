@@ -279,6 +279,7 @@ func (a *reminderAction) String() string {
 func (e *reminderAction) ToAction() *actionlog.Action {
 	resource := e.resource
 	var resourceProjectID uint64
+	var resourceRevisionID uint64
 	if e.props != nil && e.props.reminder != nil {
 		if r, ok := any(e.props.reminder).(actionlog.RbacResourcer); ok {
 			resource = r.RbacResource()
@@ -290,16 +291,29 @@ func (e *reminderAction) ToAction() *actionlog.Action {
 		if r, ok := any(e.props.reminder).(actionlog.ProjectResourcer); ok {
 			resourceProjectID = r.ProjectRef()
 		}
+
+		// Attribute the event to the revision owning (or assigned to) the affected
+		// resource. Work items (RevisionResourcer) file against the chain root and
+		// carry their own, independent revision assignment. Everything else already
+		// denormalises the revision onto ProjectRef() -- every projects row is its
+		// own revision, so whichever revision project row a resource lives under
+		// already is one.
+		if r, ok := any(e.props.reminder).(actionlog.RevisionResourcer); ok {
+			resourceRevisionID = r.RevisionRef()
+		} else {
+			resourceRevisionID = resourceProjectID
+		}
 	}
 	return &actionlog.Action{
-		Resource:          resource,
-		ResourceProjectID: resourceProjectID,
-		Action:            e.action,
-		Severity:          e.severity,
-		Description:       e.String(),
-		Meta:              e.props.Serialize(),
-		Delta:             actionlog.Delta(e.props.diff),
-		OldState:          actionlog.OldState(e.props.old),
+		Resource:           resource,
+		ResourceProjectID:  resourceProjectID,
+		ResourceRevisionID: resourceRevisionID,
+		Action:             e.action,
+		Severity:           e.severity,
+		Description:        e.String(),
+		Meta:               e.props.Serialize(),
+		Delta:              actionlog.Delta(e.props.diff),
+		OldState:           actionlog.OldState(e.props.old),
 	}
 }
 

@@ -191,6 +191,7 @@ func (a *{{ $.Service }}Action) String() string {
 func (e *{{ $.Service }}Action) ToAction() *actionlog.Action {
 	resource := e.resource
 	var resourceProjectID uint64
+	var resourceRevisionID uint64
 	{{ if $.PrimaryPropHasID -}}
 	if e.props != nil && e.props.{{ $.Service }} != nil {
 		if r, ok := any(e.props.{{ $.Service }}).(actionlog.RbacResourcer); ok {
@@ -203,17 +204,30 @@ func (e *{{ $.Service }}Action) ToAction() *actionlog.Action {
 		if r, ok := any(e.props.{{ $.Service }}).(actionlog.ProjectResourcer); ok {
 			resourceProjectID = r.ProjectRef()
 		}
+
+		// Attribute the event to the revision owning (or assigned to) the affected
+		// resource. Work items (RevisionResourcer) file against the chain root and
+		// carry their own, independent revision assignment. Everything else already
+		// denormalises the revision onto ProjectRef() -- every projects row is its
+		// own revision, so whichever revision project row a resource lives under
+		// already is one.
+		if r, ok := any(e.props.{{ $.Service }}).(actionlog.RevisionResourcer); ok {
+			resourceRevisionID = r.RevisionRef()
+		} else {
+			resourceRevisionID = resourceProjectID
+		}
 	}
 	{{- end }}
 	return &actionlog.Action{
-		Resource:          resource,
-		ResourceProjectID: resourceProjectID,
-		Action:            e.action,
-		Severity:          e.severity,
-		Description:       e.String(),
-		Meta:              e.props.Serialize(),
-		Delta:             actionlog.Delta(e.props.diff),
-		OldState:          actionlog.OldState(e.props.old),
+		Resource:           resource,
+		ResourceProjectID:  resourceProjectID,
+		ResourceRevisionID: resourceRevisionID,
+		Action:             e.action,
+		Severity:           e.severity,
+		Description:        e.String(),
+		Meta:               e.props.Serialize(),
+		Delta:              actionlog.Delta(e.props.diff),
+		OldState:           actionlog.OldState(e.props.old),
 	}
 }
 {{ end }}

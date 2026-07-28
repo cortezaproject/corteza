@@ -2676,6 +2676,10 @@ endpoints:
               required: false
               title: Filter by the project owning the affected resource
               type: uint64
+            - name: revisionID
+              required: false
+              title: Filter by the revision owning (or assigned to) the affected resource
+              type: uint64
             - name: action
               required: false
               title: Action
@@ -2724,6 +2728,10 @@ endpoints:
             - name: resourceProjectID
               required: false
               title: Filter by the project owning the affected resource
+              type: uint64
+            - name: revisionID
+              required: false
+              title: Filter by the revision owning (or assigned to) the affected resource
               type: uint64
             - name: action
               required: false

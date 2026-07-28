@@ -100,6 +100,14 @@ var Action = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ResourceRevisionID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_resource_revision"},
+		},
+
+		&dal.Attribute{
 			Ident: "Action",
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "action"},

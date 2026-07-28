@@ -91,6 +91,7 @@ var (
 		fix_2026_07_14_addRelTenantOnActionlog,
 		fix_2026_07_14_addRelRootProjectOnActionlog,
 		fix_2026_07_14_makeActionlogJsonColsNullable,
+		fix_2026_07_28_addRelResourceRevisionOnActionlog,
 	}
 )
 
@@ -235,6 +236,49 @@ func fix_2026_07_14_addRelRootProjectOnActionlog(ctx context.Context, s *Store) 
 		Ident:      indexName,
 		Type:       "BTREE",
 		Fields:     []*ddl.IndexField{{Column: "rel_root_project"}},
+	})
+}
+
+// Adds the rel_resource_revision column (+ index) that attributes an
+// action-log event to the revision owning (or assigned to) the affected
+// resource. Reuses the generated model attribute so the column type matches
+// the canonical attribute. Additive & idempotent — addColumn/index no-op if
+// already present, and skip cleanly when the table doesn't exist yet.
+//
+// No backfill: the revision is only known from the resource at write time
+// (see actionlog enrich() and the per-resource ToAction() implementations);
+// it can't be recovered for existing rows, so old events stay unattributed
+// (0), same as fix_2026_07_14_addRelResourceProjectOnActionlog.
+func fix_2026_07_28_addRelResourceRevisionOnActionlog(ctx context.Context, s *Store) error {
+	if _, err := s.DataDefiner.TableLookup(ctx, "actionlog"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	attr := systemModel.Action.Attributes.FindByIdent("ResourceRevisionID")
+	if attr == nil {
+		return fmt.Errorf("actionlog model is missing the ResourceRevisionID attribute")
+	}
+	if err := addColumn(ctx, s, "actionlog", attr); err != nil {
+		return err
+	}
+
+	const indexName = "actionlog_rel_resource_revision"
+	idx, err := s.DataDefiner.IndexLookup(ctx, indexName, "actionlog")
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	if idx != nil {
+		return nil
+	}
+
+	return s.DataDefiner.IndexCreate(ctx, "actionlog", &ddl.Index{
+		TableIdent: "actionlog",
+		Ident:      indexName,
+		Type:       "BTREE",
+		Fields:     []*ddl.IndexField{{Column: "rel_resource_revision"}},
 	})
 }
 

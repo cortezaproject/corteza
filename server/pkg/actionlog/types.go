@@ -26,6 +26,21 @@ type ProjectResourcer interface {
 	ProjectRef() uint64
 }
 
+// RevisionResourcer is implemented by resource types that carry their own,
+// independent revision assignment — distinct from (and not derivable from)
+// ProjectRef(). Currently that's the project work items (incident, feature,
+// task, privacy, review, backlog item): they file against the chain ROOT via
+// ProjectRef(), and separately carry a nullable revision_id naming the
+// revision they're assigned to (0 = unassigned).
+//
+// Resources that do NOT implement this (compose namespaces, workflows,
+// agents, ...) don't need to: their ProjectRef() already points at a
+// revision's own project row, so the action log falls back to that value for
+// Action.ResourceRevisionID (see enrich()).
+type RevisionResourcer interface {
+	RevisionRef() uint64
+}
+
 // Delta holds the field-level diff (old→new) for an action on a resource.
 type Delta []*revisions.Change
 
@@ -119,6 +134,12 @@ type (
 		// ResourceProjectID is the project the accessed/affected resource belongs to.
 		ResourceProjectID uint64 `json:"resourceProjectID,string"`
 
+		// ResourceRevisionID is the revision the accessed/affected resource belongs
+		// to (or is assigned to, for work items). 0 = not revision-attributable, a
+		// normal state (e.g. tenant/root-level resources, or an unassigned work
+		// item). See RevisionResourcer and enrich().
+		ResourceRevisionID uint64 `json:"resourceRevisionID,string"`
+
 		// Type of action
 		Action string `json:"action"`
 
@@ -158,6 +179,10 @@ type (
 		// (see Action.ResourceProjectID). Unlike ProjectID it does not depend on
 		// the request scope, so it works on routes that carry no project.
 		ResourceProjectID uint64 `json:"resourceProjectID,string"`
+
+		// ResourceRevisionID filters by the revision the affected resource belongs
+		// to, or is assigned to (see Action.ResourceRevisionID).
+		ResourceRevisionID uint64 `json:"resourceRevisionID,string"`
 
 		Action string `json:"action"`
 		Limit  uint   `json:"limit"`

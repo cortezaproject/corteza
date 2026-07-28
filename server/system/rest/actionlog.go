@@ -62,16 +62,17 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 	var (
 		err error
 		f   = actionlog.Filter{
-			FromTimestamp:     r.From,
-			ToTimestamp:       r.To,
-			BeforeActionID:    r.BeforeActionID,
-			ActorID:           r.ActorID,
-			Resource:          r.Resource,
-			ProjectID:         r.ProjectID,
-			ResourceProjectID: r.ResourceProjectID,
-			Action:            r.Action,
-			Origin:            r.Origin,
-			Limit:             r.Limit,
+			FromTimestamp:      r.From,
+			ToTimestamp:        r.To,
+			BeforeActionID:     r.BeforeActionID,
+			ActorID:            r.ActorID,
+			Resource:           r.Resource,
+			ProjectID:          r.ProjectID,
+			ResourceProjectID:  r.ResourceProjectID,
+			ResourceRevisionID: r.RevisionID,
+			Action:             r.Action,
+			Origin:             r.Origin,
+			Limit:              r.Limit,
 		}
 	)
 
@@ -85,15 +86,16 @@ func (ctrl *Actionlog) Report(ctx context.Context, r *request.ActionlogReport) (
 		Dimensions: r.Dimensions,
 		Metrics:    r.Metrics,
 		Filter: actionlog.Filter{
-			FromTimestamp:     r.From,
-			ToTimestamp:       r.To,
-			ActorID:           r.ActorID,
-			Resource:          r.Resource,
-			ProjectID:         r.ProjectID,
-			ResourceProjectID: r.ResourceProjectID,
-			Action:            r.Action,
-			Origin:            r.Origin,
-			Limit:             r.Limit,
+			FromTimestamp:      r.From,
+			ToTimestamp:        r.To,
+			ActorID:            r.ActorID,
+			Resource:           r.Resource,
+			ProjectID:          r.ProjectID,
+			ResourceProjectID:  r.ResourceProjectID,
+			ResourceRevisionID: r.RevisionID,
+			Action:             r.Action,
+			Origin:             r.Origin,
+			Limit:              r.Limit,
 		},
 	}
 
