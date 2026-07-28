@@ -51,10 +51,8 @@
       </template>
 
       <template #body-status="{ data }">
-        <CChip
-          v-bind="statusChipConfig[data.status] ?? {}"
-          :label="$t(`project.status.${data.status}`)"
-        />
+        <CChip v-if="statusChipConfig[data.status]" v-bind="statusChipConfig[data.status]" />
+        <span v-else>-</span>
       </template>
 
       <template #body-updatedAt="{ data }">
@@ -111,7 +109,6 @@ import NewProjectDialog from '@/sections/project/components/project/NewProjectDi
 import RenameProjectDialog from '@/sections/project/components/project/RenameProjectDialog.vue'
 import { NoID, system } from '@planetcrust/human-js'
 import { components, useResourceList } from '@planetcrust/human-vue'
-import CChip from '@planetcrust/human-vue/src/components/chip/CChip.vue'
 import { useConfirm } from 'primevue/useconfirm'
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -183,18 +180,21 @@ function toggleFilterMenu(event) {
 }
 const statusChipConfig = {
   published: {
+    label: t('project.status.published'),
     icon: 'pi pi-check',
     bg: 'bg-green-100',
     ring: 'ring-green-200',
   },
 
   draft: {
+    label: t('project.status.draft'),
     icon: 'pi pi-briefcase',
     bg: 'bg-blue-100',
     ring: 'ring-blue-200',
   },
 
   archived: {
+    label: t('project.status.archived'),
     icon: 'pi pi-inbox',
     bg: 'bg-gray-100',
     ring: 'ring-gray-200',
