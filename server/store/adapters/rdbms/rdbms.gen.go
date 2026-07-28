@@ -27589,18 +27589,22 @@ func (s *Store) LookupProjectBacklogItemByID(ctx context.Context, id uint64) (_ 
 // This function is auto-generated
 func (Store) sortableProjectBacklogItemFields() map[string]string {
 	return map[string]string{
-		"category":   "category",
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"date_due":   "date_due",
-		"datedue":    "date_due",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"id":         "id",
-		"status":     "status",
-		"title":      "title",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"assignee":    "assignee",
+		"category":    "category",
+		"created_at":  "created_at",
+		"createdat":   "created_at",
+		"date_due":    "date_due",
+		"datedue":     "date_due",
+		"deleted_at":  "deleted_at",
+		"deletedat":   "deleted_at",
+		"id":          "id",
+		"priority":    "priority",
+		"revision_id": "rel_revision",
+		"revisionid":  "rel_revision",
+		"status":      "status",
+		"title":       "title",
+		"updated_at":  "updated_at",
+		"updatedat":   "updated_at",
 	}
 }
 
@@ -27630,10 +27634,16 @@ func (s *Store) collectProjectBacklogItemCursorValues(res *systemType.ProjectBac
 				case "id":
 					pkID = true
 					return res.ID
+				case "revisionID":
+					return res.RevisionID
 				case "title":
 					return res.Title
 				case "category":
 					return res.Category
+				case "assignee":
+					return res.Assignee
+				case "priority":
+					return res.Priority
 				case "status":
 					return res.Status
 				case "dateDue":
@@ -28152,19 +28162,29 @@ func (s *Store) LookupProjectFeatureByID(ctx context.Context, id uint64) (_ *sys
 // This function is auto-generated
 func (Store) sortableProjectFeatureFields() map[string]string {
 	return map[string]string{
-		"created_at":   "created_at",
-		"createdat":    "created_at",
-		"date_due":     "date_due",
-		"datedue":      "date_due",
-		"deleted_at":   "deleted_at",
-		"deletedat":    "deleted_at",
-		"feature_type": "feature_type",
-		"featuretype":  "feature_type",
-		"id":           "id",
-		"status":       "status",
-		"title":        "title",
-		"updated_at":   "updated_at",
-		"updatedat":    "updated_at",
+		"change_approved_by": "change_approved_by",
+		"change_owner":       "change_owner",
+		"changeapprovedby":   "change_approved_by",
+		"changeowner":        "change_owner",
+		"created_at":         "created_at",
+		"createdat":          "created_at",
+		"date_due":           "date_due",
+		"datedue":            "date_due",
+		"deleted_at":         "deleted_at",
+		"deletedat":          "deleted_at",
+		"feature_owner":      "feature_owner",
+		"feature_type":       "feature_type",
+		"featureowner":       "feature_owner",
+		"featuretype":        "feature_type",
+		"id":                 "id",
+		"revision_id":        "rel_revision",
+		"revisionid":         "rel_revision",
+		"risk":               "risk",
+		"severity":           "severity",
+		"status":             "status",
+		"title":              "title",
+		"updated_at":         "updated_at",
+		"updatedat":          "updated_at",
 	}
 }
 
@@ -28194,12 +28214,24 @@ func (s *Store) collectProjectFeatureCursorValues(res *systemType.ProjectFeature
 				case "id":
 					pkID = true
 					return res.ID
+				case "revisionID":
+					return res.RevisionID
 				case "title":
 					return res.Title
 				case "featureType":
 					return res.FeatureType
 				case "status":
 					return res.Status
+				case "severity":
+					return res.Severity
+				case "risk":
+					return res.Risk
+				case "featureOwner":
+					return res.FeatureOwner
+				case "changeOwner":
+					return res.ChangeOwner
+				case "changeApprovedBy":
+					return res.ChangeApprovedBy
 				case "dateDue":
 					return res.DateDue
 				case "createdAt":
@@ -29679,19 +29711,29 @@ func (s *Store) LookupProjectIncidentByID(ctx context.Context, id uint64) (_ *sy
 // This function is auto-generated
 func (Store) sortableProjectIncidentFields() map[string]string {
 	return map[string]string{
-		"created_at":    "created_at",
-		"createdat":     "created_at",
-		"date_due":      "date_due",
-		"datedue":       "date_due",
-		"deleted_at":    "deleted_at",
-		"deletedat":     "deleted_at",
-		"id":            "id",
-		"incident_type": "incident_type",
-		"incidenttype":  "incident_type",
-		"status":        "status",
-		"title":         "title",
-		"updated_at":    "updated_at",
-		"updatedat":     "updated_at",
+		"change_approved_by": "change_approved_by",
+		"change_owner":       "change_owner",
+		"changeapprovedby":   "change_approved_by",
+		"changeowner":        "change_owner",
+		"created_at":         "created_at",
+		"createdat":          "created_at",
+		"date_due":           "date_due",
+		"datedue":            "date_due",
+		"deleted_at":         "deleted_at",
+		"deletedat":          "deleted_at",
+		"id":                 "id",
+		"incident_type":      "incident_type",
+		"incidenttype":       "incident_type",
+		"issue_owner":        "issue_owner",
+		"issueowner":         "issue_owner",
+		"revision_id":        "rel_revision",
+		"revisionid":         "rel_revision",
+		"risk":               "risk",
+		"severity":           "severity",
+		"status":             "status",
+		"title":              "title",
+		"updated_at":         "updated_at",
+		"updatedat":          "updated_at",
 	}
 }
 
@@ -29721,12 +29763,24 @@ func (s *Store) collectProjectIncidentCursorValues(res *systemType.ProjectIncide
 				case "id":
 					pkID = true
 					return res.ID
+				case "revisionID":
+					return res.RevisionID
 				case "title":
 					return res.Title
 				case "incidentType":
 					return res.IncidentType
 				case "status":
 					return res.Status
+				case "severity":
+					return res.Severity
+				case "risk":
+					return res.Risk
+				case "issueOwner":
+					return res.IssueOwner
+				case "changeOwner":
+					return res.ChangeOwner
+				case "changeApprovedBy":
+					return res.ChangeApprovedBy
 				case "dateDue":
 					return res.DateDue
 				case "createdAt":
@@ -30868,19 +30922,29 @@ func (s *Store) LookupProjectPrivacyByID(ctx context.Context, id uint64) (_ *sys
 // This function is auto-generated
 func (Store) sortableProjectPrivacyFields() map[string]string {
 	return map[string]string{
-		"created_at":   "created_at",
-		"createdat":    "created_at",
-		"date_due":     "date_due",
-		"datedue":      "date_due",
-		"deleted_at":   "deleted_at",
-		"deletedat":    "deleted_at",
-		"id":           "id",
-		"request_type": "request_type",
-		"requesttype":  "request_type",
-		"status":       "status",
-		"title":        "title",
-		"updated_at":   "updated_at",
-		"updatedat":    "updated_at",
+		"change_approved_by": "change_approved_by",
+		"change_owner":       "change_owner",
+		"changeapprovedby":   "change_approved_by",
+		"changeowner":        "change_owner",
+		"created_at":         "created_at",
+		"createdat":          "created_at",
+		"date_due":           "date_due",
+		"datedue":            "date_due",
+		"deleted_at":         "deleted_at",
+		"deletedat":          "deleted_at",
+		"id":                 "id",
+		"request_owner":      "request_owner",
+		"request_type":       "request_type",
+		"requestowner":       "request_owner",
+		"requesttype":        "request_type",
+		"revision_id":        "rel_revision",
+		"revisionid":         "rel_revision",
+		"risk":               "risk",
+		"severity":           "severity",
+		"status":             "status",
+		"title":              "title",
+		"updated_at":         "updated_at",
+		"updatedat":          "updated_at",
 	}
 }
 
@@ -30910,12 +30974,24 @@ func (s *Store) collectProjectPrivacyCursorValues(res *systemType.ProjectPrivacy
 				case "id":
 					pkID = true
 					return res.ID
+				case "revisionID":
+					return res.RevisionID
 				case "title":
 					return res.Title
 				case "requestType":
 					return res.RequestType
 				case "status":
 					return res.Status
+				case "severity":
+					return res.Severity
+				case "risk":
+					return res.Risk
+				case "requestOwner":
+					return res.RequestOwner
+				case "changeOwner":
+					return res.ChangeOwner
+				case "changeApprovedBy":
+					return res.ChangeApprovedBy
 				case "dateDue":
 					return res.DateDue
 				case "createdAt":
@@ -31432,19 +31508,26 @@ func (s *Store) LookupProjectReviewByID(ctx context.Context, id uint64) (_ *syst
 // This function is auto-generated
 func (Store) sortableProjectReviewFields() map[string]string {
 	return map[string]string{
-		"created_at":  "created_at",
-		"createdat":   "created_at",
-		"date_due":    "date_due",
-		"datedue":     "date_due",
-		"deleted_at":  "deleted_at",
-		"deletedat":   "deleted_at",
-		"id":          "id",
-		"review_type": "review_type",
-		"reviewtype":  "review_type",
-		"status":      "status",
-		"title":       "title",
-		"updated_at":  "updated_at",
-		"updatedat":   "updated_at",
+		"approved_by":      "approved_by",
+		"approvedby":       "approved_by",
+		"created_at":       "created_at",
+		"createdat":        "created_at",
+		"date_due":         "date_due",
+		"datedue":          "date_due",
+		"deleted_at":       "deleted_at",
+		"deletedat":        "deleted_at",
+		"id":               "id",
+		"review_frequency": "review_frequency",
+		"review_type":      "review_type",
+		"reviewer":         "reviewer",
+		"reviewfrequency":  "review_frequency",
+		"reviewtype":       "review_type",
+		"revision_id":      "rel_revision",
+		"revisionid":       "rel_revision",
+		"status":           "status",
+		"title":            "title",
+		"updated_at":       "updated_at",
+		"updatedat":        "updated_at",
 	}
 }
 
@@ -31474,10 +31557,18 @@ func (s *Store) collectProjectReviewCursorValues(res *systemType.ProjectReview, 
 				case "id":
 					pkID = true
 					return res.ID
+				case "revisionID":
+					return res.RevisionID
 				case "title":
 					return res.Title
 				case "reviewType":
 					return res.ReviewType
+				case "reviewFrequency":
+					return res.ReviewFrequency
+				case "reviewer":
+					return res.Reviewer
+				case "approvedBy":
+					return res.ApprovedBy
 				case "status":
 					return res.Status
 				case "dateDue":
@@ -31996,19 +32087,28 @@ func (s *Store) LookupProjectTaskByID(ctx context.Context, id uint64) (_ *system
 // This function is auto-generated
 func (Store) sortableProjectTaskFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"date_due":   "date_due",
-		"datedue":    "date_due",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"id":         "id",
-		"status":     "status",
-		"task_name":  "task_name",
-		"taskname":   "task_name",
-		"title":      "title",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"change_owner": "change_owner",
+		"changeowner":  "change_owner",
+		"created_at":   "created_at",
+		"createdat":    "created_at",
+		"date_due":     "date_due",
+		"datedue":      "date_due",
+		"deleted_at":   "deleted_at",
+		"deletedat":    "deleted_at",
+		"id":           "id",
+		"owner":        "owner",
+		"revision_id":  "rel_revision",
+		"revisionid":   "rel_revision",
+		"risk":         "risk",
+		"severity":     "severity",
+		"status":       "status",
+		"task_name":    "task_name",
+		"task_type":    "task_type",
+		"taskname":     "task_name",
+		"tasktype":     "task_type",
+		"title":        "title",
+		"updated_at":   "updated_at",
+		"updatedat":    "updated_at",
 	}
 }
 
@@ -32038,12 +32138,24 @@ func (s *Store) collectProjectTaskCursorValues(res *systemType.ProjectTask, cc .
 				case "id":
 					pkID = true
 					return res.ID
+				case "revisionID":
+					return res.RevisionID
 				case "title":
 					return res.Title
 				case "taskName":
 					return res.TaskName
+				case "taskType":
+					return res.TaskType
 				case "status":
 					return res.Status
+				case "severity":
+					return res.Severity
+				case "risk":
+					return res.Risk
+				case "owner":
+					return res.Owner
+				case "changeOwner":
+					return res.ChangeOwner
 				case "dateDue":
 					return res.DateDue
 				case "createdAt":

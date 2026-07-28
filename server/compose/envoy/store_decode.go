@@ -3,6 +3,7 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/crusttech/human/server/compose/dalutils"
 	"github.com/crusttech/human/server/compose/types"
@@ -100,6 +101,33 @@ func (d StoreDecoder) extendedModuleDecoder(ctx context.Context, s store.Storer,
 		ff, err = d.decodeModuleField(ctx, s, dl, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
 		if err != nil {
 			return
+		}
+
+		// decodeModuleField (SearchComposeModuleFields) has no ORDER BY, so ff
+		// arrives in whatever order the store happened to return -- not
+		// necessarily Place order, and for a module whose fields were all
+		// supplied in one createModule call (which, unlike updateModuleFields,
+		// never assigns Place) not necessarily distinguishable by Place either,
+		// since every field is Place=0. A raw read of the source namespace only
+		// "looks" correctly ordered because it's never been rewritten since
+		// those inserts; re-encoding these fields into a brand new namespace
+		// (CloneFromStore's use of this decoder) is a fresh set of writes that
+		// carries no such accidental guarantee, so the destination can come
+		// back in a different order even though every field's Place value
+		// round-trips unchanged.
+		//
+		// Stable-sort by the existing Place first (so a module whose fields do
+		// carry a real, distinct Place is reproduced exactly), falling back to
+		// this fetch's own order for ties -- i.e. reproducing whatever order a
+		// read of the source shows right now, degenerate Place or not -- and
+		// then re-sequence Place itself to a clean 0..n-1 walk of that order.
+		// This is what makes the order stick on the far side of the clone: any
+		// later read sorts by Place again, and Place is no longer degenerate.
+		sort.SliceStable(ff, func(i, j int) bool {
+			return ff[i].Resource.(*types.ModuleField).Place < ff[j].Resource.(*types.ModuleField).Place
+		})
+		for i, n := range ff {
+			n.Resource.(*types.ModuleField).Place = i
 		}
 
 		for _, f := range ff {

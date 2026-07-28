@@ -29,6 +29,7 @@ project_backlog_item: {
 				json:       "revisionID,string,omitempty"
 				storeIdent: "rel_revision"
 				dal: {type: "ID", default: 0}
+				sortable: true
 			}
 
 			title: {
@@ -64,11 +65,13 @@ project_backlog_item: {
 				goType: "uint64"
 				json:   "assignee,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 
 			priority: {
 				goType: "string"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 
 			status: {

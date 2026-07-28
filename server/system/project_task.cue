@@ -29,6 +29,7 @@ project_task: {
 				json:       "revisionID,string,omitempty"
 				storeIdent: "rel_revision"
 				dal: {type: "ID", default: 0}
+				sortable: true
 			}
 
 			title: {
@@ -50,6 +51,7 @@ project_task: {
 				goType: "string"
 				json:   "taskType,omitempty"
 				dal: {type: "Text", length: 128}
+				sortable: true
 			}
 			status: {
 				goType:   "string"
@@ -59,21 +61,25 @@ project_task: {
 			severity: {
 				goType: "string"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 			risk: {
 				goType: "string"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 
 			owner: {
 				goType: "uint64"
 				json:   "owner,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 			change_owner: {
 				goType: "uint64"
 				json:   "changeOwner,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 
 			// Due/completed dates are stored as ISO strings (frontend treats them

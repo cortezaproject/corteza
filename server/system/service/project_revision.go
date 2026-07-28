@@ -87,20 +87,44 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		return nil, fmt.Errorf("project revision deps not initialised (nsSvc)")
 	}
 
+	// Allocated up front (rather than inside the *types.Project literal below)
+	// so the cloned namespace can be repointed at the new draft revision's own
+	// ID right after cloning -- see the comment below.
+	revID := nextID()
+
 	dup := &composeTypes.Namespace{
-		TenantID:  oldNs.TenantID,
-		ProjectID: oldNs.ProjectID,
-		Name:      oldNs.Name + " (revision " + strconv.Itoa(newRevision) + ")",
-		Slug:      revSlug,
-		Enabled:   false, // draft namespaces are inactive
+		TenantID: oldNs.TenantID,
+		Name:     oldNs.Name + " (revision " + strconv.Itoa(newRevision) + ")",
+		Slug:     revSlug,
 	}
 	clonedNs, err := svc.services.nsSvc.CloneFromStore(ctx, parent.Config.NamespaceID, dup)
 	if err != nil {
 		return nil, fmt.Errorf("clone namespace for revision: %w", err)
 	}
 
+	// CloneFromStore's namespace.envoyRun (compose/service/namespace.go) only
+	// ever applies dup's Name and Slug to the clone: it decodes the source
+	// namespace resource wholesale and overwrites just those two fields, so
+	// ProjectID, TenantID and Enabled always come through as the *source's*
+	// values, no matter what dup carries -- setting them on dup above (as an
+	// earlier version of this fix did) is silently a no-op. Left uncorrected,
+	// the draft's namespace would keep the still-Active parent's ProjectID:
+	// every compose write is gated by guardNamespaceWritable/
+	// guardProjectWritable (compose/service/guard.go), which resolves the
+	// *namespace's* ProjectID and rejects writes unless that project is a
+	// draft, so every module/page/chart edit against the new revision -- the
+	// entire reason a draft revision exists -- would fail with
+	// project.errors.locked from the moment it's created. It would also stay
+	// Enabled, contrary to the "draft namespaces are inactive" intent. Fix
+	// both up explicitly post-clone.
+	clonedNs.ProjectID = revID
+	clonedNs.Enabled = false
+	if err = store.UpdateComposeNamespace(ctx, svc.store, clonedNs); err != nil {
+		return nil, fmt.Errorf("repoint cloned namespace to draft revision: %w", err)
+	}
+
 	rev = &types.Project{
-		ID:               nextID(),
+		ID:               revID,
 		TenantID:         parent.TenantID,
 		ProjectID:        rootID,
 		ParentRevisionID: parent.ID,

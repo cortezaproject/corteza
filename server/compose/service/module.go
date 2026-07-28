@@ -486,6 +486,18 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 
 		aProps.setNamespace(ns)
 
+		// Publishing locks what a revision built (guardNamespaceWritable /
+		// guardProjectWritable in guard.go); Update/Delete/Undelete already
+		// enforce this via the generated wrapper's svc.guard(ctx, res) call,
+		// but Create has no such wrapper-level hook to piggyback on -- it goes
+		// straight from Create() to onCreate() to here. Without this check, a
+		// module could be created into a namespace whose project is no longer
+		// a draft, even though editing that same module a moment later would
+		// be rejected with project.errors.locked.
+		if err = svc.guard(ctx, new); err != nil {
+			return err
+		}
+
 		if !svc.ac.CanCreateModuleOnNamespace(ctx, ns) {
 			return ModuleErrNotAllowedToCreate()
 		}
@@ -500,12 +512,24 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 		new.DeletedAt = nil
 
 		if new.Fields != nil {
+			place := 0
 			err = new.Fields.Walk(func(f *types.ModuleField) error {
 				f.ID = nextID()
 				f.ModuleID = new.ID
 				f.NamespaceID = new.NamespaceID
 				// A field always belongs to the same project as its module.
 				f.ProjectID = new.ProjectID
+				// Place has json:"-" (see types.ModuleField), so it never
+				// survives the request's JSON body -- it must be derived from
+				// array order here, same as updateModuleFields does for every
+				// later edit. Without this, a module created with all of its
+				// fields in one call gets Place=0 across the board: reads
+				// still "look" ordered only because nothing has rewritten the
+				// rows since this insert, which is exactly the assumption a
+				// namespace clone breaks (see extendedModuleDecoder in
+				// compose/envoy/store_decode.go).
+				f.Place = place
+				place++
 				f.CreatedAt = *now()
 				f.UpdatedAt = nil
 				f.DeletedAt = nil

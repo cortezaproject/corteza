@@ -41,32 +41,79 @@
       </CEmptyState>
 
       <template v-else>
-        <CategoryKpiRow :kpis="kpiList" />
-
-        <!-- Chart band — same shape as CategoryView's, computed client-side
-             from the loaded items (no report endpoint, same trade as the KPI
-             trio above; the created-over-time trend is omitted for the same
-             reason — the 200-row load cap would silently truncate it). -->
-        <div class="grid grid-cols-2 xl:grid-cols-3 gap-3">
-          <CategoryDonutChart
-            title-key="project.dashboard.chart.byStatus"
-            :data="statusBreakdown"
-            variant="status"
-            :height="180"
-          />
-          <CategoryDonutChart
-            title-key="project.dashboard.chart.byCategory"
-            :data="categoryBreakdown"
-            variant="category"
-            :height="180"
-          />
-          <CategoryRankBar
-            title-key="project.dashboard.chart.byPriority"
-            :data="priorityBreakdown"
-            variant="priority"
-            :height="180"
-          />
+        <!-- KPI trio + chart band — report-endpoint-driven (see loadMetrics),
+             own skeleton/failed state independent of the store/list above
+             (same idiom as CategoryPanel.vue's metrics band). -->
+        <div v-if="reportLoading" class="flex flex-col gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div
+              v-for="n in 3"
+              :key="n"
+              class="rounded-xl border border-surface bg-surface px-4 py-3 flex flex-col gap-2"
+            >
+              <span
+                class="h-3 w-1/2 rounded bg-emphasis block animate-pulse motion-reduce:animate-none"
+              />
+              <span
+                class="h-6 w-1/3 rounded bg-emphasis block animate-pulse motion-reduce:animate-none"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+            <div v-for="n in 4" :key="n" class="rounded-lg border border-surface bg-surface p-4">
+              <div class="h-44 rounded bg-emphasis animate-pulse motion-reduce:animate-none" />
+            </div>
+          </div>
         </div>
+
+        <section v-else-if="reportFailed" class="flex flex-col items-center text-center gap-2 py-8">
+          <span
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emphasis text-red-500"
+          >
+            <i class="pi pi-exclamation-triangle text-xl" />
+          </span>
+          <p class="text-sm font-medium text-color">{{ $t('project.dashboard.overview.error') }}</p>
+          <Button
+            type="button"
+            size="small"
+            severity="secondary"
+            outlined
+            :label="$t('project.dashboard.overview.retry')"
+            @click="retryMetrics"
+          />
+        </section>
+
+        <template v-else>
+          <CategoryKpiRow :kpis="kpiList" />
+
+          <!-- Chart band — same shape as CategoryView's, report-endpoint-
+               driven now (see loadReport): 'backlog-item' is one of the
+               report endpoint's six registered resources, so this is no
+               longer a client-side trade against the store's 200-row cap
+               either. The created-over-time trend stays omitted — this view
+               has no per-item detail page to windows a trend against, same
+               as before. -->
+          <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+            <CategoryDonutChart
+              title-key="project.dashboard.chart.byStatus"
+              :data="statusBreakdown"
+              variant="status"
+              :height="180"
+            />
+            <CategoryDonutChart
+              title-key="project.dashboard.chart.byCategory"
+              :data="categoryBreakdown"
+              variant="category"
+              :height="180"
+            />
+            <CategoryRankBar
+              title-key="project.dashboard.chart.byPriority"
+              :data="priorityBreakdown"
+              variant="priority"
+              :height="180"
+            />
+          </div>
+        </template>
 
         <div class="backlog-list shrink-0">
           <CResourceList
@@ -198,10 +245,17 @@
 // (GET /project-backlog-items/, see the useResourceList call below) via the same
 // useResourceList idiom views/ProjectList.vue uses, with `incTotal` for a
 // true count — NOT store.items (capped at 200 rows — that store's own load()
-// comment), which stays the source for the KPI trio and chart band below
-// (unchanged by this — backlog has no report endpoint, so those were already
-// a client-side trade against the store's own cap, not something this pass
-// fixes) and for linkedEventFor's lookup into the events store.
+// comment).
+//
+// THE KPI TRIO + CHART BAND above the list are report-endpoint-driven now too
+// (see loadMetrics below) — 'backlog-item' is one of the report endpoint's
+// six registered resources (server/system/service/project_report.go's
+// projectReportSources), so this no longer needs a client-side trade against
+// store.items' own 200-row cap either (mirrors CategoryPanel.vue's own move).
+// `store` (useBacklogItemsStore) stays only for the actual create/update/
+// remove calls (onSave/onDelete below), the top-level loading/empty-state
+// gate above, and — via `eventsStore` — for linkedEventFor's lookup into the
+// events store.
 //
 // UNASSIGNED FILTER — DROPPED, not just hidden (see the old template's
 // Popover/Chip, now gone): the generated resource filters treat
@@ -222,16 +276,12 @@ import UserCell from '@/sections/project/components/dashboard/UserCell.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import { useRevisionLabel } from '@/sections/project/composables/useRevisionLabel'
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
-import {
-  CATEGORY_COLORS,
-  PRIORITY_ORDER,
-  STATUS_ORDER,
-} from '@/sections/project/config/chartColors'
+import { CATEGORY_COLORS, orderIndex } from '@/sections/project/config/chartColors'
 import { mapBacklogRow, useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
-import { toISODate } from '@/sections/project/stores/dateUtils'
-import { isOpenStatus, useEventsStore } from '@/sections/project/stores/events'
+import { useEventsStore } from '@/sections/project/stores/events'
+import { useReportStore } from '@/sections/project/stores/report'
 import { components, useResourceList, useRightSidebarStore } from '@planetcrust/human-vue'
-import { computed, inject, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -310,61 +360,139 @@ const {
   },
 )
 
-// KPI trio above the table — computed client-side from the loaded items
-// (backlog has no report endpoint; CategoryView's trio comes from one).
-// Same rules as everywhere else: open = not Completed (stores/events.js#
-// isOpenStatus), overdue = open with a due date before today (dateDue is a
-// plain YYYY-MM-DD string, so a string compare against today's ISO date works).
-const kpiList = computed(() => {
-  const items = store.items
-  const todayISO = toISODate(new Date())
-  const open = items.filter(i => isOpenStatus(i.status))
-  const overdue = open.filter(i => i.dateDue && i.dateDue < todayISO)
-  return [
-    { labelKey: 'project.dashboard.kpi.total', value: items.length },
-    { labelKey: 'project.dashboard.kpi.open', value: open.length },
-    { labelKey: 'project.dashboard.kpi.overdue', value: overdue.length },
-  ]
-})
+// --- KPI trio + chart band, report-endpoint-driven -------------------------
+// This view is always chain-wide (no revisionId scope exists here — see the
+// class-level comment), so every call below just takes route.params.projectId
+// directly. `reportLoading`/`reportFailed` mirror the idiom in
+// CategoryPanel.vue/OverviewPanel.vue; `loadSeq` guards a late response from
+// a superseded project switch overwriting the current one's data.
+const reportStore = useReportStore()
+const reportTotals = reactive({ total: 0, open: 0, overdue: 0 })
+const reportBreakdowns = reactive({ status: [], priority: [], category: [] })
+const reportLoading = ref(false)
+const reportFailed = ref(false)
+let loadSeq = 0
 
-// Chart breakdowns — counts over the loaded items, in each dimension's
-// canonical order, zero labels dropped (the donut/rank-bar empty states
-// handle the all-zero case).
-const countBy = field => {
-  const counts = {}
-  for (const i of store.items) {
-    const key = String(i[field] ?? '')
-    if (key) counts[key] = (counts[key] || 0) + 1
-  }
-  return counts
+// One report call per breakdown dimension the three charts need, plus one
+// grand-total call for the KPI trio — count/open/overdue are computed
+// server-side (the "open ⇔ not Completed" rule lives in
+// system/service/project_report.go, not re-derived here).
+async function loadReport(pid, mySeq) {
+  const [totals, statusRows, priorityRows, categoryRows] = await Promise.all([
+    reportStore.report(pid, 'backlog-item', { metrics: ['count', 'open', 'overdue'] }),
+    reportStore.report(pid, 'backlog-item', { dimensions: ['status'] }),
+    reportStore.report(pid, 'backlog-item', { dimensions: ['priority'] }),
+    reportStore.report(pid, 'backlog-item', { dimensions: ['category'] }),
+  ])
+  if (mySeq !== loadSeq) return // stale response — a newer project switch is in flight
+
+  const g = (totals && totals[0]?.metrics) || {}
+  reportTotals.total = Number(g.count || 0)
+  reportTotals.open = Number(g.open || 0)
+  reportTotals.overdue = Number(g.overdue || 0)
+
+  reportBreakdowns.status = statusRows.map(r => ({
+    label: String(r.dimensions?.status || '—'),
+    value: Number(r.metrics?.count || 0),
+  }))
+  reportBreakdowns.priority = priorityRows.map(r => ({
+    label: String(r.dimensions?.priority || '—'),
+    value: Number(r.metrics?.count || 0),
+  }))
+  reportBreakdowns.category = categoryRows.map(r => ({
+    key: String(r.dimensions?.category || ''),
+    value: Number(r.metrics?.count || 0),
+  }))
 }
 
-const statusBreakdown = computed(() => {
-  const counts = countBy('status')
-  return STATUS_ORDER.filter(l => counts[l]).map(label => ({ label, value: counts[label] }))
-})
+// `silent` refreshes the numbers in place (e.g. after a create/update/delete
+// below) without flashing the skeleton — same idiom as CategoryPanel.vue's
+// loadMetrics.
+async function loadMetrics(pid, { silent = false } = {}) {
+  if (!pid) return
+  const mySeq = ++loadSeq
+  if (!silent) reportLoading.value = true
+  reportFailed.value = false
+  try {
+    await loadReport(pid, mySeq)
+  } catch (err) {
+    if (mySeq !== loadSeq) return // superseded by a newer switch
+    console.error('Failed to load backlog metrics', err)
+    reportFailed.value = true
+  } finally {
+    if (mySeq === loadSeq) reportLoading.value = false
+  }
+}
 
-const priorityBreakdown = computed(() => {
-  const counts = countBy('priority')
-  return PRIORITY_ORDER.filter(l => counts[l]).map(label => ({ label, value: counts[label] }))
-})
+function retryMetrics() {
+  loadMetrics(route.params.projectId)
+}
+
+watch(
+  () => route.params.projectId,
+  pid => loadMetrics(pid),
+  { immediate: true },
+)
+
+// KPI trio above the table — count/open/overdue straight off the report
+// endpoint's own totals (no more client-side open/closed re-derivation).
+const kpiList = computed(() => [
+  { labelKey: 'project.dashboard.kpi.total', value: reportTotals.total },
+  { labelKey: 'project.dashboard.kpi.open', value: reportTotals.open },
+  { labelKey: 'project.dashboard.kpi.overdue', value: reportTotals.overdue },
+])
+
+// Chart data helper — grouped counts for a report dimension, ordered
+// canonically so bars/donuts read consistently (mirrors CategoryPanel.vue's
+// own sortBreakdown). No zero-filtering needed: aggregateProjectReport only
+// ever emits buckets that actually occurred.
+function sortBreakdown(variant, rows) {
+  return [...rows].sort(
+    (a, b) =>
+      orderIndex(variant, a.label) - orderIndex(variant, b.label) || a.label.localeCompare(b.label),
+  )
+}
+
+const statusBreakdown = computed(() => sortBreakdown('status', reportBreakdowns.status))
+const priorityBreakdown = computed(() => sortBreakdown('priority', reportBreakdowns.priority))
 
 // Labels are the translated category titles (colorFor can't key on those, so
 // each row pins its colour — see CategoryDonutChart's data prop).
-const categoryBreakdown = computed(() => {
-  const counts = countBy('category')
-  return CATEGORY_ORDER.filter(k => counts[k]).map(key => ({
+const categoryBreakdown = computed(() =>
+  CATEGORY_ORDER.filter(key => reportBreakdowns.category.some(r => r.key === key)).map(key => ({
     label: t(CATEGORY_CONFIG[key].titleKey),
-    value: counts[key],
+    value: reportBreakdowns.category.find(r => r.key === key)?.value || 0,
     color: CATEGORY_COLORS[key],
     key,
-  }))
-})
+  })),
+)
 
+// Completed — a stat, not a chart (ruled 2026-07-28): plain Completed ÷ total
+// off the status column, from the SAME count/open metrics the KPI trio above
+// already fetched (no extra report call, no client-side re-derivation of the
+// open/closed rule). Deliberately the SAME formula
+// components/wizard/RevisionCompletenessBar.vue uses for its header stat —
+// see CategoryPanel.vue's identical completedPercent comment for the full
+// reasoning (a completed-over-time series was ruled out: backlog items carry
+// no CompletedDate at all, only status, and the report endpoint can't bucket
+// by anything but CreatedAt today).
+
+// `sortable` is an EXPLICIT per-column declaration, verified against
+// server/store/adapters/rdbms/rdbms.gen.go's sortableProjectBacklogItemFields()
+// map as of 2026-07-28 — NOT a blanket assumption: clicking an unsortable
+// header sends an unrecognised sort column and the store rejects the query,
+// blanking the whole list. title/status/dateDue are sortable there; assignee
+// and priority are not (yet — a concurrent backend change is adding
+// sortability to those, but "planned" isn't "true" until verified again
+// here). revisionID is the one deliberate exception: marked sortable AHEAD of
+// that same concurrent change (needs codegen + a server restart before it
+// actually works) because a sortable Revision column is the agreed
+// replacement for the removed unassigned-only filter — see this file's
+// UNASSIGNED FILTER comment above.
 const fields = computed(() => [
   { key: 'title', header: t('project.dashboard.columns.title'), sortable: true },
   { key: 'eventID', header: t('project.dashboard.backlog.columns.linkedEvent'), sortable: false },
-  { key: 'revisionID', header: t('project.dashboard.columns.revision'), sortable: false },
+  { key: 'revisionID', header: t('project.dashboard.columns.revision'), sortable: true },
   { key: 'assignee', header: t('project.dashboard.backlog.f.assignee'), sortable: true },
   { key: 'priority', header: t('project.dashboard.backlog.f.priority'), sortable: true },
   { key: 'status', header: t('project.dashboard.event.f.status'), sortable: true },
@@ -407,7 +535,9 @@ function onRowClick({ data }) {
 // module doc comment), so a create/update wouldn't otherwise show up:
 // refetchList() (keep the current page) for an in-place edit, filterList()
 // (back to page 1) for a create, mirroring CategoryPanel's own onUpdate/
-// onCreate split.
+// onCreate split. Also refreshes the report-driven KPI/chart band in place
+// (silent — no skeleton flash), same reason: that band no longer reacts to
+// store.items automatically now that it's report-driven (see loadMetrics).
 const onSave = async (id, payload) => {
   try {
     if (id) {
@@ -428,6 +558,7 @@ const onSave = async (id, payload) => {
       )
       filterList()
     }
+    loadMetrics(route.params.projectId, { silent: true })
     return true
   } catch (err) {
     console.error('Failed to save backlog item', err)
@@ -451,6 +582,7 @@ const onDelete = async id => {
       t('project.dashboard.backlog.toast.deleted'),
     )
     refetchList()
+    loadMetrics(route.params.projectId, { silent: true })
     return true
   } catch (err) {
     console.error('Failed to delete backlog item', err)

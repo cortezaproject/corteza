@@ -29,6 +29,7 @@ project_incident: {
 				json:       "revisionID,string,omitempty"
 				storeIdent: "rel_revision"
 				dal: {type: "ID", default: 0}
+				sortable: true
 			}
 
 			title: {
@@ -59,26 +60,31 @@ project_incident: {
 			severity: {
 				goType: "string"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 			risk: {
 				goType: "string"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 
 			issue_owner: {
 				goType: "uint64"
 				json:   "issueOwner,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 			change_owner: {
 				goType: "uint64"
 				json:   "changeOwner,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 			change_approved_by: {
 				goType: "uint64"
 				json:   "changeApprovedBy,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 
 			risk_issue: {

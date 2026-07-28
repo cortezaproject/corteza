@@ -24,18 +24,17 @@
 
     <!-- Metrics — KPI row + compact breakdown grid + trend, fixed above the
          list. Breakdowns flow up to four across on wide screens so the band
-         stays shallow and leaves room for the list. Chain-wide (no
-         `revisionId`): driven by the report endpoint (see loadMetrics), so it
-         stays accurate above the events store's 200-row list cap; only this
-         band gets skeleton/error states then. Revision-scoped (`revisionId`
-         set): the report endpoint has no per-revision filter (see
-         server/system/rest/request/projectReport.go), so these are computed
-         client-side off the already revision-scoped events/backlog store rows
-         instead (see localKpis/localBreakdown/localTrend/localSpark below) —
-         no separate load, no failure state, just the store's own `loading`. -->
+         stays shallow and leaves room for the list. Entirely report-endpoint-
+         driven now, chain-wide AND revision-scoped alike (see loadMetrics) —
+         the report endpoint's `revisionID` param (server/system/rest/request/
+         projectReport.go, landed commit d3e89ab07) narrows aggregation
+         server-side, so this band stays accurate above the events/backlog
+         stores' 200-row-per-category list cap in EITHER scope. One
+         skeleton/failed state covers both (see reportLoading/reportFailed
+         below) — no more client-side fallback off the capped store rows. -->
     <div class="shrink-0 p-4 flex flex-col gap-3">
-      <!-- First load (or a project/category switch): skeleton rather than a
-           zeroed-out band. -->
+      <!-- First load (or a project/category/revision switch): skeleton rather
+           than a zeroed-out band. -->
       <div v-if="metricsLoading" class="flex flex-col gap-3">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div
@@ -53,7 +52,7 @@
         </div>
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
           <div
-            v-for="n in cfg.charts.length"
+            v-for="n in cfg.charts.length + 1"
             :key="n"
             class="rounded-lg border border-surface bg-surface p-4"
           >
@@ -65,10 +64,9 @@
         </div>
       </div>
 
-      <!-- Failed: a report call errored. Chain-wide only — the revision-scoped
-           path never sets this (see metricsFailed below). Replaces the
-           KPIs/donuts/trend with a visible retry rather than silently
-           rendering them as "0 items". -->
+      <!-- Failed: a report call errored (either scope, now both report-driven
+           — see metricsFailed below). Replaces the KPIs/donuts/trend with a
+           visible retry rather than silently rendering them as "0 items". -->
       <section v-else-if="metricsFailed" class="flex flex-col items-center text-center gap-2 py-8">
         <span
           class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emphasis text-red-500"
@@ -293,10 +291,15 @@
 // under the locked views/dashboard/ set.
 //
 // DATA LOADING: this component does NOT call eventsStore.load()/
-// backlogStore.load() itself — it only reads their already-loaded state for
-// the metrics band (kpis/breakdown getters, revision-scoped path only — see
-// isRevisionScoped) and for ownerOptions/drawer-record resolution. Whoever
-// mounts it owns that load, at whatever scope that host needs:
+// backlogStore.load() itself — the metrics band (KPIs/donuts/trend/completed
+// stat) is entirely report-endpoint-driven now, chain-wide AND revision-
+// scoped alike (see loadMetrics below; the report endpoint's `revisionID`
+// param — server/system/rest/request/projectReport.go, landed commit
+// d3e89ab07 — narrows aggregation server-side), so it never reads the
+// events/backlog stores' own rows at all. Those two stores stay loaded by
+// whoever mounts this component only for CRUD (add/update/remove),
+// ownerOptions and drawer-record resolution below — at whatever scope that
+// host needs:
 //   - views/dashboard/DashboardLayout.vue loads both stores chain-wide (no
 //     revisionId) for every child route, CategoryView.vue included — that
 //     mirrors this component's pre-extraction behaviour exactly.
@@ -313,9 +316,10 @@
 // views/ProjectList.vue uses) directly against the category's own resource
 // endpoint (e.g. GET /project-incidents/), with `incTotal` for a true count.
 // The store's own `events` (capped at 200 rows per category — load()'s own
-// comment) stays the source for the revision-scoped metrics band and for
-// resolving a clicked row's owner options, but is no longer this component's
-// row source, so a category with more than 200 items now lists (and counts)
+// comment) now stays the source only for resolving a clicked row's owner
+// options and the update handler's fresh-row lookup — no longer for the
+// metrics band above (see the DATA LOADING note) nor this component's row
+// source, so a category with more than 200 items now lists (and counts)
 // correctly instead of silently truncating.
 //
 // ROOT PROJECT ID for the list call: `props.projectId` chain-wide (see its
@@ -361,7 +365,6 @@ import {
   rangeFrom,
 } from '@/sections/project/config/trend'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
-import { toISODate } from '@/sections/project/stores/dateUtils'
 import { EVENT_RESOURCES, mapEventRow, useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
 import {
@@ -379,19 +382,23 @@ const props = defineProps({
   // Which of the five categories to show (config/categories.js CATEGORY_CONFIG
   // key) — replaces the old route.params.category read.
   category: { type: String, required: true },
-  // Chain-wide project id fed to the report endpoint for the KPI/donut/trend
-  // metrics band. Only meaningful (and only read) when `revisionId` is unset
-  // — see isRevisionScoped below. CategoryView.vue passes route.params.projectId
-  // here, matching this component's pre-extraction behaviour exactly.
+  // Chain-root project id. Only ever passed chain-wide (never revision-scoped
+  // — see effectiveProjectId's comment); the report/list calls both actually
+  // read `effectiveProjectId`, which falls back to the events store's own
+  // `currentProjectId` when this is empty. CategoryView.vue passes
+  // route.params.projectId here, matching this component's pre-extraction
+  // behaviour exactly.
   projectId: { type: [String, Number], default: '' },
   // The OPEN revision (a lib system.Project instance's projectID) — absent
   // (null, the default) means the dashboard's chain-wide scope; set, it's the
   // wizard's Manage & Monitor single-revision scope (project.intent.md
-  // "Dashboards" / wizard.intent.md). Drives three things: which metrics path
-  // runs (see isRevisionScoped), whether the table's revision column renders,
-  // and — the AGREED behaviour — that an item created from this panel is
-  // assigned to it (events/backlogItems stores' add() trailing revisionId
-  // arg), exactly like ManageBoard.vue's quick-add.
+  // "Dashboards" / wizard.intent.md). Drives: whether the report calls behind
+  // the metrics band narrow to this one revision (loadMetrics forwards it
+  // straight through as `revisionId` — see isRevisionScoped's own comment),
+  // whether the trend chart's range selector renders, whether the table's
+  // revision column renders, and — the AGREED behaviour — that an item
+  // created from this panel is assigned to it (events/backlogItems stores'
+  // add() trailing revisionId arg), exactly like ManageBoard.vue's quick-add.
   revisionId: { type: [String, Number], default: null },
 })
 
@@ -411,12 +418,11 @@ const cfg = computed(() => CATEGORY_CONFIG[category.value] || null)
 // charts keep the CVD-validated palette (where e.g. privacy is teal).
 const accentClass = computed(() => cfg.value?.badge.text || '')
 
-// Which metrics path is active: the report endpoint has no per-revision
-// filter at all (server/system/rest/request/projectReport.go carries no
-// revisionID field), so a `revisionId` prop switches the whole metrics band
-// to client-side computation off the events/backlog stores' already
-// revision-scoped rows instead of trying to (impossibly) scope the report
-// calls themselves.
+// Whether this mount is the wizard's single-revision scope — the metrics
+// band itself no longer branches on this (loadMetrics always goes through
+// the report endpoint, just narrowed by `revisionId` when set — see its own
+// comment); this still gates the trend chart's range selector (fixed ~6-month
+// lookback revision-scoped, no selector) and the table's revision column.
 const isRevisionScoped = computed(() => !!props.revisionId)
 
 // The chain-root project id the LIST call needs — see the module doc
@@ -471,16 +477,22 @@ const {
   },
 )
 
-// --- Chain-wide metrics band (KPIs + donuts + trend), report-endpoint-driven —
-// all from the report endpoint (accurate, not subject to the events store's
-// per-category 200-row list cap). `reportLoading`/`reportFailed` mirror the
+// --- Metrics band (KPIs + donuts + completed stat + trend), report-endpoint-
+// driven in EITHER scope — chain-wide (no `revisionId`) aggregates the whole
+// chain; revision-scoped forwards `revisionId` straight through to every
+// report/trend call below, which the endpoint uses to narrow aggregation
+// server-side (server/system/rest/request/projectReport.go, landed commit
+// d3e89ab07). Neither path touches the events/backlog stores' own 200-row-
+// per-category rowset any more. `reportLoading`/`reportFailed` mirror the
 // idiom in Overview.vue; `loadSeq` guards against a late response from a
-// superseded project/category switch overwriting the current one's data
-// (same pattern as Overview's loadAll/ActivityPanel's load()).
+// superseded project/category/revision switch overwriting the current one's
+// data (same pattern as Overview's loadAll/ActivityPanel's load()).
 const reportStore = useReportStore()
 const reportTrend = reactive({ labels: [], rangeLabels: [], series: [] })
 // Default m6 (6 months) — matches Overview's default; see that view's comment
-// for why.
+// for why. Chain-wide only — revision-scoped stays on a fixed ~6-month
+// lookback with no selector (see loadTrend/the template's TimeRangeSelect
+// v-if), same as before this change.
 const trendRange = ref('m6')
 const reportBreakdowns = reactive({ total: 0, open: 0, overdue: 0, byDim: {} })
 const reportLoading = ref(false)
@@ -498,11 +510,13 @@ let trendSeq = 0
 // review), plus one grand-total call for the KPI trio — count/open/overdue
 // are computed server-side (the "open ⇔ not Completed" rule and the
 // best-effort DateDue parsing live in system/service/project_report.go).
-async function loadReport(pid, key, mySeq) {
+// `revId` narrows every call to a single revision when set (null/undefined
+// chain-wide) — see the module doc comment above.
+async function loadReport(pid, key, revId, mySeq) {
   const dims = [...new Set(CATEGORY_CONFIG[key].charts.map(c => c.variant))]
   const [totals, ...results] = await Promise.all([
-    reportStore.report(pid, key, { metrics: ['count', 'open', 'overdue'] }),
-    ...dims.map(dim => reportStore.report(pid, key, { dimensions: [dim] })),
+    reportStore.report(pid, key, { metrics: ['count', 'open', 'overdue'], revisionId: revId }),
+    ...dims.map(dim => reportStore.report(pid, key, { dimensions: [dim], revisionId: revId })),
   ])
   if (mySeq !== loadSeq) return // stale response — a newer switch is in flight
 
@@ -523,10 +537,19 @@ async function loadReport(pid, key, mySeq) {
 
 // Created-over-time trend for this category, from the report endpoint.
 // Bucketed by the active range's adaptive window (day/week/month).
-async function loadTrend(pid, key, mySeq) {
-  const def = RANGES.find(r => r.key === trendRange.value)
-  const from = rangeFrom(def)
+async function loadTrend(pid, key, revId, mySeq) {
   const now = new Date()
+  // Revision-scoped: no range selector (see the template's TimeRangeSelect
+  // v-if) — fixed ~6-month lookback, mirroring Overview's own revision-scoped
+  // trend (same rationale: a single revision's item count is small, often
+  // zero pre-assignment). Chain-wide: the active preset (trendRange).
+  let from
+  if (revId) {
+    from = new Date(now)
+    from.setMonth(from.getMonth() - 6)
+  } else {
+    from = rangeFrom(RANGES.find(r => r.key === trendRange.value))
+  }
   // Fetch first: a bounded preset windows the query itself; 'all' (from =
   // null) fetches unbounded and sizes the axis from the earliest point below.
   const groupBy = CATEGORY_CONFIG[key].trendGroupBy
@@ -534,6 +557,7 @@ async function loadTrend(pid, key, mySeq) {
     from: from?.toISOString(),
     to: now.toISOString(),
     groupBy,
+    revisionId: revId,
   })
   if (mySeq !== trendSeq) return // stale response
   // `points` is the flat, date-ascending array before the group pivot below —
@@ -569,11 +593,11 @@ async function loadTrend(pid, key, mySeq) {
 // have no axis, so the fuller string is what CategoryKpiRow's tooltip shows.
 const reportSpark = reactive({ labels: [], values: [] })
 
-async function loadSpark(pid, key, mySeq) {
+async function loadSpark(pid, key, revId, mySeq) {
   const from = new Date()
   from.setDate(from.getDate() - 12 * 7)
   const { fromISO, toISO, rangeLabels, bucket } = adaptiveWindow(from, new Date())
-  const points = await reportStore.trend(pid, key, { from: fromISO, to: toISO })
+  const points = await reportStore.trend(pid, key, { from: fromISO, to: toISO, revisionId: revId })
   if (mySeq !== loadSeq) return // stale response
   reportSpark.labels = rangeLabels
   reportSpark.values = bucket(points)
@@ -581,7 +605,7 @@ async function loadSpark(pid, key, mySeq) {
 
 // `silent` refreshes the numbers in place (e.g. after a create) without
 // flashing the skeleton.
-async function loadMetrics(pid, key, { silent = false } = {}) {
+async function loadMetrics(pid, key, revId, { silent = false } = {}) {
   if (!pid || !key || !CATEGORY_CONFIG[key]) {
     ++trendSeq // invalidate any in-flight trend call (e.g. a pending range change)
     reportBreakdowns.total = 0
@@ -601,9 +625,9 @@ async function loadMetrics(pid, key, { silent = false } = {}) {
   reportFailed.value = false
   try {
     await Promise.all([
-      loadReport(pid, key, mySeq),
-      loadSpark(pid, key, mySeq),
-      loadTrend(pid, key, myTrendSeq),
+      loadReport(pid, key, revId, mySeq),
+      loadSpark(pid, key, revId, mySeq),
+      loadTrend(pid, key, revId, myTrendSeq),
     ])
   } catch (err) {
     if (mySeq !== loadSeq) return // superseded by a newer switch
@@ -615,47 +639,58 @@ async function loadMetrics(pid, key, { silent = false } = {}) {
 }
 
 function retryMetrics() {
-  loadMetrics(props.projectId, category.value)
+  loadMetrics(effectiveProjectId.value, category.value, props.revisionId)
 }
 
-// Chain-wide only — revision-scoped metrics are computed reactively below,
-// no fetch to (re)run on a category/project switch.
+// Re-fetch on a category switch, a project/revision switch, or (revision-
+// scoped) the events store finishing its own load and repointing
+// currentProjectId — see effectiveProjectId's own comment for why that's
+// part of the dependency list instead of just props.projectId.
 watch(
-  [category, () => props.projectId, isRevisionScoped],
-  () => {
-    if (!isRevisionScoped.value) loadMetrics(props.projectId, category.value)
-  },
+  [category, () => props.revisionId, effectiveProjectId],
+  ([key, revId, pid]) => loadMetrics(pid, key, revId),
   { immediate: true },
 )
 
 // Preset change: reload the trend only — loadReport (KPIs/donuts) and the
 // KPI sparkline (its own fixed 12-week pulse, see loadSpark) are untouched.
-// Chain-wide only (see the TimeRangeSelect's v-if in the template).
+// Chain-wide only (see the TimeRangeSelect's v-if in the template, so
+// `props.revisionId` is always null/falsy here).
 async function onRangeChange(key) {
   trendRange.value = key
-  const pid = props.projectId
+  const pid = effectiveProjectId.value
   if (!pid || !category.value || !CATEGORY_CONFIG[category.value]) return
   const myTrendSeq = ++trendSeq
   try {
-    await loadTrend(pid, category.value, myTrendSeq)
+    await loadTrend(pid, category.value, props.revisionId, myTrendSeq)
   } catch (err) {
     if (myTrendSeq !== trendSeq) return
     console.error('Failed to load category activity trend', err)
   }
 }
 
-// --- Revision-scoped metrics band — computed client-side off the
-// events/backlog stores' already-loaded rows (the mounting Manage<Category>.vue
-// loaded them scoped to (root project, this revision) — see the module doc
-// comment above), mirroring components/wizard/manage/ManageMetrics.vue's own
-// aggregate panel exactly, narrowed to one category. No separate load, no
-// failure state (a store load failure is already logged by the store itself;
-// there is nothing here to retry).
-const localKpis = computed(() => store.kpis(category.value))
+// Completed — a stat, not a chart (ruled 2026-07-28, revising the original
+// brief's "completed over time" trend series): plain Completed ÷ total off
+// the status column, computed from the SAME count/open metrics the KPI trio
+// above already fetched in loadReport (no extra report call, no client-side
+// re-derivation of the open/closed rule — `completed = total - open` is pure
+// arithmetic over numbers the server already classified, per
+// isOpenReportStatus in server/system/service/project_report.go). This is
+// deliberately the SAME formula components/wizard/RevisionCompletenessBar.vue
+// uses for its header stat (completed ÷ assigned, rounded, with the identical
+// "zero items has no percentage" honest-empty-state rule) — just narrowed to
+// this one category instead of summed across all six work-item types, so the
+// two never disagree on what "complete" means even though their SCOPE
+// differs (one category here vs. the whole revision there). A time-series
+// alternative was ruled out: only incident/task carry a real CompletedDate
+// (feature/privacy/review/backlog-item don't), and the report endpoint has
+// no way to bucket by anything but CreatedAt at all today (see
+// aggregateProjectReport/reportDimValue) — plotting "completed over time"
+// would have meant inventing data no resource reliably records.
 
-// Chart data helper — grouped counts for a report dimension (chain-wide) or a
-// raw event field (revision-scoped), ordered canonically for ranked variants
-// (severity/risk/status) so bars read worst→best.
+// Chart data helper — grouped counts for a report dimension, ordered
+// canonically for ranked variants (severity/risk/status) so bars read
+// worst→best.
 function sortBreakdown(variant, rows) {
   if (!variant || variant === 'type') return rows
   return [...rows].sort(
@@ -663,74 +698,20 @@ function sortBreakdown(variant, rows) {
       orderIndex(variant, a.label) - orderIndex(variant, b.label) || a.label.localeCompare(b.label),
   )
 }
-const breakdownFor = chart => {
-  const rows = isRevisionScoped.value
-    ? store.breakdown(category.value, chart.field)
-    : reportBreakdowns.byDim[chart.variant] || []
-  return sortBreakdown(chart.variant, rows)
-}
+const breakdownFor = chart =>
+  sortBreakdown(chart.variant, reportBreakdowns.byDim[chart.variant] || [])
 
-// Created-over-time trend, computed from the category's already-scoped rows'
-// own `createdAt` (every system resource carries one) — the report-endpoint
-// equivalent (loadTrend above) isn't available per-revision. Same day/week/
-// month adaptiveWindow as the chain-wide path, fixed to its ~6-month default
-// (no range selector — see the template's TimeRangeSelect v-if).
-const localTrend = computed(() => {
-  if (!cfg.value) return { labels: [], rangeLabels: [], series: [] }
-  const groupBy = cfg.value.trendGroupBy
-  const byGroup = new Map()
-  for (const e of store.byCategory(category.value)) {
-    if (!e.createdAt) continue
-    const d = new Date(e.createdAt)
-    if (Number.isNaN(d.getTime())) continue
-    const g = e[groupBy] || '—'
-    if (!byGroup.has(g)) byGroup.set(g, [])
-    byGroup.get(g).push({ date: toISODate(d), value: 1 })
-  }
-  const { labels, rangeLabels, bucket } = adaptiveWindow()
-  const keys = [...byGroup.keys()].sort(
-    (a, b) => orderIndex(groupBy, a) - orderIndex(groupBy, b) || a.localeCompare(b),
-  )
-  return {
-    labels,
-    rangeLabels,
-    series: keys.map(g => ({ name: g, color: colorFor(groupBy, g), data: bucket(byGroup.get(g)) })),
-  }
-})
-
-// KPI tiles' sparkline, revision-scoped equivalent of loadSpark above — same
-// fixed 12-week weekly pulse, built from the category's already-loaded rows.
-const localSpark = computed(() => {
-  const from = new Date()
-  from.setDate(from.getDate() - 12 * 7)
-  const { rangeLabels, bucket } = adaptiveWindow(from, new Date())
-  const points = []
-  for (const e of store.byCategory(category.value)) {
-    if (!e.createdAt) continue
-    const d = new Date(e.createdAt)
-    if (Number.isNaN(d.getTime())) continue
-    points.push({ date: toISODate(d), value: 1 })
-  }
-  return { labels: rangeLabels, values: bucket(points) }
-})
-
-// --- Metrics band, unified across both paths ------------------------------
-const metricsLoading = computed(() =>
-  isRevisionScoped.value ? store.loading || backlogStore.loading : reportLoading.value,
-)
-// The revision-scoped path never fails independently of the store load
-// itself (which is already handled/logged by the host that triggered it) —
-// there is nothing here to retry.
-const metricsFailed = computed(() => (isRevisionScoped.value ? false : reportFailed.value))
+// --- Metrics band, one path for both scopes now ---------------------------
+const metricsLoading = computed(() => reportLoading.value)
+const metricsFailed = computed(() => reportFailed.value)
 
 const kpiList = computed(() => {
   if (!cfg.value) return []
-  const source = isRevisionScoped.value ? localKpis.value : reportBreakdowns
-  return cfg.value.kpis.map(({ key, labelKey }) => ({ labelKey, value: source[key] }))
+  return cfg.value.kpis.map(({ key, labelKey }) => ({ labelKey, value: reportBreakdowns[key] }))
 })
 
-const trend = computed(() => (isRevisionScoped.value ? localTrend.value : reportTrend))
-const spark = computed(() => (isRevisionScoped.value ? localSpark.value : reportSpark))
+const trend = computed(() => reportTrend)
+const spark = computed(() => reportSpark)
 
 const dialogVisible = ref(false)
 
@@ -796,21 +777,30 @@ const actionItemsFor = row => [
   },
 ]
 
-// Columns → CResourceList fields (all sortable, headers resolved via i18n).
-// The trailing revisionID column is fixed (every category gets it, see the
-// #body-revisionID slot above) rather than part of cfg.columns, and only
-// added chain-wide — see that slot's comment for why the wizard's
-// revision-scoped panels drop it instead.
+// Columns → CResourceList fields, headers resolved via i18n. `sortable` comes
+// straight from each column's own config/categories.js declaration now — NOT
+// a blanket `true` — since only some of these are actually sortable
+// server-side (see that file's col() comment for the verified set; clicking
+// an unsortable header sends an unrecognised sort column and the store
+// rejects the query, blanking the whole list). The trailing revisionID
+// column is fixed (every category gets it, see the #body-revisionID slot
+// above) rather than part of cfg.columns, and only added chain-wide — see
+// that slot's comment for why the wizard's revision-scoped panels drop it
+// instead. It's marked sortable ahead of the backend actually supporting it
+// (a concurrent change is making `revision_id` sortable on all six resources
+// — needs codegen + a server restart before this works): a sortable Revision
+// column is the agreed replacement for the removed unassigned-only filter,
+// grouping unassigned rows together when sorted.
 const fields = computed(() => {
   const cols = (cfg.value?.columns ?? []).map(c => ({
     key: c.key,
     header: t(c.headerKey),
-    sortable: true,
+    sortable: !!c.sortable,
   }))
   if (isRevisionScoped.value) return cols
   return [
     ...cols,
-    { key: 'revisionID', header: t('project.dashboard.columns.revision'), sortable: false },
+    { key: 'revisionID', header: t('project.dashboard.columns.revision'), sortable: true },
   ]
 })
 
@@ -863,13 +853,9 @@ const onCreate = async (payload, backlogTitles = []) => {
     $toast.toastErrorHandler(t('project.dashboard.event.toast.createFailed'))(err)
     return false
   }
-  // The chain-wide metrics band is report-driven, so the new record isn't in
-  // it yet — refresh in place (no skeleton flash). The revision-scoped band
-  // is a computed over the store's own rows, so it already reflects the new
-  // record with no refresh needed.
-  if (!isRevisionScoped.value) {
-    loadMetrics(props.projectId, category.value, { silent: true })
-  }
+  // The metrics band is report-driven in both scopes now, so the new record
+  // isn't in it yet — refresh in place (no skeleton flash).
+  loadMetrics(effectiveProjectId.value, category.value, props.revisionId, { silent: true })
   $toast.toastSuccess(
     t('project.dashboard.newButton', { type: t(cfg.value.singularKey) }),
     t('project.dashboard.event.toast.created'),
@@ -912,9 +898,7 @@ const onCreate = async (payload, backlogTitles = []) => {
 const onUpdate = async (id, payload) => {
   try {
     await store.update(category.value, id, payload)
-    if (!isRevisionScoped.value) {
-      loadMetrics(props.projectId, category.value, { silent: true })
-    }
+    loadMetrics(effectiveProjectId.value, category.value, props.revisionId, { silent: true })
     $toast.toastSuccess(t(cfg.value.singularKey), t('project.dashboard.event.toast.updated'))
     if (selectedEvent.value?.id === String(id)) {
       selectedEvent.value =
@@ -938,9 +922,7 @@ const onUpdate = async (id, payload) => {
 const onDelete = async id => {
   try {
     await store.remove(category.value, id)
-    if (!isRevisionScoped.value) {
-      loadMetrics(props.projectId, category.value, { silent: true })
-    }
+    loadMetrics(effectiveProjectId.value, category.value, props.revisionId, { silent: true })
     $toast.toastSuccess(t(cfg.value.singularKey), t('project.dashboard.event.toast.deleted'))
     if (selectedEvent.value?.id === String(id)) {
       drawerVisible.value = false

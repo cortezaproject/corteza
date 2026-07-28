@@ -22,20 +22,34 @@ const cat = key => EVENT_CATEGORIES.find(c => c.key === key)
 //   date -> localized date · (undefined) -> plain text (owner names).
 // Header labels reuse the shared event field labels (event.f.*) where they
 // exist, plus a few new dashboard.columns.* keys.
-const col = (key, headerKey, kind) => ({ key, headerKey, kind })
+//
+// `sortable` is an EXPLICIT per-column declaration, not a blanket default —
+// it must match server/store/adapters/rdbms/rdbms.gen.go's
+// sortableProject<Category>Fields() map for this resource, or clicking the
+// header sends an unrecognised sort column and the store rejects the query,
+// blanking the whole list. That failure mode cost four separate bugs on
+// 2026-07-28 (revision, dateDue, revisionID, and ~25 columns that were
+// blanket-marked sortable without anyone checking), which is why the flag is
+// stated per column rather than defaulted.
+//
+// Re-verified against those generated maps after codegen on 2026-07-28: every
+// column rendered here is now sortable server-side, task's `taskType`
+// included. When adding a column, check that map — do not copy `true` from a
+// neighbour.
+const col = (key, headerKey, kind, sortable = false) => ({ key, headerKey, kind, sortable })
 
 // The "rich" event categories (incident/feature/privacy) share the demo's full
 // column set. typeKey/ownerKey are the category's own field names.
 const richColumns = (typeKey, ownerKey) => [
-  col('title', 'project.dashboard.columns.title', 'title'),
-  col(typeKey, `${f}${typeKey}`, 'type'),
-  col('severity', 'project.dashboard.columns.severity', 'severity'),
-  col('status', `${f}status`, 'status'),
-  col('risk', 'project.dashboard.columns.risk', 'risk'),
-  col(ownerKey, `${f}${ownerKey}`, 'user'),
-  col('changeOwner', `${f}changeOwner`, 'user'),
-  col('changeApprovedBy', `${f}changeApprovedBy`, 'user'),
-  col('dateDue', `${f}dateDue`, 'date'),
+  col('title', 'project.dashboard.columns.title', 'title', true),
+  col(typeKey, `${f}${typeKey}`, 'type', true),
+  col('severity', 'project.dashboard.columns.severity', 'severity', true),
+  col('status', `${f}status`, 'status', true),
+  col('risk', 'project.dashboard.columns.risk', 'risk', true),
+  col(ownerKey, `${f}${ownerKey}`, 'user', true),
+  col('changeOwner', `${f}changeOwner`, 'user', true),
+  col('changeApprovedBy', `${f}changeApprovedBy`, 'user', true),
+  col('dateDue', `${f}dateDue`, 'date', true),
 ]
 
 // Explicit column set per category (tasks/reviews carry fewer demo fields).
@@ -44,23 +58,23 @@ const COLUMNS = {
   feature: richColumns('featureType', 'featureOwner'),
   privacy: richColumns('requestType', 'requestOwner'),
   task: [
-    col('title', 'project.dashboard.columns.title', 'title'),
-    col('taskType', `${f}taskType`, 'type'),
-    col('severity', 'project.dashboard.columns.severity', 'severity'),
-    col('status', `${f}status`, 'status'),
-    col('risk', 'project.dashboard.columns.risk', 'risk'),
-    col('owner', `${f}owner`, 'user'),
-    col('changeOwner', `${f}changeOwner`, 'user'),
-    col('dateDue', `${f}dateDue`, 'date'),
+    col('title', 'project.dashboard.columns.title', 'title', true),
+    col('taskType', `${f}taskType`, 'type', true),
+    col('severity', 'project.dashboard.columns.severity', 'severity', true),
+    col('status', `${f}status`, 'status', true),
+    col('risk', 'project.dashboard.columns.risk', 'risk', true),
+    col('owner', `${f}owner`, 'user', true),
+    col('changeOwner', `${f}changeOwner`, 'user', true),
+    col('dateDue', `${f}dateDue`, 'date', true),
   ],
   review: [
-    col('title', 'project.dashboard.columns.title', 'title'),
-    col('reviewType', `${f}reviewType`, 'type'),
-    col('reviewFrequency', `${f}reviewFrequency`),
-    col('status', `${f}status`, 'status'),
-    col('reviewer', `${f}reviewer`, 'user'),
-    col('approvedBy', `${f}approvedBy`, 'user'),
-    col('dateDue', `${f}dateDue`, 'date'),
+    col('title', 'project.dashboard.columns.title', 'title', true),
+    col('reviewType', `${f}reviewType`, 'type', true),
+    col('reviewFrequency', `${f}reviewFrequency`, undefined, true),
+    col('status', `${f}status`, 'status', true),
+    col('reviewer', `${f}reviewer`, 'user', true),
+    col('approvedBy', `${f}approvedBy`, 'user', true),
+    col('dateDue', `${f}dateDue`, 'date', true),
   ],
 }
 
@@ -73,7 +87,11 @@ const buildCharts = (key, { typeKey, typeChartKey }) => {
     { field: typeKey, titleKey: typeChartKey, variant: 'type' },
   ]
   if (key !== 'review') {
-    charts.push({ field: 'severity', titleKey: 'project.dashboard.chart.bySeverity', variant: 'severity' })
+    charts.push({
+      field: 'severity',
+      titleKey: 'project.dashboard.chart.bySeverity',
+      variant: 'severity',
+    })
     charts.push({ field: 'risk', titleKey: 'project.dashboard.chart.byRisk', variant: 'risk' })
   }
   return charts
@@ -83,11 +101,36 @@ const buildCharts = (key, { typeKey, typeChartKey }) => {
 // KIND_CONFIG (icon + text/bg/ring, light+dark), so the CategoryView header
 // reads like the wizard's step header and the section sidebar.
 const BADGES = {
-  incident: { icon: 'pi pi-exclamation-triangle', text: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-950/40', ring: 'ring-red-200 dark:ring-red-800/60' },
-  feature: { icon: 'pi pi-sparkles', text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/40', ring: 'ring-blue-200 dark:ring-blue-800/60' },
-  privacy: { icon: 'pi pi-shield', text: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/40', ring: 'ring-purple-200 dark:ring-purple-800/60' },
-  task: { icon: 'pi pi-check-square', text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/40', ring: 'ring-emerald-200 dark:ring-emerald-800/60' },
-  review: { icon: 'pi pi-sync', text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/40', ring: 'ring-amber-200 dark:ring-amber-800/60' },
+  incident: {
+    icon: 'pi pi-exclamation-triangle',
+    text: 'text-red-600 dark:text-red-400',
+    bg: 'bg-red-50 dark:bg-red-950/40',
+    ring: 'ring-red-200 dark:ring-red-800/60',
+  },
+  feature: {
+    icon: 'pi pi-sparkles',
+    text: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-50 dark:bg-blue-950/40',
+    ring: 'ring-blue-200 dark:ring-blue-800/60',
+  },
+  privacy: {
+    icon: 'pi pi-shield',
+    text: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-50 dark:bg-purple-950/40',
+    ring: 'ring-purple-200 dark:ring-purple-800/60',
+  },
+  task: {
+    icon: 'pi pi-check-square',
+    text: 'text-emerald-600 dark:text-emerald-400',
+    bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+    ring: 'ring-emerald-200 dark:ring-emerald-800/60',
+  },
+  review: {
+    icon: 'pi pi-sync',
+    text: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-50 dark:bg-amber-950/40',
+    ring: 'ring-amber-200 dark:ring-amber-800/60',
+  },
 }
 
 // Shared KPI definitions (values are computed live from the store per category).
@@ -99,11 +142,31 @@ const KPIS = [
 
 // Field-key map per category, feeding the column/chart builders above.
 const FIELDS = {
-  incident: { typeKey: 'incidentType', ownerKey: 'issueOwner', typeChartKey: 'project.dashboard.chart.byType' },
-  feature: { typeKey: 'featureType', ownerKey: 'featureOwner', typeChartKey: 'project.dashboard.chart.byFeatureType' },
-  privacy: { typeKey: 'requestType', ownerKey: 'requestOwner', typeChartKey: 'project.dashboard.chart.byRequestType' },
-  task: { typeKey: 'taskType', ownerKey: 'owner', typeChartKey: 'project.dashboard.chart.byTaskType' },
-  review: { typeKey: 'reviewType', ownerKey: 'reviewer', typeChartKey: 'project.dashboard.chart.byReviewType' },
+  incident: {
+    typeKey: 'incidentType',
+    ownerKey: 'issueOwner',
+    typeChartKey: 'project.dashboard.chart.byType',
+  },
+  feature: {
+    typeKey: 'featureType',
+    ownerKey: 'featureOwner',
+    typeChartKey: 'project.dashboard.chart.byFeatureType',
+  },
+  privacy: {
+    typeKey: 'requestType',
+    ownerKey: 'requestOwner',
+    typeChartKey: 'project.dashboard.chart.byRequestType',
+  },
+  task: {
+    typeKey: 'taskType',
+    ownerKey: 'owner',
+    typeChartKey: 'project.dashboard.chart.byTaskType',
+  },
+  review: {
+    typeKey: 'reviewType',
+    ownerKey: 'reviewer',
+    typeChartKey: 'project.dashboard.chart.byReviewType',
+  },
 }
 
 // Assemble the full config for one category from its FIELDS entry.

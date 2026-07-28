@@ -3906,7 +3906,7 @@ var ProjectBacklogItem = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "RevisionID",
+			Ident: "RevisionID", Sortable: true,
 			Type: &dal.TypeID{HasDefault: true,
 				DefaultValue: 0,
 			},
@@ -3940,7 +3940,7 @@ var ProjectBacklogItem = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Assignee",
+			Ident: "Assignee", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -3951,7 +3951,7 @@ var ProjectBacklogItem = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Priority",
+			Ident: "Priority", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "priority"},
 		},
@@ -4070,7 +4070,7 @@ var ProjectFeature = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "RevisionID",
+			Ident: "RevisionID", Sortable: true,
 			Type: &dal.TypeID{HasDefault: true,
 				DefaultValue: 0,
 			},
@@ -4102,19 +4102,19 @@ var ProjectFeature = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Severity",
+			Ident: "Severity", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "severity"},
 		},
 
 		&dal.Attribute{
-			Ident: "Risk",
+			Ident: "Risk", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "risk"},
 		},
 
 		&dal.Attribute{
-			Ident: "FeatureOwner",
+			Ident: "FeatureOwner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4125,7 +4125,7 @@ var ProjectFeature = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ChangeOwner",
+			Ident: "ChangeOwner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4136,7 +4136,7 @@ var ProjectFeature = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ChangeApprovedBy",
+			Ident: "ChangeApprovedBy", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4414,7 +4414,7 @@ var ProjectIncident = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "RevisionID",
+			Ident: "RevisionID", Sortable: true,
 			Type: &dal.TypeID{HasDefault: true,
 				DefaultValue: 0,
 			},
@@ -4452,19 +4452,19 @@ var ProjectIncident = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Severity",
+			Ident: "Severity", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "severity"},
 		},
 
 		&dal.Attribute{
-			Ident: "Risk",
+			Ident: "Risk", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "risk"},
 		},
 
 		&dal.Attribute{
-			Ident: "IssueOwner",
+			Ident: "IssueOwner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4475,7 +4475,7 @@ var ProjectIncident = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ChangeOwner",
+			Ident: "ChangeOwner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4486,7 +4486,7 @@ var ProjectIncident = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ChangeApprovedBy",
+			Ident: "ChangeApprovedBy", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4726,7 +4726,7 @@ var ProjectPrivacy = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "RevisionID",
+			Ident: "RevisionID", Sortable: true,
 			Type: &dal.TypeID{HasDefault: true,
 				DefaultValue: 0,
 			},
@@ -4758,19 +4758,19 @@ var ProjectPrivacy = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Severity",
+			Ident: "Severity", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "severity"},
 		},
 
 		&dal.Attribute{
-			Ident: "Risk",
+			Ident: "Risk", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "risk"},
 		},
 
 		&dal.Attribute{
-			Ident: "RequestOwner",
+			Ident: "RequestOwner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4781,7 +4781,7 @@ var ProjectPrivacy = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ChangeOwner",
+			Ident: "ChangeOwner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4792,7 +4792,7 @@ var ProjectPrivacy = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ChangeApprovedBy",
+			Ident: "ChangeApprovedBy", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4928,7 +4928,7 @@ var ProjectReview = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "RevisionID",
+			Ident: "RevisionID", Sortable: true,
 			Type: &dal.TypeID{HasDefault: true,
 				DefaultValue: 0,
 			},
@@ -4954,7 +4954,7 @@ var ProjectReview = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ReviewFrequency",
+			Ident: "ReviewFrequency", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "review_frequency"},
 		},
@@ -4966,7 +4966,7 @@ var ProjectReview = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Reviewer",
+			Ident: "Reviewer", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -4977,7 +4977,7 @@ var ProjectReview = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ApprovedBy",
+			Ident: "ApprovedBy", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -5101,7 +5101,7 @@ var ProjectTask = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "RevisionID",
+			Ident: "RevisionID", Sortable: true,
 			Type: &dal.TypeID{HasDefault: true,
 				DefaultValue: 0,
 			},
@@ -5127,7 +5127,7 @@ var ProjectTask = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "TaskType",
+			Ident: "TaskType", Sortable: true,
 			Type:  &dal.TypeText{Length: 128},
 			Store: &dal.CodecAlias{Ident: "task_type"},
 		},
@@ -5139,19 +5139,19 @@ var ProjectTask = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Severity",
+			Ident: "Severity", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "severity"},
 		},
 
 		&dal.Attribute{
-			Ident: "Risk",
+			Ident: "Risk", Sortable: true,
 			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "risk"},
 		},
 
 		&dal.Attribute{
-			Ident: "Owner",
+			Ident: "Owner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
@@ -5162,7 +5162,7 @@ var ProjectTask = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ChangeOwner",
+			Ident: "ChangeOwner", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{

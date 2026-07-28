@@ -29,6 +29,7 @@ project_review: {
 				json:       "revisionID,string,omitempty"
 				storeIdent: "rel_revision"
 				dal: {type: "ID", default: 0}
+				sortable: true
 			}
 
 			title: {
@@ -50,6 +51,7 @@ project_review: {
 				goType: "string"
 				json:   "reviewFrequency,omitempty"
 				dal: {type: "Text", length: 64}
+				sortable: true
 			}
 			scope: {
 				goType: "string"
@@ -60,11 +62,13 @@ project_review: {
 				goType: "uint64"
 				json:   "reviewer,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 			approved_by: {
 				goType: "uint64"
 				json:   "approvedBy,string,omitempty"
 				dal: {type: "Ref", refModelResType: "corteza::system:user"}
+				sortable: true
 			}
 
 			status: {

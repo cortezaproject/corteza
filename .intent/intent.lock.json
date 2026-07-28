@@ -1337,7 +1337,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryPanel.vue": {
-      "h": "1f4e5881fe30",
+      "h": "f0f6dec42121",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1762,9 +1762,9 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/config/categories.js": {
-      "h": "c55cef282784",
+      "h": "a95e507312a8",
       "doc": "client/web/unify/src/sections/project/config/config.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/config/chartColors.js": {
       "h": "820aa4c6aae0",
@@ -1907,7 +1907,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/dashboard/BacklogView.vue": {
-      "h": "be88bcd5da02",
+      "h": "d76a7f840d32",
       "doc": "client/web/unify/src/sections/project/views/dashboard/BacklogView.intent.md",
       "t": "2026-07-28"
     },
