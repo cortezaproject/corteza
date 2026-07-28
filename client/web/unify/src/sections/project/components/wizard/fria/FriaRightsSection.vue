@@ -1,8 +1,13 @@
 <template>
-  <FriaScenarioEditorShell :project="project" :disabled="disabled" v-slot="{ scenario, update }">
+  <!-- § 4 of the scenario editor — content moved verbatim from the old
+       fria-rights wizard step (components/wizard/steps/FriaRightsStep.vue,
+       removed); see FriaScenarioEditor.vue. -->
+  <FriaScenarioSection
+    :number="number"
+    :title="$t('fria.sections.rights.title')"
+    :description="$t('fria.sections.rights.description')"
+  >
     <div class="flex flex-col gap-5">
-      <p class="text-sm text-muted-color max-w-4xl">{{ $t('fria.rightsPicker.intro') }}</p>
-
       <!-- Chapter filter — a non-colour affordance (icon + roman numeral +
            name) rather than the design mockup's per-chapter colour dot: see
            config/friaScenario.js's RIGHTS_CHAPTER_ICONS comment. A validated
@@ -52,7 +57,7 @@
           ]"
           :disabled="disabled"
           :aria-pressed="scenario.rights.includes(r.key)"
-          @click="toggle(scenario, update, r.key)"
+          @click="toggle(r.key)"
         >
           <div class="flex items-start gap-2 mb-1 pr-6">
             <span
@@ -76,17 +81,19 @@
         </button>
       </div>
     </div>
-  </FriaScenarioEditorShell>
+  </FriaScenarioSection>
 </template>
 
 <script setup>
-import FriaScenarioEditorShell from '@/sections/project/components/wizard/fria/FriaScenarioEditorShell.vue'
+import FriaScenarioSection from './FriaScenarioSection.vue'
 import { RIGHTS_CHAPTER_ICONS } from '@/sections/project/config/friaScenario'
 import { FUNDAMENTAL_RIGHTS, RIGHTS_CHAPTERS } from '@/sections/project/config/friaTaxonomies'
 import { computed, ref } from 'vue'
 
-defineProps({
-  project: { type: Object, required: true },
+const props = defineProps({
+  number: { type: [Number, String], required: true },
+  scenario: { type: Object, required: true },
+  update: { type: Function, required: true },
   disabled: { type: Boolean, default: false },
 })
 
@@ -97,8 +104,8 @@ const visibleRights = computed(() =>
     : FUNDAMENTAL_RIGHTS.filter(r => r.chapter === chapterFilter.value),
 )
 
-function toggle(scenario, update, key) {
-  const list = scenario.rights
-  update({ rights: list.includes(key) ? list.filter(k => k !== key) : [...list, key] })
+function toggle(key) {
+  const list = props.scenario.rights
+  props.update({ rights: list.includes(key) ? list.filter(k => k !== key) : [...list, key] })
 }
 </script>

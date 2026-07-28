@@ -63,7 +63,7 @@ dashboard:
     categories: Categories
     insights: Insights
   views:
-    dashboard: Dashboard
+    overview: Overview
     activity: Activity
     reports: Reports
     backlog: Backlog

@@ -273,10 +273,11 @@ impactedParties:
   competitorsOtherBusinesses: Competitors / Other Businesses
 
 # ─────────────────────────────────────────────────────────────────────────
-# UI copy for the Govern tab's FRIA flow (config/pipeline.js's fria-* steps
-# and components/wizard/steps/Fria*.vue) — separate from the taxonomy labels
-# above, which config/friaTaxonomies.js's entries resolve directly. Kept in
-# this file rather than project.yaml per the 2026-07-28 ruling (see
+# UI copy for the Govern tab's FRIA flow (config/pipeline.js's two fria-*
+# steps, components/wizard/steps/Fria*.vue, and the scenario editor's section
+# components under components/wizard/fria/) — separate from the taxonomy
+# labels above, which config/friaTaxonomies.js's entries resolve directly.
+# Kept in this file rather than project.yaml per the 2026-07-28 ruling (see
 # project.intent.md): all new FRIA copy lives here.
 
 steps:
@@ -284,16 +285,6 @@ steps:
     label: FRIA Determination
   scenarios:
     label: Risk Scenarios
-  harm:
-    label: Harm Scenario
-  trigger:
-    label: Trigger
-  parties:
-    label: Parties & Groups
-  rights:
-    label: Rights & Values
-  vectors:
-    label: AI Amplification
 
 wizard:
   blurb:
@@ -303,21 +294,41 @@ wizard:
     scenarios: >-
       Every documented risk scenario for this project, with its severity and completion status at
       a glance. Open one to edit it, or document a new one.
-    harm: >-
+
+# The scenario editor's five numbered, headed sections (see components/wizard/
+# fria/FriaScenarioEditor.vue and its section components) — one scrolling
+# page per scenario, in the design mockup's order. Title/description text
+# reused 1:1 from what used to be each section's own wizard-step blurb (and,
+# for rights, its extra rightsPicker.intro paragraph) before the five
+# per-section steps were folded into this single editor per the 2026-07-28
+# ruling — see config/pipeline.js.
+sections:
+  harm:
+    title: Harm Scenario Description
+    description: >-
       Describe the harm as a narrative: what goes wrong, who is affected, and what the consequence
       is, then rate its potential severity.
-    trigger: >-
+  trigger:
+    title: Trigger
+    description: >-
       What condition or event causes this harm? Select every trigger that applies, then describe
       how it manifests in this system.
-    parties: >-
+  parties:
+    title: Impacted Parties & Vulnerable Groups
+    description: >-
       Identify who is directly and indirectly affected, and flag any vulnerable groups — these
       require heightened analysis under EU AI Act Art. 27 and Recital 58.
-    rights: >-
-      Select every fundamental right this scenario may infringe, limit, or put at risk. Filter by
-      Charter chapter to work through them systematically.
-    vectors: >-
-      AI does not merely replicate human error — identify which AI-specific mechanisms enable or
-      amplify this harm beyond what an equivalent human process would produce.
+  rights:
+    title: Impacted Rights & Values
+    description: >-
+      Select every fundamental right this scenario may infringe, limit, or put at risk. Rights are
+      drawn from the EU Charter (all 7 chapters), the ECHR, and the GDPR — filter by chapter to
+      work through them systematically.
+  vectors:
+    title: Where AI Enables or Amplifies the Harm
+    description: >-
+      AI does not merely replicate human errors — it can produce, scale, and entrench harms in
+      qualitatively different ways. Identify which AI-specific vectors apply to this scenario.
 
 determination:
   required: A Fundamental Rights Impact Assessment is required for this project.
@@ -330,8 +341,10 @@ determination:
 editor:
   newScenario: New scenario
   allScenarios: All scenarios
+  untitledScenario: Untitled scenario
+  saveScenario: Save scenario
   noActiveScenario: >-
-    No scenario selected. Open an existing one from the list, or start documenting a new one.
+    This risk scenario could not be found — it may have been removed.
 
 scenarios:
   stats:
@@ -401,19 +414,7 @@ parties:
     Describe intersecting vulnerabilities, specific sub-populations, or contextual factors that
     heighten risk for the identified groups…
 
-# NOTE: named rightsPicker, not "rights" — a top-level `rights:` key already
-# exists above (the FUNDAMENTAL_RIGHTS taxonomy labels/descriptions); reusing
-# it here would silently clobber all 40 of those entries under YAML's
-# duplicate-key-overwrites rule.
-rightsPicker:
-  intro: >-
-    Rights are drawn from the EU Charter (all 7 chapters), the ECHR, and the GDPR. Filter by
-    chapter to explore systematically.
-
 vectors:
-  intro: >-
-    AI does not merely replicate human errors — it can produce, scale, and entrench harms in
-    qualitatively different ways. Identify which AI-specific vectors apply to this scenario.
   descriptionLabel: AI amplification description
   descriptionPlaceholder: >-
     Describe specifically how this AI system enables or amplifies the harm — connecting the

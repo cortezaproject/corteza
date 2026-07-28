@@ -41,31 +41,53 @@ export default {
           path: '',
           name: 'project.overview',
           component: () => import('./views/dashboard/Overview.vue'),
-          meta: { section: 'project', titleKey: 'project.dashboard.views.dashboard', icon: 'pi-gauge' },
+          meta: {
+            section: 'project',
+            titleKey: 'project.dashboard.views.overview',
+            icon: 'pi-gauge',
+          },
         },
         {
           path: 'activity',
           name: 'project.overview.activity',
           component: () => import('./views/dashboard/AllEventsView.vue'),
-          meta: { section: 'project', titleKey: 'project.dashboard.views.activity', icon: 'pi-list' },
+          meta: {
+            section: 'project',
+            titleKey: 'project.dashboard.views.activity',
+            icon: 'pi-list',
+          },
         },
         {
           path: 'category/:category',
           name: 'project.overview.category',
           component: () => import('./views/dashboard/CategoryView.vue'),
-          meta: { section: 'project', titleKey: 'project.dashboard.views.dashboard', icon: 'pi-list' },
+          meta: {
+            section: 'project',
+            // Generic: the real heading is per-category and comes from
+            // CATEGORY_CONFIG, not from route meta.
+            titleKey: 'project.dashboard.nav.categories',
+            icon: 'pi-list',
+          },
         },
         {
           path: 'reports',
           name: 'project.overview.reports',
           component: () => import('./views/dashboard/DashboardStub.vue'),
-          meta: { section: 'project', titleKey: 'project.dashboard.views.reports', icon: 'pi-chart-bar' },
+          meta: {
+            section: 'project',
+            titleKey: 'project.dashboard.views.reports',
+            icon: 'pi-chart-bar',
+          },
         },
         {
           path: 'backlog',
           name: 'project.overview.backlog',
           component: () => import('./views/dashboard/BacklogView.vue'),
-          meta: { section: 'project', titleKey: 'project.dashboard.views.backlog', icon: 'pi-th-large' },
+          meta: {
+            section: 'project',
+            titleKey: 'project.dashboard.views.backlog',
+            icon: 'pi-th-large',
+          },
         },
       ],
     },

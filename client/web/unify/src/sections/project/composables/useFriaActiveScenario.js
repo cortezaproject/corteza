@@ -2,45 +2,52 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 // Shared "which FRIA risk scenario is being edited" state for the Govern
-// tab's fria-scenarios (list) step and its five section-editor steps
-// (fria-harm/trigger/parties/rights/vectors — see config/pipeline.js). There
-// can be many scenarios per project, but the design mockup's five sections
-// are one continuous per-scenario form, split here into five separate wizard
-// steps (per the ruling recorded in config/pipeline.js) — this composable is
-// what lets all six of those step components agree on which scenario they're
-// looking at without Wizard.vue owning any FRIA-specific state itself (out of
-// scope for this pass — see project.intent.md, Wizard.vue is dispatch only).
+// tab's fria-scenarios step (see config/pipeline.js) — that ONE step's body
+// switches between the scenario list and a single scrolling scenario editor
+// (see components/wizard/steps/FriaScenariosStep.vue and
+// components/wizard/fria/FriaScenarioEditor.vue): this composable is what
+// lets those two agree on whether a scenario is open, and which one,
+// without Wizard.vue owning any FRIA-specific state itself (out of scope for
+// this pass — see project.intent.md, Wizard.vue is dispatch only).
 //
 // Backed by the `scenario` route query param — same idiom Wizard.vue itself
-// uses for `step`/`section`/`tab` — so every mounted step component reads and
-// writes the exact same value reactively via the shared route/router
-// singleton, and the active scenario survives switching between the five
-// section-editor steps (though not a reload — scenario data itself is
-// session-local scaffolding per stores/projects.js, so a reload has nothing
-// to resume to anyway).
+// uses for `step`/`section`/`tab` — so the list <-> editor transition is
+// deep-linkable and survives back/forward navigation.
+//
+// The sentinel value 'new' marks "the editor is open in create mode" rather
+// than naming a real scenario. This matters for the draft lifecycle (see
+// components/wizard/fria/FriaScenarioEditor.vue and stores/projects.js'
+// createFriaScenario): a brand-new scenario is held as a local draft and
+// never written to the store until the editor's explicit Save, so opening
+// with this sentinel — then cancelling — leaves the store untouched; there
+// is nothing to clean up.
+const NEW_SCENARIO_SENTINEL = 'new'
+
 export function useFriaActiveScenario() {
   const route = useRoute()
   const router = useRouter()
 
   const activeScenarioId = computed(() => route.query.scenario || null)
+  const isCreatingScenario = computed(() => activeScenarioId.value === NEW_SCENARIO_SENTINEL)
 
-  // Jump straight into a scenario's editor (defaults to the first section —
-  // Harm Scenario Description) — used by the list step's New/Edit actions.
-  function openScenario(scenarioId, stepKey = 'fria-harm') {
-    router.replace({ query: { ...route.query, scenario: scenarioId, step: stepKey } })
+  // Open an existing scenario's editor — used by the list's Edit actions.
+  function openScenario(scenarioId) {
+    router.replace({ query: { ...route.query, scenario: scenarioId } })
   }
 
-  // Switch the active scenario without leaving the current section-editor
-  // step — used by the editor shell's scenario switcher.
-  function setActiveScenarioId(scenarioId) {
-    router.replace({ query: { ...route.query, scenario: scenarioId || undefined } })
+  // Open the editor in create mode (see the sentinel note above) — used by
+  // the list's New/"Document new" actions. Deliberately does not touch the
+  // store: the draft only becomes real on Save.
+  function openNewScenario() {
+    router.replace({ query: { ...route.query, scenario: NEW_SCENARIO_SENTINEL } })
   }
 
-  // Back to the scenario list step, keeping whichever scenario was active (so
-  // returning to an editor step resumes on the same one).
-  function goToScenarios() {
-    router.replace({ query: { ...route.query, step: 'fria-scenarios' } })
+  // Back to the scenario list. Used by both the editor's Cancel (the local
+  // draft is simply dropped — nothing to undo in the store) and its Save
+  // (the draft was already committed by then).
+  function closeScenario() {
+    router.replace({ query: { ...route.query, scenario: undefined } })
   }
 
-  return { activeScenarioId, openScenario, setActiveScenarioId, goToScenarios }
+  return { activeScenarioId, isCreatingScenario, openScenario, openNewScenario, closeScenario }
 }

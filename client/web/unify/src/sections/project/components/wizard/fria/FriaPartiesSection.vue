@@ -1,5 +1,12 @@
 <template>
-  <FriaScenarioEditorShell :project="project" :disabled="disabled" v-slot="{ scenario, update }">
+  <!-- § 3 of the scenario editor — content moved verbatim from the old
+       fria-parties wizard step (components/wizard/steps/FriaPartiesStep.vue,
+       removed); see FriaScenarioEditor.vue. -->
+  <FriaScenarioSection
+    :number="number"
+    :title="$t('fria.sections.parties.title')"
+    :description="$t('fria.sections.parties.description')"
+  >
     <div class="flex flex-col gap-6 max-w-4xl">
       <CFormGroup :label="$t('fria.parties.impactedLabel')" required>
         <div class="flex flex-wrap gap-2">
@@ -16,7 +23,7 @@
             ]"
             :disabled="disabled"
             :aria-pressed="scenario.impactedParties.includes(p.key)"
-            @click="toggle(scenario, update, 'impactedParties', p.key)"
+            @click="toggle('impactedParties', p.key)"
           >
             {{ $t(p.labelKey) }}
           </button>
@@ -50,7 +57,7 @@
             ]"
             :disabled="disabled"
             :aria-pressed="scenario.vulnerableGroups.includes(g.key)"
-            @click="toggle(scenario, update, 'vulnerableGroups', g.key)"
+            @click="toggle('vulnerableGroups', g.key)"
           >
             <span
               class="mt-0.5 shrink-0 w-4 h-4 rounded-sm border-2 flex items-center justify-center"
@@ -92,21 +99,23 @@
         />
       </CFormGroup>
     </div>
-  </FriaScenarioEditorShell>
+  </FriaScenarioSection>
 </template>
 
 <script setup>
-import FriaScenarioEditorShell from '@/sections/project/components/wizard/fria/FriaScenarioEditorShell.vue'
+import FriaScenarioSection from './FriaScenarioSection.vue'
 import { IMPACTED_PARTIES, VULNERABLE_GROUPS } from '@/sections/project/config/friaTaxonomies'
 
-defineProps({
-  project: { type: Object, required: true },
+const props = defineProps({
+  number: { type: [Number, String], required: true },
+  scenario: { type: Object, required: true },
+  update: { type: Function, required: true },
   disabled: { type: Boolean, default: false },
 })
 
-function toggle(scenario, update, field, key) {
-  const list = scenario[field]
-  update({
+function toggle(field, key) {
+  const list = props.scenario[field]
+  props.update({
     [field]: list.includes(key) ? list.filter(k => k !== key) : [...list, key],
   })
 }

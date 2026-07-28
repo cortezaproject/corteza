@@ -1,8 +1,8 @@
 <template>
   <!-- Selectable card: icon + name + description, toggled by clicking
-       anywhere on it. Shared by FriaTriggerStep (trigger conditions) and
-       FriaVectorsStep (AI harm vectors) — the two mockup sections that share
-       this exact card shape. -->
+       anywhere on it. Shared by FriaTriggerSection (trigger conditions) and
+       FriaVectorsSection (AI harm vectors) — the two scenario-editor
+       sections that share this exact card shape. -->
   <button
     type="button"
     class="text-left rounded-lg border-2 p-4 transition-colors"

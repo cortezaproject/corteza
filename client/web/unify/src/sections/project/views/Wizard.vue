@@ -237,11 +237,6 @@
                 :project="project"
                 :disabled="locked"
               />
-              <FriaHarmStep v-else-if="isFriaHarm" :project="project" :disabled="locked" />
-              <FriaTriggerStep v-else-if="isFriaTrigger" :project="project" :disabled="locked" />
-              <FriaPartiesStep v-else-if="isFriaParties" :project="project" :disabled="locked" />
-              <FriaRightsStep v-else-if="isFriaRights" :project="project" :disabled="locked" />
-              <FriaVectorsStep v-else-if="isFriaVectors" :project="project" :disabled="locked" />
             </template>
           </div>
 
@@ -530,12 +525,7 @@ import UsersStep from '@/sections/project/components/wizard/steps/UsersStep.vue'
 import DataModelStep from '@/sections/project/components/wizard/steps/DataModelStep.vue'
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
 import FriaDeterminationStep from '@/sections/project/components/wizard/steps/FriaDeterminationStep.vue'
-import FriaHarmStep from '@/sections/project/components/wizard/steps/FriaHarmStep.vue'
-import FriaPartiesStep from '@/sections/project/components/wizard/steps/FriaPartiesStep.vue'
-import FriaRightsStep from '@/sections/project/components/wizard/steps/FriaRightsStep.vue'
 import FriaScenariosStep from '@/sections/project/components/wizard/steps/FriaScenariosStep.vue'
-import FriaTriggerStep from '@/sections/project/components/wizard/steps/FriaTriggerStep.vue'
-import FriaVectorsStep from '@/sections/project/components/wizard/steps/FriaVectorsStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
@@ -776,10 +766,27 @@ async function doPublish() {
 // current step, or Build.
 const VALID_TABS = ['build', 'govern', 'manage']
 const tabForStepKey = key => STEPS.find(s => s.key === key)?.tab
-const activeTab = ref(
-  (VALID_TABS.includes(route.query.tab) && route.query.tab) ||
-    tabForStepKey(route.query.step) ||
-    'build',
+// An explicit `tab`/`step` in the query always wins. Otherwise the landing tab
+// depends on what the revision is FOR: a live revision is being run, so open
+// Manage & Monitor; a draft is being built, so open Build. `project` resolves
+// asynchronously, so the ref seeds with the query (or Build) and the watcher
+// below corrects it once the project arrives — one shot, so it never fights a
+// tab the user picked afterwards.
+const tabFromQuery = (VALID_TABS.includes(route.query.tab) && route.query.tab) || null
+const activeTab = ref(tabFromQuery || tabForStepKey(route.query.step) || 'build')
+const landingTabResolved = ref(!!tabFromQuery || !!tabForStepKey(route.query.step))
+// Keyed to the project's STATUS arriving, not to isLive: isLive is false both
+// while the project is still loading and for a draft, so watching it would
+// never resolve for drafts — and would then fire on a mid-session publish and
+// yank the user to another tab.
+watch(
+  () => project.value?.status,
+  status => {
+    if (landingTabResolved.value || !status) return
+    landingTabResolved.value = true
+    if (isLive.value) activeTab.value = 'manage'
+  },
+  { immediate: true },
 )
 const navSteps = computed(() => {
   if (!project.value || activeTab.value === 'manage') return []
@@ -850,11 +857,6 @@ const isSummary = computed(() => activeKey.value === 'summary')
 const isResourceMgmt = computed(() => activeKey.value === 'resource-management')
 const isFriaDetermination = computed(() => activeKey.value === 'fria-determination')
 const isFriaScenarios = computed(() => activeKey.value === 'fria-scenarios')
-const isFriaHarm = computed(() => activeKey.value === 'fria-harm')
-const isFriaTrigger = computed(() => activeKey.value === 'fria-trigger')
-const isFriaParties = computed(() => activeKey.value === 'fria-parties')
-const isFriaRights = computed(() => activeKey.value === 'fria-rights')
-const isFriaVectors = computed(() => activeKey.value === 'fria-vectors')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
 const isAutomations = computed(() => activeKey.value === 'automations')
@@ -1057,11 +1059,6 @@ const STEP_BLURB = {
   'data-sensitivity': 'project.wizard.blurb.dataSensitivity',
   'fria-determination': 'fria.wizard.blurb.determination',
   'fria-scenarios': 'fria.wizard.blurb.scenarios',
-  'fria-harm': 'fria.wizard.blurb.harm',
-  'fria-trigger': 'fria.wizard.blurb.trigger',
-  'fria-parties': 'fria.wizard.blurb.parties',
-  'fria-rights': 'fria.wizard.blurb.rights',
-  'fria-vectors': 'fria.wizard.blurb.vectors',
   connections: 'project.wizard.blurb.connections',
   automations: 'project.wizard.blurb.automations',
   agents: 'project.wizard.blurb.agents',

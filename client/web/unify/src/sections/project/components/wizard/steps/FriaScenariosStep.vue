@@ -1,5 +1,22 @@
 <template>
-  <div class="flex flex-col gap-6">
+  <!-- Opening a scenario (existing or new) replaces this whole body with the
+       single-page editor; going back returns here. See
+       composables/useFriaActiveScenario.js for the `scenario` query param
+       driving the swap, and FriaScenarioEditor.vue for the editor itself.
+       Keyed by activeScenarioId so switching straight from one scenario to
+       another (e.g. via browser back/forward) always remounts with a fresh
+       local draft rather than reusing stale editor state. -->
+  <FriaScenarioEditor
+    v-if="activeScenarioId"
+    :key="activeScenarioId"
+    :project="project"
+    :scenario-id="isCreatingScenario ? null : activeScenarioId"
+    :disabled="disabled"
+    @saved="closeScenario"
+    @cancelled="closeScenario"
+  />
+
+  <div v-else class="flex flex-col gap-6">
     <!-- Stat row -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="rounded-xl border border-surface bg-surface p-4">
@@ -179,6 +196,7 @@
 </template>
 
 <script setup>
+import FriaScenarioEditor from '@/sections/project/components/wizard/fria/FriaScenarioEditor.vue'
 import FriaSeverityBadge from '@/sections/project/components/wizard/fria/FriaSeverityBadge.vue'
 import { useFriaActiveScenario } from '@/sections/project/composables/useFriaActiveScenario'
 import { friaScenarioCompletion } from '@/sections/project/config/friaScenario'
@@ -198,7 +216,8 @@ const props = defineProps({
 })
 
 const store = useProjectsStore()
-const { openScenario } = useFriaActiveScenario()
+const { activeScenarioId, isCreatingScenario, openScenario, openNewScenario, closeScenario } =
+  useFriaActiveScenario()
 
 const scenarios = computed(() => store.friaScenariosFor(props.project.projectID))
 const indexOf = s => scenarios.value.indexOf(s)
@@ -235,9 +254,11 @@ const filtered = computed(() =>
   }),
 )
 
+// Opens the editor in create mode WITHOUT touching the store — the new
+// scenario only becomes real if the editor's Save is used (see
+// FriaScenarioEditor.vue and useFriaActiveScenario.js's NEW_SCENARIO_SENTINEL).
 function addScenario() {
-  const id = store.createFriaScenario(props.project.projectID)
-  openScenario(id)
+  openNewScenario()
 }
 
 function removeScenario(s) {

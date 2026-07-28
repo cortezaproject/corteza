@@ -1,4 +1,3 @@
-import { newFriaScenario } from '@/sections/project/config/friaScenario'
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
 import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
@@ -895,19 +894,26 @@ export const useProjectsStore = defineStore('projects', () => {
   // Session-local, like the rest of governance above: every risk scenario for
   // a project lives under the well-known 'fria-scenarios' governance step's
   // values, as { scenarios: FriaScenario[] } (see config/friaScenario.js for
-  // the shape). The scenario list step AND the five section-editor steps
-  // (fria-harm/trigger/parties/rights/vectors — see config/pipeline.js) all
-  // read and patch entries of this SAME array, keyed by scenario id, so
-  // there's exactly one array per project no matter which step nav entry is
-  // active; composables/useFriaActiveScenario.js threads which scenario id
-  // each editor step is currently looking at.
+  // the shape). One array per project — the fria-scenarios step body itself
+  // switches between the scenario list and a single scrolling scenario
+  // editor (components/wizard/steps/FriaScenariosStep.vue and
+  // components/wizard/fria/FriaScenarioEditor.vue), keyed by scenario id via
+  // composables/useFriaActiveScenario.js.
   //
-  // Unlike saveStepForm/transitionStep above, these mutators deliberately do
-  // NOT call touch(): scenario edits happen at keystroke frequency (title,
-  // narrative text areas) and carry no resource-graph, kind, or
-  // effective-access implications — bumping graphVersion per keystroke would
-  // just churn the resource graph pane for no reason. touch() a fresh Save
-  // only applies to steps that actually change resources/kinds.
+  // EXPLICIT SAVE, NOT KEYSTROKE WRITES: the editor holds a LOCAL DRAFT (a
+  // standalone clone — see config/friaScenario.js's cloneFriaScenario) while
+  // editing; none of the mutators below run until the editor's Save button
+  // commits the whole draft in one shot, and Cancel simply discards the
+  // draft client-side, no store call at all. This is what lets a cancelled
+  // edit — including a cancelled brand-new scenario — leave no trace:
+  // createFriaScenario takes the already-built draft object and is only ever
+  // invoked from Save, never eagerly when the editor opens, so a cancelled
+  // create never touches this array.
+  //
+  // Still no touch(): these mutators carry no resource-graph, kind, or
+  // effective-access implications, whether called once per Save (now) or
+  // once per keystroke (the old per-section-step editors) — touch() is
+  // reserved for steps that actually change resources/kinds.
   function friaScenariosFor(projectId) {
     return governanceValues(projectId, 'fria-scenarios').scenarios || []
   }
@@ -921,12 +927,18 @@ export const useProjectsStore = defineStore('projects', () => {
     step.values = { ...step.values, scenarios }
   }
 
-  function createFriaScenario(projectId) {
-    const scenario = newFriaScenario()
+  // Commit an already-built scenario (the editor's local draft) as a new
+  // entry. Takes the full scenario object rather than building one itself —
+  // see the header comment above for why that matters for cancelled creates.
+  function createFriaScenario(projectId, scenario) {
     setFriaScenarios(projectId, [...friaScenariosFor(projectId), scenario])
     return scenario.id
   }
 
+  // Commit an already-built scenario (the editor's local draft) over an
+  // existing entry, replacing it wholesale — the draft carries the full
+  // shape, not a sparse patch, since the editor clones the whole scenario
+  // up front (see FriaScenarioEditor.vue).
   function updateFriaScenario(projectId, scenarioId, patch) {
     setFriaScenarios(
       projectId,

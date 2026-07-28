@@ -54,16 +54,20 @@ export const STEPS = [
     tab: 'govern',
   },
   // --- FRIA (Fundamental Rights Impact Assessment, EU AI Act Art. 27) -----
-  // Several Govern steps, one per section of the design mockup (see
-  // client/web/unify/src/sections/project/components/wizard/steps/Fria*.vue):
-  // a determination step (the AI Act deployer-category questions, moved here
-  // from the create flow per the 2026-07-28 ruling), a scenario list/summary
-  // step, and five section-editor steps that each edit one slice of whichever
-  // scenario is currently active (see composables/useFriaActiveScenario.js —
-  // the `scenario` route query param threads the active scenario id through
-  // all five, since there can be many scenarios per project but the mockup's
-  // five sections are one continuous per-scenario form). All FRIA copy lives
-  // in locale/en/human-webapp/fria.yaml, not project.yaml, on purpose.
+  // Exactly two Govern steps (ruled 2026-07-28 — a scenario's five sections
+  // all describe ONE record, so they belong on that record's own screen, not
+  // five separate nav entries): a determination step (the AI Act deployer-
+  // category questions, moved here from the create flow) and a scenario
+  // step. The scenario step's body switches between the scenario list and a
+  // single scrolling per-scenario editor (see
+  // components/wizard/steps/FriaScenariosStep.vue and
+  // components/wizard/fria/FriaScenarioEditor.vue, which stacks the design
+  // mockup's five sections as headed regions on one page) — which of the two
+  // it shows is driven by composables/useFriaActiveScenario.js's `scenario`
+  // route query param, so an open scenario stays deep-linkable and back/
+  // forward still work, without needing a nav entry per section. All FRIA
+  // copy lives in locale/en/human-webapp/fria.yaml, not project.yaml, on
+  // purpose.
   {
     key: 'fria-determination',
     labelKey: 'fria.steps.determination.label',
@@ -76,41 +80,6 @@ export const STEPS = [
     labelKey: 'fria.steps.scenarios.label',
     type: 'fria-scenarios',
     icon: 'pi-table',
-    tab: 'govern',
-  },
-  {
-    key: 'fria-harm',
-    labelKey: 'fria.steps.harm.label',
-    type: 'fria-scenario',
-    icon: 'pi-exclamation-triangle',
-    tab: 'govern',
-  },
-  {
-    key: 'fria-trigger',
-    labelKey: 'fria.steps.trigger.label',
-    type: 'fria-scenario',
-    icon: 'pi-bolt',
-    tab: 'govern',
-  },
-  {
-    key: 'fria-parties',
-    labelKey: 'fria.steps.parties.label',
-    type: 'fria-scenario',
-    icon: 'pi-users',
-    tab: 'govern',
-  },
-  {
-    key: 'fria-rights',
-    labelKey: 'fria.steps.rights.label',
-    type: 'fria-scenario',
-    icon: 'pi-verified',
-    tab: 'govern',
-  },
-  {
-    key: 'fria-vectors',
-    labelKey: 'fria.steps.vectors.label',
-    type: 'fria-scenario',
-    icon: 'pi-sitemap',
     tab: 'govern',
   },
   {

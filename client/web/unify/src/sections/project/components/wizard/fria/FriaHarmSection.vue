@@ -1,5 +1,13 @@
 <template>
-  <FriaScenarioEditorShell :project="project" :disabled="disabled" v-slot="{ scenario, update }">
+  <!-- § 1 of the scenario editor — content moved verbatim from the old
+       fria-harm wizard step (components/wizard/steps/FriaHarmStep.vue,
+       removed) when the five per-section steps were folded into this single
+       scrolling editor; see FriaScenarioEditor.vue. -->
+  <FriaScenarioSection
+    :number="number"
+    :title="$t('fria.sections.harm.title')"
+    :description="$t('fria.sections.harm.description')"
+  >
     <div class="flex flex-col gap-6 max-w-3xl">
       <div class="flex items-start gap-3 rounded-lg border border-surface bg-emphasis p-4">
         <i class="pi pi-info-circle text-primary mt-0.5" />
@@ -57,18 +65,22 @@
         </div>
       </CFormGroup>
     </div>
-  </FriaScenarioEditorShell>
+  </FriaScenarioSection>
 </template>
 
 <script setup>
-import FriaScenarioEditorShell from '@/sections/project/components/wizard/fria/FriaScenarioEditorShell.vue'
+import FriaScenarioSection from './FriaScenarioSection.vue'
 import {
   FRIA_SEVERITY_CARD_CLASSES,
   FRIA_SEVERITY_LEVELS,
 } from '@/sections/project/config/friaScenario'
 
 defineProps({
-  project: { type: Object, required: true },
+  number: { type: [Number, String], required: true },
+  // The local draft being edited (see FriaScenarioEditor.vue) — NOT written
+  // straight to the store; `update` merges a patch into that draft only.
+  scenario: { type: Object, required: true },
+  update: { type: Function, required: true },
   disabled: { type: Boolean, default: false },
 })
 </script>

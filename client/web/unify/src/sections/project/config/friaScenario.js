@@ -1,19 +1,21 @@
 // Session-local FRIA risk-scenario data shape + small display helpers shared
-// by the scenario list step and the five section-editor steps (see
-// components/wizard/steps/Fria*.vue and components/wizard/fria/*). Scenario
-// STORAGE itself lives in stores/projects.js governanceByProject, under the
-// well-known 'fria-scenarios' step key's values.scenarios array (see that
-// file's "FRIA risk scenarios" section) — this file only shapes a fresh
-// scenario and derives display-only values; it holds no state of its own.
+// by the scenario list and the single-page scenario editor's five section
+// components (see components/wizard/steps/FriaScenariosStep.vue and
+// components/wizard/fria/*). Scenario STORAGE itself lives in
+// stores/projects.js governanceByProject, under the well-known
+// 'fria-scenarios' step key's values.scenarios array (see that file's "FRIA
+// risk scenarios" section) — this file only shapes a fresh/cloned scenario
+// and derives display-only values; it holds no state of its own.
 
-// A fresh, empty scenario — the shape every FRIA section-editor step reads a
-// slice of and patches via stores/projects.js updateFriaScenario. Field
-// groups mirror the design mockup's five numbered sections 1:1:
-//   1 title/description/severity   (FriaHarmStep)
-//   2 triggerTypes/triggerDescription   (FriaTriggerStep)
-//   3 impactedParties/vulnerableGroups/vulnerableGroupsNotes  (FriaPartiesStep)
-//   4 rights   (FriaRightsStep)
-//   5 harmVectors/harmVectorsDescription   (FriaVectorsStep)
+// A fresh, empty scenario — the shape the editor seeds a new draft from (see
+// FriaScenarioEditor.vue) and every section component reads a slice of and
+// patches via its `update` prop. Field groups mirror the design mockup's
+// five numbered sections 1:1:
+//   1 title/description/severity   (FriaHarmSection)
+//   2 triggerTypes/triggerDescription   (FriaTriggerSection)
+//   3 impactedParties/vulnerableGroups/vulnerableGroupsNotes  (FriaPartiesSection)
+//   4 rights   (FriaRightsSection)
+//   5 harmVectors/harmVectorsDescription   (FriaVectorsSection)
 export function newFriaScenario() {
   return {
     id: `fria-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
@@ -28,6 +30,22 @@ export function newFriaScenario() {
     rights: [], // config/friaTaxonomies FUNDAMENTAL_RIGHTS keys
     harmVectors: [], // config/friaTaxonomies AI_HARM_VECTORS keys
     harmVectorsDescription: '',
+  }
+}
+
+// A standalone copy of a scenario — every array field copied too, so editing
+// the clone (the local draft — see components/wizard/fria/
+// FriaScenarioEditor.vue) can never mutate the store's version in place
+// before an explicit Save commits it. Field list mirrors newFriaScenario()
+// above 1:1.
+export function cloneFriaScenario(scenario) {
+  return {
+    ...scenario,
+    triggerTypes: [...(scenario.triggerTypes || [])],
+    impactedParties: [...(scenario.impactedParties || [])],
+    vulnerableGroups: [...(scenario.vulnerableGroups || [])],
+    rights: [...(scenario.rights || [])],
+    harmVectors: [...(scenario.harmVectors || [])],
   }
 }
 
