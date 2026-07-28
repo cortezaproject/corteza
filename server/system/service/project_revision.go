@@ -64,10 +64,23 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 	}
 
 	newRevision := parent.Revision + 1
-	revSlug := oldNs.Slug + "-rev" + strconv.Itoa(newRevision)
+	revSuffix := "-rev" + strconv.Itoa(newRevision)
+	// Root-derived fallback for an empty prefix. Projects are routinely created
+	// without a handle or slug (the create flow only collects name and
+	// description), and both of these are unique — so without this, EVERY
+	// project's first revision would want the same "-rev1" and only one project
+	// in the whole system could ever be revised.
+	rootFallback := "rev-" + strconv.FormatUint(rootID, 10) + revSuffix
+
+	revSlug := oldNs.Slug + revSuffix
 	// Envoy requires a non-empty slug for clone.
-	if revSlug == "-rev"+strconv.Itoa(newRevision) {
-		revSlug = "rev-" + strconv.FormatUint(rootID, 10) + "-" + strconv.Itoa(newRevision)
+	if revSlug == revSuffix {
+		revSlug = rootFallback
+	}
+
+	revHandle := parent.Handle + revSuffix
+	if revHandle == revSuffix {
+		revHandle = rootFallback
 	}
 
 	if svc.services.nsSvc == nil {
@@ -92,7 +105,7 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		ProjectID:        rootID,
 		ParentRevisionID: parent.ID,
 		Revision:         newRevision,
-		Handle:           parent.Handle + "-rev" + strconv.Itoa(newRevision),
+		Handle:           revHandle,
 		Status:           types.ProjectStatusDraft,
 		Meta:             parent.Meta,
 		Config:           parent.Config,
