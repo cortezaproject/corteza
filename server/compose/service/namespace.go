@@ -890,7 +890,24 @@ func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup 
 
 	// Scope every child resource type to the source namespace, otherwise the
 	// decode returns only the namespace shell and the clone (used by project
-	// revision/publish) loses all modules, fields, pages, layouts and charts.
+	// revision/publish) loses all modules, pages, layouts and charts.
+	//
+	// ModuleField is deliberately NOT listed here. StoreDecoder already
+	// attaches each module's fields as nested children when it decodes
+	// ModuleResourceType (see extendedModuleDecoder in
+	// compose/envoy/store_decode.go), properly scoped by ModuleID. Adding
+	// ModuleFieldResourceType as its own top-level entry decodes it a
+	// second time via makeModuleFieldFilter, which — unlike its sibling
+	// filter builders — ignores the scope it's given and so returns every
+	// module field in the store. Those duplicate/foreign field nodes ride
+	// along through Bake/Encode and, since the destination namespace does
+	// not exist yet when Prepare runs (so matchupModuleFields never matches
+	// them against an existing row), each duplicate gets its own fresh ID
+	// and is upserted alongside the correctly-scoped copy — tripping the
+	// (name, module_id) unique index on module_field. See
+	// TestCloneNamespace_WithModuleField in tests/envoy for a regression
+	// test. The working import/export filter (tests/envoy/import_export_test.go)
+	// has never listed ModuleFieldResourceType for this same reason.
 	nsScope := envoyx.ResourceFilter{
 		Scope: envoyx.Scope{
 			ResourceType: types.NamespaceResourceType,
@@ -906,12 +923,11 @@ func (svc namespace) CloneFromStore(ctx context.Context, sourceNsID uint64, dup 
 				"dal":    dal.Service(),
 			},
 			Filter: map[string]envoyx.ResourceFilter{
-				types.NamespaceResourceType:   {Identifiers: envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID)},
-				types.ModuleResourceType:      nsScope,
-				types.ModuleFieldResourceType: nsScope,
-				types.PageResourceType:        nsScope,
-				types.PageLayoutResourceType:  nsScope,
-				types.ChartResourceType:       nsScope,
+				types.NamespaceResourceType:  {Identifiers: envoyx.MakeIdentifiers(srcNs.Slug, sourceNsID)},
+				types.ModuleResourceType:     nsScope,
+				types.PageResourceType:       nsScope,
+				types.PageLayoutResourceType: nsScope,
+				types.ChartResourceType:      nsScope,
 			},
 		})
 		return nn, err
