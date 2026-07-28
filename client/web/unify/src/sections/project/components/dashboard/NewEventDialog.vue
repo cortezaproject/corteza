@@ -77,6 +77,7 @@
 
 <script setup>
 import GovernanceForm from '@/sections/project/components/wizard/GovernanceForm.vue'
+import { useRevisionOptions } from '@/sections/project/composables/useRevisionOptions'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -86,6 +87,17 @@ const props = defineProps({
   schema: { type: Array, default: () => [] },
   // [{ label, value }] used to populate fields flagged `source: 'users'`.
   userOptions: { type: Array, default: () => [] },
+  // Offers the schema's revisionID field (config/eventForm.js REVISION_FIELD)
+  // at create time, letting the item be pre-assigned to a revision from the
+  // dashboard's chain-wide "+ New" flow. Left false (the default) by
+  // board-scoped callers — the wizard board's quick-add (ManageBoard.vue,
+  // unmodified) and CategoryPanel.vue's revision-scoped mode — whose create
+  // flow already assigns the new item to the open revision implicitly (see
+  // stores/events.js#add's trailing `revisionId` arg); showing a field there
+  // that gets silently overridden would only confuse. Editing an item always
+  // shows this field regardless (see EventDetailDialog) — this prop only
+  // gates CREATE.
+  allowRevisionSelect: { type: Boolean, default: false },
   // Async create handler owned by the parent (it holds the store + toast).
   // Called as `onCreate(payload, backlogTitles)` — `backlogTitles` is the
   // queued list of titles from the widget below (may be empty). Resolves
@@ -96,17 +108,29 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'created'])
 
 const { t } = useI18n()
+const { revisionOptions, ensureLoaded: ensureRevisionsLoaded } = useRevisionOptions()
 
 // Inject the dynamic user directory into any `source: 'users'` field so owner /
-// approver selects render names and yield user IDs.
+// approver selects render names and yield user IDs; inject the revision chain
+// into the `source: 'revisions'` field the same way. The revision field itself
+// is dropped entirely (not just disabled) when `allowRevisionSelect` is false,
+// so its `default: null` never seeds `model.revisionID` — an unshown field
+// must behave exactly as it did before this field existed (see the prop's own
+// comment).
 const resolvedSchema = computed(() =>
   props.schema.map(section => ({
     ...section,
-    fields: section.fields.map(f =>
-      f.source === 'users'
-        ? { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
-        : f,
-    ),
+    fields: section.fields
+      .filter(f => f.source !== 'revisions' || props.allowRevisionSelect)
+      .map(f => {
+        if (f.source === 'users') {
+          return { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
+        }
+        if (f.source === 'revisions') {
+          return { ...f, options: revisionOptions.value, optionLabel: 'label', optionValue: 'value' }
+        }
+        return f
+      }),
   })),
 )
 
@@ -176,6 +200,7 @@ watch(
       backlogDraft.value = []
       newBacklogTitle.value = ''
       submitted.value = false
+      if (props.allowRevisionSelect) ensureRevisionsLoaded()
     }
   },
 )

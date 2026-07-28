@@ -80,6 +80,28 @@ const title = {
   required: true,
 }
 
+// Revision-reference select — the item's `revisionID` (0/null = unassigned).
+// Work items carry a revision the way an issue carries a milestone
+// (project.intent.md "Dashboards"): filed against the project, assigned to a
+// revision, reassignable. `source: 'revisions'` mirrors the `user()` factory's
+// `source: 'users'` mechanism — GovernanceForm itself stays option-agnostic;
+// each consuming dialog (NewEventDialog/EventDetailDialog/BacklogItemDialog)
+// injects the project's revision chain as options at render time (see their
+// resolvedSchema + composables/useRevisionOptions.js), including an explicit
+// "Unassigned" entry (value null) so the field can clear an assignment, not
+// just set one. `default: null` seeds create-mode's model to that entry
+// whenever the field is shown (see the dialogs' `allowRevisionSelect` prop —
+// board-scoped create flows leave it unshown so their existing
+// context-assigns-the-revision behaviour is untouched; edit mode always shows
+// it, since reassigning an existing item is the point of this field).
+export const REVISION_FIELD = {
+  key: 'revisionID',
+  labelKey: `${p}revision`,
+  type: 'select',
+  source: 'revisions',
+  default: null,
+}
+
 // The five event categories shown in step 1 (label/desc are i18n keys, icon is
 // a PrimeIcons class). Order mirrors the reference demo.
 export const EVENT_CATEGORIES = [
@@ -149,6 +171,7 @@ export const EVENT_FORMS = {
         user('changeApprovedBy'),
         { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
         { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
+        REVISION_FIELD,
       ],
     },
   ],
@@ -195,6 +218,7 @@ export const EVENT_FORMS = {
         user('changeOwner'),
         user('changeApprovedBy'),
         { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
+        REVISION_FIELD,
       ],
     },
   ],
@@ -241,6 +265,7 @@ export const EVENT_FORMS = {
         user('changeOwner'),
         user('changeApprovedBy'),
         { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date', required: true },
+        REVISION_FIELD,
       ],
     },
   ],
@@ -270,6 +295,7 @@ export const EVENT_FORMS = {
         user('changeOwner'),
         { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
         { key: 'completedDate', labelKey: `${p}completedDate`, type: 'date' },
+        REVISION_FIELD,
       ],
     },
   ],
@@ -305,6 +331,7 @@ export const EVENT_FORMS = {
         status(STATUS),
         { key: 'dateDue', labelKey: `${p}dateDue`, type: 'date' },
         user('approvedBy'),
+        REVISION_FIELD,
       ],
     },
   ],

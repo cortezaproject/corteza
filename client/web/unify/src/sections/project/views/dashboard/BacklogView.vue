@@ -87,12 +87,21 @@
             @row-click="onRowClick"
           >
             <template #header>
-              <Button
-                icon="pi pi-plus"
-                :label="$t('project.dashboard.backlog.newButton')"
-                size="small"
-                @click="openCreate"
-              />
+              <div class="flex items-center gap-2 flex-wrap">
+                <Button
+                  icon="pi pi-plus"
+                  :label="$t('project.dashboard.backlog.newButton')"
+                  size="small"
+                  @click="openCreate"
+                />
+                <Chip
+                  v-if="filter.unassignedOnly"
+                  :label="$t('project.dashboard.revision.unassigned')"
+                  removable
+                  class="text-xs"
+                  @remove="filter.unassignedOnly = false"
+                />
+              </div>
             </template>
 
             <template #body-title="{ data }">
@@ -144,16 +153,44 @@
             <template #body-dateDue="{ data }">
               <span class="text-sm text-muted-color">{{ formatDate(data.dateDue) }}</span>
             </template>
+
+            <!-- Filter button — same icon-only shape + Popover idiom as every
+                 other CResourceList consumer (see ProjectList.vue). -->
+            <template #filter>
+              <Button
+                type="button"
+                icon="pi pi-filter"
+                severity="secondary"
+                size="small"
+                text
+                :aria-label="$t('project.dashboard.list.filters')"
+                v-tooltip.top="$t('project.dashboard.list.filters')"
+                @click="toggleFilterMenu"
+              />
+            </template>
           </CResourceList>
         </div>
+
+        <Popover ref="filterMenu">
+          <div class="flex items-center gap-2 p-2 w-56">
+            <Checkbox v-model="filter.unassignedOnly" inputId="unassignedOnlyFilter" binary />
+            <label for="unassignedOnlyFilter" class="text-sm cursor-pointer">
+              {{ $t('project.dashboard.list.unassignedFilter') }}
+            </label>
+          </div>
+        </Popover>
       </template>
     </div>
 
-    <!-- Create + row-click edit share one dialog — see BacklogItemDialog. -->
+    <!-- Create + row-click edit share one dialog — see BacklogItemDialog.
+         `allow-revision-select` offers the revisionID field on create too —
+         this view is always chain-wide (no revisionId/board scope exists
+         here), same as CategoryPanel's dashboard-mode "+ New". -->
     <BacklogItemDialog
       v-model:visible="dialogVisible"
       :record="selectedItem"
       :user-options="eventsStore.ownerOptions"
+      allow-revision-select
       :on-save="onSave"
       :on-delete="onDelete"
     />
@@ -244,7 +281,11 @@ const formatDate = v => {
   return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString()
 }
 
-const filter = reactive({ query: '' })
+const filter = reactive({ query: '', unassignedOnly: false })
+const filterMenu = ref()
+function toggleFilterMenu(event) {
+  filterMenu.value?.toggle(event)
+}
 const sorting = reactive({ sortBy: 'dateDue', sortDesc: true })
 const pagination = reactive({
   limit: 50,
@@ -318,9 +359,11 @@ const fields = computed(() => [
 
 // Client-side query filter across the item's string values.
 const filteredItems = computed(() => {
+  let list = store.items
+  if (filter.unassignedOnly) list = list.filter(item => revisionInfo(item.revisionID).unassigned)
   const q = (filter.query || '').trim().toLowerCase()
-  if (!q) return store.items
-  return store.items.filter(item =>
+  if (!q) return list
+  return list.filter(item =>
     Object.values(item).some(v => typeof v === 'string' && v.toLowerCase().includes(q)),
   )
 })
@@ -504,6 +547,7 @@ watch(
   () => route.params.projectId,
   () => {
     filter.query = ''
+    filter.unassignedOnly = false
     dialogVisible.value = false
     drawerVisible.value = false
     eventDialogVisible.value = false

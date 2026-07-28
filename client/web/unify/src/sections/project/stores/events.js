@@ -189,10 +189,15 @@ export const useEventsStore = defineStore('events', () => {
   // are user IDs (from the picker). `revisionId` is optional: the Manage &
   // Monitor board's quick-add (components/wizard/manage/ManageBoard.vue)
   // passes the open revision so the new card doesn't vanish the instant it's
-  // created (items default unassigned otherwise — see load()'s comment).
-  // WIP: the generated client already carries `revisionID` on this endpoint,
-  // but the backend doesn't persist it yet (concurrent slice in flight) — the
-  // value is sent regardless so this starts working the moment it lands.
+  // created (items default unassigned otherwise — see load()'s comment). It
+  // takes precedence over anything in `payload.revisionID` — a board-scoped
+  // create always lands on the board's own revision regardless of what a
+  // (normally hidden, see NewEventDialog's allowRevisionSelect) form field
+  // would say. When `revisionId` is absent, `payload.revisionID` is used
+  // instead — the dashboard's chain-wide "+ New" flow lets the revision field
+  // itself (config/eventForm.js REVISION_FIELD) pre-assign the item, INCLUDING
+  // explicitly to null/unassigned (its own default), which is why this reads
+  // `payload.revisionID` even when falsy rather than requiring it truthy.
   // Returns the mapped event.
   async function add(cat, payload = {}, revisionId) {
     const cfg = CATS[cat]
@@ -202,7 +207,7 @@ export const useEventsStore = defineStore('events', () => {
       {
         ...payload,
         projectID: pid,
-        revisionID: revisionId || undefined,
+        revisionID: revisionId || payload.revisionID || undefined,
         status: payload.status || 'Open',
       },
       DATE_KEYS,

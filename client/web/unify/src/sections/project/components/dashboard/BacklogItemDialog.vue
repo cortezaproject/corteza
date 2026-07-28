@@ -77,8 +77,9 @@
 import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import GovernanceForm from '@/sections/project/components/wizard/GovernanceForm.vue'
+import { useRevisionOptions } from '@/sections/project/composables/useRevisionOptions'
 import { CATEGORY_CONFIG, CATEGORY_ORDER } from '@/sections/project/config/categories'
-import { EVENT_STATUS } from '@/sections/project/config/eventForm'
+import { EVENT_STATUS, REVISION_FIELD } from '@/sections/project/config/eventForm'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
@@ -96,6 +97,12 @@ const props = defineProps({
   lockedEvent: { type: Object, default: null },
   // [{ label, value }] used to populate the assignee field.
   userOptions: { type: Array, default: () => [] },
+  // Offers the revisionID field (config/eventForm.js REVISION_FIELD) at
+  // create time, letting the item be pre-assigned to a revision — mirrors
+  // NewEventDialog's own prop of the same name/contract. EDIT mode (a record
+  // is set) always shows the field regardless of this prop — see
+  // showRevisionField below.
+  allowRevisionSelect: { type: Boolean, default: false },
   // Async save/delete handlers owned by the parent (it holds the stores +
   // toast + create/update branching — see views/dashboard/BacklogView.vue).
   // `onSave(id, payload)` — `id` is null in create mode. Resolve truthy on
@@ -109,6 +116,16 @@ const emit = defineEmits(['update:visible', 'saved', 'deleted'])
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const eventsStore = useEventsStore()
+const { revisionOptions, ensureLoaded: ensureRevisionsLoaded } = useRevisionOptions()
+
+// Editing an existing item always offers reassignment (the point of this
+// field — project.intent.md "Dashboards": work items are "reassignable");
+// create mode only offers it when the parent opts in (see allowRevisionSelect
+// above) — board-scoped add flows (EventDetailDrawer's "Add item" while a
+// revisionId is open) leave it off so their existing implicit-assignment
+// behaviour (stores/backlogItems.js#add's trailing `revisionId` arg) is
+// untouched.
+const showRevisionField = computed(() => !!props.record || props.allowRevisionSelect)
 
 const PRIORITY_OPTIONS = ['High', 'Medium', 'Low']
 
@@ -203,20 +220,31 @@ const schema = computed(() => [
         labelKey: 'project.dashboard.event.f.dateDue',
         type: 'date',
       },
+      REVISION_FIELD,
     ],
   },
 ])
 
-// Inject the dynamic user directory into the assignee field, same mechanism
-// as NewEventDialog/EventDetailDialog.
+// Inject the dynamic user directory into the assignee field and the revision
+// chain into the revisionID field, same mechanism as NewEventDialog/
+// EventDetailDialog. The revision field is dropped entirely (not just
+// disabled) when showRevisionField is false, so its `default: null` never
+// seeds `model.revisionID` — an unshown field must behave exactly as it did
+// before this field existed.
 const resolvedSchema = computed(() =>
   schema.value.map(section => ({
     ...section,
-    fields: section.fields.map(f =>
-      f.source === 'users'
-        ? { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
-        : f,
-    ),
+    fields: section.fields
+      .filter(f => f.source !== 'revisions' || showRevisionField.value)
+      .map(f => {
+        if (f.source === 'users') {
+          return { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
+        }
+        if (f.source === 'revisions') {
+          return { ...f, options: revisionOptions.value, optionLabel: 'label', optionValue: 'value' }
+        }
+        return f
+      }),
   })),
 )
 
@@ -239,6 +267,7 @@ function buildModel() {
       priority: null,
       status: null,
       dateDue: null,
+      revisionID: null,
     }
     for (const section of resolvedSchema.value) {
       for (const f of section.fields) {
@@ -248,6 +277,10 @@ function buildModel() {
     return m
   }
   const d = r.dateDue ? new Date(r.dateDue) : null
+  // revisionID comes back raw ("0" or blank for unassigned — see
+  // stores/backlogItems.js#mapRow, which spreads the raw row through
+  // untouched) — normalized to null to match the field's "Unassigned" option
+  // value (see composables/useRevisionOptions.js).
   return {
     category: r.category || '',
     eventID: r.eventID != null ? String(r.eventID) : null,
@@ -257,6 +290,7 @@ function buildModel() {
     priority: r.priority || 'Medium',
     status: r.status || 'Open',
     dateDue: d && !Number.isNaN(d.getTime()) ? d : null,
+    revisionID: r.revisionID && String(r.revisionID) !== '0' ? String(r.revisionID) : null,
   }
 }
 
@@ -295,6 +329,7 @@ watch(
     if (v) {
       model.value = buildModel()
       submitted.value = false
+      if (showRevisionField.value) ensureRevisionsLoaded()
     }
   },
 )

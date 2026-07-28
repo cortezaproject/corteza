@@ -68,6 +68,7 @@
 import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import GovernanceForm from '@/sections/project/components/wizard/GovernanceForm.vue'
+import { useRevisionOptions } from '@/sections/project/composables/useRevisionOptions'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { useConfirmDelete } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
@@ -92,20 +93,29 @@ const emit = defineEmits(['update:visible', 'saved', 'deleted'])
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { revisionOptions, ensureLoaded: ensureRevisionsLoaded } = useRevisionOptions()
 
 const cfg = computed(() => CATEGORY_CONFIG[props.category] || null)
 const schema = computed(() => cfg.value?.formSchema || [])
 
 // Inject the dynamic user directory into any `source: 'users'` field so owner /
 // approver selects render names and yield user IDs — same as NewEventDialog.
+// The revisionID field (config/eventForm.js REVISION_FIELD) is injected the
+// same way and always kept — unlike NewEventDialog's create flow, editing an
+// existing item always offers reassignment (that is the point of this field;
+// see project.intent.md "Dashboards" — work items are "reassignable").
 const resolvedSchema = computed(() =>
   schema.value.map(section => ({
     ...section,
-    fields: section.fields.map(f =>
-      f.source === 'users'
-        ? { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
-        : f,
-    ),
+    fields: section.fields.map(f => {
+      if (f.source === 'users') {
+        return { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
+      }
+      if (f.source === 'revisions') {
+        return { ...f, options: revisionOptions.value, optionLabel: 'label', optionValue: 'value' }
+      }
+      return f
+    }),
   })),
 )
 
@@ -114,8 +124,13 @@ const resolvedSchema = computed(() =>
 const model = ref({})
 
 // User-select fields carry the record's raw id (mapRow keeps it under
-// `<key>Id`) rather than the resolved display name; date fields need a Date
-// object for the picker. Everything else is the raw record value as-is.
+// `<key>Id`) rather than the resolved display name; the revision field carries
+// the raw revisionID (a project row's projectID) or null for unassigned — the
+// raw value comes back as "0" (or blank) for unassigned records (see
+// stores/events.js#mapRow, which spreads the raw row through untouched) so
+// both are normalized to null to match the field's "Unassigned" option value
+// (see composables/useRevisionOptions.js). Date fields need a Date object for
+// the picker. Everything else is the raw record value as-is.
 function buildModel() {
   const r = props.record
   const m = {}
@@ -123,6 +138,9 @@ function buildModel() {
     for (const f of section.fields) {
       if (f.source === 'users') {
         m[f.key] = r?.[`${f.key}Id`] || null
+      } else if (f.source === 'revisions') {
+        const rid = r?.[f.key]
+        m[f.key] = rid && String(rid) !== '0' ? String(rid) : null
       } else if (f.type === 'date') {
         const d = r?.[f.key] ? new Date(r[f.key]) : null
         m[f.key] = d && !Number.isNaN(d.getTime()) ? d : null
@@ -159,6 +177,7 @@ watch(
     if (v) {
       model.value = buildModel()
       submitted.value = false
+      ensureRevisionsLoaded()
     }
   },
 )

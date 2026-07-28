@@ -165,14 +165,29 @@
         @sort="onSort"
         @row-click="onRowClick"
       >
-        <!-- New-item action lives in the list toolbar. -->
+        <!-- New-item action + active-filter chips live in the list toolbar's
+             left side (CResourceList toolbar convention: chips left; filter →
+             refresh → search right). The Unassigned chip/filter only makes
+             sense chain-wide — revision-scoped mode (the wizard board) never
+             loads an unassigned row in the first place (its list call is
+             scoped to one revisionID), same reason the revisionID column
+             itself is hidden there (see `fields` below). -->
         <template #header>
-          <Button
-            icon="pi pi-plus"
-            :label="$t('project.dashboard.newButton', { type: $t(cfg.singularKey) })"
-            size="small"
-            @click="dialogVisible = true"
-          />
+          <div class="flex items-center gap-2 flex-wrap">
+            <Button
+              icon="pi pi-plus"
+              :label="$t('project.dashboard.newButton', { type: $t(cfg.singularKey) })"
+              size="small"
+              @click="dialogVisible = true"
+            />
+            <Chip
+              v-if="!isRevisionScoped && filter.unassignedOnly"
+              :label="$t('project.dashboard.revision.unassigned')"
+              removable
+              class="text-xs"
+              @remove="filter.unassignedOnly = false"
+            />
+          </div>
         </template>
 
         <!-- One dynamic #body-<col.key> slot per configured column. -->
@@ -227,15 +242,45 @@
             class="!text-xs"
           />
         </template>
+
+        <!-- Filter button — same icon-only shape + Popover idiom as every
+             other CResourceList consumer (see ProjectList.vue). Chain-wide
+             only, same reasoning as the chip above. -->
+        <template v-if="!isRevisionScoped" #filter>
+          <Button
+            type="button"
+            icon="pi pi-filter"
+            severity="secondary"
+            size="small"
+            text
+            :aria-label="$t('project.dashboard.list.filters')"
+            v-tooltip.top="$t('project.dashboard.list.filters')"
+            @click="toggleFilterMenu"
+          />
+        </template>
       </CResourceList>
     </div>
 
-    <!-- New-item dialog — reuses the per-category GovernanceForm schema. -->
+    <Popover v-if="!isRevisionScoped" ref="filterMenu">
+      <div class="flex items-center gap-2 p-2 w-56">
+        <Checkbox v-model="filter.unassignedOnly" inputId="unassignedOnlyFilter" binary />
+        <label for="unassignedOnlyFilter" class="text-sm cursor-pointer">
+          {{ $t('project.dashboard.list.unassignedFilter') }}
+        </label>
+      </div>
+    </Popover>
+
+    <!-- New-item dialog — reuses the per-category GovernanceForm schema.
+         `allow-revision-select` offers the revisionID field only chain-wide —
+         revision-scoped creation (the wizard board) already assigns the new
+         item to the open revision implicitly (see onCreate's `props.revisionId`
+         below); see NewEventDialog's own prop comment for the full reasoning. -->
     <NewEventDialog
       v-model:visible="dialogVisible"
       :category="category"
       :schema="cfg.formSchema"
       :user-options="store.ownerOptions"
+      :allow-revision-select="!isRevisionScoped"
       :on-create="onCreate"
     />
 
@@ -250,7 +295,7 @@
       :category="category"
       :record="selectedEvent"
       :user-options="store.ownerOptions"
-      :revision-id="revisionId"
+      :revision-id="props.revisionId"
       @edit="editVisible = true"
     />
 
@@ -693,7 +738,14 @@ const actionItemsFor = row => [
   },
 ]
 
-const filter = reactive({ query: '' })
+// `unassignedOnly` only applies chain-wide (see the #filter slot's v-if) —
+// revision-scoped mode never has an unassigned row to begin with (its store
+// load is itself scoped to one revisionID).
+const filter = reactive({ query: '', unassignedOnly: false })
+const filterMenu = ref()
+function toggleFilterMenu(event) {
+  filterMenu.value?.toggle(event)
+}
 const sorting = reactive({ sortBy: 'dateDue', sortDesc: true })
 const pagination = reactive({
   limit: 50,
@@ -730,7 +782,10 @@ const formatDate = v => {
 
 // Client-side query filter across the item's string values.
 const filteredItems = computed(() => {
-  const list = cfg.value ? store.byCategory(category.value) : []
+  let list = cfg.value ? store.byCategory(category.value) : []
+  if (!isRevisionScoped.value && filter.unassignedOnly) {
+    list = list.filter(item => revisionInfo(item.revisionID).unassigned)
+  }
   const q = (filter.query || '').trim().toLowerCase()
   if (!q) return list
   return list.filter(item =>
@@ -786,6 +841,7 @@ const onSort = ({ sortField, sortOrder }) => {
 // page starts clean (store data stays live).
 watch(category, () => {
   filter.query = ''
+  filter.unassignedOnly = false
   dialogVisible.value = false
   drawerVisible.value = false
   editVisible.value = false

@@ -32,6 +32,12 @@ there).
   events with actors batch-resolved; `actorName` resolves an actor for
   display. Single definition shared by the Overview activity band and
   AllEventsView's metrics band — do not fork it.
+- `useRevisionLabel.js` / `useRevisionOptions.js` — the revision chain as
+  display labels and as select options. Both READ the projects store's
+  `revisionsFor`/`listRevisions` and resolve the chain root themselves, so a
+  view never has to know whether it holds a root or a later revision. Options
+  include an explicit Unassigned entry (value `null`) — clearing an
+  assignment is as valid as setting one.
 
 ## Data touched
 

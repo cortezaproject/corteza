@@ -47,7 +47,25 @@
               {{ $t(field.labelKey) }}
             </div>
             <span
-              v-if="badgeVariant(field) === 'risk' && record?.[field.key]"
+              v-if="field.source === 'revisions'"
+              class="inline-flex items-center gap-1"
+            >
+              <span
+                v-if="revisionInfo(record?.[field.key]).unassigned"
+                class="inline-flex items-center gap-1 text-xs text-muted-color italic"
+              >
+                <i class="pi pi-question-circle" />
+                {{ revisionInfo(record?.[field.key]).label }}
+              </span>
+              <Tag
+                v-else
+                :value="revisionInfo(record?.[field.key]).label"
+                :severity="revisionInfo(record?.[field.key]).severity"
+                class="!text-xs"
+              />
+            </span>
+            <span
+              v-else-if="badgeVariant(field) === 'risk' && record?.[field.key]"
               class="flex items-center gap-2"
             >
               <RiskPips :level="record[field.key]" />
@@ -120,13 +138,20 @@
   <!-- Add/inspect flow — the full create/edit dialog, pre-scoped to this
        record via `lockedEvent` (hides the category/linked-event selects; see
        BacklogItemDialog). "Add item" opens it blank; clicking a list row
-       opens it on that item for inspect/edit/delete. -->
+       opens it on that item for inspect/edit/delete. `allow-revision-select`
+       only offers the revisionID field on create when this drawer itself is
+       chain-wide (no `revisionId` prop) — when the drawer is board-scoped
+       (the wizard board passes its open revision), a new item is already
+       assigned to it implicitly (see onBacklogItemSave's add() call below),
+       same reasoning as CategoryPanel's own NewEventDialog usage. Edit mode
+       always shows the field regardless (BacklogItemDialog's own contract). -->
   <BacklogItemDialog
     v-if="cfg"
     v-model:visible="itemDialogVisible"
     :record="selectedBacklogItem"
     :locked-event="lockedEvent"
     :user-options="userOptions"
+    :allow-revision-select="!props.revisionId"
     :on-save="onBacklogItemSave"
     :on-delete="onBacklogItemDelete"
   />
@@ -138,6 +163,7 @@ import DialogEyebrow from '@/sections/project/components/DialogEyebrow.vue'
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import KindIcon from '@/sections/project/components/KindIcon.vue'
 import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
+import { useRevisionLabel } from '@/sections/project/composables/useRevisionLabel'
 import { CATEGORY_CONFIG } from '@/sections/project/config/categories'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useConfirmDelete } from '@planetcrust/human-vue'
@@ -166,6 +192,7 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const backlogStore = useBacklogItemsStore()
 const { confirmDelete } = useConfirmDelete()
+const { revisionInfo } = useRevisionLabel()
 
 const cfg = computed(() => CATEGORY_CONFIG[props.category] || null)
 

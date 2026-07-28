@@ -71,6 +71,8 @@ dashboard:
   overview:
     error: Couldn't load the project overview. Please try again.
     retry: Retry
+    # Heading above the KPI trio when the overview is scoped to one revision.
+    kpiHeading: Key numbers
   # Real action-log view (All Events), rendered as an activity timeline.
   # Filter/severity/detail labels are reused from system.actionlog.list.*; only
   # the header, timeline chrome and empty states live here.
@@ -165,10 +167,17 @@ dashboard:
     severity: Severity
     risk: Risk
     revision: Revision
-  # CResourceList chrome for category pages.
+  # CResourceList chrome for category pages, shared by BacklogView.vue's own
+  # list (same toolbar idiom: chips left; filter → refresh → search right).
   list:
     searchPlaceholder: 'Search…'
     empty: 'Nothing here yet.'
+    # Filter button (icon-only) + its popover, and the removable chip shown
+    # in the toolbar's left side while the filter is active — the chip label
+    # reuses `dashboard.revision.unassigned` so the wording matches the
+    # revision column's own unassigned state exactly.
+    filters: Filters
+    unassignedFilter: Show unassigned items only
   categories:
     incident: Incidents
     feature: Features
@@ -281,6 +290,12 @@ dashboard:
       scope: Scope & Objectives
       reviewer: Reviewer
       approvedBy: Approved By
+      # The revision this item is assigned to (config/eventForm.js
+      # REVISION_FIELD) — shared by every category's New/Detail form plus
+      # BacklogItemDialog. Options are the project's revision chain, labeled
+      # the same 1-based way as `dashboard.version`, plus an explicit
+      # `dashboard.revision.unassigned` entry to clear the assignment.
+      revision: Revision
     # Placeholder text for the New Event forms above. Shared fields (title) have
     # one entry; fields whose hint text differs per category (description,
     # changeRequired, riskChange) are nested under that category.
@@ -314,11 +329,17 @@ manage:
     monitor: Monitor
     categories: Categories
   views:
+    overview: Overview
     board: Board
-    metrics: Metrics
     activity: Activity
-  # Placeholder body for the sections that aren't built yet (metrics,
-  # activity, the five per-category panels) — see components/wizard/manage/
+  # The overview panel — components/dashboard/OverviewPanel.vue, shared with
+  # the live dashboard and scoped to the open revision here. It replaced the
+  # separate Metrics panel (retired 2026-07-28).
+  overview:
+    blurb: Work items assigned to this revision, summarized by category, key numbers and activity
+      over time.
+  # Placeholder body for the sections that aren't built yet (activity, the
+  # five per-category panels) — see components/wizard/manage/
   # ManagePlaceholder.vue.
   panel:
     comingSoon: This section isn't built yet.

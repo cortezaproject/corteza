@@ -77,17 +77,23 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
   // unassigned); dates are Date objects from the picker. `revisionId` is
   // optional, same contract as events.js#add — the Manage & Monitor board's
   // quick-add (ManageBoard.vue) passes the open revision so items queued via
-  // NewEventDialog's inline backlog widget land assigned too. WIP: sent
-  // regardless of backend support landing yet, same note as events.js#add.
-  // Returns the mapped item and prepends it to the local list so callers
-  // relying on the flat list (byEvent/openCount) react without a refetch.
+  // NewEventDialog's inline backlog widget land assigned too, taking
+  // precedence over `payload.revisionID` when set. When absent,
+  // `payload.revisionID` is used instead — BacklogItemDialog's own
+  // revisionID field (config/eventForm.js REVISION_FIELD, shown whenever
+  // `allowRevisionSelect` is set — see BacklogView.vue/EventDetailDrawer.vue)
+  // lets the dashboard's chain-wide create flows pre-assign the item,
+  // including explicitly to null/unassigned, hence reading it even when
+  // falsy. Returns the mapped item and prepends it to the local list so
+  // callers relying on the flat list (byEvent/openCount) react without a
+  // refetch.
   async function add(payload = {}, revisionId) {
     const pid = currentProjectId.value
     const body = normalizeDates(
       {
         ...payload,
         projectID: pid,
-        revisionID: revisionId || undefined,
+        revisionID: revisionId || payload.revisionID || undefined,
         status: payload.status || 'Open',
       },
       DATE_KEYS,

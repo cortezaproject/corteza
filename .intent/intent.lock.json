@@ -1297,9 +1297,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/dashboard/BacklogItemDialog.vue": {
-      "h": "6b02514a382f",
+      "h": "1157c6da58b9",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/BacklogItemDrawer.vue": {
       "h": "f3704c464da7",
@@ -1317,7 +1317,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/dashboard/CategoryPanel.vue": {
-      "h": "3947d04ea28b",
+      "h": "3baf939cc704",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1347,12 +1347,12 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/dashboard/EventDetailDialog.vue": {
-      "h": "c448673c2077",
+      "h": "9a5bc888f748",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/EventDetailDrawer.vue": {
-      "h": "e1792151d8f1",
+      "h": "5299ed8cbbf4",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1377,9 +1377,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/dashboard/NewEventDialog.vue": {
-      "h": "3db09a17bb2f",
+      "h": "f413a7608ac6",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/RiskPips.vue": {
       "h": "a2934b25eabd",
@@ -1676,6 +1676,11 @@
       "doc": "client/web/unify/src/sections/project/composables/composables.intent.md",
       "t": "2026-07-28"
     },
+    "client/web/unify/src/sections/project/composables/useRevisionOptions.js": {
+      "h": "a4bc7712f89c",
+      "doc": "client/web/unify/src/sections/project/composables/composables.intent.md",
+      "t": "2026-07-28"
+    },
     "client/web/unify/src/sections/project/config/categories.js": {
       "h": "c55cef282784",
       "doc": "client/web/unify/src/sections/project/config/config.intent.md",
@@ -1697,7 +1702,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/config/eventForm.js": {
-      "h": "1b6000c7c700",
+      "h": "48d9c17602e8",
       "doc": "client/web/unify/src/sections/project/config/config.intent.md",
       "t": "2026-07-28"
     },
@@ -1767,7 +1772,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/stores/backlogItems.js": {
-      "h": "0e60f6dd96ac",
+      "h": "45c08de8e58b",
       "doc": "client/web/unify/src/sections/project/stores/backlogItems.intent.md",
       "t": "2026-07-28"
     },
@@ -1777,7 +1782,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/stores/events.js": {
-      "h": "81c8671e1664",
+      "h": "595b2221704b",
       "doc": "client/web/unify/src/sections/project/stores/events.intent.md",
       "t": "2026-07-28"
     },
@@ -1812,7 +1817,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/dashboard/BacklogView.vue": {
-      "h": "1c92783ca797",
+      "h": "78c9dc958ed8",
       "doc": "client/web/unify/src/sections/project/views/dashboard/BacklogView.intent.md",
       "t": "2026-07-28"
     },

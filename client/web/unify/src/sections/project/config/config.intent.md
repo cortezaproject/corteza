@@ -52,7 +52,10 @@ persist (statuses, AI Act options) stay literal.
 - `eventForm.js` — New Event form schemas per category + EVENT_STATUS;
   consumed by the GovernanceForm renderer. All five categories share one
   four-value status set (review included) so the M&M board's columns hold
-  every item type.
+  every item type. `REVISION_FIELD` assigns an item to a revision; like the
+  `user()` factory it carries a `source` the consuming dialog resolves at
+  render time, keeping GovernanceForm option-agnostic. Shown on edit always;
+  on create only where the surface isn't already implying a revision.
 - `friaTaxonomies.js` — the FRIA regulatory taxonomies (Charter rights by
   chapter, vulnerable groups, AI harm vectors, trigger conditions, impacted
   parties). Entry `key`s are persisted the moment a scenario stores a
