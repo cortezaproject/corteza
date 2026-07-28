@@ -103,6 +103,21 @@
           />
         </template>
       </span>
+
+      <!-- Revision completeness — a SIBLING of the publish cluster above, not
+           nested inside it: the cluster span keeps its own ml-auto untouched
+           (LOCKED, ruled 2026-07-24) and stays the thing that pushes the
+           right-hand group off the tabs; this bar simply follows it in DOM
+           order, riding that same push rightward, so it never needs its own
+           margin/wrap handling and the cluster's flex-wrap-to-its-own-row
+           behaviour carries both together unchanged. Always visible on every
+           tab (not gated on !isLive like the cluster) — see
+           RevisionCompletenessBar.vue. -->
+      <RevisionCompletenessBar
+        v-if="project"
+        :project-id="rootProjectId"
+        :revision-id="project.projectID"
+      />
     </div>
 
     <div v-if="activeTab !== 'manage'" class="flex-1 flex gap-4 p-3 min-h-0">
@@ -286,6 +301,7 @@
           :project="project"
           :disabled="locked"
           class="flex-1 min-h-0"
+          @category-selected="activeSection = $event"
         />
       </div>
     </div>
@@ -511,6 +527,7 @@ import ManageOverview from '@/sections/project/components/wizard/manage/ManageOv
 import ManagePrivacy from '@/sections/project/components/wizard/manage/ManagePrivacy.vue'
 import ManageReview from '@/sections/project/components/wizard/manage/ManageReview.vue'
 import ManageTask from '@/sections/project/components/wizard/manage/ManageTask.vue'
+import RevisionCompletenessBar from '@/sections/project/components/wizard/RevisionCompletenessBar.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import WizardToolbar from '@/sections/project/components/wizard/WizardToolbar.vue'
@@ -556,6 +573,11 @@ const $toast = inject('$toast')
 const confirm = useConfirm()
 
 const project = computed(() => store.findById(route.params.projectId))
+
+// Chain-root id — the report endpoint's required ProjectID scope, regardless
+// of the revisionId that narrows it (see RevisionCompletenessBar.vue / the
+// same derivation ManageOverview.vue uses for OverviewPanel).
+const rootProjectId = computed(() => project.value?.rootProjectID || project.value?.projectID)
 
 // A live (published) project has a dashboard to switch to; drafts are wizard-only.
 const isLive = computed(() => ['active', 'published'].includes(project.value?.status))

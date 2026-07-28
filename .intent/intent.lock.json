@@ -1402,7 +1402,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/dashboard/OverviewPanel.vue": {
-      "h": "9a4e738753c3",
+      "h": "e3f4552cfbfd",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-28"
     },
@@ -1617,7 +1617,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/manage/ManageOverview.vue": {
-      "h": "a393c2fb247c",
+      "h": "3aae911055ed",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
@@ -1645,6 +1645,11 @@
       "h": "c421d3a85d81",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-27"
+    },
+    "client/web/unify/src/sections/project/components/wizard/RevisionCompletenessBar.vue": {
+      "h": "4c563dd6845d",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/components/wizard/StepNav.vue": {
       "h": "77faaa19f631",
@@ -1937,7 +1942,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "407c875624db",
+      "h": "0e383fffbbd7",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
       "t": "2026-07-28"
     },

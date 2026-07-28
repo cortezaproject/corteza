@@ -5,7 +5,12 @@
       <p class="text-sm text-muted-color">{{ $t('project.manage.overview.blurb') }}</p>
     </div>
 
-    <OverviewPanel :project-id="rootProjectId" :revision-id="revisionId" class="flex-1 min-h-0" />
+    <OverviewPanel
+      :project-id="rootProjectId"
+      :revision-id="revisionId"
+      class="flex-1 min-h-0"
+      @category-selected="emit('category-selected', $event)"
+    />
   </div>
 </template>
 
@@ -39,6 +44,11 @@ const props = defineProps({
   // disable.
   disabled: { type: Boolean, default: false },
 })
+
+// Re-emitted up to Wizard.vue's <component :is> dispatch, which sets
+// activeSection — a card click switches the M&M section the same way
+// ManageNav's own item clicks do (see Wizard.vue).
+const emit = defineEmits(['category-selected'])
 
 const rootProjectId = computed(() => props.project?.rootProjectID || props.project?.projectID)
 const revisionId = computed(() => props.project?.projectID)

@@ -64,19 +64,26 @@
         </div>
 
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3">
-          <!-- Chain-wide: links to the dashboard's own category route.
+          <!-- Chain-wide: RouterLinks to the dashboard's own category route.
                Revision-scoped: no child route to link to (the wizard's
                category sections live behind ManageNav's `section` query
                param, not real routes — see config/manageNav.js), so the card
-               renders as a plain non-interactive tile instead (see
-               cardTag/cardProps below). -->
+               renders as a button emitting category-selected instead, picked
+               up by components/wizard/manage/ManageOverview.vue (re-emits)
+               and Wizard.vue (sets activeSection) — see cardTag/cardProps/
+               cardListeners below. -->
           <component
             :is="cardTag"
             v-for="c in cards"
             :key="c.key"
             v-bind="cardProps(c.key)"
-            class="group relative overflow-hidden rounded-xl border border-surface bg-surface pl-5 pr-4 py-3 flex flex-col gap-1"
-            :class="isRevisionScoped ? '' : 'hover:shadow-md transition-all'"
+            v-on="cardListeners(c.key)"
+            class="group relative overflow-hidden rounded-xl border border-surface bg-surface pl-5 pr-4 py-3 flex flex-col gap-1 hover:shadow-md transition-all"
+            :class="
+              isRevisionScoped
+                ? 'w-full text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+                : ''
+            "
           >
             <!-- Left accent rail takes the badge icon's exact text colour via
                  bg-current — light+dark for free. -->
@@ -238,6 +245,11 @@ const props = defineProps({
   revisionId: { type: [String, Number], default: null },
 })
 
+// Revision-scoped only: a category card switches the wizard's Manage &
+// Monitor section instead of navigating (see cardTag/cardListeners below).
+// Chain-wide never emits this — its cards stay plain RouterLinks.
+const emit = defineEmits(['category-selected'])
+
 const isRevisionScoped = computed(() => !!props.revisionId)
 
 // Per-category aggregates: key -> { total, open, status: [{ label, value }] }.
@@ -286,19 +298,23 @@ const cards = computed(() =>
   }),
 )
 
-// Card element/props — RouterLink chain-wide (the dashboard's per-category
-// route), a plain `div` revision-scoped (see the template comment above for
-// why there's nothing to link to there).
-const cardTag = computed(() => (isRevisionScoped.value ? 'div' : RouterLink))
+// Card element/props/listeners — RouterLink chain-wide (the dashboard's
+// per-category route, untouched), a `button` revision-scoped (see the
+// template comment above for why there's nothing to route to there — it
+// emits category-selected instead, picked up the same way ManageNav's own
+// item clicks are).
+const cardTag = computed(() => (isRevisionScoped.value ? 'button' : RouterLink))
 const cardProps = key =>
   isRevisionScoped.value
-    ? {}
+    ? { type: 'button' }
     : {
         to: {
           name: 'project.overview.category',
           params: { projectId: props.projectId, category: key },
         },
       }
+const cardListeners = key =>
+  isRevisionScoped.value ? { click: () => emit('category-selected', key) } : {}
 
 // One report per category (grouped by status) yields the total (sum), the open
 // count (sum of non-Completed — see stores/events.js#isOpenStatus, the single

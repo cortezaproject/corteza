@@ -492,6 +492,16 @@ wizard:
     roles: Define the access roles for this project and the people in each. You grant every role its resource permissions in the next step.
     permissions: Grant each role access to the project's resources. Pick a capability, then toggle it per role.
     users: Add people to the project and assign them roles. A user's effective access is the sum of the roles they hold.
+  # Revision completeness bar — tab row, right-aligned beside the publish
+  # cluster, always visible (see components/wizard/RevisionCompletenessBar.vue).
+  # Completed ÷ assigned across all six work-item types (five categories plus
+  # backlog items) for the open revision.
+  completeness:
+    label: '{percent}% complete'
+    tooltip: '{completed} of {total} work items assigned to this revision are completed.'
+    empty: Nothing assigned yet
+    emptyTooltip: Nothing has been assigned to this revision yet, so there's no completeness
+      percentage to show.
 governance:
   status:
     draft: Draft
