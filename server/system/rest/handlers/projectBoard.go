@@ -1,0 +1,57 @@
+package handlers
+
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
+
+import (
+	"context"
+	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/system/rest/request"
+	"github.com/go-chi/chi/v5"
+	"net/http"
+)
+
+type (
+	// Internal API interface
+	ProjectBoardAPI interface {
+		Board(context.Context, *request.ProjectBoardBoard) (interface{}, error)
+	}
+
+	// HTTP API interface
+	ProjectBoard struct {
+		Board func(http.ResponseWriter, *http.Request)
+	}
+)
+
+func NewProjectBoard(h ProjectBoardAPI) *ProjectBoard {
+	return &ProjectBoard{
+		Board: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectBoardBoard()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Board(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+	}
+}
+
+func (h ProjectBoard) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares...)
+		r.Get("/project-board/", h.Board)
+	})
+}

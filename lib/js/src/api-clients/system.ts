@@ -10091,6 +10091,49 @@ export default class System {
     return '/project-report/'
   }
 
+  // Kanban board columns (true totals + first page of cards) across all six work-item types
+  async projectBoardBoard(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, revisionID, status, pageCursor, limit } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectBoardBoardEndpoint(),
+    }
+    cfg.params = {
+      projectID,
+      revisionID,
+      status,
+      pageCursor,
+      limit,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectBoardBoardCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectBoardBoard(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectBoardBoardEndpoint(): string {
+    return '/project-board/'
+  }
+
   // Get TCL master list
   async agentTclMasterList(extra: AxiosRequestConfig = {}): Promise<KV> {
     const cfg: AxiosRequestConfig = {

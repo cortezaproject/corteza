@@ -143,6 +143,7 @@ var (
 	DefaultProjectReview        *projectReview
 	DefaultProjectBacklogItem   *projectBacklogItem
 	DefaultProjectReport        *projectReport
+	DefaultProjectBoard         *projectBoard
 	DefaultProjectResolver      scope.ProjectResolver
 	DefaultTenant               *tenant
 	DefaultAgenticRuntime       AgenticRunner
@@ -318,6 +319,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultProjectReview = ProjectReview()
 	DefaultProjectBacklogItem = ProjectBacklogItem()
 	DefaultProjectReport = ProjectReport()
+	DefaultProjectBoard = ProjectBoard()
 	DefaultProjectResolver = NewProjectResolver(DefaultStore)
 	DefaultTenant = Tenant()
 

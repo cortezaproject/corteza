@@ -4038,6 +4038,37 @@ endpoints:
               type: '*time.Time'
               required: false
               title: Created-at window end
+  - title: Project Board
+    entrypoint: projectBoard
+    path: '/project-board'
+    authentication: []
+    apis:
+      - name: board
+        method: GET
+        title: Kanban board columns (true totals + first page of cards) across all six work-item types
+        path: '/'
+        parameters:
+          get:
+            - name: projectID
+              type: uint64
+              required: true
+              title: Chain-root project scope
+            - name: revisionID
+              type: uint64
+              required: false
+              title: Scope to a single revision (default is chain-wide, including unassigned items)
+            - name: status
+              type: string
+              required: false
+              title: Return only this column (required when paging with a cursor)
+            - name: pageCursor
+              type: string
+              required: false
+              title: Continue a single column's paging from its previous page
+            - name: limit
+              type: uint
+              required: false
+              title: Cards per column page (default 20)
   - title: Agents
     path: '/agents'
     entrypoint: agent
