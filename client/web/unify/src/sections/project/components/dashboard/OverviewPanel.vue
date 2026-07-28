@@ -31,7 +31,7 @@
            just narrows to `revisionId` when set — see loadCategory). -->
       <section>
         <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-color mb-3">
-          {{ $t('project.dashboard.views.dashboard') }}
+          {{ $t('project.dashboard.nav.categories') }}
         </h2>
 
         <!-- First load (or a project/revision switch): skeleton cards rather

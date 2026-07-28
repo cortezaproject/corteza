@@ -14,6 +14,6 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const titleKey = computed(() => route.meta.titleKey || 'project.dashboard.views.dashboard')
+const titleKey = computed(() => route.meta.titleKey || 'project.dashboard.title')
 const icon = computed(() => route.meta.icon || 'pi-gauge')
 </script>

@@ -117,7 +117,7 @@ const versionLabel = computed(() =>
 // Dashboard label while on a dashboard route, the open revision's version
 // label otherwise.
 const triggerLabel = computed(() =>
-  onDashboard.value ? t('project.dashboard.views.dashboard') : versionLabel.value,
+  onDashboard.value ? t('project.dashboard.title') : versionLabel.value,
 )
 const triggerSeverity = computed(() => (!onDashboard.value && !isLive.value ? 'warn' : 'secondary'))
 
@@ -202,7 +202,7 @@ const menuItems = computed(() => {
   const items = [
     {
       kind: 'dashboard',
-      label: t('project.dashboard.views.dashboard'),
+      label: t('project.dashboard.title'),
       current: onDashboard.value,
       command: goToDashboard,
     },

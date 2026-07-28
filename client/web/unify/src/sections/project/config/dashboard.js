@@ -17,6 +17,12 @@ export const DASHBOARD_NAV = [
         route: 'project.overview',
       },
       {
+        key: 'board',
+        labelKey: 'project.dashboard.views.board',
+        icon: 'pi-objects-column',
+        route: 'project.overview.board',
+      },
+      {
         key: 'activity',
         labelKey: 'project.dashboard.views.activity',
         icon: 'pi-history',

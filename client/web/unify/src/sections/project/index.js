@@ -48,6 +48,16 @@ export default {
           },
         },
         {
+          path: 'board',
+          name: 'project.overview.board',
+          component: () => import('./views/dashboard/BoardView.vue'),
+          meta: {
+            section: 'project',
+            titleKey: 'project.dashboard.views.board',
+            icon: 'pi-objects-column',
+          },
+        },
+        {
           path: 'activity',
           name: 'project.overview.activity',
           component: () => import('./views/dashboard/AllEventsView.vue'),

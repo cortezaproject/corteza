@@ -50,6 +50,11 @@ overview:
   backToProjects: Back to projects
   openWizard: Open wizard
 dashboard:
+  # The dashboard surface itself, as a destination — used by the revision
+  # switcher's "Dashboard" entry (the chain-wide view, as opposed to a single
+  # revision's wizard) and as a last-resort route-meta title fallback. Distinct
+  # from views.overview, which names the landing SECTION within it.
+  title: Dashboard
   version: 'v{number}'
   versionDraft: 'v{number} draft'
   # Which revision a work item belongs to — shown as a column in the
@@ -64,6 +69,7 @@ dashboard:
     insights: Insights
   views:
     overview: Overview
+    board: Board
     activity: Activity
     reports: Reports
     backlog: Backlog
@@ -112,6 +118,18 @@ dashboard:
       events: Events
       people: People
       errors: Errors
+  # The board — every work item as a card in one of four shared status
+  # columns, drag-to-move between them. Shared by the dashboard route
+  # (chain-wide) and the wizard's Manage & Monitor Board section
+  # (revision-scoped) — see components/dashboard/BoardPanel.vue. Column
+  # headers render the raw status strings themselves (config/eventForm.js
+  # EVENT_STATUS): like every other status pill in this section, status is an
+  # enum value that persists to the backend, not translated copy.
+  board:
+    title: Board
+    desc: Work items grouped by status — drag a card to move it between statuses.
+    toast:
+      moveFailed: Could not move the item. Please try again.
   # Quick time-range presets (stock-chart style), shared by ActivityPanel's
   # toolbar and the Overview/CategoryView trend charts (see TimeRangeSelect).
   range:
@@ -367,20 +385,13 @@ manage:
         Work items are filed against the project, then assigned to a revision individually — like
         an issue assigned to a milestone. None have been assigned to this revision yet, so there are
         no metrics to show.
-  # The board panel — components/wizard/manage/ManageBoard.vue. Column
-  # headers render the raw status strings themselves (config/eventForm.js
-  # EVENT_STATUS): like every other status pill in this section, status is an
-  # enum value that persists to the backend, not translated copy.
-  board:
-    blurb: Work items assigned to this revision, grouped by status. Drag a card to move it between
-      statuses.
-    empty:
-      title: No work items assigned to this revision yet.
-      hint: Work items are filed against the project, then assigned to a revision individually —
-        like an issue assigned to a milestone. None have been assigned to this revision yet, so the
-        board has nothing to show.
-    toast:
-      moveFailed: Could not move the item. Please try again.
+  # NOTE: no manage.board.* block — ManageBoard.vue is a thin mount of
+  # BoardPanel.vue with no header/blurb of its own (unlike overview/activity
+  # above), so the board's copy (title/desc/toast) lives entirely under
+  # dashboard.board.* and is shared as-is by both scopes. Its old
+  # "no work items assigned to this revision yet" note (manage.board.empty.*)
+  # was dropped as redundant on top of the per-column empty affordance,
+  # which already carries that message (project.dashboard.list.empty).
 sidebar:
   projects: Projects
 newDialog:

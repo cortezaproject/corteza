@@ -1,7 +1,7 @@
 <template>
   <!-- One status column. Drop target for native HTML5 DnD — reads the
        dragged item's key off dataTransfer (set by BoardCard's dragstart) so
-       it doesn't need a shared ref with its sibling columns; ManageBoard.vue
+       it doesn't need a shared ref with its sibling columns; BoardPanel.vue
        still keeps a single `draggedKey` for the dimmed-source-card styling,
        threaded down as a prop. -->
   <div
@@ -38,9 +38,9 @@
         </span>
       </span>
       <span class="flex items-center shrink-0">
-        <!-- Quick-add — opens ManageBoard's create dialog pre-filled with
-             this column's status: every column gets one so an empty revision
-             can still be filled in from cold. Unlike BoardCard's click
+        <!-- Quick-add — opens BoardPanel's create dialog pre-filled with this
+             column's status: every column gets one so an empty board can
+             still be filled in from cold. Unlike BoardCard's click
              (view-only, never gated), creating is a write action, so this
              respects `disabled` same as drag. -->
         <Button
@@ -65,6 +65,7 @@
           :item="item"
           :disabled="disabled"
           :dragging="item.key === draggedKey"
+          :show-revision="showRevision"
           @dragstart="$emit('card-dragstart', $event)"
           @dragend="$emit('card-dragend')"
           @click="$emit('card-click', $event)"
@@ -73,7 +74,9 @@
       <!-- Per-column empty affordance — an empty status still reads as a
            real (drop-targetable, quick-addable) column rather than a blank
            gap, which is the whole point of always rendering every column
-           (see ManageBoard.vue). -->
+           (see BoardPanel.vue). This is now the ONLY empty-state affordance
+           the board carries — the old whole-board note above the columns
+           was dropped as redundant noise on top of this. -->
       <div v-else class="flex-1 flex items-center justify-center px-2">
         <p class="text-xs text-muted-color text-center">{{ $t('project.dashboard.list.empty') }}</p>
       </div>
@@ -93,10 +96,16 @@ const props = defineProps({
   // The key of the card currently being dragged (shared across every
   // column so only the true source card dims, not just the one under it).
   draggedKey: { type: String, default: null },
-  // Tooltip/aria-label for the quick-add button — owned by ManageBoard.vue
+  // Tooltip/aria-label for the quick-add button — owned by BoardPanel.vue
   // (it knows the default created type), kept out of this presentational
   // component.
   addLabel: { type: String, default: '' },
+  // Chain-wide only (BoardPanel's `!isRevisionScoped`) — passed straight
+  // through to every card so each shows which revision it belongs to. False
+  // revision-scoped: every card already shares the one open revision, so the
+  // chip would be redundant on every card (same reasoning CategoryPanel uses
+  // to drop its revision column when scoped).
+  showRevision: { type: Boolean, default: false },
 })
 const emit = defineEmits(['drop-item', 'card-dragstart', 'card-dragend', 'add-item', 'card-click'])
 
