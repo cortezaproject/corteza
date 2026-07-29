@@ -1,7 +1,8 @@
 <template>
-  <!-- Revision completeness — completed work items ÷ items assigned to the
-       OPEN revision, across all six work-item types (five categories +
-       backlog items). Sits at the FOOT OF THE MANAGE & MONITOR RAIL and
+  <!-- Revision completeness — a stacked status bar plus a weighted percent
+       (see the `percent` computed) over the work items assigned to the OPEN
+       revision, across all six work-item types (five categories + backlog
+       items). Sits at the FOOT OF THE MANAGE & MONITOR RAIL and
        nowhere else (ruled 2026-07-28): it measures work items, so it only
        appears on the tab that is about work items — it used to live in the
        tab row and therefore also sat over Build and Govern, next to work it
@@ -27,10 +28,23 @@
         }}
       </span>
     </div>
-    <!-- Nothing assigned still renders the track, drawn at zero, so the rail
-         keeps its shape whether or not work exists. The tooltip carries the
-         explanation the old text-only empty state used to spell out inline. -->
-    <ProgressBar :value="percent" :show-value="false" :style="progressStyle" />
+    <!-- Stacked status bar — one segment per status in the FIXED lifecycle
+         order (config/eventForm EVENT_STATUS: Open, In Progress, Ready to
+         Test, Completed), the same order the status donuts use, so the two
+         read as one system; colours are the shared status palette. Segment
+         widths are proportional to counts (flex-grow, so the 2px surface
+         gaps between segments — the dataviz mark spec — cost no accuracy).
+         Nothing assigned still renders the empty track, so the rail keeps
+         its shape; the tooltip carries the per-status counts (identity is
+         never colour-alone) and the empty-state explanation. -->
+    <div class="h-1.5 rounded-full bg-emphasis overflow-hidden flex gap-[2px]">
+      <span
+        v-for="seg in segments"
+        :key="seg.status"
+        class="h-full"
+        :style="{ flex: `${seg.count} 1 0%`, background: seg.color }"
+      />
+    </div>
   </div>
 </template>
 
@@ -41,6 +55,7 @@
 // why the board endpoint and why `limit: 1` is safe for totals.
 import { fetchRevisionCompleteness } from '@/sections/project/composables/revisionCompleteness'
 import { colorFor } from '@/sections/project/config/chartColors'
+import { EVENT_STATUS } from '@/sections/project/config/eventForm'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { computed, inject, reactive, ref, watch } from 'vue'
@@ -66,7 +81,7 @@ const props = defineProps({
   revisionId: { type: [String, Number], required: true },
 })
 
-const totals = reactive({ assigned: 0, completed: 0 })
+const totals = reactive({ assigned: 0, completed: 0, byStatus: {} })
 const loaded = ref(false)
 const failed = ref(false)
 
@@ -80,10 +95,15 @@ async function load(pid, revId) {
   }
   const mySeq = ++seq
   try {
-    const { assigned, completed } = await fetchRevisionCompleteness($SystemAPI, pid, revId)
+    const { assigned, completed, byStatus } = await fetchRevisionCompleteness(
+      $SystemAPI,
+      pid,
+      revId,
+    )
     if (mySeq !== seq) return // stale — a newer revision switch is in flight
     totals.assigned = assigned
     totals.completed = completed
+    totals.byStatus = byStatus
     failed.value = false
     loaded.value = true
   } catch (err) {
@@ -113,23 +133,41 @@ watch(
 
 const hasData = computed(() => loaded.value && !failed.value)
 const hasItems = computed(() => totals.assigned > 0)
-const percent = computed(() =>
-  hasItems.value ? Math.round((totals.completed / totals.assigned) * 100) : 0,
-)
-const tooltip = computed(() =>
-  hasItems.value
-    ? t('project.wizard.completeness.tooltip', {
-        completed: totals.completed,
-        total: totals.assigned,
-      })
-    : t('project.wizard.completeness.emptyTooltip'),
+
+// One stacked segment per status that has items, in EVENT_STATUS's fixed
+// lifecycle order; colour off the shared status palette (config/chartColors)
+// so the bar stays one system with the status donuts/badges.
+const segments = computed(() =>
+  EVENT_STATUS.map(status => ({
+    status,
+    count: Number(totals.byStatus[status] || 0),
+    color: colorFor('status', status),
+  })).filter(seg => seg.count > 0),
 )
 
-// Slim header-row bar: shorter than PrimeVue's default 1.25rem, fill reuses
-// the shared status palette's Completed hue (config/chartColors) rather than
-// a bespoke colour, so it stays one system with the status donuts/badges.
-const progressStyle = {
-  '--p-progressbar-height': '0.375rem',
-  '--p-progressbar-value-background': colorFor('status', 'Completed'),
-}
+// WEIGHTED percent (ruled 2026-07-29, replacing plain completed ÷ assigned):
+// every item contributes its lifecycle position — the statuses are an even
+// 0 → 1 ramp in EVENT_STATUS order (Open 0, In Progress ⅓, Ready to Test ⅔,
+// Completed 1) — so in-flight work moves the number instead of counting the
+// same as untouched work. All-Completed still reads exactly 100%, all-Open 0%.
+const percent = computed(() => {
+  if (!hasItems.value) return 0
+  const span = EVENT_STATUS.length - 1
+  const weighted = EVENT_STATUS.reduce(
+    (sum, status, idx) => sum + Number(totals.byStatus[status] || 0) * (idx / span),
+    0,
+  )
+  return Math.round((weighted / totals.assigned) * 100)
+})
+
+// Completed-of-total headline plus the per-status counts — the counts keep
+// segment identity readable without depending on colour alone.
+const tooltip = computed(() => {
+  if (!hasItems.value) return t('project.wizard.completeness.emptyTooltip')
+  const breakdown = segments.value.map(seg => `${seg.status} ${seg.count}`).join(', ')
+  return `${t('project.wizard.completeness.tooltip', {
+    completed: totals.completed,
+    total: totals.assigned,
+  })} ${t('project.wizard.completeness.tooltipBreakdown', { breakdown })}`
+})
 </script>

@@ -40,21 +40,21 @@ only, never tab/step visibility; governance status never locks editing.
 
 - `StepNav.vue` — step list; badges flip to amber (changes-requested) /
   green (approved) from per-step governance status.
-- `ManageNav.vue` — the Manage & Monitor rail. Deliberately NOT a step list:
-  prop-driven (`activeKey` in, `select` out) over `config/manageNav.js`, so
-  that tab navigates without steps. Visual twin of the dashboard's own rail.
+- `ManageNav.vue` — the M&M rail; NOT a step list: prop-driven (`activeKey`
+  in, `select` out) over `config/manageNav.js`; twin of the dashboard rail.
 - `manage/` — one component per M&M section via Wizard.vue's key→component
-  map; most just mount a shared `components/dashboard/` panel with the open
-  revision. One file per section is deliberate (built independently). The
-  board's columns always render — an empty revision stays usable, with
-  per-column quick-add. Item viewing/editing REUSE the dashboard's dialogs
-  and drawers; never fork a board-local editor, or the two surfaces drift.
+  map; most mount a shared `components/dashboard/` panel with the open
+  revision. One file per section (built independently). Columns always
+  render — empty revisions stay usable (per-column quick-add); viewing/
+  editing REUSES the dashboard's dialogs/drawers, never a forked editor.
 - No bottom toolbar (ruled 2026-07-28): per-step review sits in the step
   header, Save in a step-panel footer (form steps only), no prev/next.
-- `RevisionCompletenessBar.vue` — work-item progress at the M&M rail's foot,
-  that tab only (ruled 2026-07-28); board-endpoint totals via
-  `composables/revisionCompleteness.js` (shared with the Publish tab's go-live
-  stage), refreshed by the stores' `mutations` counters, never capped lists.
+- `RevisionCompletenessBar.vue` — work-item progress at the M&M rail's foot
+  (ruled 2026-07-28): a stacked status bar (fixed EVENT_STATUS order,
+  shared palette) + a lifecycle-WEIGHTED percent — items count their
+  status's even 0→1 ramp position (ruled 2026-07-29). Totals via
+  `composables/revisionCompleteness.js` (shared with the Publish tab's
+  go-live stage); refresh = stores' `mutations` counters, never capped lists.
 - `publish/` — Publish tab stage components, mounted like `manage/`; the plan,
   mapping decisions and publish actions are store state, never stage-local.
 - `StepStatusBanner.vue` — surfaces the changes-requested review note.

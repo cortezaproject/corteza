@@ -1,4 +1,5 @@
-// Revision work-item completeness — completed vs assigned counts for ONE
+// Revision work-item completeness — completed vs assigned counts (plus the
+// per-status breakdown, `byStatus`: column status → its total) for ONE
 // revision, off a single board call (GET /project-board/, see
 // server/system/service/project_board.go). `assigned` = the sum of all four
 // column totals; `completed` = the Completed column's own total. The board
@@ -21,10 +22,12 @@ export async function fetchRevisionCompleteness($SystemAPI, projectId, revisionI
   })
   let assigned = 0
   let completed = 0
+  const byStatus = {}
   for (const col of columns) {
     const total = Number(col.total || 0)
     assigned += total
+    byStatus[col.status] = total
     if (col.status === 'Completed') completed += total
   }
-  return { assigned, completed }
+  return { assigned, completed, byStatus }
 }

@@ -512,6 +512,7 @@ wizard:
     title: Revision progress
     label: '{percent}% complete'
     tooltip: '{completed} of {total} work items assigned to this revision are completed.'
+    tooltipBreakdown: 'By status: {breakdown}.'
     empty: Nothing assigned
     emptyTooltip: No work items are assigned to this revision yet. Assign items to it from any
       item's editor, or create them on this tab's board, and this bar tracks how many are
