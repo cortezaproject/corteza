@@ -1,10 +1,17 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span class="flex items-center gap-2">
-      <span>{{ project?.name || $t('project.wizard.fallbackName') }}</span>
+    <!-- #topbar-title clips what overflows it (see lib CTopbar), so the NAME is
+         the only thing allowed to shrink here: everything after it is
+         shrink-0, or a long project name pushes the switcher and the status tag
+         off the right edge instead of truncating itself. -->
+    <span class="flex items-center gap-2 min-w-0">
+      <span class="truncate">{{ project?.name || $t('project.wizard.fallbackName') }}</span>
       <!-- Revision switcher — shared with the dashboard topbar (see
            components/project/RevisionSwitcher.vue); replaces what used to be
            an inline trigger + Menu here. -->
+      <!-- The revision's own status tag lives INSIDE the switcher, on the
+           control that names the revision (and matching that revision's row in
+           its dropdown). -->
       <RevisionSwitcher :project="project" />
     </span>
   </Teleport>
@@ -32,13 +39,19 @@
     <div class="shrink-0 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 px-3 pt-2">
       <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0">
         <TabList>
+          <!-- Each tab carries the state of what it CONTAINS (see tabStatus):
+               a flagged step inside it, or everything inside it approved. Icon
+               only — the tab already has a name, and the wording is a hover
+               away. -->
           <Tab value="build" class="flex items-center gap-2">
             <i class="pi pi-wrench" />
             <span>{{ $t('project.wizard.tabs.build') }}</span>
+            <StatusChip v-if="tabStatus.build" :status="tabStatus.build" icon-only />
           </Tab>
           <Tab value="govern" class="flex items-center gap-2">
             <i class="pi pi-shield" />
             <span>{{ $t('project.wizard.tabs.govern') }}</span>
+            <StatusChip v-if="tabStatus.govern" :status="tabStatus.govern" icon-only />
           </Tab>
           <Tab value="manage" class="flex items-center gap-2">
             <i class="pi pi-chart-line" />
@@ -47,6 +60,7 @@
           <Tab value="publish" class="flex items-center gap-2">
             <i class="pi pi-cloud-upload" />
             <span>{{ $t('project.wizard.tabs.publish') }}</span>
+            <StatusChip v-if="tabStatus.publish" :status="tabStatus.publish" icon-only />
           </Tab>
         </TabList>
       </Tabs>
@@ -94,7 +108,7 @@
                lives in the Publish tab (ruled 2026-07-29).
                Capability-gated: only a granter sees these at all. -->
           <div class="ml-auto flex items-center gap-2 shrink-0">
-            <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
+            <StatusChip v-if="showStatus" :status="headerStatus" />
             <template v-if="activeStep && canGrant">
               <Button
                 :label="$t('project.wizard.requestChanges.action')"
@@ -503,6 +517,7 @@ import UserDetailDialog from '@/sections/project/components/users/UserDetailDial
 import ResourceGraph from '@/sections/project/components/graph/ResourceGraph.vue'
 import ProjectTopbarTools from '@/sections/project/components/project/ProjectTopbarTools.vue'
 import RevisionSwitcher from '@/sections/project/components/project/RevisionSwitcher.vue'
+import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import ManageNav from '@/sections/project/components/wizard/ManageNav.vue'
 import ManageActivity from '@/sections/project/components/wizard/manage/ManageActivity.vue'
 import ManageBoard from '@/sections/project/components/wizard/manage/ManageBoard.vue'
@@ -668,6 +683,19 @@ watch(activeTab, tab => {
   if (!list.some(s => s.key === route.query.step)) query.step = list[0]?.key || undefined
   router.replace({ query })
 })
+
+// ...and the reverse: the `tab` query is the source of truth, so a URL that
+// names a different tab wins. Without this the router can navigate to another
+// revision of the same route — which REUSES this component, `activeTab` and
+// all — and the URL would say one tab while the UI showed the one you happened
+// to be on when you left. That is exactly what publishing and branching a new
+// revision does (see PublishTab's startNewRevision, which asks for Build).
+watch(
+  () => route.query.tab,
+  tab => {
+    if (VALID_TABS.includes(tab) && tab !== activeTab.value) activeTab.value = tab
+  },
+)
 
 // --- Manage & Monitor section --------------------------------------------
 // The M&M tab's own left rail (ManageNav) switches its content pane via a
@@ -883,21 +911,36 @@ const statuses = computed(() => {
   return out
 })
 
-const statusLabel = computed(
-  () =>
-    ({
-      draft: t('project.governance.status.draft'),
-      submitted: t('project.governance.status.submitted'),
-      approved: t('project.governance.status.approved'),
-      'changes-requested': t('project.governance.status.changesRequested'),
-    })[status.value],
-)
-const statusSeverity = computed(
-  () =>
-    ({ draft: 'secondary', submitted: 'info', approved: 'success', 'changes-requested': 'warn' })[
-      status.value
-    ],
-)
+// What each tab says about its own contents. Build and Govern roll their steps
+// up worst-first: one flagged step is the thing to act on, so it wins over any
+// number of approved ones; the all-clear only shows once every step in the tab
+// has been approved (an untouched tab stays silent rather than claiming
+// progress). Publish reports its own review state, and Manage & Monitor has no
+// review axis at all.
+function rollUp(tab) {
+  const keys = stepsForTab(tab).map(s => s.key)
+  if (!keys.length) return ''
+  const statusOf = keys.map(stepStatus)
+  if (statusOf.includes('changes-requested')) return 'changes-requested'
+  return statusOf.every(s => s === 'approved') ? 'approved' : ''
+}
+const tabStatus = computed(() => ({
+  build: rollUp('build'),
+  govern: rollUp('govern'),
+  publish: publishStatus.value === 'draft' ? '' : publishStatus.value,
+}))
+
+// What the header chip states, merging the two axes a step sits on. The step's
+// own review flag is session-local (stores/projects.js never persists it), so
+// on a live revision it says 'draft' for every step that nobody re-approved
+// this session — which read as though a running project had never been worked
+// on. The revision's lifecycle status is the persisted one, so it wins: a live
+// revision is Active. A step someone flagged still shows its amber chip
+// though, since the reviewer's note is the one thing that must not disappear.
+const headerStatus = computed(() => {
+  if (status.value === 'changes-requested') return 'changes-requested'
+  return isLive.value ? 'active' : status.value
+})
 
 // Leading icon badge for the active step's header — resolved exactly like the
 // sidebar (StepNav): resource steps borrow their kind's icon/colour, other steps

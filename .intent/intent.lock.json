@@ -1682,7 +1682,7 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishTab.vue": {
-      "h": "93aa0e9b877e",
+      "h": "bd02e943ff1d",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },
@@ -1992,7 +1992,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "9a8f9309b54f",
+      "h": "cbf871ec97d2",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
       "t": "2026-07-29"
     },

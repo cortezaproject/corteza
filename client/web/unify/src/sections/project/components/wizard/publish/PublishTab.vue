@@ -4,6 +4,10 @@
          other tab (ruled 2026-07-29): publishing is a rare one-way action, so
          it reads as a sequence to complete, not a place to browse. -->
     <div class="max-w-3xl mx-auto p-4 flex flex-col gap-4">
+      <!-- No project-level status tag here: the revision switcher in the topbar
+           states that on every screen, and repeating it beside this heading was
+           the same sentence twice. The per-stage tags below stay — they report
+           each stage, not the project. -->
       <header class="flex items-start gap-3 flex-wrap">
         <div class="flex-1 min-w-60">
           <h2 class="text-xl font-medium">{{ heading }}</h2>
@@ -11,12 +15,6 @@
             {{ isLive ? $t('project.publish.subheadingLive') : subheading }}
           </p>
         </div>
-        <span
-          class="inline-flex items-center px-3 py-1 rounded-full border text-xs font-medium shrink-0"
-          :class="PILL_CLASS[statusTag.severity] || PILL_CLASS.secondary"
-        >
-          {{ statusTag.label }}
-        </span>
       </header>
 
       <div v-if="loading" class="flex justify-center py-10">
@@ -54,12 +52,13 @@
           :index="1"
           :title="$t('project.publish.stages.changes.title')"
           :hint="changesHint"
-          :status-label="$t('project.publish.stages.reviewed')"
-          status-severity="success"
           done
           :open="openStage === 1"
           @toggle="toggleStage(1)"
         >
+          <template #status>
+            <StatusChip status="approved" :label="$t('project.publish.stages.reviewed')" />
+          </template>
           <PublishChanges :changes="plan.changes" :inventory="inventory" />
         </PublishStage>
 
@@ -67,17 +66,21 @@
           :index="2"
           :title="$t('project.publish.stages.migration.title')"
           :hint="migrationHint"
-          :status-label="
-            blockers.length
-              ? $t('project.publish.stages.needsDecision')
-              : $t('project.publish.stages.decided')
-          "
-          :status-severity="blockers.length ? 'warn' : 'success'"
           :current="!!blockers.length"
           :done="!blockers.length"
           :open="openStage === 2"
           @toggle="toggleStage(2)"
         >
+          <template #status>
+            <StatusChip
+              :status="blockers.length ? 'changes-requested' : 'approved'"
+              :label="
+                blockers.length
+                  ? $t('project.publish.stages.needsDecision')
+                  : $t('project.publish.stages.decided')
+              "
+            />
+          </template>
           <PublishMigration
             :mappings="plan.suggestedMappings"
             :changes="plan.changes"
@@ -91,14 +94,15 @@
           :index="3"
           :title="$t('project.publish.stages.approval.title')"
           :hint="approvalHint"
-          :status-label="approvalTag.label"
-          :status-severity="approvalTag.severity"
           :current="!blockers.length && publishStatus !== 'approved'"
           :done="publishStatus === 'approved'"
           :locked="!!blockers.length"
           :open="openStage === 3"
           @toggle="toggleStage(3)"
         >
+          <template #status>
+            <StatusChip :status="approvalTag.status" :label="approvalTag.label" />
+          </template>
           <PublishApproval
             :status="publishStatus"
             :note="publishNote"
@@ -162,6 +166,7 @@
 // it with the open revision and the caller's capabilities, and everything else
 // — the deployment plan, the migration decisions, the governance transitions
 // and the publish call — is owned here.
+import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import { fetchRevisionCompleteness } from '@/sections/project/composables/revisionCompleteness'
 import { OVERVIEW_KINDS } from '@/sections/project/config/kinds'
 import { PUBLISH_GOVERNANCE_STEP_KEY, STEPS } from '@/sections/project/config/pipeline'
@@ -485,7 +490,15 @@ async function startNewRevision() {
   creatingRevision.value = true
   try {
     const rev = await store.createRevision(projectId.value)
-    router.push({ name: 'project.wizard', params: { projectId: rev.projectID } })
+    // Land on Build, not back here: the new draft exists to be worked on, and
+    // there is nothing to publish about it yet. Asked for explicitly because
+    // the router reuses this wizard across revisions of the same route, so
+    // without it the new revision opens on whatever tab you left.
+    router.push({
+      name: 'project.wizard',
+      params: { projectId: rev.projectID },
+      query: { tab: 'build' },
+    })
   } catch (err) {
     $toast.toastErrorHandler(t('project.publish.toast.actionFailed'))(err)
   } finally {
@@ -534,39 +547,18 @@ const approvalHint = computed(() =>
     : t('project.publish.stages.approval.hint'),
 )
 
+// Chip status for the approval stage. Only the not-started case overrides the
+// wording: a publish nobody has submitted yet is "Not started" here, never the
+// lifecycle "Draft" (which would read as a comment on the project).
 const approvalTag = computed(
   () =>
     ({
-      approved: { label: t('project.governance.status.approved'), severity: 'success' },
-      submitted: { label: t('project.publish.stages.awaiting'), severity: 'info' },
-      'changes-requested': {
-        label: t('project.governance.status.changesRequested'),
-        severity: 'warn',
-      },
+      approved: { status: 'approved' },
+      submitted: { status: 'submitted' },
+      'changes-requested': { status: 'changes-requested' },
     })[publishStatus.value] || {
+      status: 'draft',
       label: t('project.publish.stages.notStarted'),
-      severity: 'secondary',
     },
 )
-
-// The header pill states where the PROJECT stands. Before anything is
-// submitted that is "Not published" — the fact this screen exists to change —
-// rather than the lifecycle enum ("Draft") or the stage chips' "Not started",
-// which reads as though the project itself had not been started.
-const statusTag = computed(() => {
-  if (isLive.value) return { label: t('project.status.active'), severity: 'success' }
-  if (publishStatus.value === 'draft')
-    return { label: t('project.publish.notPublished'), severity: 'secondary' }
-  return approvalTag.value
-})
-
-// The header status reads as a pill, not bare text — a PrimeVue Tag on
-// `secondary` renders flat enough on this background to disappear. Same tint +
-// ring idiom the step nav badges use.
-const PILL_CLASS = {
-  success: 'bg-green-500/10 text-green-500 border-green-500/30',
-  info: 'bg-primary/10 text-primary border-primary/30',
-  warn: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
-  secondary: 'bg-emphasis text-muted-color border-surface',
-}
 </script>
