@@ -90,6 +90,20 @@ commit as the work that resolves an item.
         rendered from a manage-nav config rather than STEPS. Blocked on the
         BE change repointing the six work-item resources to the root project
         with a nullable revision ref.
+  - [ ] **Publish tab — BE deployment plan** (ruled 2026-07-29). `ProjectChange`
+        carries only `{path, risk}`, so added and removed modules are
+        indistinguishable and a removed field looks like a retyped one; the
+        diff also covers modules/fields ONLY. Add an explicit `op`, widen it
+        past compose modules, and return the record count behind each change.
+  - [ ] **Publish tab — FE** (ruled 2026-07-29, design in
+        `views/Wizard.intent.md`). Fourth tab, stage components under
+        `components/wizard/publish/`, mapping editor, cluster removed from the
+        tab row. `wizard.spec.ts` asserts three tabs and must be updated.
+  - [ ] **Publish drops every record** — `publishProject` sends `mappings: []`,
+        `migrateRecords` no-ops on an empty set, then the old namespace is
+        soft-deleted. Any second-or-later publish silently empties the project.
+        Closed by the mapping editor above; until then, do not publish a
+        revision that has records.
   - [ ] **Permission create-ops** ruling (Bucket A/B split) + matrix support.
   - [ ] Project-only **server code** still excluded — Phase 4 scoping.
 

@@ -21,25 +21,28 @@ tests:
 
 Project-centric building: a project bundles resources (data model, pages,
 automations, agents, chatbots, connections, members) into one governed,
-publishable unit, built through a wizard. This doc records what is **locked**
-(interview-ruled 2026-07-24); WIP notes mark what must not be relied on.
+publishable unit. **Locked** below; WIP notes mark what must not be relied on.
 
 ## Locked contracts
 
-- **Wizard tabs**: Build / Govern / Manage & Monitor — the wizard's shape.
+- **Wizard tabs**: Build / Govern / Manage & Monitor / Publish — the wizard's
+  shape (Publish added 2026-07-29).
 - **Create flow**: creation collects name and description only. Governance
   determination moved into the Govern tab's FRIA flow (ruled 2026-07-28); the
   deployer-category questions are removed when that flow lands.
-- **Approval UX**: wizard-header request → approve → publish (right-aligned in
-  the wizard's tab row; ruled 2026-07-24, moved out of the app topbar), with
-  direct per-step review. First publish flips status; the live status is
-  `active` — the backend never sets a `published` status.
+- **Approval UX**: request → approve → publish lives in the Publish tab (ruled
+  2026-07-29; previously a tab-row cluster, ruled 2026-07-24). Per-step review
+  stays in the step header. One guided sequence — what changed → what happens
+  to existing records → approval → go live — blocked by exactly one thing: an
+  unresolved DESTRUCTIVE change (removed/retyped field with records behind it).
+  Publish must send real `mappings`; an empty set silently drops every record.
+  First publish flips status; the live status is `active` — the backend never
+  sets a `published` status.
 - **Lifecycle & revisions**: `draft` → `active` (via publish), plus `archived`,
-  `suspended`, soft-`deleted`, and `deprecated` — publish assigns that to the
-  PARENT revision as its successor goes live (found against a running stack
-  2026-07-28, previously missing here). A project is a revision chain — each
-  revision is its own row (root/parent/number); publish locks what it built,
-  and a new revision branches from an active one (one draft per chain).
+  `suspended`, soft-`deleted`, and `deprecated` — publish assigns `deprecated`
+  to the PARENT revision as its successor goes live. A project is a revision
+  chain — each revision its own row (root/parent/number); publish locks what it
+  built, and a new revision branches from an active one (one draft per chain).
 - **Build tab is canvas-centric**: the graph is the primary surface. Default
   visibility is progressive by design — seeded to the kinds introduced by steps
   up to the active one — the full graph is always reachable via layer chips.
@@ -47,10 +50,9 @@ publishable unit, built through a wizard. This doc records what is **locked**
   locked: data model, connections, automations, agents, chatbots, pages, roles,
   permissions, users (source of truth: `config/pipeline.js` STEPS). Govern
   steps are governance content — WIP, may change.
-- **Resource dialog standard**: every resource kind has a CreateDialog and a
-  DetailDialog; the Wizard provides `inspectResource(kind, id)` and
-  `createResource(kind)`; clicking anything in the graph always opens the
-  editable detail dialog.
+- **Resource dialog standard**: every kind has a CreateDialog + DetailDialog;
+  the Wizard provides `inspectResource(kind, id)` / `createResource(kind)`;
+  graph clicks always open the editable detail dialog.
 - **Per-resource permissions**: shared ResourcePermissionsSection embedded in
   each resource dialog; matrix takes a scope prop; automation appears as
   runtime "Run" kind (read + execute); connection deliberately omitted.
@@ -61,9 +63,8 @@ publishable unit, built through a wizard. This doc records what is **locked**
   chain, the wizard's Manage & Monitor tab one revision, from the same shared
   panels (view set in `views/views.intent.md`). Work items carry a revision the
   way an issue carries a milestone: filed against the project, assigned to a
-  revision, reassignable, left behind when a revision publishes. Where an item
-  is created decides its revision — on a revision board it joins that revision,
-  anywhere else it starts unassigned.
+  revision, reassignable, left behind when it publishes. Where an item is
+  created decides its revision; anywhere else it starts unassigned.
 
 > **WIP:** approval **persistence** — the flow is session-local FE scaffolding
 > (governance backend dropped); backend persistence is planned. Do not rely on
@@ -82,7 +83,6 @@ publishable unit, built through a wizard. This doc records what is **locked**
 
 ## When changing this
 
-- New resource kinds must follow the dialog standard and the permissions
-  section contract — no bespoke editors.
-- Governance-content changes are expected; flow-shape changes are intent
-  changes and need a ruling first.
+- New resource kinds follow the dialog standard and the permissions contract —
+  no bespoke editors.
+- Governance-content changes are expected; flow-shape changes need a ruling.

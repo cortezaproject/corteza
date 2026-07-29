@@ -20,8 +20,8 @@ tests:
 ## Intention
 
 The moving parts of the project wizard: step-nav chrome, review banner, the
-generic governance form renderer, and one panel per pipeline step (`steps/`). The Wizard view (`views/Wizard.vue`) owns state and dispatch;
-everything here is presentational or a thin list over store caches.
+governance form renderer, one panel per pipeline step. `views/Wizard.vue` owns
+state and dispatch; everything here is presentational or a thin store list.
 
 **Locked:** the step mechanism AND the step set. `config/pipeline.js` `STEPS`
 is the single source of truth — key, type (`form|resource|sensitivity|
@@ -33,8 +33,8 @@ Wizard.vue; `kindsThroughStep` then scopes the graph automatically.
 Request changes (required note) on any Build/Govern step, any status, any
 time; no per-step submit stage — the actions live in the step header (ruled
 2026-07-28). Only the well-known `publish` step keeps request → approve →
-publish, in the header row beside the tabs. Capabilities gate ACTIONS only,
-never tab/step visibility; governance status never locks editing.
+publish, in the Publish tab (ruled 2026-07-29). Capabilities gate ACTIONS
+only, never tab/step visibility; governance status never locks editing.
 
 ## Map
 
@@ -49,13 +49,14 @@ never tab/step visibility; governance status never locks editing.
   board's columns always render — an empty revision stays usable, with
   per-column quick-add. Item viewing/editing REUSE the dashboard's dialogs
   and drawers; never fork a board-local editor, or the two surfaces drift.
-- No bottom toolbar (ruled 2026-07-28): per-step review moved to the step
-  header, Save to a footer inside the step panel (form steps only), prev/next
-  dropped — the step nav already lists every step.
+- No bottom toolbar (ruled 2026-07-28): per-step review sits in the step
+  header, Save in a step-panel footer (form steps only), no prev/next.
 - `RevisionCompletenessBar.vue` — work-item progress at the M&M rail's foot,
   that tab only (ruled 2026-07-28); board-endpoint totals via
-  `composables/revisionCompleteness.js` (shared with the publish confirm),
-  refreshed by the stores' `mutations` counters, never their capped lists.
+  `composables/revisionCompleteness.js` (shared with the Publish tab's go-live
+  stage), refreshed by the stores' `mutations` counters, never capped lists.
+- `publish/` — Publish tab stage components, mounted like `manage/`; the plan,
+  mapping decisions and publish actions are store state, never stage-local.
 - `StepStatusBanner.vue` — surfaces the changes-requested review note.
 - `GovernanceForm.vue` — schema-driven form renderer; also reused by the
   dashboard event/backlog dialogs (cross-folder consumer).
@@ -70,9 +71,8 @@ never tab/step visibility; governance status never locks editing.
 
 ## Data touched
 
-`useProjectsStore`: per-kind caches (`loadX`/`xFor`/`removeX`), `touch()`
-after mutations (drives graph refresh), and the governance surface
-(`governanceStatus/Note/Values`, `saveStepForm`, `transitionStep`).
+`useProjectsStore`: per-kind caches (`loadX`/`xFor`/`removeX`), `touch()` after
+mutations (drives graph refresh), and the session-local governance surface.
 
 > **WIP:** approval **persistence** is session-local scaffolding in
 > stores/projects.js (governance backend dropped) — the UX above is locked,

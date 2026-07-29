@@ -25,8 +25,8 @@ persist (statuses, AI Act options) stay literal.
 
 - `pipeline.js` — the build pipeline: STEPS (key/type/tab/kind), the Build vs
   Govern tab split (Manage & Monitor has no steps), `kindsThroughStep`
-  (graph gating), and `PUBLISH_GOVERNANCE_STEP_KEY` — publish is a topbar
-  action, not a wizard step.
+  (graph gating), and `PUBLISH_GOVERNANCE_STEP_KEY` — publish is the Publish
+  tab's own flow, not a wizard step.
 - `kinds.js` — per-resource-kind visual config (icon/colors), RESOURCE_KINDS
   (pipeline order), OVERVIEW_KINDS, graph LAYERS (data/logic/experience),
   NODE_LAYER_KINDS, ACCESS_KINDS (role/user ride the access overlay).

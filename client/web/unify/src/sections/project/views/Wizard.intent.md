@@ -19,25 +19,32 @@ tests:
 
 ## Intention
 
-The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs, the step pipeline, the resource-graph canvas, the wizard-header approval flow.
+The project build surface. Locked shapes: Build / Govern / Manage & Monitor /
+Publish tabs, the step pipeline, the resource-graph canvas, the publish flow.
 
 ## UX capabilities
 
 - Steps (set + tab membership locked, owned by `config/pipeline.js`) in a left
   nav beside the ever-present resource graph (resizable split) — the primary
   canvas, seeded per step to the kinds built so far (layer chips peek past).
-- Wizard-header tool cluster, right-aligned in the tab row — wrapping to its
-  own right-aligned row when the tabs leave no room, content-driven, no fixed
-  breakpoint (only the project
-  title + version Tag remain Teleported to the app topbar): approval controls
-  on the well-known `publish` governance step: request
-  → approve → publish (confirmed, then dashboard handoff). No status Tag in
-  the row (ruled 2026-07-24) — the single state-driven button carries the
-  status, and its tooltip is the only surface for the reviewer's note on a
-  changes-requested publish; members without a capability for the current
-  state get no publish control at all. Direct per-step
-  review — Approve / Request changes (note required) by grant-capable members
-  on any step, any time; a flagged step blocks project approval.
+- Publish tab (ruled 2026-07-29) — the whole request → approve → publish
+  cycle, which was a cluster in the tab row until then. Deliberately the ONE
+  tab with no left rail: publishing is a rare one-way action, so it reads as a
+  sequence, not a place. Numbered stages, each carrying its own readiness:
+  what changes (diff vs the parent revision + resource inventory) → bring the
+  data across (record mappings) → get it approved → go live. One primary
+  action at the foot, labelled for the single next thing to do; members
+  without a capability for the current state get no control at all. Direct
+  per-step review — Approve / Request changes (note required) by grant-capable
+  members on any step, any time; a flagged step blocks project approval.
+- Publish blocks on exactly one thing: a destructive change (removed or
+  retyped field with records behind it) whose mapping is undecided. Risk is
+  stated as counts, never adjectives. Unfinished work items warn but never
+  block. A reviewer's note on a changes-requested publish is shown in the
+  approval stage, not buried in a tooltip (superseding 2026-07-24). There is no
+  confirm dialog — the go-live stage IS the confirmation, and the final action
+  requires typing the project handle when records will be lost. Success shows
+  an in-tab receipt (what went live, by whom, records moved), not a redirect.
 - Provides `inspectResource(kind, id)` / `createResource(kind)`; each kind's
   Create + Detail dialog mounts here exactly once; graph and step clicks always
   open the editable detail dialog (`editField`/`createField` for module fields).
@@ -48,8 +55,8 @@ The project build surface. Locked shapes: Build / Govern / Manage & Monitor tabs
   `components/wizard/manage/`, one file per section, so sections stay
   independently buildable. Its header carries the revision, that
   revision's work-item completeness, and a new-item action; the same
-  completeness is shown again at publish, where unfinished work warns but
-  never blocks.
+  completeness reappears in the Publish tab's go-live stage, where unfinished
+  work warns but never blocks.
 - Topbar carries the shared `RevisionSwitcher` + `ProjectTopbarTools`
   (Members, View project) — defined once in `components/project/` and mounted
   by the dashboard too, so neither surface redefines them. `?new=1` still
