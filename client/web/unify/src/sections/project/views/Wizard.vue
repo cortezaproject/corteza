@@ -105,6 +105,7 @@
                 @click="openRequestChanges"
               />
               <Button
+                v-if="canApproveStep"
                 :label="$t('project.wizard.approve.action')"
                 icon="pi pi-check"
                 severity="success"
@@ -532,7 +533,12 @@ import ResourceManagementStep from '@/sections/project/components/wizard/steps/R
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { friaDeterminationValues } from '@/sections/project/config/friaDeterminationForm'
 import { MANAGE_NAV } from '@/sections/project/config/manageNav'
-import { STEPS, kindsThroughStep, stepsForTab } from '@/sections/project/config/pipeline'
+import {
+  PUBLISH_GOVERNANCE_STEP_KEY,
+  STEPS,
+  kindsThroughStep,
+  stepsForTab,
+} from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
@@ -855,6 +861,18 @@ const reviewNote = computed(() =>
 // (there is no reopen/unlock action to undo an approve otherwise).
 const locked = computed(() => !canWrite.value)
 const showStatus = computed(() => !!activeStep.value)
+// Per-step approval is only meaningful while the revision itself is still up
+// for review: once the revision has been approved at project level (the
+// Publish tab's governance step) or actually published (live), approving one
+// of its steps decides nothing, so the header's Approve button goes away.
+// "Request changes" stays — flagging a step is how a reviewer reopens work on
+// an approved or live revision.
+const publishStatus = computed(() =>
+  project.value
+    ? store.governanceStatus(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY)
+    : 'draft',
+)
+const canApproveStep = computed(() => !isLive.value && publishStatus.value !== 'approved')
 // Save only makes sense on form steps — sensitivity/resource steps persist
 // each change immediately through their own store calls instead.
 const showStepSave = computed(() => activeStep.value?.type === 'form')
