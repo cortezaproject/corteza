@@ -56,7 +56,6 @@ dashboard:
   # from views.overview, which names the landing SECTION within it.
   title: Dashboard
   version: 'v{number}'
-  versionDraft: 'v{number} draft'
   # Which revision a work item belongs to — shown as a column in the
   # chain-wide list views (BacklogView.vue/CategoryView.vue), which span every
   # revision in the chain now. Assigned items reuse `version` above; this
@@ -441,16 +440,13 @@ wizard:
   # "Lifecycle & revisions" locked contract in project.intent.md), each
   # showing its 1-based version (project.dashboard.version above) and
   # lifecycle status (project.status above), with the open one marked. The
-  # last entry branches a new draft off an active revision — disabled, never
-  # left to fail, whenever the backend would reject it: the open revision
-  # isn't active, or the chain already has a draft (one draft per chain).
+  # last entry branches a new draft off an active revision, and is present only
+  # when that would actually work — the open revision is active and the chain
+  # has no draft yet (one draft per chain). It used to be shown disabled with a
+  # reason; those two strings went with it.
   revisionSwitcher:
     trigger: Switch to another revision of this project, or start a new one
     newRevision: New revision from this one
-    newRevisionDisabledNotActive: >-
-      Only an active revision can branch a new draft — publish this revision first.
-    newRevisionDisabledDraftExists: >-
-      This chain already has a draft revision — open or publish it before starting another.
     toastCreateFailed: Could not create a new revision. Please try again.
   # Three fixed tabs, shown to every member regardless of capability — only
   # the review actions inside them (per-step Approve/Request changes, and the

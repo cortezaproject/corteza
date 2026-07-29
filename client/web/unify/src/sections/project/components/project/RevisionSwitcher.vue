@@ -8,17 +8,33 @@
          the icon-trigger idiom used for other popup Menus in this app (e.g.
          TabsBlock.vue's tab menu). -->
     <span
-      role="button"
-      tabindex="0"
-      class="inline-flex items-center gap-1 cursor-pointer rounded px-1 hover:bg-emphasis"
-      :aria-label="$t('project.wizard.revisionSwitcher.trigger')"
-      v-tooltip.bottom="$t('project.wizard.revisionSwitcher.trigger')"
-      @click="toggleMenu"
-      @keydown.enter.stop.prevent="toggleMenu"
-      @keydown.space.stop.prevent="toggleMenu"
+      :role="hasMenu ? 'button' : undefined"
+      :tabindex="hasMenu ? 0 : undefined"
+      class="inline-flex shrink-0 items-center gap-1 rounded px-1"
+      :class="hasMenu ? 'cursor-pointer hover:bg-emphasis' : ''"
+      :aria-label="hasMenu ? $t('project.wizard.revisionSwitcher.trigger') : undefined"
+      v-tooltip.bottom="hasMenu ? $t('project.wizard.revisionSwitcher.trigger') : undefined"
+      @click="hasMenu && toggleMenu($event)"
+      @keydown.enter.stop.prevent="hasMenu && toggleMenu($event)"
+      @keydown.space.stop.prevent="hasMenu && toggleMenu($event)"
     >
-      <Tag :value="triggerLabel" :severity="triggerSeverity" class="!text-xs" />
-      <i class="pi pi-chevron-down text-xs text-muted-color" />
+      <Tag :value="triggerLabel" severity="secondary" class="!text-xs" />
+      <!-- Where the open revision stands, stated on the control that names it —
+           and by the same derivation its dropdown entry uses, so the trigger and
+           the row it corresponds to always read identically. Suppressed on the
+           dashboard, where the trigger names the chain-wide Dashboard rather
+           than a revision. -->
+      <StatusChip
+        v-if="!onDashboard && project"
+        :status="currentTag.status"
+        :label="currentTag.label"
+        small
+      />
+      <!-- No chevron when there is nowhere to go: a lone revision that can't be
+           branched and has no dashboard leaves the menu with nothing in it but
+           the entry you are already on, so the whole control degrades to a
+           label (see hasMenu). -->
+      <i v-if="hasMenu" class="pi pi-chevron-down text-xs text-muted-color" />
     </span>
 
     <!-- Popup menu: the chain-wide Dashboard first, then the revision chain
@@ -28,7 +44,7 @@
          current is derived from the active route (see onDashboard/menuItems
          below), not from a prop, so the exact same popup reads correctly
          whichever surface mounted it. -->
-    <Menu ref="menuRef" :model="menuItems" popup>
+    <Menu v-if="hasMenu" ref="menuRef" :model="menuItems" popup>
       <template #item="{ item, props: itemProps }">
         <a
           v-if="item.kind === 'dashboard'"
@@ -50,17 +66,12 @@
         >
           <i class="pi pi-check text-primary text-xs" :class="{ invisible: !item.current }" />
           <span class="flex-1">{{ item.label }}</span>
-          <Tag
-            :value="$t(`project.status.${item.status}`)"
-            :severity="revisionStatusSeverity(item.status)"
-            class="!text-xs"
-          />
+          <StatusChip :status="item.tag.status" :label="item.tag.label" small />
         </a>
         <a
           v-else-if="item.kind === 'new-revision'"
           v-ripple
           v-bind="itemProps.action"
-          v-tooltip.bottom="item.tooltip"
           class="flex items-center gap-2"
         >
           <i class="pi pi-plus text-xs" />
@@ -72,6 +83,9 @@
 </template>
 
 <script setup>
+import StatusChip from '@/sections/project/components/project/StatusChip.vue'
+import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
+import { chainHasPublished, projectStatusTag } from '@/sections/project/config/publishState'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -99,18 +113,13 @@ const onDashboard = computed(
   () => typeof route.name === 'string' && route.name.startsWith('project.overview'),
 )
 
-// A live (published) project has a dashboard to switch to; drafts are
-// wizard-only. Also drives the trigger's severity (mirrors the dashboard
-// topbar's old version Tag) and the version label's wording.
-const isLive = computed(() => ['active', 'published'].includes(props.project?.status))
-
 // User-facing versions are 1-based (the original live project is v1), so we
-// display the backend revision + 1. An unpublished project is flagged as a
-// draft (e.g. "v1 draft").
+// display the backend revision + 1. Just the version, exactly as the dropdown
+// entries name it — the trigger used to append "draft" and turn amber for an
+// unpublished revision, which now says twice, worse, what the project status
+// tag beside it states properly (see Wizard.vue's topbar).
 const versionLabel = computed(() =>
-  t(isLive.value ? 'project.dashboard.version' : 'project.dashboard.versionDraft', {
-    number: (props.project?.revision ?? 0) + 1,
-  }),
+  t('project.dashboard.version', { number: (props.project?.revision ?? 0) + 1 }),
 )
 
 // The trigger always shows whichever entry is current: the chain-wide
@@ -119,7 +128,18 @@ const versionLabel = computed(() =>
 const triggerLabel = computed(() =>
   onDashboard.value ? t('project.dashboard.title') : versionLabel.value,
 )
-const triggerSeverity = computed(() => (!onDashboard.value && !isLive.value ? 'warn' : 'secondary'))
+
+// One derivation for every revision this component shows, trigger and dropdown
+// alike (see config/publishState.js). Governance is keyed by projectID, so each
+// revision in the chain resolves its own review state — a sibling revision
+// nobody has touched this session simply reads "Not published", which is what
+// it is.
+const statusTagFor = rev =>
+  projectStatusTag({
+    status: rev?.status,
+    publishStatus: rev ? store.governanceStatus(rev.projectID, PUBLISH_GOVERNANCE_STEP_KEY) : '',
+  })
+const currentTag = computed(() => statusTagFor(props.project))
 
 const menuRef = ref()
 function toggleMenu(event) {
@@ -146,20 +166,9 @@ watch(
   { immediate: true },
 )
 
-// Severities mirror ProjectList.vue / ProjectSidebar.vue's project-status Tag
-// mapping (active/published live, draft in review, suspended flagged).
-const REVISION_STATUS_SEVERITY = {
-  active: 'success',
-  published: 'success',
-  draft: 'info',
-  suspended: 'warn',
-  archived: 'secondary',
-  // Publish stamps the outgoing revision `deprecated` — the single most common
-  // status to meet in a chain of any age, so it gets its own tone rather than
-  // the unknown-status fallback below.
-  deprecated: 'secondary',
-}
-const revisionStatusSeverity = status => REVISION_STATUS_SEVERITY[status] || 'secondary'
+// Tone/icon/label per status all live in StatusChip now — including
+// `deprecated`, which publish stamps on the outgoing revision and is therefore
+// the single most common status to meet in a chain of any age.
 
 // Selecting another revision navigates to its own wizard; selecting the
 // already-open one (from the wizard) is a harmless no-op.
@@ -177,12 +186,12 @@ function goToDashboard() {
   router.push({ name: 'project.overview', params: { projectId: rootId } })
 }
 
-// AGREED BEHAVIOUR: prevent rather than fail. The "New revision from this
-// one" entry is disabled — with a tooltip explaining why — whenever the
-// backend would reject createRevision: no revision to branch from is
-// currently active, or the chain already has a draft (the backend allows
-// only one draft per chain). onCreateRevision's catch below is only a
-// backstop for the race where someone else created a draft first.
+// "New revision from this one" is offered only when it would actually work —
+// the entry is absent, not disabled-with-a-reason, when the backend would
+// reject createRevision: the revision to branch from is not active, or the
+// chain already has a draft (the backend allows only one draft per chain).
+// onCreateRevision's catch below is still the backstop for the race where
+// someone else created a draft first.
 //
 // "This one" means different things on the two surfaces: in the Wizard it's
 // literally the open revision (you branch off what you're looking at); the
@@ -191,47 +200,58 @@ function goToDashboard() {
 const branchSource = computed(() =>
   onDashboard.value ? revisionChain.value.find(r => r.status === 'active') || null : props.project,
 )
-const currentNotActive = computed(() => branchSource.value?.status !== 'active')
-const chainHasDraft = computed(() => revisionChain.value.some(r => r.status === 'draft'))
-const newRevisionDisabled = computed(() => currentNotActive.value || chainHasDraft.value)
-const newRevisionDisabledReason = computed(() => {
-  if (currentNotActive.value)
-    return t('project.wizard.revisionSwitcher.newRevisionDisabledNotActive')
-  if (chainHasDraft.value)
-    return t('project.wizard.revisionSwitcher.newRevisionDisabledDraftExists')
-  return ''
-})
+const canCreateRevision = computed(
+  () =>
+    branchSource.value?.status === 'active' && !revisionChain.value.some(r => r.status === 'draft'),
+)
+
+// Whether the control is a menu at all. Everything it can offer beyond the
+// entry you are already on: a dashboard to switch to, a sibling revision, or a
+// new revision to branch. With none of those the popup would list only the
+// current revision, so the trigger drops its chevron and stops being clickable
+// (see the template) rather than opening a menu of one.
+const hasMenu = computed(
+  () =>
+    chainHasPublished(props.project) || revisionChain.value.length > 1 || canCreateRevision.value,
+)
 
 const menuItems = computed(() => {
   const items = [
-    {
-      kind: 'dashboard',
-      label: t('project.dashboard.title'),
-      current: onDashboard.value,
-      command: goToDashboard,
-    },
+    // The dashboard only exists once the chain has published something to
+    // report on (see config/publishState.js) — until then this switcher offers
+    // the revisions alone.
+    ...(chainHasPublished(props.project)
+      ? [
+          {
+            kind: 'dashboard',
+            label: t('project.dashboard.title'),
+            current: onDashboard.value,
+            command: goToDashboard,
+          },
+        ]
+      : []),
     ...revisionChain.value.map(rev => ({
       kind: 'revision',
       label: t('project.dashboard.version', { number: rev.revision + 1 }),
-      status: rev.status,
+      tag: statusTagFor(rev),
       current: !onDashboard.value && rev.projectID === props.project?.projectID,
       command: () => goToRevision(rev.projectID),
     })),
   ]
-  items.push({ separator: true })
-  items.push({
-    kind: 'new-revision',
-    label: t('project.wizard.revisionSwitcher.newRevision'),
-    disabled: newRevisionDisabled.value,
-    tooltip: newRevisionDisabled.value ? newRevisionDisabledReason.value : '',
-    command: onCreateRevision,
-  })
+  if (canCreateRevision.value) {
+    items.push({ separator: true })
+    items.push({
+      kind: 'new-revision',
+      label: t('project.wizard.revisionSwitcher.newRevision'),
+      command: onCreateRevision,
+    })
+  }
   return items
 })
 
 const creatingRevision = ref(false)
 async function onCreateRevision() {
-  if (creatingRevision.value || newRevisionDisabled.value || !branchSource.value) return
+  if (creatingRevision.value || !canCreateRevision.value || !branchSource.value) return
   creatingRevision.value = true
   try {
     const draft = await store.createRevision(branchSource.value.projectID)
