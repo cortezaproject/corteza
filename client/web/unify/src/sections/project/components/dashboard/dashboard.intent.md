@@ -72,7 +72,10 @@ user options for owner/assignee fields; config: `categories`, `chartColors`,
 
 - Keep chart components presentational — data shaping stays in views/stores.
 - The ordinal colour ramps (chartColors ↔ EventBadge tints ↔ RiskPips) are
-  one system; change them together or not at all.
+  one system; change them together or not at all. Status goes further:
+  EventBadge styles that one variant inline off STATUS_COLORS' exact hexes
+  (ruled 2026-07-29), so pills, donuts and the wizard's progress bar can
+  never drift apart on status colour.
 - New dashboard screens touch the locked view set — needs a ruling first;
   new widgets for existing views belong here.
 - EventTimelineItem changes must keep its test green.

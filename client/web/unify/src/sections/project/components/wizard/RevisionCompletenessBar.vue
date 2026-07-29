@@ -160,14 +160,36 @@ const percent = computed(() => {
   return Math.round((weighted / totals.assigned) * 100)
 })
 
-// Completed-of-total headline plus the per-status counts — the counts keep
-// segment identity readable without depending on colour alone.
+// Completed-of-total headline plus one row per status (colour dot, label,
+// count) — the labeled counts keep segment identity readable without
+// depending on colour alone. HTML via the tooltip directive's escape:false
+// (same appendTo-body escape story as the echarts tooltips — PrimeVue's
+// tooltip mounts on <body> already). Interpolated values are safe by
+// construction: statuses are the fixed EVENT_STATUS constants and counts are
+// numbers — never user text. The empty state stays a plain (escaped) string.
 const tooltip = computed(() => {
   if (!hasItems.value) return t('project.wizard.completeness.emptyTooltip')
-  const breakdown = segments.value.map(seg => `${seg.status} ${seg.count}`).join(', ')
-  return `${t('project.wizard.completeness.tooltip', {
+  const rows = segments.value
+    .map(
+      seg => `
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span style="width:0.5rem;height:0.5rem;border-radius:9999px;flex:none;background:${seg.color}"></span>
+          <span style="flex:1 1 auto">${seg.status}</span>
+          <span style="font-weight:600;font-variant-numeric:tabular-nums">${seg.count}</span>
+        </div>`,
+    )
+    .join('')
+  const headline = t('project.wizard.completeness.tooltip', {
     completed: totals.completed,
     total: totals.assigned,
-  })} ${t('project.wizard.completeness.tooltipBreakdown', { breakdown })}`
+  })
+  return {
+    value: `
+      <div style="display:flex;flex-direction:column;gap:0.375rem;min-width:11rem;max-width:16rem">
+        <div style="opacity:0.8">${headline}</div>
+        ${rows}
+      </div>`,
+    escape: false,
+  }
 })
 </script>

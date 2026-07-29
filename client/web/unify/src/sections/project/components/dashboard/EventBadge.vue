@@ -4,17 +4,20 @@
   <span
     class="inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap"
     :class="[cls, size === 'md' ? 'px-2.5 py-1 text-xs' : 'px-2 py-0.5 text-[11px]']"
+    :style="tint"
   >
     <span
-      v-if="dot"
+      v-if="dot || dotTint"
       class="rounded-full shrink-0"
       :class="[dot, size === 'md' ? 'w-2 h-2' : 'w-1.5 h-1.5']"
+      :style="dotTint"
     />
     {{ value || '—' }}
   </span>
 </template>
 
 <script setup>
+import { STATUS_COLORS } from '@/sections/project/config/chartColors'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -48,20 +51,14 @@ const SEVERITY_DOT = {
   Minor: 'bg-yellow-500',
   Informational: 'bg-sky-500',
 }
-// Lifecycle ramp — mirrors STATUS_COLORS in config/chartColors so pills and
-// charts read as one system. Open is blue (not muted) so it never looks blank.
-const STATUS = {
-  Open: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
-  'In Progress': 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
-  'Ready to Test': 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
-  Completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-}
-const STATUS_DOT = {
-  Open: 'bg-blue-500',
-  'In Progress': 'bg-amber-500',
-  'Ready to Test': 'bg-violet-500',
-  Completed: 'bg-emerald-500',
-}
+// Lifecycle ramp — the status variant is the one variant styled INLINE off
+// STATUS_COLORS in config/chartColors, using the EXACT chart hexes (ruled
+// 2026-07-29), not a nearest Tailwind family: status pills sit right next to
+// the status donuts and the wizard's stacked progress bar, so "same hue
+// family" still read as two different colours side by side. Text + dot carry
+// the exact hex in both themes (each hex was palette-validated against both
+// surfaces); the pill's tint is the same hex at 15% alpha, which lands close
+// to the old bg-*-100 / dark:bg-*-500/15 pair on both surfaces.
 
 // Backlog item priority (High/Medium/Low — no Critical tier, unlike
 // severity/risk). Reuses RiskPips's family (red/orange/amber/yellow) but
@@ -82,15 +79,27 @@ const PRIORITY_DOT = {
 // (No `risk` variant: risk keeps its 5-pip meter identity everywhere —
 // RiskPips — with a text label alongside in selects/summaries.)
 
+// The exact chart hex for a known status; null for every other variant (or
+// an unknown status value, which keeps the MUTED fallback pill).
+const statusHex = computed(() =>
+  props.variant === 'status' ? STATUS_COLORS[props.value] || null : null,
+)
+
 const cls = computed(() => {
   if (props.variant === 'severity') return SEVERITY[props.value] || MUTED
-  if (props.variant === 'status') return STATUS[props.value] || MUTED
+  if (props.variant === 'status') return statusHex.value ? '' : MUTED
   if (props.variant === 'priority') return PRIORITY[props.value] || MUTED
   return 'border border-surface text-muted-color' // type: flat neutral pill
 })
+// '26' = 15% alpha as an 8-digit-hex suffix.
+const tint = computed(() =>
+  statusHex.value ? { color: statusHex.value, background: `${statusHex.value}26` } : null,
+)
+const dotTint = computed(() => (statusHex.value ? { background: statusHex.value } : null))
+
 const dot = computed(() => {
   if (props.variant === 'severity') return SEVERITY_DOT[props.value] || 'bg-surface-400'
-  if (props.variant === 'status') return STATUS_DOT[props.value] || 'bg-surface-400'
+  if (props.variant === 'status') return statusHex.value ? null : 'bg-surface-400'
   if (props.variant === 'priority') return PRIORITY_DOT[props.value] || 'bg-surface-400'
   return null
 })
