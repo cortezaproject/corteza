@@ -14,7 +14,8 @@ touched-by:
   - client/web/unify/src/sections/project/components
   - client/web/unify/src/sections/project/sidebar/ProjectSidebar.vue
   - client/web/unify/src/sections/project/stores/events.js
-tests: []
+tests:
+  - client/web/unify/src/sections/project/stores/projects.test.js
 ---
 
 # projects store

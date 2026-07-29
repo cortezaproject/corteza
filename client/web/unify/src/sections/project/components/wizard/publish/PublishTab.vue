@@ -20,10 +20,8 @@
         <ProgressSpinner style="width: 2rem; height: 2rem" />
       </div>
 
-      <Message v-else-if="loadError" severity="error" :closable="false">
-        {{ $t('project.publish.loadFailed') }}
-      </Message>
-
+      <!-- Ahead of the error state on purpose: a live revision has no plan to
+           fetch, so a failure there must never hide the receipt. -->
       <PublishReceipt
         v-else-if="isLive"
         :version="version"
@@ -31,6 +29,10 @@
         @view-dashboard="goDashboard"
         @new-revision="startNewRevision"
       />
+
+      <Message v-else-if="loadError" severity="error" :closable="false">
+        {{ $t('project.publish.loadFailed') }}
+      </Message>
 
       <template v-else>
         <PublishStage
@@ -192,6 +194,13 @@ const rootProjectId = computed(() => props.project?.rootProjectID || projectId.v
 // tab re-reads on open and after any publish-relevant change.
 async function load() {
   if (!projectId.value) return
+  // A live revision has nothing left to plan — the backend only computes a plan
+  // for a draft and errors otherwise, so asking would manufacture a failure on
+  // the one screen that should be showing a receipt.
+  if (isLive.value) {
+    loading.value = false
+    return
+  }
   loading.value = true
   loadError.value = false
   try {

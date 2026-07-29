@@ -1677,7 +1677,7 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishTab.vue": {
-      "h": "cb64b5d0a198",
+      "h": "0dfc7c80bd51",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },
@@ -1912,8 +1912,13 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/stores/projects.js": {
-      "h": "b0510c0dd776",
+      "h": "5e38734fc9a1",
       "doc": "client/web/unify/src/sections/project/stores/projects.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/stores/projects.test.js": {
+      "h": "da799f04542b",
+      "doc": "client/web/unify/src/sections/project/stores/stores.intent.md",
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/stores/report.js": {

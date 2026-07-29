@@ -519,12 +519,15 @@ export const useProjectsStore = defineStore('projects', () => {
   // seconds earlier. A first revision legitimately has nothing to compare
   // against and comes back empty, not as an error.
   async function deploymentPlan(projectID) {
-    const plan = await $SystemAPI.projectGetDeploymentPlan({ projectID })
+    const plan = (await $SystemAPI.projectGetDeploymentPlan({ projectID })) || {}
+    // Coerced field by field, NOT by spreading over defaults: Go marshals a nil
+    // slice as `null`, not `[]`, so a plan with nothing in it arrives as
+    // {changes: null} and a spread would happily overwrite the default with it.
+    // Every caller treats these as arrays.
     return {
-      risk: 'safe',
-      changes: [],
-      suggestedMappings: [],
-      ...plan,
+      risk: plan.risk || 'safe',
+      changes: plan.changes || [],
+      suggestedMappings: plan.suggestedMappings || [],
     }
   }
 
