@@ -528,13 +528,14 @@ const approvalTag = computed(
     },
 )
 
-// The header pill states the PROJECT's status, so before anything is submitted
-// it says "Draft" — the stage chips already say "Not started", and reading that
-// at the top of the screen suggests the project hasn't been started.
+// The header pill states where the PROJECT stands. Before anything is
+// submitted that is "Not published" — the fact this screen exists to change —
+// rather than the lifecycle enum ("Draft") or the stage chips' "Not started",
+// which reads as though the project itself had not been started.
 const statusTag = computed(() => {
   if (isLive.value) return { label: t('project.status.active'), severity: 'success' }
   if (publishStatus.value === 'draft')
-    return { label: t('project.status.draft'), severity: 'secondary' }
+    return { label: t('project.publish.notPublished'), severity: 'secondary' }
   return approvalTag.value
 })
 

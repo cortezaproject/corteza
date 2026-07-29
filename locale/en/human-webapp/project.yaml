@@ -626,6 +626,11 @@ publish:
     This revision is live. Everything below is a record of what went out; to change the project
     again, start a new revision.
   loadFailed: Could not work out what this revision changes. Please try again.
+  # The header pill states where the PROJECT stands, so before anything is
+  # submitted it names the fact this screen is about — not published yet —
+  # rather than the lifecycle enum ("Draft") or the stage chips' "Not started",
+  # which reads as though the project itself had not been started.
+  notPublished: Not published
   stages:
     reviewed: Reviewed
     needsDecision: Needs a decision
