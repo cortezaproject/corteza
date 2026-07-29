@@ -1,0 +1,7 @@
+ID,name,email,company,status
+c1,Alice Novak,alice@acme.test,Acme,active
+c2,Bojan Kranjc,bojan@globex.test,Globex,lead
+c3,Carla Meze,carla@initech.test,Initech,active
+c4,Domen Zupan,domen@acme.test,Acme,dormant
+c5,Eva Kos,eva@hooli.test,Hooli,lead
+c6,Franc Poto,franc@globex.test,Globex,active

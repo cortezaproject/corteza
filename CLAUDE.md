@@ -7,6 +7,17 @@ The intent system (`.intent/SPEC.md`, `*.intent.md` contract docs) is
 `/intent-audit` (drift audits) — those skills carry the full procedure. When
 not opted in, do not edit `*.intent.md` files or run intent tooling.
 
+## Dev server & agent toolkit
+
+- To call the local dev API (verify implementations, inspect data): use
+  `dev/agent/` — `smoke.sh` first, then `api.sh METHOD PATH`. Setup:
+  `bootstrap.sh` (idempotent). Skills: `/dev-api`, `/dev-seed`. Reference +
+  gotchas: `dev/agent/README.md`.
+- Test data: versioned fixtures in `dev/fixtures/`; `dev/agent/seed.sh` /
+  `cleanup.sh`.
+- Anything an agent creates on the dev server uses an `agent-` handle/slug
+  prefix — prefixed data is disposable, unprefixed data is off-limits.
+
 ## Conventions
 
 - **Formatting**: prettier (FE) / gofmt (Go) on changed files only, after edits.

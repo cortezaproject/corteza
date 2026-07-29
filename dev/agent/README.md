@@ -34,6 +34,8 @@ Requires: `curl`, `python3` (no jq dependency), a built server binary in
 | `smoke.sh` | server up? version? token OK? who am I? authed API works? |
 | `token.sh` | print a valid bearer token (cached ~2h; oauth2 flow, CLI-jwt fallback) |
 | `api.sh METHOD PATH [curl args…]` | authenticated request, jq-pretty output |
+| `seed.sh [--force] [fixture…]` | import `dev/fixtures/` (skips seeded fixtures unless `--force`) |
+| `cleanup.sh` | delete all `agent-*` compose namespaces |
 
 ```sh
 dev/agent/smoke.sh
@@ -57,6 +59,13 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Agent Test","slug":"agent
   auth clients via REST instead, as bootstrap does.
 - The server CLI (`auth jwt`, cobra `cmd.Println`) prints to **stderr**;
   capture with `2>&1`.
+- **Compose updates are POST, not PUT** (`POST …/module/{id}` updates it);
+  system auth clients use PUT. Check the `handlers/*.go` route registrations.
+- CSV record sources import only when the fixture **directory** is passed to
+  `import` (single-file decode never registers the CSV providers — nil-panic).
+- CLI `import` bypasses the running server's DAL registry — record queries
+  then fail with "model does not exist" until models re-register (seed.sh
+  does a no-op module POST per module; a server restart also works).
 
 ## Conventions for agent-created data
 

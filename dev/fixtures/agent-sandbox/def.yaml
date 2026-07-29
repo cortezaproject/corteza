@@ -1,0 +1,126 @@
+# Agent sandbox fixture — a small realistic namespace for agent/dev testing.
+# Imported by dev/agent/seed.sh (local dev server only). Everything here uses
+# the agent- handle prefix and is disposable (dev/agent/cleanup.sh).
+#
+# Harvesting: when a better version of this namespace is built live (UI/API),
+# capture it with `export compose-namespace agent-sandbox` and fold the result
+# back into this file.
+
+namespace:
+  agent-sandbox:
+    name: Agent Sandbox
+    enabled: true
+
+    modules:
+      agent-contact:
+        name: Contacts
+        fields:
+          name:
+            title: Name
+          email:
+            title: Email
+            kind: Email
+          company:
+            title: Company
+          status:
+            title: Status
+            kind: Select
+            options:
+              options:
+                - value: lead
+                  text: Lead
+                - value: active
+                  text: Active
+                - value: dormant
+                  text: Dormant
+        source:
+          - from: contacts.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: name
+                field: name
+              - column: email
+                field: email
+              - column: company
+                field: company
+              - column: status
+                field: status
+
+      agent-task:
+        name: Tasks
+        fields:
+          title:
+            title: Title
+          due:
+            title: Due
+            kind: DateTime
+          priority:
+            title: Priority
+            kind: Select
+            options:
+              options:
+                - value: low
+                  text: Low
+                - value: medium
+                  text: Medium
+                - value: high
+                  text: High
+          contact:
+            title: Contact
+            kind: Record
+            options:
+              module: agent-contact
+        source:
+          - from: tasks.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: title
+                field: title
+              - column: due
+                field: due
+              - column: priority
+                field: priority
+              - column: contact
+                field: contact
+
+    charts:
+      agent-tasks-by-priority:
+        name: Tasks by priority
+        config:
+          colorScheme: tableau.Tableau10
+          reports:
+            - module: agent-task
+              filter: ""
+              metrics:
+                - field: count
+                  fixTooltips: false
+                  relativeValue: false
+                  type: doughnut
+              dimensions:
+                - field: priority
+                  conditions: {}
+
+    pages:
+      agent-dashboard:
+        title: Agent Sandbox Dashboard
+        visible: true
+        blocks:
+          - title: Contacts
+            kind: RecordList
+            options:
+              module: agent-contact
+          - title: Tasks by priority
+            kind: Chart
+            options:
+              chart: agent-tasks-by-priority
+        pages:
+          agent-contact-page:
+            title: Contact
+            module: agent-contact
+          agent-task-page:
+            title: Task
+            module: agent-task
