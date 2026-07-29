@@ -269,15 +269,15 @@ async function loadInventory() {
     }
   }
 
-  // OVERVIEW_KINDS, not the kinds that happen to be present: same set and same
-  // order as the metric cards above the Build tab's graph, zeros included. A
-  // kind reading 0 is information — it says the project has no agents, rather
-  // than leaving you to notice an absence.
+  // Ordered by OVERVIEW_KINDS — the pipeline order the Build tab's metric
+  // cards use — but only what the revision actually has. Unlike that strip,
+  // which is a fixed set of layer toggles, this is a list of what goes live,
+  // and a kind with nothing in it is not going live.
   return OVERVIEW_KINDS.map(kind => ({
     kind,
     count: counts[kind] || 0,
     added: added[kind] || 0,
-  }))
+  })).filter(entry => entry.count > 0)
 }
 
 // --- migration decisions ---------------------------------------------------
