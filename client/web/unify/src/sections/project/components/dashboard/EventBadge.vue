@@ -52,13 +52,15 @@ const SEVERITY_DOT = {
   Informational: 'bg-sky-500',
 }
 // Lifecycle ramp — the status variant is the one variant styled INLINE off
-// STATUS_COLORS in config/chartColors, using the EXACT chart hexes (ruled
-// 2026-07-29), not a nearest Tailwind family: status pills sit right next to
-// the status donuts and the wizard's stacked progress bar, so "same hue
-// family" still read as two different colours side by side. Text + dot carry
-// the exact hex in both themes (each hex was palette-validated against both
-// surfaces); the pill's tint is the same hex at 15% alpha, which lands close
-// to the old bg-*-100 / dark:bg-*-500/15 pair on both surfaces.
+// STATUS_COLORS in config/chartColors (ruled 2026-07-29), not a nearest
+// Tailwind family: status pills sit right next to the status donuts and the
+// wizard's stacked progress bar, so "same hue family" still read as two
+// different colours side by side. Direction of truth: STATUS_COLORS holds
+// THIS pill's original text hexes (the Tailwind 700 steps) — the charts
+// adopted the badge's colours, not the reverse — so light-mode pills render
+// exactly as they always did. Text + dot carry the hex in both themes (dark
+// trades a step of text contrast for the exact match — see the WARN note in
+// chartColors); the tint is the same hex at 15% alpha.
 
 // Backlog item priority (High/Medium/Low — no Critical tier, unlike
 // severity/risk). Reuses RiskPips's family (red/orange/amber/yellow) but

@@ -1362,7 +1362,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/components/dashboard/EventBadge.vue": {
-      "h": "cbaf3bd7fc14",
+      "h": "43d915231d45",
       "doc": "client/web/unify/src/sections/project/components/dashboard/dashboard.intent.md",
       "t": "2026-07-29"
     },
@@ -1767,9 +1767,9 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/config/chartColors.js": {
-      "h": "820aa4c6aae0",
+      "h": "651e642a7b27",
       "doc": "client/web/unify/src/sections/project/config/config.intent.md",
-      "t": "2026-07-28"
+      "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/config/connectors.js": {
       "h": "b07ec5384e11",

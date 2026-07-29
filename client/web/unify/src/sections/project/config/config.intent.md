@@ -41,12 +41,10 @@ persist (statuses, AI Act options) stay literal.
   mirroring the Admin connection catalog.
 - `dashboard.js` — the dashboard left-rail nav (locked view set: Overview,
   Events, five Categories, Backlog, Reports stub).
-- `manageNav.js` — the Manage & Monitor left-rail sections. The M&M tab
-  renders from this, never from STEPS — that is what keeps "Manage & Monitor
-  has no steps" true. It describes the SAME section set as `dashboard.js`
-  (ruled 2026-07-28: one surface, two scopes); the two configs differ only in
-  how each surface navigates — real child routes there, a `?section=` query
-  param here. Keep the section sets in step.
+- `manageNav.js` — the M&M left-rail sections; the tab renders from this,
+  never from STEPS ("Manage & Monitor has no steps"). SAME section set as
+  `dashboard.js` (ruled 2026-07-28: one surface, two scopes) — only the
+  navigation differs (child routes there, `?section=` here); keep in step.
 - `categories.js` — per-category dashboard config: columns, charts, KPIs,
   badges, trend grouping; reuses eventForm's schemas and visual identity.
 - `eventForm.js` — New Event form schemas per category + EVENT_STATUS;
@@ -62,8 +60,10 @@ persist (statuses, AI Act options) stay literal.
   selection — treat them as an interface, never rename to relabel.
 - `eventKinds.js` — action-log resource type → project kind mapping so audit
   events wear their resource's icon/color; unmapped types fall back neutral.
-- `chartColors.js` — validated chart palettes (status/severity/risk/…) with
-  ordering helpers; single hex per label must pass light AND dark checks.
+- `chartColors.js` — validated chart palettes (status/severity/risk/…) +
+  ordering helpers; one hex per label passes light AND dark checks. Status
+  = EventBadge's text hexes (ruled 2026-07-29, badges lead); its dark
+  contrast WARN's relief: status is never colour-alone (file comment).
 - `trend.js` — day/week/month bucketing, range presets, `adaptiveWindow`.
 - `summaryForm.js` — Project Summary governance step schema.
 - `resourceManagementForm.js` — Resource Management step values shape +

@@ -16,14 +16,22 @@ import { EVENT_FORMS } from './eventForm'
 // Lifecycle ramp: colour tracks progress toward done (urgency lives in the
 // separate "overdue" metric, not here). Distinct hues, green = done, and Open
 // is off-grey so it never reads as the "unknown/blank" fallback.
-// Validated both modes (ALL PASS, no contrast relief needed): the older
-// amber/emerald steps (#f59e0b, #10b981) overflowed the dark-mode lightness
-// cap, so both sit one family step darker.
+// The hexes are EventBadge's original status-pill TEXT colours (Tailwind v3
+// 700 steps) — ruled 2026-07-29: the badges are the source of truth and the
+// charts/progress bar adopt THEIR colours, not the other way around
+// (EventBadge itself now styles status inline off this table, so the two
+// stay identical by construction).
+// Validated both modes: light ALL PASS; dark passes every check but carries
+// a contrast WARN on blue/violet (2.6:1 / 2.45:1 vs the dark surface). The
+// required relief is already structural — status is never colour-alone
+// anywhere (donut legend + tooltip, the progress bar's labeled tooltip
+// rows, text-labeled pills) — but do not reuse these hexes for a mark that
+// lacks a label.
 export const STATUS_COLORS = {
-  Open: '#3b82f6', // blue — new, logged
+  Open: '#1d4ed8', // blue — new, logged
   'In Progress': '#b45309', // amber — active, in-flight
-  'Ready to Test': '#8b5cf6', // violet — in review
-  Completed: '#059669', // emerald — done
+  'Ready to Test': '#6d28d9', // violet — in review
+  Completed: '#047857', // emerald — done
 }
 
 // Severity is ordinal (Critical > Serious > Major > Minor > Informational)
@@ -135,7 +143,16 @@ export const MUTED = '#94a3b8'
 // needed here since no chart scatters type values against each other).
 // Validated: worst adjacent CVD ΔE 13.7, worst adjacent normal ΔE 21.3 (both
 // light+dark, well clear of the 8/15 targets).
-const FALLBACK = ['#007df4', '#007900', '#f5008a', '#865900', '#00a26f', '#a83a00', '#7e6fff', '#bc001d']
+const FALLBACK = [
+  '#007df4',
+  '#007900',
+  '#f5008a',
+  '#865900',
+  '#00a26f',
+  '#a83a00',
+  '#7e6fff',
+  '#bc001d',
+]
 
 const MAPS = {
   status: STATUS_COLORS,
