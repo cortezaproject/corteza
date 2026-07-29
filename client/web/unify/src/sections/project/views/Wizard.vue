@@ -23,14 +23,12 @@
   </Teleport>
 
   <div v-if="project" class="h-full flex flex-col min-h-0">
-    <!-- Header row: the fixed three-tab switcher — Build / Govern / Manage &
-         Monitor, visible to every member regardless of capability (only the
-         per-step and per-project review ACTIONS are capability-gated, not tab
-         access) — with the wizard tool cluster left-aligned directly beside
-         it. -->
-    <!-- flex-wrap: the tools sit beside the tabs while they fit and drop to
-         their own row, still left-aligned, when they don't (no fixed
-         breakpoint). -->
+    <!-- Header row: the fixed four-tab switcher — Build / Govern / Manage &
+         Monitor / Publish, visible to every member regardless of capability
+         (only the per-step and per-project review ACTIONS are capability-gated,
+         not tab access). Just tabs: the publish approval cluster that used to
+         sit here moved into the Publish tab itself (ruled 2026-07-29 — see
+         Wizard.intent.md). -->
     <div class="shrink-0 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 px-3 pt-2">
       <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0">
         <TabList>
@@ -46,68 +44,15 @@
             <i class="pi pi-chart-line" />
             <span>{{ $t('project.wizard.tabs.manageMonitor') }}</span>
           </Tab>
+          <Tab value="publish" class="flex items-center gap-2">
+            <i class="pi pi-cloud-upload" />
+            <span>{{ $t('project.wizard.tabs.publish') }}</span>
+          </Tab>
         </TabList>
       </Tabs>
-
-      <!-- Publish approval cluster — lives in the tab row, immediately right
-           of the tabs (ruled 2026-07-24 for the row, re-aligned left
-           2026-07-29 — see Wizard.intent.md). Members and the "View
-           project"/"View dashboard" navigation used to live in this cluster
-           too; they've moved to the shared ProjectTopbarTools in the topbar
-           (see the Teleport above) and the RevisionSwitcher's Dashboard
-           entry, respectively. -->
-      <span class="flex items-center gap-2 flex-wrap">
-        <!-- One state-driven primary control reading the well-known
-             'publish' governance step (see publishAction). No status Tag
-             (ruled 2026-07-24): the button's state carries the status; its
-             tooltip carries the hint + the reviewer's note. Only relevant
-             pre-publish: once a project is live, the RevisionSwitcher's
-             Dashboard entry takes over and a fresh cycle only resumes with a
-             future revision. -->
-        <template v-if="!isLive">
-          <Button
-            v-if="publishAction === 'request'"
-            :label="
-              publishStatus === 'changes-requested'
-                ? $t('project.publish.actions.resubmit')
-                : $t('project.publish.actions.requestApproval')
-            "
-            icon="pi pi-send"
-            size="small"
-            :severity="publishStatus === 'changes-requested' ? 'warn' : undefined"
-            :loading="requestApprovalLoading"
-            v-tooltip.bottom="publishStatusTooltip"
-            @click="requestApproval"
-          />
-          <Button
-            v-else-if="publishAction === 'approve'"
-            :label="$t('project.publish.actions.approveProject')"
-            icon="pi pi-check"
-            severity="success"
-            size="small"
-            :disabled="anyStepFlagged"
-            :loading="approveProjectLoading"
-            v-tooltip.bottom="
-              anyStepFlagged
-                ? $t('project.publish.actions.approveBlockedTooltip')
-                : publishStatusTooltip
-            "
-            @click="approveProject"
-          />
-          <Button
-            v-else-if="publishAction === 'publish'"
-            :label="$t('project.publish.actions.publish')"
-            icon="pi pi-cloud-upload"
-            size="small"
-            :loading="publishing"
-            v-tooltip.bottom="publishStatusTooltip"
-            @click="confirmPublish"
-          />
-        </template>
-      </span>
     </div>
 
-    <div v-if="activeTab !== 'manage'" class="flex-1 flex gap-4 p-3 min-h-0">
+    <div v-if="isStepTab" class="flex-1 flex gap-4 p-3 min-h-0">
       <!-- Left: step nav -->
       <div class="w-72 shrink-0 flex flex-col gap-2 min-h-0">
         <StepNav
@@ -145,9 +90,9 @@
           <!-- Per-step review lives HERE, not in a bottom bar (ruled
                2026-07-28): it acts on the step whose header this is, so it
                belongs beside its title and status. The PROJECT-level
-               request → approve → publish cluster is a different thing and
-               stays right-aligned in the tab row, where 2026-07-24 locked
-               it. Capability-gated: only a granter sees these at all. -->
+               request → approve → publish cycle is a different thing and
+               lives in the Publish tab (ruled 2026-07-29).
+               Capability-gated: only a granter sees these at all. -->
           <div class="ml-auto flex items-center gap-2 shrink-0">
             <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
             <template v-if="activeStep && canGrant">
@@ -304,6 +249,21 @@
           />
         </div>
       </div>
+    </div>
+
+    <!-- Publish: the ONE tab with no left rail (ruled 2026-07-29). Publishing
+         is a rare one-way action, so it reads as a sequence to complete rather
+         than a place to browse. Self-contained like the manage/ sections — it
+         owns the deployment plan, the migration decisions, the governance
+         transitions and the publish call itself. -->
+    <div v-else-if="activeTab === 'publish'" class="flex-1 min-h-0 p-3">
+      <PublishTab
+        :project="project"
+        :can-write="canWrite"
+        :can-grant="canGrant"
+        :can-request-approval="canRequestApproval"
+        class="h-full rounded-xl border border-surface"
+      />
     </div>
 
     <!-- Manage & Monitor: its own left rail (grouped nav, never STEPS — see
@@ -551,6 +511,7 @@ import ManageOverview from '@/sections/project/components/wizard/manage/ManageOv
 import ManagePrivacy from '@/sections/project/components/wizard/manage/ManagePrivacy.vue'
 import ManageReview from '@/sections/project/components/wizard/manage/ManageReview.vue'
 import ManageTask from '@/sections/project/components/wizard/manage/ManageTask.vue'
+import PublishTab from '@/sections/project/components/wizard/publish/PublishTab.vue'
 import RevisionCompletenessBar from '@/sections/project/components/wizard/RevisionCompletenessBar.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
 import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
@@ -568,22 +529,15 @@ import FriaDeterminationStep from '@/sections/project/components/wizard/steps/Fr
 import FriaScenariosStep from '@/sections/project/components/wizard/steps/FriaScenariosStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
-import { fetchRevisionCompleteness } from '@/sections/project/composables/revisionCompleteness'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { friaDeterminationValues } from '@/sections/project/config/friaDeterminationForm'
 import { MANAGE_NAV } from '@/sections/project/config/manageNav'
-import {
-  PUBLISH_GOVERNANCE_STEP_KEY,
-  STEPS,
-  kindsThroughStep,
-  stepsForTab,
-} from '@/sections/project/config/pipeline'
+import { STEPS, kindsThroughStep, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
-import { useConfirm } from 'primevue/useconfirm'
 import { computed, inject, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -594,8 +548,6 @@ const router = useRouter()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
 const $toast = inject('$toast')
-const $SystemAPI = inject('$SystemAPI')
-const confirm = useConfirm()
 
 const project = computed(() => store.findById(route.params.projectId))
 
@@ -656,185 +608,17 @@ watch(
   { immediate: true },
 )
 
-// --- Project-level publish approval cluster (wizard header) -----------------
-// Drives the single state-machine button in the header tool row above, built
-// around the well-known 'publish' governance step
-// key (PUBLISH_GOVERNANCE_STEP_KEY): draft/changes-requested → submitted →
-// approved, then a successful publish resets it to draft for the next cycle.
-// Distinct from the direct per-step Approve/Request changes review on
-// Build/Govern steps below (no submit stage there) — see the governance
-// section of stores/projects.js for the shared rules (session-local
-// scaffolding pending a governance redesign).
-const publishStatus = computed(() =>
-  project.value
-    ? store.governanceStatus(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY)
-    : 'draft',
-)
-const publishReviewNote = computed(() =>
-  project.value ? store.governanceNote(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY) : '',
-)
-
-// Whether any OTHER (Build/Govern) step currently has changes requested —
-// the "publish" step can't be approved while true (mirrored client-side by
-// stores/projects.js transitionStep; this only keeps the button from firing a
-// request that's certain to be rejected, and explains why via the disabled
-// button's tooltip).
-const anyStepFlagged = computed(
-  () =>
-    !!project.value &&
-    STEPS.some(s => store.governanceStatus(project.value.projectID, s.key) === 'changes-requested'),
-)
-
-// Which action the header button represents right now, or null when the
-// current member holds neither capability for it (no control renders then —
-// such members follow status via the per-step review chips instead).
-const publishAction = computed(() => {
-  switch (publishStatus.value) {
-    case 'approved':
-      return 'publish'
-    case 'submitted':
-      return canGrant.value ? 'approve' : null
-    default: // draft | changes-requested
-      return canRequestApproval.value ? 'request' : null
-  }
-})
-
-// Tooltip on the publish-action button — the only place the review note
-// surfaces for a changes-requested publish (there is no per-step banner for
-// it, unlike Build/Govern steps), plus a status+capability-aware hint
-// mirroring what the old full-page PublishStep panel used to spell out
-// inline.
-const publishStatusTooltip = computed(() => {
-  let hint
-  switch (publishStatus.value) {
-    case 'approved':
-      hint = t('project.publish.hint.approved')
-      break
-    case 'submitted':
-      hint = t(
-        canGrant.value
-          ? 'project.publish.hint.submitted.grantor'
-          : 'project.publish.hint.submitted.viewer',
-      )
-      break
-    case 'changes-requested':
-      hint = t(
-        canRequestApproval.value
-          ? 'project.publish.hint.changesRequested.requester'
-          : 'project.publish.hint.changesRequested.viewer',
-      )
-      break
-    default:
-      hint = t(
-        canRequestApproval.value
-          ? 'project.publish.hint.draft.requester'
-          : 'project.publish.hint.draft.viewer',
-      )
-  }
-  if (publishStatus.value === 'changes-requested' && publishReviewNote.value) {
-    return `${hint} ${t('project.publish.note.label')} "${publishReviewNote.value}"`
-  }
-  return hint
-})
-
-function publishFail(err) {
-  $toast.toastErrorHandler(t('project.publish.toast.actionFailed'))(err)
-}
-
-const requestApprovalLoading = ref(false)
-async function requestApproval() {
-  if (requestApprovalLoading.value) return
-  requestApprovalLoading.value = true
-  try {
-    await store.transitionStep(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY, 'submit')
-    $toast.toastSuccess(t('project.publish.toast.submitted'))
-  } catch (err) {
-    publishFail(err)
-  } finally {
-    requestApprovalLoading.value = false
-  }
-}
-
-const approveProjectLoading = ref(false)
-async function approveProject() {
-  if (approveProjectLoading.value || anyStepFlagged.value) return
-  approveProjectLoading.value = true
-  try {
-    await store.transitionStep(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY, 'approve')
-    $toast.toastSuccess(t('project.publish.toast.approved'))
-  } catch (err) {
-    publishFail(err)
-  } finally {
-    approveProjectLoading.value = false
-  }
-}
-
-// Publish itself needs a confirmation — it's a one-way door (the project goes
-// live and further changes are made through revisions). Reuses the exact
-// store action + success/dashboard handoff PublishStep.vue used to run.
-//
-// The confirm message carries the same revision completeness the M&M rail's
-// bar shows (Wizard.intent.md: "the same completeness is shown again at
-// publish, where unfinished work warns but never blocks") — same shared fetch
-// (composables/revisionCompleteness.js), so the two surfaces can't disagree.
-// Warn-only by construction: the line is appended text, never a gate on the
-// accept action; and fail-open — a failed/slow-to-matter completeness fetch
-// just yields the plain confirm rather than blocking the publish path on a
-// secondary read.
-async function confirmPublish() {
-  let warning = ''
-  try {
-    const { assigned, completed } = await fetchRevisionCompleteness(
-      $SystemAPI,
-      rootProjectId.value,
-      project.value.projectID,
-    )
-    const open = assigned - completed
-    if (open > 0) {
-      warning = ` ${t('project.publish.confirm.unfinishedWarning', { open, total: assigned })}`
-    }
-  } catch (err) {
-    console.error('Failed to load revision completeness for publish confirm', err)
-  }
-  confirm.require({
-    header: t('project.publish.confirm.header'),
-    message: t('project.publish.confirm.message') + warning,
-    icon: 'pi pi-cloud-upload',
-    rejectProps: {
-      label: t('general.label.cancel'),
-      severity: 'secondary',
-      text: true,
-      size: 'small',
-    },
-    acceptProps: { label: t('project.publish.confirm.accept'), size: 'small' },
-    accept: doPublish,
-  })
-}
-const publishing = ref(false)
-async function doPublish() {
-  if (publishing.value) return
-  publishing.value = true
-  try {
-    await store.publishProject(project.value.projectID)
-    $toast.toastSuccess(t('project.publish.toast.published'))
-    // Dashboard handoff — a project only gets a dashboard the moment it goes
-    // live, so a successful publish lands here automatically (see
-    // Wizard.intent.md: "publish (confirmed, then dashboard handoff)").
-    router.push({ name: 'project.overview', params: { projectId: project.value.projectID } })
-  } catch (err) {
-    $toast.toastErrorHandler(t('project.publish.toast.publishFailed'))(err)
-  } finally {
-    publishing.value = false
-  }
-}
-
 // --- Tabs --------------------------------------------------------------
-// Three fixed tabs, all visible to every member: Build, Govern, Manage &
-// Monitor. The active tab is persisted in its own `tab` query param (Manage &
-// Monitor has no steps, so it can't be recovered from route.query.step alone
-// — a reload or deep link without it falls back to whichever tab owns the
-// current step, or Build.
-const VALID_TABS = ['build', 'govern', 'manage']
+// Four fixed tabs, all visible to every member: Build, Govern, Manage &
+// Monitor, Publish. The active tab is persisted in its own `tab` query param
+// (only Build and Govern carry steps, so the rest can't be recovered from
+// route.query.step alone — a reload or deep link without it falls back to
+// whichever tab owns the current step, or Build).
+const VALID_TABS = ['build', 'govern', 'manage', 'publish']
+// The two tabs whose content IS the step pipeline; the other two render their
+// own surface (see config/pipeline.js's `tab` field).
+const STEP_TABS = ['build', 'govern']
+const isStepTab = computed(() => STEP_TABS.includes(activeTab.value))
 const tabForStepKey = key => STEPS.find(s => s.key === key)?.tab
 // An explicit `tab`/`step` in the query always wins. Otherwise the landing tab
 // depends on what the revision is FOR: a live revision is being run, so open
@@ -859,16 +643,17 @@ watch(
   { immediate: true },
 )
 const navSteps = computed(() => {
-  if (!project.value || activeTab.value === 'manage') return []
+  if (!project.value || !isStepTab.value) return []
   return stepsForTab(activeTab.value)
 })
 // Switching tabs away from the step the URL currently points at snaps to
 // that tab's first step, so the header/content/URL stay in sync. Manage &
-// Monitor carries no steps, so its step is left alone (nothing to snap to) —
-// the previous Build/Govern step stays in the query for when the member
-// returns. `tab` itself is always written so the choice survives a reload.
+// Monitor and Publish carry no steps, so the step is left alone (nothing to
+// snap to) — the previous Build/Govern step stays in the query for when the
+// member returns. `tab` itself is always written so the choice survives a
+// reload.
 watch(activeTab, tab => {
-  if (tab === 'manage') {
+  if (!STEP_TABS.includes(tab)) {
     router.replace({ query: { ...route.query, tab } })
     return
   }

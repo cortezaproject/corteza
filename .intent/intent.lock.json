@@ -57,9 +57,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/e2e/sections/project/lifecycle-dashboard.spec.ts": {
-      "h": "fbe7670c440e",
+      "h": "c49cde82314b",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-07-28"
+      "t": "2026-07-29"
     },
     "client/web/unify/e2e/sections/project/members.spec.ts": {
       "h": "75db92bab675",
@@ -77,9 +77,9 @@
       "t": "2026-07-28"
     },
     "client/web/unify/e2e/sections/project/wizard.spec.ts": {
-      "h": "ea86eea02562",
+      "h": "64f8d1a89d2d",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-07-29"
     },
     "client/web/unify/eslint.config.js": {
       "h": "bb961567d66b",
@@ -1646,6 +1646,41 @@
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-27"
     },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishApproval.vue": {
+      "h": "21f77ce4e17c",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishChanges.vue": {
+      "h": "2e8d3448bfd4",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishGoLive.vue": {
+      "h": "89b80e4d268a",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishMigration.vue": {
+      "h": "b7ff77dc8fff",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishReceipt.vue": {
+      "h": "deee3cfaa227",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishStage.vue": {
+      "h": "8c8379b0b894",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishTab.vue": {
+      "h": "cb64b5d0a198",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
     "client/web/unify/src/sections/project/components/wizard/RevisionCompletenessBar.vue": {
       "h": "4f29e6e0747c",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
@@ -1877,9 +1912,9 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/stores/projects.js": {
-      "h": "7bd3a209de0a",
+      "h": "b0510c0dd776",
       "doc": "client/web/unify/src/sections/project/stores/projects.intent.md",
-      "t": "2026-07-28"
+      "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/stores/report.js": {
       "h": "18cd651486f2",
@@ -1942,7 +1977,7 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "69c3c7e8b830",
+      "h": "9a8f9309b54f",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
       "t": "2026-07-29"
     },

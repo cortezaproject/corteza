@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test'
 
-// Smoke: the wizard's locked three-tab shape (Build / Govern / Manage &
-// Monitor, per sections/project/project.intent.md) renders with icons and
-// switches tabs. Uses the first non-live project in the list (live rows open
-// the overview, not the wizard); skips when none exist.
-test('wizard shows the three tabs and switches between them', async ({ page }) => {
+// Smoke: the wizard's locked four-tab shape (Build / Govern / Manage &
+// Monitor / Publish, per sections/project/project.intent.md) renders with
+// icons and switches tabs. Uses the first non-live project in the list (live
+// rows open the overview, not the wizard); skips when none exist.
+test('wizard shows the four tabs and switches between them', async ({ page }) => {
   await page.goto('/project/projects')
   await page.waitForLoadState('networkidle')
 
@@ -20,8 +20,8 @@ test('wizard shows the three tabs and switches between them', async ({ page }) =
   await page.waitForURL(/\/wizard/)
 
   const tabs = page.getByRole('tab')
-  await expect(tabs).toHaveCount(3)
-  for (const icon of ['pi-wrench', 'pi-shield', 'pi-chart-line']) {
+  await expect(tabs).toHaveCount(4)
+  for (const icon of ['pi-wrench', 'pi-shield', 'pi-chart-line', 'pi-cloud-upload']) {
     await expect(page.locator(`[role="tab"] .${icon}`)).toBeVisible()
   }
 

@@ -45,7 +45,7 @@ state, and (temporarily) the governance workflow.
 
 ## API surface consumed
 
-`$SystemAPI` (project*, projectPublish, projectGraph, members, connection*,
+`$SystemAPI` (project*, projectPublish, projectGetDeploymentPlan, projectGraph, members, connection*,
 role*, user*, dalSensitivityLevel*, permissionsTrace/Update), `$ComposeAPI`
 (module*, page*, pageLayout*, permissions), `$AutomationAPI` (automations,
 permissions) — routed per resource string by `apiForResource`.
@@ -54,6 +54,11 @@ permissions) — routed per resource string by `apiForResource`.
 
 - Lifecycle is the locked set: publish promotes `draft` → `active` (BE never
   sets `published`); `archived`, `suspended`, soft-`deleted` complete it.
+- `publishProject` must carry real `mappings`: the BE skips record migration
+  entirely on an empty set and then soft-deletes the old namespace, so an empty
+  publish silently drops every record. `deploymentPlan` is where they come
+  from — always read fresh, never cached, since it describes edits made
+  seconds ago.
 - Revisions are project rows in a chain (root / parent / number), not a field
   to increment: `createRevision` branches from an active project and the BE
   allows one draft per chain; `listRevisions` loads the chain. Work items are

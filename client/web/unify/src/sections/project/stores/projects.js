@@ -490,13 +490,19 @@ export const useProjectsStore = defineStore('projects', () => {
   // local `'publish'` governance step back to draft ourselves on success,
   // mirroring what the old backend used to do — every publish, first or
   // subsequent, needs its own fresh submit → approve cycle.
-  async function publishProject(id) {
+  // `mappings` is how records reach the new revision: the backend's
+  // migrateRecords no-ops on an empty set and publish then soft-deletes the old
+  // namespace, so publishing without them silently drops every record in the
+  // project. The Publish tab resolves them from the deployment plan and passes
+  // them here; the default stays empty only for a first revision, which has no
+  // parent to migrate from.
+  async function publishProject(id, mappings = []) {
     const p = findById.value(id)
     if (!p) return
     const raw = await $SystemAPI.projectPublish({
       projectID: p.projectID,
       confirm: true,
-      mappings: [],
+      mappings,
     })
     touch()
     const result = absorb(raw)
@@ -504,6 +510,22 @@ export const useProjectsStore = defineStore('projects', () => {
     step.status = GOVERNANCE_STATUS_DRAFT
     step.note = ''
     return result
+  }
+
+  // What publishing this draft would change, against its parent revision:
+  // per-resource changes (op/kind/name/risk, plus the record count behind a
+  // destructive one) and the suggested per-module record mapping. Not cached —
+  // it is read once when the Publish tab opens and must reflect edits made
+  // seconds earlier. A first revision legitimately has nothing to compare
+  // against and comes back empty, not as an error.
+  async function deploymentPlan(projectID) {
+    const plan = await $SystemAPI.projectGetDeploymentPlan({ projectID })
+    return {
+      risk: 'safe',
+      changes: [],
+      suggestedMappings: [],
+      ...plan,
+    }
   }
 
   // --- revisions --------------------------------------------------------------
@@ -1897,6 +1919,7 @@ export const useProjectsStore = defineStore('projects', () => {
     updateProject,
     removeProject,
     publishProject,
+    deploymentPlan,
     revisionsFor,
     listRevisions,
     createRevision,

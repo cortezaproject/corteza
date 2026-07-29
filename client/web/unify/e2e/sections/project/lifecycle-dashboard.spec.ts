@@ -124,11 +124,15 @@ test.describe.serial('project lifecycle & dashboard', () => {
     await page.waitForURL(/\/project\/projects\/[^/]+\/wizard/)
 
     // --- Publish cycle: request -> approve -> publish (project.intent.md) --
+    // The whole cycle lives in the Publish tab now (ruled 2026-07-29); it was
+    // a cluster in the wizard's tab row until then.
+    await page.getByRole('tab', { name: 'Publish' }).click()
+
     const requestBtn = page.getByRole('button', { name: 'Request approval' })
     await expect(requestBtn).toBeVisible()
     await requestBtn.click()
     // The creator is only a 'developer' (requestApproval, not grantApproval —
-    // config/roles.js has no single role with both), so the header's action
+    // config/roles.js has no single role with both), so the tab's action
     // button disappears once submitted, until a grantApproval role is held.
     await expect(requestBtn).toBeHidden()
 
@@ -154,15 +158,15 @@ test.describe.serial('project lifecycle & dashboard', () => {
 
     const publishBtn = page.getByRole('button', { name: 'Publish project' })
     await expect(publishBtn).toBeVisible()
+    // No confirm dialog (ruled 2026-07-29): the go-live stage IS the
+    // confirmation, and this is a first revision, so nothing is discarded and
+    // no typed confirmation is required.
     await publishBtn.click()
 
-    const confirmDialog = page.getByRole('alertdialog')
-    await expect(confirmDialog).toBeVisible()
-    await confirmDialog.getByRole('button', { name: 'Publish project' }).click()
-
-    // doPublish() hands off to the dashboard on success — the definitive
-    // signal the project is now live (never assert a 'Published' status).
-    await page.waitForURL(new RegExp(`/project/projects/${projectId}$`))
+    // Publishing stays put and shows a receipt rather than redirecting — that
+    // receipt is the definitive signal the revision is live (never assert a
+    // 'Published' status).
+    await expect(page.getByText('Revision 1 is live')).toBeVisible()
     isLive = true
   })
 

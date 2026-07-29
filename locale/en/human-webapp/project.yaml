@@ -463,6 +463,7 @@ wizard:
     build: Build
     govern: Govern
     manageMonitor: Manage & Monitor
+    publish: Publish
   # Per-step "Request changes" and "Approve" — available on every Build/Govern
   # step, any current status, any time, for a member with grant-approval
   # capability. There is no per-step submit stage: approving directly needs no
@@ -601,21 +602,108 @@ publish:
       approve that step first to clear its flag, then this can be approved.
     publish: Publish project
   confirm:
-    header: Publish project
-    message: >-
-      Publishing marks this project as its live, active version and takes you to its dashboard.
-      Its resources are already available to the members you've added, so publishing doesn't
-      change who can access them — once live, further changes to the project are made through
-      revisions.
-    # Appended to `message` only when the revision still has unfinished work —
-    # the same completed-vs-assigned numbers the Manage & Monitor rail's
-    # revision progress bar shows (see composables/revisionCompleteness.js).
-    # A warning only: unfinished work never blocks publishing.
+    # Shown in the go-live stage, not a dialog (ruled 2026-07-29), whenever the
+    # revision still has unfinished work — the same completed-vs-assigned
+    # numbers the Manage & Monitor rail's revision progress bar shows (see
+    # composables/revisionCompleteness.js). A warning only: unfinished work
+    # never blocks publishing.
     unfinishedWarning: >-
-      Note that {open} of the {total} work items assigned to this revision are not completed
-      yet — they stay assigned to it after publishing. Unfinished work does not block
-      publishing.
-    accept: Publish project
+      {open} of the {total} work items assigned to this revision are not completed yet — they
+      stay assigned to it after publishing. Unfinished work does not block publishing.
+  # --- Publish tab ---------------------------------------------------------
+  # The fourth wizard tab: review what changed → decide what happens to
+  # existing records → approval → go live. See views/Wizard.intent.md.
+  heading: Publish revision {version}
+  subheading: >-
+    This revision replaces revision {parent} as the live project. Check what changes, decide what
+    happens to existing data, then send it for approval.
+  subheadingFirst: >-
+    This is the first time the project goes live. There is no previous revision to replace and no
+    existing data to bring across.
+  subheadingLive: >-
+    This revision is live. Everything below is a record of what went out; to change the project
+    again, start a new revision.
+  loadFailed: Could not work out what this revision changes. Please try again.
+  stages:
+    reviewed: Reviewed
+    needsDecision: Needs a decision
+    decided: Decided
+    notStarted: Not started
+    awaiting: Awaiting approval
+    changes:
+      title: What changes
+      hint: '{count} changes · {risky} need care'
+      hintNone: Nothing has changed since the previous revision
+    migration:
+      title: Bring the data across
+      hintFirst: No previous revision, so there is nothing to bring across
+      hintBlocked: '{count} still need your decision before anything can go live'
+      hintClear: Every field is accounted for
+    approval:
+      title: Get it approved
+      hint: A reviewer signs off before anything goes live
+      hintApproved: Approved and ready to publish
+    goLive:
+      title: Go live
+      hint: What happens the moment you publish
+  changes:
+    none: This revision changes nothing that affects the live project.
+    # Field changes borrow their module's colour; "field" is not a resource kind.
+    field: Field
+    inventoryHeading: What this revision contains
+    op:
+      added: Added
+      removed: Removed
+      changed: Changed
+    risk:
+      safe: Safe
+      # Destructive, but the record count behind it could not be read.
+      dangerous: Data will be lost
+      records: '{count} records affected'
+  migration:
+    intro: >-
+      Records live in the current revision. Anything not mapped across is left behind when that
+      revision is retired. Fields that line up are handled for you — only the ones below need you.
+    allAccountedFor: Every record has somewhere to land.
+    nothingToMigrate: There is no previous revision, so there are no records to bring across.
+    moduleRecords: '{count} records'
+    fieldGone: ' — this field no longer exists'
+    moduleGone: ' — this module no longer exists'
+    moveInto: Move the data into…
+    discard: Discard the data
+    change: Change
+    newField: new field
+    outcome:
+      copied: Copied as is
+      converted: Converted to the new type
+      startsEmpty: Starts empty
+      discarded: Discarded on publish
+      moved: Moved into {field}
+  goLive:
+    becomesLive: >-
+      {name} becomes the live project. Everyone using it sees the new version straight away.
+    recordsMove: Records are carried across following the mapping above.
+    fieldDiscarded: '{count} records lose their {field} value in {module}. This cannot be undone.'
+    moduleDiscarded: '{count} records in {module} are not carried over. This cannot be undone.'
+    parentRetired: >-
+      The previous revision is retired. It stays in the revision list as a record of what was
+      live, and stops serving traffic.
+    # Type-to-confirm replaces the old confirm dialog, and only appears when
+    # records are actually lost — a prompt that fires every time is dismissed
+    # every time.
+    typeToConfirm: Type {handle} to confirm this publish will discard data.
+  blocked:
+    undecided: Decide what happens to {name} before this revision can be submitted.
+    ready: Everything is decided. Sending this for review does not lock anything — you can keep editing.
+    irreversible: Approved and ready. This cannot be undone — changing it again means a new revision.
+    typeHandle: Type the project handle above to confirm.
+    noCapability: You do not have the capability to act on this publish.
+  receipt:
+    heading: Revision {version} is live
+    blurb: >-
+      Records were carried across as mapped and the previous revision was retired.
+    viewDashboard: Go to the dashboard
+    newRevision: Start a new revision
   toast:
     submitted: Submitted for approval
     approved: Approved — this project is ready to publish
