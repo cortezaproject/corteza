@@ -221,7 +221,7 @@ type (
 	ConnectionImport struct {
 		// CatalogID POST parameter
 		//
-		// Catalog connection ID to import
+		// Catalog ID
 		CatalogID string
 	}
 
@@ -292,6 +292,7 @@ func (r ConnectionList) Auditable() map[string]interface{} {
 		"status":     r.Status,
 		"query":      r.Query,
 		"tags":       r.Tags,
+		"source":     r.Source,
 		"deleted":    r.Deleted,
 		"labels":     r.Labels,
 		"limit":      r.Limit,
@@ -319,6 +320,11 @@ func (r ConnectionList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r ConnectionList) GetTags() []string {
 	return r.Tags
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionList) GetSource() string {
+	return r.Source
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -388,6 +394,12 @@ func (r *ConnectionList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["tags"]; ok {
 			r.Tags, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["source"]; ok && len(val) > 0 {
+			r.Source, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -1143,14 +1155,17 @@ func (r ConnectionImport) Auditable() map[string]interface{} {
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ConnectionImport) GetCatalogID() string {
 	return r.CatalogID
 }
 
 // Fill processes request and fills internal variables
 func (r *ConnectionImport) Fill(req *http.Request) (err error) {
+
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
+
 		switch {
 		case err == io.EOF:
 			err = nil
@@ -1160,11 +1175,33 @@ func (r *ConnectionImport) Fill(req *http.Request) (err error) {
 	}
 
 	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["catalogID"]; ok && len(val) > 0 {
+				r.CatalogID, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
 		if err = req.ParseForm(); err != nil {
 			return err
 		}
-		if val := req.FormValue("catalogID"); val != "" {
-			r.CatalogID = val
+
+		// POST params
+
+		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
+			r.CatalogID, err = val[0], nil
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -1192,6 +1229,7 @@ func (r ConnectionConfigure) GetConnectionID() uint64 {
 	return r.ConnectionID
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ConnectionConfigure) GetCatalogID() string {
 	return r.CatalogID
 }
@@ -1231,6 +1269,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 			return err
 		} else if err == nil {
 			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["catalogID"]; ok && len(val) > 0 {
+				r.CatalogID, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
 
 			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
 				r.Name, err = val[0], nil
@@ -1272,6 +1317,13 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 
 		// POST params
 
+		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
+			r.CatalogID, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
 			if err != nil {
@@ -1289,10 +1341,6 @@ func (r *ConnectionConfigure) Fill(req *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
-		}
-
-		if val, ok := req.Form["catalogID"]; ok && len(val) > 0 {
-			r.CatalogID = val[0]
 		}
 
 		if val, ok := req.Form["labels[]"]; ok {

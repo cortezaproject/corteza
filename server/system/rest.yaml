@@ -3122,6 +3122,7 @@ endpoints:
             - { type: '[]string', name: 'status', title: 'Filter by status' }
             - { type: 'string', name: 'query', title: 'Search query' }
             - { type: '[]string', name: 'tags', title: 'Filter by tags' }
+            - { type: 'string', name: 'source', title: 'Filter by source ("catalog", "local", or "" for all)' }
             - {
                 type: 'uint',
                 name: 'deleted',
@@ -3232,6 +3233,13 @@ endpoints:
           post:
             - { type: 'string', name: 'prompt', required: true, title: 'Description or API docs' }
             - { type: 'string', name: 'context', title: 'Optional additional context' }
+      - name: import
+        method: POST
+        title: Import a connection from the catalog into the local store
+        path: '/import'
+        parameters:
+          post:
+            - { type: 'string', name: 'catalogID', required: true, title: 'Catalog ID' }
       - name: configure
         method: POST
         title: Configure a connection (create configured connection)
@@ -3240,6 +3248,7 @@ endpoints:
           path:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
           post:
+            - { type: 'string', name: 'catalogID', title: 'Catalog ID to auto-import on first configure' }
             - { type: 'string', name: 'name', required: true, title: 'Connection name' }
             - {
                 type: 'types.ConfiguredConnectionConfig',
