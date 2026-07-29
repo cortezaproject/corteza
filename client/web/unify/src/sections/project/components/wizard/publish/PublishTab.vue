@@ -6,9 +6,7 @@
     <div class="max-w-3xl mx-auto p-4 flex flex-col gap-4">
       <header class="flex items-start gap-3 flex-wrap">
         <div class="flex-1 min-w-60">
-          <h2 class="text-xl font-medium">
-            {{ $t('project.publish.heading', { version }) }}
-          </h2>
+          <h2 class="text-xl font-medium">{{ heading }}</h2>
           <p class="text-sm text-muted-color mt-1">
             {{ isLive ? $t('project.publish.subheadingLive') : subheading }}
           </p>
@@ -33,6 +31,16 @@
       <Message v-else-if="loadError" severity="error" :closable="false">
         {{ $t('project.publish.loadFailed') }}
       </Message>
+
+      <!-- A first publish has no parent to diff against and no records to
+           migrate, so it gets its own screen rather than the revision flow
+           with two of its four stages emptied out (ruled 2026-07-29). -->
+      <PublishFirstRun
+        v-else-if="!hasParent"
+        :project-name="project.name"
+        :inventory="inventory"
+        :project-members="projectMembers"
+      />
 
       <template v-else>
         <PublishStage
@@ -149,8 +157,10 @@ import { fetchRevisionCompleteness } from '@/sections/project/composables/revisi
 import { kindConfig } from '@/sections/project/config/kinds'
 import { PUBLISH_GOVERNANCE_STEP_KEY, STEPS } from '@/sections/project/config/pipeline'
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { NoID } from '@planetcrust/human-js'
 import PublishApproval from './PublishApproval.vue'
 import PublishChanges from './PublishChanges.vue'
+import PublishFirstRun from './PublishFirstRun.vue'
 import PublishGoLive from './PublishGoLive.vue'
 import PublishMigration from './PublishMigration.vue'
 import PublishReceipt from './PublishReceipt.vue'
@@ -186,8 +196,16 @@ const creatingRevision = ref(false)
 const projectId = computed(() => props.project?.projectID)
 const version = computed(() => (props.project?.revision || 0) + 1)
 const isLive = computed(() => ['active', 'published'].includes(props.project?.status))
-const hasParent = computed(() => !!props.project?.parentRevisionID)
+// Compared against NoID, never coerced to boolean: system.Project defaults an
+// absent id to the STRING '0' (lib/js cast.ts), which is truthy — so `!!id`
+// reports a parent on every first revision, the exact case this decides.
+const hasParent = computed(
+  () => !!props.project?.parentRevisionID && props.project.parentRevisionID !== NoID,
+)
 const rootProjectId = computed(() => props.project?.rootProjectID || projectId.value)
+// Loaded by Wizard.vue's fetchProject; read here for the first-publish screen's
+// "who gets access" panel.
+const projectMembers = computed(() => store.membersFor(projectId.value))
 
 // --- data ------------------------------------------------------------------
 // Everything here reflects edits made seconds ago, so none of it is cached: the
@@ -204,7 +222,12 @@ async function load() {
   loading.value = true
   loadError.value = false
   try {
-    plan.value = await store.deploymentPlan(projectId.value)
+    // A first publish has no parent to diff against, so the plan would come
+    // back empty by definition — skip the round trip rather than ask a
+    // question with a known answer.
+    plan.value = hasParent.value
+      ? await store.deploymentPlan(projectId.value)
+      : { risk: 'safe', changes: [], suggestedMappings: [] }
     inventory.value = await loadInventory()
     // Work-item completeness only warns, so it must never fail the screen.
     completeness.value = await fetchRevisionCompleteness(
@@ -381,6 +404,7 @@ const actionReason = computed(() => {
       : t('project.publish.blocked.typeHandle')
   }
   if (!primaryAction.value) return t('project.publish.blocked.noCapability')
+  if (!hasParent.value) return t('project.publish.blocked.readyFirst')
   return t('project.publish.blocked.ready')
 })
 
@@ -433,6 +457,14 @@ async function startNewRevision() {
 function toggleStage(index) {
   openStage.value = openStage.value === index ? 0 : index
 }
+
+// A first publish is a launch, not a change-review — it says so from the title
+// down rather than calling itself "revision 1".
+const heading = computed(() =>
+  hasParent.value
+    ? t('project.publish.heading', { version: version.value })
+    : t('project.publish.firstRun.title', { name: props.project?.name }),
+)
 
 const subheading = computed(() =>
   hasParent.value

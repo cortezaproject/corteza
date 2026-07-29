@@ -30,39 +30,41 @@ Publish tabs, the step pipeline, the resource-graph canvas, the publish flow.
 - Publish tab (ruled 2026-07-29) — the whole request → approve → publish
   cycle, which was a cluster in the tab row until then. Deliberately the ONE
   tab with no left rail: publishing is a rare one-way action, so it reads as a
-  sequence, not a place. Numbered stages, each carrying its own readiness:
-  what changes (diff vs the parent revision + resource inventory) → bring the
-  data across (record mappings) → get it approved → go live. One primary
-  action at the foot, labelled for the single next thing to do; members
-  without a capability for the current state get no control at all. Direct
-  per-step review — Approve / Request changes (note required) by grant-capable
-  members on any step, any time; a flagged step blocks project approval.
-- Publish blocks on exactly one thing: a destructive change (removed or
-  retyped field with records behind it) whose mapping is undecided. Risk is
-  stated as counts, never adjectives. Unfinished work items warn but never
-  block. A reviewer's note on a changes-requested publish is shown in the
-  approval stage, not buried in a tooltip (superseding 2026-07-24). There is no
-  confirm dialog — the go-live stage IS the confirmation, and the final action
-  requires typing the project handle when records will be lost. Success shows
-  an in-tab receipt (what went live, by whom, records moved), not a redirect.
+  sequence, not a place. One primary action at the foot, labelled for the next
+  thing to do; members without the capability get no control. Direct per-step
+  review — Approve / Request changes (note required) by grant-capable members
+  on any step, any time; a flagged step blocks project approval.
+- TWO screens behind it, chosen on whether a parent revision exists (ruled
+  2026-07-29). A REVISION publishes through numbered stages: what changes
+  (diff vs the parent) → bring the data across (record mappings) → get it
+  approved → go live. A FIRST publish gets its own screen rather than that flow
+  emptied out — nothing is replaced, nothing can be lost, so there is no diff
+  and no migration. It answers what the project contains and who is about to
+  get it (inventory + members, real data), says what going live does, and
+  reports rather than judging readiness. Approval is still required.
+- Publish blocks on exactly one thing: a destructive change (removed/retyped
+  field with records behind it) whose mapping is undecided. Risk is stated as
+  counts, never adjectives; unfinished work items warn but never block. A
+  reviewer's note shows in the approval stage, not a tooltip (superseding
+  2026-07-24). No confirm dialog — the go-live stage IS the confirmation, and
+  typing the project handle is required when records will be lost. Success
+  shows an in-tab receipt, not a redirect.
 - Provides `inspectResource(kind, id)` / `createResource(kind)`; each kind's
-  Create + Detail dialog mounts here exactly once; graph and step clicks always
-  open the editable detail dialog (`editField`/`createField` for module fields).
+  Create + Detail dialog mounts here once; graph and step clicks always open
+  the editable detail dialog (`editField`/`createField` for module fields).
 - Manage & Monitor tab — the build-time dashboard for the revision being
   worked on: a grouped left rail (monitor + the five categories) rendered from
   its own nav config, never from `pipeline.js` STEPS, so the "Manage & Monitor
   has no steps" contract holds. The content pane is a key→component map over
   `components/wizard/manage/`, one file per section, so sections stay
-  independently buildable. Its header carries the revision, that
-  revision's work-item completeness, and a new-item action; the same
-  completeness reappears in the Publish tab's go-live stage, where unfinished
-  work warns but never blocks.
+  independently buildable. Its header carries the revision, that revision's
+  work-item completeness, and a new-item action; the same completeness
+  reappears in the Publish tab's go-live stage, warning but never blocking.
 - Topbar carries the shared `RevisionSwitcher` + `ProjectTopbarTools`
   (Members, View project) — defined once in `components/project/` and mounted
-  by the dashboard too, so neither surface redefines them. `?new=1` still
-  auto-opens Members once for a just-created project, then is stripped via
-  `router.replace`. There is no "View dashboard" button: the switcher's
-  Dashboard entry is that navigation.
+  by the dashboard too. `?new=1` auto-opens Members once for a just-created
+  project, then is stripped via `router.replace`. No "View dashboard" button:
+  the switcher's Dashboard entry is that navigation.
 - Capabilities gate review actions and editing only, never tab/step visibility.
 
 ## Routes

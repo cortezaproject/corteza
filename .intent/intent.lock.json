@@ -1656,6 +1656,11 @@
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },
+    "client/web/unify/src/sections/project/components/wizard/publish/PublishFirstRun.vue": {
+      "h": "eb8e3e58e786",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishGoLive.vue": {
       "h": "89b80e4d268a",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
@@ -1677,7 +1682,7 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishTab.vue": {
-      "h": "0dfc7c80bd51",
+      "h": "da38bd7603c0",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },

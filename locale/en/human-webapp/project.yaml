@@ -692,8 +692,36 @@ publish:
     # records are actually lost — a prompt that fires every time is dismissed
     # every time.
     typeToConfirm: Type {handle} to confirm this publish will discard data.
+  # First publish — its own screen (ruled 2026-07-29), not the revision flow
+  # with the diff and migration stages emptied out. Reports what exists; never
+  # judges readiness.
+  firstRun:
+    title: Take {name} live
+    heading: Nothing is being replaced
+    blurb: >-
+      This is the first version of {name}. There is no earlier revision to compare against and no
+      existing data to carry over — publishing simply makes it live.
+    whatGoesLive: What goes live
+    nothingBuilt: >-
+      Nothing has been built yet. You can still publish, but the project will go live empty.
+    whoGetsAccess: Who gets access
+    accessNote: >-
+      Members already see the project while it is a draft; publishing does not change who can
+      reach it.
+    whatItDoes: What publishing does
+    becomesActive: >-
+      {name} becomes active. It stops being a draft and starts serving the people above.
+    getsDashboard: >-
+      It gets a dashboard. Work items, activity and metrics move from this wizard to the
+      project's own dashboard.
+    laterChanges: >-
+      Later changes go through revisions. To change a live project you branch a new draft, work
+      on it, and publish that — you will land back on this screen.
   blocked:
     undecided: Decide what happens to {name} before this revision can be submitted.
+    readyFirst: >-
+      Everything here is new, so there is nothing to review line by line — send it for approval
+      when you are ready.
     ready: Everything is decided. Sending this for review does not lock anything — you can keep editing.
     irreversible: Approved and ready. This cannot be undone — changing it again means a new revision.
     typeHandle: Type the project handle above to confirm.
