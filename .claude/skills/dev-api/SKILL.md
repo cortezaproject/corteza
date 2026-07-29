@@ -48,4 +48,16 @@ hand-roll the oauth dance or guess ports — use the toolkit.
 - No `jq` on this machine — pipe JSON to `python3` (see `json_get` in
   `dev/agent/common.sh`).
 
+## Compose API shapes (module/record work)
+
+- Record values (read AND write) use the array shape
+  `values: [{"name": …, "value": …}]`, every value a **string** (Numbers
+  too: `"48000"`).
+- A `Record`-kind module field targets its module via
+  `options: {"moduleID": "<id-as-string>"}`.
+- No server-side reference expansion — resolving a Record ref means a second
+  query on the target module and a client-side join.
+- Create responses echo the object under `response`; IDs at
+  `response.moduleID` / `response.recordID` etc.
+
 Full reference: `dev/agent/README.md`.
