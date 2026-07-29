@@ -99,6 +99,12 @@ commit as the work that resolves an item.
         `views/Wizard.intent.md`). Fourth tab, stage components under
         `components/wizard/publish/`, mapping editor, cluster removed from the
         tab row. `wizard.spec.ts` asserts three tabs and must be updated.
+  - [ ] **Publish approval attribution** — the Publish tab's approval stage has
+        no "requested by X, approved by Y, at Z": `governanceByProject` holds
+        only `{status, note, values}`, with no actor or timestamp, and resets on
+        reload. Deliberately left blank rather than stamped session-locally — an
+        approval record that forgets itself is worse than none in a governance
+        product. Lands with the governance-persistence work above.
   - [ ] **Publish drops every record** — `publishProject` sends `mappings: []`,
         `migrateRecords` no-ops on an empty set, then the old namespace is
         soft-deleted. Any second-or-later publish silently empties the project.

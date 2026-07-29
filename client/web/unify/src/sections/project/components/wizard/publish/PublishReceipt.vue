@@ -16,6 +16,30 @@
       </div>
     </div>
 
+    <!-- What actually happened, for the record. The backend stamps updatedAt /
+         updatedBy on the publish itself, so this is the publish's own evidence
+         rather than something reconstructed. How many records moved is NOT
+         shown: the publish endpoint does not report a count, and inventing one
+         on a screen whose whole job is to be trusted about data would be
+         worse than leaving it out. -->
+    <dl
+      v-if="publishedAt || publishedBy"
+      class="grid grid-cols-1 sm:grid-cols-2 gap-px bg-surface border border-surface rounded-xl overflow-hidden"
+    >
+      <div v-if="publishedAt" class="bg-surface p-3">
+        <dt class="text-xs font-medium uppercase tracking-wide text-muted-color">
+          {{ $t('project.publish.receipt.publishedAt') }}
+        </dt>
+        <dd class="text-sm mt-1 ml-0">{{ publishedAt }}</dd>
+      </div>
+      <div v-if="publishedBy" class="bg-surface p-3">
+        <dt class="text-xs font-medium uppercase tracking-wide text-muted-color">
+          {{ $t('project.publish.receipt.publishedBy') }}
+        </dt>
+        <dd class="text-sm mt-1 ml-0">{{ publishedBy }}</dd>
+      </div>
+    </dl>
+
     <!-- A publish is the one moment a project's data is rewritten. Redirecting
          away from it throws out the only confirmation that it did what it
          promised, so the receipt stays put and the ways onward are explicit. -->
@@ -44,6 +68,10 @@
 // something to say about a published revision instead of going blank.
 defineProps({
   version: { type: Number, default: 1 },
+  // Already formatted / resolved by the tab — this component only lays them
+  // out, and either may be blank if the backend stamped neither.
+  publishedAt: { type: String, default: '' },
+  publishedBy: { type: String, default: '' },
   creatingRevision: { type: Boolean, default: false },
 })
 

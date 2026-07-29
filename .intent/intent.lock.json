@@ -1672,7 +1672,7 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishReceipt.vue": {
-      "h": "deee3cfaa227",
+      "h": "40c206838d66",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },
@@ -1682,7 +1682,7 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishTab.vue": {
-      "h": "fc365a94ac6c",
+      "h": "93aa0e9b877e",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },
@@ -3177,9 +3177,9 @@
       "t": "2026-07-23"
     },
     "lib/js/src/system/types/project.ts": {
-      "h": "1a3091bb3d26",
+      "h": "b3f6286eb341",
       "doc": "lib/js/src/system/system.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-07-29"
     },
     "lib/js/src/system/types/reminder.ts": {
       "h": "ea0494288bf7",

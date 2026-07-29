@@ -101,6 +101,9 @@ export class Project {
   public canManageMembers = false
 
   public createdBy = NoID
+  // Stamped by the backend on every update, including the one that publishes a
+  // draft — which is what makes it the "published by" on a publish receipt.
+  public updatedBy = NoID
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
@@ -117,6 +120,7 @@ export class Project {
       'projectID',
       'tenantID',
       'createdBy',
+      'updatedBy',
       'rootProjectID',
       'parentRevisionID',
     )

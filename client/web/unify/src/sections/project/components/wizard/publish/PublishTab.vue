@@ -28,6 +28,8 @@
       <PublishReceipt
         v-else-if="isLive"
         :version="version"
+        :published-at="publishedAt"
+        :published-by="publishedBy"
         :creating-revision="creatingRevision"
         @view-dashboard="goDashboard"
         @new-revision="startNewRevision"
@@ -164,6 +166,7 @@ import { fetchRevisionCompleteness } from '@/sections/project/composables/revisi
 import { OVERVIEW_KINDS } from '@/sections/project/config/kinds'
 import { PUBLISH_GOVERNANCE_STEP_KEY, STEPS } from '@/sections/project/config/pipeline'
 import { useProjectsStore } from '@/sections/project/stores/projects'
+import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { NoID } from '@planetcrust/human-js'
 import PublishApproval from './PublishApproval.vue'
 import PublishChanges from './PublishChanges.vue'
@@ -193,6 +196,7 @@ const INVENTORY_KINDS = OVERVIEW_KINDS.filter(kind => kind !== 'user')
 const { t } = useI18n()
 const router = useRouter()
 const store = useProjectsStore()
+const usersStore = useProjectUsersStore()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
@@ -359,6 +363,23 @@ const anyStepFlagged = computed(() =>
 const openWorkItems = computed(() =>
   Math.max(0, completeness.value.assigned - completeness.value.completed),
 )
+
+// The publish stamps updatedAt/updatedBy on the project row, so a live revision
+// carries its own receipt — no separate record needed. Both are best-effort:
+// an older revision published before these were stamped simply shows neither.
+const publishedAt = computed(() => {
+  const at = props.project?.updatedAt
+  return at ? new Date(at).toLocaleString() : ''
+})
+
+const publishedBy = computed(() => {
+  const by = props.project?.updatedBy
+  if (!by || by === NoID) return ''
+  // findUser, not userName: userName falls back to the raw id, and a receipt
+  // reading "Published by 491776669749411841" is worse than one that waits for
+  // the directory to load and shows nothing in the meantime.
+  return usersStore.findUser(by)?.name || ''
+})
 
 // --- the single primary action ---------------------------------------------
 const primaryAction = computed(() => {

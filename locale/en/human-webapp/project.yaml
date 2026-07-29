@@ -731,6 +731,12 @@ publish:
     noCapability: You do not have the capability to act on this publish.
   receipt:
     heading: Revision {version} is live
+    # Stamped by the publish itself (project updatedAt/updatedBy). How many
+    # records moved is deliberately absent — the publish endpoint reports no
+    # count, and a number invented here would undermine the one screen whose
+    # job is to be trusted about data.
+    publishedAt: Published
+    publishedBy: Published by
     blurb: >-
       Records were carried across as mapped and the previous revision was retired.
     viewDashboard: Go to the dashboard
