@@ -62,8 +62,8 @@ persist (statuses, AI Act options) stay literal.
   events wear their resource's icon/color; unmapped types fall back neutral.
 - `chartColors.js` — validated chart palettes (status/severity/risk/…) +
   ordering helpers; one hex per label passes light AND dark checks. Status
-  = EventBadge's text hexes (ruled 2026-07-29, badges lead); its dark
-  contrast WARN's relief: status is never colour-alone (file comment).
+  mirrors EventBadge's hue FAMILIES, never its hexes — pills are
+  theme-aware, marks are one hex (unification reverted 2026-07-29).
 - `trend.js` — day/week/month bucketing, range presets, `adaptiveWindow`.
 - `summaryForm.js` — Project Summary governance step schema.
 - `resourceManagementForm.js` — Resource Management step values shape +
