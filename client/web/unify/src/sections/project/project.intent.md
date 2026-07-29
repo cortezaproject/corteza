@@ -43,9 +43,9 @@ publishable unit. **Locked** below; WIP notes mark what must not be relied on.
   to the PARENT revision as its successor goes live. A project is a revision
   chain — each revision its own row (root/parent/number); publish locks what it
   built, and a new revision branches from an active one (one draft per chain).
-- **Build tab is canvas-centric**: the graph is the primary surface. Default
-  visibility is progressive by design — seeded to the kinds introduced by steps
-  up to the active one — the full graph is always reachable via layer chips.
+- **Build tab is canvas-centric**: the graph is the primary surface. Visibility
+  is progressive — seeded to the kinds steps introduce up to the active one;
+  the full graph is always reachable via layer chips.
 - **Step model**: the step mechanism is locked, and the **Build** step set is
   locked: data model, connections, automations, agents, chatbots, pages, roles,
   permissions, users (source of truth: `config/pipeline.js` STEPS). Govern
@@ -56,9 +56,9 @@ publishable unit. **Locked** below; WIP notes mark what must not be relied on.
 - **Per-resource permissions**: shared ResourcePermissionsSection embedded in
   each resource dialog; matrix takes a scope prop; automation appears as
   runtime "Run" kind (read + execute); connection deliberately omitted.
-- **Members**: users hold per-project roles; the members dialog (with `?new=1`
-  auto-open deep link) is the management surface. Groups are intended but
-  **not built** — a prior broken experiment was removed (2026-07-24).
+- **Members**: membership is CHAIN-wide, not per revision (ruled 2026-07-29) —
+  the BE resolves every member read/write to the root project, so one list
+  serves every revision and a branched draft inherits it. Groups: **not built**.
 - **Dashboards**: ONE surface, two scopes — the live dashboard covers the whole
   chain, the wizard's Manage & Monitor tab one revision, from the same shared
   panels (view set in `views/views.intent.md`). Work items carry a revision the

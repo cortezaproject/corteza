@@ -295,6 +295,20 @@ func (svc *project) onUndelete(ctx context.Context, s store.Storer, p *types.Pro
 }
 
 // --- members ---
+//
+// Membership is CHAIN-wide, not per revision (ruled 2026-07-29): every read and
+// write below resolves the project it was handed to that project's chain ROOT,
+// so one list serves every revision. Callers keep passing whichever revision
+// they have open and need to know nothing about this.
+//
+// Before, member rows were written against the revision they were added on, and
+// CreateRevision copied none of them — so a freshly branched draft had zero
+// members, which resolves to the fallback role preset: no write, no approval,
+// no publish. Every branched revision was unusable by everyone, including the
+// person who branched it.
+//
+// The access check still runs against the project as ASKED FOR, not the root:
+// permission to read or manage a revision is a question about that revision.
 
 func (svc *project) onSearchMembers(ctx context.Context, _ *projectActionProps, filter types.ProjectMemberFilter) (set types.ProjectMemberSet, f types.ProjectMemberFilter, err error) {
 	var p *types.Project
@@ -305,6 +319,8 @@ func (svc *project) onSearchMembers(ctx context.Context, _ *projectActionProps, 
 	if !svc.ac.CanReadProject(ctx, p) {
 		return set, f, ProjectErrNotAllowedToRead()
 	}
+
+	filter.ProjectID = p.RootProjectID()
 
 	return store.SearchProjectMembers(ctx, svc.store, filter)
 }
@@ -322,6 +338,10 @@ func (svc *project) onAddMember(ctx context.Context, _ *projectActionProps, m *t
 	if m.UserID == 0 {
 		return nil, ProjectErrMemberNotFound()
 	}
+
+	// Written against the chain root, so the membership is the project's rather
+	// than this revision's.
+	m.ProjectID = p.RootProjectID()
 
 	if m.RolePreset == "" {
 		m.RolePreset = p.Config.DefaultMemberRole
@@ -363,7 +383,7 @@ func (svc *project) onUpdateMember(ctx context.Context, _ *projectActionProps, m
 	}
 
 	var existing *types.ProjectMember
-	if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, m.ProjectID, m.UserID); errors.IsNotFound(err) {
+	if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, p.RootProjectID(), m.UserID); errors.IsNotFound(err) {
 		return nil, ProjectErrMemberNotFound()
 	} else if err != nil {
 		return nil, err
@@ -394,7 +414,7 @@ func (svc *project) onRemoveMember(ctx context.Context, _ *projectActionProps, p
 	}
 
 	var existing *types.ProjectMember
-	if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, projectID, userID); errors.IsNotFound(err) {
+	if existing, err = store.LookupProjectMemberByProjectIDUserID(ctx, svc.store, p.RootProjectID(), userID); errors.IsNotFound(err) {
 		return ProjectErrMemberNotFound()
 	} else if err != nil {
 		return err

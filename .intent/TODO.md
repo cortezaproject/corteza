@@ -99,6 +99,11 @@ commit as the work that resolves an item.
         `views/Wizard.intent.md`). Fourth tab, stage components under
         `components/wizard/publish/`, mapping editor, cluster removed from the
         tab row. `wizard.spec.ts` asserts three tabs and must be updated.
+  - [ ] **Member rows written against a revision** (pre-2026-07-29 data) — member
+        scoping now resolves to the chain root, so any row whose `project_id` is
+        a revision rather than its root is invisible. Practically none should
+        exist (a branched revision had no members, so nobody could manage it
+        from there), but a one-line repoint would make it certain.
   - [ ] **Federation envoy filters ignore their scope** — `module_exposed.cue`
         and `shared_module.cue` declare `envoy.scoped: true` but not
         `store.extendedFilterBuilder`, so their generated filter builders drop
