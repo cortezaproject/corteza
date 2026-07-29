@@ -128,3 +128,91 @@ func TestCreateRevision_HandledProjectKeepsSuffixedHandle(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "project-revision-test-handled-rev1", rev.Handle)
 }
+
+// TestDiffSourcesReportsWhatHappened guards the ambiguity this diff was
+// reshaped to remove: with only {path, risk}, an added and a removed resource
+// were indistinguishable, so the publish screen could not say which it had.
+func TestDiffSourcesReportsWhatHappened(t *testing.T) {
+	before := []*GraphSource{
+		{Kind: "page", ID: 1, Name: "Claims", Handle: "claims"},
+		{Kind: "automation", ID: 2, Name: "Notify", Handle: "notify"},
+	}
+	after := []*GraphSource{
+		{Kind: "page", ID: 9, Name: "Claims", Handle: "claims"},
+		{Kind: "page", ID: 10, Name: "Invoices", Handle: "invoices"},
+	}
+
+	require.Equal(t, []types.ProjectChange{
+		{Op: types.ProjectChangeOpRemoved, Kind: "automation", Name: "Notify", Path: "automation.notify", Risk: types.ProjectChangeRiskSafe},
+		{Op: types.ProjectChangeOpAdded, Kind: "page", Name: "Invoices", Path: "page.invoices", Risk: types.ProjectChangeRiskSafe},
+	}, diffSources(before, after))
+}
+
+// A revision clone mints fresh IDs, so matching on ID would report every
+// resource in the project as removed-and-re-added on every single publish.
+func TestDiffSourcesMatchesOnHandleNotID(t *testing.T) {
+	before := []*GraphSource{{Kind: "page", ID: 1, Name: "Claims", Handle: "claims"}}
+	after := []*GraphSource{{Kind: "page", ID: 9999, Name: "Claims", Handle: "claims"}}
+
+	require.Empty(t, diffSources(before, after))
+}
+
+// Modules are diffed field-by-field elsewhere; users are project membership
+// rather than a deployment artefact; knowledge bases are loaded unscoped by the
+// graph, so they are identical on both sides by construction.
+func TestDiffSourcesSkipsKindsItDoesNotOwn(t *testing.T) {
+	ss := []*GraphSource{
+		{Kind: "module", ID: 1, Name: "Customer", Handle: "customer"},
+		{Kind: "user", ID: 2, Name: "Ana"},
+		{Kind: "knowledge-base", ID: 3, Name: "Handbook", Handle: "handbook"},
+	}
+
+	require.Empty(t, diffSources(ss, nil))
+	require.Empty(t, diffSources(nil, ss))
+}
+
+func TestDiffSourcesFallsBackToNameWithoutHandle(t *testing.T) {
+	before := []*GraphSource{{Kind: "connection", ID: 1, Name: "Billing DB"}}
+
+	require.Equal(t, []types.ProjectChange{{
+		Op:   types.ProjectChangeOpRemoved,
+		Kind: "connection",
+		Name: "Billing DB",
+		Path: "connection.Billing DB",
+		Risk: types.ProjectChangeRiskSafe,
+	}}, diffSources(before, nil))
+}
+
+// Map iteration order is random; this list is read by a person and must not
+// reshuffle between two loads of the same screen.
+func TestDiffSourcesIsDeterministic(t *testing.T) {
+	after := []*GraphSource{
+		{Kind: "page", ID: 1, Handle: "zeta", Name: "Zeta"},
+		{Kind: "automation", ID: 2, Handle: "alpha", Name: "Alpha"},
+		{Kind: "page", ID: 3, Handle: "mid", Name: "Mid"},
+	}
+
+	first := diffSources(nil, after)
+	for i := 0; i < 25; i++ {
+		require.Equal(t, first, diffSources(nil, after))
+	}
+	require.Equal(t,
+		[]string{"automation.alpha", "page.mid", "page.zeta"},
+		[]string{first[0].Path, first[1].Path, first[2].Path},
+	)
+}
+
+func TestAddChangeRaisesPlanRisk(t *testing.T) {
+	plan := &types.ProjectDeploymentPlan{Risk: types.ProjectChangeRiskSafe}
+
+	addChange(plan, types.ProjectChange{Op: types.ProjectChangeOpAdded, Risk: types.ProjectChangeRiskSafe})
+	require.Equal(t, types.ProjectChangeRiskSafe, plan.Risk)
+
+	addChange(plan, types.ProjectChange{Op: types.ProjectChangeOpRemoved, Risk: types.ProjectChangeRiskDangerous})
+	require.Equal(t, types.ProjectChangeRiskDangerous, plan.Risk)
+
+	// One dangerous change is enough — a later safe one must not clear it.
+	addChange(plan, types.ProjectChange{Op: types.ProjectChangeOpAdded, Risk: types.ProjectChangeRiskSafe})
+	require.Equal(t, types.ProjectChangeRiskDangerous, plan.Risk)
+	require.Len(t, plan.Changes, 3)
+}

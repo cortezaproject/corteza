@@ -3,9 +3,35 @@ package types
 type (
 	ProjectChangeRisk string
 
+	// ProjectChangeOp is what happened to a resource between two revisions.
+	// Without it a change is ambiguous: an added and a removed module both
+	// describe the same path, and a removed field and a retyped one both read
+	// as "dangerous".
+	ProjectChangeOp string
+
+	// ProjectChange is one difference between a draft revision and its parent.
+	// Op/Kind/Name are what a UI renders; Path is the stable machine identity.
 	ProjectChange struct {
-		Path string            `json:"path"`
+		Op   ProjectChangeOp `json:"op"`
+		Kind string          `json:"kind"`
+		Name string          `json:"name"`
+
+		// Module owning a field-level change.
+		Module string `json:"module,omitempty"`
+
+		// Detail spells out what Op alone cannot, e.g. a field's "String → Email".
+		Detail string `json:"detail,omitempty"`
+
+		// Risk is about DATA, not importance: dangerous means records are lost
+		// unless the change is mapped. Removing a page loses nothing and stays
+		// safe; removing a field with records behind it does not.
 		Risk ProjectChangeRisk `json:"risk"`
+
+		// Records held by the module this change affects — what is at stake if
+		// it goes unmapped. Best-effort: 0 means "unknown", never "none".
+		Records uint64 `json:"records"`
+
+		Path string `json:"path"`
 	}
 
 	ModuleFieldMapping struct {
@@ -22,9 +48,10 @@ type (
 	}
 
 	ProjectDeploymentPlan struct {
-		Path              string          `json:"path"`
-		Changes           []ProjectChange `json:"changes"`
-		SuggestedMappings []ModuleMapping `json:"suggestedMappings"`
+		// Risk is the worst risk across Changes.
+		Risk              ProjectChangeRisk `json:"risk"`
+		Changes           []ProjectChange   `json:"changes"`
+		SuggestedMappings []ModuleMapping   `json:"suggestedMappings"`
 	}
 
 	PublishRequest struct {
@@ -36,4 +63,8 @@ type (
 const (
 	ProjectChangeRiskSafe      ProjectChangeRisk = "safe"
 	ProjectChangeRiskDangerous ProjectChangeRisk = "dangerous"
+
+	ProjectChangeOpAdded   ProjectChangeOp = "added"
+	ProjectChangeOpRemoved ProjectChangeOp = "removed"
+	ProjectChangeOpChanged ProjectChangeOp = "changed"
 )

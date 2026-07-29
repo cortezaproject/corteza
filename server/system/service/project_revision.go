@@ -11,6 +11,7 @@ import (
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service/dml"
 	"github.com/crusttech/human/server/system/types"
@@ -218,8 +219,11 @@ func (svc *project) DeploymentPlan(ctx context.Context, projectID uint64) (*type
 	if draft.Status != types.ProjectStatusDraft {
 		return nil, fmt.Errorf("deployment plan only available for draft projects")
 	}
+	// A first revision has nothing to diff against and nothing to migrate. That
+	// is an empty plan, not an error — the publish flow asks for the plan before
+	// it knows whether a parent exists, and an error would read as a failure.
 	if draft.ParentRevisionID == 0 {
-		return nil, fmt.Errorf("project has no parent revision")
+		return &types.ProjectDeploymentPlan{Risk: types.ProjectChangeRiskSafe}, nil
 	}
 
 	parent, err := loadProject(ctx, svc.store, draft.ParentRevisionID)
@@ -227,7 +231,7 @@ func (svc *project) DeploymentPlan(ctx context.Context, projectID uint64) (*type
 		return nil, err
 	}
 
-	return computeDeploymentPlan(ctx, svc.store, parent.Config.NamespaceID, draft.Config.NamespaceID)
+	return svc.computeDeploymentPlan(ctx, parent, draft)
 }
 
 // Publish migrates records from the parent namespace to the draft, flips statuses,
@@ -414,19 +418,152 @@ func (svc *project) runModuleMapping(
 	return svc.services.dalSvc.RunImportForeground(ctx, mp.ID)
 }
 
-// computeDeploymentPlan diffs modules between two namespaces.
-func computeDeploymentPlan(
+// computeDeploymentPlan diffs a draft revision against its parent: every
+// resource kind the project graph enumerates, plus field-level detail and the
+// record-migration mapping publish needs for compose modules.
+func (svc *project) computeDeploymentPlan(
 	ctx context.Context,
-	s store.Storer,
-	oldNsID, newNsID uint64,
+	parent, draft *types.Project,
 ) (*types.ProjectDeploymentPlan, error) {
-	oldMods, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{NamespaceID: oldNsID})
-	if err != nil {
-		return nil, fmt.Errorf("load old namespace modules: %w", err)
+	plan := &types.ProjectDeploymentPlan{Risk: types.ProjectChangeRiskSafe}
+
+	if err := svc.diffResources(ctx, parent, draft, plan); err != nil {
+		return nil, err
 	}
-	newMods, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{NamespaceID: newNsID})
+	if err := svc.diffModules(ctx, parent, draft, plan); err != nil {
+		return nil, err
+	}
+
+	return plan, nil
+}
+
+// addChange records a change and carries its risk up to the plan.
+func addChange(plan *types.ProjectDeploymentPlan, c types.ProjectChange) {
+	plan.Changes = append(plan.Changes, c)
+	if c.Risk == types.ProjectChangeRiskDangerous {
+		plan.Risk = types.ProjectChangeRiskDangerous
+	}
+}
+
+// resourceDiffSkip lists the kinds diffResources leaves alone: modules are
+// diffed field-by-field by diffModules; users are project membership rather
+// than something a publish deploys; knowledge bases are loaded unscoped by the
+// graph, so they are identical on both sides by construction.
+var resourceDiffSkip = map[string]bool{
+	"module":         true,
+	"user":           true,
+	"knowledge-base": true,
+}
+
+// diffResources compares the two revisions across every other kind, reusing the
+// enumeration the resource graph is built from so the publish screen and the
+// Build canvas can never disagree about what a revision contains.
+func (svc *project) diffResources(
+	ctx context.Context,
+	parent, draft *types.Project,
+	plan *types.ProjectDeploymentPlan,
+) error {
+	g := ProjectGraph(svc.store)
+
+	_, oldSrc, err := g.fetch(ctx, parent.ID)
 	if err != nil {
-		return nil, fmt.Errorf("load new namespace modules: %w", err)
+		return fmt.Errorf("load parent revision resources: %w", err)
+	}
+	_, newSrc, err := g.fetch(ctx, draft.ID)
+	if err != nil {
+		return fmt.Errorf("load draft revision resources: %w", err)
+	}
+
+	for _, c := range diffSources(oldSrc, newSrc) {
+		addChange(plan, c)
+	}
+
+	return nil
+}
+
+// diffSources is the resource diff itself, kept free of the store so it can be
+// tested directly.
+//
+// Identity is kind + handle: IDs are freshly minted by the revision clone, so
+// they never match across revisions. A rename therefore reads as a removal plus
+// an addition — the honest reading, since the migration cannot tell those apart
+// either.
+func diffSources(oldSrc, newSrc []*GraphSource) []types.ProjectChange {
+	index := func(ss []*GraphSource) map[string]*GraphSource {
+		out := make(map[string]*GraphSource, len(ss))
+		for _, s := range ss {
+			if resourceDiffSkip[s.Kind] {
+				continue
+			}
+			out[s.Kind+"."+firstNonEmpty(s.Handle, s.Name)] = s
+		}
+		return out
+	}
+
+	oldByKey, newByKey := index(oldSrc), index(newSrc)
+
+	keys := make([]string, 0, len(oldByKey)+len(newByKey))
+	for k := range oldByKey {
+		keys = append(keys, k)
+	}
+	for k := range newByKey {
+		if _, both := oldByKey[k]; !both {
+			keys = append(keys, k)
+		}
+	}
+	// Map iteration is unordered and a human reads this; fix an order.
+	sort.Strings(keys)
+
+	out := make([]types.ProjectChange, 0, len(keys))
+	for _, k := range keys {
+		o, inOld := oldByKey[k]
+		n, inNew := newByKey[k]
+
+		switch {
+		case inOld && inNew:
+			// On both sides. Whether its innards changed is a question for the
+			// resource's own editor, not for a migration plan.
+		case inNew:
+			out = append(out, types.ProjectChange{
+				Op:   types.ProjectChangeOpAdded,
+				Kind: n.Kind,
+				Name: firstNonEmpty(n.Name, n.Handle),
+				Path: k,
+				Risk: types.ProjectChangeRiskSafe,
+			})
+		default:
+			// Safe on purpose: dropping a page or an automation costs no
+			// records. Only module data is at stake, and diffModules owns that.
+			out = append(out, types.ProjectChange{
+				Op:   types.ProjectChangeOpRemoved,
+				Kind: o.Kind,
+				Name: firstNonEmpty(o.Name, o.Handle),
+				Path: k,
+				Risk: types.ProjectChangeRiskSafe,
+			})
+		}
+	}
+
+	return out
+}
+
+// diffModules compares compose modules between the two namespaces and builds
+// the per-module mapping publish migrates records with. Namespace-scoped rather
+// than project-scoped because the migration itself runs namespace to namespace.
+func (svc *project) diffModules(
+	ctx context.Context,
+	parent, draft *types.Project,
+	plan *types.ProjectDeploymentPlan,
+) error {
+	oldNsID, newNsID := parent.Config.NamespaceID, draft.Config.NamespaceID
+
+	oldMods, _, err := store.SearchComposeModules(ctx, svc.store, composeTypes.ModuleFilter{NamespaceID: oldNsID})
+	if err != nil {
+		return fmt.Errorf("load old namespace modules: %w", err)
+	}
+	newMods, _, err := store.SearchComposeModules(ctx, svc.store, composeTypes.ModuleFilter{NamespaceID: newNsID})
+	if err != nil {
+		return fmt.Errorf("load new namespace modules: %w", err)
 	}
 
 	oldByHandle := make(map[string]*composeTypes.Module, len(oldMods))
@@ -438,102 +575,138 @@ func computeDeploymentPlan(
 		newByHandle[m.Handle] = m
 	}
 
-	plan := &types.ProjectDeploymentPlan{}
-	overallRisk := types.ProjectChangeRiskSafe
-
-	// Detect deleted modules.
-	for handle, om := range oldByHandle {
-		if _, exists := newByHandle[handle]; !exists {
-			plan.Changes = append(plan.Changes, types.ProjectChange{
-				Path: "module." + handle,
-				Risk: types.ProjectChangeRiskDangerous,
-			})
-			overallRisk = types.ProjectChangeRiskDangerous
-			_ = om
-		}
-	}
-
-	// Detect added modules and field changes within shared modules.
-	for handle, nm := range newByHandle {
-		if _, exists := oldByHandle[handle]; !exists {
-			plan.Changes = append(plan.Changes, types.ProjectChange{
-				Path: "module." + handle,
-				Risk: types.ProjectChangeRiskSafe,
-			})
-			// New module: suggest an identity mapping.
-			plan.SuggestedMappings = append(plan.SuggestedMappings, buildSuggestedMapping(nil, nm))
+	for _, om := range oldMods {
+		if _, kept := newByHandle[om.Handle]; kept {
 			continue
 		}
-		// Shared module: diff fields.
-		oldFields, newFields, fieldChanges, risk := diffModuleFields(ctx, s, oldByHandle[handle], nm)
-		plan.Changes = append(plan.Changes, fieldChanges...)
-		if risk == types.ProjectChangeRiskDangerous {
-			overallRisk = types.ProjectChangeRiskDangerous
-		}
-		plan.SuggestedMappings = append(plan.SuggestedMappings, buildSuggestedMappingFromFields(handle, oldFields, newFields))
+		addChange(plan, types.ProjectChange{
+			Op:      types.ProjectChangeOpRemoved,
+			Kind:    "module",
+			Name:    firstNonEmpty(om.Name, om.Handle),
+			Path:    "module." + om.Handle,
+			Risk:    types.ProjectChangeRiskDangerous,
+			Records: svc.moduleRecordCount(ctx, oldNsID, om),
+		})
 	}
 
-	plan.Path = string(overallRisk)
-	return plan, nil
+	for _, nm := range newMods {
+		om, shared := oldByHandle[nm.Handle]
+		if !shared {
+			addChange(plan, types.ProjectChange{
+				Op:   types.ProjectChangeOpAdded,
+				Kind: "module",
+				Name: firstNonEmpty(nm.Name, nm.Handle),
+				Path: "module." + nm.Handle,
+				Risk: types.ProjectChangeRiskSafe,
+			})
+			// A new module starts empty, so there is nothing to map into it.
+			plan.SuggestedMappings = append(plan.SuggestedMappings, types.ModuleMapping{Module: nm.Handle})
+			continue
+		}
+
+		oldFields, newFields := svc.diffModuleFields(ctx, oldNsID, om, nm, plan)
+		plan.SuggestedMappings = append(
+			plan.SuggestedMappings,
+			buildSuggestedMappingFromFields(nm.Handle, oldFields, newFields),
+		)
+	}
+
+	return nil
 }
 
-func diffModuleFields(
+// diffModuleFields records what changed between two versions of one module and
+// returns both field sets for the mapping builder.
+func (svc *project) diffModuleFields(
 	ctx context.Context,
-	s store.Storer,
-	oldMod, newMod *composeTypes.Module,
-) (
-	oldFields, newFields composeTypes.ModuleFieldSet,
-	changes []types.ProjectChange,
-	maxRisk types.ProjectChangeRisk,
-) {
-	maxRisk = types.ProjectChangeRiskSafe
+	oldNsID uint64,
+	om, nm *composeTypes.Module,
+	plan *types.ProjectDeploymentPlan,
+) (oldFields, newFields composeTypes.ModuleFieldSet) {
+	oldFields, _, _ = store.SearchComposeModuleFields(ctx, svc.store, composeTypes.ModuleFieldFilter{ModuleID: []uint64{om.ID}})
+	newFields, _, _ = store.SearchComposeModuleFields(ctx, svc.store, composeTypes.ModuleFieldFilter{ModuleID: []uint64{nm.ID}})
 
-	oldFields, _, _ = store.SearchComposeModuleFields(ctx, s, composeTypes.ModuleFieldFilter{ModuleID: []uint64{oldMod.ID}})
-	newFields, _, _ = store.SearchComposeModuleFields(ctx, s, composeTypes.ModuleFieldFilter{ModuleID: []uint64{newMod.ID}})
-
-	oldByName := make(map[string]*composeTypes.ModuleField)
+	oldByName := make(map[string]*composeTypes.ModuleField, len(oldFields))
 	for _, f := range oldFields {
 		oldByName[f.Name] = f
 	}
-	newByName := make(map[string]*composeTypes.ModuleField)
+	newByName := make(map[string]*composeTypes.ModuleField, len(newFields))
 	for _, f := range newFields {
 		newByName[f.Name] = f
 	}
 
-	for name := range oldByName {
-		if _, exists := newByName[name]; !exists {
-			changes = append(changes, types.ProjectChange{
-				Path: "module." + oldMod.Handle + ".field." + name,
-				Risk: types.ProjectChangeRiskDangerous,
-			})
-			maxRisk = types.ProjectChangeRiskDangerous
+	// Counted at most once per module, and only if something destructive turns
+	// up: the count exists to size a warning, and most revisions never raise one.
+	records, counted := uint64(0), false
+	atStake := func() uint64 {
+		if !counted {
+			records, counted = svc.moduleRecordCount(ctx, oldNsID, om), true
 		}
+		return records
 	}
-	for name, nf := range newByName {
-		of, exists := oldByName[name]
-		if !exists {
-			changes = append(changes, types.ProjectChange{
-				Path: "module." + newMod.Handle + ".field." + name,
-				Risk: types.ProjectChangeRiskSafe,
+
+	for _, of := range oldFields {
+		if _, kept := newByName[of.Name]; kept {
+			continue
+		}
+		addChange(plan, types.ProjectChange{
+			Op:      types.ProjectChangeOpRemoved,
+			Kind:    "field",
+			Module:  om.Handle,
+			Name:    of.Name,
+			Path:    "module." + om.Handle + ".field." + of.Name,
+			Risk:    types.ProjectChangeRiskDangerous,
+			Records: atStake(),
+		})
+	}
+
+	for _, nf := range newFields {
+		of, shared := oldByName[nf.Name]
+		if !shared {
+			addChange(plan, types.ProjectChange{
+				Op:     types.ProjectChangeOpAdded,
+				Kind:   "field",
+				Module: nm.Handle,
+				Name:   nf.Name,
+				Path:   "module." + nm.Handle + ".field." + nf.Name,
+				Risk:   types.ProjectChangeRiskSafe,
 			})
 			continue
 		}
 		if of.Kind != nf.Kind {
-			changes = append(changes, types.ProjectChange{
-				Path: "module." + newMod.Handle + ".field." + name,
-				Risk: types.ProjectChangeRiskDangerous,
+			addChange(plan, types.ProjectChange{
+				Op:      types.ProjectChangeOpChanged,
+				Kind:    "field",
+				Module:  nm.Handle,
+				Name:    nf.Name,
+				Detail:  of.Kind + " → " + nf.Kind,
+				Path:    "module." + nm.Handle + ".field." + nf.Name,
+				Risk:    types.ProjectChangeRiskDangerous,
+				Records: atStake(),
 			})
-			maxRisk = types.ProjectChangeRiskDangerous
 		}
 	}
 
 	return
 }
 
-func buildSuggestedMapping(oldMod, newMod *composeTypes.Module) types.ModuleMapping {
-	mm := types.ModuleMapping{Module: newMod.Handle}
-	// For a new module, no field mappings are needed.
-	return mm
+// moduleRecordCount is how many records a module holds — what a removed or
+// retyped field puts at stake. Best-effort by design: the count only sharpens
+// the warning, so a failure returns 0 ("unknown") instead of failing the plan.
+func (svc *project) moduleRecordCount(ctx context.Context, nsID uint64, m *composeTypes.Module) uint64 {
+	if svc.services.recordSvc == nil || m == nil {
+		return 0
+	}
+
+	_, f, err := svc.services.recordSvc.Search(ctx, composeTypes.RecordFilter{
+		ModuleID:    m.ID,
+		NamespaceID: nsID,
+		Paging:      filter.Paging{Limit: 1, IncTotal: true},
+	})
+	if err != nil {
+		return 0
+	}
+
+	return uint64(f.Total)
 }
 
 func buildSuggestedMappingFromFields(
