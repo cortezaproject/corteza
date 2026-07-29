@@ -32,6 +32,13 @@ there).
   events with actors batch-resolved; `actorName` resolves an actor for
   display. Single definition shared by the Overview activity band and
   AllEventsView's metrics band — do not fork it.
+- `revisionCompleteness.js` — `fetchRevisionCompleteness($SystemAPI,
+  projectId, revisionId)`: completed-vs-assigned work-item totals for ONE
+  revision off a single board call (`$SystemAPI.projectBoardBoard`,
+  `limit: 1` — totals only, never cards). THE completeness formula, shared by
+  the wizard's Manage & Monitor RevisionCompletenessBar and the publish
+  confirm's unfinished-work warning (views/Wizard.vue) so the two surfaces
+  can never disagree; do not re-derive the column arithmetic elsewhere.
 - `useRevisionLabel.js` / `useRevisionOptions.js` — the revision chain as
   display labels and as select options. Both READ the projects store's
   `revisionsFor`/`listRevisions` and resolve the chain root themselves, so a

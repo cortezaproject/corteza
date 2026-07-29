@@ -41,6 +41,12 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
   const currentProjectId = ref('')
   const loading = ref(false)
 
+  // Monotonic counter bumped after every successful WRITE (add / update /
+  // updateStatus / remove) — an invalidation signal, not data. Mirrors
+  // stores/events.js#mutations exactly; see its comment for the consumer
+  // shape (RevisionCompletenessBar.vue).
+  const mutations = ref(0)
+
   const mapRow = mapBacklogRow
 
   // Load every backlog item for a project. Same 200-row cap idiom as
@@ -109,6 +115,7 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
     const raw = await $SystemAPI.projectBacklogItemCreate(body)
     const item = mapRow(raw || {})
     items.value.unshift(item)
+    mutations.value++
     return item
   }
 
@@ -120,6 +127,7 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
     const idx = items.value.findIndex(i => i.id === String(id))
     if (idx !== -1) items.value.splice(idx, 1, item)
     else items.value.unshift(item)
+    mutations.value++
     return item
   }
 
@@ -166,6 +174,7 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
       const updated = mapRow(raw || {})
       const idx = items.value.findIndex(i => i.id === String(id))
       if (idx !== -1) items.value.splice(idx, 1, updated)
+      mutations.value++
       return updated
     } catch (err) {
       if (cachedItem) cachedItem.status = prevStatus
@@ -179,12 +188,14 @@ export const useBacklogItemsStore = defineStore('backlog-items', () => {
     await $SystemAPI.projectBacklogItemDelete({ backlogItemID: id })
     const idx = items.value.findIndex(i => i.id === String(id))
     if (idx !== -1) items.value.splice(idx, 1)
+    mutations.value++
   }
 
   return {
     items,
     loading,
     currentProjectId,
+    mutations,
     load,
     byEvent,
     openCount,

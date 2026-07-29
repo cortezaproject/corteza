@@ -1647,9 +1647,9 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/project/components/wizard/RevisionCompletenessBar.vue": {
-      "h": "e59478499328",
+      "h": "a9d1f458c01a",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-28"
+      "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/StepNav.vue": {
       "h": "77faaa19f631",
@@ -1735,6 +1735,11 @@
       "h": "03b812887bc1",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-24"
+    },
+    "client/web/unify/src/sections/project/composables/revisionCompleteness.js": {
+      "h": "8d1a7a361b61",
+      "doc": "client/web/unify/src/sections/project/composables/composables.intent.md",
+      "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/composables/useEventActivity.js": {
       "h": "5dc525766be3",
@@ -1857,9 +1862,9 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/stores/backlogItems.js": {
-      "h": "66315c4450d9",
+      "h": "3e872d0b02b7",
       "doc": "client/web/unify/src/sections/project/stores/backlogItems.intent.md",
-      "t": "2026-07-28"
+      "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/stores/dateUtils.js": {
       "h": "b6824926f5a7",
@@ -1867,9 +1872,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/src/sections/project/stores/events.js": {
-      "h": "3ef62492d6a5",
+      "h": "c28d86876ff6",
       "doc": "client/web/unify/src/sections/project/stores/events.intent.md",
-      "t": "2026-07-28"
+      "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/stores/projects.js": {
       "h": "7bd3a209de0a",
@@ -1937,9 +1942,9 @@
       "t": "2026-07-28"
     },
     "client/web/unify/src/sections/project/views/Wizard.vue": {
-      "h": "36685bae0e75",
+      "h": "69c3c7e8b830",
       "doc": "client/web/unify/src/sections/project/views/Wizard.intent.md",
-      "t": "2026-07-28"
+      "t": "2026-07-29"
     },
     "client/web/unify/src/sections/taq/components/builder/condition/ConditionBuilder.vue": {
       "h": "de9585325ab4",

@@ -34,6 +34,11 @@ so the category views, KPIs and nav badges all read a single source.
   (project members + access users, falling back to the full directory).
 - `isOpenStatus` (exported) — THE open rule: open ⇔ status !== 'Completed'.
   Shared with backlogItems and the Overview report cards; never re-derive.
+- `mutations` — monotonic counter bumped after every successful write
+  (add/update/updateStatus/remove). An invalidation signal, not data: for
+  consumers that deliberately read their numbers elsewhere (the wizard's
+  RevisionCompletenessBar reads the board endpoint's true totals) but must
+  re-fetch when a work item changes.
 
 ## API surface consumed
 

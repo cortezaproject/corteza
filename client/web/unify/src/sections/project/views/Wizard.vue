@@ -568,6 +568,7 @@ import FriaDeterminationStep from '@/sections/project/components/wizard/steps/Fr
 import FriaScenariosStep from '@/sections/project/components/wizard/steps/FriaScenariosStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
+import { fetchRevisionCompleteness } from '@/sections/project/composables/revisionCompleteness'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { friaDeterminationValues } from '@/sections/project/config/friaDeterminationForm'
 import { MANAGE_NAV } from '@/sections/project/config/manageNav'
@@ -593,6 +594,7 @@ const router = useRouter()
 const store = useProjectsStore()
 const usersStore = useProjectUsersStore()
 const $toast = inject('$toast')
+const $SystemAPI = inject('$SystemAPI')
 const confirm = useConfirm()
 
 const project = computed(() => store.findById(route.params.projectId))
@@ -770,10 +772,33 @@ async function approveProject() {
 // Publish itself needs a confirmation — it's a one-way door (the project goes
 // live and further changes are made through revisions). Reuses the exact
 // store action + success/dashboard handoff PublishStep.vue used to run.
-function confirmPublish() {
+//
+// The confirm message carries the same revision completeness the M&M rail's
+// bar shows (Wizard.intent.md: "the same completeness is shown again at
+// publish, where unfinished work warns but never blocks") — same shared fetch
+// (composables/revisionCompleteness.js), so the two surfaces can't disagree.
+// Warn-only by construction: the line is appended text, never a gate on the
+// accept action; and fail-open — a failed/slow-to-matter completeness fetch
+// just yields the plain confirm rather than blocking the publish path on a
+// secondary read.
+async function confirmPublish() {
+  let warning = ''
+  try {
+    const { assigned, completed } = await fetchRevisionCompleteness(
+      $SystemAPI,
+      rootProjectId.value,
+      project.value.projectID,
+    )
+    const open = assigned - completed
+    if (open > 0) {
+      warning = ` ${t('project.publish.confirm.unfinishedWarning', { open, total: assigned })}`
+    }
+  } catch (err) {
+    console.error('Failed to load revision completeness for publish confirm', err)
+  }
   confirm.require({
     header: t('project.publish.confirm.header'),
-    message: t('project.publish.confirm.message'),
+    message: t('project.publish.confirm.message') + warning,
     icon: 'pi pi-cloud-upload',
     rejectProps: {
       label: t('general.label.cancel'),

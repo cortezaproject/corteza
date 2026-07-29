@@ -30,6 +30,8 @@ mirrors the events store's shape and idioms so the two read as one layer.
 - `byEvent(category, eventID)` — items linked to one category event.
 - `openCount` — open (per events' `isOpenStatus`) items project-wide; feeds
   the Backlog nav item's live badge.
+- `mutations` — write-invalidation counter mirroring events.js#mutations
+  (see that doc); bumped on every successful add/update/updateStatus/remove.
 
 ## API surface consumed
 

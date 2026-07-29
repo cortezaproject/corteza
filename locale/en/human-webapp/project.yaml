@@ -607,6 +607,14 @@ publish:
       Its resources are already available to the members you've added, so publishing doesn't
       change who can access them — once live, further changes to the project are made through
       revisions.
+    # Appended to `message` only when the revision still has unfinished work —
+    # the same completed-vs-assigned numbers the Manage & Monitor rail's
+    # revision progress bar shows (see composables/revisionCompleteness.js).
+    # A warning only: unfinished work never blocks publishing.
+    unfinishedWarning: >-
+      Note that {open} of the {total} work items assigned to this revision are not completed
+      yet — they stay assigned to it after publishing. Unfinished work does not block
+      publishing.
     accept: Publish project
   toast:
     submitted: Submitted for approval

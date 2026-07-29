@@ -120,6 +120,13 @@ export const useEventsStore = defineStore('events', () => {
   const currentProjectId = ref('')
   const loading = ref(false)
 
+  // Monotonic counter bumped after every successful WRITE (add / update /
+  // updateStatus / remove) — an invalidation signal, not data. For consumers
+  // that deliberately don't read this store's capped `events` list for their
+  // numbers (RevisionCompletenessBar.vue reads the board endpoint's true
+  // totals) but still need to know "a work item just changed" to re-fetch.
+  const mutations = ref(0)
+
   const mapRow = mapEventRow
 
   // Load every category for a project, flatten, and cache as the active list.
@@ -233,6 +240,7 @@ export const useEventsStore = defineStore('events', () => {
     const raw = await $SystemAPI[cfg.create](body)
     const event = mapRow(cat, raw || {})
     events.value.unshift(event)
+    mutations.value++
     return event
   }
 
@@ -250,6 +258,7 @@ export const useEventsStore = defineStore('events', () => {
     const idx = events.value.findIndex(e => e.category === cat && e.id === String(id))
     if (idx !== -1) events.value.splice(idx, 1, event)
     else events.value.unshift(event)
+    mutations.value++
     return event
   }
 
@@ -304,6 +313,7 @@ export const useEventsStore = defineStore('events', () => {
       const event = mapRow(cat, raw || {})
       const idx = events.value.findIndex(e => e.category === cat && e.id === String(id))
       if (idx !== -1) events.value.splice(idx, 1, event)
+      mutations.value++
       return event
     } catch (err) {
       if (cachedItem) cachedItem.status = prevStatus
@@ -319,12 +329,14 @@ export const useEventsStore = defineStore('events', () => {
     await $SystemAPI[cfg.delete]({ [cfg.idKey]: id })
     const idx = events.value.findIndex(e => e.category === cat && e.id === String(id))
     if (idx !== -1) events.value.splice(idx, 1)
+    mutations.value++
   }
 
   return {
     events,
     loading,
     currentProjectId,
+    mutations,
     load,
     ownerOptions,
     byCategory,
