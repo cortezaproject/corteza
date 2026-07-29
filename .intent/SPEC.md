@@ -181,12 +181,16 @@ changed, update doc; if not, sync-acknowledge.
 **Audit (semantic, AI-driven):** `/intent-audit <path>` (skill:
 `.claude/skills/intent-audit/`) — read intent docs + code under a path, report
 semantic drift the hash layer can't see, propose edits to whichever side is wrong.
-Day-to-day changes go through `/intent-task` (`.claude/skills/intent-task/`), which
-standardizes the orient → confirm → implement → verify loop for every session. Cadence is mandatory, not optional: before every release, and rotating
+Cadence is mandatory, not optional: before every release, and rotating
 per-area so the oldest-audited area is always next (`intent status` shows drift-age —
 time since each area's last sync/audit — to make rot visible).
 The audit is the only defense against rubber-stamp syncing (hashes green, docs stale);
 the hash layer cannot detect that failure mode.
+
+**Change workflow (opt-in):** `/intent-task` (`.claude/skills/intent-task/`)
+standardizes the orient → confirm → implement → verify loop. It applies only when the
+human explicitly invokes the skill — ordinary changes are not required to run through
+it (see root `CLAUDE.md`).
 
 **Test selection (phase 2):** `intent affected <changed files>` walks `depends-on` /
 `touched-by` / `tests` to output the spec list for selective Playwright/vitest runs.
