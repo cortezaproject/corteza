@@ -1,22 +1,8 @@
 <template>
   <div class="flex flex-col gap-4">
-    <!-- Leads with the reassurance, because the anxiety a first publish
-         actually carries is "what am I about to break" — and the answer is
-         nothing. -->
-    <div class="rounded-xl border border-primary/40 bg-primary/5 p-4 flex gap-3.5 items-start">
-      <span
-        class="inline-flex items-center justify-center w-9 h-9 rounded-lg shrink-0 bg-primary text-primary-contrast"
-      >
-        <i class="pi pi-cloud-upload" />
-      </span>
-      <div class="min-w-0">
-        <h3 class="font-medium">{{ $t('project.publish.firstRun.heading') }}</h3>
-        <p class="text-sm text-muted-color mt-1">
-          {{ $t('project.publish.firstRun.blurb', { name: projectName }) }}
-        </p>
-      </div>
-    </div>
-
+    <!-- No "nothing is being replaced" reassurance: naming a risk in order to
+         dismiss it plants the worry it was meant to settle, and on a first
+         publish there is no earlier version for anyone to be worried about. -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <section class="rounded-xl border border-surface bg-surface p-4">
         <h4 class="text-xs font-medium uppercase tracking-wide text-muted-color mb-3">

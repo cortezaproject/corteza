@@ -617,9 +617,11 @@ publish:
   subheading: >-
     This revision replaces revision {parent} as the live project. Check what changes, decide what
     happens to existing data, then send it for approval.
+  # Deliberately says nothing about "no previous revision to replace": raising
+  # a risk in order to dismiss it plants the worry it was meant to settle.
   subheadingFirst: >-
-    This is the first time the project goes live. There is no previous revision to replace and no
-    existing data to bring across.
+    Publishing makes this project active for the people working on it. A reviewer signs off
+    first.
   subheadingLive: >-
     This revision is live. Everything below is a record of what went out; to change the project
     again, start a new revision.
@@ -697,10 +699,6 @@ publish:
   # judges readiness.
   firstRun:
     title: Take {name} live
-    heading: Nothing is being replaced
-    blurb: >-
-      This is the first version of {name}. There is no earlier revision to compare against and no
-      existing data to carry over — publishing simply makes it live.
     whatGoesLive: What goes live
     nothingBuilt: >-
       Nothing has been built yet. You can still publish, but the project will go live empty.

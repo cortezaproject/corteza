@@ -11,7 +11,12 @@
             {{ isLive ? $t('project.publish.subheadingLive') : subheading }}
           </p>
         </div>
-        <Tag :value="statusTag.label" :severity="statusTag.severity" />
+        <span
+          class="inline-flex items-center px-3 py-1 rounded-full border text-xs font-medium shrink-0"
+          :class="PILL_CLASS[statusTag.severity] || PILL_CLASS.secondary"
+        >
+          {{ statusTag.label }}
+        </span>
       </header>
 
       <div v-if="loading" class="flex justify-center py-10">
@@ -122,26 +127,28 @@
             @update:typed="typedConfirmation = $event"
           />
         </PublishStage>
-
-        <!-- One primary control, labelled for the single next thing to do, with
-             the reason it cannot fire stated beside it rather than hidden in a
-             disabled tooltip. -->
-        <div
-          class="sticky bottom-0 -mx-4 px-4 py-3 mt-1 border-t border-surface bg-surface/90 backdrop-blur flex items-center gap-3 flex-wrap"
-        >
-          <p class="flex-1 min-w-48 text-sm text-muted-color">{{ actionReason }}</p>
-          <Button
-            v-if="primaryAction"
-            :label="primaryLabel"
-            :icon="primaryIcon"
-            :severity="primaryAction === 'approve' ? 'success' : undefined"
-            size="small"
-            :disabled="!primaryEnabled"
-            :loading="acting"
-            @click="runPrimaryAction"
-          />
-        </div>
       </template>
+
+      <!-- One primary control, labelled for the single next thing to do, with
+           the reason it cannot fire stated beside it rather than hidden in a
+           disabled tooltip. Shared by BOTH screens — a first publish needs a
+           way to act just as much as a revision does. -->
+      <div
+        v-if="!loading && !loadError && !isLive"
+        class="sticky bottom-0 -mx-4 px-4 py-3 mt-1 border-t border-surface bg-surface/90 backdrop-blur flex items-center gap-3 flex-wrap"
+      >
+        <p class="flex-1 min-w-48 text-sm text-muted-color">{{ actionReason }}</p>
+        <Button
+          v-if="primaryAction"
+          :label="primaryLabel"
+          :icon="primaryIcon"
+          :severity="primaryAction === 'approve' ? 'success' : undefined"
+          size="small"
+          :disabled="!primaryEnabled"
+          :loading="acting"
+          @click="runPrimaryAction"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -175,6 +182,13 @@ const props = defineProps({
   canGrant: { type: Boolean, default: false },
   canRequestApproval: { type: Boolean, default: false },
 })
+
+// Users are deliberately not inventory: a person is not a project resource —
+// the same account exists across projects, nothing about them is created or
+// replaced by a publish, and they are already named under who gets access.
+// Roles stay, since a role IS project-scoped. Mirrors the backend's
+// resourceDiffSkip.
+const INVENTORY_KINDS = OVERVIEW_KINDS.filter(kind => kind !== 'user')
 
 const { t } = useI18n()
 const router = useRouter()
@@ -273,7 +287,7 @@ async function loadInventory() {
   // cards use — but only what the revision actually has. Unlike that strip,
   // which is a fixed set of layer toggles, this is a list of what goes live,
   // and a kind with nothing in it is not going live.
-  return OVERVIEW_KINDS.map(kind => ({
+  return INVENTORY_KINDS.map(kind => ({
     kind,
     count: counts[kind] || 0,
     added: added[kind] || 0,
@@ -514,8 +528,23 @@ const approvalTag = computed(
     },
 )
 
+// The header pill states the PROJECT's status, so before anything is submitted
+// it says "Draft" — the stage chips already say "Not started", and reading that
+// at the top of the screen suggests the project hasn't been started.
 const statusTag = computed(() => {
   if (isLive.value) return { label: t('project.status.active'), severity: 'success' }
+  if (publishStatus.value === 'draft')
+    return { label: t('project.status.draft'), severity: 'secondary' }
   return approvalTag.value
 })
+
+// The header status reads as a pill, not bare text — a PrimeVue Tag on
+// `secondary` renders flat enough on this background to disappear. Same tint +
+// ring idiom the step nav badges use.
+const PILL_CLASS = {
+  success: 'bg-green-500/10 text-green-500 border-green-500/30',
+  info: 'bg-primary/10 text-primary border-primary/30',
+  warn: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
+  secondary: 'bg-emphasis text-muted-color border-surface',
+}
 </script>
