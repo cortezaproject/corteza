@@ -26,11 +26,12 @@
     <!-- Header row: the fixed three-tab switcher — Build / Govern / Manage &
          Monitor, visible to every member regardless of capability (only the
          per-step and per-project review ACTIONS are capability-gated, not tab
-         access) — with the wizard tool cluster right-aligned beside it. -->
-    <!-- flex-wrap + ml-auto on the tool cluster: the tools sit beside the
-         tabs while they fit and drop to their own right-aligned row when
-         they don't (no fixed breakpoint). -->
-    <div class="shrink-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 pt-2">
+         access) — with the wizard tool cluster left-aligned directly beside
+         it. -->
+    <!-- flex-wrap: the tools sit beside the tabs while they fit and drop to
+         their own row, still left-aligned, when they don't (no fixed
+         breakpoint). -->
+    <div class="shrink-0 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 px-3 pt-2">
       <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0">
         <TabList>
           <Tab value="build" class="flex items-center gap-2">
@@ -48,13 +49,14 @@
         </TabList>
       </Tabs>
 
-      <!-- Publish approval cluster — right-aligned in the tab row (LOCKED,
-           ruled 2026-07-24 — see Wizard.intent.md). Members and the "View
+      <!-- Publish approval cluster — lives in the tab row, immediately right
+           of the tabs (ruled 2026-07-24 for the row, re-aligned left
+           2026-07-29 — see Wizard.intent.md). Members and the "View
            project"/"View dashboard" navigation used to live in this cluster
            too; they've moved to the shared ProjectTopbarTools in the topbar
            (see the Teleport above) and the RevisionSwitcher's Dashboard
            entry, respectively. -->
-      <span class="ml-auto flex items-center justify-end gap-2 flex-wrap">
+      <span class="flex items-center gap-2 flex-wrap">
         <!-- One state-driven primary control reading the well-known
              'publish' governance step (see publishAction). No status Tag
              (ruled 2026-07-24): the button's state carries the status; its
@@ -150,7 +152,7 @@
             <Tag v-if="showStatus" :value="statusLabel" :severity="statusSeverity" />
             <template v-if="activeStep && canGrant">
               <Button
-                :label="$t('project.wizard.toolbar.requestChanges')"
+                :label="$t('project.wizard.requestChanges.action')"
                 icon="pi pi-exclamation-circle"
                 severity="secondary"
                 outlined
@@ -158,7 +160,7 @@
                 @click="openRequestChanges"
               />
               <Button
-                :label="$t('project.wizard.toolbar.approve')"
+                :label="$t('project.wizard.approve.action')"
                 icon="pi pi-check"
                 severity="success"
                 size="small"
@@ -294,7 +296,7 @@
           class="shrink-0 border-t border-surface px-4 py-3 flex items-center justify-end"
         >
           <Button
-            :label="$t('project.wizard.toolbar.save')"
+            :label="$t('general.label.save')"
             icon="pi pi-save"
             size="small"
             :disabled="!canWrite"
