@@ -23,16 +23,22 @@ namespace already exists — use `--force` for a clean slate.
 
 ## Authoring / extending fixtures
 
-- Model a fixture on `dev/fixtures/agent-sandbox/def.yaml`; record CSVs are
-  wired via `source:` blocks (key column → cross-module refs by key).
+- A fixture is `def.yaml` (namespace + modules + record CSVs via `source:`
+  blocks) **plus `ui.json`** (charts + pages, applied by
+  `dev/agent/pagebuild.py` — spec format in its header). Model new fixtures
+  on `dev/fixtures/agent-sandbox/`.
+- **Never put pages/charts in def.yaml**: envoy import leaves block refs
+  unresolved (module/chart handles instead of IDs) → broken pages in the UI.
+  Presentation always goes through ui.json/pagebuild.
 - Envoy YAML limits (learned the hard way): auth clients can't be fully
   configured (validGrant dropped, impersonateUser unresolved); field keys in
   the generic decoder match lowercased Go field names case-sensitively.
-- Import must go through `seed.sh`, not plain `server_cli import`: it imports
-  the fixture *directory* (CSV providers are only discovered on directory
-  decode) and then re-registers DAL models on the live server (CLI import
-  bypasses the running process — without this, record queries fail with
-  "model does not exist").
+- Import must go through `seed.sh`, not plain `server_cli import`: it stages
+  the fixture *directory* without ui.json (CSV providers are only discovered
+  on directory decode; .json would be mis-parsed as YAML) and then
+  re-registers DAL models on the live server (CLI import bypasses the
+  running process — without this, record queries fail with "model does not
+  exist").
 
 ## Harvesting
 

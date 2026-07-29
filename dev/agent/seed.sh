@@ -51,9 +51,15 @@ for slug in "${picks[@]}"; do
     fi
   fi
 
-  # import the fixture DIRECTORY — sibling CSVs are only registered as
-  # record datasource providers on directory decode, not single-file decode
-  server_cli import --skip-existing "$FIXTURES_DIR/$slug"
+  # import a staged copy of the fixture DIRECTORY — sibling CSVs are only
+  # registered as record datasource providers on directory decode, and
+  # ui.json must be excluded (the decoder parses .json as YAML and errors)
+  stage="$STATE_DIR/import-$slug"
+  rm -rf "$stage"
+  mkdir -p "$stage"
+  cp "$FIXTURES_DIR/$slug"/* "$stage"/
+  rm -f "$stage/ui.json"
+  server_cli import --skip-existing "$stage"
   id=$(ns_id "$slug") || {
     echo "import ran but namespace $slug not found" >&2
     exit 1
@@ -81,6 +87,12 @@ for m in json.load(sys.stdin)["response"]["set"]:
       exit 1
     }
   done
+
+  # presentation layer (charts + pages) is built via REST — envoy YAML
+  # cannot resolve page-block refs, see pagebuild.py
+  if [[ -f "$FIXTURES_DIR/$slug/ui.json" ]]; then
+    python3 "$AGENT_DIR/pagebuild.py" "$slug" "$FIXTURES_DIR/$slug/ui.json"
+  fi
 
   echo "seeded fixture $slug (namespace ID $id)"
 done

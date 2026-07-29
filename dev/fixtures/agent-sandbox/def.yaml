@@ -1,6 +1,7 @@
 # Agent sandbox fixture — a small realistic namespace for agent/dev testing.
 # Imported by dev/agent/seed.sh (local dev server only). Everything here uses
 # the agent- handle prefix and is disposable (dev/agent/cleanup.sh).
+# Data model + records only — charts/pages live in ui.json (see below).
 #
 # Harvesting: when a better version of this namespace is built live (UI/API),
 # capture it with `export compose-namespace agent-sandbox` and fold the result
@@ -87,40 +88,6 @@ namespace:
               - column: contact
                 field: contact
 
-    charts:
-      agent-tasks-by-priority:
-        name: Tasks by priority
-        config:
-          colorScheme: tableau.Tableau10
-          reports:
-            - module: agent-task
-              filter: ""
-              metrics:
-                - field: count
-                  fixTooltips: false
-                  relativeValue: false
-                  type: doughnut
-              dimensions:
-                - field: priority
-                  conditions: {}
-
-    pages:
-      agent-dashboard:
-        title: Agent Sandbox Dashboard
-        visible: true
-        blocks:
-          - title: Contacts
-            kind: RecordList
-            options:
-              module: agent-contact
-          - title: Tasks by priority
-            kind: Chart
-            options:
-              chart: agent-tasks-by-priority
-        pages:
-          agent-contact-page:
-            title: Contact
-            module: agent-contact
-          agent-task-page:
-            title: Task
-            module: agent-task
+    # NOTE: no charts/pages here on purpose. Envoy YAML import cannot produce
+    # working pages (block option refs never resolve to IDs) — presentation
+    # lives in ui.json, applied via dev/agent/pagebuild.py by seed.sh.

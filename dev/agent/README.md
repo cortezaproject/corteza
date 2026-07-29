@@ -36,6 +36,7 @@ Requires: `curl`, `python3` (no jq dependency), a built server binary in
 | `api.sh METHOD PATH [curl args…]` | authenticated request, jq-pretty output |
 | `seed.sh [--force] [fixture…]` | import `dev/fixtures/` (skips seeded fixtures unless `--force`) |
 | `cleanup.sh` | delete all `agent-*` compose namespaces |
+| `pagebuild.py SLUG SPEC.json` | build/refresh charts + pages via REST (spec format in its header) |
 
 ```sh
 dev/agent/smoke.sh
@@ -66,6 +67,11 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Agent Test","slug":"agent
 - CLI `import` bypasses the running server's DAL registry — record queries
   then fail with "model does not exist" until models re-register (seed.sh
   does a no-op module POST per module; a server restart also works).
+- **Envoy YAML cannot build working pages**: block option refs
+  (module/chart handles) are never resolved to IDs — the encoder's ref map
+  is keyed by resource kind while the SetValue write-back expects
+  `Blocks.N.Options.…` paths (`server/compose/envoy/store_decode.go`
+  `toEnvoyRefs`). Pages/charts go through `pagebuild.py` instead.
 
 ## Conventions for agent-created data
 

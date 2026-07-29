@@ -14,7 +14,9 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   `bootstrap.sh` (idempotent). Skills: `/dev-api`, `/dev-seed`. Reference +
   gotchas: `dev/agent/README.md`.
 - Test data: versioned fixtures in `dev/fixtures/`; `dev/agent/seed.sh` /
-  `cleanup.sh`.
+  `cleanup.sh`. Pages/charts are built via `dev/agent/pagebuild.py` (never
+  via envoy YAML — block refs don't resolve).
+- Building whole systems (datamodel + pages) in Human: `/sys-design` skill.
 - Anything an agent creates on the dev server uses an `agent-` handle/slug
   prefix — prefixed data is disposable, unprefixed data is off-limits.
 

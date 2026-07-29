@@ -1,0 +1,99 @@
+{
+  "charts": [
+    {
+      "handle": "agent-tasks-by-priority",
+      "name": "Tasks by priority",
+      "config": {
+        "colorScheme": "tableau.Tableau10",
+        "reports": [
+          {
+            "module": "agent-task",
+            "filter": "",
+            "dimensions": [
+              {
+                "field": "priority",
+                "modifier": "(no grouping / buckets)",
+                "conditions": {}
+              }
+            ],
+            "metrics": [{ "field": "count", "type": "doughnut", "fixTooltips": false }]
+          }
+        ]
+      }
+    }
+  ],
+  "pages": [
+    {
+      "handle": "agent-dashboard",
+      "title": "Agent Sandbox Dashboard",
+      "visible": true,
+      "weight": 10,
+      "icon": "font-awesome://rocket",
+      "blocks": [
+        {
+          "kind": "RecordList",
+          "title": "Contacts",
+          "xywh": [0, 0, 7, 12],
+          "options": { "module": "agent-contact" }
+        },
+        {
+          "kind": "Chart",
+          "title": "Tasks by priority",
+          "xywh": [7, 0, 5, 12],
+          "options": { "chart": "agent-tasks-by-priority" }
+        },
+        {
+          "kind": "Metric",
+          "title": "Totals",
+          "xywh": [0, 12, 12, 4],
+          "options": {
+            "metrics": [
+              {
+                "label": "Contacts",
+                "module": "agent-contact",
+                "metricField": "count",
+                "operation": "",
+                "filter": ""
+              },
+              {
+                "label": "Tasks",
+                "module": "agent-task",
+                "metricField": "count",
+                "operation": "",
+                "filter": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "handle": "agent-contact-page",
+      "title": "Contact",
+      "module": "agent-contact",
+      "visible": false,
+      "blocks": [
+        {
+          "kind": "Record",
+          "title": "Contact",
+          "xywh": [0, 0, 12, 16],
+          "options": {}
+        }
+      ]
+    },
+    {
+      "handle": "agent-task-page",
+      "title": "Task",
+      "module": "agent-task",
+      "visible": false,
+      "blocks": [
+        {
+          "kind": "Record",
+          "title": "Task",
+          "xywh": [0, 0, 12, 16],
+          "options": {}
+        }
+      ]
+    }
+  ]
+}
