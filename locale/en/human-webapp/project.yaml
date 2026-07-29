@@ -518,9 +518,14 @@ wizard:
       item's editor, or create them on this tab's board, and this bar tracks how many are
       completed.
 governance:
+  # Review-state wording for the status tags (components/project/StatusChip.vue).
+  # 'draft' reuses the lifecycle project.status.draft — an unreviewed step and an
+  # unpublished project say the same word. The raw governance value for
+  # waitingApproval is still 'submitted' (the store mirrors the removed
+  # backend's enum), but nobody reading a step header cares that they
+  # submitted it — they care that it is waiting on someone.
   status:
-    draft: Draft
-    submitted: Submitted
+    waitingApproval: Waiting for approval
     approved: Approved
     changesRequested: Changes requested
   banner:
@@ -626,17 +631,11 @@ publish:
     This revision is live. Everything below is a record of what went out; to change the project
     again, start a new revision.
   loadFailed: Could not work out what this revision changes. Please try again.
-  # The header pill states where the PROJECT stands, so before anything is
-  # submitted it names the fact this screen is about — not published yet —
-  # rather than the lifecycle enum ("Draft") or the stage chips' "Not started",
-  # which reads as though the project itself had not been started.
-  notPublished: Not published
   stages:
     reviewed: Reviewed
     needsDecision: Needs a decision
     decided: Decided
     notStarted: Not started
-    awaiting: Awaiting approval
     changes:
       title: What changes
       hint: '{count} changes · {risky} need care'

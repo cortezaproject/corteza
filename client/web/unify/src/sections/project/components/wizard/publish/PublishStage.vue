@@ -27,7 +27,11 @@
         <span class="block text-sm text-muted-color truncate">{{ hint }}</span>
       </span>
 
-      <Tag v-if="statusLabel" :value="statusLabel" :severity="statusSeverity" />
+      <!-- Readiness is the caller's word: every stage fills this with the
+           section's shared StatusChip (see PublishTab), so a stage tag can
+           never drift in colour from the same status elsewhere. A stage with
+           nothing to state (Go live) simply leaves it empty. -->
+      <slot name="status" />
       <i
         class="pi pi-chevron-right text-muted-color transition-transform"
         :class="{ 'rotate-90': open }"
@@ -51,8 +55,6 @@ const props = defineProps({
   index: { type: Number, required: true },
   title: { type: String, required: true },
   hint: { type: String, default: '' },
-  statusLabel: { type: String, default: '' },
-  statusSeverity: { type: String, default: 'secondary' },
   // Reached, and the thing to act on right now.
   current: { type: Boolean, default: false },
   // Settled — nothing left to do here.
