@@ -1,0 +1,14 @@
+# Local-only seed for the agent dev toolkit (see dev/agent/README.md).
+#
+# NEVER add this to server/provision/ or any shared/production provisioning
+# path. It is imported explicitly by dev/agent/bootstrap.sh against a local
+# dev server only; the toolkit scripts refuse non-localhost API hosts.
+#
+# Only the user lives here — the dev-agent auth client is managed via REST
+# by bootstrap.sh (envoy YAML cannot set validGrant reliably).
+
+user:
+  agent-dev:
+    email: agent@local.dev
+    name: Dev Agent (local tooling)
+    emailConfirmed: true
