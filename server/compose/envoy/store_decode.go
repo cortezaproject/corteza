@@ -50,6 +50,53 @@ func (d StoreDecoder) extendModuleFilter(scope *envoyx.Node, refs map[string]*en
 	return
 }
 
+// extendChartFilter narrows a chart decode to the namespace it was scoped to.
+// Without it the generated makeChartFilter reads only refs["NamespaceID"] and
+// silently ignores the scope, so a scoped decode — a namespace clone, say —
+// pulls in every chart in the store. Those foreign charts then encode with
+// their ORIGINAL namespace_id and handle, tripping the unique_handle index
+// (compose/chart.cue) as "not unique". Same shape as the module and page
+// extenders below/above; see CloneFromStore for the sibling ModuleField case.
+func (d StoreDecoder) extendChartFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter, base types.ChartFilter) (out types.ChartFilter) {
+	out = base
+
+	if scope == nil {
+		return
+	}
+
+	if scope.ResourceType == "" {
+		return
+	}
+
+	// Overwrite it
+	out.NamespaceID = scope.Resource.GetID()
+
+	return
+}
+
+// extendPageLayoutFilter is extendChartFilter's twin: layouts are cloned with
+// the same namespace scope and were ignoring it in the same way. It bit less
+// visibly only because a layout's unique index also spans page_id and layouts
+// routinely carry an empty handle, which the index's predicate excludes — so
+// instead of failing, a clone quietly dragged in every other namespace's
+// layouts.
+func (d StoreDecoder) extendPageLayoutFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter, base types.PageLayoutFilter) (out types.PageLayoutFilter) {
+	out = base
+
+	if scope == nil {
+		return
+	}
+
+	if scope.ResourceType == "" {
+		return
+	}
+
+	// Overwrite it
+	out.NamespaceID = scope.Resource.GetID()
+
+	return
+}
+
 func (d StoreDecoder) extendPageFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter, base types.PageFilter) (out types.PageFilter) {
 	out = base
 

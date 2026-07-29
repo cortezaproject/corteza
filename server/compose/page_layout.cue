@@ -217,6 +217,9 @@ pageLayout: {
 			identKeyAlias: ["page_layouts", "pagelayouts", "layouts"]
 		}
 		store: {
+			// Same reason as chart: without it the generated filter builder
+			// ignores its scope and decodes every layout in the store.
+			extendedFilterBuilder: true
 		}
 	}
 

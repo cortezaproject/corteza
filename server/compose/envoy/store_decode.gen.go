@@ -264,6 +264,7 @@ func (d StoreDecoder) makeChartFilter(scope *envoyx.Node, refs map[string]*envoy
 		out.NamespaceID = ar.Resource.GetID()
 	}
 
+	out = d.extendChartFilter(scope, refs, auxf, out)
 	return
 }
 
@@ -799,6 +800,7 @@ func (d StoreDecoder) makePageLayoutFilter(scope *envoyx.Node, refs map[string]*
 		out.ParentID = ar.Resource.GetID()
 	}
 
+	out = d.extendPageLayoutFilter(scope, refs, auxf, out)
 	return
 }
 

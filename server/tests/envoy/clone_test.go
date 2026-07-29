@@ -436,3 +436,78 @@ func TestCloneNamespace_FieldOrder_DegeneratePlace(t *testing.T) {
 	}
 	req.Equal([]string{"title", "value", "stage", "closeDate"}, gotNames, "cloned fields must sort into the source's insertion order once Place is no longer degenerate")
 }
+
+// TestCloneNamespace_DoesNotPullForeignCharts covers the chart twin of the
+// ModuleField bug above, which broke every namespace clone -- and with it the
+// whole project-revision flow -- the moment any chart with a handle existed
+// anywhere in the database.
+//
+// Root cause: the generated makeChartFilter (compose/envoy/store_decode.gen.go)
+// took a `scope` argument and ignored it, reading only refs["NamespaceID"], so
+// the namespace scope CloneFromStore passes for ChartResourceType did nothing
+// and the decode returned EVERY chart in the store. Those foreign charts have
+// no namespace parent in the tree, so encodeChart's safeParentID yields 0 and
+// they keep their ORIGINAL namespace_id; Prepare cannot match them against the
+// not-yet-created destination namespace, so each got a fresh ID and was
+// inserted alongside the row it was copied from -- tripping unique_handle
+// (lower(handle), namespace_id) on compose_chart as "not unique".
+//
+// The fix is the one module, page and namespace already had: envoy.store
+// .extendedFilterBuilder in compose/chart.cue, so the generated builder calls
+// extendChartFilter (compose/envoy/store_decode.go), which narrows to the
+// scope. page_layout was fixed the same way in the same commit; it shares this
+// exact code path.
+func TestCloneNamespace_DoesNotPullForeignCharts(t *testing.T) {
+	ctx := context.Background()
+	req := require.New(t)
+	cleanup(t)
+
+	srcNs := &composeTypes.Namespace{
+		ID:      id.Next(),
+		Name:    "clone-chart-src",
+		Slug:    "clone-chart-src",
+		Enabled: true,
+	}
+	req.NoError(store.CreateComposeNamespace(ctx, defaultStore, srcNs))
+
+	srcChart := &composeTypes.Chart{
+		ID:          id.Next(),
+		NamespaceID: srcNs.ID,
+		Handle:      "sales",
+		Name:        "Sales",
+	}
+	req.NoError(store.CreateComposeChart(ctx, defaultStore, srcChart))
+
+	// A completely unrelated namespace with a chart of its own. Nothing links
+	// it to the clone; merely existing was enough to break every clone.
+	otherNs := &composeTypes.Namespace{
+		ID:      id.Next(),
+		Name:    "clone-chart-bystander",
+		Slug:    "clone-chart-bystander",
+		Enabled: true,
+	}
+	req.NoError(store.CreateComposeNamespace(ctx, defaultStore, otherNs))
+
+	otherChart := &composeTypes.Chart{
+		ID:          id.Next(),
+		NamespaceID: otherNs.ID,
+		Handle:      "bystander",
+		Name:        "Bystander",
+	}
+	req.NoError(store.CreateComposeChart(ctx, defaultStore, otherChart))
+
+	clonedNs := cloneNamespaceViaStore(t, req, srcNs, "clone-chart-src-rev1", "clone-chart-src (revision 1)")
+
+	clonedCharts, _, err := store.SearchComposeCharts(ctx, defaultStore, composeTypes.ChartFilter{NamespaceID: clonedNs.ID})
+	req.NoError(err)
+	req.Len(clonedCharts, 1, "clone must carry its own chart and nobody else's")
+	req.Equal(srcChart.Handle, clonedCharts[0].Handle)
+	req.NotEqual(srcChart.ID, clonedCharts[0].ID, "cloned chart must get a new ID")
+
+	// The bystander namespace must come out of this untouched -- same single
+	// chart, same row.
+	otherCharts, _, err := store.SearchComposeCharts(ctx, defaultStore, composeTypes.ChartFilter{NamespaceID: otherNs.ID})
+	req.NoError(err)
+	req.Len(otherCharts, 1, "an unrelated namespace must not gain or lose charts to someone else's clone")
+	req.Equal(otherChart.ID, otherCharts[0].ID)
+}

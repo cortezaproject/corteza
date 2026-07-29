@@ -129,6 +129,10 @@ chart: {
 		}
 		store: {
 			extendedRefDecoder: true
+			// Without this the generated makeChartFilter ignores the scope it is
+			// handed and decodes every chart in the store — see
+			// compose/envoy/store_decode.go's extendChartFilter.
+			extendedFilterBuilder: true
 		}
 	}
 

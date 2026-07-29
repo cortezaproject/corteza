@@ -99,6 +99,14 @@ commit as the work that resolves an item.
         `views/Wizard.intent.md`). Fourth tab, stage components under
         `components/wizard/publish/`, mapping editor, cluster removed from the
         tab row. `wizard.spec.ts` asserts three tabs and must be updated.
+  - [ ] **Federation envoy filters ignore their scope** — `module_exposed.cue`
+        and `shared_module.cue` declare `envoy.scoped: true` but not
+        `store.extendedFilterBuilder`, so their generated filter builders drop
+        the scope exactly as chart/page_layout did (fixed 2026-07-29). Nothing
+        scopes them today, so it is latent, not live. Same fix: the cue flag
+        plus an `extend<X>Filter`. `module_field` is deliberately NOT in this
+        list — its builder is hand-written and CloneFromStore omits it on
+        purpose (fields ride along as nested children of their module).
   - [ ] **Publish approval attribution** — the Publish tab's approval stage has
         no "requested by X, approved by Y, at Z": `governanceByProject` holds
         only `{status, note, values}`, with no actor or timestamp, and resets on
