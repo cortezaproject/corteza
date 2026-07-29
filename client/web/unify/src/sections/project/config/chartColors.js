@@ -18,7 +18,9 @@ import { EVENT_FORMS } from './eventForm'
 // is off-grey so it never reads as the "unknown/blank" fallback.
 // Validated both modes (ALL PASS, no contrast relief needed): the older
 // amber/emerald steps (#f59e0b, #10b981) overflowed the dark-mode lightness
-// cap, so both sit one family step darker.
+// cap. Emerald sits one family step darker; amber sits at 600 — the
+// yellowest step that still clears both mode bands (ruled 2026-07-29: the
+// 700 step read as brown, not yellow, in the progress bar/donuts).
 // Relationship to EventBadge's status pills: same Tailwind hue FAMILIES,
 // deliberately NOT the same hexes (ruled 2026-07-29, reverting the one-hex
 // unification tried that day): the pills' text is theme-aware (700 steps on
@@ -27,7 +29,7 @@ import { EVENT_FORMS } from './eventForm'
 // contract; keep the two in the same families or change both.
 export const STATUS_COLORS = {
   Open: '#3b82f6', // blue — new, logged
-  'In Progress': '#b45309', // amber — active, in-flight
+  'In Progress': '#d97706', // amber — active, in-flight
   'Ready to Test': '#8b5cf6', // violet — in review
   Completed: '#059669', // emerald — done
 }
