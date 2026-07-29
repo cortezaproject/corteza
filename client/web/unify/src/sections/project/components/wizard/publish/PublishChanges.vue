@@ -56,17 +56,14 @@
       <h4 class="text-xs font-medium uppercase tracking-wide text-muted-color mt-5 mb-2">
         {{ $t('project.publish.changes.inventoryHeading') }}
       </h4>
-      <div class="flex flex-wrap gap-1.5">
-        <span
+      <div class="flex flex-wrap gap-2">
+        <ResourceCount
           v-for="entry in inventory"
           :key="entry.kind"
-          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-surface bg-emphasis text-xs"
-        >
-          <i :class="[kindConfig(entry.kind).icon, kindConfig(entry.kind).text, 'text-xs']" />
-          {{ $t(kindConfig(entry.kind).labelKey) }}
-          <b class="font-medium">{{ entry.count }}</b>
-          <i v-if="entry.added" class="not-italic text-green-500 font-medium">+{{ entry.added }}</i>
-        </span>
+          :kind="entry.kind"
+          :count="entry.count"
+          :added="entry.added"
+        />
       </div>
     </template>
   </div>
@@ -77,6 +74,7 @@
 // contains. Both come from the backend: changes from the deployment plan
 // (op/kind/name/risk/records), inventory counts from the same project graph the
 // Build canvas draws, so the two surfaces cannot disagree.
+import ResourceCount from './ResourceCount.vue'
 import { kindConfig } from '@/sections/project/config/kinds'
 import { useI18n } from 'vue-i18n'
 

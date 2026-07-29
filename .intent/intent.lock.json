@@ -1652,12 +1652,12 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishChanges.vue": {
-      "h": "2e8d3448bfd4",
+      "h": "83bc8b9c1f20",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishFirstRun.vue": {
-      "h": "eb8e3e58e786",
+      "h": "5e4452a802f7",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },
@@ -1682,7 +1682,12 @@
       "t": "2026-07-29"
     },
     "client/web/unify/src/sections/project/components/wizard/publish/PublishTab.vue": {
-      "h": "da38bd7603c0",
+      "h": "262691d03910",
+      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
+      "t": "2026-07-29"
+    },
+    "client/web/unify/src/sections/project/components/wizard/publish/ResourceCount.vue": {
+      "h": "8eb0d5677227",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-29"
     },

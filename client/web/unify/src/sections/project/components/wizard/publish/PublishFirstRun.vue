@@ -22,16 +22,13 @@
         <h4 class="text-xs font-medium uppercase tracking-wide text-muted-color mb-3">
           {{ $t('project.publish.firstRun.whatGoesLive') }}
         </h4>
-        <div v-if="inventory.length" class="flex flex-wrap gap-1.5">
-          <span
+        <div v-if="inventory.length" class="flex flex-wrap gap-2">
+          <ResourceCount
             v-for="entry in inventory"
             :key="entry.kind"
-            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-surface bg-emphasis text-xs"
-          >
-            <i :class="[kindConfig(entry.kind).icon, kindConfig(entry.kind).text, 'text-xs']" />
-            {{ $t(kindConfig(entry.kind).labelKey) }}
-            <b class="font-medium">{{ entry.count }}</b>
-          </span>
+            :kind="entry.kind"
+            :count="entry.count"
+          />
         </div>
         <p v-else class="text-sm text-muted-color">
           {{ $t('project.publish.firstRun.nothingBuilt') }}
@@ -90,7 +87,7 @@
 // worth answering are what this project contains and who is about to get it.
 // It reports what exists and never judges readiness: everything shown is real
 // persisted data, so it cannot be wrong.
-import { kindConfig } from '@/sections/project/config/kinds'
+import ResourceCount from './ResourceCount.vue'
 import { rolePreset } from '@/sections/project/config/roles'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { computed } from 'vue'

@@ -154,7 +154,7 @@
 // — the deployment plan, the migration decisions, the governance transitions
 // and the publish call — is owned here.
 import { fetchRevisionCompleteness } from '@/sections/project/composables/revisionCompleteness'
-import { kindConfig } from '@/sections/project/config/kinds'
+import { OVERVIEW_KINDS } from '@/sections/project/config/kinds'
 import { PUBLISH_GOVERNANCE_STEP_KEY, STEPS } from '@/sections/project/config/pipeline'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { NoID } from '@planetcrust/human-js'
@@ -269,10 +269,15 @@ async function loadInventory() {
     }
   }
 
-  return Object.keys(counts)
-    .filter(kind => kindConfig(kind).labelKey)
-    .sort()
-    .map(kind => ({ kind, count: counts[kind], added: added[kind] || 0 }))
+  // OVERVIEW_KINDS, not the kinds that happen to be present: same set and same
+  // order as the metric cards above the Build tab's graph, zeros included. A
+  // kind reading 0 is information — it says the project has no agents, rather
+  // than leaving you to notice an absence.
+  return OVERVIEW_KINDS.map(kind => ({
+    kind,
+    count: counts[kind] || 0,
+    added: added[kind] || 0,
+  }))
 }
 
 // --- migration decisions ---------------------------------------------------
