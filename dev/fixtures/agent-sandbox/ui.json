@@ -16,7 +16,13 @@
                 "conditions": {}
               }
             ],
-            "metrics": [{ "field": "count", "type": "doughnut", "fixTooltips": false }]
+            "metrics": [
+              {
+                "field": "count",
+                "type": "doughnut",
+                "fixTooltips": false
+              }
+            ]
           }
         ]
       }
@@ -33,19 +39,23 @@
         {
           "kind": "RecordList",
           "title": "Contacts",
-          "xywh": [0, 0, 7, 12],
-          "options": { "module": "agent-contact" }
+          "xywh": [0, 0, 28, 36],
+          "options": {
+            "module": "agent-contact"
+          }
         },
         {
           "kind": "Chart",
           "title": "Tasks by priority",
-          "xywh": [7, 0, 5, 12],
-          "options": { "chart": "agent-tasks-by-priority" }
+          "xywh": [28, 0, 20, 36],
+          "options": {
+            "chart": "agent-tasks-by-priority"
+          }
         },
         {
           "kind": "Metric",
           "title": "Totals",
-          "xywh": [0, 12, 12, 4],
+          "xywh": [0, 36, 48, 10],
           "options": {
             "metrics": [
               {
@@ -76,7 +86,7 @@
         {
           "kind": "Record",
           "title": "Contact",
-          "xywh": [0, 0, 12, 16],
+          "xywh": [0, 0, 48, 40],
           "options": {}
         }
       ]
@@ -90,7 +100,7 @@
         {
           "kind": "Record",
           "title": "Task",
-          "xywh": [0, 0, 12, 16],
+          "xywh": [0, 0, 48, 40],
           "options": {}
         }
       ]

@@ -79,6 +79,24 @@ capi GET "/system/auth/clients/$client_id/secret" | json_get response >"$STATE_D
 }
 echo "client secret cached in .state/secret"
 
+# Browser-login user for UI verification (agent-dev itself is token-only).
+# Password lives in .state/ui-password (gitignored).
+ui_email="agent-ui@local.dev"
+ui_uid=$(capi GET "/system/users/?email=$ui_email" | json_get response.set.0.userID) || ui_uid=""
+if [[ -z "$ui_uid" ]]; then
+  ui_uid=$(capi POST /system/users/ \
+    -d "{\"email\":\"$ui_email\",\"name\":\"Dev Agent UI (browser login)\",\"handle\":\"agent-ui\"}" |
+    json_get response.userID)
+  echo "user $ui_email created"
+fi
+server_cli roles useradd super-admin "$ui_email" >/dev/null 2>&1 || true
+if [[ ! -f "$STATE_DIR/ui-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; then
+  openssl rand -hex 12 >"$STATE_DIR/ui-password"
+fi
+capi POST "/system/users/$ui_uid/password" \
+  -d "{\"password\":\"$(cat "$STATE_DIR/ui-password")\"}" >/dev/null
+echo "UI login ready: $ui_email / \$(cat dev/agent/.state/ui-password)"
+
 rm -f "$STATE_DIR/token" "$STATE_DIR/token-exp"
 if ! "$AGENT_DIR/token.sh" >/dev/null; then
   echo "oauth client_credentials flow failed for client '$AGENT_CLIENT'" >&2

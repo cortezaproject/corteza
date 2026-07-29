@@ -47,7 +47,9 @@ upsert by handle; format documented in the script header). It resolves
 
 Key shapes (ground truth: `client/web/unify/src/sections/compose/components/PageBlocks/Blocks/*.vue`):
 
-- Blocks live on a **12-column grid**: `xywh: [x, y, w, h]` — required.
+- Blocks live on a **48-column grid** (`Grid.vue`: `COLS = 48`, cell height
+  10px, defaults w=24 h=18): `xywh: [x, y, w, h]` — required. Full-width
+  block = w 48; a tall list ≈ h 36.
 - `RecordList`: `options: {"module": "<handle>"}`.
 - `Chart`: `options: {"chart": "<chart-handle>"}` (chart resource; blocks
   with invented options like `chartKind` render nothing).

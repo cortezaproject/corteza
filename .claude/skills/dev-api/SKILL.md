@@ -58,6 +58,10 @@ hand-roll the oauth dance or guess ports — use the toolkit.
 - No server-side reference expansion — resolving a Record ref means a second
   query on the target module and a client-side join.
 - Create responses echo the object under `response`; IDs at
-  `response.moduleID` / `response.recordID` etc.
+  `response.moduleID` / `response.recordID` etc. DELETE responses have **no**
+  `response` key (just `{"success":…}`).
+- UI verification needs a browser login: use `agent-ui@local.dev` with the
+  password in `dev/agent/.state/ui-password` (created by bootstrap;
+  `agent-dev` itself is token-only).
 
 Full reference: `dev/agent/README.md`.
