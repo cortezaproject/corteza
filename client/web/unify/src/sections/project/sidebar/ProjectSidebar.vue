@@ -14,6 +14,7 @@
 </template>
 
 <script setup>
+import { chainHasPublished } from '@/sections/project/config/publishState'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { NoID } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
@@ -50,12 +51,10 @@ const isChainHead = p => !referencedRevisionIds.value.has(p.projectID)
 // Routing favours the dashboard once a chain has ever published (ruled
 // 2026-07-28, mirrors ProjectList.vue's onRowClick): it's the project's home,
 // and the wizard is entered deliberately from its revision switcher from here
-// on. Only a chain that has never published — draft, no parent revision —
-// opens the wizard directly; a draft WITH a parent still opens the dashboard
-// (branching a revision requires an active parent, so a parent revision means
-// the chain published before).
+// on. A chain that has never published has no dashboard at all (see
+// config/publishState.js), so it links to the wizard.
 const routeFor = p => ({
-  name: p.status === 'draft' && p.parentRevisionID === NoID ? 'project.wizard' : 'project.overview',
+  name: chainHasPublished(p) ? 'project.overview' : 'project.wizard',
   params: { projectId: p.projectID },
 })
 

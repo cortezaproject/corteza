@@ -42,11 +42,13 @@ import ProjectTopbarTools from '@/sections/project/components/project/ProjectTop
 import RevisionSwitcher from '@/sections/project/components/project/RevisionSwitcher.vue'
 import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
+import { chainHasPublished } from '@/sections/project/config/publishState'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const store = useProjectsStore()
 const eventsStore = useEventsStore()
 const backlogStore = useBacklogItemsStore()
@@ -66,6 +68,18 @@ watch(
   },
   { immediate: true },
 )
+
+// A project that has never published has nothing to report on, so it has no
+// dashboard: send it to its wizard, which IS the whole product until the first
+// publish. The list, the sidebar and the revision switcher all route around
+// this already (same rule, config/publishState.js) — this covers the door they
+// can't: a typed or bookmarked URL. `replace` so Back doesn't bounce off the
+// redirect, and it waits for the fetch above rather than firing on the
+// undefined project of a cold landing.
+watch(project, p => {
+  if (!p || chainHasPublished(p)) return
+  router.replace({ name: 'project.wizard', params: { projectId: p.projectID } })
+})
 
 // CHAIN-WIDE SCOPE (project.intent.md "Dashboards"): the dashboard covers the
 // whole revision chain, not just the one revision named in the route — the
