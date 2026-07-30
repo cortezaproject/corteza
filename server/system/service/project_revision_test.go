@@ -14,17 +14,39 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-// fakeProjectNamespaceCloner is a minimal projectNamespaceSvc stub. The real
+// fakeProjectNamespaceCloner is a cut-down projectNamespaceSvc stub. The real
 // implementation (compose/service namespace.CloneFromStore) drives envoy
 // decode/encode and DAL services to clone every module/page/chart in the
 // namespace — far more than CreateRevision's own logic needs to be exercised.
-// CreateRevision only cares that cloning returns *a* namespace with an ID it
-// can point the new revision's Config.NamespaceID at, so the stub just mints
-// one.
-type fakeProjectNamespaceCloner struct{}
+//
+// It reproduces exactly the two properties the code under test depends on:
+// the clone is PERSISTED (cloneProjectResources loads both namespaces to build
+// its ID map), and modules come across with fresh IDs but their handles
+// UNCHANGED — which is the only thing the two sides share, and so the only
+// thing a reference remap can match on. Everything else about the source
+// namespace is left out.
+type fakeProjectNamespaceCloner struct{ s store.Storer }
 
-func (fakeProjectNamespaceCloner) CloneFromStore(_ context.Context, _ uint64, dup *composeTypes.Namespace) (*composeTypes.Namespace, error) {
+func (c fakeProjectNamespaceCloner) CloneFromStore(ctx context.Context, sourceNsID uint64, dup *composeTypes.Namespace) (*composeTypes.Namespace, error) {
 	dup.ID = nextID()
+	if err := store.CreateComposeNamespace(ctx, c.s, dup); err != nil {
+		return nil, err
+	}
+
+	mm, _, err := store.SearchComposeModules(ctx, c.s, composeTypes.ModuleFilter{NamespaceID: sourceNsID})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range mm {
+		cp := *m
+		cp.ID = nextID()
+		cp.NamespaceID = dup.ID
+		if err = store.CreateComposeModule(ctx, c.s, &cp); err != nil {
+			return nil, err
+		}
+	}
+
 	return dup, nil
 }
 
@@ -47,7 +69,7 @@ func newTestProjectRevisionService(t *testing.T) (*project, store.Storer) {
 
 	svc := &project{
 		store:    s,
-		services: &projectServices{nsSvc: fakeProjectNamespaceCloner{}},
+		services: &projectServices{nsSvc: fakeProjectNamespaceCloner{s: s}},
 	}
 	return svc, s
 }
