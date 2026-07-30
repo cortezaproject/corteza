@@ -942,66 +942,298 @@ export const useProjectsStore = defineStore('projects', () => {
     touch()
   }
 
-  // --- FRIA risk scenarios --------------------------------------------------------
-  // Session-local, like the rest of governance above: every risk scenario for
-  // a project lives under the well-known 'fria-scenarios' governance step's
-  // values, as { scenarios: FriaScenario[] } (see config/friaScenario.js for
-  // the shape). One array per project — the fria-scenarios step body itself
-  // switches between the scenario list and a single scrolling scenario
-  // editor (components/wizard/steps/FriaScenariosStep.vue and
-  // components/wizard/fria/FriaScenarioEditor.vue), keyed by scenario id via
-  // composables/useFriaActiveScenario.js.
+  // --- AI systems -----------------------------------------------------------------
+  // An AI system is the EU AI Act's regulated unit (Art. 3(1)): a named set of
+  // THIS revision's resources serving one intended purpose, carrying its own
+  // Art. 6 risk class. A project routinely holds several, which is exactly why
+  // the FRIA cannot hang off the project itself -- every risk scenario names
+  // one AI system (config/friaScenario.js's aiSystemID).
   //
-  // EXPLICIT SAVE, NOT KEYSTROKE WRITES: the editor holds a LOCAL DRAFT (a
-  // standalone clone — see config/friaScenario.js's cloneFriaScenario) while
-  // editing; none of the mutators below run until the editor's Save button
-  // commits the whole draft in one shot, and Cancel simply discards the
-  // draft client-side, no store call at all. This is what lets a cancelled
-  // edit — including a cancelled brand-new scenario — leave no trace:
-  // createFriaScenario takes the already-built draft object and is only ever
-  // invoked from Save, never eagerly when the editor opens, so a cancelled
-  // create never touches this array.
+  // UNLIKE the governance surface above, this is REAL, PERSISTED backend state
+  // (ProjectAiSystem + ProjectAiSystemEntry). It survives reload; nothing here
+  // is session-local scaffolding.
   //
-  // Still no touch(): these mutators carry no resource-graph, kind, or
-  // effective-access implications, whether called once per Save (now) or
-  // once per keystroke (the old per-section-step editors) — touch() is
-  // reserved for steps that actually change resources/kinds.
-  function friaScenariosFor(projectId) {
-    return governanceValues(projectId, 'fria-scenarios').scenarios || []
+  // Scoped to the revision, not the chain root: the backend stores whatever
+  // projectID it is given with no root resolution (unlike members), and that is
+  // correct -- a revision's resources are its own, so a boundary drawn around
+  // them cannot span revisions.
+  //
+  // No touch(): AI systems are deliberately NOT a resource kind (ruled
+  // 2026-07-30) -- no graph node, no kinds.js entry, no permission-matrix row --
+  // so nothing here changes the resource graph or the effective-access picture
+  // that touch() exists to refresh.
+  const aiSystemsByProject = ref({})
+
+  function aiSystemsFor(projectId) {
+    return aiSystemsByProject.value[String(projectId)] || []
   }
 
-  function friaScenario(projectId, scenarioId) {
-    return friaScenariosFor(projectId).find(s => s.id === scenarioId) || null
+  function aiSystem(projectId, aiSystemId) {
+    return aiSystemsFor(projectId).find(s => s.id === String(aiSystemId)) || null
   }
 
-  function setFriaScenarios(projectId, scenarios) {
-    const step = govStep(projectId, 'fria-scenarios')
-    step.values = { ...step.values, scenarios }
+  async function loadAiSystems(projectId) {
+    const key = String(projectId)
+    const { set = [] } = await $SystemAPI
+      .projectAiSystemList({ projectID: key, limit: 100 })
+      .catch(() => ({ set: [] }))
+
+    aiSystemsByProject.value[key] = set.map(toAiSystem)
+    return aiSystemsByProject.value[key]
   }
 
-  // Commit an already-built scenario (the editor's local draft) as a new
-  // entry. Takes the full scenario object rather than building one itself —
-  // see the header comment above for why that matters for cancelled creates.
-  function createFriaScenario(projectId, scenario) {
-    setFriaScenarios(projectId, [...friaScenariosFor(projectId), scenario])
-    return scenario.id
+  // The API shape flattened to what the UI reads. riskClass is a real
+  // filterable column; intendedPurpose is prose stored on meta but sent as a
+  // TOP-LEVEL param (the BE hook writes it onto meta) -- so it is read from
+  // meta and written flat, which is why the two are asymmetric below.
+  //
+  // Membership rides along inline: the REST payload embeds `entries` from the
+  // service's MemberList, so listing systems already carries their resources
+  // and no per-row fan-out is needed.
+  function toAiSystem(raw) {
+    return {
+      id: String(raw.projectAiSystemID),
+      handle: raw.handle || '',
+      name: raw.meta?.short || raw.handle || '',
+      description: raw.meta?.description || '',
+      intendedPurpose: raw.meta?.intendedPurpose || '',
+      riskClass: raw.riskClass || null,
+      resourceRefs: (raw.entries || []).map(e => e.resourceRef).filter(Boolean),
+    }
   }
 
-  // Commit an already-built scenario (the editor's local draft) over an
-  // existing entry, replacing it wholesale — the draft carries the full
-  // shape, not a sparse patch, since the editor clones the whole scenario
-  // up front (see FriaScenarioEditor.vue).
-  function updateFriaScenario(projectId, scenarioId, patch) {
-    setFriaScenarios(
-      projectId,
-      friaScenariosFor(projectId).map(s => (s.id === scenarioId ? { ...s, ...patch } : s)),
+  async function createAiSystem(projectId, { name, description = '', handle } = {}) {
+    const key = String(projectId)
+    const raw = await $SystemAPI.projectAiSystemCreate({
+      projectID: key,
+      handle: handle || '',
+      meta: { short: (name || '').trim() || 'Untitled AI system', description: description.trim() },
+    })
+
+    const created = toAiSystem(raw)
+    aiSystemsByProject.value[key] = [...aiSystemsFor(key), created]
+    return created.id
+  }
+
+  async function updateAiSystem(projectId, aiSystemId, patch = {}) {
+    const key = String(projectId)
+    const existing = aiSystem(key, aiSystemId)
+    if (!existing) return
+
+    const next = { ...existing, ...patch }
+    const raw = await $SystemAPI.projectAiSystemUpdate({
+      projectID: key,
+      projectAiSystemID: String(aiSystemId),
+      handle: next.handle,
+      riskClass: next.riskClass || '',
+      // Flat, not nested under meta: the BE takes it as its own param and its
+      // hook writes it onto meta. Sending meta.intendedPurpose is silently a
+      // no-op, since the update merges only the fields it names.
+      intendedPurpose: next.intendedPurpose || '',
+      meta: {
+        short: next.name,
+        description: next.description,
+      },
+    })
+
+    aiSystemsByProject.value[key] = aiSystemsFor(key).map(s =>
+      s.id === String(aiSystemId) ? toAiSystem(raw) : s,
     )
   }
 
-  function removeFriaScenario(projectId, scenarioId) {
-    setFriaScenarios(
-      projectId,
-      friaScenariosFor(projectId).filter(s => s.id !== scenarioId),
+  async function removeAiSystem(projectId, aiSystemId) {
+    const key = String(projectId)
+    await $SystemAPI.projectAiSystemDelete({
+      projectID: key,
+      projectAiSystemID: String(aiSystemId),
+    })
+    aiSystemsByProject.value[key] = aiSystemsFor(key).filter(s => s.id !== String(aiSystemId))
+  }
+
+  // --- AI system membership -------------------------------------------------------
+  // Entries are (aiSystemID, resourceRef) pairs. `resourceRef` is the existing
+  // RBAC/envoy reference string (e.g. corteza::compose:module/<id>), NOT a new
+  // vocabulary -- so refs stay parseable by machinery that already exists.
+  //
+  // A ref whose resource has since been deleted is KEPT and rendered as a
+  // tombstone rather than swept up (ruled 2026-07-30): the FRIA claimed to
+  // cover that resource, so its removal is material compliance information and
+  // a reassessment trigger, not cleanup. Resolution of a ref to a live resource
+  // is therefore always allowed to fail.
+  // Re-read ONE system (and therefore its membership) without refetching the
+  // list. There is no entry-list endpoint -- entries only ever arrive embedded
+  // in a system payload -- so the single-resource read is the way to resync.
+  async function reloadAiSystem(projectId, aiSystemId) {
+    const key = String(projectId)
+    const raw = await $SystemAPI
+      .projectAiSystemRead({ projectID: key, projectAiSystemID: String(aiSystemId) })
+      .catch(() => null)
+    if (!raw) return null
+
+    const fresh = toAiSystem(raw)
+    aiSystemsByProject.value[key] = aiSystemsFor(key).map(s =>
+      s.id === String(aiSystemId) ? fresh : s,
+    )
+    return fresh
+  }
+
+  async function addAiSystemResource(projectId, aiSystemId, resourceRef) {
+    const key = String(projectId)
+    await $SystemAPI.projectAiSystemEntryAdd({
+      projectID: key,
+      projectAiSystemID: String(aiSystemId),
+      resourceRef,
+    })
+
+    aiSystemsByProject.value[key] = aiSystemsFor(key).map(s =>
+      s.id === String(aiSystemId)
+        ? { ...s, resourceRefs: [...new Set([...(s.resourceRefs || []), resourceRef])] }
+        : s,
+    )
+  }
+
+  async function removeAiSystemResource(projectId, aiSystemId, resourceRef) {
+    const key = String(projectId)
+    await $SystemAPI.projectAiSystemEntryRemove({
+      projectID: key,
+      projectAiSystemID: String(aiSystemId),
+      resourceRef,
+    })
+
+    aiSystemsByProject.value[key] = aiSystemsFor(key).map(s =>
+      s.id === String(aiSystemId)
+        ? { ...s, resourceRefs: (s.resourceRefs || []).filter(r => r !== resourceRef) }
+        : s,
+    )
+  }
+
+  // --- FRIA risk scenarios --------------------------------------------------------
+  // PERSISTED as of 2026-07-30 (ProjectFriaScenario). Scenarios used to live
+  // in the session-local governance surface above and were lost on reload,
+  // which is untenable for the artefact an Art. 27 assessment IS. They now
+  // have their own backend type, so an assessment survives, can be approved
+  // against, and detection rules have something durable to reference.
+  //
+  // Split of concerns on the backend: `aiSystemID`, `title` and `severity` are
+  // REAL COLUMNS because a compliance product has to answer questions like
+  // "every critical scenario on this AI system"; everything else — the
+  // taxonomy key lists and free prose — rides in a meta JSON blob, because
+  // those move with EU guidance and must not cost a migration each time.
+  //
+  // EXPLICIT SAVE, NOT KEYSTROKE WRITES — unchanged by persistence. The editor
+  // holds a LOCAL DRAFT (config/friaScenario.js's cloneFriaScenario) while
+  // editing; nothing below runs until its Save commits the whole draft in one
+  // shot, and Cancel just drops the draft with no call at all. A cancelled
+  // create therefore still leaves no trace — the difference is only that Save
+  // now writes to the server rather than to a ref.
+  //
+  // Still no touch(): scenarios are not resources and carry no graph, kind or
+  // effective-access implications.
+  const friaScenariosByProject = ref({})
+
+  function friaScenariosFor(projectId) {
+    return friaScenariosByProject.value[String(projectId)] || []
+  }
+
+  function friaScenario(projectId, scenarioId) {
+    return friaScenariosFor(projectId).find(s => s.id === String(scenarioId)) || null
+  }
+
+  // API shape -> the flat shape config/friaScenario.js defines and every
+  // section component reads. Arrays default to [] rather than undefined: the
+  // section components index into them directly.
+  function toFriaScenario(raw) {
+    const m = raw.meta || {}
+    return {
+      id: String(raw.projectFriaScenarioID),
+      aiSystemID: raw.aiSystemID && raw.aiSystemID !== '0' ? String(raw.aiSystemID) : null,
+      title: raw.title || '',
+      severity: raw.severity || null,
+      description: m.description || '',
+      triggerTypes: m.triggerTypes || [],
+      triggerDescription: m.triggerDescription || '',
+      impactedParties: m.impactedParties || [],
+      vulnerableGroups: m.vulnerableGroups || [],
+      vulnerableGroupsNotes: m.vulnerableGroupsNotes || '',
+      rights: m.rights || [],
+      harmVectors: m.harmVectors || [],
+      harmVectorsDescription: m.harmVectorsDescription || '',
+    }
+  }
+
+  // The flat shape -> the API's flat body. Note this sends EVERY field, never
+  // a sparse patch: the generated PUT copies its update fields verbatim, so
+  // omitting aiSystemID would zero it rather than leave it alone. The editor
+  // always holds a full clone, so there is nothing to merge.
+  function friaScenarioPayload(s) {
+    return {
+      aiSystemID: s.aiSystemID || '0',
+      title: s.title || '',
+      severity: s.severity || '',
+      description: s.description || '',
+      triggerTypes: s.triggerTypes || [],
+      triggerDescription: s.triggerDescription || '',
+      impactedParties: s.impactedParties || [],
+      vulnerableGroups: s.vulnerableGroups || [],
+      vulnerableGroupsNotes: s.vulnerableGroupsNotes || '',
+      rights: s.rights || [],
+      harmVectors: s.harmVectors || [],
+      harmVectorsDescription: s.harmVectorsDescription || '',
+    }
+  }
+
+  async function loadFriaScenarios(projectId) {
+    const key = String(projectId)
+    const { set = [] } = await $SystemAPI
+      .projectFriaScenarioList({ projectID: key, limit: 100 })
+      .catch(() => ({ set: [] }))
+
+    friaScenariosByProject.value[key] = set.map(toFriaScenario)
+    return friaScenariosByProject.value[key]
+  }
+
+  // Commit an already-built scenario (the editor's local draft). Takes the
+  // full object rather than building one itself — see the header above for why
+  // that matters for cancelled creates. The server mints the ID, so the
+  // draft's client-side `fria-…` id is discarded here.
+  async function createFriaScenario(projectId, scenario) {
+    const key = String(projectId)
+    const raw = await $SystemAPI.projectFriaScenarioCreate({
+      projectID: key,
+      ...friaScenarioPayload(scenario),
+    })
+
+    const created = toFriaScenario(raw)
+    friaScenariosByProject.value[key] = [...friaScenariosFor(key), created]
+    return created.id
+  }
+
+  async function updateFriaScenario(projectId, scenarioId, patch) {
+    const key = String(projectId)
+    const existing = friaScenario(key, scenarioId)
+    const next = { ...(existing || {}), ...patch }
+
+    const raw = await $SystemAPI.projectFriaScenarioUpdate({
+      projectID: key,
+      projectFriaScenarioID: String(scenarioId),
+      ...friaScenarioPayload(next),
+    })
+
+    const saved = toFriaScenario(raw)
+    friaScenariosByProject.value[key] = friaScenariosFor(key).map(s =>
+      s.id === String(scenarioId) ? saved : s,
+    )
+    return saved.id
+  }
+
+  async function removeFriaScenario(projectId, scenarioId) {
+    const key = String(projectId)
+    await $SystemAPI.projectFriaScenarioDelete({
+      projectID: key,
+      projectFriaScenarioID: String(scenarioId),
+    })
+    friaScenariosByProject.value[key] = friaScenariosFor(key).filter(
+      s => s.id !== String(scenarioId),
     )
   }
 
@@ -2029,8 +2261,19 @@ export const useProjectsStore = defineStore('projects', () => {
     governanceStatus,
     governanceNote,
     governanceValues,
+    aiSystemsFor,
+    aiSystem,
+    loadAiSystems,
+    createAiSystem,
+    updateAiSystem,
+    removeAiSystem,
+    reloadAiSystem,
+    addAiSystemResource,
+    removeAiSystemResource,
+
     friaScenariosFor,
     friaScenario,
+    loadFriaScenarios,
     createFriaScenario: invalidating(createFriaScenario, 'fria-scenarios'),
     updateFriaScenario: invalidating(updateFriaScenario, 'fria-scenarios'),
     removeFriaScenario: invalidating(removeFriaScenario, 'fria-scenarios'),

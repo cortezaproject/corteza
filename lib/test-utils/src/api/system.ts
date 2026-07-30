@@ -23,6 +23,18 @@ export type MockSystemAPI = {
   actionlogList: MockFn
   settingsList: MockFn
   settingsUpdate: MockFn
+  projectAiSystemList: MockFn
+  projectAiSystemRead: MockFn
+  projectAiSystemCreate: MockFn
+  projectAiSystemUpdate: MockFn
+  projectAiSystemDelete: MockFn
+  projectAiSystemEntryAdd: MockFn
+  projectAiSystemEntryRemove: MockFn
+  projectFriaScenarioList: MockFn
+  projectFriaScenarioRead: MockFn
+  projectFriaScenarioCreate: MockFn
+  projectFriaScenarioUpdate: MockFn
+  projectFriaScenarioDelete: MockFn
   [key: string]: MockFn
 }
 
@@ -51,6 +63,23 @@ export function createMockSystemAPI(overrides: Partial<MockSystemAPI> = {}): Moc
     actionlogList: vi.fn().mockResolvedValue(listResult()),
     settingsList: vi.fn().mockResolvedValue([]),
     settingsUpdate: vi.fn().mockResolvedValue({}),
+
+    // AI systems + FRIA risk scenarios (persisted 2026-07-30). The create/
+    // update mocks echo back an id so the store's mappers, which key their
+    // caches off it, produce usable rows rather than `undefined` ids.
+    projectAiSystemList: vi.fn().mockResolvedValue(listResult()),
+    projectAiSystemRead: vi.fn().mockResolvedValue({ projectAiSystemID: '1', entries: [] }),
+    projectAiSystemCreate: vi.fn().mockResolvedValue({ projectAiSystemID: '1', entries: [] }),
+    projectAiSystemUpdate: vi.fn().mockResolvedValue({ projectAiSystemID: '1', entries: [] }),
+    projectAiSystemDelete: vi.fn().mockResolvedValue({}),
+    projectAiSystemEntryAdd: vi.fn().mockResolvedValue({}),
+    projectAiSystemEntryRemove: vi.fn().mockResolvedValue({}),
+    projectFriaScenarioList: vi.fn().mockResolvedValue(listResult()),
+    projectFriaScenarioRead: vi.fn().mockResolvedValue({ projectFriaScenarioID: '1' }),
+    projectFriaScenarioCreate: vi.fn().mockResolvedValue({ projectFriaScenarioID: '1' }),
+    projectFriaScenarioUpdate: vi.fn().mockResolvedValue({ projectFriaScenarioID: '1' }),
+    projectFriaScenarioDelete: vi.fn().mockResolvedValue({}),
+
     ...overrides,
   }
 }

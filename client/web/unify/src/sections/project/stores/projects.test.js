@@ -185,7 +185,10 @@ describe('useProjectsStore', () => {
         await store.transitionStep(P, 'publish', 'submit')
         await store.transitionStep(P, 'publish', 'approve')
 
-        store.createFriaScenario(P, { id: 's1', title: 'Denied a loan' })
+        // Awaited: scenarios are persisted now, so the review is retired only
+        // once the write lands — an approval must not be dropped for a save
+        // that failed.
+        await store.createFriaScenario(P, { id: 's1', title: 'Denied a loan' })
 
         expect(store.governanceStatus(P, 'publish')).toBe('draft')
       })

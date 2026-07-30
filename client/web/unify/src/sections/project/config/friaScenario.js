@@ -19,6 +19,13 @@
 export function newFriaScenario() {
   return {
     id: `fria-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    // The AI system this scenario assesses. REQUIRED -- a scenario cannot be
+    // saved without one (ruled 2026-07-30). Art. 27 attaches the FRIA to a
+    // specific high-risk AI SYSTEM, not to a project, and a project can hold
+    // several; the design mockup agrees, every scenario card names its AI
+    // system. It is also what gives detection rules something to scope to.
+    // Holds a ProjectAiSystem ID; see the ai-systems Govern step.
+    aiSystemID: null,
     title: '',
     description: '',
     severity: null, // 'low' | 'medium' | 'high' | 'critical'
@@ -120,6 +127,16 @@ export const RIGHTS_CHAPTER_ICONS = {
   dataPrivacy: 'pi-lock',
 }
 
+// Whether a scenario may be saved at all. The AI system is the one field the
+// editor blocks on (ruled 2026-07-30): everything else can be filled in over
+// time, but a scenario that assesses nothing in particular is not a partial
+// FRIA, it is a category error. Kept separate from completion below on
+// purpose -- completion measures how much of the assessment is written, this
+// measures whether it is addressable at all.
+export function friaScenarioSaveable(scenario) {
+  return !!scenario?.aiSystemID
+}
+
 // Completion = how many of the editor's FIVE sections carry any content
 // (ruled 2026-07-28). This deliberately DIVERGES from the design mockup's own
 // prog(), which counted six required fields and never looked at vulnerable
@@ -127,6 +144,10 @@ export const RIGHTS_CHAPTER_ICONS = {
 // identified no AI harm vector, the very thing Art. 27 is asking about.
 // One definition, used by both the summary list's Complete / In Progress
 // status and the editor's progress bar, so the two can never disagree.
+//
+// The AI system ref is deliberately NOT a sixth check: a scenario cannot exist
+// without one (see friaScenarioSaveable), so counting it would only ever add a
+// point every scenario already has.
 export function friaScenarioCompletion(scenario) {
   const checks = [
     // 1. Harm narrative + severity

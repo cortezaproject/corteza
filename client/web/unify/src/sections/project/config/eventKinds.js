@@ -96,8 +96,8 @@ const BACKLOG_BADGE = { icon: 'pi pi-th-large', bg: 'bg-emphasis', ring: 'ring-s
 const RESOURCE_BADGE = {
   'corteza::system:project': PROJECT_BADGE,
   'corteza::system:project-member': PROJECT_BADGE,
-  'corteza::system:project-group': PROJECT_BADGE,
-  'corteza::system:project-group-entry': PROJECT_BADGE,
+  'corteza::system:project-ai-system': PROJECT_BADGE,
+  'corteza::system:project-ai-system-entry': PROJECT_BADGE,
   'corteza::system:project-backlog-item': BACKLOG_BADGE,
   'corteza::system:project-incident': CATEGORY_CONFIG.incident.badge,
   'corteza::system:project-feature': CATEGORY_CONFIG.feature.badge,

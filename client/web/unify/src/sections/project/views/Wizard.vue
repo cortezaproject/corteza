@@ -178,7 +178,7 @@
         <div ref="splitRef" class="flex-1 min-h-0 flex">
           <div
             class="min-h-0"
-            :class="isResourceStep ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
+            :class="stepOwnsBody ? 'overflow-hidden flex flex-col' : 'overflow-y-auto p-4'"
             :style="{ width: activeTab === 'build' ? leftPct + '%' : '100%' }"
           >
             <template v-if="isResourceStep">
@@ -249,10 +249,17 @@
                 v-model="working"
                 :disabled="locked"
               />
+              <AiSystemsStep
+                v-else-if="isAiSystems"
+                :project="project"
+                :disabled="locked"
+                class="flex-1 min-h-0"
+              />
               <FriaScenariosStep
                 v-else-if="isFriaScenarios"
                 :project="project"
                 :disabled="locked"
+                class="flex-1 min-h-0"
               />
             </template>
           </div>
@@ -574,6 +581,7 @@ import DataModelStep from '@/sections/project/components/wizard/steps/DataModelS
 import DataSensitivityStep from '@/sections/project/components/wizard/steps/DataSensitivityStep.vue'
 import FriaDeterminationStep from '@/sections/project/components/wizard/steps/FriaDeterminationStep.vue'
 import FriaScenariosStep from '@/sections/project/components/wizard/steps/FriaScenariosStep.vue'
+import AiSystemsStep from '@/sections/project/components/wizard/steps/AiSystemsStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
@@ -776,6 +784,7 @@ const activeStep = computed(
 const isSummary = computed(() => activeKey.value === 'summary')
 const isResourceMgmt = computed(() => activeKey.value === 'resource-management')
 const isFriaDetermination = computed(() => activeKey.value === 'fria-determination')
+const isAiSystems = computed(() => activeKey.value === 'ai-systems')
 const isFriaScenarios = computed(() => activeKey.value === 'fria-scenarios')
 const isDataModel = computed(() => activeKey.value === 'data-model')
 const isConnections = computed(() => activeKey.value === 'connections')
@@ -799,6 +808,15 @@ const isResourceStep = computed(
     isPermissions.value ||
     isUsers.value,
 )
+
+// Steps that lay out their own body: the pane hands them the whole box — no
+// padding, no scrolling — and they own both. Resource steps do it for their
+// toolbar-over-table; the FRIA scenario editor does it for an action bar that
+// has to sit ON the panel's bottom edge, which a sticky bar cannot: it is
+// confined to its containing block, and that stops where this pane's p-4
+// begins, leaving sections scrolling through the strip below it.
+const stepOwnsBody = computed(() => isResourceStep.value || isFriaScenarios.value)
+
 const isSensitivity = computed(() => activeKey.value === 'data-sensitivity')
 // The graph always shows the whole-system overview for now. To narrow it to the
 // active resource step's kind again, restore this computed and pass it back as
@@ -1026,6 +1044,7 @@ const STEP_BLURB = {
   'data-model': 'project.wizard.blurb.dataModel',
   'data-sensitivity': 'project.wizard.blurb.dataSensitivity',
   'fria-determination': 'fria.wizard.blurb.determination',
+  'ai-systems': 'fria.wizard.blurb.aiSystems',
   'fria-scenarios': 'fria.wizard.blurb.scenarios',
   connections: 'project.wizard.blurb.connections',
   automations: 'project.wizard.blurb.automations',

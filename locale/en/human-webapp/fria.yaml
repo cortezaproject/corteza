@@ -4,7 +4,9 @@
 # entries exist and their stable `key`s; this file only supplies the
 # strings each entry's labelKey/descriptionKey/sublabelKey points at — see
 # its header comment for the full accuracy notes (what was corrected against
-# the actual EU Charter of Fundamental Rights, and why).
+# the actual EU Charter of Fundamental Rights, and why). The same holds for
+# the AI system risk-classification catalog in config/aiSystemClasses.js,
+# whose strings live in the riskClasses/annexIII sections further down.
 #
 # This is a SEPARATE file from project.yaml on purpose: every top-level
 # *.yaml file in this locale/en/human-webapp/ directory becomes its own
@@ -273,6 +275,61 @@ impactedParties:
   competitorsOtherBusinesses: Competitors / Other Businesses
 
 # ─────────────────────────────────────────────────────────────────────────
+# Labels for the AI system EU AI Act risk classification catalog defined in
+# client/web/unify/src/sections/project/config/aiSystemClasses.js — the Art. 6
+# risk classes an AI system carries, and the eight Annex III high-risk
+# use-case points. As with the taxonomies above, that file is the source of
+# truth for which entries exist and their stable `key`s; this file only
+# supplies the strings each entry's labelKey/descriptionKey points at. See its
+# header comment for the accuracy notes (why "limited" and "minimal" are
+# practitioner shorthand rather than categories the Regulation enumerates, why
+# Art. 50 is an overlay rather than a tier, and why friaRequired is a
+# precondition rather than the whole Art. 27 test).
+
+# The four Art. 6 risk classes, in descending severity.
+riskClasses:
+  prohibited:
+    label: Prohibited — Unacceptable Risk
+    description: Practices banned outright under Art. 5 and not permitted on the EU market at all — among them social scoring of natural persons, untargeted scraping of facial images from the internet or CCTV footage to build facial-recognition databases, and inferring emotions in the workplace or in education institutions. A prohibited practice cannot be made compliant through safeguards or documentation; it must not be deployed.
+  high:
+    label: High Risk
+    description: Permitted, but subject to the full Chapter III obligations — risk management, data and data governance, technical documentation, record-keeping, transparency towards deployers, human oversight, accuracy, robustness and cybersecurity. A system is high-risk either because it falls under one of the eight Annex III use cases, or because it is a safety component of a product (or is itself a product) covered by the Union harmonisation legislation listed in Annex I and subject to third-party conformity assessment under Art. 6(1).
+  limited:
+    label: Limited Risk — Transparency Obligations Only
+    description: Permitted, with the Art. 50 transparency obligations as the only AI-Act-specific requirements — people must be informed that they are interacting with an AI system rather than a human, and artificially generated or manipulated content such as deepfakes must be disclosed as such and marked in a machine-readable format. Typical of chatbots, synthetic media generators and similar user-facing systems.
+  minimal:
+    label: Minimal Risk
+    description: Permitted with no AI-Act-specific obligations beyond the law that applies to any other software — general product safety, data protection, consumer, employment and non-discrimination law all continue to apply unchanged. The Act encourages, but does not require, voluntary codes of conduct for systems in this tier.
+
+# The eight Annex III high-risk use-case points, as adopted in Regulation (EU)
+# 2024/1689. Each description enumerates that point's own sub-points.
+annexIII:
+  annexIII1:
+    label: Biometrics
+    description: Remote biometric identification systems; biometric categorisation according to sensitive or protected attributes or characteristics inferred from those attributes; and emotion recognition. In each case only in so far as the use is permitted under the applicable Union or national law — biometric verification whose sole purpose is to confirm that a person is who they claim to be is excluded.
+  annexIII2:
+    label: Critical Infrastructure
+    description: AI systems intended to be used as safety components in the management and operation of critical digital infrastructure, road traffic, or the supply of water, gas, heating and electricity — where failure of the safety function puts life, health or property at risk.
+  annexIII3:
+    label: Education and Vocational Training
+    description: Determining admission or assignment to education and vocational training institutions at all levels; evaluating learning outcomes, including where those outcomes are used to steer the learning process; assessing the appropriate level of education an individual will receive or will be able to access; and monitoring and detecting prohibited behaviour of students during tests.
+  annexIII4:
+    label: Employment, Workers' Management and Access to Self-Employment
+    description: Recruitment and selection — placing targeted job advertisements, analysing and filtering applications, and evaluating candidates; and decisions affecting the terms of work-related relationships, including promotion and termination, allocating tasks on the basis of individual behaviour or personal traits and characteristics, and monitoring and evaluating the performance and behaviour of persons in those relationships.
+  annexIII5:
+    label: Access to and Enjoyment of Essential Private Services and Essential Public Services and Benefits
+    description: Evaluating eligibility for essential public assistance benefits and services, healthcare included, and granting, reducing, revoking or reclaiming them; evaluating creditworthiness or establishing a credit score, other than where used to detect financial fraud; risk assessment and pricing in relation to life and health insurance; and evaluating and classifying emergency calls, or dispatching or prioritising the dispatch of emergency first response services, including police, firefighters and medical aid, as well as emergency healthcare patient triage.
+  annexIII6:
+    label: Law Enforcement
+    description: Assessing the risk of a natural person becoming the victim of a criminal offence; polygraphs and similar tools; evaluating the reliability of evidence in the course of investigation or prosecution; assessing the risk of a person offending or re-offending, other than solely on the basis of profiling or of assessing personality traits and characteristics or past criminal behaviour; and profiling in the course of the detection, investigation or prosecution of criminal offences. In each case only in so far as the use is permitted under the applicable law.
+  annexIII7:
+    label: Migration, Asylum and Border Control Management
+    description: Polygraphs and similar tools; assessing the security, irregular-migration or health risk posed by a person intending to enter or entering a Member State; examining applications for asylum, visas and residence permits and associated complaints, including assessing the reliability of evidence; and detecting, recognising or identifying persons in this context, other than the verification of travel documents. In each case only in so far as the use is permitted under the applicable law.
+  annexIII8:
+    label: Administration of Justice and Democratic Processes
+    description: AI systems intended to be used by a judicial authority, or on its behalf, to assist in researching and interpreting facts and the law and in applying the law to a concrete set of facts, or used in a similar way in alternative dispute resolution; and AI systems intended to be used to influence the outcome of an election or referendum, or the voting behaviour of natural persons, excluding systems whose output natural persons are not directly exposed to, such as tools used to organise, optimise or structure political campaigns from an administrative or logistical point of view.
+
+# ─────────────────────────────────────────────────────────────────────────
 # UI copy for the Govern tab's FRIA flow (config/pipeline.js's two fria-*
 # steps, components/wizard/steps/Fria*.vue, and the scenario editor's section
 # components under components/wizard/fria/) — separate from the taxonomy
@@ -283,14 +340,71 @@ impactedParties:
 steps:
   determination:
     label: FRIA Determination
+  aiSystems:
+    label: AI Systems
   scenarios:
     label: Risk Scenarios
+
+# The ai-systems Govern step (components/wizard/steps/AiSystemsStep.vue and
+# components/wizard/aiSystems/*). An AI system is the EU AI Act's regulated
+# unit — a named set of this revision's resources serving one intended purpose.
+aiSystems:
+  untitled: Untitled AI system
+  unclassified: Not yet classified
+  empty: No AI systems defined yet. Define one before documenting risk scenarios.
+  noPurpose: No intended purpose described yet.
+  noneOfKind: None of this type exist in this project yet.
+  friaRequired: FRIA may be required
+  namePlaceholder: Name this AI system, e.g. "Candidate Screening Suite"
+  createHint: Describe its purpose and classify it after creating.
+  add: Add AI system
+  editorHint: Describe what this system does, classify its risk, and record which
+    of this project's resources it is built from.
+  scenarioCount: No risk scenarios | 1 risk scenario | {count} risk scenarios
+  prohibitedWarning: One or more AI systems in this project are classified as a
+    prohibited practice under EU AI Act Art. 5. Prohibited practices cannot be
+    placed on the market or put into service — this needs resolving rather than
+    mitigating.
+  removedResources: Resources no longer in this project
+  removedResourcesHint: These were part of this AI system when it was assessed but
+    no longer exist. They are kept on the record deliberately — their removal
+    changes what was assessed, and is a reason to reassess.
+  stats:
+    total: AI systems
+    unclassified: Unclassified
+  sections:
+    identity: Identity and intended purpose
+    classification: Risk classification
+    classificationHint: Classification follows EU AI Act Art. 6. It determines which
+      obligations apply, and whether a Fundamental Rights Impact Assessment is
+      required at all.
+    members: Resources in this AI system
+    membersHint: Select the resources this system is built from. Together they are
+      what the assessment covers.
+    oversight: Human oversight
+    oversightHint: Which roles are responsible for overseeing this system in
+      operation (Art. 14 human oversight; Art. 26(2) requires the deployer to
+      assign oversight to people with the competence and authority to act).
+  fields:
+    name: Name
+    intendedPurpose: Intended purpose
+    intendedPurposePlaceholder: Describe what this system is for, who uses it, and
+      what decisions it informs or makes. The intended purpose is what its
+      classification turns on.
+    annexIIIPoint: Annex III category
+    annexIIINotPersisted: Not yet saved — the Annex III category has no backend
+      field yet, so this selection is lost on reload.
 
 wizard:
   blurb:
     determination: >-
       Answer whether your organisation deploys AI in any of these regulated categories — any "yes"
       means a Fundamental Rights Impact Assessment is required under EU AI Act Art. 27.
+    aiSystems: >-
+      An AI system is the unit the EU AI Act regulates — a named set of this project's resources
+      that work together for one intended purpose. A project may contain several, each classified
+      and assessed separately. Define them here before documenting risk scenarios, because every
+      scenario assesses exactly one AI system.
     scenarios: >-
       Every documented risk scenario for this project, with its severity and completion status at
       a glance. Open one to edit it, or document a new one.
@@ -343,11 +457,22 @@ editor:
   allScenarios: All scenarios
   untitledScenario: Untitled scenario
   saveScenario: Save scenario
+  aiSystem:
+    label: Which AI system does this scenario assess?
+    placeholder: Select an AI system
+    hint: A Fundamental Rights Impact Assessment is carried out for a specific
+      high-risk AI system (Art. 27), and this project may contain several. Every
+      risk scenario describes how one particular system could cause harm.
+    none: No AI systems have been defined for this project yet. Define one in the
+      AI Systems step first.
+    required: Select an AI system before saving.
   noActiveScenario: >-
     This risk scenario could not be found — it may have been removed.
   sectionsProgress: '{filled} of {total} sections started'
 
 scenarios:
+  aiSystemLabel: AI system
+  aiSystemUnassigned: Not assigned to an AI system
   stats:
     total: Total scenarios
     complete: Completed

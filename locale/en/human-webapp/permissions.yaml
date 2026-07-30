@@ -637,12 +637,18 @@ resources:
         project:
           create:
             title: Create new project
-        project-group:
+        project-ai-system:
           create:
-            title: Create new project group
-        project-groups:
+            title: Create new AI system
+        project-ai-systems:
           search:
-            title: List and search project groups
+            title: List and search AI systems
+        project-fria-scenario:
+          create:
+            title: Create new FRIA risk scenario
+        project-fria-scenarios:
+          search:
+            title: List and search FRIA risk scenarios
         projects:
           search:
             title: List and search projects
@@ -804,24 +810,38 @@ resources:
           specific: Update project "{target}"
           title: Update any project
       specific: project "{target}"
-    project-group:
-      all: all project groups
-      label: Project groups
+    project-ai-system:
+      all: all AI systems
+      label: AI systems
       operations:
         delete:
-          specific: Delete project group "{target}"
-          title: Delete any project group
-        members:
-          manage:
-            specific: Manage members of project group "{target}"
-            title: Manage members of any project group
+          specific: Delete AI system "{target}"
+          title: Delete any AI system
         read:
-          specific: Read project group "{target}"
-          title: Read any project group
+          specific: Read AI system "{target}"
+          title: Read any AI system
+        resources:
+          manage:
+            specific: Manage resources of AI system "{target}"
+            title: Manage resources of any AI system
         update:
-          specific: Update project group "{target}"
-          title: Update any project group
-      specific: project group "{target}"
+          specific: Update AI system "{target}"
+          title: Update any AI system
+      specific: AI system "{target}"
+    project-fria-scenario:
+      all: all FRIA risk scenarios
+      label: FRIA risk scenarios
+      operations:
+        delete:
+          specific: Delete FRIA risk scenario "{target}"
+          title: Delete any FRIA risk scenario
+        read:
+          specific: Read FRIA risk scenario "{target}"
+          title: Read any FRIA risk scenario
+        update:
+          specific: Update FRIA risk scenario "{target}"
+          title: Update any FRIA risk scenario
+      specific: FRIA risk scenario "{target}"
     queue:
       all: all queues
       label: Queues

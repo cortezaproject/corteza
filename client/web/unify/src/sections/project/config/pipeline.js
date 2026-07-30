@@ -54,11 +54,27 @@ export const STEPS = [
     tab: 'govern',
   },
   // --- FRIA (Fundamental Rights Impact Assessment, EU AI Act Art. 27) -----
-  // Exactly two Govern steps (ruled 2026-07-28 — a scenario's five sections
-  // all describe ONE record, so they belong on that record's own screen, not
-  // five separate nav entries): a determination step (the AI Act deployer-
-  // category questions, moved here from the create flow) and a scenario
-  // step. The scenario step's body switches between the scenario list and a
+  // THREE Govern steps, in the order the assessment actually reasons (the
+  // ai-systems step added 2026-07-30):
+  //
+  //   1. determination — are WE, as deployer, in scope at all? Organisation-
+  //      level, so it stays a revision-wide answer.
+  //   2. ai-systems — WHAT are we assessing? A project can hold several AI
+  //      systems (Art. 3(1) makes the AI system the regulated unit, not the
+  //      project), each a named set of project resources carrying its own
+  //      intended purpose and Art. 6 risk class. Nothing downstream can be
+  //      classified before this exists, which is why it precedes scenarios.
+  //   3. scenarios — HOW could each system cause harm? Every scenario names
+  //      exactly one AI system (config/friaScenario.js).
+  //
+  // Determination is deliberately split from per-system classification (ruled
+  // 2026-07-30): "are we a public authority / essential-services / banking
+  // deployer" is one answer for the whole revision, while "is THIS system
+  // Annex III high-risk" differs per system — a project with one high-risk and
+  // one minimal-risk system is the common case, and one conflated step cannot
+  // express it.
+  //
+  // The scenario step's body switches between the scenario list and a
   // single scrolling per-scenario editor (see
   // components/wizard/steps/FriaScenariosStep.vue and
   // components/wizard/fria/FriaScenarioEditor.vue, which stacks the design
@@ -73,6 +89,17 @@ export const STEPS = [
     labelKey: 'fria.steps.determination.label',
     type: 'form',
     icon: 'pi-question-circle',
+    tab: 'govern',
+  },
+  {
+    // NOT a resource step and NOT a kind: an AI system is a boundary drawn
+    // over resources the Build steps already created, so it stays out of
+    // config/kinds.js, out of the graph as a node, and out of the permission
+    // matrix (ruled 2026-07-30). Its own type, like the FRIA steps.
+    key: 'ai-systems',
+    labelKey: 'fria.steps.aiSystems.label',
+    type: 'ai-systems',
+    icon: 'pi-sitemap',
     tab: 'govern',
   },
   {
