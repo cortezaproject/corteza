@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
@@ -840,7 +841,7 @@ func diffSources(oldSrc, newSrc []*GraphSource) []types.ProjectChange {
 			if resourceDiffSkip[s.Kind] {
 				continue
 			}
-			out[s.Kind+"."+firstNonEmpty(s.Handle, s.Name)] = s
+			out[diffKey(s)] = s
 		}
 		return out
 	}
@@ -890,6 +891,29 @@ func diffSources(oldSrc, newSrc []*GraphSource) []types.ProjectChange {
 	}
 
 	return out
+}
+
+// diffKey is the identity one resource is matched on across revisions.
+//
+// Kind + handle for everything but roles. A project role's handle EMBEDS the
+// revision id -- proj_<projectID>_<name>, minted that way because role handles
+// are globally unique, so a copy cannot keep the original (see
+// projectRoleHandle) -- which means comparing raw handles would report every
+// single role as removed and re-added on a branch that touched none of them.
+// The part after the revision id is what actually names the role, so that is
+// what is compared.
+func diffKey(s *GraphSource) string {
+	name := firstNonEmpty(s.Handle, s.Name)
+
+	if s.Kind == "role" {
+		if rest, found := strings.CutPrefix(name, "proj_"); found {
+			if _, suffix, found := strings.Cut(rest, "_"); found {
+				name = suffix
+			}
+		}
+	}
+
+	return s.Kind + "." + name
 }
 
 // diffModules compares compose modules between the two namespaces and builds
