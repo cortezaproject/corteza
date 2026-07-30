@@ -75,8 +75,41 @@ commit as the work that resolves an item.
         content settles (incl. Govern steps summary/resource-management/
         data-sensitivity). Phasing agreed 2026-07-28: risk scenarios first
         (inherent severity + safeguards, taxonomies as FE config, linked to
-        project resources), risk-management/detection rules after — the latter
-        needs project-scoped actionlog, so it is gated on that work.
+        project resources), risk-management/detection rules after.
+        **The stated gate is resolved (verified 2026-07-30):** project-scoped
+        actionlog landed end to end — columns + indexes
+        (`fix_2026_07_13/14/28_*` in `upgrade_fixes.go`), store filter
+        (`filters.gen.go`), REST (`rest/actionlog.go`) and JS client. Rolling
+        threshold counts already work today via `actionlogReport` with
+        from/to + `metrics:['count']`. The REAL remaining gates are different:
+    - [ ] **Scenario persistence** — `scenario_id` on any rule has nothing to
+          point at while scenarios live in `governanceByProject`.
+    - [ ] **Resource-TYPE filtering on the actionlog** — the stored `resource`
+          column holds the full ref (`corteza::compose:module/42`) and the
+          filter does exact equality, so "all Module events" is not
+          expressible. This is ALSO a live bug in the existing ActivityPanel
+          resource filter, not just a future blocker.
+    - [ ] **A condition evaluator** over action meta/delta — none of the
+          mockup's predicates (`meta.*`, `delta.*`) have a query surface.
+          `actionlog.RegisterListener` and eventbus's `ConstraintMatcher` are
+          the two in-repo substrates.
+    - [ ] **RBAC + auth project attribution** — `accessControlAction.ToAction()`
+          and the auth actions never populate `ResourceProjectID`, so that
+          whole registry domain is invisible per project.
+    - [ ] **Project-scoped `action-log.read`** — it is a global component op
+          today, so a project risk officer cannot read their own registry.
+    - [ ] Incident columns for the risk chain: `ai_system_id`, `scenario_id`,
+          `rule_id`, `priority`, `evidence`, `dedupe_key`, `source`. All
+          additive to `project_incident.cue`; reuse the existing work items
+          rather than inventing a parallel incident type.
+    - [ ] Two STALE comments claiming the revision filter is unwired —
+          `composables/useEventActivity.js` and
+          `components/dashboard/ActivityPanel.vue`. It is wired; fix before
+          someone designs around a limit that no longer exists.
+    - [ ] `scope.ProjectScopeMiddleware` is defined but never mounted, so
+          `Action.ProjectID` (`rel_project`) is always 0 for request traffic —
+          the working axis is `resourceProjectID`. Either mount it or delete
+          the dead path.
   - [ ] **Create-flow governance removal** (ruled 2026-07-28) — delete the
         deployer-category questions, `DEPLOYER_QUESTIONS`, the `create()`
         mapping, BE `ProjectDeployerCategories`/`FriaRequired`/`friaRequired()`
@@ -90,11 +123,35 @@ commit as the work that resolves an item.
         rendered from a manage-nav config rather than STEPS. Blocked on the
         BE change repointing the six work-item resources to the root project
         with a nullable revision ref.
-  - [ ] **Publish tab — BE deployment plan** (ruled 2026-07-29). `ProjectChange`
-        carries only `{path, risk}`, so added and removed modules are
-        indistinguishable and a removed field looks like a retyped one; the
-        diff also covers modules/fields ONLY. Add an explicit `op`, widen it
-        past compose modules, and return the record count behind each change.
+  - [x] ~~**Publish tab — BE deployment plan**~~ — done since it was written:
+        `ProjectChange` (`system/types/project_revision.go:14`) now carries
+        `Op`, `Kind`, `Name`, `Module`, `Detail`, `Risk` and a record count,
+        and the diff reports non-compose kinds (verified 2026-07-30: a branched
+        revision reported an `agent` change).
+  - [ ] **Branch copy — remaining resource kinds** (started 2026-07-30). A
+        revision branch cloned ONLY the compose namespace, so agents, chatbots,
+        automations, connections and roles were silently dropped and the fresh
+        draft's own deployment plan reported them all as deletions. Ruled
+        2026-07-30: copy all five, connections keep their credentials, roles
+        copy WITH their RBAC rules (refs remapped), resolution via an explicit
+        old→new ID map. **Agents are done and verified**
+        (`system/service/project_revision_clone.go`); still to do:
+    - [ ] `configured_connection` and `ng_automation` — neither has a unique
+          handle index, so no migration is needed, unlike agents.
+    - [ ] `chatbot` — needs a ruling first: `unique_widget_key` is globally
+          unique and a widget key is the PUBLIC embed identifier, so a copy
+          cannot reuse it. Proposal: mint a fresh key on copy, so existing
+          embeds keep hitting the live revision rather than silently following
+          a draft. Its `unique_handle` also needs the same per-project
+          treatment agents got (`agent.cue` + a `dropIndexes` fix).
+    - [ ] **roles + RBAC rules** — last, because rule resource strings point at
+          compose IDs that the namespace clone re-minted, so this is the one
+          part needing the ID map actually populated from the clone.
+    - [ ] Tests for the whole copy: assert every ref on a copied resource
+          resolves INSIDE the draft (`ResourceRefs()` is the oracle).
+    - [ ] Envoy is deliberately NOT the mechanism — see the long comment at the
+          head of `project_revision_clone.go`. Revisit only if system-resource
+          scope support is ever generated.
   - [ ] **Publish tab — FE** (ruled 2026-07-29, design in
         `views/Wizard.intent.md`). Fourth tab, stage components under
         `components/wizard/publish/`, mapping editor, cluster removed from the
