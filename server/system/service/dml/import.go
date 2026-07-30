@@ -157,6 +157,29 @@ func (im *Importer) RunImportForeground(ctx context.Context, mappingID uint64) e
 	if run.Status != "completed" {
 		return fmt.Errorf("dml import failed: %s", run.Error)
 	}
+
+	// A record the importer could not write is data that would be missing from
+	// the published revision, so it fails the publish rather than the run.
+	// importTable writes with skipFailed, which is right for an external import
+	// (one malformed row should not stop ten thousand good ones) and wrong
+	// here: "completed" was reported even when EVERY row failed, and publish
+	// went on to swap the namespaces and soft-delete the source. The commonest
+	// cause is a record-link value -- it holds a record id from the old
+	// namespace, which does not exist in the new one, so the whole row is
+	// rejected and a module with a link field silently arrives empty.
+	//
+	// Failing here is safe: migration runs before the status flip, so the old
+	// namespace is still live and still holds every record.
+	if run.Failed > 0 {
+		return fmt.Errorf(
+			"%d of %d records could not be migrated for module %q; "+
+				"nothing was published. Record-link values are the usual cause: they still "+
+				"name records in the previous revision. Drop that field from the module's "+
+				"mapping to migrate the rest",
+			run.Failed, run.Failed+run.Processed, mp.ModuleHandle,
+		)
+	}
+
 	return nil
 }
 
@@ -249,9 +272,19 @@ func (im *Importer) importTable(
 			return err
 		}
 		for _, r := range results {
-			if r.Error != nil {
+			// A rejected record does not always come back as r.Error. Bulk
+			// splits its failures: an operation-level error lands in Error,
+			// but a VALUE-level rejection -- which is what an invalid
+			// record-link produces, and record links are exactly what breaks
+			// when records move to a new namespace -- lands in ValueError and
+			// leaves Error nil (compose/service/record.go, the
+			// IsRecordValueErrorSet branch). Counting only Error therefore
+			// reported a clean run for records that were never written, which
+			// is how a publish could report success and land an empty module.
+			switch {
+			case r.Error != nil, !r.ValueError.IsValid(), r.DuplicationError.HasStrictErrors():
 				run.Failed++
-			} else {
+			default:
 				run.Processed++
 			}
 		}
@@ -267,19 +300,29 @@ func (im *Importer) importTable(
 			continue
 		}
 
+		// One value per place, not just the first. importRow keeps every value
+		// the source produced (the iterator sets them by place), but this loop
+		// used to read position 0 alone -- so a multi-value field arrived with
+		// its first entry and the rest were dropped without a word. On a
+		// project publish that is silent data loss inside a record that
+		// otherwise migrated fine.
 		var values composeTypes.RecordValueSet
+		counts := row.CountValues()
 		for _, col := range mp.Columns {
 			if col.Skip {
 				continue
 			}
-			val, err := row.get(col.SourceIdent)
-			if err != nil || val == nil {
-				continue
+			for place := uint(0); place < counts[col.SourceIdent]; place++ {
+				val, err := row.GetValue(col.SourceIdent, place)
+				if err != nil || val == nil {
+					continue
+				}
+				values = append(values, &composeTypes.RecordValue{
+					Name:  col.FieldName,
+					Value: rawToString(val),
+					Place: place,
+				})
 			}
-			values = append(values, &composeTypes.RecordValue{
-				Name:  col.FieldName,
-				Value: rawToString(val),
-			})
 		}
 
 		batch = append(batch, &composeTypes.RecordBulkOperation{
@@ -353,8 +396,4 @@ func (r *importRow) SetValue(name string, pos uint, val any) error {
 	}
 	r.vals[name][pos] = val
 	return nil
-}
-
-func (r *importRow) get(name string) (any, error) {
-	return r.GetValue(name, 0)
 }
