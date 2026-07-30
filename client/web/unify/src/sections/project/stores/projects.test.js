@@ -14,6 +14,74 @@ describe('useProjectsStore', () => {
     })
   })
 
+  // The publish approval is the one part of the review cycle that is REAL
+  // server state: it lives on the project row, and the backend refuses to
+  // publish anything that is not approved, refuses a decision from whoever
+  // submitted the request, and refuses an approval granted against a different
+  // version of the revision. All of that used to live in a ref in this browser
+  // tab, where it did not survive a reload and a second user never saw it.
+  describe('publish approval', () => {
+    const seed = async (api, project) => {
+      api.projectList = vi.fn().mockResolvedValue({ set: [project] })
+      const store = useProjectsStore()
+      await store.load()
+      return store
+    }
+
+    it('reads the approval standing off the project row', async () => {
+      const store = await seed(api, { projectID: '7', approvalStatus: 'submitted' })
+
+      expect(store.publishApprovalStatus('7')).toBe('submitted')
+    })
+
+    // The server says 'rejected'; every status chip and hint in this section
+    // says 'changes-requested' for the same thing.
+    it("speaks the wizard's word for a rejection", async () => {
+      const store = await seed(api, {
+        projectID: '7',
+        approvalStatus: 'rejected',
+        approvalNote: 'the retention rule is missing',
+      })
+
+      expect(store.publishApprovalStatus('7')).toBe('changes-requested')
+      expect(store.publishApprovalNote('7')).toBe('the retention rule is missing')
+    })
+
+    // A row written before the column existed carries no value at all. Reading
+    // that as anything but 'draft' would show an unreviewed revision as though
+    // somebody had looked at it.
+    it('reads a missing standing as unreviewed', async () => {
+      const store = await seed(api, { projectID: '7' })
+
+      expect(store.publishApprovalStatus('7')).toBe('draft')
+    })
+
+    it('sends each decision to its own endpoint and absorbs the answer', async () => {
+      const store = await seed(api, { projectID: '7', approvalStatus: 'draft' })
+
+      api.projectRequestApproval = vi
+        .fn()
+        .mockResolvedValue({ projectID: '7', approvalStatus: 'submitted' })
+      await store.requestPublishApproval('7', 'ready')
+      expect(api.projectRequestApproval).toHaveBeenCalledWith({ projectID: '7', note: 'ready' })
+      expect(store.publishApprovalStatus('7')).toBe('submitted')
+
+      api.projectGrantApproval = vi
+        .fn()
+        .mockResolvedValue({ projectID: '7', approvalStatus: 'approved' })
+      await store.grantPublishApproval('7', 'reviewed')
+      expect(api.projectGrantApproval).toHaveBeenCalledWith({ projectID: '7', note: 'reviewed' })
+      expect(store.publishApprovalStatus('7')).toBe('approved')
+
+      api.projectRejectApproval = vi
+        .fn()
+        .mockResolvedValue({ projectID: '7', approvalStatus: 'rejected' })
+      await store.rejectPublishApproval('7', 'not yet')
+      expect(api.projectRejectApproval).toHaveBeenCalledWith({ projectID: '7', note: 'not yet' })
+      expect(store.publishApprovalStatus('7')).toBe('changes-requested')
+    })
+  })
+
   describe('deploymentPlan()', () => {
     // The regression: Go marshals a nil slice as `null`, not `[]`, so a plan
     // with nothing in it arrives as {changes: null}. Spreading the response
@@ -227,24 +295,17 @@ describe('useProjectsStore', () => {
         expect(store.governanceNote(P, 'pages')).toBe('reopened')
       })
 
-      it('sends a submitted publish back when any step is flagged', async () => {
+      // The revision's own approval is no longer one of these steps — it lives
+      // on the project row and the server enforces it — so a flagged step no
+      // longer reaches in and changes it. What survives is the report the
+      // Publish tab uses to refuse offering an approval over an open flag.
+      it('reports a flagged step so the publish screen can refuse to approve over it', async () => {
         const store = useProjectsStore()
-        await store.transitionStep(P, 'publish', 'submit')
+        expect(store.hasFlaggedSteps(P)).toBe(false)
 
         await store.transitionStep(P, 'agents', 'request-changes', 'no model set')
 
-        expect(store.governanceStatus(P, 'publish')).toBe('changes-requested')
-        expect(store.governanceNote(P, 'publish')).toContain('no model set')
-      })
-
-      it('refuses to approve the revision while a step is flagged', async () => {
-        const store = useProjectsStore()
-        await store.transitionStep(P, 'agents', 'request-changes', 'no model set')
-        await store.transitionStep(P, 'publish', 'submit')
-
-        await expect(store.transitionStep(P, 'publish', 'approve')).rejects.toThrow(
-          /one or more steps still have changes requested/,
-        )
+        expect(store.hasFlaggedSteps(P)).toBe(true)
       })
 
       // The old backend cleared every flagged step when the publish was
@@ -272,14 +333,15 @@ describe('useProjectsStore', () => {
         expect(store.governanceStatus(P, 'summary')).toBe('draft')
       })
 
-      it("drops the revision's own approval when any step changes", async () => {
+      // The revision's OWN approval is deliberately NOT retired from here any
+      // more: it is server state, and the server retires it by recomputing the
+      // deployment plan's fingerprint when a publish is attempted. Nothing on
+      // this side has to remember to call an invalidation hook, which is the
+      // whole point — an edit path that forgot to would have kept a stale
+      // approval alive.
+      it("leaves the revision's own approval to the server", async () => {
         const store = useProjectsStore()
-        await store.transitionStep(P, 'publish', 'submit')
-        await store.transitionStep(P, 'publish', 'approve')
 
-        // Awaited: scenarios are persisted now, so the review is retired only
-        // once the write lands — an approval must not be dropped for a save
-        // that failed.
         await store.createFriaScenario(P, { id: 's1', title: 'Denied a loan' })
 
         expect(store.governanceStatus(P, 'publish')).toBe('draft')

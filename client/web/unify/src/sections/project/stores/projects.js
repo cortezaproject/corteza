@@ -1,5 +1,4 @@
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
-import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
 import { GRAPH_KIND_BY_RESOURCE_TYPE } from '@/sections/project/config/resourceRefs'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
@@ -506,11 +505,61 @@ export const useProjectsStore = defineStore('projects', () => {
       mappings,
     })
     touch()
-    const result = absorb(raw)
-    const step = govStep(id, PUBLISH_GOVERNANCE_STEP_KEY)
-    step.status = GOVERNANCE_STATUS_DRAFT
-    step.note = ''
-    return result
+    return absorb(raw)
+  }
+
+  // --- publish approval (REAL, PERSISTED backend state) ----------------------
+  // Unlike the per-step governance further down, the revision's OWN approval
+  // lives on the project row and is enforced by the server: publish refuses
+  // anything that is not approved, refuses a decision from the person who
+  // submitted it, and refuses an approval granted against a different version
+  // of the revision (it fingerprints the deployment plan). All three actions
+  // return the updated project, so the tab re-renders off the same row every
+  // other screen reads.
+  async function requestPublishApproval(projectId, note = '') {
+    const p = findById.value(projectId)
+    if (!p) return
+    const raw = await $SystemAPI.projectRequestApproval({ projectID: p.projectID, note })
+    touch()
+    return absorb(raw)
+  }
+
+  async function grantPublishApproval(projectId, note = '') {
+    const p = findById.value(projectId)
+    if (!p) return
+    const raw = await $SystemAPI.projectGrantApproval({ projectID: p.projectID, note })
+    touch()
+    return absorb(raw)
+  }
+
+  async function rejectPublishApproval(projectId, note = '') {
+    const p = findById.value(projectId)
+    if (!p) return
+    const raw = await $SystemAPI.projectRejectApproval({ projectID: p.projectID, note })
+    touch()
+    return absorb(raw)
+  }
+
+  // The revision's approval standing, in the vocabulary the rest of the wizard
+  // speaks. The server says 'rejected'; every status chip, tag and hint in this
+  // section says 'changes-requested' for the same thing, and translating once
+  // here is cheaper than teaching all of them a second word for it. An absent
+  // value (a project row written before the column existed) reads as 'draft' —
+  // unreviewed, which is exactly what it is.
+  function publishApprovalStatus(projectId) {
+    const status = findById.value(projectId)?.approvalStatus || 'draft'
+    return status === 'rejected' ? GOVERNANCE_STATUS_CHANGES_REQUESTED : status
+  }
+
+  function publishApprovalNote(projectId) {
+    return findById.value(projectId)?.approvalNote || ''
+  }
+
+  // Who asked for the approval. The server refuses a decision from this person
+  // — two people minimum for anything going live — and the tab needs to say so
+  // before the button is pressed rather than after.
+  function publishApprovalSubmittedBy(projectId) {
+    return findById.value(projectId)?.approvalSubmittedBy || NoID
   }
 
   // What publishing this draft would change, against its parent revision:
@@ -759,37 +808,29 @@ export const useProjectsStore = defineStore('projects', () => {
   // the FE UX keep iterating quickly — so don't "fix" the lack of
   // persistence.
   //
-  // ONE cycle for everything (ruled 2026-07-30, replacing the removed
-  // backend's two-tier rules): every step, the well-known `'publish'` step
-  // included, runs draft -> submitted -> approved | changes-requested. Nothing
-  // is ever approved without having been submitted first, so an approval
-  // always answers a request.
+  // The revision's OWN publish approval is NO LONGER part of this (2026-07-31)
+  // — it is real server state on the project row, see publishApprovalStatus and
+  // the three actions above. What remains here is the per-step review only.
+  //
+  // ONE cycle for everything: every step runs draft -> submitted -> approved |
+  // changes-requested. Nothing is ever approved without having been submitted
+  // first, so an approval always answers a request.
   //
   //   - submit: draft/changes-requested -> submitted, note cleared. Rejected
   //     from submitted/approved (there is nothing to ask for).
   //   - approve: submitted -> approved ONLY, note cleared. Rejected from any
   //     other status — this is what stops an Approve button from acting on a
-  //     step nobody put up for review. On `'publish'` it is additionally
-  //     rejected while any OTHER step sits at changes-requested (the
-  //     "approval gate"), so a revision cannot be approved over an open flag.
+  //     step nobody put up for review.
   //   - request-changes: ANY status -> changes-requested, note set. A reviewer
   //     may flag a step at any point, including one never submitted; the
   //     wizard only stops offering it once the revision is published.
-  //   - "immediate send-back": flagging a non-publish step while 'publish' is
-  //     currently submitted or approved sends 'publish' back to
-  //     changes-requested too, with a note pointing at the step that was
-  //     flagged. A draft/absent 'publish' step is left alone.
   //   - "any change needs approval again": editing what a step CONTAINS
-  //     invalidates its review, and the revision's own — see invalidateReview
-  //     and the `invalidating(...)` wrappers on the returned actions.
+  //     invalidates its review — see invalidateReview and the
+  //     `invalidating(...)` wrappers on the returned actions.
   //
   // The old "auto-clear on resubmit" rule is deliberately gone with this: a
   // flagged step now clears by being fixed and resubmitted through its own
-  // cycle, so submitting the revision can no longer wipe a reviewer's note
-  // (and can no longer walk the approval gate above around itself).
-  //
-  // publishProject() (above) resets the local 'publish' step back to draft
-  // after a successful publish, mirroring what the old backend used to do.
+  // cycle, so submitting the revision can no longer wipe a reviewer's note.
 
   const GOVERNANCE_STATUS_DRAFT = 'draft'
   const GOVERNANCE_STATUS_SUBMITTED = 'submitted'
@@ -827,38 +868,27 @@ export const useProjectsStore = defineStore('projects', () => {
     return govSteps(projectId)[stepKey]?.values || {}
   }
 
-  // Whether any step OTHER than `excludeKey` currently has changes requested
-  // — backs the publish step's "approval gate" (mirrors the removed backend's
-  // hasFlaggedSteps). Only looks at steps actually touched so far, same as
-  // the backend did over its stored map.
-  function hasOtherFlaggedSteps(projectId, excludeKey) {
-    return Object.entries(govSteps(projectId)).some(
-      ([key, step]) => key !== excludeKey && step.status === GOVERNANCE_STATUS_CHANGES_REQUESTED,
+  // Whether ANY step currently has changes requested. The Publish tab refuses
+  // to offer an approval over an open flag — a reviewer's note on any step is
+  // a statement that the revision is not ready, whichever step it landed on.
+  function hasFlaggedSteps(projectId) {
+    return Object.values(govSteps(projectId)).some(
+      step => step.status === GOVERNANCE_STATUS_CHANGES_REQUESTED,
     )
-  }
-
-  // "immediate send-back" (mirrors the removed backend's sendPublishBack).
-  function sendPublishBack(projectId, flaggedStepKey, note) {
-    const publish = govSteps(projectId)[PUBLISH_GOVERNANCE_STEP_KEY]
-    if (!publish) return
-    if (
-      publish.status !== GOVERNANCE_STATUS_SUBMITTED &&
-      publish.status !== GOVERNANCE_STATUS_APPROVED
-    ) {
-      return
-    }
-    publish.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
-    publish.note = `Changes requested on step "${flaggedStepKey}": ${note}`
   }
 
   // "any change needs approval again": a review states that what was there
   // when it was granted is fit to ship, so changing that content retires it.
   // A submitted or approved step drops back to draft (its owner resubmits when
-  // it's ready again), and the revision's own 'publish' review drops with it —
-  // an approved revision that has been edited since is not an approved
-  // revision. A changes-requested step is left alone on purpose: the
+  // it's ready again). A changes-requested step is left alone on purpose: the
   // reviewer's note has to survive the work done to address it, and it is the
   // resubmit that clears it.
+  //
+  // The revision's OWN approval is deliberately NOT touched here any more. It
+  // is server state now, and the server retires it by recomputing the
+  // deployment plan's fingerprint at publish time — so nothing on either side
+  // has to remember to call an invalidation hook, and an approval cannot be
+  // silently kept alive by an edit path that forgot to.
   //
   // Every action that changes a step's content is wrapped with `invalidating`
   // at the return below rather than calling this itself — one list, so the
@@ -869,7 +899,7 @@ export const useProjectsStore = defineStore('projects', () => {
     const stale = s => s === GOVERNANCE_STATUS_SUBMITTED || s === GOVERNANCE_STATUS_APPROVED
     let changed = false
 
-    for (const key of [PUBLISH_GOVERNANCE_STEP_KEY, ...[].concat(stepKeys || [])]) {
+    for (const key of [].concat(stepKeys || [])) {
       const step = steps[key]
       if (!step || !stale(step.status)) continue
       step.status = GOVERNANCE_STATUS_DRAFT
@@ -904,7 +934,6 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function transitionStep(projectId, stepKey, action, note = '') {
     const step = govStep(projectId, stepKey)
-    const isPublish = stepKey === PUBLISH_GOVERNANCE_STEP_KEY
 
     switch (action) {
       case 'submit':
@@ -921,20 +950,12 @@ export const useProjectsStore = defineStore('projects', () => {
         if (step.status !== GOVERNANCE_STATUS_SUBMITTED) {
           throw new Error(`Cannot approve "${stepKey}" from status "${step.status}"`)
         }
-        // The approval gate — the revision cannot be approved over a step the
-        // reviewer has already sent back.
-        if (isPublish && hasOtherFlaggedSteps(projectId, PUBLISH_GOVERNANCE_STEP_KEY)) {
-          throw new Error(
-            'Cannot approve the project while one or more steps still have changes requested',
-          )
-        }
         step.status = GOVERNANCE_STATUS_APPROVED
         step.note = ''
         break
       case 'request-changes':
         step.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
         step.note = note
-        if (!isPublish) sendPublishBack(projectId, stepKey, note)
         break
       default:
         throw new Error(`Invalid governance action "${action}" for step "${stepKey}"`)
@@ -2227,6 +2248,12 @@ export const useProjectsStore = defineStore('projects', () => {
     updateProject,
     removeProject,
     publishProject,
+    requestPublishApproval,
+    grantPublishApproval,
+    rejectPublishApproval,
+    publishApprovalStatus,
+    publishApprovalNote,
+    publishApprovalSubmittedBy,
     deploymentPlan,
     revisionsFor,
     listRevisions,
@@ -2307,6 +2334,7 @@ export const useProjectsStore = defineStore('projects', () => {
     governanceStatus,
     governanceNote,
     governanceValues,
+    hasFlaggedSteps,
     aiSystemsFor,
     aiSystem,
     loadAiSystems,

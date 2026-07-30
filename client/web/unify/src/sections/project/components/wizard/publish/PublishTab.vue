@@ -109,7 +109,9 @@
             :note="publishNote"
             :can-grant="canGrant"
             :can-request-approval="canRequestApproval"
+            :is-own-request="isOwnRequest"
             :blocked-by-flagged-step="anyStepFlagged && publishStatus === 'submitted'"
+            v-model:decision-note="decisionNote"
           />
         </PublishStage>
 
@@ -145,6 +147,19 @@
         class="sticky bottom-0 -mx-4 px-4 py-3 mt-1 border-t border-surface bg-surface/90 backdrop-blur flex items-center gap-3 flex-wrap"
       >
         <p class="flex-1 min-w-48 text-sm text-muted-color">{{ actionReason }}</p>
+        <!-- The other half of a review. Offered only to the person actually
+             being asked to decide, and never as the primary control: sending a
+             revision back is a real outcome, not the default one. -->
+        <Button
+          v-if="primaryAction === 'approve'"
+          :label="$t('project.publish.actions.requestChanges')"
+          icon="pi pi-undo"
+          severity="secondary"
+          outlined
+          size="small"
+          :loading="acting"
+          @click="requestChanges"
+        />
         <Button
           v-if="primaryAction"
           :label="primaryLabel"
@@ -170,7 +185,6 @@
 import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import { fetchRevisionCompleteness } from '@/sections/project/composables/revisionCompleteness'
 import { OVERVIEW_KINDS } from '@/sections/project/config/kinds'
-import { PUBLISH_GOVERNANCE_STEP_KEY, STEPS } from '@/sections/project/config/pipeline'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { useProjectUsersStore } from '@/sections/project/stores/users'
 import { NoID } from '@planetcrust/human-js'
@@ -211,6 +225,9 @@ const inventory = ref([])
 const completeness = ref({ assigned: 0, completed: 0 })
 const decisions = ref({})
 const typedConfirmation = ref('')
+// What a reviewer writes with their decision. Cleared with the rest of the
+// screen's working state whenever the open revision changes.
+const decisionNote = ref('')
 const openStage = ref(0)
 const loading = ref(true)
 const loadError = ref(false)
@@ -273,6 +290,7 @@ watch(
   () => {
     decisions.value = {}
     typedConfirmation.value = ''
+    decisionNote.value = ''
     load()
   },
   { immediate: true },
@@ -356,15 +374,27 @@ const resolvedMappings = computed(() =>
 )
 
 // --- governance ------------------------------------------------------------
+// The revision's own approval is SERVER state, read straight off the project
+// row. It used to be a ref in this browser tab: it did not survive a reload, a
+// second user never saw a submitted request, and nothing stopped a submitter
+// from approving their own work — the backend published on confirm=true alone.
 const publishStatus = computed(() =>
-  projectId.value ? store.governanceStatus(projectId.value, PUBLISH_GOVERNANCE_STEP_KEY) : 'draft',
+  projectId.value ? store.publishApprovalStatus(projectId.value) : 'draft',
 )
 const publishNote = computed(() =>
-  projectId.value ? store.governanceNote(projectId.value, PUBLISH_GOVERNANCE_STEP_KEY) : '',
+  projectId.value ? store.publishApprovalNote(projectId.value) : '',
 )
-const anyStepFlagged = computed(() =>
-  STEPS.some(s => store.governanceStatus(projectId.value, s.key) === 'changes-requested'),
+// Two people minimum for anything going live: the server refuses a decision
+// from whoever submitted the request, so the tab has to know before the button
+// is drawn rather than discover it from a failed call.
+const isOwnRequest = computed(
+  () =>
+    !!projectId.value &&
+    store.publishApprovalSubmittedBy(projectId.value) === usersStore.currentUserID,
 )
+// The per-step reviews are still session-local scaffolding (see the store), and
+// a flag on any of them says the revision is not ready whichever step it is on.
+const anyStepFlagged = computed(() => store.hasFlaggedSteps(projectId.value))
 
 const openWorkItems = computed(() =>
   Math.max(0, completeness.value.assigned - completeness.value.completed),
@@ -393,7 +423,7 @@ const primaryAction = computed(() => {
     case 'approved':
       return 'publish'
     case 'submitted':
-      return props.canGrant ? 'approve' : null
+      return props.canGrant && !isOwnRequest.value ? 'approve' : null
     default:
       return props.canRequestApproval ? 'request' : null
   }
@@ -425,7 +455,11 @@ const typedConfirmationOk = computed(
 )
 
 const primaryEnabled = computed(() => {
-  if (!props.canWrite) return false
+  // Write access gates SUBMITTING and PUBLISHING, not deciding. The role that
+  // exists to approve — executive-authority — never edits, so requiring write
+  // here disabled the one button it is in the project to press, and with a hard
+  // server gate that made publishing unreachable for every role combination.
+  if (primaryAction.value !== 'approve' && !props.canWrite) return false
   if (blockers.value.length) return false
   if (primaryAction.value === 'approve' && anyStepFlagged.value) return false
   if (primaryAction.value === 'publish' && !canPublish.value) return false
@@ -451,6 +485,9 @@ const actionReason = computed(() => {
   if (primaryAction.value === 'approve' && anyStepFlagged.value) {
     return t('project.publish.actions.approveBlockedTooltip')
   }
+  if (publishStatus.value === 'submitted' && isOwnRequest.value) {
+    return t('project.publish.blocked.ownRequest')
+  }
   if (primaryAction.value === 'publish') {
     if (!canPublish.value) return t('project.publish.blocked.noPublishPermission')
     return typedConfirmationOk.value
@@ -467,10 +504,11 @@ async function runPrimaryAction() {
   acting.value = true
   try {
     if (primaryAction.value === 'request') {
-      await store.transitionStep(projectId.value, PUBLISH_GOVERNANCE_STEP_KEY, 'submit')
+      await store.requestPublishApproval(projectId.value)
+      decisionNote.value = ''
       $toast.toastSuccess(t('project.publish.toast.submitted'))
     } else if (primaryAction.value === 'approve') {
-      await store.transitionStep(projectId.value, PUBLISH_GOVERNANCE_STEP_KEY, 'approve')
+      await store.grantPublishApproval(projectId.value, decisionNote.value)
       $toast.toastSuccess(t('project.publish.toast.approved'))
       openStage.value = 4
     } else {
@@ -485,6 +523,23 @@ async function runPrimaryAction() {
           : 'project.publish.toast.actionFailed',
       ),
     )(err)
+  } finally {
+    acting.value = false
+  }
+}
+
+// Deliberately not routed through runPrimaryAction: it is not the primary
+// action, and folding it in would mean a second switch inside the one place
+// that reads as "do the single next thing".
+async function requestChanges() {
+  if (acting.value) return
+  acting.value = true
+  try {
+    await store.rejectPublishApproval(projectId.value, decisionNote.value)
+    decisionNote.value = ''
+    $toast.toastSuccess(t('project.publish.toast.changesRequested'))
+  } catch (err) {
+    $toast.toastErrorHandler(t('project.publish.toast.actionFailed'))(err)
   } finally {
     acting.value = false
   }

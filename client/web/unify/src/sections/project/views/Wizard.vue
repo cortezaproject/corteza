@@ -587,12 +587,7 @@ import ResourceManagementStep from '@/sections/project/components/wizard/steps/R
 import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { friaDeterminationValues } from '@/sections/project/config/friaDeterminationForm'
 import { MANAGE_NAV } from '@/sections/project/config/manageNav'
-import {
-  PUBLISH_GOVERNANCE_STEP_KEY,
-  STEPS,
-  kindsThroughStep,
-  stepsForTab,
-} from '@/sections/project/config/pipeline'
+import { STEPS, kindsThroughStep, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
@@ -940,9 +935,7 @@ const reviewNote = computed(() =>
 const locked = computed(() => !canWrite.value)
 const showStatus = computed(() => !!activeStep.value)
 const publishStatus = computed(() =>
-  project.value
-    ? store.governanceStatus(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY)
-    : 'draft',
+  project.value ? store.publishApprovalStatus(project.value.projectID) : 'draft',
 )
 // Review is a thing you do to a revision being built, so a published (live)
 // revision offers none of the three actions: what shipped is not up for

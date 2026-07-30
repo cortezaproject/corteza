@@ -593,10 +593,14 @@ publish:
       publish will need a fresh one.
   note:
     label: 'Reviewer note:'
+    placeholder: >-
+      Optional. Anything you write here is recorded with your decision and is what the revision's
+      owner sees when it comes back to them.
   actions:
     requestApproval: Request approval
     resubmit: Resubmit for approval
     approveProject: Approve project
+    requestChanges: Request changes
     approveBlockedTooltip: >-
       Approve project is disabled while a Build or Govern step still has changes requested —
       approve that step first to clear its flag, then this can be approved.
@@ -723,6 +727,16 @@ publish:
     irreversible: Approved and ready. This cannot be undone — changing it again means a new revision.
     typeHandle: Type the project handle above to confirm.
     noCapability: You do not have the capability to act on this publish.
+    # Two people minimum for anything going live: the server refuses a decision
+    # from whoever submitted the request, whatever capabilities they hold.
+    ownRequest: >-
+      You submitted this revision for approval, so you cannot decide it yourself. Somebody else on
+      the project who can grant approval has to review it.
+    # Distinct from noCapability on purpose: the caller may well be allowed to
+    # publish, and what is missing is the approval, not a permission.
+    notApproved: >-
+      This revision has not been approved yet. It has to be submitted for approval and approved by a
+      second person before it can go live.
     noPublishPermission: >-
       This revision is approved and ready, but publishing it needs the publish permission on this
       project. Ask someone who holds it to put the revision live.
@@ -741,6 +755,9 @@ publish:
   toast:
     submitted: Submitted for approval
     approved: Approved — this project is ready to publish
+    changesRequested: >-
+      Sent back for changes — the revision stays out of service until it is submitted for approval
+      again and approved.
     actionFailed: Action failed
     published: Project published
     publishFailed: Could not publish the project

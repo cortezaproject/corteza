@@ -17,6 +17,18 @@
 // Wizard.vue, wizard/publish/PublishTab.vue and
 // components/project/MembersDialog.vue.
 
+// THESE FLAGS MIRROR THE SERVER'S OWN PRESETS — system/types/project_member.go
+// ProjectMemberRole.Capabilities(). They are what the UI offers; the server
+// re-derives the same answer from the member's role and enforces it, so a
+// preset that disagrees here shows a button the server will refuse.
+//
+// The two owner roles drifted apart from it: they were the only presets that
+// could grant an approval yet could not request one, and since the server
+// refuses a decision from the person who submitted the request (two people
+// minimum for anything going live), NO combination of roles could get a
+// project published — the one role that exists to approve, executive-authority,
+// cannot write, and nothing that could write could ask.
+//
 // `labelKey`/`resourcesKey`/`descriptionKey` are i18n keys; components resolve
 // them with $t for display. Capability flags drive behaviour and stay literal.
 export const ROLE_PRESETS = [
@@ -35,7 +47,7 @@ export const ROLE_PRESETS = [
     labelKey: 'project.roles.governance-owner.label',
     read: true,
     write: true,
-    requestApproval: false,
+    requestApproval: true,
     grantApproval: true,
     resourcesKey: 'project.roles.governance-owner.resources',
     descriptionKey: 'project.roles.governance-owner.description',
@@ -45,7 +57,7 @@ export const ROLE_PRESETS = [
     labelKey: 'project.roles.security-owner.label',
     read: true,
     write: true,
-    requestApproval: false,
+    requestApproval: true,
     grantApproval: true,
     resourcesKey: 'project.roles.security-owner.resources',
     descriptionKey: 'project.roles.security-owner.description',

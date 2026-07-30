@@ -84,7 +84,6 @@
 
 <script setup>
 import StatusChip from '@/sections/project/components/project/StatusChip.vue'
-import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
 import { chainHasPublished, projectStatusTag } from '@/sections/project/config/publishState'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { computed, inject, ref, watch } from 'vue'
@@ -130,14 +129,14 @@ const triggerLabel = computed(() =>
 )
 
 // One derivation for every revision this component shows, trigger and dropdown
-// alike (see config/publishState.js). Governance is keyed by projectID, so each
-// revision in the chain resolves its own review state — a sibling revision
-// nobody has touched this session simply reads "Not published", which is what
-// it is.
+// alike (see config/publishState.js). The approval standing is read off each
+// revision's own row, so a sibling revision reports where ITS review actually
+// stands — including one submitted by somebody else, in another session, which
+// the previous session-local reading could never see.
 const statusTagFor = rev =>
   projectStatusTag({
     status: rev?.status,
-    publishStatus: rev ? store.governanceStatus(rev.projectID, PUBLISH_GOVERNANCE_STEP_KEY) : '',
+    publishStatus: rev ? store.publishApprovalStatus(rev.projectID) : '',
   })
 const currentTag = computed(() => statusTagFor(props.project))
 
