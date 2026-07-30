@@ -65,8 +65,20 @@ const { t, te } = useI18n()
 
 // Alpha tints, matching the idiom the step-nav badges and publish stage
 // numbers already use: a /10 fill inside a /30 ring, so both themes work.
+//
+// Neutral is a surface tint rather than 'bg-emphasis' because that token is
+// --p-content-hover-background, which the Human theme sets to the same value as
+// the body background (surface.100 light / surface.800 dark) — a draft tag wore
+// it and vanished anywhere outside a card. Grey carries no hue to lean on, so it
+// takes a heavier /20 fill and /40 ring than the coloured tones to read as a
+// tag at all.
 const TONES = {
-  neutral: { bg: 'bg-emphasis', ring: 'ring-surface', text: 'text-muted-color' },
+  neutral: { bg: 'bg-surface-500/20', ring: 'ring-surface-500/40', text: 'text-muted-color' },
+  // Being worked on. Blue rather than grey because the project list's own draft
+  // chip is blue (views/ProjectList.vue statusChipConfig) and the two are read
+  // in one sitting — and because a draft is work in progress, which grey (the
+  // tone of archived and deprecated) states as an absence of state.
+  progress: { bg: 'bg-blue-500/10', ring: 'ring-blue-500/30', text: 'text-blue-500' },
   info: { bg: 'bg-primary/10', ring: 'ring-primary/30', text: 'text-primary' },
   warn: { bg: 'bg-amber-500/10', ring: 'ring-amber-500/30', text: 'text-amber-500' },
   success: { bg: 'bg-green-500/10', ring: 'ring-green-500/30', text: 'text-green-500' },
@@ -75,7 +87,7 @@ const TONES = {
 // The four review states first, then the lifecycle statuses that ride the same
 // tones. Add a status here, not another map at a call site.
 const PRESETS = {
-  draft: { tone: 'neutral', icon: 'pi pi-pencil', labelKey: 'project.status.draft' },
+  draft: { tone: 'progress', icon: 'pi pi-pencil', labelKey: 'project.status.draft' },
   submitted: {
     tone: 'info',
     icon: 'pi pi-clock',
