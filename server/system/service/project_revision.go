@@ -513,6 +513,12 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 			return e
 		}
 
+		// Hand the public embed ids over to the revision going live -- the same
+		// swap the namespace slug just went through, for the same reason.
+		if e := svc.swapChatbotWidgetKeys(ctx, s, parent, draft); e != nil {
+			return e
+		}
+
 		// Deprecate old project, activate new one.
 		parent.Status = types.ProjectStatusDeprecated
 		parent.UpdatedAt = now()
@@ -532,6 +538,83 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 	}
 
 	return draft, nil
+}
+
+// swapChatbotWidgetKeys hands each chatbot's public embed id over to the
+// revision going live.
+//
+// A widget key is what a customer pasted into their own site, and it is unique
+// across the whole system on purpose -- one key names one chatbot. That leaves
+// the revision copy in an awkward spot: it cannot be created holding the key,
+// because the still-live original holds it, so it is created with a fresh
+// throwaway one (see cloneProjectChatbots). Publishing is where the handover
+// happens, and it is the same two-step the namespace slug just made above: the
+// outgoing chatbot's key is suffixed out of the way FIRST, freeing it, and only
+// then does the incoming one take it.
+//
+// Without this, every embed in the wild would break on publish -- pointing at a
+// chatbot in a deprecated revision, or at nothing.
+//
+// Chatbots are matched across revisions by handle, the same identity the publish
+// diff uses. A chatbot the revision ADDED has no counterpart and simply keeps
+// the key it was created with.
+func (svc *project) swapChatbotWidgetKeys(ctx context.Context, s store.Storer, parent, draft *types.Project) error {
+	oldCC, _, err := store.SearchChatbots(ctx, s, types.ChatbotFilter{
+		ProjectID: parent.ID,
+		Deleted:   filter.StateExcluded,
+	})
+	if err != nil {
+		return fmt.Errorf("load outgoing revision chatbots: %w", err)
+	}
+	if len(oldCC) == 0 {
+		return nil
+	}
+
+	newCC, _, err := store.SearchChatbots(ctx, s, types.ChatbotFilter{
+		ProjectID: draft.ID,
+		Deleted:   filter.StateExcluded,
+	})
+	if err != nil {
+		return fmt.Errorf("load incoming revision chatbots: %w", err)
+	}
+
+	newByHandle := make(map[string]*types.Chatbot, len(newCC))
+	for _, c := range newCC {
+		if c.Handle != "" {
+			newByHandle[c.Handle] = c
+		}
+	}
+
+	// One timestamp for the whole swap so the suffixes of a multi-chatbot
+	// project read as one event.
+	ts := time.Now().Unix()
+
+	for _, old := range oldCC {
+		incoming, matched := newByHandle[old.Handle]
+		if !matched || old.WidgetKey == "" {
+			continue
+		}
+
+		key := old.WidgetKey
+
+		// Prefixed with the chain root as well as the timestamp, for the same
+		// reason the namespace slug is: two chatbots publishing in the same
+		// second would otherwise want the same suffixed key and collide on the
+		// unique index.
+		old.WidgetKey = fmt.Sprintf("%s-deprecated-%d-%d", key, draft.RootProjectID(), ts)
+		old.UpdatedAt = now()
+		if err = store.UpdateChatbot(ctx, s, old); err != nil {
+			return fmt.Errorf("retire the widget key of chatbot %q: %w", old.Handle, err)
+		}
+
+		incoming.WidgetKey = key
+		incoming.UpdatedAt = now()
+		if err = store.UpdateChatbot(ctx, s, incoming); err != nil {
+			return fmt.Errorf("hand the widget key to chatbot %q: %w", incoming.Handle, err)
+		}
+	}
+
+	return nil
 }
 
 // resolveMappings decides what actually gets migrated.
