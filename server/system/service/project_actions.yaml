@@ -51,6 +51,19 @@ actions:
   - action: unarchive
     log: "unarchived {{project}}"
 
+  # The publish approval cycle. There is no approval history table: these three
+  # entries ARE the history, which is why they are logged at the default
+  # (notice) severity rather than as info -- "who put this live, and who agreed
+  # to it" has to survive in the audit trail.
+  - action: requestApproval
+    log: "requested publish approval for {{project}}"
+
+  - action: grantApproval
+    log: "granted publish approval for {{project}}"
+
+  - action: rejectApproval
+    log: "rejected publish approval for {{project}}"
+
   - action: searchMembers
     log: "searched members of {{project}}"
     severity: info
@@ -120,6 +133,38 @@ errors:
   - error: notAllowedToPublish
     message: "not allowed to publish this project"
     log: "failed to publish {{project.handle}}; insufficient permissions"
+
+  - error: notAllowedToRequestApproval
+    message: "not allowed to request publish approval for this project"
+    log: "failed to request publish approval for {{project.handle}}; insufficient permissions"
+
+  - error: notAllowedToGrantApproval
+    message: "not allowed to decide publish approval for this project"
+    log: "failed to decide publish approval for {{project.handle}}; insufficient permissions"
+
+  # Two people minimum for anything going live. Separate from the permission
+  # errors above on purpose: the caller IS allowed to decide approvals here,
+  # just not this one, and telling them "insufficient permissions" would send
+  # them off to ask for a role they already have.
+  - error: cannotApproveOwnRequest
+    message: "the person who submitted a revision for approval cannot decide it; a second reviewer has to"
+    severity: warning
+
+  - error: approvalNotRequested
+    message: "this revision has not been submitted for approval"
+    severity: warning
+
+  - error: approvalAlreadyRequested
+    message: "this revision is already waiting for a decision"
+    severity: warning
+
+  - error: notApproved
+    message: "this revision has not been approved for publishing"
+    severity: warning
+
+  - error: approvalStale
+    message: "the revision changed after it was approved; submit it for approval again"
+    severity: warning
 
   - error: invalidRolePreset
     message: "invalid project member role preset"

@@ -12520,6 +12520,129 @@ export default class System {
     return `/projects/${projectID}/revisions`
   }
 
+  // Submit a draft revision for publish approval
+  async projectRequestApproval(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, note } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectRequestApprovalEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      note,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectRequestApprovalCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectRequestApproval(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectRequestApprovalEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/approval/request`
+  }
+
+  // Approve a draft revision for publishing
+  async projectGrantApproval(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, note } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectGrantApprovalEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      note,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectGrantApprovalCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectGrantApproval(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectGrantApprovalEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/approval/grant`
+  }
+
+  // Send a draft revision back instead of approving it
+  async projectRejectApproval(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, note } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectRejectApprovalEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      note,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectRejectApprovalCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectRejectApproval(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectRejectApprovalEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/approval/reject`
+  }
+
   // Compute deployment plan (diff, risk, suggested mapping) for a draft revision
   async projectGetDeploymentPlan(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { projectID } = (a as KV) || {}

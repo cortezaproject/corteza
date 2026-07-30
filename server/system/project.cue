@@ -14,6 +14,19 @@ _projectDefs: {
 				{ident: "ProjectStatusDeprecated", value: "deprecated"},
 	]}
 
+	// Where a revision stands in the publish approval cycle. Deliberately a
+	// separate axis from ProjectStatus: status says what the revision IS
+	// (draft/active/deprecated), approval says whether anyone has agreed to put
+	// it live. Until 2026-07-31 the whole cycle lived in a browser ref, so it
+	// did not survive a reload, a second user never saw a submitted request,
+	// and the server published on confirm=true alone.
+	ProjectApprovalStatus: {name: "ProjectApprovalStatus", values: [
+					{ident: "ProjectApprovalStatusDraft", value:     "draft"},
+					{ident: "ProjectApprovalStatusSubmitted", value: "submitted"},
+					{ident: "ProjectApprovalStatusApproved", value:  "approved"},
+					{ident: "ProjectApprovalStatusRejected", value:  "rejected"},
+	]}
+
 	ProjectVisibility: {name: "ProjectVisibility", values: [
 					{ident: "ProjectVisibilityOpen", value:       "open"},
 					{ident: "ProjectVisibilityInviteOnly", value: "invite-only"},
@@ -157,7 +170,65 @@ project: {
 			// answerable: status was never overwritten, so there is nothing to
 			// guess at when the project comes back off the shelf.
 			archived_at: schema.SortableTimestampNilField
-			created_at:  schema.SortableTimestampNowField
+
+			// Publish approval. Server-owned, exactly like status and for the
+			// same reason: it is the gate on going live, so a client that could
+			// write it could approve its own revision by sending a field.
+			// None of these appear in updateFields below.
+			//
+			// History is NOT kept here -- one row holds the CURRENT standing of
+			// the current cycle, and every transition is written to the action
+			// log (requestApproval/grantApproval/rejectApproval), which is where
+			// "who approved revision 3, and when" is answered.
+			approval_status: {
+				type: _projectDefs.ProjectApprovalStatus
+				dal: {length: 32}
+				omitSetter: true
+				omitGetter: true
+			}
+			// Fingerprint of the deployment plan the approval was granted
+			// against -- see approvalFingerprint. Publishing recomputes it and
+			// refuses on mismatch, which is how an approval is invalidated by
+			// further edits without a single write hook anywhere.
+			approval_plan: {
+				goType: "string"
+				json:   "approvalPlan,omitempty"
+				dal: {type: "Text", length: 64}
+				omitSetter: true
+				omitGetter: true
+			}
+			// Why it was submitted, granted or (most usefully) rejected. One
+			// note per cycle: a decision replaces the request's note, since the
+			// decision is what the revision's owner has to act on.
+			approval_note: {
+				goType: "string"
+				json:   "approvalNote,omitempty"
+				dal: {type: "Text"}
+				omitSetter: true
+				omitGetter: true
+			}
+			// Plain ID rather than schema.AttributeUserRef: the ref type exists
+			// for envoy's reference filtering and projects are envoy-omitted, so
+			// it would buy nothing and only make the column's type harder to
+			// state in the upgrade fix.
+			approval_submitted_by: {
+				goType: "uint64"
+				json:   "approvalSubmittedBy,string,omitempty"
+				dal: {type: "ID", default: 0}
+				omitSetter: true
+				omitGetter: true
+			}
+			approval_submitted_at: schema.SortableTimestampNilField
+			approval_decided_by: {
+				goType: "uint64"
+				json:   "approvalDecidedBy,string,omitempty"
+				dal: {type: "ID", default: 0}
+				omitSetter: true
+				omitGetter: true
+			}
+			approval_decided_at: schema.SortableTimestampNilField
+
+			created_at: schema.SortableTimestampNowField
 			updated_at:  schema.SortableTimestampNilField
 			deleted_at:  schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef & {
@@ -300,6 +371,12 @@ project: {
 		// a live project to draft and edit its schema out from under its own
 		// data. Archiving, the one status change a user legitimately makes, is
 		// its own field and its own pair of endpoints.
+		//
+		// The approval_* fields are absent for the same reason, and it is a
+		// sharper one: they ARE the publish gate, so a client that could send
+		// approvalStatus could approve its own revision without a second person
+		// ever seeing it. They move only through RequestApproval/GrantApproval/
+		// RejectApproval.
 		updateFields: ["Handle", "Config", "Meta", "UpdatedBy"]
 
 		hooks: {

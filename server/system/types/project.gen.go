@@ -18,23 +18,30 @@ import (
 
 type (
 	Project struct {
-		ID               uint64                           `json:"projectID,string"`
-		TenantID         uint64                           `json:"tenantID,string,omitempty"`
-		Handle           string                           `json:"handle"`
-		Status           ProjectStatus                    `json:"status"`
-		Config           ProjectConfig                    `json:"config"`
-		Meta             ProjectMeta                      `json:"meta"`
-		ProjectID        uint64                           `json:"rootProjectID,string,omitempty"`
-		ParentRevisionID uint64                           `json:"parentRevisionID,string,omitempty"`
-		Revision         int                              `json:"revision,omitempty"`
-		ArchivedAt       *time.Time                       `json:"archivedAt,omitempty"`
-		CreatedAt        time.Time                        `json:"createdAt,omitempty"`
-		UpdatedAt        *time.Time                       `json:"updatedAt,omitempty"`
-		DeletedAt        *time.Time                       `json:"deletedAt,omitempty"`
-		CreatedBy        uint64                           `json:"createdBy,string"`
-		UpdatedBy        uint64                           `json:"updatedBy,string,omitempty"`
-		DeletedBy        uint64                           `json:"deletedBy,string,omitempty"`
-		Labels           map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+		ID                  uint64                           `json:"projectID,string"`
+		TenantID            uint64                           `json:"tenantID,string,omitempty"`
+		Handle              string                           `json:"handle"`
+		Status              ProjectStatus                    `json:"status"`
+		Config              ProjectConfig                    `json:"config"`
+		Meta                ProjectMeta                      `json:"meta"`
+		ProjectID           uint64                           `json:"rootProjectID,string,omitempty"`
+		ParentRevisionID    uint64                           `json:"parentRevisionID,string,omitempty"`
+		Revision            int                              `json:"revision,omitempty"`
+		ArchivedAt          *time.Time                       `json:"archivedAt,omitempty"`
+		ApprovalStatus      ProjectApprovalStatus            `json:"approvalStatus"`
+		ApprovalPlan        string                           `json:"approvalPlan,omitempty"`
+		ApprovalNote        string                           `json:"approvalNote,omitempty"`
+		ApprovalSubmittedBy uint64                           `json:"approvalSubmittedBy,string,omitempty"`
+		ApprovalSubmittedAt *time.Time                       `json:"approvalSubmittedAt,omitempty"`
+		ApprovalDecidedBy   uint64                           `json:"approvalDecidedBy,string,omitempty"`
+		ApprovalDecidedAt   *time.Time                       `json:"approvalDecidedAt,omitempty"`
+		CreatedAt           time.Time                        `json:"createdAt,omitempty"`
+		UpdatedAt           *time.Time                       `json:"updatedAt,omitempty"`
+		DeletedAt           *time.Time                       `json:"deletedAt,omitempty"`
+		CreatedBy           uint64                           `json:"createdBy,string"`
+		UpdatedBy           uint64                           `json:"updatedBy,string,omitempty"`
+		DeletedBy           uint64                           `json:"deletedBy,string,omitempty"`
+		Labels              map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 	}
 
 	ProjectConfig struct {
@@ -81,6 +88,8 @@ type (
 
 	ProjectStatus string
 
+	ProjectApprovalStatus string
+
 	ProjectVisibility string
 
 	ProjectMemberRole string
@@ -95,6 +104,16 @@ func (r Project) Clone() *Project {
 	if r.ArchivedAt != nil {
 		v := *r.ArchivedAt
 		dup.ArchivedAt = &v
+	}
+
+	if r.ApprovalSubmittedAt != nil {
+		v := *r.ApprovalSubmittedAt
+		dup.ApprovalSubmittedAt = &v
+	}
+
+	if r.ApprovalDecidedAt != nil {
+		v := *r.ApprovalDecidedAt
+		dup.ApprovalDecidedAt = &v
 	}
 
 	if r.UpdatedAt != nil {
@@ -161,6 +180,34 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.ArchivedAt, cmp.ArchivedAt) {
 		out = append(out, &revisions.Change{Key: "archivedAt", Old: []any{cmp.ArchivedAt}, New: []any{r.ArchivedAt}})
+	}
+
+	if !reflect.DeepEqual(r.ApprovalStatus, cmp.ApprovalStatus) {
+		out = append(out, &revisions.Change{Key: "approvalStatus", Old: []any{cmp.ApprovalStatus}, New: []any{r.ApprovalStatus}})
+	}
+
+	if r.ApprovalPlan != cmp.ApprovalPlan {
+		out = append(out, &revisions.Change{Key: "approvalPlan", Old: []any{cmp.ApprovalPlan}, New: []any{r.ApprovalPlan}})
+	}
+
+	if r.ApprovalNote != cmp.ApprovalNote {
+		out = append(out, &revisions.Change{Key: "approvalNote", Old: []any{cmp.ApprovalNote}, New: []any{r.ApprovalNote}})
+	}
+
+	if r.ApprovalSubmittedBy != cmp.ApprovalSubmittedBy {
+		out = append(out, &revisions.Change{Key: "approvalSubmittedBy", Old: []any{cmp.ApprovalSubmittedBy}, New: []any{r.ApprovalSubmittedBy}})
+	}
+
+	if !reflect.DeepEqual(r.ApprovalSubmittedAt, cmp.ApprovalSubmittedAt) {
+		out = append(out, &revisions.Change{Key: "approvalSubmittedAt", Old: []any{cmp.ApprovalSubmittedAt}, New: []any{r.ApprovalSubmittedAt}})
+	}
+
+	if r.ApprovalDecidedBy != cmp.ApprovalDecidedBy {
+		out = append(out, &revisions.Change{Key: "approvalDecidedBy", Old: []any{cmp.ApprovalDecidedBy}, New: []any{r.ApprovalDecidedBy}})
+	}
+
+	if !reflect.DeepEqual(r.ApprovalDecidedAt, cmp.ApprovalDecidedAt) {
+		out = append(out, &revisions.Change{Key: "approvalDecidedAt", Old: []any{cmp.ApprovalDecidedAt}, New: []any{r.ApprovalDecidedAt}})
 	}
 
 	if !reflect.DeepEqual(r.CreatedAt, cmp.CreatedAt) {
@@ -425,6 +472,13 @@ const (
 	ProjectStatusArchived   ProjectStatus = "archived"
 	ProjectStatusSuspended  ProjectStatus = "suspended"
 	ProjectStatusDeprecated ProjectStatus = "deprecated"
+)
+
+const (
+	ProjectApprovalStatusDraft     ProjectApprovalStatus = "draft"
+	ProjectApprovalStatusSubmitted ProjectApprovalStatus = "submitted"
+	ProjectApprovalStatusApproved  ProjectApprovalStatus = "approved"
+	ProjectApprovalStatusRejected  ProjectApprovalStatus = "rejected"
 )
 
 const (

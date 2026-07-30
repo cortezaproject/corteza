@@ -3,6 +3,11 @@ import { IsOf } from '../../guards'
 
 export type ProjectStatus = 'draft' | 'active' | 'published' | 'archived' | 'suspended'
 
+// Where a revision stands in the publish approval cycle — a separate axis from
+// ProjectStatus, which says what the revision IS rather than whether anyone has
+// agreed to put it live.
+export type ProjectApprovalStatus = 'draft' | 'submitted' | 'approved' | 'rejected'
+
 export type ProjectVisibility = 'open' | 'invite-only'
 
 export type ProjectMemberRole =
@@ -116,6 +121,20 @@ export class Project {
   // directly. Set means archived.
   public archivedAt?: Date = undefined
 
+  // Publish approval, server-owned exactly like status. It used to live in a
+  // Pinia ref, so it did not survive a reload and a second user never saw a
+  // submitted request; the backend now refuses to publish anything that is not
+  // 'approved' here. approvalPlan fingerprints the deployment plan the
+  // approval was granted against — publish recomputes it and sends the
+  // revision back for re-approval on a mismatch.
+  public approvalStatus: ProjectApprovalStatus = 'draft'
+  public approvalPlan = ''
+  public approvalNote = ''
+  public approvalSubmittedBy = NoID
+  public approvalSubmittedAt?: Date = undefined
+  public approvalDecidedBy = NoID
+  public approvalDecidedAt?: Date = undefined
+
   constructor(p?: PartialProject) {
     this.apply(p)
   }
@@ -131,10 +150,22 @@ export class Project {
       'updatedBy',
       'rootProjectID',
       'parentRevisionID',
+      'approvalSubmittedBy',
+      'approvalDecidedBy',
     )
-    Apply(this, p, String, 'handle', 'status')
+    Apply(this, p, String, 'handle', 'status', 'approvalStatus', 'approvalPlan', 'approvalNote')
     Apply(this, p, Number, 'revision')
-    Apply(this, p, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'archivedAt')
+    Apply(
+      this,
+      p,
+      ISO8601Date,
+      'createdAt',
+      'updatedAt',
+      'deletedAt',
+      'archivedAt',
+      'approvalSubmittedAt',
+      'approvalDecidedAt',
+    )
 
     // An original revision carries no rootProjectID; it is its own root.
     if (this.rootProjectID === NoID) {

@@ -3806,6 +3806,52 @@ var Project = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ApprovalStatus",
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "approval_status"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApprovalPlan",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "approval_plan"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApprovalNote",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "approval_note"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApprovalSubmittedBy",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "approval_submitted_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApprovalSubmittedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "approval_submitted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApprovalDecidedBy",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "approval_decided_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApprovalDecidedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "approval_decided_at"},
+		},
+
+		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,

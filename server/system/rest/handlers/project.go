@@ -34,6 +34,9 @@ type (
 		Graph(context.Context, *request.ProjectGraph) (interface{}, error)
 		CreateRevision(context.Context, *request.ProjectCreateRevision) (interface{}, error)
 		ListRevisions(context.Context, *request.ProjectListRevisions) (interface{}, error)
+		RequestApproval(context.Context, *request.ProjectRequestApproval) (interface{}, error)
+		GrantApproval(context.Context, *request.ProjectGrantApproval) (interface{}, error)
+		RejectApproval(context.Context, *request.ProjectRejectApproval) (interface{}, error)
 		GetDeploymentPlan(context.Context, *request.ProjectGetDeploymentPlan) (interface{}, error)
 		Publish(context.Context, *request.ProjectPublish) (interface{}, error)
 	}
@@ -55,6 +58,9 @@ type (
 		Graph             func(http.ResponseWriter, *http.Request)
 		CreateRevision    func(http.ResponseWriter, *http.Request)
 		ListRevisions     func(http.ResponseWriter, *http.Request)
+		RequestApproval   func(http.ResponseWriter, *http.Request)
+		GrantApproval     func(http.ResponseWriter, *http.Request)
+		RejectApproval    func(http.ResponseWriter, *http.Request)
 		GetDeploymentPlan func(http.ResponseWriter, *http.Request)
 		Publish           func(http.ResponseWriter, *http.Request)
 	}
@@ -302,6 +308,54 @@ func NewProject(h ProjectAPI) *Project {
 
 			api.Send(w, r, value)
 		},
+		RequestApproval: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectRequestApproval()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.RequestApproval(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		GrantApproval: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectGrantApproval()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.GrantApproval(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		RejectApproval: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectRejectApproval()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.RejectApproval(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		GetDeploymentPlan: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewProjectGetDeploymentPlan()
@@ -355,6 +409,9 @@ func (h Project) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Get("/projects/{projectID}/graph", h.Graph)
 		r.Post("/projects/{projectID}/revision", h.CreateRevision)
 		r.Get("/projects/{projectID}/revisions", h.ListRevisions)
+		r.Post("/projects/{projectID}/approval/request", h.RequestApproval)
+		r.Post("/projects/{projectID}/approval/grant", h.GrantApproval)
+		r.Post("/projects/{projectID}/approval/reject", h.RejectApproval)
 		r.Get("/projects/{projectID}/publish", h.GetDeploymentPlan)
 		r.Post("/projects/{projectID}/publish", h.Publish)
 	})

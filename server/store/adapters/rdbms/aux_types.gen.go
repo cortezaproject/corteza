@@ -817,22 +817,29 @@ type (
 
 	// auxProject is an auxiliary structure used for transporting to/from RDBMS store
 	auxProject struct {
-		ID               uint64                   `db:"id"`
-		TenantID         uint64                   `db:"tenant_id"`
-		Handle           string                   `db:"handle"`
-		Status           systemType.ProjectStatus `db:"status"`
-		Config           systemType.ProjectConfig `db:"config"`
-		Meta             systemType.ProjectMeta   `db:"meta"`
-		ProjectID        uint64                   `db:"root_project_id"`
-		ParentRevisionID uint64                   `db:"parent_revision_id"`
-		Revision         int                      `db:"revision"`
-		ArchivedAt       *time.Time               `db:"archived_at"`
-		CreatedAt        time.Time                `db:"created_at"`
-		UpdatedAt        *time.Time               `db:"updated_at"`
-		DeletedAt        *time.Time               `db:"deleted_at"`
-		CreatedBy        uint64                   `db:"created_by"`
-		UpdatedBy        uint64                   `db:"updated_by"`
-		DeletedBy        uint64                   `db:"deleted_by"`
+		ID                  uint64                           `db:"id"`
+		TenantID            uint64                           `db:"tenant_id"`
+		Handle              string                           `db:"handle"`
+		Status              systemType.ProjectStatus         `db:"status"`
+		Config              systemType.ProjectConfig         `db:"config"`
+		Meta                systemType.ProjectMeta           `db:"meta"`
+		ProjectID           uint64                           `db:"root_project_id"`
+		ParentRevisionID    uint64                           `db:"parent_revision_id"`
+		Revision            int                              `db:"revision"`
+		ArchivedAt          *time.Time                       `db:"archived_at"`
+		ApprovalStatus      systemType.ProjectApprovalStatus `db:"approval_status"`
+		ApprovalPlan        string                           `db:"approval_plan"`
+		ApprovalNote        string                           `db:"approval_note"`
+		ApprovalSubmittedBy uint64                           `db:"approval_submitted_by"`
+		ApprovalSubmittedAt *time.Time                       `db:"approval_submitted_at"`
+		ApprovalDecidedBy   uint64                           `db:"approval_decided_by"`
+		ApprovalDecidedAt   *time.Time                       `db:"approval_decided_at"`
+		CreatedAt           time.Time                        `db:"created_at"`
+		UpdatedAt           *time.Time                       `db:"updated_at"`
+		DeletedAt           *time.Time                       `db:"deleted_at"`
+		CreatedBy           uint64                           `db:"created_by"`
+		UpdatedBy           uint64                           `db:"updated_by"`
+		DeletedBy           uint64                           `db:"deleted_by"`
 	}
 
 	// auxProjectAiSystem is an auxiliary structure used for transporting to/from RDBMS store
@@ -4157,6 +4164,13 @@ func (aux *auxProject) encode(res *systemType.Project) (_ error) {
 	aux.ParentRevisionID = res.ParentRevisionID
 	aux.Revision = res.Revision
 	aux.ArchivedAt = res.ArchivedAt
+	aux.ApprovalStatus = res.ApprovalStatus
+	aux.ApprovalPlan = res.ApprovalPlan
+	aux.ApprovalNote = res.ApprovalNote
+	aux.ApprovalSubmittedBy = res.ApprovalSubmittedBy
+	aux.ApprovalSubmittedAt = res.ApprovalSubmittedAt
+	aux.ApprovalDecidedBy = res.ApprovalDecidedBy
+	aux.ApprovalDecidedAt = res.ApprovalDecidedAt
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -4181,6 +4195,13 @@ func (aux auxProject) decode() (res *systemType.Project, _ error) {
 	res.ParentRevisionID = aux.ParentRevisionID
 	res.Revision = aux.Revision
 	res.ArchivedAt = aux.ArchivedAt
+	res.ApprovalStatus = aux.ApprovalStatus
+	res.ApprovalPlan = aux.ApprovalPlan
+	res.ApprovalNote = aux.ApprovalNote
+	res.ApprovalSubmittedBy = aux.ApprovalSubmittedBy
+	res.ApprovalSubmittedAt = aux.ApprovalSubmittedAt
+	res.ApprovalDecidedBy = aux.ApprovalDecidedBy
+	res.ApprovalDecidedAt = aux.ApprovalDecidedAt
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -4205,6 +4226,13 @@ func (aux *auxProject) scan(row scanner) error {
 		&aux.ParentRevisionID,
 		&aux.Revision,
 		&aux.ArchivedAt,
+		&aux.ApprovalStatus,
+		&aux.ApprovalPlan,
+		&aux.ApprovalNote,
+		&aux.ApprovalSubmittedBy,
+		&aux.ApprovalSubmittedAt,
+		&aux.ApprovalDecidedBy,
+		&aux.ApprovalDecidedAt,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

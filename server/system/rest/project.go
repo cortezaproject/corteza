@@ -57,6 +57,10 @@ type (
 		UpdateMember(ctx context.Context, m *types.ProjectMember) (*types.ProjectMember, error)
 		RemoveMember(ctx context.Context, projectID, userID uint64) error
 
+		RequestApproval(ctx context.Context, projectID uint64, note string) (*types.Project, error)
+		GrantApproval(ctx context.Context, projectID uint64, note string) (*types.Project, error)
+		RejectApproval(ctx context.Context, projectID uint64, note string) (*types.Project, error)
+
 		Archive(ctx context.Context, projectID uint64) (*types.Project, error)
 		Unarchive(ctx context.Context, projectID uint64) (*types.Project, error)
 
@@ -195,6 +199,21 @@ func (ctrl *Project) ListRevisions(ctx context.Context, r *request.ProjectListRe
 		return nil, err
 	}
 	return ctrl.makeFilterPayload(ctx, set, types.ProjectFilter{}, nil)
+}
+
+func (ctrl *Project) RequestApproval(ctx context.Context, r *request.ProjectRequestApproval) (interface{}, error) {
+	p, err := ctrl.svc.RequestApproval(ctx, r.ProjectID, r.Note)
+	return ctrl.makePayload(ctx, p, err)
+}
+
+func (ctrl *Project) GrantApproval(ctx context.Context, r *request.ProjectGrantApproval) (interface{}, error) {
+	p, err := ctrl.svc.GrantApproval(ctx, r.ProjectID, r.Note)
+	return ctrl.makePayload(ctx, p, err)
+}
+
+func (ctrl *Project) RejectApproval(ctx context.Context, r *request.ProjectRejectApproval) (interface{}, error) {
+	p, err := ctrl.svc.RejectApproval(ctx, r.ProjectID, r.Note)
+	return ctrl.makePayload(ctx, p, err)
 }
 
 func (ctrl *Project) GetDeploymentPlan(ctx context.Context, r *request.ProjectGetDeploymentPlan) (interface{}, error) {

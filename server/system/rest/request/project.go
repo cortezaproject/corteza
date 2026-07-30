@@ -267,6 +267,42 @@ type (
 		ProjectID uint64 `json:",string"`
 	}
 
+	ProjectRequestApproval struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+
+		// Note POST parameter
+		//
+		// Why this revision is ready to go live
+		Note string
+	}
+
+	ProjectGrantApproval struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+
+		// Note POST parameter
+		//
+		// Reviewer note recorded with the approval
+		Note string
+	}
+
+	ProjectRejectApproval struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+
+		// Note POST parameter
+		//
+		// What has to change before this can go live
+		Note string
+	}
+
 	ProjectGetDeploymentPlan struct {
 		// ProjectID PATH parameter
 		//
@@ -1389,6 +1425,255 @@ func (r ProjectListRevisions) GetProjectID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ProjectListRevisions) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectRequestApproval request
+func NewProjectRequestApproval() *ProjectRequestApproval {
+	return &ProjectRequestApproval{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectRequestApproval) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+		"note":      r.Note,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectRequestApproval) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectRequestApproval) GetNote() string {
+	return r.Note
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectRequestApproval) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["note"]; ok && len(val) > 0 {
+				r.Note, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["note"]; ok && len(val) > 0 {
+			r.Note, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectGrantApproval request
+func NewProjectGrantApproval() *ProjectGrantApproval {
+	return &ProjectGrantApproval{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGrantApproval) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+		"note":      r.Note,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGrantApproval) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectGrantApproval) GetNote() string {
+	return r.Note
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectGrantApproval) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["note"]; ok && len(val) > 0 {
+				r.Note, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["note"]; ok && len(val) > 0 {
+			r.Note, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectRejectApproval request
+func NewProjectRejectApproval() *ProjectRejectApproval {
+	return &ProjectRejectApproval{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectRejectApproval) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+		"note":      r.Note,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectRejectApproval) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectRejectApproval) GetNote() string {
+	return r.Note
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectRejectApproval) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["note"]; ok && len(val) > 0 {
+				r.Note, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["note"]; ok && len(val) > 0 {
+			r.Note, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	{
 		var val string

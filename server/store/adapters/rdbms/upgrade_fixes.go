@@ -84,6 +84,7 @@ var (
 		fix_2026_07_30_dropGlobalUniqueHandleOnChatbots,
 		fix_2026_07_30_addArchivedAtOnProjects,
 		fix_2026_07_30_backfillProjectRefOnComposeResources,
+		fix_2026_07_31_addApprovalOnProjects,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -1857,6 +1858,73 @@ func fix_2026_07_30_addArchivedAtOnProjects(ctx context.Context, s *Store) error
 		 WHERE status = 'archived' AND archived_at IS NULL`)
 
 	return err
+}
+
+// fix_2026_07_31_addApprovalOnProjects gives the publish approval cycle a home
+// on the revision row.
+//
+// It used to live in a Pinia ref in the browser: it did not survive a reload, a
+// second user never saw a submitted request, a submitter could approve their
+// own work, and the server published on confirm=true alone -- so the entire
+// gate was advisory. Publishing is now refused unless the row says approved.
+//
+// Existing rows come back as drafts (the zero value of the new column), which
+// is the safe reading: nothing that was never reviewed should be publishable
+// because it predates the review. Already-live revisions are unaffected --
+// publish only ever looks at a draft.
+func fix_2026_07_31_addApprovalOnProjects(ctx context.Context, s *Store) error {
+	// The three text columns carry a DDL default even though the model does
+	// not: they are NOT NULL, and postgres refuses to add a NOT NULL column to
+	// a table that already has rows unless it is told what those rows should
+	// say. 'draft' is the honest answer for every existing project -- nothing
+	// that predates the gate was ever reviewed.
+	cols := []*dal.Attribute{{
+		Ident: "ApprovalStatus",
+		Type:  &dal.TypeText{Length: 32, HasDefault: true, DefaultValue: "draft"},
+		Store: &dal.CodecAlias{Ident: "approval_status"},
+	}, {
+		Ident: "ApprovalPlan",
+		Type:  &dal.TypeText{Length: 64, HasDefault: true, DefaultValue: ""},
+		Store: &dal.CodecAlias{Ident: "approval_plan"},
+	}, {
+		Ident: "ApprovalNote",
+		Type:  &dal.TypeText{HasDefault: true, DefaultValue: ""},
+		Store: &dal.CodecAlias{Ident: "approval_note"},
+	}, {
+		Ident: "ApprovalSubmittedBy",
+		Type:  &dal.TypeID{HasDefault: true, DefaultValue: 0},
+		Store: &dal.CodecAlias{Ident: "approval_submitted_by"},
+	}, {
+		Ident: "ApprovalSubmittedAt",
+		Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+		Store: &dal.CodecAlias{Ident: "approval_submitted_at"},
+	}, {
+		Ident: "ApprovalDecidedBy",
+		Type:  &dal.TypeID{HasDefault: true, DefaultValue: 0},
+		Store: &dal.CodecAlias{Ident: "approval_decided_by"},
+	}, {
+		Ident: "ApprovalDecidedAt",
+		Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+		Store: &dal.CodecAlias{Ident: "approval_decided_at"},
+	}}
+
+	// Skipped wholesale on a store that has not created the table yet -- the
+	// same guard the archived_at fix carries, for the same reason: a fresh
+	// install builds the table from the model, which already has the columns.
+	if _, err := s.DataDefiner.TableLookup(ctx, "projects"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	for _, col := range cols {
+		if err := addColumn(ctx, s, "projects", col); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // fix_2026_07_30_backfillProjectRefOnComposeResources aligns every compose

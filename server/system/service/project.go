@@ -150,6 +150,10 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 	// the publish flow -- no deployment plan, no record migration, and a
 	// namespace that was never swapped into place.
 	new.Status = types.ProjectStatusDraft
+	// Stated rather than left as the zero value: a project starts unreviewed,
+	// and publish (which refuses anything but "approved") should be reading a
+	// row that says so out loud.
+	new.ApprovalStatus = types.ProjectApprovalStatusDraft
 	new.ArchivedAt = nil
 	// Never shelved, so there is nothing for an unarchive to restore. Cleared
 	// rather than trusted: config arrives from the client wholesale.

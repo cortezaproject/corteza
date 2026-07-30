@@ -421,6 +421,63 @@ func ProjectActionUnarchive(props ...*projectActionProps) *projectAction {
 	return a
 }
 
+// ProjectActionRequestApproval returns "system:project.requestApproval" action
+//
+// This function is auto-generated.
+func ProjectActionRequestApproval(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "requestApproval",
+		log:       "requested publish approval for {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectActionGrantApproval returns "system:project.grantApproval" action
+//
+// This function is auto-generated.
+func ProjectActionGrantApproval(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "grantApproval",
+		log:       "granted publish approval for {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectActionRejectApproval returns "system:project.rejectApproval" action
+//
+// This function is auto-generated.
+func ProjectActionRejectApproval(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "rejectApproval",
+		log:       "rejected publish approval for {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // ProjectActionSearchMembers returns "system:project.searchMembers" action
 //
 // This function is auto-generated.
@@ -989,6 +1046,234 @@ func ProjectErrNotAllowedToPublish(mm ...*projectActionProps) *errors.Error {
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notAllowedToPublish"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrNotAllowedToRequestApproval returns "system:project.notAllowedToRequestApproval" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrNotAllowedToRequestApproval(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to request publish approval for this project", nil),
+
+		errors.Meta("type", "notAllowedToRequestApproval"),
+		errors.Meta("resource", "system:project"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(projectLogMetaKey{}, "failed to request publish approval for {{project.handle}}; insufficient permissions"),
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notAllowedToRequestApproval"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrNotAllowedToGrantApproval returns "system:project.notAllowedToGrantApproval" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrNotAllowedToGrantApproval(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to decide publish approval for this project", nil),
+
+		errors.Meta("type", "notAllowedToGrantApproval"),
+		errors.Meta("resource", "system:project"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(projectLogMetaKey{}, "failed to decide publish approval for {{project.handle}}; insufficient permissions"),
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notAllowedToGrantApproval"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrCannotApproveOwnRequest returns "system:project.cannotApproveOwnRequest" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrCannotApproveOwnRequest(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("the person who submitted a revision for approval cannot decide it; a second reviewer has to", nil),
+
+		errors.Meta("type", "cannotApproveOwnRequest"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.cannotApproveOwnRequest"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrApprovalNotRequested returns "system:project.approvalNotRequested" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrApprovalNotRequested(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("this revision has not been submitted for approval", nil),
+
+		errors.Meta("type", "approvalNotRequested"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.approvalNotRequested"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrApprovalAlreadyRequested returns "system:project.approvalAlreadyRequested" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrApprovalAlreadyRequested(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("this revision is already waiting for a decision", nil),
+
+		errors.Meta("type", "approvalAlreadyRequested"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.approvalAlreadyRequested"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrNotApproved returns "system:project.notApproved" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrNotApproved(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("this revision has not been approved for publishing", nil),
+
+		errors.Meta("type", "notApproved"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notApproved"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrApprovalStale returns "system:project.approvalStale" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrApprovalStale(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("the revision changed after it was approved; submit it for approval again", nil),
+
+		errors.Meta("type", "approvalStale"),
+		errors.Meta("resource", "system:project"),
+
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.approvalStale"),
 
 		errors.StackSkip(1),
 	)

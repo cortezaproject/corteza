@@ -4929,6 +4929,37 @@ endpoints:
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
+      # The publish approval cycle. Three POSTs rather than one transition
+      # endpoint taking an action name: each one answers to a different
+      # capability (requestApproval vs grantApproval) and the RBAC/capability
+      # check belongs at the entry point, not behind a switch on a body field.
+      - name: requestApproval
+        method: POST
+        title: Submit a draft revision for publish approval
+        path: '/{projectID}/approval/request'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            - { type: string, name: note, title: Why this revision is ready to go live }
+      - name: grantApproval
+        method: POST
+        title: Approve a draft revision for publishing
+        path: '/{projectID}/approval/grant'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            - { type: string, name: note, title: Reviewer note recorded with the approval }
+      - name: rejectApproval
+        method: POST
+        title: Send a draft revision back instead of approving it
+        path: '/{projectID}/approval/reject'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            - { type: string, name: note, title: What has to change before this can go live }
       - name: getDeploymentPlan
         method: GET
         title: Compute deployment plan (diff, risk, suggested mapping) for a draft revision

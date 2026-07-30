@@ -27066,17 +27066,21 @@ func (s *Store) LookupProjectByHandle(ctx context.Context, handle string) (_ *sy
 // This function is auto-generated
 func (Store) sortableProjectFields() map[string]string {
 	return map[string]string{
-		"archived_at": "archived_at",
-		"archivedat":  "archived_at",
-		"created_at":  "created_at",
-		"createdat":   "created_at",
-		"deleted_at":  "deleted_at",
-		"deletedat":   "deleted_at",
-		"handle":      "handle",
-		"id":          "id",
-		"status":      "status",
-		"updated_at":  "updated_at",
-		"updatedat":   "updated_at",
+		"approval_decided_at":   "approval_decided_at",
+		"approval_submitted_at": "approval_submitted_at",
+		"approvaldecidedat":     "approval_decided_at",
+		"approvalsubmittedat":   "approval_submitted_at",
+		"archived_at":           "archived_at",
+		"archivedat":            "archived_at",
+		"created_at":            "created_at",
+		"createdat":             "created_at",
+		"deleted_at":            "deleted_at",
+		"deletedat":             "deleted_at",
+		"handle":                "handle",
+		"id":                    "id",
+		"status":                "status",
+		"updated_at":            "updated_at",
+		"updatedat":             "updated_at",
 	}
 }
 
@@ -27113,6 +27117,10 @@ func (s *Store) collectProjectCursorValues(res *systemType.Project, cc ...*filte
 					return res.Status
 				case "archivedAt":
 					return res.ArchivedAt
+				case "approvalSubmittedAt":
+					return res.ApprovalSubmittedAt
+				case "approvalDecidedAt":
+					return res.ApprovalDecidedAt
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":
