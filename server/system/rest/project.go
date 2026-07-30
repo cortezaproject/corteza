@@ -57,6 +57,9 @@ type (
 		UpdateMember(ctx context.Context, m *types.ProjectMember) (*types.ProjectMember, error)
 		RemoveMember(ctx context.Context, projectID, userID uint64) error
 
+		Archive(ctx context.Context, projectID uint64) (*types.Project, error)
+		Unarchive(ctx context.Context, projectID uint64) (*types.Project, error)
+
 		CreateRevision(ctx context.Context, projectID uint64) (*types.Project, error)
 		ListRevisions(ctx context.Context, projectID uint64) (types.ProjectSet, error)
 		DeploymentPlan(ctx context.Context, projectID uint64) (*types.ProjectDeploymentPlan, error)
@@ -98,6 +101,7 @@ func (ctrl *Project) makeFilter(ctx context.Context, r *request.ProjectList) (ty
 			HeadsOnly: r.HeadsOnly,
 			Labels:    r.Labels,
 			Deleted:   filter.State(r.Deleted),
+			Archived:  filter.State(r.Archived),
 		}
 	)
 
@@ -163,6 +167,16 @@ func (ctrl *Project) UpdateMember(ctx context.Context, r *request.ProjectUpdateM
 
 func (ctrl *Project) RemoveMember(ctx context.Context, r *request.ProjectRemoveMember) (interface{}, error) {
 	return api.OK(), ctrl.svc.RemoveMember(ctx, r.ProjectID, r.UserID)
+}
+
+func (ctrl *Project) Archive(ctx context.Context, r *request.ProjectArchive) (interface{}, error) {
+	p, err := ctrl.svc.Archive(ctx, r.ProjectID)
+	return ctrl.makePayload(ctx, p, err)
+}
+
+func (ctrl *Project) Unarchive(ctx context.Context, r *request.ProjectUnarchive) (interface{}, error) {
+	p, err := ctrl.svc.Unarchive(ctx, r.ProjectID)
+	return ctrl.makePayload(ctx, p, err)
 }
 
 func (ctrl *Project) Graph(ctx context.Context, r *request.ProjectGraph) (interface{}, error) {

@@ -169,7 +169,6 @@ func (svc *project) Update(ctx context.Context, upd *types.Project) (res *types.
 			return err
 		}
 		res.Handle = upd.Handle
-		res.Status = upd.Status
 		res.Config = upd.Config
 		res.Meta = upd.Meta
 		res.UpdatedBy = upd.UpdatedBy

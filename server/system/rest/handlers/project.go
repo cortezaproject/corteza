@@ -25,6 +25,8 @@ type (
 		Update(context.Context, *request.ProjectUpdate) (interface{}, error)
 		Delete(context.Context, *request.ProjectDelete) (interface{}, error)
 		Undelete(context.Context, *request.ProjectUndelete) (interface{}, error)
+		Archive(context.Context, *request.ProjectArchive) (interface{}, error)
+		Unarchive(context.Context, *request.ProjectUnarchive) (interface{}, error)
 		ListMembers(context.Context, *request.ProjectListMembers) (interface{}, error)
 		AddMember(context.Context, *request.ProjectAddMember) (interface{}, error)
 		UpdateMember(context.Context, *request.ProjectUpdateMember) (interface{}, error)
@@ -44,6 +46,8 @@ type (
 		Update            func(http.ResponseWriter, *http.Request)
 		Delete            func(http.ResponseWriter, *http.Request)
 		Undelete          func(http.ResponseWriter, *http.Request)
+		Archive           func(http.ResponseWriter, *http.Request)
+		Unarchive         func(http.ResponseWriter, *http.Request)
 		ListMembers       func(http.ResponseWriter, *http.Request)
 		AddMember         func(http.ResponseWriter, *http.Request)
 		UpdateMember      func(http.ResponseWriter, *http.Request)
@@ -147,6 +151,38 @@ func NewProject(h ProjectAPI) *Project {
 			}
 
 			value, err := h.Undelete(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Archive: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectArchive()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Archive(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Unarchive: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewProjectUnarchive()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Unarchive(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -310,6 +346,8 @@ func (h Project) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Put("/projects/{projectID}", h.Update)
 		r.Delete("/projects/{projectID}", h.Delete)
 		r.Post("/projects/{projectID}/undelete", h.Undelete)
+		r.Post("/projects/{projectID}/archive", h.Archive)
+		r.Post("/projects/{projectID}/unarchive", h.Unarchive)
 		r.Get("/projects/{projectID}/members", h.ListMembers)
 		r.Post("/projects/{projectID}/members", h.AddMember)
 		r.Put("/projects/{projectID}/members/{userID}", h.UpdateMember)

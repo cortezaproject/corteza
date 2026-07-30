@@ -3796,6 +3796,12 @@ var Project = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ArchivedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "archived_at"},
+		},
+
+		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,

@@ -80,6 +80,7 @@ var (
 		fix_2026_06_00_addTenancyScopeColumns,
 		fix_2026_07_28_addRelRevisionOnProjectWorkItems,
 		fix_2026_07_30_dropGlobalUniqueHandleOnAgents,
+		fix_2026_07_30_addArchivedAtOnProjects,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -1793,6 +1794,25 @@ func fix_2026_07_28_addRelRevisionOnProjectWorkItems(ctx context.Context, s *Sto
 // environment-dependent bug.
 func fix_2026_07_30_dropGlobalUniqueHandleOnAgents(ctx context.Context, s *Store) error {
 	return dropIndexes(ctx, s, "agents", "agents_uniqueHandle")
+}
+
+// fix_2026_07_30_addArchivedAtOnProjects splits archiving out of the project
+// status. Archiving is the one lifecycle change a user makes directly, and
+// while it shared a column with the publish machinery's status, the generic
+// update had to accept a status from the client -- which is how a live project
+// could be flipped back to "draft" and then have its schema edited underneath
+// its own records.
+//
+// No backfill: rows whose status is the old "archived" value keep it, and the
+// service treats archived_at as the only shelf signal from here on. A
+// deployment with such rows sees them as unarchived-but-with-a-stale-status
+// once, and archiving them again is a single click.
+func fix_2026_07_30_addArchivedAtOnProjects(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s, "projects", &dal.Attribute{
+		Ident: "ArchivedAt",
+		Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+		Store: &dal.CodecAlias{Ident: "archived_at"},
+	})
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

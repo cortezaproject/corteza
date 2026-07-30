@@ -4766,6 +4766,11 @@ endpoints:
                 title: 'Exclude (0, default), include (1) or return only (2) deleted projects',
               }
             - {
+                type: uint,
+                name: archived,
+                title: 'Exclude (0, default), include (1) or return only (2) archived projects',
+              }
+            - {
                 type: 'map[string]labelTypes.LabelValue',
                 name: labels,
                 title: Labels,
@@ -4848,6 +4853,23 @@ endpoints:
         method: POST
         title: Undelete project
         path: '/{projectID}/undelete'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      # Archiving is the one lifecycle change a user makes directly, so it gets
+      # its own pair of endpoints rather than riding on update: status is
+      # written by publish and revision alone (see project.cue updateFields).
+      - name: archive
+        method: POST
+        title: Archive project
+        path: '/{projectID}/archive'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+      - name: unarchive
+        method: POST
+        title: Restore an archived project
+        path: '/{projectID}/unarchive'
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }

@@ -2036,6 +2036,8 @@ func (r *Project) GetValue(name string, pos uint) (any, error) {
 	}
 
 	switch name {
+	case "archivedAt", "ArchivedAt":
+		return r.ArchivedAt, nil
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
 	case "createdBy", "CreatedBy":
@@ -2065,6 +2067,8 @@ func (r *Project) SetValue(name string, pos uint, value any) (err error) {
 	}
 
 	switch name {
+	case "archivedAt", "ArchivedAt":
+		return cast2.TimePtr(value, &r.ArchivedAt)
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
 	case "createdBy", "CreatedBy":

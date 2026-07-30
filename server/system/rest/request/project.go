@@ -63,6 +63,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) deleted projects
 		Deleted uint
 
+		// Archived GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) archived projects
+		Archived uint
+
 		// Labels GET parameter
 		//
 		// Labels
@@ -168,6 +173,20 @@ type (
 	}
 
 	ProjectUndelete struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+	}
+
+	ProjectArchive struct {
+		// ProjectID PATH parameter
+		//
+		// Project ID
+		ProjectID uint64 `json:",string"`
+	}
+
+	ProjectUnarchive struct {
 		// ProjectID PATH parameter
 		//
 		// Project ID
@@ -286,6 +305,7 @@ func (r ProjectList) Auditable() map[string]interface{} {
 		"status":     r.Status,
 		"headsOnly":  r.HeadsOnly,
 		"deleted":    r.Deleted,
+		"archived":   r.Archived,
 		"labels":     r.Labels,
 		"limit":      r.Limit,
 		"incTotal":   r.IncTotal,
@@ -317,6 +337,11 @@ func (r ProjectList) GetHeadsOnly() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectList) GetDeleted() uint {
 	return r.Deleted
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectList) GetArchived() uint {
+	return r.Archived
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -377,6 +402,12 @@ func (r *ProjectList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
 			r.Deleted, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["archived"]; ok && len(val) > 0 {
+			r.Archived, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -898,6 +929,76 @@ func (r ProjectUndelete) GetProjectID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ProjectUndelete) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectArchive request
+func NewProjectArchive() *ProjectArchive {
+	return &ProjectArchive{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectArchive) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectArchive) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectArchive) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "projectID")
+		r.ProjectID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewProjectUnarchive request
+func NewProjectUnarchive() *ProjectUnarchive {
+	return &ProjectUnarchive{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectUnarchive) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"projectID": r.ProjectID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectUnarchive) GetProjectID() uint64 {
+	return r.ProjectID
+}
+
+// Fill processes request and fills internal variables
+func (r *ProjectUnarchive) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

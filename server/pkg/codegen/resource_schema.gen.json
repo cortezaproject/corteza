@@ -949,6 +949,7 @@
   "rootProjectID": "uint64",
   "parentRevisionID": "uint64",
   "revision": "int",
+  "archivedAt": "time.Time",
   "createdAt": "time.Time",
   "updatedAt": "time.Time",
   "deletedAt": "time.Time",

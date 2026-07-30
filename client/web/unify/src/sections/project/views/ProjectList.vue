@@ -51,7 +51,7 @@
       </template>
 
       <template #body-status="{ data }">
-        <CChip v-if="statusChipConfig[data.status]" v-bind="statusChipConfig[data.status]" />
+        <CChip v-if="chipFor(data)" v-bind="chipFor(data)" />
         <span v-else>-</span>
       </template>
 
@@ -141,7 +141,11 @@ const {
     // not one row per revision — see project.intent.md / ProjectList.intent.md.
     // Sent unconditionally here (not via the reactive `filter`) so it can
     // never be cleared by a filter-menu change and never pollutes the URL.
-    const { response, cancel } = $SystemAPI.projectListCancellable({ ...params, headsOnly: true })
+    const { response, cancel } = $SystemAPI.projectListCancellable({
+      ...params,
+      ...statusFilterParams(params.status),
+      headsOnly: true,
+    })
     return {
       cancel,
       response: async () => {
@@ -156,6 +160,21 @@ const {
     pagination: { limit: 50 },
   },
 )
+
+// The filter menu offers one radio group over three things that are not one
+// axis on the backend: two lifecycle statuses and the archive shelf. It also
+// speaks the user's vocabulary — "published" is `active` in the data model
+// (the status a publish actually writes), and asking for a literal "published"
+// now matches nothing. Both mappings live here so the menu can stay as it is.
+//
+// archived: 0 excludes shelved projects, 2 returns only those (pkg/filter
+// State). Sent explicitly rather than by omission so the working set is the
+// default no matter what the URL carries.
+const statusFilterParams = status => {
+  if (status === 'archived') return { status: undefined, archived: 2 }
+  if (status === 'published') return { status: 'active', archived: 0 }
+  return { status: status || undefined, archived: 0 }
+}
 
 const resourceListRef = ref()
 const newDialogVisible = ref(false)
@@ -201,6 +220,12 @@ const statusChipConfig = {
     ring: 'ring-gray-200',
   },
 }
+
+// Archived wins over the lifecycle status in this column: for a shelved
+// project "archived" is what the reader needs to know, and its status carries
+// on saying whatever it said when it went on the shelf.
+const chipFor = project =>
+  project.archivedAt ? statusChipConfig.archived : statusChipConfig[project.status]
 
 const formatDate = date => {
   if (!date) return ''
@@ -280,13 +305,23 @@ const openRename = project => {
   renameVisible.value = true
 }
 
+// Archiving has its own endpoints: it is a shelf state, separate from the
+// lifecycle status that publish and revision own. Sending `status: 'draft'` to
+// unarchive — which is what this did while the two shared a field — could
+// silently un-publish a live project and unlock its schema for editing.
 const toggleArchive = project => {
   closeMenu()
-  const archive = project.status !== 'archived'
-  apiCall(() => updateProject(project, { status: archive ? 'archived' : 'draft' }), {
-    summary: archive ? t('project.list.toast.archived') : t('project.list.toast.unarchived'),
-    detail: project.name,
-  })
+  const archive = !project.archivedAt
+  apiCall(
+    () =>
+      archive
+        ? $SystemAPI.projectArchive({ projectID: project.projectID })
+        : $SystemAPI.projectUnarchive({ projectID: project.projectID }),
+    {
+      summary: archive ? t('project.list.toast.archived') : t('project.list.toast.unarchived'),
+      detail: project.name,
+    },
+  )
 }
 
 const confirmDelete = project => {
@@ -321,10 +356,9 @@ const actionItemsFor = project => [
     command: () => openRename(project),
   },
   {
-    label:
-      project.status === 'archived'
-        ? t('project.list.actions.unarchive')
-        : t('project.list.actions.archive'),
+    label: project.archivedAt
+      ? t('project.list.actions.unarchive')
+      : t('project.list.actions.archive'),
     icon: 'pi pi-inbox',
     command: () => toggleArchive(project),
   },

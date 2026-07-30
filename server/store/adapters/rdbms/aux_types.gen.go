@@ -826,6 +826,7 @@ type (
 		ProjectID        uint64                   `db:"root_project_id"`
 		ParentRevisionID uint64                   `db:"parent_revision_id"`
 		Revision         int                      `db:"revision"`
+		ArchivedAt       *time.Time               `db:"archived_at"`
 		CreatedAt        time.Time                `db:"created_at"`
 		UpdatedAt        *time.Time               `db:"updated_at"`
 		DeletedAt        *time.Time               `db:"deleted_at"`
@@ -4155,6 +4156,7 @@ func (aux *auxProject) encode(res *systemType.Project) (_ error) {
 	aux.ProjectID = res.ProjectID
 	aux.ParentRevisionID = res.ParentRevisionID
 	aux.Revision = res.Revision
+	aux.ArchivedAt = res.ArchivedAt
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -4178,6 +4180,7 @@ func (aux auxProject) decode() (res *systemType.Project, _ error) {
 	res.ProjectID = aux.ProjectID
 	res.ParentRevisionID = aux.ParentRevisionID
 	res.Revision = aux.Revision
+	res.ArchivedAt = aux.ArchivedAt
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -4201,6 +4204,7 @@ func (aux *auxProject) scan(row scanner) error {
 		&aux.ProjectID,
 		&aux.ParentRevisionID,
 		&aux.Revision,
+		&aux.ArchivedAt,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

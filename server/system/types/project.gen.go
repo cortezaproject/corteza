@@ -27,6 +27,7 @@ type (
 		ProjectID        uint64                           `json:"rootProjectID,string,omitempty"`
 		ParentRevisionID uint64                           `json:"parentRevisionID,string,omitempty"`
 		Revision         int                              `json:"revision,omitempty"`
+		ArchivedAt       *time.Time                       `json:"archivedAt,omitempty"`
 		CreatedAt        time.Time                        `json:"createdAt,omitempty"`
 		UpdatedAt        *time.Time                       `json:"updatedAt,omitempty"`
 		DeletedAt        *time.Time                       `json:"deletedAt,omitempty"`
@@ -90,6 +91,11 @@ func (r Project) Clone() *Project {
 
 	dup.Meta = *r.Meta.Clone()
 
+	if r.ArchivedAt != nil {
+		v := *r.ArchivedAt
+		dup.ArchivedAt = &v
+	}
+
 	if r.UpdatedAt != nil {
 		v := *r.UpdatedAt
 		dup.UpdatedAt = &v
@@ -150,6 +156,10 @@ func (r Project) Diff(cmp *Project) []*revisions.Change {
 
 	if r.Revision != cmp.Revision {
 		out = append(out, &revisions.Change{Key: "revision", Old: []any{cmp.Revision}, New: []any{r.Revision}})
+	}
+
+	if !reflect.DeepEqual(r.ArchivedAt, cmp.ArchivedAt) {
+		out = append(out, &revisions.Change{Key: "archivedAt", Old: []any{cmp.ArchivedAt}, New: []any{r.ArchivedAt}})
 	}
 
 	if !reflect.DeepEqual(r.CreatedAt, cmp.CreatedAt) {

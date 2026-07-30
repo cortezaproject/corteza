@@ -57,7 +57,17 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		return nil, fmt.Errorf("can only revise active projects")
 	}
 
-	// one draft per chain at a time
+	// One draft per chain at a time.
+	//
+	// This gate used to match EVERY row in the chain: it passed Status here,
+	// but project.cue's filter did not list status in byValue, so the store
+	// emitted no predicate for it and silently answered a different question.
+	// After the first publish the chain always holds at least the active
+	// revision, so every later branch was refused with "a draft revision
+	// already exists" -- against a draft that did not exist. Combined with the
+	// read-only guard on non-draft projects, that made a published project
+	// permanently unchangeable. Deleted rows are excluded by the filter's
+	// default, so discarding a draft frees the chain again.
 	rootID := parent.RootProjectID()
 	existing, _, err := store.SearchProjects(ctx, svc.store, types.ProjectFilter{
 		RootProjectID: rootID,

@@ -111,6 +111,10 @@ export class Project {
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
+  // Shelf state, deliberately not a status value: status is owned by publish
+  // and revision, and archiving is the one lifecycle change a user makes
+  // directly. Set means archived.
+  public archivedAt?: Date = undefined
 
   constructor(p?: PartialProject) {
     this.apply(p)
@@ -130,7 +134,7 @@ export class Project {
     )
     Apply(this, p, String, 'handle', 'status')
     Apply(this, p, Number, 'revision')
-    Apply(this, p, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
+    Apply(this, p, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'archivedAt')
 
     // An original revision carries no rootProjectID; it is its own root.
     if (this.rootProjectID === NoID) {

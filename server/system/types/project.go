@@ -19,6 +19,10 @@ type (
 		HeadsOnly bool `json:"headsOnly"`
 
 		Deleted filter.State `json:"deleted"`
+		// Archived is a shelf state, independent of the lifecycle Status: an
+		// archived project keeps whatever status it had. Defaults to
+		// StateExcluded, so a plain listing shows the working set.
+		Archived filter.State `json:"archived"`
 
 		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`

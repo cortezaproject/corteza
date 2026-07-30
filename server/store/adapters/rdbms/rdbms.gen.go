@@ -27054,15 +27054,17 @@ func (s *Store) LookupProjectByHandle(ctx context.Context, handle string) (_ *sy
 // This function is auto-generated
 func (Store) sortableProjectFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"handle":     "handle",
-		"id":         "id",
-		"status":     "status",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"archived_at": "archived_at",
+		"archivedat":  "archived_at",
+		"created_at":  "created_at",
+		"createdat":   "created_at",
+		"deleted_at":  "deleted_at",
+		"deletedat":   "deleted_at",
+		"handle":      "handle",
+		"id":          "id",
+		"status":      "status",
+		"updated_at":  "updated_at",
+		"updatedat":   "updated_at",
 	}
 }
 
@@ -27097,6 +27099,8 @@ func (s *Store) collectProjectCursorValues(res *systemType.Project, cc ...*filte
 					return res.Handle
 				case "status":
 					return res.Status
+				case "archivedAt":
+					return res.ArchivedAt
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":

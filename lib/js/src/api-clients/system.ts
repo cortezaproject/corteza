@@ -11892,8 +11892,19 @@ export default class System {
 
   // List projects
   async projectList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { query, handle, status, headsOnly, deleted, labels, limit, incTotal, pageCursor, sort } =
-      (a as KV) || {}
+    const {
+      query,
+      handle,
+      status,
+      headsOnly,
+      deleted,
+      archived,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -11905,6 +11916,7 @@ export default class System {
       status,
       headsOnly,
       deleted,
+      archived,
       labels,
       limit,
       incTotal,
@@ -12136,6 +12148,84 @@ export default class System {
   projectUndeleteEndpoint(a: KV): string {
     const { projectID } = a || {}
     return `/projects/${projectID}/undelete`
+  }
+
+  // Archive project
+  async projectArchive(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectArchiveEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectArchiveCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectArchive(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectArchiveEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/archive`
+  }
+
+  // Restore an archived project
+  async projectUnarchive(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectUnarchiveEndpoint({
+        projectID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectUnarchiveCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectUnarchive(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectUnarchiveEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/unarchive`
   }
 
   // List project members

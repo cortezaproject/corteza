@@ -139,12 +139,12 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 		return ProjectErrInvalidHandle()
 	}
 
-	if new.Status == "" {
-		new.Status = types.ProjectStatusDraft
-	}
-	if err := validateProjectStatus(new.Status); err != nil {
-		return err
-	}
+	// Every project starts as a draft, whatever the client asked for. Create
+	// accepted a status, so a project could be born `active` and never touch
+	// the publish flow -- no deployment plan, no record migration, and a
+	// namespace that was never swapped into place.
+	new.Status = types.ProjectStatusDraft
+	new.ArchivedAt = nil
 
 	// FRIA requirement is derived from the deployer answers once, at
 	// creation, so the pipeline shape doesn't silently change later.
@@ -223,12 +223,14 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 }
 
 func (svc *project) beforeUpdate(ctx context.Context, upd, res *types.Project) error {
-	if upd.Status == "" {
-		upd.Status = res.Status
-	}
-	if err := validateProjectStatus(upd.Status); err != nil {
-		return err
-	}
+	// Status is not in updateFields, so the generated Update never copies it
+	// onto the stored record -- but upd is what gets persisted, so it has to
+	// carry the value the store already holds or an update would blank it.
+	// Anything a client sent is ignored here, which is the point: a status
+	// change means publishing or branching, both of which go through their own
+	// endpoints and their own permissions.
+	upd.Status = res.Status
+	upd.ArchivedAt = res.ArchivedAt
 
 	if upd.Handle != res.Handle {
 		if err := svc.uniqueCheck(ctx, upd); err != nil {
@@ -294,6 +296,52 @@ func (svc *project) onUndelete(ctx context.Context, s store.Storer, p *types.Pro
 		return err
 	}
 	return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, nil)
+}
+
+// Archive puts a project on the shelf without touching its lifecycle status.
+//
+// Archiving used to be a status value, which forced the generic update to
+// accept a status from the client -- and that is what let a live project be
+// flipped back to "draft" and have its schema edited underneath its own
+// records. Keeping the two apart also makes coming back off the shelf
+// answerable: status was never overwritten, so Unarchive has nothing to guess.
+//
+// Gated on update rather than delete: shelving is an edit to how the project is
+// presented, not a removal, and it is reversible by anyone who could do it.
+func (svc *project) Archive(ctx context.Context, projectID uint64) (*types.Project, error) {
+	return svc.setArchived(ctx, projectID, now())
+}
+
+// Unarchive brings an archived project back into the working set.
+func (svc *project) Unarchive(ctx context.Context, projectID uint64) (*types.Project, error) {
+	return svc.setArchived(ctx, projectID, nil)
+}
+
+func (svc *project) setArchived(ctx context.Context, projectID uint64, at *time.Time) (*types.Project, error) {
+	p, err := loadProject(ctx, svc.store, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !svc.ac.CanUpdateProject(ctx, p) {
+		return nil, ProjectErrNotAllowedToUpdate()
+	}
+
+	// Idempotent on purpose: archiving an archived project is a no-op rather
+	// than an error, so a double-click or a retried request cannot fail.
+	if (p.ArchivedAt == nil) == (at == nil) {
+		return p, nil
+	}
+
+	p.ArchivedAt = at
+	p.UpdatedAt = now()
+	p.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	if err = store.UpdateProject(ctx, svc.store, p); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 // --- members ---
@@ -440,18 +488,12 @@ func (svc *project) uniqueCheck(ctx context.Context, p *types.Project) error {
 	return nil
 }
 
-func validateProjectStatus(s types.ProjectStatus) error {
-	switch s {
-	case types.ProjectStatusDraft,
-		types.ProjectStatusActive,
-		types.ProjectStatusPublished,
-		types.ProjectStatusArchived,
-		types.ProjectStatusSuspended,
-		types.ProjectStatusDeprecated:
-		return nil
-	}
-	return ProjectErrInvalidStatus()
-}
+// validateProjectStatus is gone with the client-supplied status it existed to
+// check: create always writes draft, update never writes status at all, and
+// every other transition is made by CreateRevision or Publish with a constant.
+// Membership in the enum was never the interesting question anyway -- an
+// enum-valid "active" on a project that had never been published was exactly
+// the bug.
 
 // friaRequired: any positive deployer-category answer makes a Fundamental
 // Rights Impact Assessment step mandatory (EU AI Act Art. 27).

@@ -1710,6 +1710,10 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 		ee = append(ee, expr)
 	}
 
+	if expr := stateNilComparison(d, "archived_at", f.Archived); expr != nil {
+		ee = append(ee, expr)
+	}
+
 	if len(f.ProjectID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.ProjectID))
 	}

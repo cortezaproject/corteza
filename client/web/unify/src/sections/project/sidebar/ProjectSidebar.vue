@@ -82,7 +82,7 @@ const navItems = computed(() => [
   // Archived projects are hidden here (deleted ones never reach the store);
   // the All Projects list still shows everything.
   ...projects.value
-    .filter(p => p.status !== 'archived' && isChainHead(p))
+    .filter(p => !p.archivedAt && isChainHead(p))
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     // No per-project icon: every row carried the same one, so it said nothing
     // the indentation doesn't already say, and the status indicator on the

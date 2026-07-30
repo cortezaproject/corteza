@@ -226,6 +226,15 @@ func DefaultFilters() (f *extendedFilters) {
 			))
 		}
 
+		// Status is a named string type (systemType.ProjectStatus), which the
+		// generated filter cannot compare — it emits a "not supported" TODO in
+		// place of the predicate. That silence is not academic: CreateRevision's
+		// one-draft gate asked for drafts in a chain, got every row in the
+		// chain, and refused every branch after the first publish.
+		if status := strings.TrimSpace(string(f.Status)); status != "" {
+			ee = append(ee, goqu.C("status").Eq(status))
+		}
+
 		if f.HeadsOnly {
 			// A chain head is the row no other (non-deleted) row points at via
 			// parent_revision_id — the revision a user would act on. Excluding

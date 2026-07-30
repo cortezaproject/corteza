@@ -117,6 +117,83 @@ func seedRevisionProject(t *testing.T, s store.Storer, handle string) *types.Pro
 	return p
 }
 
+// TestCreateRevision_ChainCanBeRevisedRepeatedly is the "publish once and the
+// project is frozen forever" bug. The one-draft gate passed Status: draft to
+// SearchProjects, but project.cue's filter did not list status in byValue, so
+// no predicate was emitted and the gate matched every row in the chain —
+// including the active revision itself. Every branch after the first was
+// refused with "a draft revision already exists" against a draft that did not
+// exist, and since non-draft projects are read-only, nothing about the project
+// could ever be changed again.
+func TestCreateRevision_ChainCanBeRevisedRepeatedly(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	parent := seedRevisionProject(t, s, "project-revision-test-chain")
+
+	rev1, err := svc.CreateRevision(ctx, parent.ID)
+	require.NoError(t, err)
+
+	// A second branch while rev1 is still a draft is the case the gate is FOR.
+	_, err = svc.CreateRevision(ctx, parent.ID)
+	require.EqualError(t, err, "a draft revision already exists for this project")
+
+	// Publishing rev1 leaves the chain with a deprecated parent and an active
+	// head, and no draft — so it must be branchable again.
+	rev1.Status = types.ProjectStatusActive
+	require.NoError(t, store.UpdateProject(ctx, s, rev1))
+	parent.Status = types.ProjectStatusDeprecated
+	require.NoError(t, store.UpdateProject(ctx, s, parent))
+
+	rev2, err := svc.CreateRevision(ctx, rev1.ID)
+	require.NoError(t, err, "a chain that has published must still be revisable")
+	require.Equal(t, 2, rev2.Revision)
+	require.Equal(t, parent.ID, rev2.RootProjectID())
+
+	// And discarding a draft frees the chain rather than wedging it: the gate
+	// excludes deleted rows. Deleted through the service, which also releases
+	// the draft namespace's slug — a raw row delete would leave it squatting
+	// and the next branch would fail on the namespace instead of the gate.
+	require.NoError(t, svc.DeleteByID(ctx, rev2.ID))
+
+	rev3, err := svc.CreateRevision(ctx, rev1.ID)
+	require.NoError(t, err, "a discarded draft must not block the next branch")
+	require.Equal(t, 2, rev3.Revision)
+}
+
+// TestProjectStatusIsNotClientWritable locks the other half of the split: a
+// live project could be flipped back to draft with a plain update, which
+// unlocked its schema for editing while its records were live. Status is now
+// written only by the lifecycle endpoints, and archiving — the one status
+// change a user makes directly — has its own field.
+func TestProjectStatusIsNotClientWritable(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	p := seedRevisionProject(t, s, "project-revision-test-status")
+
+	upd := *p
+	upd.Status = types.ProjectStatusDraft
+	upd.Meta.Short = "renamed"
+
+	got, err := svc.Update(ctx, &upd)
+	require.NoError(t, err)
+	require.Equal(t, types.ProjectStatusActive, got.Status, "update must not move the lifecycle")
+	require.Equal(t, "renamed", got.Meta.Short, "the rest of the update still applies")
+
+	archived, err := svc.Archive(ctx, p.ID)
+	require.NoError(t, err)
+	require.NotNil(t, archived.ArchivedAt)
+	require.Equal(t, types.ProjectStatusActive, archived.Status,
+		"archiving is a shelf state; it must not overwrite the lifecycle status")
+
+	restored, err := svc.Unarchive(ctx, p.ID)
+	require.NoError(t, err)
+	require.Nil(t, restored.ArchivedAt)
+	require.Equal(t, types.ProjectStatusActive, restored.Status,
+		"unarchive restores the real status because it was never lost")
+}
+
 // denyingProjectAccess refuses everything, for the tests that assert the
 // lifecycle endpoints ask at all.
 type denyingProjectAccess struct{ permissiveProjectAccess }

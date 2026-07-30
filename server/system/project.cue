@@ -139,9 +139,18 @@ project: {
 				omitSetter: true
 				omitGetter: true
 			}
-			created_at: schema.SortableTimestampNowField
-			updated_at: schema.SortableTimestampNilField
-			deleted_at: schema.SortableTimestampNilField
+			// Archiving is a shelf state the OWNER controls; status is a lifecycle
+			// stage the publish machinery controls. They were one field, which is
+			// why a live project could be flipped back to "draft" through a plain
+			// update and then have its schema edited underneath its own records --
+			// there was no way to let a user write the half they own without
+			// exposing the half they do not. Splitting them also makes unarchive
+			// answerable: status was never overwritten, so there is nothing to
+			// guess at when the project comes back off the shelf.
+			archived_at: schema.SortableTimestampNilField
+			created_at:  schema.SortableTimestampNowField
+			updated_at:  schema.SortableTimestampNilField
+			deleted_at:  schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef & {
 				json: {field: "createdBy", string: true}
 			}
@@ -164,6 +173,14 @@ project: {
 			root_project_id: {goType: "uint64", ident: "rootProjectID", storeIdent: "root_project_id"}
 			tenant_id: schema.TenantFilterField
 			handle: {goType: "string"}
+			// Status filtering is real and load-bearing (CreateRevision's
+			// one-draft gate is built on it) but it cannot ride byValue: the
+			// rdbms template only knows how to compare plain string/uint64
+			// fields, and ProjectStatus is a named type, so listing it there
+			// emits a "not supported" TODO comment instead of a predicate --
+			// which is exactly how the gate came to ask for drafts and match
+			// every row in the chain. Handled by the f.Project override in
+			// server/store/adapters/rdbms/filter.go, same as heads_only.
 			status: {goType: "types.ProjectStatus"}
 			// Chain-head filtering: return only the row in each revision chain
 			// that no other row points at via parent_revision_id. Not a simple
@@ -173,11 +190,12 @@ project: {
 			heads_only: {goType: "bool"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
+			archived: {goType: "filter.State", storeIdent: "archived_at"}
 		}
 
 		query: ["handle"]
 		byValue: ["project_id", "root_project_id", "handle"]
-		byNilState: ["deleted"]
+		byNilState: ["deleted", "archived"]
 	}
 
 	rbac: {
@@ -263,10 +281,17 @@ project: {
 
 		customBodyOps: ["create", "delete", "undelete"]
 
-		// Explicit list because status/config/meta carry omitSetter:true (a DAL
-		// concern) which would wrongly exclude them from the derived settable list.
+		// Explicit list because config/meta carry omitSetter:true (a DAL concern)
+		// which would wrongly exclude them from the derived settable list.
 		// updated_by is included so beforeUpdate can stamp the caller identity.
-		updateFields: ["Handle", "Status", "Config", "Meta", "UpdatedBy"]
+		//
+		// Status is deliberately NOT settable through the generic update. It is
+		// written by CreateRevision and Publish alone; a client that could set
+		// it could put a draft live without migrating a single record, or flip
+		// a live project to draft and edit its schema out from under its own
+		// data. Archiving, the one status change a user legitimately makes, is
+		// its own field and its own pair of endpoints.
+		updateFields: ["Handle", "Config", "Meta", "UpdatedBy"]
 
 		hooks: {
 			afterLookup:  true
