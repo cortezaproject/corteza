@@ -9,8 +9,10 @@ import (
 	"go.uber.org/zap"
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
+	"github.com/crusttech/human/server/system/service/dml"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -115,6 +117,85 @@ func seedRevisionProject(t *testing.T, s store.Storer, handle string) *types.Pro
 	}
 	require.NoError(t, store.CreateProject(ctx, s, p))
 	return p
+}
+
+// fakeProjectPublishDeps stands in for the DAL and record services Publish
+// wires up for the record migration. The publish tests below carry no records,
+// so nothing here is ever called — migrateRecords returns on the empty mapping
+// set — but it refuses to run at all while the deps are unset, so they have to
+// be something.
+type fakeProjectPublishDeps struct{}
+
+func (fakeProjectPublishDeps) NewMigration() *dml.Migration { return nil }
+
+func (fakeProjectPublishDeps) ReplaceConnection(context.Context, *dal.ConnectionWrap, bool) error {
+	return nil
+}
+func (fakeProjectPublishDeps) RemoveConnection(context.Context, uint64) error { return nil }
+
+func (fakeProjectPublishDeps) Bulk(context.Context, bool, ...*composeTypes.RecordBulkOperation) ([]composeTypes.RecordBulkOperationResult, error) {
+	return nil, nil
+}
+
+func (fakeProjectPublishDeps) Search(context.Context, composeTypes.RecordFilter) (composeTypes.RecordSet, composeTypes.RecordFilter, error) {
+	return nil, composeTypes.RecordFilter{}, nil
+}
+
+// TestPublishKeepsTheChainRootsIdentity locks the ruling that a chain's name and
+// URL belong to its ROOT.
+//
+// Both were derived from the row being branched from or published over, so both
+// grew on every publish: a third revision was handled
+// "myproj-rev1-rev2-rev3" (unbounded growth against a 64-char column) and the
+// live namespace slug walked "myproj" -> "myproj-rev1" -> "myproj-rev1-rev2",
+// moving the URL of a deployed app on every release and leaving "myproj"
+// resolving to the deprecated row. Three publishes is the smallest chain that
+// shows it: the first one looked correct even before the fix.
+func TestPublishKeepsTheChainRootsIdentity(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	svc.services.dalSvc = fakeProjectPublishDeps{}
+	svc.services.dalConns = fakeProjectPublishDeps{}
+	svc.services.recordSvc = fakeProjectPublishDeps{}
+	ctx := context.Background()
+
+	root := seedRevisionProject(t, s, "project-revision-test-identity")
+
+	// Start the live namespace where onCreate leaves it: slug == handle. That is
+	// the slug the app is reachable at and the one every publish must restore.
+	rootNs, err := store.LookupComposeNamespaceByID(ctx, s, root.Config.NamespaceID)
+	require.NoError(t, err)
+	rootNs.Slug, rootNs.Enabled = root.Handle, true
+	require.NoError(t, store.UpdateComposeNamespace(ctx, s, rootNs))
+
+	head := root
+	for n := 1; n <= 3; n++ {
+		draft, cerr := svc.CreateRevision(ctx, head.ID)
+		require.NoError(t, cerr)
+
+		require.Equal(t, root.Handle+"-rev"+strconv.Itoa(n), draft.Handle,
+			"a revision handle is the ROOT's handle plus one suffix, however deep the chain is")
+
+		head, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true, DiscardRecords: true})
+		require.NoError(t, err)
+
+		liveNs, lerr := store.LookupComposeNamespaceByID(ctx, s, head.Config.NamespaceID)
+		require.NoError(t, lerr)
+		require.Equal(t, root.Handle, liveNs.Slug,
+			"the published app answers at the root's slug, so its URL never moves")
+		require.True(t, liveNs.Enabled, "the revision going live has to be in service")
+		require.Equal(t, "namespace (revision "+strconv.Itoa(n)+")", liveNs.Name,
+			"the label carries one revision suffix, not one per branch ever taken")
+	}
+
+	require.Equal(t, 3, head.Revision)
+
+	// And the slug is genuinely free for the chain to keep taking: the outgoing
+	// namespace is renamed out of the way before the incoming one claims it, so
+	// the canonical slug names exactly one live namespace.
+	live, err := store.LookupComposeNamespaceBySlug(ctx, s, root.Handle)
+	require.NoError(t, err)
+	require.Equal(t, head.Config.NamespaceID, live.ID,
+		"the canonical slug must resolve to the current head, not to a deprecated revision")
 }
 
 // TestCreateRevision_ChainCanBeRevisedRepeatedly is the "publish once and the

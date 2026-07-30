@@ -92,6 +92,12 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		return nil, fmt.Errorf("load namespace for project: %w", err)
 	}
 
+	// Identity is the ROOT's, not the branched-from revision's -- see chainRoot.
+	root, err := chainRoot(ctx, svc.store, parent)
+	if err != nil {
+		return nil, fmt.Errorf("load chain root for revision identity: %w", err)
+	}
+
 	newRevision := parent.Revision + 1
 	revSuffix := "-rev" + strconv.Itoa(newRevision)
 	// Root-derived fallback for an empty prefix. Projects are routinely created
@@ -101,15 +107,14 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 	// in the whole system could ever be revised.
 	rootFallback := "rev-" + strconv.FormatUint(rootID, 10) + revSuffix
 
-	revSlug := oldNs.Slug + revSuffix
+	// Handle and slug are the same string on a draft: both name the same thing
+	// (this revision of this project) and both are unique, so both are derived
+	// from the root the same way. The slug the draft's namespace carries here is
+	// temporary anyway -- publishing hands it the root's own slug.
+	revHandle, revSlug := root.Handle+revSuffix, root.Handle+revSuffix
 	// Envoy requires a non-empty slug for clone.
-	if revSlug == revSuffix {
-		revSlug = rootFallback
-	}
-
-	revHandle := parent.Handle + revSuffix
-	if revHandle == revSuffix {
-		revHandle = rootFallback
+	if root.Handle == "" {
+		revHandle, revSlug = rootFallback, rootFallback
 	}
 
 	if svc.services.nsSvc == nil {
@@ -121,9 +126,20 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 	// ID right after cloning -- see the comment below.
 	revID := nextID()
 
+	// The label compounds for exactly the reason the handle did -- it is built
+	// from the namespace being branched from, and that one already carries a
+	// suffix -- so a third revision went live named "My app (revision 1)
+	// (revision 2) (revision 3)". Only this code ever writes that suffix, so
+	// cutting at the first one recovers the name the project is known by, and
+	// heals a chain that already compounded.
+	baseName := oldNs.Name
+	if i := strings.Index(baseName, " (revision "); i >= 0 {
+		baseName = baseName[:i]
+	}
+
 	dup := &composeTypes.Namespace{
 		TenantID: oldNs.TenantID,
-		Name:     oldNs.Name + " (revision " + strconv.Itoa(newRevision) + ")",
+		Name:     baseName + " (revision " + strconv.Itoa(newRevision) + ")",
 		Slug:     revSlug,
 	}
 	clonedNs, err := svc.services.nsSvc.CloneFromStore(ctx, parent.Config.NamespaceID, dup)
@@ -304,6 +320,27 @@ func (svc *project) discardHalfBuiltRevision(ctx context.Context, rev *types.Pro
 	}
 }
 
+// chainRoot resolves the project that owns a chain's identity.
+//
+// A revision chain is ONE project as far as names go: the handle a user gave it
+// and the slug its deployed app is reachable at belong to the root row, and
+// every revision after it is only a version of that. Deriving either from the
+// row being branched from (CreateRevision) or published over (Publish) made
+// both drift on every publish -- a third revision was handled
+// "myproj-rev1-rev2-rev3", growing without bound against a 64-char column, and
+// the live namespace slug moved from "myproj" to "myproj-rev1" to
+// "myproj-rev1-rev2", so the URL of a published app changed every time it was
+// republished and "myproj" kept resolving to the deprecated row.
+//
+// The root of a root is itself, so this is a free no-op on a first revision.
+func chainRoot(ctx context.Context, s store.Projects, p *types.Project) (*types.Project, error) {
+	if p.RootProjectID() == p.ID {
+		return p, nil
+	}
+
+	return loadProject(ctx, s, p.RootProjectID())
+}
+
 // revisionInChain reports whether revisionID (if non-zero) names a project
 // row belonging to the same revision chain as rootProjectID — i.e. its own
 // chain root matches. Zero revisionID is always valid: work items are
@@ -469,6 +506,14 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 		return nil, fmt.Errorf("cannot publish over a deleted revision; restore %s first", parent.Handle)
 	}
 
+	// The slug the app goes live at is the ROOT's, not the outgoing revision's
+	// -- see chainRoot. Loaded before the transaction: it is a read, and the
+	// transaction below should hold nothing but the swap.
+	root, err := chainRoot(ctx, svc.store, draft)
+	if err != nil {
+		return nil, fmt.Errorf("load chain root for the live slug: %w", err)
+	}
+
 	oldNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, parent.Config.NamespaceID)
 	if err != nil {
 		return nil, fmt.Errorf("load old namespace: %w", err)
@@ -489,11 +534,15 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 
 	// Flip statuses and namespaces in a single transaction.
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		// Rename old namespace to mark it as a deprecated revision. The
-		// timestamp alone is NOT a sufficient disambiguator: a project created
-		// without a handle has an empty namespace slug (and newNs.Slug below
-		// resets it to that same empty handle on every publish), so two such
-		// projects publishing within the same second would both want
+		// Rename old namespace to mark it as a deprecated revision. This is the
+		// first half of a two-step that must stay a two-step: the canonical slug
+		// is unique, so it has to be vacated here before the incoming namespace
+		// can take it below.
+		//
+		// The timestamp alone is NOT a sufficient disambiguator: a project
+		// created without a handle has an empty namespace slug (and newNs.Slug
+		// below sets it back to that same empty root handle on every publish),
+		// so two such projects publishing within the same second would both want
 		// "-deprecated-<ts>" and collide on the slug's unique index. Prefixing
 		// the project id makes it unique per project, the same fallback shape
 		// CreateRevision uses for an empty handle/slug.
@@ -507,8 +556,12 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 			return e
 		}
 
-		// Rename new namespace to match the original project handle.
-		newNs.Slug = parent.Handle
+		// The incoming namespace takes the canonical slug the outgoing one just
+		// vacated: the ROOT's handle, every time, so a published app's URL is
+		// fixed for the life of the chain. Taking it from the outgoing revision
+		// instead handed each publish the PREVIOUS publish's suffixed slug, and
+		// the URL a customer had bookmarked moved on every release.
+		newNs.Slug = root.Handle
 		newNs.Enabled = true
 		if e := store.UpdateComposeNamespace(ctx, s, newNs); e != nil {
 			return e
