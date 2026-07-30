@@ -89,16 +89,45 @@
                their kind's icon and colour, other steps a neutral badge + step icon. -->
           <span
             v-if="activeStep"
-            class="inline-flex items-center justify-center w-9 h-9 rounded-md shrink-0"
+            class="inline-flex items-center justify-center w-10 h-10 rounded-md shrink-0"
             :class="activeBadge.wrap"
           >
-            <i :class="activeBadge.icon" />
+            <!-- A step higher than KindIcon's xl (w-9, glyph at the ambient
+                 size): this is the largest kind square in the section and the
+                 only one that heads a whole panel, so the glyph gets a size of
+                 its own rather than inheriting body text — text-lg, the size of
+                 the title beside it. -->
+            <i :class="[activeBadge.icon, 'text-lg']" />
           </span>
           <div class="min-w-0">
-            <h2 class="text-lg font-medium truncate">
-              {{ activeStep ? $t(activeStep.labelKey) : '' }}
-            </h2>
-            <p class="text-sm text-muted-color">{{ headerHint }}</p>
+            <div class="flex items-center gap-2 min-w-0">
+              <h2 class="text-lg font-medium truncate">
+                {{ activeStep ? $t(activeStep.labelKey) : '' }}
+              </h2>
+              <!-- The status belongs to the step this header names, so it sits
+                   with the name rather than across the header among the review
+                   controls, where it read as one more thing you could press.
+                   Small, like the revision switcher's — a tag qualifying a title
+                   should not out-weigh it. The title truncates before the tag
+                   gives up room (shrink-0), the way the topbar treats its own.
+                   The reviewer's note rides the tag rather than a banner over
+                   the step's content: the status is already stated here, and the
+                   banner repeated it in a second place at the cost of the room
+                   the step itself needs. -->
+              <!-- A separator dot, not just a wider gap: it holds the tag off
+                   the title without letting the two drift so far apart that the
+                   tag stops looking like it belongs to this step. Decoration
+                   only, so screen readers skip it. -->
+              <span v-if="showStatus" class="text-muted-color shrink-0" aria-hidden="true">·</span>
+              <StatusChip
+                v-if="showStatus"
+                :status="headerStatus"
+                :tooltip="reviewNote"
+                small
+                class="shrink-0"
+              />
+            </div>
+            <p class="text-sm text-muted-color mt-1">{{ headerHint }}</p>
           </div>
 
           <!-- Per-step review lives HERE, not in a bottom bar (ruled
@@ -112,11 +141,6 @@
                builder's, approving the reviewer's, and neither is offered when
                it would decide nothing. -->
           <div class="ml-auto flex items-center gap-2 shrink-0">
-            <!-- The reviewer's note rides the tag rather than a banner over the
-                 step's content: the status is already stated here, and the
-                 banner repeated it in a second place at the cost of the room
-                 the step itself needs. -->
-            <StatusChip v-if="showStatus" :status="headerStatus" :tooltip="reviewNote" />
             <template v-if="activeStep">
               <Button
                 v-if="canSubmitStep"
