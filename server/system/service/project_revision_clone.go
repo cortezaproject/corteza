@@ -26,16 +26,22 @@ import (
 // clone works. It cannot do it for system resources. Two independent blockers,
 // both verified 2026-07-30:
 //
-//   - matchup<X> (e.g. matchupAgents in system/envoy/store_encode.gen.go)
-//     matches nodes purely on identifiers (handle, ID) against an UNSCOPED
-//     search of every row of that type. A copy therefore always matches its
-//     own source and is treated as existing, so the encode UPDATES the
-//     original -- moving it into the draft -- rather than duplicating it. The
-//     merge algorithms (Replace/Skip/Panic) only choose what happens once a
-//     match is found; none means "treat as new".
 //   - Scope resolution is generated for compose only: getScopeNodes outside
 //     compose is a stub, so a project-scoped decode silently reads every row
-//     in the store.
+//     of that type in the store rather than the project's.
+//   - There is no matchup at all outside compose. The matchup<X> functions
+//     that decide whether an encoded node updates an existing row or creates
+//     one are generated only for compose (see matchupModules in
+//     compose/envoy/store_encode.gen.go, which searches EVERY row unscoped and
+//     matches on any identifier). The system component generates none, so an
+//     encode here has no defined create-vs-update behaviour to rely on.
+//
+// CORRECTION (2026-07-30, second audit): an earlier version of this comment
+// cited "matchupAgents in system/envoy/store_encode.gen.go" as proof that a
+// copy would MOVE its source. That function does not exist -- the mechanism
+// described is compose's, and it was never verified against agents. The
+// conclusion below stands on the two blockers above; the original evidence for
+// it did not.
 //
 // Both are fixable only by generating real scope support for system resources,
 // which rewrites the encode path of every system type. That is a deliberate

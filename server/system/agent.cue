@@ -244,16 +244,16 @@ agent: {
 	//
 	// Un-omitting looks like the way to make a revision branch copy agents:
 	// envoy exists to rewire references across an ID remap, which is the whole
-	// problem a branch copy has to solve. It does not work. The system
-	// component's encode cannot express a copy at all -- matchupAgents
-	// (system/envoy/store_encode.gen.go) matches purely on node identifiers
-	// (handle, ID) against an UNSCOPED search of every agent in the store, so a
-	// copy always matches its source and becomes an UPDATE, moving the original
-	// into the draft instead of duplicating it. The merge algorithms
-	// (Replace/Skip/Panic) only choose what happens once a match is found; none
-	// of them means "treat as new". Scope resolution is compose-only too
-	// (getScopeNodes is a stub outside compose), so a scoped decode silently
-	// reads every agent in the store.
+	// problem a branch copy has to solve. It does not work here. Scope
+	// resolution is generated for compose only (getScopeNodes is a stub outside
+	// compose), so a project-scoped decode silently reads every agent in the
+	// store; and the system component generates no matchup at all, so an encode
+	// has no defined create-vs-update behaviour to rely on.
+	//
+	// CORRECTION (2026-07-30): this comment previously cited "matchupAgents in
+	// system/envoy/store_encode.gen.go" as proof a copy would move its source.
+	// No such function exists -- that mechanism is compose's (matchupModules)
+	// and was never verified against agents.
 	//
 	// Both are fixable only by generating real scope support for system
 	// resources, which rewrites the encode path of every system type -- far too
