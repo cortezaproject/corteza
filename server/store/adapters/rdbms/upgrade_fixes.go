@@ -1805,20 +1805,42 @@ func fix_2026_07_30_dropGlobalUniqueHandleOnAgents(ctx context.Context, s *Store
 // could be flipped back to "draft" and then have its schema edited underneath
 // its own records.
 //
-// No backfill: rows whose status is the old "archived" value keep it, and the
-// service treats archived_at as the only shelf signal from here on. A
-// deployment with such rows sees them as unarchived-but-with-a-stale-status
-// once, and archiving them again is a single click.
+// Rows archived under the old scheme are carried over: without that they would
+// come back off the shelf on upgrade -- every listing filters on archived_at
+// now -- while still carrying a status the project resolver refuses, so they
+// would be visible and un-openable at the same time.
+//
+// The status they had BEFORE being archived is not recoverable; it was
+// overwritten when they were archived, which is the flaw that motivated the
+// split. They come back as drafts, which is the safe reading: a draft is
+// editable and not live, and re-publishing is a deliberate act.
 func fix_2026_07_30_addArchivedAtOnProjects(ctx context.Context, s *Store) error {
-	return addColumn(ctx, s, "projects", &dal.Attribute{
+	if err := addColumn(ctx, s, "projects", &dal.Attribute{
 		Ident: "ArchivedAt",
 		Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 		Store: &dal.CodecAlias{Ident: "archived_at"},
-	})
+	}); err != nil {
+		return err
+	}
+
+	if _, err := s.DataDefiner.TableLookup(ctx, "projects"); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	_, err := s.DB.ExecContext(ctx, `
+		UPDATE projects
+		   SET archived_at = COALESCE(updated_at, created_at),
+		       status = 'draft'
+		 WHERE status = 'archived' AND archived_at IS NULL`)
+
+	return err
 }
 
-// fix_2026_07_30_backfillProjectRefOnComposeResources adopts the compose
-// resources that were created without one.
+// fix_2026_07_30_backfillProjectRefOnComposeResources aligns every compose
+// resource with the project its namespace belongs to.
 //
 // Only charts derived rel_project from their namespace; modules and pages took
 // it from the request payload, so anything created by a client that did not
@@ -1829,8 +1851,8 @@ func fix_2026_07_30_addArchivedAtOnProjects(ctx context.Context, s *Store) error
 // dangling, and the deployment plan built on that graph could not report a
 // page as added or removed at all.
 //
-// The namespace is the authority (a compose resource is addressed through it),
-// and rel_project = 0 means "never set", so this only ever adopts orphans.
+// The namespace is the authority: a compose resource is addressed through it,
+// so its project is the namespace's project, full stop.
 func fix_2026_07_30_backfillProjectRefOnComposeResources(ctx context.Context, s *Store) error {
 	// Most of these carry rel_namespace and can read the project straight off
 	// it; module fields hold only rel_module, so they take the same route one
@@ -1844,6 +1866,23 @@ func fix_2026_07_30_backfillProjectRefOnComposeResources(ctx context.Context, s 
 		"compose_module_field": "SELECT ns.rel_project FROM compose_namespace AS ns" +
 			" JOIN compose_module AS m ON m.rel_namespace = ns.id" +
 			" WHERE m.id = compose_module_field.rel_module",
+	}
+
+	// The WHERE clause is what makes this both complete and idempotent, and an
+	// earlier version got both wrong. "rel_project = 0" missed the rows that
+	// matter most -- a resource copied by an envoy clone carries the PARENT
+	// project's id, not 0, so every revision branched before the repoint
+	// existed stayed mis-attributed -- while also matching every legitimately
+	// project-less resource on a classic install and writing 0 back over 0 on
+	// every single boot.
+	//
+	// So: adopt where the namespace says a project and the row disagrees, and
+	// only there. A namespace with no project leaves its resources alone.
+	predicates := map[string]string{
+		"compose_module":      "compose_module.rel_namespace",
+		"compose_page":        "compose_page.rel_namespace",
+		"compose_page_layout": "compose_page_layout.rel_namespace",
+		"compose_chart":       "compose_chart.rel_namespace",
 	}
 
 	// Map iteration is unordered and this writes to the database; fix an order
@@ -1862,9 +1901,23 @@ func fix_2026_07_30_backfillProjectRefOnComposeResources(ctx context.Context, s 
 			return err
 		}
 
+		var owner string
+		if nsCol, ok := predicates[table]; ok {
+			owner = fmt.Sprintf(
+				"SELECT 1 FROM compose_namespace AS ns WHERE ns.id = %s"+
+					" AND ns.rel_project > 0 AND ns.rel_project <> %s.rel_project",
+				nsCol, table,
+			)
+		} else {
+			owner = "SELECT 1 FROM compose_namespace AS ns" +
+				" JOIN compose_module AS m ON m.rel_namespace = ns.id" +
+				" WHERE m.id = compose_module_field.rel_module" +
+				" AND ns.rel_project > 0 AND ns.rel_project <> compose_module_field.rel_project"
+		}
+
 		q := fmt.Sprintf(
-			"UPDATE %s SET rel_project = COALESCE((%s), 0) WHERE rel_project = 0",
-			table, sources[table],
+			"UPDATE %s SET rel_project = (%s) WHERE EXISTS (%s)",
+			table, sources[table], owner,
 		)
 
 		if _, err := s.DB.ExecContext(ctx, q); err != nil {

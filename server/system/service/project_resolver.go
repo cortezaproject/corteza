@@ -46,8 +46,18 @@ func (r *projectResolver) Resolve(ctx context.Context, tenantID, userID uint64, 
 		return 0, 0, scope.Capabilities{}, err
 	}
 
-	// Suspended / archived projects are inaccessible. Do not leak status — same
+	// Suspended and archived projects are inaccessible. Do not leak why — same
 	// shape as a missing project.
+	//
+	// Archived is checked on its own field: it used to be a status value, and
+	// when it moved out into archived_at (so the lifecycle status could stop
+	// being client-writable) this switch silently stopped covering it. The
+	// legacy status is still accepted below because rows archived under the old
+	// scheme keep it until they are touched again.
+	if p.ArchivedAt != nil {
+		return 0, 0, scope.Capabilities{}, errNoProjectAccess()
+	}
+
 	switch p.Status {
 	case types.ProjectStatusDraft, types.ProjectStatusActive, types.ProjectStatusPublished:
 	default:

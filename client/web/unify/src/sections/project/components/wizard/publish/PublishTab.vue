@@ -29,6 +29,7 @@
         :published-at="publishedAt"
         :published-by="publishedBy"
         :creating-revision="creatingRevision"
+        :can-revise="!!project?.canReviseProject"
         @view-dashboard="goDashboard"
         @new-revision="startNewRevision"
       />

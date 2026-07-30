@@ -223,14 +223,12 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 }
 
 func (svc *project) beforeUpdate(ctx context.Context, upd, res *types.Project) error {
-	// Status is not in updateFields, so the generated Update never copies it
-	// onto the stored record -- but upd is what gets persisted, so it has to
-	// carry the value the store already holds or an update would blank it.
-	// Anything a client sent is ignored here, which is the point: a status
-	// change means publishing or branching, both of which go through their own
+	// Nothing here needs to defend the status: it is absent from updateFields,
+	// so the generated Update copies only Handle/Config/Meta/UpdatedBy from upd
+	// onto the STORED record and persists that. Whatever status a client sends
+	// is read into upd and then simply never used, which is the point -- a
+	// status change means publishing or branching, both of which have their own
 	// endpoints and their own permissions.
-	upd.Status = res.Status
-	upd.ArchivedAt = res.ArchivedAt
 
 	if upd.Handle != res.Handle {
 		if err := svc.uniqueCheck(ctx, upd); err != nil {

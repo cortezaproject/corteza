@@ -50,7 +50,12 @@
         size="small"
         @click="$emit('view-dashboard')"
       />
+      <!-- Branching is its own permission (project.revise), so a user who was
+           allowed to publish is not automatically allowed to start the next
+           revision. Hidden rather than disabled: there is nothing here for
+           them to act on. -->
       <Button
+        v-if="canRevise"
         :label="$t('project.publish.receipt.newRevision')"
         icon="pi pi-plus"
         severity="secondary"
@@ -73,6 +78,7 @@ defineProps({
   publishedAt: { type: String, default: '' },
   publishedBy: { type: String, default: '' },
   creatingRevision: { type: Boolean, default: false },
+  canRevise: { type: Boolean, default: false },
 })
 
 defineEmits(['view-dashboard', 'new-revision'])
