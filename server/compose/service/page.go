@@ -475,6 +475,14 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
+		// Inherit the owning project from the namespace, the way charts already
+		// do. Taking it from the request payload meant a page created without
+		// one belonged to no project, and everything that enumerates a project
+		// by ProjectID -- the resource graph, and the deployment plan built on
+		// it -- simply could not see it. Publishing then dropped pages with no
+		// line in the plan at all.
+		new.ProjectID = ns.ProjectID
+
 		for i := range new.Blocks {
 			new.Blocks[i].BlockID = uint64(i) + 1
 		}

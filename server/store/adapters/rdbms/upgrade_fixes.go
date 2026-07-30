@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -81,6 +82,7 @@ var (
 		fix_2026_07_28_addRelRevisionOnProjectWorkItems,
 		fix_2026_07_30_dropGlobalUniqueHandleOnAgents,
 		fix_2026_07_30_addArchivedAtOnProjects,
+		fix_2026_07_30_backfillProjectRefOnComposeResources,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -1813,6 +1815,64 @@ func fix_2026_07_30_addArchivedAtOnProjects(ctx context.Context, s *Store) error
 		Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 		Store: &dal.CodecAlias{Ident: "archived_at"},
 	})
+}
+
+// fix_2026_07_30_backfillProjectRefOnComposeResources adopts the compose
+// resources that were created without one.
+//
+// Only charts derived rel_project from their namespace; modules and pages took
+// it from the request payload, so anything created by a client that did not
+// send one -- every module and page made through the API directly, and every
+// resource an envoy clone copied -- carries 0. Nothing that enumerates a
+// project by rel_project could see them: the resource graph showed a project
+// with modules as having none and reported every reference into them as
+// dangling, and the deployment plan built on that graph could not report a
+// page as added or removed at all.
+//
+// The namespace is the authority (a compose resource is addressed through it),
+// and rel_project = 0 means "never set", so this only ever adopts orphans.
+func fix_2026_07_30_backfillProjectRefOnComposeResources(ctx context.Context, s *Store) error {
+	// Most of these carry rel_namespace and can read the project straight off
+	// it; module fields hold only rel_module, so they take the same route one
+	// hop later. Either way the project comes from the namespace, never from
+	// a sibling row that might itself still be an orphan.
+	sources := map[string]string{
+		"compose_module":      "SELECT ns.rel_project FROM compose_namespace AS ns WHERE ns.id = compose_module.rel_namespace",
+		"compose_page":        "SELECT ns.rel_project FROM compose_namespace AS ns WHERE ns.id = compose_page.rel_namespace",
+		"compose_page_layout": "SELECT ns.rel_project FROM compose_namespace AS ns WHERE ns.id = compose_page_layout.rel_namespace",
+		"compose_chart":       "SELECT ns.rel_project FROM compose_namespace AS ns WHERE ns.id = compose_chart.rel_namespace",
+		"compose_module_field": "SELECT ns.rel_project FROM compose_namespace AS ns" +
+			" JOIN compose_module AS m ON m.rel_namespace = ns.id" +
+			" WHERE m.id = compose_module_field.rel_module",
+	}
+
+	// Map iteration is unordered and this writes to the database; fix an order
+	// so a failure reports the same table every time.
+	tables := make([]string, 0, len(sources))
+	for table := range sources {
+		tables = append(tables, table)
+	}
+	sort.Strings(tables)
+
+	for _, table := range tables {
+		if _, err := s.DataDefiner.TableLookup(ctx, table); err != nil {
+			if errors.IsNotFound(err) {
+				continue
+			}
+			return err
+		}
+
+		q := fmt.Sprintf(
+			"UPDATE %s SET rel_project = COALESCE((%s), 0) WHERE rel_project = 0",
+			table, sources[table],
+		)
+
+		if _, err := s.DB.ExecContext(ctx, q); err != nil {
+			return fmt.Errorf("backfill rel_project on %s: %w", table, err)
+		}
+	}
+
+	return nil
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

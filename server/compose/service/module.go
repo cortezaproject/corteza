@@ -511,6 +511,14 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
+		// Inherit the owning project from the namespace, the way charts already
+		// do. Taking it from the request payload meant a module created without
+		// one belonged to no project, so the resource graph -- which enumerates
+		// by ProjectID -- could not see it, and the graph reported every ref
+		// into that module as dangling while the module sat right there in the
+		// project's own namespace.
+		new.ProjectID = ns.ProjectID
+
 		if new.Fields != nil {
 			place := 0
 			err = new.Fields.Walk(func(f *types.ModuleField) error {

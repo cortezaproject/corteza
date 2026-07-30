@@ -146,6 +146,10 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		return nil, fmt.Errorf("repoint cloned namespace to draft revision: %w", err)
 	}
 
+	if err = svc.repointClonedResources(ctx, clonedNs.ID, revID); err != nil {
+		return nil, fmt.Errorf("repoint cloned resources to draft revision: %w", err)
+	}
+
 	rev = &types.Project{
 		ID:               revID,
 		TenantID:         parent.TenantID,
@@ -185,6 +189,84 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 	}
 
 	return rev, nil
+}
+
+// repointClonedResources moves the compose resources the clone produced onto
+// the draft revision.
+//
+// The envoy clone re-points every child at the NEW namespace but copies
+// ProjectID across verbatim -- it only ever rewrites Name and Slug on the
+// namespace itself -- so a freshly branched revision held modules, pages and
+// charts that still claimed to belong to the parent project. Everything scoped
+// by project rather than by namespace then read the draft as empty and the
+// parent as doubled: the draft's Build canvas showed nothing, the parent's
+// showed every resource twice, and the draft's own deployment plan reported the
+// parent's pages and charts as deletions the user had not made. The namespace
+// repoint above was written to fix exactly this and reached only one row.
+//
+// Runs before the project row is even created, so it takes the draft's ID as an
+// argument rather than reading it back off a project.
+func (svc *project) repointClonedResources(ctx context.Context, namespaceID, projectID uint64) error {
+	mm, _, err := store.SearchComposeModules(ctx, svc.store, composeTypes.ModuleFilter{NamespaceID: namespaceID})
+	if err != nil {
+		return err
+	}
+	for _, m := range mm {
+		m.ProjectID = projectID
+		if err = store.UpdateComposeModule(ctx, svc.store, m); err != nil {
+			return err
+		}
+	}
+
+	// Fields carry their own project ref (see createModule), so a module that
+	// moved without them would leave its fields pointing at the parent.
+	if len(mm) > 0 {
+		ff, _, err := store.SearchComposeModuleFields(ctx, svc.store, composeTypes.ModuleFieldFilter{ModuleID: mm.IDs()})
+		if err != nil {
+			return err
+		}
+		for _, f := range ff {
+			f.ProjectID = projectID
+			if err = store.UpdateComposeModuleField(ctx, svc.store, f); err != nil {
+				return err
+			}
+		}
+	}
+
+	pp, _, err := store.SearchComposePages(ctx, svc.store, composeTypes.PageFilter{NamespaceID: namespaceID})
+	if err != nil {
+		return err
+	}
+	for _, p := range pp {
+		p.ProjectID = projectID
+		if err = store.UpdateComposePage(ctx, svc.store, p); err != nil {
+			return err
+		}
+	}
+
+	ll, _, err := store.SearchComposePageLayouts(ctx, svc.store, composeTypes.PageLayoutFilter{NamespaceID: namespaceID})
+	if err != nil {
+		return err
+	}
+	for _, l := range ll {
+		l.ProjectID = projectID
+		if err = store.UpdateComposePageLayout(ctx, svc.store, l); err != nil {
+			return err
+		}
+	}
+
+	cc, _, err := store.SearchComposeCharts(ctx, svc.store, composeTypes.ChartFilter{NamespaceID: namespaceID})
+	if err != nil {
+		return err
+	}
+	for _, c := range cc {
+		c.ProjectID = projectID
+		if err = store.UpdateComposeChart(ctx, svc.store, c); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // discardHalfBuiltRevision removes a draft revision whose creation failed part

@@ -15,14 +15,18 @@ import (
 	"github.com/crusttech/human/server/system/types"
 )
 
-// seedCloneModule adds a module to a namespace. Store-level on purpose: the
-// compose service would drag in guards and DAL wiring the copy has no opinion
-// about, and the copy only ever sees what is in the store.
-func seedCloneModule(t *testing.T, s store.Storer, nsID uint64, handle, name string) *composeTypes.Module {
+// seedCloneModule adds a module to a project's namespace. Store-level on
+// purpose: the compose service would drag in guards and DAL wiring the copy has
+// no opinion about, and the copy only ever sees what is in the store.
+//
+// ProjectID is set the way compose sets it (from the namespace's project), so
+// the clone has something to carry across wrongly if the repoint regresses.
+func seedCloneModule(t *testing.T, s store.Storer, projectID, nsID uint64, handle, name string) *composeTypes.Module {
 	t.Helper()
 
 	m := &composeTypes.Module{
 		ID:          nextID(),
+		ProjectID:   projectID,
 		NamespaceID: nsID,
 		Handle:      handle,
 		Name:        name,
@@ -88,8 +92,8 @@ func TestCreateRevision_AgentReferencesFollowTheDraft(t *testing.T) {
 	parentNs, err := store.LookupComposeNamespaceByID(ctx, s, parent.Config.NamespaceID)
 	require.NoError(t, err)
 
-	customers := seedCloneModule(t, s, parentNs.ID, "customers", "Customers")
-	invoices := seedCloneModule(t, s, parentNs.ID, "invoices", "Invoices")
+	customers := seedCloneModule(t, s, parent.ID, parentNs.ID, "customers", "Customers")
+	invoices := seedCloneModule(t, s, parent.ID, parentNs.ID, "invoices", "Invoices")
 
 	ownedTAQ := seedCloneTAQ(t, s, parent.ID, "clone-refs-owned-taq")
 	sharedTAQ := seedCloneTAQ(t, s, 0, "clone-refs-shared-taq")
@@ -178,6 +182,37 @@ func TestCreateRevision_AgentReferencesFollowTheDraft(t *testing.T) {
 	require.Equal(t, map[string]labelTypes.LabelValue{"tier": {Val: "gold"}}, cp.Labels)
 }
 
+// TestCreateRevision_ClonedResourcesBelongToTheDraft covers the other half of
+// what a branch has to repoint. The envoy clone re-points every child at the
+// new namespace but copies ProjectID across verbatim, so the draft's modules
+// still claimed to belong to the parent — which made the draft look empty to
+// everything that enumerates a project by ProjectID (the resource graph, and
+// the deployment plan built on it) and made the parent look like it held every
+// resource twice.
+func TestCreateRevision_ClonedResourcesBelongToTheDraft(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	parent := seedRevisionProject(t, s, "project-revision-clone-scope")
+	parentNs, err := store.LookupComposeNamespaceByID(ctx, s, parent.Config.NamespaceID)
+	require.NoError(t, err)
+
+	seedCloneModule(t, s, parent.ID, parentNs.ID, "scope-customers", "Customers")
+
+	rev, err := svc.CreateRevision(ctx, parent.ID)
+	require.NoError(t, err)
+
+	draftMods, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{ProjectID: rev.ID})
+	require.NoError(t, err)
+	require.Len(t, draftMods, 1, "the draft's own modules must be findable by its project id")
+	require.Equal(t, rev.Config.NamespaceID, draftMods[0].NamespaceID)
+
+	parentMods, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{ProjectID: parent.ID})
+	require.NoError(t, err)
+	require.Len(t, parentMods, 1, "the parent must not gain a second copy of its own module")
+	require.Equal(t, parentNs.ID, parentMods[0].NamespaceID)
+}
+
 // TestCreateRevision_AgentCopyLeavesTheSourceAlone guards the deep copy. The
 // remap writes into Access.Tools[].Allow and the TAQ/workflow slices, which a
 // plain struct copy still shares with the source — so remapping the copy would
@@ -191,7 +226,7 @@ func TestCreateRevision_AgentCopyLeavesTheSourceAlone(t *testing.T) {
 	parentNs, err := store.LookupComposeNamespaceByID(ctx, s, parent.Config.NamespaceID)
 	require.NoError(t, err)
 
-	customers := seedCloneModule(t, s, parentNs.ID, "source-customers", "Customers")
+	customers := seedCloneModule(t, s, parent.ID, parentNs.ID, "source-customers", "Customers")
 	ownedTAQ := seedCloneTAQ(t, s, parent.ID, "clone-source-owned-taq")
 
 	src := &types.Agent{
@@ -238,7 +273,7 @@ func TestCreateRevision_AgentAllowNarrowsRatherThanWidens(t *testing.T) {
 	parentNs, err := store.LookupComposeNamespaceByID(ctx, s, parent.Config.NamespaceID)
 	require.NoError(t, err)
 
-	unmappable := seedCloneModule(t, s, parentNs.ID, "", "No handle")
+	unmappable := seedCloneModule(t, s, parent.ID, parentNs.ID, "", "No handle")
 
 	src := &types.Agent{
 		ID:        nextID(),
