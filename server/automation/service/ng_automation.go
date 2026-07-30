@@ -445,8 +445,12 @@ func (svc *ngAutomation) onGetAllExecutions(ctx context.Context, _ *ngAutomation
 }
 
 func (svc ngAutomation) uniqueCheck(ctx context.Context, res *types.NgAutomation) (err error) {
+	// Scoped to the project, matching the store lookup. A handle is unique
+	// WITHIN a project, not globally: a project revision branch copies its
+	// automations into the draft, so the same handle deliberately exists in both
+	// revisions at once (see system/service/project_revision_clone.go).
 	if res.Handle != "" {
-		if e, _ := store.LookupAutomationNgAutomationByHandle(ctx, svc.store, res.Handle); e != nil && e.ID != res.ID {
+		if e, _ := store.LookupAutomationNgAutomationByProjectIDHandle(ctx, svc.store, res.ProjectID, res.Handle); e != nil && e.ID != res.ID {
 			return NgAutomationErrHandleNotUnique()
 		}
 	}

@@ -6175,16 +6175,17 @@ func (s *Store) LookupAutomationNgAutomationByID(ctx context.Context, id uint64)
 	return aux.decode()
 }
 
-// LookupAutomationNgAutomationByHandle searches for automation by their handle
+// LookupAutomationNgAutomationByProjectIDHandle searches for automation by project and handle
 //
 // It returns only valid automations
 //
 // This function is auto-generated
-func (s *Store) LookupAutomationNgAutomationByHandle(ctx context.Context, handle string) (_ *automationType.NgAutomation, err error) {
+func (s *Store) LookupAutomationNgAutomationByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (_ *automationType.NgAutomation, err error) {
 	var (
 		rows       *sql.Rows
 		aux        = new(auxAutomationNgAutomation)
 		lookupExpr = []goqu.Expression{
+			goqu.I("rel_project").Eq(projectID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
@@ -6325,6 +6326,11 @@ func (s *Store) collectAutomationNgAutomationCursorValues(res *automationType.Ng
 func (s *Store) checkAutomationNgAutomationConstraints(ctx context.Context, res *automationType.NgAutomation) (err error) {
 	err = func() (err error) {
 
+		if res.ProjectID == 0 {
+			// skip check on empty values
+			return nil
+		}
+
 		// handling string type as default
 		if len(res.Handle) == 0 {
 			// skip check on empty values
@@ -6336,12 +6342,12 @@ func (s *Store) checkAutomationNgAutomationConstraints(ctx context.Context, res 
 			return nil
 		}
 
-		ex, err := s.LookupAutomationNgAutomationByHandle(ctx, res.Handle)
+		ex, err := s.LookupAutomationNgAutomationByProjectIDHandle(ctx, res.ProjectID, res.Handle)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			// Named, not a bare "not unique": a resource can have several
 			// unique constraints and the database raises its own violations
 			// too, so the message has to say which one this is.
-			return store.ErrNotUniqueOn("automationType.NgAutomation", "Handle")
+			return store.ErrNotUniqueOn("automationType.NgAutomation", "ProjectID", "Handle")
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
@@ -36780,6 +36786,98 @@ func (s *Store) LookupRoleByName(ctx context.Context, name string) (_ *systemTyp
 	return aux.decode()
 }
 
+// LookupRoleByProjectIDHandle searches for role by project and handle
+//
+// It returns only valid role (not deleted, not suspended)
+//
+// This function is auto-generated
+func (s *Store) LookupRoleByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (_ *systemType.Role, err error) {
+	var (
+		rows       *sql.Rows
+		aux        = new(auxRole)
+		lookupExpr = []goqu.Expression{
+			goqu.I("rel_project").Eq(projectID),
+			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
+			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
+		}
+	)
+
+	lookup := roleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// LookupRoleByProjectIDName searches for role by project and name
+//
+// It returns only valid role (not deleted, not suspended)
+//
+// This function is auto-generated
+func (s *Store) LookupRoleByProjectIDName(ctx context.Context, projectID uint64, name string) (_ *systemType.Role, err error) {
+	var (
+		rows       *sql.Rows
+		aux        = new(auxRole)
+		lookupExpr = []goqu.Expression{
+			goqu.I("rel_project").Eq(projectID),
+			goqu.I("name").Eq(name),
+			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
+		}
+	)
+
+	lookup := roleSelectQuery(s.Dialect.GOQU()).Where(lookupExpr...).Limit(1)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
 // sortableRoleFields returns all Role columns flagged as sortable
 //
 // # Notes
@@ -36883,6 +36981,11 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 func (s *Store) checkRoleConstraints(ctx context.Context, res *systemType.Role) (err error) {
 	err = func() (err error) {
 
+		if res.ProjectID == 0 {
+			// skip check on empty values
+			return nil
+		}
+
 		// handling string type as default
 		if len(res.Handle) == 0 {
 			// skip check on empty values
@@ -36894,12 +36997,12 @@ func (s *Store) checkRoleConstraints(ctx context.Context, res *systemType.Role) 
 			return nil
 		}
 
-		ex, err := s.LookupRoleByHandle(ctx, res.Handle)
+		ex, err := s.LookupRoleByProjectIDHandle(ctx, res.ProjectID, res.Handle)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			// Named, not a bare "not unique": a resource can have several
 			// unique constraints and the database raises its own violations
 			// too, so the message has to say which one this is.
-			return store.ErrNotUniqueOn("systemType.Role", "Handle")
+			return store.ErrNotUniqueOn("systemType.Role", "ProjectID", "Handle")
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
@@ -36913,6 +37016,11 @@ func (s *Store) checkRoleConstraints(ctx context.Context, res *systemType.Role) 
 
 	err = func() (err error) {
 
+		if res.ProjectID == 0 {
+			// skip check on empty values
+			return nil
+		}
+
 		// handling string type as default
 		if len(res.Name) == 0 {
 			// skip check on empty values
@@ -36924,12 +37032,12 @@ func (s *Store) checkRoleConstraints(ctx context.Context, res *systemType.Role) 
 			return nil
 		}
 
-		ex, err := s.LookupRoleByName(ctx, res.Name)
+		ex, err := s.LookupRoleByProjectIDName(ctx, res.ProjectID, res.Name)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			// Named, not a bare "not unique": a resource can have several
 			// unique constraints and the database raises its own violations
 			// too, so the message has to say which one this is.
-			return store.ErrNotUniqueOn("systemType.Role", "Name")
+			return store.ErrNotUniqueOn("systemType.Role", "ProjectID", "Name")
 		} else if !errors.IsNotFound(err) {
 			return err
 		}

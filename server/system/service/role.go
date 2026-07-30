@@ -226,15 +226,21 @@ func (svc role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
 		raProps = &roleActionProps{role: r}
 	)
 
+	// Scoped to the project, matching the store's constraint check. A role
+	// belongs to a project, so its handle and name only have to be unique within
+	// one -- two projects may each define a "Customer" role, and a project
+	// revision branch deliberately puts the same role in two revisions at once
+	// (see system/service/project_revision_clone.go). Global roles all carry
+	// ProjectID 0 and so keep being checked against each other.
 	if r.Handle != "" {
-		if ex, _ := store.LookupRoleByHandle(ctx, svc.store, r.Handle); ex != nil && ex.ID > 0 && ex.ID != r.ID {
+		if ex, _ := store.LookupRoleByProjectIDHandle(ctx, svc.store, r.ProjectID, r.Handle); ex != nil && ex.ID > 0 && ex.ID != r.ID {
 			raProps.setExisting(ex)
 			return RoleErrHandleNotUnique()
 		}
 	}
 
 	if r.Name != "" {
-		if ex, _ := store.LookupRoleByName(ctx, svc.store, r.Name); ex != nil && ex.ID > 0 && ex.ID != r.ID {
+		if ex, _ := store.LookupRoleByProjectIDName(ctx, svc.store, r.ProjectID, r.Name); ex != nil && ex.ID > 0 && ex.ID != r.ID {
 			raProps.setExisting(ex)
 			return RoleErrNameNotUnique()
 		}

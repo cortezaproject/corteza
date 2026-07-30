@@ -215,9 +215,12 @@ role: {
 						It returns role even if deleted or suspended
 						"""
 				}, {
+					// Global, and NOT the constraint check (2026-07-30). Several
+					// callers resolve a role from a bare handle with no project in
+					// hand -- FindByAny, the envoy store, the RBAC fixtures -- so
+					// the lookup itself stays global.
 					fields: ["handle"]
 					nullConstraint: ["deleted_at"]
-					constraintCheck: true
 					description: """
 						searches for role by handle
 
@@ -226,9 +229,34 @@ role: {
 				}, {
 					fields: ["name"]
 					nullConstraint: ["deleted_at"]
-					constraintCheck: true
 					description: """
 						searches for role by name
+
+						It returns only valid role (not deleted, not suspended)
+						"""
+				}, {
+					// Uniqueness is per PROJECT (2026-07-30). Roles are scoped to a
+					// project and a project revision branch copies them, so the
+					// parent revision and its draft necessarily hold the same role
+					// at once. It also fixes a plain bug that predates revisions:
+					// two projects could not each define a "Customer" role, because
+					// the name was checked globally -- the webapp works around it
+					// for handles by prefixing them with the project id, and had no
+					// way to work around it for names at all.
+					fields: ["project_id", "handle"]
+					nullConstraint: ["deleted_at"]
+					constraintCheck: true
+					description: """
+						searches for role by project and handle
+
+						It returns only valid role (not deleted, not suspended)
+						"""
+				}, {
+					fields: ["project_id", "name"]
+					nullConstraint: ["deleted_at"]
+					constraintCheck: true
+					description: """
+						searches for role by project and name
 
 						It returns only valid role (not deleted, not suspended)
 						"""

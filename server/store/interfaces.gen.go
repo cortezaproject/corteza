@@ -278,7 +278,7 @@ type (
 		DeleteAutomationNgAutomationByID(ctx context.Context, id uint64) error
 		TruncateAutomationNgAutomations(ctx context.Context) error
 		LookupAutomationNgAutomationByID(ctx context.Context, id uint64) (*automationType.NgAutomation, error)
-		LookupAutomationNgAutomationByHandle(ctx context.Context, handle string) (*automationType.NgAutomation, error)
+		LookupAutomationNgAutomationByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*automationType.NgAutomation, error)
 	}
 
 	AutomationSessions interface {
@@ -961,6 +961,8 @@ type (
 		LookupRoleByID(ctx context.Context, id uint64) (*systemType.Role, error)
 		LookupRoleByHandle(ctx context.Context, handle string) (*systemType.Role, error)
 		LookupRoleByName(ctx context.Context, name string) (*systemType.Role, error)
+		LookupRoleByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*systemType.Role, error)
+		LookupRoleByProjectIDName(ctx context.Context, projectID uint64, name string) (*systemType.Role, error)
 		RoleMetrics(ctx context.Context) (*systemType.RoleMetrics, error)
 	}
 
@@ -1868,13 +1870,13 @@ func LookupAutomationNgAutomationByID(ctx context.Context, s AutomationNgAutomat
 	return s.LookupAutomationNgAutomationByID(ctx, id)
 }
 
-// LookupAutomationNgAutomationByHandle searches for automation by their handle
+// LookupAutomationNgAutomationByProjectIDHandle searches for automation by project and handle
 //
 // It returns only valid automations
 //
 // This function is auto-generated
-func LookupAutomationNgAutomationByHandle(ctx context.Context, s AutomationNgAutomations, handle string) (*automationType.NgAutomation, error) {
-	return s.LookupAutomationNgAutomationByHandle(ctx, handle)
+func LookupAutomationNgAutomationByProjectIDHandle(ctx context.Context, s AutomationNgAutomations, projectID uint64, handle string) (*automationType.NgAutomation, error) {
+	return s.LookupAutomationNgAutomationByProjectIDHandle(ctx, projectID, handle)
 }
 
 // SearchAutomationSessions returns all matching AutomationSessions from store
@@ -5237,6 +5239,24 @@ func LookupRoleByHandle(ctx context.Context, s Roles, handle string) (*systemTyp
 // This function is auto-generated
 func LookupRoleByName(ctx context.Context, s Roles, name string) (*systemType.Role, error) {
 	return s.LookupRoleByName(ctx, name)
+}
+
+// LookupRoleByProjectIDHandle searches for role by project and handle
+//
+// It returns only valid role (not deleted, not suspended)
+//
+// This function is auto-generated
+func LookupRoleByProjectIDHandle(ctx context.Context, s Roles, projectID uint64, handle string) (*systemType.Role, error) {
+	return s.LookupRoleByProjectIDHandle(ctx, projectID, handle)
+}
+
+// LookupRoleByProjectIDName searches for role by project and name
+//
+// It returns only valid role (not deleted, not suspended)
+//
+// This function is auto-generated
+func LookupRoleByProjectIDName(ctx context.Context, s Roles, projectID uint64, name string) (*systemType.Role, error) {
+	return s.LookupRoleByProjectIDName(ctx, projectID, name)
 }
 
 // RoleMetrics

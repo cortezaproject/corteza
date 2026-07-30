@@ -408,11 +408,24 @@ ng_automation: {
 						It returns automation even if deleted
 						"""
 				}, {
-					fields: ["handle"]
+					// Project-scoped (2026-07-30), like agents' and chatbots'.
+					// A project revision branch copies the parent's automations
+					// into the draft, so both revisions necessarily hold a
+					// same-handled automation at once -- and the handle has to be
+					// carried over, because the publish diff identifies resources
+					// across revisions by kind + handle (diffSources in
+					// system/service/project_revision.go). The generated
+					// constraint check behind this lookup was rejecting the copy
+					// as a duplicate of its own source.
+					//
+					// No migration goes with this one: the uniqueness was only
+					// ever this check plus the service's uniqueCheck, never a
+					// database index, so there is nothing stale to drop.
+					fields: ["project_id", "handle"]
 					nullConstraint: ["deleted_at"]
 					constraintCheck: true
 					description: """
-						searches for automation by their handle
+						searches for automation by project and handle
 
 						It returns only valid automations
 						"""
