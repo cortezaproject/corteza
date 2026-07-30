@@ -524,8 +524,6 @@ governance:
     waitingApproval: Waiting for approval
     approved: Approved
     changesRequested: Changes requested
-  banner:
-    changesRequestedLabel: 'Changes requested:'
 steps:
   summary:
     label: Project Summary

@@ -4,7 +4,7 @@
        nav, a tab. The wording moves into the tooltip rather than disappearing. -->
   <span
     v-if="iconOnly"
-    v-tooltip.bottom="chipLabel"
+    v-tooltip.bottom="hoverText"
     class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
     :class="[preset.bg, preset.ring, preset.text]"
   >
@@ -12,6 +12,7 @@
   </span>
   <CTag
     v-else
+    v-tooltip.bottom="tooltip || undefined"
     :icon="preset.icon"
     :bg="preset.bg"
     :ring="preset.ring"
@@ -54,6 +55,10 @@ const props = defineProps({
   small: { type: Boolean, default: false },
   // Badge with no wording, the label moving to a tooltip (step nav, tabs).
   iconOnly: { type: Boolean, default: false },
+  // What the state is ABOUT, when there is more to it than its name — the
+  // reviewer's note behind a changes-requested step, say. Empty means no
+  // tooltip on a full tag; an icon-only badge always keeps its label there.
+  tooltip: { type: String, default: '' },
 })
 
 const { t, te } = useI18n()
@@ -112,4 +117,10 @@ const chipLabel = computed(() => {
   const key = preset.value.labelKey
   return te(key) ? t(key) : props.status
 })
+
+// An icon-only badge has to carry its own name, so a note joins it rather than
+// replacing it.
+const hoverText = computed(() =>
+  props.tooltip ? `${chipLabel.value} — ${props.tooltip}` : chipLabel.value,
+)
 </script>

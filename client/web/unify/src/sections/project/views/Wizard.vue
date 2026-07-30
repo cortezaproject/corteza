@@ -108,7 +108,11 @@
                lives in the Publish tab (ruled 2026-07-29).
                Capability-gated: only a granter sees these at all. -->
           <div class="ml-auto flex items-center gap-2 shrink-0">
-            <StatusChip v-if="showStatus" :status="headerStatus" />
+            <!-- The reviewer's note rides the tag rather than a banner over the
+                 step's content: the status is already stated here, and the
+                 banner repeated it in a second place at the cost of the room
+                 the step itself needs. -->
+            <StatusChip v-if="showStatus" :status="headerStatus" :tooltip="reviewNote" />
             <template v-if="activeStep && canGrant">
               <Button
                 :label="$t('project.wizard.requestChanges.action')"
@@ -138,12 +142,6 @@
             :style="{ width: activeTab === 'build' ? leftPct + '%' : '100%' }"
           >
             <template v-if="isResourceStep">
-              <StepStatusBanner
-                v-if="showStatus"
-                :status="status"
-                :review-note="reviewNote"
-                class="m-3 mb-0 shrink-0"
-              />
               <DataModelStep
                 v-if="isDataModel"
                 :project="project"
@@ -195,12 +193,6 @@
               <UsersStep v-else :project="project" :disabled="locked" class="flex-1 min-h-0" />
             </template>
             <template v-else>
-              <StepStatusBanner
-                v-if="showStatus"
-                :status="status"
-                :review-note="reviewNote"
-                class="mb-4"
-              />
               <ProjectSummaryStep v-if="isSummary" v-model="working" :disabled="locked" />
               <ResourceManagementStep
                 v-else-if="isResourceMgmt"
@@ -530,7 +522,6 @@ import ManageTask from '@/sections/project/components/wizard/manage/ManageTask.v
 import PublishTab from '@/sections/project/components/wizard/publish/PublishTab.vue'
 import RevisionCompletenessBar from '@/sections/project/components/wizard/RevisionCompletenessBar.vue'
 import StepNav from '@/sections/project/components/wizard/StepNav.vue'
-import StepStatusBanner from '@/sections/project/components/wizard/StepStatusBanner.vue'
 import AgentsStep from '@/sections/project/components/wizard/steps/AgentsStep.vue'
 import AutomationsStep from '@/sections/project/components/wizard/steps/AutomationsStep.vue'
 import ChatbotsStep from '@/sections/project/components/wizard/steps/ChatbotsStep.vue'
