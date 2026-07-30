@@ -116,7 +116,11 @@ func (dd *dataDefiner) ColumnReType(ctx context.Context, t string, col string, t
 }
 
 func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index, error) {
-	if index, err := dd.is.IndexLookup(ctx, i, t, dd.dbName); err != nil {
+	// "public" is the SCHEMA, dd.dbName the database — informationSchema.
+	// IndexLookup filters pg_indexes.schemaname, so passing the database name
+	// here matched nothing and made EVERY index look absent, PRIMARY included.
+	// TableLookup above always had this right.
+	if index, err := dd.is.IndexLookup(ctx, i, t, "public"); err != nil {
 		return nil, err
 	} else {
 		return index, nil

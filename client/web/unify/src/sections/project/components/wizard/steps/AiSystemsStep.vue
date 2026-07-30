@@ -168,8 +168,8 @@ function countOfClass(key) {
 // the same on a compliance surface.
 const unclassifiedCount = computed(() => systems.value.filter(s => !s.riskClass).length)
 
-// How many risk scenarios name this system. Scenarios are still session-local,
-// so this reads the governance store rather than the backend.
+// How many risk scenarios name this system, from the store's scenario cache
+// (loaded in onMounted above).
 function scenarioCountFor(aiSystemId) {
   return store.friaScenariosFor(projectId.value).filter(s => s.aiSystemID === aiSystemId).length
 }

@@ -1,11 +1,13 @@
-// Session-local FRIA risk-scenario data shape + small display helpers shared
-// by the scenario list and the single-page scenario editor's five section
-// components (see components/wizard/steps/FriaScenariosStep.vue and
-// components/wizard/fria/*). Scenario STORAGE itself lives in
-// stores/projects.js governanceByProject, under the well-known
-// 'fria-scenarios' step key's values.scenarios array (see that file's "FRIA
-// risk scenarios" section) — this file only shapes a fresh/cloned scenario
-// and derives display-only values; it holds no state of its own.
+// FRIA risk-scenario data shape + small display helpers shared by the
+// scenario list and the single-page scenario editor's five section components
+// (see components/wizard/steps/FriaScenariosStep.vue and
+// components/wizard/fria/*). This file only shapes a fresh/cloned scenario and
+// derives display-only values; it holds no state of its own.
+//
+// Scenario STORAGE is the backend type ProjectFriaScenario, cached in
+// stores/projects.js's "FRIA risk scenarios" section. It was session-local
+// under the 'fria-scenarios' governance step until 2026-07-30; the shape below
+// is the flat form that section maps the API to and from.
 
 // A fresh, empty scenario — the shape the editor seeds a new draft from (see
 // FriaScenarioEditor.vue) and every section component reads a slice of and

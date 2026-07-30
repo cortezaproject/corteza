@@ -144,7 +144,7 @@ import {
 } from '@/sections/project/config/friaScenario'
 import { components } from '@planetcrust/human-vue'
 import Select from 'primevue/select'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 const { CEmptyState } = components
 
@@ -172,6 +172,19 @@ const existing = props.scenarioId
   : null
 const draft = ref(
   props.scenarioId ? (existing ? cloneFriaScenario(existing) : null) : newFriaScenario(),
+)
+
+// Re-seed once the scenario arrives, if it was not cached at setup. Since
+// scenarios became persisted, a refresh or a shared link straight into
+// ?scenario=<id> reaches this component before the parent's load resolves —
+// the draft would seed to null and the editor would show "not found"
+// permanently, for a scenario that exists. Only fills a null draft, so it can
+// never clobber edits in progress.
+watch(
+  () => store.friaScenario(props.project.projectID, props.scenarioId),
+  found => {
+    if (found && !draft.value) draft.value = cloneFriaScenario(found)
+  },
 )
 
 function update(patch) {

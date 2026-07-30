@@ -1004,10 +1004,16 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function createAiSystem(projectId, { name, description = '', handle } = {}) {
     const key = String(projectId)
+    // name/description are FLAT params, not nested under meta. The endpoint
+    // takes them as genHook params and its beforeCreate writes them onto
+    // res.Meta itself; a `meta` object is not in the request struct at all and
+    // the generated client drops it silently, so nesting them persisted a row
+    // with no name whatsoever.
     const raw = await $SystemAPI.projectAiSystemCreate({
       projectID: key,
       handle: handle || '',
-      meta: { short: (name || '').trim() || 'Untitled AI system', description: description.trim() },
+      name: (name || '').trim() || 'Untitled AI system',
+      description: description.trim(),
     })
 
     const created = toAiSystem(raw)
@@ -1026,14 +1032,13 @@ export const useProjectsStore = defineStore('projects', () => {
       projectAiSystemID: String(aiSystemId),
       handle: next.handle,
       riskClass: next.riskClass || '',
-      // Flat, not nested under meta: the BE takes it as its own param and its
-      // hook writes it onto meta. Sending meta.intendedPurpose is silently a
-      // no-op, since the update merges only the fields it names.
+      // All flat, none nested under meta — see createAiSystem. The BE takes
+      // each as its own param and its hook writes them onto meta; anything
+      // sent as `meta` is dropped by the generated client before the request
+      // is even built.
       intendedPurpose: next.intendedPurpose || '',
-      meta: {
-        short: next.name,
-        description: next.description,
-      },
+      name: next.name || '',
+      description: next.description || '',
     })
 
     aiSystemsByProject.value[key] = aiSystemsFor(key).map(s =>
@@ -2264,12 +2269,17 @@ export const useProjectsStore = defineStore('projects', () => {
     aiSystemsFor,
     aiSystem,
     loadAiSystems,
-    createAiSystem,
-    updateAiSystem,
-    removeAiSystem,
+    // Wrapped like every other mutator family: reclassifying a system, or
+    // changing which resources fall inside the assessed boundary, invalidates
+    // the ai-systems review AND the revision's own approval. Leaving an
+    // approval standing after the thing it approved was redefined is exactly
+    // what this machinery exists to prevent.
+    createAiSystem: invalidating(createAiSystem, 'ai-systems'),
+    updateAiSystem: invalidating(updateAiSystem, 'ai-systems'),
+    removeAiSystem: invalidating(removeAiSystem, 'ai-systems'),
     reloadAiSystem,
-    addAiSystemResource,
-    removeAiSystemResource,
+    addAiSystemResource: invalidating(addAiSystemResource, 'ai-systems'),
+    removeAiSystemResource: invalidating(removeAiSystemResource, 'ai-systems'),
 
     friaScenariosFor,
     friaScenario,
