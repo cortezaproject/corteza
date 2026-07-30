@@ -10,7 +10,9 @@ import (
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/actionlog"
+	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/crusttech/human/server/system/service/dml"
@@ -211,6 +213,10 @@ func TestPublishKeepsTheChainRootsIdentity(t *testing.T) {
 
 		require.Equal(t, root.Handle+"-rev"+strconv.Itoa(n), draft.Handle,
 			"a revision handle is the ROOT's handle plus one suffix, however deep the chain is")
+
+		// Nothing publishes unapproved any more; this test is about identity,
+		// so it walks the cycle rather than restating it.
+		approveDraft(t, svc, s, draft)
 
 		head, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true, DiscardRecords: true})
 		require.NoError(t, err)
@@ -413,6 +419,10 @@ func TestPublishRefusesDeletedRevisions(t *testing.T) {
 	draft, err := svc.CreateRevision(ctx, parent.ID)
 	require.NoError(t, err)
 
+	// Approved up front: the deleted-row refusals are what this test is about,
+	// and an unapproved revision would never reach them.
+	approveDraft(t, svc, s, draft)
+
 	require.NoError(t, svc.DeleteByID(ctx, draft.ID))
 
 	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true})
@@ -609,4 +619,288 @@ func TestAddChangeRaisesPlanRisk(t *testing.T) {
 	addChange(plan, types.ProjectChange{Op: types.ProjectChangeOpAdded, Risk: types.ProjectChangeRiskSafe})
 	require.Equal(t, types.ProjectChangeRiskDangerous, plan.Risk)
 	require.Len(t, plan.Changes, 3)
+}
+
+// --- publish approval ------------------------------------------------------
+
+// asUser is a context carrying an authenticated identity. The approval cycle is
+// entirely about WHO is asking — the two-person rule compares the submitter
+// against the caller — so a bare context (identity 0) cannot exercise any of it.
+func asUser(userID uint64) context.Context {
+	return a.SetIdentityToContext(context.Background(), a.Authenticated(userID))
+}
+
+// seedProjectMember gives userID a role preset on the chain root, which is
+// where members are stored (see onAddMember) and where callerCapabilities looks
+// for them.
+func seedProjectMember(t *testing.T, s store.Storer, rootProjectID, userID uint64, preset types.ProjectMemberRole) {
+	t.Helper()
+	require.NoError(t, store.CreateProjectMember(context.Background(), s, &types.ProjectMember{
+		ID:         nextID(),
+		ProjectID:  rootProjectID,
+		UserID:     userID,
+		RolePreset: preset,
+		CreatedAt:  *now(),
+	}))
+}
+
+// approveDraft walks a draft through the real cycle with two people, which is
+// the only way it can be walked. Returns the approver so a caller can keep
+// acting as them.
+func approveDraft(t *testing.T, svc *project, s store.Storer, draft *types.Project) (submitter, approver uint64) {
+	t.Helper()
+
+	submitter, approver = nextID(), nextID()
+	seedProjectMember(t, s, draft.RootProjectID(), submitter, types.ProjectRoleDeveloper)
+	seedProjectMember(t, s, draft.RootProjectID(), approver, types.ProjectRoleExecutiveAuthority)
+
+	_, err := svc.RequestApproval(asUser(submitter), draft.ID, "ready for review")
+	require.NoError(t, err)
+	_, err = svc.GrantApproval(asUser(approver), draft.ID, "reviewed")
+	require.NoError(t, err)
+
+	return submitter, approver
+}
+
+// TestPublishRequiresAnApproval covers the gate itself. Publishing used to ask
+// for nothing but confirm=true — the approval cycle lived in a browser ref, so
+// it did not survive a reload and the server never saw it at all.
+func TestPublishRequiresAnApproval(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	svc.services.dalSvc = fakeProjectPublishDeps{}
+	svc.services.dalConns = fakeProjectPublishDeps{}
+	svc.services.recordSvc = fakeProjectPublishDeps{}
+	ctx := context.Background()
+
+	root := seedRevisionProject(t, s, "project-approval-test-gate")
+	draft, err := svc.CreateRevision(ctx, root.ID)
+	require.NoError(t, err)
+
+	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true, DiscardRecords: true})
+	require.Error(t, err, "an unapproved revision must not publish, however confirmed the request is")
+
+	approveDraft(t, svc, s, draft)
+
+	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true, DiscardRecords: true})
+	require.NoError(t, err)
+}
+
+// TestFirstPublishNeedsApprovalToo — a project with no parent revision has an
+// empty deployment plan, and an empty plan says nothing about risk: the first
+// version is the one that puts a brand new system in front of real users.
+func TestFirstPublishNeedsApprovalToo(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	nsID := nextID()
+	require.NoError(t, store.CreateComposeNamespace(ctx, s, &composeTypes.Namespace{
+		ID: nsID, Slug: "ns-first-publish", Name: "namespace",
+	}))
+	p := &types.Project{
+		ID:             nextID(),
+		Handle:         "project-approval-test-first",
+		Status:         types.ProjectStatusDraft,
+		ApprovalStatus: types.ProjectApprovalStatusDraft,
+		Config:         types.ProjectConfig{NamespaceID: nsID},
+	}
+	require.NoError(t, store.CreateProject(ctx, s, p))
+
+	_, err := svc.Publish(ctx, p.ID, types.PublishRequest{Confirm: true})
+	require.Error(t, err, "a first publish is still a publish")
+
+	approveDraft(t, svc, s, p)
+
+	live, err := svc.Publish(ctx, p.ID, types.PublishRequest{Confirm: true})
+	require.NoError(t, err)
+	require.Equal(t, types.ProjectStatusActive, live.Status)
+}
+
+// TestApprovalNeedsTwoPeople — the submitter cannot sign off their own work,
+// however many capabilities they hold. A governance owner holds BOTH, which is
+// exactly the case that would otherwise turn the whole gate into a formality.
+func TestApprovalNeedsTwoPeople(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	root := seedRevisionProject(t, s, "project-approval-test-two-people")
+	draft, err := svc.CreateRevision(ctx, root.ID)
+	require.NoError(t, err)
+
+	owner, other := nextID(), nextID()
+	seedProjectMember(t, s, draft.RootProjectID(), owner, types.ProjectRoleGovernanceOwner)
+	seedProjectMember(t, s, draft.RootProjectID(), other, types.ProjectRoleGovernanceOwner)
+
+	_, err = svc.RequestApproval(asUser(owner), draft.ID, "mine")
+	require.NoError(t, err)
+
+	_, err = svc.GrantApproval(asUser(owner), draft.ID, "also mine")
+	require.Error(t, err, "the submitter cannot grant their own approval")
+	_, err = svc.RejectApproval(asUser(owner), draft.ID, "still mine")
+	require.Error(t, err, "nor decide it the other way")
+
+	_, err = svc.GrantApproval(asUser(other), draft.ID, "reviewed")
+	require.NoError(t, err, "a second person with the capability can")
+}
+
+// TestApprovalRefusesCallersWithoutTheCapability — CanRequestApproval and
+// CanGrantApproval were computed by ProjectMemberRole.Capabilities() and
+// checked nowhere until the gate landed.
+func TestApprovalRefusesCallersWithoutTheCapability(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	root := seedRevisionProject(t, s, "project-approval-test-caps")
+	draft, err := svc.CreateRevision(ctx, root.ID)
+	require.NoError(t, err)
+
+	junior, dev := nextID(), nextID()
+	seedProjectMember(t, s, draft.RootProjectID(), junior, types.ProjectRoleJuniorDeveloper)
+	seedProjectMember(t, s, draft.RootProjectID(), dev, types.ProjectRoleDeveloper)
+
+	_, err = svc.RequestApproval(asUser(junior), draft.ID, "")
+	require.Error(t, err, "a junior developer may write the draft but not submit it")
+
+	// A non-member gets the zero capabilities, so the same refusal.
+	_, err = svc.RequestApproval(asUser(nextID()), draft.ID, "")
+	require.Error(t, err, "a non-member has no standing in the project's review cycle")
+
+	_, err = svc.RequestApproval(asUser(dev), draft.ID, "")
+	require.NoError(t, err)
+
+	_, err = svc.GrantApproval(asUser(dev), draft.ID, "")
+	require.Error(t, err, "a developer submits; deciding is a different capability")
+}
+
+// countingRecordSvc reports a record total the test can move. It stands in for
+// ordinary use of the LIVE project: records piling up in the parent is the one
+// thing the deployment plan reads that nobody publishing has touched.
+type countingRecordSvc struct {
+	fakeProjectPublishDeps
+	total uint
+}
+
+func (c *countingRecordSvc) Search(context.Context, composeTypes.RecordFilter) (composeTypes.RecordSet, composeTypes.RecordFilter, error) {
+	return nil, composeTypes.RecordFilter{Paging: filter.Paging{Total: c.total}}, nil
+}
+
+// TestApprovalIsRetiredByEditingTheDraft is the invalidation rule, and its
+// second half is the harder one: the deployment plan is computed from LIVE data
+// on BOTH revisions, so an approval must survive ordinary use of the parent.
+func TestApprovalIsRetiredByEditingTheDraft(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	records := &countingRecordSvc{}
+	svc.services.dalSvc = fakeProjectPublishDeps{}
+	svc.services.dalConns = fakeProjectPublishDeps{}
+	svc.services.recordSvc = records
+	ctx := context.Background()
+
+	root := seedRevisionProject(t, s, "project-approval-test-stale")
+
+	// A module on the live parent, so the plan below carries a record count at
+	// all — that count is only reported for a destructive change.
+	require.NoError(t, store.CreateComposeModule(ctx, s, &composeTypes.Module{
+		ID:          nextID(),
+		NamespaceID: root.Config.NamespaceID,
+		ProjectID:   root.ID,
+		Handle:      "customers",
+		Name:        "Customers",
+	}))
+
+	draft, err := svc.CreateRevision(ctx, root.ID)
+	require.NoError(t, err)
+
+	// The draft drops it: a dangerous change, and the only kind that makes the
+	// plan ask the parent how many records are at stake.
+	dropped, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{
+		NamespaceID: draft.Config.NamespaceID,
+	})
+	require.NoError(t, err)
+	require.Len(t, dropped, 1)
+	require.NoError(t, store.DeleteComposeModule(ctx, s, dropped[0]))
+
+	records.total = 2
+	approveDraft(t, svc, s, draft)
+
+	approved, err := loadProject(ctx, s, draft.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, approved.ApprovalPlan, "an approval records the shape it was granted against")
+
+	// Confirm the count really is in the plan the approver saw, so the
+	// assertion below is about an exclusion and not about an absence.
+	plan, err := svc.DeploymentPlan(ctx, draft.ID)
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), plan.Changes[0].Records)
+
+	// Now people use the live app. The approval must not expire on its own.
+	records.total = 4171
+	unchanged, err := svc.approvalFingerprint(ctx, approved)
+	require.NoError(t, err)
+	require.Equal(t, approved.ApprovalPlan, unchanged,
+		"records arriving in the LIVE parent must not retire an approval granted on the draft")
+
+	// Editing the DRAFT is a different matter: that is what was approved.
+	require.NoError(t, store.CreateComposeModule(ctx, s, &composeTypes.Module{
+		ID:          nextID(),
+		NamespaceID: draft.Config.NamespaceID,
+		ProjectID:   draft.ID,
+		Handle:      "invoices",
+		Name:        "Invoices",
+	}))
+	moved, err := svc.approvalFingerprint(ctx, approved)
+	require.NoError(t, err)
+	require.NotEqual(t, approved.ApprovalPlan, moved,
+		"editing the draft after approval retires the approval")
+
+	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true, DiscardRecords: true})
+	require.Error(t, err, "publish must refuse an approval that is no longer about this revision")
+
+	// ...and resubmitting is the way out. A fresh cycle, still two people.
+	resubmitter, approver := nextID(), nextID()
+	seedProjectMember(t, s, draft.RootProjectID(), resubmitter, types.ProjectRoleDeveloper)
+	seedProjectMember(t, s, draft.RootProjectID(), approver, types.ProjectRoleExecutiveAuthority)
+	_, err = svc.RequestApproval(asUser(resubmitter), draft.ID, "added a module")
+	require.NoError(t, err)
+	_, err = svc.GrantApproval(asUser(approver), draft.ID, "fine")
+	require.NoError(t, err)
+
+	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true, DiscardRecords: true})
+	require.NoError(t, err)
+}
+
+// TestApprovalTransitionsAreLogged — there is no approval history table; the
+// action log IS the history, so a compliance product has to be able to answer
+// "who approved revision 3" from it.
+func TestApprovalTransitionsAreLogged(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	log := &recordingActionlog{}
+	svc.actionlog = log
+	ctx := context.Background()
+
+	root := seedRevisionProject(t, s, "project-approval-test-log")
+	draft, err := svc.CreateRevision(ctx, root.ID)
+	require.NoError(t, err)
+
+	dev, exec := nextID(), nextID()
+	seedProjectMember(t, s, draft.RootProjectID(), dev, types.ProjectRoleDeveloper)
+	seedProjectMember(t, s, draft.RootProjectID(), exec, types.ProjectRoleExecutiveAuthority)
+
+	_, err = svc.RequestApproval(asUser(dev), draft.ID, "please look")
+	require.NoError(t, err)
+	_, err = svc.RejectApproval(asUser(exec), draft.ID, "not yet")
+	require.NoError(t, err)
+	_, err = svc.RequestApproval(asUser(dev), draft.ID, "fixed")
+	require.NoError(t, err)
+	_, err = svc.GrantApproval(asUser(exec), draft.ID, "good")
+	require.NoError(t, err)
+
+	require.Equal(t,
+		[]string{"requestApproval", "rejectApproval", "requestApproval", "grantApproval"},
+		log.names())
+
+	final, err := loadProject(ctx, s, draft.ID)
+	require.NoError(t, err)
+	require.Equal(t, types.ProjectApprovalStatusApproved, final.ApprovalStatus)
+	require.Equal(t, dev, final.ApprovalSubmittedBy)
+	require.Equal(t, exec, final.ApprovalDecidedBy)
+	require.Equal(t, "good", final.ApprovalNote)
 }

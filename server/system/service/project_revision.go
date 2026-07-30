@@ -180,10 +180,15 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 		Revision:         newRevision,
 		Handle:           revHandle,
 		Status:           types.ProjectStatusDraft,
-		Meta:             parent.Meta,
-		Config:           parent.Config,
-		CreatedAt:        *now(),
-		CreatedBy:        a.GetIdentityFromContext(ctx).Identity(),
+		// A branch inherits the parent's resources, not its approval: the
+		// parent was approved for what IT shipped. Spelled out because the
+		// parent's Meta and Config ARE copied two lines down, and a reader has
+		// to be able to see that the approval deliberately is not.
+		ApprovalStatus: types.ProjectApprovalStatusDraft,
+		Meta:           parent.Meta,
+		Config:         parent.Config,
+		CreatedAt:      *now(),
+		CreatedBy:      a.GetIdentityFromContext(ctx).Identity(),
 	}
 	rev.Config.NamespaceID = clonedNs.ID
 
@@ -451,8 +456,16 @@ func (svc *project) DeploymentPlan(ctx context.Context, projectID uint64) (*type
 // Publish migrates records from the parent namespace to the draft, flips statuses,
 // and soft-deletes the old namespace. The request must carry confirm=true.
 //
-// The approval flow that gates publishing is enforced client-side; the backend
-// publishes directly once confirm=true and the project is a draft.
+// TWO independent gates stand in front of it, and they answer different
+// questions: the revision must be APPROVED (a second person agreed the change
+// is sound -- see project_approval.go) and the caller must hold project.publish
+// (they are allowed to ship it). Neither implies the other, which is exactly
+// why an executive authority who approves nothing else and a release engineer
+// who reviews nothing can both exist.
+//
+// Until 2026-07-31 there was neither: the approval cycle lived in a browser ref
+// and this function's own doc comment said "the backend publishes directly once
+// confirm=true".
 func (svc *project) Publish(ctx context.Context, projectID uint64, req types.PublishRequest) (*types.Project, error) {
 	if !req.Confirm {
 		return nil, fmt.Errorf("publish requires confirm=true")
@@ -479,6 +492,29 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 
 	if draft.Status != types.ProjectStatusDraft {
 		return nil, fmt.Errorf("only draft projects can be published")
+	}
+
+	// The approval gate. A first publish is included on purpose: it has no
+	// parent to diff against, so its plan is empty -- and an empty plan says
+	// nothing about risk. The very first version of a project is the one that
+	// puts a brand new AI system in front of real users, so if anything needs a
+	// second pair of eyes it is that one.
+	if draft.ApprovalStatus != types.ProjectApprovalStatusApproved {
+		return nil, ProjectErrNotApproved()
+	}
+
+	// ...and the approval has to still be about THIS revision. The fingerprint
+	// was taken when it was granted (see approvalFingerprint, which explains at
+	// length what it deliberately leaves out so that ordinary use of the live
+	// project cannot expire an approval). Recomputing it here, rather than
+	// retiring approvals from a write hook, means nothing anywhere else in the
+	// system has to remember that publish approvals exist.
+	fingerprint, err := svc.approvalFingerprint(ctx, draft)
+	if err != nil {
+		return nil, err
+	}
+	if fingerprint != draft.ApprovalPlan {
+		return nil, ProjectErrApprovalStale()
 	}
 
 	// First publish: a project with no parent revision has no prior namespace to
