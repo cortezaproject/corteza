@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	composeTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/sqlite"
@@ -141,6 +142,42 @@ func (fakeProjectPublishDeps) Search(context.Context, composeTypes.RecordFilter)
 	return nil, composeTypes.RecordFilter{}, nil
 }
 
+// recordingActionlog keeps what the service filed, so a test can assert that an
+// operation left a trail rather than only that it worked.
+type recordingActionlog struct{ recorded []*actionlog.Action }
+
+func (r *recordingActionlog) Record(_ context.Context, a *actionlog.Action) {
+	r.recorded = append(r.recorded, a)
+}
+
+func (r *recordingActionlog) Find(context.Context, actionlog.Filter) (actionlog.ActionSet, actionlog.Filter, error) {
+	return nil, actionlog.Filter{}, nil
+}
+
+func (r *recordingActionlog) Report(context.Context, actionlog.ReportRequest) (actionlog.ReportRowSet, error) {
+	return nil, nil
+}
+
+func (r *recordingActionlog) names() []string {
+	out := make([]string, len(r.recorded))
+	for i, a := range r.recorded {
+		// Resource is deliberately left out: it is the RBAC resource, which
+		// carries the project id, and the assertions are about which operations
+		// were recorded.
+		out[i] = a.Action
+	}
+	return out
+}
+
+// namespaceEnabled reads the in-service flag of a project's compose namespace —
+// what decides whether the deployed app answers at all.
+func namespaceEnabled(t *testing.T, s store.Storer, nsID uint64) bool {
+	t.Helper()
+	ns, err := store.LookupComposeNamespaceByID(context.Background(), s, nsID)
+	require.NoError(t, err)
+	return ns.Enabled
+}
+
 // TestPublishKeepsTheChainRootsIdentity locks the ruling that a chain's name and
 // URL belong to its ROOT.
 //
@@ -196,6 +233,67 @@ func TestPublishKeepsTheChainRootsIdentity(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, head.Config.NamespaceID, live.ID,
 		"the canonical slug must resolve to the current head, not to a deprecated revision")
+}
+
+// TestArchivingTakesTheProjectOutOfService covers the second half of what
+// archiving means. Stamping ArchivedAt was all it did, so a shelved project's
+// compose app stayed enabled and fully reachable — "we took it down" changed
+// nothing a user of the app could see — and neither direction left an
+// action-log entry, so a compliance product had no record of who shelved what.
+func TestArchivingTakesTheProjectOutOfService(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	log := &recordingActionlog{}
+	svc.actionlog = log
+	ctx := context.Background()
+
+	p := seedRevisionProject(t, s, "project-revision-test-shelf")
+
+	ns, err := store.LookupComposeNamespaceByID(ctx, s, p.Config.NamespaceID)
+	require.NoError(t, err)
+	ns.Enabled = true
+	require.NoError(t, store.UpdateComposeNamespace(ctx, s, ns))
+
+	archived, err := svc.Archive(ctx, p.ID)
+	require.NoError(t, err)
+	require.NotNil(t, archived.ArchivedAt)
+	require.False(t, namespaceEnabled(t, s, p.Config.NamespaceID),
+		"a shelved project's app must be out of service")
+	require.True(t, archived.Config.RestoreNamespaceOnUnarchive,
+		"archiving records that it was the one that switched the namespace off")
+
+	// Idempotent, and quiet about it: a retry must neither fail nor plant a
+	// second entry naming a moment when nothing was shelved.
+	_, err = svc.Archive(ctx, p.ID)
+	require.NoError(t, err)
+
+	restored, err := svc.Unarchive(ctx, p.ID)
+	require.NoError(t, err)
+	require.Nil(t, restored.ArchivedAt)
+	require.True(t, namespaceEnabled(t, s, p.Config.NamespaceID),
+		"unarchiving puts the app back in service")
+	require.False(t, restored.Config.RestoreNamespaceOnUnarchive,
+		"nothing left to restore once it has been restored")
+
+	require.Equal(t,
+		[]string{"archive", "unarchive"},
+		log.names(),
+		"both directions are recorded, and only the transitions are")
+
+	// The asymmetry the flag exists for: a draft revision's namespace is
+	// disabled from the moment it is branched, so shelving and unshelving one
+	// must leave it exactly as disabled as it was. Without the flag, unarchive
+	// would put a half-built revision on the air.
+	draft, err := svc.CreateRevision(ctx, p.ID)
+	require.NoError(t, err)
+	require.False(t, namespaceEnabled(t, s, draft.Config.NamespaceID))
+
+	_, err = svc.Archive(ctx, draft.ID)
+	require.NoError(t, err)
+
+	unshelved, err := svc.Unarchive(ctx, draft.ID)
+	require.NoError(t, err)
+	require.False(t, namespaceEnabled(t, s, unshelved.Config.NamespaceID),
+		"unarchiving may only restore what archiving switched off")
 }
 
 // TestCreateRevision_ChainCanBeRevisedRepeatedly is the "publish once and the

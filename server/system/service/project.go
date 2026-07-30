@@ -151,6 +151,9 @@ func (svc *project) onCreate(ctx context.Context, new *types.Project) error {
 	// namespace that was never swapped into place.
 	new.Status = types.ProjectStatusDraft
 	new.ArchivedAt = nil
+	// Never shelved, so there is nothing for an unarchive to restore. Cleared
+	// rather than trusted: config arrives from the client wholesale.
+	new.Config.RestoreNamespaceOnUnarchive = false
 
 	// FRIA requirement is derived from the deployer answers once, at
 	// creation, so the pipeline shape doesn't silently change later.
@@ -245,10 +248,13 @@ func (svc *project) beforeUpdate(ctx context.Context, upd, res *types.Project) e
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
 	// Namespace binding, deployer answers, and FRIA derivation are immutable
-	// after creation.
+	// after creation. The unarchive bookkeeping is the service's own record of
+	// what archiving switched off (see setArchived) -- a client that sent one
+	// could make an unarchive enable a namespace that was never meant to be on.
 	upd.Config.NamespaceID = res.Config.NamespaceID
 	upd.Config.DeployerCategories = res.Config.DeployerCategories
 	upd.Config.FriaRequired = res.Config.FriaRequired
+	upd.Config.RestoreNamespaceOnUnarchive = res.Config.RestoreNamespaceOnUnarchive
 
 	return nil
 }
@@ -302,7 +308,8 @@ func (svc *project) onUndelete(ctx context.Context, s store.Storer, p *types.Pro
 	return svc.setNamespaceDeleted(ctx, s, p.Config.NamespaceID, nil)
 }
 
-// Archive puts a project on the shelf without touching its lifecycle status.
+// Archive takes a project out of service and puts it on the shelf, without
+// touching its lifecycle status.
 //
 // Archiving used to be a status value, which forced the generic update to
 // accept a status from the client -- and that is what let a live project be
@@ -321,31 +328,110 @@ func (svc *project) Unarchive(ctx context.Context, projectID uint64) (*types.Pro
 	return svc.setArchived(ctx, projectID, nil)
 }
 
-func (svc *project) setArchived(ctx context.Context, projectID uint64, at *time.Time) (*types.Project, error) {
-	p, err := loadProject(ctx, svc.store, projectID)
-	if err != nil {
-		return nil, err
+func (svc *project) setArchived(ctx context.Context, projectID uint64, at *time.Time) (p *types.Project, err error) {
+	var (
+		aProps = &projectActionProps{project: &types.Project{ID: projectID}}
+
+		action = ProjectActionArchive
+		// Whether the shelf state actually moved. An idempotent no-op below is
+		// not an event: logging it would put a second "archived" entry in the
+		// audit trail naming a moment when nothing was shelved.
+		changed bool
+	)
+
+	if at == nil {
+		action = ProjectActionUnarchive
 	}
 
-	if !svc.ac.CanUpdateProject(ctx, p) {
-		return nil, ProjectErrNotAllowedToUpdate()
-	}
+	err = func() error {
+		if p, err = loadProject(ctx, svc.store, projectID); err != nil {
+			return err
+		}
 
-	// Idempotent on purpose: archiving an archived project is a no-op rather
-	// than an error, so a double-click or a retried request cannot fail.
-	if (p.ArchivedAt == nil) == (at == nil) {
+		aProps.setProject(p)
+
+		if !svc.ac.CanUpdateProject(ctx, p) {
+			return ProjectErrNotAllowedToUpdate()
+		}
+
+		// Idempotent on purpose: archiving an archived project is a no-op rather
+		// than an error, so a double-click or a retried request cannot fail.
+		if (p.ArchivedAt == nil) == (at == nil) {
+			return nil
+		}
+		changed = true
+
+		p.ArchivedAt = at
+		p.UpdatedAt = now()
+		p.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		// A shelved project is out of service, not merely hidden from a listing.
+		// Stamping ArchivedAt alone left the compose app enabled and fully
+		// reachable, so archiving a live project changed nothing anyone using it
+		// could see -- on a compliance product, "we took it down" has to mean the
+		// thing is actually down.
+		//
+		// The two directions are NOT symmetrical, which is what the flag is for:
+		// a draft revision's namespace is deliberately disabled from the moment
+		// it is branched (see CreateRevision), and a deprecated one is disabled
+		// and soft-deleted by the publish that replaced it. Unarchiving may only
+		// undo what archiving itself did, or shelving and unshelving a draft
+		// would quietly put a half-built revision on the air.
+		//
+		// Both writes go in one transaction so the flag and the namespace can
+		// never disagree about whether there is anything to restore.
+		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+			if at != nil {
+				disabled, e := svc.setNamespaceEnabled(ctx, s, p.Config.NamespaceID, false)
+				if e != nil {
+					return e
+				}
+				p.Config.RestoreNamespaceOnUnarchive = disabled
+			} else if p.Config.RestoreNamespaceOnUnarchive {
+				if _, e := svc.setNamespaceEnabled(ctx, s, p.Config.NamespaceID, true); e != nil {
+					return e
+				}
+				p.Config.RestoreNamespaceOnUnarchive = false
+			}
+
+			return store.UpdateProject(ctx, s, p)
+		})
+	}()
+
+	if err == nil && !changed {
 		return p, nil
 	}
 
-	p.ArchivedAt = at
-	p.UpdatedAt = now()
-	p.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return p, svc.recordAction(ctx, aProps, action, err)
+}
 
-	if err = store.UpdateProject(ctx, svc.store, p); err != nil {
-		return nil, err
+// setNamespaceEnabled puts the project's compose namespace in or out of
+// service, and reports whether it had to change anything — the caller needs to
+// know so it can undo exactly this much later.
+//
+// A missing namespace is not an error, for the same reason setNamespaceDeleted
+// tolerates one: older projects predate the auto-created namespace, and a
+// project's shelf state must not depend on having one.
+func (svc *project) setNamespaceEnabled(ctx context.Context, s store.Storer, namespaceID uint64, enabled bool) (bool, error) {
+	if namespaceID == 0 {
+		return false, nil
 	}
 
-	return p, nil
+	ns, err := store.LookupComposeNamespaceByID(ctx, s, namespaceID)
+	if errors.IsNotFound(err) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	if ns.Enabled == enabled {
+		return false, nil
+	}
+
+	ns.Enabled = enabled
+	ns.UpdatedAt = now()
+
+	return true, store.UpdateComposeNamespace(ctx, s, ns)
 }
 
 // --- members ---

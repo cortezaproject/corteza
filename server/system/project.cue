@@ -37,6 +37,15 @@ _projectDefs: {
 				{name: "DeployerCategories", type: _projectDefs.ProjectDeployerCategories, json: "deployerCategories,omitempty"},
 				{name: "FriaRequired", type:       "bool", json:                                 "friaRequired,omitempty"},
 				{name: "ResourceManagement", type: _projectDefs.ProjectResourceManagement, json: "resourceManagement,omitempty"},
+				// Bookkeeping for the archive shelf: set when archiving actually
+				// took the project's namespace out of service, so unarchiving
+				// knows to put it back. A draft revision's namespace is
+				// deliberately disabled (see CreateRevision), and unarchiving must
+				// not be what switches it on -- the flag is how "restore what
+				// archiving turned off" stays distinguishable from "enable".
+				// Written by the service only; beforeUpdate keeps a client from
+				// sending one.
+				{name: "RestoreNamespaceOnUnarchive", type: "bool", json: "restoreNamespaceOnUnarchive,omitempty"},
 	]}
 
 	ProjectDeployerCategories: {name: "ProjectDeployerCategories", fields: [

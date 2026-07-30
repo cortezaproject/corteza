@@ -383,6 +383,44 @@ func ProjectActionUndelete(props ...*projectActionProps) *projectAction {
 	return a
 }
 
+// ProjectActionArchive returns "system:project.archive" action
+//
+// This function is auto-generated.
+func ProjectActionArchive(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "archive",
+		log:       "archived {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ProjectActionUnarchive returns "system:project.unarchive" action
+//
+// This function is auto-generated.
+func ProjectActionUnarchive(props ...*projectActionProps) *projectAction {
+	a := &projectAction{
+		timestamp: time.Now(),
+		resource:  "system:project",
+		action:    "unarchive",
+		log:       "unarchived {{project}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // ProjectActionSearchMembers returns "system:project.searchMembers" action
 //
 // This function is auto-generated.

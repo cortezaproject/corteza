@@ -937,7 +937,8 @@
   "ai": "map[string]any",
   "infra": "map[string]any",
   "connections": "*ProjectPermittedConnection"
-}
+},
+  "restoreNamespaceOnUnarchive": "bool"
 },
   "meta": {
   "short": "string",

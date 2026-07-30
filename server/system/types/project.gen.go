@@ -38,13 +38,14 @@ type (
 	}
 
 	ProjectConfig struct {
-		Visibility         ProjectVisibility         `json:"visibility,omitempty"`
-		DefaultMemberRole  ProjectMemberRole         `json:"defaultMemberRole,omitempty"`
-		FeatureFlags       map[string]bool           `json:"featureFlags,omitempty"`
-		NamespaceID        uint64                    `json:"namespaceID,string,omitempty"`
-		DeployerCategories ProjectDeployerCategories `json:"deployerCategories,omitempty"`
-		FriaRequired       bool                      `json:"friaRequired,omitempty"`
-		ResourceManagement ProjectResourceManagement `json:"resourceManagement,omitempty"`
+		Visibility                  ProjectVisibility         `json:"visibility,omitempty"`
+		DefaultMemberRole           ProjectMemberRole         `json:"defaultMemberRole,omitempty"`
+		FeatureFlags                map[string]bool           `json:"featureFlags,omitempty"`
+		NamespaceID                 uint64                    `json:"namespaceID,string,omitempty"`
+		DeployerCategories          ProjectDeployerCategories `json:"deployerCategories,omitempty"`
+		FriaRequired                bool                      `json:"friaRequired,omitempty"`
+		ResourceManagement          ProjectResourceManagement `json:"resourceManagement,omitempty"`
+		RestoreNamespaceOnUnarchive bool                      `json:"restoreNamespaceOnUnarchive,omitempty"`
 	}
 
 	ProjectDeployerCategories struct {
@@ -241,6 +242,10 @@ func (r ProjectConfig) Diff(cmp *ProjectConfig) []*revisions.Change {
 	for _, c := range r.ResourceManagement.Diff(&cmp.ResourceManagement) {
 		c.Key = "resourceManagement." + c.Key
 		out = append(out, c)
+	}
+
+	if r.RestoreNamespaceOnUnarchive != cmp.RestoreNamespaceOnUnarchive {
+		out = append(out, &revisions.Change{Key: "restoreNamespaceOnUnarchive", Old: []any{cmp.RestoreNamespaceOnUnarchive}, New: []any{r.RestoreNamespaceOnUnarchive}})
 	}
 
 	return out

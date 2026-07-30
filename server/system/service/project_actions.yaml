@@ -45,6 +45,12 @@ actions:
   - action: undelete
     log: "undeleted {{project}}"
 
+  - action: archive
+    log: "archived {{project}}"
+
+  - action: unarchive
+    log: "unarchived {{project}}"
+
   - action: searchMembers
     log: "searched members of {{project}}"
     severity: info
