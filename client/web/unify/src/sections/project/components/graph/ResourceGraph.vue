@@ -71,6 +71,55 @@
         </div>
       </div>
     </div>
+
+    <!-- Reference problems — what the backend could NOT draw. A dangling
+         reference is invisible on the canvas by nature (it is a line that
+         isn't there), so the badge on the referencing node points here and
+         this list says what is broken and why. Deliberately NOT filtered by
+         the layer toggles: hiding a kind is a way to read the canvas, not a
+         way to decide a problem doesn't count. -->
+    <div v-if="issues.length" class="shrink-0 rounded-lg border border-surface overflow-hidden">
+      <button
+        type="button"
+        class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-emphasis transition-colors"
+        :aria-expanded="issuesOpen"
+        @click="issuesOpen = !issuesOpen"
+      >
+        <i class="pi pi-exclamation-triangle text-sm" :class="issueSummary.tone" />
+        <span class="text-xs font-semibold uppercase tracking-wide">
+          {{ $t('project.graph.issues.title') }}
+        </span>
+        <span class="text-xs text-muted-color">{{ issueSummary.text }}</span>
+        <i
+          class="pi ml-auto text-xs text-muted-color"
+          :class="issuesOpen ? 'pi-chevron-up' : 'pi-chevron-down'"
+        />
+      </button>
+      <ul v-if="issuesOpen" class="max-h-44 overflow-auto border-t border-surface">
+        <li
+          v-for="issue in issues"
+          :key="issue.key"
+          class="flex items-start gap-2 px-3 py-2 text-xs border-b border-surface last:border-b-0"
+        >
+          <i
+            class="pi mt-0.5 shrink-0"
+            :class="
+              issue.severity === 'missing'
+                ? 'pi-times-circle text-red-500'
+                : 'pi-exclamation-circle text-amber-500'
+            "
+            style="font-size: 0.7rem"
+          />
+          <div class="min-w-0">
+            <div class="truncate">
+              <span class="font-medium">{{ issue.sourceName }}</span>
+              <span class="text-muted-color">· {{ issue.reasonLabel }}</span>
+            </div>
+            <div class="text-muted-color">{{ issue.detail }}</div>
+          </div>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -119,15 +168,25 @@ const INSPECTABLE_KINDS = new Set([
   'role',
   'user',
 ])
+//
+// External nodes are exempt no matter their kind. They are not this project's
+// resources — the wizard's dialogs edit the project's own — and for connections
+// the two are not even the same kind of id: an in-project connection node is a
+// CONFIGURED connection, an external one is the tenant-level DAL connection
+// behind it. Handing that id to the connection dialog opens the wrong record,
+// or nothing, with no way for the user to tell which happened.
 const onClick = params => {
   if (params.dataType !== 'node' || props.locked) return
-  const kind = params.data.kind
-  if (INSPECTABLE_KINDS.has(kind)) inspectResource?.(kind, params.data.id)
+  const { kind, id, external } = params.data
+  if (external) return
+  if (INSPECTABLE_KINDS.has(kind)) inspectResource?.(kind, id)
 }
 
 // --- Data: the backend graph is the single source of truth ------------------
-const graph = ref({ nodes: [], edges: [] })
+const emptyGraph = () => ({ nodes: [], edges: [], missing: [], warnings: [] })
+const graph = ref(emptyGraph())
 const loading = ref(false)
+const issuesOpen = ref(true)
 // A reload requested mid-fetch runs once more after it — back-to-back saves
 // coalesce instead of losing the trailing refetch.
 let pending = false
@@ -158,7 +217,7 @@ watch(
   [() => props.project?.projectID, () => store.graphVersion],
   ([id]) => {
     if (id) reload()
-    else graph.value = { nodes: [], edges: [] }
+    else graph.value = emptyGraph()
   },
   { immediate: true },
 )
@@ -200,14 +259,107 @@ const visibleEdges = computed(() => {
 
 // --- Rendering ----------------------------------------------------------------
 
-// Human wording for the backend's edge reasons (i18n keys).
+// Human wording for the backend's reference reasons (i18n keys). The same
+// vocabulary labels an edge, a missing reference and a warning — they are all
+// the same fact ("this is why A points at B"), only one of them made it onto
+// the canvas. Covers every reason server/pkg/resourceref can attach to a
+// relation the graph keeps; anything else falls back to its raw string.
 const EDGE_REASONS = {
   'module-field-ref': 'project.graph.edgeReason.moduleFieldRef',
+  'module-connection': 'project.graph.edgeReason.moduleConnection',
+  'page-module': 'project.graph.edgeReason.pageModule',
+  'page-chart': 'project.graph.edgeReason.pageChart',
+  'page-automation': 'project.graph.edgeReason.pageAutomation',
+  'page-agent': 'project.graph.edgeReason.pageAgent',
+  'page-chatbot': 'project.graph.edgeReason.pageChatbot',
+  'page-navigation': 'project.graph.edgeReason.pageNavigation',
+  'chart-module': 'project.graph.edgeReason.chartModule',
+  'trigger-module': 'project.graph.edgeReason.triggerModule',
+  'agent-module': 'project.graph.edgeReason.agentModule',
+  'agent-automation': 'project.graph.edgeReason.agentAutomation',
+  'chatbot-agent': 'project.graph.edgeReason.chatbotAgent',
+  'chatbot-automation': 'project.graph.edgeReason.chatbotAutomation',
+  'step-argument': 'project.graph.edgeReason.stepArgument',
+  'step-connection': 'project.graph.edgeReason.stepConnection',
   'role-rbac': 'project.graph.edgeReason.roleRbac',
   'user-role': 'project.graph.edgeReason.userRole',
 }
 
+const reasonLabel = reason => (EDGE_REASONS[reason] ? t(EDGE_REASONS[reason]) : reason || '')
+
 const nameById = computed(() => new Map(graph.value.nodes.map(n => [n.id, n.name])))
+
+// --- Reference problems -------------------------------------------------------
+// missing: the reference names a resource that is not in the project and could
+// not be loaded from anywhere else — a deleted module, a binding a branch copy
+// left pointing at the revision it was copied from.
+// warning: the reference resolves only when the thing runs (a computed step
+// argument), so there is nothing to check now and nothing to draw.
+//
+// Both are keyed by the REFERENCING node, which is the one the user can act on.
+const targetKindLabel = kind =>
+  kind ? t(kindConfig(kind).singularKey) : t('project.graph.issues.someResource')
+
+const issues = computed(() => {
+  const named = id => nameById.value.get(id) || t('project.graph.issues.unknownSource')
+
+  const missing = (graph.value.missing || []).map((m, i) => ({
+    key: `m${i}`,
+    severity: 'missing',
+    sourceID: m.sourceID,
+    sourceName: named(m.sourceID),
+    reasonLabel: reasonLabel(m.reason),
+    // The identifier is what makes the row actionable — it is the only trace
+    // left of the resource that went away, so it is shown when there is one.
+    detail: t(
+      m.targetIdent || m.targetID
+        ? 'project.graph.issues.missingWithTarget'
+        : 'project.graph.issues.missing',
+      { kind: targetKindLabel(m.kind), target: m.targetIdent || m.targetID },
+    ),
+  }))
+
+  const warnings = (graph.value.warnings || []).map((w, i) => ({
+    key: `w${i}`,
+    severity: 'warning',
+    sourceID: w.sourceID,
+    sourceName: named(w.sourceID),
+    reasonLabel: reasonLabel(w.reason),
+    detail:
+      t('project.graph.issues.warning', { kind: targetKindLabel(w.kind) }) +
+      (w.path ? ` ${t('project.graph.issues.atPath', { path: w.path })}` : ''),
+  }))
+
+  return [...missing, ...warnings]
+})
+
+// Node id → worst severity on it, so the canvas badge matches the list's icon.
+const issueSeverityByNode = computed(() => {
+  const m = new Map()
+  for (const issue of issues.value) {
+    if (issue.severity === 'missing' || !m.has(issue.sourceID))
+      m.set(issue.sourceID, issue.severity)
+  }
+  return m
+})
+
+const issuesByNode = computed(() => {
+  const m = new Map()
+  for (const issue of issues.value) {
+    if (!m.has(issue.sourceID)) m.set(issue.sourceID, [])
+    m.get(issue.sourceID).push(issue)
+  }
+  return m
+})
+
+const issueSummary = computed(() => {
+  const broken = issues.value.filter(i => i.severity === 'missing').length
+  const deferred = issues.value.length - broken
+  const parts = []
+  if (broken) parts.push(t('project.graph.issues.summaryBroken', { count: broken }))
+  if (deferred) parts.push(t('project.graph.issues.summaryDeferred', { count: deferred }))
+  return { text: parts.join(' · '), tone: broken ? 'text-red-500' : 'text-amber-500' }
+})
 
 const degreeMap = computed(() => {
   const m = new Map()
@@ -236,15 +388,28 @@ const option = computed(() => {
 
   const data = visibleNodes.value.map(n => {
     const size = 34 + Math.min(20, (degreeMap.value.get(n.id) || 0) * 3)
+    const badge = issueSeverityByNode.value.get(n.id) || ''
     return {
       id: n.id,
       name: n.name,
-      symbol: kindIconDataUri(n.kind),
+      symbol: kindIconDataUri(n.kind, { external: !!n.external, badge }),
       symbolSize: [size, size],
       symbolKeepAspect: true,
-      label: { show: true, position: 'right', fontSize: 11, color: labelColor },
-      // Carried for the tooltip only.
+      label: {
+        show: true,
+        position: 'right',
+        fontSize: 11,
+        // An external node's own name is not this project's to change, so its
+        // label is stated more quietly than the resources the wizard owns.
+        color: n.external ? mutedEdgeColor() : labelColor,
+        fontStyle: n.external ? 'italic' : 'normal',
+      },
+      // Nothing opens for an external node (see onClick), so it does not offer
+      // the pointer that promises something will.
+      cursor: !props.locked && !n.external && INSPECTABLE_KINDS.has(n.kind) ? 'pointer' : 'default',
+      // Carried for the tooltip and the click handler.
       kind: n.kind,
+      external: !!n.external,
     }
   })
 
@@ -297,13 +462,19 @@ const option = computed(() => {
           const kindLabel = t(kindConfig(params.data.kind).singularKey)
           const refLabel = deg === 1 ? t('project.graph.reference') : t('project.graph.references')
           const lines = [`<b>${params.data.name}</b>`, `${kindLabel} · ${deg} ${refLabel}`]
+          if (params.data.external) lines.push(`<i>${t('project.graph.externalHint')}</i>`)
+          // The problems on this node, spelled out where the eye already is —
+          // the badge only says that there is one.
+          for (const issue of issuesByNode.value.get(params.data.id) || []) {
+            const color = issue.severity === 'missing' ? '#dc2626' : '#f59e0b'
+            lines.push(`<span style="color:${color}">${issue.reasonLabel}: ${issue.detail}</span>`)
+          }
           return lines.join('<br/>')
         }
         if (params.dataType === 'edge') {
           const from = nameById.value.get(params.data.source) || params.data.source
           const to = nameById.value.get(params.data.target) || params.data.target
-          const reasonKey = EDGE_REASONS[params.data.reason]
-          const reason = reasonKey ? t(reasonKey) : params.data.reason || ''
+          const reason = reasonLabel(params.data.reason)
           return `<b>${from}</b> → <b>${to}</b>${reason ? `<br/>${reason}` : ''}`
         }
         return ''

@@ -1358,8 +1358,39 @@ graph:
   reference: reference
   references: references
   toastLoadFailed: Could not load resource graph
+  externalHint: >-
+    Defined outside this project — open it from the section that owns it.
+  issues:
+    title: Reference problems
+    summaryBroken: '{count} broken'
+    summaryDeferred: '{count} decided at run time'
+    someResource: resource
+    unknownSource: Unknown resource
+    missing: >-
+      Points at a {kind} that is not part of this project and could not be found anywhere else.
+    missingWithTarget: >-
+      Points at a {kind} that is not part of this project and could not be found anywhere else
+      ({target}).
+    warning: >-
+      Points at a {kind} that is only decided while this runs, so it cannot be checked here.
+    atPath: 'Configured at {path}.'
   edgeReason:
     moduleFieldRef: Record-field reference
+    moduleConnection: Stored through this connection
+    pageModule: Page shows this record module
+    pageChart: Page embeds this chart
+    pageAutomation: Page runs this automation
+    pageAgent: Page uses this agent
+    pageChatbot: Page embeds this chatbot
+    pageNavigation: Navigation link
+    chartModule: Chart reads this record module
+    triggerModule: Triggered by this record module
+    agentModule: Agent reads this record module
+    agentAutomation: Agent calls this automation
+    chatbotAgent: Chatbot is answered by this agent
+    chatbotAutomation: Chatbot calls this automation
+    stepArgument: Automation step argument
+    stepConnection: Automation step connection
     roleRbac: Permission grant
     userRole: Role membership
   layer:

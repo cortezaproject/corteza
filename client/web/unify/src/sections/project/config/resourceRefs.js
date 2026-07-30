@@ -38,6 +38,20 @@ export const KIND_BY_RESOURCE_TYPE = Object.fromEntries(
   Object.entries(RESOURCE_TYPE_BY_KIND).map(([kind, type]) => [type, kind]),
 )
 
+// The project-graph endpoint names a reference's TARGET by resource type, and
+// its vocabulary is a little wider than the AI-system one above: a connection
+// reference can name either the project's own configured connection or the
+// tenant-level DAL connection behind it, and both draw as a "connection" node.
+// The reverse map above can't carry that (two types, one kind), so the graph
+// direction gets its own table.
+//
+// Only the types the graph can emit appear — server/system/service/
+// project_graph.go drops refs to any other type before the payload is built.
+export const GRAPH_KIND_BY_RESOURCE_TYPE = {
+  ...KIND_BY_RESOURCE_TYPE,
+  'corteza::system:dal-connection': 'connection',
+}
+
 // Kinds whose membership means "this resource is PART OF the AI system", as
 // opposed to the oversight relationship roles carry. Kept explicit so the
 // editor can present the two as separate concerns without re-deriving the

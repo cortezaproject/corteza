@@ -1,5 +1,6 @@
 import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
 import { PUBLISH_GOVERNANCE_STEP_KEY } from '@/sections/project/config/pipeline'
+import { GRAPH_KIND_BY_RESOURCE_TYPE } from '@/sections/project/config/resourceRefs'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
 import { compose, NoID, system } from '@planetcrust/human-js'
@@ -2160,14 +2161,54 @@ export const useProjectsStore = defineStore('projects', () => {
   // Single backend endpoint re-derives the project's dependency graph from saved
   // state. We pass nodes through untouched and only rename edge endpoints to the
   // source/target shape the graph component (ECharts) expects.
+  //
+  // `missing` and `warnings` are the endpoint's account of what it could NOT
+  // draw, and they matter more than the edges: a reference whose target is gone
+  // (a branch copy that dropped a TAQ binding, a chatbot left pointing at
+  // another revision's agent) otherwise shows up as nothing at all — one fewer
+  // line on a canvas nobody counted. Both are `omitempty` on the wire and Go
+  // marshals an empty slice as `null`, so they are normalised to arrays here.
+  //
+  // Their `kind` is a backend resource TYPE (`corteza::compose:module`), not one
+  // of this section's node kinds; it is translated once, here, so nothing
+  // downstream has to know both vocabularies. An untranslatable type keeps its
+  // raw string in `resourceType` and leaves `kind` null — the graph then says
+  // "a resource" rather than inventing a name for it.
+  const graphRefKind = type => ({
+    kind: GRAPH_KIND_BY_RESOURCE_TYPE[type] || null,
+    resourceType: type || '',
+  })
+
   async function graph(projectID) {
-    const { nodes = [], edges = [] } = await $SystemAPI.projectGraph({ projectID })
+    const {
+      nodes = [],
+      edges = [],
+      missing,
+      warnings,
+    } = await $SystemAPI.projectGraph({ projectID })
+
     return {
       nodes,
       edges: edges.map(e => ({
         source: e.sourceID,
         target: e.targetID,
         reason: e.reason,
+      })),
+      // A configured reference whose target could not be resolved at all.
+      missing: (missing || []).map(m => ({
+        sourceID: m.sourceID,
+        ...graphRefKind(m.kind),
+        targetID: m.targetID || '',
+        targetIdent: m.targetIdent || '',
+        reason: m.reason || '',
+      })),
+      // A reference that only resolves at run time (a computed step argument,
+      // a scope variable) — not broken, but not checkable here either.
+      warnings: (warnings || []).map(w => ({
+        sourceID: w.sourceID,
+        ...graphRefKind(w.kind),
+        reason: w.reason || '',
+        path: w.path || '',
       })),
     }
   }

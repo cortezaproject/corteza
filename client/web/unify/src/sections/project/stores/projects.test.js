@@ -59,6 +59,98 @@ describe('useProjectsStore', () => {
     })
   })
 
+  // The regression: the store destructured only `nodes` and `edges`, so the
+  // endpoint's whole account of what it could NOT resolve — a chatbot pointing
+  // at another revision's agent, a TAQ binding a branch copy dropped — was
+  // thrown away between the API and the canvas, and a broken project rendered
+  // as a correct one with one fewer line on it.
+  describe('graph()', () => {
+    const call = async response => {
+      api.projectGraph = vi.fn().mockResolvedValue(response)
+      return useProjectsStore().graph('42')
+    }
+
+    it('carries missing references through, in the section kind vocabulary', async () => {
+      const g = await call({
+        nodes: [{ id: '1', kind: 'chart', name: 'Revenue' }],
+        edges: [],
+        missing: [
+          {
+            sourceID: '1',
+            kind: 'corteza::compose:module',
+            targetID: '9',
+            reason: 'chart-module',
+          },
+        ],
+      })
+
+      expect(g.missing).toEqual([
+        {
+          sourceID: '1',
+          kind: 'module',
+          resourceType: 'corteza::compose:module',
+          targetID: '9',
+          targetIdent: '',
+          reason: 'chart-module',
+        },
+      ])
+    })
+
+    // Both connection resource types draw as a "connection" node; the reverse
+    // of the AI-system map can only carry one of them, which is why the graph
+    // direction has its own table.
+    it('resolves the tenant-level connection type to the connection kind', async () => {
+      const g = await call({
+        nodes: [],
+        edges: [],
+        warnings: [
+          {
+            sourceID: '1',
+            kind: 'corteza::system:dal-connection',
+            reason: 'step-connection',
+            path: 'steps[2].args.connection',
+          },
+        ],
+      })
+
+      expect(g.warnings[0]).toMatchObject({
+        kind: 'connection',
+        reason: 'step-connection',
+        path: 'steps[2].args.connection',
+      })
+    })
+
+    // A resource type this build has never heard of keeps its raw string rather
+    // than silently becoming some other kind's icon.
+    it('leaves an unknown resource type unnamed', async () => {
+      const g = await call({
+        nodes: [],
+        edges: [],
+        missing: [{ sourceID: '1', kind: 'corteza::system:whatsit', reason: 'step-argument' }],
+      })
+
+      expect(g.missing[0]).toMatchObject({ kind: null, resourceType: 'corteza::system:whatsit' })
+    })
+
+    // Go marshals an empty slice as null, and both fields are omitempty on top
+    // of that — the graph component iterates them either way.
+    it('normalises absent and null problem lists to arrays', async () => {
+      expect(await call({ nodes: [], edges: [], missing: null })).toMatchObject({
+        missing: [],
+        warnings: [],
+      })
+    })
+
+    it('renames edge endpoints for the chart component', async () => {
+      const g = await call({
+        nodes: [],
+        edges: [{ sourceID: '1', targetID: '2', reason: 'agent-module' }],
+      })
+
+      expect(g.edges).toEqual([{ source: '1', target: '2', reason: 'agent-module' }])
+    })
+  })
+
   // The governance cycle is session-local in-memory state (see the store's own
   // header comment), so it tests directly — no API in the way. What it is worth
   // testing is the rules themselves: every step, the well-known 'publish' one
