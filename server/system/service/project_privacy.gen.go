@@ -82,6 +82,9 @@ func (svc *projectPrivacy) Search(ctx context.Context, filter types.ProjectPriva
 		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
 			return err
 		}
+		if err = svc.beforeSearch(ctx, &filter); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchProjectPrivacys(ctx) {
 			return ProjectPrivacyErrNotAllowedToSearch()
 		}

@@ -15,6 +15,13 @@ func ProjectReview() *projectReview {
 	}
 }
 
+// beforeSearch normalises the project scope to the chain root, mirroring what
+// beforeCreate already does on the way in. See rootProjectID (project.go).
+func (svc *projectReview) beforeSearch(ctx context.Context, f *types.ProjectReviewFilter) error {
+	f.ProjectID = rootProjectID(ctx, svc.store, f.ProjectID)
+	return nil
+}
+
 func (svc *projectReview) beforeCreate(ctx context.Context, new *types.ProjectReview) error {
 	if new.ProjectID == 0 {
 		return ProjectReviewErrMissingProject()

@@ -141,6 +141,7 @@ project_review: {
 			beforeCreate: true
 			beforeUpdate: true
 			beforeDelete: true
+			beforeSearch: true
 		}
 	}
 

@@ -22,6 +22,13 @@ func ProjectFeature() *projectFeature {
 	}
 }
 
+// beforeSearch normalises the project scope to the chain root, mirroring what
+// beforeCreate already does on the way in. See rootProjectID (project.go).
+func (svc *projectFeature) beforeSearch(ctx context.Context, f *types.ProjectFeatureFilter) error {
+	f.ProjectID = rootProjectID(ctx, svc.store, f.ProjectID)
+	return nil
+}
+
 func (svc *projectFeature) beforeCreate(ctx context.Context, new *types.ProjectFeature) error {
 	if new.ProjectID == 0 {
 		return ProjectFeatureErrMissingProject()

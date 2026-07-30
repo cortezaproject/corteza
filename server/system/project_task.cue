@@ -151,6 +151,7 @@ project_task: {
 			beforeCreate: true
 			beforeUpdate: true
 			beforeDelete: true
+			beforeSearch: true
 		}
 	}
 

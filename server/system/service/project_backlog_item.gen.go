@@ -82,6 +82,9 @@ func (svc *projectBacklogItem) Search(ctx context.Context, filter types.ProjectB
 		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
 			return err
 		}
+		if err = svc.beforeSearch(ctx, &filter); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchProjectBacklogItems(ctx) {
 			return ProjectBacklogItemErrNotAllowedToSearch()
 		}

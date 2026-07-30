@@ -82,6 +82,9 @@ func (svc *projectIncident) Search(ctx context.Context, filter types.ProjectInci
 		if err = svc.checkScope(ctx, scope.CapRead); err != nil {
 			return err
 		}
+		if err = svc.beforeSearch(ctx, &filter); err != nil {
+			return err
+		}
 		if !svc.ac.CanSearchProjectIncidents(ctx) {
 			return ProjectIncidentErrNotAllowedToSearch()
 		}

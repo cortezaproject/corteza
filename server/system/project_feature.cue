@@ -162,6 +162,7 @@ project_feature: {
 			beforeCreate: true
 			beforeUpdate: true
 			beforeDelete: true
+			beforeSearch: true
 		}
 	}
 

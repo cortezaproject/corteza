@@ -26,6 +26,13 @@ func ProjectBacklogItem() *projectBacklogItem {
 	}
 }
 
+// beforeSearch normalises the project scope to the chain root, mirroring what
+// beforeCreate already does on the way in. See rootProjectID (project.go).
+func (svc *projectBacklogItem) beforeSearch(ctx context.Context, f *types.ProjectBacklogItemFilter) error {
+	f.ProjectID = rootProjectID(ctx, svc.store, f.ProjectID)
+	return nil
+}
+
 func (svc *projectBacklogItem) beforeCreate(ctx context.Context, new *types.ProjectBacklogItem) error {
 	if new.ProjectID == 0 {
 		return ProjectBacklogItemErrMissingProject()

@@ -474,6 +474,35 @@ func (svc *project) onRemoveMember(ctx context.Context, _ *projectActionProps, p
 
 // --- helpers ---
 
+// rootProjectID resolves projectID to the root of its revision chain.
+//
+// Work items (incidents, tasks, features, privacy items, reviews, backlog
+// items) are always WRITTEN against the chain root -- see any of their
+// beforeCreate hooks -- so a revision reads like a milestone over one shared
+// item pool rather than starting from an empty board. Reads have to normalise
+// the same way: rel_project is a real predicate in the store, and the project
+// dashboard routes on the chain HEAD, which stops being the root the moment a
+// project is revised once. Without this, every panel, report and board on a
+// branched project silently returned an empty set while the nav badges (which
+// already normalised) showed real counts right next to them.
+//
+// A zero id stays zero: a filter with no project scope must stay unfiltered.
+// An id that fails to load is passed through unchanged, so a filter naming a
+// project that does not exist comes back empty rather than erroring -- reads
+// are not the place to litigate a bad id.
+func rootProjectID(ctx context.Context, s store.Projects, projectID uint64) uint64 {
+	if projectID == 0 {
+		return 0
+	}
+
+	p, err := loadProject(ctx, s, projectID)
+	if err != nil || p == nil {
+		return projectID
+	}
+
+	return p.RootProjectID()
+}
+
 func (svc *project) uniqueCheck(ctx context.Context, p *types.Project) error {
 	if p.Handle == "" {
 		return nil

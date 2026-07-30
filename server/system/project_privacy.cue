@@ -162,6 +162,7 @@ project_privacy: {
 			beforeCreate: true
 			beforeUpdate: true
 			beforeDelete: true
+			beforeSearch: true
 		}
 	}
 

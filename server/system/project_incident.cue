@@ -172,6 +172,7 @@ project_incident: {
 			beforeCreate: true
 			beforeUpdate: true
 			beforeDelete: true
+			beforeSearch: true
 		}
 	}
 

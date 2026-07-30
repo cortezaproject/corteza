@@ -15,6 +15,13 @@ func ProjectPrivacy() *projectPrivacy {
 	}
 }
 
+// beforeSearch normalises the project scope to the chain root, mirroring what
+// beforeCreate already does on the way in. See rootProjectID (project.go).
+func (svc *projectPrivacy) beforeSearch(ctx context.Context, f *types.ProjectPrivacyFilter) error {
+	f.ProjectID = rootProjectID(ctx, svc.store, f.ProjectID)
+	return nil
+}
+
 func (svc *projectPrivacy) beforeCreate(ctx context.Context, new *types.ProjectPrivacy) error {
 	if new.ProjectID == 0 {
 		return ProjectPrivacyErrMissingProject()
