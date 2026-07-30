@@ -16,7 +16,11 @@
     @cancelled="closeScenario"
   />
 
-  <div v-else class="flex flex-col gap-6">
+  <!-- This step owns its own body (views/Wizard.vue stepOwnsBody): the pane
+       hands it the whole box unpadded so the editor's action bar can sit on
+       the panel's bottom edge, which means the scenario list has to bring its
+       own scrolling and padding. -->
+  <div v-else class="overflow-y-auto p-4 flex flex-col gap-6">
     <!-- Stat row -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="rounded-xl border border-surface bg-surface p-4">
@@ -134,6 +138,23 @@
           </span>
         </div>
 
+        <!-- Which AI system this scenario assesses — the design mockup gives
+             every scenario card this footer, and it is the only place the
+             list shows WHAT is being assessed rather than how. A scenario
+             cannot be saved without one, so the unassigned case only appears
+             for rows created before the field existed. -->
+        <div class="mt-1 pt-3 border-t border-surface flex items-center gap-2">
+          <span class="text-[10px] uppercase tracking-wide text-muted-color shrink-0">
+            {{ $t('fria.scenarios.aiSystemLabel') }}
+          </span>
+          <span v-if="aiSystemName(s)" class="text-xs font-medium truncate">
+            {{ aiSystemName(s) }}
+          </span>
+          <span v-else class="text-xs text-amber-600 dark:text-amber-400 italic truncate">
+            {{ $t('fria.scenarios.aiSystemUnassigned') }}
+          </span>
+        </div>
+
         <div class="mt-1 pt-3 border-t border-surface flex items-center justify-between">
           <span
             class="text-xs flex items-center gap-1.5"
@@ -203,7 +224,7 @@ import { friaScenarioCompletion } from '@/sections/project/config/friaScenario'
 import { IMPACTED_PARTIES, TRIGGER_CONDITIONS } from '@/sections/project/config/friaTaxonomies'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { components, useConfirmDelete } from '@planetcrust/human-vue'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -221,6 +242,21 @@ const { activeScenarioId, isCreatingScenario, openScenario, openNewScenario, clo
 
 const scenarios = computed(() => store.friaScenariosFor(props.project.projectID))
 const indexOf = s => scenarios.value.indexOf(s)
+
+// Resolves a scenario's AI system to its name for the card footer. Loaded on
+// mount because this step is reachable without ever opening the ai-systems
+// step, and an unresolved id would render as "unassigned" — saying the
+// scenario assesses nothing, which is a different and wrong claim.
+onMounted(() => {
+  store.loadAiSystems(props.project.projectID)
+  store.loadFriaScenarios(props.project.projectID)
+})
+
+const aiSystemName = s => {
+  if (!s.aiSystemID) return ''
+  const sys = store.aiSystem(props.project.projectID, s.aiSystemID)
+  return sys ? sys.name || sys.handle : ''
+}
 
 const partyLabel = key => t(IMPACTED_PARTIES.find(p => p.key === key)?.labelKey || '')
 const triggerLabel = key => t(TRIGGER_CONDITIONS.find(tr => tr.key === key)?.labelKey || '')
