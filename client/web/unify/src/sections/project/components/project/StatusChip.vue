@@ -74,10 +74,10 @@ const { t, te } = useI18n()
 // tag at all.
 const TONES = {
   neutral: { bg: 'bg-surface-500/20', ring: 'ring-surface-500/40', text: 'text-muted-color' },
-  // Being worked on. Blue rather than grey because the project list's own draft
-  // chip is blue (views/ProjectList.vue statusChipConfig) and the two are read
-  // in one sitting — and because a draft is work in progress, which grey (the
-  // tone of archived and deprecated) states as an absence of state.
+  // Being worked on. Blue rather than grey because a draft is work in progress,
+  // which grey — the tone of archived and deprecated — states as an absence of
+  // state. (The project list used to keep a blue draft chip of its own; it
+  // renders this component now, so there is one blue left to agree with.)
   progress: { bg: 'bg-blue-500/10', ring: 'ring-blue-500/30', text: 'text-blue-500' },
   info: { bg: 'bg-primary/10', ring: 'ring-primary/30', text: 'text-primary' },
   warn: { bg: 'bg-amber-500/10', ring: 'ring-amber-500/30', text: 'text-amber-500' },

@@ -51,7 +51,7 @@
       </template>
 
       <template #body-status="{ data }">
-        <CChip v-if="chipFor(data)" v-bind="chipFor(data)" />
+        <StatusChip v-if="data.status || data.archivedAt" v-bind="chipFor(data)" small />
         <span v-else>-</span>
       </template>
 
@@ -107,6 +107,7 @@
 <script setup>
 import NewProjectDialog from '@/sections/project/components/project/NewProjectDialog.vue'
 import RenameProjectDialog from '@/sections/project/components/project/RenameProjectDialog.vue'
+import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import { chainHasPublished } from '@/sections/project/config/publishState'
 import { system } from '@planetcrust/human-js'
 import { components, useResourceList } from '@planetcrust/human-vue'
@@ -198,34 +199,25 @@ const filterMenu = ref()
 function toggleFilterMenu(event) {
   filterMenu.value.toggle(event)
 }
-const statusChipConfig = {
-  published: {
-    label: t('project.status.published'),
-    icon: 'pi pi-check',
-    bg: 'bg-green-100',
-    ring: 'ring-green-200',
-  },
-
-  draft: {
-    label: t('project.status.draft'),
-    icon: 'pi pi-briefcase',
-    bg: 'bg-blue-100',
-    ring: 'ring-blue-200',
-  },
-
-  archived: {
-    label: t('project.status.archived'),
-    icon: 'pi pi-inbox',
-    bg: 'bg-gray-100',
-    ring: 'ring-gray-200',
-  },
-}
-
 // Archived wins over the lifecycle status in this column: for a shelved
 // project "archived" is what the reader needs to know, and its status carries
 // on saying whatever it said when it went on the shelf.
-const chipFor = project =>
-  project.archivedAt ? statusChipConfig.archived : statusChipConfig[project.status]
+//
+// Everything else defers to StatusChip, which already holds the palette for
+// every status the backend writes. This column kept its own three-key table
+// for a while, and its keys were the words a user says rather than the ones
+// the data model stores — so `active` (what a publish actually writes) and
+// `deprecated` (what a superseded revision becomes) matched nothing and every
+// live project showed a dash in its status column.
+//
+// The one thing that stays local is the WORDING for `active`: the filter menu
+// just above calls that state "Published", and a list whose filter and rows
+// disagree about the name of the same state is worse than either name. The
+// colour still comes from the shared table.
+const chipFor = project => {
+  const status = project.archivedAt ? 'archived' : project.status
+  return { status, label: status === 'active' ? t('project.status.published') : '' }
+}
 
 const formatDate = date => {
   if (!date) return ''
