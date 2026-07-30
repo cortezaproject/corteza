@@ -1446,11 +1446,15 @@ var Chatbot = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident:     "chatbots_uniqueHandle",
+			Ident:     "chatbots_uniqueHandlePerProject",
 			Type:      "BTREE",
 			Unique:    true,
 			Predicate: "handle != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ProjectID",
+				},
+
 				{
 					AttributeIdent: "Handle",
 					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},

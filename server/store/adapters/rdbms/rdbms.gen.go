@@ -8585,16 +8585,17 @@ func (s *Store) LookupChatbotByID(ctx context.Context, id uint64) (_ *systemType
 	return aux.decode()
 }
 
-// LookupChatbotByHandle searches for chatbot by handle
+// LookupChatbotByProjectIDHandle searches for chatbot by project and handle
 //
 // It returns only valid chatbots (not deleted)
 //
 // This function is auto-generated
-func (s *Store) LookupChatbotByHandle(ctx context.Context, handle string) (_ *systemType.Chatbot, err error) {
+func (s *Store) LookupChatbotByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (_ *systemType.Chatbot, err error) {
 	var (
 		rows       *sql.Rows
 		aux        = new(auxChatbot)
 		lookupExpr = []goqu.Expression{
+			goqu.I("rel_project").Eq(projectID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
 		}
@@ -8774,6 +8775,11 @@ func (s *Store) collectChatbotCursorValues(res *systemType.Chatbot, cc ...*filte
 func (s *Store) checkChatbotConstraints(ctx context.Context, res *systemType.Chatbot) (err error) {
 	err = func() (err error) {
 
+		if res.ProjectID == 0 {
+			// skip check on empty values
+			return nil
+		}
+
 		// handling string type as default
 		if len(res.Handle) == 0 {
 			// skip check on empty values
@@ -8785,12 +8791,12 @@ func (s *Store) checkChatbotConstraints(ctx context.Context, res *systemType.Cha
 			return nil
 		}
 
-		ex, err := s.LookupChatbotByHandle(ctx, res.Handle)
+		ex, err := s.LookupChatbotByProjectIDHandle(ctx, res.ProjectID, res.Handle)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			// Named, not a bare "not unique": a resource can have several
 			// unique constraints and the database raises its own violations
 			// too, so the message has to say which one this is.
-			return store.ErrNotUniqueOn("systemType.Chatbot", "Handle")
+			return store.ErrNotUniqueOn("systemType.Chatbot", "ProjectID", "Handle")
 		} else if !errors.IsNotFound(err) {
 			return err
 		}

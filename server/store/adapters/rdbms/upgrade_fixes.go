@@ -81,6 +81,7 @@ var (
 		fix_2026_06_00_addTenancyScopeColumns,
 		fix_2026_07_28_addRelRevisionOnProjectWorkItems,
 		fix_2026_07_30_dropGlobalUniqueHandleOnAgents,
+		fix_2026_07_30_dropGlobalUniqueHandleOnChatbots,
 		fix_2026_07_30_addArchivedAtOnProjects,
 		fix_2026_07_30_backfillProjectRefOnComposeResources,
 	}, actionlogFixes...)
@@ -1796,6 +1797,25 @@ func fix_2026_07_28_addRelRevisionOnProjectWorkItems(ctx context.Context, s *Sto
 // environment-dependent bug.
 func fix_2026_07_30_dropGlobalUniqueHandleOnAgents(ctx context.Context, s *Store) error {
 	return dropIndexes(ctx, s, "agents", "agents_uniqueHandle")
+}
+
+// fix_2026_07_30_dropGlobalUniqueHandleOnChatbots is the agent fix above,
+// applied to chatbots for the same reason: the revision branch now copies a
+// project's chatbots too (see system/service/project_revision_clone.go), so
+// parent and draft hold a same-handled chatbot at once.
+//
+// The handle has to be carried over rather than suffixed because the publish
+// diff matches resources across revisions on kind + handle; a renamed copy
+// would read as "chatbot removed, chatbot added" on a branch that changed
+// nothing. chatbots_uniqueHandlePerProject (system/chatbot.cue) replaces it.
+//
+// Separate from the model change because the upgrade only ever ADDS indexes the
+// model declares — it never drops the ones the model dropped. Without this, a
+// database migrated before today keeps enforcing the stale global index and
+// every branch of a project with a chatbot fails with "not unique", while a
+// freshly created one works.
+func fix_2026_07_30_dropGlobalUniqueHandleOnChatbots(ctx context.Context, s *Store) error {
+	return dropIndexes(ctx, s, "chatbots", "chatbots_uniqueHandle")
 }
 
 // fix_2026_07_30_addArchivedAtOnProjects splits archiving out of the project

@@ -160,10 +160,23 @@ chatbot: {
 
 		indexes: {
 			"primary": { attribute: "id" }
-			"unique_handle": {
-				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }]
+			// Scoped to the project (2026-07-30), not global — the same move
+			// agents made, for the same reason. A project revision branch copies
+			// its chatbots, so the parent revision and its draft necessarily hold
+			// same-handled chatbots at once, which a global unique handle makes
+			// impossible to store. The handle has to survive the copy because the
+			// publish diff identifies resources across revisions by kind + handle
+			// (diffSources in system/service/project_revision.go).
+			"unique_handle_per_project": {
+				fields: [{ attribute: "project_id" }, { attribute: "handle", modifiers: ["LOWERCASE"] }]
 				predicate: "handle != '' AND deleted_at IS NULL"
 			}
+			// Deliberately still GLOBAL. A widget key is the public embed id that
+			// a customer pastes into their site, so it has to identify exactly one
+			// chatbot across the whole system. A revision copy therefore takes a
+			// fresh throwaway key and inherits the canonical one at publish, when
+			// the outgoing chatbot's key is suffixed out of the way — see the
+			// widget-key swap in project_revision.go's Publish.
 			"unique_widget_key": {
 				fields: [{ attribute: "widget_key" }]
 				predicate: "widget_key != '' AND deleted_at IS NULL"
@@ -242,11 +255,17 @@ chatbot: {
 						It also returns deleted chatbots.
 						"""
 				}, {
-					fields: ["handle"]
+					// Project-scoped to match unique_handle_per_project above --
+					// a bare handle no longer identifies one chatbot, and the
+					// constraint check generated from this lookup would otherwise
+					// reject a revision copy as a duplicate of its own source.
+					// Nothing outside generated store code called the global
+					// LookupChatbotByHandle.
+					fields: ["project_id", "handle"]
 					nullConstraint: ["deleted_at"]
 					constraintCheck: true
 					description: """
-						searches for chatbot by handle
+						searches for chatbot by project and handle
 
 						It returns only valid chatbots (not deleted)
 						"""

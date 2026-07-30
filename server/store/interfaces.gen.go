@@ -328,7 +328,7 @@ type (
 		DeleteChatbotByID(ctx context.Context, id uint64) error
 		TruncateChatbots(ctx context.Context) error
 		LookupChatbotByID(ctx context.Context, id uint64) (*systemType.Chatbot, error)
-		LookupChatbotByHandle(ctx context.Context, handle string) (*systemType.Chatbot, error)
+		LookupChatbotByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*systemType.Chatbot, error)
 		LookupChatbotByWidgetKey(ctx context.Context, widgetKey string) (*systemType.Chatbot, error)
 	}
 
@@ -2118,13 +2118,13 @@ func LookupChatbotByID(ctx context.Context, s Chatbots, id uint64) (*systemType.
 	return s.LookupChatbotByID(ctx, id)
 }
 
-// LookupChatbotByHandle searches for chatbot by handle
+// LookupChatbotByProjectIDHandle searches for chatbot by project and handle
 //
 // It returns only valid chatbots (not deleted)
 //
 // This function is auto-generated
-func LookupChatbotByHandle(ctx context.Context, s Chatbots, handle string) (*systemType.Chatbot, error) {
-	return s.LookupChatbotByHandle(ctx, handle)
+func LookupChatbotByProjectIDHandle(ctx context.Context, s Chatbots, projectID uint64, handle string) (*systemType.Chatbot, error) {
+	return s.LookupChatbotByProjectIDHandle(ctx, projectID, handle)
 }
 
 // LookupChatbotByWidgetKey searches for chatbot by widget key

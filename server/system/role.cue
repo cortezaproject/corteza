@@ -87,7 +87,13 @@ role: {
 		}
 
 		query: ["handle", "name"]
-		byValue: ["role_id", "name", "handle"]
+		// project_id (2026-07-30): the filter STRUCT already carried a ProjectID,
+		// and the project graph passed it, but without the field listed here the
+		// store emitted no predicate for it — so "this project's roles" silently
+		// answered "every role in the system". That leaked global roles into every
+		// project's graph, and it made copying a revision's roles impossible to
+		// scope. See system/service/project_graph.go and project_revision_clone.go.
+		byValue: ["role_id", "project_id", "name", "handle"]
 		byNilState: ["deleted", "archived"]
 	}
 
