@@ -115,14 +115,29 @@ func (im *Importer) RunImport(ctx context.Context, mappingID uint64, method type
 	identity := auth.GetIdentityFromContext(ctx)
 	switch method {
 	case types.DmlImportMethodBackground:
-		go im.runImportWork(auth.SetIdentityToContext(context.Background(), identity), run, mp)
+		go im.runImportWork(auth.SetIdentityToContext(context.Background(), identity), run, mp, true)
 	}
 
 	return run, nil
 }
 
 // RunImportForeground runs the import synchronously in the calling goroutine.
-// Used by the project publish flow where migration must complete before state flips.
+// Used by the project publish flow where migration must complete before state
+// flips.
+//
+// It deliberately does NOT run the applier. Apply materialises a module FROM
+// the mapping -- that is what an external import needs, because the target
+// module does not exist yet or is only a projection of the source table. A
+// publish is the opposite situation: the target module was authored by hand in
+// the draft revision and is the authority; the mapping only says which column
+// feeds which field.
+//
+// Letting Apply run here destroyed exactly that. It replaces Fields wholesale
+// from the mapping's columns, and updateModuleFields matches old against new by
+// field ID -- the mapping carries none -- so every field of every migrated
+// module was soft-deleted and recreated as untyped text with its label reset to
+// its name, and the module's Name was replaced by its handle. Verified on a
+// live publish that used the server's own suggested mappings.
 func (im *Importer) RunImportForeground(ctx context.Context, mappingID uint64) error {
 	mp, err := im.mapping.FindByID(ctx, mappingID)
 	if err != nil {
@@ -138,14 +153,17 @@ func (im *Importer) RunImportForeground(ctx context.Context, mappingID uint64) e
 	if err := store.CreateDmlImportRun(ctx, im.store, run); err != nil {
 		return err
 	}
-	im.runImportWork(ctx, run, mp)
+	im.runImportWork(ctx, run, mp, false)
 	if run.Status != "completed" {
 		return fmt.Errorf("dml import failed: %s", run.Error)
 	}
 	return nil
 }
 
-func (im *Importer) runImportWork(ctx context.Context, run *types.DmlImportRun, mp *types.DmlMapping) {
+// applySchema decides whether the run may reshape the target module from the
+// mapping before importing into it. True for imports of external data, false
+// for a publish -- see RunImportForeground.
+func (im *Importer) runImportWork(ctx context.Context, run *types.DmlImportRun, mp *types.DmlMapping, applySchema bool) {
 	run.Status = "running"
 	if err := store.UpdateDmlImportRun(ctx, im.store, run); err != nil {
 		return
@@ -157,9 +175,11 @@ func (im *Importer) runImportWork(ctx context.Context, run *types.DmlImportRun, 
 		_ = store.UpdateDmlImportRun(ctx, im.store, run)
 	}
 
-	if err := im.applier.Apply(ctx, mp.ID); err != nil {
-		fail("apply: %s", err.Error())
-		return
+	if applySchema {
+		if err := im.applier.Apply(ctx, mp.ID); err != nil {
+			fail("apply: %s", err.Error())
+			return
+		}
 	}
 
 	nsHandle := mp.NamespaceHandle

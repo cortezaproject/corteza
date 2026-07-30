@@ -60,6 +60,20 @@ type (
 	}
 )
 
+// HasSource reports whether this mapping has anything to migrate FROM. A
+// module the revision added has a mapping (so it shows up in the plan) whose
+// fields either are absent or only carry defaults -- there is no source table
+// behind it, and asking the importer to read one fails the whole publish.
+func (m ModuleMapping) HasSource() bool {
+	for _, f := range m.Fields {
+		if f.SourceField != "" {
+			return true
+		}
+	}
+
+	return false
+}
+
 const (
 	ProjectChangeRiskSafe      ProjectChangeRisk = "safe"
 	ProjectChangeRiskDangerous ProjectChangeRisk = "dangerous"

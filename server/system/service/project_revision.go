@@ -458,6 +458,15 @@ func (svc *project) migrateRecords(
 	}()
 
 	for _, m := range mappings {
+		// A mapping with nothing to copy from is a module the revision ADDED:
+		// diffModules emits one for every new module so the caller sees it in
+		// the plan, but there is no source table behind it. Running it anyway
+		// failed the whole publish with `source table "x" not found on
+		// connection` -- the plan's own suggestions could not be published back.
+		if !m.HasSource() {
+			continue
+		}
+
 		if err := svc.runModuleMapping(ctx, connID, newNs.Slug, m); err != nil {
 			return err
 		}
