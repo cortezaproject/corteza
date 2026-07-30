@@ -758,25 +758,34 @@ export const useProjectsStore = defineStore('projects', () => {
   // the FE UX keep iterating quickly — so don't "fix" the lack of
   // persistence.
   //
-  // The rules below mirror the removed backend 1:1 (see git history for
-  // server/system/service/project_governance.go, the file this replaces):
+  // ONE cycle for everything (ruled 2026-07-30, replacing the removed
+  // backend's two-tier rules): every step, the well-known `'publish'` step
+  // included, runs draft -> submitted -> approved | changes-requested. Nothing
+  // is ever approved without having been submitted first, so an approval
+  // always answers a request.
   //
-  //   - Ordinary Build/Govern steps have no submit stage: a granter can
-  //     approve (any status -> approved, note cleared) or request changes
-  //     (any status, including no entry yet -> changes-requested, note set)
-  //     at any time (see Wizard.vue's per-step Approve / "Request changes"
-  //     toolbar actions).
-  //   - The well-known `'publish'` step key (PUBLISH_GOVERNANCE_STEP_KEY) runs
-  //     its own submit -> approve/request-changes cycle: submit
-  //     (draft/changes-requested -> submitted, clearing every OTHER flagged
-  //     step back to draft — "auto-clear on resubmit"); approve (submitted ->
-  //     approved, but rejected while any other step is still
-  //     changes-requested — "approval gate"); request-changes (submitted ->
-  //     changes-requested, note set).
+  //   - submit: draft/changes-requested -> submitted, note cleared. Rejected
+  //     from submitted/approved (there is nothing to ask for).
+  //   - approve: submitted -> approved ONLY, note cleared. Rejected from any
+  //     other status — this is what stops an Approve button from acting on a
+  //     step nobody put up for review. On `'publish'` it is additionally
+  //     rejected while any OTHER step sits at changes-requested (the
+  //     "approval gate"), so a revision cannot be approved over an open flag.
+  //   - request-changes: ANY status -> changes-requested, note set. A reviewer
+  //     may flag a step at any point, including one never submitted; the
+  //     wizard only stops offering it once the revision is published.
   //   - "immediate send-back": flagging a non-publish step while 'publish' is
   //     currently submitted or approved sends 'publish' back to
   //     changes-requested too, with a note pointing at the step that was
   //     flagged. A draft/absent 'publish' step is left alone.
+  //   - "any change needs approval again": editing what a step CONTAINS
+  //     invalidates its review, and the revision's own — see invalidateReview
+  //     and the `invalidating(...)` wrappers on the returned actions.
+  //
+  // The old "auto-clear on resubmit" rule is deliberately gone with this: a
+  // flagged step now clears by being fixed and resubmitted through its own
+  // cycle, so submitting the revision can no longer wipe a reviewer's note
+  // (and can no longer walk the approval gate above around itself).
   //
   // publishProject() (above) resets the local 'publish' step back to draft
   // after a successful publish, mirroring what the old backend used to do.
@@ -841,14 +850,48 @@ export const useProjectsStore = defineStore('projects', () => {
     publish.note = `Changes requested on step "${flaggedStepKey}": ${note}`
   }
 
-  // "auto-clear on resubmit" (mirrors the removed backend's clearFlaggedSteps).
-  function clearFlaggedSteps(projectId) {
-    for (const [key, step] of Object.entries(govSteps(projectId))) {
-      if (key === PUBLISH_GOVERNANCE_STEP_KEY) continue
-      if (step.status === GOVERNANCE_STATUS_CHANGES_REQUESTED) {
-        step.status = GOVERNANCE_STATUS_DRAFT
-        step.note = ''
-      }
+  // "any change needs approval again": a review states that what was there
+  // when it was granted is fit to ship, so changing that content retires it.
+  // A submitted or approved step drops back to draft (its owner resubmits when
+  // it's ready again), and the revision's own 'publish' review drops with it —
+  // an approved revision that has been edited since is not an approved
+  // revision. A changes-requested step is left alone on purpose: the
+  // reviewer's note has to survive the work done to address it, and it is the
+  // resubmit that clears it.
+  //
+  // Every action that changes a step's content is wrapped with `invalidating`
+  // at the return below rather than calling this itself — one list, so the
+  // step each action belongs to is stated in one readable place. Loaders and
+  // getters must never appear there.
+  function invalidateReview(projectId, stepKeys) {
+    const steps = govSteps(projectId)
+    const stale = s => s === GOVERNANCE_STATUS_SUBMITTED || s === GOVERNANCE_STATUS_APPROVED
+    let changed = false
+
+    for (const key of [PUBLISH_GOVERNANCE_STEP_KEY, ...[].concat(stepKeys || [])]) {
+      const step = steps[key]
+      if (!step || !stale(step.status)) continue
+      step.status = GOVERNANCE_STATUS_DRAFT
+      step.note = ''
+      changed = true
+    }
+
+    if (changed) touch()
+  }
+
+  // Wrap a mutating action so a SUCCESSFUL call retires the review of the
+  // step(s) it changed. `stepKeys` is a key, an array of keys, or a function
+  // of the action's own arguments for actions whose step depends on what was
+  // changed (updateField). Sync actions stay sync — the FRIA scenario
+  // mutators return their id to the caller directly.
+  function invalidating(fn, stepKeys) {
+    return (...args) => {
+      const done = () =>
+        invalidateReview(args[0], typeof stepKeys === 'function' ? stepKeys(...args) : stepKeys)
+      const out = fn(...args)
+      if (out instanceof Promise) return out.then(v => (done(), v))
+      done()
+      return out
     }
   }
 
@@ -860,56 +903,40 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function transitionStep(projectId, stepKey, action, note = '') {
     const step = govStep(projectId, stepKey)
+    const isPublish = stepKey === PUBLISH_GOVERNANCE_STEP_KEY
 
-    if (stepKey === PUBLISH_GOVERNANCE_STEP_KEY) {
-      switch (action) {
-        case 'submit':
-          if (
-            step.status !== GOVERNANCE_STATUS_DRAFT &&
-            step.status !== GOVERNANCE_STATUS_CHANGES_REQUESTED
-          ) {
-            throw new Error(`Cannot submit "publish" from status "${step.status}"`)
-          }
-          step.status = GOVERNANCE_STATUS_SUBMITTED
-          step.note = ''
-          clearFlaggedSteps(projectId)
-          break
-        case 'approve':
-          if (step.status !== GOVERNANCE_STATUS_SUBMITTED) {
-            throw new Error(`Cannot approve "publish" from status "${step.status}"`)
-          }
-          if (hasOtherFlaggedSteps(projectId, PUBLISH_GOVERNANCE_STEP_KEY)) {
-            throw new Error(
-              'Cannot approve the project while one or more steps still have changes requested',
-            )
-          }
-          step.status = GOVERNANCE_STATUS_APPROVED
-          step.note = ''
-          break
-        case 'request-changes':
-          if (step.status !== GOVERNANCE_STATUS_SUBMITTED) {
-            throw new Error(`Cannot request changes on "publish" from status "${step.status}"`)
-          }
-          step.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
-          step.note = note
-          break
-        default:
-          throw new Error(`Invalid governance action "${action}" for the "publish" step`)
-      }
-    } else {
-      switch (action) {
-        case 'approve':
-          step.status = GOVERNANCE_STATUS_APPROVED
-          step.note = ''
-          break
-        case 'request-changes':
-          step.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
-          step.note = note
-          sendPublishBack(projectId, stepKey, note)
-          break
-        default:
-          throw new Error(`Invalid governance action "${action}" for step "${stepKey}"`)
-      }
+    switch (action) {
+      case 'submit':
+        if (
+          step.status !== GOVERNANCE_STATUS_DRAFT &&
+          step.status !== GOVERNANCE_STATUS_CHANGES_REQUESTED
+        ) {
+          throw new Error(`Cannot submit "${stepKey}" from status "${step.status}"`)
+        }
+        step.status = GOVERNANCE_STATUS_SUBMITTED
+        step.note = ''
+        break
+      case 'approve':
+        if (step.status !== GOVERNANCE_STATUS_SUBMITTED) {
+          throw new Error(`Cannot approve "${stepKey}" from status "${step.status}"`)
+        }
+        // The approval gate — the revision cannot be approved over a step the
+        // reviewer has already sent back.
+        if (isPublish && hasOtherFlaggedSteps(projectId, PUBLISH_GOVERNANCE_STEP_KEY)) {
+          throw new Error(
+            'Cannot approve the project while one or more steps still have changes requested',
+          )
+        }
+        step.status = GOVERNANCE_STATUS_APPROVED
+        step.note = ''
+        break
+      case 'request-changes':
+        step.status = GOVERNANCE_STATUS_CHANGES_REQUESTED
+        step.note = note
+        if (!isPublish) sendPublishBack(projectId, stepKey, note)
+        break
+      default:
+        throw new Error(`Invalid governance action "${action}" for step "${stepKey}"`)
     }
 
     touch()
@@ -1929,71 +1956,84 @@ export const useProjectsStore = defineStore('projects', () => {
     addMember,
     updateMember,
     removeMember,
-    addResource,
-    removeResource,
-    updateResource,
+    // --- step content --------------------------------------------------------
+    // Each of these changes what a step CONTAINS, so a successful call retires
+    // that step's review and the revision's (see invalidateReview). The step
+    // key is stated here, next to the action, rather than inside it: this list
+    // IS the map of which step owns which resource, and a new mutating action
+    // that is missing from it silently keeps a stale approval alive.
+    // A module create/delete also makes/removes its record page, so it counts
+    // against the Pages step too.
+    addResource: invalidating(addResource, ['data-model', 'pages']),
+    removeResource: invalidating(removeResource, ['data-model', 'pages']),
+    updateResource: invalidating(updateResource, 'data-model'),
     connectionLibrary,
     connectionsFor,
     loadConnectionLibrary,
     allowedConnectorIds,
     loadConnections,
     prepareConnection,
-    saveConnection,
-    removeConnection,
+    saveConnection: invalidating(saveConnection, 'connections'),
+    removeConnection: invalidating(removeConnection, 'connections'),
     automationsFor,
     loadAutomations,
-    updateAutomation,
-    addAutomation,
-    removeAutomation,
+    updateAutomation: invalidating(updateAutomation, 'automations'),
+    addAutomation: invalidating(addAutomation, 'automations'),
+    removeAutomation: invalidating(removeAutomation, 'automations'),
     agentsFor,
     loadAgents,
-    addAgent,
-    updateAgent,
-    removeAgent,
+    addAgent: invalidating(addAgent, 'agents'),
+    updateAgent: invalidating(updateAgent, 'agents'),
+    removeAgent: invalidating(removeAgent, 'agents'),
     chatbotsFor,
     loadChatbots,
-    addChatbot,
-    updateChatbot,
-    removeChatbot,
+    addChatbot: invalidating(addChatbot, 'chatbots'),
+    updateChatbot: invalidating(updateChatbot, 'chatbots'),
+    removeChatbot: invalidating(removeChatbot, 'chatbots'),
     rolesFor,
     loadRoles,
-    addRole,
-    updateRole,
-    removeRole,
+    addRole: invalidating(addRole, 'roles'),
+    updateRole: invalidating(updateRole, 'roles'),
+    removeRole: invalidating(removeRole, 'roles'),
     effectiveAccess,
     isEffectiveAccessLoading,
     loadEffectiveAccess,
     userEffectiveAccess,
     isUserEffectiveAccessLoading,
     loadUserEffectiveAccess,
-    setAccess,
-    setCapabilityAccess,
+    setAccess: invalidating(setAccess, 'permissions'),
+    setCapabilityAccess: invalidating(setCapabilityAccess, 'permissions'),
     projectUsersFor,
     loadProjectUsers,
-    setProjectUserRole,
-    assignProjectUserRoles,
-    removeProjectUser,
-    addProjectUser,
+    setProjectUserRole: invalidating(setProjectUserRole, 'users'),
+    assignProjectUserRoles: invalidating(assignProjectUserRoles, 'users'),
+    removeProjectUser: invalidating(removeProjectUser, 'users'),
+    addProjectUser: invalidating(addProjectUser, 'users'),
     pagesFor,
     loadPages,
-    addPage,
-    updatePage,
-    reorderPages,
-    removePage,
-    updateField,
-    addField,
-    removeField,
-    setFields,
-    saveStepForm,
+    addPage: invalidating(addPage, 'pages'),
+    updatePage: invalidating(updatePage, 'pages'),
+    reorderPages: invalidating(reorderPages, 'pages'),
+    removePage: invalidating(removePage, 'pages'),
+    // A field's sensitivity level is the Data Sensitivity step's whole
+    // subject, and that step classifies fields the Data Model step built — so
+    // a sensitivity-only patch retires the classification, not the model.
+    updateField: invalidating(updateField, (_projectId, _moduleId, _fieldId, patch = {}) =>
+      Object.keys(patch).length === 1 && 'sensitivity' in patch ? 'data-sensitivity' : 'data-model',
+    ),
+    addField: invalidating(addField, 'data-model'),
+    removeField: invalidating(removeField, 'data-model'),
+    setFields: invalidating(setFields, 'data-model'),
+    saveStepForm: invalidating(saveStepForm, (_projectId, stepKey) => stepKey),
     transitionStep,
     governanceStatus,
     governanceNote,
     governanceValues,
     friaScenariosFor,
     friaScenario,
-    createFriaScenario,
-    updateFriaScenario,
-    removeFriaScenario,
+    createFriaScenario: invalidating(createFriaScenario, 'fria-scenarios'),
+    updateFriaScenario: invalidating(updateFriaScenario, 'fria-scenarios'),
+    removeFriaScenario: invalidating(removeFriaScenario, 'fria-scenarios'),
     graph,
     graphVisibleKinds,
     graphVisibleAccessKinds,

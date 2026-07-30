@@ -11,9 +11,11 @@
 //
 // Every project behaves identically (there is no build mode): the Build,
 // Govern and Manage & Monitor tabs are visible to every member — capability
-// flags gate individual review ACTIONS (per-step Approve/Request changes, the
-// project-level Request approval/Approve/Publish cluster) rather than tab or
-// step visibility. See Wizard.vue and components/project/MembersDialog.vue.
+// flags gate individual review ACTIONS rather than tab or step visibility, at
+// both levels of the same cycle: `requestApproval` submits (a step, or the
+// revision itself), `grantApproval` approves it or sends it back. See
+// Wizard.vue, wizard/publish/PublishTab.vue and
+// components/project/MembersDialog.vue.
 
 // `labelKey`/`resourcesKey`/`descriptionKey` are i18n keys; components resolve
 // them with $t for display. Capability flags drive behaviour and stay literal.

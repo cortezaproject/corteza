@@ -449,8 +449,8 @@ wizard:
     newRevision: New revision from this one
     toastCreateFailed: Could not create a new revision. Please try again.
   # Three fixed tabs, shown to every member regardless of capability — only
-  # the review actions inside them (per-step Approve/Request changes, and the
-  # project-level Request approval/Approve/Publish cluster) are
+  # the review actions inside them (per-step Submit/Approve/Request changes,
+  # and the project-level Request approval/Approve/Publish cluster) are
   # capability-gated. Build and Govern each carry their own step sidebar (see
   # config/pipeline.js's `tab` field); Manage & Monitor deliberately has no
   # steps — it renders its own left rail from config/manageNav.js instead, and
@@ -460,13 +460,21 @@ wizard:
     govern: Govern
     manageMonitor: Manage & Monitor
     publish: Publish
-  # Per-step "Request changes" and "Approve" — available on every Build/Govern
-  # step, any current status, any time, for a member with grant-approval
-  # capability. There is no per-step submit stage: approving directly needs no
-  # dialog (see the approve keys below), and requesting changes needs only a
-  # note. Publish is not a step here any more — it keeps its own dedicated
-  # submit → approve/request-changes cycle around the project as a whole (see
-  # publish above), surfaced in the wizard's topbar toolbar cluster.
+  # Per-step review. Every Build/Govern step runs the same
+  # submit → approve/request-changes cycle the project as a whole runs on the
+  # Publish tab (see publish above): a member with request-approval capability
+  # submits the step, and a member with grant-approval capability then approves
+  # it or sends it back with a note. Each action is offered only where it
+  # decides something — Submit from draft or after a send-back, Approve only on
+  # a step waiting for approval — and none of them are offered on a published
+  # revision at all. Editing a step's contents afterwards puts it back to
+  # draft, so it has to be submitted again.
+  submit:
+    action: Submit for approval
+    toast:
+      submitted: >-
+        Submitted for approval — this step is now waiting on a member who can approve it, and
+        stays that way until they approve it or send it back with a note.
   requestChanges:
     action: Request changes
     dialog:
@@ -476,8 +484,9 @@ wizard:
       confirm: Send back
     toast:
       sent: >-
-        Changes requested — this step stays flagged until a reviewer approves it again. If the
-        project's publish was already requested or approved, that's sent back for review too.
+        Changes requested — this step stays flagged until it is submitted for approval again and
+        approved. If the project's publish was already requested or approved, that's sent back for
+        review too.
   approve:
     action: Approve
     toast:
@@ -553,11 +562,11 @@ steps:
 # well-known 'publish' governance step key: every publish — the first release
 # and every later revision — needs a fresh submit -> approve cycle before the
 # Publish action even appears (it stays hidden, not just disabled, until
-# approved). This is unconditional for every project, and separate from the
-# direct per-step Approve/Request changes review on Build/Govern steps (see
-# project.wizard.approve / project.wizard.requestChanges above) — approving
-# the project itself is rejected while any step is still flagged
-# changes-requested. Rendered as the single state-driven button + status Tag
+# approved). This is unconditional for every project. Build/Govern steps run
+# the same cycle around themselves (see project.wizard.submit /
+# project.wizard.approve / project.wizard.requestChanges above), and the two
+# meet in one place only: approving the project itself is rejected while any
+# step is still flagged changes-requested. Rendered as the single state-driven button + status Tag
 # in the wizard's topbar toolbar (next to the Members button) — there is no
 # dedicated "reject this publish" action any more; requesting changes on any
 # individual Build/Govern step automatically sends a submitted or approved

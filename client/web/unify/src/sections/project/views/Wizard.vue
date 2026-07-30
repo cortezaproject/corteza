@@ -104,32 +104,48 @@
           <!-- Per-step review lives HERE, not in a bottom bar (ruled
                2026-07-28): it acts on the step whose header this is, so it
                belongs beside its title and status. The PROJECT-level
-               request → approve → publish cycle is a different thing and
-               lives in the Publish tab (ruled 2026-07-29).
-               Capability-gated: only a granter sees these at all. -->
+               request → approve → publish cycle is the same shape around the
+               revision as a whole and lives in the Publish tab (ruled
+               2026-07-29).
+               Each control is gated on the capability that owns it AND on the
+               step's current status (ruled 2026-07-30): submitting is the
+               builder's, approving the reviewer's, and neither is offered when
+               it would decide nothing. -->
           <div class="ml-auto flex items-center gap-2 shrink-0">
             <!-- The reviewer's note rides the tag rather than a banner over the
                  step's content: the status is already stated here, and the
                  banner repeated it in a second place at the cost of the room
                  the step itself needs. -->
             <StatusChip v-if="showStatus" :status="headerStatus" :tooltip="reviewNote" />
-            <template v-if="activeStep && canGrant">
+            <template v-if="activeStep">
               <Button
-                :label="$t('project.wizard.requestChanges.action')"
-                icon="pi pi-exclamation-circle"
+                v-if="canSubmitStep"
+                :label="$t('project.wizard.submit.action')"
+                icon="pi pi-send"
                 severity="secondary"
                 outlined
                 size="small"
-                @click="openRequestChanges"
+                @click="onSubmit"
               />
-              <Button
-                v-if="canApproveStep"
-                :label="$t('project.wizard.approve.action')"
-                icon="pi pi-check"
-                severity="success"
-                size="small"
-                @click="onApprove"
-              />
+              <template v-if="canGrant">
+                <Button
+                  v-if="canFlagStep"
+                  :label="$t('project.wizard.requestChanges.action')"
+                  icon="pi pi-exclamation-circle"
+                  severity="secondary"
+                  outlined
+                  size="small"
+                  @click="openRequestChanges"
+                />
+                <Button
+                  v-if="canApproveStep"
+                  :label="$t('project.wizard.approve.action')"
+                  icon="pi pi-check"
+                  severity="success"
+                  size="small"
+                  @click="onApprove"
+                />
+              </template>
             </template>
           </div>
         </div>
@@ -863,35 +879,55 @@ const startResize = () => {
 }
 
 // --- Per-step governance state --------------------------------------------
-// Direct review, no submit stage: a Build/Govern step only ever carries
-// 'draft' (the default), 'changes-requested' (raised anytime by a granter via
-// the per-step "Request changes" action) or 'approved' (raised anytime by a
-// granter via the per-step "Approve" action in the step header). 'submitted'
-// belongs to the Publish governance step alone, which lives in the topbar
-// toolbar cluster now, not in this step dispatch.
+// A Build/Govern step runs the same submit → approve/request-changes cycle as
+// the revision itself (ruled 2026-07-30, see stores/projects.js
+// transitionStep): 'draft' (the default) → 'submitted' → 'approved' or
+// 'changes-requested'. Nothing is approved that was not put up for approval
+// first, and editing a step's contents drops it back to 'draft' — the store
+// retires the review, this view only ever reads the resulting status.
 const stepStatus = key =>
   project.value ? store.governanceStatus(project.value.projectID, key) : 'draft'
 const status = computed(() => stepStatus(activeKey.value))
 const reviewNote = computed(() =>
   project.value ? store.governanceNote(project.value.projectID, activeKey.value) : '',
 )
-// Editing is gated purely on the write capability — a step's governance
-// status never locks it, so a granter can always re-review after a change
-// (there is no reopen/unlock action to undo an approve otherwise).
+// Editing is gated purely on the write capability — a step's governance status
+// never locks it, not even once approved. Editing an approved step is allowed
+// and simply retires the approval (the store does that, see invalidateReview),
+// which is a truer account of what happened than refusing the edit would be.
 const locked = computed(() => !canWrite.value)
 const showStatus = computed(() => !!activeStep.value)
-// Per-step approval is only meaningful while the revision itself is still up
-// for review: once the revision has been approved at project level (the
-// Publish tab's governance step) or actually published (live), approving one
-// of its steps decides nothing, so the header's Approve button goes away.
-// "Request changes" stays — flagging a step is how a reviewer reopens work on
-// an approved or live revision.
 const publishStatus = computed(() =>
   project.value
     ? store.governanceStatus(project.value.projectID, PUBLISH_GOVERNANCE_STEP_KEY)
     : 'draft',
 )
-const canApproveStep = computed(() => !isLive.value && publishStatus.value !== 'approved')
+// Review is a thing you do to a revision being built, so a published (live)
+// revision offers none of the three actions: what shipped is not up for
+// discussion, and reopening the work means branching a new revision from it
+// (see the revision switcher). Within a draft revision:
+//
+//   - Submit belongs to whoever builds the step, so it needs the
+//     request-approval capability — the same one the revision's own "Request
+//     approval" needs — and only reads as an action from draft or after a
+//     reviewer sent the step back.
+//   - Approve answers a submission, so it appears for a granter on a
+//     submitted step and nowhere else. This is what stops an approved step
+//     from being approved again to no effect.
+//   - Request changes stays open from any status: a reviewer must be able to
+//     flag a step before anyone submits it, and to reopen one already
+//     approved.
+//
+// The revision's own approval no longer suppresses these: steps stay
+// reviewable after it, and any step edit retires that approval anyway.
+const canSubmitStep = computed(
+  () =>
+    !isLive.value &&
+    canRequestApproval.value &&
+    (status.value === 'draft' || status.value === 'changes-requested'),
+)
+const canApproveStep = computed(() => !isLive.value && status.value === 'submitted')
+const canFlagStep = computed(() => !isLive.value)
 // Save only makes sense on form steps — sensitivity/resource steps persist
 // each change immediately through their own store calls instead.
 const showStepSave = computed(() => activeStep.value?.type === 'form')
@@ -904,15 +940,17 @@ const statuses = computed(() => {
 
 // What each tab says about its own contents. Build and Govern roll their steps
 // up worst-first: one flagged step is the thing to act on, so it wins over any
-// number of approved ones; the all-clear only shows once every step in the tab
-// has been approved (an untouched tab stays silent rather than claiming
-// progress). Publish reports its own review state, and Manage & Monitor has no
-// review axis at all.
+// number of approved ones, and a step waiting on a reviewer wins over the rest
+// — it is the one somebody owes an answer on. The all-clear only shows once
+// every step in the tab has been approved (an untouched tab stays silent
+// rather than claiming progress). Publish reports its own review state, and
+// Manage & Monitor has no review axis at all.
 function rollUp(tab) {
   const keys = stepsForTab(tab).map(s => s.key)
   if (!keys.length) return ''
   const statusOf = keys.map(stepStatus)
   if (statusOf.includes('changes-requested')) return 'changes-requested'
+  if (statusOf.includes('submitted')) return 'submitted'
   return statusOf.every(s => s === 'approved') ? 'approved' : ''
 }
 const tabStatus = computed(() => ({
@@ -1039,9 +1077,19 @@ function onSave() {
   )
 }
 
-// Direct "Approve" — a member with grant-approval capability can approve the
-// active step at any time, from any status (including re-approving after a
-// changes-requested flag was addressed). See the step header's Approve button.
+// "Submit for approval" — a member with request-approval capability puts the
+// active step up for review, from draft or after it was sent back. The store
+// refuses it from any other status, so the button's own gating (canSubmitStep)
+// is the only thing that decides when it is offered.
+function onSubmit() {
+  governanceAction(
+    () => store.transitionStep(project.value.projectID, activeKey.value, 'submit'),
+    t('project.wizard.submit.toast.submitted'),
+  )
+}
+
+// "Approve" — a member with grant-approval capability approves the active step,
+// which the store allows only while it is submitted. See canApproveStep.
 function onApprove() {
   governanceAction(
     () => store.transitionStep(project.value.projectID, activeKey.value, 'approve'),
