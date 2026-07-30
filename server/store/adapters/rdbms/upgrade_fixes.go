@@ -427,15 +427,27 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 			SELECT id, compose_module.config AS discovery
 			FROM compose_module`
 
+		// The document is bound as a parameter rather than inlined into a CAST.
+		// sqlite has no JSON type, so CAST(<document> AS JSON) falls through to
+		// NUMERIC affinity and stores the integer 0 -- and this fix runs on
+		// every boot, so it was wiping the config of every module in the
+		// database. The damage is not even self-contained: a module whose
+		// config reads back as 0 can no longer be scanned, so the next fix in
+		// the list (migrateComposeModuleConfigForRecordDeDup, which loads all
+		// modules through the store) fails and takes the whole upgrade with it.
+		// The column is JSON on mysql and TEXT on sqlite; both accept the
+		// document as a plain string parameter.
 		updateModuleDiscoverySettings = `
 			UPDATE compose_module
-			SET config = CAST('%s' AS JSON)
-			WHERE id = %d`
+			SET config = ?
+			WHERE id = ?`
 
+		// Postgres keeps an explicit cast: jsonb will not take a text
+		// parameter without one.
 		updatePSQLModuleDiscoverySettings = `
 			UPDATE compose_module
-			SET config = '%s'::jsonb
-			WHERE id = %d`
+			SET config = $1::jsonb
+			WHERE id = $2`
 	)
 
 	// 1. Check if module has discovery settings
@@ -549,12 +561,12 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 
 		for _, u := range uu {
 			if driver == "postgres" || driver == "postgres+debug" {
-				query = fmt.Sprintf(updatePSQLModuleDiscoverySettings, u.Config, u.ID)
+				query = updatePSQLModuleDiscoverySettings
 			} else {
-				query = fmt.Sprintf(updateModuleDiscoverySettings, u.Config, u.ID)
+				query = s.(*Store).DB.Rebind(updateModuleDiscoverySettings)
 			}
 			log.Debug("saving migrated module.config.discovery settings", logger.Uint64("id", u.ID))
-			_, err = s.(*Store).DB.ExecContext(ctx, query)
+			_, err = s.(*Store).DB.ExecContext(ctx, query, string(u.Config), u.ID)
 			if err != nil {
 				log.Debug("error saving migrated module.config.discovery settings", logger.Uint64("id", u.ID))
 				continue
