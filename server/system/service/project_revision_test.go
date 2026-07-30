@@ -194,6 +194,35 @@ func TestProjectStatusIsNotClientWritable(t *testing.T) {
 		"unarchive restores the real status because it was never lost")
 }
 
+// TestPublishRefusesDeletedRevisions covers the pair of holes that let a
+// publish destroy a live project. loadProject returns deleted rows by design,
+// and deleting a project soft-deletes its namespace with it — so publishing a
+// discarded draft swapped a deleted namespace into place and soft-deleted the
+// live one. The app 404'd and the chain showed only a deprecated parent whose
+// namespace was already gone.
+func TestPublishRefusesDeletedRevisions(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	parent := seedRevisionProject(t, s, "project-revision-test-deleted")
+
+	draft, err := svc.CreateRevision(ctx, parent.ID)
+	require.NoError(t, err)
+
+	require.NoError(t, svc.DeleteByID(ctx, draft.ID))
+
+	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true})
+	require.EqualError(t, err, "cannot publish a deleted revision; restore it first")
+
+	// And the mirror case: the parent is where the records come from, so
+	// publishing over a deleted one would migrate nothing and call it success.
+	require.NoError(t, svc.UndeleteByID(ctx, draft.ID))
+	require.NoError(t, svc.DeleteByID(ctx, parent.ID))
+
+	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true})
+	require.EqualError(t, err, "cannot publish over a deleted revision; restore "+parent.Handle+" first")
+}
+
 // denyingProjectAccess refuses everything, for the tests that assert the
 // lifecycle endpoints ask at all.
 type denyingProjectAccess struct{ permissiveProjectAccess }

@@ -55,8 +55,15 @@ type (
 	}
 
 	PublishRequest struct {
-		Confirm  bool            `json:"confirm"`
+		Confirm bool `json:"confirm"`
+		// Mappings the caller is explicit about. Anything absent is filled in
+		// from the server's own deployment plan -- publishing used to accept an
+		// empty set and migrate nothing, which quietly emptied every module in
+		// the newly live revision.
 		Mappings []ModuleMapping `json:"mappings"`
+		// DiscardRecords is the way to actually publish without carrying
+		// records over. It has to be asked for; it is not what silence means.
+		DiscardRecords bool `json:"discardRecords"`
 	}
 )
 

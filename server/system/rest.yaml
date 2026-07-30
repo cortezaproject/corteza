@@ -4948,7 +4948,12 @@ endpoints:
             - {
                 type: '[]types.ModuleMapping',
                 name: mappings,
-                title: Per-module record migration mappings,
+                title: Per-module record migration mappings; anything omitted is taken from the deployment plan,
+              }
+            - {
+                type: bool,
+                name: discardRecords,
+                title: Publish without carrying any records over (must be asked for explicitly),
               }
 
   - title: Project AI Systems

@@ -122,7 +122,8 @@ func (ctrl *Project) makeFilter(ctx context.Context, r *request.ProjectList) (ty
 // before it is handed to the service. The generated Create controller
 // already mapped the plain-value params.
 func (ctrl *Project) beforeCreate(ctx context.Context, res *types.Project, r *request.ProjectCreate) error {
-	res.Status = types.ProjectStatus(r.Status)
+	// Status is not carried over: the service owns it (create always writes
+	// draft, publish and revision move it from there).
 	res.Config = r.Config
 	res.Meta = r.Meta
 	res.Labels = r.Labels
@@ -133,7 +134,7 @@ func (ctrl *Project) beforeCreate(ctx context.Context, res *types.Project, r *re
 // before it is handed to the service. The generated Update controller
 // already mapped the plain-value params (and ID/UpdatedAt).
 func (ctrl *Project) beforeUpdate(ctx context.Context, res *types.Project, r *request.ProjectUpdate) error {
-	res.Status = types.ProjectStatus(r.Status)
+	// Status deliberately not copied — see beforeCreate.
 	res.Config = r.Config
 	res.Meta = r.Meta
 	res.Labels = r.Labels
@@ -202,8 +203,9 @@ func (ctrl *Project) GetDeploymentPlan(ctx context.Context, r *request.ProjectGe
 
 func (ctrl *Project) Publish(ctx context.Context, r *request.ProjectPublish) (interface{}, error) {
 	p, err := ctrl.svc.Publish(ctx, r.ProjectID, types.PublishRequest{
-		Confirm:  r.Confirm,
-		Mappings: r.Mappings,
+		Confirm:        r.Confirm,
+		Mappings:       r.Mappings,
+		DiscardRecords: r.DiscardRecords,
 	})
 	return ctrl.makePayload(ctx, p, err)
 }

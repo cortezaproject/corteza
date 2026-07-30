@@ -420,6 +420,16 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 		return nil, ProjectErrNotAllowedToPublish()
 	}
 
+	// loadProject returns deleted rows by design (see project.cue's lookup),
+	// and deleting a project soft-deletes its namespace with it. Publishing a
+	// discarded draft therefore swapped a deleted namespace into place and
+	// soft-deleted the live one: the project vanished from every listing, the
+	// app 404'd, and the chain was left showing only a deprecated parent whose
+	// namespace was already gone.
+	if draft.DeletedAt != nil {
+		return nil, fmt.Errorf("cannot publish a deleted revision; restore it first")
+	}
+
 	if draft.Status != types.ProjectStatusDraft {
 		return nil, fmt.Errorf("only draft projects can be published")
 	}
@@ -442,6 +452,13 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 		return nil, err
 	}
 
+	// The parent is where the records come from. Publishing against a deleted
+	// one would migrate nothing from a namespace that is already gone and call
+	// it a success.
+	if parent.DeletedAt != nil {
+		return nil, fmt.Errorf("cannot publish over a deleted revision; restore %s first", parent.Handle)
+	}
+
 	oldNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, parent.Config.NamespaceID)
 	if err != nil {
 		return nil, fmt.Errorf("load old namespace: %w", err)
@@ -451,7 +468,12 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 		return nil, fmt.Errorf("load new namespace: %w", err)
 	}
 
-	if err = svc.migrateRecords(ctx, oldNs, newNs, req.Mappings); err != nil {
+	mappings, err := svc.resolveMappings(ctx, parent, draft, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = svc.migrateRecords(ctx, oldNs, newNs, mappings); err != nil {
 		return nil, err
 	}
 
@@ -501,6 +523,49 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 	}
 
 	return draft, nil
+}
+
+// resolveMappings decides what actually gets migrated.
+//
+// A caller who says nothing gets the server's own plan, not an empty
+// migration. Publishing accepted `{"confirm": true}` with no mappings and
+// answered 200 while carrying no records at all: the plan had said `risk:
+// dangerous, records: 2`, the newly live modules came back empty, and the
+// originals survived only inside a renamed, soft-deleted namespace that no
+// listing shows. Confirm is an acknowledgement of the plan, so it now means
+// the plan.
+//
+// Per module, the caller wins outright: mapping a module and leaving a field
+// out is a decision (the UI offers "starts empty" per field), and second-
+// guessing it would quietly re-add data the user chose to drop. Only modules
+// the caller never mentioned are filled in.
+func (svc *project) resolveMappings(
+	ctx context.Context,
+	parent, draft *types.Project,
+	req types.PublishRequest,
+) ([]types.ModuleMapping, error) {
+	if req.DiscardRecords {
+		return nil, nil
+	}
+
+	plan, err := svc.computeDeploymentPlan(ctx, parent, draft)
+	if err != nil {
+		return nil, fmt.Errorf("compute mappings for publish: %w", err)
+	}
+
+	given := make(map[string]bool, len(req.Mappings))
+	for _, m := range req.Mappings {
+		given[m.Module] = true
+	}
+
+	out := append([]types.ModuleMapping(nil), req.Mappings...)
+	for _, m := range plan.SuggestedMappings {
+		if !given[m.Module] {
+			out = append(out, m)
+		}
+	}
+
+	return out, nil
 }
 
 // migrateRecords creates a temporary internal DAL connection backed by the old

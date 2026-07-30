@@ -12561,7 +12561,7 @@ export default class System {
 
   // Publish a draft project
   async projectPublish(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, confirm, mappings } = (a as KV) || {}
+    const { projectID, confirm, mappings, discardRecords } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
@@ -12575,6 +12575,7 @@ export default class System {
     cfg.data = {
       confirm,
       mappings,
+      discardRecords,
     }
     return this.api()
       .request(cfg)

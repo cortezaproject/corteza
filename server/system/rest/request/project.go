@@ -287,8 +287,13 @@ type (
 
 		// Mappings POST parameter
 		//
-		// Per-module record migration mappings
+		// Per-module record migration mappings; anything omitted is taken from the deployment plan
 		Mappings []types.ModuleMapping
+
+		// DiscardRecords POST parameter
+		//
+		// Publish without carrying any records over (must be asked for explicitly)
+		DiscardRecords bool
 	}
 )
 
@@ -1443,9 +1448,10 @@ func NewProjectPublish() *ProjectPublish {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectPublish) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"projectID": r.ProjectID,
-		"confirm":   r.Confirm,
-		"mappings":  r.Mappings,
+		"projectID":      r.ProjectID,
+		"confirm":        r.Confirm,
+		"mappings":       r.Mappings,
+		"discardRecords": r.DiscardRecords,
 	}
 }
 
@@ -1462,6 +1468,11 @@ func (r ProjectPublish) GetConfirm() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ProjectPublish) GetMappings() []types.ModuleMapping {
 	return r.Mappings
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ProjectPublish) GetDiscardRecords() bool {
+	return r.DiscardRecords
 }
 
 // Fill processes request and fills internal variables
@@ -1492,6 +1503,12 @@ func (r *ProjectPublish) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["discardRecords"]; ok && len(val) > 0 {
+				r.DiscardRecords, err = payload.ParseBool(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1515,6 +1532,13 @@ func (r *ProjectPublish) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["discardRecords"]; ok && len(val) > 0 {
+			r.DiscardRecords, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{
