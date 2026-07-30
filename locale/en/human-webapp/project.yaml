@@ -6,14 +6,6 @@ status:
   archived: Archived
   suspended: Suspended
   deprecated: Deprecated
-# Compact status initials for the sidebar tag ("Dp" keeps deprecated distinct
-# from draft's "D"; archived has no key — it is never shown in the sidebar).
-statusShort:
-  draft: D
-  active: A
-  published: P
-  suspended: S
-  deprecated: Dp
 list:
   title: Projects
   searchPlaceholder: Search projects…

@@ -20,13 +20,19 @@
           <i v-else-if="itemIcon" :class="itemIcon" />
           <span class="truncate">{{ label }}</span>
         </div>
-        <Tag
-          v-if="badge"
-          :value="badge.value"
-          :severity="badge.severity"
-          :title="badge.title"
-          class="shrink-0 !px-1 !py-0 !text-[10px] !leading-4"
-        />
+        <!-- Trailing marker. The default is the value/severity Tag the badge
+             contract describes; a caller whose marker carries its own palette
+             (a domain status indicator, say) fills this slot instead, so this
+             component still knows nothing about what the marker means. -->
+        <slot name="badge" :node="node">
+          <Tag
+            v-if="badge"
+            :value="badge.value"
+            :severity="badge.severity"
+            :title="badge.title"
+            class="shrink-0 !px-1 !py-0 !text-[10px] !leading-4"
+          />
+        </slot>
         <i
           v-if="hasChildren"
           class="text-xs cursor-pointer transition-transform ml-auto p-2 -m-2"
@@ -66,6 +72,9 @@
         >
           <template v-if="$slots.item" #item="slotProps">
             <slot name="item" v-bind="slotProps" />
+          </template>
+          <template v-if="$slots.badge" #badge="slotProps">
+            <slot name="badge" v-bind="slotProps" />
           </template>
         </CSidebarNavItem>
       </div>

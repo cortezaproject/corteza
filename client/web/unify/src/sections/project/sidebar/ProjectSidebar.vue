@@ -7,13 +7,23 @@
       label-key="_label"
       icon-key="_icon"
       route-key="_route"
-      badge-key="_badge"
       expand-all
-    />
+    >
+      <!-- Where each project stands, in the section's own status indicator
+           rather than the nav's one-letter Tag: same colour and icon per status
+           as the wizard and the revision switcher state, so a project reads the
+           same in the sidebar as it does once opened. Icon-only, with the
+           wording in the tooltip — the row is already narrow and already named.
+           The root "Projects" entry has no status, hence the guard. -->
+      <template #badge="{ node }">
+        <StatusChip v-if="node._status" :status="node._status" icon-only />
+      </template>
+    </CSidebarNav>
   </div>
 </template>
 
 <script setup>
+import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import { chainHasPublished } from '@/sections/project/config/publishState'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { NoID } from '@planetcrust/human-js'
@@ -58,22 +68,6 @@ const routeFor = p => ({
   params: { projectId: p.projectID },
 })
 
-// Trailing one-letter status tag; severities match ProjectList's mapping,
-// extended with the statuses the list view doesn't color yet.
-const STATUS_SEVERITY = {
-  active: 'success',
-  published: 'success',
-  draft: 'info',
-  suspended: 'warn',
-}
-
-const badgeFor = p =>
-  STATUS_SEVERITY[p.status] && {
-    value: t(`project.statusShort.${p.status}`),
-    severity: STATUS_SEVERITY[p.status],
-    title: t(`project.status.${p.status}`),
-  }
-
 // One root entry: the label routes to the list (CSidebarNavItem auto-expands
 // on navigate, never collapses), the right chevron toggles the children
 // independently.
@@ -90,13 +84,15 @@ const navItems = computed(() => [
   ...projects.value
     .filter(p => p.status !== 'archived' && isChainHead(p))
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    // No per-project icon: every row carried the same one, so it said nothing
+    // the indentation doesn't already say, and the status indicator on the
+    // right is the thing worth the room (see the #badge slot above).
     .map(p => ({
       _id: p.projectID,
       _parentId: 'projects',
       _label: p.name || t('project.list.untitled'),
-      _icon: 'pi pi-sitemap',
       _route: routeFor(p),
-      _badge: badgeFor(p),
+      _status: p.status,
     })),
 ])
 </script>

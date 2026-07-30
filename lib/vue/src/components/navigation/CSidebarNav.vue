@@ -21,6 +21,9 @@
       <template v-if="$slots.item" #item="slotProps">
         <slot name="item" v-bind="slotProps" />
       </template>
+      <template v-if="$slots.badge" #badge="slotProps">
+        <slot name="badge" v-bind="slotProps" />
+      </template>
     </CSidebarNavItem>
   </div>
 </template>
