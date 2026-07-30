@@ -21,12 +21,13 @@ import (
 	discoveryService "github.com/crusttech/human/server/discovery/service"
 	fedService "github.com/crusttech/human/server/federation/service"
 	"github.com/crusttech/human/server/pkg/actionlog"
-	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/apigw"
 	apigwTypes "github.com/crusttech/human/server/pkg/apigw/types"
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/corredor"
+	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/healthcheck"
 	"github.com/crusttech/human/server/pkg/http"
 	"github.com/crusttech/human/server/pkg/id"
@@ -37,10 +38,9 @@ import (
 	"github.com/crusttech/human/server/pkg/monitor"
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/pkg/provision"
-	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/rbac"
-	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/pkg/scheduler"
+	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/pkg/sentry"
 	"github.com/crusttech/human/server/pkg/valuestore"
 	"github.com/crusttech/human/server/pkg/version"
@@ -425,18 +425,18 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog:      app.Opt.ActionLog,
 		ActionlogStore: app.ActionlogStore,
-		Discovery:  app.Opt.Discovery,
-		Storage:    app.Opt.ObjStore,
-		Template:   app.Opt.Template,
-		DB:         app.Opt.DB,
-		Auth:       app.Opt.Auth,
-		RBAC:       app.Opt.RBAC,
-		Limit:      app.Opt.Limit,
-		Attachment: app.Opt.Attachment,
-		Webapps:    app.Opt.Webapp,
-		Agentic:    app.Opt.Agentic,
-		Appstore:   app.Opt.Appstore,
-		ObsBus:     obs,
+		Discovery:      app.Opt.Discovery,
+		Storage:        app.Opt.ObjStore,
+		Template:       app.Opt.Template,
+		DB:             app.Opt.DB,
+		Auth:           app.Opt.Auth,
+		RBAC:           app.Opt.RBAC,
+		Limit:          app.Opt.Limit,
+		Attachment:     app.Opt.Attachment,
+		Webapps:        app.Opt.Webapp,
+		Agentic:        app.Opt.Agentic,
+		Appstore:       app.Opt.Appstore,
+		ObsBus:         obs,
 	})
 	if err != nil {
 		return
@@ -1200,7 +1200,13 @@ func (app *HumanApp) loadAllScopes(ctx context.Context) (tenants types.TenantSet
 		tf.PageCursor = tf.NextPage
 	}
 
-	pf := types.ProjectFilter{Paging: filter.Paging{Limit: 200}}
+	// Archived projects are still projects at runtime -- shelving one hides it
+	// from listings, it does not stop it resolving a scope -- and the filter
+	// excludes them by default.
+	pf := types.ProjectFilter{
+		Archived: filter.StateInclusive,
+		Paging:   filter.Paging{Limit: 200},
+	}
 	for {
 		var page types.ProjectSet
 		page, pf, err = app.Store.SearchProjects(ctx, pf)

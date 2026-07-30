@@ -150,6 +150,31 @@ func TestCreateRevision_ChainCanBeRevisedRepeatedly(t *testing.T) {
 	require.Equal(t, 2, rev2.Revision)
 	require.Equal(t, parent.ID, rev2.RootProjectID())
 
+	// Shelving a draft must NOT free the chain: archived is a listing state,
+	// not a lifecycle one, and the filter's default of excluding archived rows
+	// would otherwise let a second draft through.
+	_, err = svc.Archive(ctx, rev2.ID)
+	require.NoError(t, err)
+
+	_, err = svc.CreateRevision(ctx, rev1.ID)
+	require.EqualError(t, err, "a draft revision already exists for this project",
+		"an archived draft is still a draft")
+
+	require.Contains(t,
+		func() []uint64 {
+			set, lerr := svc.ListRevisions(ctx, rev1.ID)
+			require.NoError(t, lerr)
+			ids := make([]uint64, len(set))
+			for i, p := range set {
+				ids[i] = p.ID
+			}
+			return ids
+		}(),
+		rev2.ID, "an archived revision must still appear in its chain")
+
+	_, err = svc.Unarchive(ctx, rev2.ID)
+	require.NoError(t, err)
+
 	// And discarding a draft frees the chain rather than wedging it: the gate
 	// excludes deleted rows. Deleted through the service, which also releases
 	// the draft namespace's slug — a raw row delete would leave it squatting

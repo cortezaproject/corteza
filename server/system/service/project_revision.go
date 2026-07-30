@@ -72,6 +72,11 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 	existing, _, err := store.SearchProjects(ctx, svc.store, types.ProjectFilter{
 		RootProjectID: rootID,
 		Status:        types.ProjectStatusDraft,
+		// A shelved draft is still a draft. The filter excludes archived rows
+		// by default -- that default is for listings -- so without this,
+		// archiving a draft would slip it past this gate and leave a chain with
+		// two of them.
+		Archived: filter.StateInclusive,
 	})
 	if err != nil {
 		return nil, err
@@ -341,6 +346,10 @@ func (svc *project) ListRevisions(ctx context.Context, projectID uint64) (types.
 	// just be prepended regardless of its revision number).
 	set, _, err := store.SearchProjects(ctx, svc.store, types.ProjectFilter{
 		RootProjectID: rootID,
+		// The chain is the chain: a shelved revision is still part of the
+		// history the switcher shows, and dropping it here would silently
+		// renumber what the user sees.
+		Archived: filter.StateInclusive,
 	})
 	if err != nil {
 		return nil, err
