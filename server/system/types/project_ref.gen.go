@@ -256,13 +256,23 @@ func (r ProjectMember) ProjectRef() uint64 {
 	return r.ProjectID
 }
 
-// ProjectRef returns the ID of the project ProjectGroup belongs to.
+// ProjectRef returns the ID of the project ProjectAiSystem belongs to.
 //
 // It implements actionlog.ProjectResourcer, letting the action log attribute an
 // event to the project owning the affected resource.
 //
 // This function is auto-generated
-func (r ProjectGroup) ProjectRef() uint64 {
+func (r ProjectAiSystem) ProjectRef() uint64 {
+	return r.ProjectID
+}
+
+// ProjectRef returns the ID of the project ProjectFriaScenario belongs to.
+//
+// It implements actionlog.ProjectResourcer, letting the action log attribute an
+// event to the project owning the affected resource.
+//
+// This function is auto-generated
+func (r ProjectFriaScenario) ProjectRef() uint64 {
 	return r.ProjectID
 }
 

@@ -4929,9 +4929,9 @@ endpoints:
                 title: Per-module record migration mappings,
               }
 
-  - title: Project Groups
-    path: '/projects/{projectID}/groups'
-    entrypoint: projectGroup
+  - title: Project AI Systems
+    path: '/projects/{projectID}/ai-systems'
+    entrypoint: projectAiSystem
     genController: true
     compound: false
     authentication:
@@ -4942,7 +4942,7 @@ endpoints:
     apis:
       - name: list
         method: GET
-        title: List project groups
+        title: List AI systems
         path: '/'
         parameters:
           path:
@@ -4953,7 +4953,16 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: string, name: handle, title: Handle filter }
-            - { type: '[]string', name: projectGroupID, title: Filter by group IDs }
+            - {
+                type: '[]string',
+                name: projectAiSystemID,
+                title: Filter by AI system IDs,
+              }
+            - {
+                type: string,
+                name: riskClass,
+                title: 'EU AI Act risk class filter (prohibited|high|limited|minimal)',
+              }
             - { type: uint, name: deleted, title: 'Deleted filter (0=exclude 1=only 2=include)' }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total count }
@@ -4962,63 +4971,103 @@ endpoints:
 
       - name: create
         method: POST
-        # name/description map onto res.Meta (Short/Description), not plain
-        # struct fields, so they are genHook:true and filled by the companion
-        # beforeCreate. projectID is a scope id the endpoint drops under
-        # compound:false; beforeCreate also assigns it onto res from r.
-        title: Create project group
+        # name/description/intendedPurpose map onto res.Meta (Short/Description/
+        # IntendedPurpose), not plain struct fields, so they are genHook:true and
+        # filled by the companion beforeCreate. projectID is a scope id the
+        # endpoint drops under compound:false; beforeCreate also assigns it onto
+        # res from r. handle and riskClass are plain fields assigned directly.
+        title: Create AI system
         path: '/'
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
           post:
-            - { type: string, name: handle, required: true, title: Handle }
+            # NOT required. handle.IsValid("") is true — an empty handle is
+            # legal here exactly as it is for projects, and the
+            # unique_handle_per_project index excludes it via its
+            # `handle != ''` predicate, so any number of unnamed systems
+            # coexist. Marking it required only made the GENERATED CLIENT
+            # reject the call before sending ("field handle is empty"), while
+            # the service itself would have accepted it. The create flow asks
+            # for a name, not a handle — handles are an internal identifier
+            # here, same as everywhere else in this section.
+            - { type: string, name: handle, title: Handle }
             - { type: string, name: name, title: Name, genHook: true }
             - { type: string, name: description, title: Description, genHook: true }
+            - {
+                type: string,
+                name: intendedPurpose,
+                title: Intended purpose of the AI system,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: riskClass,
+                title: 'EU AI Act risk class (prohibited|high|limited|minimal)',
+              }
 
       - name: read
         method: GET
-        title: Read project group
-        path: '/{projectGroupID}'
+        title: Read AI system
+        path: '/{projectAiSystemID}'
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
+            - { type: uint64, name: projectAiSystemID, required: true, title: AI System ID }
 
       - name: update
         method: PUT
-        # name/description map onto res.Meta (Short/Description) rather than
-        # plain struct fields, so they are genHook:true and filled by the
-        # companion beforeUpdate. Handle is a plain field assigned directly.
-        title: Update project group
-        path: '/{projectGroupID}'
+        # name/description/intendedPurpose map onto res.Meta (Short/Description/
+        # IntendedPurpose) rather than plain struct fields, so they are
+        # genHook:true and filled by the companion beforeUpdate. handle and
+        # riskClass are plain fields assigned directly.
+        title: Update AI system
+        path: '/{projectAiSystemID}'
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
+            - { type: uint64, name: projectAiSystemID, required: true, title: AI System ID }
           post:
             - { type: string, name: handle, title: Handle }
             - { type: string, name: name, title: Name, genHook: true }
             - { type: string, name: description, title: Description, genHook: true }
+            - {
+                type: string,
+                name: intendedPurpose,
+                title: Intended purpose of the AI system,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: riskClass,
+                title: 'EU AI Act risk class (prohibited|high|limited|minimal)',
+              }
             - { type: '*time.Time', name: updatedAt, title: Last update timestamp }
 
       - name: delete
         method: DELETE
-        title: Delete project group
-        path: '/{projectGroupID}'
+        title: Delete AI system
+        path: '/{projectAiSystemID}'
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
+            - { type: uint64, name: projectAiSystemID, required: true, title: AI System ID }
 
+      # resourceRef travels in the BODY / QUERY, never as a path segment.
+      # A resource ref is an RBAC reference — `corteza::compose:module/2145…` —
+      # so it contains both ':' and '/'. As a path segment the slash reads as a
+      # route separator, and percent-encoding it round-trips the ENCODED string
+      # into the database (verified 2026-07-30: an entry stored as
+      # `corteza%3A%3Acompose%3Amodule%2F506…`, which resolves to nothing).
       - name: entryAdd
         method: POST
-        title: Add resource to group
-        path: '/{projectGroupID}/entries/{resourceRef}'
+        title: Add resource to AI system
+        path: '/{projectAiSystemID}/entries'
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
+            - { type: uint64, name: projectAiSystemID, required: true, title: AI System ID }
+          post:
             - {
                 type: string,
                 name: resourceRef,
@@ -5028,17 +5077,237 @@ endpoints:
 
       - name: entryRemove
         method: DELETE
-        title: Remove resource from group
-        path: '/{projectGroupID}/entries/{resourceRef}'
+        title: Remove resource from AI system
+        path: '/{projectAiSystemID}/entries'
         parameters:
           path:
             - { type: uint64, name: projectID, required: true, title: Project ID }
-            - { type: uint64, name: projectGroupID, required: true, title: Project Group ID }
+            - { type: uint64, name: projectAiSystemID, required: true, title: AI System ID }
+          get:
             - {
                 type: string,
                 name: resourceRef,
                 required: true,
                 title: Resource ref (corteza::component:type/ID),
+              }
+
+  # FRIA (EU AI Act Art. 27 Fundamental Rights Impact Assessment) risk
+  # scenarios. A scenario assesses exactly one AI system (aiSystemID); it is
+  # built up incrementally, so only the scope ids are ever required.
+  - title: Project FRIA risk scenarios
+    path: '/projects/{projectID}/fria-scenarios'
+    entrypoint: projectFriaScenario
+    genController: true
+    compound: false
+    authentication:
+      - Client ID
+      - Session ID
+    imports:
+      - time
+    apis:
+      - name: list
+        method: GET
+        title: List FRIA risk scenarios
+        path: '/'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          get:
+            - { type: string, name: query, title: Search query (matches the title) }
+            - {
+                type: '[]string',
+                name: projectFriaScenarioID,
+                title: Filter by FRIA risk scenario IDs,
+              }
+            - { type: uint64, name: aiSystemID, title: Filter by the assessed AI system }
+            - {
+                type: string,
+                name: severity,
+                title: 'Severity filter (low|medium|high|critical)',
+              }
+            - { type: uint, name: deleted, title: 'Deleted filter (0=exclude 1=only 2=include)' }
+            - { type: uint, name: limit, title: Limit }
+            - { type: bool, name: incTotal, title: Include total count }
+            - { type: string, name: pageCursor, title: Page cursor }
+            - { type: string, name: sort, title: Sort }
+
+      - name: create
+        method: POST
+        # The taxonomy key lists and the free prose map onto res.Meta rather
+        # than plain struct fields, so they are genHook:true and filled by the
+        # companion beforeCreate. projectID is a scope id the endpoint drops
+        # under compound:false; beforeCreate also assigns it onto res from r.
+        # aiSystemID and severity are plain fields assigned directly.
+        title: Create FRIA risk scenario
+        path: '/'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+          post:
+            # NOTHING here is required. A scenario is written over several
+            # sittings — the editor saves partial drafts on purpose. `required`
+            # makes the GENERATED CLIENT reject the call before it is sent, so
+            # marking title or severity required would break the very flow this
+            # endpoint exists for.
+            - { type: uint64, name: aiSystemID, title: AI system this scenario assesses }
+            - { type: string, name: title, title: Scenario title }
+            - {
+                type: string,
+                name: severity,
+                title: 'Severity of the assessed harm (low|medium|high|critical)',
+              }
+            - { type: string, name: description, title: Harm description, genHook: true }
+            - {
+                type: '[]string',
+                name: triggerTypes,
+                title: Trigger condition taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: triggerDescription,
+                title: Trigger description,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: impactedParties,
+                title: Impacted party taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: vulnerableGroups,
+                title: Vulnerable group taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: vulnerableGroupsNotes,
+                title: Vulnerable group notes,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: rights,
+                title: Fundamental rights taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: harmVectors,
+                title: AI harm vector taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: harmVectorsDescription,
+                title: AI harm vector description,
+                genHook: true,
+              }
+
+      - name: read
+        method: GET
+        title: Read FRIA risk scenario
+        path: '/{projectFriaScenarioID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - {
+                type: uint64,
+                name: projectFriaScenarioID,
+                required: true,
+                title: FRIA risk scenario ID,
+              }
+
+      - name: update
+        method: PUT
+        # As with create: the meta-backed params are genHook:true and filled by
+        # the companion beforeUpdate, which replaces the meta blob wholesale so
+        # a taxonomy selection can be cleared. aiSystemID, title and severity
+        # are plain fields assigned directly.
+        title: Update FRIA risk scenario
+        path: '/{projectFriaScenarioID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - {
+                type: uint64,
+                name: projectFriaScenarioID,
+                required: true,
+                title: FRIA risk scenario ID,
+              }
+          post:
+            - { type: uint64, name: aiSystemID, title: AI system this scenario assesses }
+            - { type: string, name: title, title: Scenario title }
+            - {
+                type: string,
+                name: severity,
+                title: 'Severity of the assessed harm (low|medium|high|critical)',
+              }
+            - { type: string, name: description, title: Harm description, genHook: true }
+            - {
+                type: '[]string',
+                name: triggerTypes,
+                title: Trigger condition taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: triggerDescription,
+                title: Trigger description,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: impactedParties,
+                title: Impacted party taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: vulnerableGroups,
+                title: Vulnerable group taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: vulnerableGroupsNotes,
+                title: Vulnerable group notes,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: rights,
+                title: Fundamental rights taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: '[]string',
+                name: harmVectors,
+                title: AI harm vector taxonomy keys,
+                genHook: true,
+              }
+            - {
+                type: string,
+                name: harmVectorsDescription,
+                title: AI harm vector description,
+                genHook: true,
+              }
+            - { type: '*time.Time', name: updatedAt, title: Last update timestamp }
+
+      - name: delete
+        method: DELETE
+        title: Delete FRIA risk scenario
+        path: '/{projectFriaScenarioID}'
+        parameters:
+          path:
+            - { type: uint64, name: projectID, required: true, title: Project ID }
+            - {
+                type: uint64,
+                name: projectFriaScenarioID,
+                required: true,
+                title: FRIA risk scenario ID,
               }
 
   - title: Tenants

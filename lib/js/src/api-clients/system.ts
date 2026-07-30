@@ -12511,24 +12511,35 @@ export default class System {
     return `/projects/${projectID}/publish`
   }
 
-  // List project groups
-  async projectGroupList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, query, handle, projectGroupID, deleted, limit, incTotal, pageCursor, sort } =
-      (a as KV) || {}
+  // List AI systems
+  async projectAiSystemList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      query,
+      handle,
+      projectAiSystemID,
+      riskClass,
+      deleted,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
-      url: this.projectGroupListEndpoint({
+      url: this.projectAiSystemListEndpoint({
         projectID,
       }),
     }
     cfg.params = {
       query,
       handle,
-      projectGroupID,
+      projectAiSystemID,
+      riskClass,
       deleted,
       limit,
       incTotal,
@@ -12541,7 +12552,7 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  projectGroupListCancellable(
+  projectAiSystemListCancellable(
     a: KV,
     extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
@@ -12549,31 +12560,28 @@ export default class System {
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.projectGroupList(a, options),
+      response: () => this.projectAiSystemList(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
     }
   }
 
-  projectGroupListEndpoint(a: KV): string {
+  projectAiSystemListEndpoint(a: KV): string {
     const { projectID } = a || {}
-    return `/projects/${projectID}/groups/`
+    return `/projects/${projectID}/ai-systems/`
   }
 
-  // Create project group
-  async projectGroupCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, handle, name, description } = (a as KV) || {}
+  // Create AI system
+  async projectAiSystemCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, handle, name, description, intendedPurpose, riskClass } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
-    }
-    if (!handle) {
-      throw Error('field handle is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
-      url: this.projectGroupCreateEndpoint({
+      url: this.projectAiSystemCreateEndpoint({
         projectID,
       }),
     }
@@ -12581,13 +12589,15 @@ export default class System {
       handle,
       name,
       description,
+      intendedPurpose,
+      riskClass,
     }
     return this.api()
       .request(cfg)
       .then(result => stdResolve(result))
   }
 
-  projectGroupCreateCancellable(
+  projectAiSystemCreateCancellable(
     a: KV,
     extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
@@ -12595,33 +12605,33 @@ export default class System {
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.projectGroupCreate(a, options),
+      response: () => this.projectAiSystemCreate(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
     }
   }
 
-  projectGroupCreateEndpoint(a: KV): string {
+  projectAiSystemCreateEndpoint(a: KV): string {
     const { projectID } = a || {}
-    return `/projects/${projectID}/groups/`
+    return `/projects/${projectID}/ai-systems/`
   }
 
-  // Read project group
-  async projectGroupRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, projectGroupID } = (a as KV) || {}
+  // Read AI system
+  async projectAiSystemRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectAiSystemID } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
-    if (!projectGroupID) {
-      throw Error('field projectGroupID is empty')
+    if (!projectAiSystemID) {
+      throw Error('field projectAiSystemID is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
-      url: this.projectGroupReadEndpoint({
+      url: this.projectAiSystemReadEndpoint({
         projectID,
-        projectGroupID,
+        projectAiSystemID,
       }),
     }
 
@@ -12630,7 +12640,7 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  projectGroupReadCancellable(
+  projectAiSystemReadCancellable(
     a: KV,
     extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
@@ -12638,39 +12648,50 @@ export default class System {
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.projectGroupRead(a, options),
+      response: () => this.projectAiSystemRead(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
     }
   }
 
-  projectGroupReadEndpoint(a: KV): string {
-    const { projectID, projectGroupID } = a || {}
-    return `/projects/${projectID}/groups/${projectGroupID}`
+  projectAiSystemReadEndpoint(a: KV): string {
+    const { projectID, projectAiSystemID } = a || {}
+    return `/projects/${projectID}/ai-systems/${projectAiSystemID}`
   }
 
-  // Update project group
-  async projectGroupUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, projectGroupID, handle, name, description, updatedAt } = (a as KV) || {}
+  // Update AI system
+  async projectAiSystemUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      projectAiSystemID,
+      handle,
+      name,
+      description,
+      intendedPurpose,
+      riskClass,
+      updatedAt,
+    } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
-    if (!projectGroupID) {
-      throw Error('field projectGroupID is empty')
+    if (!projectAiSystemID) {
+      throw Error('field projectAiSystemID is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'put',
-      url: this.projectGroupUpdateEndpoint({
+      url: this.projectAiSystemUpdateEndpoint({
         projectID,
-        projectGroupID,
+        projectAiSystemID,
       }),
     }
     cfg.data = {
       handle,
       name,
       description,
+      intendedPurpose,
+      riskClass,
       updatedAt,
     }
     return this.api()
@@ -12678,7 +12699,7 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  projectGroupUpdateCancellable(
+  projectAiSystemUpdateCancellable(
     a: KV,
     extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
@@ -12686,33 +12707,33 @@ export default class System {
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.projectGroupUpdate(a, options),
+      response: () => this.projectAiSystemUpdate(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
     }
   }
 
-  projectGroupUpdateEndpoint(a: KV): string {
-    const { projectID, projectGroupID } = a || {}
-    return `/projects/${projectID}/groups/${projectGroupID}`
+  projectAiSystemUpdateEndpoint(a: KV): string {
+    const { projectID, projectAiSystemID } = a || {}
+    return `/projects/${projectID}/ai-systems/${projectAiSystemID}`
   }
 
-  // Delete project group
-  async projectGroupDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, projectGroupID } = (a as KV) || {}
+  // Delete AI system
+  async projectAiSystemDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectAiSystemID } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
-    if (!projectGroupID) {
-      throw Error('field projectGroupID is empty')
+    if (!projectAiSystemID) {
+      throw Error('field projectAiSystemID is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'delete',
-      url: this.projectGroupDeleteEndpoint({
+      url: this.projectAiSystemDeleteEndpoint({
         projectID,
-        projectGroupID,
+        projectAiSystemID,
       }),
     }
 
@@ -12721,7 +12742,7 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  projectGroupDeleteCancellable(
+  projectAiSystemDeleteCancellable(
     a: KV,
     extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
@@ -12729,26 +12750,26 @@ export default class System {
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.projectGroupDelete(a, options),
+      response: () => this.projectAiSystemDelete(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
     }
   }
 
-  projectGroupDeleteEndpoint(a: KV): string {
-    const { projectID, projectGroupID } = a || {}
-    return `/projects/${projectID}/groups/${projectGroupID}`
+  projectAiSystemDeleteEndpoint(a: KV): string {
+    const { projectID, projectAiSystemID } = a || {}
+    return `/projects/${projectID}/ai-systems/${projectAiSystemID}`
   }
 
-  // Add resource to group
-  async projectGroupEntryAdd(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, projectGroupID, resourceRef } = (a as KV) || {}
+  // Add resource to AI system
+  async projectAiSystemEntryAdd(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectAiSystemID, resourceRef } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
-    if (!projectGroupID) {
-      throw Error('field projectGroupID is empty')
+    if (!projectAiSystemID) {
+      throw Error('field projectAiSystemID is empty')
     }
     if (!resourceRef) {
       throw Error('field resourceRef is empty')
@@ -12756,19 +12777,20 @@ export default class System {
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
-      url: this.projectGroupEntryAddEndpoint({
+      url: this.projectAiSystemEntryAddEndpoint({
         projectID,
-        projectGroupID,
-        resourceRef,
+        projectAiSystemID,
       }),
     }
-
+    cfg.data = {
+      resourceRef,
+    }
     return this.api()
       .request(cfg)
       .then(result => stdResolve(result))
   }
 
-  projectGroupEntryAddCancellable(
+  projectAiSystemEntryAddCancellable(
     a: KV,
     extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
@@ -12776,26 +12798,26 @@ export default class System {
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.projectGroupEntryAdd(a, options),
+      response: () => this.projectAiSystemEntryAdd(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
     }
   }
 
-  projectGroupEntryAddEndpoint(a: KV): string {
-    const { projectID, projectGroupID, resourceRef } = a || {}
-    return `/projects/${projectID}/groups/${projectGroupID}/entries/${resourceRef}`
+  projectAiSystemEntryAddEndpoint(a: KV): string {
+    const { projectID, projectAiSystemID } = a || {}
+    return `/projects/${projectID}/ai-systems/${projectAiSystemID}/entries`
   }
 
-  // Remove resource from group
-  async projectGroupEntryRemove(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { projectID, projectGroupID, resourceRef } = (a as KV) || {}
+  // Remove resource from AI system
+  async projectAiSystemEntryRemove(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectAiSystemID, resourceRef } = (a as KV) || {}
     if (!projectID) {
       throw Error('field projectID is empty')
     }
-    if (!projectGroupID) {
-      throw Error('field projectGroupID is empty')
+    if (!projectAiSystemID) {
+      throw Error('field projectAiSystemID is empty')
     }
     if (!resourceRef) {
       throw Error('field resourceRef is empty')
@@ -12803,10 +12825,182 @@ export default class System {
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'delete',
-      url: this.projectGroupEntryRemoveEndpoint({
+      url: this.projectAiSystemEntryRemoveEndpoint({
         projectID,
-        projectGroupID,
-        resourceRef,
+        projectAiSystemID,
+      }),
+    }
+    cfg.params = {
+      resourceRef,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectAiSystemEntryRemoveCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectAiSystemEntryRemove(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectAiSystemEntryRemoveEndpoint(a: KV): string {
+    const { projectID, projectAiSystemID } = a || {}
+    return `/projects/${projectID}/ai-systems/${projectAiSystemID}/entries`
+  }
+
+  // List FRIA risk scenarios
+  async projectFriaScenarioList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      query,
+      projectFriaScenarioID,
+      aiSystemID,
+      severity,
+      deleted,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectFriaScenarioListEndpoint({
+        projectID,
+      }),
+    }
+    cfg.params = {
+      query,
+      projectFriaScenarioID,
+      aiSystemID,
+      severity,
+      deleted,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFriaScenarioListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFriaScenarioList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFriaScenarioListEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/fria-scenarios/`
+  }
+
+  // Create FRIA risk scenario
+  async projectFriaScenarioCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      aiSystemID,
+      title,
+      severity,
+      description,
+      triggerTypes,
+      triggerDescription,
+      impactedParties,
+      vulnerableGroups,
+      vulnerableGroupsNotes,
+      rights,
+      harmVectors,
+      harmVectorsDescription,
+    } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.projectFriaScenarioCreateEndpoint({
+        projectID,
+      }),
+    }
+    cfg.data = {
+      aiSystemID,
+      title,
+      severity,
+      description,
+      triggerTypes,
+      triggerDescription,
+      impactedParties,
+      vulnerableGroups,
+      vulnerableGroupsNotes,
+      rights,
+      harmVectors,
+      harmVectorsDescription,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFriaScenarioCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFriaScenarioCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFriaScenarioCreateEndpoint(a: KV): string {
+    const { projectID } = a || {}
+    return `/projects/${projectID}/fria-scenarios/`
+  }
+
+  // Read FRIA risk scenario
+  async projectFriaScenarioRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectFriaScenarioID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectFriaScenarioID) {
+      throw Error('field projectFriaScenarioID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.projectFriaScenarioReadEndpoint({
+        projectID,
+        projectFriaScenarioID,
       }),
     }
 
@@ -12815,7 +13009,7 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  projectGroupEntryRemoveCancellable(
+  projectFriaScenarioReadCancellable(
     a: KV,
     extra: AxiosRequestConfig = {},
   ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
@@ -12823,16 +13017,132 @@ export default class System {
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.projectGroupEntryRemove(a, options),
+      response: () => this.projectFriaScenarioRead(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
     }
   }
 
-  projectGroupEntryRemoveEndpoint(a: KV): string {
-    const { projectID, projectGroupID, resourceRef } = a || {}
-    return `/projects/${projectID}/groups/${projectGroupID}/entries/${resourceRef}`
+  projectFriaScenarioReadEndpoint(a: KV): string {
+    const { projectID, projectFriaScenarioID } = a || {}
+    return `/projects/${projectID}/fria-scenarios/${projectFriaScenarioID}`
+  }
+
+  // Update FRIA risk scenario
+  async projectFriaScenarioUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      projectID,
+      projectFriaScenarioID,
+      aiSystemID,
+      title,
+      severity,
+      description,
+      triggerTypes,
+      triggerDescription,
+      impactedParties,
+      vulnerableGroups,
+      vulnerableGroupsNotes,
+      rights,
+      harmVectors,
+      harmVectorsDescription,
+      updatedAt,
+    } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectFriaScenarioID) {
+      throw Error('field projectFriaScenarioID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.projectFriaScenarioUpdateEndpoint({
+        projectID,
+        projectFriaScenarioID,
+      }),
+    }
+    cfg.data = {
+      aiSystemID,
+      title,
+      severity,
+      description,
+      triggerTypes,
+      triggerDescription,
+      impactedParties,
+      vulnerableGroups,
+      vulnerableGroupsNotes,
+      rights,
+      harmVectors,
+      harmVectorsDescription,
+      updatedAt,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFriaScenarioUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFriaScenarioUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFriaScenarioUpdateEndpoint(a: KV): string {
+    const { projectID, projectFriaScenarioID } = a || {}
+    return `/projects/${projectID}/fria-scenarios/${projectFriaScenarioID}`
+  }
+
+  // Delete FRIA risk scenario
+  async projectFriaScenarioDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { projectID, projectFriaScenarioID } = (a as KV) || {}
+    if (!projectID) {
+      throw Error('field projectID is empty')
+    }
+    if (!projectFriaScenarioID) {
+      throw Error('field projectFriaScenarioID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.projectFriaScenarioDeleteEndpoint({
+        projectID,
+        projectFriaScenarioID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  projectFriaScenarioDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.projectFriaScenarioDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  projectFriaScenarioDeleteEndpoint(a: KV): string {
+    const { projectID, projectFriaScenarioID } = a || {}
+    return `/projects/${projectID}/fria-scenarios/${projectFriaScenarioID}`
   }
 
   // List tenants

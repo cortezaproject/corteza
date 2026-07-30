@@ -159,7 +159,8 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.ChatbotSessionHandoffRbacResource(0)),
 		rbac.NewResource(types.TenantRbacResource(0)),
 		rbac.NewResource(types.ProjectRbacResource(0)),
-		rbac.NewResource(types.ProjectGroupRbacResource(0)),
+		rbac.NewResource(types.ProjectAiSystemRbacResource(0)),
+		rbac.NewResource(types.ProjectFriaScenarioRbacResource(0)),
 		rbac.NewResource(types.ProjectIncidentRbacResource(0)),
 		rbac.NewResource(types.ProjectFeatureRbacResource(0)),
 		rbac.NewResource(types.ProjectPrivacyRbacResource(0)),
@@ -621,24 +622,39 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "members.manage",
 		},
 		{
-			"type": types.ProjectGroupResourceType,
-			"any":  types.ProjectGroupRbacResource(0),
+			"type": types.ProjectAiSystemResourceType,
+			"any":  types.ProjectAiSystemRbacResource(0),
 			"op":   "read",
 		},
 		{
-			"type": types.ProjectGroupResourceType,
-			"any":  types.ProjectGroupRbacResource(0),
+			"type": types.ProjectAiSystemResourceType,
+			"any":  types.ProjectAiSystemRbacResource(0),
 			"op":   "update",
 		},
 		{
-			"type": types.ProjectGroupResourceType,
-			"any":  types.ProjectGroupRbacResource(0),
+			"type": types.ProjectAiSystemResourceType,
+			"any":  types.ProjectAiSystemRbacResource(0),
 			"op":   "delete",
 		},
 		{
-			"type": types.ProjectGroupResourceType,
-			"any":  types.ProjectGroupRbacResource(0),
-			"op":   "members.manage",
+			"type": types.ProjectAiSystemResourceType,
+			"any":  types.ProjectAiSystemRbacResource(0),
+			"op":   "resources.manage",
+		},
+		{
+			"type": types.ProjectFriaScenarioResourceType,
+			"any":  types.ProjectFriaScenarioRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ProjectFriaScenarioResourceType,
+			"any":  types.ProjectFriaScenarioRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ProjectFriaScenarioResourceType,
+			"any":  types.ProjectFriaScenarioRbacResource(0),
+			"op":   "delete",
 		},
 		{
 			"type": types.ProjectIncidentResourceType,
@@ -1078,12 +1094,22 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
-			"op":   "project-group.create",
+			"op":   "project-ai-system.create",
 		},
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
-			"op":   "project-groups.search",
+			"op":   "project-ai-systems.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-fria-scenario.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "project-fria-scenarios.search",
 		},
 	}
 
@@ -1800,32 +1826,53 @@ func (svc accessControl) CanManageMembersOnProject(ctx context.Context, r *types
 	return svc.can(ctx, "members.manage", r)
 }
 
-// CanReadProjectGroup checks if current user can read project group
+// CanReadProjectAiSystem checks if current user can read ai system
 //
 // This function is auto-generated
-func (svc accessControl) CanReadProjectGroup(ctx context.Context, r *types.ProjectGroup) bool {
+func (svc accessControl) CanReadProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool {
 	return svc.can(ctx, "read", r)
 }
 
-// CanUpdateProjectGroup checks if current user can update project group
+// CanUpdateProjectAiSystem checks if current user can update ai system
 //
 // This function is auto-generated
-func (svc accessControl) CanUpdateProjectGroup(ctx context.Context, r *types.ProjectGroup) bool {
+func (svc accessControl) CanUpdateProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool {
 	return svc.can(ctx, "update", r)
 }
 
-// CanDeleteProjectGroup checks if current user can delete project group
+// CanDeleteProjectAiSystem checks if current user can delete ai system
 //
 // This function is auto-generated
-func (svc accessControl) CanDeleteProjectGroup(ctx context.Context, r *types.ProjectGroup) bool {
+func (svc accessControl) CanDeleteProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool {
 	return svc.can(ctx, "delete", r)
 }
 
-// CanManageMembersOnProjectGroup checks if current user can manage project group members
+// CanManageResourcesOnProjectAiSystem checks if current user can manage ai system resources
 //
 // This function is auto-generated
-func (svc accessControl) CanManageMembersOnProjectGroup(ctx context.Context, r *types.ProjectGroup) bool {
-	return svc.can(ctx, "members.manage", r)
+func (svc accessControl) CanManageResourcesOnProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool {
+	return svc.can(ctx, "resources.manage", r)
+}
+
+// CanReadProjectFriaScenario checks if current user can read fria risk scenario
+//
+// This function is auto-generated
+func (svc accessControl) CanReadProjectFriaScenario(ctx context.Context, r *types.ProjectFriaScenario) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateProjectFriaScenario checks if current user can update fria risk scenario
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateProjectFriaScenario(ctx context.Context, r *types.ProjectFriaScenario) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteProjectFriaScenario checks if current user can delete fria risk scenario
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteProjectFriaScenario(ctx context.Context, r *types.ProjectFriaScenario) bool {
+	return svc.can(ctx, "delete", r)
 }
 
 // CanReadProjectIncident checks if current user can read project incident
@@ -2506,20 +2553,36 @@ func (svc accessControl) CanSearchProjects(ctx context.Context) bool {
 	return svc.can(ctx, "projects.search", r)
 }
 
-// CanCreateProjectGroup checks if current user can create project groups
+// CanCreateProjectAiSystem checks if current user can create ai systems
 //
 // This function is auto-generated
-func (svc accessControl) CanCreateProjectGroup(ctx context.Context) bool {
+func (svc accessControl) CanCreateProjectAiSystem(ctx context.Context) bool {
 	r := &types.Component{}
-	return svc.can(ctx, "project-group.create", r)
+	return svc.can(ctx, "project-ai-system.create", r)
 }
 
-// CanSearchProjectGroups checks if current user can list, search or filter project groups
+// CanSearchProjectAiSystems checks if current user can list, search or filter ai systems
 //
 // This function is auto-generated
-func (svc accessControl) CanSearchProjectGroups(ctx context.Context) bool {
+func (svc accessControl) CanSearchProjectAiSystems(ctx context.Context) bool {
 	r := &types.Component{}
-	return svc.can(ctx, "project-groups.search", r)
+	return svc.can(ctx, "project-ai-systems.search", r)
+}
+
+// CanCreateProjectFriaScenario checks if current user can create fria risk scenarios
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateProjectFriaScenario(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-fria-scenario.create", r)
+}
+
+// CanSearchProjectFriaScenarios checks if current user can list, search or filter fria risk scenarios
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchProjectFriaScenarios(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "project-fria-scenarios.search", r)
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -2573,8 +2636,10 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacTenantResourceValidator(r, oo...)
 	case types.ProjectResourceType:
 		return rbacProjectResourceValidator(r, oo...)
-	case types.ProjectGroupResourceType:
-		return rbacProjectGroupResourceValidator(r, oo...)
+	case types.ProjectAiSystemResourceType:
+		return rbacProjectAiSystemResourceValidator(r, oo...)
+	case types.ProjectFriaScenarioResourceType:
+		return rbacProjectFriaScenarioResourceValidator(r, oo...)
 	case types.ProjectIncidentResourceType:
 		return rbacProjectIncidentResourceValidator(r, oo...)
 	case types.ProjectFeatureResourceType:
@@ -2752,12 +2817,18 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadProject(ctx, svc.store, ids[0])
-	case types.ProjectGroupResourceType:
+	case types.ProjectAiSystemResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.ProjectGroupRbacResource(ids[0])), nil
+			return rbac.NewResource(types.ProjectAiSystemRbacResource(ids[0])), nil
 		}
 
-		return loadProjectGroup(ctx, svc.store, ids[0])
+		return loadProjectAiSystem(ctx, svc.store, ids[0])
+	case types.ProjectFriaScenarioResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ProjectFriaScenarioRbacResource(ids[0])), nil
+		}
+
+		return loadProjectFriaScenario(ctx, svc.store, ids[0])
 	case types.ProjectIncidentResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.ProjectIncidentRbacResource(ids[0])), nil
@@ -2965,12 +3036,18 @@ func rbacResourceOperations(r string) map[string]bool {
 			"delete":         true,
 			"members.manage": true,
 		}
-	case types.ProjectGroupResourceType:
+	case types.ProjectAiSystemResourceType:
 		return map[string]bool{
-			"read":           true,
-			"update":         true,
-			"delete":         true,
-			"members.manage": true,
+			"read":             true,
+			"update":           true,
+			"delete":           true,
+			"resources.manage": true,
+		}
+	case types.ProjectFriaScenarioResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
 		}
 	case types.ProjectIncidentResourceType:
 		return map[string]bool{
@@ -3079,8 +3156,10 @@ func rbacResourceOperations(r string) map[string]bool {
 			"tenants.search":                  true,
 			"project.create":                  true,
 			"projects.search":                 true,
-			"project-group.create":            true,
-			"project-groups.search":           true,
+			"project-ai-system.create":        true,
+			"project-ai-systems.search":       true,
+			"project-fria-scenario.create":    true,
+			"project-fria-scenarios.search":   true,
 		}
 	}
 
@@ -4122,14 +4201,14 @@ func rbacProjectResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacProjectGroupResourceValidator checks validity of RBAC resource and operations
+// rbacProjectAiSystemResourceValidator checks validity of RBAC resource and operations
 //
 // # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
-func rbacProjectGroupResourceValidator(r string, oo ...string) error {
-	if !strings.HasPrefix(r, types.ProjectGroupResourceType) {
+func rbacProjectAiSystemResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectAiSystemResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
 	}
@@ -4137,13 +4216,13 @@ func rbacProjectGroupResourceValidator(r string, oo ...string) error {
 	defOps := rbacResourceOperations(r)
 	for _, o := range oo {
 		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for projectGroup resource", o)
+			return fmt.Errorf("invalid operation '%s' for projectAiSystem resource", o)
 		}
 	}
 
 	const sep = "/"
 	var (
-		pp  = strings.Split(strings.Trim(r[len(types.ProjectGroupResourceType):], sep), sep)
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectAiSystemResourceType):], sep), sep)
 		prc = []string{
 			"ID",
 		}
@@ -4156,7 +4235,52 @@ func rbacProjectGroupResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for projectGroup resource", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for projectAiSystem resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacProjectFriaScenarioResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacProjectFriaScenarioResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ProjectFriaScenarioResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for projectFriaScenario resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ProjectFriaScenarioResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for projectFriaScenario resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

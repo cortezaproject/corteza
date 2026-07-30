@@ -97,12 +97,33 @@ func NewConfig(dsn string) (c *rdbms.ConnConfig, err error) {
 	return c, nil
 }
 
+// firstNonEmptyStr returns the first non-empty value, so a unique-violation
+// message degrades to a readable placeholder when the driver leaves the table
+// or constraint name blank rather than printing an empty pair of quotes.
+func firstNonEmptyStr(vv ...string) string {
+	for _, v := range vv {
+		if v != "" {
+			return v
+		}
+	}
+
+	return ""
+}
+
 func errorHandler(err error) error {
 	if err != nil {
 		if implErr, ok := err.(*pq.Error); ok {
 			switch implErr.Code.Name() {
 			case "unique_violation":
-				return store.ErrNotUnique.Wrap(implErr)
+				// Name the table and constraint postgres actually rejected.
+				// Without them this is indistinguishable from the service-level
+				// check in checkXConstraints, and the two have entirely
+				// different causes: a stale index the model no longer declares
+				// vs a genuine duplicate.
+				return store.ErrNotUniqueOn(
+					firstNonEmptyStr(implErr.Table, "record"),
+					firstNonEmptyStr(implErr.Constraint, "a unique constraint"),
+				).Wrap(implErr)
 			}
 		}
 	}

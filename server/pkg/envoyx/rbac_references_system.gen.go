@@ -309,14 +309,27 @@ func SystemProjectRbacReferences(project string) (res *Ref, pp []*Ref, err error
 	return
 }
 
-// SystemProjectGroupRbacReferences generates RBAC references
+// SystemProjectAiSystemRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped
 //
 // This function is auto-generated
-func SystemProjectGroupRbacReferences(projectGroup string) (res *Ref, pp []*Ref, err error) {
-	if projectGroup != "*" {
-		res = &Ref{ResourceType: types.ProjectGroupResourceType, Identifiers: MakeIdentifiers(projectGroup)}
+func SystemProjectAiSystemRbacReferences(projectAiSystem string) (res *Ref, pp []*Ref, err error) {
+	if projectAiSystem != "*" {
+		res = &Ref{ResourceType: types.ProjectAiSystemResourceType, Identifiers: MakeIdentifiers(projectAiSystem)}
+	}
+
+	return
+}
+
+// SystemProjectFriaScenarioRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemProjectFriaScenarioRbacReferences(projectFriaScenario string) (res *Ref, pp []*Ref, err error) {
+	if projectFriaScenario != "*" {
+		res = &Ref{ResourceType: types.ProjectFriaScenarioResourceType, Identifiers: MakeIdentifiers(projectFriaScenario)}
 	}
 
 	return

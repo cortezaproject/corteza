@@ -89,7 +89,7 @@ func testUsers(t *testing.T, s store.Users) {
 		req.NoError(s.TruncateUsers(ctx))
 
 		req.NoError(s.CreateUser(ctx, makeNew("a")))
-		req.EqualError(s.CreateUser(ctx, makeNew("a")), store.ErrNotUnique.Error())
+		req.EqualError(s.CreateUser(ctx, makeNew("a")), store.ErrNotUniqueOn("systemType.User", "Email").Error())
 	})
 
 	t.Run("create with duplicate ID", func(t *testing.T) {
@@ -97,7 +97,7 @@ func testUsers(t *testing.T, s store.Users) {
 		req.NoError(s.TruncateUsers(ctx))
 		user := makeNew("a")
 		req.NoError(s.CreateUser(ctx, user))
-		req.EqualError(s.CreateUser(ctx, user), store.ErrNotUnique.Error())
+		req.EqualError(s.CreateUser(ctx, user), store.ErrNotUniqueOn("systemType.User", "Email").Error())
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {

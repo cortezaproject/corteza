@@ -10,38 +10,38 @@ import (
 )
 
 // The CRUD method bodies (FindByID, Search, Create, Update, DeleteByID and
-// loadProjectGroup) are generated in project_group.gen.go from
-// system/project_group.cue.
+// loadProjectAiSystem) are generated in project_ai_system.gen.go from
+// system/project_ai_system.cue.
 //
 // This file owns the struct, access-controller interface, constructor, the
-// public service contract, member management and the before-create /
-// before-update hooks the generated Create / Update call into.
+// public service contract, entry (resource member) management and the
+// before-create / before-update hooks the generated Create / Update call into.
 
 type (
-	projectGroupAccessController interface {
-		CanCreateProjectGroup(ctx context.Context) bool
-		CanSearchProjectGroups(ctx context.Context) bool
-		CanReadProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
-		CanUpdateProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
-		CanDeleteProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
-		CanManageMembersOnProjectGroup(ctx context.Context, r *types.ProjectGroup) bool
+	projectAiSystemAccessController interface {
+		CanCreateProjectAiSystem(ctx context.Context) bool
+		CanSearchProjectAiSystems(ctx context.Context) bool
+		CanReadProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool
+		CanUpdateProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool
+		CanDeleteProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool
+		CanManageResourcesOnProjectAiSystem(ctx context.Context, r *types.ProjectAiSystem) bool
 	}
 
-	ProjectGroupService interface {
-		FindByID(ctx context.Context, id uint64) (*types.ProjectGroup, error)
-		Search(ctx context.Context, f types.ProjectGroupFilter) (types.ProjectGroupSet, types.ProjectGroupFilter, error)
-		Create(ctx context.Context, g *types.ProjectGroup) (*types.ProjectGroup, error)
-		Update(ctx context.Context, g *types.ProjectGroup) (*types.ProjectGroup, error)
+	ProjectAiSystemService interface {
+		FindByID(ctx context.Context, id uint64) (*types.ProjectAiSystem, error)
+		Search(ctx context.Context, f types.ProjectAiSystemFilter) (types.ProjectAiSystemSet, types.ProjectAiSystemFilter, error)
+		Create(ctx context.Context, g *types.ProjectAiSystem) (*types.ProjectAiSystem, error)
+		Update(ctx context.Context, g *types.ProjectAiSystem) (*types.ProjectAiSystem, error)
 		DeleteByID(ctx context.Context, id uint64) error
 
-		MemberList(ctx context.Context, projectGroupID uint64) (types.ProjectGroupEntrySet, error)
-		MemberAdd(ctx context.Context, projectGroupID uint64, resourceRef string) error
-		MemberRemove(ctx context.Context, projectGroupID uint64, resourceRef string) error
+		MemberList(ctx context.Context, projectAiSystemID uint64) (types.ProjectAiSystemEntrySet, error)
+		MemberAdd(ctx context.Context, projectAiSystemID uint64, resourceRef string) error
+		MemberRemove(ctx context.Context, projectAiSystemID uint64, resourceRef string) error
 	}
 )
 
-func ProjectGroup() *projectGroup {
-	return &projectGroup{
+func ProjectAiSystem() *projectAiSystem {
+	return &projectAiSystem{
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
@@ -51,9 +51,9 @@ func ProjectGroup() *projectGroup {
 // beforeCreate validates the handle, resolves the owning tenant from the
 // project and enforces handle uniqueness before the generated Create assigns
 // the ID / timestamps and persists.
-func (svc *projectGroup) beforeCreate(ctx context.Context, new *types.ProjectGroup) error {
+func (svc *projectAiSystem) beforeCreate(ctx context.Context, new *types.ProjectAiSystem) error {
 	if !handle.IsValid(new.Handle) {
-		return ProjectGroupErrInvalidHandle()
+		return ProjectAiSystemErrInvalidHandle()
 	}
 
 	p, err := loadProject(ctx, svc.store, new.ProjectID)
@@ -69,19 +69,23 @@ func (svc *projectGroup) beforeCreate(ctx context.Context, new *types.ProjectGro
 	return nil
 }
 
-// beforeUpdate merges the mutable fields (handle, meta) with validation and
-// uniqueness checks. The generated Update has already loaded `existing`, run
-// the access check and the stale-data guard.
-func (svc *projectGroup) beforeUpdate(ctx context.Context, upd, existing *types.ProjectGroup) error {
+// beforeUpdate merges the mutable fields (handle, risk class, meta) with
+// validation and uniqueness checks. The generated Update has already loaded
+// `existing`, run the access check and the stale-data guard.
+func (svc *projectAiSystem) beforeUpdate(ctx context.Context, upd, existing *types.ProjectAiSystem) error {
 	if upd.Handle != "" && !handle.IsValid(upd.Handle) {
-		return ProjectGroupErrInvalidHandle()
+		return ProjectAiSystemErrInvalidHandle()
 	}
 
 	if upd.Handle != "" && upd.Handle != existing.Handle {
-		if err := svc.uniqueCheck(ctx, &types.ProjectGroup{ID: upd.ID, ProjectID: existing.ProjectID, Handle: upd.Handle}); err != nil {
+		if err := svc.uniqueCheck(ctx, &types.ProjectAiSystem{ID: upd.ID, ProjectID: existing.ProjectID, Handle: upd.Handle}); err != nil {
 			return err
 		}
 		existing.Handle = upd.Handle
+	}
+
+	if upd.RiskClass != "" {
+		existing.RiskClass = upd.RiskClass
 	}
 
 	if upd.Meta.Short != "" {
@@ -90,76 +94,79 @@ func (svc *projectGroup) beforeUpdate(ctx context.Context, upd, existing *types.
 	if upd.Meta.Description != "" {
 		existing.Meta.Description = upd.Meta.Description
 	}
+	if upd.Meta.IntendedPurpose != "" {
+		existing.Meta.IntendedPurpose = upd.Meta.IntendedPurpose
+	}
 
 	return nil
 }
 
-// --- members ---
+// --- entries (resource members) ---
 
-func (svc *projectGroup) onMemberList(ctx context.Context, _ *projectGroupActionProps, projectGroupID uint64) (set types.ProjectGroupEntrySet, err error) {
-	g, err := loadProjectGroup(ctx, svc.store, projectGroupID)
+func (svc *projectAiSystem) onMemberList(ctx context.Context, _ *projectAiSystemActionProps, projectAiSystemID uint64) (set types.ProjectAiSystemEntrySet, err error) {
+	g, err := loadProjectAiSystem(ctx, svc.store, projectAiSystemID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !svc.ac.CanReadProjectGroup(ctx, g) {
-		return nil, ProjectGroupErrNotAllowedToRead()
+	if !svc.ac.CanReadProjectAiSystem(ctx, g) {
+		return nil, ProjectAiSystemErrNotAllowedToRead()
 	}
 
-	set, _, err = store.SearchProjectGroupEntrys(ctx, svc.store, types.ProjectGroupEntryFilter{
-		ProjectGroupID: projectGroupID,
+	set, _, err = store.SearchProjectAiSystemEntrys(ctx, svc.store, types.ProjectAiSystemEntryFilter{
+		ProjectAiSystemID: projectAiSystemID,
 	})
 	return set, err
 }
 
-func (svc *projectGroup) onMemberAdd(ctx context.Context, _ *projectGroupActionProps, projectGroupID uint64, resourceRef string) error {
-	g, err := loadProjectGroup(ctx, svc.store, projectGroupID)
+func (svc *projectAiSystem) onMemberAdd(ctx context.Context, _ *projectAiSystemActionProps, projectAiSystemID uint64, resourceRef string) error {
+	g, err := loadProjectAiSystem(ctx, svc.store, projectAiSystemID)
 	if err != nil {
 		return err
 	}
 
-	if !svc.ac.CanManageMembersOnProjectGroup(ctx, g) {
-		return ProjectGroupErrNotAllowedToManageMembers()
+	if !svc.ac.CanManageResourcesOnProjectAiSystem(ctx, g) {
+		return ProjectAiSystemErrNotAllowedToManageResources()
 	}
 
 	if resourceRef == "" {
-		return ProjectGroupErrInvalidID()
+		return ProjectAiSystemErrInvalidID()
 	}
 
-	if existing, e := store.LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx, svc.store, projectGroupID, resourceRef); e == nil && existing != nil {
+	if existing, e := store.LookupProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx, svc.store, projectAiSystemID, resourceRef); e == nil && existing != nil {
 		return nil
 	} else if e != nil && !errors.IsNotFound(e) {
 		return e
 	}
 
-	return store.CreateProjectGroupEntry(ctx, svc.store, &types.ProjectGroupEntry{
-		ProjectGroupID: projectGroupID,
-		ResourceRef:    resourceRef,
-		CreatedAt:      *now(),
+	return store.CreateProjectAiSystemEntry(ctx, svc.store, &types.ProjectAiSystemEntry{
+		ProjectAiSystemID: projectAiSystemID,
+		ResourceRef:       resourceRef,
+		CreatedAt:         *now(),
 	})
 }
 
-func (svc *projectGroup) onMemberRemove(ctx context.Context, _ *projectGroupActionProps, projectGroupID uint64, resourceRef string) error {
-	g, err := loadProjectGroup(ctx, svc.store, projectGroupID)
+func (svc *projectAiSystem) onMemberRemove(ctx context.Context, _ *projectAiSystemActionProps, projectAiSystemID uint64, resourceRef string) error {
+	g, err := loadProjectAiSystem(ctx, svc.store, projectAiSystemID)
 	if err != nil {
 		return err
 	}
 
-	if !svc.ac.CanManageMembersOnProjectGroup(ctx, g) {
-		return ProjectGroupErrNotAllowedToManageMembers()
+	if !svc.ac.CanManageResourcesOnProjectAiSystem(ctx, g) {
+		return ProjectAiSystemErrNotAllowedToManageResources()
 	}
 
-	return store.DeleteProjectGroupEntryByProjectGroupIDResourceRef(ctx, svc.store, projectGroupID, resourceRef)
+	return store.DeleteProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx, svc.store, projectAiSystemID, resourceRef)
 }
 
 // --- helpers ---
 
-func (svc *projectGroup) uniqueCheck(ctx context.Context, g *types.ProjectGroup) error {
+func (svc *projectAiSystem) uniqueCheck(ctx context.Context, g *types.ProjectAiSystem) error {
 	if g.Handle == "" {
 		return nil
 	}
-	if e, err := store.LookupProjectGroupByProjectIDHandle(ctx, svc.store, g.ProjectID, g.Handle); err == nil && e != nil && e.ID != g.ID {
-		return ProjectGroupErrHandleNotUnique()
+	if e, err := store.LookupProjectAiSystemByProjectIDHandle(ctx, svc.store, g.ProjectID, g.Handle); err == nil && e != nil && e.ID != g.ID {
+		return ProjectAiSystemErrHandleNotUnique()
 	} else if err != nil && !errors.IsNotFound(err) {
 		return err
 	}

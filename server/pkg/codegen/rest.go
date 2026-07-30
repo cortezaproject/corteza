@@ -104,9 +104,9 @@ type (
 		// Compound overrides the automatic compound-resource detection for
 		// this api. The auto-detection treats every endpoint-level (scope)
 		// uint64 path param as a leading scope id of the resource and so
-		// emits e.g. FindByID(ctx, r.ProjectID, r.ProjectGroupID). Set
+		// emits e.g. FindByID(ctx, r.ProjectID, r.ProjectAiSystemID). Set
 		// `compound: false` to force single-id ops -- only the resolved
-		// resource id is passed (FindByID(ctx, r.ProjectGroupID)) and the
+		// resource id is passed (FindByID(ctx, r.ProjectAiSystemID)) and the
 		// scope ids are ignored by the by-id methods and create/update.
 		// Use when the route nests the resource under a parent (projectID)
 		// but the service is single-id. nil => auto-detect (default).

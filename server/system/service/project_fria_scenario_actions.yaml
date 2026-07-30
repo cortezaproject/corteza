@@ -1,0 +1,80 @@
+# List of loggable service actions
+
+resource: system:project-fria-scenario
+service: projectFriaScenario
+
+defaultActionSeverity: notice
+
+defaultErrorSeverity: error
+
+import:
+  - github.com/crusttech/human/server/system/types
+
+props:
+  - name: projectFriaScenario
+    type: "*types.ProjectFriaScenario"
+    fields: [ title, ID ]
+  - name: new
+    type: "*types.ProjectFriaScenario"
+    fields: [ title, ID ]
+  - name: update
+    type: "*types.ProjectFriaScenario"
+    fields: [ title, ID ]
+  - name: search
+    type: "*types.ProjectFriaScenarioFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for FRIA risk scenarios"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{projectFriaScenario}}"
+    severity: info
+
+  - action: create
+    log: "created {{projectFriaScenario}}"
+
+  - action: update
+    log: "updated {{projectFriaScenario}}"
+
+  - action: delete
+    log: "deleted {{projectFriaScenario}}"
+
+errors:
+  - error: notFound
+    message: "FRIA risk scenario not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: missingProject
+    message: "project is required"
+    severity: warning
+
+  - error: staleData
+    message: "FRIA risk scenario was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a FRIA risk scenario"
+    log: "failed to create a FRIA risk scenario; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this FRIA risk scenario"
+    log: "failed to read {{projectFriaScenario.title}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list FRIA risk scenarios"
+    log: "failed to search or list FRIA risk scenarios; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this FRIA risk scenario"
+    log: "failed to update {{projectFriaScenario.title}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this FRIA risk scenario"
+    log: "failed to delete {{projectFriaScenario.title}}; insufficient permissions"

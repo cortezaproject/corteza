@@ -834,6 +834,26 @@ type (
 		DeletedBy        uint64                   `db:"deleted_by"`
 	}
 
+	// auxProjectAiSystem is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectAiSystem struct {
+		ID        uint64                         `db:"id"`
+		TenantID  uint64                         `db:"tenant_id"`
+		ProjectID uint64                         `db:"project_id"`
+		Handle    string                         `db:"handle"`
+		RiskClass string                         `db:"risk_class"`
+		Meta      systemType.ProjectAiSystemMeta `db:"meta"`
+		CreatedAt time.Time                      `db:"created_at"`
+		UpdatedAt *time.Time                     `db:"updated_at"`
+		DeletedAt *time.Time                     `db:"deleted_at"`
+	}
+
+	// auxProjectAiSystemEntry is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectAiSystemEntry struct {
+		ProjectAiSystemID uint64    `db:"project_ai_system_id"`
+		ResourceRef       string    `db:"resource_ref"`
+		CreatedAt         time.Time `db:"created_at"`
+	}
+
 	// auxProjectBacklogItem is an auxiliary structure used for transporting to/from RDBMS store
 	auxProjectBacklogItem struct {
 		ID          uint64     `db:"id"`
@@ -883,23 +903,21 @@ type (
 		DeletedBy        uint64     `db:"deleted_by"`
 	}
 
-	// auxProjectGroup is an auxiliary structure used for transporting to/from RDBMS store
-	auxProjectGroup struct {
-		ID        uint64                      `db:"id"`
-		TenantID  uint64                      `db:"tenant_id"`
-		ProjectID uint64                      `db:"project_id"`
-		Handle    string                      `db:"handle"`
-		Meta      systemType.ProjectGroupMeta `db:"meta"`
-		CreatedAt time.Time                   `db:"created_at"`
-		UpdatedAt *time.Time                  `db:"updated_at"`
-		DeletedAt *time.Time                  `db:"deleted_at"`
-	}
-
-	// auxProjectGroupEntry is an auxiliary structure used for transporting to/from RDBMS store
-	auxProjectGroupEntry struct {
-		ProjectGroupID uint64    `db:"project_group_id"`
-		ResourceRef    string    `db:"resource_ref"`
-		CreatedAt      time.Time `db:"created_at"`
+	// auxProjectFriaScenario is an auxiliary structure used for transporting to/from RDBMS store
+	auxProjectFriaScenario struct {
+		ID         uint64                             `db:"id"`
+		TenantID   uint64                             `db:"tenant_id"`
+		ProjectID  uint64                             `db:"project_id"`
+		AiSystemID uint64                             `db:"ai_system_id"`
+		Title      string                             `db:"title"`
+		Severity   string                             `db:"severity"`
+		Meta       systemType.ProjectFriaScenarioMeta `db:"meta"`
+		CreatedAt  time.Time                          `db:"created_at"`
+		UpdatedAt  *time.Time                         `db:"updated_at"`
+		DeletedAt  *time.Time                         `db:"deleted_at"`
+		CreatedBy  uint64                             `db:"created_by"`
+		UpdatedBy  uint64                             `db:"updated_by"`
+		DeletedBy  uint64                             `db:"deleted_by"`
 	}
 
 	// auxProjectIncident is an auxiliary structure used for transporting to/from RDBMS store
@@ -4192,6 +4210,88 @@ func (aux *auxProject) scan(row scanner) error {
 	)
 }
 
+// encodes ProjectAiSystem to auxProjectAiSystem
+//
+// This function is auto-generated
+func (aux *auxProjectAiSystem) encode(res *systemType.ProjectAiSystem) (_ error) {
+	aux.ID = res.ID
+	aux.TenantID = res.TenantID
+	aux.ProjectID = res.ProjectID
+	aux.Handle = res.Handle
+	aux.RiskClass = res.RiskClass
+	aux.Meta = res.Meta
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	return
+}
+
+// decodes ProjectAiSystem from auxProjectAiSystem
+//
+// This function is auto-generated
+func (aux auxProjectAiSystem) decode() (res *systemType.ProjectAiSystem, _ error) {
+	res = new(systemType.ProjectAiSystem)
+	res.ID = aux.ID
+	res.TenantID = aux.TenantID
+	res.ProjectID = aux.ProjectID
+	res.Handle = aux.Handle
+	res.RiskClass = aux.RiskClass
+	res.Meta = aux.Meta
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	return
+}
+
+// scans row and fills auxProjectAiSystem fields
+//
+// This function is auto-generated
+func (aux *auxProjectAiSystem) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.TenantID,
+		&aux.ProjectID,
+		&aux.Handle,
+		&aux.RiskClass,
+		&aux.Meta,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+	)
+}
+
+// encodes ProjectAiSystemEntry to auxProjectAiSystemEntry
+//
+// This function is auto-generated
+func (aux *auxProjectAiSystemEntry) encode(res *systemType.ProjectAiSystemEntry) (_ error) {
+	aux.ProjectAiSystemID = res.ProjectAiSystemID
+	aux.ResourceRef = res.ResourceRef
+	aux.CreatedAt = res.CreatedAt
+	return
+}
+
+// decodes ProjectAiSystemEntry from auxProjectAiSystemEntry
+//
+// This function is auto-generated
+func (aux auxProjectAiSystemEntry) decode() (res *systemType.ProjectAiSystemEntry, _ error) {
+	res = new(systemType.ProjectAiSystemEntry)
+	res.ProjectAiSystemID = aux.ProjectAiSystemID
+	res.ResourceRef = aux.ResourceRef
+	res.CreatedAt = aux.CreatedAt
+	return
+}
+
+// scans row and fills auxProjectAiSystemEntry fields
+//
+// This function is auto-generated
+func (aux *auxProjectAiSystemEntry) scan(row scanner) error {
+	return row.Scan(
+		&aux.ProjectAiSystemID,
+		&aux.ResourceRef,
+		&aux.CreatedAt,
+	)
+}
+
 // encodes ProjectBacklogItem to auxProjectBacklogItem
 //
 // This function is auto-generated
@@ -4361,82 +4461,65 @@ func (aux *auxProjectFeature) scan(row scanner) error {
 	)
 }
 
-// encodes ProjectGroup to auxProjectGroup
+// encodes ProjectFriaScenario to auxProjectFriaScenario
 //
 // This function is auto-generated
-func (aux *auxProjectGroup) encode(res *systemType.ProjectGroup) (_ error) {
+func (aux *auxProjectFriaScenario) encode(res *systemType.ProjectFriaScenario) (_ error) {
 	aux.ID = res.ID
 	aux.TenantID = res.TenantID
 	aux.ProjectID = res.ProjectID
-	aux.Handle = res.Handle
+	aux.AiSystemID = res.AiSystemID
+	aux.Title = res.Title
+	aux.Severity = res.Severity
 	aux.Meta = res.Meta
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
 	return
 }
 
-// decodes ProjectGroup from auxProjectGroup
+// decodes ProjectFriaScenario from auxProjectFriaScenario
 //
 // This function is auto-generated
-func (aux auxProjectGroup) decode() (res *systemType.ProjectGroup, _ error) {
-	res = new(systemType.ProjectGroup)
+func (aux auxProjectFriaScenario) decode() (res *systemType.ProjectFriaScenario, _ error) {
+	res = new(systemType.ProjectFriaScenario)
 	res.ID = aux.ID
 	res.TenantID = aux.TenantID
 	res.ProjectID = aux.ProjectID
-	res.Handle = aux.Handle
+	res.AiSystemID = aux.AiSystemID
+	res.Title = aux.Title
+	res.Severity = aux.Severity
 	res.Meta = aux.Meta
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
 	return
 }
 
-// scans row and fills auxProjectGroup fields
+// scans row and fills auxProjectFriaScenario fields
 //
 // This function is auto-generated
-func (aux *auxProjectGroup) scan(row scanner) error {
+func (aux *auxProjectFriaScenario) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.TenantID,
 		&aux.ProjectID,
-		&aux.Handle,
+		&aux.AiSystemID,
+		&aux.Title,
+		&aux.Severity,
 		&aux.Meta,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
-	)
-}
-
-// encodes ProjectGroupEntry to auxProjectGroupEntry
-//
-// This function is auto-generated
-func (aux *auxProjectGroupEntry) encode(res *systemType.ProjectGroupEntry) (_ error) {
-	aux.ProjectGroupID = res.ProjectGroupID
-	aux.ResourceRef = res.ResourceRef
-	aux.CreatedAt = res.CreatedAt
-	return
-}
-
-// decodes ProjectGroupEntry from auxProjectGroupEntry
-//
-// This function is auto-generated
-func (aux auxProjectGroupEntry) decode() (res *systemType.ProjectGroupEntry, _ error) {
-	res = new(systemType.ProjectGroupEntry)
-	res.ProjectGroupID = aux.ProjectGroupID
-	res.ResourceRef = aux.ResourceRef
-	res.CreatedAt = aux.CreatedAt
-	return
-}
-
-// scans row and fills auxProjectGroupEntry fields
-//
-// This function is auto-generated
-func (aux *auxProjectGroupEntry) scan(row scanner) error {
-	return row.Scan(
-		&aux.ProjectGroupID,
-		&aux.ResourceRef,
-		&aux.CreatedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

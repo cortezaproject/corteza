@@ -2907,35 +2907,35 @@ func TestProjectMemberSetIDs(t *testing.T) {
 	}
 }
 
-func TestProjectGroupSetWalk(t *testing.T) {
+func TestProjectAiSystemSetWalk(t *testing.T) {
 	var (
-		value = make(ProjectGroupSet, 3)
+		value = make(ProjectAiSystemSet, 3)
 		req   = require.New(t)
 	)
 
 	{
-		err := value.Walk(func(*ProjectGroup) error { return nil })
+		err := value.Walk(func(*ProjectAiSystem) error { return nil })
 		req.NoError(err)
 	}
 
-	req.Error(value.Walk(func(*ProjectGroup) error { return fmt.Errorf("walk error") }))
+	req.Error(value.Walk(func(*ProjectAiSystem) error { return fmt.Errorf("walk error") }))
 }
 
-func TestProjectGroupSetFilter(t *testing.T) {
+func TestProjectAiSystemSetFilter(t *testing.T) {
 	var (
-		value = make(ProjectGroupSet, 3)
+		value = make(ProjectAiSystemSet, 3)
 		req   = require.New(t)
 	)
 
 	{
-		set, err := value.Filter(func(*ProjectGroup) (bool, error) { return true, nil })
+		set, err := value.Filter(func(*ProjectAiSystem) (bool, error) { return true, nil })
 		req.NoError(err)
 		req.Equal(len(set), len(value))
 	}
 
 	{
 		found := false
-		set, err := value.Filter(func(*ProjectGroup) (bool, error) {
+		set, err := value.Filter(func(*ProjectAiSystem) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -2947,22 +2947,22 @@ func TestProjectGroupSetFilter(t *testing.T) {
 	}
 
 	{
-		_, err := value.Filter(func(*ProjectGroup) (bool, error) {
+		_, err := value.Filter(func(*ProjectAiSystem) (bool, error) {
 			return false, fmt.Errorf("filter error")
 		})
 		req.Error(err)
 	}
 }
 
-func TestProjectGroupSetIDs(t *testing.T) {
+func TestProjectAiSystemSetIDs(t *testing.T) {
 	var (
-		value = make(ProjectGroupSet, 3)
+		value = make(ProjectAiSystemSet, 3)
 		req   = require.New(t)
 	)
 
-	value[0] = new(ProjectGroup)
-	value[1] = new(ProjectGroup)
-	value[2] = new(ProjectGroup)
+	value[0] = new(ProjectAiSystem)
+	value[1] = new(ProjectAiSystem)
+	value[2] = new(ProjectAiSystem)
 	value[0].ID = 1
 	value[1].ID = 2
 	value[2].ID = 3
@@ -2983,35 +2983,35 @@ func TestProjectGroupSetIDs(t *testing.T) {
 	}
 }
 
-func TestProjectGroupEntrySetWalk(t *testing.T) {
+func TestProjectAiSystemEntrySetWalk(t *testing.T) {
 	var (
-		value = make(ProjectGroupEntrySet, 3)
+		value = make(ProjectAiSystemEntrySet, 3)
 		req   = require.New(t)
 	)
 
 	{
-		err := value.Walk(func(*ProjectGroupEntry) error { return nil })
+		err := value.Walk(func(*ProjectAiSystemEntry) error { return nil })
 		req.NoError(err)
 	}
 
-	req.Error(value.Walk(func(*ProjectGroupEntry) error { return fmt.Errorf("walk error") }))
+	req.Error(value.Walk(func(*ProjectAiSystemEntry) error { return fmt.Errorf("walk error") }))
 }
 
-func TestProjectGroupEntrySetFilter(t *testing.T) {
+func TestProjectAiSystemEntrySetFilter(t *testing.T) {
 	var (
-		value = make(ProjectGroupEntrySet, 3)
+		value = make(ProjectAiSystemEntrySet, 3)
 		req   = require.New(t)
 	)
 
 	{
-		set, err := value.Filter(func(*ProjectGroupEntry) (bool, error) { return true, nil })
+		set, err := value.Filter(func(*ProjectAiSystemEntry) (bool, error) { return true, nil })
 		req.NoError(err)
 		req.Equal(len(set), len(value))
 	}
 
 	{
 		found := false
-		set, err := value.Filter(func(*ProjectGroupEntry) (bool, error) {
+		set, err := value.Filter(func(*ProjectAiSystemEntry) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -3023,22 +3023,98 @@ func TestProjectGroupEntrySetFilter(t *testing.T) {
 	}
 
 	{
-		_, err := value.Filter(func(*ProjectGroupEntry) (bool, error) {
+		_, err := value.Filter(func(*ProjectAiSystemEntry) (bool, error) {
 			return false, fmt.Errorf("filter error")
 		})
 		req.Error(err)
 	}
 }
 
-func TestProjectGroupEntrySetIDs(t *testing.T) {
+func TestProjectAiSystemEntrySetIDs(t *testing.T) {
 	var (
-		value = make(ProjectGroupEntrySet, 3)
+		value = make(ProjectAiSystemEntrySet, 3)
 		req   = require.New(t)
 	)
 
-	value[0] = new(ProjectGroupEntry)
-	value[1] = new(ProjectGroupEntry)
-	value[2] = new(ProjectGroupEntry)
+	value[0] = new(ProjectAiSystemEntry)
+	value[1] = new(ProjectAiSystemEntry)
+	value[2] = new(ProjectAiSystemEntry)
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestProjectFriaScenarioSetWalk(t *testing.T) {
+	var (
+		value = make(ProjectFriaScenarioSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		err := value.Walk(func(*ProjectFriaScenario) error { return nil })
+		req.NoError(err)
+	}
+
+	req.Error(value.Walk(func(*ProjectFriaScenario) error { return fmt.Errorf("walk error") }))
+}
+
+func TestProjectFriaScenarioSetFilter(t *testing.T) {
+	var (
+		value = make(ProjectFriaScenarioSet, 3)
+		req   = require.New(t)
+	)
+
+	{
+		set, err := value.Filter(func(*ProjectFriaScenario) (bool, error) { return true, nil })
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	{
+		found := false
+		set, err := value.Filter(func(*ProjectFriaScenario) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	{
+		_, err := value.Filter(func(*ProjectFriaScenario) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestProjectFriaScenarioSetIDs(t *testing.T) {
+	var (
+		value = make(ProjectFriaScenarioSet, 3)
+		req   = require.New(t)
+	)
+
+	value[0] = new(ProjectFriaScenario)
+	value[1] = new(ProjectFriaScenario)
+	value[2] = new(ProjectFriaScenario)
 	value[0].ID = 1
 	value[1].ID = 2
 	value[2].ID = 3

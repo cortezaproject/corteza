@@ -92,10 +92,11 @@ type (
 		LlmProviders
 		Notifications
 		Projects
+		ProjectAiSystems
+		ProjectAiSystemEntrys
 		ProjectBacklogItems
 		ProjectFeatures
-		ProjectGroups
-		ProjectGroupEntrys
+		ProjectFriaScenarios
 		ProjectIncidents
 		ProjectMembers
 		ProjectPrivacys
@@ -141,7 +142,7 @@ type (
 		DeleteAgentByID(ctx context.Context, id uint64) error
 		TruncateAgents(ctx context.Context) error
 		LookupAgentByID(ctx context.Context, id uint64) (*systemType.Agent, error)
-		LookupAgentByHandle(ctx context.Context, handle string) (*systemType.Agent, error)
+		LookupAgentByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*systemType.Agent, error)
 	}
 
 	AiConversations interface {
@@ -741,6 +742,31 @@ type (
 		LookupProjectByHandle(ctx context.Context, handle string) (*systemType.Project, error)
 	}
 
+	ProjectAiSystems interface {
+		SearchProjectAiSystems(ctx context.Context, f systemType.ProjectAiSystemFilter) (systemType.ProjectAiSystemSet, systemType.ProjectAiSystemFilter, error)
+		CreateProjectAiSystem(ctx context.Context, rr ...*systemType.ProjectAiSystem) error
+		UpdateProjectAiSystem(ctx context.Context, rr ...*systemType.ProjectAiSystem) error
+		UpsertProjectAiSystem(ctx context.Context, rr ...*systemType.ProjectAiSystem) error
+		DeleteProjectAiSystem(ctx context.Context, rr ...*systemType.ProjectAiSystem) error
+
+		DeleteProjectAiSystemByID(ctx context.Context, id uint64) error
+		TruncateProjectAiSystems(ctx context.Context) error
+		LookupProjectAiSystemByID(ctx context.Context, id uint64) (*systemType.ProjectAiSystem, error)
+		LookupProjectAiSystemByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*systemType.ProjectAiSystem, error)
+	}
+
+	ProjectAiSystemEntrys interface {
+		SearchProjectAiSystemEntrys(ctx context.Context, f systemType.ProjectAiSystemEntryFilter) (systemType.ProjectAiSystemEntrySet, systemType.ProjectAiSystemEntryFilter, error)
+		CreateProjectAiSystemEntry(ctx context.Context, rr ...*systemType.ProjectAiSystemEntry) error
+		UpdateProjectAiSystemEntry(ctx context.Context, rr ...*systemType.ProjectAiSystemEntry) error
+		UpsertProjectAiSystemEntry(ctx context.Context, rr ...*systemType.ProjectAiSystemEntry) error
+		DeleteProjectAiSystemEntry(ctx context.Context, rr ...*systemType.ProjectAiSystemEntry) error
+
+		DeleteProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx context.Context, projectAiSystemID uint64, resourceRef string) error
+		TruncateProjectAiSystemEntrys(ctx context.Context) error
+		LookupProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx context.Context, projectAiSystemID uint64, resourceRef string) (*systemType.ProjectAiSystemEntry, error)
+	}
+
 	ProjectBacklogItems interface {
 		SearchProjectBacklogItems(ctx context.Context, f systemType.ProjectBacklogItemFilter) (systemType.ProjectBacklogItemSet, systemType.ProjectBacklogItemFilter, error)
 		CreateProjectBacklogItem(ctx context.Context, rr ...*systemType.ProjectBacklogItem) error
@@ -765,29 +791,16 @@ type (
 		LookupProjectFeatureByID(ctx context.Context, id uint64) (*systemType.ProjectFeature, error)
 	}
 
-	ProjectGroups interface {
-		SearchProjectGroups(ctx context.Context, f systemType.ProjectGroupFilter) (systemType.ProjectGroupSet, systemType.ProjectGroupFilter, error)
-		CreateProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
-		UpdateProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
-		UpsertProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
-		DeleteProjectGroup(ctx context.Context, rr ...*systemType.ProjectGroup) error
+	ProjectFriaScenarios interface {
+		SearchProjectFriaScenarios(ctx context.Context, f systemType.ProjectFriaScenarioFilter) (systemType.ProjectFriaScenarioSet, systemType.ProjectFriaScenarioFilter, error)
+		CreateProjectFriaScenario(ctx context.Context, rr ...*systemType.ProjectFriaScenario) error
+		UpdateProjectFriaScenario(ctx context.Context, rr ...*systemType.ProjectFriaScenario) error
+		UpsertProjectFriaScenario(ctx context.Context, rr ...*systemType.ProjectFriaScenario) error
+		DeleteProjectFriaScenario(ctx context.Context, rr ...*systemType.ProjectFriaScenario) error
 
-		DeleteProjectGroupByID(ctx context.Context, id uint64) error
-		TruncateProjectGroups(ctx context.Context) error
-		LookupProjectGroupByID(ctx context.Context, id uint64) (*systemType.ProjectGroup, error)
-		LookupProjectGroupByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*systemType.ProjectGroup, error)
-	}
-
-	ProjectGroupEntrys interface {
-		SearchProjectGroupEntrys(ctx context.Context, f systemType.ProjectGroupEntryFilter) (systemType.ProjectGroupEntrySet, systemType.ProjectGroupEntryFilter, error)
-		CreateProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
-		UpdateProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
-		UpsertProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
-		DeleteProjectGroupEntry(ctx context.Context, rr ...*systemType.ProjectGroupEntry) error
-
-		DeleteProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, projectGroupID uint64, resourceRef string) error
-		TruncateProjectGroupEntrys(ctx context.Context) error
-		LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, projectGroupID uint64, resourceRef string) (*systemType.ProjectGroupEntry, error)
+		DeleteProjectFriaScenarioByID(ctx context.Context, id uint64) error
+		TruncateProjectFriaScenarios(ctx context.Context) error
+		LookupProjectFriaScenarioByID(ctx context.Context, id uint64) (*systemType.ProjectFriaScenario, error)
 	}
 
 	ProjectIncidents interface {
@@ -1167,13 +1180,13 @@ func LookupAgentByID(ctx context.Context, s Agents, id uint64) (*systemType.Agen
 	return s.LookupAgentByID(ctx, id)
 }
 
-// LookupAgentByHandle searches for agent by handle
+// LookupAgentByProjectIDHandle searches for agent by project and handle
 //
 // It returns only valid agents (not deleted)
 //
 // This function is auto-generated
-func LookupAgentByHandle(ctx context.Context, s Agents, handle string) (*systemType.Agent, error) {
-	return s.LookupAgentByHandle(ctx, handle)
+func LookupAgentByProjectIDHandle(ctx context.Context, s Agents, projectID uint64, handle string) (*systemType.Agent, error) {
+	return s.LookupAgentByProjectIDHandle(ctx, projectID, handle)
 }
 
 // SearchAiConversations returns all matching AiConversations from store
@@ -4156,6 +4169,125 @@ func LookupProjectByHandle(ctx context.Context, s Projects, handle string) (*sys
 	return s.LookupProjectByHandle(ctx, handle)
 }
 
+// SearchProjectAiSystems returns all matching ProjectAiSystems from store
+//
+// This function is auto-generated
+func SearchProjectAiSystems(ctx context.Context, s ProjectAiSystems, f systemType.ProjectAiSystemFilter) (systemType.ProjectAiSystemSet, systemType.ProjectAiSystemFilter, error) {
+	return s.SearchProjectAiSystems(ctx, f)
+}
+
+// CreateProjectAiSystem creates one or more ProjectAiSystems in store
+//
+// This function is auto-generated
+func CreateProjectAiSystem(ctx context.Context, s ProjectAiSystems, rr ...*systemType.ProjectAiSystem) error {
+	return s.CreateProjectAiSystem(ctx, rr...)
+}
+
+// UpdateProjectAiSystem updates one or more (existing) ProjectAiSystems in store
+//
+// This function is auto-generated
+func UpdateProjectAiSystem(ctx context.Context, s ProjectAiSystems, rr ...*systemType.ProjectAiSystem) error {
+	return s.UpdateProjectAiSystem(ctx, rr...)
+}
+
+// UpsertProjectAiSystem creates new or updates existing one or more ProjectAiSystems in store
+//
+// This function is auto-generated
+func UpsertProjectAiSystem(ctx context.Context, s ProjectAiSystems, rr ...*systemType.ProjectAiSystem) error {
+	return s.UpsertProjectAiSystem(ctx, rr...)
+}
+
+// DeleteProjectAiSystem deletes one or more ProjectAiSystems from store
+//
+// This function is auto-generated
+func DeleteProjectAiSystem(ctx context.Context, s ProjectAiSystems, rr ...*systemType.ProjectAiSystem) error {
+	return s.DeleteProjectAiSystem(ctx, rr...)
+}
+
+// DeleteProjectAiSystemByID deletes one or more ProjectAiSystems from store
+//
+// This function is auto-generated
+func DeleteProjectAiSystemByID(ctx context.Context, s ProjectAiSystems, id uint64) error {
+	return s.DeleteProjectAiSystemByID(ctx, id)
+}
+
+// TruncateProjectAiSystems Deletes all ProjectAiSystems from store
+//
+// This function is auto-generated
+func TruncateProjectAiSystems(ctx context.Context, s ProjectAiSystems) error {
+	return s.TruncateProjectAiSystems(ctx)
+}
+
+// LookupProjectAiSystemByID searches for AI system by ID
+//
+// This function is auto-generated
+func LookupProjectAiSystemByID(ctx context.Context, s ProjectAiSystems, id uint64) (*systemType.ProjectAiSystem, error) {
+	return s.LookupProjectAiSystemByID(ctx, id)
+}
+
+// LookupProjectAiSystemByProjectIDHandle searches for AI system by project and handle; returns only non-deleted
+//
+// This function is auto-generated
+func LookupProjectAiSystemByProjectIDHandle(ctx context.Context, s ProjectAiSystems, projectID uint64, handle string) (*systemType.ProjectAiSystem, error) {
+	return s.LookupProjectAiSystemByProjectIDHandle(ctx, projectID, handle)
+}
+
+// SearchProjectAiSystemEntrys returns all matching ProjectAiSystemEntrys from store
+//
+// This function is auto-generated
+func SearchProjectAiSystemEntrys(ctx context.Context, s ProjectAiSystemEntrys, f systemType.ProjectAiSystemEntryFilter) (systemType.ProjectAiSystemEntrySet, systemType.ProjectAiSystemEntryFilter, error) {
+	return s.SearchProjectAiSystemEntrys(ctx, f)
+}
+
+// CreateProjectAiSystemEntry creates one or more ProjectAiSystemEntrys in store
+//
+// This function is auto-generated
+func CreateProjectAiSystemEntry(ctx context.Context, s ProjectAiSystemEntrys, rr ...*systemType.ProjectAiSystemEntry) error {
+	return s.CreateProjectAiSystemEntry(ctx, rr...)
+}
+
+// UpdateProjectAiSystemEntry updates one or more (existing) ProjectAiSystemEntrys in store
+//
+// This function is auto-generated
+func UpdateProjectAiSystemEntry(ctx context.Context, s ProjectAiSystemEntrys, rr ...*systemType.ProjectAiSystemEntry) error {
+	return s.UpdateProjectAiSystemEntry(ctx, rr...)
+}
+
+// UpsertProjectAiSystemEntry creates new or updates existing one or more ProjectAiSystemEntrys in store
+//
+// This function is auto-generated
+func UpsertProjectAiSystemEntry(ctx context.Context, s ProjectAiSystemEntrys, rr ...*systemType.ProjectAiSystemEntry) error {
+	return s.UpsertProjectAiSystemEntry(ctx, rr...)
+}
+
+// DeleteProjectAiSystemEntry deletes one or more ProjectAiSystemEntrys from store
+//
+// This function is auto-generated
+func DeleteProjectAiSystemEntry(ctx context.Context, s ProjectAiSystemEntrys, rr ...*systemType.ProjectAiSystemEntry) error {
+	return s.DeleteProjectAiSystemEntry(ctx, rr...)
+}
+
+// DeleteProjectAiSystemEntryByID deletes one or more ProjectAiSystemEntrys from store
+//
+// This function is auto-generated
+func DeleteProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx context.Context, s ProjectAiSystemEntrys, projectAiSystemID uint64, resourceRef string) error {
+	return s.DeleteProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx, projectAiSystemID, resourceRef)
+}
+
+// TruncateProjectAiSystemEntrys Deletes all ProjectAiSystemEntrys from store
+//
+// This function is auto-generated
+func TruncateProjectAiSystemEntrys(ctx context.Context, s ProjectAiSystemEntrys) error {
+	return s.TruncateProjectAiSystemEntrys(ctx)
+}
+
+// LookupProjectAiSystemEntryByProjectAiSystemIDResourceRef searches for AI system entry by AI system and resource ref
+//
+// This function is auto-generated
+func LookupProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx context.Context, s ProjectAiSystemEntrys, projectAiSystemID uint64, resourceRef string) (*systemType.ProjectAiSystemEntry, error) {
+	return s.LookupProjectAiSystemEntryByProjectAiSystemIDResourceRef(ctx, projectAiSystemID, resourceRef)
+}
+
 // SearchProjectBacklogItems returns all matching ProjectBacklogItems from store
 //
 // This function is auto-generated
@@ -4272,123 +4404,62 @@ func LookupProjectFeatureByID(ctx context.Context, s ProjectFeatures, id uint64)
 	return s.LookupProjectFeatureByID(ctx, id)
 }
 
-// SearchProjectGroups returns all matching ProjectGroups from store
+// SearchProjectFriaScenarios returns all matching ProjectFriaScenarios from store
 //
 // This function is auto-generated
-func SearchProjectGroups(ctx context.Context, s ProjectGroups, f systemType.ProjectGroupFilter) (systemType.ProjectGroupSet, systemType.ProjectGroupFilter, error) {
-	return s.SearchProjectGroups(ctx, f)
+func SearchProjectFriaScenarios(ctx context.Context, s ProjectFriaScenarios, f systemType.ProjectFriaScenarioFilter) (systemType.ProjectFriaScenarioSet, systemType.ProjectFriaScenarioFilter, error) {
+	return s.SearchProjectFriaScenarios(ctx, f)
 }
 
-// CreateProjectGroup creates one or more ProjectGroups in store
+// CreateProjectFriaScenario creates one or more ProjectFriaScenarios in store
 //
 // This function is auto-generated
-func CreateProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
-	return s.CreateProjectGroup(ctx, rr...)
+func CreateProjectFriaScenario(ctx context.Context, s ProjectFriaScenarios, rr ...*systemType.ProjectFriaScenario) error {
+	return s.CreateProjectFriaScenario(ctx, rr...)
 }
 
-// UpdateProjectGroup updates one or more (existing) ProjectGroups in store
+// UpdateProjectFriaScenario updates one or more (existing) ProjectFriaScenarios in store
 //
 // This function is auto-generated
-func UpdateProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
-	return s.UpdateProjectGroup(ctx, rr...)
+func UpdateProjectFriaScenario(ctx context.Context, s ProjectFriaScenarios, rr ...*systemType.ProjectFriaScenario) error {
+	return s.UpdateProjectFriaScenario(ctx, rr...)
 }
 
-// UpsertProjectGroup creates new or updates existing one or more ProjectGroups in store
+// UpsertProjectFriaScenario creates new or updates existing one or more ProjectFriaScenarios in store
 //
 // This function is auto-generated
-func UpsertProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
-	return s.UpsertProjectGroup(ctx, rr...)
+func UpsertProjectFriaScenario(ctx context.Context, s ProjectFriaScenarios, rr ...*systemType.ProjectFriaScenario) error {
+	return s.UpsertProjectFriaScenario(ctx, rr...)
 }
 
-// DeleteProjectGroup deletes one or more ProjectGroups from store
+// DeleteProjectFriaScenario deletes one or more ProjectFriaScenarios from store
 //
 // This function is auto-generated
-func DeleteProjectGroup(ctx context.Context, s ProjectGroups, rr ...*systemType.ProjectGroup) error {
-	return s.DeleteProjectGroup(ctx, rr...)
+func DeleteProjectFriaScenario(ctx context.Context, s ProjectFriaScenarios, rr ...*systemType.ProjectFriaScenario) error {
+	return s.DeleteProjectFriaScenario(ctx, rr...)
 }
 
-// DeleteProjectGroupByID deletes one or more ProjectGroups from store
+// DeleteProjectFriaScenarioByID deletes one or more ProjectFriaScenarios from store
 //
 // This function is auto-generated
-func DeleteProjectGroupByID(ctx context.Context, s ProjectGroups, id uint64) error {
-	return s.DeleteProjectGroupByID(ctx, id)
+func DeleteProjectFriaScenarioByID(ctx context.Context, s ProjectFriaScenarios, id uint64) error {
+	return s.DeleteProjectFriaScenarioByID(ctx, id)
 }
 
-// TruncateProjectGroups Deletes all ProjectGroups from store
+// TruncateProjectFriaScenarios Deletes all ProjectFriaScenarios from store
 //
 // This function is auto-generated
-func TruncateProjectGroups(ctx context.Context, s ProjectGroups) error {
-	return s.TruncateProjectGroups(ctx)
+func TruncateProjectFriaScenarios(ctx context.Context, s ProjectFriaScenarios) error {
+	return s.TruncateProjectFriaScenarios(ctx)
 }
 
-// LookupProjectGroupByID searches for project group by ID
+// LookupProjectFriaScenarioByID searches for FRIA risk scenario by ID
+//
+// It also returns deleted FRIA risk scenarios.
 //
 // This function is auto-generated
-func LookupProjectGroupByID(ctx context.Context, s ProjectGroups, id uint64) (*systemType.ProjectGroup, error) {
-	return s.LookupProjectGroupByID(ctx, id)
-}
-
-// LookupProjectGroupByProjectIDHandle searches for project group by project and handle; returns only non-deleted
-//
-// This function is auto-generated
-func LookupProjectGroupByProjectIDHandle(ctx context.Context, s ProjectGroups, projectID uint64, handle string) (*systemType.ProjectGroup, error) {
-	return s.LookupProjectGroupByProjectIDHandle(ctx, projectID, handle)
-}
-
-// SearchProjectGroupEntrys returns all matching ProjectGroupEntrys from store
-//
-// This function is auto-generated
-func SearchProjectGroupEntrys(ctx context.Context, s ProjectGroupEntrys, f systemType.ProjectGroupEntryFilter) (systemType.ProjectGroupEntrySet, systemType.ProjectGroupEntryFilter, error) {
-	return s.SearchProjectGroupEntrys(ctx, f)
-}
-
-// CreateProjectGroupEntry creates one or more ProjectGroupEntrys in store
-//
-// This function is auto-generated
-func CreateProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
-	return s.CreateProjectGroupEntry(ctx, rr...)
-}
-
-// UpdateProjectGroupEntry updates one or more (existing) ProjectGroupEntrys in store
-//
-// This function is auto-generated
-func UpdateProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
-	return s.UpdateProjectGroupEntry(ctx, rr...)
-}
-
-// UpsertProjectGroupEntry creates new or updates existing one or more ProjectGroupEntrys in store
-//
-// This function is auto-generated
-func UpsertProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
-	return s.UpsertProjectGroupEntry(ctx, rr...)
-}
-
-// DeleteProjectGroupEntry deletes one or more ProjectGroupEntrys from store
-//
-// This function is auto-generated
-func DeleteProjectGroupEntry(ctx context.Context, s ProjectGroupEntrys, rr ...*systemType.ProjectGroupEntry) error {
-	return s.DeleteProjectGroupEntry(ctx, rr...)
-}
-
-// DeleteProjectGroupEntryByID deletes one or more ProjectGroupEntrys from store
-//
-// This function is auto-generated
-func DeleteProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, s ProjectGroupEntrys, projectGroupID uint64, resourceRef string) error {
-	return s.DeleteProjectGroupEntryByProjectGroupIDResourceRef(ctx, projectGroupID, resourceRef)
-}
-
-// TruncateProjectGroupEntrys Deletes all ProjectGroupEntrys from store
-//
-// This function is auto-generated
-func TruncateProjectGroupEntrys(ctx context.Context, s ProjectGroupEntrys) error {
-	return s.TruncateProjectGroupEntrys(ctx)
-}
-
-// LookupProjectGroupEntryByProjectGroupIDResourceRef searches for group entry by group and resource ref
-//
-// This function is auto-generated
-func LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx context.Context, s ProjectGroupEntrys, projectGroupID uint64, resourceRef string) (*systemType.ProjectGroupEntry, error) {
-	return s.LookupProjectGroupEntryByProjectGroupIDResourceRef(ctx, projectGroupID, resourceRef)
+func LookupProjectFriaScenarioByID(ctx context.Context, s ProjectFriaScenarios, id uint64) (*systemType.ProjectFriaScenario, error) {
+	return s.LookupProjectFriaScenarioByID(ctx, id)
 }
 
 // SearchProjectIncidents returns all matching ProjectIncidents from store

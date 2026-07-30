@@ -703,6 +703,7 @@ func (s *Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filt
 //
 // This function is auto-generated
 func (s *Store) {{ .fnIdent }}(ctx context.Context, res *{{ .goType }}) (err error) {
+	{{- $resGoType := .goType }}
 	{{- range .checks }}
 	err = func() (err error) {
 		{{- range .fields }}
@@ -729,7 +730,10 @@ func (s *Store) {{ .fnIdent }}(ctx context.Context, res *{{ .goType }}) (err err
 
 		ex, err := s.{{ .lookupFnIdent }}(ctx, {{ range .fields }}res.{{ .expIdent }},{{ end }})
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique.Stack(1)
+			// Named, not a bare "not unique": a resource can have several
+			// unique constraints and the database raises its own violations
+			// too, so the message has to say which one this is.
+			return store.ErrNotUniqueOn("{{ $resGoType }}"{{ range .fields }}, "{{ .expIdent }}"{{ end }})
 		} else if !errors.IsNotFound(err) {
 			return err
 		}

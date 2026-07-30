@@ -15,6 +15,7 @@ import (
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service/dml"
 	"github.com/crusttech/human/server/system/types"
+	"go.uber.org/zap"
 )
 
 // SetProjectRevisionDeps wires deps needed for the revision/publish flow.
@@ -142,7 +143,56 @@ func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *
 	if err = store.CreateProject(ctx, svc.store, rev); err != nil {
 		return nil, err
 	}
+
+	// The namespace clone above carried the compose side (modules, pages,
+	// layouts, charts). Everything scoped by project rather than by namespace
+	// has to be copied separately -- see project_revision_clone.go for why
+	// envoy cannot do it. Runs after CreateProject so the draft row exists to
+	// scope the copies to.
+	//
+	// On failure the draft is torn down again. Without this the half-built
+	// revision survives -- the project row, its cloned namespace and whatever
+	// resources were copied before the error -- and because the chain allows
+	// only ONE draft at a time, every later attempt fails with "a draft
+	// revision already exists" against a revision the user never saw created.
+	// The compose clone and the copies below do not share a transaction (
+	// CloneFromStore opens and commits its own), so this is a compensating
+	// delete rather than a rollback.
+	if err = svc.cloneProjectResources(ctx, svc.store, parent, rev); err != nil {
+		svc.discardHalfBuiltRevision(ctx, rev)
+		return nil, err
+	}
+
 	return rev, nil
+}
+
+// discardHalfBuiltRevision removes a draft revision whose creation failed part
+// way through, so the chain is left free for another attempt.
+//
+// Best-effort by design: it runs while another error is already on its way up,
+// and that error is the one worth reporting. A failure to clean up is logged
+// rather than returned, since replacing the real cause with a cleanup error
+// would hide why the revision failed in the first place.
+func (svc *project) discardHalfBuiltRevision(ctx context.Context, rev *types.Project) {
+	if rev == nil || rev.ID == 0 {
+		return
+	}
+
+	if err := svc.setNamespaceDeleted(ctx, svc.store, rev.Config.NamespaceID, now()); err != nil && DefaultLogger != nil {
+		DefaultLogger.Warn(
+			"could not discard the namespace of a half-built revision",
+			zap.Uint64("namespaceID", rev.Config.NamespaceID),
+			zap.Error(err),
+		)
+	}
+
+	if err := store.DeleteProjectByID(ctx, svc.store, rev.ID); err != nil && DefaultLogger != nil {
+		DefaultLogger.Warn(
+			"could not discard a half-built revision",
+			zap.Uint64("projectID", rev.ID),
+			zap.Error(err),
+		)
+	}
 }
 
 // revisionInChain reports whether revisionID (if non-zero) names a project

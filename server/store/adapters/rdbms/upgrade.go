@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	automationModels "github.com/crusttech/human/server/automation/model"
 	composeModels "github.com/crusttech/human/server/compose/model"
@@ -178,6 +179,56 @@ func dropColumns(ctx context.Context, s *Store, table string, cc ...string) erro
 			return err
 		}
 	}
+	return nil
+}
+
+// dropIndexes removes indexes from a table but only if BOTH the table and the
+// index exist.
+//
+// Existence is checked rather than assumed because DROP INDEX carries no
+// IF EXISTS on any of the drivers (see ddl.DropIndex.ToSQL), so attempting to
+// drop an already-absent index fails the whole upgrade -- the normal case on a
+// fresh database, where the model never declared the old index.
+//
+// THERE IS NO WORKING EXISTENCE CHECK, so this attempts the drop and tolerates
+// failure rather than looking first. Both obvious approaches are broken:
+//
+//   - TableLookup's Indexes field is always empty. Every driver resolves it
+//     through scanColumns, which populates Columns only -- which is why
+//     dropColumns above only ever inspects Columns. Ranging over Indexes finds
+//     nothing, ever, silently turning the drop into a no-op.
+//   - IndexLookup reports every index as missing, verified against a live
+//     database: even "PRIMARY" and "<table>_pkey" come back "index does not
+//     exist".
+//
+// So a failed drop is logged and skipped, not returned: on a database that
+// never had the index (a fresh one, where the model never declared it) failing
+// the whole upgrade would be worse than leaving a stale index behind.
+//
+// Each candidate is tried as given and lower-cased, since idents are generated
+// camelCased (agents_uniqueHandle) while postgres folds unquoted identifiers to
+// lower case when creating them.
+func dropIndexes(ctx context.Context, s *Store, table string, ii ...string) error {
+	if _, err := s.DataDefiner.TableLookup(ctx, table); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
+		return err
+	}
+
+	for _, i := range ii {
+		for _, candidate := range []string{i, strings.ToLower(i)} {
+			if err := s.DataDefiner.IndexDrop(ctx, table, candidate); err != nil {
+				s.log(ctx).Debug(fmt.Sprintf("could not drop %q index from %q: %v", candidate, table, err))
+				continue
+			}
+
+			s.log(ctx).Info(fmt.Sprintf("dropped %q index from %q", candidate, table))
+			break
+		}
+	}
+
 	return nil
 }
 

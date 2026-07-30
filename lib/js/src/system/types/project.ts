@@ -256,59 +256,66 @@ export class ProjectMember {
   }
 }
 
-export interface ProjectGroupEntry {
-  projectGroupID: string
+export interface ProjectAiSystemEntry {
+  projectAiSystemID: string
   resourceRef: string
   createdAt?: string
 }
 
-interface GroupMeta {
+/**
+ * EU AI Act Art. 6 risk classification of an AI system
+ */
+export type ProjectAiSystemRiskClass = 'prohibited' | 'high' | 'limited' | 'minimal'
+
+interface AiSystemMeta {
   short: string
   description: string
+  intendedPurpose: string
 }
 
-interface PartialProjectGroup extends Partial<
-  Omit<ProjectGroup, 'createdAt' | 'updatedAt' | 'deletedAt'>
+interface PartialProjectAiSystem extends Partial<
+  Omit<ProjectAiSystem, 'createdAt' | 'updatedAt' | 'deletedAt'>
 > {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
   deletedAt?: string | number | Date
 }
 
-export class ProjectGroup {
-  public projectGroupID = NoID
+export class ProjectAiSystem {
+  public projectAiSystemID = NoID
   public projectID = NoID
   public tenantID = NoID
   public handle = ''
-  public meta: GroupMeta = { short: '', description: '' }
+  public riskClass = ''
+  public meta: AiSystemMeta = { short: '', description: '', intendedPurpose: '' }
 
-  public entries: ProjectGroupEntry[] = []
+  public entries: ProjectAiSystemEntry[] = []
 
   // Payload capability flags
   public canUpdate = false
   public canDelete = false
-  public canManageMembers = false
+  public canManageResources = false
 
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
 
-  constructor(g?: PartialProjectGroup) {
+  constructor(g?: PartialProjectAiSystem) {
     this.apply(g)
   }
 
-  apply(g?: PartialProjectGroup): void {
-    Apply(this, g, HumanID, 'projectGroupID', 'projectID', 'tenantID')
-    Apply(this, g, String, 'handle')
+  apply(g?: PartialProjectAiSystem): void {
+    Apply(this, g, HumanID, 'projectAiSystemID', 'projectID', 'tenantID')
+    Apply(this, g, String, 'handle', 'riskClass')
     Apply(this, g, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, g, Boolean, 'canUpdate', 'canDelete', 'canManageMembers')
+    Apply(this, g, Boolean, 'canUpdate', 'canDelete', 'canManageResources')
 
     if (IsOf(g, 'meta')) {
-      this.meta = { short: '', description: '', ...g.meta }
+      this.meta = { short: '', description: '', intendedPurpose: '', ...g.meta }
     }
 
     if (g?.entries) {
-      this.entries = g.entries.map(e => ({ ...e, projectGroupID: HumanID(e.projectGroupID) }))
+      this.entries = g.entries.map(e => ({ ...e, projectAiSystemID: HumanID(e.projectAiSystemID) }))
     }
   }
 
@@ -317,21 +324,21 @@ export class ProjectGroup {
   }
 
   /**
-   * Plain resource references carried by the group entries
+   * Plain resource references carried by the AI system entries
    */
   get resourceRefs(): string[] {
     return this.entries.map(e => e.resourceRef)
   }
 
   get resourceID(): string {
-    return `${this.resourceType}:${this.projectGroupID}`
+    return `${this.resourceType}:${this.projectAiSystemID}`
   }
 
   get resourceType(): string {
-    return 'system:project-group'
+    return 'system:project-ai-system'
   }
 
-  clone(): ProjectGroup {
-    return new ProjectGroup(JSON.parse(JSON.stringify(this)))
+  clone(): ProjectAiSystem {
+    return new ProjectAiSystem(JSON.parse(JSON.stringify(this)))
   }
 }

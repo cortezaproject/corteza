@@ -79,6 +79,7 @@ var (
 		fix_2026_05_00_addStateOnChatbotSessions,
 		fix_2026_06_00_addTenancyScopeColumns,
 		fix_2026_07_28_addRelRevisionOnProjectWorkItems,
+		fix_2026_07_30_dropGlobalUniqueHandleOnAgents,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -1761,6 +1762,25 @@ func fix_2026_07_28_addRelRevisionOnProjectWorkItems(ctx context.Context, s *Sto
 	}
 
 	return nil
+}
+
+// fix_2026_07_30_dropGlobalUniqueHandleOnAgents drops the agents_uniqueHandle
+// index, superseded by agents_uniqueHandlePerProject (see system/agent.cue).
+//
+// A project revision branch copies the parent's agents into the draft (see
+// system/service/project_revision_clone.go), so both revisions necessarily hold
+// an agent with the same handle at once -- impossible while the handle is
+// globally unique. Carrying the handle over is not cosmetic: the publish diff
+// identifies resources across revisions by kind + handle (diffSources), so a
+// renamed copy would read as a removal plus an addition.
+//
+// This fix is required because the upgrade only ever ADDS indexes the model
+// declares; it never drops ones the model dropped. Without it an already
+// -migrated database keeps enforcing the stale global index and every branch
+// fails with "not unique", while a fresh database works -- the nastiest kind of
+// environment-dependent bug.
+func fix_2026_07_30_dropGlobalUniqueHandleOnAgents(ctx context.Context, s *Store) error {
+	return dropIndexes(ctx, s, "agents", "agents_uniqueHandle")
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

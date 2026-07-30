@@ -11,57 +11,58 @@ import (
 )
 
 type (
-	ProjectGroup struct {
-		projectGroup projectGroupService
-		ac           projectGroupAccessController
+	ProjectAiSystem struct {
+		projectAiSystem projectAiSystemService
+		ac              projectAiSystemAccessController
 	}
 
-	projectGroupPayload struct {
-		*types.ProjectGroup
+	projectAiSystemPayload struct {
+		*types.ProjectAiSystem
 
-		Entries          types.ProjectGroupEntrySet `json:"entries"`
-		CanUpdate        bool                       `json:"canUpdate"`
-		CanDelete        bool                       `json:"canDelete"`
-		CanManageMembers bool                       `json:"canManageMembers"`
+		Entries            types.ProjectAiSystemEntrySet `json:"entries"`
+		CanUpdate          bool                          `json:"canUpdate"`
+		CanDelete          bool                          `json:"canDelete"`
+		CanManageResources bool                          `json:"canManageResources"`
 	}
 
-	projectGroupSetPayload struct {
-		Filter types.ProjectGroupFilter `json:"filter"`
-		Set    []*projectGroupPayload   `json:"set"`
+	projectAiSystemSetPayload struct {
+		Filter types.ProjectAiSystemFilter `json:"filter"`
+		Set    []*projectAiSystemPayload   `json:"set"`
 	}
 
-	projectGroupService interface {
-		FindByID(ctx context.Context, id uint64) (*types.ProjectGroup, error)
-		Search(ctx context.Context, f types.ProjectGroupFilter) (types.ProjectGroupSet, types.ProjectGroupFilter, error)
-		Create(ctx context.Context, g *types.ProjectGroup) (*types.ProjectGroup, error)
-		Update(ctx context.Context, g *types.ProjectGroup) (*types.ProjectGroup, error)
+	projectAiSystemService interface {
+		FindByID(ctx context.Context, id uint64) (*types.ProjectAiSystem, error)
+		Search(ctx context.Context, f types.ProjectAiSystemFilter) (types.ProjectAiSystemSet, types.ProjectAiSystemFilter, error)
+		Create(ctx context.Context, g *types.ProjectAiSystem) (*types.ProjectAiSystem, error)
+		Update(ctx context.Context, g *types.ProjectAiSystem) (*types.ProjectAiSystem, error)
 		DeleteByID(ctx context.Context, id uint64) error
-		MemberList(ctx context.Context, projectGroupID uint64) (types.ProjectGroupEntrySet, error)
-		MemberAdd(ctx context.Context, projectGroupID uint64, resourceRef string) error
-		MemberRemove(ctx context.Context, projectGroupID uint64, resourceRef string) error
+		MemberList(ctx context.Context, projectAiSystemID uint64) (types.ProjectAiSystemEntrySet, error)
+		MemberAdd(ctx context.Context, projectAiSystemID uint64, resourceRef string) error
+		MemberRemove(ctx context.Context, projectAiSystemID uint64, resourceRef string) error
 	}
 
-	projectGroupAccessController interface {
+	projectAiSystemAccessController interface {
 		CanGrant(context.Context) bool
-		CanUpdateProjectGroup(context.Context, *types.ProjectGroup) bool
-		CanDeleteProjectGroup(context.Context, *types.ProjectGroup) bool
-		CanManageMembersOnProjectGroup(context.Context, *types.ProjectGroup) bool
+		CanUpdateProjectAiSystem(context.Context, *types.ProjectAiSystem) bool
+		CanDeleteProjectAiSystem(context.Context, *types.ProjectAiSystem) bool
+		CanManageResourcesOnProjectAiSystem(context.Context, *types.ProjectAiSystem) bool
 	}
 )
 
-func (ProjectGroup) New() *ProjectGroup {
-	return &ProjectGroup{
-		projectGroup: service.DefaultProjectGroup,
-		ac:           service.DefaultAccessControl,
+func (ProjectAiSystem) New() *ProjectAiSystem {
+	return &ProjectAiSystem{
+		projectAiSystem: service.DefaultProjectAiSystem,
+		ac:              service.DefaultAccessControl,
 	}
 }
 
-func (ctrl *ProjectGroup) makeFilter(ctx context.Context, r *request.ProjectGroupList) (types.ProjectGroupFilter, error) {
+func (ctrl *ProjectAiSystem) makeFilter(ctx context.Context, r *request.ProjectAiSystemList) (types.ProjectAiSystemFilter, error) {
 	var (
 		err error
-		f   = types.ProjectGroupFilter{
+		f   = types.ProjectAiSystemFilter{
 			ProjectID: r.ProjectID,
 			Handle:    r.Handle,
+			RiskClass: r.RiskClass,
 			Deleted:   filter.State(r.Deleted),
 		}
 	)
@@ -80,57 +81,59 @@ func (ctrl *ProjectGroup) makeFilter(ctx context.Context, r *request.ProjectGrou
 }
 
 // beforeCreate fills the request params the generated Create cannot assign
-// directly onto the resource struct: name/description map onto res.Meta
-// (genHook: true) rather than plain fields, and projectID is a scope id the
-// endpoint drops under compound:false, so create restores it here. The
-// generated Create has already assigned the plain Handle field.
-func (ctrl *ProjectGroup) beforeCreate(ctx context.Context, res *types.ProjectGroup, r *request.ProjectGroupCreate) error {
+// directly onto the resource struct: name/description/intendedPurpose map onto
+// res.Meta (genHook: true) rather than plain fields, and projectID is a scope
+// id the endpoint drops under compound:false, so create restores it here. The
+// generated Create has already assigned the plain Handle and RiskClass fields.
+func (ctrl *ProjectAiSystem) beforeCreate(ctx context.Context, res *types.ProjectAiSystem, r *request.ProjectAiSystemCreate) error {
 	res.ProjectID = r.ProjectID
 	res.Meta.Short = r.Name
 	res.Meta.Description = r.Description
+	res.Meta.IntendedPurpose = r.IntendedPurpose
 	return nil
 }
 
-// beforeUpdate fills the name/description request params onto res.Meta;
-// they are genHook: true because they map onto res.Meta rather than plain
-// struct fields. The generated Update has already assigned ID, the plain
-// Handle field and UpdatedAt.
-func (ctrl *ProjectGroup) beforeUpdate(ctx context.Context, res *types.ProjectGroup, r *request.ProjectGroupUpdate) error {
+// beforeUpdate fills the name/description/intendedPurpose request params onto
+// res.Meta; they are genHook: true because they map onto res.Meta rather than
+// plain struct fields. The generated Update has already assigned ID, the plain
+// Handle and RiskClass fields and UpdatedAt.
+func (ctrl *ProjectAiSystem) beforeUpdate(ctx context.Context, res *types.ProjectAiSystem, r *request.ProjectAiSystemUpdate) error {
 	res.Meta.Short = r.Name
 	res.Meta.Description = r.Description
+	res.Meta.IntendedPurpose = r.IntendedPurpose
 	return nil
 }
 
-func (ctrl *ProjectGroup) EntryAdd(ctx context.Context, r *request.ProjectGroupEntryAdd) (interface{}, error) {
-	return api.OK(), ctrl.projectGroup.MemberAdd(ctx, r.ProjectGroupID, r.ResourceRef)
+func (ctrl *ProjectAiSystem) EntryAdd(ctx context.Context, r *request.ProjectAiSystemEntryAdd) (interface{}, error) {
+	return api.OK(), ctrl.projectAiSystem.MemberAdd(ctx, r.ProjectAiSystemID, r.ResourceRef)
 }
 
-func (ctrl *ProjectGroup) EntryRemove(ctx context.Context, r *request.ProjectGroupEntryRemove) (interface{}, error) {
-	return api.OK(), ctrl.projectGroup.MemberRemove(ctx, r.ProjectGroupID, r.ResourceRef)
+func (ctrl *ProjectAiSystem) EntryRemove(ctx context.Context, r *request.ProjectAiSystemEntryRemove) (interface{}, error) {
+	return api.OK(), ctrl.projectAiSystem.MemberRemove(ctx, r.ProjectAiSystemID, r.ResourceRef)
 }
 
-func (ctrl *ProjectGroup) makePayload(ctx context.Context, g *types.ProjectGroup, err error) (*projectGroupPayload, error) {
+func (ctrl *ProjectAiSystem) makePayload(ctx context.Context, g *types.ProjectAiSystem, err error) (*projectAiSystemPayload, error) {
 	if err != nil || g == nil {
 		return nil, err
 	}
 
-	entries, _ := ctrl.projectGroup.MemberList(ctx, g.ID)
+	entries, _ := ctrl.projectAiSystem.MemberList(ctx, g.ID)
 
-	return &projectGroupPayload{
-		ProjectGroup:     g,
-		Entries:          entries,
-		CanUpdate:        ctrl.ac.CanUpdateProjectGroup(ctx, g),
-		CanDelete:        ctrl.ac.CanDeleteProjectGroup(ctx, g),
-		CanManageMembers: ctrl.ac.CanManageMembersOnProjectGroup(ctx, g),
+	return &projectAiSystemPayload{
+		ProjectAiSystem:    g,
+		Entries:            entries,
+		CanUpdate:          ctrl.ac.CanUpdateProjectAiSystem(ctx, g),
+		CanDelete:          ctrl.ac.CanDeleteProjectAiSystem(ctx, g),
+		CanManageResources: ctrl.ac.CanManageResourcesOnProjectAiSystem(ctx, g),
 	}, nil
 }
 
-func (ctrl *ProjectGroup) makeFilterPayload(ctx context.Context, nn types.ProjectGroupSet, f types.ProjectGroupFilter, err error) (*projectGroupSetPayload, error) {
+func (ctrl *ProjectAiSystem) makeFilterPayload(ctx context.Context, nn types.ProjectAiSystemSet, f types.ProjectAiSystemFilter, err error) (*projectAiSystemSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	msp := &projectGroupSetPayload{Filter: f, Set: make([]*projectGroupPayload, len(nn))}
+	msp := &projectAiSystemSetPayload{Filter: f, Set: make([]*projectAiSystemPayload, len(nn))}
 	for i := range nn {
 		msp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
 	}

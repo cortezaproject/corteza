@@ -47,8 +47,9 @@ type (
 	TenantMembershipSet          []*TenantMembership
 	ProjectSet                   []*Project
 	ProjectMemberSet             []*ProjectMember
-	ProjectGroupSet              []*ProjectGroup
-	ProjectGroupEntrySet         []*ProjectGroupEntry
+	ProjectAiSystemSet           []*ProjectAiSystem
+	ProjectAiSystemEntrySet      []*ProjectAiSystemEntry
+	ProjectFriaScenarioSet       []*ProjectFriaScenario
 	ProjectIncidentSet           []*ProjectIncident
 	ProjectFeatureSet            []*ProjectFeature
 	ProjectPrivacySet            []*ProjectPrivacy
@@ -1724,7 +1725,7 @@ func (set ProjectMemberSet) IDs() (IDs []uint64) {
 	return
 }
 
-func (set ProjectGroupSet) Walk(w func(*ProjectGroup) error) (err error) {
+func (set ProjectAiSystemSet) Walk(w func(*ProjectAiSystem) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
 			return
@@ -1734,9 +1735,9 @@ func (set ProjectGroupSet) Walk(w func(*ProjectGroup) error) (err error) {
 	return
 }
 
-func (set ProjectGroupSet) Filter(f func(*ProjectGroup) (bool, error)) (out ProjectGroupSet, err error) {
+func (set ProjectAiSystemSet) Filter(f func(*ProjectAiSystem) (bool, error)) (out ProjectAiSystemSet, err error) {
 	var ok bool
-	out = ProjectGroupSet{}
+	out = ProjectAiSystemSet{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return
@@ -1748,7 +1749,7 @@ func (set ProjectGroupSet) Filter(f func(*ProjectGroup) (bool, error)) (out Proj
 	return
 }
 
-func (set ProjectGroupSet) FindByID(ID uint64) *ProjectGroup {
+func (set ProjectAiSystemSet) FindByID(ID uint64) *ProjectAiSystem {
 	for i := range set {
 		if set[i].ID == ID {
 			return set[i]
@@ -1758,7 +1759,7 @@ func (set ProjectGroupSet) FindByID(ID uint64) *ProjectGroup {
 	return nil
 }
 
-func (set ProjectGroupSet) IDs() (IDs []uint64) {
+func (set ProjectAiSystemSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {
@@ -1768,7 +1769,7 @@ func (set ProjectGroupSet) IDs() (IDs []uint64) {
 	return
 }
 
-func (set ProjectGroupEntrySet) Walk(w func(*ProjectGroupEntry) error) (err error) {
+func (set ProjectAiSystemEntrySet) Walk(w func(*ProjectAiSystemEntry) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
 			return
@@ -1778,9 +1779,9 @@ func (set ProjectGroupEntrySet) Walk(w func(*ProjectGroupEntry) error) (err erro
 	return
 }
 
-func (set ProjectGroupEntrySet) Filter(f func(*ProjectGroupEntry) (bool, error)) (out ProjectGroupEntrySet, err error) {
+func (set ProjectAiSystemEntrySet) Filter(f func(*ProjectAiSystemEntry) (bool, error)) (out ProjectAiSystemEntrySet, err error) {
 	var ok bool
-	out = ProjectGroupEntrySet{}
+	out = ProjectAiSystemEntrySet{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return
@@ -1792,7 +1793,7 @@ func (set ProjectGroupEntrySet) Filter(f func(*ProjectGroupEntry) (bool, error))
 	return
 }
 
-func (set ProjectGroupEntrySet) FindByID(ID uint64) *ProjectGroupEntry {
+func (set ProjectAiSystemEntrySet) FindByID(ID uint64) *ProjectAiSystemEntry {
 	for i := range set {
 		if set[i].ID == ID {
 			return set[i]
@@ -1802,7 +1803,51 @@ func (set ProjectGroupEntrySet) FindByID(ID uint64) *ProjectGroupEntry {
 	return nil
 }
 
-func (set ProjectGroupEntrySet) IDs() (IDs []uint64) {
+func (set ProjectAiSystemEntrySet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+func (set ProjectFriaScenarioSet) Walk(w func(*ProjectFriaScenario) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (set ProjectFriaScenarioSet) Filter(f func(*ProjectFriaScenario) (bool, error)) (out ProjectFriaScenarioSet, err error) {
+	var ok bool
+	out = ProjectFriaScenarioSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+func (set ProjectFriaScenarioSet) FindByID(ID uint64) *ProjectFriaScenario {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+func (set ProjectFriaScenarioSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

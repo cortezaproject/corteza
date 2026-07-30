@@ -713,33 +713,63 @@ func ProjectRbacResourceTpl() string {
 	return "%s/%s"
 }
 
-// RbacResource returns string representation of RBAC resource for ProjectGroup by calling ProjectGroupRbacResource fn
+// RbacResource returns string representation of RBAC resource for ProjectAiSystem by calling ProjectAiSystemRbacResource fn
 //
-// RBAC resource is in the corteza::system:project-group/... format
+// RBAC resource is in the corteza::system:project-ai-system/... format
 //
 // This function is auto-generated
-func (r ProjectGroup) RbacResource() string {
-	return ProjectGroupRbacResource(r.ID)
+func (r ProjectAiSystem) RbacResource() string {
+	return ProjectAiSystemRbacResource(r.ID)
 }
 
-// ProjectGroupRbacResource returns string representation of RBAC resource for ProjectGroup
+// ProjectAiSystemRbacResource returns string representation of RBAC resource for ProjectAiSystem
 //
-// RBAC resource is in the corteza::system:project-group/... format
+// RBAC resource is in the corteza::system:project-ai-system/... format
 //
 // This function is auto-generated
-func ProjectGroupRbacResource(id uint64) string {
-	cpts := []interface{}{ProjectGroupResourceType}
+func ProjectAiSystemRbacResource(id uint64) string {
+	cpts := []interface{}{ProjectAiSystemResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ProjectGroupRbacResourceTpl(), cpts...)
+	return fmt.Sprintf(ProjectAiSystemRbacResourceTpl(), cpts...)
 
 }
 
-func ProjectGroupRbacResourceTpl() string {
+func ProjectAiSystemRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for ProjectFriaScenario by calling ProjectFriaScenarioRbacResource fn
+//
+// RBAC resource is in the corteza::system:project-fria-scenario/... format
+//
+// This function is auto-generated
+func (r ProjectFriaScenario) RbacResource() string {
+	return ProjectFriaScenarioRbacResource(r.ID)
+}
+
+// ProjectFriaScenarioRbacResource returns string representation of RBAC resource for ProjectFriaScenario
+//
+// RBAC resource is in the corteza::system:project-fria-scenario/... format
+//
+// This function is auto-generated
+func ProjectFriaScenarioRbacResource(id uint64) string {
+	cpts := []interface{}{ProjectFriaScenarioResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ProjectFriaScenarioRbacResourceTpl(), cpts...)
+
+}
+
+func ProjectFriaScenarioRbacResourceTpl() string {
 	return "%s/%s"
 }
 

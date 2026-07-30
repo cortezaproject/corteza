@@ -48,8 +48,9 @@ component: schema.#component & {
 		"tenant-membership":            tenant_membership
 		"project":                      project
 		"project-member":               project_member
-		"project-group":                project_group
-		"project-group-entry":          project_group_entry
+		"project-ai-system":            project_ai_system
+		"project-ai-system-entry":      project_ai_system_entry
+		"project-fria-scenario":        project_fria_scenario
 		"project-incident":             project_incident
 		"project-feature":              project_feature
 		"project-privacy":              project_privacy
@@ -171,7 +172,10 @@ component: schema.#component & {
 		"project.create": description:  "Create projects"
 		"projects.search": description: "List, search or filter projects"
 
-		"project-group.create": description:  "Create project groups"
-		"project-groups.search": description: "List, search or filter project groups"
+		"project-ai-system.create": description:  "Create AI systems"
+		"project-ai-systems.search": description: "List, search or filter AI systems"
+
+		"project-fria-scenario.create": description:  "Create FRIA risk scenarios"
+		"project-fria-scenarios.search": description: "List, search or filter FRIA risk scenarios"
 	}
 }

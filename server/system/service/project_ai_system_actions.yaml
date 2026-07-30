@@ -1,7 +1,7 @@
 # List of loggable service actions
 
-resource: system:project-group
-service: projectGroup
+resource: system:project-ai-system
+service: projectAiSystem
 
 defaultActionSeverity: notice
 
@@ -11,50 +11,50 @@ import:
   - github.com/crusttech/human/server/system/types
 
 props:
-  - name: projectGroup
-    type: "*types.ProjectGroup"
+  - name: projectAiSystem
+    type: "*types.ProjectAiSystem"
     fields: [ handle, ID ]
   - name: new
-    type: "*types.ProjectGroup"
+    type: "*types.ProjectAiSystem"
     fields: [ handle, ID ]
   - name: update
-    type: "*types.ProjectGroup"
+    type: "*types.ProjectAiSystem"
     fields: [ handle, ID ]
   - name: search
-    type: "*types.ProjectGroupFilter"
+    type: "*types.ProjectAiSystemFilter"
     fields: [ ]
 
 actions:
   - action: search
-    log: "searched for project groups"
+    log: "searched for AI systems"
     severity: info
 
   - action: lookup
-    log: "looked-up for a {{projectGroup}}"
+    log: "looked-up for a {{projectAiSystem}}"
     severity: info
 
   - action: create
-    log: "created {{projectGroup}}"
+    log: "created {{projectAiSystem}}"
 
   - action: update
-    log: "updated {{projectGroup}}"
+    log: "updated {{projectAiSystem}}"
 
   - action: delete
-    log: "deleted {{projectGroup}}"
+    log: "deleted {{projectAiSystem}}"
 
   - action: memberList
-    log: "listed members of {{projectGroup}}"
+    log: "listed resources of {{projectAiSystem}}"
     severity: info
 
   - action: memberAdd
-    log: "added member to {{projectGroup}}"
+    log: "added resource to {{projectAiSystem}}"
 
   - action: memberRemove
-    log: "removed member from {{projectGroup}}"
+    log: "removed resource from {{projectAiSystem}}"
 
 errors:
   - error: notFound
-    message: "project group not found"
+    message: "AI system not found"
     severity: warning
 
   - error: invalidID
@@ -70,29 +70,29 @@ errors:
     severity: warning
 
   - error: staleData
-    message: "project group was modified by someone else after you've opened it. Please refresh to see the latest updated version"
+    message: "AI system was modified by someone else after you've opened it. Please refresh to see the latest updated version"
     severity: warning
 
   - error: notAllowedToCreate
-    message: "not allowed to create a project group"
-    log: "failed to create a project group; insufficient permissions"
+    message: "not allowed to create an AI system"
+    log: "failed to create an AI system; insufficient permissions"
 
   - error: notAllowedToRead
-    message: "not allowed to read this project group"
-    log: "failed to read {{projectGroup.handle}}; insufficient permissions"
+    message: "not allowed to read this AI system"
+    log: "failed to read {{projectAiSystem.handle}}; insufficient permissions"
 
   - error: notAllowedToSearch
-    message: "not allowed to search or list project groups"
-    log: "failed to search or list project groups; insufficient permissions"
+    message: "not allowed to search or list AI systems"
+    log: "failed to search or list AI systems; insufficient permissions"
 
   - error: notAllowedToUpdate
-    message: "not allowed to update this project group"
-    log: "failed to update {{projectGroup.handle}}; insufficient permissions"
+    message: "not allowed to update this AI system"
+    log: "failed to update {{projectAiSystem.handle}}; insufficient permissions"
 
   - error: notAllowedToDelete
-    message: "not allowed to delete this project group"
-    log: "failed to delete {{projectGroup.handle}}; insufficient permissions"
+    message: "not allowed to delete this AI system"
+    log: "failed to delete {{projectAiSystem.handle}}; insufficient permissions"
 
-  - error: notAllowedToManageMembers
-    message: "not allowed to manage members of this project group"
-    log: "failed to manage members of {{projectGroup.handle}}; insufficient permissions"
+  - error: notAllowedToManageResources
+    message: "not allowed to manage resources of this AI system"
+    log: "failed to manage resources of {{projectAiSystem.handle}}; insufficient permissions"

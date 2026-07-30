@@ -967,24 +967,51 @@
   "updatedAt": "time.Time",
   "deletedAt": "time.Time"
 } },
-  { "project-group": {
-  "projectGroupID": "uint64",
+  { "project-ai-system": {
+  "projectAiSystemID": "uint64",
   "tenantID": "uint64",
   "projectID": "uint64",
   "handle": "string",
+  "riskClass": "string",
   "meta": {
   "short": "string",
-  "description": "string"
+  "description": "string",
+  "intendedPurpose": "string"
 },
   "createdAt": "time.Time",
   "updatedAt": "time.Time",
   "deletedAt": "time.Time"
 } },
-  { "project-group-entry": {
+  { "project-ai-system-entry": {
   "-": "uint64",
-  "projectGroupID": "uint64",
+  "projectAiSystemID": "uint64",
   "resourceRef": "string",
   "createdAt": "time.Time"
+} },
+  { "project-fria-scenario": {
+  "projectFriaScenarioID": "uint64",
+  "tenantID": "uint64",
+  "projectID": "uint64",
+  "aiSystemID": "uint64",
+  "title": "string",
+  "severity": "string",
+  "meta": {
+  "description": "string",
+  "triggerTypes": "string",
+  "triggerDescription": "string",
+  "impactedParties": "string",
+  "vulnerableGroups": "string",
+  "vulnerableGroupsNotes": "string",
+  "rights": "string",
+  "harmVectors": "string",
+  "harmVectorsDescription": "string"
+},
+  "createdAt": "time.Time",
+  "updatedAt": "time.Time",
+  "deletedAt": "time.Time",
+  "createdBy": "uint64",
+  "updatedBy": "uint64",
+  "deletedBy": "uint64"
 } },
   { "project-incident": {
   "incidentID": "uint64",

@@ -5,25 +5,26 @@ import (
 )
 
 type (
-	ProjectGroupFilter struct {
-		ProjectGroupID []uint64     `json:"projectGroupID"`
-		TenantID       uint64       `json:"tenantID,string,omitempty"`
-		ProjectID      uint64       `json:"projectID,string,omitempty"`
-		Handle         string       `json:"handle,omitempty"`
-		Query          string       `json:"query,omitempty"`
-		Deleted        filter.State `json:"deleted"`
+	ProjectAiSystemFilter struct {
+		ProjectAiSystemID []uint64     `json:"projectAiSystemID"`
+		TenantID          uint64       `json:"tenantID,string,omitempty"`
+		ProjectID         uint64       `json:"projectID,string,omitempty"`
+		Handle            string       `json:"handle,omitempty"`
+		RiskClass         string       `json:"riskClass,omitempty"`
+		Query             string       `json:"query,omitempty"`
+		Deleted           filter.State `json:"deleted"`
 
 		LabeledIDs []uint64 `json:"-"`
 
-		Check func(*ProjectGroup) (bool, error) `json:"-"`
+		Check func(*ProjectAiSystem) (bool, error) `json:"-"`
 
 		filter.Sorting
 		filter.Paging
 	}
 
-	ProjectGroupEntryFilter struct {
-		ProjectGroupID uint64 `json:"projectGroupID,string,omitempty"`
-		ResourceRef    string `json:"resourceRef,omitempty"`
-		Limit          uint   `json:"-"`
+	ProjectAiSystemEntryFilter struct {
+		ProjectAiSystemID uint64 `json:"projectAiSystemID,string,omitempty"`
+		ResourceRef       string `json:"resourceRef,omitempty"`
+		Limit             uint   `json:"-"`
 	}
 )

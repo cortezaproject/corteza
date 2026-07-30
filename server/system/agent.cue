@@ -179,8 +179,16 @@ agent: {
 
 		indexes: {
 			"primary": {attribute: "id"}
-			"unique_handle": {
-				fields: [{attribute: "handle", modifiers: ["LOWERCASE"]}]
+			// Scoped to the project (2026-07-30), not global. A project revision
+			// branch copies its agents, so the parent revision and its draft
+			// necessarily hold same-handled agents at once -- a global unique
+			// handle makes that impossible. It is also what the publish diff
+			// already assumes: diffSources identifies resources across revisions
+			// by kind + handle, which only works if a handle can repeat across
+			// revisions. Widening a unique constraint keeps every currently
+			// valid dataset valid.
+			"unique_handle_per_project": {
+				fields: [{attribute: "project_id"}, {attribute: "handle", modifiers: ["LOWERCASE"]}]
 				predicate: "handle != '' AND deleted_at IS NULL"
 			}
 		}
@@ -232,6 +240,25 @@ agent: {
 		extended: true
 	}
 
+	// Envoy stays omitted -- revisited 2026-07-30, after trying the opposite.
+	//
+	// Un-omitting looks like the way to make a revision branch copy agents:
+	// envoy exists to rewire references across an ID remap, which is the whole
+	// problem a branch copy has to solve. It does not work. The system
+	// component's encode cannot express a copy at all -- matchupAgents
+	// (system/envoy/store_encode.gen.go) matches purely on node identifiers
+	// (handle, ID) against an UNSCOPED search of every agent in the store, so a
+	// copy always matches its source and becomes an UPDATE, moving the original
+	// into the draft instead of duplicating it. The merge algorithms
+	// (Replace/Skip/Panic) only choose what happens once a match is found; none
+	// of them means "treat as new". Scope resolution is compose-only too
+	// (getScopeNodes is a stub outside compose), so a scoped decode silently
+	// reads every agent in the store.
+	//
+	// Both are fixable only by generating real scope support for system
+	// resources, which rewrites the encode path of every system type -- far too
+	// much blast radius for a branch-copy fix. The branch copies agents by hand
+	// instead; see system/service/project_revision.go.
 	envoy: {
 		omit: true
 	}
@@ -247,11 +274,15 @@ agent: {
 						It also returns deleted agents.
 						"""
 				}, {
-					fields: ["handle"]
+					// Project-scoped to match unique_handle_per_project above --
+					// a bare handle no longer identifies one agent. Safe to
+					// change: nothing outside generated store code called the
+					// global LookupAgentByHandle.
+					fields: ["project_id", "handle"]
 					nullConstraint: ["deleted_at"]
 					constraintCheck: true
 					description: """
-						searches for agent by handle
+						searches for agent by project and handle
 
 						It returns only valid agents (not deleted)
 						"""

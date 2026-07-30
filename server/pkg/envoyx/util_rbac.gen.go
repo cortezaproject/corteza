@@ -412,6 +412,32 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
+	case "corteza::system:project-ai-system":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-ai-system",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+	case "corteza::system:project-ai-system-entry":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::system:project-ai-system-entry",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
 	case "corteza::system:project-backlog-item":
 		scope := Scope{}
 
@@ -438,7 +464,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:project-group":
+	case "corteza::system:project-fria-scenario":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -446,20 +472,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 		}
 
 		out["Path.0"] = Ref{
-			ResourceType: "corteza::system:project-group",
-			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
-			Scope:        scope,
-		}
-
-	case "corteza::system:project-group-entry":
-		scope := Scope{}
-
-		if gRef(pp, 0) == "" {
-			return
-		}
-
-		out["Path.0"] = Ref{
-			ResourceType: "corteza::system:project-group-entry",
+			ResourceType: "corteza::system:project-fria-scenario",
 			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
 			Scope:        scope,
 		}

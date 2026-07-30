@@ -174,17 +174,20 @@ type (
 		// optional project filter function called after the generated function
 		Project func(*Store, systemType.ProjectFilter) ([]goqu.Expression, systemType.ProjectFilter, error)
 
+		// optional projectAiSystem filter function called after the generated function
+		ProjectAiSystem func(*Store, systemType.ProjectAiSystemFilter) ([]goqu.Expression, systemType.ProjectAiSystemFilter, error)
+
+		// optional projectAiSystemEntry filter function called after the generated function
+		ProjectAiSystemEntry func(*Store, systemType.ProjectAiSystemEntryFilter) ([]goqu.Expression, systemType.ProjectAiSystemEntryFilter, error)
+
 		// optional projectBacklogItem filter function called after the generated function
 		ProjectBacklogItem func(*Store, systemType.ProjectBacklogItemFilter) ([]goqu.Expression, systemType.ProjectBacklogItemFilter, error)
 
 		// optional projectFeature filter function called after the generated function
 		ProjectFeature func(*Store, systemType.ProjectFeatureFilter) ([]goqu.Expression, systemType.ProjectFeatureFilter, error)
 
-		// optional projectGroup filter function called after the generated function
-		ProjectGroup func(*Store, systemType.ProjectGroupFilter) ([]goqu.Expression, systemType.ProjectGroupFilter, error)
-
-		// optional projectGroupEntry filter function called after the generated function
-		ProjectGroupEntry func(*Store, systemType.ProjectGroupEntryFilter) ([]goqu.Expression, systemType.ProjectGroupEntryFilter, error)
+		// optional projectFriaScenario filter function called after the generated function
+		ProjectFriaScenario func(*Store, systemType.ProjectFriaScenarioFilter) ([]goqu.Expression, systemType.ProjectFriaScenarioFilter, error)
 
 		// optional projectIncident filter function called after the generated function
 		ProjectIncident func(*Store, systemType.ProjectIncidentFilter) ([]goqu.Expression, systemType.ProjectIncidentFilter, error)
@@ -1732,6 +1735,64 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 	return ee, f, err
 }
 
+// ProjectAiSystemFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectAiSystems() and can be extended
+// by setting Store.Filters.ProjectAiSystem. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectAiSystemFilter(d drivers.Dialect, f systemType.ProjectAiSystemFilter) (ee []goqu.Expression, _ systemType.ProjectAiSystemFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ProjectAiSystemID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ProjectAiSystemID))
+	}
+
+	if f.ProjectID > 0 {
+		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if val := strings.TrimSpace(f.RiskClass); len(val) > 0 {
+		ee = append(ee, goqu.C("risk_class").Eq(f.RiskClass))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ProjectAiSystemEntryFilter returns logical expressions
+//
+// This function is called from Store.QueryProjectAiSystemEntrys() and can be extended
+// by setting Store.Filters.ProjectAiSystemEntry. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ProjectAiSystemEntryFilter(d drivers.Dialect, f systemType.ProjectAiSystemEntryFilter) (ee []goqu.Expression, _ systemType.ProjectAiSystemEntryFilter, err error) {
+
+	if f.ProjectAiSystemID > 0 {
+		ee = append(ee, goqu.C("rel_project_ai_system").Eq(f.ProjectAiSystemID))
+	}
+
+	if val := strings.TrimSpace(f.ResourceRef); len(val) > 0 {
+		ee = append(ee, goqu.C("resource_ref").Eq(f.ResourceRef))
+	}
+
+	return ee, f, err
+}
+
 // ProjectBacklogItemFilter returns logical expressions
 //
 // This function is called from Store.QueryProjectBacklogItems() and can be extended
@@ -1813,55 +1874,39 @@ func ProjectFeatureFilter(d drivers.Dialect, f systemType.ProjectFeatureFilter) 
 	return ee, f, err
 }
 
-// ProjectGroupFilter returns logical expressions
+// ProjectFriaScenarioFilter returns logical expressions
 //
-// This function is called from Store.QueryProjectGroups() and can be extended
-// by setting Store.Filters.ProjectGroup. Extension is called after all expressions
+// This function is called from Store.QueryProjectFriaScenarios() and can be extended
+// by setting Store.Filters.ProjectFriaScenario. Extension is called after all expressions
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ProjectGroupFilter(d drivers.Dialect, f systemType.ProjectGroupFilter) (ee []goqu.Expression, _ systemType.ProjectGroupFilter, err error) {
+func ProjectFriaScenarioFilter(d drivers.Dialect, f systemType.ProjectFriaScenarioFilter) (ee []goqu.Expression, _ systemType.ProjectFriaScenarioFilter, err error) {
 
 	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
-	if len(f.ProjectGroupID) > 0 {
-		ee = append(ee, goqu.C("id").In(f.ProjectGroupID))
+	if len(f.ProjectFriaScenarioID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ProjectFriaScenarioID))
 	}
 
 	if f.ProjectID > 0 {
 		ee = append(ee, goqu.C("rel_project").Eq(f.ProjectID))
 	}
 
-	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
-		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	if f.AiSystemID > 0 {
+		ee = append(ee, goqu.C("rel_ai_system").Eq(f.AiSystemID))
+	}
+
+	if val := strings.TrimSpace(f.Severity); len(val) > 0 {
+		ee = append(ee, goqu.C("severity").Eq(f.Severity))
 	}
 
 	if f.Query != "" {
 		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
+			goqu.C("title").ILike("%"+f.Query+"%"),
 		))
-	}
-
-	return ee, f, err
-}
-
-// ProjectGroupEntryFilter returns logical expressions
-//
-// This function is called from Store.QueryProjectGroupEntrys() and can be extended
-// by setting Store.Filters.ProjectGroupEntry. Extension is called after all expressions
-// are generated and can choose to ignore or alter them.
-//
-// This function is auto-generated
-func ProjectGroupEntryFilter(d drivers.Dialect, f systemType.ProjectGroupEntryFilter) (ee []goqu.Expression, _ systemType.ProjectGroupEntryFilter, err error) {
-
-	if f.ProjectGroupID > 0 {
-		ee = append(ee, goqu.C("rel_project_group").Eq(f.ProjectGroupID))
-	}
-
-	if val := strings.TrimSpace(f.ResourceRef); len(val) > 0 {
-		ee = append(ee, goqu.C("resource_ref").Eq(f.ResourceRef))
 	}
 
 	return ee, f, err

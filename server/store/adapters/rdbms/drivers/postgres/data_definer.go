@@ -24,6 +24,21 @@ type (
 		Column  string
 		Type    *ddl.ColumnType
 	}
+
+	// dropIndex overrides ddl.DropIndex, which emits MySQL's
+	// `DROP INDEX <ident> ON <table>`. Postgres has no ON clause -- indexes
+	// live in the schema namespace, not under a table -- so the shared command
+	// is a syntax error here, and doubly so because postgres's IndexDrop never
+	// populated TableIdent, producing a trailing `ON ""`.
+	//
+	// IF EXISTS is deliberate: nothing can reliably tell whether an index is
+	// there first (TableLookup returns no Indexes at all, and IndexLookup
+	// reports every index as missing -- even PRIMARY), so the drop has to be
+	// idempotent on its own.
+	dropIndex struct {
+		Dialect *postgresDialect
+		Ident   string
+	}
 )
 
 var (
@@ -116,10 +131,17 @@ func (dd *dataDefiner) IndexCreate(ctx context.Context, t string, i *ddl.Index) 
 }
 
 func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{
+	return ddl.Exec(ctx, dd.conn, &dropIndex{
 		Dialect: dd.d,
 		Ident:   i,
 	})
+}
+
+func (c *dropIndex) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`DROP INDEX IF EXISTS %s`,
+		c.Dialect.QuoteIdent(c.Ident),
+	), nil, nil
 }
 
 func (c *reTypeColumn) ToSQL() (sql string, aa []interface{}, err error) {

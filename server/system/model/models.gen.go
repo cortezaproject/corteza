@@ -169,11 +169,15 @@ var Agent = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident:     "agents_uniqueHandle",
+			Ident:     "agents_uniqueHandlePerProject",
 			Type:      "BTREE",
 			Unique:    true,
 			Predicate: "handle != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ProjectID",
+				},
+
 				{
 					AttributeIdent: "Handle",
 					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
@@ -3878,6 +3882,154 @@ var Project = &dal.Model{
 	},
 }
 
+var ProjectAiSystem = &dal.Model{
+	Ident:        "project_ai_systems",
+	ResourceType: types.ProjectAiSystemResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "TenantID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_tenant"},
+		},
+
+		&dal.Attribute{
+			Ident: "ProjectID",
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "RiskClass",
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "risk_class"},
+		},
+
+		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "project_ai_systems_uniqueHandlePerProject",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ProjectID",
+				},
+
+				{
+					AttributeIdent: "Handle",
+					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
+				},
+			},
+		},
+	},
+}
+
+var ProjectAiSystemEntry = &dal.Model{
+	Ident:        "project_ai_system_entrys",
+	ResourceType: types.ProjectAiSystemEntryResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ProjectAiSystemID",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:project-ai-system",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_project_ai_system"},
+		},
+
+		&dal.Attribute{
+			Ident: "ResourceRef",
+			Type:  &dal.TypeText{Length: 512},
+			Store: &dal.CodecAlias{Ident: "resource_ref"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ProjectAiSystemID",
+				},
+
+				{
+					AttributeIdent: "ResourceRef",
+				},
+			},
+		},
+	},
+}
+
 var ProjectBacklogItem = &dal.Model{
 	Ident:        "project_backlog_items",
 	ResourceType: types.ProjectBacklogItemResourceType,
@@ -4244,9 +4396,9 @@ var ProjectFeature = &dal.Model{
 	},
 }
 
-var ProjectGroup = &dal.Model{
-	Ident:        "project_groups",
-	ResourceType: types.ProjectGroupResourceType,
+var ProjectFriaScenario = &dal.Model{
+	Ident:        "project_fria_scenarios",
+	ResourceType: types.ProjectFriaScenarioResourceType,
 
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
@@ -4272,9 +4424,26 @@ var ProjectGroup = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Handle",
-			Type:  &dal.TypeText{Length: 64},
-			Store: &dal.CodecAlias{Ident: "handle"},
+			Ident: "AiSystemID", Sortable: true,
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:project-ai-system",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_ai_system"},
+		},
+
+		&dal.Attribute{
+			Ident: "Title", Sortable: true,
+			Type:  &dal.TypeText{Length: 255},
+			Store: &dal.CodecAlias{Ident: "title"},
+		},
+
+		&dal.Attribute{
+			Ident: "Severity", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "severity"},
 		},
 
 		&dal.Attribute{
@@ -4304,6 +4473,45 @@ var ProjectGroup = &dal.Model{
 			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "deleted_at"},
 		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
 	},
 
 	Indexes: dal.IndexSet{
@@ -4314,72 +4522,6 @@ var ProjectGroup = &dal.Model{
 			Fields: []*dal.IndexField{
 				{
 					AttributeIdent: "ID",
-				},
-			},
-		},
-
-		&dal.Index{
-			Ident:     "project_groups_uniqueHandlePerProject",
-			Type:      "BTREE",
-			Unique:    true,
-			Predicate: "handle != '' AND deleted_at IS NULL",
-			Fields: []*dal.IndexField{
-				{
-					AttributeIdent: "ProjectID",
-				},
-
-				{
-					AttributeIdent: "Handle",
-					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
-				},
-			},
-		},
-	},
-}
-
-var ProjectGroupEntry = &dal.Model{
-	Ident:        "project_group_entrys",
-	ResourceType: types.ProjectGroupEntryResourceType,
-
-	Attributes: dal.AttributeSet{
-		&dal.Attribute{
-			Ident: "ProjectGroupID",
-			Type: &dal.TypeRef{
-				RefAttribute: "id",
-				RefModel: &dal.ModelRef{
-					ResourceType: "corteza::system:project-group",
-				},
-			},
-			Store: &dal.CodecAlias{Ident: "rel_project_group"},
-		},
-
-		&dal.Attribute{
-			Ident: "ResourceRef",
-			Type:  &dal.TypeText{Length: 512},
-			Store: &dal.CodecAlias{Ident: "resource_ref"},
-		},
-
-		&dal.Attribute{
-			Ident: "CreatedAt", Sortable: true,
-			Type: &dal.TypeTimestamp{
-				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
-			},
-			Store: &dal.CodecAlias{Ident: "created_at"},
-		},
-	},
-
-	Indexes: dal.IndexSet{
-		&dal.Index{
-			Ident: "PRIMARY",
-			Type:  "BTREE",
-
-			Fields: []*dal.IndexField{
-				{
-					AttributeIdent: "ProjectGroupID",
-				},
-
-				{
-					AttributeIdent: "ResourceRef",
 				},
 			},
 		},
@@ -6771,10 +6913,11 @@ func init() {
 		LlmProvider,
 		Notification,
 		Project,
+		ProjectAiSystem,
+		ProjectAiSystemEntry,
 		ProjectBacklogItem,
 		ProjectFeature,
-		ProjectGroup,
-		ProjectGroupEntry,
+		ProjectFriaScenario,
 		ProjectIncident,
 		ProjectMember,
 		ProjectPrivacy,

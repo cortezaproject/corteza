@@ -135,7 +135,8 @@ var (
 	DefaultChatbotSession       *chatbotSession
 	DefaultChatbotPreview       *chatbotPreview
 	DefaultProject              *project
-	DefaultProjectGroup         *projectGroup
+	DefaultProjectAiSystem      *projectAiSystem
+	DefaultProjectFriaScenario  *projectFriaScenario
 	DefaultProjectIncident      *projectIncident
 	DefaultProjectFeature       *projectFeature
 	DefaultProjectPrivacy       *projectPrivacy
@@ -311,7 +312,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultChatbotSession = ChatbotSession()
 	DefaultProject = Project()
 	DefaultProjectGraph = ProjectGraph(DefaultStore)
-	DefaultProjectGroup = ProjectGroup()
+	DefaultProjectAiSystem = ProjectAiSystem()
+	DefaultProjectFriaScenario = ProjectFriaScenario()
 	DefaultProjectIncident = ProjectIncident()
 	DefaultProjectFeature = ProjectFeature()
 	DefaultProjectPrivacy = ProjectPrivacy()

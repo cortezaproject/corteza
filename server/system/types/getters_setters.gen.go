@@ -2144,9 +2144,9 @@ func (r *ProjectMember) SetValue(name string, pos uint, value any) (err error) {
 	return nil
 }
 
-func (r ProjectGroup) GetID() uint64 { return r.ID }
+func (r ProjectAiSystem) GetID() uint64 { return r.ID }
 
-func (r *ProjectGroup) GetValue(name string, pos uint) (any, error) {
+func (r *ProjectAiSystem) GetValue(name string, pos uint) (any, error) {
 	if r == nil {
 		return nil, nil
 	}
@@ -2162,6 +2162,8 @@ func (r *ProjectGroup) GetValue(name string, pos uint) (any, error) {
 		return r.ID, nil
 	case "projectID", "ProjectID":
 		return r.ProjectID, nil
+	case "riskClass", "RiskClass":
+		return r.RiskClass, nil
 	case "tenantID", "TenantID":
 		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
@@ -2171,9 +2173,9 @@ func (r *ProjectGroup) GetValue(name string, pos uint) (any, error) {
 	return nil, nil
 }
 
-func (r *ProjectGroup) SetValue(name string, pos uint, value any) (err error) {
+func (r *ProjectAiSystem) SetValue(name string, pos uint, value any) (err error) {
 	if r == nil {
-		r = &ProjectGroup{}
+		r = &ProjectAiSystem{}
 	}
 
 	switch name {
@@ -2187,6 +2189,8 @@ func (r *ProjectGroup) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ID)
 	case "projectID", "ProjectID":
 		return cast2.Uint64(value, &r.ProjectID)
+	case "riskClass", "RiskClass":
+		return cast2.String(value, &r.RiskClass)
 	case "tenantID", "TenantID":
 		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":
@@ -2196,9 +2200,9 @@ func (r *ProjectGroup) SetValue(name string, pos uint, value any) (err error) {
 	return nil
 }
 
-func (r ProjectGroupEntry) GetID() uint64 { return r.ID }
+func (r ProjectAiSystemEntry) GetID() uint64 { return r.ID }
 
-func (r *ProjectGroupEntry) GetValue(name string, pos uint) (any, error) {
+func (r *ProjectAiSystemEntry) GetValue(name string, pos uint) (any, error) {
 	if r == nil {
 		return nil, nil
 	}
@@ -2206,8 +2210,8 @@ func (r *ProjectGroupEntry) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
-	case "projectGroupID", "ProjectGroupID":
-		return r.ProjectGroupID, nil
+	case "projectAiSystemID", "ProjectAiSystemID":
+		return r.ProjectAiSystemID, nil
 	case "resourceRef", "ResourceRef":
 		return r.ResourceRef, nil
 
@@ -2215,18 +2219,90 @@ func (r *ProjectGroupEntry) GetValue(name string, pos uint) (any, error) {
 	return nil, nil
 }
 
-func (r *ProjectGroupEntry) SetValue(name string, pos uint, value any) (err error) {
+func (r *ProjectAiSystemEntry) SetValue(name string, pos uint, value any) (err error) {
 	if r == nil {
-		r = &ProjectGroupEntry{}
+		r = &ProjectAiSystemEntry{}
 	}
 
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
-	case "projectGroupID", "ProjectGroupID":
-		return cast2.Uint64(value, &r.ProjectGroupID)
+	case "projectAiSystemID", "ProjectAiSystemID":
+		return cast2.Uint64(value, &r.ProjectAiSystemID)
 	case "resourceRef", "ResourceRef":
 		return cast2.String(value, &r.ResourceRef)
+
+	}
+	return nil
+}
+
+func (r ProjectFriaScenario) GetID() uint64 { return r.ID }
+
+func (r *ProjectFriaScenario) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "aiSystemID", "AiSystemID":
+		return r.AiSystemID, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "projectID", "ProjectID":
+		return r.ProjectID, nil
+	case "severity", "Severity":
+		return r.Severity, nil
+	case "tenantID", "TenantID":
+		return r.TenantID, nil
+	case "title", "Title":
+		return r.Title, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *ProjectFriaScenario) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ProjectFriaScenario{}
+	}
+
+	switch name {
+	case "aiSystemID", "AiSystemID":
+		return cast2.Uint64(value, &r.AiSystemID)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "projectID", "ProjectID":
+		return cast2.Uint64(value, &r.ProjectID)
+	case "severity", "Severity":
+		return cast2.String(value, &r.Severity)
+	case "tenantID", "TenantID":
+		return cast2.Uint64(value, &r.TenantID)
+	case "title", "Title":
+		return cast2.String(value, &r.Title)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
 
 	}
 	return nil
