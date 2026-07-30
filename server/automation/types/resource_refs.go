@@ -76,6 +76,23 @@ func (a NgAutomation) resourceRefsExt(out []resourceref.Ref) []resourceref.Ref {
 	return out
 }
 
+// NgAutomationStepParamKinds returns the map of argument target → resource kind
+// for one ng-automation step — the same mapping WorkflowStepParamKinds returns
+// for a workflow step, against the ng step shape.
+//
+// Exported for the project revision copy (system/service/project_revision_clone.go),
+// which has to rewrite a copied automation's resource-typed arguments onto the
+// draft's own modules, namespace and agents.
+func NgAutomationStepParamKinds(s *NgAutomationStep) map[string]string {
+	if s == nil {
+		return nil
+	}
+	if s.Kind == string(WorkflowStepKindExecWorkflow) {
+		return map[string]string{"workflow": resourceref.KindAutomationWorkflow}
+	}
+	return stepArgumentKinds(s.Ref)
+}
+
 // WorkflowStepParamKinds returns the map of argument target → resource kind
 // for the given step. Exported for use by the envoyx encode/decode path.
 func WorkflowStepParamKinds(s *WorkflowStep) map[string]string {
