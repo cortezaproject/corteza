@@ -11,6 +11,24 @@ import (
 	"github.com/crusttech/human/server/store"
 )
 
+// Reserved idents the internal connection attaches to every row it yields.
+//
+// A publish needs more of the source record than its field values: the record
+// id, to rewrite record-link values that still name records in the previous
+// revision, and the audit columns, so a migrated record keeps the author and
+// the timestamps it had instead of looking like it was authored by whoever
+// clicked publish. None of these can collide with a module field -- a compose
+// field handle cannot contain a colon -- so the importer can pick them out of
+// the scanned row and no user mapping can ever address them.
+const (
+	SrcRecordID  = "src:recordID"
+	SrcOwnedBy   = "src:ownedBy"
+	SrcCreatedAt = "src:createdAt"
+	SrcCreatedBy = "src:createdBy"
+	SrcUpdatedAt = "src:updatedAt"
+	SrcUpdatedBy = "src:updatedBy"
+)
+
 // internalConn implements dal.Connection backed by compose records in the
 // internal database. It is ephemeral: created at the start of a publish run
 // and removed when the run completes. Write operations are not supported.
@@ -165,6 +183,21 @@ func (it *composeRecordIterator) Scan(dst dal.ValueSetter) error {
 			return err
 		}
 	}
+
+	// Identity and provenance travel with the row; see the Src* consts.
+	for name, val := range map[string]any{
+		SrcRecordID:  rec.ID,
+		SrcOwnedBy:   rec.OwnedBy,
+		SrcCreatedAt: rec.CreatedAt,
+		SrcCreatedBy: rec.CreatedBy,
+		SrcUpdatedAt: rec.UpdatedAt,
+		SrcUpdatedBy: rec.UpdatedBy,
+	} {
+		if err := dst.SetValue(name, 0, val); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -175,5 +208,5 @@ func (it *composeRecordIterator) BackCursor(_ dal.ValueGetter) (*filter.PagingCu
 func (it *composeRecordIterator) ForwardCursor(_ dal.ValueGetter) (*filter.PagingCursor, error) {
 	return nil, nil
 }
-func (it *composeRecordIterator) Err() error  { return it.err }
+func (it *composeRecordIterator) Err() error   { return it.err }
 func (it *composeRecordIterator) Close() error { return nil }

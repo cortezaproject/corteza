@@ -623,6 +623,11 @@ func (svc *project) migrateRecords(
 		_ = store.DeleteDmlConnectionByID(ctx, svc.store, connID)
 	}()
 
+	// One migration across every mapping: record links point across modules, so
+	// they can only be rewritten once all of them have imported. Finalize is
+	// what writes them, together with the provenance the create overwrites.
+	mig := svc.services.dalSvc.NewMigration()
+
 	for _, m := range mappings {
 		// A mapping with nothing to copy from is a module the revision ADDED:
 		// diffModules emits one for every new module so the caller sees it in
@@ -633,15 +638,17 @@ func (svc *project) migrateRecords(
 			continue
 		}
 
-		if err := svc.runModuleMapping(ctx, connID, newNs.Slug, m); err != nil {
+		if err := svc.runModuleMapping(ctx, mig, connID, newNs.Slug, m); err != nil {
 			return err
 		}
 	}
-	return nil
+
+	return mig.Finalize(ctx)
 }
 
 func (svc *project) runModuleMapping(
 	ctx context.Context,
+	mig *dml.Migration,
 	connID uint64,
 	newNsHandle string,
 	m types.ModuleMapping,
@@ -670,7 +677,7 @@ func (svc *project) runModuleMapping(
 		_ = store.DeleteDmlMappingByID(ctx, svc.store, mp.ID)
 	}()
 
-	return svc.services.dalSvc.RunImportForeground(ctx, mp.ID)
+	return mig.Run(ctx, mp.ID)
 }
 
 // computeDeploymentPlan diffs a draft revision against its parent: every

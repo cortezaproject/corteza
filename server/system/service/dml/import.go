@@ -23,6 +23,14 @@ type (
 	dalDataReader interface {
 		SearchExternalModels(ctx context.Context, connectionID uint64) (dal.ModelSet, error)
 		SearchExternalData(ctx context.Context, connectionID uint64, model *dal.Model, f filter.Filter) (dal.Iterator, error)
+
+		// The publish migration also writes: it clears rows a previous attempt
+		// left behind and, in its second pass, fixes up record links and the
+		// audit columns the record service is not willing to preserve. Those go
+		// through the DAL directly -- see Migration.Finalize.
+		Search(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
+		Update(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) error
+		Delete(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
 	}
 
 	importAC interface {
@@ -115,78 +123,20 @@ func (im *Importer) RunImport(ctx context.Context, mappingID uint64, method type
 	identity := auth.GetIdentityFromContext(ctx)
 	switch method {
 	case types.DmlImportMethodBackground:
-		go im.runImportWork(auth.SetIdentityToContext(context.Background(), identity), run, mp, true)
+		go im.runImportWork(auth.SetIdentityToContext(context.Background(), identity), run, mp, true, nil)
 	}
 
 	return run, nil
 }
 
-// RunImportForeground runs the import synchronously in the calling goroutine.
-// Used by the project publish flow where migration must complete before state
-// flips.
-//
-// It deliberately does NOT run the applier. Apply materialises a module FROM
-// the mapping -- that is what an external import needs, because the target
-// module does not exist yet or is only a projection of the source table. A
-// publish is the opposite situation: the target module was authored by hand in
-// the draft revision and is the authority; the mapping only says which column
-// feeds which field.
-//
-// Letting Apply run here destroyed exactly that. It replaces Fields wholesale
-// from the mapping's columns, and updateModuleFields matches old against new by
-// field ID -- the mapping carries none -- so every field of every migrated
-// module was soft-deleted and recreated as untyped text with its label reset to
-// its name, and the module's Name was replaced by its handle. Verified on a
-// live publish that used the server's own suggested mappings.
-func (im *Importer) RunImportForeground(ctx context.Context, mappingID uint64) error {
-	mp, err := im.mapping.FindByID(ctx, mappingID)
-	if err != nil {
-		return err
-	}
-	run := &types.DmlImportRun{
-		ID:           id.Next(),
-		ConnectionID: mp.ConnectionID,
-		MappingID:    mappingID,
-		Method:       "foreground",
-		Status:       "pending",
-	}
-	if err := store.CreateDmlImportRun(ctx, im.store, run); err != nil {
-		return err
-	}
-	im.runImportWork(ctx, run, mp, false)
-	if run.Status != "completed" {
-		return fmt.Errorf("dml import failed: %s", run.Error)
-	}
-
-	// A record the importer could not write is data that would be missing from
-	// the published revision, so it fails the publish rather than the run.
-	// importTable writes with skipFailed, which is right for an external import
-	// (one malformed row should not stop ten thousand good ones) and wrong
-	// here: "completed" was reported even when EVERY row failed, and publish
-	// went on to swap the namespaces and soft-delete the source. The commonest
-	// cause is a record-link value -- it holds a record id from the old
-	// namespace, which does not exist in the new one, so the whole row is
-	// rejected and a module with a link field silently arrives empty.
-	//
-	// Failing here is safe: migration runs before the status flip, so the old
-	// namespace is still live and still holds every record.
-	if run.Failed > 0 {
-		return fmt.Errorf(
-			"%d of %d records could not be migrated for module %q; "+
-				"nothing was published. Record-link values are the usual cause: they still "+
-				"name records in the previous revision. Drop that field from the module's "+
-				"mapping to migrate the rest",
-			run.Failed, run.Failed+run.Processed, mp.ModuleHandle,
-		)
-	}
-
-	return nil
-}
-
 // applySchema decides whether the run may reshape the target module from the
 // mapping before importing into it. True for imports of external data, false
-// for a publish -- see RunImportForeground.
-func (im *Importer) runImportWork(ctx context.Context, run *types.DmlImportRun, mp *types.DmlMapping, applySchema bool) {
+// for a publish -- see Migration.Run.
+//
+// mig is nil for an ordinary external import and non-nil for a publish
+// migration, which is the only caller allowed to clear the target module, defer
+// record links and carry provenance across.
+func (im *Importer) runImportWork(ctx context.Context, run *types.DmlImportRun, mp *types.DmlMapping, applySchema bool, mig *Migration) {
 	run.Status = "running"
 	if err := store.UpdateDmlImportRun(ctx, im.store, run); err != nil {
 		return
@@ -238,7 +188,7 @@ func (im *Importer) runImportWork(ctx context.Context, run *types.DmlImportRun, 
 		return
 	}
 
-	if err := im.importTable(ctx, run, ns, module, mp, srcModel); err != nil {
+	if err := im.importTable(ctx, run, ns, module, mp, srcModel, mig); err != nil {
 		fail("%s", err.Error())
 		return
 	}
@@ -254,7 +204,33 @@ func (im *Importer) importTable(
 	module *composeTypes.Module,
 	mp *types.DmlMapping,
 	srcModel *dal.Model,
+	mig *Migration,
 ) error {
+	// Record-link columns are held back from the create and written by the
+	// migration's second pass, once every module has an old->new id for its
+	// targets. Sending them now would have the row rejected outright: the id
+	// they carry belongs to the previous namespace.
+	var (
+		linkFields map[string]bool
+		mm         *migratedModule
+	)
+	if mig != nil {
+		linkFields = make(map[string]bool)
+		for _, col := range mp.Columns {
+			if col.Skip {
+				continue
+			}
+			if f := module.Fields.FindByName(col.FieldName); f != nil && f.Kind == "Record" {
+				linkFields[col.FieldName] = true
+			}
+		}
+
+		if err := mig.clear(ctx, ns, module); err != nil {
+			return err
+		}
+		mm = mig.track(ns, module)
+	}
+
 	iter, err := im.dalSvc.SearchExternalData(ctx, mp.ConnectionID, srcModel, filter.Generic())
 	if err != nil {
 		return fmt.Errorf("search external data %q: %w", mp.SourceIdent, err)
@@ -262,6 +238,8 @@ func (im *Importer) importTable(
 	defer iter.Close()
 
 	batch := make([]*composeTypes.RecordBulkOperation, 0, importBatchSize)
+	// pending is index-aligned with batch; Bulk answers in request order.
+	pending := make([]*migratedRecord, 0, importBatchSize)
 
 	flush := func() error {
 		if len(batch) == 0 {
@@ -271,7 +249,7 @@ func (im *Importer) importTable(
 		if err != nil {
 			return err
 		}
-		for _, r := range results {
+		for i, r := range results {
 			// A rejected record does not always come back as r.Error. Bulk
 			// splits its failures: an operation-level error lands in Error,
 			// but a VALUE-level rejection -- which is what an invalid
@@ -284,11 +262,20 @@ func (im *Importer) importTable(
 			switch {
 			case r.Error != nil, !r.ValueError.IsValid(), r.DuplicationError.HasStrictErrors():
 				run.Failed++
-			default:
-				run.Processed++
+				continue
 			}
+			run.Processed++
+
+			if mig == nil || r.Record == nil {
+				continue
+			}
+			mr := pending[i]
+			mr.newID = r.Record.ID
+			mig.idMap[mr.srcID] = mr.newID
+			mm.records = append(mm.records, mr)
 		}
 		batch = batch[:0]
+		pending = pending[:0]
 		return nil
 	}
 
@@ -306,7 +293,7 @@ func (im *Importer) importTable(
 		// its first entry and the rest were dropped without a word. On a
 		// project publish that is silent data loss inside a record that
 		// otherwise migrated fine.
-		var values composeTypes.RecordValueSet
+		var values, links composeTypes.RecordValueSet
 		counts := row.CountValues()
 		for _, col := range mp.Columns {
 			if col.Skip {
@@ -317,22 +304,36 @@ func (im *Importer) importTable(
 				if err != nil || val == nil {
 					continue
 				}
-				values = append(values, &composeTypes.RecordValue{
+				rv := &composeTypes.RecordValue{
 					Name:  col.FieldName,
 					Value: rawToString(val),
 					Place: place,
-				})
+				}
+				if linkFields[col.FieldName] {
+					if rv.Value != "" {
+						links = append(links, rv)
+					}
+					continue
+				}
+				values = append(values, rv)
 			}
 		}
 
-		batch = append(batch, &composeTypes.RecordBulkOperation{
+		op := &composeTypes.RecordBulkOperation{
 			Record: &composeTypes.Record{
 				ModuleID:    module.ID,
 				NamespaceID: ns.ID,
 				Values:      values,
 			},
 			Operation: composeTypes.OperationTypeCreate,
-		})
+		}
+		if mig != nil {
+			mr := readRow(row)
+			mr.links = links
+			op.Record.Meta = mr.meta()
+			pending = append(pending, mr)
+		}
+		batch = append(batch, op)
 
 		if len(batch) >= importBatchSize {
 			if err := flush(); err != nil {

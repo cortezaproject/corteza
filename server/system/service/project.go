@@ -13,6 +13,7 @@ import (
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/scope"
 	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service/dml"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -21,8 +22,13 @@ type (
 		CloneFromStore(ctx context.Context, sourceNsID uint64, dup *composeTypes.Namespace) (*composeTypes.Namespace, error)
 	}
 
+	// A publish migrates every mapped module, but the modules are not
+	// independent: a record link has to be rewritten to the id its target was
+	// given in the new namespace, and that id may not exist until a later
+	// module imports. The importer therefore hands out a migration that spans
+	// all of them -- Run per mapping, Finalize once.
 	projectDALImporter interface {
-		RunImportForeground(ctx context.Context, mappingID uint64) error
+		NewMigration() *dml.Migration
 	}
 
 	projectDALConnSvc interface {
