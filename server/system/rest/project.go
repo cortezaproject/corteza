@@ -20,10 +20,12 @@ type (
 	projectPayload struct {
 		*types.Project
 
-		CanGrant         bool `json:"canGrant"`
-		CanUpdateProject bool `json:"canUpdateProject"`
-		CanDeleteProject bool `json:"canDeleteProject"`
-		CanManageMembers bool `json:"canManageMembers"`
+		CanGrant          bool `json:"canGrant"`
+		CanUpdateProject  bool `json:"canUpdateProject"`
+		CanDeleteProject  bool `json:"canDeleteProject"`
+		CanManageMembers  bool `json:"canManageMembers"`
+		CanReviseProject  bool `json:"canReviseProject"`
+		CanPublishProject bool `json:"canPublishProject"`
 	}
 
 	projectSetPayload struct {
@@ -72,6 +74,8 @@ type (
 		CanUpdateProject(context.Context, *types.Project) bool
 		CanDeleteProject(context.Context, *types.Project) bool
 		CanManageMembersOnProject(context.Context, *types.Project) bool
+		CanReviseProject(context.Context, *types.Project) bool
+		CanPublishProject(context.Context, *types.Project) bool
 	}
 )
 
@@ -198,10 +202,12 @@ func (ctrl *Project) makePayload(ctx context.Context, p *types.Project, err erro
 	return &projectPayload{
 		Project: p,
 
-		CanGrant:         ctrl.ac.CanGrant(ctx),
-		CanUpdateProject: ctrl.ac.CanUpdateProject(ctx, p),
-		CanDeleteProject: ctrl.ac.CanDeleteProject(ctx, p),
-		CanManageMembers: ctrl.ac.CanManageMembersOnProject(ctx, p),
+		CanGrant:          ctrl.ac.CanGrant(ctx),
+		CanUpdateProject:  ctrl.ac.CanUpdateProject(ctx, p),
+		CanDeleteProject:  ctrl.ac.CanDeleteProject(ctx, p),
+		CanManageMembers:  ctrl.ac.CanManageMembersOnProject(ctx, p),
+		CanReviseProject:  ctrl.ac.CanReviseProject(ctx, p),
+		CanPublishProject: ctrl.ac.CanPublishProject(ctx, p),
 	}, nil
 }
 

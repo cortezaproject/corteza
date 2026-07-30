@@ -723,6 +723,9 @@ publish:
     irreversible: Approved and ready. This cannot be undone — changing it again means a new revision.
     typeHandle: Type the project handle above to confirm.
     noCapability: You do not have the capability to act on this publish.
+    noPublishPermission: >-
+      This revision is approved and ready, but publishing it needs the publish permission on this
+      project. Ask someone who holds it to put the revision live.
   receipt:
     heading: Revision {version} is live
     # Stamped by the publish itself (project updatedAt/updatedBy). How many

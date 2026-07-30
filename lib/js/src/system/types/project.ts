@@ -99,6 +99,10 @@ export class Project {
   public canUpdateProject = false
   public canDeleteProject = false
   public canManageMembers = false
+  // Branching and publishing are their own RBAC operations, not update: a
+  // deployment can grant "may edit the draft" without "may put it live".
+  public canReviseProject = false
+  public canPublishProject = false
 
   public createdBy = NoID
   // Stamped by the backend on every update, including the one that publishes a
@@ -132,7 +136,17 @@ export class Project {
     if (this.rootProjectID === NoID) {
       this.rootProjectID = this.projectID
     }
-    Apply(this, p, Boolean, 'canGrant', 'canUpdateProject', 'canDeleteProject', 'canManageMembers')
+    Apply(
+      this,
+      p,
+      Boolean,
+      'canGrant',
+      'canUpdateProject',
+      'canDeleteProject',
+      'canManageMembers',
+      'canReviseProject',
+      'canPublishProject',
+    )
 
     if (IsOf(p, 'config')) {
       this.config = { ...defaultConfig(), ...p.config }

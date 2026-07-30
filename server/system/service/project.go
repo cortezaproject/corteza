@@ -53,6 +53,8 @@ type (
 		CanUpdateProject(ctx context.Context, p *types.Project) bool
 		CanDeleteProject(ctx context.Context, p *types.Project) bool
 		CanManageMembersOnProject(ctx context.Context, p *types.Project) bool
+		CanReviseProject(ctx context.Context, p *types.Project) bool
+		CanPublishProject(ctx context.Context, p *types.Project) bool
 	}
 
 	ProjectService interface {

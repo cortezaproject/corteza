@@ -54,6 +54,18 @@ allow:
       - project-reviews.search
       - project-backlog-item.create
       - project-backlog-items.search
+      # The project itself, and the two compliance kinds that hang off it, were
+      # missing here while every work-item kind above was already granted — so
+      # an admin could file a task against a project they could neither see nor
+      # create. Projects stay admin-only by default: delegating them to a
+      # governance role is a per-deployment decision, made by granting these
+      # same operations (and the project/* ones below) to that role.
+      - project.create
+      - projects.search
+      - project-ai-system.create
+      - project-ai-systems.search
+      - project-fria-scenario.create
+      - project-fria-scenarios.search
 
     corteza::system:auth-client/*:
       - read
@@ -126,6 +138,26 @@ allow:
       - delete
 
     corteza::system:llm-provider/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:project/*:
+      - read
+      - update
+      - delete
+      - members.manage
+      # revise/publish are separate from update on purpose: a deployment can
+      # grant "may edit the draft" without granting "may put it live".
+      - revise
+      - publish
+
+    corteza::system:project-ai-system/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:project-fria-scenario/*:
       - read
       - update
       - delete

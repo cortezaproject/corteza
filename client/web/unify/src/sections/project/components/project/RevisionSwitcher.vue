@@ -200,9 +200,15 @@ function goToDashboard() {
 const branchSource = computed(() =>
   onDashboard.value ? revisionChain.value.find(r => r.status === 'active') || null : props.project,
 )
+// canReviseProject is the backend's own answer (project.revise, carried on the
+// payload); the status/draft conditions mirror the rest of what CreateRevision
+// enforces. Asking the server rather than assuming means a user without the
+// permission is never offered a branch that would come back as a 403.
 const canCreateRevision = computed(
   () =>
-    branchSource.value?.status === 'active' && !revisionChain.value.some(r => r.status === 'draft'),
+    branchSource.value?.status === 'active' &&
+    branchSource.value?.canReviseProject &&
+    !revisionChain.value.some(r => r.status === 'draft'),
 )
 
 // Whether the control is a menu at all. Everything it can offer beyond the

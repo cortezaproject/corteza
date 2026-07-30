@@ -427,9 +427,16 @@ const primaryEnabled = computed(() => {
   if (!props.canWrite) return false
   if (blockers.value.length) return false
   if (primaryAction.value === 'approve' && anyStepFlagged.value) return false
+  if (primaryAction.value === 'publish' && !canPublish.value) return false
   if (primaryAction.value === 'publish' && !typedConfirmationOk.value) return false
   return true
 })
+
+// project.publish is its own RBAC operation, so a member may legitimately have
+// write access to the draft and still not be allowed to put it live. The
+// backend enforces it either way (project_revision.go); asking here keeps the
+// button from promising something the server will refuse.
+const canPublish = computed(() => !!props.project?.canPublishProject)
 
 // Why the button cannot fire, said out loud instead of hidden in a tooltip.
 const actionReason = computed(() => {
@@ -444,6 +451,7 @@ const actionReason = computed(() => {
     return t('project.publish.actions.approveBlockedTooltip')
   }
   if (primaryAction.value === 'publish') {
+    if (!canPublish.value) return t('project.publish.blocked.noPublishPermission')
     return typedConfirmationOk.value
       ? t('project.publish.blocked.irreversible')
       : t('project.publish.blocked.typeHandle')

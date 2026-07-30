@@ -893,6 +893,74 @@ func ProjectErrNotAllowedToManageMembers(mm ...*projectActionProps) *errors.Erro
 	return e
 }
 
+// ProjectErrNotAllowedToRevise returns "system:project.notAllowedToRevise" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrNotAllowedToRevise(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create a revision of this project", nil),
+
+		errors.Meta("type", "notAllowedToRevise"),
+		errors.Meta("resource", "system:project"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(projectLogMetaKey{}, "failed to revise {{project.handle}}; insufficient permissions"),
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notAllowedToRevise"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ProjectErrNotAllowedToPublish returns "system:project.notAllowedToPublish" as *errors.Error
+//
+// This function is auto-generated.
+func ProjectErrNotAllowedToPublish(mm ...*projectActionProps) *errors.Error {
+	var p = &projectActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to publish this project", nil),
+
+		errors.Meta("type", "notAllowedToPublish"),
+		errors.Meta("resource", "system:project"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(projectLogMetaKey{}, "failed to publish {{project.handle}}; insufficient permissions"),
+		errors.Meta(projectPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "project.errors.notAllowedToPublish"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ProjectErrInvalidRolePreset returns "system:project.invalidRolePreset" as *errors.Error
 //
 // This function is auto-generated.

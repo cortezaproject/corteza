@@ -36,10 +36,21 @@ func SetProjectRevisionDeps(
 }
 
 // CreateRevision clones the project and its namespace into a new draft revision.
+//
+// ACCESS CONTROL IS EXPLICIT HERE. The whole revision/publish surface is
+// hand-written rather than generated CRUD, so it gets none of the generated
+// wrapper's checkScope + CanXProject calls (compare project.gen.go) -- until
+// 2026-07-30 that meant any authenticated caller could branch or publish any
+// project, verified against a user holding no roles at all. Every entry point
+// in this file now names the permission it needs.
 func (svc *project) CreateRevision(ctx context.Context, projectID uint64) (rev *types.Project, err error) {
 	var parent *types.Project
 	if parent, err = loadProject(ctx, svc.store, projectID); err != nil {
 		return
+	}
+
+	if !svc.ac.CanReviseProject(ctx, parent) {
+		return nil, ProjectErrNotAllowedToRevise()
 	}
 
 	if parent.Status != types.ProjectStatusActive {
@@ -222,6 +233,12 @@ func (svc *project) ListRevisions(ctx context.Context, projectID uint64) (types.
 		return nil, err
 	}
 
+	// Read on the project the caller named. The chain is one resource as far
+	// as permissions go -- every row in it is a version of the same thing.
+	if !svc.ac.CanReadProject(ctx, p) {
+		return nil, ProjectErrNotAllowedToRead()
+	}
+
 	rootID := p.RootProjectID()
 	// Deliberately unsorted at the store: `revision` is not declared sortable
 	// in project.cue, so asking the store to order by it fails outright with
@@ -266,6 +283,14 @@ func (svc *project) DeploymentPlan(ctx context.Context, projectID uint64) (*type
 	if err != nil {
 		return nil, err
 	}
+
+	// A plan is a read: it enumerates what the revision holds and what
+	// publishing it would change. Gating it on publish rights would keep a
+	// reviewer from seeing what they are being asked to approve.
+	if !svc.ac.CanReadProject(ctx, draft) {
+		return nil, ProjectErrNotAllowedToRead()
+	}
+
 	if draft.Status != types.ProjectStatusDraft {
 		return nil, fmt.Errorf("deployment plan only available for draft projects")
 	}
@@ -298,6 +323,11 @@ func (svc *project) Publish(ctx context.Context, projectID uint64, req types.Pub
 	if err != nil {
 		return nil, err
 	}
+
+	if !svc.ac.CanPublishProject(ctx, draft) {
+		return nil, ProjectErrNotAllowedToPublish()
+	}
+
 	if draft.Status != types.ProjectStatusDraft {
 		return nil, fmt.Errorf("only draft projects can be published")
 	}

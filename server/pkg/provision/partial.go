@@ -22,6 +22,14 @@ type (
 //
 // It checks if there are any roles and any RBAC rules. If there are, we assume
 // the provision for the base dir was already done.
+//
+// The "already done" test is per-install, not per-file-version, so a base
+// config that gains grants for a NEW resource type would never reach an
+// existing database. That is how projects shipped without a single
+// corteza::system:project rule anywhere: the whole feature was usable only by
+// super-admin, which bypasses RBAC entirely. Hence the per-resource-type probe
+// below, in the shape provisionPartialAuthClients already established — it
+// fires once on an install that predates the resource type, then never again.
 func provisionPartialBase(ctx context.Context, s store.Storer, log *zap.Logger) bool {
 	rr, _, err := store.SearchRoles(ctx, s, types.RoleFilter{Deleted: filter.StateInclusive})
 	if err != nil {
@@ -41,7 +49,19 @@ func provisionPartialBase(ctx context.Context, s store.Storer, log *zap.Logger) 
 		return true
 	}
 
-	return false
+	// Deliberately keyed on the project resource type alone rather than on
+	// every type the base config mentions: a re-import restates the whole
+	// file, so a deployment that has removed one of the base grants would get
+	// it back. Once per newly-introduced resource type is a defensible price
+	// for the feature being reachable at all; once per anything would not be.
+	for _, r := range pp {
+		if rbac.ResourceType(r.Resource) == types.ProjectResourceType {
+			return false
+		}
+	}
+
+	log.Info("base config carries project permissions this install has never seen; re-importing it")
+	return true
 }
 
 // provisionPartialAuthClients checks for a specific set of auth client rbac rules

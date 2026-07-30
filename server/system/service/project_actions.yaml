@@ -107,6 +107,14 @@ errors:
     message: "not allowed to manage members of this project"
     log: "failed to manage members of {{project.handle}}; insufficient permissions"
 
+  - error: notAllowedToRevise
+    message: "not allowed to create a revision of this project"
+    log: "failed to revise {{project.handle}}; insufficient permissions"
+
+  - error: notAllowedToPublish
+    message: "not allowed to publish this project"
+    log: "failed to publish {{project.handle}}; insufficient permissions"
+
   - error: invalidRolePreset
     message: "invalid project member role preset"
     severity: warning

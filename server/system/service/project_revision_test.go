@@ -50,6 +50,24 @@ func (c fakeProjectNamespaceCloner) CloneFromStore(ctx context.Context, sourceNs
 	return dup, nil
 }
 
+// permissiveProjectAccess answers yes to everything. These tests are about the
+// revision mechanics, not about who may run them; the access checks themselves
+// are exercised where they belong (and the point of them is that they are in
+// the service at all — before 2026-07-30 CreateRevision and Publish asked
+// nothing, so a nil controller here would have panicked on nothing).
+type permissiveProjectAccess struct{}
+
+func (permissiveProjectAccess) CanCreateProject(context.Context) bool                  { return true }
+func (permissiveProjectAccess) CanSearchProjects(context.Context) bool                 { return true }
+func (permissiveProjectAccess) CanReadProject(context.Context, *types.Project) bool    { return true }
+func (permissiveProjectAccess) CanUpdateProject(context.Context, *types.Project) bool  { return true }
+func (permissiveProjectAccess) CanDeleteProject(context.Context, *types.Project) bool  { return true }
+func (permissiveProjectAccess) CanReviseProject(context.Context, *types.Project) bool  { return true }
+func (permissiveProjectAccess) CanPublishProject(context.Context, *types.Project) bool { return true }
+func (permissiveProjectAccess) CanManageMembersOnProject(context.Context, *types.Project) bool {
+	return true
+}
+
 // newTestProjectRevisionService wires a project service against a real
 // in-memory sqlite store (schema applied via store.Upgrade) plus the fake
 // namespace cloner above. This is the store.Storer seam: CreateRevision calls
@@ -69,6 +87,7 @@ func newTestProjectRevisionService(t *testing.T) (*project, store.Storer) {
 
 	svc := &project{
 		store:    s,
+		ac:       permissiveProjectAccess{},
 		services: &projectServices{nsSvc: fakeProjectNamespaceCloner{s: s}},
 	}
 	return svc, s
@@ -96,6 +115,49 @@ func seedRevisionProject(t *testing.T, s store.Storer, handle string) *types.Pro
 	}
 	require.NoError(t, store.CreateProject(ctx, s, p))
 	return p
+}
+
+// denyingProjectAccess refuses everything, for the tests that assert the
+// lifecycle endpoints ask at all.
+type denyingProjectAccess struct{ permissiveProjectAccess }
+
+func (denyingProjectAccess) CanReadProject(context.Context, *types.Project) bool    { return false }
+func (denyingProjectAccess) CanReviseProject(context.Context, *types.Project) bool  { return false }
+func (denyingProjectAccess) CanPublishProject(context.Context, *types.Project) bool { return false }
+
+// TestRevisionLifecycleChecksPermissions locks in the fix for the hole an
+// unauthorized-user probe found on 2026-07-30: CreateRevision, Publish,
+// DeploymentPlan and ListRevisions are hand-written rather than generated CRUD,
+// so they inherited none of the generated wrapper's access checks — a user
+// holding no roles at all could branch and publish any project in the system.
+func TestRevisionLifecycleChecksPermissions(t *testing.T) {
+	svc, s := newTestProjectRevisionService(t)
+	ctx := context.Background()
+
+	parent := seedRevisionProject(t, s, "project-revision-test-denied")
+
+	// Branch while allowed, so there is a draft to aim the publish checks at.
+	draft, err := svc.CreateRevision(ctx, parent.ID)
+	require.NoError(t, err)
+
+	svc.ac = denyingProjectAccess{}
+
+	_, err = svc.CreateRevision(ctx, parent.ID)
+	require.EqualError(t, err, "not allowed to create a revision of this project")
+
+	_, err = svc.Publish(ctx, draft.ID, types.PublishRequest{Confirm: true})
+	require.EqualError(t, err, "not allowed to publish this project")
+
+	_, err = svc.DeploymentPlan(ctx, draft.ID)
+	require.EqualError(t, err, "not allowed to read this project")
+
+	_, err = svc.ListRevisions(ctx, parent.ID)
+	require.EqualError(t, err, "not allowed to read this project")
+
+	// The publish check has to come before the status check, or the error tells
+	// a caller who may not read the project which statuses it is not in.
+	_, err = svc.Publish(ctx, parent.ID, types.PublishRequest{Confirm: true})
+	require.EqualError(t, err, "not allowed to publish this project")
 }
 
 // TestCreateRevision_EmptyHandleProjectsDoNotCollide is the exact scenario

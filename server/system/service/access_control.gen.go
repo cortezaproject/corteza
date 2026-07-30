@@ -622,6 +622,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "members.manage",
 		},
 		{
+			"type": types.ProjectResourceType,
+			"any":  types.ProjectRbacResource(0),
+			"op":   "revise",
+		},
+		{
+			"type": types.ProjectResourceType,
+			"any":  types.ProjectRbacResource(0),
+			"op":   "publish",
+		},
+		{
 			"type": types.ProjectAiSystemResourceType,
 			"any":  types.ProjectAiSystemRbacResource(0),
 			"op":   "read",
@@ -1824,6 +1834,20 @@ func (svc accessControl) CanDeleteProject(ctx context.Context, r *types.Project)
 // This function is auto-generated
 func (svc accessControl) CanManageMembersOnProject(ctx context.Context, r *types.Project) bool {
 	return svc.can(ctx, "members.manage", r)
+}
+
+// CanReviseProject checks if current user can create a revision of a project
+//
+// This function is auto-generated
+func (svc accessControl) CanReviseProject(ctx context.Context, r *types.Project) bool {
+	return svc.can(ctx, "revise", r)
+}
+
+// CanPublishProject checks if current user can publish a project revision
+//
+// This function is auto-generated
+func (svc accessControl) CanPublishProject(ctx context.Context, r *types.Project) bool {
+	return svc.can(ctx, "publish", r)
 }
 
 // CanReadProjectAiSystem checks if current user can read ai system
@@ -3035,6 +3059,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update":         true,
 			"delete":         true,
 			"members.manage": true,
+			"revise":         true,
+			"publish":        true,
 		}
 	case types.ProjectAiSystemResourceType:
 		return map[string]bool{

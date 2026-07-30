@@ -186,6 +186,15 @@ project: {
 			update: description:           "Update project"
 			delete: description:           "Delete project"
 			"members.manage": description: "Manage project members"
+			// Separate from update: branching and publishing are lifecycle
+			// operations on the whole chain, and a governance model that can
+			// say "may edit the draft" without also saying "may put it live"
+			// needs them to be grantable apart. Until 2026-07-30 neither had
+			// ANY check -- CreateRevision and Publish are hand-written (they
+			// are not generated CRUD) and called no access controller at all,
+			// so any authenticated caller could publish any project.
+			revise: description:  "Create a revision of a project"
+			publish: description: "Publish a project revision"
 		}
 	}
 
