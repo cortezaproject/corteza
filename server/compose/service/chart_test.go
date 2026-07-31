@@ -47,8 +47,9 @@ func TestCharts(t *testing.T) {
 	t.Run("crud", func(t *testing.T) {
 		req := require.New(t)
 		svc := &chart{
-			store: s,
-			ac:    &accessControl{rbac: &rbac.ServiceAllowAll{}},
+			store:    s,
+			ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
+			services: &chartServices{},
 		}
 		res, err := svc.Create(ctx, &types.Chart{Name: "My first chart", NamespaceID: namespaceID})
 		req.NoError(unwrapChartInternal(err))
@@ -78,12 +79,15 @@ func TestCharts(t *testing.T) {
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
-		// this works because we're allowed to do everything
-		res, err = svc.FindByID(ctx, namespaceID, res.ID)
-		req.NoError(unwrapChartInternal(err))
-		req.NotNil(res)
-		req.NotNil(res.DeletedAt)
+		// soft-deleted charts are excluded from direct lookups (they must
+		// agree with search paths, which never return deleted rows)
+		_, err = svc.FindByID(ctx, namespaceID, res.ID)
+		req.Error(unwrapChartInternal(err))
 
+		// the row itself is kept for undelete
+		raw, err := store.LookupComposeChartByID(ctx, s, res.ID)
+		req.NoError(err)
+		req.NotNil(raw.DeletedAt)
 	})
 }
 

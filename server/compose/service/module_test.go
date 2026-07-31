@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/logger"
 
@@ -39,7 +40,9 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 	var (
 		ctx = logger.ContextWithValue(context.Background(), log)
 		svc = &module{
-			services: &moduleServices{},
+			services: &moduleServices{
+				eventbus: eventbus.New(),
+			},
 		}
 	)
 
@@ -153,11 +156,15 @@ func TestModules(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(res)
 
-		// this works because we're allowed to do everything
-		res, err = svc.FindByID(ctx, ns.ID, res.ID)
+		// soft-deleted modules are excluded from direct lookups (they must
+		// agree with search paths, which never return deleted rows)
+		_, err = svc.FindByID(ctx, ns.ID, res.ID)
+		req.Error(err)
+
+		// the row itself is kept for undelete
+		raw, err := store.LookupComposeModuleByID(ctx, svc.store, res.ID)
 		req.NoError(err)
-		req.NotNil(res)
-		req.NotNil(res.DeletedAt)
+		req.NotNil(raw.DeletedAt)
 	})
 }
 
