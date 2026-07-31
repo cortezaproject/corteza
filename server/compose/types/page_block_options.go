@@ -9,7 +9,7 @@ type (
 	}
 
 	RecordListBlockOptions struct {
-		Module                   string            `json:"module"`
+		ModuleID                 string            `json:"moduleID"`
 		Fields                   []BlockField      `json:"fields"`
 		Prefilter                string            `json:"prefilter"`
 		Presort                  string            `json:"presort"`
@@ -37,7 +37,7 @@ type (
 	}
 
 	ChartBlockOptions struct {
-		Chart string `json:"chart"`
+		ChartID string `json:"chartID"`
 	}
 
 	AutomationBlockOptions struct {
@@ -67,30 +67,54 @@ type (
 	}
 
 	MetricItem struct {
-		Label    string `json:"label"`
-		ModuleID string `json:"moduleID"`
-		Filter   string `json:"filter"`
-		Field    string `json:"field"`
-		Reduce   string `json:"reduce"`
-		Prefix   string `json:"prefix"`
-		Suffix   string `json:"suffix"`
-		Format   string `json:"format"`
+		Label        string `json:"label"`
+		ModuleID     string `json:"moduleID"`
+		Filter       string `json:"filter"`
+		MetricField  string `json:"metricField"`
+		Operation    string `json:"operation"`
+		Prefix       string `json:"prefix"`
+		Suffix       string `json:"suffix"`
+		NumberFormat string `json:"numberFormat"`
+	}
+
+	ProgressValueOptions struct {
+		Default   float64 `json:"default"`
+		ModuleID  string  `json:"moduleID"`
+		Filter    string  `json:"filter"`
+		Field     string  `json:"field"`
+		Operation string  `json:"operation"`
+	}
+
+	ProgressThreshold struct {
+		Value   float64 `json:"value"`
+		Variant string  `json:"variant"`
+	}
+
+	ProgressDisplayOptions struct {
+		ShowValue    bool                `json:"showValue"`
+		ShowRelative bool                `json:"showRelative"`
+		ShowProgress bool                `json:"showProgress"`
+		Variant      string              `json:"variant"`
+		Thresholds   []ProgressThreshold `json:"thresholds"`
 	}
 
 	ProgressBlockOptions struct {
-		ModuleID string  `json:"moduleID"`
-		Filter   string  `json:"filter"`
-		Field    string  `json:"field"`
-		MinValue float64 `json:"minValue"`
-		MaxValue float64 `json:"maxValue"`
-		Value    float64 `json:"value"`
-		Label    string  `json:"label"`
+		Value    ProgressValueOptions   `json:"value"`
+		MinValue ProgressValueOptions   `json:"minValue"`
+		MaxValue ProgressValueOptions   `json:"maxValue"`
+		Display  ProgressDisplayOptions `json:"display"`
 	}
 
 	CommentBlockOptions struct {
-		ModuleID     string `json:"moduleID"`
-		CommentField string `json:"commentField"`
-		TitleField   string `json:"titleField"`
+		ModuleID        string `json:"moduleID"`
+		Filter          string `json:"filter"`
+		TitleField      string `json:"titleField"`
+		ContentField    string `json:"contentField"`
+		ReplyField      string `json:"replyField"`
+		ReferenceField  string `json:"referenceField"`
+		AttachmentField string `json:"attachmentField"`
+		ReactionsField  string `json:"reactionsField"`
+		SortDirection   string `json:"sortDirection"`
 	}
 
 	CalendarBlockOptions struct {
@@ -98,12 +122,19 @@ type (
 		Feeds       []CalendarFeed `json:"feeds"`
 	}
 
+	CalendarFeedOptions struct {
+		ModuleID  string `json:"moduleID"`
+		Color     string `json:"color"`
+		Prefilter string `json:"prefilter"`
+	}
+
 	CalendarFeed struct {
-		ModuleID   string `json:"moduleID"`
-		StartField string `json:"startField"`
-		EndField   string `json:"endField"`
-		TitleField string `json:"titleField"`
-		Color      string `json:"color"`
+		Resource   string              `json:"resource"` // "compose:record"
+		StartField string              `json:"startField"`
+		EndField   string              `json:"endField"`
+		TitleField string              `json:"titleField"`
+		AllDay     bool                `json:"allDay"`
+		Options    CalendarFeedOptions `json:"options"`
 	}
 
 	RecordOrganizerBlockOptions struct {
@@ -111,8 +142,8 @@ type (
 		GroupField       string `json:"groupField"`
 		LabelField       string `json:"labelField"`
 		DescriptionField string `json:"descriptionField"`
+		PositionField    string `json:"positionField"`
 		Filter           string `json:"filter"`
-		Sort             string `json:"sort"`
 	}
 
 	ChatbotInboxBlockOptions struct {
@@ -120,22 +151,30 @@ type (
 		StatusFilter  []string `json:"statusFilter"`
 		RefreshRate   int      `json:"refreshRate"`
 		AutoOpenFirst bool     `json:"autoOpenFirst"`
+		ShowFilter    bool     `json:"showFilter"`
 	}
 )
 
 // PageBlockOptionSchemas maps each block kind to a zero-value of its options struct.
 // The agentic blockSchema handler marshals these to show agents the correct field names and types.
+// Slice fields hold one zero-value element so the serialized schema exposes
+// the nested field names (a nil slice would marshal as null and hide them).
 var PageBlockOptionSchemas = map[string]any{
-	"RecordList":      RecordListBlockOptions{},
-	"Record":          RecordBlockOptions{},
-	"Chart":           ChartBlockOptions{},
-	"Automation":      AutomationBlockOptions{},
-	"Content":         ContentBlockOptions{},
-	"SocialFeed":      SocialFeedBlockOptions{},
-	"Metric":          MetricBlockOptions{},
-	"Progress":        ProgressBlockOptions{},
+	"RecordList": RecordListBlockOptions{
+		Fields:           []BlockField{{}},
+		SelectionButtons: []SelectionButton{{}},
+	},
+	"Record":     RecordBlockOptions{Fields: []BlockField{{}}},
+	"Chart":      ChartBlockOptions{},
+	"Automation": AutomationBlockOptions{Buttons: []AutomationButton{{}}},
+	"Content":    ContentBlockOptions{},
+	"SocialFeed": SocialFeedBlockOptions{},
+	"Metric":     MetricBlockOptions{Metrics: []MetricItem{{}}},
+	"Progress": ProgressBlockOptions{
+		Display: ProgressDisplayOptions{Thresholds: []ProgressThreshold{{}}},
+	},
 	"Comment":         CommentBlockOptions{},
-	"Calendar":        CalendarBlockOptions{},
+	"Calendar":        CalendarBlockOptions{Feeds: []CalendarFeed{{}}},
 	"RecordOrganizer": RecordOrganizerBlockOptions{},
-	"ChatbotInbox":    ChatbotInboxBlockOptions{},
+	"ChatbotInbox":    ChatbotInboxBlockOptions{ChatbotIDs: []string{}, StatusFilter: []string{}},
 }

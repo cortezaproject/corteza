@@ -40,7 +40,7 @@ func (h *pageHandler) register() {
 1. Record list page — shows all records in a table. Do NOT set the module parameter at page level. Add a RecordList block with moduleID in its options.
 2. Record detail page — the form for viewing or editing a single record. Set the module parameter at page level. Add a Record block with the fields to display. Only one record detail page can exist per module.
 
-The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Call compose_page_block_schema with the block kind to get its options before creating blocks.`),
+The layout grid is 48 columns wide (cell height 10px; default block size is w=24 h=18). A full-width block uses xywh [0,0,48,20]. Call compose_page_block_schema with the block kind to get its options before creating blocks.`),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("title", mcp.Required(), mcp.Description("Page title")),
 			mcp.WithString("handle", mcp.Description("URL-friendly identifier")),
@@ -48,7 +48,7 @@ The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Ca
 			mcp.WithString("parent", mcp.Description("Parent page title, handle, or ID. Omit for a root-level page.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID. Set ONLY for record pages (the single-record form). Do not set for record list pages — put the module in the RecordList block options instead.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation (default: true)")),
-			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Grid is 12 columns wide — full-width block: [{"kind":"RecordList","title":"My Block","xywh":[0,0,12,20],"options":{...}}]. Call compose_page_block_schema first for kind-specific options.`)),
+			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Grid is 48 columns wide — full-width block: [{"kind":"RecordList","title":"My Block","xywh":[0,0,48,20],"options":{...}}]. Call compose_page_block_schema first for kind-specific options.`)),
 			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Example: {"allowPersonalLayouts":true}`)),
@@ -67,7 +67,7 @@ The layout grid is 12 columns wide. A full-width block uses xywh [0,0,12,20]. Ca
 			mcp.WithString("parent", mcp.Description("New parent page title, handle, or ID. Pass empty string to move to root.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID for record detail pages. Pass empty string to clear.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation")),
-			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Merged by blockID — include blockID to update an existing block, omit blockID to add a new one. Grid is 12 columns wide; a full-width block uses xywh [0,0,12,20].`)),
+			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Merged by blockID — include blockID to update an existing block, omit blockID to add a new one. Grid is 48 columns wide; a full-width block uses xywh [0,0,48,20].`)),
 			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Replaces existing meta. Example: {"allowPersonalLayouts":true}`)),
