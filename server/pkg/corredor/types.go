@@ -121,9 +121,21 @@ func (s *scriptArgs) Decode(dec map[string][]byte) (err error) {
 
 	for k := range s.extra {
 		// @todo how do we omit one decoded by event?
-		if err = json.Unmarshal(dec[k], s.extra[k]); err != nil {
+		raw, has := dec[k]
+		if !has || len(raw) == 0 {
+			// Script only returns the keys it wants to; anything it left
+			// out keeps the value it was invoked with
+			continue
+		}
+
+		// Decoding into s.extra[k] directly is not possible; it holds a
+		// value, not a pointer to one
+		var val interface{}
+		if err = json.Unmarshal(raw, &val); err != nil {
 			return
 		}
+
+		s.extra[k] = val
 	}
 
 	return
