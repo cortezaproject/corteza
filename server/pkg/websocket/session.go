@@ -94,10 +94,11 @@ func (s *session) disconnect() {
 	s.l.Lock()
 	defer s.l.Unlock()
 
-	// Mark session as closed before closing channels
+	// Mark session as closed before tearing it down
 	s.closed.Store(true)
 
-	// Cancel context
+	// Cancel context; this is what stops the write loop and unblocks
+	// anyone waiting to queue a message
 	s.ctxCancel()
 
 	s.logger.Info("disconnected")
@@ -105,8 +106,9 @@ func (s *session) disconnect() {
 	// Close connection
 	_ = s.conn.Close()
 
-	close(s.send)
-	close(s.stop)
+	// send & stop are deliberately left open. Closing them races with
+	// Write() and panics on "send on closed channel"; they are garbage
+	// collected with the session instead.
 	s.conn = nil
 }
 
@@ -253,6 +255,10 @@ func (s *session) writeLoop() error {
 
 	for {
 		select {
+		case <-s.ctx.Done():
+			// session disconnected
+			return nil
+
 		case msg, ok := <-s.send:
 			if !ok {
 				// channel closed

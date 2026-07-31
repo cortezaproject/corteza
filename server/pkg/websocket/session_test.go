@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
@@ -112,6 +113,59 @@ func TestSession_procRawMessage(t *testing.T) {
 
 	token = []byte("two")
 	req.EqualError(s.procRawMessage(mockResponse(token)), "unauthorized: identity does not match")
+}
+
+func TestSession_writeDuringDisconnect(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		core, logs = observer.New(zap.DebugLevel)
+
+		s = session{
+			conn:   MockConn(),
+			logger: zap.New(core),
+			config: options.WebsocketOpt{},
+			send:   make(chan []byte, 512),
+			stop:   make(chan []byte, 1),
+		}
+
+		wg   sync.WaitGroup
+		halt = make(chan struct{})
+	)
+
+	s.ctx, s.ctxCancel = context.WithCancel(context.Background())
+
+	// hammer Write() from several goroutines while the session is torn
+	// down underneath them
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case <-halt:
+					return
+				default:
+					_, _ = s.Write([]byte("foo"))
+				}
+			}
+		}()
+	}
+
+	s.disconnect()
+	close(halt)
+	wg.Wait()
+
+	// disconnect must leave the channels open — closing them races with
+	// Write() and panics with "send on closed channel". stop is never
+	// written to, so a receive here only succeeds if it was closed.
+	select {
+	case _, ok := <-s.stop:
+		req.True(ok, "stop channel must not be closed by disconnect")
+	default:
+	}
+
+	req.Zero(logs.FilterMessageSnippet("recovering from websocket").Len(), "expected no recovered panics")
 }
 
 func TestSession_disconnected(t *testing.T) {
