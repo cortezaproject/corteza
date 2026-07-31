@@ -24,7 +24,8 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 
 - **Formatting**: prettier (FE) / gofmt (Go) on changed files only, after edits.
 - **Commits**: as the human user — no AI co-author trailers. Atomic logical
-  commits (docs, bugfix, cleanup separately). Imperative subject.
+  commits (docs, bugfix, cleanup separately). Imperative subject, short;
+  body only when the why isn't obvious from the diff (2–3 lines max).
 - **Tests**: run the touched package's suite (e.g. `cd client/web/unify && npx
   vitest run`) before committing behavior changes.
 - **i18n**: single merged `human-webapp` bundle — edit `locale/en/human-webapp/`;
