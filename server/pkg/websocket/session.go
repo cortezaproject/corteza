@@ -380,8 +380,8 @@ func errHandler(prefix string, err error) error {
 		return net.ErrClosed
 	}
 
-	// "close sent" occurs when writing to a connection that's closing
-	if err.Error() == "websocket: close sent" {
+	// close sent occurs when writing to a connection that's closing
+	if errors.Is(err, websocket.ErrCloseSent) {
 		return net.ErrClosed
 	}
 
