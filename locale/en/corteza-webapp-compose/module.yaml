@@ -216,6 +216,7 @@ edit:
       none: None
       addNewConstraint: Add new constraint
       uniqueValueConstraint: "Unique value constraint #{{index}}"
+      allFieldsMustMatch: A record is reported as a duplicate only when all of the fields below match the same existing record
       tooltip:
         performance: Using duplication detection will impact performance
 
