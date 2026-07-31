@@ -10,8 +10,13 @@ EXP_FILE="$STATE_DIR/token-exp"
 
 now=$(date +%s)
 if [[ -f "$TOKEN_FILE" && -f "$EXP_FILE" ]] && (($(cat "$EXP_FILE") > now + 60)); then
-  cat "$TOKEN_FILE"
-  exit 0
+  # trust but verify — CLI-minted tokens may live shorter than assumed
+  if curl -sf -m 5 -H "Authorization: Bearer $(cat "$TOKEN_FILE")" \
+    "$HUMAN_AUTH/oauth2/info" >/dev/null 2>&1; then
+    cat "$TOKEN_FILE"
+    exit 0
+  fi
+  rm -f "$TOKEN_FILE" "$EXP_FILE"
 fi
 
 save() { # $1=token $2=expires-in

@@ -97,10 +97,14 @@ setup:
 	@echo "---Installing Playwright browser---"
 	@cd $(CURDIR)/client/web/unify && npx playwright install chromium
 	@test -f $(CURDIR)/client/web/unify/.env.e2e || cp $(CURDIR)/client/web/unify/.env.e2e.example $(CURDIR)/client/web/unify/.env.e2e
+	@command -v jq >/dev/null 2>&1 || { \
+		echo "---Installing jq---"; \
+		sudo -n apt-get install -y jq 2>/dev/null || brew install jq 2>/dev/null || \
+		echo "  ! could not auto-install jq — install it manually (e.g. sudo apt-get install jq)"; }
 	@echo ""
 	@echo "Setup done. Remaining manual steps:"
 	@echo "  1. Fill client/web/unify/.env.e2e (dev URL + test login) — created if it was missing"
-	@echo "  2. First Claude Code session: approve the project hooks and the Playwright MCP server"
+	@echo "  2. First Claude Code session: approve the project hooks"
 	@echo "  3. Optional stricter local commit gate: make intent-hooks"
 
 # E2E (Playwright) — needs the dev stack running and client/web/unify/.env.e2e filled.

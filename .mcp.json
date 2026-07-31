@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    },
     "human": {
       "type": "http",
       "url": "http://localhost:1043/api/mcp",

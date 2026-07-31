@@ -109,8 +109,11 @@ $(RELEASE_PKEY):
 ########################################################################################################################
 # Development
 
+# Dev only — output is teed to build/dev.log so agents/tools can read server
+# errors (dev/agent/logs.sh). Production runs the binary directly (serve-api)
+# and is unaffected.
 watch: $(GIN)
-	$(GIN) $(GIN_ARGS) -- $(GIN_HUMAN_BIN_ARGS) serve
+	$(GIN) $(GIN_ARGS) -- $(GIN_HUMAN_BIN_ARGS) serve 2>&1 | tee build/dev.log
 
 dev: watch # Alias for watch
 
