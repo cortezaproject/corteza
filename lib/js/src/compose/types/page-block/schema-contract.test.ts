@@ -1,0 +1,90 @@
+import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
+import { PageBlockMaker, PageBlockRegistry } from './index'
+import Feed from './calendar/feed'
+import { PageBlockMetric } from './metric'
+
+/**
+ * Cross-language contract test.
+ *
+ * The server's compose_page_block_schema MCP tool serves the structs in
+ * server/compose/types/page_block_options.go, snapshotted (by a Go test) to
+ * server/compose/types/testdata/page_block_option_schemas.json. Agents build
+ * pages from that schema — so every option key it advertises MUST be a key
+ * these page-block classes (the webapp renderers' contract) actually read.
+ * A key the webapp ignores fails silently as broken UI (the historical
+ * `module` vs `moduleID` bug), which is exactly what this test catches.
+ *
+ * If the Go side changes, regenerate the snapshot first:
+ *   cd server && go test ./compose/types/ -run PageBlockOptionSchemasSnapshot -update-block-schemas
+ */
+
+const SNAPSHOT_URL = new URL(
+  '../../../../../../server/compose/types/testdata/page_block_option_schemas.json',
+  import.meta.url,
+)
+
+// Block kinds the server advertises but the unify webapp has no renderer
+// for. Shrink this list when a renderer lands; never grow it silently.
+const UNRENDERED_KINDS = ['SocialFeed']
+
+const schemas: Record<string, Record<string, unknown>> = JSON.parse(
+  readFileSync(fileURLToPath(SNAPSHOT_URL), 'utf8'),
+)
+
+const keysOf = (o: unknown): string[] => Object.keys(o as Record<string, unknown>)
+
+describe('server page-block schemas match webapp page-block contracts', () => {
+  for (const [kind, schema] of Object.entries(schemas)) {
+    if (UNRENDERED_KINDS.includes(kind)) {
+      it(`${kind}: stays unrendered (no webapp class registered)`, () => {
+        expect(PageBlockRegistry.get(kind)).toBeUndefined()
+      })
+      continue
+    }
+
+    it(`${kind}: advertised option keys exist in the webapp class defaults`, () => {
+      expect(PageBlockRegistry.get(kind), `no page-block class for kind ${kind}`).toBeDefined()
+
+      const feKeys = keysOf(PageBlockMaker({ kind }).options)
+      for (const key of keysOf(schema)) {
+        expect(feKeys, `${kind}.options.${key} is advertised by the server schema`).toContain(key)
+      }
+    })
+  }
+
+  it('Metric: advertised metric item keys exist in the metric defaults', () => {
+    const feMetricKeys = keysOf(new PageBlockMetric().makeMetric())
+    const [item] = schemas.Metric.metrics as Record<string, unknown>[]
+    for (const key of keysOf(item)) {
+      expect(feMetricKeys, `Metric metrics[].${key}`).toContain(key)
+    }
+  })
+
+  it('Calendar: advertised feed keys exist in the Feed class', () => {
+    const feed = new Feed()
+    const feFeedKeys = keysOf(feed)
+    const [item] = schemas.Calendar.feeds as Record<string, unknown>[]
+    for (const key of keysOf(item)) {
+      if (key === 'options') continue
+      expect(feFeedKeys, `Calendar feeds[].${key}`).toContain(key)
+    }
+    const feOptKeys = keysOf(feed.options)
+    for (const key of keysOf((item as { options: object }).options)) {
+      expect(feOptKeys, `Calendar feeds[].options.${key}`).toContain(key)
+    }
+  })
+
+  it('Progress: advertised nested option keys exist in the progress defaults', () => {
+    const options = PageBlockMaker({ kind: 'Progress' }).options as Record<string, object>
+    for (const nested of ['value', 'minValue', 'maxValue', 'display']) {
+      const feNested = keysOf(options[nested])
+      for (const key of keysOf((schemas.Progress as Record<string, object>)[nested])) {
+        if (nested === 'display' && key === 'thresholds') continue // FE default is an empty list
+        expect(feNested, `Progress ${nested}.${key}`).toContain(key)
+      }
+    }
+  })
+})

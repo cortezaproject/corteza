@@ -1,0 +1,150 @@
+{
+  "Automation": {
+    "buttons": [
+      {
+        "label": "",
+        "enabled": false,
+        "resourceType": "",
+        "script": "",
+        "workflowID": ""
+      }
+    ],
+    "sealed": false
+  },
+  "Calendar": {
+    "defaultView": "",
+    "feeds": [
+      {
+        "resource": "",
+        "startField": "",
+        "endField": "",
+        "titleField": "",
+        "allDay": false,
+        "options": {
+          "moduleID": "",
+          "color": "",
+          "prefilter": ""
+        }
+      }
+    ]
+  },
+  "Chart": {
+    "chartID": ""
+  },
+  "ChatbotInbox": {
+    "chatbotIDs": [],
+    "statusFilter": [],
+    "refreshRate": 0,
+    "autoOpenFirst": false,
+    "showFilter": false
+  },
+  "Comment": {
+    "moduleID": "",
+    "filter": "",
+    "titleField": "",
+    "contentField": "",
+    "replyField": "",
+    "referenceField": "",
+    "attachmentField": "",
+    "reactionsField": "",
+    "sortDirection": ""
+  },
+  "Content": {
+    "body": ""
+  },
+  "Metric": {
+    "metrics": [
+      {
+        "label": "",
+        "moduleID": "",
+        "filter": "",
+        "metricField": "",
+        "operation": "",
+        "prefix": "",
+        "suffix": "",
+        "numberFormat": ""
+      }
+    ]
+  },
+  "Progress": {
+    "value": {
+      "default": 0,
+      "moduleID": "",
+      "filter": "",
+      "field": "",
+      "operation": ""
+    },
+    "minValue": {
+      "default": 0,
+      "moduleID": "",
+      "filter": "",
+      "field": "",
+      "operation": ""
+    },
+    "maxValue": {
+      "default": 0,
+      "moduleID": "",
+      "filter": "",
+      "field": "",
+      "operation": ""
+    },
+    "display": {
+      "showValue": false,
+      "showRelative": false,
+      "showProgress": false,
+      "variant": "",
+      "thresholds": [
+        {
+          "value": 0,
+          "variant": ""
+        }
+      ]
+    }
+  },
+  "Record": {
+    "fields": [
+      {
+        "name": ""
+      }
+    ]
+  },
+  "RecordList": {
+    "moduleID": "",
+    "fields": [
+      {
+        "name": ""
+      }
+    ],
+    "prefilter": "",
+    "presort": "",
+    "perPage": 0,
+    "selectable": false,
+    "selectMode": "",
+    "editable": false,
+    "draggable": false,
+    "allowExport": false,
+    "hideRecordViewButton": false,
+    "hideRecordEditButton": false,
+    "hideRecordCloneButton": false,
+    "hideRecordReminderButton": false,
+    "selectionButtons": [
+      {
+        "label": "",
+        "buttonID": "",
+        "enabled": false
+      }
+    ]
+  },
+  "RecordOrganizer": {
+    "moduleID": "",
+    "groupField": "",
+    "labelField": "",
+    "descriptionField": "",
+    "positionField": "",
+    "filter": ""
+  },
+  "SocialFeed": {
+    "profileSourceField": "",
+    "profileUrl": ""
+  }
+}

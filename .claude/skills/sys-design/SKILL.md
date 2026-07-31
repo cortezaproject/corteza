@@ -54,27 +54,25 @@ Write a spec JSON and apply it with
 upsert by handle; format documented in the script header). It resolves
 `{"module": "<handle>"}` / `{"chart": "<handle>"}` refs to IDs.
 
-Key shapes (ground truth: `client/web/unify/src/sections/compose/components/PageBlocks/Blocks/*.vue`):
+**Block option shapes: query the server, don't trust prose.** The canonical
+contract is served by the MCP schema tool (CI-enforced against the actual
+webapp classes via `lib/js/.../page-block/schema-contract.test.ts`):
 
-- Blocks live on a **48-column grid** (`Grid.vue`: `COLS = 48`, cell height
-  10px, defaults w=24 h=18): `xywh: [x, y, w, h]` — required. Full-width
-  block = w 48; a tall list ≈ h 36.
-- `RecordList`: `options: {"module": "<handle>"}`.
-- `Chart`: `options: {"chart": "<chart-handle>"}` (chart resource; blocks
-  with invented options like `chartKind` render nothing).
-- `Record` (record pages only): `options: {}` shows all module fields, or
-  `{"fields": ["a","b"]}` for a subset.
-- `Metric`: `options: {"metrics": [{"label", "module": "<handle>",
-"metricField": "count", "operation": "", "filter": ""}]}` — per-metric
-  moduleID; for sums use `"metricField": "<numField>", "operation": "sum"`.
-- Record page = page with `"module": "<handle>"` + a Record block,
-  `"visible": false`. Dashboards: `"visible": true`, optional
+```sh
+dev/agent/mcp.py call compose_page_block_schema '{"kind":"Metric"}'
+dev/agent/mcp.py schema compose_chart_create   # chart config contract
+dev/agent/mcp.py schema compose_page_create    # grid + page-type guidance
+```
+
+What the schemas cannot express (layout semantics):
+
+- **48-column grid**, cell height 10px, defaults w=24 h=18; `xywh` required.
+  Blocks CLIP silently when too short — Metric h≥20, RecordList/Chart h≥30.
+- Record page = page with `"module": "<handle>"` + a Record block (`{}` =
+  all fields), `"visible": false`. Dashboards: `"visible": true`, optional
   `"icon": "font-awesome://<name>"`, `"weight"` for nav order.
-- Chart resource config:
-  `{"reports": [{"module": "<handle>", "filter": "", "dimensions":
-[{"field", "modifier": "(no grouping / buckets)", "conditions": {}}],
-"metrics": [{"field": "count", "type": "doughnut|bar|line|pie"}]}],
-"colorScheme": "tableau.Tableau10"}`.
+- In pagebuild specs, `{"module"/"chart": "<handle>"}` are resolved to
+  `moduleID`/`chartID`; via MCP/REST you pass real IDs yourself.
 
 **Never create pages via envoy YAML import** — block refs stay unresolved
 (handles instead of IDs) and the pages are broken in the UI.
