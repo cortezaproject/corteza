@@ -19,6 +19,7 @@ func Base(ctx context.Context, app serviceInitializer) (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		Records(ctx, app),
+		Namespaces(ctx, app),
 	)
 
 	return

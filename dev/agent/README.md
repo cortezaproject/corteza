@@ -35,7 +35,8 @@ Requires: `curl`, `python3` (no jq dependency), a built server binary in
 | `token.sh` | print a valid bearer token (cached ~2h; oauth2 flow, CLI-jwt fallback) |
 | `api.sh METHOD PATH [curl args…]` | authenticated request, jq-pretty output |
 | `seed.sh [--force] [fixture…]` | import `dev/fixtures/` (skips seeded fixtures unless `--force`) |
-| `cleanup.sh` | delete all `agent-*` compose namespaces |
+| `cleanup.sh [--purge]` | delete all `agent-*` compose namespaces; `--purge` also hard-deletes soft-deleted corpses (dev-only server CLI) |
+| `logs.sh [-n N] [-f] [PATTERN]` | read the dev server log (`make watch` tees to `server/build/dev.log`) |
 | `pagebuild.py SLUG SPEC.json` | build/refresh charts + pages via REST (spec format in its header) |
 | `mcp.py tools\|schema\|call` | call Human's own MCP server (`/api/mcp`: compose CRUD incl. charts, TAQ/workflow exec) |
 | `verify-ui.mjs PATH…` | render-verify webapp paths in headless Chromium as agent-ui; screenshots + console/page errors |
