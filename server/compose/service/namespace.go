@@ -608,6 +608,15 @@ func (svc namespace) lookup(ctx context.Context, lookup func(*namespaceActionPro
 
 		aProps.setNamespace(ns)
 
+		// Soft-deleted namespaces are excluded from every search path;
+		// returning them from direct lookups made by-ID reads disagree
+		// with lists (a deleted namespace stayed reachable by ID but was
+		// invisible by slug/handle). Undelete does not pass through here
+		// (updater uses loadNamespace directly).
+		if ns.DeletedAt != nil {
+			return NamespaceErrNotFound()
+		}
+
 		if !svc.ac.CanReadNamespace(ctx, ns) {
 			return NamespaceErrNotAllowedToRead()
 		}
