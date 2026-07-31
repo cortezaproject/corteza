@@ -170,6 +170,12 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
 
         existingVv := vv.FilterByName(c.Attribute)
         moduleField := rec.module.Fields.FindByName(c.Attribute)
+        if moduleField == nil {
+            // Field is gone from the module but the record still carries its
+            // value; the constraint can not be evaluated, so it cannot match.
+            results = append(results, constraintResult{matched: false})
+            continue
+        }
 
         if moduleField.Multi && c.IsAllEqual() {
             multiValErr := rule.multiValueAllEqual(ctx, ls, c, rvv, existingVv)

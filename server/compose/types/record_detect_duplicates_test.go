@@ -538,6 +538,47 @@ func TestDeDupRule_checkCompositeConstraintDuplication(t *testing.T) {
 	}
 }
 
+func TestDeDupRule_checkDuplicationOnRemovedField(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		ls  = locale.Global()
+
+		rule = DeDupRule{
+			Name:   "removed field rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute: "gone",
+					Modifier:  caseSensitive,
+				},
+			},
+		}
+
+		// module no longer has the "gone" field, but the record and the
+		// existing values still carry it
+		rec = Record{
+			ID: 1,
+			module: &Module{
+				ID:     1,
+				Fields: ModuleFieldSet{&ModuleField{Name: "name"}},
+			},
+			Values: RecordValueSet{
+				&RecordValue{RecordID: 1, Name: "gone", Value: "same"},
+			},
+		}
+
+		vv = RecordValueSet{
+			&RecordValue{RecordID: 2, Name: "gone", Value: "same"},
+		}
+	)
+
+	req.NotPanics(func() {
+		out := rule.checkDuplication(ctx, ls, rec, vv)
+		req.True(out.IsValid(), "expected no duplication errors but got: %v", out)
+	})
+}
+
 func TestDeDupRule_checkMultiValueEqualNoDuplication(t *testing.T) {
 	var (
 		req = require.New(t)
