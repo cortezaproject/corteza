@@ -89,6 +89,7 @@ edit:
     uniqueValues:
       add: Add
       addNewConstraint: Add new constraint
+      allFieldsMustMatch: A record is reported as a duplicate only when every field listed below matches the same existing record. Fields in one constraint are checked together, not independently.
       caseSensitive: Case sensitive
       duplicationDetection: Duplication detection
       equal: Equal

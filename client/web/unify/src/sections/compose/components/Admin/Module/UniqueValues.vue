@@ -58,6 +58,13 @@
         </FormField>
       </div>
 
+      <p
+        v-if="rule.constraints && rule.constraints.length > 1"
+        class="text-sm text-muted-color mb-3 mt-0"
+      >
+        {{ $t('module.edit.config.uniqueValues.allFieldsMustMatch') }}
+      </p>
+
       <DataTable
         v-if="rule.constraints && rule.constraints.length > 0"
         :value="rule.constraints"
