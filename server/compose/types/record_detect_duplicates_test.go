@@ -513,6 +513,15 @@ func TestDeDupRule_checkCompositeConstraintDuplication(t *testing.T) {
 				},
 				expectErr: false,
 			},
+			{
+				name: "composite with missing field - existing record has no email",
+				rule: compositeRule,
+				rec:  makeRecord(1, "John Doe", "john@test.com"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "John Doe"},
+				},
+				expectErr: false,
+			},
 		}
 	)
 
@@ -527,6 +536,51 @@ func TestDeDupRule_checkCompositeConstraintDuplication(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeDupRule_checkMultiValueEqualNoDuplication(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		ls  = locale.Global()
+
+		tagRule = DeDupRule{
+			Name:   "tag rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute:  "tags",
+					Modifier:   caseSensitive,
+					MultiValue: equal,
+				},
+			},
+		}
+
+		rec = Record{
+			ID: 1,
+			module: &Module{
+				ID: 1,
+				Fields: ModuleFieldSet{
+					&ModuleField{Name: "tags", Multi: true},
+				},
+			},
+			Values: RecordValueSet{
+				&RecordValue{RecordID: 1, Name: "tags", Value: "one"},
+				&RecordValue{RecordID: 1, Name: "tags", Value: "two"},
+			},
+		}
+
+		vv = RecordValueSet{
+			&RecordValue{RecordID: 2, Name: "tags", Value: "three"},
+			&RecordValue{RecordID: 2, Name: "tags", Value: "four"},
+		}
+	)
+
+	// none of the values match, so nothing may be reported — an empty
+	// RecordValueError must not end up in the set
+	out := tagRule.checkDuplication(ctx, ls, rec, vv)
+	req.True(out.IsValid(), "expected no duplication errors but got: %v", out)
+	req.Zero(out.Len())
 }
 
 func Test_matchValue(t *testing.T) {
