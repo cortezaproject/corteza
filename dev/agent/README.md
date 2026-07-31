@@ -37,7 +37,8 @@ Requires: `curl`, `python3` (no jq dependency), a built server binary in
 | `seed.sh [--force] [fixture…]` | import `dev/fixtures/` (skips seeded fixtures unless `--force`) |
 | `cleanup.sh` | delete all `agent-*` compose namespaces |
 | `pagebuild.py SLUG SPEC.json` | build/refresh charts + pages via REST (spec format in its header) |
-| `mcp.py tools\|schema\|call` | call Human's own MCP server (`/api/mcp`, 24 tools: compose CRUD, TAQ/workflow exec, discovery) |
+| `mcp.py tools\|schema\|call` | call Human's own MCP server (`/api/mcp`: compose CRUD incl. charts, TAQ/workflow exec) |
+| `verify-ui.mjs PATH…` | render-verify webapp paths in headless Chromium as agent-ui; screenshots + console/page errors |
 
 For interactive Claude Code sessions, `.mcp.json` registers the `human` MCP
 server; it needs `HUMAN_MCP_TOKEN` exported before starting Claude Code:

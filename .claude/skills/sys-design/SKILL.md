@@ -38,6 +38,15 @@ All handles/slugs `agent-` prefixed. Base: `dev/agent/api.sh`.
 string; Record-ref values are the target recordID string. Create referenced
 records first, keep an ident→recordID map for refs.
 
+## Alternative surface: Human's own MCP tools
+
+`dev/agent/mcp.py tools|schema|call` reaches the server's first-party MCP
+tools (compose namespace/module/record/page/chart CRUD, TAQ/workflow exec).
+They resolve names/handles server-side and are the product's official agent
+surface — prefer them when they cover the operation; REST/api.sh covers the
+rest. Known caveat: namespaces created via CLI import may not resolve by
+slug through MCP lookup or for some users (server bug, logged).
+
 ## Phase 4 — Charts + pages (use pagebuild, don't hand-roll)
 
 Write a spec JSON and apply it with
@@ -80,6 +89,11 @@ verify with a GET of an existing resource before inventing shapes.
 
 - Re-fetch pages/charts/records via API; confirm every block option holds a
   real ID (a handle string left in options = broken).
+- **Render-verify in a real browser** (standard final gate — API checks
+  cannot see clipped blocks, broken charts, or raw IDs in the UI):
+  `node dev/agent/verify-ui.mjs '/compose/namespace/<slug>/pages/<pageID>'`
+  then Read the screenshot it prints and check every block renders with
+  data. Fix and re-run until OK.
 - Tell the human what to eyeball in the webapp (namespace name, pages).
 - If the system should persist as a fixture: put modules+records in
   `dev/fixtures/<slug>/def.yaml` + CSVs, presentation in `ui.json`
