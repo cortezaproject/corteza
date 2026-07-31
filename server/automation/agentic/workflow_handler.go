@@ -28,6 +28,7 @@ func WorkflowHandler(reg toolRegistrar) *workflowHandler {
 func (h *workflowHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_workflow_lookup",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("List all workflows or look up a specific one by ID or handle. Omit 'workflow' to list all."),
 			mcp.WithString("workflow", mcp.Description("Workflow ID as string (to prevent precision loss) or handle. Omit to list all.")),
 			mcp.WithString("query", mcp.Description("Search query to filter workflows by handle")),

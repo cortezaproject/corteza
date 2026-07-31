@@ -34,6 +34,7 @@ func TAQHandler(reg toolRegistrar) *taqHandler {
 func (h *taqHandler) register() {
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_lookup",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("List all TAQs or look up a specific one by ID or handle. Omit 'taq' to list all."),
 			mcp.WithString("taq", mcp.Description("TAQ ID as string (to prevent precision loss) or handle. Omit to list all.")),
 			mcp.WithString("query", mcp.Description("Search query to filter TAQs")),
@@ -43,6 +44,7 @@ func (h *taqHandler) register() {
 	)
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_executions",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("List executions for a TAQ"),
 			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
 		),
@@ -51,6 +53,7 @@ func (h *taqHandler) register() {
 	)
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("automation_taq_execution_trace",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Get the execution trace for a specific TAQ execution"),
 			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
 			mcp.WithString("executionID", mcp.Required(), mcp.Description("Execution ID")),

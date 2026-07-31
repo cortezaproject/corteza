@@ -26,6 +26,7 @@ func PageHandler(reg toolRegistrar) *pageHandler {
 func (h *pageHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_lookup",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up pages in a namespace. Omit the page argument to get the full page hierarchy as a nested tree (parent/child relationships and navigation order). Provide a title, handle, or ID to get a single page with its full block configuration."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("page", mcp.Description("Page title, handle, or ID. Omit to get the namespace's page tree.")),
@@ -40,7 +41,7 @@ func (h *pageHandler) register() {
 1. Record list page — shows all records in a table. Do NOT set the module parameter at page level. Add a RecordList block with moduleID in its options.
 2. Record detail page — the form for viewing or editing a single record. Set the module parameter at page level. Add a Record block with the fields to display. Only one record detail page can exist per module.
 
-The layout grid is 48 columns wide (cell height 10px; default block size is w=24 h=18). A full-width block uses xywh [0,0,48,20]. Call compose_page_block_schema with the block kind to get its options before creating blocks.`),
+The layout grid is 48 columns wide (cell height 10px; default block size is w=24 h=18). A full-width block uses xywh [0,0,48,20]. Blocks CLIP their content when too short and fail silently as blank UI — give Metric blocks h>=20 and RecordList/Chart blocks h>=30. Call compose_page_block_schema with the block kind to get its options before creating blocks.`),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("title", mcp.Required(), mcp.Description("Page title")),
 			mcp.WithString("handle", mcp.Description("URL-friendly identifier")),
@@ -97,7 +98,8 @@ The layout grid is 48 columns wide (cell height 10px; default block size is w=24
 	)
 	h.reg.RegisterHiddenTool(
 		mcp.NewTool("compose_page_block_schema",
-			mcp.WithDescription("Get real examples of a page block kind from existing pages. Returns actual block configurations from the system so you know what options to use. Call this before creating blocks of an unfamiliar kind."),
+			mcp.WithReadOnlyHintAnnotation(true),
+			mcp.WithDescription(`Get the options structure for a page block kind — field names and types as a zero-value skeleton (not examples from live pages). Call this before creating blocks of an unfamiliar kind. Semantics the skeleton cannot express: Metric items use metricField "count" with empty operation for record counts, or a numeric field with operation sum/avg/min/max; Chart blocks reference an existing chart resource by chartID; RecordList/Record moduleID/fields take IDs and field names from compose_module_lookup.`),
 			mcp.WithString("kind", mcp.Required(), mcp.Description("Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed")),
 		),
 		"Get page block schema",

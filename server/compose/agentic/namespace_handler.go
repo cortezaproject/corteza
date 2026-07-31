@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strconv"
 
-	a "github.com/crusttech/human/server/pkg/auth"
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	a "github.com/crusttech/human/server/pkg/auth"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -19,8 +19,8 @@ type agentService interface {
 }
 
 type namespaceHandler struct {
-	reg     toolRegistrar
-	agents  agentService
+	reg    toolRegistrar
+	agents agentService
 }
 
 func NamespaceHandler(reg toolRegistrar, agents agentService) *namespaceHandler {
@@ -32,6 +32,7 @@ func NamespaceHandler(reg toolRegistrar, agents agentService) *namespaceHandler 
 func (h *namespaceHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_namespace_lookup",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up namespaces. Call this whenever the user asks what they have, what exists, what's set up, or anything about the current state of their data. Also call this to resolve a namespace before any other operation."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 		),

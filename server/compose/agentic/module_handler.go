@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	a "github.com/crusttech/human/server/pkg/auth"
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	a "github.com/crusttech/human/server/pkg/auth"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -26,6 +26,7 @@ func ModuleHandler(reg toolRegistrar, agents agentService) *moduleHandler {
 func (h *moduleHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_module_lookup",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up modules and their fields in a namespace. To list ALL modules in a namespace, omit the module argument. To get details on a specific module, provide its name or handle. Never guess module names — always list first if you are unsure what exists."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID. Omit to list all modules in the namespace.")),

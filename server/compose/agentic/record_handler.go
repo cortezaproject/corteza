@@ -32,6 +32,7 @@ func RecordHandler(reg toolRegistrar) *recordHandler {
 func (h *recordHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_lookup",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up a record by ID, or list/filter records in a module. Provide 'recordID' to fetch one record. Omit 'recordID' and use 'filter' to search by field values (e.g. \"name = 'John'\"). Do NOT call this before creating a record — only use it when the user explicitly asks to search or check for existing records."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
@@ -53,7 +54,7 @@ func (h *recordHandler) register() {
 	)
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_update",
-			mcp.WithDescription("Update an existing record. Requires a record ID — use discovery_search to find it if unknown."),
+			mcp.WithDescription("Update an existing record. Requires a record ID — use compose_record_lookup with a filter to find it if unknown."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
@@ -64,7 +65,7 @@ func (h *recordHandler) register() {
 	)
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_delete",
-			mcp.WithDescription("Delete a record by ID. Requires a record ID — use discovery_search to find it if unknown."),
+			mcp.WithDescription("Delete a record by ID. Requires a record ID — use compose_record_lookup with a filter to find it if unknown."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),

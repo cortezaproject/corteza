@@ -29,7 +29,9 @@ Spec format:
 
 Anywhere in chart configs / block options, {"module": "<handle>"} and
 {"chart": "<handle>"} are replaced with resolved {"moduleID"}/{"chartID"}.
-Unknown handles are an error. Every block must have xywh (12-col grid).
+Unknown handles are an error. Every block must have xywh (48-col grid,
+cell height 10px; blocks CLIP when too short — Metric needs h>=20,
+RecordList/Chart h>=30).
 """
 
 import json

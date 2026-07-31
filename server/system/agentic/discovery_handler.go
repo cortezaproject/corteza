@@ -82,6 +82,7 @@ func (h *discoveryHandler) isAvailable() bool {
 func (h *discoveryHandler) register() {
 	h.reg.RegisterToolWithAvailability(
 		mcp.NewTool("discovery_search",
+			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Search or list records you have access to. Use this when the user asks to find, list, or show existing records. Only namespaces listed in your DISCOVERY ACCESS section are permitted — the executor will deny any other namespace. Leave query empty to list all accessible records, or provide a specific field value (name, email, phone) to search within them."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("The exact namespace name from your DISCOVERY ACCESS section. Do not use module names here.")),
 			mcp.WithString("module", mcp.Description("The exact module name from your DISCOVERY ACCESS section. Leave empty to search across all accessible modules in the namespace.")),
