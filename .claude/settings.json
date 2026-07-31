@@ -1,9 +1,1 @@
-{
-  "permissions": {
-    "deny": [
-      "Bash(npx playwright test*)",
-      "Bash(npx playwright*)",
-      "Bash(make e2e*)"
-    ]
-  }
-}
+
