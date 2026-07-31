@@ -260,6 +260,12 @@ func (svc chart) lookup(ctx context.Context, namespaceID uint64, lookup func(*ch
 
 		aProps.setChart(c)
 
+		// soft-deleted charts are excluded from all search paths; direct
+		// lookups must agree (undelete loads via updater, not here)
+		if c.DeletedAt != nil {
+			return ChartErrNotFound()
+		}
+
 		if !svc.ac.CanReadChart(ctx, c) {
 			return ChartErrNotAllowedToRead()
 		}

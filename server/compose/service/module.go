@@ -680,6 +680,12 @@ func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*m
 
 		aProps.setModule(m)
 
+		// soft-deleted modules are excluded from all search paths; direct
+		// lookups must agree (undelete loads via updater, not here)
+		if m.DeletedAt != nil {
+			return ModuleErrNotFound()
+		}
+
 		if !svc.ac.CanReadModule(ctx, m) {
 			return ModuleErrNotAllowedToRead()
 		}

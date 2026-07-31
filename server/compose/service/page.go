@@ -249,6 +249,12 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 			return err
 		}
 
+		// soft-deleted pages are excluded from all search paths; direct
+		// lookups must agree (undelete loads via updater, not here)
+		if p.DeletedAt != nil {
+			return PageErrNotFound()
+		}
+
 		p.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPage(p)
