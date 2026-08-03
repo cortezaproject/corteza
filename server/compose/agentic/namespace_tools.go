@@ -30,7 +30,7 @@ func (h *namespaceHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_namespace_create",
-			mcp.WithDescription("Create a new namespace. A namespace is a top-level container for modules and records in Corteza Compose."),
+			mcp.WithDescription("Create a new namespace. A namespace is a top-level container for modules and records in Human Compose."),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name for the namespace")),
 			mcp.WithString("slug", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and hyphens only)")),
 			mcp.WithBoolean("enabled", mcp.Description("Whether the namespace is enabled (default: true)")),
