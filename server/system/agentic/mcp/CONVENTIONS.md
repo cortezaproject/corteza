@@ -353,11 +353,32 @@ sense to someone who can read the handler has failed.
 
 Annotations are never hand-written — `WithRisk` owns them.
 
-### 8.6 When the service has no RBAC
+### 8.6 Confirm the service authorizes, before writing the tool
 
-**Mechanical rule, no judgement required:** if the target service method
-contains no `ac.Can*` call, do not write the tool. File it as a gap in the
-coverage matrix instead.
+A handler passes the caller's context to a service and returns what it gets.
+That is only safe if the service authorizes. Most do; some do not; and the
+check is not always RBAC.
+
+**Mechanical rule, no judgement required.** Read the service method. It must do
+at least one of:
+
+1. call `ac.Can*`, or
+2. constrain the result by the caller's identity — an ownership or assignee
+   scope applied inside the service.
+
+If it does neither, do not write the tool. File it as a gap in the coverage
+matrix.
+
+Both forms are real. `system/service/reminder.go` has exactly one `ac.Can*`
+call (`CanAssignReminder`, and only on assignment) yet is correctly scoped:
+`onLookup` returns `ReminderErrNotAllowedToRead` unless the reminder is
+assigned to the caller, and `onSearch` sets `filter.Check` to the same
+predicate. An `ac.Can*`-only rule would have rejected it, and would have taught
+every fan-out agent to reject every ownership-scoped service.
+
+The failing shape is neither: `system/service/chatbot_session.go` `Search` is a
+bare `store.SearchChatbotSessions` with no check of any kind — the
+authorization lives in the REST controller, which a tool does not go through.
 
 Seed deny-list: `chatbotSession`, `chatbotPreview`, `authClient.ExposeSecret`,
 `role.Membership`.
