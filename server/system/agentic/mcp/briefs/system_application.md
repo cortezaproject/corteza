@@ -68,15 +68,33 @@ single-fetch only.
 
 ## 6. Traps
 
-**`Reorder` takes an order of IDs** and, judging by `onReorder`, re-weights
-what it is given. Read it against the page-reorder bug that was just fixed in
-`store/adapters/rdbms/custom_compose_pages.go`, where reordering a subset
-silently re-weighted everything: check whether `onReorder` has the same shape.
-If it does, that is a bug to report, not a tool to write around.
+**`Reorder` re-weights every application, and that is correct here.**
+Investigated: `onReorder` (`application.go:199`) checks
+`CanUpdateApplication` per ID, then `store.ReorderApplications`
+(`store/adapters/rdbms/custom_applications.go:33`) searches with an empty
+filter. That is *not* the page-reorder bug — applications are a flat global
+list with no parent dimension, so "everything" is the right scope. The page bug
+was a filter that failed to constrain to root pages; there is nothing analogous
+to constrain to.
 
-**Flags may be per-user.** See §2. Until `checkFlag` is understood, do not
-write `flag`/`unflag` tools — a tool that quietly writes per-user state while
-appearing to configure a shared resource is worse than a missing tool.
+**But leftover ordering is non-deterministic, in both.** Applications not named
+in `order` are re-weighted by ranging over a `map[uint64]bool`
+(`custom_applications.go:70`), and Go randomises map iteration. So reordering a
+subset silently shuffles everything else, differently each call.
+`custom_compose_pages.go` has the identical pattern and it survived the scope
+fix. The `reorder` tool's description must tell the caller to pass the complete
+list, and this is worth fixing in the store for both resources.
+
+**Flags are per-user *or* global, and the caller picks by an argument.**
+Investigated: `checkFlag` (`application.go:212`) branches on `ownedBy` — zero
+means a global flag gated by `CanGlobalApplicationFlag`, non-zero must equal
+the caller's own identity and is gated by `CanSelfApplicationFlag`. So a flag
+tool has two distinct modes with different permissions and different blast
+radius, and a caller cannot flag on someone else's behalf.
+
+If you write flag tools, the mode must be explicit in the schema rather than
+inferred from an ID, and the description must say which one writes shared
+state. A single tool that silently picks a mode is the outcome to avoid.
 
 **No interface to extend.** `DefaultApplication` is a concrete pointer. If a
 needed method is unexported, raise it rather than adding one, and do not reach

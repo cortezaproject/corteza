@@ -455,8 +455,24 @@ The failing shape is neither: `system/service/chatbot_session.go` `Search` is a
 bare `store.SearchChatbotSessions` with no check of any kind — the
 authorization lives in the REST controller, which a tool does not go through.
 
-Seed deny-list: `chatbotSession`, `chatbotPreview`, `authClient.ExposeSecret`,
-`role.Membership`.
+Seed deny-list: `chatbotSession`, `chatbotPreview`, `role.Membership`.
+
+### 8.6b Disclosure is a separate reason not to write a tool
+
+A method can pass §8.6 and still not deserve a tool.
+`authClient.ExposeSecret` is the case: it *is* authorized — `lookupByID` calls
+`CanReadAuthClient` — but it returns a working credential, and read permission
+is a lower bar than a credential deserves. `LookupByID` deliberately blanks
+`Secret` before returning; `ExposeSecret` does not.
+
+The disclosure is also irreversible in a way a write is not: once a secret is
+in a model's context it is in the transcript and the logs. Same reasoning
+excludes `user.SetPassword`, which is authorized correctly and which no agent
+workflow should be performing without a human in the loop.
+
+**Rule:** a tool that returns a credential, or sets one, is not written. File
+it in the coverage matrix with the reason, so the gap reads as deliberate
+rather than missed.
 
 ### 8.7 Errors
 
