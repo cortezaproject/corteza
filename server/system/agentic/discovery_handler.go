@@ -141,7 +141,11 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 	}
 
 	query := toolkit.Str(args, "query")
-	size := toolkit.Str(args, "size")
+
+	// toolkit.Page for the limit only — the discovery service offsets with
+	// `from` and returns no cursor, so Page.Cursor is deliberately unused and
+	// no pageCursor param is declared. See discovery_tools.go.
+	size := strconv.FormatUint(uint64(toolkit.Page(args).Limit), 10)
 
 	// namespaceIDs/moduleIDs are injected by the in-process executor after it
 	// has checked the agent's allow-list against the declared namespace/module
@@ -162,10 +166,6 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 			return nil, err
 		}
 		namespaceIDs, moduleIDs = nsIDs, modIDs
-	}
-
-	if size == "" {
-		size = "10"
 	}
 
 	identity := a.GetIdentityFromContext(ctx)

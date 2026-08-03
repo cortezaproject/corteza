@@ -10,10 +10,12 @@ import (
 // system/agentic, and hardcoded in eight places in runtime/executor.go. It is
 // kept rather than renamed.
 //
-// Known divergence, recorded in CONVENTIONS §2.3 and deliberately not fixed
-// here: the 'namespace' and 'module' params declared below are never read by
-// the handler. It reads 'namespaceIDs'/'moduleIDs', which only the in-process
-// executor injects, so over HTTP the declared args are silently ignored.
+// It declares no pageCursor, and that is deliberate rather than an oversight.
+// The backing discovery service is an Elasticsearch-style API that offsets with
+// `from`; it has no cursor to hand back, so a pageCursor param would advertise
+// paging that cannot work. `limit` is declared because the service does cap
+// result size. See §8.1 for why an advertised-but-broken cursor is worse than
+// no cursor.
 //
 // This file holds declarations only. Implementations are in
 // discovery_handler.go, in the same order.
@@ -21,11 +23,21 @@ import (
 func (h *discoveryHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("discovery_search",
-			mcp.WithDescription("Search or list records you have access to. Use this when the user asks to find, list, or show existing records. Only namespaces listed in your DISCOVERY ACCESS section are permitted — the executor will deny any other namespace. Leave query empty to list all accessible records, or provide a specific field value (name, email, phone) to search within them."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("The exact namespace name from your DISCOVERY ACCESS section. Do not use module names here.")),
-			mcp.WithString("module", mcp.Description("The exact module name from your DISCOVERY ACCESS section. Leave empty to search across all accessible modules in the namespace.")),
-			mcp.WithString("query", mcp.Description("A specific value to search for inside record fields (e.g. a name, email, phone). Leave empty to list all records.")),
-			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
+			mcp.WithDescription(
+				"Search or list records you have access to. Use this when the user asks to find, list, or "+
+					"show existing records. Leave 'query' empty to list records, or give a specific field "+
+					"value (a name, email, phone) to search within them. "+
+					"Scope the search with 'namespace', and optionally 'module', to avoid searching "+
+					"everything you can read. Omitting 'namespace' searches every namespace you have "+
+					"access to, which is rarely what you want and can be slow. "+
+					"When running as a configured agent, only the namespaces in your DISCOVERY ACCESS "+
+					"section are permitted and anything else is denied. "+
+					"Results are capped and cannot be paged — narrow the query rather than asking for more.",
+			),
+			mcp.WithString("namespace", mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss). Omit to search every namespace you can access.")),
+			mcp.WithString("module", mcp.Description("Module name, handle, or ID (as string to prevent precision loss). Requires 'namespace'. Omit to search all modules in the namespace.")),
+			mcp.WithString("query", mcp.Description("A specific value to search for inside record fields (e.g. a name, email, phone). Leave empty to list records.")),
+			mcp.WithString("limit", mcp.Description("Maximum records to return, default 50, capped at 200. There is no cursor: this search cannot be paged.")),
 			hmcp.InGroup(hmcp.GroupUsage),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),

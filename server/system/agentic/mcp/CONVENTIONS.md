@@ -97,9 +97,24 @@ the mcp-go server would advertise every historical name to every client.
 did not resolve aliases, so an aliased tool listed fine and failed on dispatch.
 Duplicate tool names silently overwrote each other.
 
-**Still divergent:** `discovery_search` declares `namespace` and `module`
-params its handler never reads — it reads `namespaceIDs`/`moduleIDs`, injected
-only by the in-process executor. Over HTTP those declared args are ignored.
+**Fixed, but verified differently:** `discovery_search` used to declare
+`namespace` and `module` params its handler never read — it read
+`namespaceIDs`/`moduleIDs`, injected only by the in-process executor, so over
+HTTP the declared scope was ignored and the search ran across everything the
+caller's discovery token allowed. The handler now resolves the declared args
+itself when nothing was injected; injected IDs still win, because in-process
+they are the authorization narrowing already checked against the agent's
+allow-list.
+
+This is the one tool that is **not live-verified**. Its backing discovery
+service does not run in the local dev environment (`/api/discovery` is 404), so
+`isAvailable` filters it out of `tools/list` — correct behaviour, and also why
+the fix could only be verified by build and by reading. Everything else in this
+document was exercised against a running server.
+
+`discovery_search` also declares no `pageCursor`: the discovery service offsets
+with `from` and returns no cursor, so advertising one would promise paging that
+cannot work (§8.1). It declares `limit` only, and says so.
 
 ### 2.4 The in-process policy layer
 
