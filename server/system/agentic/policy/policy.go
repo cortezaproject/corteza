@@ -238,17 +238,28 @@ var resourceScopeExempt = map[string]bool{
 	"compose_page_create":            true,
 	"compose_page_update":            true,
 	"compose_page_delete":            true,
+	"compose_page_undelete":          true,
+	"compose_page_remove_blocks":     true,
 	"compose_page_reorder":           true,
 	"compose_page_block_schema":      true,
 	"compose_chart_lookup":           true,
 	"compose_chart_create":           true,
 	"compose_chart_update":           true,
 	"compose_chart_delete":           true,
+	"compose_chart_undelete":         true,
 	"automation_taq_lookup":          true,
 	"automation_taq_executions":      true,
 	"automation_taq_execution_trace": true,
 	"automation_workflow_lookup":     true,
-	"discovery_search":               true,
+
+	// Undelete restores a definition rather than running one, so it is
+	// classified with its lookup sibling and not with exec. Mapping it in
+	// buildResource instead would route it through checkAllow, which denies a
+	// mapped resource whenever the agent has no allow entries — a restriction
+	// exec carries deliberately and a configuring op has no reason to inherit.
+	"automation_taq_undelete":      true,
+	"automation_workflow_undelete": true,
+	"discovery_search":             true,
 
 	// Reminders carry no compose resource dimension — they are scoped to their
 	// assignee inside the service (onLookup refuses a reminder assigned to

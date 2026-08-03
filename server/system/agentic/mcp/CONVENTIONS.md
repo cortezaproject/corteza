@@ -232,6 +232,20 @@ Delete stays `destructive` — a soft-deleted namespace is invisible to every
 consumer, so the blast radius is real — but `undelete` is in the op vocabulary
 so the model has a way back.
 
+**Rule: every resource whose service exposes `UndeleteByID` gets an `undelete`
+tool.** Not a judgement call — if the service can reverse a delete, the model
+gets the same way back a human has through the UI. It is roughly fifteen lines,
+risk `write`, and its description must say how to find a deleted item (the
+resource's `includeDeleted` filter, where one exists).
+
+Where the service has no `UndeleteByID`, the `delete` description must say so
+plainly, because a model has no other way to learn that the call is one-way.
+`system_reminder_delete` is the worked example.
+
+Note `UndeleteByID` is generated into `*.gen.go`, not the hand-written service
+file — grepping only the latter will wrongly conclude a resource has no
+undelete.
+
 `compose_module_delete`'s description still claims it "permanently removes the
 module and all its records", which is false and should be corrected.
 
