@@ -117,7 +117,8 @@ export const RESOURCE_KINDS = STEPS.filter(s => s.type === 'resource').map(s => 
 
 // Full system overview, in the conceptual pipeline's order. The resource
 // metrics strip always shows every kind — it's an overview of the whole
-// system, not just the steps built so far.
+// system, not just the steps built so far — and it doubles as the graph's
+// filter set: one chip per kind, all visible until the user says otherwise.
 export const OVERVIEW_KINDS = [
   'module',
   'connection',
@@ -129,25 +130,3 @@ export const OVERVIEW_KINDS = [
   'role',
   'user',
 ]
-
-// Semantic layers for the graph's layer selector. Each preset toggles its set
-// of kinds together; the per-kind chips toggle them individually. Roles/users
-// are deliberately NOT a preset here — they ride the separate "show access"
-// overlay (RBAC edges), handled apart from these node layers.
-export const LAYERS = [
-  { key: 'data', labelKey: 'project.graph.layer.data', kinds: ['connection', 'module'] },
-  { key: 'logic', labelKey: 'project.graph.layer.logic', kinds: ['automation', 'agent'] },
-  {
-    key: 'experience',
-    labelKey: 'project.graph.layer.experience',
-    kinds: ['chatbot', 'page', 'chart'],
-  },
-]
-
-// Every kind toggled by the layer presets/chips (i.e. everything except the
-// access overlay). Used to seed the graph view's visible set so all node
-// layers start on.
-export const NODE_LAYER_KINDS = LAYERS.flatMap(l => l.kinds)
-
-// Roles/users surface through the "show access" overlay only, off by default.
-export const ACCESS_KINDS = ['role', 'user']

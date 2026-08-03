@@ -280,8 +280,13 @@
 
           <!-- Resource graph — Build only. The Build tab is canvas-centric by
                locked contract; Govern is form work and the graph added nothing
-               there, so the step panel takes the full width instead. -->
-          <div v-if="activeTab === 'build'" class="overflow-hidden p-4 min-h-0 flex-1">
+               there, so the step panel takes the full width instead.
+               Filled (the step side is not) so the canvas reads as its own
+               working surface rather than another region of the same panel. -->
+          <div
+            v-if="activeTab === 'build'"
+            class="overflow-hidden p-4 min-h-0 flex-1 bg-surface shadow-md"
+          >
             <ResourceGraph :project="project" />
           </div>
         </div>
@@ -584,10 +589,10 @@ import FriaScenariosStep from '@/sections/project/components/wizard/steps/FriaSc
 import AiSystemsStep from '@/sections/project/components/wizard/steps/AiSystemsStep.vue'
 import ProjectSummaryStep from '@/sections/project/components/wizard/steps/ProjectSummaryStep.vue'
 import ResourceManagementStep from '@/sections/project/components/wizard/steps/ResourceManagementStep.vue'
-import { ACCESS_KINDS, kindConfig } from '@/sections/project/config/kinds'
+import { kindConfig } from '@/sections/project/config/kinds'
 import { friaDeterminationValues } from '@/sections/project/config/friaDeterminationForm'
 import { MANAGE_NAV } from '@/sections/project/config/manageNav'
-import { STEPS, kindsThroughStep, stepsForTab } from '@/sections/project/config/pipeline'
+import { STEPS, stepsForTab } from '@/sections/project/config/pipeline'
 import { resourceManagementValues } from '@/sections/project/config/resourceManagementForm'
 import { rolePreset } from '@/sections/project/config/roles'
 import { summaryDefaults } from '@/sections/project/config/summaryForm'
@@ -1073,21 +1078,10 @@ function loadWorking() {
 }
 watch([activeKey, project], loadWorking, { immediate: true })
 
-// Scope the live resource graph to the process: each step shows only the
-// resources of steps reached so far. Re-seeded on every step change; the graph's
-// own layer chips still refine (or peek past) it within a step.
-watch(
-  activeKey,
-  key => {
-    store.setGraphVisibleKinds(kindsThroughStep(key))
-    // Auto-reveal the role/user access overlay while on the access steps (roles,
-    // permissions, users), so the roles you're managing — and the grant edges
-    // you're drawing — show up in the graph beside the form.
-    const step = STEPS.find(s => s.key === key)
-    store.setGraphShowAccess(ACCESS_KINDS.includes(step?.kind) || key === 'permissions')
-  },
-  { immediate: true },
-)
+// The resource graph is NOT scoped to the active step: it shows the whole
+// system at all times, and the user filters it themselves through the chips
+// (see components/graph/ResourceGraph.vue). Stepping through the wizard never
+// changes what the graph shows.
 
 function goStep(key) {
   router.replace({ query: { ...route.query, step: key } })

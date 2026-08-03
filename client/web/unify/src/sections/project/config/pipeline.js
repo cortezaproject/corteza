@@ -43,10 +43,8 @@ export const STEPS = [
   },
   {
     // Positioned right after data-model (not with the other Govern steps)
-    // so kindsThroughStep('data-sensitivity') already includes 'module' —
-    // this step classifies the fields data-model just built, so the graph
-    // should show those modules while you're on it. Tab membership (Govern)
-    // is independent of this array position; see stepsForTab.
+    // because it classifies the fields data-model just built. Tab membership
+    // (Govern) is independent of this array position; see stepsForTab.
     key: 'data-sensitivity',
     labelKey: 'project.steps.data-sensitivity.label',
     type: 'sensitivity',
@@ -175,17 +173,3 @@ export const resolveSteps = () => STEPS.map(s => ({ ...s }))
 // Steps shown in a wizard tab ('build' | 'govern'). Manage & Monitor has no
 // steps of its own — callers should treat it as an empty list.
 export const stepsForTab = tab => resolveSteps().filter(s => s.tab === tab)
-
-// The build is a process: a resource kind only exists once its step is reached.
-// Returns the resource kinds introduced by every step up to and including
-// `stepKey` (inclusive) — drives the resource graph so it shows only what's been
-// built so far. Order is owned here by STEPS; add a resource step and it joins
-// automatically. Steps before any resource step contribute nothing.
-export function kindsThroughStep(stepKey) {
-  const out = new Set()
-  for (const s of STEPS) {
-    if (s.kind) out.add(s.kind)
-    if (s.key === stepKey) break
-  }
-  return out
-}

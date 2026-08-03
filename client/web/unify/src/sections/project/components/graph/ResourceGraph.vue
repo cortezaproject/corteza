@@ -5,35 +5,59 @@
       <h3 class="text-xs font-semibold uppercase tracking-wide text-muted-color">
         {{ $t('project.graph.resources') }}
       </h3>
-      <Button
-        icon="pi pi-refresh"
-        severity="secondary"
-        text
-        rounded
-        size="small"
-        class="ml-auto !w-7 !h-7"
-        :loading="loading"
-        :title="$t('project.graph.reloadTitle')"
-        @click="reload"
-      />
+      <div class="ml-auto flex items-center gap-1">
+        <!-- Show-all / hide-all: the chips filter one kind at a time, these two
+             move the whole set, so "clear the canvas and add back what I care
+             about" doesn't cost nine clicks. -->
+        <Button
+          icon="pi pi-eye"
+          severity="secondary"
+          text
+          rounded
+          size="small"
+          class="!w-7 !h-7"
+          :disabled="allVisible"
+          :title="$t('project.graph.showAllTitle')"
+          @click="store.setGraphAllKindsVisible(true)"
+        />
+        <Button
+          icon="pi pi-eye-slash"
+          severity="secondary"
+          text
+          rounded
+          size="small"
+          class="!w-7 !h-7"
+          :disabled="noneVisible"
+          :title="$t('project.graph.hideAllTitle')"
+          @click="store.setGraphAllKindsVisible(false)"
+        />
+        <Button
+          icon="pi pi-refresh"
+          severity="secondary"
+          text
+          rounded
+          size="small"
+          class="!w-7 !h-7"
+          :loading="loading"
+          :title="$t('project.graph.reloadTitle')"
+          @click="reload"
+        />
+      </div>
     </div>
 
     <!-- Metric cards — the whole-system overview, one card per resource kind,
-         counted from the backend graph payload. Each card is also a toggle:
-         click to show/hide that kind; hidden kinds dim but keep their count. -->
+         counted from the backend graph payload. Each card is also a filter:
+         click to show/hide that kind, double-click to show only that kind.
+         Hidden kinds dim but keep their count. -->
     <div class="shrink-0 flex flex-wrap gap-2">
       <button
         v-for="m in metrics"
         :key="m.kind"
         type="button"
-        class="rounded-lg border border-surface px-2.5 py-1.5 flex items-center gap-2 whitespace-nowrap transition-opacity"
-        :class="[
-          m.visible ? 'opacity-100' : 'opacity-40',
-          m.toggleable ? 'cursor-pointer hover:border-primary' : 'cursor-not-allowed',
-        ]"
-        :disabled="!m.toggleable"
-        :title="m.toggleable ? '' : $t('project.graph.showAccessComingSoon')"
-        @click="onChipClick(m)"
+        class="rounded-lg border border-surface px-2.5 py-1.5 flex items-center gap-2 whitespace-nowrap transition-opacity cursor-pointer hover:border-primary"
+        :class="m.visible ? 'opacity-100' : 'opacity-40'"
+        :title="$t('project.graph.chipTitle')"
+        @click="onChipClick(m, $event)"
       >
         <span
           class="inline-flex items-center justify-center w-6 h-6 rounded-md ring-1 shrink-0"
@@ -46,10 +70,10 @@
       </button>
     </div>
 
-    <!-- Relationship graph -->
-    <div
-      class="flex-1 min-h-0 rounded-lg border border-surface overflow-hidden bg-emphasis relative"
-    >
+    <!-- Relationship graph. No border or fill of its own: the pane it sits in
+         is already the filled sheet, and boxing the canvas off inside it made
+         the whole thing read as three stacked panels instead of one surface. -->
+    <div class="graph-canvas flex-1 min-h-0 overflow-hidden relative">
       <v-chart
         v-if="visibleNodes.length"
         :option="option"
@@ -65,7 +89,7 @@
           <i class="pi pi-sitemap text-4xl mb-2" />
           <p class="text-sm">
             {{
-              graph.nodes.length ? $t('project.graph.allLayersHidden') : $t('project.graph.empty')
+              graph.nodes.length ? $t('project.graph.allKindsHidden') : $t('project.graph.empty')
             }}
           </p>
         </div>
@@ -124,14 +148,14 @@
 </template>
 
 <script setup>
-import { ACCESS_KINDS, OVERVIEW_KINDS, kindConfig } from '@/sections/project/config/kinds'
+import { OVERVIEW_KINDS, kindConfig } from '@/sections/project/config/kinds'
 import { useProjectsStore } from '@/sections/project/stores/projects'
 import { kindIconDataUri } from '@/sections/project/utils/kindIcons'
 import { GraphChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { computed, inject, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import VChart from 'vue-echarts'
 
@@ -144,12 +168,6 @@ const props = defineProps({
   // Dimmed while the current section awaits approval.
   locked: { type: Boolean, default: false },
 })
-
-// The backend emits project-scoped role nodes with their RBAC edges to the
-// resources each role grants on (roles that grant nothing are omitted). The
-// role and user chips each toggle their own visibility independently; user
-// nodes join once the Users step lands (until then that chip counts 0).
-const accessReady = true
 
 const store = useProjectsStore()
 const $toast = inject('$toast')
@@ -222,21 +240,40 @@ watch(
   { immediate: true },
 )
 
-// --- Layer selection ---------------------------------------------------------
-// Roles/users are only interactive once the access overlay is wired up.
-const isAccessKind = kind => ACCESS_KINDS.includes(kind)
+// --- Kind filters -------------------------------------------------------------
+// Nothing filters the graph on the user's behalf — it opens showing every kind
+// and stays as they left it while they step through the wizard. The chips are
+// the only thing that narrows it.
+const allVisible = computed(() => OVERVIEW_KINDS.every(k => store.graphKindVisible(k)))
+const noneVisible = computed(() => !OVERVIEW_KINDS.some(k => store.graphKindVisible(k)))
 
-function onChipClick(m) {
-  if (!m.toggleable) return
-  // Every kind (including role/user) toggles independently; the store routes
-  // access kinds to their own visibility set.
-  store.graphToggleKind(m.kind)
+// Single click toggles one kind, double click isolates it. Both land on the
+// same chip, so the toggle waits out the double-click window rather than firing
+// first and being undone: the force layout re-settles on every visibility
+// change, and running that twice per double-click is plainly visible.
+const DOUBLE_CLICK_MS = 220
+let clickTimer = null
+
+function onChipClick(m, event) {
+  clearTimeout(clickTimer)
+  clickTimer = null
+  // detail is the click count of the native sequence (0 for keyboard activation).
+  if (event.detail > 1) {
+    store.graphSoloKind(m.kind)
+    return
+  }
+  clickTimer = setTimeout(() => {
+    clickTimer = null
+    store.graphToggleKind(m.kind)
+  }, DOUBLE_CLICK_MS)
 }
+
+onBeforeUnmount(() => clearTimeout(clickTimer))
 
 // --- Derived metrics (straight from the payload) ----------------------------
 // One card per kind across the whole system, PoC-style; kinds without
 // backend-backed steps simply count 0 until they land. Each card is also a
-// visibility toggle, so it carries its visible/toggleable state.
+// visibility toggle, so it carries its visible state.
 const metrics = computed(() => {
   const counts = {}
   for (const n of graph.value.nodes) counts[n.kind] = (counts[n.kind] || 0) + 1
@@ -245,7 +282,6 @@ const metrics = computed(() => {
     cfg: kindConfig(kind),
     count: counts[kind] || 0,
     visible: store.graphKindVisible(kind),
-    toggleable: isAccessKind(kind) ? accessReady : true,
   }))
 })
 
@@ -506,3 +542,17 @@ const option = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+/* Canvas dot grid — the same cue the workflow editor gives its canvas
+   (<Background variant="dots"> in WorkflowEditor.vue), drawn in CSS here
+   because this graph renders through echarts, not vue-flow. The echarts
+   canvas is transparent (no backgroundColor in the option), so the dots show
+   through behind the nodes. Painted with the content border token so it
+   follows the theme instead of pinning a neutral. */
+.graph-canvas {
+  background-image: radial-gradient(var(--p-content-border-color) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: -8px -8px;
+}
+</style>

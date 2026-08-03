@@ -1,4 +1,4 @@
-import { ACCESS_KINDS, NODE_LAYER_KINDS } from '@/sections/project/config/kinds'
+import { OVERVIEW_KINDS } from '@/sections/project/config/kinds'
 import { GRAPH_KIND_BY_RESOURCE_TYPE } from '@/sections/project/config/resourceRefs'
 import { SENSITIVITY_LEVELS } from '@/sections/project/config/sensitivity'
 import { fieldName } from '@/sections/project/utils/fields'
@@ -35,43 +35,35 @@ export const useProjectsStore = defineStore('projects', () => {
     graphVersion.value++
   }
 
-  // --- resource graph view (layer selector) --------------------------------------
+  // --- resource graph view (kind filters) ----------------------------------------
   // Which kinds the graph currently shows. One global selection shared across
   // projects (it resets on a hard reload — it's deliberately session state, not
-  // persisted). Seeded with every node-layer kind so all layers start on; the
-  // access overlay (roles/users) rides its own set so each chip toggles
-  // independently, both off by default.
-  const graphVisibleKinds = ref(new Set(NODE_LAYER_KINDS))
-  const graphVisibleAccessKinds = ref(new Set())
+  // persisted). Every kind starts visible, including roles/users: the graph is
+  // the whole system, and what to leave out is the reader's call — not the
+  // build step's, which is why nothing re-seeds this on navigation.
+  const graphVisibleKinds = ref(new Set(OVERVIEW_KINDS))
 
-  const graphKindVisible = computed(() => kind => {
-    if (ACCESS_KINDS.includes(kind)) return graphVisibleAccessKinds.value.has(kind)
-    return graphVisibleKinds.value.has(kind)
-  })
+  const graphKindVisible = computed(() => kind => graphVisibleKinds.value.has(kind))
 
   function graphToggleKind(kind) {
-    // Access kinds ride their own set; node-layer kinds the main one. Reassign
-    // the Set so the ref's dependents re-run (Set mutation alone won't).
-    const target = ACCESS_KINDS.includes(kind) ? graphVisibleAccessKinds : graphVisibleKinds
-    const next = new Set(target.value)
+    // Reassign the Set so the ref's dependents re-run (Set mutation alone won't).
+    const next = new Set(graphVisibleKinds.value)
     next.has(kind) ? next.delete(kind) : next.add(kind)
-    target.value = next
+    graphVisibleKinds.value = next
   }
 
-  // Force the access overlay on/off — used to auto-reveal it on the access-kind
-  // steps (roles/users), the same way setGraphVisibleKinds re-seeds node layers.
-  // Reveals both role and user chips; each can then be toggled independently.
-  function setGraphShowAccess(on) {
-    graphVisibleAccessKinds.value = on ? new Set(ACCESS_KINDS) : new Set()
+  // Show or hide every kind at once — the graph header's all/none buttons.
+  function setGraphAllKindsVisible(on) {
+    graphVisibleKinds.value = on ? new Set(OVERVIEW_KINDS) : new Set()
   }
 
-  // Reset the visible node-layer kinds to exactly `kinds` (a Set/iterable) —
-  // used to gate the graph to the resources built up to the active step. Access
-  // kinds ride their own overlay and are filtered out here. Manual per-kind
-  // toggles refine the view within the current step; this re-seeds it on a step
-  // change, so a kind from a later step can still be toggled on to peek ahead.
-  function setGraphVisibleKinds(kinds) {
-    graphVisibleKinds.value = new Set([...kinds].filter(k => NODE_LAYER_KINDS.includes(k)))
+  // Isolate one kind (double-click on its chip). Doing it again to the kind
+  // that is already alone brings everything back, so solo reads as a two-state
+  // zoom rather than a trap you need the all-button to escape.
+  function graphSoloKind(kind) {
+    const cur = graphVisibleKinds.value
+    const alone = cur.size === 1 && cur.has(kind)
+    graphVisibleKinds.value = alone ? new Set(OVERVIEW_KINDS) : new Set([kind])
   }
 
   // Resources (compose modules) are deliberately NOT stored on the project
@@ -2358,10 +2350,9 @@ export const useProjectsStore = defineStore('projects', () => {
     removeFriaScenario: invalidating(removeFriaScenario, 'fria-scenarios'),
     graph,
     graphVisibleKinds,
-    graphVisibleAccessKinds,
     graphKindVisible,
     graphToggleKind,
-    setGraphShowAccess,
-    setGraphVisibleKinds,
+    graphSoloKind,
+    setGraphAllKindsVisible,
   }
 })

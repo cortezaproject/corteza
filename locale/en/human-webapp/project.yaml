@@ -1369,6 +1369,9 @@ groups:
 graph:
   resources: Resources
   reloadTitle: Reload from the backend
+  showAllTitle: Show every resource kind
+  hideAllTitle: Hide every resource kind
+  chipTitle: Click to show or hide this kind · double-click to show only this kind
   empty: >-
     Resources appear here as you create them; references between them are drawn from their
     configuration (e.g. Record fields).
@@ -1410,12 +1413,8 @@ graph:
     stepConnection: Automation step connection
     roleRbac: Permission grant
     userRole: Role membership
-  layer:
-    data: Data
-    logic: Logic
-    experience: Experience
-  showAccessComingSoon: Access overlay is coming soon
-  allLayersHidden: All layers are hidden — turn one on to see resources.
+  allKindsHidden: >-
+    Every resource kind is hidden — turn one on, or use the show-all button, to see resources.
 kinds:
   module:
     plural: Modules
