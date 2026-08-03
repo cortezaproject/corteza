@@ -7,16 +7,20 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	a "github.com/crusttech/human/server/pkg/auth"
 	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
+	"github.com/crusttech/human/server/system/agentic/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// Declarations for these handlers are in discovery_tools.go, in the same order.
 type (
+	// toolRegistrar is the registry seam every handler in this package takes.
+	// It lives here rather than in a file of its own because reminder_handler.go
+	// and the rest of the package depend on it being declared in this file.
 	toolRegistrar interface {
 		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc, opts ...hmcp.RegisterOption)
 	}
@@ -31,6 +35,8 @@ type (
 		signer  discoveryTokenSigner
 	}
 
+	// discoveryResponse is the upstream discovery service's payload. Only the
+	// fields projected into discoveryItem below reach the caller.
 	discoveryResponse struct {
 		Response struct {
 			Hits []struct {
@@ -60,8 +66,26 @@ type (
 			TotalResults int `json:"total_results"`
 		} `json:"response"`
 	}
+
+	// discoveryItem is the projection returned for each hit.
+	discoveryItem struct {
+		RecordID  string               `json:"recordID"`
+		Module    string               `json:"module"`
+		Namespace string               `json:"namespace"`
+		CreatedAt string               `json:"createdAt"`
+		CreatedBy string               `json:"createdBy"`
+		Fields    []discoveryItemField `json:"fields,omitempty"`
+	}
+
+	discoveryItemField struct {
+		Name  string   `json:"name"`
+		Label string   `json:"label"`
+		Value []string `json:"value"`
+	}
 )
 
+// DiscoveryHandler registers the tool only when a discovery service is
+// configured; without a base URL there is nothing to search.
 func DiscoveryHandler(reg toolRegistrar, baseURL string, signer discoveryTokenSigner) *discoveryHandler {
 	h := &discoveryHandler{reg: reg, baseURL: baseURL, signer: signer}
 	if baseURL != "" {
@@ -70,40 +94,18 @@ func DiscoveryHandler(reg toolRegistrar, baseURL string, signer discoveryTokenSi
 	return h
 }
 
-func (h *discoveryHandler) isAvailable() bool {
-	resp, err := http.Get(h.baseURL + "/healthcheck")
-	if err != nil {
-		return false
-	}
-	resp.Body.Close()
-	return resp.StatusCode < 500
-}
-
-func (h *discoveryHandler) register() {
-	h.reg.RegisterTool(
-		mcp.NewTool("discovery_search",
-			mcp.WithDescription("Search or list records you have access to. Use this when the user asks to find, list, or show existing records. Only namespaces listed in your DISCOVERY ACCESS section are permitted — the executor will deny any other namespace. Leave query empty to list all accessible records, or provide a specific field value (name, email, phone) to search within them."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("The exact namespace name from your DISCOVERY ACCESS section. Do not use module names here.")),
-			mcp.WithString("module", mcp.Description("The exact module name from your DISCOVERY ACCESS section. Leave empty to search across all accessible modules in the namespace.")),
-			mcp.WithString("query", mcp.Description("A specific value to search for inside record fields (e.g. a name, email, phone). Leave empty to list all records.")),
-			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskRead),
-		),
-		"Discover Records",
-		h.search,
-		hmcp.Available(h.isAvailable),
-	)
-}
-
 func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
-	query, _ := args["query"].(string)
-	size, _ := args["size"].(string)
+	query := toolkit.Str(args, "query")
+	size := toolkit.Str(args, "size")
+
+	// namespaceIDs/moduleIDs are injected by the in-process executor after it
+	// has checked the agent's allow-list; they are not declared params. See the
+	// note in discovery_tools.go.
 	namespaceIDs := extractStringSlice(args["namespaceIDs"])
 	moduleIDs := extractStringSlice(args["moduleIDs"])
 
@@ -119,7 +121,7 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 		a.WithExpiration(5*time.Minute),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to sign discovery token: %w", err)
+		return nil, toolkit.Errf("discovery token signing", err)
 	}
 
 	params := url.Values{}
@@ -137,34 +139,71 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build discovery request: %w", err)
+		return nil, toolkit.Errf("discovery request build", err)
 	}
 	httpReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", string(token)))
 
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("discovery search failed: %w", err)
+		return nil, toolkit.Errf("discovery search", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read discovery response: %w", err)
+		return nil, toolkit.Errf("discovery response read", err)
 	}
 
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("discovery search error %d: %s", resp.StatusCode, string(body))
+		return nil, toolkit.Errf("discovery search", fmt.Errorf("status %d: %s", resp.StatusCode, string(body)))
 	}
 
-	formatted, err := formatDiscoveryResponse(body)
-	if err != nil {
-		// Fall back to raw JSON if parsing fails
-		return mcp.NewToolResultText(string(body)), nil
+	var dr discoveryResponse
+	if err := json.Unmarshal(body, &dr); err != nil {
+		// Fall back to the raw payload rather than failing the call — the
+		// caller can still read an unexpected shape.
+		return toolkit.JSONResult(map[string]any{"raw": string(body)})
 	}
 
-	return mcp.NewToolResultText(formatted), nil
+	items := make([]discoveryItem, 0, len(dr.Response.Hits))
+	for _, hit := range dr.Response.Hits {
+		v := hit.Value
+		item := discoveryItem{
+			RecordID:  v.RecordID,
+			Module:    v.Module.Name,
+			Namespace: v.Namespace.Name,
+			CreatedAt: v.Created.At,
+			CreatedBy: v.Created.By,
+		}
+		for _, field := range v.Values {
+			item.Fields = append(item.Fields, discoveryItemField{
+				Name:  field.Name,
+				Label: field.Label,
+				Value: field.Value,
+			})
+		}
+		items = append(items, item)
+	}
+
+	return toolkit.JSONResult(map[string]any{
+		"records":      items,
+		"totalResults": dr.Response.TotalResults,
+	})
 }
 
+// isAvailable backs hmcp.Available: the discovery service is a separate
+// process, so the tool is only advertised while it answers its healthcheck.
+func (h *discoveryHandler) isAvailable() bool {
+	resp, err := http.Get(h.baseURL + "/healthcheck")
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return resp.StatusCode < 500
+}
+
+// extractStringSlice reads an injected ID list, which arrives as []string from
+// the in-process executor and as []interface{} when it has been through JSON.
 func extractStringSlice(v any) []string {
 	switch ids := v.(type) {
 	case []string:
@@ -179,35 +218,4 @@ func extractStringSlice(v any) []string {
 		return out
 	}
 	return nil
-}
-
-func formatDiscoveryResponse(body []byte) (string, error) {
-	var dr discoveryResponse
-	if err := json.Unmarshal(body, &dr); err != nil {
-		return "", err
-	}
-
-	var sb strings.Builder
-
-	sb.WriteString(fmt.Sprintf("found %d result(s) (showing %d):\n\n",
-		dr.Response.TotalResults, len(dr.Response.Hits)))
-
-	for i, hit := range dr.Response.Hits {
-		v := hit.Value
-		sb.WriteString(fmt.Sprintf("--- Result %d ---\n", i+1))
-		sb.WriteString(fmt.Sprintf("Record ID : \"%s\"\n", v.RecordID))
-		sb.WriteString(fmt.Sprintf("Module    : %s\n", v.Module.Name))
-		sb.WriteString(fmt.Sprintf("Namespace : %s\n", v.Namespace.Name))
-		sb.WriteString(fmt.Sprintf("Created   : %s by %s\n", v.Created.At, v.Created.By))
-
-		if len(v.Values) > 0 {
-			sb.WriteString("Fields    :\n")
-			for _, field := range v.Values {
-				sb.WriteString(fmt.Sprintf("  %s: %s\n", field.Label, strings.Join(field.Value, ", ")))
-			}
-		}
-		sb.WriteString("\n")
-	}
-
-	return sb.String(), nil
 }
