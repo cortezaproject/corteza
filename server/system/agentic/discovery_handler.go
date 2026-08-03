@@ -7,8 +7,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
+	cmpService "github.com/crusttech/human/server/compose/service"
 	a "github.com/crusttech/human/server/pkg/auth"
 	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/crusttech/human/server/system/agentic/toolkit"
@@ -94,6 +96,44 @@ func DiscoveryHandler(reg toolRegistrar, baseURL string, signer discoveryTokenSi
 	return h
 }
 
+// resolveScope turns the declared namespace/module args into the ID filters the
+// discovery service expects. Both are optional here even though `namespace` is
+// declared Required: the in-process path satisfies the requirement upstream, and
+// failing a direct caller that omitted it would be a behaviour change beyond
+// making the params work at all.
+//
+// RBAC does the real work — FindByAny runs as the caller, so a namespace they
+// cannot read resolves to an error rather than a silent widening.
+func (h *discoveryHandler) resolveScope(ctx context.Context, args map[string]any) (namespaceIDs, moduleIDs []string, err error) {
+	nsRef, err := toolkit.Ref(args, "namespace")
+	if err != nil {
+		return nil, nil, err
+	}
+	if nsRef == "" {
+		return nil, nil, nil
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
+	if err != nil {
+		return nil, nil, toolkit.Errf("namespace lookup", err)
+	}
+	namespaceIDs = []string{strconv.FormatUint(ns.ID, 10)}
+
+	modRef, err := toolkit.Ref(args, "module")
+	if err != nil {
+		return nil, nil, err
+	}
+	if modRef == "" {
+		return namespaceIDs, nil, nil
+	}
+
+	mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, modRef)
+	if err != nil {
+		return nil, nil, toolkit.Errf("module lookup", err)
+	}
+	return namespaceIDs, []string{strconv.FormatUint(mod.ID, 10)}, nil
+}
+
 func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, err := toolkit.Args(req)
 	if err != nil {
@@ -104,10 +144,25 @@ func (h *discoveryHandler) search(ctx context.Context, req mcp.CallToolRequest) 
 	size := toolkit.Str(args, "size")
 
 	// namespaceIDs/moduleIDs are injected by the in-process executor after it
-	// has checked the agent's allow-list; they are not declared params. See the
-	// note in discovery_tools.go.
+	// has checked the agent's allow-list against the declared namespace/module
+	// args. They are not declared params.
 	namespaceIDs := extractStringSlice(args["namespaceIDs"])
 	moduleIDs := extractStringSlice(args["moduleIDs"])
+
+	// Nothing injected means there is no executor — a remote MCP client called
+	// this directly. Resolve the declared args ourselves, otherwise they are
+	// silently ignored and the search runs across everything the caller's
+	// discovery token permits, which is not what the schema promises.
+	//
+	// The injected IDs deliberately win when present: in-process they are the
+	// authorization narrowing, already checked against the agent's allow-list.
+	if len(namespaceIDs) == 0 && len(moduleIDs) == 0 {
+		nsIDs, modIDs, err := h.resolveScope(ctx, args)
+		if err != nil {
+			return nil, err
+		}
+		namespaceIDs, moduleIDs = nsIDs, modIDs
+	}
 
 	if size == "" {
 		size = "10"
