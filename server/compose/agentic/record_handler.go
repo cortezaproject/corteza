@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/filter"
 	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
+	"github.com/crusttech/human/server/system/agentic/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -23,106 +24,31 @@ type (
 	}
 )
 
+// Declarations for these handlers are in record_tools.go, in the same order.
 func RecordHandler(reg toolRegistrar) *recordHandler {
 	h := &recordHandler{reg: reg}
 	h.register()
 	return h
 }
 
-func (h *recordHandler) register() {
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_record_lookup",
-			mcp.WithDescription("Look up a record by ID, or list/filter records in a module. Provide 'recordID' to fetch one record. Omit 'recordID' and use 'filter' to search by field values (e.g. \"name = 'John'\"). Do NOT call this before creating a record — only use it when the user explicitly asks to search or check for existing records."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
-			mcp.WithString("recordID", mcp.Description("Record ID (as string to prevent precision loss). Omit to list/filter instead.")),
-			mcp.WithString("filter", mcp.Description("Filter expression when no recordID given, e.g. \"name = 'John'\" or \"status = 'open'\".")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskRead),
-		),
-		"Lookup record",
-		h.lookup,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_record_create",
-			mcp.WithDescription("Create a new record. If you do not know the field names, call compose_module_lookup first to get them."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
-			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskWrite),
-		),
-		"Create record",
-		h.create,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_record_update",
-			mcp.WithDescription("Update an existing record. Requires a record ID — use compose_record_lookup with a filter to find it if unknown."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
-			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
-			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs to update")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskWrite),
-		),
-		"Update record",
-		h.update,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_record_delete",
-			mcp.WithDescription("Delete a record by ID. Requires a record ID — use compose_record_lookup with a filter to find it if unknown."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
-			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskDestructive),
-		),
-		"Delete record",
-		h.del,
-	)
-}
-
-func parseValues(raw interface{}) (map[string]string, error) {
-	switch v := raw.(type) {
-	case string:
-		var raw map[string]interface{}
-		if err := json.Unmarshal([]byte(v), &raw); err != nil {
-			return nil, fmt.Errorf("invalid values JSON: %w", err)
-		}
-		m := make(map[string]string, len(raw))
-		for k, val := range raw {
-			m[k] = fmt.Sprintf("%v", val)
-		}
-		return m, nil
-	case map[string]interface{}:
-		m := make(map[string]string, len(v))
-		for key, val := range v {
-			m[key] = fmt.Sprintf("%v", val)
-		}
-		return m, nil
-	default:
-		return nil, fmt.Errorf("invalid values: expected JSON string or object")
-	}
-}
-
-func (h *recordHandler) resolveNsMod(ctx context.Context, args map[string]interface{}) (nsID, modID uint64, err error) {
+func (h *recordHandler) resolveNsMod(ctx context.Context, args map[string]any) (nsID, modID uint64, err error) {
 	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
 	if err != nil {
-		return 0, 0, fmt.Errorf("namespace lookup failed: %w", err)
+		return 0, 0, toolkit.Errf("namespace lookup", err)
 	}
 
 	mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, args["module"])
 	if err != nil {
-		return 0, 0, fmt.Errorf("module lookup failed: %w", err)
+		return 0, 0, toolkit.Errf("module lookup", err)
 	}
 
 	return ns.ID, mod.ID, nil
 }
 
 func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
 	nsID, modID, err := h.resolveNsMod(ctx, args)
@@ -130,42 +56,47 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	if recIDStr, _ := args["recordID"].(string); recIDStr != "" {
-		recID, err := strconv.ParseUint(recIDStr, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("invalid recordID: %w", err)
-		}
+	if recID, err := toolkit.ID(args, "recordID"); err != nil {
+		return nil, err
+	} else if recID > 0 {
 		rec, _, err := cmpService.DefaultRecord.FindByID(ctx, nsID, modID, recID)
 		if err != nil {
-			return nil, fmt.Errorf("record lookup failed: %w", err)
+			return nil, toolkit.Errf("record lookup", err)
 		}
-		out, err := json.Marshal(rec)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal record: %w", err)
-		}
-		return mcp.NewToolResultText(string(out)), nil
+		return toolkit.JSONResult(rec)
 	}
 
-	filter, _ := args["filter"].(string)
-	set, _, err := cmpService.DefaultRecord.Search(ctx, cmpTypes.RecordFilter{
+	f := cmpTypes.RecordFilter{
 		NamespaceID: nsID,
 		ModuleID:    modID,
-		Query:       filter,
+		Query:       toolkit.Str(args, "filter"),
+	}
+
+	// Records are returned in full rather than as a slim projection: unlike a
+	// module's fields or a chart's config, a record's values are the thing the
+	// caller asked for. Paging and the toolkit result ceiling do the work that
+	// projection does elsewhere — and without paging this call drains an entire
+	// module, because the DAL loops while the limit is zero.
+	page := toolkit.Page(args)
+	if f.Paging, err = filter.NewPaging(page.Limit, page.Cursor); err != nil {
+		return nil, fmt.Errorf("invalid pageCursor: %w", err)
+	}
+
+	set, out, err := cmpService.DefaultRecord.Search(ctx, f)
+	if err != nil {
+		return nil, toolkit.Errf("record list", err)
+	}
+
+	return toolkit.JSONResult(map[string]any{
+		"records":        set,
+		"nextPageCursor": out.NextPage.String(),
 	})
-	if err != nil {
-		return nil, fmt.Errorf("record list failed: %w", err)
-	}
-	out, err := json.Marshal(set)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal records: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
 }
 
 func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
 	nsID, modID, err := h.resolveNsMod(ctx, args)
@@ -178,30 +109,22 @@ func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	rec := &cmpTypes.Record{
-		NamespaceID: nsID,
-		ModuleID:    modID,
-	}
+	rec := &cmpTypes.Record{NamespaceID: nsID, ModuleID: modID}
 	for name, value := range valuesMap {
 		rec.Values = append(rec.Values, &cmpTypes.RecordValue{Name: name, Value: value})
 	}
 
 	rec, _, err = cmpService.DefaultRecord.Create(ctx, rec)
 	if err != nil {
-		return nil, fmt.Errorf("record creation failed: %w", err)
+		return nil, toolkit.Errf("record creation", err)
 	}
-
-	out, err := json.Marshal(rec)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal record: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(rec)
 }
 
 func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
 	nsID, modID, err := h.resolveNsMod(ctx, args)
@@ -209,9 +132,9 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	recID, err := strconv.ParseUint(args["recordID"].(string), 10, 64)
+	recID, err := toolkit.ReqID(args, "recordID")
 	if err != nil {
-		return nil, fmt.Errorf("invalid recordID: %w", err)
+		return nil, err
 	}
 
 	valuesMap, err := parseValues(args["values"])
@@ -219,31 +142,22 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	rec := &cmpTypes.Record{
-		ID:          recID,
-		NamespaceID: nsID,
-		ModuleID:    modID,
-	}
+	rec := &cmpTypes.Record{ID: recID, NamespaceID: nsID, ModuleID: modID}
 	for name, value := range valuesMap {
 		rec.Values = append(rec.Values, &cmpTypes.RecordValue{Name: name, Value: value})
 	}
 
 	rec, _, err = cmpService.DefaultRecord.Update(ctx, rec)
 	if err != nil {
-		return nil, fmt.Errorf("record update failed: %w", err)
+		return nil, toolkit.Errf("record update", err)
 	}
-
-	out, err := json.Marshal(rec)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal record: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(rec)
 }
 
 func (h *recordHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
 	nsID, modID, err := h.resolveNsMod(ctx, args)
@@ -251,14 +165,43 @@ func (h *recordHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 		return nil, err
 	}
 
-	recID, err := strconv.ParseUint(args["recordID"].(string), 10, 64)
+	recID, err := toolkit.ReqID(args, "recordID")
 	if err != nil {
-		return nil, fmt.Errorf("invalid recordID: %w", err)
+		return nil, err
 	}
 
 	if err = cmpService.DefaultRecord.DeleteByID(ctx, nsID, modID, recID); err != nil {
-		return nil, fmt.Errorf("record delete failed: %w", err)
+		return nil, toolkit.Errf("record delete", err)
 	}
+	return toolkit.TextResult("record %d deleted", recID), nil
+}
 
-	return mcp.NewToolResultText(fmt.Sprintf("record %d deleted", recID)), nil
+// parseValues accepts field values as either a JSON object or a JSON string
+// holding one, because models produce both.
+func parseValues(raw any) (map[string]string, error) {
+	switch v := raw.(type) {
+	case nil:
+		return nil, fmt.Errorf("values is required")
+	case string:
+		if v == "" {
+			return nil, fmt.Errorf("values is required")
+		}
+		var m map[string]any
+		if err := json.Unmarshal([]byte(v), &m); err != nil {
+			return nil, fmt.Errorf("invalid values JSON: %w", err)
+		}
+		out := make(map[string]string, len(m))
+		for key, val := range m {
+			out[key] = fmt.Sprintf("%v", val)
+		}
+		return out, nil
+	case map[string]any:
+		out := make(map[string]string, len(v))
+		for key, val := range v {
+			out[key] = fmt.Sprintf("%v", val)
+		}
+		return out, nil
+	default:
+		return nil, fmt.Errorf("invalid values: expected JSON string or object")
+	}
 }

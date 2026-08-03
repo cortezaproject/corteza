@@ -299,6 +299,14 @@ service type. This is what the code already does: module, chart and namespace
 lookups all build trimmed items for lists. Projection shape:
 `{<res>ID, name/title, handle}` plus whatever disambiguates.
 
+The exception is a resource whose heavy field *is* the answer. A module's
+fields, a chart's config and a reminder's payload are incidental to picking one
+out of a list, so they are projected away; a record's values are the thing the
+caller asked for, so `compose_record_lookup` returns records in full. Where you
+take this exception, paging and the `toolkit.JSONResult` ceiling do the work
+that projection does elsewhere, and the description must tell the caller to
+narrow rather than list.
+
 **Every lookup declares `limit` and `pageCursor`.** `compose_record_lookup`
 builds a `RecordFilter` with zero-value paging and `dalutils` loops
 `for f.Limit == 0 || ...` — one call drains an entire module into the model's
