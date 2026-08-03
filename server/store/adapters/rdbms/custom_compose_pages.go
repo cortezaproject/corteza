@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"context"
+	"sort"
 
 	composeType "github.com/crusttech/human/server/compose/types"
 	"github.com/doug-martin/goqu/v9"
@@ -48,12 +49,19 @@ func (s Store) ReorderComposePages(ctx context.Context, namespaceID uint64, pare
 		}
 	}
 
-	for id, update := range pageMap {
-		if !update {
-			continue
+	// Pages the caller did not name keep their relative order. Ranging over
+	// pageMap directly would not: Go randomises map iteration, so reordering a
+	// subset silently shuffled every other page, differently on each call.
+	leftovers := make(composeType.PageSet, 0, len(pageMap))
+	for _, p := range pages {
+		if pageMap[p.ID] {
+			leftovers = append(leftovers, p)
 		}
+	}
+	sort.SliceStable(leftovers, func(i, j int) bool { return leftovers[i].Weight < leftovers[j].Weight })
 
-		if err = s.Exec(ctx, query(id, weight)); err != nil {
+	for _, p := range leftovers {
+		if err = s.Exec(ctx, query(p.ID, weight)); err != nil {
 			return
 		}
 

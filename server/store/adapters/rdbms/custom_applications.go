@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"context"
+	"sort"
 
 	systemType "github.com/crusttech/human/server/system/types"
 	"github.com/doug-martin/goqu/v9"
@@ -67,17 +68,24 @@ func (s Store) ReorderApplications(ctx context.Context, order []uint64) (err err
 		}
 	}
 
-	for id, update := range appMap {
-		if !update {
-			continue
+	// Applications the caller did not name keep their relative order. Ranging
+	// over appMap directly would not: Go randomises map iteration, so
+	// reordering a subset silently shuffled every other application,
+	// differently on each call.
+	leftovers := make(systemType.ApplicationSet, 0, len(appMap))
+	for _, app := range apps {
+		if appMap[app.ID] {
+			leftovers = append(leftovers, app)
 		}
+	}
+	sort.SliceStable(leftovers, func(i, j int) bool { return leftovers[i].Weight < leftovers[j].Weight })
 
-		if err = s.Exec(ctx, query(id, weight)); err != nil {
+	for _, app := range leftovers {
+		if err = s.Exec(ctx, query(app.ID, weight)); err != nil {
 			return
 		}
 
 		weight++
-
 	}
 
 	return
