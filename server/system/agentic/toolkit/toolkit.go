@@ -57,6 +57,55 @@ func ReqStr(args map[string]any, key string) (string, error) {
 	return s, nil
 }
 
+// Bool reads an optional boolean argument.
+//
+// Tool schemas declare flags as strings, because models are far more reliable
+// producing "true" than a JSON boolean, but both are accepted: a model that
+// sends the correct type should not be punished for it. Anything else is false.
+func Bool(args map[string]any, key string) bool {
+	switch v := args[key].(type) {
+	case bool:
+		return v
+	case string:
+		b, err := strconv.ParseBool(v)
+		return err == nil && b
+	default:
+		return false
+	}
+}
+
+// Ref reads an argument that may be either an ID or a handle.
+//
+// Neither Str nor ID fits: ID cannot parse a handle, and Str silently returns
+// "" for a JSON number, which would quietly drop a lookup into list mode
+// instead of erroring. So a numeric argument is rejected here for the same
+// reason ID rejects one — a JSON number has already lost precision, and the
+// caller meant a specific record.
+func Ref(args map[string]any, key string) (string, error) {
+	raw, ok := args[key]
+	if !ok || raw == nil {
+		return "", nil
+	}
+
+	s, ok := raw.(string)
+	if !ok {
+		return "", fmt.Errorf("%s must be a string to avoid precision loss, got %T", key, raw)
+	}
+	return s, nil
+}
+
+// ReqRef is Ref for a required reference.
+func ReqRef(args map[string]any, key string) (string, error) {
+	s, err := Ref(args, key)
+	if err != nil {
+		return "", err
+	}
+	if s == "" {
+		return "", fmt.Errorf("%s is required", key)
+	}
+	return s, nil
+}
+
 // ID parses a string-encoded uint64 identifier.
 //
 // Human IDs are uint64 and exceed JavaScript's safe integer range, so every ID

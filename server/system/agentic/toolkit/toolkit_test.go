@@ -88,3 +88,54 @@ func TestErrf(t *testing.T) {
 	assert.Contains(t, err.Error(), "record lookup failed:")
 	assert.ErrorIs(t, err, assert.AnError)
 }
+
+func TestBool(t *testing.T) {
+	cases := map[string]struct {
+		args map[string]any
+		want bool
+	}{
+		"absent":       {map[string]any{}, false},
+		"string true":  {map[string]any{"f": "true"}, true},
+		"string false": {map[string]any{"f": "false"}, false},
+		"native true":  {map[string]any{"f": true}, true},
+		"garbage":      {map[string]any{"f": "yes please"}, false},
+		"number":       {map[string]any{"f": float64(1)}, false},
+	}
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, c.want, Bool(c.args, "f"))
+		})
+	}
+}
+
+func TestRef(t *testing.T) {
+	t.Run("accepts a handle or an id as string", func(t *testing.T) {
+		s, err := Ref(map[string]any{"r": "my-handle"}, "r")
+		require.NoError(t, err)
+		assert.Equal(t, "my-handle", s)
+
+		s, err = Ref(map[string]any{"r": "123"}, "r")
+		require.NoError(t, err)
+		assert.Equal(t, "123", s)
+	})
+
+	t.Run("absent is empty, not an error", func(t *testing.T) {
+		s, err := Ref(map[string]any{}, "r")
+		require.NoError(t, err)
+		assert.Empty(t, s)
+	})
+
+	// Without this a numeric ref would read as "" and silently drop a
+	// single-item lookup into list mode.
+	t.Run("rejects a numeric ref", func(t *testing.T) {
+		_, err := Ref(map[string]any{"r": float64(123)}, "r")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be a string")
+	})
+
+	t.Run("ReqRef demands a value", func(t *testing.T) {
+		_, err := ReqRef(map[string]any{}, "r")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "required")
+	})
+}
