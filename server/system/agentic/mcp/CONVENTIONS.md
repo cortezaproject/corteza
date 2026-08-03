@@ -1,10 +1,10 @@
 # MCP tool conventions
 
-**Status: agreed, partially implemented.** See §13 for what is built and what
+**Status: agreed, partially implemented.** See §14 for what is built and what
 is not.
 
-This document is the input to a fan-out that will write roughly 170 tools
-across ~58 resources. Everything here is inherited ~170 times. Read it as a
+This document is the input to a fan-out that will write roughly 165 more tools
+across the 42 resources in RESOURCES.md. Everything here is inherited ~170 times. Read it as a
 spec, not as background.
 
 > **Why this is not `mcp.intent.md`.** The intent system covers `server` in
@@ -30,8 +30,8 @@ registry (`mcp_registry.go`). That registry has two consumers:
 Both surfaces call the same handler functions. Where they legitimately differ
 is documented in §2.3; where they differed by accident, that has been fixed.
 
-29 tools are registered today across 8 files. The target is roughly 200, so
-the fan-out is roughly 170 tools.
+36 tools are registered today across 9 resources. The target is roughly 200,
+so the fan-out is roughly 165 tools.
 
 ### Layers this serves
 
@@ -54,7 +54,8 @@ Four usage layers, **not** four servers:
 | Topology | One server, one registry. No per-layer servers. |
 | Groups | `development` / `configuring` / `usage`. Connections deferred. |
 | Group semantics | **Filtering only.** Decides what gets listed. Not a security boundary. |
-| Risk semantics | `read` / `write` / `destructive`. Sole writer of the protocol's annotation hints. Ceiling enforcement deferred. |
+| Risk semantics | `read` / `write` / `destructive`. Sole writer of the protocol's annotation hints, and an enforced per-session ceiling. |
+| Scope | Per request, from the URL: `/api/mcp/{group}` narrows the listing, `?maxRisk=` caps and is refused on dispatch. See §2.5. |
 | Security boundary | authclient + RBAC — with documented exceptions, see §2.2. |
 | Coverage target | Hand-written tools, full resource coverage, ~200 tools. |
 | Tenancy | Single instance. Multi-tenant MCP is out of scope. |
@@ -66,8 +67,10 @@ governs what a caller can do. A caller in Claude Code is authenticated as
 themselves and could perform the same operations via REST or the webapp. A
 group check would block nothing real.
 
-Groups exist to keep the advertised tool list small. At ~200 tools every
-description is tokens in every request, and selection accuracy degrades.
+Groups exist to keep the advertised tool list small, and the cost is measured
+rather than assumed: 35 tools is ~11,400 tokens per request, which projects to
+**~65,000 tokens per request at 200 tools** — paid on every call before any
+work happens. `dev/agent/mcp-verify.py cost` reprints the number.
 
 **Consequence for tool authors:** never rely on a group tag for safety. If an
 operation needs authorisation it comes from RBAC in the service layer — and
@@ -136,6 +139,32 @@ The problem was that the default was *silent*, not that it was permissive.
 
 `policy.go` holds a second alias map that must stay in sync with
 `mcp_registry.go`.
+
+### 2.5 Scope: group filtering and the risk ceiling
+
+A request carries a `Scope` resolved from its URL (`scope.go`):
+
+| URL | Effect |
+|---|---|
+| `/api/mcp` | Everything. No narrowing, no ceiling. |
+| `/api/mcp/configuring` | Lists only configuring tools. |
+| `/api/mcp/usage?maxRisk=read` | Lists only usage reads, and refuses anything above read on dispatch. |
+
+The two dimensions are enforced differently, on purpose. **Group is filtered
+only** — it decides what `tools/list` returns, because its job is to keep the
+list small, and a caller naming a tool outside its group has done nothing RBAC
+would not already allow. **Risk is filtered *and* refused at dispatch**, because
+a ceiling that only hid tools would mean nothing to a client that already knew a
+name.
+
+An unrecognised group or risk is ignored rather than rejected: a typo must not
+silently narrow the surface to nothing and leave the caller thinking the server
+is broken.
+
+The ceiling is self-selected, so it is a seatbelt against accidents — pointing a
+session at production and having it delete a namespace — not a lock against a
+hostile caller, who simply would not set it. Moving it somewhere a caller cannot
+choose means putting it in the token; see §14.
 
 ---
 
@@ -483,7 +512,26 @@ imports all of them.
 
 ---
 
-## 11. Per-resource briefs and the resource-name table
+## 11. Verification is required after every batch
+
+`dev/agent/mcp-verify.py` asks the running server what it actually does. Run it
+after every batch of tools, not at the end.
+
+```sh
+dev/agent/mcp-verify.py            # auth, contracts, scope, exercise, cost
+dev/agent/mcp-verify.py scope      # one section
+```
+
+This is not belt-and-braces. The `/api/mcp` authentication fix passed its unit
+tests and did nothing, because `HttpTokenValidator` passes a request with no
+token through — visible only by asking the server. The paging cursor was
+likewise declared correctly and unusable in practice. Unit tests assert what the
+code declares; this asserts what the server answers.
+
+Exercise mode writes to the dev server under an `agent-` prefix and removes what
+it creates, per CLAUDE.md.
+
+## 12. Per-resource briefs and the resource-name table
 
 The draft alone is not a sufficient brief. Writing tools for `system/reminder`
 from prose required inventing roughly ten things: which of `ReminderFilter`'s 7
@@ -510,7 +558,7 @@ presence per §8.6, domain ops.
 
 ---
 
-## 12. Known hazards
+## 13. Known hazards
 
 **Repo / instance version skew.** An agent may hold the repository at one
 commit while the endpoint serves another build. Ruling: expose version, build
@@ -538,7 +586,7 @@ the hazard most likely to force revisiting "groups are filtering only".
 
 ---
 
-## 13. Implementation status
+## 14. Implementation status
 
 **Built:**
 
@@ -563,17 +611,27 @@ the hazard most likely to force revisiting "groups are filtering only".
   `RegisterTool` plus `Hidden()` / `Available(fn)`.
 - `policy.go` numeric-suffix TAQ matching; `IsClassified` for CI-time coverage.
 - `toolkit` package with tests.
-- `InGroup` / `WithRisk` options; all 29 existing tools tagged; hand-written
+- `InGroup` / `WithRisk` options; every tool tagged; hand-written
   `WithReadOnlyHintAnnotation` calls removed in favour of `WithRisk`.
+- Declaration/implementation file split across all nine resources (§5).
+- `RESOURCES.md` name table; `system/reminder` exemplar (§12).
+- Structural test in `server/tests/mcp` and generated `TOOLS.md` (§10).
+- Scope: `/api/mcp/{group}` filtering and an enforced `?maxRisk=` ceiling
+  (§2.5). Measured: 35 tools cost ~11,400 tokens per request.
+- `dev/agent/mcp-verify.py`, the live check required after every batch (§11).
 
 **Not built:**
 
-- Declaration/implementation file split (§5).
-- Coverage matrix, `TOOLS.md`, structural test (§10).
-- Resource-name table, exemplar, per-resource briefs (§11).
-- Version handshake tool (§12).
-- Risk-ceiling enforcement and `/api/mcp/{group}` endpoints.
+- Per-resource briefs for the identity batch (§12).
+- Version handshake tool (§13).
 - Identity read-only slice — the first real fan-out batch.
+- A token-carried risk ceiling. The URL ceiling is self-selected, so it stops
+  accidents but not a caller who omits it; moving it into the token needs a
+  dedicated `mcp` auth scope and an issuing flow.
+- `undelete` tools. `page` and 28 other services expose `UndeleteByID` with no
+  tool, so there is no way back from a delete through MCP (§4.2).
+- Block removal. Page's block merge ships without the `removeX` companion §8.2
+  requires, so a caller can add or overwrite a block but never remove one.
 
 **Ruled:**
 

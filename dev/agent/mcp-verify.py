@@ -5,6 +5,7 @@ Usage:
   mcp-verify.py             # all sections
   mcp-verify.py auth        # auth matrix only
   mcp-verify.py schema      # declared-contract checks only
+  mcp-verify.py scope       # group filtering and risk ceiling
   mcp-verify.py exercise    # create/read/page/delete against real data
   mcp-verify.py cost        # tool-list size in tokens
 
@@ -53,13 +54,13 @@ def check(ok, label, detail=""):
         failures.append(label)
 
 
-def post(body, sid=None, token=TOKEN, raw_status=False):
+def post(body, sid=None, token=TOKEN, raw_status=False, url=None):
     h = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
     if token is not None:
         h["Authorization"] = f"Bearer {token}"
     if sid:
         h["Mcp-Session-Id"] = sid
-    req = urllib.request.Request(MCP, data=json.dumps(body).encode(), headers=h, method="POST")
+    req = urllib.request.Request(url or MCP, data=json.dumps(body).encode(), headers=h, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             body_text, status, new_sid = r.read().decode(), r.status, r.headers.get("Mcp-Session-Id")
@@ -73,24 +74,31 @@ def post(body, sid=None, token=TOKEN, raw_status=False):
     return (parsed, new_sid, status) if raw_status else (parsed, new_sid)
 
 
-def rpc(method, params, sid=None, rid=1):
-    resp, new_sid = post({"jsonrpc": "2.0", "id": rid, "method": method, "params": params}, sid)
+def rpc(method, params, sid=None, rid=1, url=None):
+    resp, new_sid = post({"jsonrpc": "2.0", "id": rid, "method": method, "params": params}, sid, url=url)
     if resp and "error" in resp:
         raise RuntimeError(json.dumps(resp["error"]))
     return (resp or {}).get("result"), new_sid
 
 
-def session():
+def session(url=None):
     _, sid = rpc(
         "initialize",
         {"protocolVersion": "2025-03-26", "capabilities": {}, "clientInfo": {"name": "mcp-verify", "version": "1"}},
+        url=url,
     )
-    post({"jsonrpc": "2.0", "method": "notifications/initialized"}, sid)
+    post({"jsonrpc": "2.0", "method": "notifications/initialized"}, sid, url=url)
     return sid
 
 
-def call(sid, name, args, rid=90):
-    result, _ = rpc("tools/call", {"name": name, "arguments": args}, sid, rid=rid)
+def list_tools_at(url):
+    sid = session(url)
+    tools, _ = rpc("tools/list", {}, sid, rid=2, url=url)
+    return sid, sorted(tools["tools"], key=lambda t: t["name"])
+
+
+def call(sid, name, args, rid=90, url=None):
+    result, _ = rpc("tools/call", {"name": name, "arguments": args}, sid, rid=rid, url=url)
     text = "".join(c.get("text", "") for c in result.get("content", []))
     if result.get("isError"):
         raise RuntimeError(f"{name}: {text}")
@@ -235,6 +243,45 @@ def verify_exercise(sid):
 # ----------------------------------------------------------------- token cost
 
 
+def verify_scope():
+    """Group narrows the listing; risk narrows it AND refuses on dispatch.
+
+    The distinction is the point: a filter only affects tools/list, so a client
+    that already knew a tool's name could still call it. If the ceiling did not
+    refuse at dispatch it would mean nothing.
+    """
+    print("\nscope (group filtering and risk ceiling)")
+
+    _, all_tools = list_tools_at(MCP)
+    names = {t["name"] for t in all_tools}
+
+    _, configuring = list_tools_at(MCP + "/configuring")
+    _, usage = list_tools_at(MCP + "/usage")
+
+    cfg, use = {t["name"] for t in configuring}, {t["name"] for t in usage}
+    check(cfg and use, f"group endpoints list subsets (configuring {len(cfg)}, usage {len(use)})")
+    check(cfg < names and use < names, "each group is a strict subset of the full list")
+    check(not (cfg & use), "configuring and usage do not overlap",
+          ", ".join(sorted(cfg & use)))
+    check(cfg | use == names, "the groups together account for every tool",
+          "missing: " + ", ".join(sorted(names - (cfg | use))))
+
+    _, read_only = list_tools_at(MCP + "?maxRisk=read")
+    risks = {(t.get("_meta") or {}).get("human.dev/risk") for t in read_only}
+    check(risks <= {"read"}, f"a read ceiling lists only read tools (saw {sorted(r for r in risks if r)})")
+
+    # The part a filter cannot do: refuse a call by name.
+    sid = session(MCP + "?maxRisk=read")
+    writer = next((t["name"] for t in all_tools
+                   if (t.get("_meta") or {}).get("human.dev/risk") == "destructive"), None)
+    if writer:
+        try:
+            call(sid, writer, {}, url=MCP + "?maxRisk=read")
+            check(False, f"a capped session refuses to dispatch {writer}", "the call went through")
+        except RuntimeError as e:
+            check("capped at" in str(e), f"a capped session refuses to dispatch {writer}", str(e)[:120])
+
+
 def verify_cost(tools):
     print("\ntool-list cost")
     payload = json.dumps({"tools": tools})
@@ -259,6 +306,8 @@ def main():
     tools = []
     if want in ("all", "schema", "cost"):
         tools = verify_schema(sid)
+    if want in ("all", "scope"):
+        verify_scope()
     if want in ("all", "exercise"):
         verify_exercise(sid)
     if want in ("all", "cost"):
