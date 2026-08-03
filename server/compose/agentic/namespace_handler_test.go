@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -13,11 +14,7 @@ type stubRegistrar struct {
 	names []string
 }
 
-func (s *stubRegistrar) RegisterTool(tool mcp.Tool, _ string, _ server.ToolHandlerFunc) {
-	s.names = append(s.names, tool.Name)
-}
-
-func (s *stubRegistrar) RegisterHiddenTool(tool mcp.Tool, _ string, _ server.ToolHandlerFunc) {
+func (s *stubRegistrar) RegisterTool(tool mcp.Tool, _ string, _ server.ToolHandlerFunc, _ ...hmcp.RegisterOption) {
 	s.names = append(s.names, tool.Name)
 }
 

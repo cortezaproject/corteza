@@ -29,10 +29,37 @@ type (
 		tools     map[string]registeredTool
 		resources map[string]registeredResource
 	}
+
+	// RegisterOption adjusts how a tool is registered. These are
+	// registration-time concerns — on which surface a tool appears — as
+	// opposed to tool-definition concerns (group, risk, annotations), which
+	// travel on the mcp.Tool itself via the options in tool_options.go.
+	RegisterOption func(*registeredTool)
 )
+
+// Hidden marks a tool as in-process only: the agentic runtime can see and call
+// it, remote MCP clients cannot. See NewMCPServer for how this is enforced.
+func Hidden() RegisterOption {
+	return func(t *registeredTool) { t.Hidden = true }
+}
+
+// Available gates a tool on a runtime predicate. It is re-evaluated on every
+// listing, so it may depend on live state (a health check, an option).
+func Available(fn func() bool) RegisterOption {
+	return func(t *registeredTool) { t.Available = fn }
+}
 
 // ToolAliases maps old tool names to their current equivalents.
 // Add entries here when a tool is renamed so existing agents keep working.
+//
+// Aliases matter for the in-process surface only: agent definitions store tool
+// names by value, so a rename would otherwise strand them. Remote MCP clients
+// list tools live and never hold a stale name, which is why aliases are
+// deliberately not registered with the mcp-go server — doing so would
+// advertise every historical name to every client.
+//
+// Keep in sync with server/system/agentic/policy/policy.go; the structural
+// test asserts the two maps agree.
 var ToolAliases = map[string]string{
 	"compose_namespace_list": "compose_namespace_lookup",
 	"compose_module_list":    "compose_module_lookup",
@@ -53,7 +80,9 @@ func NewRegistry() *Registry {
 	}
 }
 
-func (r *Registry) RegisterHiddenTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc) {
+// inputSchema flattens a tool's declared schema into the shape the agentic
+// runtime hands to an LLM.
+func inputSchema(tool mcp.Tool) map[string]any {
 	schema := map[string]any{
 		"type":       tool.InputSchema.Type,
 		"properties": tool.InputSchema.Properties,
@@ -61,31 +90,31 @@ func (r *Registry) RegisterHiddenTool(tool mcp.Tool, title string, handler serve
 	if len(tool.InputSchema.Required) > 0 {
 		schema["required"] = tool.InputSchema.Required
 	}
-	r.tools[tool.Name] = registeredTool{Tool: tool, Handler: handler, InputSchema: schema, Title: title, Hidden: true}
+	return schema
 }
 
-func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc) {
-	schema := map[string]any{
-		"type":       tool.InputSchema.Type,
-		"properties": tool.InputSchema.Properties,
-	}
-	if len(tool.InputSchema.Required) > 0 {
-		schema["required"] = tool.InputSchema.Required
-	}
-
-	r.tools[tool.Name] = registeredTool{Tool: tool, Handler: handler, InputSchema: schema, Title: title}
-}
-
-func (r *Registry) RegisterToolWithAvailability(tool mcp.Tool, title string, handler server.ToolHandlerFunc, available func() bool) {
-	schema := map[string]any{
-		"type":       tool.InputSchema.Type,
-		"properties": tool.InputSchema.Properties,
-	}
-	if len(tool.InputSchema.Required) > 0 {
-		schema["required"] = tool.InputSchema.Required
+// RegisterTool adds a tool to the registry.
+//
+// Registration happens once, at boot. A duplicate name is a programming error
+// — previously it silently overwrote the earlier tool, which meant two
+// handlers claiming one name produced a green build with one tool missing —
+// so it panics rather than returning an error no caller would check.
+func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc, opts ...RegisterOption) {
+	if _, exists := r.tools[tool.Name]; exists {
+		panic(fmt.Sprintf("mcp: duplicate tool registration for %q", tool.Name))
 	}
 
-	r.tools[tool.Name] = registeredTool{Tool: tool, Handler: handler, InputSchema: schema, Title: title, Available: available}
+	t := registeredTool{
+		Tool:        tool,
+		Handler:     handler,
+		InputSchema: inputSchema(tool),
+		Title:       title,
+	}
+	for _, opt := range opts {
+		opt(&t)
+	}
+
+	r.tools[tool.Name] = t
 }
 
 func (r *Registry) HasTool(name string) bool {
@@ -140,6 +169,11 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 }
 
 func (r *Registry) ExecuteTool(ctx context.Context, toolName string, args map[string]any) (any, error) {
+	// Resolve first: agent definitions store tool names by value, so a stored
+	// pre-rename name reaches dispatch verbatim. GetTools and HasTool already
+	// resolve, so without this an aliased tool lists fine and fails on call.
+	toolName = ResolveToolAlias(toolName)
+
 	t, ok := r.tools[toolName]
 	if !ok {
 		return nil, fmt.Errorf("tool not found: %s", toolName)

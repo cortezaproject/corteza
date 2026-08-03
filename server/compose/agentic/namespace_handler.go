@@ -9,6 +9,7 @@ import (
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
 	a "github.com/crusttech/human/server/pkg/auth"
+	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -32,9 +33,10 @@ func NamespaceHandler(reg toolRegistrar, agents agentService) *namespaceHandler 
 func (h *namespaceHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_namespace_lookup",
-			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up namespaces. Call this whenever the user asks what they have, what exists, what's set up, or anything about the current state of their data. Also call this to resolve a namespace before any other operation."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup namespace",
 		h.lookup,
@@ -45,6 +47,8 @@ func (h *namespaceHandler) register() {
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name for the namespace")),
 			mcp.WithString("slug", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and hyphens only)")),
 			mcp.WithBoolean("enabled", mcp.Description("Whether the namespace is enabled (default: true)")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create namespace",
 		h.create,
@@ -56,6 +60,8 @@ func (h *namespaceHandler) register() {
 			mcp.WithString("name", mcp.Description("New display name")),
 			mcp.WithString("slug", mcp.Description("New URL-friendly identifier")),
 			mcp.WithBoolean("enabled", mcp.Description("Whether the namespace should be enabled")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update namespace",
 		h.update,
@@ -64,6 +70,8 @@ func (h *namespaceHandler) register() {
 		mcp.NewTool("compose_namespace_delete",
 			mcp.WithDescription("Delete a namespace by name, handle, slug, or ID. This permanently removes the namespace and all its contents."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete namespace",
 		h.del,

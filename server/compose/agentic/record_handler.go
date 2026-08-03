@@ -8,14 +8,14 @@ import (
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
 type (
 	toolRegistrar interface {
-		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
-		RegisterHiddenTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
+		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc, opts ...hmcp.RegisterOption)
 	}
 
 	recordHandler struct {
@@ -32,12 +32,13 @@ func RecordHandler(reg toolRegistrar) *recordHandler {
 func (h *recordHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_lookup",
-			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up a record by ID, or list/filter records in a module. Provide 'recordID' to fetch one record. Omit 'recordID' and use 'filter' to search by field values (e.g. \"name = 'John'\"). Do NOT call this before creating a record — only use it when the user explicitly asks to search or check for existing records."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Description("Record ID (as string to prevent precision loss). Omit to list/filter instead.")),
 			mcp.WithString("filter", mcp.Description("Filter expression when no recordID given, e.g. \"name = 'John'\" or \"status = 'open'\".")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup record",
 		h.lookup,
@@ -48,6 +49,8 @@ func (h *recordHandler) register() {
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create record",
 		h.create,
@@ -59,6 +62,8 @@ func (h *recordHandler) register() {
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
 			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs to update")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update record",
 		h.update,
@@ -69,6 +74,8 @@ func (h *recordHandler) register() {
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete record",
 		h.del,

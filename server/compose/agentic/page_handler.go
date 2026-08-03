@@ -10,6 +10,7 @@ import (
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
 	a "github.com/crusttech/human/server/pkg/auth"
+	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -26,10 +27,11 @@ func PageHandler(reg toolRegistrar) *pageHandler {
 func (h *pageHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_lookup",
-			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up pages in a namespace. Omit the page argument to get the full page hierarchy as a nested tree (parent/child relationships and navigation order). Provide a title, handle, or ID to get a single page with its full block configuration."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("page", mcp.Description("Page title, handle, or ID. Omit to get the namespace's page tree.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup page",
 		h.lookup,
@@ -53,6 +55,8 @@ The layout grid is 48 columns wide (cell height 10px; default block size is w=24
 			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Example: {"allowPersonalLayouts":true}`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create page",
 		h.create,
@@ -72,6 +76,8 @@ The layout grid is 48 columns wide (cell height 10px; default block size is w=24
 			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Replaces existing meta. Example: {"allowPersonalLayouts":true}`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update page",
 		h.update,
@@ -82,6 +88,8 @@ The layout grid is 48 columns wide (cell height 10px; default block size is w=24
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID")),
 			mcp.WithString("strategy", mcp.Description(`How to handle child pages: "abort" (default — fail if children exist), "cascade" (delete children too), "rebase" (move children to grandparent), "force" (delete unconditionally)`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete page",
 		h.del,
@@ -92,15 +100,18 @@ The layout grid is 48 columns wide (cell height 10px; default block size is w=24
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("parent", mcp.Description("Parent page title, handle, or ID. Omit to reorder root-level pages.")),
 			mcp.WithString("pageIDs", mcp.Required(), mcp.Description(`JSON array of page IDs in desired order, e.g. ["123","456","789"]`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Reorder pages",
 		h.reorder,
 	)
-	h.reg.RegisterHiddenTool(
+	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_block_schema",
-			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription(`Get the options structure for a page block kind — field names and types as a zero-value skeleton (not examples from live pages). Call this before creating blocks of an unfamiliar kind. Semantics the skeleton cannot express: Metric items use metricField "count" with empty operation for record counts, or a numeric field with operation sum/avg/min/max; Chart blocks reference an existing chart resource by chartID; RecordList/Record moduleID/fields take IDs and field names from compose_module_lookup.`),
 			mcp.WithString("kind", mcp.Required(), mcp.Description("Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Get page block schema",
 		h.blockSchema,

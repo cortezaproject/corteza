@@ -11,14 +11,14 @@ import (
 	"time"
 
 	a "github.com/crusttech/human/server/pkg/auth"
+	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
 type (
 	toolRegistrar interface {
-		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc)
-		RegisterToolWithAvailability(tool mcp.Tool, title string, handler server.ToolHandlerFunc, available func() bool)
+		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc, opts ...hmcp.RegisterOption)
 	}
 
 	discoveryTokenSigner interface {
@@ -80,18 +80,19 @@ func (h *discoveryHandler) isAvailable() bool {
 }
 
 func (h *discoveryHandler) register() {
-	h.reg.RegisterToolWithAvailability(
+	h.reg.RegisterTool(
 		mcp.NewTool("discovery_search",
-			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Search or list records you have access to. Use this when the user asks to find, list, or show existing records. Only namespaces listed in your DISCOVERY ACCESS section are permitted — the executor will deny any other namespace. Leave query empty to list all accessible records, or provide a specific field value (name, email, phone) to search within them."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("The exact namespace name from your DISCOVERY ACCESS section. Do not use module names here.")),
 			mcp.WithString("module", mcp.Description("The exact module name from your DISCOVERY ACCESS section. Leave empty to search across all accessible modules in the namespace.")),
 			mcp.WithString("query", mcp.Description("A specific value to search for inside record fields (e.g. a name, email, phone). Leave empty to list all records.")),
 			mcp.WithString("size", mcp.Description("Number of results to return (default: 10)")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Discover Records",
 		h.search,
-		h.isAvailable,
+		hmcp.Available(h.isAvailable),
 	)
 }
 

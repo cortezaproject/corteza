@@ -9,6 +9,7 @@ import (
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -31,10 +32,11 @@ Metric "field":"count" counts records; a numeric module field aggregates instead
 func (h *chartHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_chart_lookup",
-			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("List charts in a namespace, or look one up by name, handle, or ID. Omit 'chart' to list all. Chart blocks on pages reference charts by chartID."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("chart", mcp.Description("Chart name, handle, or ID. Omit to list all charts in the namespace.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup chart",
 		h.lookup,
@@ -46,6 +48,8 @@ func (h *chartHandler) register() {
 			mcp.WithString("name", mcp.Required(), mcp.Description("Chart name")),
 			mcp.WithString("handle", mcp.Description("URL-friendly identifier")),
 			mcp.WithString("config", mcp.Required(), mcp.Description(chartConfigDoc)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create chart",
 		h.create,
@@ -58,6 +62,8 @@ func (h *chartHandler) register() {
 			mcp.WithString("name", mcp.Description("New name")),
 			mcp.WithString("handle", mcp.Description("New handle")),
 			mcp.WithString("config", mcp.Description(chartConfigDoc)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update chart",
 		h.update,
@@ -67,6 +73,8 @@ func (h *chartHandler) register() {
 			mcp.WithDescription("Delete a chart by name, handle, or ID. Remove Chart blocks referencing it from pages first — they render empty otherwise."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("chart", mcp.Required(), mcp.Description("Chart name, handle, or ID")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete chart",
 		h.del,

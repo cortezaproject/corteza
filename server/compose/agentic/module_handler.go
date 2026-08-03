@@ -8,6 +8,7 @@ import (
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
 	a "github.com/crusttech/human/server/pkg/auth"
+	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -26,10 +27,11 @@ func ModuleHandler(reg toolRegistrar, agents agentService) *moduleHandler {
 func (h *moduleHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_module_lookup",
-			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDescription("Look up modules and their fields in a namespace. To list ALL modules in a namespace, omit the module argument. To get details on a specific module, provide its name or handle. Never guess module names — always list first if you are unsure what exists."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID. Omit to list all modules in the namespace.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup module",
 		h.lookup,
@@ -39,6 +41,8 @@ func (h *moduleHandler) register() {
 			mcp.WithDescription("Delete a module by name, handle, or ID. This permanently removes the module and all its records."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete module",
 		h.del,
@@ -53,6 +57,8 @@ func (h *moduleHandler) register() {
 			mcp.WithString("fields", mcp.Description("JSON array of fields to add or update. Same format as compose_module_create. Existing fields not listed are preserved.")),
 			mcp.WithString("removeFields", mcp.Description("JSON array of field names to remove, e.g. [\"fieldA\",\"fieldB\"]")),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"Used for customer contact only"}}`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update module",
 		h.update,
@@ -65,6 +71,8 @@ func (h *moduleHandler) register() {
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and underscores only)")),
 			mcp.WithString("fields", mcp.Description(`JSON array of field definitions. Each field: {"name":"fieldName","kind":"String","label":"Field Label","isRequired":false,"isMulti":false,"options":{},"defaultValue":[{"name":"fieldName","value":"default"}],"expressions":{"value":"","sanitizers":[],"validators":[],"formatters":[]}}. Supported kinds: String, Number, DateTime, Bool, Record, User, File, Select, Email, Url, Currency, Duration. Kind-specific options: Select→{"options":[{"value":"a","text":"A"}]}, Record→{"moduleID":"123","recordLabelField":"name"}, Number→{"precision":2}, DateTime→{"onlyDate":false,"onlyTime":false}, Bool→{"trueLabel":"Yes","falseLabel":"No"}.`)),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. recordDeDup rules: {"name":"rule-name","strict":true,"constraints":[{"attribute":"fieldName","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}. recordRevisions: {"enabled":true}. privacy: {"usageDisclosure":"text","sensitivityLevelID":"123"}.`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create module",
 		h.create,
