@@ -82,6 +82,32 @@ func HttpTokenValidator(scope ...string) func(http.Handler) http.Handler {
 	}
 }
 
+// HttpAuthenticatedOnly rejects requests that carry no identity.
+//
+// HttpTokenValidator deliberately lets jwtauth.ErrNoTokenFound through, so it
+// validates the scope of a token that is present rather than requiring one.
+// That is right for the REST surface, where handlers reach RBAC and RBAC denies
+// the anonymous role. It is not enough where a handler discloses something
+// before any RBAC check runs — MCP tool discovery being the case in point: it
+// lists every registered tool with its full description straight from the
+// registry.
+//
+// Use this in addition to HttpTokenValidator, not instead of it: this one
+// establishes that there is a caller, that one establishes the token is good
+// for this surface.
+func HttpAuthenticatedOnly() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !GetIdentityFromContext(r.Context()).Valid() {
+				errors.ProperlyServeHTTP(w, r, errUnauthorized(), false)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // pulls token from context and validates scope & access-token
 func verifyToken(ctx context.Context, scope ...string) (err error) {
 	var token jwt.Token

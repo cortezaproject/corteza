@@ -104,13 +104,18 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 				systemService.DefaultChatbotSession,
 			)
 			widgetCtrl.MountRoutes(r)
-			// MCP tool surface (/api/mcp). Token validator is required here for
-			// the same reason as every other private route group: tool
-			// discovery lists every registered tool with its full description,
-			// which is a deliberately rich, source-substituting disclosure.
+			// MCP tool surface (/api/mcp). Both middlewares are needed and they
+			// do different jobs: HttpTokenValidator rejects a token minted for
+			// another scope, HttpAuthenticatedOnly rejects a caller with no
+			// token at all. The REST surface gets away with only the former
+			// because its handlers reach RBAC, which denies the anonymous role.
+			// MCP tool discovery never reaches RBAC — it lists every registered
+			// tool with its full description straight from the registry — so
+			// without the latter the whole tool catalogue is public.
 			if app.McpServer != nil {
 				r.Route("/mcp", func(r chi.Router) {
 					r.Use(auth.HttpTokenValidator("api"))
+					r.Use(auth.HttpAuthenticatedOnly())
 					app.McpServer.MountRoutes(r)
 				})
 			}

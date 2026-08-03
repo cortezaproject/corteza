@@ -510,8 +510,19 @@ the hazard most likely to force revisiting "groups are filtering only".
 
 **Built:**
 
-- `/api/mcp` requires `auth.HttpTokenValidator("api")`. It was the only API
-  surface without it: tool discovery was served to unauthenticated callers.
+- `/api/mcp` requires **both** `auth.HttpTokenValidator("api")` and
+  `auth.HttpAuthenticatedOnly()`, and they do different jobs. The validator
+  rejects a token minted for another scope; on its own it does *not* require a
+  token at all, because it deliberately passes `jwtauth.ErrNoTokenFound`
+  through. That is fine for REST, whose handlers reach RBAC and RBAC denies the
+  anonymous role — but MCP tool discovery never reaches RBAC, it lists every
+  registered tool and description straight from the registry. Verified on a
+  running server: validator alone still answered an unauthenticated
+  `tools/list` with 200.
+
+  Known and pre-existing: a **malformed** token yields 500 rather than 401.
+  This is global to the API, not specific to `/mcp` (`/system/settings/current`
+  behaves the same), and lives in the shared token verifier.
 - `Hidden` enforced by exclusion; `Available` enforced per-request via
   `server.WithToolFilter`.
 - `ExecuteTool` resolves aliases. Duplicate registration panics. Schema
