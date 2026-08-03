@@ -9,7 +9,8 @@ import (
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
-	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/system/agentic/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -17,179 +18,154 @@ type chartHandler struct {
 	reg toolRegistrar
 }
 
+// Declarations for these handlers are in chart_tools.go, in the same order.
 func ChartHandler(reg toolRegistrar) *chartHandler {
 	h := &chartHandler{reg: reg}
 	h.register()
 	return h
 }
 
-// canonical config contract validated against the unify webapp renderer
-// (client/web/unify/src/sections/compose/components/Chart/, lib/js chart types)
-const chartConfigDoc = `JSON chart configuration. Canonical shape:
-{"colorScheme":"tableau.Tableau10","reports":[{"moduleID":"<id from compose_module_lookup>","filter":"","dimensions":[{"field":"<grouping field>","modifier":"(no grouping / buckets)","conditions":{}}],"metrics":[{"field":"count","type":"doughnut"}]}]}
-Metric "field":"count" counts records; a numeric module field aggregates instead. "type" per metric: doughnut, pie, bar, line. The dimension field is what values are grouped by (Select fields work well).`
+func (h *chartHandler) resolveNs(ctx context.Context, args map[string]any) (uint64, error) {
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	if err != nil {
+		return 0, toolkit.Errf("namespace lookup", err)
+	}
 
-func (h *chartHandler) register() {
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_chart_lookup",
-			mcp.WithDescription("List charts in a namespace, or look one up by name, handle, or ID. Omit 'chart' to list all. Chart blocks on pages reference charts by chartID."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
-			mcp.WithString("chart", mcp.Description("Chart name, handle, or ID. Omit to list all charts in the namespace.")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskRead),
-		),
-		"Lookup chart",
-		h.lookup,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_chart_create",
-			mcp.WithDescription("Create a chart in a namespace. After creating, place it on a page with a Chart block: {\"kind\":\"Chart\",\"options\":{\"chartID\":\"<created ID>\"}}."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
-			mcp.WithString("name", mcp.Required(), mcp.Description("Chart name")),
-			mcp.WithString("handle", mcp.Description("URL-friendly identifier")),
-			mcp.WithString("config", mcp.Required(), mcp.Description(chartConfigDoc)),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskWrite),
-		),
-		"Create chart",
-		h.create,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_chart_update",
-			mcp.WithDescription("Update an existing chart. Pass only the fields you want to change; config replaces the whole configuration."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
-			mcp.WithString("chart", mcp.Required(), mcp.Description("Chart name, handle, or ID")),
-			mcp.WithString("name", mcp.Description("New name")),
-			mcp.WithString("handle", mcp.Description("New handle")),
-			mcp.WithString("config", mcp.Description(chartConfigDoc)),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskWrite),
-		),
-		"Update chart",
-		h.update,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_chart_delete",
-			mcp.WithDescription("Delete a chart by name, handle, or ID. Remove Chart blocks referencing it from pages first — they render empty otherwise."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID")),
-			mcp.WithString("chart", mcp.Required(), mcp.Description("Chart name, handle, or ID")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskDestructive),
-		),
-		"Delete chart",
-		h.del,
-	)
+	return ns.ID, nil
 }
 
 func (h *chartHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
-	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
-	}
-
-	chartRef, _ := args["chart"].(string)
-	if chartRef == "" {
-		set, _, err := cmpService.DefaultChart.Search(ctx, cmpTypes.ChartFilter{NamespaceID: ns.ID})
-		if err != nil {
-			return nil, fmt.Errorf("chart list failed: %w", err)
-		}
-		type chartItem struct {
-			ID     uint64 `json:"chartID,string"`
-			Name   string `json:"name"`
-			Handle string `json:"handle"`
-		}
-		items := make([]chartItem, len(set))
-		for i, c := range set {
-			items[i] = chartItem{ID: c.ID, Name: c.Name, Handle: c.Handle}
-		}
-		out, err := json.Marshal(items)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal charts: %w", err)
-		}
-		return mcp.NewToolResultText(string(out)), nil
-	}
-
-	c, err := findChartByAny(ctx, ns.ID, chartRef)
+	args, err := toolkit.Args(req)
 	if err != nil {
 		return nil, err
 	}
-	out, err := json.Marshal(c)
+
+	nsID, err := h.resolveNs(ctx, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal chart: %w", err)
+		return nil, err
 	}
-	return mcp.NewToolResultText(string(out)), nil
+
+	// Single-item mode returns the raw service type, config included — that is
+	// what the caller is after once they have picked a chart.
+	if ref := toolkit.Str(args, "chart"); ref != "" {
+		c, err := findChartByAny(ctx, nsID, ref)
+		if err != nil {
+			return nil, err
+		}
+		return toolkit.JSONResult(c)
+	}
+
+	f := cmpTypes.ChartFilter{NamespaceID: nsID}
+
+	page := toolkit.Page(args)
+	if f.Paging, err = filter.NewPaging(page.Limit, page.Cursor); err != nil {
+		return nil, fmt.Errorf("invalid pageCursor: %w", err)
+	}
+
+	set, out, err := cmpService.DefaultChart.Search(ctx, f)
+	if err != nil {
+		return nil, toolkit.Errf("chart list", err)
+	}
+
+	// List mode is a slim projection: a chart's config is incidental when the
+	// caller is picking one out of a list, and a namespace's worth of configs
+	// would swamp the result ceiling.
+	type chartItem struct {
+		ID     uint64 `json:"chartID,string"`
+		Name   string `json:"name"`
+		Handle string `json:"handle"`
+	}
+
+	items := make([]chartItem, len(set))
+	for i, c := range set {
+		items[i] = chartItem{ID: c.ID, Name: c.Name, Handle: c.Handle}
+	}
+
+	return toolkit.JSONResult(map[string]any{
+		"charts": items,
+		// The cursor marshals itself to the base64 form parseCursor accepts;
+		// its String() is a debug rendering and does not round-trip.
+		"nextPageCursor": out.NextPage,
+	})
 }
 
 func (h *chartHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
-	}
-
-	name, _ := args["name"].(string)
-	if name == "" {
-		return nil, fmt.Errorf("name is required")
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	args, err := toolkit.Args(req)
 	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
+		return nil, err
 	}
 
-	c := &cmpTypes.Chart{
-		NamespaceID: ns.ID,
-		Name:        name,
+	nsID, err := h.resolveNs(ctx, args)
+	if err != nil {
+		return nil, err
 	}
-	if v, ok := args["handle"].(string); ok && v != "" {
-		c.Handle = v
+
+	name, err := toolkit.ReqStr(args, "name")
+	if err != nil {
+		return nil, err
 	}
 
 	cfg, err := parseChartConfig(args["config"])
 	if err != nil {
 		return nil, err
 	}
-	c.Config = cfg
+
+	c := &cmpTypes.Chart{
+		NamespaceID: nsID,
+		Name:        name,
+		Handle:      toolkit.Str(args, "handle"),
+		Config:      cfg,
+	}
 
 	c, err = cmpService.DefaultChart.Create(ctx, c)
 	if err != nil {
-		return nil, fmt.Errorf("chart creation failed: %w", err)
+		return nil, toolkit.Errf("chart creation", err)
 	}
 
-	out, err := json.Marshal(c)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal chart: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(c)
 }
 
 func (h *chartHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
-	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
-	}
-
-	chartRef, _ := args["chart"].(string)
-	c, err := findChartByAny(ctx, ns.ID, chartRef)
+	args, err := toolkit.Args(req)
 	if err != nil {
 		return nil, err
 	}
 
-	if v, ok := args["name"].(string); ok && v != "" {
+	nsID, err := h.resolveNs(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := toolkit.ReqStr(args, "chart")
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := findChartByAny(ctx, nsID, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	// Absent leaves the field unchanged; present-and-empty clears it.
+	if raw, ok := args["name"]; ok && raw != nil {
+		v, ok := raw.(string)
+		if !ok {
+			return nil, fmt.Errorf("name must be a string")
+		}
 		c.Name = v
 	}
-	if v, ok := args["handle"].(string); ok && v != "" {
+
+	if raw, ok := args["handle"]; ok && raw != nil {
+		v, ok := raw.(string)
+		if !ok {
+			return nil, fmt.Errorf("handle must be a string")
+		}
 		c.Handle = v
 	}
+
+	// Config deliberately replaces wholesale rather than merging: a report set
+	// is a collection, and a partial merge would leave the caller unable to
+	// remove a report or a metric.
 	if raw, ok := args["config"]; ok && raw != nil {
 		cfg, err := parseChartConfig(raw)
 		if err != nil {
@@ -200,37 +176,38 @@ func (h *chartHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mc
 
 	c, err = cmpService.DefaultChart.Update(ctx, c)
 	if err != nil {
-		return nil, fmt.Errorf("chart update failed: %w", err)
+		return nil, toolkit.Errf("chart update", err)
 	}
 
-	out, err := json.Marshal(c)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal chart: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(c)
 }
 
 func (h *chartHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
-	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
-	}
-
-	chartRef, _ := args["chart"].(string)
-	c, err := findChartByAny(ctx, ns.ID, chartRef)
+	args, err := toolkit.Args(req)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = cmpService.DefaultChart.DeleteByID(ctx, ns.ID, c.ID); err != nil {
-		return nil, fmt.Errorf("chart deletion failed: %w", err)
+	nsID, err := h.resolveNs(ctx, args)
+	if err != nil {
+		return nil, err
 	}
-	return mcp.NewToolResultText(fmt.Sprintf("chart %d deleted", c.ID)), nil
+
+	ref, err := toolkit.ReqStr(args, "chart")
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := findChartByAny(ctx, nsID, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cmpService.DefaultChart.DeleteByID(ctx, nsID, c.ID); err != nil {
+		return nil, toolkit.Errf("chart delete", err)
+	}
+
+	return toolkit.TextResult("chart %d deleted", c.ID), nil
 }
 
 // findChartByAny resolves a chart reference (numeric ID, handle, or name)
@@ -239,27 +216,35 @@ func findChartByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTy
 	if ref == "" {
 		return nil, fmt.Errorf("chart reference is required")
 	}
+
 	if id, err := strconv.ParseUint(ref, 10, 64); err == nil {
 		return cmpService.DefaultChart.FindByID(ctx, namespaceID, id)
 	}
+
 	if c, err := cmpService.DefaultChart.FindByHandle(ctx, namespaceID, ref); err == nil {
 		return c, nil
 	}
+
+	// Name is not a filterable column, so the fallback is a scan.
 	set, _, err := cmpService.DefaultChart.Search(ctx, cmpTypes.ChartFilter{NamespaceID: namespaceID})
 	if err != nil {
-		return nil, fmt.Errorf("chart lookup failed: %w", err)
+		return nil, toolkit.Errf("chart lookup", err)
 	}
+
 	for _, c := range set {
 		if strings.EqualFold(c.Name, ref) || strings.EqualFold(c.Handle, ref) {
 			return c, nil
 		}
 	}
+
 	return nil, fmt.Errorf("chart %q not found", ref)
 }
 
-// parseChartConfig unmarshals a JSON string or object into ChartConfig.
-func parseChartConfig(raw interface{}) (cmpTypes.ChartConfig, error) {
+// parseChartConfig unmarshals a JSON string or object into ChartConfig, because
+// models produce both.
+func parseChartConfig(raw any) (cmpTypes.ChartConfig, error) {
 	var data []byte
+
 	switch v := raw.(type) {
 	case nil:
 		return cmpTypes.ChartConfig{}, fmt.Errorf("config is required")
@@ -271,12 +256,15 @@ func parseChartConfig(raw interface{}) (cmpTypes.ChartConfig, error) {
 			return cmpTypes.ChartConfig{}, fmt.Errorf("cannot encode config: %w", err)
 		}
 	}
+
 	var cfg cmpTypes.ChartConfig
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return cmpTypes.ChartConfig{}, fmt.Errorf("config must be a JSON object: %w", err)
 	}
+
 	if len(cfg.Reports) == 0 {
 		return cmpTypes.ChartConfig{}, fmt.Errorf("config must contain at least one report")
 	}
+
 	return cfg, nil
 }
