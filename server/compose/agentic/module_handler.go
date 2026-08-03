@@ -80,29 +80,19 @@ func (h *moduleHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, toolkit.Errf("module list", err)
 	}
 
-	// List mode is a slim projection: a field's options, defaults and
-	// expressions are incidental when the caller is picking one module out of
-	// many, so only the name and kind survive. Fetch a single module for the
-	// full definition.
-	type fieldItem struct {
-		Name string `json:"name"`
-		Kind string `json:"kind"`
-	}
+	// List mode is a slim projection and carries no fields at all: a module's
+	// field list is the heavy part, and it is incidental when the caller is
+	// picking one module out of many. Fetch a single module for the definition.
 	type modItem struct {
-		ID          uint64      `json:"moduleID,string"`
-		NamespaceID uint64      `json:"namespaceID,string"`
-		Name        string      `json:"name"`
-		Handle      string      `json:"handle"`
-		Fields      []fieldItem `json:"fields"`
+		ID          uint64 `json:"moduleID,string"`
+		NamespaceID uint64 `json:"namespaceID,string"`
+		Name        string `json:"name"`
+		Handle      string `json:"handle"`
 	}
 
 	items := make([]modItem, len(set))
 	for i, mod := range set {
-		fields := make([]fieldItem, len(mod.Fields))
-		for j, f := range mod.Fields {
-			fields[j] = fieldItem{Name: f.Name, Kind: f.Kind}
-		}
-		items[i] = modItem{ID: mod.ID, NamespaceID: mod.NamespaceID, Name: mod.Name, Handle: mod.Handle, Fields: fields}
+		items[i] = modItem{ID: mod.ID, NamespaceID: mod.NamespaceID, Name: mod.Name, Handle: mod.Handle}
 	}
 
 	return toolkit.JSONResult(map[string]any{

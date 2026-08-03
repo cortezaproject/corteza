@@ -136,7 +136,7 @@ func (h *namespaceHandler) create(ctx context.Context, req mcp.CallToolRequest) 
 		return nil, toolkit.Errf("namespace creation", err)
 	}
 
-	return toolkit.JSONResult(nsResult(ns))
+	return toolkit.JSONResult(ns)
 }
 
 func (h *namespaceHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -173,7 +173,7 @@ func (h *namespaceHandler) update(ctx context.Context, req mcp.CallToolRequest) 
 		return nil, toolkit.Errf("namespace update", err)
 	}
 
-	return toolkit.JSONResult(nsResult(ns))
+	return toolkit.JSONResult(ns)
 }
 
 func (h *namespaceHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -236,15 +236,6 @@ func (h *namespaceHandler) pruneNamespaceFromAgents(ctx context.Context, namespa
 
 // nsResult is the result shape for the write ops: the list projection plus the
 // enabled flag, with the ID as a string to survive a JavaScript client.
-func nsResult(ns *cmpTypes.Namespace) map[string]any {
-	return map[string]any{
-		"namespaceID": strconv.FormatUint(ns.ID, 10),
-		"name":        ns.Name,
-		"slug":        ns.Slug,
-		"enabled":     ns.Enabled,
-	}
-}
-
 // parseBoolArg returns the bool value of v, or fallback if v is absent or unrecognised.
 func parseBoolArg(v any, fallback bool) bool {
 	switch b := v.(type) {
