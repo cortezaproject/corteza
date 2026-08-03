@@ -59,9 +59,13 @@ func ReqStr(args map[string]any, key string) (string, error) {
 
 // Bool reads an optional boolean argument.
 //
-// Tool schemas declare flags as strings, because models are far more reliable
-// producing "true" than a JSON boolean, but both are accepted: a model that
-// sends the correct type should not be punished for it. Anything else is false.
+// Tool schemas declare flags with mcp.WithBoolean — the schema should say what
+// a param actually is. A string is accepted too, because a model that sends
+// "true" against a boolean schema has expressed the intent unambiguously and
+// failing it would buy nothing. Anything else is false.
+//
+// This is the one place the two wire forms are reconciled; handlers must not
+// compare against "true" themselves.
 func Bool(args map[string]any, key string) bool {
 	switch v := args[key].(type) {
 	case bool:

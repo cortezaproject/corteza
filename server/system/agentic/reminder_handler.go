@@ -54,9 +54,9 @@ func (h *reminderHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (
 
 	f := sysTypes.ReminderFilter{
 		Resource:         toolkit.Str(args, "resource"),
-		ExcludeDismissed: toolkit.Str(args, "excludeDismissed") == "true",
-		IncludeDeleted:   toolkit.Str(args, "includeDeleted") == "true",
-		ScheduledOnly:    toolkit.Str(args, "scheduledOnly") == "true",
+		ExcludeDismissed: toolkit.Bool(args, "excludeDismissed"),
+		IncludeDeleted:   toolkit.Bool(args, "includeDeleted"),
+		ScheduledOnly:    toolkit.Bool(args, "scheduledOnly"),
 	}
 
 	if f.AssignedTo, err = toolkit.ID(args, "assignedTo"); err != nil {

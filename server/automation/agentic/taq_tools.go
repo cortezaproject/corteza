@@ -31,7 +31,7 @@ func (h *taqHandler) register() {
 			),
 			mcp.WithString("taq", mcp.Description("TAQ ID as a string (to prevent precision loss), or handle. Omit to list instead.")),
 			mcp.WithString("query", mcp.Description("Case-insensitive substring of the handle. Ignored when 'taq' is given.")),
-			mcp.WithString("includeDisabled", mcp.Description("Set \"true\" to also list disabled TAQs. Ignored when 'taq' is given.")),
+			mcp.WithBoolean("includeDisabled", mcp.Description("Also list disabled TAQs. Ignored when 'taq' is given.")),
 			mcp.WithString("limit", mcp.Description("Maximum results, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),

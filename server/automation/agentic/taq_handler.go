@@ -66,7 +66,7 @@ func (h *taqHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	query := toolkit.Str(args, "query")
 
 	f := autoTypes.NgAutomationFilter{Query: query}
-	if toolkit.Str(args, "includeDisabled") == "true" {
+	if toolkit.Bool(args, "includeDisabled") {
 		f.Disabled = filter.StateInclusive
 	}
 
