@@ -42,6 +42,27 @@ func (h *taqHandler) register() {
 	)
 
 	h.reg.RegisterTool(
+		mcp.NewTool("automation_taq_undelete",
+			mcp.WithDescription(
+				"Restore a deleted TAQ (Trigger Action Query automation). Deleting a TAQ is soft — its "+
+					"triggers, steps and paths are all kept — so restoring puts the whole definition back, "+
+					"re-registers its triggers, and makes it runnable again if it is enabled. "+
+					"You cannot search for a deleted TAQ: automation_taq_lookup omits deleted TAQs from its "+
+					"list and does not find them by handle either, so you must already hold the TAQ's numeric "+
+					"ID — the 'automationID' automation_taq_lookup reported before the delete, or an ID from "+
+					"an audit trail. That ID does still resolve: pass it as 'taq' to automation_taq_lookup to "+
+					"see the TAQ, with 'deletedAt' set, before you restore it. "+
+					"Restoring a TAQ that is not deleted succeeds and changes nothing.",
+			),
+			mcp.WithString("taqID", mcp.Required(), mcp.Description("TAQ ID as a string (to prevent precision loss). A handle does not work here — a deleted TAQ cannot be resolved by handle.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Undelete TAQ",
+		h.undelete,
+	)
+
+	h.reg.RegisterTool(
 		mcp.NewTool("automation_taq_exec",
 			mcp.WithDescription(
 				"Run a TAQ and wait for it to finish. Returns the execution result — executionID, status, "+

@@ -35,6 +35,28 @@ func (h *workflowHandler) register() {
 	)
 
 	h.reg.RegisterTool(
+		mcp.NewTool("automation_workflow_undelete",
+			mcp.WithDescription(
+				"Restore a deleted automation workflow. Deleting a workflow is soft — its step and path "+
+					"graph is kept — so restoring brings the workflow back intact, re-registers its triggers "+
+					"and makes it executable again if it is enabled. "+
+					"You cannot search for a deleted workflow: automation_workflow_lookup leaves deleted "+
+					"workflows out of its list and does not find them by handle, so you need the workflow's "+
+					"numeric ID from before the delete, or from an audit trail. That ID still resolves: pass "+
+					"it as 'workflow' to automation_workflow_lookup to see what you are about to restore — a "+
+					"deleted workflow comes back with 'deletedAt' set. "+
+					"Restoring a workflow that is not deleted succeeds and changes nothing. To restore a "+
+					"Trigger-Action-Query automation use automation_taq_undelete instead.",
+			),
+			mcp.WithString("workflowID", mcp.Required(), mcp.Description("Workflow ID as a string (to prevent precision loss). A handle does not work here — a deleted workflow cannot be resolved by handle.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Undelete workflow",
+		h.undelete,
+	)
+
+	h.reg.RegisterTool(
 		mcp.NewTool("automation_workflow_exec",
 			mcp.WithDescription(
 				"Run a workflow by ID or handle, wait for it to finish, and return the variables it produced. "+
