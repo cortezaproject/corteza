@@ -13,7 +13,11 @@ func (s Store) ReorderComposePages(ctx context.Context, namespaceID uint64, pare
 		pageMap = map[uint64]bool{}
 		weight  = 1
 
-		f = composeType.PageFilter{ParentID: parentID, NamespaceID: namespaceID}
+		// Root is what constrains the search to top-level pages. The filter only
+		// applies self_id = ParentID when ParentID > 0, so without this a reorder
+		// of root pages (parentID 0) matched every page in the namespace and the
+		// leftover pass below re-weighted all of them in map-iteration order.
+		f = composeType.PageFilter{ParentID: parentID, NamespaceID: namespaceID, Root: parentID == 0}
 
 		query = func(id uint64, weight int) *goqu.UpdateDataset {
 			return s.Dialect.GOQU().
