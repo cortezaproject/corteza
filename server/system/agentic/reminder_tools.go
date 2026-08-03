@@ -116,7 +116,12 @@ func (h *reminderHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("system_reminder_undismiss",
-			mcp.WithDescription("Reverse a dismissal, so the reminder surfaces again."),
+			mcp.WithDescription(
+				"Reverse a dismissal so the reminder surfaces again. Use this when a user changes their "+
+					"mind about a reminder they dismissed, or dismissed by accident. Has no effect on a "+
+					"reminder that was never dismissed, and cannot recover a deleted one — "+
+					"system_reminder_delete has no undo.",
+			),
 			mcp.WithString("reminderID", mcp.Required(), mcp.Description("Reminder ID as a string.")),
 			hmcp.InGroup(hmcp.GroupUsage),
 			hmcp.WithRisk(hmcp.RiskWrite),

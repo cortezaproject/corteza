@@ -10,9 +10,23 @@ import (
 
 // toolAliases mirrors the alias map in the mcp package.
 // Keep both in sync when renaming tools.
+//
+// The duplication is deliberate — policy must not import mcp, which would close
+// the cycle mcp → runtime → policy. ToolAliases below exposes it so a test can
+// assert the two agree.
 var toolAliases = map[string]string{
 	"compose_namespace_list": "compose_namespace_lookup",
 	"compose_module_list":    "compose_module_lookup",
+}
+
+// ToolAliases returns a copy of this package's alias map, for the structural
+// test that keeps it in step with the mcp package's.
+func ToolAliases() map[string]string {
+	out := make(map[string]string, len(toolAliases))
+	for k, v := range toolAliases {
+		out[k] = v
+	}
+	return out
 }
 
 type (
@@ -235,6 +249,18 @@ var resourceScopeExempt = map[string]bool{
 	"automation_taq_execution_trace": true,
 	"automation_workflow_lookup":     true,
 	"discovery_search":               true,
+
+	// Reminders carry no compose resource dimension — they are scoped to their
+	// assignee inside the service (onLookup refuses a reminder assigned to
+	// someone else, onSearch filters by the same predicate), which is an
+	// authorization model checkAllow has nothing to narrow.
+	"system_reminder_lookup":    true,
+	"system_reminder_create":    true,
+	"system_reminder_update":    true,
+	"system_reminder_delete":    true,
+	"system_reminder_dismiss":   true,
+	"system_reminder_undismiss": true,
+	"system_reminder_snooze":    true,
 }
 
 // IsClassified reports whether a tool has been given a resource mapping or been

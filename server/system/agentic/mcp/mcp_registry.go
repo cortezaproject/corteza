@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	rt "github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -115,6 +116,26 @@ func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.Tool
 	}
 
 	r.tools[tool.Name] = t
+}
+
+// Tools returns every registered tool definition, sorted by name.
+//
+// GetTools deliberately projects down to rt.Tool for the agentic runtime, which
+// drops Meta and annotations. The structural test and the coverage matrix need
+// exactly those, so they get the definitions themselves.
+func (r *Registry) Tools() []mcp.Tool {
+	out := make([]mcp.Tool, 0, len(r.tools))
+	for _, t := range r.tools {
+		out = append(out, t.Tool)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+// IsHidden reports whether a tool is registered as in-process only.
+func (r *Registry) IsHidden(name string) bool {
+	t, ok := r.tools[ResolveToolAlias(name)]
+	return ok && t.Hidden
 }
 
 func (r *Registry) HasTool(name string) bool {
