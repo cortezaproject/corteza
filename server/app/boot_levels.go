@@ -449,6 +449,7 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	cmpAgentic.ChartHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.ReminderHandler(sysService.DefaultMCPRegistry)
 	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
 		discoverySigner, err := auth.NewTokenIssuer(auth.WithSecretSigner(app.Opt.Discovery.JwtSecret))
 		if err != nil {
