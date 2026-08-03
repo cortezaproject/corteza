@@ -845,17 +845,45 @@ func (svc *user) onSetPassword(ctx context.Context, aProps *userActionProps, use
 	return svc.services.auth.SetPasswordCredentials(ctx, userID, newPassword)
 }
 
-func (svc *user) onDeleteAuthTokensByUserID(ctx context.Context, aProps *userActionProps, userID uint64) error {
+// canManageSessionsOf gates the two "sign this user out" operations below.
+//
+// Neither checked anything but userID != 0, so any caller with write capability
+// could revoke any user's tokens or sessions — a denial-of-service against an
+// arbitrary account, including an administrator's. Revoking is a write against
+// the user, so CanUpdateUser is the right bar; a caller signing themselves out
+// is always permitted.
+func (svc *user) canManageSessionsOf(ctx context.Context, userID uint64) error {
 	if userID == 0 {
 		return UserErrInvalidID()
+	}
+
+	if userID == internalAuth.GetIdentityFromContext(ctx).Identity() {
+		return nil
+	}
+
+	u, err := store.LookupUserByID(ctx, svc.store, userID)
+	if err != nil {
+		return err
+	}
+
+	if !svc.ac.CanUpdateUser(ctx, u) {
+		return UserErrNotAllowedToUpdate()
+	}
+
+	return nil
+}
+
+func (svc *user) onDeleteAuthTokensByUserID(ctx context.Context, aProps *userActionProps, userID uint64) error {
+	if err := svc.canManageSessionsOf(ctx, userID); err != nil {
+		return err
 	}
 
 	return store.DeleteAuthOA2TokenByUserID(ctx, svc.store, userID)
 }
 
 func (svc *user) onDeleteAuthSessionsByUserID(ctx context.Context, aProps *userActionProps, userID uint64) error {
-	if userID == 0 {
-		return UserErrInvalidID()
+	if err := svc.canManageSessionsOf(ctx, userID); err != nil {
+		return err
 	}
 
 	return store.DeleteAuthSessionsByUserID(ctx, svc.store, userID)
