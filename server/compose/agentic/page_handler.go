@@ -786,11 +786,23 @@ func defaultBlockHeight(kind string) int {
 }
 
 // parsePageIcon unmarshals a JSON string or object into PageConfigIcon.
+// parsePageIcon unmarshals a JSON string or object into a PageConfigIcon.
+//
+// A nil result means "clear the icon", which is what §8.2's present-and-empty
+// rule requires and what the service already supports. Without the two cases
+// below an icon could be set and changed but never removed: an empty string
+// failed to unmarshal, and "null" produced a zero-value struct that stored as
+// {"type":"","src":""} rather than nothing.
 func parsePageIcon(raw any) (*cmpTypes.PageConfigIcon, error) {
 	var data []byte
 
 	switch v := raw.(type) {
+	case nil:
+		return nil, nil
 	case string:
+		if v == "" || v == "null" {
+			return nil, nil
+		}
 		data = []byte(v)
 	default:
 		var err error
@@ -802,6 +814,13 @@ func parsePageIcon(raw any) (*cmpTypes.PageConfigIcon, error) {
 	var icon cmpTypes.PageConfigIcon
 	if err := json.Unmarshal(data, &icon); err != nil {
 		return nil, fmt.Errorf("icon must be a JSON object: %w", err)
+	}
+
+	// A literal JSON null decodes without error but leaves a zero value.
+	// PageConfigIcon holds a map so it is not comparable; Type and Src are what
+	// make an icon meaningful, and Style alone renders nothing.
+	if icon.Type == "" && icon.Src == "" {
+		return nil, nil
 	}
 
 	return &icon, nil
