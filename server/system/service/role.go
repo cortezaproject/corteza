@@ -43,6 +43,10 @@ type (
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
 		CanManageMembersOnRole(context.Context, *types.Role) bool
+
+		// Membership answers "which roles does this user hold", so it is gated
+		// on reading the subject rather than on each role.
+		CanReadUser(context.Context, *types.User) bool
 	}
 
 	RoleService interface {
@@ -311,15 +315,20 @@ func (svc *role) onLookup(ctx context.Context, roleID uint64, aProps *roleAction
 }
 
 func (svc *role) onUpdate(ctx context.Context, _ store.Storer, upd *types.Role, res *types.Role, _ *roleActionProps, _ func() error, _ func() error) error {
+	// Permission first, identity second. This check used to sit below the
+	// system-role branch, and that branch returns nil when handle and name are
+	// unchanged — so an edit to a system role's description or meta succeeded
+	// without update permission at all. Whether a system role may be touched is
+	// a separate question from whether this caller may touch any role.
+	if !svc.ac.CanUpdateRole(ctx, res) {
+		return RoleErrNotAllowedToUpdate()
+	}
+
 	if svc.IsSystem(res) {
 		// prevent system role updates unless handle and name are unchanged
 		if res.Handle == upd.Handle && res.Name == upd.Name {
 			return nil
 		}
-		return RoleErrNotAllowedToUpdate()
-	}
-
-	if !svc.ac.CanUpdateRole(ctx, res) {
 		return RoleErrNotAllowedToUpdate()
 	}
 
@@ -446,7 +455,31 @@ func (svc *role) onCloneRules(ctx context.Context, _ *roleActionProps, roleID ui
 	return svc.services.rbac.CloneRulesByRoleID(ctx, roleID, cloneToRoleID...)
 }
 
+// onMembership returns every role a user holds.
+//
+// The read check is on the subject, not on each role: this answers "what does
+// this user have", so the caller must be allowed to read that user. Previously
+// it checked nothing at all beyond checkScope, so any authenticated caller
+// could enumerate anyone's roles.
+//
+// A caller reading their own memberships is always permitted — that is the
+// self-service case the webapp relies on.
 func (svc *role) onMembership(ctx context.Context, _ *roleActionProps, userID uint64) (types.RoleMemberSet, error) {
+	if userID == 0 {
+		return nil, RoleErrInvalidID()
+	}
+
+	if userID != intAuth.GetIdentityFromContext(ctx).Identity() {
+		u, err := store.LookupUserByID(ctx, svc.store, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		if !svc.ac.CanReadUser(ctx, u) {
+			return nil, RoleErrNotAllowedToRead()
+		}
+	}
+
 	resource := fmt.Sprintf("corteza::system:user/%d", userID)
 	mm, _, err := store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{Resource: resource})
 	return mm, err
@@ -520,6 +553,14 @@ func (svc *role) onMemberAddGroup(ctx context.Context, _ *roleActionProps, roleI
 		return err
 	}
 
+	// Closed and contextual roles refuse membership changes. onMemberAdd and
+	// onMemberRemove have always enforced this for users; the group variants
+	// did not, so a closed role could gain members by adding a group instead
+	// of a user — a bypass of the same rule, by a different door.
+	if svc.IsClosed(r) || svc.IsContextual(r) {
+		return RoleErrNotAllowedToManageMembers()
+	}
+
 	if !svc.ac.CanManageMembersOnRole(ctx, r) {
 		return RoleErrNotAllowedToManageMembers()
 	}
@@ -572,6 +613,14 @@ func (svc *role) onMemberRemoveGroup(ctx context.Context, _ *roleActionProps, ro
 	r, err := svc.findByID(ctx, roleID)
 	if err != nil {
 		return err
+	}
+
+	// Closed and contextual roles refuse membership changes. onMemberAdd and
+	// onMemberRemove have always enforced this for users; the group variants
+	// did not, so a closed role could gain members by adding a group instead
+	// of a user — a bypass of the same rule, by a different door.
+	if svc.IsClosed(r) || svc.IsContextual(r) {
+		return RoleErrNotAllowedToManageMembers()
 	}
 
 	if !svc.ac.CanManageMembersOnRole(ctx, r) {
