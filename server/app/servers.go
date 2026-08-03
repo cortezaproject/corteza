@@ -12,6 +12,7 @@ import (
 	discoveryRest "github.com/crusttech/human/server/discovery/rest"
 	"github.com/crusttech/human/server/docs"
 	federationRest "github.com/crusttech/human/server/federation/rest"
+	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/logger"
 
 	"github.com/crusttech/human/server/pkg/options"
@@ -103,10 +104,16 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 				systemService.DefaultChatbotSession,
 			)
 			widgetCtrl.MountRoutes(r)
+			// MCP tool surface (/api/mcp). Token validator is required here for
+			// the same reason as every other private route group: tool
+			// discovery lists every registered tool with its full description,
+			// which is a deliberately rich, source-substituting disclosure.
 			if app.McpServer != nil {
-				r.Route("/mcp", app.McpServer.MountRoutes)
+				r.Route("/mcp", func(r chi.Router) {
+					r.Use(auth.HttpTokenValidator("api"))
+					app.McpServer.MountRoutes(r)
+				})
 			}
-	
 
 			if app.Opt.Discovery.Enabled {
 				r.Route("/discovery", discoveryRest.MountRoutes(app.Opt.Discovery))
