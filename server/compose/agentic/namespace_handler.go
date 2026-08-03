@@ -2,203 +2,166 @@ package agentic
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
 	a "github.com/crusttech/human/server/pkg/auth"
-	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
+	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/system/agentic/toolkit"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-type agentService interface {
-	Search(ctx context.Context, filter sysTypes.AgentFilter) (sysTypes.AgentSet, sysTypes.AgentFilter, error)
-	Update(ctx context.Context, upd *sysTypes.Agent) (*sysTypes.Agent, error)
-}
+type (
+	agentService interface {
+		Search(ctx context.Context, f sysTypes.AgentFilter) (sysTypes.AgentSet, sysTypes.AgentFilter, error)
+		Update(ctx context.Context, upd *sysTypes.Agent) (*sysTypes.Agent, error)
+	}
 
-type namespaceHandler struct {
-	reg    toolRegistrar
-	agents agentService
-}
+	namespaceHandler struct {
+		reg    toolRegistrar
+		agents agentService
+	}
 
+	// nsItem is the slim list projection. A namespace's meta, labels and
+	// translations are incidental to picking one out of a list, so a list drops
+	// them; a single-namespace lookup returns the full service type.
+	nsItem struct {
+		ID   uint64 `json:"namespaceID,string"`
+		Name string `json:"name"`
+		Slug string `json:"slug"`
+	}
+)
+
+// Declarations for these handlers are in namespace_tools.go, in the same order.
 func NamespaceHandler(reg toolRegistrar, agents agentService) *namespaceHandler {
 	h := &namespaceHandler{reg: reg, agents: agents}
 	h.register()
 	return h
 }
 
-func (h *namespaceHandler) register() {
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_namespace_lookup",
-			mcp.WithDescription("Look up namespaces. Call this whenever the user asks what they have, what exists, what's set up, or anything about the current state of their data. Also call this to resolve a namespace before any other operation."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskRead),
-		),
-		"Lookup namespace",
-		h.lookup,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_namespace_create",
-			mcp.WithDescription("Create a new namespace. A namespace is a top-level container for modules and records in Corteza Compose."),
-			mcp.WithString("name", mcp.Required(), mcp.Description("Display name for the namespace")),
-			mcp.WithString("slug", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and hyphens only)")),
-			mcp.WithBoolean("enabled", mcp.Description("Whether the namespace is enabled (default: true)")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskWrite),
-		),
-		"Create namespace",
-		h.create,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_namespace_update",
-			mcp.WithDescription("Update an existing namespace's name, slug, or enabled state."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			mcp.WithString("name", mcp.Description("New display name")),
-			mcp.WithString("slug", mcp.Description("New URL-friendly identifier")),
-			mcp.WithBoolean("enabled", mcp.Description("Whether the namespace should be enabled")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskWrite),
-		),
-		"Update namespace",
-		h.update,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("compose_namespace_delete",
-			mcp.WithDescription("Delete a namespace by name, handle, slug, or ID. This permanently removes the namespace and all its contents."),
-			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskDestructive),
-		),
-		"Delete namespace",
-		h.del,
-	)
+// searchNamespaces returns a page of the slim projection plus the cursor for the
+// next page, or nil when there is none.
+func (h *namespaceHandler) searchNamespaces(ctx context.Context, page toolkit.Paging) ([]nsItem, *filter.PagingCursor, error) {
+	f := cmpTypes.NamespaceFilter{}
+
+	var err error
+	if f.Paging, err = filter.NewPaging(page.Limit, page.Cursor); err != nil {
+		return nil, nil, fmt.Errorf("invalid pageCursor: %w", err)
+	}
+
+	set, out, err := cmpService.DefaultNamespace.Search(ctx, f)
+	if err != nil {
+		return nil, nil, toolkit.Errf("namespace list", err)
+	}
+
+	items := make([]nsItem, len(set))
+	for i, ns := range set {
+		items[i] = nsItem{ID: ns.ID, Name: ns.Name, Slug: ns.Slug}
+	}
+
+	return items, out.NextPage, nil
 }
 
 func (h *namespaceHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, _ := req.Params.Arguments.(map[string]interface{})
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
 
-	nsRef, _ := args["namespace"].(string)
+	page := toolkit.Page(args)
+
+	// The reference is optional: without one this lists, which is how a caller
+	// discovers what exists in the first place.
+	nsRef := toolkit.Str(args, "namespace")
 	if nsRef == "" {
-		set, _, err := cmpService.DefaultNamespace.Search(ctx, cmpTypes.NamespaceFilter{})
+		items, next, err := h.searchNamespaces(ctx, page)
 		if err != nil {
-			return nil, fmt.Errorf("namespace list failed: %w", err)
+			return nil, err
 		}
-		type nsItem struct {
-			ID   uint64 `json:"namespaceID,string"`
-			Name string `json:"name"`
-			Slug string `json:"slug"`
-		}
-		items := make([]nsItem, len(set))
-		for i, ns := range set {
-			items[i] = nsItem{ID: ns.ID, Name: ns.Name, Slug: ns.Slug}
-		}
-		out, err := json.Marshal(items)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal namespaces: %w", err)
-		}
-		return mcp.NewToolResultText(string(out)), nil
+
+		// The cursor goes in as the value, not as a string: marshalling a
+		// PagingCursor emits the encoded form that pageCursor accepts back,
+		// while its String method is a debug rendering that does not round-trip.
+		return toolkit.JSONResult(map[string]any{
+			"namespaces":     items,
+			"nextPageCursor": next,
+		})
 	}
 
 	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
 	if err != nil {
-		// Namespace not found — return full list so the LLM can pick the correct one
-		set, _, listErr := cmpService.DefaultNamespace.Search(ctx, cmpTypes.NamespaceFilter{})
+		// Namespace not found — return the list alongside the error so the caller
+		// can pick the correct one without a second round trip.
+		items, next, listErr := h.searchNamespaces(ctx, page)
 		if listErr != nil {
-			return nil, fmt.Errorf("namespace lookup failed: %w", err)
+			return nil, toolkit.Errf("namespace lookup", err)
 		}
-		type nsItem struct {
-			ID   uint64 `json:"namespaceID,string"`
-			Name string `json:"name"`
-			Slug string `json:"slug"`
-		}
-		items := make([]nsItem, len(set))
-		for i, n := range set {
-			items[i] = nsItem{ID: n.ID, Name: n.Name, Slug: n.Slug}
-		}
-		out, _ := json.Marshal(map[string]any{
-			"error":      fmt.Sprintf("namespace %q not found", nsRef),
-			"namespaces": items,
-		})
-		return mcp.NewToolResultText(string(out)), nil
-	}
-	out, err := json.Marshal(ns)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal namespace: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
-}
 
-// parseBoolArg returns the bool value of v, or fallback if v is absent or unrecognised.
-func parseBoolArg(v any, fallback bool) bool {
-	switch b := v.(type) {
-	case bool:
-		return b
-	case string:
-		parsed, err := strconv.ParseBool(b)
-		if err != nil {
-			return fallback
-		}
-		return parsed
-	default:
-		return fallback
+		return toolkit.JSONResult(map[string]any{
+			"error":          fmt.Sprintf("namespace %q not found", nsRef),
+			"namespaces":     items,
+			"nextPageCursor": next,
+		})
 	}
+
+	return toolkit.JSONResult(ns)
 }
 
 func (h *namespaceHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
-	name, _ := args["name"].(string)
-	slug, _ := args["slug"].(string)
-	if name == "" || slug == "" {
-		return nil, fmt.Errorf("name and slug are required")
+	name, err := toolkit.ReqStr(args, "name")
+	if err != nil {
+		return nil, err
 	}
 
-	enabled := parseBoolArg(args["enabled"], true)
+	slug, err := toolkit.ReqStr(args, "slug")
+	if err != nil {
+		return nil, err
+	}
 
 	ns, err := cmpService.DefaultNamespace.Create(ctx, &cmpTypes.Namespace{
 		Name:           name,
 		Slug:           slug,
-		Enabled:        enabled,
+		Enabled:        parseBoolArg(args["enabled"], true),
 		CreatedByAgent: a.GetAgentIDFromContext(ctx),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("namespace creation failed: %w", err)
+		return nil, toolkit.Errf("namespace creation", err)
 	}
 
-	out, err := json.Marshal(map[string]any{
-		"namespaceID": strconv.FormatUint(ns.ID, 10),
-		"name":        ns.Name,
-		"slug":        ns.Slug,
-		"enabled":     ns.Enabled,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal namespace: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(nsResult(ns))
 }
 
 func (h *namespaceHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
-	}
-
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	args, err := toolkit.Args(req)
 	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
+		return nil, err
 	}
 
-	if v, ok := args["name"].(string); ok && v != "" {
+	nsRef, err := toolkit.ReqStr(args, "namespace")
+	if err != nil {
+		return nil, err
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
+	if err != nil {
+		return nil, toolkit.Errf("namespace lookup", err)
+	}
+
+	// An absent argument leaves the field unchanged; one sent as an empty string
+	// clears it. The assertion fails for a missing key and for a JSON null, both
+	// of which count as absent.
+	if v, ok := args["name"].(string); ok {
 		ns.Name = v
 	}
-	if v, ok := args["slug"].(string); ok && v != "" {
+	if v, ok := args["slug"].(string); ok {
 		ns.Slug = v
 	}
 	if v, ok := args["enabled"]; ok {
@@ -207,41 +170,37 @@ func (h *namespaceHandler) update(ctx context.Context, req mcp.CallToolRequest) 
 
 	ns, err = cmpService.DefaultNamespace.Update(ctx, ns)
 	if err != nil {
-		return nil, fmt.Errorf("namespace update failed: %w", err)
+		return nil, toolkit.Errf("namespace update", err)
 	}
 
-	out, err := json.Marshal(map[string]any{
-		"namespaceID": strconv.FormatUint(ns.ID, 10),
-		"name":        ns.Name,
-		"slug":        ns.Slug,
-		"enabled":     ns.Enabled,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal namespace: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(nsResult(ns))
 }
 
 func (h *namespaceHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	nsRef, err := toolkit.ReqStr(args, "namespace")
 	if err != nil {
-		return nil, fmt.Errorf("namespace lookup failed: %w", err)
+		return nil, err
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
+	if err != nil {
+		return nil, toolkit.Errf("namespace lookup", err)
 	}
 
 	if err = cmpService.DefaultNamespace.DeleteByID(ctx, ns.ID); err != nil {
-		return nil, fmt.Errorf("namespace delete failed: %w", err)
+		return nil, toolkit.Errf("namespace delete", err)
 	}
 
 	if h.agents != nil {
 		h.pruneNamespaceFromAgents(ctx, ns.ID)
 	}
 
-	return mcp.NewToolResultText(fmt.Sprintf("namespace %d deleted", ns.ID)), nil
+	return toolkit.TextResult("namespace %d deleted", ns.ID), nil
 }
 
 // pruneNamespaceFromAgents removes all allow-list entries referencing the deleted
@@ -272,5 +231,32 @@ func (h *namespaceHandler) pruneNamespaceFromAgents(ctx context.Context, namespa
 		if changed {
 			_, _ = h.agents.Update(svcCtx, ag)
 		}
+	}
+}
+
+// nsResult is the result shape for the write ops: the list projection plus the
+// enabled flag, with the ID as a string to survive a JavaScript client.
+func nsResult(ns *cmpTypes.Namespace) map[string]any {
+	return map[string]any{
+		"namespaceID": strconv.FormatUint(ns.ID, 10),
+		"name":        ns.Name,
+		"slug":        ns.Slug,
+		"enabled":     ns.Enabled,
+	}
+}
+
+// parseBoolArg returns the bool value of v, or fallback if v is absent or unrecognised.
+func parseBoolArg(v any, fallback bool) bool {
+	switch b := v.(type) {
+	case bool:
+		return b
+	case string:
+		parsed, err := strconv.ParseBool(b)
+		if err != nil {
+			return fallback
+		}
+		return parsed
+	default:
+		return fallback
 	}
 }
