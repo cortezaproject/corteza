@@ -315,6 +315,15 @@ context. REST caps this at 500/1000; MCP does not.
 `toolkit.JSONResult` enforces a hard ceiling regardless. Schema paging is what
 the model drives; the ceiling is the backstop.
 
+**Return the cursor value, never its `String()`.** Put the
+`*filter.PagingCursor` straight into the result and let `json.Marshal` call its
+`MarshalJSON`, which emits the base64 form `filter.parseCursor` accepts. A nil
+pointer marshals to `null`, so the last page needs no special case.
+`PagingCursor.String()` is a human-readable debug rendering
+(`<id: 123, [FWD]>`) and cannot be fed back — a lookup that returns it
+advertises a cursor that always fails to decode, making paging one-way. This
+rule exists because the first two tools written to this spec both got it wrong.
+
 ### 8.2 Partial updates
 
 **Absent = unchanged. Present-and-empty = clear.** Collections always replace.

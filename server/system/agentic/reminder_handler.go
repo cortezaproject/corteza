@@ -90,9 +90,13 @@ func (h *reminderHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (
 		})
 	}
 
+	// Pass the cursor itself, not its String(): String is a human-readable debug
+	// rendering ("<id: 123, [FWD]>") while parseCursor expects base64 of the
+	// cursor JSON, which is what MarshalJSON emits. json.Marshal renders a nil
+	// pointer as null, so the last page is safe.
 	return toolkit.JSONResult(map[string]any{
 		"reminders":      items,
-		"nextPageCursor": out.NextPage.String(),
+		"nextPageCursor": out.NextPage,
 	})
 }
 
