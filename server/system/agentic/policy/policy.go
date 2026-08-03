@@ -274,6 +274,26 @@ var resourceScopeExempt = map[string]bool{
 	"system_reminder_snooze":    true,
 }
 
+// resourceScopeExemptPrefixes covers whole tool families that carry no
+// compose/automation resource dimension.
+//
+// The per-name map below stays the default, because naming a tool is what
+// forces someone to think about its scoping. A prefix is only right where the
+// whole resource is out of the compose/automation dimension by construction —
+// a user or a role is not scoped to a namespace, and never will be — and it
+// keeps a 40-tool batch from burying the one-off entries that do carry meaning.
+//
+// Do not add a compose_ or automation_ prefix here. Those resources have a real
+// dimension and belong in buildResource.
+var resourceScopeExemptPrefixes = []string{
+	"system_user_",
+	"system_user_group_",
+	"system_role_",
+	"system_auth_client_",
+	"system_application_",
+	"system_reminder_",
+}
+
 // IsClassified reports whether a tool has been given a resource mapping or been
 // explicitly marked as carrying no resource dimension. It exists so a test in
 // the mcp package can assert that every registered tool is one or the other —
@@ -288,8 +308,29 @@ func IsClassified(tool string) bool {
 	if resourceScopeExempt[tool] {
 		return true
 	}
+	for _, prefix := range resourceScopeExemptPrefixes {
+		if strings.HasPrefix(tool, prefix) {
+			return true
+		}
+	}
 	_, mapped := buildResource(tool, MapValues{})
 	return mapped
+}
+
+// IsScopeExempt reports whether a tool is exempt from resource-level narrowing,
+// by name or by family prefix. Evaluate does not branch on this — an unmapped
+// tool is allowed either way, see the comment there — but it makes the two
+// exemption mechanisms testable as one thing.
+func IsScopeExempt(tool string) bool {
+	if resourceScopeExempt[tool] {
+		return true
+	}
+	for _, prefix := range resourceScopeExemptPrefixes {
+		if strings.HasPrefix(tool, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 // buildResource constructs a Human resource identifier from the tool name and

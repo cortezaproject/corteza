@@ -450,6 +450,11 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ReminderHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.UserHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.UserGroupHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.RoleHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.AuthClientHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.ApplicationHandler(sysService.DefaultMCPRegistry)
 	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
 		discoverySigner, err := auth.NewTokenIssuer(auth.WithSecretSigner(app.Opt.Discovery.JwtSecret))
 		if err != nil {

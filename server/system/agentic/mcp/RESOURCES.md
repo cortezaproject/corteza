@@ -55,7 +55,7 @@ under that shape. No static tool may take a numeric resource segment.
 | `user` | `system_user` | — | has `FindByAny` |
 | `userGroup` | `system_user_group` | — | has `FindByAny` |
 | `role` | `system_role` | — | has `FindByAny`; `role.Membership` is on the §8.6 deny-list |
-| `authClient` | `system_auth_client` | — | `ExposeSecret` is on the §8.6 deny-list |
+| `authClient` | `system_auth_client` | 4 | `ExposeSecret`, `RegenerateSecret` and `Create` excluded under §8.6b — they disclose a credential, not for want of a check |
 | `application` | `system_application` | — | |
 | `template` | `system_template` | — | has `FindByAny` |
 | `tenant` | `system_tenant` | — | out of scope while tenancy is single-instance |

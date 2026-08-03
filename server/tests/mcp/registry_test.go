@@ -56,6 +56,11 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	autoAgentic.TAQHandler(reg)
 	autoAgentic.WorkflowHandler(reg)
 	sysAgentic.ReminderHandler(reg)
+	sysAgentic.UserHandler(reg)
+	sysAgentic.UserGroupHandler(reg)
+	sysAgentic.RoleHandler(reg)
+	sysAgentic.AuthClientHandler(reg)
+	sysAgentic.ApplicationHandler(reg)
 	sysAgentic.DiscoveryHandler(reg, "http://discovery.invalid", stubSigner{})
 
 	return reg
@@ -94,6 +99,18 @@ func splitName(name string) (app, resource, op string) {
 		return name, "", ""
 	}
 	return name[:first], name[first+1 : last], name[last+1:]
+}
+
+// camelCase converts a snake_case resource segment to the camelCase form a
+// param uses: auth_client -> authClient, user_group -> userGroup.
+func camelCase(s string) string {
+	parts := strings.Split(s, "_")
+	for i := 1; i < len(parts); i++ {
+		if parts[i] != "" {
+			parts[i] = strings.ToUpper(parts[i][:1]) + parts[i][1:]
+		}
+	}
+	return strings.Join(parts, "")
 }
 
 func TestToolNamesFollowTheGrammar(t *testing.T) {
@@ -219,8 +236,16 @@ func TestLookupContract(t *testing.T) {
 		// param is a different thing and may well be required: listing modules
 		// without saying which namespace is meaningless, so
 		// compose_module_lookup requires `namespace` and leaves `module` free.
+		//
+		// The resource segment is snake_case while a param is camelCase, so
+		// `auth_client` has to be matched against `authClient`. Comparing the two
+		// verbatim silently matched nothing and quietly exempted every
+		// multi-word resource from this assertion.
 		_, resource, _ := splitName(tool.Name)
-		refNames := map[string]bool{resource: true, resource + "ID": true}
+		refNames := map[string]bool{
+			resource: true, resource + "ID": true,
+			camelCase(resource): true, camelCase(resource) + "ID": true,
+		}
 
 		for _, req := range tool.InputSchema.Required {
 			assert.Falsef(t, refNames[req],
@@ -288,7 +313,8 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 	for _, ctor := range []string{
 		"RecordHandler(", "NamespaceHandler(", "ModuleHandler(", "PageHandler(",
 		"ChartHandler(", "TAQHandler(", "WorkflowHandler(", "ReminderHandler(",
-		"DiscoveryHandler(",
+		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
+		"AuthClientHandler(", "ApplicationHandler(",
 	} {
 		assert.Containsf(t, src, ctor,
 			"buildRegistry wires %s but boot_levels.go does not; one of them is wrong", ctor)
@@ -300,6 +326,8 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"RecordHandler": true, "NamespaceHandler": true, "ModuleHandler": true,
 		"PageHandler": true, "ChartHandler": true, "TAQHandler": true,
 		"WorkflowHandler": true, "ReminderHandler": true, "DiscoveryHandler": true,
+		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
+		"AuthClientHandler": true, "ApplicationHandler": true,
 	}
 	for _, line := range strings.Split(src, "\n") {
 		for _, prefix := range []string{"cmpAgentic.", "autoAgentic.", "sysAgentic."} {

@@ -276,9 +276,23 @@ func TestIsClassified(t *testing.T) {
 		assert.True(t, IsClassified(tool), "expected %q to be classified", tool)
 	}
 
-	unclassified := []string{
+	// Whole system_* families are exempt by prefix — a user or a role has no
+	// compose/automation dimension by construction, so per-name entries would
+	// be forty lines of noise that bury the one-offs that carry meaning.
+	byPrefix := []string{
 		"system_user_lookup",
 		"system_role_lookup",
+		"system_user_group_member_add",
+		"system_auth_client_delete",
+		"system_application_flag",
+	}
+	for _, tool := range byPrefix {
+		assert.True(t, IsClassified(tool), "expected %q to be classified by prefix", tool)
+		assert.True(t, IsScopeExempt(tool), "expected %q to be scope-exempt", tool)
+	}
+
+	unclassified := []string{
+		"system_settings_lookup", // no prefix entry: a real new family must be ruled on
 		"totally_made_up",
 	}
 	for _, tool := range unclassified {

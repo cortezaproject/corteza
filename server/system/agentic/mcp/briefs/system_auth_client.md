@@ -19,11 +19,17 @@ Group: `configuring`
 | `RegenerateSecret` | via `onRegenerateSecret` | **do not write** — see traps |
 | `IsDefaultClient` | predicate | not a tool; use it in the projection |
 
-`Create` is not on the service in the shape the other resources have — check
-`system/rest/auth_client.go` for how creation actually happens before writing a
-`create` tool. If creation requires generating a secret that must then be shown
-to the caller, it inherits the ExposeSecret objection and should be filed
-rather than written.
+**Corrected after implementation.** `Create` *does* exist in the standard
+shape — `auth_client.gen.go:27`, authorized by `CanCreateAuthClient`. It lives
+in the generated file, which is the same trap this document warns about for
+`UndeleteByID`. It is still not written: `beforeCreate` (`auth_client.go:65`)
+generates `new.Secret` and `Create` returns that same object with the field
+populated, so any `JSONResult` of it hands over a live credential. Filed under
+§8.6b.
+
+`UndeleteByID` also exists (`auth_client.gen.go:67`, guarded by
+`CanDeleteAuthClient`), so §4.2 applies and `undelete` is written. An earlier
+draft of this brief claimed neither existed; both claims were wrong.
 
 Risks: `lookup` read; `update` write; `delete` destructive.
 
@@ -82,9 +88,23 @@ tool's output — a model's context, a transcript, a log. There is no legitimate
 agent workflow that needs it, and the disclosure is irreversible. File it as a
 deliberate gap in the coverage matrix with this reasoning.
 
-**No `UndeleteByID`** on this service — verify in `auth_client.go` and the
-generated file. If absent, the `delete` description must say the delete is
-one-way through MCP, per §4.2.
+**`Update` returns the secret unblanked.** Found during implementation, and the
+most dangerous thing in this resource. `Update` (`auth_client.go:239`) loads the
+row with `loadAuthClient` — straight from the store, nothing blanked — copies
+the changed fields on and returns it. Only `LookupByID` and `Search` blank
+`Secret`. Marshalling `Update`'s return value verbatim, which is exactly the
+shape the reminder exemplar invites, discloses a working credential on every
+update. Clear `res.Secret` before `JSONResult`.
+
+Safe in the other direction: `Update` copies a fixed field list off the object
+it is given and `Secret` is not among them, so handing back a blanked client
+does not wipe the stored credential.
+
+**Security fields are privilege assignment, not configuration.**
+`impersonateUser`, `userGroup`, `permittedRoles`, `prohibitedRoles` and
+`forcedRoles` on update are how a client becomes a log-in-as-anyone key. Keep
+them out of the tool, and say in the description that they are configured by a
+person.
 
 **`DefaultAuthClient` is a concrete pointer**, not an interface, so unlike
 `ModuleService` there is no interface to extend if a method is missing. If the
