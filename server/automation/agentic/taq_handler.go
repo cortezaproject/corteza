@@ -10,12 +10,17 @@ import (
 	autoService "github.com/crusttech/human/server/automation/service"
 	autoTypes "github.com/crusttech/human/server/automation/types"
 	"github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
 	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
+	"github.com/crusttech/human/server/system/agentic/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
 type (
+	// toolRegistrar is shared by every handler in this package; it lives here
+	// rather than in a file of its own because taq is the package's first
+	// handler.
 	toolRegistrar interface {
 		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc, opts ...hmcp.RegisterOption)
 	}
@@ -25,106 +30,100 @@ type (
 	}
 )
 
+// Declarations for these handlers are in taq_tools.go, in the same order.
 func TAQHandler(reg toolRegistrar) *taqHandler {
 	h := &taqHandler{reg: reg}
 	h.register()
 	return h
 }
 
-func (h *taqHandler) register() {
-	h.reg.RegisterTool(
-		mcp.NewTool("automation_taq_lookup",
-			mcp.WithDescription("List all TAQs or look up a specific one by ID or handle. Omit 'taq' to list all."),
-			mcp.WithString("taq", mcp.Description("TAQ ID as string (to prevent precision loss) or handle. Omit to list all.")),
-			mcp.WithString("query", mcp.Description("Search query to filter TAQs")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
-			hmcp.WithRisk(hmcp.RiskRead),
-		),
-		"Lookup TAQ",
-		h.lookup,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("automation_taq_executions",
-			mcp.WithDescription("List executions for a TAQ"),
-			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskRead),
-		),
-		"List TAQ executions",
-		h.executions,
-	)
-	h.reg.RegisterTool(
-		mcp.NewTool("automation_taq_execution_trace",
-			mcp.WithDescription("Get the execution trace for a specific TAQ execution"),
-			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string (to prevent precision loss) or handle")),
-			mcp.WithString("executionID", mcp.Required(), mcp.Description("Execution ID")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskRead),
-		),
-		"Get TAQ execution trace",
-		h.executionTrace,
-	)
-
-	h.reg.RegisterTool(
-		mcp.NewTool("automation_taq_exec",
-			mcp.WithDescription("Execute a TAQ"),
-			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as string")),
-			mcp.WithString("entryPoint", mcp.Description("Optional specific trigger handle")),
-			hmcp.InGroup(hmcp.GroupUsage),
-			hmcp.WithRisk(hmcp.RiskWrite),
-		),
-		"Execute TAQ",
-		h.exec,
-	)
+// taqItem is the compact projection returned by list mode. A single-item
+// lookup returns the service type unchanged; a list must not, because every
+// TAQ carries its full trigger, step and path graph and one graph per row
+// would flood the caller's context.
+type taqItem struct {
+	AutomationID string `json:"automationID"`
+	Handle       string `json:"handle"`
+	Name         string `json:"name"`
+	Enabled      bool   `json:"enabled"`
 }
 
 func (h *taqHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, _ := req.Params.Arguments.(map[string]interface{})
-
-	taqRef, _ := args["taq"].(string)
-	query, _ := args["query"].(string)
-
-	if taqRef == "" {
-		set, _, err := autoService.DefaultNgAutomation.Search(ctx, autoTypes.NgAutomationFilter{Query: query})
-		if err != nil {
-			return nil, fmt.Errorf("TAQ list failed: %w", err)
-		}
-
-		if len(set) == 0 && query != "" {
-			slugQuery := strings.ReplaceAll(strings.ToLower(query), " ", "_")
-			if slugQuery != query {
-				set, _, err = autoService.DefaultNgAutomation.Search(ctx, autoTypes.NgAutomationFilter{Query: slugQuery})
-				if err != nil {
-					return nil, fmt.Errorf("TAQ list failed: %w", err)
-				}
-			}
-		}
-
-		out, err := json.Marshal(set)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal TAQs: %w", err)
-		}
-		return mcp.NewToolResultText(string(out)), nil
-	}
-
-	taq, err := h.resolve(ctx, taqRef)
+	args, err := toolkit.Args(req)
 	if err != nil {
 		return nil, err
 	}
-	out, err := json.Marshal(taq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal TAQ: %w", err)
+
+	// Reference param is never Required, so an empty ref means "list".
+	if taqRef := toolkit.Str(args, "taq"); taqRef != "" {
+		taq, err := h.resolve(ctx, taqRef)
+		if err != nil {
+			return nil, err
+		}
+		return toolkit.JSONResult(taq)
 	}
-	return mcp.NewToolResultText(string(out)), nil
+
+	query := toolkit.Str(args, "query")
+
+	f := autoTypes.NgAutomationFilter{Query: query}
+	if toolkit.Str(args, "includeDisabled") == "true" {
+		f.Disabled = filter.StateInclusive
+	}
+
+	page := toolkit.Page(args)
+	if f.Paging, err = filter.NewPaging(page.Limit, page.Cursor); err != nil {
+		return nil, fmt.Errorf("invalid pageCursor: %w", err)
+	}
+
+	set, out, err := autoService.DefaultNgAutomation.Search(ctx, f)
+	if err != nil {
+		return nil, toolkit.Errf("TAQ list", err)
+	}
+
+	// The query only matches the handle, and handles are slugs, so a
+	// human-shaped query ("my taq") finds nothing where the slug would.
+	if len(set) == 0 && query != "" {
+		if slugQuery := strings.ReplaceAll(strings.ToLower(query), " ", "_"); slugQuery != query {
+			f.Query = slugQuery
+			if set, out, err = autoService.DefaultNgAutomation.Search(ctx, f); err != nil {
+				return nil, toolkit.Errf("TAQ list", err)
+			}
+		}
+	}
+
+	items := make([]taqItem, 0, len(set))
+	for _, taq := range set {
+		item := taqItem{
+			AutomationID: strconv.FormatUint(taq.ID, 10),
+			Handle:       taq.Handle,
+			Enabled:      taq.Enabled,
+		}
+		if taq.Meta != nil {
+			item.Name = taq.Meta.Short
+		}
+		items = append(items, item)
+	}
+
+	// The cursor value, not its String(): String is a debug rendering, while
+	// parseCursor expects the base64 form MarshalJSON emits. Nil marshals to
+	// null, so the last page is safe.
+	return toolkit.JSONResult(map[string]any{
+		"taqs":           items,
+		"nextPageCursor": out.NextPage,
+	})
 }
 
 func (h *taqHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
-	taqRef, _ := args["taq"].(string)
+	taqRef, err := toolkit.ReqStr(args, "taq")
+	if err != nil {
+		return nil, err
+	}
+
 	taq, err := h.resolve(ctx, taqRef)
 	if err != nil {
 		return nil, err
@@ -133,10 +132,7 @@ func (h *taqHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	params := autoTypes.NgAutomationExecParams{
 		EventType:    "onAgentic",
 		ResourceType: "automation:trigger:agentic",
-	}
-
-	if ep, ok := args["entryPoint"].(string); ok && ep != "" {
-		params.EntryPoint = ep
+		EntryPoint:   toolkit.Str(args, "entryPoint"),
 	}
 
 	if inputMap, err := parseInput(args["input"]); err != nil {
@@ -149,29 +145,29 @@ func (h *taqHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 
 		vars, err := expr.NewVars(inputMap)
 		if err != nil {
-			return nil, fmt.Errorf("failed to build input vars: %w", err)
+			return nil, toolkit.Errf("input vars build", err)
 		}
 		params.Input = vars
 	}
 
 	result, err := autoService.DefaultNgAutomation.ExecAndWait(ctx, taq.ID, params)
 	if err != nil {
-		return nil, fmt.Errorf("TAQ execution failed: %w", err)
+		return nil, toolkit.Errf("TAQ execution", err)
 	}
-	out, err := json.Marshal(result)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal result: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(result)
 }
 
 func (h *taqHandler) executions(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
-	taqRef, _ := args["taq"].(string)
+	taqRef, err := toolkit.ReqStr(args, "taq")
+	if err != nil {
+		return nil, err
+	}
+
 	taq, err := h.resolve(ctx, taqRef)
 	if err != nil {
 		return nil, err
@@ -179,42 +175,37 @@ func (h *taqHandler) executions(ctx context.Context, req mcp.CallToolRequest) (*
 
 	results, err := autoService.DefaultNgAutomation.GetExecutions(ctx, taq.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get executions: %w", err)
+		return nil, toolkit.Errf("TAQ execution list", err)
 	}
-	out, err := json.Marshal(results)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal executions: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(results)
 }
 
 func (h *taqHandler) executionTrace(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid request")
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
 	}
 
-	taqRef, _ := args["taq"].(string)
+	taqRef, err := toolkit.ReqStr(args, "taq")
+	if err != nil {
+		return nil, err
+	}
+
 	taq, err := h.resolve(ctx, taqRef)
 	if err != nil {
 		return nil, err
 	}
 
-	execIDStr, _ := args["executionID"].(string)
-	execID, err := strconv.ParseUint(execIDStr, 10, 64)
+	execID, err := toolkit.ReqID(args, "executionID")
 	if err != nil {
-		return nil, fmt.Errorf("invalid executionID: %w", err)
+		return nil, err
 	}
 
 	trace, err := autoService.DefaultNgAutomation.GetExecutionTrace(ctx, taq.ID, execID, 0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get execution trace: %w", err)
+		return nil, toolkit.Errf("TAQ execution trace", err)
 	}
-	out, err := json.Marshal(trace)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal trace: %w", err)
-	}
-	return mcp.NewToolResultText(string(out)), nil
+	return toolkit.JSONResult(trace)
 }
 
 func parseInput(raw interface{}) (map[string]interface{}, error) {
@@ -238,6 +229,8 @@ func parseInput(raw interface{}) (map[string]interface{}, error) {
 	}
 }
 
+// resolve accepts a TAQ ID or a handle, because both are stable identifiers a
+// caller may hold. There is no FindByAny on this service.
 func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgAutomation, error) {
 	if refStr == "" {
 		return nil, fmt.Errorf("taq identifier required")
@@ -249,7 +242,7 @@ func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgA
 
 	set, _, err := autoService.DefaultNgAutomation.Search(ctx, autoTypes.NgAutomationFilter{Handle: refStr})
 	if err != nil {
-		return nil, fmt.Errorf("TAQ lookup failed: %w", err)
+		return nil, toolkit.Errf("TAQ lookup", err)
 	}
 	if len(set) == 0 {
 		return nil, fmt.Errorf("TAQ %q not found", refStr)
