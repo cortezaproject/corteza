@@ -190,3 +190,122 @@ func TestEvaluate(t *testing.T) {
 		assert.True(t, d.Allowed)
 	})
 }
+
+// TestStaticAutomationToolsAreNotReadAsTAQIDs guards the fix for a live bug:
+// Evaluate used to treat any automation_* name outside a hardcoded three-item
+// exception list as a per-TAQ tool name, trimming the prefix and looking the
+// remainder up as a TAQ ID. That denied the three static tools below with the
+// reason `agent is not allowed to execute automation "taq_exec"`.
+func TestStaticAutomationToolsAreNotReadAsTAQIDs(t *testing.T) {
+	ctx := context.Background()
+
+	// automation_taq_exec maps to a real resource via buildResource — that case
+	// was unreachable behind the old trap — so it legitimately requires an allow
+	// entry. The other two are scope-exempt and need none. What matters for the
+	// regression is that none of them is mistaken for a TAQ ID.
+	cases := map[string][]types.AgentAccessAllow{
+		"automation_taq_exec":            {{NamespaceID: 1}},
+		"automation_taq_executions":      nil,
+		"automation_taq_execution_trace": nil,
+	}
+
+	for tool, allow := range cases {
+		t.Run(tool, func(t *testing.T) {
+			agent := &types.Agent{
+				Access: types.AgentAccess{
+					Tools: []types.AgentAccessTool{{Name: tool, Allow: allow}},
+				},
+			}
+			d := Evaluate(ctx, agent, tool, MapValues{"taq": "1"}, nil)
+			assert.True(t, d.Allowed, "reason: %s", d.Reason)
+			assert.NotContains(t, d.Reason, "not allowed to execute automation")
+		})
+	}
+}
+
+// TestTaqExecStillRequiresAllowEntry pins the consequence of un-shadowing the
+// buildResource case: with the trap gone, automation_taq_exec is resource-scoped
+// and an agent without allow entries is denied on that basis — not on the old
+// bogus TAQ-ID basis.
+func TestTaqExecStillRequiresAllowEntry(t *testing.T) {
+	ctx := context.Background()
+	agent := &types.Agent{
+		Access: types.AgentAccess{
+			Tools: []types.AgentAccessTool{{Name: "automation_taq_exec"}},
+		},
+	}
+	d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "1"}, nil)
+	assert.False(t, d.Allowed)
+	assert.Contains(t, d.Reason, "no allow entries")
+}
+
+func TestDynamicTAQRef(t *testing.T) {
+	cases := map[string]struct {
+		ref string
+		ok  bool
+	}{
+		"automation_123":                 {"123", true},
+		"automation_taq_exec":            {"", false},
+		"automation_taq_execution_trace": {"", false},
+		"automation_workflow_lookup":     {"", false},
+		"automation_":                    {"", false},
+		"automation_12a":                 {"", false},
+		"compose_record_lookup":          {"", false},
+	}
+	for tool, want := range cases {
+		ref, ok := dynamicTAQRef(tool)
+		assert.Equal(t, want.ok, ok, "tool %q", tool)
+		assert.Equal(t, want.ref, ref, "tool %q", tool)
+	}
+}
+
+// TestIsClassified covers the CI-time half. An unmapped tool is deliberately
+// still allowed at runtime — denying would break every newly added tool until
+// policy.go caught up — but IsClassified reports it so a test can fail instead.
+func TestIsClassified(t *testing.T) {
+	classified := []string{
+		"compose_record_lookup",          // mapped by buildResource
+		"compose_module_update",          // mapped by buildResource
+		"automation_taq_exec",            // mapped by buildResource
+		"compose_chart_lookup",           // scope-exempt
+		"automation_taq_execution_trace", // scope-exempt
+		"discovery_search",               // scope-exempt
+		"automation_907",                 // runtime-minted per-TAQ tool
+	}
+	for _, tool := range classified {
+		assert.True(t, IsClassified(tool), "expected %q to be classified", tool)
+	}
+
+	unclassified := []string{
+		"system_user_lookup",
+		"system_role_lookup",
+		"totally_made_up",
+	}
+	for _, tool := range unclassified {
+		assert.False(t, IsClassified(tool), "expected %q to be unclassified", tool)
+	}
+}
+
+// TestUnmappedToolStillRuns pins the runtime behaviour: unclassified is not the
+// same as denied.
+func TestUnmappedToolStillRuns(t *testing.T) {
+	ctx := context.Background()
+	agent := &types.Agent{
+		Access: types.AgentAccess{
+			Tools: []types.AgentAccessTool{{Name: "system_user_lookup"}},
+		},
+	}
+	d := Evaluate(ctx, agent, "system_user_lookup", MapValues{}, nil)
+	assert.True(t, d.Allowed, "reason: %s", d.Reason)
+}
+
+func TestScopeExemptToolIsAllowed(t *testing.T) {
+	ctx := context.Background()
+	agent := &types.Agent{
+		Access: types.AgentAccess{
+			Tools: []types.AgentAccessTool{{Name: "compose_chart_lookup"}},
+		},
+	}
+	d := Evaluate(ctx, agent, "compose_chart_lookup", MapValues{}, nil)
+	assert.True(t, d.Allowed, "reason: %s", d.Reason)
+}

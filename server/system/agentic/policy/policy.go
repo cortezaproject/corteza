@@ -65,8 +65,18 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 		return allowedDecision(agent, nil, args)
 	}
 
-	if strings.HasPrefix(tool, "automation_") && tool != "automation_taq_lookup" && tool != "automation_workflow_exec" && tool != "automation_workflow_lookup" {
-		taqIDStr := strings.TrimPrefix(tool, "automation_")
+	// Per-TAQ tools are minted at runtime as "automation_<taqID>"
+	// (runtime/executor.go mints them; the ID is always numeric). Matching on a
+	// numeric suffix is what distinguishes them from the static automation_*
+	// families.
+	//
+	// This used to be a negative match — any automation_* name outside a
+	// hardcoded three-item exception list was read as a TAQ ID — which denied
+	// automation_taq_exec, automation_taq_executions and
+	// automation_taq_execution_trace outright, with the nonsense reason
+	// `agent is not allowed to execute automation "taq_exec"`. The executor
+	// already discriminates correctly by prefix; this brings policy in line.
+	if taqIDStr, ok := dynamicTAQRef(tool); ok {
 		if findTAQ(agent, taqIDStr) == nil {
 			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute automation %q", taqIDStr)}
 		}
@@ -98,7 +108,20 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 		return allowedDecision(agent, entry, args)
 	}
 
-	if d := checkAllow(entry.Allow, buildResource(tool, args)); !d.Allowed {
+	// An unmapped tool gets no resource-level narrowing. That is deliberately
+	// NOT denied here: Evaluate has already required the tool to be in the
+	// agent's Access.Tools allow-list above, and denying at runtime would mean
+	// every newly added tool silently breaks in-process agents until someone
+	// remembers to edit this file — a cross-package coupling a tool author has
+	// no reason to discover.
+	//
+	// The gap is caught at CI time instead: IsClassified below backs a test that
+	// asserts every registered tool is either mapped by buildResource or listed
+	// in resourceScopeExempt. The problem was that the default was *silent*, not
+	// that it was permissive.
+	resource, _ := buildResource(tool, args)
+
+	if d := checkAllow(entry.Allow, resource); !d.Allowed {
 		if ownsTarget != nil && ownsTarget(ctx, args) {
 			return allowedDecision(agent, entry, args)
 		}
@@ -169,9 +192,73 @@ func agentHasPageTool(agent *types.Agent) bool {
 	return false
 }
 
-// buildResource constructs a Human resource identifier from the tool name and args.
-// Missing or zero-value segments are replaced with "*".
-func buildResource(tool string, args ValueGetter) string {
+// dynamicTAQRef reports whether tool is a runtime-minted per-TAQ tool
+// ("automation_<numeric id>") and returns the id portion.
+func dynamicTAQRef(tool string) (string, bool) {
+	rest, ok := strings.CutPrefix(tool, "automation_")
+	if !ok || rest == "" {
+		return "", false
+	}
+	for _, r := range rest {
+		if r < '0' || r > '9' {
+			return "", false
+		}
+	}
+	return rest, true
+}
+
+// resourceScopeExempt lists tools that deliberately carry no compose/automation
+// resource dimension, so checkAllow has nothing to narrow on. Being on this list
+// is not a free pass: Evaluate has already required the tool to be in the
+// agent's Access.Tools allow-list before reaching here.
+//
+// Membership is asserted at CI time via IsClassified, so a new tool arriving
+// with no resource scoping fails a test rather than shipping unnoticed.
+//
+// TODO: compose_page_* and compose_chart_* are namespace-scoped in reality and
+// should graduate to real buildResource cases. Left exempt here because adding
+// mappings would change authorization for existing agent configs, which needs
+// its own migration rather than riding along with a bug fix.
+var resourceScopeExempt = map[string]bool{
+	"compose_page_lookup":            true,
+	"compose_page_create":            true,
+	"compose_page_update":            true,
+	"compose_page_delete":            true,
+	"compose_page_reorder":           true,
+	"compose_page_block_schema":      true,
+	"compose_chart_lookup":           true,
+	"compose_chart_create":           true,
+	"compose_chart_update":           true,
+	"compose_chart_delete":           true,
+	"automation_taq_lookup":          true,
+	"automation_taq_executions":      true,
+	"automation_taq_execution_trace": true,
+	"automation_workflow_lookup":     true,
+	"discovery_search":               true,
+}
+
+// IsClassified reports whether a tool has been given a resource mapping or been
+// explicitly marked as carrying no resource dimension. It exists so a test in
+// the mcp package can assert that every registered tool is one or the other —
+// see the comment in Evaluate for why this is a CI-time check and not a runtime
+// denial.
+//
+// Runtime-minted per-TAQ tools are classified by construction.
+func IsClassified(tool string) bool {
+	if _, ok := dynamicTAQRef(tool); ok {
+		return true
+	}
+	if resourceScopeExempt[tool] {
+		return true
+	}
+	_, mapped := buildResource(tool, MapValues{})
+	return mapped
+}
+
+// buildResource constructs a Human resource identifier from the tool name and
+// args. Missing or zero-value segments are replaced with "*". The second return
+// value reports whether the tool is known to this mapping at all.
+func buildResource(tool string, args ValueGetter) (string, bool) {
 	seg := func(key string) string {
 		v, ok := args.Get(key)
 		if !ok {
@@ -186,17 +273,17 @@ func buildResource(tool string, args ValueGetter) string {
 
 	switch {
 	case strings.HasPrefix(tool, "compose_record_"):
-		return fmt.Sprintf("corteza::compose:record/%s/%s/%s", seg("namespaceID"), seg("moduleID"), seg("recordID"))
+		return fmt.Sprintf("corteza::compose:record/%s/%s/%s", seg("namespaceID"), seg("moduleID"), seg("recordID")), true
 	case strings.HasPrefix(tool, "compose_module_"):
-		return fmt.Sprintf("corteza::compose:module/%s/%s", seg("namespaceID"), seg("moduleID"))
+		return fmt.Sprintf("corteza::compose:module/%s/%s", seg("namespaceID"), seg("moduleID")), true
 	case strings.HasPrefix(tool, "compose_namespace_"):
-		return fmt.Sprintf("corteza::compose:namespace/%s", seg("namespaceID"))
+		return fmt.Sprintf("corteza::compose:namespace/%s", seg("namespaceID")), true
 	case tool == "automation_taq_exec":
-		return fmt.Sprintf("corteza::automation:ng-automation/%s", seg("taq"))
+		return fmt.Sprintf("corteza::automation:ng-automation/%s", seg("taq")), true
 	case tool == "automation_workflow_exec":
-		return fmt.Sprintf("corteza::automation:workflow/%s", seg("workflow"))
+		return fmt.Sprintf("corteza::automation:workflow/%s", seg("workflow")), true
 	default:
-		return ""
+		return "", false
 	}
 }
 
