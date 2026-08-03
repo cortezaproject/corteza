@@ -210,6 +210,32 @@ func (h *chartHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.C
 	return toolkit.TextResult("chart %d deleted", c.ID), nil
 }
 
+func (h *chartHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	nsID, err := h.resolveNs(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	// An ID rather than the name-or-handle ref the other chart tools take:
+	// findChartByAny goes through lookup and search, and both refuse a chart with
+	// a deleted marker, so there is nothing left to resolve a name against.
+	chartID, err := toolkit.ReqID(args, "chartID")
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cmpService.DefaultChart.UndeleteByID(ctx, nsID, chartID); err != nil {
+		return nil, toolkit.Errf("chart undelete", err)
+	}
+
+	return toolkit.TextResult("chart %d restored", chartID), nil
+}
+
 // findChartByAny resolves a chart reference (numeric ID, handle, or name)
 // within a namespace.
 func findChartByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTypes.Chart, error) {

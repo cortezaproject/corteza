@@ -70,7 +70,7 @@ func (h *chartHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_chart_delete",
-			mcp.WithDescription("Delete a chart by name, handle, or ID. Remove Chart blocks referencing it from pages first — they render empty otherwise."),
+			mcp.WithDescription("Delete a chart by name, handle, or ID. Remove Chart blocks referencing it from pages first — they render empty otherwise. The delete is soft and compose_chart_undelete reverses it, but note the chart ID first: a deleted chart can no longer be found by name or handle."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("chart", mcp.Required(), mcp.Description("Chart name, handle, or ID (as string to prevent precision loss)")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
@@ -78,5 +78,26 @@ func (h *chartHandler) register() {
 		),
 		"Delete chart",
 		h.del,
+	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_chart_undelete",
+			mcp.WithDescription(
+				"Restore a soft-deleted chart, reversing compose_chart_delete. A delete only marks the chart — "+
+					"its name, handle and full report configuration were retained — so it comes back unchanged "+
+					"and Chart blocks that reference its chartID render again, without the page needing an edit. "+
+					"Requires the numeric chartID: deleted charts are excluded from every lookup path, so "+
+					"compose_chart_lookup can no longer resolve one by name or handle, and it exposes no "+
+					"includeDeleted-style filter. Use the ID compose_chart_delete reported, or one from a "+
+					"compose_chart_lookup taken before the delete. "+
+					"Calling this on a chart that is not deleted is accepted and changes nothing.",
+			),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			mcp.WithString("chartID", mcp.Required(), mcp.Description("ID of the deleted chart (as string to prevent precision loss). A name or handle will not work — deleted charts are not resolvable by either.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Undelete chart",
+		h.undelete,
 	)
 }

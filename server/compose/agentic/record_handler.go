@@ -180,6 +180,31 @@ func (h *recordHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	return toolkit.TextResult("record %d deleted", recID), nil
 }
 
+func (h *recordHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	nsID, modID, err := h.resolveNsMod(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	recID, err := toolkit.ReqID(args, "recordID")
+	if err != nil {
+		return nil, err
+	}
+
+	// One record per call, even though the service takes a variadic set: a bulk
+	// undelete swallows per-record errors and reports success, which would tell
+	// the caller nothing about what actually came back.
+	if err = cmpService.DefaultRecord.UndeleteByID(ctx, nsID, modID, recID); err != nil {
+		return nil, toolkit.Errf("record undelete", err)
+	}
+	return toolkit.TextResult("record %d restored", recID), nil
+}
+
 // parseValues accepts field values as either a JSON object or a JSON string
 // holding one, because models produce both.
 func parseValues(raw any) (map[string]string, error) {

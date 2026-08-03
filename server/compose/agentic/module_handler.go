@@ -232,6 +232,37 @@ func (h *moduleHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	return toolkit.TextResult("module %d deleted", mod.ID), nil
 }
 
+func (h *moduleHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	nsRef, err := toolkit.ReqRef(args, "namespace")
+	if err != nil {
+		return nil, err
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
+	if err != nil {
+		return nil, toolkit.Errf("namespace lookup", err)
+	}
+
+	// The module ref is an ID here rather than the name-or-handle every other
+	// module tool takes: a deleted module is excluded from every search path, so
+	// FindByAny cannot resolve one and there is nothing to resolve against.
+	modID, err := toolkit.ReqID(args, "moduleID")
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cmpService.DefaultModule.UndeleteByID(ctx, ns.ID, modID); err != nil {
+		return nil, toolkit.Errf("module undelete", err)
+	}
+
+	return toolkit.TextResult("module %d restored", modID), nil
+}
+
 func (h *moduleHandler) pruneModuleFromAgents(ctx context.Context, moduleID uint64) {
 	svcCtx := a.SetIdentityToContext(ctx, a.ServiceUser())
 

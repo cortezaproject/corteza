@@ -58,6 +58,7 @@ type (
 		Create(ctx context.Context, module *types.Module) (*types.Module, error)
 		Update(ctx context.Context, module *types.Module) (*types.Module, error)
 		DeleteByID(ctx context.Context, namespaceID, moduleID uint64) error
+		UndeleteByID(ctx context.Context, namespaceID, moduleID uint64) error
 
 		// @note probably temporary just so tests are easier
 		ReloadDALModels(ctx context.Context) error

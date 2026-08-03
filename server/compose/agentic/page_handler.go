@@ -397,6 +397,98 @@ func (h *pageHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	return toolkit.TextResult("page %d deleted", pg.ID), nil
 }
 
+func (h *pageHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	nsID, err := h.resolveNs(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	// An ID rather than the title-or-handle ref the other page tools take:
+	// findPageByAny resolves through lookup and search, and both treat a page
+	// carrying a deleted marker as not found, so a deleted page has no name left
+	// to be resolved by. The service loads it by ID, outside those paths.
+	pageID, err := toolkit.ReqID(args, "pageID")
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cmpService.DefaultPage.UndeleteByID(ctx, nsID, pageID); err != nil {
+		return nil, toolkit.Errf("page undelete", err)
+	}
+
+	return toolkit.TextResult("page %d restored", pageID), nil
+}
+
+func (h *pageHandler) removeBlocks(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	_, pg, err := h.resolvePage(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	rawIDs, ok := args["blockIDs"]
+	if !ok || rawIDs == nil {
+		return nil, fmt.Errorf("blockIDs is required")
+	}
+
+	idStrs, err := parseStringArray(rawIDs)
+	if err != nil {
+		return nil, fmt.Errorf("invalid blockIDs: must be a JSON array of ID strings: %w", err)
+	}
+	if len(idStrs) == 0 {
+		return nil, fmt.Errorf("blockIDs must list at least one block")
+	}
+
+	present := make(map[uint64]bool, len(pg.Blocks))
+	for _, b := range pg.Blocks {
+		present[b.BlockID] = true
+	}
+
+	// An unknown blockID fails the whole call rather than being skipped, matching
+	// the merge in update: a caller naming a block the page does not have is
+	// working from a stale layout, and quietly removing the rest would report
+	// success for something that did not happen.
+	remove := make(map[uint64]bool, len(idStrs))
+	for _, s := range idStrs {
+		id, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid block ID %q: %w", s, err)
+		}
+		if !present[id] {
+			return nil, fmt.Errorf("unknown block ID %d", id)
+		}
+		remove[id] = true
+	}
+
+	kept := make(cmpTypes.PageBlocks, 0, len(pg.Blocks))
+	for _, b := range pg.Blocks {
+		if !remove[b.BlockID] {
+			kept = append(kept, b)
+		}
+	}
+	pg.Blocks = kept
+
+	// The service replaces the stored block set with the one it is handed, so
+	// removal is expressible here even though the update tool's merge never
+	// shrinks the set. Surviving blocks keep their xywh: closing the gap would be
+	// a layout decision this tool has no basis to make.
+	pg, err = cmpService.DefaultPage.Update(ctx, pg)
+	if err != nil {
+		return nil, toolkit.Errf("page block removal", err)
+	}
+
+	return toolkit.JSONResult(pg)
+}
+
 func (h *pageHandler) reorder(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, err := toolkit.Args(req)
 	if err != nil {

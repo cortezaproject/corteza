@@ -67,7 +67,8 @@ func (h *recordHandler) register() {
 		mcp.NewTool("compose_record_delete",
 			mcp.WithDescription(
 				"Delete a record by ID. Requires a record ID — use compose_record_lookup with a filter to find "+
-					"it if unknown. The delete is soft: the record stops appearing in lookups but is retained.",
+					"it if unknown. The delete is soft: the record stops appearing in lookups but is retained, "+
+					"and compose_record_undelete brings it back.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
@@ -77,5 +78,29 @@ func (h *recordHandler) register() {
 		),
 		"Delete record",
 		h.del,
+	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_record_undelete",
+			mcp.WithDescription(
+				"Restore a soft-deleted record, reversing compose_record_delete. Deleting a record in Human "+
+					"only marks it deleted, so nothing was lost and the record comes back with its values "+
+					"intact. "+
+					"Requires the record ID. A deleted record is left out of every filtered listing and "+
+					"compose_record_lookup offers no includeDeleted-style filter — but fetching it directly by "+
+					"'recordID' with compose_record_lookup does still return it, with 'deletedAt' set, which is "+
+					"how you confirm you have the right record before restoring it. Failing that, use the ID "+
+					"compose_record_delete reported. "+
+					"This restores one record per call. It writes to the record — the revision counter moves and "+
+					"undelete automation runs — so do not call it speculatively on a record that is not deleted.",
+			),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss). The module itself must not be deleted — restore it first with compose_module_undelete if it is.")),
+			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID of the deleted record (as string to prevent precision loss)")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Undelete record",
+		h.undelete,
 	)
 }

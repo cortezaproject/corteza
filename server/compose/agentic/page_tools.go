@@ -82,7 +82,8 @@ Call compose_page_block_schema with the block kind to get its options before cre
 					"blockID. A block carrying a blockID overwrites the existing block with that ID, a block "+
 					"without one is appended and is assigned a fresh blockID, and existing blocks you do not "+
 					"mention are kept — so send only the blocks you are adding or changing. An unknown "+
-					"blockID is rejected. There is no way to remove a block through this tool. "+
+					"blockID is rejected. Because the merge never removes, this tool cannot take a block away: "+
+					"use compose_page_remove_blocks for that. "+
 					"'config' and 'meta' each replace their whole object; 'icon' is applied after 'config', "+
 					"so passing both leaves 'icon' in charge of the navigation icon. "+
 					"Call compose_page_lookup with 'page' first when you need the current blocks or their "+
@@ -96,7 +97,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("parent", mcp.Description("New parent page title, handle, or ID (as string to prevent precision loss). Pass an empty string to move the page to the root.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID (as string to prevent precision loss) for record detail pages. Pass an empty string to unlink the module.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation")),
-			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Merged by blockID — include blockID to update an existing block, omit blockID to add a new one. Grid is 48 columns wide; a full-width block uses xywh [0,0,48,20].`)),
+			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Merged by blockID — include blockID to update an existing block, omit blockID to add a new one. Blocks are never removed here; omitting one keeps it, and compose_page_remove_blocks is what deletes one. Grid is 48 columns wide; a full-width block uses xywh [0,0,48,20].`)),
 			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}`)),
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Replaces existing meta. Example: {"allowPersonalLayouts":true}`)),
@@ -114,7 +115,9 @@ Call compose_page_block_schema with the block kind to get its options before cre
 					"stops appearing in lookups and in navigation, but it is retained. Records are not "+
 					"touched at all, because a page only displays data that lives in modules. "+
 					"Child pages are handled by 'strategy', which defaults to refusing the delete when the "+
-					"page has children, so decide explicitly what should happen to them.",
+					"page has children, so decide explicitly what should happen to them. "+
+					"compose_page_undelete reverses this one page at a time, but note the page ID first: a "+
+					"deleted page can no longer be found by title or handle.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID (as string to prevent precision loss)")),
@@ -124,6 +127,59 @@ Call compose_page_block_schema with the block kind to get its options before cre
 		),
 		"Delete page",
 		h.del,
+	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_page_undelete",
+			mcp.WithDescription(
+				"Restore a soft-deleted page, reversing compose_page_delete. A delete only marks the page — "+
+					"its blocks, config, meta and navigation weight were all retained — so the page returns to "+
+					"navigation exactly as it was and no block needs rebuilding. "+
+					"Requires the numeric pageID: deleted pages are excluded from every lookup path, so "+
+					"compose_page_lookup can no longer resolve one by title or handle, its tree mode does not "+
+					"show it, and it exposes no includeDeleted-style filter. Use the ID compose_page_delete "+
+					"reported, or one from a compose_page_lookup taken before the delete. "+
+					"This restores one page and never its subtree: a page deleted with the 'cascade' strategy "+
+					"needs one call per child, and a child restored while its parent is still deleted shows up "+
+					"as a root-level page until the parent is restored too. "+
+					"Calling this on a page that is not deleted is accepted and changes nothing.",
+			),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			mcp.WithString("pageID", mcp.Required(), mcp.Description("ID of the deleted page (as string to prevent precision loss). A title or handle will not work — deleted pages are not resolvable by either.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Undelete page",
+		h.undelete,
+	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_page_remove_blocks",
+			mcp.WithDescription(
+				"Remove one or more blocks from a page, by blockID. This is the only way to take a block off a "+
+					"page: compose_page_update MERGES the blocks it is given by blockID, so it can add a block "+
+					"or overwrite one but never drop one. Use that tool to change a block and this one to "+
+					"delete it. "+
+					"This edits a page's layout, it does not delete the page — that is compose_page_delete — "+
+					"and it touches nothing a block pointed at: the module, records or chart a block rendered "+
+					"are left exactly as they were, because a block is only a view onto them. "+
+					"Call compose_page_lookup with 'page' first to read the current blocks and their blockIDs; "+
+					"blockIDs are assigned per page as blocks are created, so they mean nothing on another "+
+					"page. Every ID you pass must exist on this page — an unknown blockID is rejected and "+
+					"nothing at all is removed, so a stale layout fails loudly instead of half applying. Blocks "+
+					"you do not list keep their position, which means removing one leaves a gap in the grid "+
+					"rather than reflowing the rest; reposition the survivors with compose_page_update if the "+
+					"layout should close up. The updated page is returned, so the remaining blocks and their "+
+					"blockIDs come back in the response.",
+			),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID (as string to prevent precision loss)")),
+			mcp.WithString("blockIDs", mcp.Required(), mcp.Description(`JSON array of blockIDs to remove, as strings to prevent precision loss, e.g. ["1","3"]. Every ID must exist on the page; read them from compose_page_lookup with 'page'.`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Remove page blocks",
+		h.removeBlocks,
 	)
 
 	h.reg.RegisterTool(

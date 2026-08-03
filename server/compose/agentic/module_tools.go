@@ -78,7 +78,8 @@ func (h *moduleHandler) register() {
 					"stops appearing in lookups and its records become unreachable through it, but both are "+
 					"retained. "+
 					"Pages, charts and record fields that point at this module will no longer resolve it, so "+
-					"check what references it before deleting.",
+					"check what references it before deleting. compose_module_undelete reverses this, but note "+
+					"the module ID first — a deleted module can no longer be found by name or handle.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
@@ -87,5 +88,28 @@ func (h *moduleHandler) register() {
 		),
 		"Delete module",
 		h.del,
+	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_module_undelete",
+			mcp.WithDescription(
+				"Restore a soft-deleted module, reversing compose_module_delete. A delete only sets a marker: "+
+					"the module definition, its fields and every record in it were retained, so the module "+
+					"comes back exactly as it was and the pages, charts and Record fields that reference it "+
+					"resolve again. Records that were deleted individually stay deleted — use "+
+					"compose_record_undelete for those. "+
+					"Requires the numeric moduleID, and nothing else will do: a deleted module is excluded from "+
+					"every lookup path, so compose_module_lookup can no longer resolve it by name or handle, and "+
+					"that tool exposes no includeDeleted-style filter. Take the ID from what "+
+					"compose_module_delete reported, or from a compose_module_lookup made before the delete. "+
+					"Calling this on a module that is not deleted is accepted and changes nothing.",
+			),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			mcp.WithString("moduleID", mcp.Required(), mcp.Description("ID of the deleted module (as string to prevent precision loss). A name or handle will not work — deleted modules are not resolvable by either.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Undelete module",
+		h.undelete,
 	)
 }
