@@ -54,4 +54,6 @@ To add a new block: call `compose_page_update` with only the new block in `block
 
 To edit an existing block: look the page up first, include the block's `blockID` exactly as returned. Never invent a `blockID`.
 
+Grid is 48 columns wide. Full-width = `w: 48`, half-width = `w: 24`. Heights are roughly `h: 18` for a small Content/Metric block and `h: 40` for a list; `cellHeight` is 10. Blocks must not overlap on the y-axis — overlapping blocks get rendered side-by-side at half-width.
+
 When the user asks to add a block, look the page up first and check what's actually there. Only the response from that lookup counts — not memory, not prior turns.
