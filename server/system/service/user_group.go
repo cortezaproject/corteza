@@ -263,6 +263,14 @@ func (svc *userGroup) FindByAny(ctx context.Context, identifier interface{}) (r 
 	}
 }
 
+// proc is the shared post-load step for findByID and findByHandle, and so for
+// FindByID/FindByHandle/FindByAny above it.
+//
+// The read check lives here because those three paths had none: they loaded
+// straight from the store and returned, so any authenticated caller could fetch
+// any group by ID or handle. Search has always checked per row (see
+// filter.Check above), and onMemberList checked separately after calling
+// findByID — the single-fetch path was the outlier, not the rule.
 func (svc *userGroup) proc(ctx context.Context, r *types.UserGroup, err error) (*types.UserGroup, error) {
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -270,6 +278,10 @@ func (svc *userGroup) proc(ctx context.Context, r *types.UserGroup, err error) (
 		}
 
 		return nil, err
+	}
+
+	if !svc.ac.CanReadUserGroup(ctx, r) {
+		return nil, UserGroupErrNotAllowedToRead()
 	}
 
 	if err = label.Load(ctx, svc.store, r); err != nil {
