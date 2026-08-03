@@ -240,7 +240,15 @@ func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgA
 		return autoService.DefaultNgAutomation.FindByID(ctx, id)
 	}
 
-	set, _, err := autoService.DefaultNgAutomation.Search(ctx, autoTypes.NgAutomationFilter{Handle: refStr})
+	// Disabled TAQs are addressable by handle, matching the ID path above:
+	// NgAutomationFilter defaults Disabled to StateExcluded, so without this a
+	// disabled TAQ resolved by ID but reported "not found" by handle — and
+	// "not found" is exactly the wrong answer for someone working out why their
+	// TAQ is not firing.
+	set, _, err := autoService.DefaultNgAutomation.Search(ctx, autoTypes.NgAutomationFilter{
+		Handle:   refStr,
+		Disabled: filter.StateInclusive,
+	})
 	if err != nil {
 		return nil, toolkit.Errf("TAQ lookup", err)
 	}
