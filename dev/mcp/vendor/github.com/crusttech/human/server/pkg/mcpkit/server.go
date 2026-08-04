@@ -154,8 +154,10 @@ func (m *MCPServer) registerMetaTools() {
 					"because listing them all would cost tens of thousands of tokens per request. "+
 					"Search returns each matching tool's full definition, so you can call anything it "+
 					"returns immediately; the tools also become visible in the tool list from now on. "+
-					"Query by resource or action: \"page\", \"delete role\", \"create user\", \"workflow\". "+
-					"All terms must match. If you get nothing back, try one broader word.",
+					"Query by resource or action, in as many words as you like: \"page\", \"delete role\", "+
+					"\"create a user\", \"workflow\". Tools matching more of your words rank first, so an "+
+					"extra word narrows the ranking rather than emptying the result. If you get nothing "+
+					"back, try a different word.",
 			),
 			mcp.WithString("query", mcp.Required(), mcp.Description("What you want to do, e.g. \"page\", \"delete role\", \"reminder snooze\".")),
 			InGroup(GroupConfiguring, GroupUsage),
