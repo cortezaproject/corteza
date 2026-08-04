@@ -54,36 +54,45 @@ All in group `development`.
 
 ### Investigate
 
-| Tool | Risk | Does |
-|---|---|---|
-| `dev_intent_governing` | read | Which intent docs govern these files, with the locked-contract and WIP blocks verbatim |
-| `dev_intent_affected` | read | Which e2e specs a change affects |
-| `dev_convention_lookup` | read | Which conventions apply to these paths (formatting, codegen, i18n, frozen routes) |
+| Tool                   | Risk | Does                                                                                      |
+| ---------------------- | ---- | ----------------------------------------------------------------------------------------- |
+| `dev_intent_governing` | read | ✅ Which intent docs govern these files, with the locked-contract and WIP blocks verbatim |
+| `dev_intent_affected`  | read | ✅ Which e2e specs a change affects                                                       |
+
+A `dev_convention_lookup` was planned and dropped: the conventions live in
+CLAUDE.md, which every session already reads, so a tool would have restated
+context the caller had. What was genuinely hard to answer — which _contract_
+governs a file — is `dev_intent_governing`.
 
 ### Verify
 
-| Tool | Risk | Does |
-|---|---|---|
-| `dev_test_run` | read | Runs the touched package's suite, Go or vitest, and returns **only failures** with `file:line` |
-| `dev_lint_run` | read | Lints changed files only |
-| `dev_intent_check` | read | Drift check; returns the docs that need reconciling |
-| `dev_format_run` | write | gofmt/prettier on changed files only — never a directory, which has caused reverted churn twice |
+| Tool               | Risk  | Does                                                                                               |
+| ------------------ | ----- | -------------------------------------------------------------------------------------------------- |
+| `dev_test_run`     | read  | ✅ Runs the touched package's suite, Go or vitest, and returns **only failures** with `file:line`  |
+| `dev_intent_check` | read  | ✅ Drift check, separating your drift from the repo's baseline                                     |
+| `dev_format_run`   | write | ✅ gofmt/prettier on changed files only — never a directory, which has caused reverted churn twice |
+| `dev_lint_run`     | read  | Lints changed files only                                                                           |
 
 ### Review
 
-| Tool | Risk | Does |
-|---|---|---|
+| Tool              | Risk | Does                                                                                        |
+| ----------------- | ---- | ------------------------------------------------------------------------------------------- |
 | `dev_diff_survey` | read | The branch's changed surface: files, hunk summary, governing contracts, conventions in play |
 
 ### Commit
 
-| Tool | Risk | Does |
-|---|---|---|
-| `dev_commit_create` | write | Stages and commits with the discipline enforced: imperative short subject, no AI trailers, formatted before staging, refuses a commit that spans unrelated logical changes |
-| `dev_branch_status` | read | Branch, base, ahead/behind, working tree state |
+| Tool                | Risk  | Does                                                                                                                   |
+| ------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------- |
+| `dev_commit_create` | write | ✅ Stages and commits with the discipline enforced: imperative short subject, no AI trailers, formatted before staging |
+| `dev_branch_status` | read  | ✅ Branch, base, ahead/behind, working tree state                                                                      |
+
+Mixing unrelated changes is a **warning**, not a refusal. "Docs, bugfix and
+cleanup separately" is a rule about intent, and no path heuristic can tell a
+documented fix from a doc change that happens to sit beside one; refusing on a
+guess would make the tool something to route around.
 
 The commit tool writes to history, which is worth being explicit about: it does
-not change *who decides* to commit — that remains the human, every time — it
+not change _who decides_ to commit — that remains the human, every time — it
 changes whether the conventions are followed by an agent remembering CLAUDE.md
 or by code that refuses. Enforcement, not autonomy.
 
@@ -100,15 +109,15 @@ automation, and both servers are connected at once, so the configuration is
 composed from L2 and the environment from L1. Duplicating the configurator here
 would be two implementations of one thing, drifting.
 
-| Tool | Risk | Does |
-|---|---|---|
-| `dev_server_status` | read | Is it up, which build, how stale |
-| `dev_server_logs` | read | Filtered tail |
-| `dev_fixture_seed` | write | Versioned fixtures from `dev/fixtures/` |
-| `dev_fixture_cleanup` | destructive | Removes `agent-` prefixed data only |
-| `dev_scratch_build` | write | Stands up a scratch environment for the feature under test — pages and charts via `pagebuild.py`, never envoy YAML, because block refs do not resolve that way |
-| `dev_ui_verify` | read | Drives the frontend to check what a change actually looks like |
-| `dev_e2e_run` | read | Runs named e2e specs, returns failures and trace paths |
+| Tool                  | Risk        | Does                                                                                                                                                           |
+| --------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dev_server_status`   | read        | Is it up, which build, how stale                                                                                                                               |
+| `dev_server_logs`     | read        | Filtered tail                                                                                                                                                  |
+| `dev_fixture_seed`    | write       | Versioned fixtures from `dev/fixtures/`                                                                                                                        |
+| `dev_fixture_cleanup` | destructive | Removes `agent-` prefixed data only                                                                                                                            |
+| `dev_scratch_build`   | write       | Stands up a scratch environment for the feature under test — pages and charts via `pagebuild.py`, never envoy YAML, because block refs do not resolve that way |
+| `dev_ui_verify`       | read        | Drives the frontend to check what a change actually looks like                                                                                                 |
+| `dev_e2e_run`         | read        | Runs named e2e specs, returns failures and trace paths                                                                                                         |
 
 ## Rules that carry over from L2
 
@@ -121,12 +130,26 @@ would be two implementations of one thing, drifting.
 
 ## Order of work
 
-1. Factor `mcpkit` out of `server/system/agentic/mcp`, with the no-domain-imports
-   rule enforced by a test. L2 keeps working throughout.
-2. Stand up `dev/mcp` — module, vendor, boot, `.mcp.json` registration, one
-   trivial tool end to end.
-3. Verify family first: it is the largest token saving and pays off on the work
-   already in flight.
-4. Investigate, then review, then commit.
-5. The dev-server/FE family last, since it is the one with a dependency on a
+1. ✅ Factor `mcpkit` out of `server/system/agentic/mcp`, with the
+   no-domain-imports rule enforced by a test.
+2. ✅ Stand up `dev/mcp` — module, vendor, boot, `.mcp.json` registration.
+3. ✅ Verify family.
+4. ✅ Investigate and commit families.
+5. Review: `dev_diff_survey`.
+6. The dev-server/FE family last, since it is the one with a dependency on a
    booted server.
+
+## What testing these tools taught
+
+Every bug found in building this family was the same shape: **a tool reporting
+success without having checked**. `TrimSpace` ate the leading space git uses to
+mean "not staged", so unstaged files reported as staged. `run` discarded stdout
+on a non-zero exit, and `intent check` exits non-zero exactly when it has drift,
+so it reported a clean tree against 51 drifted files — and then it turned out
+the whole report goes to stderr. vitest reported `passed: true` when zero tests
+matched a mistyped path.
+
+None of these would have been caught by reading the code, and all of them would
+have produced confident wrong answers. A tool in this family is only worth
+having if its failure mode is loud, so test each one against a real failure
+before believing it.
