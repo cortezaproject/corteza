@@ -7,6 +7,7 @@ Usage:
   mcp-verify.py schema      # declared-contract checks only
   mcp-verify.py scope       # group filtering and risk ceiling
   mcp-verify.py exercise    # create/read/page/delete against real data
+  mcp-verify.py identity    # create/wire/read/delete users, groups, roles
   mcp-verify.py cost        # tool-list size in tokens
 
 Why this exists: unit tests assert what the code declares, not what the server
@@ -282,6 +283,93 @@ def verify_scope():
             check("capped at" in str(e), f"a capped session refuses to dispatch {writer}", str(e)[:120])
 
 
+def verify_identity(sid):
+    """Exercise the identity tools against real data.
+
+    These 38 tools shipped build-verified only. Identity is the batch where a
+    contract mistake is least visible from a schema and most consequential in
+    effect, so this creates a user, a group and a role, wires them together,
+    reads the wiring back, and removes all three.
+    """
+    print("\nidentity (writes to the dev server, cleans up after)")
+
+    email = f"{PREFIX}@local.dev"
+    created = {}
+
+    try:
+        user = call(sid, "system_user_create", {
+            "email": email, "handle": PREFIX.replace("-", "_"), "name": "Verify User",
+        })
+        created["user"] = user.get("userID")
+        check(bool(created["user"]), "user created", json.dumps(user)[:120])
+
+        role = call(sid, "system_role_create", {
+            "name": f"{PREFIX} role", "handle": PREFIX.replace("-", "_") + "_role",
+        })
+        created["role"] = role.get("roleID")
+        check(bool(created["role"]), "role created")
+
+        # Every non-root group needs a parent — checkPaths rejects a group with
+        # no paths — so find the root and hang the test group off it.
+        groups = call(sid, "system_user_group_lookup", {"limit": "100"})
+        root = next((g for g in (groups.get("userGroups") or groups.get("groups") or [])
+                     if g.get("isRoot")), None)
+        check(root is not None, "the root user group is discoverable via isRoot",
+              json.dumps(groups)[:160])
+
+        if root:
+            group = call(sid, "system_user_group_create", {
+                "handle": PREFIX.replace("-", "_") + "_grp",
+                "short": "verify group",
+                "parents": json.dumps([root.get("handle") or root.get("userGroupID")]),
+            })
+            created["group"] = group.get("userGroupID")
+            check(bool(created["group"]), "user group created under the root group")
+
+        # The wiring is the part a schema cannot prove: a member added through
+        # one tool must be visible through another.
+        call(sid, "system_role_member_add", {"role": created["role"], "user": created["user"]})
+        members = call(sid, "system_role_member_list", {"role": created["role"]})
+        blob = json.dumps(members)
+        check(str(created["user"]) in blob, "an added member shows up in member_list", blob[:160])
+
+        # And the reverse direction, which goes through a different filter path.
+        holders = call(sid, "system_user_lookup", {"role": created["role"]})
+        check(str(created["user"]) in json.dumps(holders),
+              "the member is findable by filtering users on that role")
+
+        found = call(sid, "system_user_lookup", {"user": email})
+        check(str(created["user"]) in json.dumps(found), "a user resolves by email")
+
+        # Suspend is not delete, and suspended users are hidden by default.
+        call(sid, "system_user_suspend", {"user": created["user"]})
+        visible = json.dumps(call(sid, "system_user_lookup", {"query": PREFIX}))
+        hidden = str(created["user"]) not in visible
+        check(hidden, "a suspended user drops out of the default listing")
+
+        withsusp = call(sid, "system_user_lookup", {"query": PREFIX, "includeSuspended": True})
+        check(str(created["user"]) in json.dumps(withsusp), "includeSuspended brings it back")
+        call(sid, "system_user_unsuspend", {"user": created["user"]})
+
+    finally:
+        for tool, key in (("system_role_delete", "role"),
+                          ("system_user_group_delete", "group"),
+                          ("system_user_delete", "user")):
+            if created.get(key):
+                try:
+                    call(sid, tool, {_refname(tool): created[key]})
+                except Exception as e:  # noqa: BLE001 - cleanup must not mask a failure
+                    print(f"  \033[33m·\033[0m cleanup of {key} failed, remove by hand: {e}")
+        print(f"  \033[90m·\033[0m cleaned up {PREFIX} user/group/role")
+
+
+def _refname(tool):
+    """The ref param for a delete tool: system_user_group_delete -> userGroup."""
+    resource = tool[len("system_"): -len("_delete")]
+    head, *rest = resource.split("_")
+    return head + "".join(p.title() for p in rest)
+
+
 def verify_cost(tools):
     print("\ntool-list cost")
     payload = json.dumps({"tools": tools})
@@ -310,6 +398,8 @@ def main():
         verify_scope()
     if want in ("all", "exercise"):
         verify_exercise(sid)
+    if want in ("all", "identity"):
+        verify_identity(sid)
     if want in ("all", "cost"):
         verify_cost(tools)
 
