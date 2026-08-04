@@ -19,7 +19,12 @@ import urllib.request
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 API = os.environ.get("HUMAN_API", "http://localhost:1043/api")
-MCP = API + "/mcp"
+
+# ?tools=all opts out of progressive disclosure. A session normally sees five
+# tools and searches for the rest; this script exists to inspect the surface, so
+# it wants the whole list. Agents must not use the opt-out — it costs the ~30k
+# tokens disclosure exists to avoid.
+MCP = API + "/mcp?tools=all"
 
 if urllib.parse.urlparse(API).hostname not in ("localhost", "127.0.0.1", "::1"):
     sys.exit(f"mcp.py is local-only; refusing to touch {API}")

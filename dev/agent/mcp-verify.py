@@ -8,6 +8,7 @@ Usage:
   mcp-verify.py scope       # group filtering and risk ceiling
   mcp-verify.py exercise    # create/read/page/delete against real data
   mcp-verify.py identity    # create/wire/read/delete users, groups, roles
+  mcp-verify.py automation  # triggers and the event-type catalogue
   mcp-verify.py cost        # tool-list size in tokens
 
 Why this exists: unit tests assert what the code declares, not what the server
@@ -384,6 +385,77 @@ def verify_identity(sid):
         print(f"  \033[90m·\033[0m cleaned up {PREFIX} user/group/role")
 
 
+def verify_automation(sid):
+    """Exercise the trigger and event-type tools.
+
+    Unlike compose and identity, this cannot create its own subject: there is no
+    workflow_create tool, so a trigger has to attach to a workflow that already
+    exists. It is created **disabled** so it can never fire, and removed in a
+    finally — but it does briefly re-register its workflow's triggers, which is
+    why it prefers a workflow named "Test" over a real one.
+    """
+    print("\nautomation (attaches a disabled trigger to an existing workflow)")
+    load_all(sid)
+
+    catalogue = call(sid, "automation_event_type_lookup", {"resourceType": "system"})
+    types_ = catalogue.get("eventTypes") or []
+    check(bool(types_), "the event type catalogue resolves",
+          "trigger create cannot be validated without a valid eventType pair")
+    if not types_:
+        return
+
+    # onManual is the safest event: it fires only when someone runs the
+    # workflow by hand, never on its own.
+    pair = next((e for e in types_ if e.get("eventType") == "onManual"), types_[0])
+
+    wfs = (call(sid, "automation_workflow_lookup", {"limit": "50"}) or {}).get("workflows") or []
+    if not wfs:
+        print("  \033[33m·\033[0m no workflows on this server — skipping the trigger exercise")
+        return
+
+    wf = next((w for w in wfs if (w.get("name") or "").strip().lower() == "test"), wfs[0])
+    print(f"  \033[90m·\033[0m using workflow {wf['workflowID']} ({wf.get('name') or 'unnamed'!r})")
+
+    trigger_id = None
+    try:
+        created = call(sid, "automation_trigger_create", {
+            "workflow": wf["workflowID"],
+            "eventType": pair["eventType"],
+            "resourceType": pair["resourceType"],
+            "enabled": False,
+            "description": f"{PREFIX} verification trigger",
+        })
+        trigger_id = created.get("triggerID")
+        check(bool(trigger_id), "trigger created", json.dumps(created)[:160])
+
+        if trigger_id:
+            # includeDisabled, because the trigger is deliberately created
+            # disabled and the lookup excludes disabled triggers by default —
+            # the same StateExcluded default that TAQ lookup has.
+            found = call(sid, "automation_trigger_lookup",
+                         {"workflow": wf["workflowID"], "includeDisabled": True})
+            check(str(trigger_id) in json.dumps(found),
+                  "the new trigger is findable by filtering on its workflow")
+
+            hidden = call(sid, "automation_trigger_lookup", {"workflow": wf["workflowID"]})
+            check(str(trigger_id) not in json.dumps(hidden),
+                  "a disabled trigger is hidden from the default listing")
+
+            one = call(sid, "automation_trigger_lookup", {"triggerID": trigger_id})
+            check(str(trigger_id) in json.dumps(one), "a trigger resolves by id")
+
+            call(sid, "automation_trigger_update", {"triggerID": trigger_id, "enabled": False,
+                                                    "description": f"{PREFIX} updated"})
+            check(True, "trigger update succeeds")
+    finally:
+        if trigger_id:
+            try:
+                call(sid, "automation_trigger_delete", {"triggerID": trigger_id})
+                print(f"  \033[90m·\033[0m removed trigger {trigger_id}")
+            except Exception as e:  # noqa: BLE001 - cleanup must not mask a failure
+                print(f"  \033[33m·\033[0m cleanup failed, remove trigger {trigger_id} by hand: {e}")
+
+
 def _refname(tool):
     """The ref param for a delete tool: system_user_group_delete -> userGroup."""
     resource = tool[len("system_"): -len("_delete")]
@@ -434,6 +506,8 @@ def main():
         verify_exercise(sid)
     if want in ("all", "identity"):
         verify_identity(sid)
+    if want in ("all", "automation"):
+        verify_automation(sid)
     if want in ("all", "cost"):
         verify_cost(tools)
 
