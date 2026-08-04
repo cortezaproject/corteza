@@ -171,13 +171,13 @@ func (h *roleHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		return nil, err
 	}
 
+	// Meta is always allocated: the meta column is NOT NULL, so a role created
+	// without a description failed at the store with a constraint violation
+	// rather than anything a caller could act on.
 	r := &sysTypes.Role{
 		Name:   name,
 		Handle: toolkit.Str(args, "handle"),
-	}
-
-	if d := toolkit.Str(args, "description"); d != "" {
-		r.Meta = &sysTypes.RoleMeta{Description: d}
+		Meta:   &sysTypes.RoleMeta{Description: toolkit.Str(args, "description")},
 	}
 
 	r, err = sysService.DefaultRole.Create(ctx, r)
