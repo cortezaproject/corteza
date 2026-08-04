@@ -9,11 +9,12 @@ import (
 	autoTypes "github.com/crusttech/human/server/automation/types"
 )
 
-// TestRefuseMultipleEntryPoints covers the one rule this handler enforces that
-// the service does not. The server checks it when a session starts, so a
-// multi-entry workflow stores clean and fails on its first run; everything here
-// is about catching it before the write.
-func TestRefuseMultipleEntryPoints(t *testing.T) {
+// TestNoteMultipleEntryPoints covers the one thing this handler reports that the
+// service does not. Such a graph is legal — an event-driven run names its step,
+// and a manual run inherits the first trigger's — so what is under test is that
+// the warning fires on exactly the graphs where a manual, trigger-less exec
+// would have nothing to resolve.
+func TestNoteMultipleEntryPoints(t *testing.T) {
 	step := func(id uint64, kind autoTypes.WorkflowStepKind) *autoTypes.WorkflowStep {
 		return &autoTypes.WorkflowStep{ID: id, Kind: kind}
 	}
@@ -22,10 +23,10 @@ func TestRefuseMultipleEntryPoints(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		steps   autoTypes.WorkflowStepSet
-		paths   autoTypes.WorkflowPathSet
-		wantErr bool
+		name     string
+		steps    autoTypes.WorkflowStepSet
+		paths    autoTypes.WorkflowPathSet
+		wantNote bool
 	}{
 		{
 			name: "empty workflow",
@@ -55,7 +56,7 @@ func TestRefuseMultipleEntryPoints(t *testing.T) {
 				step(1, autoTypes.WorkflowStepKindExpressions),
 				step(2, autoTypes.WorkflowStepKindExpressions),
 			},
-			wantErr: true,
+			wantNote: true,
 		},
 		{
 			// A visual step is dropped by the converter before the graph is
@@ -82,12 +83,12 @@ func TestRefuseMultipleEntryPoints(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := refuseMultipleEntryPoints(tt.steps, tt.paths)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("refuseMultipleEntryPoints() error = %v, wantErr %v", err, tt.wantErr)
+			note := noteMultipleEntryPoints(tt.steps, tt.paths)
+			if (note != "") != tt.wantNote {
+				t.Fatalf("noteMultipleEntryPoints() = %q, wantNote %v", note, tt.wantNote)
 			}
-			if err != nil && !strings.Contains(err.Error(), "stepIDs") {
-				t.Errorf("error does not name the offending steps: %v", err)
+			if note != "" && !strings.Contains(note, "stepIDs") {
+				t.Errorf("note does not name the offending steps: %v", note)
 			}
 		})
 	}

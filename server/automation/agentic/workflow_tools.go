@@ -64,6 +64,7 @@ func (h *workflowHandler) register() {
 					"separate resource — use automation_taq_lookup for those.",
 			),
 			mcp.WithString("workflow", mcp.Description("Workflow ID as string (to prevent precision loss) or handle. Omit to list all.")),
+			mcp.WithBoolean("includeDisabled", mcp.Description("Include disabled workflows in the listing. Off by default, matching the rest of the product. Naming one workflow by handle always finds it, enabled or not; this flag only affects the listing.")),
 			mcp.WithString("query", mcp.Description("Case-insensitive substring match on the workflow handle. Applies to list mode only.")),
 			mcp.WithString("limit", mcp.Description("Maximum workflows to return in list mode, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous list response, to fetch the next page.")),
@@ -103,7 +104,7 @@ func (h *workflowHandler) register() {
 			mcp.WithString("handle", mcp.Required(), mcp.Description("Unique handle, e.g. \"order_sync\". Must start with a letter, be at least 2 characters, and use only letters, digits, underscores, dashes and dots. Handles are unique across the whole instance, not per project, and a taken one is refused.")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name shown in the workflow list and editor. A workflow without one is refused.")),
 			mcp.WithString("description", mcp.Description("What this workflow is for. Shown in the workflow editor.")),
-			mcp.WithBoolean("enabled", mcp.Description("Whether the workflow may run. Defaults to true. A disabled workflow keeps its definition but never fires, and automation_workflow_exec reports it as not found. It also drops out of automation_workflow_lookup entirely — neither the listing nor a lookup by handle finds a disabled workflow — so keep the workflowID this call returns, because enabling it again needs that ID.")),
+			mcp.WithBoolean("enabled", mcp.Description("Whether the workflow may run. Defaults to true. A disabled workflow keeps its definition but never fires, and automation_workflow_exec reports it as not found. It is also left out of the automation_workflow_lookup listing unless includeDisabled is set — but it still resolves by handle, so it can be enabled again without its ID.")),
 			mcp.WithString("steps", mcp.Description(workflowStepsDoc)),
 			mcp.WithString("paths", mcp.Description(workflowPathsDoc)),
 			mcp.WithString("scope", mcp.Description("JSON object of variables every run starts with, e.g. {\"retries\":3}. Input passed to automation_workflow_exec, and input carried by a trigger, is merged over this.")),
@@ -142,11 +143,11 @@ func (h *workflowHandler) register() {
 					"you renumber steps, since a trigger pinned to a stepID that no longer exists fails at run "+
 					"time.",
 			),
-			mcp.WithString("workflow", mcp.Required(), mcp.Description("Workflow ID as a string (to prevent precision loss) or handle. Find it with automation_workflow_lookup. A disabled workflow resolves only by ID — the handle lookup goes through a search that leaves disabled workflows out.")),
+			mcp.WithString("workflow", mcp.Required(), mcp.Description("Workflow ID as a string (to prevent precision loss) or handle. Find it with automation_workflow_lookup; a disabled workflow resolves by handle too, though it is left out of the listing unless includeDisabled is set.")),
 			mcp.WithString("handle", mcp.Description("New handle. Must be unique across the instance. An empty string clears it, after which the workflow can only be referenced by ID.")),
 			mcp.WithString("name", mcp.Description("New display name. Cannot be emptied — a workflow with no name is refused.")),
 			mcp.WithString("description", mcp.Description("New description. An empty string clears it.")),
-			mcp.WithBoolean("enabled", mcp.Description("Enable or disable the workflow. The definition is kept, but disabling is a one-way door for anything holding only the handle: a disabled workflow is left out of automation_workflow_lookup and can no longer be resolved by handle, here or anywhere else. Note the workflowID this call returns — enabling it again needs the ID.")),
+			mcp.WithBoolean("enabled", mcp.Description("Enable or disable the workflow. The definition is kept either way. A disabled workflow is left out of the automation_workflow_lookup listing unless includeDisabled is set, but it still resolves by handle, so this is reversible with the handle alone.")),
 			mcp.WithString("steps", mcp.Description("Replaces the stored steps wholesale. "+workflowStepsDoc)),
 			mcp.WithString("paths", mcp.Description("Replaces the stored paths wholesale. "+workflowPathsDoc)),
 			mcp.WithString("scope", mcp.Description("JSON object of variables every run starts with. Replaces the stored set wholesale; {} clears it.")),
@@ -169,10 +170,10 @@ func (h *workflowHandler) register() {
 					"Any TAQ or trigger pointing at this workflow stops working; check "+
 					"automation_trigger_lookup with this workflow first if you are not sure what depends on "+
 					"it. Prefer disabling the workflow when you only want to pause it — a disabled workflow "+
-					"is still listed, a deleted one is not findable by handle at all and restoring it needs "+
+					"still resolves by handle, a deleted one is not findable by handle at all and restoring it needs "+
 					"an ID you must have kept.",
 			),
-			mcp.WithString("workflowID", mcp.Required(), mcp.Description("Workflow ID as a string (to prevent precision loss). Find it with automation_workflow_lookup.")),
+			mcp.WithString("workflow", mcp.Required(), mcp.Description("Workflow ID as a string (to prevent precision loss) or handle. Find it with automation_workflow_lookup.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskDestructive),
 		),

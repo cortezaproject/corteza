@@ -81,7 +81,7 @@ func (h *workflowHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (
 
 	query := toolkit.Str(args, "query")
 
-	set, f, err := h.search(ctx, query, paging)
+	set, f, err := h.search(ctx, query, paging, toolkit.Bool(args, "includeDisabled"))
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (h *workflowHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (
 	// caller is paging through.
 	if len(set) == 0 && query != "" && page.Cursor == "" {
 		if slugQuery := strings.ReplaceAll(strings.ToLower(query), " ", "_"); slugQuery != query {
-			if set, f, err = h.search(ctx, slugQuery, paging); err != nil {
+			if set, f, err = h.search(ctx, slugQuery, paging, toolkit.Bool(args, "includeDisabled")); err != nil {
 				return nil, err
 			}
 		}
@@ -167,16 +167,14 @@ func (h *workflowHandler) create(ctx context.Context, req mcp.CallToolRequest) (
 		return nil, err
 	}
 
-	if err = refuseMultipleEntryPoints(wf.Steps, wf.Paths); err != nil {
-		return nil, err
-	}
+	entryNote := noteMultipleEntryPoints(wf.Steps, wf.Paths)
 
 	res, err := autoService.DefaultWorkflow.Create(ctx, wf)
 	if err != nil {
 		return nil, toolkit.Errf("workflow create", err)
 	}
 
-	return workflowWriteResult(res)
+	return workflowWriteResult(res, entryNote)
 }
 
 // update is read-modify-write, and has to be.
@@ -267,16 +265,14 @@ func (h *workflowHandler) update(ctx context.Context, req mcp.CallToolRequest) (
 		}
 	}
 
-	if err = refuseMultipleEntryPoints(upd.Steps, upd.Paths); err != nil {
-		return nil, err
-	}
+	entryNote := noteMultipleEntryPoints(upd.Steps, upd.Paths)
 
 	res, err := autoService.DefaultWorkflow.Update(ctx, upd)
 	if err != nil {
 		return nil, toolkit.Errf("workflow update", err)
 	}
 
-	return workflowWriteResult(res)
+	return workflowWriteResult(res, entryNote)
 }
 
 // undelete takes an ID rather than the ID-or-handle 'workflow' reference the
@@ -289,15 +285,18 @@ func (h *workflowHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, err
 	}
 
-	workflowID, err := toolkit.ReqID(args, "workflowID")
+	// Accepts the same ID-or-handle reference every other tool in this family
+	// takes. Undelete still takes an ID only, and has to: resolve searches, and
+	// a deleted workflow is not in the search.
+	wf, err := h.resolve(ctx, args)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := autoService.DefaultWorkflow.DeleteByID(ctx, workflowID); err != nil {
+	if err := autoService.DefaultWorkflow.DeleteByID(ctx, wf.ID); err != nil {
 		return nil, toolkit.Errf("workflow delete", err)
 	}
-	return toolkit.TextResult("workflow %d deleted", workflowID), nil
+	return toolkit.TextResult("workflow %d deleted", wf.ID), nil
 }
 
 func (h *workflowHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -349,11 +348,21 @@ func (h *workflowHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*m
 }
 
 // search runs a workflow search with the house error wrapping.
-func (h *workflowHandler) search(ctx context.Context, query string, paging filter.Paging) (autoTypes.WorkflowSet, autoTypes.WorkflowFilter, error) {
-	set, f, err := autoService.DefaultWorkflow.Search(ctx, autoTypes.WorkflowFilter{
+// search lists workflows. includeDisabled is a parameter rather than a default
+// because WorkflowFilter.Disabled defaults to StateExcluded everywhere in the
+// product, and a lookup that quietly disagreed with the rest of it would be its
+// own kind of surprise.
+func (h *workflowHandler) search(ctx context.Context, query string, paging filter.Paging, includeDisabled bool) (autoTypes.WorkflowSet, autoTypes.WorkflowFilter, error) {
+	ff := autoTypes.WorkflowFilter{
 		Query:  query,
 		Paging: paging,
-	})
+	}
+
+	if includeDisabled {
+		ff.Disabled = filter.StateInclusive
+	}
+
+	set, f, err := autoService.DefaultWorkflow.Search(ctx, ff)
 	if err != nil {
 		return nil, f, toolkit.Errf("workflow list", err)
 	}
@@ -383,7 +392,14 @@ func (h *workflowHandler) resolve(ctx context.Context, args map[string]any) (*au
 		return wf, nil
 	}
 
-	set, _, err := autoService.DefaultWorkflow.Search(ctx, autoTypes.WorkflowFilter{Handle: ref})
+	// Disabled is inclusive here, unlike in the listing: the caller named one
+	// specific workflow, and leaving it out is what made disabling by handle a
+	// one-way door — nothing holding only the handle could reach it to enable
+	// it again.
+	set, _, err := autoService.DefaultWorkflow.Search(ctx, autoTypes.WorkflowFilter{
+		Handle:   ref,
+		Disabled: filter.StateInclusive,
+	})
 	if err != nil {
 		return nil, toolkit.Errf("workflow lookup", err)
 	}
@@ -401,8 +417,14 @@ func (h *workflowHandler) resolve(ctx context.Context, args map[string]any) (*au
 // will never run comes back as a success. Returning them verbatim, next to a
 // warning, is the whole feedback loop for a caller that cannot read the server
 // log.
-func workflowWriteResult(wf *autoTypes.Workflow) (*mcp.CallToolResult, error) {
+func workflowWriteResult(wf *autoTypes.Workflow, notes ...string) (*mcp.CallToolResult, error) {
 	out := workflowWritten{Workflow: wf, Issues: autoTypes.WorkflowIssueSet{}}
+
+	for _, n := range notes {
+		if n != "" {
+			out.Warning = n
+		}
+	}
 
 	if len(wf.Issues) > 0 {
 		out.Issues = wf.Issues
@@ -434,18 +456,23 @@ func workflowScope(raw any) (*expr.Vars, error) {
 	return vars, nil
 }
 
-// refuseMultipleEntryPoints rejects a graph with more than one step that nothing
-// points at, before it is written.
+// noteMultipleEntryPoints reports a graph with more than one step that nothing
+// points at. It warns rather than refuses, because such a graph is legal.
 //
-// The server checks this only when a session starts (session.Start: "cannot
-// start workflow session multiple starting steps found"), so a multi-entry
-// workflow stores clean, reports no issues, and fails on its first run with an
-// error that names neither the steps nor the rule. Checking here costs one pass
-// over the graph and turns that into a message the caller can act on.
+// session.Start only resolves the entry structurally when the exec carries no
+// StepID. An event-driven run always names its step, and a manual run now
+// inherits the first trigger's step, so a multi-entry workflow with at least one
+// trigger runs either way. What still fails is the case this tool produces by
+// default: a workflow with no triggers at all, run by hand, where there is no
+// step to inherit and session.Start finds several parentless candidates.
+//
+// The editor can build these graphs, so refusing to author one would make the
+// tool weaker than the UI for no safety gain. Saying plainly what will and will
+// not run is the useful thing.
 //
 // Visual steps are excluded because the converter drops them before building the
 // graph, so they are never entry points however they are connected.
-func refuseMultipleEntryPoints(steps autoTypes.WorkflowStepSet, paths autoTypes.WorkflowPathSet) error {
+func noteMultipleEntryPoints(steps autoTypes.WorkflowStepSet, paths autoTypes.WorkflowPathSet) string {
 	hasParent := make(map[uint64]bool, len(paths))
 	for _, p := range paths {
 		if p != nil {
@@ -464,15 +491,16 @@ func refuseMultipleEntryPoints(steps autoTypes.WorkflowStepSet, paths autoTypes.
 	}
 
 	if len(entries) > 1 {
-		return fmt.Errorf(
-			"workflow has %d starting steps (stepIDs %s) but may have only one: every other step needs an inbound path. "+
-				"Connect them, drop the extras, or join them with a step whose paths lead to both. Written as it is, "+
-				"the workflow would store without complaint and then fail on its first run",
+		return fmt.Sprintf(
+			"this workflow has %d starting steps (stepIDs %s). That is legal, but running it with "+
+				"automation_workflow_exec without a stepID will fail while it has no trigger, because there is "+
+				"no single entry to resolve. Attach a trigger with automation_trigger_create, pass a stepID to "+
+				"exec, or give every step but one an inbound path.",
 			len(entries), strings.Join(entries, ", "),
 		)
 	}
 
-	return nil
+	return ""
 }
 
 // refuseNumericRef rejects an ID-or-handle reference passed as a JSON number.
