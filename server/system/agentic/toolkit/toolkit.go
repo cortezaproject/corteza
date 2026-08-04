@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -147,6 +148,73 @@ func ReqID(args map[string]any, key string) (uint64, error) {
 		return 0, fmt.Errorf("%s is required", key)
 	}
 	return id, nil
+}
+
+// JSONArg decodes a structured argument — a graph of steps, a set of paths — into
+// a service type.
+//
+// Both wire forms are accepted, for the same reason Bool takes "true": tool
+// schemas declare these as strings, but a client that sent a real JSON array
+// meant the same thing unambiguously and failing it would buy nothing.
+//
+// Decoding straight into the service type, rather than a per-family mirror, is
+// what lets a lookup result be handed back as input, and it keeps IDs honest for
+// free — the ID fields on those types carry `json:",string"`, so a JSON number is
+// rejected rather than truncated, the same rule ID applies.
+//
+// present distinguishes absent from empty, which every update handler needs:
+// absent leaves a collection alone, [] clears it (CONVENTIONS.md §8.2).
+//
+// subject names the argument in the error the caller reads.
+func JSONArg(args map[string]any, key, subject string, out any) (present bool, err error) {
+	raw, ok := args[key]
+	if !ok || raw == nil {
+		return false, nil
+	}
+
+	var buf []byte
+
+	switch v := raw.(type) {
+	case string:
+		if strings.TrimSpace(v) == "" {
+			return false, nil
+		}
+		buf = []byte(v)
+	default:
+		if buf, err = json.Marshal(v); err != nil {
+			return false, fmt.Errorf("cannot encode %s: %w", subject, err)
+		}
+	}
+
+	if err = json.Unmarshal(buf, out); err != nil {
+		return false, fmt.Errorf(
+			"%s must be a JSON array, with every stepID, parentID and childID written as a quoted string: %w",
+			subject, err,
+		)
+	}
+
+	return true, nil
+}
+
+// OptStr and OptBool read an argument that may legitimately be absent.
+//
+// Presence is what separates a create default from an update's "absent means
+// unchanged" (CONVENTIONS.md §8.2), and neither Str nor Bool can express it —
+// both answer the zero value for a missing key. The value itself still goes
+// through Str/Bool, which is where the wire forms are reconciled.
+func OptStr(args map[string]any, key string) (val string, present bool) {
+	if v, ok := args[key]; !ok || v == nil {
+		return "", false
+	}
+	return Str(args, key), true
+}
+
+// OptBool is OptStr for a flag.
+func OptBool(args map[string]any, key string) (val, present bool) {
+	if v, ok := args[key]; !ok || v == nil {
+		return false, false
+	}
+	return Bool(args, key), true
 }
 
 // Paging carries the normalised paging arguments for a lookup tool.
