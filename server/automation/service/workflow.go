@@ -153,7 +153,10 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			return WorkflowErrNotAllowedToCreate()
 		}
 
-		if new.Meta.Name == "" {
+		// Meta is a pointer and was dereferenced unguarded, so omitting it was a
+		// nil panic and an HTTP 500 rather than a rejected request. Update
+		// already guards this; create did not.
+		if new.Meta == nil || new.Meta.Name == "" {
 			return WorkflowErrMissingName()
 		}
 

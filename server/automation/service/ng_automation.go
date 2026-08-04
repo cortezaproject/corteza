@@ -171,7 +171,9 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (a
 			return NgAutomationErrNotAllowedToCreate()
 		}
 
-		if new.Meta.Short == "" {
+		// Meta is a pointer and was dereferenced unguarded, so omitting it was a
+		// nil panic and an HTTP 500 rather than a rejected request.
+		if new.Meta == nil || new.Meta.Short == "" {
 			return NgAutomationErrMissingName()
 		}
 
@@ -183,11 +185,18 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (a
 			return err
 		}
 
-		// @note triggers have an ID to simplify referencing
+		// Triggers carry an ID so paths can reference them. Only mint one where
+		// the caller did not supply it — this used to overwrite unconditionally,
+		// which orphaned any trigger->step path in the same payload and made a
+		// one-call create impossible. Update already only fills zeros; this
+		// brings create in line, so an automation can be authored in one request
+		// rather than the webapp's create-empty-then-update dance.
 		triggers := make(types.NgAutomationTriggerSet, len(new.Triggers))
 		for i := range triggers {
 			t := new.Triggers[i]
-			t.ID = nextID()
+			if t.ID == 0 {
+				t.ID = nextID()
+			}
 			triggers[i] = t
 		}
 
@@ -299,6 +308,19 @@ func (svc *ngAutomation) onExec(ctx context.Context, _ *ngAutomationActionProps,
 		return id.Zero(), loadErr
 	}
 
+	// A disabled automation does not run. `enabled` used to gate only whether
+	// triggers fired, so an explicitly disabled TAQ still executed on demand —
+	// the opposite of what disabling implies, and the opposite of what a
+	// disabled workflow does. NgAutomationErrDisabled was declared for exactly
+	// this and had no callers.
+	//
+	// Workflow permits a disabled run while tracing, as a debug affordance;
+	// NgAutomationExecParams carries no trace flag, so there is nothing to
+	// mirror here.
+	if !atm.Enabled {
+		return id.Zero(), NgAutomationErrDisabled()
+	}
+
 	p.Input, err = svc.injectIdentities(ctx, atm.RunAs, p.Input)
 	if err != nil {
 		return
@@ -327,6 +349,19 @@ func (svc *ngAutomation) onExecAndWait(ctx context.Context, _ *ngAutomationActio
 	atm, loadErr := loadNgAutomation(ctx, svc.store, automationID)
 	if loadErr != nil {
 		return nil, loadErr
+	}
+
+	// A disabled automation does not run. `enabled` used to gate only whether
+	// triggers fired, so an explicitly disabled TAQ still executed on demand —
+	// the opposite of what disabling implies, and the opposite of what a
+	// disabled workflow does. NgAutomationErrDisabled was declared for exactly
+	// this and had no callers.
+	//
+	// Workflow permits a disabled run while tracing, as a debug affordance;
+	// NgAutomationExecParams carries no trace flag, so there is nothing to
+	// mirror here.
+	if !atm.Enabled {
+		return nil, NgAutomationErrDisabled()
 	}
 
 	if entryPoint == "" {
