@@ -28,9 +28,15 @@ func TestParseLlamaGuardOutput(t *testing.T) {
 		{name: "unexpected format", output: "something unexpected", blocked: false},
 	}
 
+	// parseLlamaGuardOutput reads lg.thresholds, so it is a method rather than
+	// the free function this test used to call — which is why the package would
+	// not build. With no thresholds configured every category blocks
+	// unconditionally, which is what the expectations below assume.
+	lg := NewLlamaGuard(&types.LlmProvider{}, "")
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := parseLlamaGuardOutput(tt.output)
+			result := lg.parseLlamaGuardOutput(tt.output)
 			if result.Blocked != tt.blocked {
 				t.Errorf("blocked = %v, want %v", result.Blocked, tt.blocked)
 			}

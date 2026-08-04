@@ -38,9 +38,9 @@ const (
 // LlamaGuard is a guard adapter that uses Meta's Llama Guard 3 model
 // via an Ollama-compatible OpenAI API endpoint.
 type LlamaGuard struct {
-	endpoint   string             // e.g. "http://ollama-guard:11434/v1"
-	model      string             // e.g. "llama-guard3:8b"
-	apiKey     string             // credential from LlmProvider
+	endpoint   string // e.g. "http://ollama-guard:11434/v1"
+	model      string // e.g. "llama-guard3:8b"
+	apiKey     string // credential from LlmProvider
 	timeout    time.Duration
 	thresholds map[string]float64 // per-category block thresholds; absent = always block
 }
@@ -152,9 +152,12 @@ func (lg *LlamaGuard) CheckInput(ctx context.Context, input string, history []ty
 // parseLlamaGuardOutput parses Llama Guard's text response.
 // Safe response: "safe"
 // Unsafe response: "unsafe\nS1" or "unsafe\nS1,S2"
-// If thresholds are configured, a category only triggers a block when its
-// score (always 1.0 from Llama Guard) meets or exceeds the threshold.
-// Categories with no threshold entry are blocked unconditionally.
+//
+// An "unsafe" verdict always blocks. Thresholds decide which named categories
+// appear in the reason, not whether the content is blocked at all — see the
+// comment at the tail of this function for why that distinction matters.
+// Anything that is neither "safe" nor "unsafe" is treated as safe, since it is
+// not a verdict.
 func (lg *LlamaGuard) parseLlamaGuardOutput(output string) *GuardResult {
 	output = strings.TrimSpace(output)
 
@@ -190,8 +193,28 @@ func (lg *LlamaGuard) parseLlamaGuardOutput(output string) *GuardResult {
 		}
 	}
 
+	// The model said "unsafe". Block, whatever came after it.
+	//
+	// This used to fall through to safe() when no category survived parsing —
+	// a bare "unsafe", an unrecognised category, or every category held below
+	// its threshold all produced "not blocked". A guard that fails open on a
+	// response it does not fully understand is worse than no guard, because the
+	// content it silently passes is exactly the content the model flagged.
+	//
+	// A threshold can still suppress a *named* category; what it cannot do any
+	// more is suppress the verdict itself.
 	if len(blockedNames) == 0 {
-		return safe()
+		reason := "content classified as unsafe"
+		if len(categories) > 0 {
+			reason += " (no category met its configured threshold)"
+		}
+
+		return &GuardResult{
+			Safe:       false,
+			Blocked:    true,
+			Reason:     reason,
+			Categories: categories,
+		}
 	}
 
 	return &GuardResult{
