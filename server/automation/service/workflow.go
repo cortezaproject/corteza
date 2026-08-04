@@ -499,7 +499,6 @@ func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable,
 
 func (svc *workflow) onExec(ctx context.Context, aProps *workflowActionProps, workflowID uint64, p types.WorkflowExecParams) (results *expr.Vars, sessionID uint64, stacktrace types.Stacktrace, err error) {
 	var (
-		t    *types.Trigger
 		wait WaitFn
 	)
 
@@ -524,11 +523,11 @@ func (svc *workflow) onExec(ctx context.Context, aProps *workflowActionProps, wo
 
 	// Find the trigger.
 	// @todo can we cache this as well?
-	t, err = func() (*types.Trigger, error) {
+	err = func() error {
 		if p.CallerWorkflowID > 0 {
 			// skip triggers checking when executed as sub-workflow
 			// @todo be more strict and allow this ONLY when workflow is flagged as a sub-workflow
-			return nil, nil
+			return nil
 		}
 
 		var tt types.TriggerSet
@@ -536,48 +535,47 @@ func (svc *workflow) onExec(ctx context.Context, aProps *workflowActionProps, wo
 		// about trigger search or read permissions
 		tt, err = loadWorkflowTriggers(ctx, svc.store, workflowID)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if len(tt) == 0 {
-			return nil, nil
+			return nil
 		}
 
-		if p.StepID == 0 && len(tt) > 0 {
-			return tt[0], nil
-		} else {
-			for _, tMatch := range tt {
-				if tMatch.StepID == p.StepID {
-					return tMatch, nil
-				}
+		// StepID is assigned where the selected trigger is in hand.
+		//
+		// It used to be assigned in a tail block that read the trigger from
+		// this closure's own return value — a variable only written once the
+		// closure returns, so inside it the trigger was nil on every path and
+		// the assignment never ran. Manual exec therefore reached the runtime
+		// with StepID still 0, and session.Start reads a zero StepID as "find
+		// the entry structurally", counts the parentless steps, and refuses
+		// anything with more than one. A workflow with two entry points ran
+		// fine when fired by an event, which passes the step explicitly, and
+		// failed every time it was run by hand.
+		if p.StepID == 0 {
+			t := tt[0]
+			aProps.setTrigger(t)
+			p.StepID = t.StepID
+			return nil
+		}
+
+		for _, tMatch := range tt {
+			if tMatch.StepID == p.StepID {
+				aProps.setTrigger(tMatch)
+				return nil
 			}
 		}
 
 		if !p.Trace {
-			// when not doing a trace (designing the workflow)
-			// we need to be more strict and disallow execution of
-			// the misconfigured workflows and use of disabled triggers
-			if t == nil {
-				return nil, WorkflowErrUnknownWorkflowStep()
-			} else if !t.Enabled {
-				return nil, WorkflowErrDisabled()
-			}
+			// when not doing a trace (designing the workflow) we are stricter
+			// and refuse to run a workflow whose step we could not resolve
+			return WorkflowErrUnknownWorkflowStep()
 		}
 
-		if t != nil {
-			aProps.setTrigger(t)
-			p.StepID = t.StepID
-			p.EventType = t.EventType
-			p.ResourceType = t.ResourceType
+		p.EventType = "onTrace"
 
-			// merge with input from trigger
-			// with trigger input vars are overwritten by input vars
-			p.Input = t.Input.MustMerge(p.Input)
-		} else {
-			p.EventType = "onTrace"
-		}
-
-		return nil, nil
+		return nil
 	}()
 
 	if err != nil {
