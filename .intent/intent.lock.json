@@ -1771,11 +1771,6 @@
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
       "t": "2026-07-28"
     },
-    "client/web/unify/src/sections/project/components/wizard/StepStatusBanner.vue": {
-      "h": "2b740116b8b2",
-      "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
-      "t": "2026-07-24"
-    },
     "client/web/unify/src/sections/project/components/wizard/YesNo.vue": {
       "h": "03b812887bc1",
       "doc": "client/web/unify/src/sections/project/components/wizard/wizard.intent.md",
