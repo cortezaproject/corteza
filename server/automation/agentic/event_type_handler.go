@@ -9,7 +9,7 @@ import (
 
 	autoRest "github.com/crusttech/human/server/automation/rest"
 	"github.com/crusttech/human/server/automation/rest/request"
-	"github.com/crusttech/human/server/system/agentic/toolkit"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 

@@ -9,7 +9,7 @@ import (
 	cmpTypes "github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/filter"
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
-	"github.com/crusttech/human/server/system/agentic/toolkit"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )

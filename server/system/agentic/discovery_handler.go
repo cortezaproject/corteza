@@ -13,7 +13,7 @@ import (
 	cmpService "github.com/crusttech/human/server/compose/service"
 	a "github.com/crusttech/human/server/pkg/auth"
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
-	"github.com/crusttech/human/server/system/agentic/toolkit"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )

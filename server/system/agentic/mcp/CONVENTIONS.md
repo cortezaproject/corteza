@@ -366,7 +366,7 @@ exception list rather than renamed: `discovery_search` (two segments, app
 
 ## 7. Shared toolkit
 
-`server/system/agentic/toolkit` removes the boilerplate every handler repeats
+`server/pkg/mcpkit/toolkit` removes the boilerplate every handler repeats
 and, more importantly, creates single choke points.
 
 | Helper | Purpose |

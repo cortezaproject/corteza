@@ -10,7 +10,7 @@ import (
 	autoTypes "github.com/crusttech/human/server/automation/types"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/system/agentic/toolkit"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 

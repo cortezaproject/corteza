@@ -8,7 +8,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/rbac"
-	"github.com/crusttech/human/server/system/agentic/toolkit"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	sysService "github.com/crusttech/human/server/system/service"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"

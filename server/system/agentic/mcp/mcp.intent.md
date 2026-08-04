@@ -6,7 +6,7 @@ depends-on:
   - server/pkg/mcpkit
   - server/system/agentic/runtime
   - server/system/agentic/policy
-  - server/system/agentic/toolkit
+  - server/pkg/mcpkit/toolkit
 touched-by:
   - server/compose/agentic
   - server/automation/agentic

@@ -7,7 +7,7 @@ github.com/buger/jsonparser
 # github.com/crusttech/human/server v0.0.0-00010101000000-000000000000 => ../../server
 ## explicit; go 1.24.1
 github.com/crusttech/human/server/pkg/mcpkit
-github.com/crusttech/human/server/system/agentic/toolkit
+github.com/crusttech/human/server/pkg/mcpkit/toolkit
 # github.com/go-chi/chi/v5 v5.3.0
 ## explicit; go 1.23
 github.com/go-chi/chi/v5

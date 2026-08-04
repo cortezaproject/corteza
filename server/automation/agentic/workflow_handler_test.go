@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/crusttech/human/server/system/agentic/toolkit"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 
 	autoTypes "github.com/crusttech/human/server/automation/types"
 )
