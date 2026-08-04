@@ -71,12 +71,23 @@ func TestSearchMatching(t *testing.T) {
 		assert.Subset(t, []string{"system_role_create", "system_role_delete"}, got[:2])
 	})
 
-	t.Run("all terms must match", func(t *testing.T) {
+	t.Run("matching more terms ranks higher", func(t *testing.T) {
 		got := names(m.searchTools("delete role", Scope{}))
-		assert.Equal(t, []string{"system_role_delete"}, got)
+		require.NotEmpty(t, got)
+		assert.Equal(t, "system_role_delete", got[0],
+			"the tool matching both terms comes first")
+		assert.Contains(t, got, "system_role_create",
+			"a tool matching one term is still a candidate")
+	})
 
-		assert.Empty(t, names(m.searchTools("role nonexistentword", Scope{})),
-			"a term that matches nothing eliminates the tool")
+	t.Run("a term that matches nothing does not eliminate the tool", func(t *testing.T) {
+		// Requiring every term made a natural multi-word question the worst
+		// possible input, and "no tool matches" reads as "no such capability".
+		assert.Contains(t, names(m.searchTools("role nonexistentword", Scope{})), "system_role_create")
+	})
+
+	t.Run("a query matching nothing at all is still empty", func(t *testing.T) {
+		assert.Empty(t, names(m.searchTools("nonexistentword", Scope{})))
 	})
 
 	t.Run("an empty query matches nothing rather than everything", func(t *testing.T) {
