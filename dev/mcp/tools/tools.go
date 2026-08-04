@@ -23,6 +23,8 @@ import (
 func Register(reg *mcpkit.Registry, root string) {
 	registerBranchStatus(reg, root)
 	registerTestRun(reg, root)
+	registerFormat(reg, root)
+	registerIntentCheck(reg, root)
 }
 
 // runner executes one command in the repository and returns its trimmed stdout.
@@ -38,6 +40,30 @@ func gitRunner(root string) runner {
 	return func(ctx context.Context, args ...string) (string, error) {
 		return run(ctx, root, "git", append([]string{"-C", root}, args...)...)
 	}
+}
+
+// runAllowFail is run for a command whose non-zero exit is a result, not a
+// failure.
+//
+// `intent check` exits non-zero exactly when it has drift to report, and `git
+// diff --quiet` exits non-zero exactly when there is a diff. Using run for
+// either throws away the answer and reports success, which is how the intent
+// tool first came to say "no drift" against 51 drifted files.
+func runAllowFail(ctx context.Context, dir, name string, args ...string) (string, error) {
+	cmd := exec.CommandContext(ctx, name, args...)
+	cmd.Dir = dir
+
+	// Both streams, because a CLI's choice between them is its own business and
+	// a caller here wants what it said. `intent check` writes its entire report
+	// to stderr, so reading stdout alone reports a clean tree over 51 drifted
+	// files.
+	var buf strings.Builder
+	cmd.Stdout = &buf
+	cmd.Stderr = &buf
+
+	err := cmd.Run()
+
+	return strings.TrimRight(buf.String(), "\r\n"), err
 }
 
 // run executes a command and returns its stdout.
