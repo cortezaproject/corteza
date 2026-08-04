@@ -100,12 +100,9 @@ func (h *triggerHandler) register() {
 					"Constraints and labels are preserved untouched; neither can be set here. New "+
 					"'eventType'/'resourceType' values must be a pair automation_event_type_lookup reports, and "+
 					"an invalid pair is stored without complaint and simply never fires. "+
-					"IMPORTANT — the change is not live. Updating a trigger writes the new definition "+
-					"immediately, but the running instance keeps the trigger's previous event registration until "+
-					"its workflow is saved again in the Human webapp or the server restarts. Until then a "+
-					"trigger you disabled here can still fire, and one you re-pointed still fires on its old "+
-					"event. Only automation_trigger_create takes effect at once. If the change must apply now, "+
-					"say so rather than assuming it has.",
+					"The change takes effect immediately: the trigger is re-registered on the running "+
+					"instance, so a trigger you disable here stops firing at once and one you re-point starts "+
+					"firing on its new event.",
 			),
 			mcp.WithString("triggerID", mcp.Required(), mcp.Description("Trigger ID as a string (to prevent precision loss). Find it with automation_trigger_lookup.")),
 			mcp.WithString("workflow", mcp.Description("Move the trigger to this workflow: an ID string or a handle. Cannot be cleared.")),
@@ -132,10 +129,8 @@ func (h *triggerHandler) register() {
 					"automation_trigger_lookup with 'includeDeleted' still lists it. Prefer disabling the "+
 					"trigger with automation_trigger_update when you only want to pause it, since that keeps it "+
 					"visible in the workflow editor. "+
-					"IMPORTANT — the deletion is not live. The trigger is marked deleted immediately, but the "+
-					"running instance keeps its event registration until the workflow is saved again in the "+
-					"Human webapp or the server restarts, so the workflow can still fire on this event in the "+
-					"meantime. Do not report the automation as stopped on the strength of this call alone.",
+					"The trigger stops firing immediately — it is unregistered from the running instance as "+
+					"well as marked deleted — and automation_trigger_undelete brings it back.",
 			),
 			mcp.WithString("triggerID", mcp.Required(), mcp.Description("Trigger ID as a string (to prevent precision loss). Find it with automation_trigger_lookup.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
@@ -155,9 +150,8 @@ func (h *triggerHandler) register() {
 					"are reachable — pass 'includeDeleted' to list them, and passing a deleted trigger's ID as "+
 					"'triggerID' returns it in full with 'deletedAt' set, so you can check what you are about to "+
 					"restore. Restoring a trigger that is not deleted succeeds and changes nothing. "+
-					"IMPORTANT — the restore is not live. The trigger row comes back immediately, but it is not "+
-					"re-registered: the workflow will not actually fire on the event again until the workflow is "+
-					"saved in the Human webapp or the server restarts.",
+					"The trigger starts firing again immediately: it is re-registered on the running instance "+
+					"as part of the restore.",
 			),
 			mcp.WithString("triggerID", mcp.Required(), mcp.Description("Trigger ID as a string (to prevent precision loss), from automation_trigger_lookup with includeDeleted set.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
