@@ -6,6 +6,13 @@
       "headers": {
         "Authorization": "Bearer ${HUMAN_MCP_TOKEN}"
       }
+    },
+    "human-dev": {
+      "type": "stdio",
+      "command": "./dev/mcp/run.sh",
+      "env": {
+        "HUMAN_REPO_ROOT": "${PWD}"
+      }
     }
   }
 }
