@@ -3,9 +3,9 @@
 **Status: agreed, partially implemented.** See §14 for what is built and what
 is not.
 
-This document is the input to a fan-out that will write roughly 165 more tools
-across the 42 resources in RESOURCES.md. Everything here is inherited ~170 times. Read it as a
-spec, not as background.
+This document is the input to a fan-out that will write roughly 120 more tools
+across the 42 resources in RESOURCES.md. Everything here is inherited once per
+tool. Read it as a spec, not as background.
 
 > **Why this is not `mcp.intent.md`.** The intent system covers `server` in
 > `.intent/config.mjs` `covered` but **not** in `enforced`, and
@@ -30,8 +30,8 @@ registry (`mcp_registry.go`). That registry has two consumers:
 Both surfaces call the same handler functions. Where they legitimately differ
 is documented in §2.3; where they differed by accident, that has been fixed.
 
-36 tools are registered today across 9 resources. The target is roughly 200,
-so the fan-out is roughly 165 tools.
+80 tools are registered today across 14 resources. The target is roughly 200,
+so the fan-out is roughly 120 more.
 
 ### Layers this serves
 
@@ -68,9 +68,10 @@ themselves and could perform the same operations via REST or the webapp. A
 group check would block nothing real.
 
 Groups exist to keep the advertised tool list small, and the cost is measured
-rather than assumed: 35 tools is ~11,400 tokens per request, which projects to
-**~65,000 tokens per request at 200 tools** — paid on every call before any
-work happens. `dev/agent/mcp-verify.py cost` reprints the number.
+rather than assumed: the full surface is 82 tools and ~27,400 tokens, which
+projects to ~67,000 at 200 — paid on every call before any work happens.
+Grouping alone was not enough (`configuring` is 64 of 80), which is why §2.6
+exists. `dev/agent/mcp-verify.py cost` reprints both numbers.
 
 **Consequence for tool authors:** never rely on a group tag for safety. If an
 operation needs authorisation it comes from RBAC in the service layer — and
@@ -119,6 +120,54 @@ document was exercised against a running server.
 with `from` and returns no cursor, so advertising one would promise paging that
 cannot work (§8.1). It declares `limit` only, and says so.
 
+### 2.4 The in-process policy layer
+
+`policy/policy.go` is the authorization gate for the in-process surface; the
+HTTP path never calls it.
+
+Per-TAQ tools are minted at runtime as `automation_<numeric id>`. Policy used
+to treat *any* `automation_*` name outside a hardcoded three-item list as a TAQ
+ID, which denied `automation_taq_exec`, `automation_taq_executions` and
+`automation_taq_execution_trace` outright. Now matched on a numeric suffix,
+which is how the names are actually minted.
+
+A tool with no `buildResource` case gets no resource-level narrowing. That is
+**not** denied at runtime — the agent's `Access.Tools` allow-list is already
+deny-by-default, and denying here would break every newly added tool until
+someone edited `policy.go`, a cross-package coupling a tool author has no
+reason to discover. `policy.IsClassified` backs a CI-time assertion instead.
+The problem was that the default was *silent*, not that it was permissive.
+
+`policy.go` holds a second alias map that must stay in sync with
+`mcp_registry.go`.
+
+### 2.5 Scope: group filtering and the risk ceiling
+
+A request carries a `Scope` resolved from its URL (`scope.go`):
+
+| URL | Effect |
+|---|---|
+| `/api/mcp` | No group narrowing and no ceiling — but progressively disclosed, so five tools until the session searches. See §2.6. |
+| `/api/mcp/configuring` | Configuring tools only, still progressively disclosed. |
+| `/api/mcp/usage?maxRisk=read` | Usage reads only, and refuses anything above read on dispatch. |
+| `/api/mcp?tools=all` | Opts out of disclosure. Tooling only; see §2.6. |
+
+The two dimensions are enforced differently, on purpose. **Group is filtered
+only** — it decides what `tools/list` returns, because its job is to keep the
+list small, and a caller naming a tool outside its group has done nothing RBAC
+would not already allow. **Risk is filtered *and* refused at dispatch**, because
+a ceiling that only hid tools would mean nothing to a client that already knew a
+name.
+
+An unrecognised group or risk is ignored rather than rejected: a typo must not
+silently narrow the surface to nothing and leave the caller thinking the server
+is broken.
+
+The ceiling is self-selected, so it is a seatbelt against accidents — pointing a
+session at production and having it delete a namespace — not a lock against a
+hostile caller, who simply would not set it. Moving it somewhere a caller cannot
+choose means putting it in the token; see §14.
+
 ### 2.6 Progressive disclosure
 
 A session sees five tools until it asks for more: `human_tool_search`,
@@ -158,53 +207,6 @@ property of this transport, not of Human. The in-process runtime scopes an
 agent with `allowedTools` and has no listing to shrink. This also keeps them
 out of the coverage matrix, where they would read as resources they are not —
 and out of the structural test, which asserts things about resource tools.
-
-### 2.4 The in-process policy layer
-
-`policy/policy.go` is the authorization gate for the in-process surface; the
-HTTP path never calls it.
-
-Per-TAQ tools are minted at runtime as `automation_<numeric id>`. Policy used
-to treat *any* `automation_*` name outside a hardcoded three-item list as a TAQ
-ID, which denied `automation_taq_exec`, `automation_taq_executions` and
-`automation_taq_execution_trace` outright. Now matched on a numeric suffix,
-which is how the names are actually minted.
-
-A tool with no `buildResource` case gets no resource-level narrowing. That is
-**not** denied at runtime — the agent's `Access.Tools` allow-list is already
-deny-by-default, and denying here would break every newly added tool until
-someone edited `policy.go`, a cross-package coupling a tool author has no
-reason to discover. `policy.IsClassified` backs a CI-time assertion instead.
-The problem was that the default was *silent*, not that it was permissive.
-
-`policy.go` holds a second alias map that must stay in sync with
-`mcp_registry.go`.
-
-### 2.5 Scope: group filtering and the risk ceiling
-
-A request carries a `Scope` resolved from its URL (`scope.go`):
-
-| URL | Effect |
-|---|---|
-| `/api/mcp` | Everything. No narrowing, no ceiling. |
-| `/api/mcp/configuring` | Lists only configuring tools. |
-| `/api/mcp/usage?maxRisk=read` | Lists only usage reads, and refuses anything above read on dispatch. |
-
-The two dimensions are enforced differently, on purpose. **Group is filtered
-only** — it decides what `tools/list` returns, because its job is to keep the
-list small, and a caller naming a tool outside its group has done nothing RBAC
-would not already allow. **Risk is filtered *and* refused at dispatch**, because
-a ceiling that only hid tools would mean nothing to a client that already knew a
-name.
-
-An unrecognised group or risk is ignored rather than rejected: a typo must not
-silently narrow the surface to nothing and leave the caller thinking the server
-is broken.
-
-The ceiling is self-selected, so it is a seatbelt against accidents — pointing a
-session at production and having it delete a namespace — not a lock against a
-hostile caller, who simply would not set it. Moving it somewhere a caller cannot
-choose means putting it in the token; see §14.
 
 ---
 
