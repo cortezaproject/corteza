@@ -42,6 +42,26 @@ func (h *taqHandler) register() {
 	)
 
 	h.reg.RegisterTool(
+		mcp.NewTool("automation_taq_delete",
+			mcp.WithDescription(
+				"Delete a TAQ (Trigger Action Query automation). The delete is soft — its triggers, steps "+
+					"and paths are all retained — and automation_taq_undelete restores the whole definition. "+
+					"Deleting stops the TAQ running: its triggers are unregistered, so nothing it was "+
+					"listening for fires it any more. "+
+					"Prefer disabling a TAQ over deleting it when you only want to pause it, because a "+
+					"disabled TAQ still appears in automation_taq_lookup with includeDisabled, whereas a "+
+					"deleted one cannot be found at all — not by handle, not by search — and restoring it "+
+					"needs an ID you must have kept.",
+			),
+			mcp.WithString("taqID", mcp.Required(), mcp.Description("TAQ ID as a string (to prevent precision loss). Find it with automation_taq_lookup.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskDestructive),
+		),
+		"Delete TAQ",
+		h.del,
+	)
+
+	h.reg.RegisterTool(
 		mcp.NewTool("automation_taq_undelete",
 			mcp.WithDescription(
 				"Restore a deleted TAQ (Trigger Action Query automation). Deleting a TAQ is soft — its "+

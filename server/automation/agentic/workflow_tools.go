@@ -35,6 +35,26 @@ func (h *workflowHandler) register() {
 	)
 
 	h.reg.RegisterTool(
+		mcp.NewTool("automation_workflow_delete",
+			mcp.WithDescription(
+				"Delete an automation workflow. The delete is soft — its step and path graph is kept — and "+
+					"automation_workflow_undelete restores it intact. Deleting unregisters its triggers, so "+
+					"nothing fires the workflow any more and automation_workflow_exec will not find it. "+
+					"Any TAQ or trigger pointing at this workflow stops working; check "+
+					"automation_trigger_lookup with this workflow first if you are not sure what depends on "+
+					"it. Prefer disabling the workflow when you only want to pause it — a disabled workflow "+
+					"is still listed, a deleted one is not findable by handle at all and restoring it needs "+
+					"an ID you must have kept.",
+			),
+			mcp.WithString("workflowID", mcp.Required(), mcp.Description("Workflow ID as a string (to prevent precision loss). Find it with automation_workflow_lookup.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskDestructive),
+		),
+		"Delete workflow",
+		h.del,
+	)
+
+	h.reg.RegisterTool(
 		mcp.NewTool("automation_workflow_undelete",
 			mcp.WithDescription(
 				"Restore a deleted automation workflow. Deleting a workflow is soft — its step and path "+

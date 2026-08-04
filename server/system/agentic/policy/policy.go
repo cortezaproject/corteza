@@ -276,6 +276,13 @@ var resourceScopeExempt = map[string]bool{
 	"automation_trigger_undelete":  true,
 	"automation_event_type_lookup": true,
 
+	// TAQ and workflow delete. Their exec siblings are mapped in buildResource
+	// because running one acts on a specific automation; deleting is a
+	// definition-level change gated by CanDeleteNgAutomation /
+	// CanDeleteWorkflow in the service.
+	"automation_taq_delete":      true,
+	"automation_workflow_delete": true,
+
 	// Reminders carry no compose resource dimension — they are scoped to their
 	// assignee inside the service (onLookup refuses a reminder assigned to
 	// someone else, onSearch filters by the same predicate), which is an

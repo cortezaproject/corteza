@@ -118,6 +118,23 @@ func (h *taqHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 // NgAutomationFilter defaults Deleted to StateExcluded, so the handle search
 // would report "not found" for exactly the TAQs this tool exists to restore.
 // The ID goes straight to the service, which loads deleted rows.
+func (h *taqHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	taqID, err := toolkit.ReqID(args, "taqID")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := autoService.DefaultNgAutomation.DeleteByID(ctx, taqID); err != nil {
+		return nil, toolkit.Errf("TAQ delete", err)
+	}
+	return toolkit.TextResult("TAQ %d deleted", taqID), nil
+}
+
 func (h *taqHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, err := toolkit.Args(req)
 	if err != nil {

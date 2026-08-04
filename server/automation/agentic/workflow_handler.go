@@ -107,6 +107,23 @@ func (h *workflowHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (
 // other tools accept: resolve falls back to a handle search, and WorkflowFilter
 // defaults Deleted to StateExcluded, so a deleted workflow is unreachable by
 // handle. The ID path loads deleted rows, so it goes straight to the service.
+func (h *workflowHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	workflowID, err := toolkit.ReqID(args, "workflowID")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := autoService.DefaultWorkflow.DeleteByID(ctx, workflowID); err != nil {
+		return nil, toolkit.Errf("workflow delete", err)
+	}
+	return toolkit.TextResult("workflow %d deleted", workflowID), nil
+}
+
 func (h *workflowHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, err := toolkit.Args(req)
 	if err != nil {
