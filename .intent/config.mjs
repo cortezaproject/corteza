@@ -38,6 +38,13 @@ export default {
     'client/web/chatbot-widget/public/**',
     'lib/js/src/api-clients/**', // codegen-owned (generated from server rest.yaml)
     'extra/**',
+
+    // Project-feature code lives inside shared server packages rather than in a
+    // package of its own, so it is excluded by filename. Ruled 2026-08-04; see
+    // TODO.md Phase 4. Note `project*.go`, not `project_*.go` — the snake_case
+    // form misses system/rest/project.go, system/service/projectTask.go and
+    // nine other hand-written files.
+    'server/**/project*.go',
   ],
 
   // File extensions that count as covered source.

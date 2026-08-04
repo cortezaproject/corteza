@@ -5,16 +5,28 @@ commit as the work that resolves an item.
 
 ## Rollout phases
 
-- [ ] **Phase 4 — server backfill.** Not scoped yet; open questions to settle
-      with the user first:
-  - `pkg/` granularity: 93 mostly-small packages — tiered (grouped root doc +
-    own docs for substantial packages) vs per-package everywhere.
-  - Project-only exclusion mechanics: proposed glob `server/**/project_*.go`
-    (project files live inside shared packages, e.g. `system/types/project_*.go`);
-    verify the glob catches only project-feature files.
-  - Which top-level server dirs are in scope (proposal: system, compose,
-    automation, federation, pkg, store, app, auth, cmd, discovery; devdocs,
-    docs, build, var, assets, webapp, webconsole stay out).
+- [ ] **Phase 4 — server backfill.** Scoped 2026-08-04; the three open
+      questions are ruled and the backfill itself is the remaining work:
+  - **`pkg/` granularity: tiered.** 93 packages, median 3 files — 53 have ≤3,
+    28 have 4–10, only 12 exceed 10. One grouped `pkg.intent.md` covers the
+    small ones by theme; the 12 substantial packages (`envoy/yaml`,
+    `envoy/resource`, `dal`, `envoy/store`, `rbac`, `expr`, …) get their own.
+    The 28 mid-sized are judged case by case. Ninety-three docs averaging three
+    files each would be boilerplate, and a thin intent doc is worse than none
+    because it reads as maintained.
+  - **Project-only exclusion: `**/project*.go`, not `**/project_*.go`.** The
+    originally proposed glob was wrong — it matches only the snake_case files
+    and misses `system/rest/project.go`, `system/service/projectTask.go` and
+    nine more hand-written camelCase ones. Verified 2026-08-04: `project*.go`
+    catches 81 hand-written files across `system/{service,types,rest,rest/request,rest/handlers}`
+    and `store/tests`, with no false positives — every match is project-feature
+    code. Generated files need no glob; `**/*.gen.*` already excludes them.
+  - **Top-level dirs in scope:** system, compose, automation, federation, pkg,
+    store, app, auth, cmd, discovery. Out: devdocs, docs, build, var, assets,
+    webapp, webconsole — artifacts or generated output.
+  - Still to do: the backfill itself, and adding `server` to `enforced` in
+    `config.mjs` once it is covered. Adding it before then would fail `check`
+    for every uncovered file.
 - [ ] **Phase 5 — periphery**: `def/`, `tests/`, `locale/`, `server/codegen`
       templates (hand-written, drives generation), `provision/`.
       `extra/server-discovery` stays on-touch. `lib/eslint-client` has no
