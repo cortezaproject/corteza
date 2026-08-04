@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	rt "github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/store"
+	rt "github.com/crusttech/human/server/system/agentic/runtime"
 	sysTypes "github.com/crusttech/human/server/system/types"
 )
 
@@ -258,7 +258,9 @@ func fetchModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysT
 func (svc *Service) ValidateTemperature(ctx context.Context, providerID uint64, model string, temperature *float64) error {
 	_, err := svc.Prompt(ctx, providerID, model, temperature, 1, []Message{{Role: "user", Content: "hi"}}, nil)
 	if err != nil {
-		return errors.InvalidData(err.Error())
+		// %s, not err.Error() as the format itself: a provider message
+		// containing a percent verb would otherwise be interpreted as one.
+		return errors.InvalidData("%s", err.Error())
 	}
 	return nil
 }
