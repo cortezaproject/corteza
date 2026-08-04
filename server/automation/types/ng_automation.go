@@ -43,6 +43,50 @@ const (
 	NgAutomationSeverityInfo    = "info"
 )
 
+// Step kinds a TAQ's runtime understands.
+//
+// NgAutomationStep.Kind is a plain string on the generated type, unlike
+// Workflow's typed WorkflowStepKind enum — so nothing stops a workflow kind
+// name being stored on a TAQ step. It is not interchangeable: every workflow
+// kind other than function, iterator, error and termination is unknown here,
+// and "expressions" in particular is the one most likely to be carried across
+// by hand.
+//
+// The authoritative switch is stepConv in
+// server/automation/service/ng_automation_converter.go; these constants name
+// the same set so in-tree callers can stop spelling it out, and
+// IsValidNgAutomationStepKind gives a caller a cheap check before a write.
+const (
+	NgAutomationStepKindFunction         = "function"
+	NgAutomationStepKindIterator         = "iterator"
+	NgAutomationStepKindTermination      = "termination"
+	NgAutomationStepKindGatewayExclusive = "gatewayExclusive"
+	NgAutomationStepKindGatewayInclusive = "gatewayInclusive"
+	NgAutomationStepKindError            = "error"
+)
+
+// NgAutomationStepKinds is the full set, in the order a caller is most likely
+// to need them.
+var NgAutomationStepKinds = []string{
+	NgAutomationStepKindFunction,
+	NgAutomationStepKindIterator,
+	NgAutomationStepKindGatewayExclusive,
+	NgAutomationStepKindGatewayInclusive,
+	NgAutomationStepKindTermination,
+	NgAutomationStepKindError,
+}
+
+// IsValidNgAutomationStepKind reports whether the runtime can execute a step of
+// this kind. A step of any other kind is dropped from the executable graph.
+func IsValidNgAutomationStepKind(kind string) bool {
+	for _, k := range NgAutomationStepKinds {
+		if k == kind {
+			return true
+		}
+	}
+	return false
+}
+
 const (
 	IssueCodeScopeUnknown        = "scope.unknown"
 	IssueCodeTypeMismatch        = "type.mismatch"
