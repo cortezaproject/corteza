@@ -7,11 +7,11 @@ This document is the input to a fan-out that will write roughly 120 more tools
 across the 42 resources in RESOURCES.md. Everything here is inherited once per
 tool. Read it as a spec, not as background.
 
-> **Why this is not `mcp.intent.md`.** The intent system covers `server` in
+> **Why this is not `CONVENTIONS.md`.** The intent system covers `server` in
 > `.intent/config.mjs` `covered` but **not** in `enforced`, and
 > `.intent/TODO.md` reserves Phase 4 server-backfill scoping for the human
 > (package granularity, project-file exclusion, which top-level dirs are in
-> scope). Writing `mcp.intent.md` would be the first server intent doc in the
+> scope). Writing `CONVENTIONS.md` would be the first server intent doc in the
 > repo and would set precedent for ~197 packages. Convert this file once Phase
 > 4 is scoped.
 

@@ -89,5 +89,8 @@ export default {
   ],
 
   // Hard cap on prose lines (frontmatter excluded, blank lines not counted).
-  docMaxLines: 60,
+  // Raised from 60 (2026-08-04): the longest doc in the repo was 90 lines and
+  // several were fighting the cap. 250 is ~3x that — it stops constraining a
+  // genuinely complex package while still failing a runaway one.
+  docMaxLines: 250,
 }
