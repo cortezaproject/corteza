@@ -87,12 +87,23 @@ tool's schema should ask for `argumentName` and nothing else.
 literally, so omitting it fails. That failure is now visible; before this branch
 it was one of the six silent classes.
 
-**The construct library is `GET /automation/functions/`** — about 90 entries,
-each `{ref, kind, meta, parameters:[{name, types:[…], required}]}`. There is no
-`/automation/construct-library/` endpoint; the cold probe burned ten guesses on
-the name the phrase "construct library" suggests. The tool's description must
-name the real endpoint, the way `automation_taq_exec` routes callers to `lookup`.
-A 90-entry list is not something a schema can carry.
+**The construct library is `GET /automation/construct-library/functions`** — 17
+entries, served by `service.ConstructLibrary()`, the same singleton
+`stepConvFunction` resolves `step.Ref` against. Its sibling
+`GET /automation/construct-library/triggers` returns the 22
+`resourceType`/`eventType` pairs, which a caller otherwise has no way to learn.
+Neither takes a trailing slash; the bare directory path 404s.
+
+**`GET /automation/functions/` is a different registry and a trap.** It is
+`service.Registry()` — the *workflow* function registry, 93 entries, 78 of which
+a TAQ step cannot use. The two overlap on `notificationSend`, which is why an
+empirical probe that only ever sent `notificationSend` could not tell them apart
+and reported the wrong endpoint. `ref:"logInfo"` is the cheap discriminator: it
+is in the workflow registry and comes back `function.unknown` from a TAQ. The
+tool's description must name the construct-library endpoint and warn off the
+other one. (Their parameters are keyed differently too — `argumentName` in the
+construct library, `name` in the workflow registry — and `paramArgKey` falls back
+to `Name`, which hides the difference for the refs they share.)
 
 **`types` is plural on the parameter, singular on the argument.** The parameter
 declares `types: ["ID","Handle","String"]`; the argument carries one `type` that
@@ -105,7 +116,8 @@ One trigger, one `function` step, **and deliberately zero paths** — the
 single-orphan inference (`ng_automation_converter.go:394-397`) wires the entry.
 Termination is auto-injected.
 
-Probe's working payload, all three arguments required:
+Probe's working payload — `recipient` and `title` are required, `description` is
+not:
 
 ```json
 {"handle":"agent-x","meta":{"short":"X"},"enabled":true,
@@ -122,9 +134,9 @@ Probe's working payload, all three arguments required:
 `recipient` needs a numeric ID with `"type":"ID"` — a handle string fails at run
 time with `user not found`.
 
-Now that trigger IDs survive create, a trigger→step path *can* be authored in
-one call. Verify that before relying on it: the fix is new and the single-orphan
-inference may make the explicit path unnecessary anyway.
+A trigger→step path can be authored in one call — verified: a supplied
+`triggerID` survives create and both `trigger→step` and `step→step` edges wire
+up, running in order.
 
 ## 7. Traps that remain
 
@@ -138,8 +150,9 @@ select a start structurally.
 **`exec` returns no results.** Proof of success requires the trace endpoint. A
 `completed` status with a `null` trace and sub-0.1ms duration is a TAQ that ran
 nothing — the tool's description must say so, since it is the signature of the
-class of bug just fixed. `steps: []` produces exactly that and stores clean, so
-a trace of `null` means the steps never serialised.
+class of bug just fixed. `steps: []` stores clean and produces a trace holding
+the trigger frame and no step frames — "no step frames", not "a null trace", is
+the signature to check.
 
 **A populated `args` frame proves binding, not effect.** `args: {}` or `null`
 means binding failed; a full `args` means the values reached the handler and
@@ -196,7 +209,9 @@ The residual silent class is no longer structural but referential — a
 well-formed argument naming an entity that does not exist. The probe found one
 (`notificationSend` trusted a recipient ID without a lookup, so a valid-looking
 ID wrote a notification addressed to nobody, undeletable because the
-notification endpoints scope to the caller). That is fixed: all three recipient
+notification endpoints scope to the *recipient*, so only a notification
+addressed to a user that does not exist is unreachable — one addressed to you is
+deletable normally). That is fixed: all three recipient
 forms resolve, and a bad ID now fails with the same `user not found` a bad
 handle always did. Other constructs have not been audited for the same
 asymmetry, which is the honest remaining caveat.
