@@ -79,6 +79,12 @@ func branchStatusResult(ctx context.Context, root string) (*mcp.CallToolResult, 
 		// which is exactly the case a commit tool needs to see.
 		x, y, path := line[0], line[1], strings.TrimSpace(line[3:])
 
+		// A rename or copy is reported as "old -> new". Anything consuming this
+		// wants a path it can pass to git, so keep the destination.
+		if i := strings.Index(path, " -> "); i >= 0 {
+			path = path[i+len(" -> "):]
+		}
+
 		switch {
 		case x == '?' && y == '?':
 			out.Untracked = append(out.Untracked, path)

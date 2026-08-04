@@ -22,6 +22,7 @@ import (
 // tool, so that a test can point the whole surface at a scratch checkout.
 func Register(reg *mcpkit.Registry, root string) {
 	registerBranchStatus(reg, root)
+	registerTestRun(reg, root)
 }
 
 // runner executes one command in the repository and returns its trimmed stdout.
