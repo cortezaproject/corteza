@@ -87,9 +87,17 @@ tool's schema should ask for `argumentName` and nothing else.
 literally, so omitting it fails. That failure is now visible; before this branch
 it was one of the six silent classes.
 
-The description must route the caller to the construct library the same way
-`automation_taq_exec` routes them to `lookup`. A 17-entry list is not something
-a schema can carry.
+**The construct library is `GET /automation/functions/`** — about 90 entries,
+each `{ref, kind, meta, parameters:[{name, types:[…], required}]}`. There is no
+`/automation/construct-library/` endpoint; the cold probe burned ten guesses on
+the name the phrase "construct library" suggests. The tool's description must
+name the real endpoint, the way `automation_taq_exec` routes callers to `lookup`.
+A 90-entry list is not something a schema can carry.
+
+**`types` is plural on the parameter, singular on the argument.** The parameter
+declares `types: ["ID","Handle","String"]`; the argument carries one `type` that
+must be a member, spelled exactly. `"Number"` normalises to `"Integer"` and is
+then rejected against that set.
 
 ## 6. Minimum viable TAQ
 
@@ -130,7 +138,23 @@ select a start structurally.
 **`exec` returns no results.** Proof of success requires the trace endpoint. A
 `completed` status with a `null` trace and sub-0.1ms duration is a TAQ that ran
 nothing — the tool's description must say so, since it is the signature of the
-class of bug just fixed.
+class of bug just fixed. `steps: []` produces exactly that and stores clean, so
+a trace of `null` means the steps never serialised.
+
+**A populated `args` frame proves binding, not effect.** `args: {}` or `null`
+means binding failed; a full `args` means the values reached the handler and
+nothing more. The cold probe caught a real case only by going outside the
+described protocol. Where a construct has an observable effect, the description
+must tell the caller to verify it independently — for `notificationSend`, `GET
+/system/notification/?limit=5&sort=id%20DESC`. Do not let a tool report delivery
+on the strength of the trace alone.
+
+**Runtime failures are not `issues`.** `issues` covers authoring defects; a bad
+expression or a missing referenced entity surfaces at exec as `status:"failed"`
+with a typed frame error. And `issues` is *absent* on a clean write, not empty —
+treat a missing key as success and any `severity:"error"` entry as fatal. Such a
+TAQ stores at 200 but never registers, and `exec` answers `manager: executable
+not found`, which means "your TAQ has issues", not "wrong ID".
 
 **Path `Condition` is an AST**, not a string, and **nothing validates it at
 write time** — not operator, symbol or scope. Operators: `and, or, not, isNull,
@@ -159,13 +183,20 @@ on reachable branches.
 3. Validate `kind` against `IsValidNgAutomationStepKind` before writing.
 4. Treat a `completed` execution with an empty trace as a failure, not a success.
 
-## 9. Assessment — provisional
+## 9. Assessment — shippable
 
-Before the four fixes: **not shippable**, because the failure mode was silence.
-After them the loud path works, which is the precondition rather than the proof.
+A cold re-probe, run after the five fixes with only the knowledge a tool
+description would carry, built a working TAQ in **one payload submission and one
+execution** — down from six and three. It then authored fifteen deliberately
+broken ones: six were rejected at write time with a code, a severity, the exact
+parameter and the exact legal types; two more failed loudly at exec with a typed
+error; `enabled:false` refused. A broken TAQ cannot reach the runtime at all.
 
-A cold re-probe is running to measure how many attempts a model needs now. Do
-not start writing tools until its result is in — if the answer is still "many,
-and it believed it had succeeded", the honest outcome is to ship workflow
-authoring alone and record TAQ as a deliberate gap with this brief as the
-reason.
+The residual silent class is no longer structural but referential — a
+well-formed argument naming an entity that does not exist. The probe found one
+(`notificationSend` trusted a recipient ID without a lookup, so a valid-looking
+ID wrote a notification addressed to nobody, undeletable because the
+notification endpoints scope to the caller). That is fixed: all three recipient
+forms resolve, and a bad ID now fails with the same `user not found` a bad
+handle always did. Other constructs have not been audited for the same
+asymmetry, which is the honest remaining caveat.

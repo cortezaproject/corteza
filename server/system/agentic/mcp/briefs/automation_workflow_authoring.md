@@ -72,8 +72,9 @@ proved `expressions` works with nothing but a `target`, an `expr` and a `type`.
 **`ref` must exist in a function registry assembled at boot** from ~30
 `*_handler.gen.go` files, and arguments are verified by name and type. A schema
 cannot carry that list. The description must tell the caller to discover
-functions first, the way `automation_taq_exec` already tells callers to look a
-TAQ up before running it.
+functions first — **`GET /automation/functions/`**, which returns the ~90 entries
+with their parameters, each declaring `types` as an array the argument's single
+`type` must match exactly.
 
 **Exactly one parentless step**, checked only at exec time
 (`session.Start:204-219`). A multi-entry workflow writes clean and fails on
