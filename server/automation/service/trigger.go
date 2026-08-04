@@ -193,6 +193,15 @@ func (svc *trigger) onCreate(ctx context.Context, new *types.Trigger) (err error
 			return TriggerErrNotAllowedToCreate()
 		}
 
+		// Meta is NOT NULL in the store but nothing defaults it, so omitting it
+		// reached the database and came back as a raw driver error — `pq: null
+		// value in column "meta" violates not-null constraint` — for what is
+		// simply an optional field left out. Same class as the nil-Meta defects
+		// already fixed on workflow and TAQ create.
+		if new.Meta == nil {
+			new.Meta = &types.TriggerMeta{}
+		}
+
 		new.ID = nextID()
 		new.OwnedBy = cUser
 		new.CreatedAt = *now()
