@@ -2,6 +2,7 @@ package tools
 
 import (
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -121,4 +122,9 @@ func extractJSON(s string) string {
 
 func relativeTo(root, path string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(path, root), "/")
+}
+
+func sortedStrings(in []string) []string {
+	sort.Strings(in)
+	return in
 }
