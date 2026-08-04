@@ -15,40 +15,35 @@ Group: `configuring` · Package: `automation/agentic` (reuse the existing
 | `FindByID` | `(ctx, triggerID uint64)` | single-fetch in `lookup` |
 | `Search` | `(ctx, types.TriggerFilter)` | list mode in `lookup` |
 | `Create` | `(ctx, *types.Trigger)` | `create` |
-| `Update` | `(ctx, *types.Trigger)` | **blocked — see §2** |
-| `DeleteByID` | `(ctx, ID uint64)` | **blocked — see §2** |
+| `Update` | `(ctx, *types.Trigger)` | `update` |
+| `DeleteByID` | `(ctx, ID uint64)` | `delete` |
 | `UndeleteByID` | `(ctx, ID uint64)` | `undelete` |
 | `SearchOnManual` | `(ctx, workflowID, stepID uint64)` | skip — an internal lookup for the manual-run path, not a configuration op |
 
-Risks: `lookup` read; `create`, `undelete` write.
+Risks: `lookup` read; `create`, `update`, `undelete` write; `delete` destructive.
 
-## 2. Authorization (§8.6) — PARTIAL PASS. Two tools are blocked.
+## 2. Authorization (§8.6) — PASSES on every op
 
-Verified 2026-08-04, and the picture is inconsistent:
+Verified 2026-08-04:
 
-| Op | Check | Verdict |
-|---|---|---|
-| `FindByID` (`trigger.go:146`) | `CanSearchTriggers` | ✅ |
-| `Search` | `CanSearchTriggers` | ✅ |
-| `onCreate` (`trigger.go:192`) | `CanManageTriggersOnWorkflow` | ✅ |
-| `onUndelete` (`trigger.go:315`) | `CanManageTriggersOnWorkflow` | ✅ |
-| `onUpdate` (`trigger.go:227`) | **none** | ❌ |
-| `onDelete` (`trigger.go:285`) | **none** | ❌ |
+| Op | Check |
+|---|---|
+| `FindByID` (`trigger.go:146`) | `CanSearchTriggers` |
+| `Search` | `CanSearchTriggers` |
+| `onCreate` (`trigger.go:192`) | `CanManageTriggersOnWorkflow`, inline |
+| `onUpdate` / `onDelete` / `onUndelete` | `canManageTrigger` (`trigger.go:312`) → `CanManageTriggersOnWorkflow` |
 
-`onUpdate` and `onDelete` have no `ac.Can*` call and no identity scoping. The
-generated wrapper calls `svc.guard` → `guardProjectWritable`, which asks whether
-the *project* is writable — not whether this caller may manage triggers. So a
-caller who can write anything in the project can retarget or delete any trigger
-in it, without ever holding `CanManageTriggersOnWorkflow`.
+All four write ops resolve the trigger's workflow and check
+`CanManageTriggersOnWorkflow` against it. `onCreate` does it inline; the other
+three go through the `canManageTrigger` helper. Write every tool.
 
-**Do not write `automation_trigger_update` or `automation_trigger_delete`.**
-File both as §8.6 gaps. That is the rule: a service method with neither an
-`ac.Can*` call nor an ownership scope does not get a tool.
-
-Note what this means for the resource as a whole: a trigger can be created and
-restored through MCP but not changed or removed. Say so plainly in the `create`
-description rather than leaving a caller to discover it — and do not offer
-delete-then-recreate as a workaround, because delete is the blocked op.
+> An earlier draft of this brief claimed `onUpdate` and `onDelete` were
+> unauthorized and blocked both tools. That was wrong — it came from grepping
+> for `ac.Can` in the service, which does not see through a helper. Recorded
+> because it is the failure mode this section exists to prevent: **read the
+> method, do not grep for the check.** The generated wrapper additionally calls
+> `svc.guard` → `guardProjectWritable`, which is a project-writability gate on
+> top of, not instead of, the permission check.
 
 ## 3. Identifier strategy
 
