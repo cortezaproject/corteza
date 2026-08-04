@@ -119,6 +119,46 @@ document was exercised against a running server.
 with `from` and returns no cursor, so advertising one would promise paging that
 cannot work (§8.1). It declares `limit` only, and says so.
 
+### 2.6 Progressive disclosure
+
+A session sees five tools until it asks for more: `human_tool_search`,
+`human_tool_load`, and the compose read path (`namespace`, `module`, `record`
+lookups). Everything else is loaded by searching for it.
+
+Measured on the running server: **~1,442 tokens instead of ~27,368, a 19x
+reduction**, and it stops growing — 200 tools cost a session the same as 20.
+
+Why not the alternatives. Trimming descriptions fights §8.5, which made them
+rich precisely because a caller without the repo has nothing else; disclosure
+lets a description be as long as it needs to be because few are loaded. Group
+endpoints help but not enough — `configuring` is 64 of 80, because most tools
+genuinely are configuration. `tools/list` pagination does nothing, because
+clients drain every page.
+
+`human_tool_search` returns each match's **full definition inline** as well as
+registering it for `notifications/tools/list_changed`. That is deliberate
+redundancy: a client that honours the notification re-lists and sees the tools
+properly, and one that ignores it can still call straight from the search
+result. Without it, disclosure would break silently on any client that does not
+re-list, and the failure would look like the tool not existing.
+
+Neither disclosure nor group is enforced at dispatch. A caller naming a tool it
+was never shown has done nothing RBAC would not already allow, and refusing
+would break exactly the clients the inline schemas exist for. The risk ceiling
+*is* enforced — see §2.5.
+
+`?tools=all` opts out and lists everything the group and risk allow. It is for
+tooling: `dev/agent/mcp-verify.py` has to audit the whole surface, and a human
+debugging "why can the model not see X" needs the unfiltered list. It is
+deliberately absent from every tool description, because an agent using it
+would pay the cost this exists to avoid.
+
+The two meta-tools live on the mcp-go server, not in the `Registry`: they are a
+property of this transport, not of Human. The in-process runtime scopes an
+agent with `allowedTools` and has no listing to shrink. This also keeps them
+out of the coverage matrix, where they would read as resources they are not —
+and out of the structural test, which asserts things about resource tools.
+
 ### 2.4 The in-process policy layer
 
 `policy/policy.go` is the authorization gate for the in-process surface; the

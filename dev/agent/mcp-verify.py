@@ -31,6 +31,9 @@ import urllib.request
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 API = os.environ.get("HUMAN_API", "http://localhost:1043/api")
 MCP = API + "/mcp"
+# Progressive disclosure means tools/list shows ~5 by default. Auditing the
+# surface needs the documented tooling opt-out; agents must never use it.
+MCP_ALL = MCP + "?tools=all"
 
 if urllib.parse.urlparse(API).hostname not in ("localhost", "127.0.0.1", "::1"):
     sys.exit(f"mcp-verify.py is local-only; refusing to touch {API}")
@@ -69,9 +72,22 @@ def post(body, sid=None, token=TOKEN, raw_status=False, url=None):
         if raw_status:
             return None, None, e.code
         raise
+    # Match the reply by id. Since progressive disclosure fires
+    # notifications/tools/list_changed, a response frame is no longer
+    # necessarily the first data: line in the stream.
+    msgs = []
     if body_text.startswith(("event:", "data:")) or "\ndata:" in body_text:
-        body_text = next((l[5:].strip() for l in body_text.splitlines() if l.startswith("data:")), "")
-    parsed = json.loads(body_text) if body_text.strip() else None
+        for line in body_text.splitlines():
+            if line.startswith("data:"):
+                try:
+                    msgs.append(json.loads(line[5:].strip()))
+                except json.JSONDecodeError:
+                    pass
+    elif body_text.strip():
+        msgs = [json.loads(body_text)]
+
+    want = body.get("id")
+    parsed = next((m for m in msgs if m.get("id") == want), msgs[0] if msgs else None)
     return (parsed, new_sid, status) if raw_status else (parsed, new_sid)
 
 
@@ -139,11 +155,10 @@ def verify_auth():
 # ------------------------------------------------------------ declared schema
 
 
-def verify_schema(sid):
+def verify_schema(_sid):
     print("\ndeclared contracts")
-    tools, _ = rpc("tools/list", {}, sid, rid=2)
-    tools = sorted(tools["tools"], key=lambda t: t["name"])
-    check(len(tools) > 0, f"tools/list returns {len(tools)} tools")
+    _, tools = list_tools_at(MCP_ALL)
+    check(len(tools) > 0, f"the full surface is {len(tools)} tools")
 
     untagged, bad_annotation, bad_ids, bad_lookup = [], [], [], []
 
@@ -194,6 +209,7 @@ def verify_exercise(sid):
     cursor, and that defect shipped once already.
     """
     print("\nexercise (writes to the dev server, cleans up after)")
+    load_all(sid)
     ns = mod = None
     try:
         ns = call(sid, "compose_namespace_create", {"name": PREFIX, "slug": PREFIX})
@@ -253,13 +269,16 @@ def verify_scope():
     """
     print("\nscope (group filtering and risk ceiling)")
 
-    _, all_tools = list_tools_at(MCP)
+    _, all_tools = list_tools_at(MCP_ALL)
     names = {t["name"] for t in all_tools}
 
-    _, configuring = list_tools_at(MCP + "/configuring")
-    _, usage = list_tools_at(MCP + "/usage")
+    _, configuring = list_tools_at(MCP + "/configuring?tools=all")
+    _, usage = list_tools_at(MCP + "/usage?tools=all")
 
-    cfg, use = {t["name"] for t in configuring}, {t["name"] for t in usage}
+    meta = {"human_tool_search", "human_tool_load"}
+    cfg = {t["name"] for t in configuring} - meta
+    use = {t["name"] for t in usage} - meta
+    names = names - meta
     check(cfg and use, f"group endpoints list subsets (configuring {len(cfg)}, usage {len(use)})")
     check(cfg < names and use < names, "each group is a strict subset of the full list")
     check(not (cfg & use), "configuring and usage do not overlap",
@@ -267,7 +286,7 @@ def verify_scope():
     check(cfg | use == names, "the groups together account for every tool",
           "missing: " + ", ".join(sorted(names - (cfg | use))))
 
-    _, read_only = list_tools_at(MCP + "?maxRisk=read")
+    _, read_only = list_tools_at(MCP + "?maxRisk=read&tools=all")
     risks = {(t.get("_meta") or {}).get("human.dev/risk") for t in read_only}
     check(risks <= {"read"}, f"a read ceiling lists only read tools (saw {sorted(r for r in risks if r)})")
 
@@ -292,6 +311,7 @@ def verify_identity(sid):
     reads the wiring back, and removes all three.
     """
     print("\nidentity (writes to the dev server, cleans up after)")
+    load_all(sid)
 
     email = f"{PREFIX}@local.dev"
     created = {}
@@ -370,13 +390,26 @@ def _refname(tool):
     return head + "".join(p.title() for p in rest)
 
 
+def load_all(sid):
+    """Pull every tool into this session so the exercises can call them."""
+    _, every = list_tools_at(MCP_ALL)
+    names = [t["name"] for t in every if not t["name"].startswith("human_tool_")]
+    for i in range(0, len(names), 40):
+        call(sid, "human_tool_load", {"names": json.dumps(names[i:i + 40])}, rid=80 + i)
+
+
 def verify_cost(tools):
     print("\ntool-list cost")
     payload = json.dumps({"tools": tools})
     # ~4 chars per token is the usual rule of thumb; exact enough to argue about
     # whether group filtering is worth building.
     approx = len(payload) // 4
-    print(f"  {len(tools)} tools, {len(payload):,} chars, ~{approx:,} tokens per request")
+    print(f"  full surface: {len(tools)} tools, ~{approx:,} tokens")
+
+    _, initial = list_tools_at(MCP)
+    start = len(json.dumps(initial)) // 4
+    print(f"  what a session actually starts with: {len(initial)} tools, ~{start:,} tokens"
+          f"  ({approx / max(start, 1):.0f}x smaller)")
     if tools:
         worst = max(tools, key=lambda t: len(json.dumps(t)))
         print(f"  largest: {worst['name']} (~{len(json.dumps(worst)) // 4:,} tokens)")

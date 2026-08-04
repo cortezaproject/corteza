@@ -23,6 +23,16 @@ import (
 type Scope struct {
 	Group   Group
 	MaxRisk Risk
+
+	// AllTools opts out of progressive disclosure and lists everything the
+	// group and risk allow.
+	//
+	// For tooling, not for agents: dev/agent/mcp-verify.py has to audit the
+	// whole surface, and a human debugging "why can the model not see X" needs
+	// to see the unfiltered list. An agent using it would pay the ~27k tokens
+	// disclosure exists to avoid, so it is deliberately not mentioned in any
+	// tool description.
+	AllTools bool
 }
 
 type scopeCtxKey struct{}
@@ -78,6 +88,8 @@ func scopeFromRequest(base string, r *http.Request) Scope {
 			s.Group = Group(seg)
 		}
 	}
+
+	s.AllTools = r.URL.Query().Get("tools") == "all"
 
 	switch Risk(r.URL.Query().Get("maxRisk")) {
 	case RiskRead:
