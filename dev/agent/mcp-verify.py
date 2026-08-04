@@ -144,12 +144,9 @@ def verify_auth():
           "tool discovery lists every tool and description, so this must not be public")
     check(status_with(TOKEN) == 200, "valid token is accepted")
 
-    # A malformed token currently yields 500 rather than 401. That is global to
-    # the API (/system/settings/current behaves the same) and lives in the
-    # shared verifier, so it is reported, not asserted.
-    bogus = status_with("not-a-real-token")
-    if bogus != 401:
-        print(f"  \033[33m·\033[0m malformed token returns {bogus}, not 401 — known, global, not MCP-specific")
+    # A malformed token used to yield 500: jwtauth's parse error carries no
+    # Kind, so it rendered as a server fault rather than a rejected credential.
+    check(status_with("not-a-real-token") == 401, "a malformed token is rejected as 401, not 500")
 
 
 # ------------------------------------------------------------ declared schema

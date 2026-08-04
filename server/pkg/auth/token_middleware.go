@@ -112,7 +112,17 @@ func HttpAuthenticatedOnly() func(http.Handler) http.Handler {
 func verifyToken(ctx context.Context, scope ...string) (err error) {
 	var token jwt.Token
 	if token, _, err = jwtauth.FromContext(ctx); err != nil {
-		return
+		// ErrNoTokenFound is passed through unchanged: HttpTokenValidator
+		// identifies it to let an unauthenticated request continue to RBAC.
+		if errors.Is(err, jwtauth.ErrNoTokenFound) {
+			return err
+		}
+
+		// Anything else is a token that failed to parse or verify. Returned
+		// raw it carries no Kind, so ProperlyServeHTTP rendered it as a 500 —
+		// a malformed credential reported as a server fault. It is a rejected
+		// credential, which is 401.
+		return errUnauthorized()
 	}
 
 	if token == nil {
