@@ -55,6 +55,8 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	cmpAgentic.ChartHandler(reg)
 	autoAgentic.TAQHandler(reg)
 	autoAgentic.WorkflowHandler(reg)
+	autoAgentic.TriggerHandler(reg)
+	autoAgentic.EventTypeHandler(reg)
 	sysAgentic.ReminderHandler(reg)
 	sysAgentic.UserHandler(reg)
 	sysAgentic.UserGroupHandler(reg)
@@ -225,7 +227,24 @@ func TestIDParamsAreDeclaredAsStrings(t *testing.T) {
 // `from` and returns no cursor, so a pageCursor param would advertise paging
 // that cannot work.
 func TestLookupContract(t *testing.T) {
-	noCursor := map[string]bool{"discovery_search": true}
+	// Tools whose backing data cannot be paged, and why. §8.1's rule is that a
+	// lookup must be bounded — not that every lookup must page. Advertising a
+	// cursor that cannot be honoured is the failure the rule exists to prevent,
+	// so a genuine exemption is safer than a broken cursor.
+	//
+	// An entry here is a claim about the data source, not a convenience. Both
+	// were verified against the source, not assumed.
+	noCursor := map[string]bool{
+		// Elasticsearch-style API: offsets with `from`, returns no cursor.
+		"discovery_search": true,
+		// A compile-time constant slice, not a store. Measured at 118 entries
+		// and 37 KB — 14% of the JSONResult ceiling — so it returns whole.
+		"automation_event_type_lookup": true,
+	}
+
+	// Of those, the ones that cannot meaningfully bound either. discovery_search
+	// still caps result size, so it keeps its `limit`.
+	noLimit := map[string]bool{"automation_event_type_lookup": true}
 
 	for _, tool := range buildRegistry(t).Tools() {
 		if !strings.HasSuffix(tool.Name, "_lookup") && tool.Name != "discovery_search" {
@@ -253,8 +272,10 @@ func TestLookupContract(t *testing.T) {
 				tool.Name, req)
 		}
 
-		assert.Containsf(t, tool.InputSchema.Properties, "limit",
-			"lookup %q declares no limit; an unbounded list can drain a module into the caller's context", tool.Name)
+		if !noLimit[tool.Name] {
+			assert.Containsf(t, tool.InputSchema.Properties, "limit",
+				"lookup %q declares no limit; an unbounded list can drain a module into the caller's context", tool.Name)
+		}
 
 		if !noCursor[tool.Name] {
 			assert.Containsf(t, tool.InputSchema.Properties, "pageCursor",
@@ -312,7 +333,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 	src := string(body)
 	for _, ctor := range []string{
 		"RecordHandler(", "NamespaceHandler(", "ModuleHandler(", "PageHandler(",
-		"ChartHandler(", "TAQHandler(", "WorkflowHandler(", "ReminderHandler(",
+		"ChartHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ReminderHandler(",
 		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
 		"AuthClientHandler(", "ApplicationHandler(",
 	} {
@@ -325,7 +346,8 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 	known := map[string]bool{
 		"RecordHandler": true, "NamespaceHandler": true, "ModuleHandler": true,
 		"PageHandler": true, "ChartHandler": true, "TAQHandler": true,
-		"WorkflowHandler": true, "ReminderHandler": true, "DiscoveryHandler": true,
+		"WorkflowHandler": true, "TriggerHandler": true, "EventTypeHandler": true,
+		"ReminderHandler": true, "DiscoveryHandler": true,
 		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
 		"AuthClientHandler": true, "ApplicationHandler": true,
 	}

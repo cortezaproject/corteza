@@ -261,6 +261,21 @@ var resourceScopeExempt = map[string]bool{
 	"automation_workflow_undelete": true,
 	"discovery_search":             true,
 
+	// A trigger carries no compose resource dimension: it is scoped by the
+	// workflow it fires, and canManageTrigger checks CanManageTriggersOnWorkflow
+	// against that workflow on every write. Event types are a compile-time
+	// catalogue, identical for every caller.
+	//
+	// Listed by name rather than by prefix because the prefix list must not gain
+	// an automation_ entry — that space is shared with the runtime-minted
+	// per-TAQ tools.
+	"automation_trigger_lookup":    true,
+	"automation_trigger_create":    true,
+	"automation_trigger_update":    true,
+	"automation_trigger_delete":    true,
+	"automation_trigger_undelete":  true,
+	"automation_event_type_lookup": true,
+
 	// Reminders carry no compose resource dimension — they are scoped to their
 	// assignee inside the service (onLookup refuses a reminder assigned to
 	// someone else, onSearch filters by the same predicate), which is an

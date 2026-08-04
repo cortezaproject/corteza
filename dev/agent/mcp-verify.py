@@ -183,10 +183,14 @@ def verify_schema(_sid):
 
         if name.endswith("_lookup"):
             resource = name[name.index("_") + 1: name.rindex("_")]
-            for ref in (resource, resource + "ID"):
+            camel = resource.split("_")[0] + "".join(p.title() for p in resource.split("_")[1:])
+            for ref in (resource, resource + "ID", camel, camel + "ID"):
                 if ref in required:
                     bad_lookup.append(f"{name} requires its own ref {ref}")
-            if "limit" not in props:
+            # A lookup must be bounded, not necessarily paged. The exemptions
+            # mirror server/tests/mcp/registry_test.go and are claims about the
+            # data source: event types are a compile-time slice, not a store.
+            if "limit" not in props and name not in ("automation_event_type_lookup",):
                 bad_lookup.append(f"{name} declares no limit")
 
     check(not untagged, "every tool carries group and risk in _meta", ", ".join(untagged))

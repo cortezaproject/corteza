@@ -449,6 +449,8 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	cmpAgentic.ChartHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
+	autoAgentic.TriggerHandler(sysService.DefaultMCPRegistry)
+	autoAgentic.EventTypeHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ReminderHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.UserHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.UserGroupHandler(sysService.DefaultMCPRegistry)

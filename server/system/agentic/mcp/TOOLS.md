@@ -9,15 +9,21 @@ cd server && go test ./tests/mcp/ -run TestToolsMatrix -update
 Resource-to-tool naming is fixed by `RESOURCES.md`; the rules these
 tools are held to are in `CONVENTIONS.md`.
 
-## Registered tools (81)
+## Registered tools (87)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
+| `automation_event_type_lookup` | configuring | read | both |
 | `automation_taq_exec` | usage | write | both |
 | `automation_taq_execution_trace` | usage | read | both |
 | `automation_taq_executions` | usage | read | both |
 | `automation_taq_lookup` | configuring | read | both |
 | `automation_taq_undelete` | configuring | write | both |
+| `automation_trigger_create` | configuring | write | both |
+| `automation_trigger_delete` | configuring | destructive | both |
+| `automation_trigger_lookup` | configuring | read | both |
+| `automation_trigger_undelete` | configuring | write | both |
+| `automation_trigger_update` | configuring | write | both |
 | `automation_workflow_exec` | usage | write | both |
 | `automation_workflow_lookup` | configuring | read | both |
 | `automation_workflow_undelete` | configuring | write | both |
@@ -99,8 +105,8 @@ tools are held to are in `CONVENTIONS.md`.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 64 |
+| group | configuring | 70 |
 | group | usage | 17 |
-| risk | destructive | 12 |
-| risk | read | 19 |
-| risk | write | 50 |
+| risk | destructive | 13 |
+| risk | read | 21 |
+| risk | write | 53 |
