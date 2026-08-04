@@ -278,6 +278,19 @@ func (svc *trigger) onUpdate(ctx context.Context, s store.Storer, upd, res *type
 		}
 	}
 
+	// Re-register so the running eventbus matches the stored row.
+	//
+	// Without this an edited trigger keeps firing on its old event, and a
+	// disabled one keeps firing entirely, until the workflow is saved again or
+	// the server restarts. updateTriggerRegistration already existed for this
+	// and had no callers. A workflow issue is the workflow's problem, not this
+	// write's, so it is not surfaced here — same as onCreate.
+	if err := svc.updateTriggerRegistration(ctx, res); err != nil {
+		if _, ok := err.(types.WorkflowIssueSet); !ok {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -292,7 +305,14 @@ func (svc *trigger) onDelete(ctx context.Context, s store.Storer, res *types.Tri
 	}
 
 	res.DeletedAt = now()
-	return store.UpdateAutomationTrigger(ctx, s, res)
+	if err := store.UpdateAutomationTrigger(ctx, s, res); err != nil {
+		return err
+	}
+
+	// A deleted trigger must stop firing immediately. unregisterTriggers
+	// already existed for this and had no callers.
+	svc.unregisterTriggers(res)
+	return nil
 }
 
 // onUndelete receives a pre-loaded res and tx store from the generated UndeleteByID scaffold.
@@ -306,7 +326,18 @@ func (svc *trigger) onUndelete(ctx context.Context, s store.Storer, res *types.T
 	}
 
 	res.DeletedAt = nil
-	return store.UpdateAutomationTrigger(ctx, s, res)
+	if err := store.UpdateAutomationTrigger(ctx, s, res); err != nil {
+		return err
+	}
+
+	// A restored trigger must start firing again without waiting for the
+	// workflow to be saved.
+	if err := svc.updateTriggerRegistration(ctx, res); err != nil {
+		if _, ok := err.(types.WorkflowIssueSet); !ok {
+			return err
+		}
+	}
+	return nil
 }
 
 func (svc trigger) canManageTrigger(ctx context.Context, res *types.Trigger, permErr error) error {
