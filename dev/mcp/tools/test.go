@@ -76,8 +76,8 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 			}
 
 			var report testReport
-			if isGoTarget(target) {
-				report, err = runGoTests(ctx, root, target, toolkit.Str(args, "run"))
+			if module, ok := goModuleFor(target); ok {
+				report, err = runGoTests(ctx, root, module, target, toolkit.Str(args, "run"))
 			} else {
 				report, err = runVitest(ctx, root, target, toolkit.Str(args, "run"))
 			}
@@ -90,12 +90,27 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 	)
 }
 
-// isGoTarget decides which runner to use.
+// goModules maps a target prefix to the module directory its tests run in.
 //
-// The server tree is the only Go in this repo, so the path is enough and the
-// caller never has to say which suite it meant.
-func isGoTarget(target string) bool {
-	return strings.HasPrefix(strings.TrimPrefix(target, "./"), "server")
+// Two Go modules, and the developer MCP is one of them — a tool that could not
+// run its own package's tests would be an odd thing to ship.
+var goModules = []struct{ prefix, dir string }{
+	{"dev/mcp", "dev/mcp"},
+	{"server", "server"},
+}
+
+// goModuleFor decides which runner to use and where to run it. An empty dir
+// means this is not Go and the JS runner takes it.
+func goModuleFor(target string) (dir string, ok bool) {
+	clean := strings.TrimPrefix(target, "./")
+
+	for _, m := range goModules {
+		if clean == m.prefix || strings.HasPrefix(clean, m.prefix+"/") {
+			return m.dir, true
+		}
+	}
+
+	return "", false
 }
 
 // runGoTests runs go test and keeps only the failures.
@@ -104,11 +119,13 @@ func isGoTarget(target string) bool {
 // output means guessing at line prefixes, while the event stream says exactly
 // which test failed, in which package, with which output attached. A non-zero
 // exit is expected on failure and is not itself an error.
-func runGoTests(ctx context.Context, root, target, run string) (testReport, error) {
+func runGoTests(ctx context.Context, root, module, target, run string) (testReport, error) {
 	out := testReport{Suite: "go", Target: target}
 
-	pkg := "./" + strings.TrimPrefix(strings.TrimPrefix(target, "./"), "server/")
-	if pkg == "./" || pkg == "./server" {
+	clean := strings.TrimPrefix(target, "./")
+
+	pkg := "./" + strings.TrimPrefix(strings.TrimPrefix(clean, module), "/")
+	if pkg == "./" {
 		pkg = "./..."
 	}
 
@@ -118,7 +135,7 @@ func runGoTests(ctx context.Context, root, target, run string) (testReport, erro
 	}
 
 	cmd := exec.CommandContext(ctx, "go", argv...)
-	cmd.Dir = root + "/server"
+	cmd.Dir = root + "/" + module
 
 	var stderr strings.Builder
 	cmd.Stderr = &stderr
