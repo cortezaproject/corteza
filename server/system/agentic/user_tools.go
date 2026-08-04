@@ -1,7 +1,7 @@
 package agentic
 
 import (
-	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
+	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 

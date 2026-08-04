@@ -1,4 +1,4 @@
-package mcp
+package mcpkit
 
 import (
 	"context"

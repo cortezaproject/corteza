@@ -3,6 +3,7 @@ kind: folder
 covers: recursive
 owner: be
 depends-on:
+  - server/pkg/mcpkit
   - server/system/agentic/runtime
   - server/system/agentic/policy
   - server/system/agentic/toolkit
@@ -24,14 +25,29 @@ The single registry of tools Human exposes to LLM agents, and the HTTP
 
 Everything an agent can do to Human passes through here. Tool *implementations*
 live beside the services they call — `compose/agentic`, `automation/agentic`,
-`system/agentic` — and register into this package at boot. This package owns the
-registry, the tagging vocabulary, and what a given caller is allowed to see.
+`system/agentic` — and register at boot.
+
+The machinery those registrations use — the registry, the tagging vocabulary,
+scope, progressive disclosure and the HTTP server — lives in `server/pkg/mcpkit`,
+shared with the developer MCP under `dev/`. **`mcpkit` may not import anything
+from Human's domain**, and `pkg/mcpkit/boundary_test.go` enforces that. What
+stays in this package is what does know about Human: the tool families, the
+policy that classifies them, and the registry the agentic runtime talks to.
 
 `CONVENTIONS.md` alongside this file is the authoring spec every tool is written
 against; `RESOURCES.md` fixes resource naming; `TOOLS.md` is generated coverage.
 This document is the contract, those are the procedure.
 
 ## Key types & services
+
+Here:
+
+- `Registry` (`registry.go`) — `mcpkit.Registry` plus `GetTools`, which projects
+  into the agentic runtime's own `Tool` type. That projection is the one thing
+  that cannot live in `mcpkit`, because `mcpkit` cannot name a Human type;
+  `mcpkit.Registry.Select` is the neutral seam it builds on.
+
+In `server/pkg/mcpkit`:
 
 - `Registry` — name → tool, handler, tags. Populated once at boot from
   `app/boot_levels.go`. Duplicate registration panics: two handlers claiming one
@@ -41,8 +57,8 @@ This document is the contract, those are the procedure.
   annotation hints; authors never set them by hand.
 - `Scope` (`scope.go`) — per-request narrowing resolved from the URL.
 - `disclosure` (`disclosure.go`) — per-session set of pulled-in tools.
-- `MCPServer` — wraps mcp-go, applies the filter, the risk ceiling and the two
-  meta-tools.
+- `MCPServer` (`server.go`) — wraps mcp-go, applies the filter, the risk ceiling
+  and the two meta-tools.
 
 ## Two consumers, one set of handlers
 
@@ -85,9 +101,13 @@ reach the store.
   risk; the structural test in `server/tests/mcp` fails without them.
 - Adding a handler: wire it in `app/boot_levels.go` **and** in `buildRegistry`
   in the structural test, or its tools are invisible to every assertion.
-- Changing what a session sees: `scope.go` for group and risk, `disclosure.go`
-  for progressive disclosure. The default listing is five tools; a session
-  searches for the rest.
+- Changing what a session sees: `pkg/mcpkit/scope.go` for group and risk,
+  `pkg/mcpkit/disclosure.go` for progressive disclosure. The default listing is
+  five tools; a session searches for the rest.
+- Needing something from Human inside `mcpkit`: invert it. Expose a neutral seam
+  there and project onto it here, as `GetTools` does over `Select`. Reaching for
+  a domain import fails `TestNoDomainImports`, and would drag the server's whole
+  object graph into the developer MCP's module.
 - Changing anything on the wire: run `dev/agent/mcp-verify.py`. Unit tests
   assert what the code declares, and that has already been insufficient twice —
   the authentication fix passed its tests and did nothing, and the paging cursor

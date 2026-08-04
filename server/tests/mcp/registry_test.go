@@ -24,7 +24,7 @@ import (
 	cmpAgentic "github.com/crusttech/human/server/compose/agentic"
 	a "github.com/crusttech/human/server/pkg/auth"
 	sysAgentic "github.com/crusttech/human/server/system/agentic"
-	hmcp "github.com/crusttech/human/server/system/agentic/mcp"
+	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
 	"github.com/crusttech/human/server/system/agentic/policy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

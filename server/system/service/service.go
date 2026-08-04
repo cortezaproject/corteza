@@ -25,8 +25,6 @@ import (
 	"github.com/crusttech/human/server/pkg/valuestore"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/api/cred_registry"
-	"github.com/crusttech/human/server/system/service/appstore"
-	"github.com/crusttech/human/server/system/service/dml"
 	agenticGuard "github.com/crusttech/human/server/system/agentic/guard"
 	agenticKnowledge "github.com/crusttech/human/server/system/agentic/knowledge"
 	agenticMcp "github.com/crusttech/human/server/system/agentic/mcp"
@@ -35,6 +33,8 @@ import (
 	agenticSkills "github.com/crusttech/human/server/system/agentic/skills"
 	"github.com/crusttech/human/server/system/automation"
 	"github.com/crusttech/human/server/system/llm"
+	"github.com/crusttech/human/server/system/service/appstore"
+	"github.com/crusttech/human/server/system/service/dml"
 	"github.com/crusttech/human/server/system/types"
 	"go.uber.org/zap"
 )

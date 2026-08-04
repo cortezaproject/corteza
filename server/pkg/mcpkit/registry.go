@@ -1,4 +1,4 @@
-package mcp
+package mcpkit
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sort"
 
-	rt "github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -119,10 +118,9 @@ func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.Tool
 }
 
 // Tools returns every registered tool definition, sorted by name.
-//
-// GetTools deliberately projects down to rt.Tool for the agentic runtime, which
-// drops Meta and annotations. The structural test and the coverage matrix need
-// exactly those, so they get the definitions themselves.
+// Tools returns the registered tool definitions whole — Meta and annotations
+// included. The structural test and the coverage matrix need exactly those,
+// which is why this exists next to the projections that drop them.
 func (r *Registry) Tools() []mcp.Tool {
 	out := make([]mcp.Tool, 0, len(r.tools))
 	for _, t := range r.tools {
@@ -147,31 +145,51 @@ func (r *Registry) RegisterResource(resource mcp.Resource, handler server.Resour
 	r.resources[resource.URI] = registeredResource{Resource: resource, Handler: handler}
 }
 
-func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.Tool, error) {
+// ToolDef is a registered tool reduced to what a consumer outside this package
+// needs to describe it: no Meta, no annotations, no handler.
+type ToolDef struct {
+	Name        string
+	Title       string
+	Description string
+	InputSchema map[string]any
+}
+
+// Select returns the definitions for the named tools, or every non-hidden
+// available tool when names is nil.
+//
+// It exists because the agentic runtime wants these projected into its own Tool
+// type, which this package cannot name — so it hands out the parts and lets the
+// caller build its own shape. Unknown names are an error rather than a silent
+// omission: an agent configured with a tool that does not exist should be told,
+// not quietly given a shorter list.
+func (r *Registry) Select(names []string) ([]ToolDef, error) {
 	isAvailable := func(t registeredTool) bool {
 		return t.Available == nil || t.Available()
 	}
 
-	// nil means no filter — return all non-hidden registered tools
-	// @note should this be len(allowedTools) == 0 instead? Depends on the caller logic
-	if allowedTools == nil {
-		out := make([]rt.Tool, 0, len(r.tools))
+	def := func(t registeredTool) ToolDef {
+		return ToolDef{
+			Name:        t.Tool.Name,
+			Title:       t.Title,
+			Description: t.Tool.Description,
+			InputSchema: t.InputSchema,
+		}
+	}
+
+	// nil means no filter — every non-hidden registered tool.
+	if names == nil {
+		out := make([]ToolDef, 0, len(r.tools))
 		for _, t := range r.tools {
 			if t.Hidden || !isAvailable(t) {
 				continue
 			}
-			out = append(out, rt.Tool{
-				Name:        t.Tool.Name,
-				Title:       t.Title,
-				Description: t.Tool.Description,
-				InputSchema: t.InputSchema,
-			})
+			out = append(out, def(t))
 		}
 		return out, nil
 	}
 
-	out := make([]rt.Tool, 0, len(allowedTools))
-	for _, name := range allowedTools {
+	out := make([]ToolDef, 0, len(names))
+	for _, name := range names {
 		t, ok := r.tools[ResolveToolAlias(name)]
 		if !ok {
 			return nil, fmt.Errorf("tool not found: %s", name)
@@ -179,12 +197,7 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 		if !isAvailable(t) {
 			continue
 		}
-		out = append(out, rt.Tool{
-			Name:        t.Tool.Name,
-			Title:       t.Title,
-			Description: t.Tool.Description,
-			InputSchema: t.InputSchema,
-		})
+		out = append(out, def(t))
 	}
 	return out, nil
 }

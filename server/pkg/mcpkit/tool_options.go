@@ -1,4 +1,4 @@
-package mcp
+package mcpkit
 
 import (
 	"github.com/mark3labs/mcp-go/mcp"

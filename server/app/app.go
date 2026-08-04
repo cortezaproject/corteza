@@ -9,7 +9,7 @@ import (
 	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/llm"
-	mcpkg "github.com/crusttech/human/server/system/agentic/mcp"
+	mcpkg "github.com/crusttech/human/server/pkg/mcpkit"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-oauth2/oauth2/v4"

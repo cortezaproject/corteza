@@ -34,6 +34,7 @@ import (
 	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/pkg/mail"
+	mcpkg "github.com/crusttech/human/server/pkg/mcpkit"
 	"github.com/crusttech/human/server/pkg/messagebus"
 	"github.com/crusttech/human/server/pkg/monitor"
 	"github.com/crusttech/human/server/pkg/options"
@@ -47,7 +48,6 @@ import (
 	"github.com/crusttech/human/server/pkg/websocket"
 	"github.com/crusttech/human/server/store"
 	sysAgentic "github.com/crusttech/human/server/system/agentic"
-	mcpkg "github.com/crusttech/human/server/system/agentic/mcp"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	"github.com/crusttech/human/server/system/service"
 	sysService "github.com/crusttech/human/server/system/service"
@@ -464,7 +464,7 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 		}
 		sysAgentic.DiscoveryHandler(sysService.DefaultMCPRegistry, app.Opt.Discovery.BaseUrl, discoverySigner)
 	}
-	app.McpServer = mcpkg.NewMCPServer(sysService.DefaultMCPRegistry, app.Opt.Agentic.McpServerName, app.Opt.Agentic.McpServerVersion)
+	app.McpServer = mcpkg.NewMCPServer(sysService.DefaultMCPRegistry.Registry, app.Opt.Agentic.McpServerName, app.Opt.Agentic.McpServerVersion)
 	app.LlmService = service.DefaultLlmService
 
 	if app.Opt.Messagebus.Enabled {
