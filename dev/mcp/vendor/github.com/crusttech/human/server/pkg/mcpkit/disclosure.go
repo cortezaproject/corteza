@@ -119,8 +119,9 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 	terms := strings.Fields(strings.ToLower(query))
 
 	type scored struct {
-		tool  mcp.Tool
-		score int
+		tool    mcp.Tool
+		score   int
+		matched int
 	}
 
 	var hits []scored
@@ -138,7 +139,7 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 		name := strings.ToLower(t.Name)
 		desc := strings.ToLower(t.Description)
 
-		score, matchedAll := 0, true
+		score, matched := 0, 0
 		for _, term := range terms {
 			switch {
 			case strings.Contains(name, term):
@@ -146,20 +147,33 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 				// searching "role" wants the role tools, not every tool whose
 				// description happens to mention roles.
 				score += 10
+				matched++
 			case strings.Contains(desc, term):
 				score++
-			default:
-				matchedAll = false
+				matched++
 			}
 		}
 
-		if !matchedAll || len(terms) == 0 {
+		// One term is enough to be a candidate; matching more ranks higher.
+		//
+		// Requiring every term used to be the rule, and it made a natural
+		// question the worst possible input: "workflow create tool" returned
+		// nothing, because no single tool contains all three words, while
+		// "workflow" returned the family. A model reading "no tool matches"
+		// concludes the capability does not exist, so the stricter rule did not
+		// merely narrow results — it hid the surface.
+		if matched == 0 {
 			continue
 		}
-		hits = append(hits, scored{t, score})
+		hits = append(hits, scored{t, score, matched})
 	}
 
 	sort.SliceStable(hits, func(i, j int) bool {
+		// Breadth first: a tool matching three of the caller's words belongs
+		// above one that matched a single word in its name, however strongly.
+		if hits[i].matched != hits[j].matched {
+			return hits[i].matched > hits[j].matched
+		}
 		if hits[i].score != hits[j].score {
 			return hits[i].score > hits[j].score
 		}
