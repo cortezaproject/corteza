@@ -9,26 +9,30 @@ cd server && go test ./tests/mcp/ -run TestToolsMatrix -update
 Resource-to-tool naming is fixed by `RESOURCES.md`; the rules these
 tools are held to are in `CONVENTIONS.md`.
 
-## Registered tools (89)
+## Registered tools (93)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
 | `automation_event_type_lookup` | configuring | read | both |
+| `automation_taq_create` | configuring | write | both |
 | `automation_taq_delete` | configuring | destructive | both |
 | `automation_taq_exec` | usage | write | both |
 | `automation_taq_execution_trace` | usage | read | both |
 | `automation_taq_executions` | usage | read | both |
 | `automation_taq_lookup` | configuring | read | both |
 | `automation_taq_undelete` | configuring | write | both |
+| `automation_taq_update` | configuring | write | both |
 | `automation_trigger_create` | configuring | write | both |
 | `automation_trigger_delete` | configuring | destructive | both |
 | `automation_trigger_lookup` | configuring | read | both |
 | `automation_trigger_undelete` | configuring | write | both |
 | `automation_trigger_update` | configuring | write | both |
+| `automation_workflow_create` | configuring | write | both |
 | `automation_workflow_delete` | configuring | destructive | both |
 | `automation_workflow_exec` | usage | write | both |
 | `automation_workflow_lookup` | configuring | read | both |
 | `automation_workflow_undelete` | configuring | write | both |
+| `automation_workflow_update` | configuring | write | both |
 | `compose_chart_create` | configuring | write | both |
 | `compose_chart_delete` | configuring | destructive | both |
 | `compose_chart_lookup` | configuring | read | both |
@@ -107,8 +111,8 @@ tools are held to are in `CONVENTIONS.md`.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 72 |
+| group | configuring | 76 |
 | group | usage | 17 |
 | risk | destructive | 15 |
 | risk | read | 21 |
-| risk | write | 53 |
+| risk | write | 57 |

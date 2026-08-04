@@ -276,12 +276,31 @@ var resourceScopeExempt = map[string]bool{
 	"automation_trigger_undelete":  true,
 	"automation_event_type_lookup": true,
 
+	// TAQ authoring. Classified with lookup rather than with exec for the same
+	// reason undelete is: it changes what an automation is, not which one runs.
+	// A TAQ carries no compose namespace or module dimension for checkAllow to
+	// narrow, and the service gates both writes itself —
+	// CanCreateNgAutomation on create, CanUpdateNgAutomation inside
+	// handleUpdate.
+	"automation_taq_create": true,
+	"automation_taq_update": true,
+
 	// TAQ and workflow delete. Their exec siblings are mapped in buildResource
 	// because running one acts on a specific automation; deleting is a
 	// definition-level change gated by CanDeleteNgAutomation /
 	// CanDeleteWorkflow in the service.
 	"automation_taq_delete":      true,
 	"automation_workflow_delete": true,
+
+	// Workflow create and update, for the same reason: authoring a definition is
+	// not running one. CanCreateWorkflow is a component-level check with no
+	// workflow to narrow on at all, and CanUpdateWorkflow is checked in the
+	// service against the loaded workflow. Mapping either in buildResource would
+	// route it through checkAllow, which denies whenever the agent has no allow
+	// entries — a restriction exec carries deliberately and authoring has no
+	// reason to inherit.
+	"automation_workflow_create": true,
+	"automation_workflow_update": true,
 
 	// Reminders carry no compose resource dimension — they are scoped to their
 	// assignee inside the service (onLookup refuses a reminder assigned to
