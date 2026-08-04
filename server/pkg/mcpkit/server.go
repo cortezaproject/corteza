@@ -280,3 +280,17 @@ func (m *MCPServer) discloseResult(ctx context.Context, hits []mcp.Tool, emptyMs
 func (m *MCPServer) MountRoutes(r chi.Router) {
 	r.Handle("/*", m.httpServer)
 }
+
+// ServeStdio runs the same server over stdio, for a client that launches it as
+// a child process — which is how the developer MCP under dev/ is started.
+//
+// Everything a session sees is unchanged: the tool filter, the risk-ceiling
+// middleware, the meta-tools and progressive disclosure all hang off the mcp-go
+// server, not off the transport. The one thing that does not carry over is
+// Scope, which is parsed from the request URL and has nowhere to come from on a
+// pipe. The zero Scope permits everything, which is the right default here: a
+// server the developer launched themselves, in their own checkout, has no
+// caller to narrow.
+func (m *MCPServer) ServeStdio() error {
+	return server.ServeStdio(m.server)
+}
