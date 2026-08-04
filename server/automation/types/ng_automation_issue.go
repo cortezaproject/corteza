@@ -185,6 +185,27 @@ func NewDetailEmptyField(resource string, index int, field string) *NgAutomation
 // NewIssue builds an issue whose Message is derived from its code and details by
 // issueMessage. Callers supply the machine-readable parts (code, severity, typed
 // details); the human line is generated here, never at the call site.
+
+// NewStepConversionIssue reports a step the converter could not turn into an
+// executable handler — an unsupported kind, an unknown function ref, a missing
+// or misnamed argument, a bad type, an unparseable expression.
+//
+// It sets Message directly rather than deriving it from the code, which is the
+// one place that is correct: the diagnosis comes from the converter and is more
+// specific than any wording this file could reconstruct. Those messages used to
+// go to stdout via spew.Dump and the step was dropped silently, so a broken
+// automation stored clean, reported no issues, and executed having run nothing.
+func NewStepConversionIssue(stepID uint64, index int, err error) *NgAutomationIssue {
+	i := NewIssue(IssueCodeStepInvalid, NgAutomationSeverityError,
+		NewDetailResourceRef("step", stepID, index))
+
+	if err != nil {
+		i.Message = fmt.Sprintf("step %d could not be prepared for execution: %s", stepID, err)
+	}
+
+	return i
+}
+
 func NewIssue(code, severity string, details ...*NgAutomationIssueDetail) *NgAutomationIssue {
 	i := &NgAutomationIssue{Code: code, Severity: severity, Details: details}
 	i.Message = issueMessage(code, details)
@@ -234,6 +255,15 @@ func issueMessage(code string, details []*NgAutomationIssueDetail) string {
 			return fmt.Sprintf("step ID %d collides with trigger ID", d.ResourceRef.ID)
 		}
 		return "step ID collides with trigger ID"
+
+	case IssueCodeStepInvalid:
+		// Fallback only. NewStepConversionIssue overrides this with the
+		// converter's own message, which is far more specific than anything a
+		// code-and-detail switch can render.
+		if d != nil && d.ResourceRef != nil {
+			return fmt.Sprintf("step %d could not be prepared for execution", d.ResourceRef.ID)
+		}
+		return "step could not be prepared for execution"
 
 	case IssueCodeFunctionUnknown:
 		if ref := missingRef(d); ref != "" {

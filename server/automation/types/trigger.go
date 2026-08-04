@@ -43,4 +43,3 @@ func (set TriggerSet) FilterByWorkflowID(workflowID uint64) (vv TriggerSet) {
 
 	return
 }
-

@@ -49,6 +49,7 @@ const (
 	IssueCodeStepDuplicateID     = "step.duplicateID"
 	IssueCodeStepEmptyID         = "step.emptyID"
 	IssueCodeStepIDCollision     = "step.idCollision"
+	IssueCodeStepInvalid         = "step.invalid"
 	IssueCodeTriggerDuplicateID  = "trigger.duplicateID"
 	IssueCodeTriggerEmptyID      = "trigger.emptyID"
 	IssueCodeTriggerMultiPaths   = "trigger.multiplePaths"
