@@ -52,36 +52,40 @@ func NotificationHandler(reg notificationHandlerRegistry, ntfSvc notificationSer
 
 // send creates and sends a notification
 func (h notificationHandler) send(ctx context.Context, args *notificationSendArgs) error {
-	// Get the recipient user ID from the input parameter
-	var recipientID uint64
+	// Resolve the recipient, whichever way it was given.
+	//
+	// An ID used to be trusted without a lookup, which made the same mistake
+	// loud or silent depending on which type the author happened to pick: a bad
+	// handle failed with "user not found", while a well-formed ID naming nobody
+	// bound cleanly, executed as "completed", and wrote a notification addressed
+	// to a user that does not exist — a row no one can list or delete, because
+	// the notification endpoints scope to the authenticated caller. Resolve all
+	// three the same way.
+	var (
+		user *systemTypes.User
+		err  error
+	)
 
-	// Check if we have a direct user object
-	if args.recipientID > 0 {
-		// Direct ID passed
-		recipientID = args.recipientID
-	} else {
-		// Need to look up the user
-		var user *systemTypes.User
-		var err error
-
-		if args.recipientHandle != "" {
-			user, err = h.uSvc.FindByHandle(ctx, args.recipientHandle)
-		} else if args.recipientEmail != "" {
-			user, err = h.uSvc.FindByEmail(ctx, args.recipientEmail)
-		} else {
-			return fmt.Errorf("invalid recipient: unable to determine user ID")
-		}
-
-		if err != nil {
-			return err
-		}
-
-		if user == nil {
-			return fmt.Errorf("recipient not found")
-		}
-
-		recipientID = user.ID
+	switch {
+	case args.recipientID > 0:
+		user, err = h.uSvc.FindByID(ctx, args.recipientID)
+	case args.recipientHandle != "":
+		user, err = h.uSvc.FindByHandle(ctx, args.recipientHandle)
+	case args.recipientEmail != "":
+		user, err = h.uSvc.FindByEmail(ctx, args.recipientEmail)
+	default:
+		return fmt.Errorf("invalid recipient: unable to determine user ID")
 	}
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return fmt.Errorf("recipient not found")
+	}
+
+	recipientID := user.ID
 
 	// Create notification config directly with the expected fields for a simple notification
 	config := systemTypes.NotificationConfig{
@@ -99,6 +103,6 @@ func (h notificationHandler) send(ctx context.Context, args *notificationSendArg
 	}
 
 	// Create the notification
-	_, err := h.svc.Create(ctx, ntf)
+	_, err = h.svc.Create(ctx, ntf)
 	return err
 }
