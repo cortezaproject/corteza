@@ -46,9 +46,27 @@ def post(body, sid=None):
     with urllib.request.urlopen(req, timeout=60) as r:
         raw = r.read().decode()
         new_sid = r.headers.get("Mcp-Session-Id")
-    # unwrap SSE framing if present
+    # Unwrap SSE framing if present, and pick the frame that answers *this*
+    # request: the server interleaves notifications/tools/list_changed with
+    # responses, so taking the first data: line returns a notification with no
+    # "result" and the caller sees nothing.
     if raw.startswith(("event:", "data:")) or "\ndata:" in raw:
-        raw = next((l[5:].strip() for l in raw.splitlines() if l.startswith("data:")), "")
+        frames = []
+        for line in raw.splitlines():
+            if not line.startswith("data:"):
+                continue
+            payload = line[5:].strip()
+            if not payload:
+                continue
+            try:
+                frames.append(json.loads(payload))
+            except json.JSONDecodeError:
+                continue
+        wanted = body.get("id")
+        for frame in frames:
+            if wanted is None or frame.get("id") == wanted:
+                return frame, new_sid
+        return (frames[0] if frames else None), new_sid
     return (json.loads(raw) if raw.strip() else None), new_sid
 
 
