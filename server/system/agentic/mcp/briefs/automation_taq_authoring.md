@@ -16,7 +16,7 @@ endpoints, Go types, path-condition representation (`condition` AST object vs
 `kind:"gateway"`+`ref:"excl"`), and trigger model (embedded vs separate
 resource).
 
-## 1. Four defects were fixed before this brief was written
+## 1. Five defects were fixed before this brief was written
 
 The empirical probe took **six calls with two hard failures and one silent
 failure** to get a TAQ running. Most of that was the server, not the graph.
@@ -28,11 +28,21 @@ Fixed on this branch, so the ground has moved:
 | omitting `meta` nil-panicked, HTTP 500 | `Error: missing name` |
 | create overwrote supplied trigger IDs unconditionally | only mints missing ones |
 | a disabled TAQ executed anyway | refuses, `NgAutomationErrDisabled` |
+| `target`-named arguments validated clean and bound to nothing | bind by the same name validation resolved |
 
 The first is the important one. **Six classes of broken TAQ used to store clean,
 report `issues: null`, and exec as `"completed"` having run nothing**:
 unsupported kind, unknown function ref, missing required argument, misnamed
 argument, wrong argument type, unparseable expression. All six now surface.
+
+The fifth is the same failure wearing the other three's clothes: `Expr.ArgKey`
+resolves an argument's name as ArgumentName-falling-back-to-Target, and
+`VerifyArguments` had always honoured that fallback, but `functionStep.ExecN`
+grouped by `ArgumentName` alone. A `target`-named argument therefore passed
+validation — whose error message even named the parameter it had matched — and
+then bound to the empty key, so the step ran with `args: {}` and reported
+`completed`. Fixed in `stepConvFunction` by resolving names onto copies before
+the handler is built; workflow is untouched.
 
 The third means a **one-call create is possible for the first time** — the
 webapp still does create-empty-then-update because it predates the fix.
@@ -68,6 +78,10 @@ leaked in silently. The tool should validate against
 
 A `function` or `iterator` step needs `ref` naming a construct-library function,
 and `arguments` matching its parameters by `argumentName`.
+
+Name an argument with `argumentName`. `target` now works as a synonym (see §1),
+but it is the wrong word — `target` names where a *result* is written — and a
+tool's schema should ask for `argumentName` and nothing else.
 
 `type` is load-bearing: `ParamSet.VerifyArguments` compares `p.HasType(e.Type)`
 literally, so omitting it fails. That failure is now visible; before this branch

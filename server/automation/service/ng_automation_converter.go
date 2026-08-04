@@ -161,7 +161,8 @@ func buildExecSteps(
 		for _, e := range step.Arguments {
 			aux.Arguments = append(aux.Arguments, execTypes.StepArg{
 				Expr: &execTypes.Expr{
-					ArgumentName: e.ArgumentName,
+					// ArgKey, not ArgumentName — same rule validation uses.
+					ArgumentName: e.ArgKey(),
 					Scope:        e.Scope,
 					Target:       e.Target,
 					Source:       e.Source,
@@ -725,6 +726,21 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 		return nil, errors.Internal("failed to verify result expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
 	}
 
+	// functionStep.ExecN groups evaluated arguments by ArgumentName, and the
+	// construct library's parameters are matched against those keys. Validation
+	// resolves an argument's name with a fallback to Target (Expr.ArgKey), so
+	// anything that binds has to resolve it the same way — otherwise a
+	// target-only argument passes VerifyArguments, which even names the
+	// parameter it matched, and then binds to the empty key at run time: the
+	// step executes with an empty args map and reports "completed" having done
+	// nothing.
+	//
+	// Copies, not in-place: step is the object that gets persisted, and
+	// rewriting the caller's payload is a separate concern from binding it.
+	// Safe to copy here because parseExpressions has already populated the
+	// unexported eval/typ fields, which the shallow copy carries over.
+	arguments := resolveArgNames(step.Arguments)
+
 	handler := def.Handler
 	kind := types.FunctionKindFunction
 	if isIterator {
@@ -735,7 +751,7 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 		return &ngIteratorStep{
 			def:       &def,
 			iterFn:    iterFn,
-			arguments: step.Arguments,
+			arguments: arguments,
 			results:   step.Results,
 		}, nil
 	}
@@ -755,7 +771,20 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 
 		Labels:   def.Labels,
 		Disabled: def.Disabled,
-	}, step.Arguments, step.Results)
+	}, arguments, step.Results)
+}
+
+// resolveArgNames returns a copy of the set with each expression's ArgumentName
+// filled in from Expr.ArgKey, so binding keys off the same name validation did.
+func resolveArgNames(in automationTypes.ExprSet) automationTypes.ExprSet {
+	out := make(automationTypes.ExprSet, len(in))
+	for i, e := range in {
+		aux := *e
+		aux.ArgumentName = e.ArgKey()
+		out[i] = &aux
+	}
+
+	return out
 }
 
 func stepConvTermination(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {

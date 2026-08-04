@@ -103,12 +103,21 @@ func (set ExprSet) GetByArgumentName(arg string) *Expr {
 
 // exprArgKey mirrors paramArgKey: NG automation keys arguments by ArgumentName,
 // legacy editor payloads only set Target. Fall back to Target so both match.
-func exprArgKey(e *Expr) string {
+// ArgKey is the name an expression binds to as a step argument.
+//
+// ArgumentName is the real field; Target is accepted as a fallback because
+// workflow expressions have always used it. Validation has honoured the
+// fallback for as long as it has existed, so anything that consumes arguments
+// must honour it too — the TAQ converter did not, which meant a target-only
+// argument validated clean and then silently bound to nothing at run time.
+func (e *Expr) ArgKey() string {
 	if e.ArgumentName != "" {
 		return e.ArgumentName
 	}
 	return e.Target
 }
+
+func exprArgKey(e *Expr) string { return e.ArgKey() }
 
 func (set ExprSet) getByArgKey(key string) *Expr {
 	for _, e := range set {
