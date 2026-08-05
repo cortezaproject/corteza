@@ -1,6 +1,9 @@
 <template>
   <PageBlock :block="block" @refreshBlock="pullRecords">
-    <div v-if="!isConfigured" class="flex items-center justify-center h-full p-3 text-muted-color italic">
+    <div
+      v-if="!isConfigured"
+      class="flex items-center justify-center h-full p-3 text-muted-color italic"
+    >
       {{ $t('block.recordOrganizer.notConfigured') }}
     </div>
 
@@ -11,12 +14,15 @@
     <div v-else class="h-full flex flex-col">
       <!-- Add record button -->
       <div v-if="canAddRecord" class="p-3 border-b border-surface">
-        <Button
-          :label="$t('block.recordOrganizer.addNewRecord')"
-          severity="primary"
-          size="small"
-          @click="createNewRecord"
-        />
+        <span v-tooltip.bottom="addRecordDisabled ? $t('block.noRecordPage') : ''">
+          <Button
+            :label="$t('block.recordOrganizer.addNewRecord')"
+            severity="primary"
+            size="small"
+            :disabled="addRecordDisabled"
+            @click="createNewRecord"
+          />
+        </span>
       </div>
 
       <!-- Records -->
@@ -64,7 +70,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { components, useRecordStore, useModuleStore } from '@planetcrust/human-vue'
+import { components, useRecordStore, useModuleStore, usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter } from '../../../lib/record-filter'
 
@@ -83,6 +89,8 @@ const router = useRouter()
 const route = useRoute()
 const recordStore = useRecordStore()
 const moduleStore = useModuleStore()
+const pageStore = usePageStore()
+const $recordRoutes = inject('$recordRoutes', null)
 
 const loading = ref(false)
 const records = ref([])
@@ -94,6 +102,25 @@ const isConfigured = computed(() => !!options.value.moduleID)
 const canAddRecord = computed(() => !!options.value.moduleID)
 
 const organizerModule = computed(() => moduleStore.getByID(options.value.moduleID))
+
+// The record page for THIS block's module — not the page the block sits on.
+//
+// Using props.page.pageID sent every "add" to whatever page was hosting the
+// organizer, which is only ever right by coincidence. RecordListBlock resolves
+// it this way and that is the behaviour being matched.
+const recordPageID = computed(() => {
+  // Custom routes carry the module themselves, so no public page is needed.
+  if ($recordRoutes) return 'admin'
+
+  const moduleID = organizerModule.value?.moduleID
+  if (!moduleID) return null
+
+  return (pageStore.set || []).find(p => p.moduleID === moduleID)?.pageID || null
+})
+// Shown but disabled when there is nowhere to go, with the reason in a
+// tooltip: a button that silently does nothing is the complaint that opened
+// this issue, and hiding it leaves the configurator no clue either.
+const addRecordDisabled = computed(() => !recordPageID.value)
 
 function fieldDef(fieldName) {
   if (!fieldName) return null
@@ -128,12 +155,15 @@ async function pullRecords() {
     if (prefilter) {
       const record = props.record
       const user = $Auth?.user || {}
-      filterParts.push(`(${evaluatePrefilter(prefilter, {
-        record, user,
-        recordID: record?.recordID || '0',
-        ownerID: record?.ownedBy || '0',
-        userID: user?.userID || '0',
-      })})`)
+      filterParts.push(
+        `(${evaluatePrefilter(prefilter, {
+          record,
+          user,
+          recordID: record?.recordID || '0',
+          ownerID: record?.ownedBy || '0',
+          userID: user?.userID || '0',
+        })})`,
+      )
     }
 
     if (groupField && group !== undefined) {
@@ -153,24 +183,32 @@ async function pullRecords() {
   }
 }
 
+// Same destination rule as createNewRecord: the record belongs to the
+// organizer's module, so it opens on that module's record page. This call site
+// had the identical defect and was fixed alongside it, though the reported
+// symptom was only ever the add button.
 function handleRecordClick(record) {
+  if (!recordPageID.value) return
+
   const { displayOption } = options.value
 
-  if (displayOption === 'modal') {
+  if (displayOption === 'modal' && !$recordRoutes) {
     router.push({
       query: {
         ...route.query,
-        recordPageID: props.page.pageID,
+        recordPageID: recordPageID.value,
         recordID: record.recordID,
-      }
+      },
     })
     return
   }
 
-  const recordRoute = {
-    name: 'page.record',
-    params: { pageID: props.page.pageID, recordID: record.recordID },
-  }
+  const recordRoute = $recordRoutes
+    ? $recordRoutes.view(organizerModule.value.moduleID, record.recordID)
+    : {
+        name: 'page.record',
+        params: { pageID: recordPageID.value, recordID: record.recordID },
+      }
 
   if (displayOption === 'newTab') {
     window.open(router.resolve(recordRoute).href)
@@ -179,24 +217,46 @@ function handleRecordClick(record) {
   }
 }
 
+// prefillQuery carries the organizer's own bucket into the new record.
+//
+// The block shows records where groupField equals group, so a record created
+// from it belongs in that bucket — RecordView and the admin create view both
+// read refField/refValue and set the value for us.
+function prefillQuery() {
+  const { groupField, group } = options.value
+  if (!groupField || group === undefined || group === '') return {}
+
+  return { refField: groupField, refValue: group }
+}
+
 function createNewRecord() {
+  if (!recordPageID.value) return
+
   const { addRecordDisplayOption, displayOption } = options.value
   const displayMode = addRecordDisplayOption || displayOption || 'sameTab'
+  const refQuery = prefillQuery()
 
-  if (displayMode === 'modal') {
+  if (displayMode === 'modal' && !$recordRoutes) {
     router.push({
       query: {
         ...route.query,
-        recordPageID: props.page.pageID,
+        recordPageID: recordPageID.value,
         recordID: '0',
-      }
+        ...refQuery,
+      },
     })
     return
   }
 
-  const recordRoute = {
-    name: 'page.record',
-    params: { pageID: props.page.pageID, recordID: '0' },
+  const recordRoute = $recordRoutes
+    ? $recordRoutes.create(organizerModule.value.moduleID)
+    : {
+        name: 'page.record',
+        params: { pageID: recordPageID.value, recordID: '0' },
+      }
+
+  if (Object.keys(refQuery).length > 0) {
+    recordRoute.query = { ...(recordRoute.query || {}), ...refQuery }
   }
 
   if (displayMode === 'newTab') {
@@ -207,8 +267,15 @@ function createNewRecord() {
 }
 
 onMounted(() => pullRecords())
-watch(() => props.record?.recordID, () => pullRecords())
-watch(() => props.block.options, () => pullRecords(), { deep: true })
+watch(
+  () => props.record?.recordID,
+  () => pullRecords(),
+)
+watch(
+  () => props.block.options,
+  () => pullRecords(),
+  { deep: true },
+)
 
 const offRefetch = $eventBus?.on('refetch-records', () => pullRecords())
 

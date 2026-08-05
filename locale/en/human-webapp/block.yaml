@@ -771,6 +771,10 @@ record:
   referenceRecordFieldDescription: Used to show record details of reference record. Multi value record selector fields are not available
   referenceRecordFieldPlaceholder: Select reference record field
   showAddRecordButton: Show add record button
+# Shown on a disabled "add record" button, in both the record list and the
+# record organizer: the block's module has no record page, so there is nowhere
+# for the button to go.
+noRecordPage: This module has no record page, so new records cannot be opened from here.
 recordList:
   addRecord: New Record
   bulkRecord:
