@@ -149,6 +149,12 @@ Review means exercising the claims, not reading the diff.
 - **Prove the tests have teeth**: break what they cover, watch them fail, put it
   back. A green suite says nothing about a test that does not assert — that
   exact case is why this step exists.
+- **Verify at the layer the bug lives in.** The MCP tools reach the REST API
+  directly and never load the webapp, so an MCP-green result says nothing about
+  a frontend defect — issue #30 deleted a module happily through MCP while the
+  edit view could not, because the view never sent the request. Ask which layer
+  is on trial before choosing the instrument: MCP for service and API behaviour,
+  a browser for anything the user clicks, a unit test for logic in between.
 - **Re-run anything a subagent claimed.** Their transcripts are evidence, not
   proof; an agent's live exercise has been right about the result and wrong
   about the reason.
