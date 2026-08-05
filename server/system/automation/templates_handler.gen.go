@@ -747,6 +747,18 @@ type (
 		lookupHandle string
 		lookupRes    *types.Template
 
+		hasHeaderTemplate    bool
+		HeaderTemplate       interface{}
+		headerTemplateID     uint64
+		headerTemplateHandle string
+		headerTemplateRes    *types.Template
+
+		hasFooterTemplate    bool
+		FooterTemplate       interface{}
+		footerTemplateID     uint64
+		footerTemplateHandle string
+		footerTemplateRes    *types.Template
+
 		hasDocumentName bool
 		DocumentName    string
 
@@ -769,6 +781,14 @@ func (a templatesRenderArgs) GetLookup() (bool, uint64, string, *types.Template)
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
+func (a templatesRenderArgs) GetHeaderTemplate() (bool, uint64, string, *types.Template) {
+	return a.hasHeaderTemplate, a.headerTemplateID, a.headerTemplateHandle, a.headerTemplateRes
+}
+
+func (a templatesRenderArgs) GetFooterTemplate() (bool, uint64, string, *types.Template) {
+	return a.hasFooterTemplate, a.footerTemplateID, a.footerTemplateHandle, a.footerTemplateRes
+}
+
 // Render function Template render
 //
 // expects implementation of render function:
@@ -789,6 +809,26 @@ func (h templatesHandler) Render() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Template"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Body template",
+					Description: "Template rendered as the body of the document",
+				},
+			},
+			{
+				Name:  "headerTemplate",
+				Types: []string{"ID", "Handle", "Template"},
+				Meta: &atypes.ParamMeta{
+					Label:       "Header template",
+					Description: "Overrides the header template set on the body template; used by drivers that support it",
+				},
+			},
+			{
+				Name:  "footerTemplate",
+				Types: []string{"ID", "Handle", "Template"},
+				Meta: &atypes.ParamMeta{
+					Label:       "Footer template",
+					Description: "Overrides the footer template set on the body template; used by drivers that support it",
+				},
 			},
 			{
 				Name:  "documentName",
@@ -819,11 +859,13 @@ func (h templatesHandler) Render() *atypes.Function {
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var (
 				args = &templatesRenderArgs{
-					hasLookup:       in.Has("lookup"),
-					hasDocumentName: in.Has("documentName"),
-					hasDocumentType: in.Has("documentType"),
-					hasVariables:    in.Has("variables"),
-					hasOptions:      in.Has("options"),
+					hasLookup:         in.Has("lookup"),
+					hasHeaderTemplate: in.Has("headerTemplate"),
+					hasFooterTemplate: in.Has("footerTemplate"),
+					hasDocumentName:   in.Has("documentName"),
+					hasDocumentType:   in.Has("documentType"),
+					hasVariables:      in.Has("variables"),
+					hasOptions:        in.Has("options"),
 				}
 			)
 
@@ -841,6 +883,32 @@ func (h templatesHandler) Render() *atypes.Function {
 					args.lookupHandle = aux.Get().(string)
 				case h.reg.Type("Template").Type():
 					args.lookupRes = aux.Get().(*types.Template)
+				}
+			}
+
+			// Converting HeaderTemplate argument
+			if args.hasHeaderTemplate {
+				aux := expr.Must(expr.Select(in, "headerTemplate"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.headerTemplateID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.headerTemplateHandle = aux.Get().(string)
+				case h.reg.Type("Template").Type():
+					args.headerTemplateRes = aux.Get().(*types.Template)
+				}
+			}
+
+			// Converting FooterTemplate argument
+			if args.hasFooterTemplate {
+				aux := expr.Must(expr.Select(in, "footerTemplate"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.footerTemplateID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.footerTemplateHandle = aux.Get().(string)
+				case h.reg.Type("Template").Type():
+					args.footerTemplateRes = aux.Get().(*types.Template)
 				}
 			}
 

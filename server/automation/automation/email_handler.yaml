@@ -125,7 +125,7 @@ functions:
       message: *messageParam
       name:
         required: true
-        meta: { label: Value }
+        meta: { label: Name }
         types: [ { wf: String } ]
       value:
         meta: { label: Value, description: Raw header value. Omiting value will remove header. }

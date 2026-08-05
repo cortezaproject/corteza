@@ -24,4 +24,11 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
+
+	// TemplateRenderAux holds per-render overrides of the header/footer
+	// templates configured on the rendered template
+	TemplateRenderAux struct {
+		HeaderTemplateID uint64
+		FooterTemplateID uint64
+	}
 )

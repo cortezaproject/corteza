@@ -145,6 +145,7 @@ template: {
 					{name: "dstType", goType: "string"},
 					{name: "variables", goType: "map[string]interface{}"},
 					{name: "options", goType: "map[string]string"},
+					{name: "aux", goType: "types.TemplateRenderAux"},
 				]
 				results: [
 					{name: "document", goType: "io.ReadSeeker"},

@@ -11,6 +11,23 @@ snippets:
       - { wf: Handle }
       - { wf: Template,   suffix: res }
 
+  # same as lookup but labeled for the render function where it is the body of the document
+  bodyLookup: &bodyLookup
+    required: true
+    meta:
+      label: Body template
+      description: Template rendered as the body of the document
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: Template,   suffix: res }
+
+  auxTemplate: &auxTemplate
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: Template,   suffix: res }
+
   template: &template
     types:
       - { wf: Template }
@@ -146,7 +163,17 @@ functions:
       <<: *labels
       render: "step"
     params:
-      lookup: *lookup
+      lookup: *bodyLookup
+      headerTemplate:
+        <<: *auxTemplate
+        meta:
+          label: Header template
+          description: Overrides the header template set on the body template; used by drivers that support it
+      footerTemplate:
+        <<: *auxTemplate
+        meta:
+          label: Footer template
+          description: Overrides the footer template set on the body template; used by drivers that support it
       documentName:
         types:
           - { wf: String }

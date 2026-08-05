@@ -52,7 +52,10 @@
           <div class="flex-1 min-w-0 flex flex-col gap-0.5">
             <div class="flex items-center gap-2 min-w-0">
               <div class="font-medium text-primary truncate">
-                <span>{{ a.target }}</span><span v-if="a.required" class="text-red-500">*</span>
+                <span>{{ a.label || a.target }}</span><span v-if="a.required" class="text-red-500">*</span>
+              </div>
+              <div v-if="a.label" class="text-muted-color text-sm truncate">
+                <span>{{ a.target }}</span>
               </div>
               <div class="ml-auto flex items-center gap-1.5 shrink-0">
                 <span
@@ -447,6 +450,7 @@ export default {
           return {
             name: param.name,
             target: param.name,
+            label: (param.meta || {}).label,
             type: arg.type || this.paramTypes[func.ref][param.name][0],
             valueType: arg.expr !== undefined ? 'expr' : 'value',
             value: arg.value || input.default || null,

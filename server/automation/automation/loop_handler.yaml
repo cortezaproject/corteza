@@ -30,7 +30,7 @@ functions:
         required: true
         types: [ { wf: String } ]
         meta:
-          label: Expression tested before each iteration
+          label: While expression
           description: Expression to be evaluated each iteration; loop will continue until expression is true
 
   each:

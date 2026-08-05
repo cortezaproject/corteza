@@ -149,7 +149,7 @@ func (h loopHandler) Do() *atypes.Function {
 				Name:  "while",
 				Types: []string{"String"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Expression tested before each iteration",
+					Label:       "While expression",
 					Description: "Expression to be evaluated each iteration; loop will continue until expression is true",
 				},
 			},

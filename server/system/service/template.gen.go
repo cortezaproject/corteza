@@ -307,7 +307,7 @@ func (svc *template) checkScope(ctx context.Context, cap scope.Capability) error
 	return scope.RequireCapability(ctx, cap)
 }
 
-func (svc *template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {
+func (svc *template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string, aux types.TemplateRenderAux) (document io.ReadSeeker, err error) {
 	var (
 		aProps = &templateActionProps{}
 	)
@@ -317,7 +317,7 @@ func (svc *template) Render(ctx context.Context, templateID uint64, dstType stri
 			return err
 		}
 
-		document, err = svc.onRender(ctx, aProps, templateID, dstType, variables, options)
+		document, err = svc.onRender(ctx, aProps, templateID, dstType, variables, options, aux)
 		return err
 	}()
 

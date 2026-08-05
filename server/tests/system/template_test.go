@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -309,4 +310,48 @@ func TestTemplateRenderHTML(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertBody("<h1>Hello, world!</h1>")).
 		End()
+}
+
+func TestTemplateRenderAuxTemplates(t *testing.T) {
+	h := newHelper(t)
+	h.clearTemplates()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "render")
+
+	var (
+		ctx = h.secCtx()
+
+		header    = h.repoMakeTemplate("header-tpl", "<header>from meta</header>", "text/html")
+		altHeader = h.repoMakeTemplate("alt-header-tpl", "<header>from argument</header>", "text/html")
+		footer    = h.repoMakeTemplate("footer-tpl", "<footer>bye</footer>", "text/html")
+
+		body = h.repoMakeTemplate("body-tpl", "<h1>Hello</h1>", "text/html")
+	)
+
+	body.Meta.HeaderTemplateID = header.ID
+	h.a.NoError(store.UpdateTemplate(ctx, service.DefaultStore, body))
+
+	read := func(aux types.TemplateRenderAux) string {
+		doc, err := service.DefaultRenderer.Render(ctx, body.ID, "text/html", nil, nil, aux)
+		h.a.NoError(err)
+
+		out, err := io.ReadAll(doc)
+		h.a.NoError(err)
+
+		return string(out)
+	}
+
+	// no overrides, header comes from the template's own meta
+	out := read(types.TemplateRenderAux{})
+	h.a.Contains(out, "from meta")
+	h.a.NotContains(out, "from argument")
+	h.a.NotContains(out, "bye")
+
+	// header overridden, footer added
+	out = read(types.TemplateRenderAux{HeaderTemplateID: altHeader.ID, FooterTemplateID: footer.ID})
+	h.a.Contains(out, "from argument")
+	h.a.NotContains(out, "from meta")
+	h.a.Contains(out, "bye")
+	h.a.Contains(out, "<h1>Hello</h1>")
 }

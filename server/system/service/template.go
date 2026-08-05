@@ -47,7 +47,7 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) error
 
 		Drivers() []renderer.DriverDefinition
-		Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (io.ReadSeeker, error)
+		Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string, aux types.TemplateRenderAux) (io.ReadSeeker, error)
 	}
 )
 
@@ -70,7 +70,7 @@ func (svc *template) validate(ctx context.Context, t *types.Template) error {
 	return nil
 }
 
-func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (io.ReadSeeker, error) {
+func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string, aux types.TemplateRenderAux) (io.ReadSeeker, error) {
 	tpl, err := svc.FindByID(ctx, templateID)
 	if err != nil {
 		return nil, err
@@ -99,12 +99,12 @@ func (svc *template) onRender(ctx context.Context, aProps *templateActionProps, 
 	}
 
 	// Optional header/footer templates, used by drivers that support them
-	header, err := svc.getAuxTemplateSource(ctx, tpl.Meta.HeaderTemplateID)
+	header, err := svc.getAuxTemplateSource(ctx, firstTemplateID(aux.HeaderTemplateID, tpl.Meta.HeaderTemplateID))
 	if err != nil {
 		return nil, err
 	}
 
-	footer, err := svc.getAuxTemplateSource(ctx, tpl.Meta.FooterTemplateID)
+	footer, err := svc.getAuxTemplateSource(ctx, firstTemplateID(aux.FooterTemplateID, tpl.Meta.FooterTemplateID))
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +176,17 @@ func (svc *template) getSource(tpl *types.Template) io.Reader {
 
 // getAuxTemplateSource loads raw source of the referenced header/footer
 // template; (nil, nil) when ID is unset
+// firstTemplateID returns the first non-zero template ID
+func firstTemplateID(IDs ...uint64) uint64 {
+	for _, ID := range IDs {
+		if ID > 0 {
+			return ID
+		}
+	}
+
+	return 0
+}
+
 func (svc *template) getAuxTemplateSource(ctx context.Context, ID uint64) (io.Reader, error) {
 	if ID == 0 {
 		return nil, nil
