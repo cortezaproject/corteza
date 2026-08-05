@@ -2,6 +2,10 @@
 /coverage.txt
 /*.iml
 /.env*
+# ...but the example files are documentation and belong in the repo. Without
+# this, .env.example is tracked only because it predates the rule above, and
+# any new example needs git add -f to get in at all.
+!/.env*.example
 /.dev*
 /.*cover.out*
 /overalls*
