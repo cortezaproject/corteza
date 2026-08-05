@@ -67,7 +67,11 @@ func TestNode_decodePairingURI(t *testing.T) {
 
 func TestNode_makePairingURI(t *testing.T) {
 	var (
-		svc = &node{host: "example.tld", baseURL: "federation", name: "Noddy"}
+		// These live on the inner services struct, not on node itself — the
+		// shape the Node() constructor builds. They moved there in f64409476
+		// and this test kept setting them directly, so the package stopped
+		// compiling and took all ten of its tests down with it.
+		svc = &node{services: &nodeServices{host: "example.tld", baseURL: "federation", name: "Noddy"}}
 		req = require.New(t)
 		n   = &types.Node{ID: 42, PairToken: "secret"}
 		uri = svc.makePairingURI(n)
