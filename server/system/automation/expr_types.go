@@ -126,18 +126,44 @@ func CastToTemplateMeta(val interface{}) (out types.TemplateMeta, err error) {
 	case expr.Iterator:
 		out = types.TemplateMeta{}
 		return out, val.Each(func(k string, v expr.TypedValue) error {
-			return assignToTemplateMeta(out, k, v)
+			return assignToTemplateMeta(&out, k, v)
 		})
 	}
 
 	switch val := expr.UntypedValue(val).(type) {
 	case types.TemplateMeta:
 		return val, nil
+	case map[string]interface{}:
+		out = types.TemplateMeta{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, &out)
+		return out, nil
 	case nil:
 		return types.TemplateMeta{}, nil
 	default:
 		return types.TemplateMeta{}, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
+}
+
+var _ expr.DeepFieldAssigner = &Template{}
+
+// AssignFieldValue implements expr.DeepFieldAssigner
+//
+// Meta is a value struct; assigning to its fields through the generated
+// selector would modify a copy, so we reroute it to the template's own meta
+func (t *Template) AssignFieldValue(p expr.Pather, val expr.TypedValue) (err error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
+	if p.Get() != "meta" || p.IsLast() {
+		return assignToTemplate(t.value, p.Get(), val)
+	}
+
+	if err = p.Next(); err != nil {
+		return
+	}
+
+	return assignToTemplateMeta(&t.value.Meta, p.Get(), val)
 }
 
 func CastToRenderedDocument(val interface{}) (out *renderedDocument, err error) {
