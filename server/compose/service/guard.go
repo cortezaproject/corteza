@@ -24,7 +24,7 @@ import (
 func projectLockedErr() *errors.Error {
 	return errors.New(
 		errors.KindInternal,
-		"project is read-only: only draft projects can be modified",
+		"the project is read-only — only draft projects can be modified",
 		errors.Meta("type", "projectLocked"),
 		errors.Meta("resource", "compose:project"),
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),

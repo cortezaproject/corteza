@@ -29,7 +29,7 @@ func guardProjectWritable(ctx context.Context, s store.Storer, projectID uint64)
 	if p.Status != types.ProjectStatusDraft {
 		return errors.New(
 			errors.KindInternal,
-			"project is read-only: only draft projects can be modified",
+			"the project is read-only — only draft projects can be modified",
 			errors.Meta("type", "projectLocked"),
 			errors.Meta("resource", "system:project"),
 			errors.Meta(locale.ErrorMetaNamespace{}, "system"),
