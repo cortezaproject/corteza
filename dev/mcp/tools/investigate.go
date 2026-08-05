@@ -42,8 +42,9 @@ type governingDoc struct {
 }
 
 type affectedReport struct {
-	Specs []string `json:"specs"`
-	Note  string   `json:"note"`
+	Specs     []string `json:"specs"`
+	UnitTests []string `json:"unitTests,omitempty"`
+	Note      string   `json:"note"`
 }
 
 func registerIntentGoverning(reg *mcpkit.Registry, root string) {
@@ -309,18 +310,34 @@ func registerIntentAffected(reg *mcpkit.Registry, root string) {
 
 			stdout, _ := runAllowFail(ctx, root, "node", append([]string{".intent/intent.mjs", "affected"}, files...)...)
 
-			out := affectedReport{Specs: []string{}}
+			// The intent CLI answers with every test file it associates with the
+			// input, which is not all e2e: a server change comes back with
+			// lib/js unit tests. Telling the human to run playwright on a
+			// vitest file wastes their time and makes the tool look careless,
+			// so the two are separated by path and only e2e is handed over.
+			out := affectedReport{Specs: []string{}, UnitTests: []string{}}
 			for _, line := range strings.Split(stdout, "\n") {
-				if line = strings.TrimSpace(line); strings.HasSuffix(line, ".ts") {
+				line = strings.TrimSpace(line)
+				if !strings.HasSuffix(line, ".ts") && !strings.HasSuffix(line, ".js") {
+					continue
+				}
+
+				if strings.Contains(line, "/e2e/") {
 					out.Specs = append(out.Specs, line)
+				} else {
+					out.UnitTests = append(out.UnitTests, line)
 				}
 			}
 
-			if len(out.Specs) == 0 {
-				out.Note = "no e2e specs cover these files"
-			} else {
-				out.Note = fmt.Sprintf("%d spec(s) affected. Hand these to the human to run with "+
+			switch {
+			case len(out.Specs) > 0:
+				out.Note = fmt.Sprintf("%d e2e spec(s) affected. Hand these to the human to run with "+
 					"'npx playwright test <specs>' — do not run them yourself, they are slow", len(out.Specs))
+			case len(out.UnitTests) > 0:
+				out.Note = fmt.Sprintf("no e2e specs, but %d unit test file(s) are associated. Run those "+
+					"with dev_test_run", len(out.UnitTests))
+			default:
+				out.Note = "no tests are associated with these files"
 			}
 
 			return toolkit.JSONResult(out)
