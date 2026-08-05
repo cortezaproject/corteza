@@ -674,8 +674,8 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 			usage := p.Usage
 
 			// By default, use as an identity provider
-			if len(p.Usage) == 0 {
-				p.Usage = []string{types.ExternalProviderUsageIdentity}
+			if len(usage) == 0 {
+				usage = []string{types.ExternalProviderUsageIdentity}
 			}
 
 			as.Providers = append(as.Providers, authSettings.Provider{

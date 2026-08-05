@@ -91,6 +91,13 @@ func Test_updateAuthSettings(t *testing.T) {
 						Key:     "key",
 						Secret:  "sec",
 					},
+					{ // add (used only for API integration, not for identity)
+						Enabled: true,
+						Handle:  "nylas",
+						Key:     "key",
+						Secret:  "sec",
+						Usage:   []string{types.ExternalProviderUsageAPI},
+					},
 				}
 				return
 			}(),
@@ -101,16 +108,25 @@ func Test_updateAuthSettings(t *testing.T) {
 						IssuerUrl: "issuer",
 						Key:       "key",
 						Secret:    "sec",
+						Usage:     []string{types.ExternalProviderUsageIdentity},
 					},
 					{
 						Handle: "google",
 						Key:    "key",
 						Secret: "sec",
+						Usage:  []string{types.ExternalProviderUsageIdentity},
 					},
 					{
 						Handle: "github",
 						Key:    "key",
 						Secret: "sec",
+						Usage:  []string{types.ExternalProviderUsageIdentity},
+					},
+					{
+						Handle: "nylas",
+						Key:    "key",
+						Secret: "sec",
+						Usage:  []string{types.ExternalProviderUsageAPI},
 					},
 				}
 				return
