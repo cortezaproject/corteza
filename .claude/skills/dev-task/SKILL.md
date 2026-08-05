@@ -1,110 +1,168 @@
 ---
 name: dev-task
-description: The everyday change workflow, driven by the human-dev MCP tools — orient, check contracts, baseline, edit, verify, prove the test has teeth, commit. Use for ordinary code changes and bug fixes. For a change that touches a locked contract or a WIP zone, use /intent-task instead, which adds the confirmation phase that ground requires.
+description: The task-level workflow — triage, write the task, scout, clarify, investigate, clarify again, implement, verify independently, present. Use when starting any piece of work that is not a one-liner. Calls /dev-change for the per-change mechanics and /intent-task when locked or WIP ground is involved.
 ---
 
 # /dev-task
 
-The `human-dev` MCP server provides the primitives; this skill is the order to
-use them in. If a tool below is not available, the server is not connected —
-tell the human to restart their MCP client, and fall back to the shell
-equivalents (`git status`, `go test`, `gofmt`).
+The procedure for taking a piece of work from a sentence to something landed.
 
-## 1. Orient
+Two rules govern everything below:
 
-`dev_branch_status` — branch, base, how far ahead, what is already dirty.
+- **Questions are for decisions, not status.** Ask when two readings of the task
+  would produce materially different work. Never ask "shall I proceed" — that is
+  the human doing your job. Use AskUserQuestion with concrete options,
+  recommendation first.
+- **Nothing is true because a report said so.** Not a subagent's transcript, not
+  a green test, not your own earlier reasoning. Claims get re-run.
 
-A tree with unrelated changes already in it is worth knowing about _before_ you
-edit, because it decides whether you can commit with staged files or must name
-paths explicitly to keep the commit atomic.
+## 0. Triage — pick a lane, say which
 
-## 2. Read the contracts before editing, not after
+State the lane in one line and proceed. The human can override in one word.
 
-`dev_intent_governing` with the files you intend to change.
+| Lane            | When                                                                                      | Flow                                                          |
+| --------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **trivial**     | Typo, rename, a one-liner whose cause is already known and whose blast radius is one file | → `/dev-change`, no questions                                 |
+| **ordinary**    | A bug with a clear cause, or a small addition to an existing pattern                      | Scout → **one** question round → implement → verify → present |
+| **substantial** | New surface, unclear cause, several files, or anything touching a contract                | The full flow below                                           |
 
-Read what it returns; do not skim it. It gives locked contracts and WIP markers
-**verbatim** because a contract restated in your own words has stopped being the
-contract.
+Getting this wrong in the cheap direction is the dangerous one: if scouting
+turns up a locked contract or a second cause, re-triage upward and say so.
 
-- **A locked contract in scope** → stop. That is an intent change, not a code
-  change, and the human rules on it first. Switch to `/intent-task`.
-- **A WIP marker in scope** → ask before building on it. The ground is
-  undecided by definition.
-- `covers: governs` binds the file directly. `covers: area-context` is the
-  area's constitution — it does not formally cover the path, but its contracts
-  still hold.
-- "No intent doc governs this path" is a real answer, not a failure. Much of
-  `server/` is not yet enforced.
+## 1. Write the task
 
-## 3. Baseline before you touch anything
+Before investigating, write down three things. Two sentences each is plenty.
 
-`dev_test_run` on the package you are about to change.
+- **Outcome** — what is true when this is done, in the product's terms, not the
+  code's.
+- **Non-goals** — what this deliberately does not change. This is what stops
+  scope creep later, and it is cheapest to write now.
+- **Unknowns** — what you would need to know to be confident. These become the
+  first question round.
 
-If it is already failing, you need to know now — this repo has pre-existing
-breakage (`federation/service` does not build; `lib/js` rollup is broken), and
-half an hour spent debugging someone else's failure is the cost of skipping
-this.
+If the human wrote the task, restate it in these three parts and let them
+correct the restatement. A misread task is the most expensive error available,
+and it is free to catch here.
 
-## 4. Make the change
+## 2. Scout — shallow, and bounded
 
-Ordinary Read/Edit. The tools do not do the thinking.
+Enough context to ask good questions. Not enough to form a plan.
 
-Scope discipline: do what was asked. If you find a second, real problem, finish
-the first, then say what you found — do not fold it in silently.
+A few files, the obvious entry points, whatever the human named. **Stop when you
+can ask a sharper question than you could five minutes ago** — that is the whole
+purpose of this step. Reading the whole subsystem here means asking questions
+you have already answered, badly.
 
-## 5. Verify
+Use `Explore` or a read-only subagent for breadth; keep the depth for step 4.
 
-In this order, because each one can invalidate the next:
+## 3. Clarify round one — what are we building
 
-1. `dev_test_run` — the touched package. Returns failures only; a green run is
-   one line.
-2. `dev_format_run` — no arguments formats what you changed. **Never format a
-   directory**: this repo has files that were already unformatted before you
-   arrived, and reformatting them has turned a small diff into an unreviewable
-   one twice.
-3. `dev_intent_check` — reports your drift separately from the repo's
-   pre-existing baseline. Reconcile the docs listed under `yours`. Leave the
-   baseline alone.
-4. `dev_intent_affected` — e2e specs go to the human to run
-   (`npx playwright test <specs>`); never run them yourself, they are slow.
-   Anything under `unitTests` you run with `dev_test_run`.
+Questions that change **what** gets built. Scope, behaviour, which of two
+readings is meant, what "done" looks like in the product.
 
-## 6. Prove the test has teeth
+Do not ask about implementation here; you have not investigated enough to have
+an opinion worth acting on, and asking anyway spends the human's attention on a
+decision that will be re-opened at step 5.
 
-**Do not skip this. It is the step that catches the failure nobody else does.**
+## 4. Investigate properly
 
-If you added or changed a test, break the thing it covers — revert your fix,
-flip a condition — and confirm the suite fails, then put it back.
+Now go deep, on the _clarified_ task.
 
-This exists because of a real case in this repo: `inputguard`'s
-`TestKnownFalsePositives` used `t.Logf` when an input stopped being blocked, so
-removing three detection patterns left the suite green. `dev_test_run` reported
-`passed: true`, correctly and meaninglessly. **A green suite proves nothing
-about a test that does not assert.** No tool can tell you this; you have to
-break something and watch.
+Three things are mandatory, because each one changes the shape of the work
+rather than its content:
 
-The same shape shows up everywhere in this codebase's history: a check that
-reports success without having checked. Treat "it passed first time" as a
-question, not an answer.
+1. **Contracts** — `dev_intent_governing` on the files you expect to touch. A
+   locked contract in scope means **stop**: it is an intent change, the human
+   rules on it, and the work moves to `/intent-task`. A WIP marker means the
+   ground is undecided — ask before building on it.
+2. **Baseline** — `dev_test_run` on the packages involved. Know what green looks
+   like before you change anything. This repo has pre-existing breakage, and
+   inheriting someone else's failure costs an hour.
+3. **Prior art** — has this been solved, half-solved, or deliberately not solved
+   nearby? A `@todo`, a brief, or a comment explaining why not is worth more
+   than any amount of fresh reasoning.
 
-## 7. Commit — only when the human asked for one
+Fan out read-only subagents for breadth here. Give each a specific question, not
+a topic.
 
-`dev_commit_create` enforces how a commit is made. It does not decide whether
-one should happen: that is the human's call, every time.
+## 5. Clarify round two — how, and how we will know
 
-- One imperative line, under 72 characters, capitalised, no trailing period.
-- No AI attribution anywhere in the message — no co-author trailer, no
-  generated-with line, no robot emoji. The tool refuses all three.
-- Pass `files` explicitly to keep a commit atomic when the tree holds unrelated
-  work; omit it to commit what is already staged.
-- Formatting runs before staging, so what lands is what was formatted.
-- Mixing docs with code produces a **warning**, not a refusal. Read it: split
-  the commit unless the pieces genuinely belong together.
+Questions that change **how** it gets built: approach, trade-offs, what to do
+about anything surprising step 4 turned up.
 
-Separate atomic commits — a product fix and a tooling fix are two commits, even
-when you made them in the same sitting.
+**End this round by agreeing done-criteria, concretely.** Not "it works" —
+_which_ test, _which_ live check, what the failure would look like if it were
+still broken. This is the single highest-value thing in the whole flow, because:
 
-## What this skill is not
+- It is decided before any code exists, so it cannot be quietly bent to fit what
+  was built.
+- Step 7 checks against it rather than against your own judgement.
+- It forces the question "how would I know if this were wrong", which is the
+  question that catches the failures nothing else catches.
 
-It has no confirmation phase. For a change on locked or WIP ground, or one
-where the human should rule before code exists, use `/intent-task`, which does.
+Write the criteria down in the reply. They are the contract for step 7.
+
+## 6. Implement
+
+Main context by default.
+
+**Fan out to subagents when** the work splits into slices that touch disjoint
+files and each slice is describable in a precise brief. Model: Opus 5 unless the
+slice is a mechanical sweep.
+
+**A brief is only good enough if it says what is already known to be wrong.**
+Briefs written this way have had agents come back and correct them — which is
+the point, and only possible when the brief is specific enough to be falsified.
+
+**Consolidation is yours, and it is a named step, not a hope.** Independent
+agents solve shared problems independently: two agents on separate files wrote
+the same JSON-decoding helper twice, in the same package, on the same afternoon.
+After every fan-out, read the diffs together and factor what duplicated.
+
+Fan out only on disjoint files. Anything needing judgement, or touching
+locked/WIP ground, stays in the main context.
+
+## 7. Verify and review — re-run the claims
+
+Review means exercising the claims, not reading the diff.
+
+- Run `/dev-change`'s verify sequence: tests, format, intent drift, affected
+  specs.
+- **Check against the step-5 criteria**, one at a time, out loud.
+- **Prove the tests have teeth**: break what they cover, watch them fail, put it
+  back. A green suite says nothing about a test that does not assert — that
+  exact case is why this step exists.
+- **Re-run anything a subagent claimed.** Their transcripts are evidence, not
+  proof; an agent's live exercise has been right about the result and wrong
+  about the reason.
+- For substantial work, consider a cold adversarial pass: a fresh agent, no
+  context, told to break it. It has been worth more than any amount of reading.
+
+Anything that fails here goes back to step 6 — or further, per the loop rules.
+
+## 8. Present, and record what surprised you
+
+Report what changed, what you verified and how, and what you deliberately did
+not do. Failures and skipped work get stated plainly, with the output.
+
+Then **write down what surprised you**, in the repo, where the next session will
+find it: a wrong assumption in a brief, an endpoint that is not what its name
+suggests, a check that reported success without checking. Each of these cost
+real time once; recording them is minutes and stops the next session paying
+again.
+
+Finally, offer the next decision. If more questions are needed, loop:
+
+- **New information changes the plan** → back to step 4.
+- **The plan was wrong** → back to step 5.
+- **The task was wrong** → back to step 1.
+
+The loop is bounded by the step-5 criteria: when they are met, the work is done.
+If they keep moving, that is the task changing, and it should go back to step 1
+openly rather than being absorbed as another iteration.
+
+## Committing
+
+Never autonomously. Commit when the human asks, once the work is confirmed
+working, through `dev_commit_create` — see `/dev-change` for the message and
+atomicity rules.
