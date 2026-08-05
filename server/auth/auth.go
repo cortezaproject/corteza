@@ -436,19 +436,57 @@ func dirCheck(path string) (err error) {
 	return
 }
 
+// WellKnownOpenIDConfiguration returns the OIDC discovery document
+//
+// Issuer must match the "iss" claim we put on the issued ID tokens (AUTH_BASE_URL)
 func (svc service) WellKnownOpenIDConfiguration() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
-			"issuer":                                svc.opt.BaseURL,
-			"authorization_endpoint":                svc.opt.BaseURL + "/oauth2/authorize",
-			"token_endpoint":                        svc.opt.BaseURL + "/oauth2/token",
-			"jwks_uri":                              svc.opt.BaseURL + "/oauth2/public-keys",
-			"scope_supported":                       []string{"profile", "api"},
-			"id_token_signing_alg_values_supported": []string{"RS256", "HS512"},
-			"response_types_supported":              []string{"code", "token"},
-		})
-
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"issuer":                 svc.opt.BaseURL,
+			"authorization_endpoint": svc.opt.BaseURL + "/oauth2/authorize",
+			"token_endpoint":         svc.opt.BaseURL + "/oauth2/token",
+			"jwks_uri":               svc.opt.BaseURL + "/oauth2/public-keys",
+			"userinfo_endpoint":      svc.opt.BaseURL + "/oauth2/userinfo",
+
+			// ID tokens are signed with the client's secret
+			"id_token_signing_alg_values_supported": []string{"HS512"},
+
+			// see auth/oauth2/oauth2.go for the values the server actually allows
+			"response_types_supported": []string{"code"},
+			"grant_types_supported": []string{
+				"authorization_code",
+				"refresh_token",
+				"client_credentials",
+			},
+			"code_challenge_methods_supported": []string{"plain", "S256"},
+
+			"subject_types_supported": []string{"public"},
+			"token_endpoint_auth_methods_supported": []string{
+				"client_secret_basic",
+				"client_secret_post",
+			},
+
+			"scopes_supported": []string{"openid", "profile", "email", "api"},
+			"claims_supported": []string{
+				"sub",
+				"iss",
+				"aud",
+				"exp",
+				"iat",
+				"name",
+				"preferred_username",
+				"email",
+				"email_verified",
+				"locale",
+				"updated_at",
+			},
+
+			// kept for backward compatibility, correct field name is scopes_supported
+			"scope_supported": []string{"profile", "api"},
+		})
 	}
 }
 

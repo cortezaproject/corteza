@@ -102,8 +102,11 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Post(tbp(l.OAuth2AuthorizeClient), h.handle(authOnly(h.oauth2AuthorizeClientProc)))
 			r.Get(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClient))
 			r.Post(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClientProc))
-			r.Get(tbp(l.OAuth2UserInfo), h.handle(h.oauth2authorizeDefaultClientProc))
 		})
+
+		// userinfo is authorized with an access token, not with a session; CSRF does not apply
+		r.Get(tbp(l.OAuth2UserInfo), h.oauth2Userinfo)
+		r.Post(tbp(l.OAuth2UserInfo), h.oauth2Userinfo)
 
 		// Wrapping SAML structs so we assure that fresh ones are always used in case
 		// of settings changes.

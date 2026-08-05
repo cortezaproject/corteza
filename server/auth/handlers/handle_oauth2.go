@@ -569,11 +569,124 @@ func generateIdToken(user *types.User, client *types.AuthClient, ti oauth2def.To
 	if err = token.Set("email", user.Email); err != nil {
 		return
 	}
+	if err = token.Set("email_verified", user.EmailConfirmed); err != nil {
+		return
+	}
 	if err = token.Set(jwt.ExpirationKey, now().Add(ti.GetAccessExpiresIn()).Unix()); err != nil {
 		return
 	}
+	if err = token.Set(jwt.IssuedAtKey, now().Unix()); err != nil {
+		return
+	}
+
+	// profile claims are only added when the token is scoped for them
+	if auth.CheckScope(ti.GetScope(), "profile") {
+		for claim, value := range profileClaims(user) {
+			if err = token.Set(claim, value); err != nil {
+				return
+			}
+		}
+	}
 
 	return jwt.Sign(token, jwa.HS512, []byte(client.Secret))
+}
+
+// profileClaims returns OIDC profile-scope claims for the given user
+func profileClaims(user *types.User) map[string]interface{} {
+	cc := make(map[string]interface{})
+
+	if user.Name != "" {
+		cc["name"] = user.Name
+	}
+
+	if user.Handle != "" {
+		cc["preferred_username"] = user.Handle
+	}
+
+	if user.Meta != nil && user.Meta.PreferredLanguage != "" {
+		cc["locale"] = user.Meta.PreferredLanguage
+	}
+
+	if user.UpdatedAt != nil {
+		cc["updated_at"] = user.UpdatedAt.Unix()
+	} else if !user.CreatedAt.IsZero() {
+		cc["updated_at"] = user.CreatedAt.Unix()
+	}
+
+	return cc
+}
+
+// oauth2Userinfo returns claims about the user the access token was issued for
+//
+// Claims are filtered by the scope of the token; sub is always included
+func (h *AuthHandlers) oauth2Userinfo(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+
+		jt  jwt.Token
+		err error
+	)
+
+	if jt, _, err = jwtauth.FromContext(ctx); err != nil || jt == nil {
+		h.userinfoError(w, fmt.Errorf("unauthorized: %v", err))
+		return
+	}
+
+	if err = auth.TokenIssuer.Validate(ctx, jt); err != nil {
+		h.userinfoError(w, err)
+		return
+	}
+
+	sub, _ := jt.Get("sub")
+	userID, _ := auth.ExtractFromSubClaim(cast.ToString(sub))
+	if userID == 0 {
+		h.userinfoError(w, fmt.Errorf("invalid sub claim"))
+		return
+	}
+
+	user, err := h.UserService.FindByAny(auth.SetIdentityToContext(ctx, auth.ServiceUser()), userID)
+	if err != nil {
+		h.userinfoError(w, fmt.Errorf("could not load user: %w", err))
+		return
+	}
+
+	scopeClaim, _ := jt.Get("scope")
+
+	var (
+		scope    = cast.ToString(scopeClaim)
+		response = map[string]interface{}{
+			// sub is the only claim that is always returned
+			"sub": strconv.FormatUint(user.ID, 10),
+		}
+	)
+
+	if auth.CheckScope(scope, "profile") {
+		for claim, value := range profileClaims(user) {
+			response[claim] = value
+		}
+	}
+
+	if auth.CheckScope(scope, "email") && user.Email != "" {
+		response["email"] = user.Email
+		response["email_verified"] = user.EmailConfirmed
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	_ = json.NewEncoder(w).Encode(response)
+}
+
+func (h *AuthHandlers) userinfoError(w http.ResponseWriter, err error) {
+	h.Log.Warn("userinfo request rejected", zap.Error(err))
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
+	w.WriteHeader(http.StatusUnauthorized)
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"error":             "invalid_token",
+		"error_description": err.Error(),
+	})
 }
 
 func writeResponse(w http.ResponseWriter, data map[string]interface{}, header http.Header, statusCode ...int) error {
