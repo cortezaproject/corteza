@@ -11,10 +11,27 @@ Two rules govern everything below:
 
 - **Questions are for decisions, not status.** Ask when two readings of the task
   would produce materially different work. Never ask "shall I proceed" — that is
-  the human doing your job. Use AskUserQuestion with concrete options,
-  recommendation first.
+  the human doing your job.
 - **Nothing is true because a report said so.** Not a subagent's transcript, not
   a green test, not your own earlier reasoning. Claims get re-run.
+
+## How to ask
+
+Every question round in this skill is an interview, and a question is not an
+interview just because it uses AskUserQuestion.
+
+- **Explain the question and each option well enough to decide on.** An option
+  is a sentence about what it means and what it costs, never a bare label. The
+  reader should not have to ask what an option implies.
+- **Recommendation first**, marked as such, with the reason.
+- **Order by what blocks the most.** The pressing decision leads; the cosmetic
+  one can wait or go unasked.
+- **Put the evidence in the question.** What was measured, what failed, what the
+  investigation turned up. A question that withholds the finding forces a guess.
+- **End the turn with the questions.** If decisions are open, the last thing in
+  the turn is the interview — not a summary that buries them.
+- Batch the round: several related decisions together beats dripping one at a
+  time.
 
 ## 0. Triage — pick a lane, say which
 
