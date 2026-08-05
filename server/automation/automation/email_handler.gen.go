@@ -769,7 +769,7 @@ func (h emailHandler) SetHeader() *atypes.Function {
 				Name:  "name",
 				Types: []string{"String"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label: "Value",
+					Label: "Name",
 				},
 			},
 			{

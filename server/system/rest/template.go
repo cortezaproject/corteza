@@ -159,7 +159,7 @@ func (ctrl *Template) Render(ctx context.Context, r *request.TemplateRender) (in
 
 	ct := ctrl.getDestinationType(r.Ext)
 
-	doc, err := ctrl.renderer.Render(ctx, r.TemplateID, ct, vars, opts)
+	doc, err := ctrl.renderer.Render(ctx, r.TemplateID, ct, vars, opts, types.TemplateRenderAux{})
 	return ctrl.serve(doc, ct, r, err)
 }
 

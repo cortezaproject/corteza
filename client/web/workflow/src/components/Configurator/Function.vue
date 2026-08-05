@@ -80,7 +80,8 @@
           @row-clicked="item=>$set(item, '_showDetails', !item._showDetails)"
         >
           <template #cell(target)="{ item: a }">
-            <var>{{ `${a.target}${a.required ? '*' : ''}` }}</var>
+            <var>{{ `${a.label || a.target}${a.required ? '*' : ''}` }}</var>
+            <samp v-if="a.label"> {{ a.target }}</samp>
             <samp v-if="!isWhileIterator"> ({{ a.type }})</samp>
           </template>
 
@@ -540,6 +541,7 @@ export default {
           return {
             name: param.name,
             target: param.name,
+            label: (param.meta || {}).label,
             type: arg.type || this.paramTypes[func.ref][param.name][0],
             valueType: arg.expr !== undefined ? 'expr' : 'value',
             value: arg.value || input.default || null,

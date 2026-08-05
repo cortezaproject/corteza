@@ -105,7 +105,7 @@ func (h recordsHandler) Lookup() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -279,7 +279,7 @@ func (h recordsHandler) Search() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -533,7 +533,7 @@ func (h recordsHandler) First() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -663,7 +663,7 @@ func (h recordsHandler) Last() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -819,7 +819,7 @@ func (h recordsHandler) Each() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -988,7 +988,7 @@ func (h recordsHandler) New() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -1356,7 +1356,7 @@ func (h recordsHandler) Delete() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"},
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -1488,7 +1488,7 @@ func (h recordsHandler) Report() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
@@ -1659,7 +1659,7 @@ func (h recordsHandler) Clone() *atypes.Function {
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label:       "Module to set record type",
+					Label:       "Module",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},

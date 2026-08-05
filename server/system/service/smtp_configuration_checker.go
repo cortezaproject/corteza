@@ -164,12 +164,12 @@ func (svc smtpConfigurationChecker) procEmailTemplate(ctx context.Context, stId 
 	}
 
 	// Render document
-	subject, err := svc.ts.Render(ctx, stId, "text/plain", payload, nil)
+	subject, err := svc.ts.Render(ctx, stId, "text/plain", payload, nil, types.TemplateRenderAux{})
 	if err != nil {
 		return nil, nil, err
 	}
 
-	content, err := svc.ts.Render(ctx, ctId, "text/plain", payload, nil)
+	content, err := svc.ts.Render(ctx, ctId, "text/plain", payload, nil, types.TemplateRenderAux{})
 	if err != nil {
 		return nil, nil, err
 	}

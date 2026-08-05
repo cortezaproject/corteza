@@ -50,6 +50,13 @@ type (
 		FooterTemplateID uint64 `json:"footerTemplateID,string,omitempty"`
 	}
 
+	// TemplateRenderAux holds per-render overrides of the header/footer
+	// templates configured on the rendered template
+	TemplateRenderAux struct {
+		HeaderTemplateID uint64
+		FooterTemplateID uint64
+	}
+
 	TemplateFilter struct {
 		TemplateID []string `json:"templateID"`
 		Query      string   `json:"query"`

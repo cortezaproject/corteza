@@ -11,7 +11,7 @@ params:
       - { wf: Handle,           }
       - { wf: ComposeModule,    suffix: res }
     meta:
-      label: Module to set record type
+      label: Module
       description: |-
         Even with unique record ID across all modules, module needs to be known
         before doing any record operations. Mainly because records of different

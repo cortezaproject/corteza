@@ -24,7 +24,7 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 
-		Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (io.ReadSeeker, error)
+		Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string, aux types.TemplateRenderAux) (io.ReadSeeker, error)
 	}
 
 	templatesHandler struct {
@@ -217,7 +217,19 @@ func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs)
 		vars = args.Variables.Dict()
 	}
 
-	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, vars, opts)
+	aux := types.TemplateRenderAux{}
+
+	aux.HeaderTemplateID, err = resolveTemplateID(ctx, h.tSvc, args.hasHeaderTemplate, args.headerTemplateID, args.headerTemplateHandle, args.headerTemplateRes)
+	if err != nil {
+		return nil, err
+	}
+
+	aux.FooterTemplateID, err = resolveTemplateID(ctx, h.tSvc, args.hasFooterTemplate, args.footerTemplateID, args.footerTemplateHandle, args.footerTemplateRes)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, vars, opts, aux)
 	if err != nil {
 		return nil, err
 	}
@@ -283,4 +295,27 @@ func getTemplateID(ctx context.Context, svc templateService, args templateLookup
 	}
 
 	return tpl.ID, nil
+}
+
+// resolveTemplateID resolves ID, handle or template argument into a template ID
+//
+// Unset argument resolves into zero ID
+func resolveTemplateID(ctx context.Context, svc templateService, has bool, ID uint64, handle string, tpl *types.Template) (uint64, error) {
+	switch {
+	case !has:
+		return 0, nil
+	case tpl != nil:
+		return tpl.ID, nil
+	case ID > 0:
+		return ID, nil
+	case len(handle) > 0:
+		tpl, err := svc.FindByHandle(ctx, handle)
+		if err != nil {
+			return 0, err
+		}
+
+		return tpl.ID, nil
+	}
+
+	return 0, nil
 }
