@@ -44,11 +44,11 @@ interview just because it uses AskUserQuestion.
 
 State the lane in one line and proceed. The human can override in one word.
 
-| Lane            | When                                                                                      | Flow                                                          |
-| --------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **trivial**     | Typo, rename, a one-liner whose cause is already known and whose blast radius is one file | → `/dev-change`, no questions                                 |
-| **ordinary**    | A bug with a clear cause, or a small addition to an existing pattern                      | Scout → **one** question round → implement → verify → present |
-| **substantial** | New surface, unclear cause, several files, or anything touching a contract                | The full flow below                                           |
+| Lane            | When                                                                                      | Flow                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **trivial**     | Typo, rename, a one-liner whose cause is already known and whose blast radius is one file | → `/dev-change`, no questions                                             |
+| **ordinary**    | A bug with a clear cause, or a small addition to an existing pattern                      | Scout → reproduce → **one** question round → implement → verify → present |
+| **substantial** | New surface, unclear cause, several files, or anything touching a contract                | The full flow below                                                       |
 
 Getting this wrong in the cheap direction is the dangerous one: if scouting
 turns up a locked contract or a second cause, re-triage upward and say so.
@@ -79,7 +79,33 @@ you have already answered, badly.
 
 Use `Explore` or a read-only subagent for breadth; keep the depth for step 4.
 
-## 3. Clarify round one — what are we building
+## 3. Reproduce it — before you have a theory
+
+**For a defect this is required, and it comes before the questions.**
+
+Make it fail in front of you, at the layer the user hit it. Stand up whatever
+state that needs, prefixed `agent-`, and note what you created so step 8 can
+remove it.
+
+- **Match the instrument to the layer.** The MCP tools reach the REST API and
+  never load the webapp: an MCP-green result says nothing about a frontend
+  defect. API and service behaviour → MCP or `dev/agent/api.sh`. Anything the
+  user clicks → the browser. Logic in between → a unit test.
+- **`dev_server_status` first** — a reproduction against a stale binary is
+  worse than none, because it looks like evidence.
+- **Failing to reproduce is a result, not a blocker.** It means the first
+  question is "what were you doing when this happened", and asking that beats
+  spending a deep investigation on a guess.
+
+This step exists because it was missing. Two defects in one afternoon were
+diagnosed from reading and both diagnoses were wrong — one blamed a project lock
+for a failure it had nothing to do with, and a live reproduction would have
+killed it in a minute, since it would have needed a project that did not exist.
+
+Keep the reproduction. Step 7 re-runs the same steps against the fix, in the
+same environment — that is the only thing that closes the loop.
+
+## 4. Clarify round one — what are we building
 
 Questions that change **what** gets built. Scope, behaviour, which of two
 readings is meant, what "done" looks like in the product.
@@ -88,7 +114,7 @@ Do not ask about implementation here; you have not investigated enough to have
 an opinion worth acting on, and asking anyway spends the human's attention on a
 decision that will be re-opened at step 5.
 
-## 4. Investigate properly
+## 5. Investigate properly
 
 Now go deep, on the _clarified_ task.
 
@@ -109,7 +135,7 @@ rather than its content:
 Fan out read-only subagents for breadth here. Give each a specific question, not
 a topic.
 
-## 5. Clarify round two — how, and how we will know
+## 6. Clarify round two — how, and how we will know
 
 Questions that change **how** it gets built: approach, trade-offs, what to do
 about anything surprising step 4 turned up.
@@ -124,9 +150,9 @@ still broken. This is the single highest-value thing in the whole flow, because:
 - It forces the question "how would I know if this were wrong", which is the
   question that catches the failures nothing else catches.
 
-Write the criteria down in the reply. They are the contract for step 7.
+Write the criteria down in the reply. They are the contract for step 8.
 
-## 6. Implement
+## 7. Implement
 
 Main context by default.
 
@@ -146,10 +172,12 @@ After every fan-out, read the diffs together and factor what duplicated.
 Fan out only on disjoint files. Anything needing judgement, or touching
 locked/WIP ground, stays in the main context.
 
-## 7. Verify and review — re-run the claims
+## 8. Verify and review — re-run the claims
 
 Review means exercising the claims, not reading the diff.
 
+- **Re-run the step-3 reproduction against the fix**, in the same environment.
+  A fix that was never shown to stop the original failure is a hypothesis.
 - Run `/dev-change`'s verify sequence: tests, format, intent drift, affected
   specs.
 - **Check against the step-5 criteria**, one at a time, out loud.
@@ -168,12 +196,16 @@ Review means exercising the claims, not reading the diff.
 - For substantial work, consider a cold adversarial pass: a fresh agent, no
   context, told to break it. It has been worth more than any amount of reading.
 
-Anything that fails here goes back to step 6 — or further, per the loop rules.
+Anything that fails here goes back to step 7 — or further, per the loop rules.
 
-## 8. Present, and record what surprised you
+## 9. Present, and record what surprised you
 
 Report what changed, what you verified and how, and what you deliberately did
 not do. Failures and skipped work get stated plainly, with the output.
+
+**Remove what you created.** Everything `agent-` prefixed from step 3 goes, and
+unprefixed data is never yours to touch. A leftover namespace sat on the dev
+server for an afternoon because this was nobody's job.
 
 Then **write down what surprised you**, in the repo, where the next session will
 find it: a wrong assumption in a brief, an endpoint that is not what its name
@@ -183,8 +215,8 @@ again.
 
 Finally, offer the next decision. If more questions are needed, loop:
 
-- **New information changes the plan** → back to step 4.
-- **The plan was wrong** → back to step 5.
+- **New information changes the plan** → back to step 5.
+- **The plan was wrong** → back to step 6.
 - **The task was wrong** → back to step 1.
 
 The loop is bounded by the step-5 criteria: when they are met, the work is done.
