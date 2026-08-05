@@ -28,6 +28,9 @@ func Register(reg *mcpkit.Registry, root string) {
 	registerIntentGoverning(reg, root)
 	registerIntentAffected(reg, root)
 	registerCommit(reg, root)
+	registerServerStatus(reg, root)
+	registerServerLogs(reg, root)
+	registerFixtureCleanup(reg, root)
 }
 
 // runner executes one command in the repository and returns its trimmed stdout.
