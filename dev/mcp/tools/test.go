@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"sort"
 	"strings"
 
 	"github.com/crusttech/human/server/pkg/mcpkit"
@@ -19,15 +20,17 @@ import (
 // single largest avoidable cost in this repo's dev loop. What a caller needs is
 // whether it passed and, if not, exactly what broke and where.
 type testReport struct {
-	Suite    string       `json:"suite"`
-	Target   string       `json:"target"`
-	Passed   bool         `json:"passed"`
-	Packages int          `json:"packages,omitempty"`
-	Failures []testFail   `json:"failures,omitempty"`
-	Errors   []string     `json:"errors,omitempty"`
-	Skipped  int          `json:"skipped,omitempty"`
-	Note     string       `json:"note,omitempty"`
-	Timing   *testTimings `json:"timing,omitempty"`
+	Suite      string       `json:"suite"`
+	Target     string       `json:"target"`
+	Passed     bool         `json:"passed"`
+	Packages   int          `json:"packages,omitempty"`
+	Failures   []testFail   `json:"failures,omitempty"`
+	Errors     []string     `json:"errors,omitempty"`
+	Skipped    int          `json:"skipped,omitempty"`
+	Aborted    bool         `json:"aborted,omitempty"`
+	Unfinished []string     `json:"unfinished,omitempty"`
+	Note       string       `json:"note,omitempty"`
+	Timing     *testTimings `json:"timing,omitempty"`
 }
 
 type testFail struct {
@@ -175,6 +178,14 @@ func runGoTests(ctx context.Context, root, module, target, run string) (testRepo
 	seen := map[string]bool{}
 	builds := map[string]*strings.Builder{}
 
+	// A panic takes the whole test binary down, so every test after it never
+	// runs and go test never reports them. Tracking which tests started but
+	// never resolved is the only way to notice: without it the tool says
+	// "1 failure" for a run where five more tests silently did not execute,
+	// which reads as "the rest were fine".
+	started := map[string]bool{}
+	aborted := false
+
 	for _, line := range strings.Split(string(stdout), "\n") {
 		if strings.TrimSpace(line) == "" {
 			continue
@@ -199,7 +210,15 @@ func runGoTests(ctx context.Context, root, module, target, run string) (testRepo
 		key := e.Package + "\x00" + e.Test
 
 		switch e.Action {
+		case "run":
+			if e.Test != "" {
+				started[key] = true
+			}
+
 		case "output":
+			if strings.HasPrefix(e.Output, "panic:") || strings.Contains(e.Output, "[signal SIGSEGV") {
+				aborted = true
+			}
 			if _, ok := buf[key]; !ok {
 				buf[key] = &strings.Builder{}
 			}
@@ -210,12 +229,14 @@ func runGoTests(ctx context.Context, root, module, target, run string) (testRepo
 				seen[e.Package] = true
 				out.Timing = addSeconds(out.Timing, e.Elapsed)
 			}
+			delete(started, key)
 			delete(buf, key)
 
 		case "skip":
 			if e.Test != "" {
 				out.Skipped++
 			}
+			delete(started, key)
 			delete(buf, key)
 
 		case "fail":
@@ -245,12 +266,22 @@ func runGoTests(ctx context.Context, root, module, target, run string) (testRepo
 				File:    firstFileRef(buf[key]),
 				Output:  trimOutput(buf[key]),
 			})
+			delete(started, key)
 			delete(buf, key)
 		}
 	}
 
+	for key := range started {
+		if _, test, ok := strings.Cut(key, "\x00"); ok && test != "" {
+			out.Unfinished = append(out.Unfinished, test)
+		}
+	}
+	sort.Strings(out.Unfinished)
+
+	out.Aborted = aborted || len(out.Unfinished) > 0
+
 	out.Packages = len(seen)
-	out.Passed = len(out.Failures) == 0
+	out.Passed = len(out.Failures) == 0 && !out.Aborted
 
 	// A setup failure — a target that matches nothing, a bad flag — has no
 	// build output to borrow, and go test explains it on stderr.
@@ -262,7 +293,20 @@ func runGoTests(ctx context.Context, root, module, target, run string) (testRepo
 		}
 	}
 
-	if out.Passed && out.Packages == 0 {
+	switch {
+	case out.Aborted:
+		// The distinction matters: a test left mid-flight can at least be
+		// named, while a test that never started emits no event at all and is
+		// invisible. Both mean the same thing for the caller — this result is
+		// not the whole package — but only one of them can be listed.
+		out.Note = "The test binary aborted, most likely a panic. "
+		if len(out.Unfinished) > 0 {
+			out.Note += fmt.Sprintf("%d test(s) were left mid-flight (see unfinished), and ", len(out.Unfinished))
+		}
+		out.Note += "Any test scheduled after the abort never started — go test emits nothing for those, so " +
+			"they cannot be listed and this result is NOT a full picture of the package. Re-run with the " +
+			"'run' argument excluding the failing test to see the rest."
+	case out.Passed && out.Packages == 0:
 		out.Note = "no test packages matched " + pkg + " — check the target path"
 	}
 
