@@ -449,3 +449,10 @@ func loadScenarioSource(t wrapTest, scenarioName, srcName string) (src string) {
 
 	return string(out)
 }
+
+// errorOf drops the metadata Create answers with, leaving the error the
+// assertions here care about. Create gained the extra return when records
+// started reporting per-write metadata; every call site in these tests still
+// passed its single result straight to NoError, so the package stopped
+// compiling and its tests stopped running.
+func errorOf(_ []map[string]any, err error) error { return err }

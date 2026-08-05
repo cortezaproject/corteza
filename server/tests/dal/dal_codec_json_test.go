@@ -56,7 +56,7 @@ func Test_dal_codec_json(t *testing.T) {
 	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dal.FullService) {
 		_, err := svc.ReplaceModel(ctx, nil, model)
 		h.a.NoError(err)
-		h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(), &rIn))
+		h.a.NoError(errorOf(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(), &rIn)))
 
 		h.a.NoError(svc.Lookup(ctx, model.ToFilter(), dal.LookupOperations(), dal.PKValues{"id": rIn.ID}, &rOut))
 

@@ -159,7 +159,7 @@ func TestSortingAndPagination(t *testing.T) {
 			}
 
 			for _, rec := range rr {
-				req.NoError(ds.Create(ctx, mod.ModelRef(), dal.CreateOperations(), rec))
+				req.NoError(errorOf(ds.Create(ctx, mod.ModelRef(), dal.CreateOperations(), rec)))
 			}
 
 			return req, rr
