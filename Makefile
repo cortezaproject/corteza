@@ -22,7 +22,7 @@ dev-all:
 	(sleep 4 && ss -tlnp | awk '/127\.0\.0\.1:51/{split($$4,a,":");print a[2]}' | sort | while read port; do cmd.exe /c start "http://localhost:$$port" </dev/null; sleep 2; done) & \
 	wait
 
-test: test-lib test-client test-server
+test: test-lib test-client test-compile test-server
 
 test-lib:
 	@echo "---Testing lib---"
@@ -35,6 +35,20 @@ test-client:
 test-server:
 	@echo "---Testing server---"
 	@(cd $(CURDIR)/server && make test) || (echo "Failed to test server"; exit 1)
+
+# Fails when any Go package cannot BUILD its test binary.
+#
+# `go test ./...` prints "[build failed]" for such a package and carries on, so
+# its tests silently stop running and nothing says so. federation/service sat
+# like that for three weeks with ten tests dormant, nine of which passed once it
+# compiled again; running this found three more packages in the same state.
+#
+# -run='^$' matches no test, so every test binary is compiled and none execute:
+# about 35 seconds for the whole tree.
+test-compile:
+	@echo "---Checking every package compiles its tests---"
+	@(cd $(CURDIR)/server && go test -run='^$$' ./... >/dev/null) || \
+		(echo "A package cannot compile its tests — its coverage is silently off. Run: cd server && go test -run='^\$$' ./..."; exit 1)
 
 lint:
 	@echo "---Linting libs---"
