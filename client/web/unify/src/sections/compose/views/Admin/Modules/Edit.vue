@@ -993,7 +993,14 @@ async function handleClone() {
 async function handleDelete() {
   deleting.value = true
   try {
-    await moduleStore.delete({ moduleID: module.value.moduleID })
+    // namespaceID is required: the API client refuses the call before it
+    // reaches the network without it, which is how deleting from this view
+    // failed with "field namespaceID is empty" while the module list — which
+    // passes both — worked fine.
+    await moduleStore.delete({
+      namespaceID: module.value.namespaceID,
+      moduleID: module.value.moduleID,
+    })
     initialModule.value = cloneDeep(module.value)
     $toast.toastSuccess(t('notification.module.deleted'))
     router.push({ name: 'admin.modules' })
