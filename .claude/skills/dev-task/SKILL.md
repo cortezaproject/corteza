@@ -14,6 +14,13 @@ Two rules govern everything below:
   the human doing your job.
 - **Nothing is true because a report said so.** Not a subagent's transcript, not
   a green test, not your own earlier reasoning. Claims get re-run.
+- **A statement about what the software does is a claim, and a claim needs the
+  file open.** Not the call site skimmed, not the function's name read, not the
+  argument list inferred from. Twice in one afternoon a defect was asserted from
+  unread code and both were wrong: a toast helper was assumed to _replace_ the
+  server's message when it _prefixes_ it — the proof was in the bug report's own
+  text — and a project lock was blamed for a failure it had nothing to do with.
+  Reading the file takes a minute; a wrong diagnosis costs an investigation.
 
 ## How to ask
 
