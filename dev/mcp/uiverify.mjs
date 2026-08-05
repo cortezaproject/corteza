@@ -77,11 +77,33 @@ function credentials () {
 async function settle (page, selector) {
   const target = selector || input.waitFor || 'header'
 
+  // The app exchanges its session for a token through a full-page oauth
+  // handshake on every load: a deep link bounces through /auth/callback and
+  // then back to where it was going, and the whole trip takes seconds. Reading
+  // the URL before it lands reports the callback, or the home page, and makes
+  // working deep links look broken — which is exactly what it did.
+  try {
+    await page.waitForURL(url => !url.pathname.startsWith('/auth/'), { timeout: 30000 })
+  } catch {
+    out.consoleErrors.push('(driver) still on the auth server after 30s; the login may not have completed')
+    return
+  }
+
   try {
     await page.locator(target).first().waitFor({ state: 'visible', timeout: 15000 })
   } catch {
     out.consoleErrors.push(`(driver) never saw "${target}"; the page may not have finished rendering`)
-    await page.waitForTimeout(2000)
+  }
+
+  // Then wait for the URL to stop moving. The app rewrites it after mount —
+  // adding list query parameters, for one — so a URL read the instant the
+  // header appears is not the URL the user ends up on.
+  let previous = ''
+  for (let i = 0; i < 20; i++) {
+    const current = page.url()
+    if (current === previous) return
+    previous = current
+    await page.waitForTimeout(400)
   }
 }
 
@@ -157,13 +179,6 @@ try {
       await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {})
       await settle(page)
 
-      // A short settle after that, because the default wait target (the app
-      // header) is present on every page: it is satisfied instantly by the
-      // page we came FROM, so a client-side route change is still in flight
-      // when the URL is read. Without this, a click that navigated correctly
-      // reports the URL it started on — which reads as "the click did nothing".
-      await page.waitForTimeout(1000)
-
       out.steps.push({ ...step, ok: true, urlAfter: page.url() })
     } catch (e) {
       // A failed step is a result, not a crash: what the page looked like when
@@ -172,8 +187,6 @@ try {
       break
     }
   }
-
-  await page.waitForTimeout(500)
 
   out.url = page.url()
   out.title = await page.title()
