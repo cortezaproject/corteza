@@ -8,8 +8,6 @@ var phrasesEN = []string{
 	"disregard previous",
 	"forget everything",
 	"you are now",
-	"new instructions",
-	"act as",
 	"pretend to be",
 	"do not follow",
 	"override your",
