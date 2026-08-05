@@ -3,17 +3,18 @@
     <!-- Toolbar -->
     <div v-if="recordListModule" class="flex items-center gap-2 p-3 border-b">
       <!-- Add Record button (inline mode: prepend new row; otherwise: navigate) -->
-      <Button
-        v-if="
-          !options.hideAddButton &&
-          recordListModule?.canCreateRecord &&
-          (options.editable || recordPageID)
-        "
-        :label="$t('block.recordList.addRecord')"
-        icon="pi pi-plus"
-        size="small"
-        @click="options.editable ? addInlineRecord() : handleAddRecord()"
-      />
+      <span
+        v-if="!options.hideAddButton && recordListModule?.canCreateRecord"
+        v-tooltip.bottom="addRecordDisabled ? $t('block.noRecordPage') : ''"
+      >
+        <Button
+          :label="$t('block.recordList.addRecord')"
+          icon="pi pi-plus"
+          size="small"
+          :disabled="addRecordDisabled"
+          @click="options.editable ? addInlineRecord() : handleAddRecord()"
+        />
+      </span>
 
       <!-- Import button -->
       <RecordImporter
@@ -246,7 +247,9 @@
 
       <div class="flex-1" />
 
-      <template v-if="canSelectRecords && selectedRecords.length && (options.selectionButtons || []).length">
+      <template
+        v-if="canSelectRecords && selectedRecords.length && (options.selectionButtons || []).length"
+      >
         <AutomationButtons
           :buttons="options.selectionButtons || []"
           :namespace="namespace"
@@ -560,11 +563,7 @@
             size="small"
             @click="cancelFieldPicker"
           />
-          <Button
-            :label="$t('general.label.apply')"
-            size="small"
-            @click="applyFieldPicker"
-          />
+          <Button :label="$t('general.label.apply')" size="small" @click="applyFieldPicker" />
         </div>
       </template>
     </Dialog>
@@ -739,6 +738,11 @@ const recordListModule = computed(() => {
 })
 
 // Find the record page for this module (page with matching moduleID)
+// Disabled rather than hidden when there is no record page to open: the button
+// used to vanish, which told nobody why. Inline editing needs no destination,
+// so it is never disabled in that mode.
+const addRecordDisabled = computed(() => !options.value.editable && !recordPageID.value)
+
 const recordPageID = computed(() => {
   // When using custom routes, we don't need a public record page
   if ($recordRoutes) return 'admin'
@@ -1044,7 +1048,7 @@ async function handleDenyInline(record, index) {
 async function handleSaveDirtyRecords() {
   if (!recordListModule.value) return
   // Collect: if rows selected, only those; otherwise all dirty
-  const toSave = records.value.filter((r) => {
+  const toSave = records.value.filter(r => {
     if (!showSaveAction(r)) return false
     if (selectedRecords.value.length > 0) {
       return selectedRecords.value.some(s => getRecordKey(s) === getRecordKey(r))
@@ -1312,8 +1316,8 @@ async function fetchRecords(resetCursor = false) {
   }
 }
 
-const searchSubmittable = computed(() =>
-  (props.block.options?.searchSubmitMode || 'typing') === 'submit',
+const searchSubmittable = computed(
+  () => (props.block.options?.searchSubmitMode || 'typing') === 'submit',
 )
 
 const commitSearch = () => {
