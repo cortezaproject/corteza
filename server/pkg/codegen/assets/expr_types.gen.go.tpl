@@ -108,7 +108,7 @@ func (t {{ $exprType }}) Compare(to TypedValue) (int, error) {
 func (t *{{ $exprType }}) AssignFieldValue(key string, val TypedValue) error {
 	t.mux.Lock()
 	defer t.mux.Unlock()
-	return {{ $def.AssignerFn }}(t.value, key, val)
+	return {{ $def.AssignerFn }}({{ if not (hasPtr $def.As) }}&{{ end }}t.value, key, val)
 }
 {{ end }}
 
@@ -191,7 +191,9 @@ func {{ unexport $exprType "TypedValueSelector" }}(res {{ $def.As }}, k string) 
 
 {{ if $def.BuiltInAssignerFn }}
 // {{ $def.AssignerFn }} is field value setter for {{ $def.As }}
-func {{ $def.AssignerFn }}(res {{ $def.As }}, k string, val interface{}) (error) {
+//
+// Value types are passed by pointer, otherwise assigned values are lost
+func {{ $def.AssignerFn }}(res {{ if not (hasPtr $def.As) }}*{{ end }}{{ $def.As }}, k string, val interface{}) (error) {
 	switch k {
 {{- range $def.Struct }}
 	case {{ printf "%q" .Name }}{{ if .Alias }}, {{ printf "%q" .Alias }}{{ end }}:

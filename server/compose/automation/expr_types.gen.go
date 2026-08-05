@@ -172,6 +172,8 @@ func attachmentTypedValueSelector(res *types.Attachment, k string) (TypedValue, 
 }
 
 // assignToAttachment is field value setter for *types.Attachment
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToAttachment(res *types.Attachment, k string, val interface{}) error {
 	switch k {
 	case "ID":
@@ -372,6 +374,8 @@ func composeModuleTypedValueSelector(res *types.Module, k string) (TypedValue, e
 }
 
 // assignToComposeModule is field value setter for *types.Module
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToComposeModule(res *types.Module, k string, val interface{}) error {
 	switch k {
 	case "ID", "moduleID":
@@ -560,6 +564,8 @@ func composeNamespaceTypedValueSelector(res *types.Namespace, k string) (TypedVa
 }
 
 // assignToComposeNamespace is field value setter for *types.Namespace
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToComposeNamespace(res *types.Namespace, k string, val interface{}) error {
 	switch k {
 	case "ID", "namespaceID":
@@ -751,6 +757,8 @@ func composeRecordTypedValueSelector(res *types.Record, k string) (TypedValue, e
 }
 
 // assignToComposeRecord is field value setter for *types.Record
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToComposeRecord(res *types.Record, k string, val interface{}) error {
 	switch k {
 	case "ID", "recordID":
