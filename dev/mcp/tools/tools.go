@@ -31,6 +31,7 @@ func Register(reg *mcpkit.Registry, root string) {
 	registerServerStatus(reg, root)
 	registerServerLogs(reg, root)
 	registerFixtureCleanup(reg, root)
+	registerUIVerify(reg, root)
 }
 
 // runner executes one command in the repository and returns its trimmed stdout.

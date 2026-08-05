@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -127,4 +128,25 @@ func relativeTo(root, path string) string {
 func sortedStrings(in []string) []string {
 	sort.Strings(in)
 	return in
+}
+
+// readFirstMatch pulls the text between two markers out of a file, for reading
+// a default out of a config rather than duplicating it here.
+func readFirstMatch(path, open, close string) (string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	_, rest, ok := strings.Cut(string(raw), open)
+	if !ok {
+		return "", nil
+	}
+
+	value, _, ok := strings.Cut(rest, close)
+	if !ok {
+		return "", nil
+	}
+
+	return value, nil
 }
