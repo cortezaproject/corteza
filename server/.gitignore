@@ -13,6 +13,9 @@ profile.coverprofile
 /public_html
 /build
 /var
+# Test suites write uploads and store data into their own var/ — apigw does,
+# and it shows up as untracked junk after any full test run.
+tests/*/var/
 /TODO
 /gin-bin
 /.vscode
