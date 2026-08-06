@@ -5,7 +5,6 @@ import (
 	"github.com/crusttech/human/server/pkg/expr"
 )
 
-
 func (n lNull) ToAST() *ast.ASTNode {
 	return &ast.ASTNode{
 		Ref: "null",
@@ -132,12 +131,25 @@ func (nn parserNodes) ToAST() *ast.ASTNode {
 			}
 		}
 
+		if bestOpIx < 0 {
+			// Nothing left to reduce: the remaining nodes cannot be folded into
+			// a single expression. parserNodes.Validate rejects the token
+			// sequences that get here, so this is a guard against a reduction
+			// bug rather than bad input — fall through to the group below,
+			// because indexing with -1 would panic on a user-supplied query.
+			break
+		}
+
 		arg := auxArgs[bestOpIx]
 		if !isUnary(arg.Ref) {
 			skip := 2
 			arg.Args = append(arg.Args, auxArgs[bestOpIx-1], auxArgs[bestOpIx+1])
-			if bestOpIx > -1 && len(auxArgs) > bestOpIx+2 {
-				if !isOperator(auxArgs[bestOpIx+2].Ref) {
+			if len(auxArgs) > bestOpIx+2 {
+				// Only absorb a third argument when what follows is an operand.
+				// Testing Ref against isOperator missed every comparison
+				// operator (it knows only and/or/xor), so "a-b = 'c'" swallowed
+				// its own '=' and left an unreducible pair behind.
+				if _, isOp := opDefFromMeta(auxArgs[bestOpIx+2]); !isOp {
 					skip = 3
 					arg.Args = append(arg.Args, auxArgs[bestOpIx+2])
 				}
