@@ -9,8 +9,6 @@
     "src/"
   ],
   "scripts": {
-    "build": "rollup -c --environment BUILD:production",
-    "build:dev": "rollup -c",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "format": "prettier --write src/",
@@ -39,9 +37,6 @@
     "pino": "^9.6.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.2",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.0",
     "@types/chai": "^5.0.1",
     "@types/markdown-it": "^14.1.2",
     "@types/minimatch": "^5.1.2",
@@ -63,8 +58,6 @@
     "js-yaml": "^4.1.0",
     "mocha": "^11.1.0",
     "prettier": "^3.0.0",
-    "rollup": "^4.32.1",
-    "rollup-plugin-typescript2": "^0.36.0",
     "ts-sinon": "2.0.2",
     "tsx": "^4.19.2",
     "typescript": "^5.0.0"
