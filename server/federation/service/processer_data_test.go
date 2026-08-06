@@ -202,7 +202,11 @@ func (s testRecordServicePersistSuccess) Create(_ context.Context, record *ct.Re
 	return nil, nil, nil
 }
 
-func (s testRecordServicePersistSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+// Search, not Find: compose's RecordService renamed the method, and because
+// these fakes embed the interface rather than implementing it, the rename could
+// not fail to compile. Sync.FindRecords called Search, hit the nil embedded
+// interface and panicked — taking the whole package's test binary with it.
+func (s testRecordServicePersistSuccess) Search(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
 	return ct.RecordSet{}, ct.RecordFilter{}, nil
 }
 
@@ -211,7 +215,7 @@ func (s testRecordServiceUpdateSuccess) Update(_ context.Context, record *ct.Rec
 	return nil, nil, nil
 }
 
-func (s testRecordServiceUpdateSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+func (s testRecordServiceUpdateSuccess) Search(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
 	return ct.RecordSet{&ct.Record{ID: 2}}, ct.RecordFilter{}, nil
 }
 
@@ -220,7 +224,7 @@ func (s testRecordServiceDeleteSuccess) DeleteByID(_ context.Context, namespaceI
 	return nil
 }
 
-func (s testRecordServiceDeleteSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+func (s testRecordServiceDeleteSuccess) Search(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
 	return ct.RecordSet{&ct.Record{ID: 2, ModuleID: 2, NamespaceID: 2}}, ct.RecordFilter{}, nil
 }
 
