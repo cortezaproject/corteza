@@ -101,7 +101,7 @@ func (h *taqHandler) register() {
 					"no step ran. A frame with a populated 'args' proves the arguments bound and nothing more — "+
 					"where the step has a visible effect, check for that effect separately.",
 			),
-			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier, unique among TAQs in the same project. This is what automation_taq_lookup searches and what automation_taq_exec resolves, so a TAQ without one can only ever be reached by its numeric ID.")),
+			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier, unique among TAQs in the same project. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed. This is what automation_taq_lookup searches and what automation_taq_exec resolves, so a TAQ without one can only ever be reached by its numeric ID.")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Human-readable name, shown in listings.")),
 			mcp.WithString("description", mcp.Description("What this TAQ is for.")),
 			mcp.WithBoolean("enabled", mcp.Description("Whether the TAQ is live. Defaults to true. False leaves its triggers unregistered AND makes automation_taq_exec refuse it, so it cannot be tested while disabled.")),

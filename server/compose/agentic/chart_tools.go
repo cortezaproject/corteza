@@ -39,7 +39,7 @@ func (h *chartHandler) register() {
 			mcp.WithDescription("Create a chart in a namespace. After creating, place it on a page with a Chart block: {\"kind\":\"Chart\",\"options\":{\"chartID\":\"<created ID>\"}}."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Chart name")),
-			mcp.WithString("handle", mcp.Description("URL-friendly identifier")),
+			mcp.WithString("handle", mcp.Description("URL-friendly identifier. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed.")),
 			mcp.WithString("config", mcp.Required(), mcp.Description(chartConfigDoc)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),

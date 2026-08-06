@@ -92,7 +92,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("title", mcp.Description("New title. An empty string is ignored — a page cannot be left without a title.")),
-			mcp.WithString("handle", mcp.Description("New handle. Pass an empty string to clear it.")),
+			mcp.WithString("handle", mcp.Description("New handle. Pass an empty string to clear it. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed.")),
 			mcp.WithString("description", mcp.Description("New description. Pass an empty string to clear it.")),
 			mcp.WithString("parent", mcp.Description("New parent page title, handle, or ID (as string to prevent precision loss). Pass an empty string to move the page to the root.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID (as string to prevent precision loss) for record detail pages. Pass an empty string to unlink the module.")),

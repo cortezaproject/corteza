@@ -101,7 +101,7 @@ func (h *workflowHandler) register() {
 					"Verify with automation_workflow_exec once created — storing and running are different "+
 					"claims.",
 			),
-			mcp.WithString("handle", mcp.Required(), mcp.Description("Unique handle, e.g. \"order_sync\". Must start with a letter, be at least 2 characters, and use only letters, digits, underscores, dashes and dots. Handles are unique across the whole instance, not per project, and a taken one is refused.")),
+			mcp.WithString("handle", mcp.Required(), mcp.Description("Unique handle, e.g. \"order_sync\". Must start with a letter, be at least 2 characters, and use only letters, digits, underscores, dashes and dots — but prefer snake_case: a hyphen is the subtraction operator wherever an identifier is parsed. Handles are unique across the whole instance, not per project, and a taken one is refused.")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name shown in the workflow list and editor. A workflow without one is refused.")),
 			mcp.WithString("description", mcp.Description("What this workflow is for. Shown in the workflow editor.")),
 			mcp.WithBoolean("enabled", mcp.Description("Whether the workflow may run. Defaults to true. A disabled workflow keeps its definition but never fires, and automation_workflow_exec reports it as not found. It is also left out of the automation_workflow_lookup listing unless includeDisabled is set — but it still resolves by handle, so it can be enabled again without its ID.")),
