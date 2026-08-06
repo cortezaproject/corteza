@@ -114,7 +114,10 @@ func commit(ctx context.Context, root string, in commitInput) (*mcp.CallToolResu
 	}
 
 	if len(in.Files) > 0 {
-		if _, err := git(ctx, append([]string{"add", "--"}, in.Files...)...); err != nil {
+		// -A so a deleted path still stages: plain `git add -- <path>` fails
+		// with "pathspec did not match any files" when the file is gone, which
+		// makes naming a file you just removed an error rather than a commit.
+		if _, err := git(ctx, append([]string{"add", "-A", "--"}, in.Files...)...); err != nil {
 			return nil, err
 		}
 	}
