@@ -17,7 +17,17 @@ module). Confirm the design with the human if scope is ambiguous.
 
 ## Phase 2 — Data model (REST, never envoy YAML for live builds)
 
-All handles/slugs `agent-` prefixed. Base: `dev/agent/api.sh`.
+All handles/slugs `agent-` prefixed (that prefix is what `dev/agent/cleanup.sh`
+matches on — don't change its shape). Base: `dev/agent/api.sh`.
+
+**Everything you name after the prefix is snake_case** — module and page and
+chart and TAQ handles, and every module field name. Underscores only, never
+hyphens or dots. A hyphen is the subtraction operator everywhere an identifier
+is parsed: a field named `close-date` lexes as `close` minus `date`, so any
+prefilter, presort, chart dimension or `record.values.` expression naming it
+breaks. Neither the API nor the webapp validator stops you creating one
+(`FieldNameValidator` in `lib/js/src/compose/types/module-field/base.ts` admits
+`-`), so the discipline has to come from here.
 
 1. Namespace: `POST /compose/namespace/ {"name", "slug", "enabled": true}`
 2. Modules: `POST /compose/namespace/{ns}/module/` with
@@ -82,6 +92,61 @@ What the schemas cannot express (layout semantics):
 Workflows and TAQs are API-created only (not envoy-importable here). Check
 `server/automation/rest/` and TAQ handlers for payload shapes when needed —
 verify with a GET of an existing resource before inventing shapes.
+
+**Default to a TAQ. Reach for a workflow only when a TAQ provably cannot do
+it.** A TAQ reports `issues` and `runnable` on every write, so a malformed
+automation says so at authoring time; a workflow stores clean and fails
+silently at run time, visible only in `logs.sh` under `workflow.session.exec`.
+A TAQ also holds triggers + steps in one resource, supports per-step
+`maxRetries`/`recoverable`, and is what the MCP tooling targets. Evaluate
+before building — a TAQ can only do what the construct library covers:
+
+```sh
+dev/agent/api.sh GET /automation/construct-library/functions   # 17 step refs
+dev/agent/api.sh GET /automation/construct-library/triggers    # 22 rt/et pairs
+dev/agent/mcp.py schema automation_taq_create                  # full contract
+```
+
+If the function or trigger the task needs is absent there, say so and ask the
+human before falling back — a workflow reaches the full 93-entry registry
+(`GET /automation/functions/`), but 78 of those are unavailable to a TAQ, so
+the fallback is a real trade, not a formality.
+
+TAQ gotchas that cost real time:
+
+- **Trigger constraint names must be bare, and `@type` picks the field.**
+  `prepConstraintBits` (`server/automation/service/ng_automation.go`) appends a
+  suffix from the value type: `String`→`.name`, `Handle`→`.handle`, `ID`→`.id`.
+  So `{"name":"namespace","@type":"Handle"}` matches `namespace.handle`;
+  writing `{"name":"namespace.handle","@type":"String"}` silently builds
+  `namespace.handle.name`, matches nothing, and only logs at Debug. The TAQ
+  still reports `runnable: true` — a clean write is not a working trigger.
+- Step kinds are exactly `function`, `iterator`, `gatewayExclusive`,
+  `gatewayInclusive`, `termination`, `error`. There is **no `expressions`
+  step** — that is a workflow kind.
+- Arguments bind by `argumentName` (workflows use `target`), and `type` must
+  be spelled exactly as the parameter's `types` array lists it.
+- **Always author `paths` explicitly; never send `[]`.** The create contract
+  says a lone trigger and lone step are wired together for you, and they are —
+  but only in the runtime registration, never in what is stored. `paths` stays
+  empty, so the TAQ runs correctly while the builder canvas draws two
+  disconnected chains, each ending in its own `End`, which reads as broken to
+  anyone who opens it. Send `[{"parentID":"<triggerID>","childID":"<stepID>"}]`.
+- Automation updates are **PUT** `/automation/{workflows,triggers}/{id}` — the
+  reverse of compose's POST — and live under `/api/automation/`.
+- A `compose:record` automation has **no `invoker` in scope**. `EncodeVars`
+  (`server/compose/service/event/events.gen.go`) provides only `record`,
+  `oldRecord`, `module`, `namespace`, `recordValueErrors`; "who did this" is
+  `record.createdBy`.
+
+Always fire a real probe record and confirm the effect (the notification row,
+the updated field), then check a near-miss case does *not* fire. Delete the
+probe records afterwards.
+
+**Render-verify the graph too** — a correct-at-runtime automation can still be
+drawn wrong, and the API cannot see it:
+`node dev/agent/verify-ui.mjs '/taq/builder/<automationID>'`, then Read the
+screenshot and confirm one connected chain from trigger to `End`.
 
 ## Phase 6 — Verify + hand over
 
