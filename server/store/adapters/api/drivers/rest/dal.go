@@ -122,7 +122,7 @@ func RunnerFromConnection(conn *systemTypes.Connection, connectionID uint64) (*r
 			dsn.APIKey = tpl.Value
 		case "APIKeyHeader":
 			dsn.APIKeyHeader = tpl.Value
-		case "token":
+		case "token", "apiToken":
 			dsn.Token = tpl.Value
 		case "username":
 			dsn.Username = tpl.Value

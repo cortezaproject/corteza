@@ -61,11 +61,17 @@ func (svc *restAPIWrapper) Execute(ctx context.Context, method, path string, hea
 
 func (svc *restAPIWrapper) appendAuth(ctx context.Context, client *httpClient) (_ *httpClient, err error) {
 	switch strings.ToLower(svc.dsn.AuthType) {
+	case "none", "":
+		// noop, connection needs no authentication
+		break
+
 	case "basic":
 		// noop, handled by URL construction
 		break
 
-	case "bearer":
+	case "bearer", "api_token":
+		// api_token is the catalog method name for a single token
+		// credential sent as "Authorization: Bearer <token>".
 		return svc.appendAuthBearer(client, svc.dsn.Token)
 
 	case "apikey":

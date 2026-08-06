@@ -450,17 +450,7 @@ func (svc *configuredConnection) checkAuth(ctx context.Context, r connectionRunn
 		return types.ConfiguredConnectionCheckStatus{OK: false, Message: "network error: " + err.Error()}
 	}
 
-	if err != nil {
-		if statusCode == 404 || statusCode == 405 {
-			// If the server returns Not Found or Method Not Allowed for the root path,
-			// it means the request successfully passed the authentication layer.
-			return types.ConfiguredConnectionCheckStatus{OK: true}
-		}
-
-		// some other HTTP error >= 400
-		return types.ConfiguredConnectionCheckStatus{OK: false, Message: fmt.Sprintf("API returned HTTP %d", statusCode)}
-	}
-
+	// Any status code means the request passed the auth layer; only 401/403 (handled above) indicate an auth problem.
 	return types.ConfiguredConnectionCheckStatus{OK: true}
 }
 
@@ -852,6 +842,21 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 			}
 			for k, v := range in.Dict() {
 				vars[k] = v
+			}
+
+			// Apply operation input defaults for arguments the caller left empty, so template placeholders resolve.
+			for _, ip := range op.Input {
+				if ip.Meta == nil {
+					continue
+				}
+				if v, ok := vars[ip.Name]; ok {
+					if s, isStr := v.(string); !isStr || s != "" {
+						continue
+					}
+				}
+				if d, ok := ip.Meta["default"].(string); ok && d != "" {
+					vars[ip.Name] = d
+				}
 			}
 
 			if dbg, _ := json.Marshal(vars); dbg != nil {
