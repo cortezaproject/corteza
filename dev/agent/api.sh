@@ -30,6 +30,15 @@ if errmsg=$(json_get error.message <"$body" 2>/dev/null); then
   echo "API error (HTTP $status): $errmsg" >&2
   exit 1
 fi
+
+# Record namespace creates so cleanup.sh knows what this session made. Only
+# creates (POST to the collection, no ID in the path) qualify — an update is a
+# POST to .../namespace/{id} and must not be logged as a new resource.
+if [[ "$method" == "POST" && "$path" =~ ^/compose/namespace/?(\?.*)?$ ]]; then
+  if ns_id=$(json_get response.namespaceID <"$body" 2>/dev/null); then
+    ledger_record namespace "$ns_id" "$(json_get response.slug <"$body" 2>/dev/null || true)"
+  fi
+fi
 python3 -m json.tool <"$body" 2>/dev/null || {
   cat "$body"
   echo

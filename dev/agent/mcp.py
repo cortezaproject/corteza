@@ -14,6 +14,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 import urllib.parse
 import urllib.request
 
@@ -86,6 +87,31 @@ def session():
     return sid
 
 
+def ledger_record_namespace(tool, payload):
+    """Record a namespace created through MCP, so cleanup.sh can find it.
+
+    Mirrors the hook in api.sh: the ledger is the only thing cleanup deletes on,
+    so a creation path that skips it leaves scratch behind forever.
+    """
+    if tool != "compose_namespace_create" or not isinstance(payload, dict):
+        return
+
+    nsid = payload.get("namespaceID")
+    if not nsid:
+        return
+
+    entry = {
+        "kind": "namespace",
+        "id": str(nsid),
+        "slug": payload.get("slug", ""),
+        "session": os.environ.get("CLAUDE_CODE_SESSION_ID", "unknown"),
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+    }
+    ledger = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".state", "created.jsonl")
+    with open(ledger, "a") as fh:
+        fh.write(json.dumps(entry) + "\n")
+
+
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in ("tools", "schema", "call"):
         sys.exit(__doc__)
@@ -115,7 +141,10 @@ def main():
     for c in result.get("content", []):
         text = c.get("text", "")
         try:
-            print(json.dumps(json.loads(text), indent=1))
+            payload = json.loads(text)
+            print(json.dumps(payload, indent=1))
+            if not result.get("isError"):
+                ledger_record_namespace(name, payload)
         except (json.JSONDecodeError, TypeError):
             print(text)
     if result.get("isError"):

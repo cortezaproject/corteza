@@ -66,3 +66,33 @@ server_cli() {
   fi
   (cd "$SERVER_DIR" && "$bin" --env-file .env "$@")
 }
+
+# --- created-resource ledger -------------------------------------------------
+#
+# Everything the toolkit creates on the dev server is recorded here, and
+# cleanup.sh deletes ONLY what it finds in this file. Nothing else is ever a
+# candidate: not a slug pattern, not a label, not an author. A marker carried
+# in the data can be renamed, cleared by an update that omits the field, or
+# imitated — a ledger cannot, and if it is lost the worst case is that scratch
+# survives rather than that something real is deleted.
+#
+# .state/ is gitignored, so the ledger is local to this machine.
+LEDGER="$STATE_DIR/created.jsonl"
+
+# The session that created a resource, so a session can clean up after itself
+# without touching a concurrent one's work. Falls back to a constant when the
+# harness does not export one — those entries are still cleanable with --all.
+AGENT_SESSION="${CLAUDE_CODE_SESSION_ID:-unknown}"
+
+# ledger_record KIND ID SLUG — append one created resource.
+ledger_record() {
+  python3 -c '
+import json, os, sys
+kind, rid, slug, session, path = sys.argv[1:6]
+with open(path, "a") as fh:
+    fh.write(json.dumps({
+        "kind": kind, "id": rid, "slug": slug,
+        "session": session, "ts": __import__("time").strftime("%Y-%m-%dT%H:%M:%S%z"),
+    }) + "\n")
+' "$1" "$2" "${3:-}" "$AGENT_SESSION" "$LEDGER"
+}
