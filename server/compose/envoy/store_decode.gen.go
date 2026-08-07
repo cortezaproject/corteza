@@ -492,6 +492,12 @@ func NamespaceToEnvoyNode(r *types.Namespace) (node *envoyx.Node, err error) {
 	// Handle references
 	// Omit any non-defined values
 	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
 	if r.CreatedByAgent > 0 {
 		refs["CreatedByAgent"] = envoyx.Ref{
 			ResourceType: "corteza::system:agent",

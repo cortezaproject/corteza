@@ -85,6 +85,7 @@ var (
 		fix_2026_07_30_addArchivedAtOnProjects,
 		fix_2026_07_30_backfillProjectRefOnComposeResources,
 		fix_2026_07_31_addApprovalOnProjects,
+		fix_2026_08_06_addCreatedByOnComposeNamespace,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -378,6 +379,13 @@ func fix_2026_05_00_addSourceOnConnections(ctx context.Context, s *Store) (err e
 		"connections",
 		&dal.Attribute{Ident: "source", Type: &dal.TypeText{Length: 1024, HasDefault: true, DefaultValue: ""}},
 	)
+}
+
+// Namespaces record their author so cleanup and auditing can ask who made a
+// resource without reading it out of the slug. Existing rows keep 0 — the
+// information was never stored, so there is nothing to backfill from.
+func fix_2026_08_06_addCreatedByOnComposeNamespace(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s, model.Namespace.Ident, model.Namespace.Attributes.FindByIdent("CreatedBy"))
 }
 
 func fix_2026_05_00_addCreatedByAgentToComposeResources(ctx context.Context, s *Store) (err error) {

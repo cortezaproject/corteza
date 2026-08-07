@@ -1344,6 +1344,25 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 
 		switch strings.ToLower(k.Value) {
 
+		case "createdby":
+			// Handle references
+			err = y7s.DecodeScalar(n, "createdBy", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["CreatedBy"] = envoyx.Ref{
+				ResourceType: "corteza::system:user",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
 		case "createdbyagent":
 			// Handle references
 			err = y7s.DecodeScalar(n, "createdByAgent", &auxNodeValue)

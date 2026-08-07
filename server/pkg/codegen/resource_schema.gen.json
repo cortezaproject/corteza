@@ -1401,6 +1401,7 @@
   "createdAt": "time.Time",
   "updatedAt": "time.Time",
   "deletedAt": "time.Time",
+  "createdBy": "uint64",
   "createdByAgent": "uint64"
 } },
   { "page": {

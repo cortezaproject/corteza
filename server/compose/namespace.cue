@@ -59,6 +59,7 @@ namespace: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
+			created_by: schema.AttributeUserRef & {json: {field: "createdBy", string: true}}
 			created_by_agent: schema.AttributeAgentRef
 		}
 

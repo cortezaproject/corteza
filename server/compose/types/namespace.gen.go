@@ -28,6 +28,7 @@ type (
 		CreatedAt      time.Time                        `json:"createdAt,omitempty"`
 		UpdatedAt      *time.Time                       `json:"updatedAt,omitempty"`
 		DeletedAt      *time.Time                       `json:"deletedAt,omitempty"`
+		CreatedBy      uint64                           `json:"createdBy,string"`
 		CreatedByAgent uint64                           `json:"createdByAgent,string,omitempty"`
 		Labels         map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 	}
@@ -111,6 +112,10 @@ func (r Namespace) Diff(cmp *Namespace) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.DeletedAt, cmp.DeletedAt) {
 		out = append(out, &revisions.Change{Key: "deletedAt", Old: []any{cmp.DeletedAt}, New: []any{r.DeletedAt}})
+	}
+
+	if r.CreatedBy != cmp.CreatedBy {
+		out = append(out, &revisions.Change{Key: "createdBy", Old: []any{cmp.CreatedBy}, New: []any{r.CreatedBy}})
 	}
 
 	if r.CreatedByAgent != cmp.CreatedByAgent {

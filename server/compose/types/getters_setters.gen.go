@@ -302,6 +302,8 @@ func (r *Namespace) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
 	case "createdByAgent", "CreatedByAgent":
 		return r.CreatedByAgent, nil
 	case "deletedAt", "DeletedAt":
@@ -333,6 +335,8 @@ func (r *Namespace) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
 	case "createdByAgent", "CreatedByAgent":
 		return cast2.Uint64(value, &r.CreatedByAgent)
 	case "deletedAt", "DeletedAt":

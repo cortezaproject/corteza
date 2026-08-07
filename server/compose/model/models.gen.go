@@ -655,6 +655,19 @@ var Namespace = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
 			Ident: "CreatedByAgent",
 			Type: &dal.TypeRef{HasDefault: true,
 				DefaultValue: 0,

@@ -420,6 +420,10 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 	if err != nil {
 		return
 	}
+	auxCreatedBy, err := e.encodeRef(p, res.CreatedBy, "CreatedBy", node, tt)
+	if err != nil {
+		return
+	}
 	auxCreatedByAgent, err := e.encodeRef(p, res.CreatedByAgent, "CreatedByAgent", node, tt)
 	if err != nil {
 		return
@@ -436,6 +440,7 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 
 	out, err = y7s.AddMap(out,
 		"createdAt", auxCreatedAt,
+		"createdBy", auxCreatedBy,
 		"createdByAgent", auxCreatedByAgent,
 		"deletedAt", auxDeletedAt,
 		"enabled", res.Enabled,

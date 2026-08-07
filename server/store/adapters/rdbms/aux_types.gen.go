@@ -448,6 +448,7 @@ type (
 		CreatedAt      time.Time                 `db:"created_at"`
 		UpdatedAt      *time.Time                `db:"updated_at"`
 		DeletedAt      *time.Time                `db:"deleted_at"`
+		CreatedBy      uint64                    `db:"created_by"`
 		CreatedByAgent uint64                    `db:"created_by_agent"`
 	}
 
@@ -2763,6 +2764,7 @@ func (aux *auxComposeNamespace) encode(res *composeType.Namespace) (_ error) {
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
 	aux.CreatedByAgent = res.CreatedByAgent
 	return
 }
@@ -2782,6 +2784,7 @@ func (aux auxComposeNamespace) decode() (res *composeType.Namespace, _ error) {
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
 	res.CreatedByAgent = aux.CreatedByAgent
 	return
 }
@@ -2801,6 +2804,7 @@ func (aux *auxComposeNamespace) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.CreatedBy,
 		&aux.CreatedByAgent,
 	)
 }

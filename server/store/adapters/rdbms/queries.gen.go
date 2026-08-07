@@ -2891,6 +2891,7 @@ var (
 			"created_at",
 			"updated_at",
 			"deleted_at",
+			"created_by",
 			"created_by_agent",
 		).From(composeNamespaceTable)
 	}
@@ -2911,6 +2912,7 @@ var (
 				"created_at":       res.CreatedAt,
 				"updated_at":       res.UpdatedAt,
 				"deleted_at":       res.DeletedAt,
+				"created_by":       res.CreatedBy,
 				"created_by_agent": res.CreatedByAgent,
 			})
 	}
@@ -2934,6 +2936,7 @@ var (
 						"created_at":       res.CreatedAt,
 						"updated_at":       res.UpdatedAt,
 						"deleted_at":       res.DeletedAt,
+						"created_by":       res.CreatedBy,
 						"created_by_agent": res.CreatedByAgent,
 					},
 				),
@@ -2955,6 +2958,7 @@ var (
 				"created_at":       res.CreatedAt,
 				"updated_at":       res.UpdatedAt,
 				"deleted_at":       res.DeletedAt,
+				"created_by":       res.CreatedBy,
 				"created_by_agent": res.CreatedByAgent,
 			}).
 			Where(composeNamespacePrimaryKeys(res))

@@ -148,6 +148,7 @@ func (svc *namespace) onCreate(ctx context.Context, new *types.Namespace) error 
 
 		new.ID = nextID()
 		new.CreatedAt = *now()
+		new.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
