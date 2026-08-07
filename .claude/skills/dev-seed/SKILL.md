@@ -15,7 +15,8 @@ ref), records, a chart, and pages.
 ```sh
 dev/agent/seed.sh                 # import all fixtures (skips already-seeded)
 dev/agent/seed.sh --force agent-sandbox   # delete + re-import one fixture
-dev/agent/cleanup.sh              # delete ALL agent-* compose namespaces
+dev/agent/cleanup.sh              # delete namespaces THIS session created
+dev/agent/cleanup.sh --all        # every recorded session's namespaces
 ```
 
 Record CSV imports are not idempotent, so `seed.sh` skips a fixture whose

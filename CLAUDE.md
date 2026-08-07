@@ -17,8 +17,10 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   `cleanup.sh`. Pages/charts are built via `dev/agent/pagebuild.py` (never
   via envoy YAML — block refs don't resolve).
 - Building whole systems (datamodel + pages) in Human: `/sys-design` skill.
-- Anything an agent creates on the dev server uses an `agent-` handle/slug
-  prefix — prefixed data is disposable, unprefixed data is off-limits.
+- Everything an agent creates on the dev server is recorded in
+  `dev/agent/.state/created.jsonl`, and `cleanup.sh` deletes only what that
+  ledger holds for the current session. No name prefix is needed or wanted;
+  data the session did not create is off-limits, whatever it is called.
 
 ## Conventions
 

@@ -27,9 +27,11 @@ hand-roll the oauth dance or guess ports — use the toolkit.
 
 ## Rules
 
-- **`agent-` prefix**: every handle/slug you create for testing must start
-  with `agent-`. Prefixed data is disposable (`dev/agent/cleanup.sh` wipes
-  it); unprefixed data belongs to the human — never modify it.
+- **Clean up what you created, and only that**: `api.sh` and `mcp.py` record
+  every namespace they create in `dev/agent/.state/created.jsonl`, tagged with
+  the session. `dev/agent/cleanup.sh` deletes that session's entries and
+  nothing else — anything it did not create is off-limits, whoever made it and
+  whatever it is called. Use snake_case handles; no prefix is needed.
 - Local-only: the toolkit refuses non-localhost hosts. Never point it (or
   copy its patterns) at shared/production instances.
 

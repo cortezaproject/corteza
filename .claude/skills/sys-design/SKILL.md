@@ -17,10 +17,11 @@ module). Confirm the design with the human if scope is ambiguous.
 
 ## Phase 2 — Data model (REST, never envoy YAML for live builds)
 
-All handles/slugs `agent-` prefixed (that prefix is what `dev/agent/cleanup.sh`
-matches on — don't change its shape). Base: `dev/agent/api.sh`.
+No name prefix: `api.sh`/`mcp.py` record what they create in
+`.state/created.jsonl` and `cleanup.sh` deletes only that. Base:
+`dev/agent/api.sh`.
 
-**Everything you name after the prefix is snake_case** — module and page and
+**Everything you name is snake_case** — namespace slugs, module and page and
 chart and TAQ handles, and every module field name. Underscores only, never
 hyphens or dots. A hyphen is the subtraction operator everywhere an identifier
 is parsed: a field named `close-date` lexes as `close` minus `date`, so any
