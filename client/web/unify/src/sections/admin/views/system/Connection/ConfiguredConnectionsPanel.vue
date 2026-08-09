@@ -139,7 +139,44 @@
           :required="param.required"
           :input-id="`param-${param.name}`"
         >
-          <InputText :id="`param-${param.name}`" v-model="paramValues[param.name]" />
+          <Select
+            v-if="fieldKind(param) === 'select'"
+            :input-id="`param-${param.name}`"
+            v-model="paramValues[param.name]"
+            :options="param.options"
+            :placeholder="param.default || ''"
+            show-clear
+            class="w-full"
+          />
+          <Password
+            v-else-if="fieldKind(param) === 'password'"
+            :input-id="`param-${param.name}`"
+            v-model="paramValues[param.name]"
+            toggle-mask
+            :feedback="false"
+            input-class="w-full"
+            class="w-full"
+          />
+          <Textarea
+            v-else-if="fieldKind(param) === 'textarea'"
+            :id="`param-${param.name}`"
+            v-model="paramValues[param.name]"
+            rows="4"
+            auto-resize
+            class="w-full"
+          />
+          <InputNumber
+            v-else-if="fieldKind(param) === 'number'"
+            :input-id="`param-${param.name}`"
+            v-model="paramValues[param.name]"
+            class="w-full"
+          />
+          <InputText
+            v-else
+            :id="`param-${param.name}`"
+            v-model="paramValues[param.name]"
+            class="w-full"
+          />
         </CFormGroup>
       </div>
     </Form>
@@ -266,6 +303,40 @@ const configuredConnectionFields = [
   },
 ]
 
+// Pick the input control for a param from its declared type / options / name.
+function fieldKind(param) {
+  if (param.options && param.options.length) return 'select'
+  const t = String(param.type || '').toLowerCase()
+  if (['password', 'secret'].includes(t)) return 'password'
+  if (['textarea', 'multiline', 'json'].includes(t)) return 'textarea'
+  if (['number', 'integer', 'int', 'float'].includes(t)) return 'number'
+  // Fall back to a masked field for secret-looking names.
+  if (/(password|secret|token|apikey|api_key|private_?key|client_?secret)/i.test(param.name)) {
+    return 'password'
+  }
+  return 'text'
+}
+
+// Pull a readable string out of an API error so toasts never show [object Object].
+// Returns '' when nothing usable is found — the translated prefix stands alone.
+function extractError(e) {
+  if (!e) return ''
+  if (typeof e === 'string') return e
+  const cand =
+    e.message ?? e.error ?? e.response?.data?.error?.message ?? e.response?.data?.error
+  if (typeof cand === 'string') return cand
+  if (cand && typeof cand === 'object') return cand.message || JSON.stringify(cand)
+  const s = e.toString?.()
+  return s && s !== '[object Object]' ? s : ''
+}
+
+// Show an error toast: translated prefix, plus the server detail when present.
+function toastError(prefixKey, e) {
+  const prefix = t(prefixKey)
+  const detail = extractError(e)
+  $toast.toastDanger(detail ? `${prefix}: ${detail}` : prefix)
+}
+
 const uniqueDerivedParams = computed(() => {
   const params = props.connection?.derivedParams || []
   const seen = new Set()
@@ -323,15 +394,18 @@ function initParamValues(existingParams = []) {
   Object.keys(paramValues).forEach(k => delete paramValues[k])
   for (const dp of uniqueDerivedParams.value) {
     const existing = existingParams.find(p => p.name === dp.name)
-    paramValues[dp.name] = existing?.value || dp.default || ''
+    let value = existing?.value ?? dp.default ?? ''
+    if (fieldKind(dp) === 'number' && value !== '') value = Number(value)
+    paramValues[dp.name] = value
   }
 }
 
 function collectParamValues() {
   const params = []
   for (const dp of uniqueDerivedParams.value) {
-    const value = paramValues[dp.name] || ''
-    if (value) {
+    const raw = paramValues[dp.name]
+    const value = raw === null || raw === undefined ? '' : String(raw)
+    if (value !== '') {
       params.push({ scope: dp.scope, name: dp.name, value })
     }
   }
@@ -395,7 +469,7 @@ async function handleConfiguredConnectionDelete(conn) {
     $toast.toastSuccess(t('notification.connection.delete.success'))
     filterConfiguredConnectionsList()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+    toastError('notification.connection.delete.error', e)
   }
 }
 
@@ -408,7 +482,7 @@ async function handleConfiguredConnectionDeleteFromModal() {
     configuredConnectionModal.value = false
     filterConfiguredConnectionsList()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+    toastError('notification.connection.delete.error', e)
   }
 }
 
@@ -444,7 +518,7 @@ async function checkAndEnableConfiguredConnection(configurationID) {
     await $SystemAPI.configuredConnectionEnable({ connectionID: configurationID })
     return true
   } catch (e) {
-    $toast.toastErrorHandler(t('system.configuredConnections.editor.checkResult.error'))(e)
+    toastError('system.configuredConnections.editor.checkResult.error', e)
     return false
   }
 }
@@ -462,7 +536,7 @@ async function handleConfiguredConnectionCheck() {
       $toast.toastWarning(summarizeCheckIssues(result).join('; '))
     }
   } catch (e) {
-    $toast.toastErrorHandler(t('system.configuredConnections.editor.checkResult.error'))(e)
+    toastError('system.configuredConnections.editor.checkResult.error', e)
   } finally {
     checkingConfiguredConnection.value = false
   }
@@ -537,7 +611,7 @@ async function handleConfiguredConnectionSubmit({ valid }) {
       }
     }
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.connection.update.error'))(e)
+    toastError('notification.connection.update.error', e)
   } finally {
     savingConfiguredConnection.value = false
   }
