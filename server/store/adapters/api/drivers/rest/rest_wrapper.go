@@ -69,9 +69,18 @@ func (svc *restAPIWrapper) appendAuth(ctx context.Context, client *httpClient) (
 		// noop, handled by URL construction
 		break
 
-	case "bearer", "api_token":
-		// api_token is the catalog method name for a single token
-		// credential sent as "Authorization: Bearer <token>".
+	case "bearer":
+		return svc.appendAuthBearer(client, svc.dsn.Token)
+
+	case "api_token":
+		// Catalog single-token credential. When the connector declares a
+		// target header (e.g. Authorization, DD-API-KEY) send the token there
+		// — appendAuthApiKey adds the "Bearer " prefix for Authorization and
+		// sends a raw value for any other header. Otherwise default to
+		// "Authorization: Bearer <token>".
+		if svc.dsn.APIKeyHeader != "" {
+			return svc.appendAuthApiKey(client, svc.dsn.Token)
+		}
 		return svc.appendAuthBearer(client, svc.dsn.Token)
 
 	case "apikey":

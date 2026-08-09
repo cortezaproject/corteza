@@ -23,6 +23,7 @@ _connectionDefs: {
 			ConnectionTemplate: { name: "ConnectionTemplate", fields: [
 				{ name: "Value", type: "string", json: "value" },
 				{ name: "Placeholders", slice: true, type: _connectionDefs.ConnectionPlaceholder, json: "placeholders,omitempty" },
+				{ name: "HeaderName", type: "string", json: "authHeader,omitempty" },
 			]}
 			ConnectionAuth: { name: "ConnectionAuth", fields: [
 				{ name: "Method", type: "string", json: "method" },

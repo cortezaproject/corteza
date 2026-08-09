@@ -600,7 +600,8 @@
             "required": "bool",
             "default": "string",
             "options": "string"
-          }
+          },
+          "authHeader": "string"
         },
         "protocol": "string",
         "contentType": "string",
@@ -620,7 +621,8 @@
               "required": "bool",
               "default": "string",
               "options": "string"
-            }
+            },
+            "authHeader": "string"
           },
           "expectedStatus": "int"
         },

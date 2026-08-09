@@ -117,6 +117,19 @@ func RunnerFromConnection(conn *systemTypes.Connection, connectionID uint64) (*r
 	}
 
 	for k, tpl := range conn.Service.Auth.Params {
+		// Catalog "api_token" params carry the credential under an arbitrary
+		// key (apiToken, apiKey, botToken, …) with the token in tpl.Value and
+		// an optional target header in tpl.HeaderName.
+		if strings.EqualFold(conn.Service.Auth.Method, "api_token") {
+			if tpl.Value != "" {
+				dsn.Token = tpl.Value
+			}
+			if tpl.HeaderName != "" {
+				dsn.APIKeyHeader = tpl.HeaderName
+			}
+			continue
+		}
+
 		switch k {
 		case "apikey":
 			dsn.APIKey = tpl.Value

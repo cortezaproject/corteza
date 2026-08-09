@@ -59,6 +59,7 @@ type (
 	ConnectionTemplate struct {
 		Value        string                  `json:"value"`
 		Placeholders []ConnectionPlaceholder `json:"placeholders,omitempty"`
+		HeaderName   string                  `json:"authHeader,omitempty"`
 	}
 
 	ConnectionAuth struct {
@@ -438,6 +439,10 @@ func (r ConnectionTemplate) Diff(cmp *ConnectionTemplate) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.Placeholders, cmp.Placeholders) {
 		out = append(out, &revisions.Change{Key: "placeholders", Old: []any{cmp.Placeholders}, New: []any{r.Placeholders}})
+	}
+
+	if r.HeaderName != cmp.HeaderName {
+		out = append(out, &revisions.Change{Key: "authHeader", Old: []any{cmp.HeaderName}, New: []any{r.HeaderName}})
 	}
 
 	return out

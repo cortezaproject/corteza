@@ -35,7 +35,30 @@ func (ct *ConnectionTemplate) UnmarshalJSON(data []byte) error {
 		ct.Value = s
 		return nil
 	}
+
 	type Alias ConnectionTemplate
-	return json.Unmarshal(data, (*Alias)(ct))
+	aux := struct {
+		*Alias
+		Token      *ConnectionTemplate `json:"token"`
+		HeaderName *ConnectionTemplate `json:"headerName"`
+	}{Alias: (*Alias)(ct)}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Catalog credential params may use a nested shape:
+	//   { "token": { "value": "{{x}}", "placeholders": [...] },
+	//     "headerName": { "value": "Authorization" } }
+	// Flatten it so the token value and placeholders sit on the template and
+	// the header name is preserved for the runtime auth layer.
+	if ct.Value == "" && aux.Token != nil {
+		ct.Value = aux.Token.Value
+		ct.Placeholders = aux.Token.Placeholders
+	}
+	if aux.HeaderName != nil && ct.HeaderName == "" {
+		ct.HeaderName = aux.HeaderName.Value
+	}
+
+	return nil
 }
 
