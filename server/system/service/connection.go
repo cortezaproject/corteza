@@ -567,7 +567,22 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 		return nil, lookupErr
 	}
 	if len(existing) > 0 {
-		return existing[0], nil
+		conn := existing[0]
+
+		// Repair catalog connections imported before the parser understood the
+		// nested { token, headerName } credential shape: their auth params were
+		// stored with an empty value, so no field is derived. Re-sync only the
+		// broken params from the catalog. User credentials live on the
+		// ConfiguredConnection and any local edits are left untouched.
+		if conn.Source == "catalog" && catalogConn.Service != nil {
+			var catalogSvc types.ConnectionService
+			raw, _ := json.Marshal(catalogConn.Service)
+			if json.Unmarshal(raw, &catalogSvc) == nil && healCatalogAuthParams(conn, catalogSvc.Auth) {
+				return svc.Update(ctx, conn)
+			}
+		}
+
+		return conn, nil
 	}
 
 	conn := &types.Connection{
@@ -597,6 +612,27 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 	}
 
 	return svc.Create(ctx, conn)
+}
+
+// healCatalogAuthParams restores credential auth params whose stored value was
+// lost (e.g. imported before the parser understood the nested token/headerName
+// shape). It only fills params that are missing or empty and never overwrites a
+// value the user or a newer import already set. Returns true if it changed anything.
+func healCatalogAuthParams(conn *types.Connection, catalogAuth types.ConnectionAuth) (healed bool) {
+	for name, catTpl := range catalogAuth.Params {
+		if catTpl.Value == "" {
+			continue
+		}
+		if cur, ok := conn.Service.Auth.Params[name]; ok && cur.Value != "" {
+			continue
+		}
+		if conn.Service.Auth.Params == nil {
+			conn.Service.Auth.Params = make(map[string]types.ConnectionTemplate, len(catalogAuth.Params))
+		}
+		conn.Service.Auth.Params[name] = catTpl
+		healed = true
+	}
+	return
 }
 
 // countConfiguredByIDs returns a map of connectionID → count of ConfiguredConnections.
