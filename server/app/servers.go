@@ -205,6 +205,21 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 		// clients discover the document under the issuer URL (AUTH_BASE_URL) that ends with /auth
 		r.Handle("/auth/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
 
+		// RFC 8414 puts the issuer's path *after* the well-known segment rather
+		// than before it, and an OAuth client walks those variants before the
+		// one above. They have to be answered here rather than left to fall
+		// through: an unrouted path on this server returns an empty 200, not a
+		// 404, so a client probing them finds a response that is neither a
+		// document nor a miss, and may never try the form that works.
+		//
+		// The document is the same either way — an OpenID configuration is a
+		// superset of RFC 8414 metadata — and it describes the one
+		// authorization server this deployment has, whatever path was asked
+		// for, so the wildcards disclose nothing the root path does not.
+		r.Handle("/.well-known/oauth-authorization-server", app.AuthService.WellKnownOpenIDConfiguration())
+		r.Handle("/.well-known/oauth-authorization-server/*", app.AuthService.WellKnownOpenIDConfiguration())
+		r.Handle("/.well-known/openid-configuration/*", app.AuthService.WellKnownOpenIDConfiguration())
+
 		if app.McpServer != nil {
 			// Both forms: a client that knows which resource it wants appends
 			// the resource path, one that does not asks for the bare document.
