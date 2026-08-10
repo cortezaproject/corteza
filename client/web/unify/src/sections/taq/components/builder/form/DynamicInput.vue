@@ -108,7 +108,17 @@ const emit = defineEmits([
   'updateReferenceSource',
 ])
 
-const inputComponent = computed(() => resolveInputComponent(props.type))
+// Aggregate scalar params (Any/String/Number/Array) collect a list of values.
+// Render the array editor so each element becomes a separate scalar row; the
+// server wraps those rows into an Array. FieldValueMap / WorkflowInputMap keep
+// their dedicated components.
+const AGGREGATE_MAP_TYPES = ['FieldValueMap', 'WorkflowInputMap']
+const inputComponent = computed(() => {
+  if (props.aggregate && !AGGREGATE_MAP_TYPES.includes(props.type)) {
+    return resolveInputComponent('Array')
+  }
+  return resolveInputComponent(props.type)
+})
 
 // Injected from Builder.vue — tracks which argument has the reference panel open
 const activeReferenceArgument = inject('activeReferenceArgument', ref(null))
