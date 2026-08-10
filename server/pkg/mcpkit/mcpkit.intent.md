@@ -83,10 +83,16 @@ import it.
 
 ## When changing this
 
-- Both servers are affected. `dev/mcp` compiles against a **vendored** copy, so
-  a change here does not reach it until `go mod vendor` runs — `dev/mcp/run.sh`
-  detects that and re-vendors, which is the only reason a change here is not
-  silently absent from the developer MCP.
+- Both servers are affected. `dev/mcp` is a separate module but compiles these
+  packages **from source** through its `replace` directive, so a change here
+  reaches it as soon as its binary is rebuilt — `dev/mcp/run.sh` watches this
+  folder alongside its own sources, which is the only reason a change here is
+  not silently absent from the developer MCP.
+
+  It used to vendor them instead. That duplicated this package into git, and
+  because the staleness check compared mtimes, any checkout that merely rewrote
+  these files — a rebase, a branch switch — re-vendored and left an untracked
+  copy behind.
 - Changing the wire: run `dev/agent/mcp-verify.py`. Unit tests assert what the
   code declares, and that has been insufficient more than once.
 - Adding a tool option or tag: `server/tests/mcp` asserts every tool carries a
