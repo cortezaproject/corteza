@@ -11,7 +11,7 @@ import (
 // gridstack setup the webapp page builder uses
 // (client/web/unify/src/sections/compose/components/PageBlocks/Grid.vue: 48
 // columns, 10px cell height, default block 24x18).
-const pageGridDoc = `The layout grid is 48 columns wide (cell height 10px; default block size is w=24 h=18). A full-width block uses xywh [0,0,48,20]. Blocks CLIP their content when too short and fail silently as blank UI — give Metric blocks h>=20 and RecordList/Chart blocks h>=30.`
+const pageGridDoc = `The layout grid is 48 columns wide (cell height 10px; default block size is w=24 h=18). A full-width block uses xywh [0,0,48,20]. Blocks sit SIDE BY SIDE by stepping x, not y: a row of four tiles is [0,0,12,20], [12,0,12,20], [24,0,12,20], [36,0,12,20] — same y, x advancing by the width. Stepping y instead puts every tile in its own row, and w=12 is a QUARTER of this grid rather than the half it would be on a 12-column one, so that mistake renders as a narrow column down the left with the page empty beside it. Blocks CLIP their content when too short and fail silently as blank UI — give Metric blocks h>=20 and RecordList/Chart blocks h>=30.`
 
 func (h *pageHandler) register() {
 	h.reg.RegisterTool(
@@ -60,7 +60,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("parent", mcp.Description("Parent page title, handle, or ID (as string to prevent precision loss). Omit for a root-level page.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID (as string to prevent precision loss). Set ONLY for record detail pages (the single-record form). Do not set for record list pages — put the module in the RecordList block options instead.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation (default: true)")),
-			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Grid is 48 columns wide — full-width block: [{"kind":"RecordList","title":"My Block","xywh":[0,0,48,20],"options":{...}}]. Call compose_page_block_schema first for kind-specific options.`)),
+			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Grid is 48 columns wide. Full-width block: [{"kind":"RecordList","title":"My Block","xywh":[0,0,48,20],"options":{...}}]. A row of tiles steps x and keeps y: [{"kind":"Metric","title":"Total","xywh":[0,0,12,20]},{"kind":"Metric","title":"Open","xywh":[12,0,12,20]},{"kind":"Metric","title":"Urgent","xywh":[24,0,12,20]},{"kind":"Metric","title":"Tasks","xywh":[36,0,12,20]}] — stepping y instead stacks them in a narrow column down the left. Call compose_page_block_schema first for kind-specific options.`)),
 			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}. Pass an empty string to remove the icon.`)),
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Example: {"allowPersonalLayouts":true}`)),
