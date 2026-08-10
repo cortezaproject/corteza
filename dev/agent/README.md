@@ -80,6 +80,13 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_
   is keyed by resource kind while the SetValue write-back expects
   `Blocks.N.Options.…` paths (`server/compose/envoy/store_decode.go`
   `toEnvoyRefs`). Pages/charts go through `pagebuild.py` instead.
+- **Do not let the formatter touch a generated file.** `dev_format_run` with no
+  arguments formats everything git reports as changed, and prettier realigns
+  the markdown tables in `server/system/agentic/mcp/TOOLS.md` — which is
+  generated, and compared byte-for-byte by `TestToolsMatrix`. The test then
+  fails on whitespace with a diff thousands of lines long. Regenerate with
+  `cd server && go test ./tests/mcp/ -run TestToolsMatrix -update` and pass
+  explicit paths to the formatter afterwards.
 - **`stale: false` can still mean a stale binary.** The check compares the
   binary's build time against source mtimes, so a rebuild that the watcher
   started _before_ you edited, and finished _after_, reports as fresh while
