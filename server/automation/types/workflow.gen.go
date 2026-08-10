@@ -229,6 +229,16 @@ func (r WorkflowMeta) Clone() *WorkflowMeta {
 		}
 	}
 
+	if r.Input != nil {
+		dup.Input = make([]WorkflowIODef, len(r.Input))
+		copy(dup.Input, r.Input)
+	}
+
+	if r.Output != nil {
+		dup.Output = make([]WorkflowIODef, len(r.Output))
+		copy(dup.Output, r.Output)
+	}
+
 	return &dup
 }
 
@@ -251,6 +261,14 @@ func (r WorkflowMeta) Diff(cmp *WorkflowMeta) []*revisions.Change {
 
 	if r.SubWorkflow != cmp.SubWorkflow {
 		out = append(out, &revisions.Change{Key: "subWorkflow", Old: []any{cmp.SubWorkflow}, New: []any{r.SubWorkflow}})
+	}
+
+	if !reflect.DeepEqual(r.Input, cmp.Input) {
+		out = append(out, &revisions.Change{Key: "input", Old: []any{cmp.Input}, New: []any{r.Input}})
+	}
+
+	if !reflect.DeepEqual(r.Output, cmp.Output) {
+		out = append(out, &revisions.Change{Key: "output", Old: []any{cmp.Output}, New: []any{r.Output}})
 	}
 
 	return out

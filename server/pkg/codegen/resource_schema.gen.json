@@ -1547,7 +1547,9 @@
   "name": "string",
   "description": "string",
   "visual": "map[string]interface{}",
-  "subWorkflow": "bool"
+  "subWorkflow": "bool",
+  "input": "WorkflowIODef",
+  "output": "WorkflowIODef"
 },
   "enabled": "bool",
   "trace": "bool",

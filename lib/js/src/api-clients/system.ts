@@ -8098,7 +8098,7 @@ export default class System {
     return '/connections/generate'
   }
 
-  // Import a catalog connection
+  // Import a connection from the catalog into the local store
   async connectionImport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { catalogID } = (a as KV) || {}
     if (!catalogID) {
