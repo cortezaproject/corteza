@@ -28,6 +28,17 @@ import (
 func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 	var (
 		ho = app.Opt.HTTPServer
+
+		// Shared by the two halves of the OAuth discovery handshake, which are
+		// mounted far apart: the challenge goes on the MCP route below, and the
+		// document it points at goes on the root router, because RFC 9728 puts
+		// it on the origin with the resource path appended.
+		mcpResource = auth.OAuthProtectedResource{
+			BasePath:      options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl, "mcp"),
+			Issuer:        app.Opt.Auth.BaseURL,
+			Scopes:        []string{"api", "profile"},
+			SslTerminated: ho.SslTerminated,
+		}
 	)
 
 	func() {
@@ -114,6 +125,9 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 			// without the latter the whole tool catalogue is public.
 			if app.McpServer != nil {
 				r.Route("/mcp", func(r chi.Router) {
+					// Outermost, so it sees the 401 either validator below
+					// produces and can tell the client where to authenticate.
+					r.Use(mcpResource.Challenge())
 					r.Use(auth.HttpTokenValidator("api"))
 					r.Use(auth.HttpAuthenticatedOnly())
 					app.McpServer.MountRoutes(r)
@@ -190,5 +204,12 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 
 		// clients discover the document under the issuer URL (AUTH_BASE_URL) that ends with /auth
 		r.Handle("/auth/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
+
+		if app.McpServer != nil {
+			// Both forms: a client that knows which resource it wants appends
+			// the resource path, one that does not asks for the bare document.
+			r.Handle(auth.WellKnownProtectedResource, mcpResource.MetadataHandler())
+			r.Handle(auth.WellKnownProtectedResource+"/*", mcpResource.MetadataHandler())
+		}
 	}()
 }
