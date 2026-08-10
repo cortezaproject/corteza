@@ -29,17 +29,17 @@ Requires: `curl`, `python3` (no jq dependency), a built server binary in
 
 ## Daily use
 
-| script | purpose |
-| --- | --- |
-| `smoke.sh` | server up? version? token OK? who am I? authed API works? |
-| `token.sh` | print a valid bearer token (cached ~2h; oauth2 flow, CLI-jwt fallback) |
-| `api.sh METHOD PATH [curl args…]` | authenticated request, jq-pretty output |
-| `seed.sh [--force] [fixture…]` | import `dev/fixtures/` (skips seeded fixtures unless `--force`) |
+| script                                       | purpose                                                                                                                                                                                      |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smoke.sh`                                   | server up? version? token OK? who am I? authed API works?                                                                                                                                    |
+| `token.sh`                                   | print a valid bearer token (cached ~2h; oauth2 flow, CLI-jwt fallback)                                                                                                                       |
+| `api.sh METHOD PATH [curl args…]`            | authenticated request, jq-pretty output                                                                                                                                                      |
+| `seed.sh [--force] [fixture…]`               | import `dev/fixtures/` (skips seeded fixtures unless `--force`)                                                                                                                              |
 | `cleanup.sh [--all\|--session ID] [--purge]` | delete namespaces recorded in `.state/created.jsonl` for this session (`--all` for every session); `--purge` also hard-deletes soft-deleted corpses (dev-only server CLI, NOT ledger-scoped) |
-| `logs.sh [-n N] [-f] [PATTERN]` | read the dev server log (`make watch` tees to `server/build/dev.log`) |
-| `pagebuild.py SLUG SPEC.json` | build/refresh charts + pages via REST (spec format in its header) |
-| `mcp.py tools\|schema\|call` | call Human's own MCP server (`/api/mcp`: compose CRUD incl. charts, TAQ/workflow exec) |
-| `verify-ui.mjs PATH…` | render-verify webapp paths in headless Chromium as agent-ui; screenshots + console/page errors |
+| `logs.sh [-n N] [-f] [PATTERN]`              | read the dev server log (`make watch` tees to `server/build/dev.log`)                                                                                                                        |
+| `pagebuild.py SLUG SPEC.json`                | build/refresh charts + pages via REST (spec format in its header)                                                                                                                            |
+| `mcp.py tools\|schema\|call`                 | call Human's own MCP server (`/api/mcp`: compose CRUD incl. charts, TAQ/workflow exec)                                                                                                       |
+| `verify-ui.mjs PATH…`                        | render-verify webapp paths in headless Chromium as agent-ui; screenshots + console/page errors                                                                                               |
 
 For interactive Claude Code sessions, `.mcp.json` registers the `human` MCP
 server; it needs `HUMAN_MCP_TOKEN` exported before starting Claude Code:
@@ -49,7 +49,7 @@ stale, or use `mcp.py` which self-authenticates per call).
 ```sh
 dev/agent/smoke.sh
 dev/agent/api.sh GET '/system/users/?limit=5'
-dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Agent Test","slug":"agent-test"}'
+dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_demo"}'
 ```
 
 ## API gotchas (learned the hard way)
@@ -83,9 +83,15 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Agent Test","slug":"agent
 
 ## Conventions for agent-created data
 
-- Every resource an agent creates for testing uses an `agent-` handle/slug
-  prefix (namespaces, projects, modules, TAQs, users, …). Anything so
-  prefixed is disposable; never touch unprefixed data.
+- **Clean up what you created, and only that.** `api.sh` and `mcp.py` record
+  every namespace they create in `.state/created.jsonl`, tagged with the
+  session, and `cleanup.sh` deletes that session's entries and nothing else.
+  Anything the session did not create is off-limits, whoever made it and
+  whatever it is called. No name prefix is needed or wanted.
+- **Names are snake_case** — namespace slugs, module and page and chart and
+  TAQ handles, and every module field name. A hyphen is the subtraction
+  operator wherever an identifier is parsed, so `close-date` lexes as `close`
+  minus `date`.
 - Good agent-built systems get harvested into fixtures:
   `server_cli export compose-namespace <handle>` (see `common.sh` for
   `server_cli`).
