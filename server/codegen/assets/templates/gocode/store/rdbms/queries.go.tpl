@@ -34,7 +34,7 @@ var (
 	return d.Insert({{ .ident }}Table).
 		Rows(goqu.Record{
 		{{- range .struct }}
-			{{ printf "%q" .storeIdent }}: res.{{ .expIdent }},
+			{{ printf "%q" .storeIdent }}: {{ if .nilSafeJSON }}jsonOrEmpty(res.{{ .expIdent }}){{ else }}res.{{ .expIdent }}{{ end }},
 		{{- end }}
 		})
 }
@@ -61,7 +61,7 @@ var (
 			goqu.Record{
 			{{- range .struct }}
 				{{- if not .primaryKey }}
-					{{ printf "%q" .storeIdent }}: res.{{ .expIdent }},
+					{{ printf "%q" .storeIdent }}: {{ if .nilSafeJSON }}jsonOrEmpty(res.{{ .expIdent }}){{ else }}res.{{ .expIdent }}{{ end }},
 				{{- end }}
 			{{- end }}
 			},
@@ -77,7 +77,7 @@ var (
 		Set(goqu.Record{
 		{{- range .struct }}
 			{{- if not .primaryKey }}
-				{{ printf "%q" .storeIdent }}: res.{{ .expIdent }},
+				{{ printf "%q" .storeIdent }}: {{ if .nilSafeJSON }}jsonOrEmpty(res.{{ .expIdent }}){{ else }}res.{{ .expIdent }}{{ end }},
 			{{- end }}
 		{{- end }}
 		}).

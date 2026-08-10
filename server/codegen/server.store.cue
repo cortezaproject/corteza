@@ -43,6 +43,12 @@ _StoreResource: {
 			"primaryKey": list.Contains(pkAttrNames, attr.name)
 			"ignoreCase": attr.ignoreCase
 			"goType":     strings.Replace(attr.goType, "types.", "\(typePkg).", 1)
+
+			// A pointer field on a NOT NULL JSON column: database/sql turns a nil
+			// pointer into SQL NULL without ever calling Value(), which the column
+			// rejects. The store encoder substitutes an empty object instead, which
+			// is what defaultEmptyObject already promises for these columns.
+			"nilSafeJSON": attr.dal.type == "JSON" && !attr.dal.nullable && strings.HasPrefix(attr.goType, "*")
 		}]
 
 		filter: {
