@@ -778,6 +778,10 @@ func (svc *ngAutomation) procAutomation(ctx context.Context, atm *types.NgAutoma
 				Severity: types.NgAutomationSeverityError,
 				Message:  fmt.Sprintf("failed to load run-as user %d: %v", out.RunAs, err),
 			})
+
+			// The issue is the report; leaving err set on the named return would
+			// abort Load and, with it, server boot over one broken automation.
+			err = nil
 		} else if !exe.RunAs.Valid() {
 			out.Issues = append(out.Issues, &types.NgAutomationIssue{
 				Code:     types.IssueCodeRunAsInvalid,
