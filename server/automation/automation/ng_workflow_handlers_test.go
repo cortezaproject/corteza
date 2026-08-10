@@ -10,13 +10,13 @@ import (
 )
 
 type mockWorkflowRunner struct {
-	lookupByID     func(context.Context, uint64) (*atypes.Workflow, error)
+	findByID       func(context.Context, uint64) (*atypes.Workflow, error)
 	lookupByHandle func(context.Context, string) (*atypes.Workflow, error)
 	exec           func(context.Context, uint64, atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
 }
 
-func (m mockWorkflowRunner) LookupByID(ctx context.Context, id uint64) (*atypes.Workflow, error) {
-	return m.lookupByID(ctx, id)
+func (m mockWorkflowRunner) FindByID(ctx context.Context, id uint64) (*atypes.Workflow, error) {
+	return m.findByID(ctx, id)
 }
 
 func (m mockWorkflowRunner) LookupByHandle(ctx context.Context, h string) (*atypes.Workflow, error) {
@@ -41,7 +41,7 @@ func TestNgWorkflowHandler_Exec_ByID(t *testing.T) {
 	)
 
 	h := ngWorkflowHandler{wf: mockWorkflowRunner{
-		lookupByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
+		findByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
 			return testWorkflow(id), nil
 		},
 		exec: func(_ context.Context, id uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
@@ -99,7 +99,7 @@ func TestNgWorkflowHandler_Exec_NumericStringIsID(t *testing.T) {
 	)
 
 	h := ngWorkflowHandler{wf: mockWorkflowRunner{
-		lookupByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
+		findByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
 			gotID = id
 			return testWorkflow(id), nil
 		},
@@ -131,7 +131,7 @@ func TestNgWorkflowHandler_Exec_RunsWorkflowWithTriggers(t *testing.T) {
 
 	// a regular (trigger-ful) workflow runs the same as a manual run — no gating
 	h := ngWorkflowHandler{wf: mockWorkflowRunner{
-		lookupByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
+		findByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
 			return &atypes.Workflow{ID: id, Handle: "regular", Enabled: true}, nil
 		},
 		exec: func(_ context.Context, id uint64, _ atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
@@ -166,7 +166,7 @@ func TestNgWorkflowHandler_Exec_PassesInput(t *testing.T) {
 	)
 
 	h := ngWorkflowHandler{wf: mockWorkflowRunner{
-		lookupByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
+		findByID: func(_ context.Context, id uint64) (*atypes.Workflow, error) {
 			return testWorkflow(id), nil
 		},
 		exec: func(_ context.Context, _ uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
