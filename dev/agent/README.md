@@ -80,6 +80,15 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_
   is keyed by resource kind while the SetValue write-back expects
   `Blocks.N.Options.…` paths (`server/compose/envoy/store_decode.go`
   `toEnvoyRefs`). Pages/charts go through `pagebuild.py` instead.
+- **`stale: false` can still mean a stale binary.** The check compares the
+  binary's build time against source mtimes, so a rebuild that the watcher
+  started _before_ you edited, and finished _after_, reports as fresh while
+  running the older code. It bites hardest when editing a file repeatedly in
+  quick succession — mutation-testing a file, say, where a live check then
+  reports behaviour matching a mutation you already reverted. Cost an
+  investigation once. When a live result contradicts a passing unit test,
+  `touch` the file, wait for the next build, and re-check before believing
+  either.
 
 ## Conventions for agent-created data
 
