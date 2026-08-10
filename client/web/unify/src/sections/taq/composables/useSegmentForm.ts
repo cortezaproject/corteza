@@ -159,6 +159,7 @@ export function useSegmentForm(options: {
               referenceLabel,
               options: inputOptions,
               isAggregate: isAgg,
+              advanced: element.input.advanced || false,
               description: element.input.description || '',
             }
           }),

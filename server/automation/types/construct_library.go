@@ -102,6 +102,7 @@ type (
 		Placeholder string       `json:"placeholder,omitempty"`
 		Argument    string       `json:"argument,omitempty"`
 		Required    bool         `json:"required,omitempty"`
+		Advanced    bool         `json:"advanced,omitempty"`
 		Options     []SelectItem `json:"options,omitempty"`
 		Default     interface{}  `json:"default,omitempty"`
 		Disabled    bool         `json:"disabled,omitempty"`

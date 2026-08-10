@@ -24,15 +24,19 @@ type (
 		Delete(context.Context, *request.ConfiguredConnectionDelete) (interface{}, error)
 		Enable(context.Context, *request.ConfiguredConnectionEnable) (interface{}, error)
 		Check(context.Context, *request.ConfiguredConnectionCheck) (interface{}, error)
+		RefreshDiscovery(context.Context, *request.ConfiguredConnectionRefreshDiscovery) (interface{}, error)
+		SheetColumns(context.Context, *request.ConfiguredConnectionSheetColumns) (interface{}, error)
 	}
 
 	// HTTP API interface
 	ConfiguredConnection struct {
-		List   func(http.ResponseWriter, *http.Request)
-		Read   func(http.ResponseWriter, *http.Request)
-		Delete func(http.ResponseWriter, *http.Request)
-		Enable func(http.ResponseWriter, *http.Request)
-		Check  func(http.ResponseWriter, *http.Request)
+		List             func(http.ResponseWriter, *http.Request)
+		Read             func(http.ResponseWriter, *http.Request)
+		Delete           func(http.ResponseWriter, *http.Request)
+		Enable           func(http.ResponseWriter, *http.Request)
+		Check            func(http.ResponseWriter, *http.Request)
+		RefreshDiscovery func(http.ResponseWriter, *http.Request)
+		SheetColumns     func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -118,6 +122,38 @@ func NewConfiguredConnection(h ConfiguredConnectionAPI) *ConfiguredConnection {
 
 			api.Send(w, r, value)
 		},
+		RefreshDiscovery: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConfiguredConnectionRefreshDiscovery()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.RefreshDiscovery(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		SheetColumns: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConfiguredConnectionSheetColumns()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.SheetColumns(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -129,5 +165,7 @@ func (h ConfiguredConnection) MountRoutes(r chi.Router, middlewares ...func(http
 		r.Delete("/configured-connections/{connectionID}", h.Delete)
 		r.Post("/configured-connections/{connectionID}/enable", h.Enable)
 		r.Post("/configured-connections/{connectionID}/check", h.Check)
+		r.Post("/configured-connections/{connectionID}/refresh-discovery", h.RefreshDiscovery)
+		r.Get("/configured-connections/{connectionID}/sheet-columns", h.SheetColumns)
 	})
 }

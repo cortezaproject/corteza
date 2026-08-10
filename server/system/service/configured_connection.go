@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -743,6 +744,9 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 	segments := generateFunctionSegments(conn, op, params)
 	results := generateFunctionResults(conn, op)
 
+	// Turn inputs that declare options into a Select and preselect the default.
+	applyInputOptions(segments, op)
+
 	// Add the parameter and segment for config ID
 	params = append(atypes.ParamSet{configParam}, params...)
 
@@ -759,9 +763,30 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 
 	segments[0].Sections[0].Elements = append(input, segments[0].Sections[0].Elements...)
 
-	// Inject discovered resource options (spreadsheetId → Select, sheetName → flat tab list)
-	if len(ccs) > 0 && len(ccs[0].Config.Discovery) > 0 {
-		injectDiscoveredOptions(segments, ccs[0].Config.Discovery)
+	// Inject discovered options (spreadsheetId → Select, sheetName → tab list).
+	// Use the first connection that has discovery data, not just ccs[0].
+	for i := range ccs {
+		if len(ccs[i].Config.Discovery) > 0 {
+			injectDiscoveredOptions(segments, ccs[i].Config.Discovery)
+			break
+		}
+	}
+
+	// Render the append "values" input from the sheet's header row: a labeled
+	// row for the single-row op, a table for the multi-row op.
+	var argsMerger atypes.FunctionMerger
+	if strings.Contains(conn.Service.BaseURL.Value, "sheets.googleapis.com") {
+		relabelSheetOptions(segments)
+		switch strings.ToLower(op.Handle) {
+		case "create-spreadsheet-row":
+			setInputTypeByArgument(segments, "values", "SheetRow")
+			setParamAggregateByName(params, "values")
+		case "create-multiple-spreadsheet-rows":
+			setInputTypeByArgument(segments, "values", "SheetGrid")
+			setParamAggregateByName(params, "values")
+			// Grid cells are per-cell targets (r{i}c{j}); rebuild the 2D array.
+			argsMerger = sheetsGridArgsMerger
+		}
 	}
 
 	var icon *atypes.NgAutomationIcon
@@ -781,6 +806,7 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 		Parameters: params,
 		Results:    results,
 		Segments:   segments,
+		ArgsMerger: argsMerger,
 		Labels: map[string]string{
 			"connection": "step,workflow",
 			op.Handle:    "step",
@@ -1403,7 +1429,7 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 		if err != nil {
 			svc.services.logger.Warn("google discovery: calendarList unavailable",
 				zap.Uint64("ccID", cc.ID), zap.Error(err))
-			return nil
+			return fmt.Errorf("could not list calendars (is the Google Calendar API enabled for this service account?): %w", err)
 		}
 
 		var calResp struct {
@@ -1436,7 +1462,7 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 	if err != nil {
 		svc.services.logger.Warn("google discovery: drive API unavailable",
 			zap.Uint64("ccID", cc.ID), zap.Error(err))
-		return nil
+		return fmt.Errorf("could not list spreadsheets (is the Google Drive API enabled for this service account's project?): %w", err)
 	}
 
 	var driveResp struct {
@@ -1493,6 +1519,191 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 	return store.UpdateConfiguredConnection(ctx, svc.store, cc)
 }
 
+// sheetsGridArgsMerger rebuilds the 2D "values" array from per-cell arguments
+// (targets shaped r{row}c{col}), so each cell can be a literal or a reference.
+// Other arguments keep their first value.
+func sheetsGridArgsMerger(_ context.Context, args atypes.ExprSet, raw []expr.TypedValue) (*expr.Vars, error) {
+	aux := make(map[string]any, len(args))
+	cells := make(map[int]map[int]any)
+	maxCol := -1
+
+	for i, e := range args {
+		if e.ArgumentName != "values" {
+			if _, ok := aux[e.ArgumentName]; !ok {
+				aux[e.ArgumentName] = raw[i]
+			}
+			continue
+		}
+
+		var row, col int
+		if n, _ := fmt.Sscanf(e.Target, "r%dc%d", &row, &col); n != 2 {
+			continue
+		}
+		if cells[row] == nil {
+			cells[row] = make(map[int]any)
+		}
+		cells[row][col] = raw[i].Get()
+		if col > maxCol {
+			maxCol = col
+		}
+	}
+
+	// Present rows in order; deleted rows leave gaps and are skipped.
+	rowIdx := make([]int, 0, len(cells))
+	for r := range cells {
+		rowIdx = append(rowIdx, r)
+	}
+	sort.Ints(rowIdx)
+
+	rows := make([]any, 0, len(rowIdx))
+	for _, r := range rowIdx {
+		cols := make([]any, maxCol+1)
+		for c := 0; c <= maxCol; c++ {
+			if v, ok := cells[r][c]; ok {
+				cols[c] = v
+			} else {
+				cols[c] = ""
+			}
+		}
+		rows = append(rows, cols)
+	}
+
+	values, err := expr.NewArray(rows)
+	if err != nil {
+		return nil, err
+	}
+	aux["values"] = values
+
+	return expr.NewVars(aux)
+}
+
+// setParamAggregateByName marks a parameter aggregate so the runtime builds its
+// value from the individual inputs. The Sheets row/grid inputs need this; the
+// catalog does not declare it.
+func setParamAggregateByName(params atypes.ParamSet, name string) {
+	for _, p := range params {
+		if p.ArgumentName == name {
+			p.Aggregate = true
+		}
+	}
+}
+
+// setInputTypeByArgument overrides the input Type for the segment element that
+// binds the given argument. Used to swap a generic input for a specialized one.
+func setInputTypeByArgument(segments []atypes.ConstructSegment, argument, typ string) {
+	for si := range segments {
+		for seci := range segments[si].Sections {
+			for ei := range segments[si].Sections[seci].Elements {
+				if segments[si].Sections[seci].Elements[ei].Input.Argument == argument {
+					segments[si].Sections[seci].Elements[ei].Input.Type = typ
+				}
+			}
+		}
+	}
+}
+
+// applyInputOptions renders inputs that declare a fixed set of options as a
+// Select, with humanized labels and the declared default preselected.
+func applyInputOptions(segments []atypes.ConstructSegment, op types.ConnectionOperation) {
+	for _, in := range op.Input {
+		if in.Meta == nil {
+			continue
+		}
+		raw, ok := in.Meta["options"].([]any)
+		if !ok || len(raw) == 0 {
+			continue
+		}
+		opts := make([]atypes.SelectItem, 0, len(raw))
+		for _, r := range raw {
+			if s, ok := r.(string); ok {
+				opts = append(opts, atypes.SelectItem{Label: humanizeEnum(s), Value: s})
+			}
+		}
+		if len(opts) == 0 {
+			continue
+		}
+		def, _ := in.Meta["default"].(string)
+		setInputSelect(segments, in.Name, opts, def)
+	}
+}
+
+// humanizeEnum turns an enum token like USER_ENTERED into "User Entered".
+func humanizeEnum(s string) string {
+	words := strings.FieldsFunc(s, func(r rune) bool { return r == '_' || r == ' ' })
+	for i, w := range words {
+		if w != "" {
+			words[i] = strings.ToUpper(w[:1]) + strings.ToLower(w[1:])
+		}
+	}
+	return strings.Join(words, " ")
+}
+
+// setInputSelect makes the element for the given argument a Select with the
+// given options, preselecting the default when set.
+func setInputSelect(segments []atypes.ConstructSegment, argument string, opts []atypes.SelectItem, def string) {
+	for si := range segments {
+		for seci := range segments[si].Sections {
+			for ei := range segments[si].Sections[seci].Elements {
+				el := &segments[si].Sections[seci].Elements[ei]
+				if el.Input.Argument == argument {
+					el.Input.Type = "Select"
+					el.Input.Options = opts
+					if def != "" {
+						el.Input.Default = def
+					}
+				}
+			}
+		}
+	}
+}
+
+// relabelSheetOptions gives the Google Sheets append option fields plain-language
+// field and option labels instead of the raw API enums.
+func relabelSheetOptions(segments []atypes.ConstructSegment) {
+	type fieldLabels struct {
+		field   string
+		options map[string]string
+	}
+	labels := map[string]fieldLabels{
+		"valueInputOption": {
+			field: "Value format",
+			options: map[string]string{
+				"USER_ENTERED": "As typed in Sheets (formulas & dates)",
+				"RAW":          "Exactly as text",
+			},
+		},
+		"insertDataOption": {
+			field: "How to add rows",
+			options: map[string]string{
+				"INSERT_ROWS": "Insert new rows",
+				"OVERWRITE":   "Overwrite existing cells",
+			},
+		},
+	}
+
+	for si := range segments {
+		for seci := range segments[si].Sections {
+			for ei := range segments[si].Sections[seci].Elements {
+				el := &segments[si].Sections[seci].Elements[ei]
+				cfg, ok := labels[el.Input.Argument]
+				if !ok {
+					continue
+				}
+				if cfg.field != "" {
+					el.Input.Label = cfg.field
+				}
+				// Optional with sane defaults — keep them out of the way.
+				el.Input.Advanced = true
+				for oi := range el.Input.Options {
+					if friendly, ok := cfg.options[el.Input.Options[oi].Value]; ok {
+						el.Input.Options[oi].Label = friendly
+					}
+				}
+			}
+		}
+	}
+}
+
 // injectDiscoveredOptions walks segment elements and sets Options + Type="Select"
 // for known discoverable param names.
 // - spreadsheetId → list of spreadsheets
@@ -1534,6 +1745,15 @@ func injectDiscoveredOptions(segments []atypes.ConstructSegment, discovery map[s
 					if len(tabs) > 0 {
 						el.Input.Type = "Select"
 						el.Input.Options = tabs
+					}
+				case "range":
+					// For the append operations, "range" is just the target tab.
+					// Offer the discovered tabs and relabel away from raw A1 notation.
+					if len(tabs) > 0 {
+						el.Input.Type = "Select"
+						el.Input.Options = tabs
+						el.Input.Label = "Sheet / Tab"
+						el.Input.Description = "The sheet tab to add the row to."
 					}
 				case "calendarId":
 					var calendars []atypes.SelectItem
@@ -1602,6 +1822,44 @@ func (svc *configuredConnection) onRefreshDiscovery(ctx context.Context, _ *conf
 		"spreadsheetCount": spreadsheetCount,
 		"calendarCount":    calendarCount,
 	}, nil
+}
+
+// SheetColumns returns the header row of the given spreadsheet tab. The builder
+// uses it to render one input per column.
+func (svc *configuredConnection) SheetColumns(ctx context.Context, ID uint64, spreadsheetID, tab string) ([]string, error) {
+	if spreadsheetID == "" {
+		return nil, errors.InvalidData("spreadsheetId is required")
+	}
+
+	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+
+	rangeA1 := "1:1"
+	if tab != "" {
+		rangeA1 = tab + "!1:1"
+	}
+
+	w := google.NewWrapper("https://sheets.googleapis.com/v4/spreadsheets", cc.ID)
+	_, _, body, err := w.Run(ctx, "GET",
+		"/"+spreadsheetID+"/values/"+url.QueryEscape(rangeA1), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not read sheet columns: %w", err)
+	}
+
+	var resp struct {
+		Values [][]string `json:"values"`
+	}
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+	if len(resp.Values) == 0 {
+		return []string{}, nil
+	}
+	return resp.Values[0], nil
 }
 
 // StartDiscoveryRefreshLoop starts a background goroutine that periodically

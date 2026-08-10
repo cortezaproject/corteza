@@ -3659,6 +3659,23 @@ endpoints:
         parameters:
           path:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+      - name: refreshDiscovery
+        method: POST
+        title: Refresh discovered resources (e.g. Google spreadsheets and tabs)
+        path: '/{connectionID}/refresh-discovery'
+        parameters:
+          path:
+            - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+      - name: sheetColumns
+        method: GET
+        title: Get the column headers of a Google Sheet tab
+        path: '/{connectionID}/sheet-columns'
+        parameters:
+          path:
+            - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+          get:
+            - { type: 'string', name: 'spreadsheetId', required: true, title: 'Spreadsheet ID' }
+            - { type: 'string', name: 'tab', title: 'Sheet tab name' }
 
   - title: MCP
     path: '/mcp'

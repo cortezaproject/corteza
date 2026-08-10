@@ -34,14 +34,25 @@
           </h3>
         </div>
       </div>
-      <Button
-        icon="pi pi-times"
-        text
-        rounded
-        size="small"
-        class="shrink-0 mt-1"
-        @click="emit('close')"
-      />
+      <div class="flex items-center gap-1 shrink-0 mt-1">
+        <Button
+          v-if="hasConfiguration"
+          icon="pi pi-refresh"
+          text
+          rounded
+          size="small"
+          :loading="refreshingOptions"
+          v-tooltip.bottom="$t('builder.configSidebar.refreshOptions', 'Refresh available options')"
+          @click="handleRefreshOptions"
+        />
+        <Button
+          icon="pi pi-times"
+          text
+          rounded
+          size="small"
+          @click="emit('close')"
+        />
+      </div>
     </div>
 
     <!-- Description -->
@@ -211,9 +222,9 @@
 </template>
 
 <script setup>
-import { components } from '@planetcrust/human-vue'
+import { components, useAutomationStore } from '@planetcrust/human-vue'
 import { DEFAULT_ICONS } from '@planetcrust/human-js/src/automation/types/icon'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, inject, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { conditionToShort } from '@/sections/taq/utils/taq-parser'
 import TaqIcon from '../common/TaqIcon.vue'
@@ -238,6 +249,10 @@ const props = defineProps({
 import { provide, toRef } from 'vue'
 provide('taq-nodes', toRef(props, 'nodes'))
 provide('taq-upstream-results', toRef(props, 'upstreamResults'))
+
+// Bumped when the user hits refresh, so specialized inputs re-fetch their data.
+const refreshNonce = ref(0)
+provide('taq-refresh-nonce', refreshNonce)
 
 const functionFormRef = ref(null)
 
@@ -301,6 +316,47 @@ const functionDefinition = computed(() => {
   if (!nodeType) return null
   return props.functions.find(f => f.ref === nodeType) || null
 })
+
+// Re-run discovery for the selected connection, then reload the construct
+// library so refreshed options (e.g. spreadsheets) show in the pickers.
+const store = useAutomationStore()
+const $SystemAPI = inject('$SystemAPI')
+const $toast = inject('$toast')
+const refreshingOptions = ref(false)
+
+// Connection functions always declare a configurationID param.
+const hasConfiguration = computed(() =>
+  (functionDefinition.value?.parameters || []).some(p => p.argumentName === 'configurationID'),
+)
+
+const selectedConfigurationID = computed(() => {
+  const arg = (props.node.data?.arguments || []).find(a => a.argumentName === 'configurationID')
+  return arg?.value || null
+})
+
+async function handleRefreshOptions() {
+  const configID = selectedConfigurationID.value
+  if (!configID) {
+    $toast?.toastWarning(
+      t('builder.configSidebar.selectConfigurationFirst', 'Select a configuration first'),
+    )
+    return
+  }
+  refreshingOptions.value = true
+  try {
+    await $SystemAPI.api().post(`/configured-connections/${configID}/refresh-discovery`)
+    await store.loadFunctions()
+    // Signal specialized inputs (e.g. the sheet-row column list) to re-fetch.
+    refreshNonce.value++
+    $toast?.toastSuccess(t('builder.configSidebar.optionsRefreshed', 'Refreshed available options'))
+  } catch (e) {
+    const detail = e?.response?.data?.error?.message || e?.message || ''
+    const prefix = t('builder.configSidebar.optionsRefreshError', 'Could not refresh options')
+    $toast?.toastDanger(detail ? `${prefix}: ${detail}` : prefix)
+  } finally {
+    refreshingOptions.value = false
+  }
+}
 
 // Look up trigger definition from store.triggers by eventType
 const triggerDefinition = computed(() => {

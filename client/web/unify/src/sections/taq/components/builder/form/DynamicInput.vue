@@ -112,7 +112,7 @@ const emit = defineEmits([
 // Render the array editor so each element becomes a separate scalar row; the
 // server wraps those rows into an Array. FieldValueMap / WorkflowInputMap keep
 // their dedicated components.
-const AGGREGATE_MAP_TYPES = ['FieldValueMap', 'WorkflowInputMap']
+const AGGREGATE_MAP_TYPES = ['FieldValueMap', 'WorkflowInputMap', 'SheetRow', 'SheetGrid']
 const inputComponent = computed(() => {
   if (props.aggregate && !AGGREGATE_MAP_TYPES.includes(props.type)) {
     return resolveInputComponent('Array')

@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, provide, toRef } from 'vue'
 import { useSegmentForm } from '@/sections/taq/composables/useSegmentForm'
 import DynamicForm from './DynamicForm.vue'
 
@@ -34,6 +34,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:arguments', 'toggleReference'])
+
+// Expose the live arguments so inputs can read sibling values (e.g. the
+// selected spreadsheet/tab).
+provide('taq-arguments', toRef(props, 'arguments'))
 
 const parameters = computed(() => props.functionDef.parameters || [])
 

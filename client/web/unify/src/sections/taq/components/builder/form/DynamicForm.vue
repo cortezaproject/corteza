@@ -12,31 +12,42 @@
           {{ section.title }}
         </div>
 
+        <!-- Primary fields -->
         <div class="flex flex-col gap-4">
-          <div v-for="input in section.inputs" :key="input.key" class="flex flex-col gap-1">
-            <DynamicInput
-              :type="input.type"
-              :label="input.label"
-              :placeholder="input.placeholder"
-              :disabled-placeholder="input.disabledPlaceholder"
-              :disabled="input.disabled"
-              :required="input.required"
-              :argument="input.argument"
-              :options="input.options || []"
-              :aggregate="input.isAggregate || false"
-              :is-reference="input.isReference"
-              :reference-label="input.referenceLabel"
+          <DynamicFormField
+            v-for="input in primaryInputs(section)"
+            :key="input.key"
+            :input="input"
+            :show-reference-toggle="showReferenceToggle"
+            @update:value="(arg, val) => $emit('update:value', arg, val)"
+            @toggle-reference="$emit('toggleReference', $event)"
+            @clear-reference="$emit('clearReference', $event)"
+            @update-reference-source="(arg, val) => $emit('updateReferenceSource', arg, val)"
+          />
+        </div>
+
+        <!-- Advanced fields, collapsed by default -->
+        <div v-if="advancedInputs(section).length" class="flex flex-col gap-3">
+          <button
+            type="button"
+            class="flex items-center gap-2 text-sm text-muted-color hover:text-color w-fit"
+            @click="toggleAdvanced(section.key)"
+          >
+            <span :class="isAdvancedOpen(section.key) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+            {{ $t('builder.form.advanced', 'Advanced options') }}
+          </button>
+
+          <div v-if="isAdvancedOpen(section.key)" class="flex flex-col gap-4">
+            <DynamicFormField
+              v-for="input in advancedInputs(section)"
+              :key="input.key"
+              :input="input"
               :show-reference-toggle="showReferenceToggle"
-              v-bind="input.contextProps"
-              :model-value="input.value"
-              @update:model-value="$emit('update:value', input.argument, $event)"
+              @update:value="(arg, val) => $emit('update:value', arg, val)"
               @toggle-reference="$emit('toggleReference', $event)"
               @clear-reference="$emit('clearReference', $event)"
               @update-reference-source="(arg, val) => $emit('updateReferenceSource', arg, val)"
             />
-            <p v-if="input.description" class="text-xs text-muted-color m-0">
-              {{ input.description }}
-            </p>
           </div>
         </div>
       </div>
@@ -45,7 +56,8 @@
 </template>
 
 <script setup>
-import DynamicInput from './DynamicInput.vue'
+import { ref } from 'vue'
+import DynamicFormField from './DynamicFormField.vue'
 
 defineProps({
   processedSegments: {
@@ -59,4 +71,21 @@ defineProps({
 })
 
 defineEmits(['update:value', 'toggleReference', 'clearReference', 'updateReferenceSource'])
+
+function primaryInputs(section) {
+  return (section.inputs || []).filter(i => !i.advanced)
+}
+function advancedInputs(section) {
+  return (section.inputs || []).filter(i => i.advanced)
+}
+
+const openAdvanced = ref(new Set())
+function toggleAdvanced(key) {
+  const next = new Set(openAdvanced.value)
+  next.has(key) ? next.delete(key) : next.add(key)
+  openAdvanced.value = next
+}
+function isAdvancedOpen(key) {
+  return openAdvanced.value.has(key)
+}
 </script>

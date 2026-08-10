@@ -114,6 +114,30 @@ type (
 		// Connection ID
 		ConnectionID uint64 `json:",string"`
 	}
+
+	ConfiguredConnectionRefreshDiscovery struct {
+		// ConnectionID PATH parameter
+		//
+		// Connection ID
+		ConnectionID uint64 `json:",string"`
+	}
+
+	ConfiguredConnectionSheetColumns struct {
+		// ConnectionID PATH parameter
+		//
+		// Connection ID
+		ConnectionID uint64 `json:",string"`
+
+		// SpreadsheetId GET parameter
+		//
+		// Spreadsheet ID
+		SpreadsheetId string
+
+		// Tab GET parameter
+		//
+		// Sheet tab name
+		Tab string
+	}
 )
 
 // NewConfiguredConnectionList request
@@ -393,6 +417,106 @@ func (r ConfiguredConnectionCheck) GetConnectionID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ConfiguredConnectionCheck) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "connectionID")
+		r.ConnectionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewConfiguredConnectionRefreshDiscovery request
+func NewConfiguredConnectionRefreshDiscovery() *ConfiguredConnectionRefreshDiscovery {
+	return &ConfiguredConnectionRefreshDiscovery{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionRefreshDiscovery) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID": r.ConnectionID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionRefreshDiscovery) GetConnectionID() uint64 {
+	return r.ConnectionID
+}
+
+// Fill processes request and fills internal variables
+func (r *ConfiguredConnectionRefreshDiscovery) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "connectionID")
+		r.ConnectionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewConfiguredConnectionSheetColumns request
+func NewConfiguredConnectionSheetColumns() *ConfiguredConnectionSheetColumns {
+	return &ConfiguredConnectionSheetColumns{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionSheetColumns) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID":  r.ConnectionID,
+		"spreadsheetId": r.SpreadsheetId,
+		"tab":           r.Tab,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionSheetColumns) GetConnectionID() uint64 {
+	return r.ConnectionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionSheetColumns) GetSpreadsheetId() string {
+	return r.SpreadsheetId
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionSheetColumns) GetTab() string {
+	return r.Tab
+}
+
+// Fill processes request and fills internal variables
+func (r *ConfiguredConnectionSheetColumns) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["spreadsheetId"]; ok && len(val) > 0 {
+			r.SpreadsheetId, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["tab"]; ok && len(val) > 0 {
+			r.Tab, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	{
 		var val string

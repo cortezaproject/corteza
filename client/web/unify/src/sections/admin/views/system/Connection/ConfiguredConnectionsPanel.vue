@@ -205,6 +205,18 @@
             @click="handleConfiguredConnectionCheck"
           />
 
+          <template v-if="activeConfiguredConnection.status === 'active'">
+            <Divider layout="vertical" />
+            <Button
+              :label="$t('system.configuredConnections.editor.refreshResources', 'Refresh')"
+              size="small"
+              severity="secondary"
+              outlined
+              :loading="refreshingDiscovery"
+              @click="handleRefreshDiscovery"
+            />
+          </template>
+
           <template v-if="activeConfiguredConnection.status !== 'active'">
             <Divider layout="vertical" />
             <Button
@@ -271,6 +283,7 @@ const configuredConnectionFormRef = ref(null)
 const savingConfiguredConnection = ref(false)
 const enablingConfiguredConnection = ref(false)
 const checkingConfiguredConnection = ref(false)
+const refreshingDiscovery = ref(false)
 const activeConfiguredConnection = ref(null)
 const configuredConnectionRawLabels = ref('{}')
 const paramValues = reactive({})
@@ -539,6 +552,30 @@ async function handleConfiguredConnectionCheck() {
     toastError('system.configuredConnections.editor.checkResult.error', e)
   } finally {
     checkingConfiguredConnection.value = false
+  }
+}
+
+// Re-run resource discovery. Called through the axios instance since the
+// typed client method may not be generated yet.
+async function handleRefreshDiscovery() {
+  if (!activeConfiguredConnection.value?.configurationID) return
+  refreshingDiscovery.value = true
+  try {
+    await $SystemAPI.api().post(
+      `/configured-connections/${activeConfiguredConnection.value.configurationID}/refresh-discovery`,
+    )
+    $toast.toastSuccess(
+      t('system.configuredConnections.editor.discoveryRefreshed', 'Refreshed available resources'),
+    )
+  } catch (e) {
+    const prefix = t(
+      'system.configuredConnections.editor.discoveryError',
+      'Could not refresh resources',
+    )
+    const detail = extractError(e)
+    $toast.toastDanger(detail ? `${prefix}: ${detail}` : prefix)
+  } finally {
+    refreshingDiscovery.value = false
   }
 }
 

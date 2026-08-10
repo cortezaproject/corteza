@@ -16,6 +16,8 @@ import {
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
 import CInputWorkflowInputMap from './CInputWorkflowInputMap.vue'
 import CInputArray from './CInputArray.vue'
+import CInputSheetRow from './CInputSheetRow.vue'
+import CInputSheetGrid from './CInputSheetGrid.vue'
 
 /**
  * Maps input.type (from API function definition segments) to Vue component.
@@ -58,6 +60,12 @@ export const INPUT_REGISTRY: Record<string, Component> = {
 
   // Array/List inputs
   Array: CInputArray,
+
+  // Google Sheets row: one labeled input per column (header-driven)
+  SheetRow: CInputSheetRow,
+
+  // Google Sheets grid: a table of rows, columns are the sheet headers
+  SheetGrid: CInputSheetGrid,
 
   // Booleans
   Boolean: CInputSwitch,
