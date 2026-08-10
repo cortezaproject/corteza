@@ -276,6 +276,13 @@ var resourceScopeExempt = map[string]bool{
 	"automation_trigger_undelete":  true,
 	"automation_event_type_lookup": true,
 
+	// Theme colours are one instance-wide setting. There is no namespace or
+	// module for checkAllow to narrow on — the palette is the same object for
+	// every caller — and the settings service gates the write itself with
+	// CanManageSettings.
+	"system_theme_lookup": true,
+	"system_theme_update": true,
+
 	// TAQ authoring. Classified with lookup rather than with exec for the same
 	// reason undelete is: it changes what an automation is, not which one runs.
 	// A TAQ carries no compose namespace or module dimension for checkAllow to

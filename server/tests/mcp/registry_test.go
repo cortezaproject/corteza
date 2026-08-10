@@ -23,8 +23,8 @@ import (
 	autoAgentic "github.com/crusttech/human/server/automation/agentic"
 	cmpAgentic "github.com/crusttech/human/server/compose/agentic"
 	a "github.com/crusttech/human/server/pkg/auth"
-	sysAgentic "github.com/crusttech/human/server/system/agentic"
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
+	sysAgentic "github.com/crusttech/human/server/system/agentic"
 	"github.com/crusttech/human/server/system/agentic/policy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -63,6 +63,7 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	sysAgentic.RoleHandler(reg)
 	sysAgentic.AuthClientHandler(reg)
 	sysAgentic.ApplicationHandler(reg)
+	sysAgentic.ThemeHandler(reg)
 	sysAgentic.DiscoveryHandler(reg, "http://discovery.invalid", stubSigner{})
 
 	return reg
@@ -240,11 +241,18 @@ func TestLookupContract(t *testing.T) {
 		// A compile-time constant slice, not a store. Measured at 118 entries
 		// and 37 KB — 14% of the JSONResult ceiling — so it returns whole.
 		"automation_event_type_lookup": true,
+		// One setting holding three themes — general, light, dark — fixed at
+		// provisioning. There is no store behind it to page through, and the
+		// whole palette is a few hundred bytes.
+		"system_theme_lookup": true,
 	}
 
 	// Of those, the ones that cannot meaningfully bound either. discovery_search
 	// still caps result size, so it keeps its `limit`.
-	noLimit := map[string]bool{"automation_event_type_lookup": true}
+	noLimit := map[string]bool{
+		"automation_event_type_lookup": true,
+		"system_theme_lookup":          true,
+	}
 
 	for _, tool := range buildRegistry(t).Tools() {
 		if !strings.HasSuffix(tool.Name, "_lookup") && tool.Name != "discovery_search" {
@@ -335,7 +343,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"RecordHandler(", "NamespaceHandler(", "ModuleHandler(", "PageHandler(",
 		"ChartHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ReminderHandler(",
 		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
-		"AuthClientHandler(", "ApplicationHandler(",
+		"AuthClientHandler(", "ApplicationHandler(", "ThemeHandler(",
 	} {
 		assert.Containsf(t, src, ctor,
 			"buildRegistry wires %s but boot_levels.go does not; one of them is wrong", ctor)
@@ -349,7 +357,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"WorkflowHandler": true, "TriggerHandler": true, "EventTypeHandler": true,
 		"ReminderHandler": true, "DiscoveryHandler": true,
 		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
-		"AuthClientHandler": true, "ApplicationHandler": true,
+		"AuthClientHandler": true, "ApplicationHandler": true, "ThemeHandler": true,
 	}
 	for _, line := range strings.Split(src, "\n") {
 		for _, prefix := range []string{"cmpAgentic.", "autoAgentic.", "sysAgentic."} {

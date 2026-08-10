@@ -457,6 +457,7 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	sysAgentic.RoleHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.AuthClientHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ApplicationHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.ThemeHandler(sysService.DefaultMCPRegistry)
 	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
 		discoverySigner, err := auth.NewTokenIssuer(auth.WithSecretSigner(app.Opt.Discovery.JwtSecret))
 		if err != nil {
