@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -569,15 +570,29 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 	if len(existing) > 0 {
 		conn := existing[0]
 
-		// Repair catalog connections imported before the parser understood the
-		// nested { token, headerName } credential shape: their auth params were
-		// stored with an empty value, so no field is derived. Re-sync only the
-		// broken params from the catalog. User credentials live on the
-		// ConfiguredConnection and any local edits are left untouched.
-		if conn.Source == "catalog" && catalogConn.Service != nil {
-			var catalogSvc types.ConnectionService
-			raw, _ := json.Marshal(catalogConn.Service)
-			if json.Unmarshal(raw, &catalogSvc) == nil && healCatalogAuthParams(conn, catalogSvc.Auth) {
+		// Refresh catalog connections from the catalog on re-import.
+		//
+		// Auth params are healed surgically: a stored empty value (e.g. imported
+		// before the parser understood the nested { token, headerName } shape) is
+		// restored, but a user-set value is never overwritten.
+		//
+		// Operations and resources are catalog-owned — no user data lives on them
+		// (credentials and config live on the ConfiguredConnection) — so they are
+		// re-synced wholesale to pick up connector fixes (paths, bodies, defaults).
+		if conn.Source == "catalog" {
+			fresh := catalogConnectionToLocal(catalogConn)
+
+			changed := healCatalogAuthParams(conn, fresh.Service.Auth)
+			if !reflect.DeepEqual(conn.Operations, fresh.Operations) {
+				conn.Operations = fresh.Operations
+				changed = true
+			}
+			if !reflect.DeepEqual(conn.Resources, fresh.Resources) {
+				conn.Resources = fresh.Resources
+				changed = true
+			}
+
+			if changed {
 				return svc.Update(ctx, conn)
 			}
 		}
