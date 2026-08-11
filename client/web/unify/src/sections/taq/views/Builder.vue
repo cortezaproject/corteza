@@ -185,8 +185,12 @@
         @node-click="onNodeClick"
         @pane-click="onPaneClick"
       >
-        <!-- Background with dots pattern -->
-        <Background :gap="27" :size="1" />
+        <!-- Background with dots pattern. The gap is half NODE_DIMENSIONS.HEIGHT,
+             so the grid keeps step with the layout: two rows per node and per
+             rank gap, four per branch separation. `size` is a diameter VueFlow
+             scales by zoom and halves into a radius, so anything below 2 is a
+             sub-pixel circle that antialiasing washes out. -->
+        <Background :gap="50" :size="2" />
 
         <!-- Custom node types -->
         <template #node-trigger="props">
@@ -395,7 +399,7 @@
 
     <!-- Empty state: Add first trigger -->
     <div v-if="editor.isEmpty.value" class="absolute inset-0 flex items-center justify-center">
-      <div class="text-center">
+      <div class="bg-surface rounded-lg border border-surface shadow-sm px-8 py-6 text-center">
         <div class="text-muted-color text-lg mb-4">{{ $t('builder.emptyState') }}</div>
         <Button
           :label="$t('builder.addTrigger')"
@@ -1111,9 +1115,11 @@ watch(
   height: calc(100vh - var(--topbar-height));
 }
 
-/* Override VueFlow styles to match our theme */
+/* Override VueFlow styles to match our theme. The canvas takes the body
+   background, not the content surface, so the surface-coloured nodes,
+   overlay panels and bottom toolbar read as raised against it. */
 .vue-flow {
-  background-color: var(--p-content-background);
+  background-color: var(--body-bg);
 }
 
 .vue-flow__background {
@@ -1121,7 +1127,7 @@ watch(
 }
 
 .vue-flow__background pattern circle {
-  fill: color-mix(in srgb, var(--p-text-muted-color) 40%, transparent);
+  fill: color-mix(in srgb, var(--p-text-muted-color) 60%, transparent);
 }
 
 /* Edge styling */
