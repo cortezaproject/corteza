@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { expect } from 'chai'
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 
 import { PageBlockMaker, PageBlockRegistry } from './index'
 import Feed from './calendar/feed'
@@ -21,9 +21,9 @@ import { PageBlockMetric } from './metric'
  *   cd server && go test ./compose/types/ -run PageBlockOptionSchemasSnapshot -update-block-schemas
  */
 
-const SNAPSHOT_URL = new URL(
+const SNAPSHOT_PATH = resolve(
+  __dirname,
   '../../../../../../server/compose/types/testdata/page_block_option_schemas.json',
-  import.meta.url,
 )
 
 // Block kinds the server advertises but the unify webapp has no renderer
@@ -31,7 +31,7 @@ const SNAPSHOT_URL = new URL(
 const UNRENDERED_KINDS = ['SocialFeed']
 
 const schemas: Record<string, Record<string, unknown>> = JSON.parse(
-  readFileSync(fileURLToPath(SNAPSHOT_URL), 'utf8'),
+  readFileSync(SNAPSHOT_PATH, 'utf8'),
 )
 
 const keysOf = (o: unknown): string[] => Object.keys(o as Record<string, unknown>)
@@ -40,17 +40,18 @@ describe('server page-block schemas match webapp page-block contracts', () => {
   for (const [kind, schema] of Object.entries(schemas)) {
     if (UNRENDERED_KINDS.includes(kind)) {
       it(`${kind}: stays unrendered (no webapp class registered)`, () => {
-        expect(PageBlockRegistry.get(kind)).toBeUndefined()
+        expect(PageBlockRegistry.get(kind)).to.be.undefined
       })
       continue
     }
 
     it(`${kind}: advertised option keys exist in the webapp class defaults`, () => {
-      expect(PageBlockRegistry.get(kind), `no page-block class for kind ${kind}`).toBeDefined()
+      expect(PageBlockRegistry.get(kind), `no page-block class for kind ${kind}`).to.not.be
+        .undefined
 
       const feKeys = keysOf(PageBlockMaker({ kind }).options)
       for (const key of keysOf(schema)) {
-        expect(feKeys, `${kind}.options.${key} is advertised by the server schema`).toContain(key)
+        expect(feKeys, `${kind}.options.${key} is advertised by the server schema`).to.include(key)
       }
     })
   }
@@ -59,7 +60,7 @@ describe('server page-block schemas match webapp page-block contracts', () => {
     const feMetricKeys = keysOf(new PageBlockMetric().makeMetric())
     const [item] = schemas.Metric.metrics as Record<string, unknown>[]
     for (const key of keysOf(item)) {
-      expect(feMetricKeys, `Metric metrics[].${key}`).toContain(key)
+      expect(feMetricKeys, `Metric metrics[].${key}`).to.include(key)
     }
   })
 
@@ -69,11 +70,11 @@ describe('server page-block schemas match webapp page-block contracts', () => {
     const [item] = schemas.Calendar.feeds as Record<string, unknown>[]
     for (const key of keysOf(item)) {
       if (key === 'options') continue
-      expect(feFeedKeys, `Calendar feeds[].${key}`).toContain(key)
+      expect(feFeedKeys, `Calendar feeds[].${key}`).to.include(key)
     }
     const feOptKeys = keysOf(feed.options)
     for (const key of keysOf((item as { options: object }).options)) {
-      expect(feOptKeys, `Calendar feeds[].options.${key}`).toContain(key)
+      expect(feOptKeys, `Calendar feeds[].options.${key}`).to.include(key)
     }
   })
 
@@ -83,7 +84,7 @@ describe('server page-block schemas match webapp page-block contracts', () => {
       const feNested = keysOf(options[nested])
       for (const key of keysOf((schemas.Progress as Record<string, object>)[nested])) {
         if (nested === 'display' && key === 'thresholds') continue // FE default is an empty list
-        expect(feNested, `Progress ${nested}.${key}`).toContain(key)
+        expect(feNested, `Progress ${nested}.${key}`).to.include(key)
       }
     }
   })
