@@ -777,6 +777,10 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 	var argsMerger atypes.FunctionMerger
 	if strings.Contains(conn.Service.BaseURL.Value, "sheets.googleapis.com") {
 		relabelSheetOptions(segments)
+		// Worksheet-id inputs become a picker (name → numeric sheet id).
+		setInputTypeByArgument(segments, "sheetId", "Worksheet")
+		setInputTypeByArgument(segments, "sourceSheetId", "Worksheet")
+		setInputTypeByArgument(segments, "destSheetId", "Worksheet")
 		switch strings.ToLower(op.Handle) {
 		case "create-spreadsheet-row":
 			setInputTypeByArgument(segments, "values", "SheetRow")
@@ -1860,6 +1864,50 @@ func (svc *configuredConnection) SheetColumns(ctx context.Context, ID uint64, sp
 		return []string{}, nil
 	}
 	return resp.Values[0], nil
+}
+
+// SheetTabs returns the worksheets of the given spreadsheet as {label,value}
+// items where the value is the numeric sheet id. The builder uses it to let the
+// user pick a worksheet by name.
+func (svc *configuredConnection) SheetTabs(ctx context.Context, ID uint64, spreadsheetID string) ([]atypes.SelectItem, error) {
+	if spreadsheetID == "" {
+		return nil, errors.InvalidData("spreadsheetId is required")
+	}
+
+	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+
+	w := google.NewWrapper("https://sheets.googleapis.com/v4/spreadsheets", cc.ID)
+	_, _, body, err := w.Run(ctx, "GET",
+		"/"+spreadsheetID+"?fields=sheets.properties%28sheetId%2Ctitle%29", nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not read worksheets: %w", err)
+	}
+
+	var resp struct {
+		Sheets []struct {
+			Properties struct {
+				SheetID int    `json:"sheetId"`
+				Title   string `json:"title"`
+			} `json:"properties"`
+		} `json:"sheets"`
+	}
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	tabs := make([]atypes.SelectItem, 0, len(resp.Sheets))
+	for _, s := range resp.Sheets {
+		tabs = append(tabs, atypes.SelectItem{
+			Label: s.Properties.Title,
+			Value: strconv.Itoa(s.Properties.SheetID),
+		})
+	}
+	return tabs, nil
 }
 
 // StartDiscoveryRefreshLoop starts a background goroutine that periodically

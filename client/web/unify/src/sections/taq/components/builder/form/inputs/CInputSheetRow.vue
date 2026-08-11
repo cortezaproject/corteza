@@ -65,7 +65,8 @@
 
     <!-- No columns: fall back to a plain list -->
     <div v-else class="flex flex-col gap-2">
-      <div class="text-sm text-muted-color">{{ fallbackHint }}</div>
+      <div v-if="error" class="text-sm text-red-500">{{ error }}</div>
+      <div v-else class="text-sm text-muted-color">{{ fallbackHint }}</div>
       <CInputArray
         :model-value="modelValue"
         :disabled="disabled"
@@ -90,7 +91,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'toggleRowReference'])
 const { t } = useI18n()
 
-const { columns, loading, spreadsheetId } = useSheetColumns()
+const { columns, loading, error, spreadsheetId } = useSheetColumns()
 const activeReferenceArgument = inject('activeReferenceArgument', ref(null))
 
 const fallbackHint = computed(() =>

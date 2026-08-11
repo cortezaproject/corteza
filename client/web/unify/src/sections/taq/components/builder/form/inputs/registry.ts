@@ -18,6 +18,7 @@ import CInputWorkflowInputMap from './CInputWorkflowInputMap.vue'
 import CInputArray from './CInputArray.vue'
 import CInputSheetRow from './CInputSheetRow.vue'
 import CInputSheetGrid from './CInputSheetGrid.vue'
+import CInputWorksheet from './CInputWorksheet.vue'
 
 /**
  * Maps input.type (from API function definition segments) to Vue component.
@@ -66,6 +67,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
 
   // Google Sheets grid: a table of rows, columns are the sheet headers
   SheetGrid: CInputSheetGrid,
+
+  // Google Sheets worksheet picker (name → numeric sheet id)
+  Worksheet: CInputWorksheet,
 
   // Booleans
   Boolean: CInputSwitch,

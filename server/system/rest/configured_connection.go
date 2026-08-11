@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 
+	atypes "github.com/crusttech/human/server/automation/types"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -41,6 +42,7 @@ type (
 		Check(ctx context.Context, ID uint64) (*types.ConfiguredConnectionCheckResult, error)
 		RefreshDiscovery(ctx context.Context, ID uint64) (map[string]any, error)
 		SheetColumns(ctx context.Context, ID uint64, spreadsheetID, tab string) ([]string, error)
+		SheetTabs(ctx context.Context, ID uint64, spreadsheetID string) ([]atypes.SelectItem, error)
 	}
 )
 
@@ -96,6 +98,10 @@ func (ctrl ConfiguredConnection) RefreshDiscovery(ctx context.Context, r *reques
 
 func (ctrl ConfiguredConnection) SheetColumns(ctx context.Context, r *request.ConfiguredConnectionSheetColumns) (interface{}, error) {
 	return ctrl.configuredConnection.SheetColumns(ctx, r.ConnectionID, r.SpreadsheetId, r.Tab)
+}
+
+func (ctrl ConfiguredConnection) SheetTabs(ctx context.Context, r *request.ConfiguredConnectionSheetTabs) (interface{}, error) {
+	return ctrl.configuredConnection.SheetTabs(ctx, r.ConnectionID, r.SpreadsheetId)
 }
 
 func (ctrl ConfiguredConnection) makeFilterPayload(ctx context.Context, set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter, err error) (*configuredConnectionSetPayload, error) {

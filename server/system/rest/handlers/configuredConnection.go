@@ -26,6 +26,7 @@ type (
 		Check(context.Context, *request.ConfiguredConnectionCheck) (interface{}, error)
 		RefreshDiscovery(context.Context, *request.ConfiguredConnectionRefreshDiscovery) (interface{}, error)
 		SheetColumns(context.Context, *request.ConfiguredConnectionSheetColumns) (interface{}, error)
+		SheetTabs(context.Context, *request.ConfiguredConnectionSheetTabs) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -37,6 +38,7 @@ type (
 		Check            func(http.ResponseWriter, *http.Request)
 		RefreshDiscovery func(http.ResponseWriter, *http.Request)
 		SheetColumns     func(http.ResponseWriter, *http.Request)
+		SheetTabs        func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -154,6 +156,22 @@ func NewConfiguredConnection(h ConfiguredConnectionAPI) *ConfiguredConnection {
 
 			api.Send(w, r, value)
 		},
+		SheetTabs: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConfiguredConnectionSheetTabs()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.SheetTabs(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -167,5 +185,6 @@ func (h ConfiguredConnection) MountRoutes(r chi.Router, middlewares ...func(http
 		r.Post("/configured-connections/{connectionID}/check", h.Check)
 		r.Post("/configured-connections/{connectionID}/refresh-discovery", h.RefreshDiscovery)
 		r.Get("/configured-connections/{connectionID}/sheet-columns", h.SheetColumns)
+		r.Get("/configured-connections/{connectionID}/sheet-tabs", h.SheetTabs)
 	})
 }

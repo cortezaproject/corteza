@@ -92,7 +92,8 @@
       />
     </template>
 
-    <!-- No columns: show a hint -->
+    <!-- No columns: show the error or a hint -->
+    <div v-else-if="error" class="text-sm text-red-500">{{ error }}</div>
     <div v-else class="text-sm text-muted-color">{{ fallbackHint }}</div>
   </div>
 </template>
@@ -111,7 +112,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'toggleRowReference'])
 const { t } = useI18n()
 
-const { columns, loading, spreadsheetId } = useSheetColumns()
+const { columns, loading, error, spreadsheetId } = useSheetColumns()
 const activeReferenceArgument = inject('activeReferenceArgument', ref(null))
 
 const fallbackHint = computed(() =>

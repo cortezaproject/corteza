@@ -3676,6 +3676,15 @@ endpoints:
           get:
             - { type: 'string', name: 'spreadsheetId', required: true, title: 'Spreadsheet ID' }
             - { type: 'string', name: 'tab', title: 'Sheet tab name' }
+      - name: sheetTabs
+        method: GET
+        title: Get the worksheets of a Google spreadsheet
+        path: '/{connectionID}/sheet-tabs'
+        parameters:
+          path:
+            - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
+          get:
+            - { type: 'string', name: 'spreadsheetId', required: true, title: 'Spreadsheet ID' }
 
   - title: MCP
     path: '/mcp'

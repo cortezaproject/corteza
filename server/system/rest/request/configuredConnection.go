@@ -138,6 +138,18 @@ type (
 		// Sheet tab name
 		Tab string
 	}
+
+	ConfiguredConnectionSheetTabs struct {
+		// ConnectionID PATH parameter
+		//
+		// Connection ID
+		ConnectionID uint64 `json:",string"`
+
+		// SpreadsheetId GET parameter
+		//
+		// Spreadsheet ID
+		SpreadsheetId string
+	}
 )
 
 // NewConfiguredConnectionList request
@@ -512,6 +524,59 @@ func (r *ConfiguredConnectionSheetColumns) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["tab"]; ok && len(val) > 0 {
 			r.Tab, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "connectionID")
+		r.ConnectionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewConfiguredConnectionSheetTabs request
+func NewConfiguredConnectionSheetTabs() *ConfiguredConnectionSheetTabs {
+	return &ConfiguredConnectionSheetTabs{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionSheetTabs) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID":  r.ConnectionID,
+		"spreadsheetId": r.SpreadsheetId,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionSheetTabs) GetConnectionID() uint64 {
+	return r.ConnectionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConfiguredConnectionSheetTabs) GetSpreadsheetId() string {
+	return r.SpreadsheetId
+}
+
+// Fill processes request and fills internal variables
+func (r *ConfiguredConnectionSheetTabs) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["spreadsheetId"]; ok && len(val) > 0 {
+			r.SpreadsheetId, err = val[0], nil
 			if err != nil {
 				return err
 			}
