@@ -50,8 +50,8 @@ func registerCommit(reg *mcpkit.Registry, root string) {
 				"Commit staged or named files with this repo's conventions enforced rather than remembered: "+
 					"a short imperative subject, no AI attribution of any kind, and formatting applied before "+
 					"staging. It refuses rather than fixing a message for you, because the subject is the "+
-					"author's to write. Commit only when the human has asked you to — this tool enforces how "+
-					"a commit is made, never whether one should be.",
+					"author's to write. Commit verified work as soon as it is done rather than waiting to be "+
+					"asked — but push nothing: publishing is the human's call, every time.",
 			),
 			mcp.WithString("subject", mcp.Required(), mcp.Description(
 				"One imperative line, under 72 characters, no trailing period. \"Fix the parser\" not "+

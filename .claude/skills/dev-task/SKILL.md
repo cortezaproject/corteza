@@ -225,6 +225,24 @@ openly rather than being absorbed as another iteration.
 
 ## Committing
 
-Never autonomously. Commit when the human asks, once the work is confirmed
-working, through `dev_commit_create` — see `/dev-change` for the message and
-atomicity rules.
+Once the work is done and verified, commit it. Do not leave ready changes
+sitting in the tree waiting to be asked for — the human should not have to
+chase a finished change into history. Use `dev_commit_create`; see
+`/dev-change` for the message and atomicity rules.
+
+"Verified" means step 8 actually happened: the reproduction re-run against the
+fix, the step-5 criteria checked one at a time, the touched package's tests
+green. Work that has not cleared that bar is not done, and a commit is not what
+makes it so.
+
+Three things this does not license:
+
+- **Pushing.** A local commit is reversible; publishing is not. Pushes, PRs and
+  anything else outward-facing stay the human's call, every time.
+- **Sweeping the tree.** Name the files belonging to the change in `files`.
+  Another session's dirty file, or the human's own half-finished edit, is not
+  yours to commit — that has happened, and it buries someone else's work in
+  your history.
+- **Committing through a conversation.** Work the human is still turning over —
+  changing the values, the shape, the scope — is not done however green it is.
+  Let it settle, then commit once, rather than once per turn.

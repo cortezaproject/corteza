@@ -91,10 +91,12 @@ cleanup separately" is a rule about intent, and no path heuristic can tell a
 documented fix from a doc change that happens to sit beside one; refusing on a
 guess would make the tool something to route around.
 
-The commit tool writes to history, which is worth being explicit about: it does
-not change _who decides_ to commit — that remains the human, every time — it
+The commit tool writes to history, which is worth being explicit about. It
 changes whether the conventions are followed by an agent remembering CLAUDE.md
-or by code that refuses. Enforcement, not autonomy.
+or by code that refuses — enforcement, not judgement. _When_ to commit is not
+the tool's question either: verified work lands without the human asking for
+it, which is the workflow this repo wants. The line that stays with the human
+is **push**, because a local commit is reversible and publishing is not.
 
 ### Exercise a running Human
 

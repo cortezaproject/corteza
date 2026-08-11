@@ -87,10 +87,13 @@ The same shape shows up everywhere in this codebase's history: a check that
 reports success without having checked. Treat "it passed first time" as a
 question, not an answer.
 
-## 7. Commit — only when the human asked for one
+## 7. Commit — once the work is verified
 
-`dev_commit_create` enforces how a commit is made. It does not decide whether
-one should happen: that is the human's call, every time.
+`dev_commit_create` enforces how a commit is made. When one happens is settled
+by the work itself: verified work gets committed without being asked for.
+Unverified work does not — and if the human asks for the commit anyway, say
+plainly what is still unproven, then do as they asked. **Pushing is separate
+and always theirs**: a local commit is reversible, publishing is not.
 
 - One imperative line, under 72 characters, capitalised, no trailing period.
 - No AI attribution anywhere in the message — no co-author trailer, no
