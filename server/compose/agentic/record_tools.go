@@ -7,6 +7,9 @@ import (
 
 // Declarations only. Implementations are in record_handler.go, in this order.
 
+// The generic words for the thing a module holds.
+var recordKeywords = hmcp.WithKeywords("data", "row", "entry", "item")
+
 func (h *recordHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_lookup",
@@ -26,6 +29,7 @@ func (h *recordHandler) register() {
 			mcp.WithString("limit", mcp.Description("Maximum records to return, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),
 			hmcp.InGroup(hmcp.GroupUsage),
+			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup record",
@@ -39,6 +43,7 @@ func (h *recordHandler) register() {
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs")),
 			hmcp.InGroup(hmcp.GroupUsage),
+			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create record",
@@ -57,6 +62,7 @@ func (h *recordHandler) register() {
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
 			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs to update")),
 			hmcp.InGroup(hmcp.GroupUsage),
+			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update record",
@@ -74,6 +80,7 @@ func (h *recordHandler) register() {
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
 			hmcp.InGroup(hmcp.GroupUsage),
+			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete record",
@@ -98,6 +105,7 @@ func (h *recordHandler) register() {
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss). The module itself must not be deleted — restore it first with compose_module_undelete if it is.")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID of the deleted record (as string to prevent precision loss)")),
 			hmcp.InGroup(hmcp.GroupUsage),
+			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Undelete record",

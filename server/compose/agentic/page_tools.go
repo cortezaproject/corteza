@@ -13,6 +13,9 @@ import (
 // columns, 10px cell height, default block 24x18).
 const pageGridDoc = `The layout grid is 48 columns wide (cell height 10px; default block size is w=24 h=18). A full-width block uses xywh [0,0,48,20]. Blocks sit SIDE BY SIDE by stepping x, not y: a row of four tiles is [0,0,12,20], [12,0,12,20], [24,0,12,20], [36,0,12,20] — same y, x advancing by the width. Stepping y instead puts every tile in its own row, and w=12 is a QUARTER of this grid rather than the half it would be on a 12-column one, so that mistake renders as a narrow column down the left with the page empty beside it. Blocks CLIP their content when too short and fail silently as blank UI — give Metric blocks h>=20 and RecordList/Chart blocks h>=30.`
 
+// A page is what a user sees, and they name it after what it shows.
+var pageKeywords = hmcp.WithKeywords("dashboard", "screen", "view", "layout", "form")
+
 func (h *pageHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_lookup",
@@ -37,6 +40,7 @@ func (h *pageHandler) register() {
 			mcp.WithString("limit", mcp.Description("Maximum pages to return when listing, default 50, capped at 200. Ignored in tree mode.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page of the listing. Ignored in tree mode.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup page",
@@ -65,6 +69,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Example: {"allowPersonalLayouts":true}`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create page",
@@ -102,6 +107,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Replaces existing meta. Example: {"allowPersonalLayouts":true}`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update page",
@@ -123,6 +129,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("strategy", mcp.Description(`How to handle child pages: "abort" (default — fail if the page has any undeleted children), "cascade" (delete the whole subtree), "rebase" (move the children up to this page's parent, then delete it), "force" (delete only this page and leave the children pointing at it — they then show up as root-level pages)`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete page",
@@ -147,6 +154,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("pageID", mcp.Required(), mcp.Description("ID of the deleted page (as string to prevent precision loss). A title or handle will not work — deleted pages are not resolvable by either.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Undelete page",
@@ -176,6 +184,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("blockIDs", mcp.Required(), mcp.Description(`JSON array of blockIDs to remove, as strings to prevent precision loss, e.g. ["1","3"]. Every ID must exist on the page; read them from compose_page_lookup with 'page'.`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Remove page blocks",
@@ -198,6 +207,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("parent", mcp.Description("Parent page title, handle, or ID (as string to prevent precision loss). Omit to reorder root-level pages.")),
 			mcp.WithString("pageIDs", mcp.Required(), mcp.Description(`JSON array of page IDs in the desired order, as strings to prevent precision loss, e.g. ["123","456","789"]`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Reorder pages",
@@ -211,6 +221,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithDescription(`Get the options structure for a page block kind — field names and types as a zero-value skeleton (not examples from live pages). Call this before creating blocks of an unfamiliar kind, and pass the result's field names into the block's "options" object in compose_page_create or compose_page_update. Semantics the skeleton cannot express: Metric items use metricField "count" with empty operation for record counts, or a numeric field with operation sum/avg/min/max; Chart blocks reference an existing chart resource by chartID, created with compose_chart_create; RecordList/Record moduleID/fields take IDs and field names from compose_module_lookup. This reads a static schema — it touches no namespace and no data.`),
 			mcp.WithString("kind", mcp.Required(), mcp.Description("Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed, ChatbotInbox")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Get page block schema",

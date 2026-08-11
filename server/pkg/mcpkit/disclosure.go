@@ -109,14 +109,22 @@ func sessionID(ctx context.Context) string {
 	return ""
 }
 
-// searchTools matches a query against tool names, titles and descriptions.
+// searchTools matches a query against tool names, keywords and descriptions.
 //
 // Substring rather than anything cleverer: the names are already structured
 // (`{app}_{resource}_{op}`), so "page" and "delete role" both hit reliably, and
 // a miss is obvious rather than mysterious. An index or an embedding would add
 // a dependency and a failure mode to the one tool that is always loaded.
+//
+// Three tiers, because two were not enough. A name hit beats a keyword hit
+// beats a description hit: the name is what the tool *is*, a keyword is the
+// outside word for it, and a description mention is usually incidental. With
+// only name and description, a word Human does not use — "dashboard",
+// "report", "permission" — could never outrank a tool that mentioned it in
+// passing, so the tie fell through to alphabetical order and the answer was
+// wrong in a way no amount of description editing could fix.
 func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
-	terms := strings.Fields(strings.ToLower(query))
+	terms := searchTerms(query)
 
 	type scored struct {
 		tool    mcp.Tool
@@ -136,19 +144,30 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 			continue
 		}
 
-		name := strings.ToLower(t.Name)
-		desc := strings.ToLower(t.Description)
+		var (
+			segments = strings.Split(strings.ToLower(t.Name), "_")
+			desc     = strings.ToLower(t.Description)
+			keywords = KeywordsOf(t)
+		)
 
 		score, matched := 0, 0
 		for _, term := range terms {
-			switch {
-			case strings.Contains(name, term):
+			if s := segmentScore(segments, term); s > 0 {
 				// A name hit is worth more than a description hit: someone
 				// searching "role" wants the role tools, not every tool whose
 				// description happens to mention roles.
-				score += 10
+				score += s
 				matched++
-			case strings.Contains(desc, term):
+				continue
+			}
+
+			if s := keywordScore(keywords, term); s > 0 {
+				score += s
+				matched++
+				continue
+			}
+
+			if strings.Contains(desc, term) {
 				score++
 				matched++
 			}
@@ -177,6 +196,14 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 		if hits[i].score != hits[j].score {
 			return hits[i].score > hits[j].score
 		}
+		// Shorter name before longer: fewer segments means the more general
+		// tool of the family, which is the better guess when nothing else
+		// separates them. Falling straight to alphabetical order instead meant
+		// `automation_*` won every tie it was in, so "delete a customer" led
+		// with automation_taq_delete.
+		if len(hits[i].tool.Name) != len(hits[j].tool.Name) {
+			return len(hits[i].tool.Name) < len(hits[j].tool.Name)
+		}
 		return hits[i].tool.Name < hits[j].tool.Name
 	})
 
@@ -188,4 +215,72 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 		out = append(out, h.tool)
 	}
 	return out
+}
+
+// minTermLen is the shortest word that carries meaning here.
+//
+// Matching is substring-based, so a one- or two-letter word is a substring of
+// nearly every tool name and description: "a" matched everything, which made a
+// naturally phrased question rank worse than a single word. "make a dashboard"
+// returned twelve unrelated tools while "dashboard" honestly returned none —
+// and a confident wrong answer is worse than an admitted miss, because the
+// caller acts on it.
+const minTermLen = 3
+
+// searchTerms splits a query into the words worth matching on.
+//
+// A query made entirely of short words keeps them rather than matching nothing:
+// the caller meant something, and the old behaviour is better than silence.
+func searchTerms(query string) []string {
+	all := strings.Fields(strings.ToLower(query))
+
+	kept := make([]string, 0, len(all))
+	for _, term := range all {
+		if len(term) >= minTermLen {
+			kept = append(kept, term)
+		}
+	}
+
+	if len(kept) == 0 {
+		return all
+	}
+	return kept
+}
+
+// segmentScore matches a term against the parts of a `{app}_{resource}_{op}`
+// name, rather than against the name as one string.
+//
+// Whole-name substring matching cannot tell "role" landing on the resource of
+// system_role_create from "ole" landing in the middle of a word. Splitting
+// first makes an exact segment hit — the common case, since callers use
+// Human's own nouns — outrank a partial one.
+func segmentScore(segments []string, term string) int {
+	best := 0
+	for _, seg := range segments {
+		switch {
+		case seg == term:
+			return 20
+		case strings.Contains(seg, term) || strings.Contains(term, seg):
+			// Covers a plural or a possessive the caller typed: "roles"
+			// against the segment "role".
+			best = 12
+		}
+	}
+	return best
+}
+
+// keywordScore matches a term against a tool's declared synonyms. Scored below
+// any name hit and well above a description hit — see WithKeywords for why the
+// middle tier has to exist.
+func keywordScore(keywords []string, term string) int {
+	best := 0
+	for _, kw := range keywords {
+		switch {
+		case kw == term:
+			return 8
+		case strings.Contains(kw, term) || strings.Contains(term, kw):
+			best = 6
+		}
+	}
+	return best
 }

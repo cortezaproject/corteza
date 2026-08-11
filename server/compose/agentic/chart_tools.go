@@ -13,6 +13,9 @@ const chartConfigDoc = `JSON chart configuration. Canonical shape:
 {"colorScheme":"tableau.Tableau10","reports":[{"moduleID":"<id from compose_module_lookup>","filter":"","dimensions":[{"field":"<grouping field>","modifier":"(no grouping / buckets)","conditions":{}}],"metrics":[{"field":"count","type":"doughnut"}]}]}
 Metric "field":"count" counts records; a numeric module field aggregates instead. "type" per metric: doughnut, pie, bar, line. The dimension field is what values are grouped by (Select fields work well).`
 
+// Callers ask for a report or a dashboard; Human calls the thing a chart.
+var chartKeywords = hmcp.WithKeywords("report", "dashboard", "graph", "analytics", "visualisation")
+
 func (h *chartHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_chart_lookup",
@@ -28,6 +31,7 @@ func (h *chartHandler) register() {
 			mcp.WithString("limit", mcp.Description("Maximum charts to return when listing, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			chartKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup chart",
@@ -42,6 +46,7 @@ func (h *chartHandler) register() {
 			mcp.WithString("handle", mcp.Description("URL-friendly identifier. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed.")),
 			mcp.WithString("config", mcp.Required(), mcp.Description(chartConfigDoc)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			chartKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create chart",
@@ -62,6 +67,7 @@ func (h *chartHandler) register() {
 			mcp.WithString("handle", mcp.Description("New handle")),
 			mcp.WithString("config", mcp.Description(chartConfigDoc)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			chartKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update chart",
@@ -74,6 +80,7 @@ func (h *chartHandler) register() {
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("chart", mcp.Required(), mcp.Description("Chart name, handle, or ID (as string to prevent precision loss)")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			chartKeywords,
 			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete chart",
@@ -95,6 +102,7 @@ func (h *chartHandler) register() {
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("chartID", mcp.Required(), mcp.Description("ID of the deleted chart (as string to prevent precision loss). A name or handle will not work — deleted charts are not resolvable by either.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			chartKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Undelete chart",

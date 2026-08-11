@@ -1,6 +1,8 @@
 package mcpkit
 
 import (
+	"strings"
+
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -53,8 +55,9 @@ const (
 // Meta keys under which the tags travel. They are namespaced because _meta is
 // shared with the protocol and with anything else that writes to it.
 const (
-	MetaGroups = "human.dev/groups"
-	MetaRisk   = "human.dev/risk"
+	MetaGroups   = "human.dev/groups"
+	MetaRisk     = "human.dev/risk"
+	MetaKeywords = "human.dev/keywords"
 )
 
 func ensureMeta(t *mcp.Tool) {
@@ -113,6 +116,56 @@ func WithRisk(r Risk) mcp.ToolOption {
 		// world of external entities.
 		t.Annotations.OpenWorldHint = mcp.ToBoolPtr(false)
 	}
+}
+
+// WithKeywords records the words a caller is likely to use for this tool that
+// its name does not contain.
+//
+// Search ranks a name match far above a description match, which leaves no way
+// to make a tool findable by a word that is not in its name: putting "report"
+// in a chart tool's description scores the same +1 as every unrelated tool that
+// happens to mention reporting in passing, so the tie falls through to
+// alphabetical order and the right answer loses. Measured before this existed:
+// "dashboard" matched nothing at all, and "report" returned five TAQ tools and
+// no charts or pages.
+//
+// Keywords are for vocabulary the user brings and Human does not use — the
+// outside word for an inside thing. They are not a place to repeat the name, or
+// to broaden a tool into territory it does not cover: a keyword that wins a
+// query the tool cannot answer is worse than no match, because the caller acts
+// on it.
+func WithKeywords(keywords ...string) mcp.ToolOption {
+	return func(t *mcp.Tool) {
+		ensureMeta(t)
+		out := make([]string, 0, len(keywords))
+		for _, k := range keywords {
+			out = append(out, strings.ToLower(k))
+		}
+		t.Meta.AdditionalFields[MetaKeywords] = out
+	}
+}
+
+// KeywordsOf reports a tool's search keywords, or nil if it declares none.
+func KeywordsOf(t mcp.Tool) []string {
+	if t.Meta == nil || t.Meta.AdditionalFields == nil {
+		return nil
+	}
+
+	// Written as []string by WithKeywords; tolerate []any after a JSON round
+	// trip, the same way GroupsOf does.
+	switch v := t.Meta.AdditionalFields[MetaKeywords].(type) {
+	case []string:
+		return v
+	case []any:
+		out := make([]string, 0, len(v))
+		for _, k := range v {
+			if s, ok := k.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out
+	}
+	return nil
 }
 
 // GroupsOf reports the groups a tool is tagged with, or nil if untagged.

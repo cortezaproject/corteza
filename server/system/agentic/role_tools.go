@@ -23,6 +23,9 @@ import (
 // This file holds declarations only. Implementations are in role_handler.go, in
 // the same order.
 
+// Nobody asks to edit a role; they ask who can do what.
+var roleKeywords = hmcp.WithKeywords("permission", "access", "rights", "security", "group")
+
 func (h *roleHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("system_role_lookup",
@@ -52,6 +55,7 @@ func (h *roleHandler) register() {
 			mcp.WithString("limit", mcp.Description("Maximum results, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup role",
@@ -74,6 +78,7 @@ func (h *roleHandler) register() {
 			mcp.WithString("handle", mcp.Description("Stable identifier, e.g. \"support-agents\". Letters, digits, dash and underscore, at least 2 characters. Must be unique.")),
 			mcp.WithString("description", mcp.Description("What the role is for. Free text; say what it grants, since nothing else records that.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Create role",
@@ -99,6 +104,7 @@ func (h *roleHandler) register() {
 			mcp.WithString("handle", mcp.Description("New handle. Empty clears it, which leaves the role referenceable only by ID or name. Must stay unique.")),
 			mcp.WithString("description", mcp.Description("New description. Empty clears it. Other role metadata, including any context expression, is left untouched.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Update role",
@@ -120,6 +126,7 @@ func (h *roleHandler) register() {
 			),
 			mcp.WithString("role", mcp.Required(), mcp.Description("Role ID as a string, handle, or name.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
 		"Delete role",
@@ -138,6 +145,7 @@ func (h *roleHandler) register() {
 			),
 			mcp.WithString("roleID", mcp.Required(), mcp.Description("Role ID as a string. Handles and names do not resolve to deleted roles.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Undelete role",
@@ -157,6 +165,7 @@ func (h *roleHandler) register() {
 			),
 			mcp.WithString("role", mcp.Required(), mcp.Description("Role ID as a string, handle, or name.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Archive role",
@@ -174,6 +183,7 @@ func (h *roleHandler) register() {
 			),
 			mcp.WithString("role", mcp.Required(), mcp.Description("Role ID as a string, handle, or name. Archived roles need includeArchived to show up in system_role_lookup.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Unarchive role",
@@ -194,6 +204,7 @@ func (h *roleHandler) register() {
 			),
 			mcp.WithString("role", mcp.Required(), mcp.Description("Role ID as a string, handle, or name.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"List role members",
@@ -215,6 +226,7 @@ func (h *roleHandler) register() {
 			mcp.WithString("user", mcp.Description("User ID as a string, handle, or email address. Pass this or userGroup, not both.")),
 			mcp.WithString("userGroup", mcp.Description("User group ID as a string, or handle. Adds the whole group, so every current and future member of it holds the role.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Add role member",
@@ -237,6 +249,7 @@ func (h *roleHandler) register() {
 			mcp.WithString("user", mcp.Description("User ID as a string, handle, or email address. Pass this or userGroup, not both.")),
 			mcp.WithString("userGroup", mcp.Description("User group ID as a string, or handle. Removes the whole group's membership of the role.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
 		"Remove role member",
@@ -259,6 +272,7 @@ func (h *roleHandler) register() {
 			mcp.WithString("role", mcp.Required(), mcp.Description("Source role to copy permission rules FROM. ID as a string, handle, or name. Unchanged by this call.")),
 			mcp.WithString("targetRole", mcp.Required(), mcp.Description("Target role to copy permission rules ONTO. ID as a string, handle, or name. Its own rules are discarded first.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
+			roleKeywords,
 			// Destructive, not write: rbac/service.go sets every existing rule
 			// on the target to Inherit before copying, so the target's prior
 			// permission set is discarded with no undo. §4's test is "removes,

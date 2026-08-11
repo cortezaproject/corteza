@@ -37,9 +37,11 @@ func searchFixture(t *testing.T) *MCPServer {
 	t.Helper()
 
 	reg := NewRegistry()
-	add := func(name, desc string, g Group, r Risk) {
+	add := func(name, desc string, g Group, r Risk, opts ...mcp.ToolOption) {
 		reg.RegisterTool(
-			mcp.NewTool(name, mcp.WithDescription(desc), InGroup(g), WithRisk(r)),
+			mcp.NewTool(name, append([]mcp.ToolOption{
+				mcp.WithDescription(desc), InGroup(g), WithRisk(r),
+			}, opts...)...),
 			name, nil,
 		)
 	}
@@ -49,6 +51,12 @@ func searchFixture(t *testing.T) *MCPServer {
 	add("compose_record_create", "Create a record in a module.", GroupUsage, RiskWrite)
 	add("compose_page_update", "Update a page. Blocks are merged by block id.", GroupConfiguring, RiskWrite)
 	add("system_user_suspend", "Suspend a user so they cannot sign in.", GroupConfiguring, RiskWrite)
+
+	// Sorts after compose_chart_create alphabetically and is longer, so it
+	// loses the tie-break rather than winning it by name.
+	add("automation_taq_create", "Create a TAQ. Useful for scheduled reporting.", GroupConfiguring, RiskWrite)
+	add("compose_chart_create", "Create a chart in a namespace.", GroupConfiguring, RiskWrite,
+		WithKeywords("report", "dashboard"))
 
 	return &MCPServer{reg: reg, disclosed: newDisclosure()}
 }
@@ -102,6 +110,56 @@ func TestSearchMatching(t *testing.T) {
 		got = names(m.searchTools("role", Scope{MaxRisk: RiskWrite}))
 		assert.NotContains(t, got, "system_role_delete", "destructive is above the ceiling")
 		assert.Contains(t, got, "system_role_create")
+	})
+}
+
+// TestSearchRanking pins the three defects measured against the live surface:
+// a one-letter word matched every tool, ties fell through to alphabetical order
+// so automation_* always won, and a word Human does not use could not reach the
+// tool that answers it however the description was written.
+func TestSearchRanking(t *testing.T) {
+	m := searchFixture(t)
+
+	t.Run("a keyword reaches a tool whose name does not contain the word", func(t *testing.T) {
+		got := names(m.searchTools("dashboard", Scope{}))
+		require.NotEmpty(t, got, "a word Human does not use must still find the tool that answers it")
+		assert.Equal(t, "compose_chart_create", got[0])
+	})
+
+	t.Run("a keyword outranks an incidental description mention", func(t *testing.T) {
+		// automation_taq_create says "reporting" in its description; the chart
+		// tool declares "report" as a keyword. The keyword has to win, or no
+		// amount of description editing can fix the ordering.
+		got := names(m.searchTools("report", Scope{}))
+		require.NotEmpty(t, got)
+		assert.Equal(t, "compose_chart_create", got[0])
+		assert.Contains(t, got, "automation_taq_create", "the weaker match is still a candidate")
+	})
+
+	t.Run("a filler word contributes nothing", func(t *testing.T) {
+		// "a" is a substring of almost every name and description, so before
+		// the minimum term length it pulled in the entire surface: the phrased
+		// question scored worse than the bare word it contained.
+		bare := names(m.searchTools("chart", Scope{}))
+		phrased := names(m.searchTools("a chart", Scope{}))
+		require.NotEmpty(t, bare)
+		assert.Equal(t, bare, phrased,
+			"the filler word must leave the result identical")
+	})
+
+	t.Run("a query of only short words still matches", func(t *testing.T) {
+		// Dropping every term would turn a real question into silence.
+		assert.NotEmpty(t, names(m.searchTools("id", Scope{})))
+	})
+
+	t.Run("an equal match does not default to alphabetical order", func(t *testing.T) {
+		// Both name-match "create" on their op segment and score identically.
+		// Alphabetically automation_taq_create wins; by name length the more
+		// general compose_chart_create does.
+		got := names(m.searchTools("create", Scope{}))
+		require.NotEmpty(t, got)
+		assert.NotEqual(t, "automation_taq_create", got[0],
+			"automation must not win a tie merely by sorting first")
 	})
 }
 
