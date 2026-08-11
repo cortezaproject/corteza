@@ -86,7 +86,10 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_
   generated, and compared byte-for-byte by `TestToolsMatrix`. The test then
   fails on whitespace with a diff thousands of lines long. Regenerate with
   `cd server && go test ./tests/mcp/ -run TestToolsMatrix -update` and pass
-  explicit paths to the formatter afterwards.
+  explicit paths to the formatter afterwards. `dev_commit_create` formats
+  before staging too, so it mangles the file **at commit time**, after the
+  suite you just ran went green — commit a regenerated `TOOLS.md` with plain
+  `git`, and check `git show --stat` afterwards.
 - **`stale: false` can still mean a stale binary.** The check compares the
   binary's build time against source mtimes, so a rebuild that the watcher
   started _before_ you edited, and finished _after_, reports as fresh while
