@@ -172,6 +172,18 @@ claude mcp add --transport http --scope user \
   human https://<host>/api/mcp
 ```
 
+`--client-secret` prompts with masked input, and a paste into that prompt can
+arrive mangled with no complaint at all — the symptom is a browser login that
+succeeds followed by `Client authentication failed` in the terminal, because the
+stored secret is not the one Human holds. Set it in the environment instead,
+which is also the only way to script the command:
+
+```bash
+MCP_CLIENT_SECRET='<secret>' claude mcp add --transport http --scope user \
+  --client-id <client-id> --client-secret \
+  human https://<host>/api/mcp
+```
+
 ## Testing it without a public host
 
 Most of this can be exercised against the local dev server, because Claude Code
@@ -242,6 +254,12 @@ Known causes, in the order they bite:
 - **Claude Code's callback is refused.** The auth client's redirect URI list is
   missing the loopback prefixes; the port varies per run and cannot be
   registered individually.
+- **The browser reports success and the terminal reports
+  `Client authentication failed`.** The code was issued and the token exchange
+  was refused: the secret stored on the tester's machine is not the one Human
+  holds. Almost always a mangled paste — re-add with `MCP_CLIENT_SECRET` set.
+  Human's own error distinguishes the two cases, so this is checkable: a wrong
+  secret answers `invalid_client`, a wrong code answers `invalid_grant`.
 
 ## What is deliberately not here
 
