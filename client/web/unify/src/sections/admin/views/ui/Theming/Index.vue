@@ -71,7 +71,7 @@
         class="shadow"
         :pt="{ content: { style: 'padding: 0 !important' } }"
       >
-        <Tabs value="general">
+        <Tabs value="light">
           <TabList>
             <Tab v-for="theme in themes" :key="theme.id" :value="theme.id">
               {{ theme.title }}
@@ -203,13 +203,6 @@ const darkModeDefaults = {
 
 const themes = reactive([
   {
-    id: 'general',
-    title: t('ui.settings.editor.human-studio.tabs.general'),
-    variables: {},
-    defaultVariables: {},
-    customCSS: '',
-  },
-  {
     id: 'light',
     title: t('ui.settings.editor.human-studio.tabs.light'),
     variables: { ...lightModeDefaults },
@@ -221,6 +214,13 @@ const themes = reactive([
     title: t('ui.settings.editor.human-studio.tabs.dark'),
     variables: { ...darkModeDefaults },
     defaultVariables: { ...darkModeDefaults },
+    customCSS: '',
+  },
+  {
+    id: 'general',
+    title: t('ui.settings.editor.human-studio.tabs.general'),
+    variables: {},
+    defaultVariables: {},
     customCSS: '',
   },
 ])
