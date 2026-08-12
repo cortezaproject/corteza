@@ -34,6 +34,21 @@ func recordProperties() []types.ConstructTriggerProperty {
 	}
 }
 
+// manualProperties are the record properties plus the page the run was started
+// from. Only the manual trigger gets it: a record created through the API or by
+// another automation has no page behind it, so advertising `page` on the record
+// CRUD triggers would offer authors a reference that is always empty.
+func manualProperties() []types.ConstructTriggerProperty {
+	return append(recordProperties(), types.ConstructTriggerProperty{
+		Name: "page",
+		Type: "ComposePage",
+		Meta: types.ConstructTriggerPropertyMeta{
+			Short:       "Page",
+			Description: "The compose page the automation was started from, when it was started by a page button",
+		},
+	})
+}
+
 func recordSegments() []types.ConstructSegment {
 	return []types.ConstructSegment{{
 		Sections: []types.ConstructSection{{
@@ -131,7 +146,7 @@ func init() {
 				Description: "Triggered manually",
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "play"},
 			},
-			Properties:  recordProperties(),
+			Properties:  manualProperties(),
 			Segments:    recordSegments(),
 			Constraints: recordConstraints(),
 		},

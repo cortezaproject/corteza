@@ -22,7 +22,9 @@
           v-model="scope[prop.name]"
           :namespaceID="prop.namespaceID || scope['namespace'] || undefined"
           :moduleID="prop.moduleID || scope['module'] || undefined"
-          :disabled="!(prop.namespaceID || scope['namespace']) || !(prop.moduleID || scope['module'])"
+          :disabled="
+            !(prop.namespaceID || scope['namespace']) || !(prop.moduleID || scope['module'])
+          "
           class="w-full"
         />
         <CInputModule
@@ -31,9 +33,7 @@
           :namespaceID="scope['namespace'] || undefined"
           :disabled="!scope['namespace']"
           :placeholder="
-            !scope['namespace']
-              ? $t('builder.configSidebar.selectNamespaceFirst')
-              : undefined
+            !scope['namespace'] ? $t('builder.configSidebar.selectNamespaceFirst') : undefined
           "
           class="w-full"
         />
@@ -42,15 +42,23 @@
           v-model="scope[prop.name]"
           class="w-full"
         />
+        <InputText
+          v-else-if="prop.type === 'ComposePage'"
+          v-model="scope[prop.name]"
+          :disabled="!scope['namespace']"
+          :placeholder="
+            !scope['namespace']
+              ? $t('builder.configSidebar.selectNamespaceFirst')
+              : $t('builder.runModal.pageIdPlaceholder')
+          "
+          class="w-full"
+        />
         <CInputUser
           v-else-if="prop.type === 'SystemUser' || prop.type === 'User'"
           v-model="scope[prop.name]"
           class="w-full"
         />
-        <ToggleSwitch
-          v-else-if="prop.type === 'Boolean'"
-          v-model="scope[prop.name]"
-        />
+        <ToggleSwitch v-else-if="prop.type === 'Boolean'" v-model="scope[prop.name]" />
         <!-- String, Number, and any other types -->
         <InputText v-else v-model="scope[prop.name]" class="w-full" />
       </CFormGroup>
@@ -106,7 +114,19 @@ const $toast = inject('$toast')
 const scope = ref({})
 const isFetchingContext = ref(false)
 
-const supportedTypes = ['ComposeRecord', 'ComposeModule', 'ComposeNamespace', 'SystemUser', 'User', 'String', 'Number', 'Boolean']
+// ComposePage has no selector component yet, so it falls through to the plain
+// text input below and is entered as a page ID; run() reads the full page.
+const supportedTypes = [
+  'ComposeRecord',
+  'ComposeModule',
+  'ComposeNamespace',
+  'ComposePage',
+  'SystemUser',
+  'User',
+  'String',
+  'Number',
+  'Boolean',
+]
 
 const filteredProperties = computed(() => {
   return props.properties.filter(p => supportedTypes.includes(p.type))
@@ -161,16 +181,22 @@ async function run() {
               typedVal = await $ComposeAPI.namespaceRead({ namespaceID: String(val) })
               break
             case 'ComposeModule':
-              typedVal = await $ComposeAPI.moduleRead({ 
-                namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined, 
-                moduleID: String(val) 
+              typedVal = await $ComposeAPI.moduleRead({
+                namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined,
+                moduleID: String(val),
+              })
+              break
+            case 'ComposePage':
+              typedVal = await $ComposeAPI.pageRead({
+                namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined,
+                pageID: String(val),
               })
               break
             case 'ComposeRecord':
-              typedVal = await $ComposeAPI.recordRead({ 
-                namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined, 
-                moduleID: propDef.moduleID || scope.value['module'] || undefined, 
-                recordID: String(val) 
+              typedVal = await $ComposeAPI.recordRead({
+                namespaceID: propDef.namespaceID || scope.value['namespace'] || undefined,
+                moduleID: propDef.moduleID || scope.value['module'] || undefined,
+                recordID: String(val),
               })
               break
             case 'User':
@@ -178,14 +204,17 @@ async function run() {
               typedVal = await $SystemAPI.userRead({ userID: String(val) })
               break
           }
-          
+
           formattedScope[key] = { '@type': propDef.type, '@value': typedVal }
         }
       }
     }
   } catch (err) {
     console.error('[RunModal] Error fetching context references:', err)
-    $toast?.toastErrorHandler(t('builder.toast.scopeError.detail'), t('builder.toast.scopeError.summary'))(err)
+    $toast?.toastErrorHandler(
+      t('builder.toast.scopeError.detail'),
+      t('builder.toast.scopeError.summary'),
+    )(err)
     return
   } finally {
     isFetchingContext.value = false

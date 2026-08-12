@@ -80,6 +80,9 @@ async function handleButton(btn, index) {
       if (props.namespace?.namespaceID) {
         input.namespace = { '@type': 'ComposeNamespace', '@value': props.namespace }
       }
+      if (props.page?.pageID) {
+        input.page = { '@type': 'ComposePage', '@value': props.page }
+      }
       if (props.record?.recordID) {
         input.record = { '@type': 'ComposeRecord', '@value': props.record }
       }
@@ -107,7 +110,6 @@ async function handleButton(btn, index) {
         stepID: btn.stepID || '0',
         input,
       })
-
     } else if (!btn.workflowID && !btn.automationID) {
       $toast?.toastInfo(t('block.automation.noScript'))
     }
@@ -119,4 +121,3 @@ async function handleButton(btn, index) {
   }
 }
 </script>
-

@@ -175,6 +175,7 @@ run: Run
 runModal:
   description: Provide initial variables to execute triggers that expect a specific scope.
   header: Execution Scope
+  pageIdPlaceholder: Enter the ID of the page to pass into this execution
 save: Save
 saveAndRun: Save & Run
 selectTrigger: Select Trigger
