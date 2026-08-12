@@ -540,13 +540,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "page",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldPage",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: true,
 				},
 
@@ -589,13 +589,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "page",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldPage",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: true,
 				},
 
@@ -638,13 +638,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "page",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldPage",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: true,
 				},
 
@@ -687,13 +687,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "page",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldPage",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: true,
 				},
 
@@ -736,13 +736,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "page",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldPage",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: true,
 				},
 
@@ -785,13 +785,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "page",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldPage",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: true,
 				},
 
@@ -834,13 +834,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "page",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldPage",
-					Type:      "",
+					Type:      "ComposePage",
 					Immutable: true,
 				},
 

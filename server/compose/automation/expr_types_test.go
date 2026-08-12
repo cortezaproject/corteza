@@ -747,3 +747,59 @@ func initPather(req *require.Assertions, p expr.Pather) (out expr.Pather) {
 
 	return p
 }
+
+// TestComposePageInputResolution walks the path a page automation button takes:
+// the webapp posts the page as {"@type":"ComposePage","@value":{…}}, the REST
+// layer unmarshals that into an expr.Unresolved and resolves it against the
+// automation type registry. With no ComposePage registered this failed with
+// `failed to resolve unknown or unregistered type "ComposePage" on "page"`
+// before the automation was even loaded.
+func TestComposePageInputResolution(t *testing.T) {
+	var (
+		req   = require.New(t)
+		input = &expr.Vars{}
+
+		// stands in for the automation registry, which knows only the types
+		// compose registers
+		resolve = func(typ string) expr.Type {
+			if typ == "ComposePage" {
+				return ComposePage{}
+			}
+
+			return nil
+		}
+	)
+
+	// IDs arrive as strings; the page type carries `json:"pageID,string"`
+	req.NoError(input.UnmarshalJSON([]byte(`{
+		"page": {"@type": "ComposePage", "@value": {
+			"pageID":      "435453455",
+			"moduleID":    "435453456",
+			"namespaceID": "435453457",
+			"title":       "Sales dashboard",
+			"handle":      "sales_dashboard",
+			"description": "Everything the sales team looks at"
+		}}
+	}`)))
+
+	req.NoError(input.ResolveTypes(resolve))
+
+	page, err := input.Select("page")
+	req.NoError(err)
+	req.IsType(&ComposePage{}, page)
+	req.Equal(uint64(435453455), page.(*ComposePage).GetValue().ID)
+
+	// every field the TAQ builder's reference panel offers must select
+	for path, expected := range map[string]interface{}{
+		"page.pageID":      uint64(435453455),
+		"page.moduleID":    uint64(435453456),
+		"page.namespaceID": uint64(435453457),
+		"page.title":       "Sales dashboard",
+		"page.handle":      "sales_dashboard",
+		"page.description": "Everything the sales team looks at",
+	} {
+		v, err := expr.Select(input, path)
+		req.NoError(err, "selecting %q", path)
+		req.Equal(expected, v.Get(), "value of %q", path)
+	}
+}

@@ -655,6 +655,244 @@ func assignToComposeNamespace(res *types.Namespace, k string, val interface{}) e
 	return fmt.Errorf("unknown field '%s'", k)
 }
 
+// ComposePage is an expression type, wrapper for *types.Page type
+type ComposePage struct {
+	value *types.Page
+	mux   sync.RWMutex
+}
+
+// NewComposePage creates new instance of ComposePage expression type
+func NewComposePage(val interface{}) (*ComposePage, error) {
+	if c, err := CastToComposePage(val); err != nil {
+		return nil, fmt.Errorf("unable to create ComposePage: %w", err)
+	} else {
+		return &ComposePage{value: c}, nil
+	}
+}
+
+// Get return underlying value on ComposePage
+func (t *ComposePage) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on ComposePage
+func (t *ComposePage) GetValue() *types.Page {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (ComposePage) Type() string { return "ComposePage" }
+
+// Cast converts value to *types.Page
+func (ComposePage) Cast(val interface{}) (TypedValue, error) {
+	return NewComposePage(val)
+}
+
+// Assign new value to ComposePage
+//
+// value is first passed through CastToComposePage
+func (t *ComposePage) Assign(val interface{}) error {
+	if c, err := CastToComposePage(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *ComposePage) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
+// GetHandle implements HandleProvider interface, returning the resource's handle.
+func (t *ComposePage) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Handle
+}
+
+func (t *ComposePage) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+	return assignToComposePage(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access ComposePage's underlying value (*types.Page)
+// and it's fields
+func (t *ComposePage) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return composePageGValSelector(t.value, k)
+}
+
+// Select is field accessor for *types.Page
+//
+// Similar to SelectGVal but returns typed values
+func (t *ComposePage) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return composePageTypedValueSelector(t.value, k)
+}
+
+func (t *ComposePage) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "ID", "pageID":
+		return true
+	case "moduleID":
+		return true
+	case "namespaceID":
+		return true
+	case "title":
+		return true
+	case "handle":
+		return true
+	case "description":
+		return true
+	case "labels":
+		return true
+	case "createdAt":
+		return true
+	case "updatedAt":
+		return true
+	case "deletedAt":
+		return true
+	}
+	return false
+}
+
+// composePageGValSelector is field accessor for *types.Page
+func composePageGValSelector(res *types.Page, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID", "pageID":
+		return res.ID, nil
+	case "moduleID":
+		return res.ModuleID, nil
+	case "namespaceID":
+		return res.NamespaceID, nil
+	case "title":
+		return res.Title, nil
+	case "handle":
+		return res.Handle, nil
+	case "description":
+		return res.Description, nil
+	case "labels":
+		return res.Labels, nil
+	case "createdAt":
+		return res.CreatedAt, nil
+	case "updatedAt":
+		return res.UpdatedAt, nil
+	case "deletedAt":
+		return res.DeletedAt, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// composePageTypedValueSelector is field accessor for *types.Page
+func composePageTypedValueSelector(res *types.Page, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID", "pageID":
+		return NewID(res.ID)
+	case "moduleID":
+		return NewID(res.ModuleID)
+	case "namespaceID":
+		return NewID(res.NamespaceID)
+	case "title":
+		return NewString(res.Title)
+	case "handle":
+		return NewHandle(res.Handle)
+	case "description":
+		return NewString(res.Description)
+	case "labels":
+		return NewLabelValue(res.Labels)
+	case "createdAt":
+		return NewDateTime(res.CreatedAt)
+	case "updatedAt":
+		return NewDateTime(res.UpdatedAt)
+	case "deletedAt":
+		return NewDateTime(res.DeletedAt)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToComposePage is field value setter for *types.Page
+//
+// Value types are passed by pointer, otherwise assigned values are lost
+func assignToComposePage(res *types.Page, k string, val interface{}) error {
+	switch k {
+	case "ID", "pageID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "moduleID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "namespaceID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "title":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Title = aux
+		return nil
+	case "handle":
+		aux, err := CastToHandle(val)
+		if err != nil {
+			return err
+		}
+
+		res.Handle = aux
+		return nil
+	case "description":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Description = aux
+		return nil
+	case "labels":
+		aux, err := CastToLabelValue(val)
+		if err != nil {
+			return err
+		}
+
+		res.Labels = aux
+		return nil
+	case "createdAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "updatedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "deletedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
 // ComposeRecord is an expression type, wrapper for *types.Record type
 type ComposeRecord struct {
 	value *types.Record

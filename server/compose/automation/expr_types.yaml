@@ -6,59 +6,73 @@ types:
   ComposeNamespace:
     as: '*types.Namespace'
     struct:
-      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro, alias: 'namespaceID' }
-      - { name: 'name',            exprType: 'String',       goType: 'string' }
-      - { name: 'slug',            exprType: 'Handle',       goType: 'string',                           alias: 'handle'}
-      - { name: 'labels',          exprType: 'LabelValue',           goType: 'map[string]labelTypes.LabelValue' }
-      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',              mode: ro }
-      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
-      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
+      - { name: 'ID', exprType: 'ID', goType: 'uint64', mode: ro, alias: 'namespaceID' }
+      - { name: 'name', exprType: 'String', goType: 'string' }
+      - { name: 'slug', exprType: 'Handle', goType: 'string', alias: 'handle' }
+      - { name: 'labels', exprType: 'LabelValue', goType: 'map[string]labelTypes.LabelValue' }
+      - { name: 'createdAt', exprType: 'DateTime', goType: 'time.Time', mode: ro }
+      - { name: 'updatedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
   ComposeModule:
     as: '*types.Module'
     struct:
-      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro, alias: 'moduleID' }
-      - { name: 'namespaceID',     exprType: 'ID',           goType: 'uint64',                 mode: ro }
-      - { name: 'name',            exprType: 'String',       goType: 'string' }
-      - { name: 'handle',          exprType: 'Handle',       goType: 'string' }
-      - { name: 'labels',          exprType: 'LabelValue',           goType: 'map[string]labelTypes.LabelValue' }
-      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',              mode: ro }
-      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
-      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
+      - { name: 'ID', exprType: 'ID', goType: 'uint64', mode: ro, alias: 'moduleID' }
+      - { name: 'namespaceID', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'name', exprType: 'String', goType: 'string' }
+      - { name: 'handle', exprType: 'Handle', goType: 'string' }
+      - { name: 'labels', exprType: 'LabelValue', goType: 'map[string]labelTypes.LabelValue' }
+      - { name: 'createdAt', exprType: 'DateTime', goType: 'time.Time', mode: ro }
+      - { name: 'updatedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
+
+  ComposePage:
+    as: '*types.Page'
+    struct:
+      - { name: 'ID', exprType: 'ID', goType: 'uint64', mode: ro, alias: 'pageID' }
+      - { name: 'moduleID', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'namespaceID', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'title', exprType: 'String', goType: 'string' }
+      - { name: 'handle', exprType: 'Handle', goType: 'string' }
+      - { name: 'description', exprType: 'String', goType: 'string' }
+      - { name: 'labels', exprType: 'LabelValue', goType: 'map[string]labelTypes.LabelValue' }
+      - { name: 'createdAt', exprType: 'DateTime', goType: 'time.Time', mode: ro }
+      - { name: 'updatedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
 
   ComposeRecord:
     as: '*types.Record'
     struct:
-      - { name: 'ID',              exprType: 'ID',                  goType: 'uint64',                 mode: ro, alias: 'recordID' }
-      - { name: 'moduleID',        exprType: 'ID',                  goType: 'uint64',                 mode: ro }
-      - { name: 'namespaceID',     exprType: 'ID',                  goType: 'uint64',                 mode: ro }
-      - { name: 'values',          exprType: 'ComposeRecordValues', goType: 'map[string]interface{}' }
-      - { name: 'meta',             exprType: 'Meta',                goType: 'map[string]any' }
-      - { name: 'ownedBy',         exprType: 'ID',                  goType: 'uint64' }
-      - { name: 'createdAt',       exprType: 'DateTime',            goType: 'time.Time',              mode: ro }
-      - { name: 'createdBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
-      - { name: 'updatedAt',       exprType: 'DateTime',            goType: '*time.Time',             mode: ro }
-      - { name: 'updatedBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
-      - { name: 'deletedAt',       exprType: 'DateTime',            goType: '*time.Time',             mode: ro }
-      - { name: 'deletedBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
-    customSelector:      true
-    customGValSelector:  true
+      - { name: 'ID', exprType: 'ID', goType: 'uint64', mode: ro, alias: 'recordID' }
+      - { name: 'moduleID', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'namespaceID', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'values', exprType: 'ComposeRecordValues', goType: 'map[string]interface{}' }
+      - { name: 'meta', exprType: 'Meta', goType: 'map[string]any' }
+      - { name: 'ownedBy', exprType: 'ID', goType: 'uint64' }
+      - { name: 'createdAt', exprType: 'DateTime', goType: 'time.Time', mode: ro }
+      - { name: 'createdBy', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'updatedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
+      - { name: 'updatedBy', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'deletedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
+      - { name: 'deletedBy', exprType: 'ID', goType: 'uint64', mode: ro }
+    customSelector: true
+    customGValSelector: true
     customFieldAssigner: true
 
   ComposeRecordValues:
     customType: true
-    as:         'types.RecordValueSet'
+    as: 'types.RecordValueSet'
 
   ComposeRecordValueErrorSet:
-    as:     '*types.RecordValueErrorSet'
+    as: '*types.RecordValueErrorSet'
 
   Attachment:
     as: '*types.Attachment'
     struct:
-      - { name: 'ID',              exprType: 'ID',           goType: 'uint64', mode: ro}
-      - { name: 'kind',            exprType: 'String',       goType: 'string' }
-      - { name: 'url',             exprType: 'Handle',       goType: 'string' }
-      - { name: 'previewUrl',      exprType: 'Handle',       goType: 'string' }
-      - { name: 'name',            exprType: 'Handle',       goType: 'string' }
-      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',   mode: ro }
-      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',  mode: ro }
-      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',  mode: ro }
+      - { name: 'ID', exprType: 'ID', goType: 'uint64', mode: ro }
+      - { name: 'kind', exprType: 'String', goType: 'string' }
+      - { name: 'url', exprType: 'Handle', goType: 'string' }
+      - { name: 'previewUrl', exprType: 'Handle', goType: 'string' }
+      - { name: 'name', exprType: 'Handle', goType: 'string' }
+      - { name: 'createdAt', exprType: 'DateTime', goType: 'time.Time', mode: ro }
+      - { name: 'updatedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt', exprType: 'DateTime', goType: '*time.Time', mode: ro }

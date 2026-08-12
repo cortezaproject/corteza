@@ -60,6 +60,29 @@ func CastToComposeModule(val interface{}) (out *types.Module, err error) {
 	}
 }
 
+func CastToComposePage(val interface{}) (out *types.Page, err error) {
+	switch val := val.(type) {
+	case expr.Iterator:
+		out = &types.Page{}
+		return out, val.Each(func(k string, v expr.TypedValue) error {
+			return assignToComposePage(out, k, v)
+		})
+	}
+
+	switch val := expr.UntypedValue(val).(type) {
+	case *types.Page:
+		return val, nil
+	case map[string]interface{}:
+		out = &types.Page{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+		return
+
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
 func CastToComposeRecord(val interface{}) (out *types.Record, err error) {
 	switch val := val.(type) {
 	case expr.Iterator:
@@ -786,6 +809,11 @@ func (v *ComposeModule) Clone() (expr.TypedValue, error) {
 
 func (v *ComposeNamespace) Clone() (expr.TypedValue, error) {
 	aux, err := NewComposeNamespace(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposePage) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposePage(v.value.Clone())
 	return aux, err
 }
 

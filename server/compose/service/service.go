@@ -205,6 +205,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	automationService.Registry().AddTypes(
 		automation.ComposeNamespace{},
 		automation.ComposeModule{},
+		automation.ComposePage{},
 		automation.ComposeRecord{},
 		automation.ComposeRecordValues{},
 		automation.Attachment{},

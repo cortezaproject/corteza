@@ -1891,9 +1891,21 @@ func (res pageBase) EncodeVars() (out *expr.Vars, err error) {
 	out = &expr.Vars{}
 	var v expr.TypedValue
 
-	// Could not found expression-type counterpart for *types.Page
+	if v, err = automation.NewComposePage(res.page); err == nil {
+		err = out.Set("page", v)
+	}
 
-	// Could not found expression-type counterpart for *types.Page
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewComposePage(res.oldPage); err == nil {
+		err = out.Set("oldPage", v)
+	}
+
+	if err != nil {
+		return
+	}
 
 	if v, err = automation.NewComposeNamespace(res.namespace); err == nil {
 		err = out.Set("namespace", v)
@@ -1954,7 +1966,15 @@ func (res *pageBase) DecodeVars(vars *expr.Vars) (err error) {
 		// Respect immutability
 		return
 	}
-	// Could not find expression-type counterpart for *types.Page
+	if res.page != nil && vars.Has("page") {
+		var aux *automation.ComposePage
+		aux, err = automation.NewComposePage(expr.Must(vars.Select("page")))
+		if err != nil {
+			return
+		}
+
+		res.page = aux.GetValue()
+	}
 	// oldPage marked as immutable
 	// namespace marked as immutable
 	// selected marked as immutable
