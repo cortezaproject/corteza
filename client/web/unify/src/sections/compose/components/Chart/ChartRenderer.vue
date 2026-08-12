@@ -17,7 +17,7 @@ import { ref, watch, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 import { chartConstructor } from '../../lib/charts'
-import { useModuleStore } from '@planetcrust/human-vue'
+import { useModuleStore, useRecordStore } from '@planetcrust/human-vue'
 
 const { CChart } = components
 
@@ -41,11 +41,61 @@ const emit = defineEmits(['updated', 'drill-down'])
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
+const recordStore = useRecordStore()
 
 const error = ref(undefined)
 const processing = ref(false)
 const renderer = ref(undefined)
 const valueMap = ref(new Map())
+
+// A Record field holds record IDs, so a chart grouped by one labelled its
+// legend with raw IDs. Record lists resolve the same references through the
+// record store, and this mirrors that: the field's labelField option names the
+// field to show, falling back to the referenced module's first field, exactly
+// as CFieldRecordViewer picks it.
+async function resolveRecordLabels(labels, fieldObj) {
+  const moduleID = fieldObj.options?.moduleID
+  const namespaceID = props.chart?.namespaceID
+
+  if (!moduleID || !namespaceID) return labels
+
+  // Dimension values can carry a placeholder ('undefined') for records that
+  // have no value for the field; only real IDs are worth a lookup.
+  const recordIDs = labels.filter(v => /^\d+$/.test(String(v)))
+  if (!recordIDs.length) return labels
+
+  // The referenced module is often one the page never loaded — the chart's own
+  // module is in the store, its neighbours need not be.
+  const refModule =
+    moduleStore.getByID(moduleID) ||
+    (await moduleStore.findByID({ namespaceID, moduleID }).catch(() => undefined))
+
+  const labelField = fieldObj.options?.labelField || refModule?.fields?.[0]?.name
+  if (!labelField) return labels
+
+  await recordStore.resolveRecordLabels({ namespaceID, moduleID, recordIDs }).catch(() => {})
+
+  return labels.map(value => {
+    const label = readRecordValue(value, labelField) ?? value
+    valueMap.value.set(label, value)
+    return label
+  })
+}
+
+// The store keeps records in two shapes: compose.Record, whose values are an
+// object, and the raw API record the label cache holds when the module was not
+// loaded, whose values are [{ name, value }]. A label has to read from either.
+function readRecordValue(recordID, labelField) {
+  const { values } = recordStore.getByID(recordID) || {}
+  if (!values) return undefined
+
+  const value = Array.isArray(values)
+    ? values.find(v => v?.name === labelField)?.value
+    : values[labelField]
+
+  // A multi-value label field resolves to its first value rather than "[object]".
+  return Array.isArray(value) ? value[0] : value
+}
 
 async function updateChart() {
   error.value = undefined
@@ -95,6 +145,8 @@ async function updateChart() {
               valueMap.value.set(label, value)
               return label
             })
+          } else if (fieldObj.kind === 'Record') {
+            data.labels = await resolveRecordLabels(data.labels, fieldObj)
           }
         }
       }
