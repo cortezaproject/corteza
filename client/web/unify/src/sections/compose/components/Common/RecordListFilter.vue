@@ -498,7 +498,15 @@ function confirmSavePreset() {
 </script>
 
 <style>
+/* Above the sidebar.
+ *
+ * The sidebar is a PrimeVue Drawer, and its mask is a viewport-wide fixed
+ * element at z-index 1101 — even though the drawer itself is only as wide as the
+ * sidebar. At 1040 this popover was painted under it and, worse, the mask
+ * swallowed the clicks: the popover is 850px wide and gets placed flush against
+ * the left edge, so its field picker sat behind the sidebar and could not be
+ * opened at all. It has to outrank the mask to be usable. */
 .record-list-filter-popover {
-  z-index: 1040 !important;
+  z-index: 1102 !important;
 }
 </style>
