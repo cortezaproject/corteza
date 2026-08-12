@@ -313,7 +313,10 @@ func parseChartConfig(raw any) (cmpTypes.ChartConfig, error) {
 // so a config it rejects is stored happily and fails in front of a person
 // instead — which is why these are checked here.
 var (
-	chartAggregates = []string{"SUM", "MAX", "MIN", "AVG", "STD"}
+	// STD is deliberately absent: it was dropped from the webapp's aggregate
+	// options, and only the MySQL store backend ever implemented it — the
+	// postgres and sqlite QL handlers list it as unsupported.
+	chartAggregates = []string{"SUM", "MAX", "MIN", "AVG"}
 	chartTypes      = []string{"pie", "bar", "line", "doughnut", "funnel", "gauge", "radar", "scatter"}
 
 	// The first one groups by the field's own values; the rest bucket a date

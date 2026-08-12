@@ -153,10 +153,6 @@ export const aggregateFunctions = [
     value: 'AVG',
     text: 'avg',
   },
-  {
-    value: 'STD',
-    text: 'std',
-  },
 ]
 
 interface DimensionFunction {

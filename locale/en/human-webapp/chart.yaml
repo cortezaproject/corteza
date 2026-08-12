@@ -138,7 +138,6 @@ edit:
       max: MAX
       min: MIN
       placeholder: Select metric aggregate function
-      std: STD
       sum: SUM
     fx:
       description: n - current dataset value, m - previous dataset value
