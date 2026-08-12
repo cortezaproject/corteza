@@ -134,6 +134,55 @@ func TestInheritBlockLayoutKeepsPositionOfEditedBlocks(t *testing.T) {
 	}
 }
 
+// TestFoldBlockOptionAliases pins the rename half of ref resolution. The value
+// being a real ID is not enough: the webapp reads options.moduleID and
+// options.chartID, so a resolved ID left under "module"/"chart" renders as
+// "No module selected" / "invalid ID" with the right ID sitting next to it.
+func TestFoldBlockOptionAliases(t *testing.T) {
+	tests := []struct {
+		name    string
+		options map[string]any
+		want    map[string]any
+	}{
+		{
+			name:    "module alias",
+			options: map[string]any{"module": "expense"},
+			want:    map[string]any{"moduleID": "expense"},
+		},
+		{
+			name:    "chart alias",
+			options: map[string]any{"chart": "spend_by_category"},
+			want:    map[string]any{"chartID": "spend_by_category"},
+		},
+		{
+			// The canonical key is the one the caller meant; the alias goes.
+			name:    "both keys, canonical wins",
+			options: map[string]any{"module": "expense", "moduleID": "12345"},
+			want:    map[string]any{"moduleID": "12345"},
+		},
+		{
+			name:    "canonical key alone is untouched",
+			options: map[string]any{"moduleID": "12345"},
+			want:    map[string]any{"moduleID": "12345"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			foldBlockOptionAliases(tc.options)
+
+			if len(tc.options) != len(tc.want) {
+				t.Fatalf("got options %v, want %v", tc.options, tc.want)
+			}
+			for k, v := range tc.want {
+				if tc.options[k] != v {
+					t.Errorf("option %q: got %v, want %v", k, tc.options[k], v)
+				}
+			}
+		})
+	}
+}
+
 func TestParsePageConfigRejectsUnrenderableIcons(t *testing.T) {
 	// The shape the tool description used to hand out, which renders as a
 	// broken image in the navigation.

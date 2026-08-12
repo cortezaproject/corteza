@@ -682,10 +682,34 @@ func mergePageBlocks(existing, incoming cmpTypes.PageBlocks) (cmpTypes.PageBlock
 	return out, nil
 }
 
+// foldBlockOptionAliases renames the "module" and "chart" options an agent
+// writes to the "moduleID" and "chartID" the block schemas actually name
+// (RecordListBlockOptions, ChartBlockOptions).
+//
+// The webapp reads only the canonical key, so resolving an alias to a real ID
+// and leaving it under its own name stored a value nothing renders: the block
+// came up "No module selected" with a perfectly good module ID beside it.
+// pagebuild.py has always renamed these; this is the same rule for the MCP path.
+// An explicit canonical key wins — it is the one the caller meant.
+func foldBlockOptionAliases(options map[string]any) {
+	for alias, canonical := range map[string]string{"module": "moduleID", "chart": "chartID"} {
+		ref, _ := options[alias].(string)
+		if ref == "" {
+			continue
+		}
+
+		if existing, _ := options[canonical].(string); existing == "" {
+			options[canonical] = ref
+		}
+		delete(options, alias)
+	}
+}
+
 // resolveBlockRefs translates human-readable module/chart references in block
 // options to their uint64 ID strings, which the frontend SDK requires.
-// Handles: RecordList.module, Chart.chart, and any moduleID field that looks
-// like a name rather than an already-numeric ID.
+// Handles moduleID and chartID — including the "module"/"chart" aliases agents
+// write, which are folded into those keys first — and the moduleID inside
+// Calendar feeds and Metric metrics.
 func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBlocks) error {
 	for i := range blocks {
 		b := &blocks[i]
@@ -693,16 +717,7 @@ func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBloc
 			continue
 		}
 
-		// module → module ID (RecordList)
-		if ref, _ := b.Options["module"].(string); ref != "" {
-			if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
-				mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
-				if err != nil {
-					return fmt.Errorf("block %q: module %q not found: %w", b.Title, ref, err)
-				}
-				b.Options["module"] = strconv.FormatUint(mod.ID, 10)
-			}
-		}
+		foldBlockOptionAliases(b.Options)
 
 		// moduleID → module ID (Metric, Progress, Comment, RecordOrganizer, etc.)
 		if ref, _ := b.Options["moduleID"].(string); ref != "" {
@@ -715,14 +730,15 @@ func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBloc
 			}
 		}
 
-		// chart → chart ID (Chart block)
-		if ref, _ := b.Options["chart"].(string); ref != "" {
+		// chartID → chart ID (Chart block). A handle left here is what the
+		// webapp reports as "invalid ID".
+		if ref, _ := b.Options["chartID"].(string); ref != "" {
 			if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
 				ch, err := findChartByAny(ctx, nsID, ref)
 				if err != nil {
 					return fmt.Errorf("block %q: chart %q not found: %w", b.Title, ref, err)
 				}
-				b.Options["chart"] = strconv.FormatUint(ch.ID, 10)
+				b.Options["chartID"] = strconv.FormatUint(ch.ID, 10)
 			}
 		}
 
