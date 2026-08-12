@@ -70,11 +70,19 @@ cause rather than four candidates.
 4. An administrator adds the connector once, for the whole organization.
 5. Each tester clicks Connect and signs into Human with their own account.
 
-Then tell them what to expect on first use: **only five tools are listed.**
-That is deliberate — listing all of them costs roughly 27,000 tokens per
-request, so the rest are pulled in on demand when Claude searches for them.
-Testers should describe what they want done rather than go looking for a tool
-by name. Without being told this, the surface reads as broken or empty.
+Then tell them what to expect on first use: **every tool is listed, but each is
+described in one line.** That is deliberate — sending the full descriptions
+costs roughly 40,000 tokens per request, so Claude fetches the detail for a
+tool when it needs it. Testers should describe what they want done rather than
+go looking for a tool by name.
+
+This used to work the other way round: five tools were listed and the rest were
+pulled in by searching. It broke on the claude.ai connector, which does not
+re-list when told the tool set changed, so writes were advertised as loaded and
+then refused — and because the five always-on tools were all reads, the whole
+connector read as read-only. If a tester on an older build reports that Claude
+"can only read", that is the cause, and the fix is a build with the slim
+listing rather than anything in their configuration.
 
 ## One-time setup: the auth client
 
