@@ -311,14 +311,19 @@ func registerFixtureCleanup(reg *mcpkit.Registry, root string) {
 	reg.RegisterTool(
 		mcp.NewTool("dev_fixture_cleanup",
 			mcp.WithDescription(
-				"Delete everything you created on the dev server, which means every compose namespace whose "+
-					"slug starts with 'agent-'. Unprefixed data is never touched — it is not yours. Run this "+
-					"when a task is done: state left behind pollutes the next reproduction and the next "+
-					"lookup, and nothing else removes it.",
+				"Delete what THIS SESSION created on the dev server. The candidates come from the ledger "+
+					"dev/agent/.state/created.jsonl, which api.sh and mcp.py append to as they create things "+
+					"— not from slug prefixes. Naming something 'agent-' neither adds it to the ledger nor "+
+					"protects anything else: a namespace this session did not create is never a candidate, "+
+					"whoever made it and whatever it is called, and one it did create is removed whatever it "+
+					"is named. So there is no need to prefix what you create. Run this when a task is done: "+
+					"state left behind pollutes the next reproduction and the next lookup.",
 			),
 			mcp.WithBoolean("purge", mcp.Description(
-				"Also hard-delete soft-deleted agent- namespaces. Repeated cycles leave slug-sharing corpses "+
-					"that make lookups confusing. Off by default because it is irreversible.")),
+				"Also hard-delete soft-deleted namespaces. Repeated cycles leave slug-sharing corpses that "+
+					"make lookups confusing. This part is NOT ledger-scoped — it hits every soft-deleted "+
+					"namespace on the server, including ones someone else deleted. Off by default because it "+
+					"is irreversible.")),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskDestructive),
 		),
@@ -364,7 +369,7 @@ func registerFixtureCleanup(reg *mcpkit.Registry, root string) {
 			}
 
 			if len(report.Removed) == 0 {
-				report.Note = "nothing to remove — no agent- prefixed data on the dev server"
+				report.Note = "nothing to remove — this session's ledger records nothing it created"
 			} else {
 				report.Note = fmt.Sprintf("removed %d item(s); unprefixed data was not touched", len(report.Removed))
 			}

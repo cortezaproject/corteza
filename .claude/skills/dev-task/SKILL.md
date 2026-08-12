@@ -84,8 +84,10 @@ Use `Explore` or a read-only subagent for breadth; keep the depth for step 4.
 **For a defect this is required, and it comes before the questions.**
 
 Make it fail in front of you, at the layer the user hit it. Stand up whatever
-state that needs, prefixed `agent-`, and note what you created so step 8 can
-remove it.
+state that needs; `dev/agent/api.sh` and `mcp.py` record what you create in
+`dev/agent/.state/created.jsonl`, and step 9's cleanup deletes exactly that. No
+naming convention is involved — do **not** prefix things `agent-` expecting it
+to matter, because the ledger is the only thing that decides.
 
 - **Match the instrument to the layer.** The MCP tools reach the REST API and
   never load the webapp: an MCP-green result says nothing about a frontend
@@ -212,9 +214,11 @@ Anything that fails here goes back to step 7 — or further, per the loop rules.
 Report what changed, what you verified and how, and what you deliberately did
 not do. Failures and skipped work get stated plainly, with the output.
 
-**Remove what you created.** Everything `agent-` prefixed from step 3 goes, and
-unprefixed data is never yours to touch. A leftover namespace sat on the dev
-server for an afternoon because this was nobody's job.
+**Remove what you created.** `dev_fixture_cleanup` (or `dev/agent/cleanup.sh`)
+deletes what this session's ledger records and nothing else — data the session
+did not create is off-limits whatever it is called, and data it did create goes
+whatever it is named. A leftover namespace sat on the dev server for an
+afternoon because this was nobody's job.
 
 Then **write down what surprised you**, in the repo, where the next session will
 find it: a wrong assumption in a brief, an endpoint that is not what its name
