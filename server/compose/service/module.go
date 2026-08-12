@@ -102,31 +102,37 @@ const (
 	// configured Precision() is the scale (decimal places).
 	maxPrecisionLength = 15
 
-	sysID          = "ID"
-	sysNamespaceID = "namespaceID"
-	sysModuleID    = "moduleID"
-	sysRevision    = "revision"
-	sysMeta        = "meta"
-	sysCreatedAt   = "createdAt"
-	sysCreatedBy   = "createdBy"
-	sysUpdatedAt   = "updatedAt"
-	sysUpdatedBy   = "updatedBy"
-	sysDeletedAt   = "deletedAt"
-	sysDeletedBy   = "deletedBy"
-	sysOwnedBy     = "ownedBy"
+	sysID             = "ID"
+	sysTenantID       = "tenantID"
+	sysProjectID      = "projectID"
+	sysCreatedByAgent = "createdByAgent"
+	sysNamespaceID    = "namespaceID"
+	sysModuleID       = "moduleID"
+	sysRevision       = "revision"
+	sysMeta           = "meta"
+	sysCreatedAt      = "createdAt"
+	sysCreatedBy      = "createdBy"
+	sysUpdatedAt      = "updatedAt"
+	sysUpdatedBy      = "updatedBy"
+	sysDeletedAt      = "deletedAt"
+	sysDeletedBy      = "deletedBy"
+	sysOwnedBy        = "ownedBy"
 
-	colSysID          = "id"
-	colSysNamespaceID = "rel_namespace"
-	colSysModuleID    = "rel_module"
-	colSysRevision    = "revision"
-	colSysMeta        = "meta"
-	colSysCreatedAt   = "created_at"
-	colSysCreatedBy   = "created_by"
-	colSysUpdatedAt   = "updated_at"
-	colSysUpdatedBy   = "updated_by"
-	colSysDeletedAt   = "deleted_at"
-	colSysDeletedBy   = "deleted_by"
-	colSysOwnedBy     = "owned_by"
+	colSysID             = "id"
+	colSysTenantID       = "rel_tenant"
+	colSysProjectID      = "rel_project"
+	colSysCreatedByAgent = "created_by_agent"
+	colSysNamespaceID    = "rel_namespace"
+	colSysModuleID       = "rel_module"
+	colSysRevision       = "revision"
+	colSysMeta           = "meta"
+	colSysCreatedAt      = "created_at"
+	colSysCreatedBy      = "created_by"
+	colSysUpdatedAt      = "updated_at"
+	colSysUpdatedBy      = "updated_by"
+	colSysDeletedAt      = "deleted_at"
+	colSysDeletedBy      = "deleted_by"
+	colSysOwnedBy        = "owned_by"
 )
 
 var (
@@ -1323,6 +1329,15 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 
 	aa := filterSkippedAttribtues(
 		dal.PrimaryAttribute(sysID, mfc(colSysID, sysEnc.ID)),
+
+		// Tenancy scope columns. Deliberately not routed through the
+		// SystemFieldEncoding config: they are storage infrastructure the
+		// tenancy migration puts on every scoped table, not fields a module
+		// may alias or omit. Leaving them out of the model made the record
+		// INSERT omit columns the table declares NOT NULL.
+		dal.FullAttribute(sysTenantID, &dal.TypeID{HasDefault: true, DefaultValue: 0}, &dal.CodecAlias{Ident: colSysTenantID}),
+		dal.FullAttribute(sysProjectID, &dal.TypeID{HasDefault: true, DefaultValue: 0}, &dal.CodecAlias{Ident: colSysProjectID}),
+
 		dal.FullAttribute(sysModuleID, &dal.TypeID{}, mfc(colSysModuleID, sysEnc.ModuleID)),
 		dal.FullAttribute(sysDeletedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
 		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
@@ -1331,6 +1346,9 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 		dal.FullAttribute(sysOwnedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
 		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),
 		dal.FullAttribute(sysCreatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysCreatedBy, sysEnc.CreatedBy)),
+
+		// Also absent from SystemFieldEncoding, and also NOT NULL on the table.
+		dal.FullAttribute(sysCreatedByAgent, &dal.TypeRef{HasDefault: true, DefaultValue: 0, RefAttribute: "id", RefModel: &dal.ModelRef{ResourceType: "corteza::system:agent"}}, &dal.CodecAlias{Ident: colSysCreatedByAgent}),
 		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysUpdatedAt, sysEnc.UpdatedAt)),
 		dal.FullAttribute(sysUpdatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysUpdatedBy, sysEnc.UpdatedBy)),
 		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysDeletedAt, sysEnc.DeletedAt)),

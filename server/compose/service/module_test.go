@@ -332,3 +332,35 @@ func TestModuleToModel(t *testing.T) {
 	req.NoError(err)
 	req.Equal("explicit-ident", model.Ident)
 }
+
+// TestModuleSystemFieldsCarryScopeColumns guards the columns that the record
+// table declares NOT NULL but that no module field describes. They were absent
+// from the model the record write path uses, so every INSERT omitted them and
+// failed against a table created from the canonical model.
+func TestModuleSystemFieldsCarryScopeColumns(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		aa, err = moduleSystemFieldsToAttributes(&types.Module{})
+
+		storeIdent = func(ident string) string {
+			for _, a := range aa {
+				if a.Ident == ident {
+					return a.StoreIdent()
+				}
+			}
+
+			return ""
+		}
+	)
+
+	req.NoError(err)
+
+	for ident, col := range map[string]string{
+		sysTenantID:       colSysTenantID,
+		sysProjectID:      colSysProjectID,
+		sysCreatedByAgent: colSysCreatedByAgent,
+	} {
+		req.Equal(col, storeIdent(ident), "attribute %q must map to column %q", ident, col)
+	}
+}
