@@ -178,6 +178,15 @@ Review means exercising the claims, not reading the diff.
 
 - **Re-run the step-3 reproduction against the fix**, in the same environment.
   A fix that was never shown to stop the original failure is a hypothesis.
+- **Prove the environment is running the fix before you believe the re-run.**
+  This is where a server change gets a false verdict, and the false verdict is
+  a _red_ one: the reproduction still fails, which looks exactly like a fix that
+  did not work, and the honest response — go rewrite it — makes a correct fix
+  worse. `dev_server_status` now decides staleness from the running process's
+  start time, so trust it again here; a green unit test says nothing about which
+  binary is answering. gin only rebuilds when its proxy is hit
+  (`curl -s localhost:3001/api/`) — requests to the API port never trigger it,
+  so a server that is never proxied never picks your change up at all.
 - Run `/dev-change`'s verify sequence: tests, format, intent drift, affected
   specs.
 - **Check against the step-5 criteria**, one at a time, out loud.
