@@ -9,6 +9,8 @@
 #  - list endpoints need the trailing slash (/system/users/ — without it: 404)
 #  - the API returns errors as {"error":{...}} with HTTP 200; this script
 #    detects that, prints the message to stderr and exits non-zero
+#  - a restarting server answers with its boot banner rather than JSON; that
+#    exits 75 with a "retry shortly" message instead of printing the banner
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
@@ -39,10 +41,20 @@ if [[ "$method" == "POST" && "$path" =~ ^/compose/namespace/?(\?.*)?$ ]]; then
     ledger_record namespace "$ns_id" "$(json_get response.slug <"$body" 2>/dev/null || true)"
   fi
 fi
-python3 -m json.tool <"$body" 2>/dev/null || {
+if ! python3 -m json.tool <"$body" 2>/dev/null; then
+  # A restarting dev server answers on the socket with its boot banner rather
+  # than a response. Printing that and exiting 0 makes every caller that pipes
+  # into a JSON parser fail with "Expecting value: line 1 column 1", which reads
+  # as a malformed request instead of "it is coming back in a few seconds".
+  if grep -qE 'Human server initializing|^(PASS|FAIL) [A-Za-z]' "$body"; then
+    echo "the dev server is restarting: it answered with its boot banner, not a response." >&2
+    echo "Retry in a few seconds — dev_server_status reports when it is back up." >&2
+    exit 75
+  fi
+
   cat "$body"
   echo
-}
+fi
 
 if ((status >= 400)); then
   echo "HTTP $status" >&2
