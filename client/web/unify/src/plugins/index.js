@@ -2,19 +2,19 @@ import '@/assets/styles.css'
 import 'primeicons/primeicons.css'
 
 import {
-    AuthPlugin,
-    AutomationAPIPlugin,
-    ComposeAPIPlugin,
-    DiscoveryAPIPlugin,
-    EventBusPlugin,
-    FederationAPIPlugin,
-    I18nPlugin,
-    PrimeVueComponentsPlugin,
-    SettingsPlugin,
-    SystemAPIPlugin,
-    ToastPlugin,
-    getTheme,
-    setThemes,
+  AuthPlugin,
+  AutomationAPIPlugin,
+  ComposeAPIPlugin,
+  DiscoveryAPIPlugin,
+  EventBusPlugin,
+  FederationAPIPlugin,
+  I18nPlugin,
+  PrimeVueComponentsPlugin,
+  SettingsPlugin,
+  SystemAPIPlugin,
+  ToastPlugin,
+  getTheme,
+  setThemes,
 } from '@planetcrust/human-vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
@@ -59,6 +59,13 @@ function setupPrimeVue(app, theme) {
 
 /**
  * Main app setup and authentication flow
+ *
+ * Resolves true when the app is configured and safe to mount, false when setup
+ * deliberately abandoned it to start the auth flow. The caller must not mount on
+ * false: none of the plugins below were installed, so App.vue's first useI18n()
+ * throws. That is invisible in practice only because the auth redirect usually
+ * wins the race — a trace of a cold load showed the mount error at 617ms and the
+ * navigation to /auth/callback at 820ms.
  */
 export function setupAndAuthenticate(app) {
   app.use(AuthPlugin, { app: import.meta.env.VITE_APP_ID, rootApp: true })
@@ -105,12 +112,17 @@ export function setupAndAuthenticate(app) {
       return $Settings.init().then(() => {
         setThemes($Settings.get('ui.studio.themes'))
         setupPrimeVue(app, $Auth.user.meta.theme)
+
+        return true
       })
     })
     .catch(err => {
       if (err instanceof Error && err.message === 'Unauthenticated') {
         $Auth.startAuthenticationFlow()
-        return
+
+        // The browser is on its way to the auth server; there is nothing
+        // configured to render in the meantime.
+        return false
       }
       throw err
     })
