@@ -1,0 +1,142 @@
+{
+  "_comment": [
+    "Cross-language contract fixture. The MCP chart tools accept a config from an agent and store it;",
+    "the unify webapp is what has to draw it, and it validates only at draw time — so a config the two",
+    "sides disagree about becomes an error message where a chart should be.",
+    "",
+    "Asserted from both sides:",
+    "  server/compose/agentic/chart_handler_test.go  — parseChartConfig accepts/rejects these",
+    "  lib/js/src/compose/types/chart/config-contract.test.ts — the renderer agrees, and throws the named key",
+    "",
+    "'rejected' configs are what agents actually sent before the MCP layer checked them. 'accepted' ones are",
+    "already normalized (uppercase aggregate, explicit modifier), which is the shape the MCP layer stores.",
+    "Defaulting and case-normalization are the MCP layer's own and are covered by its Go tests."
+  ],
+
+  "rejected": [
+    {
+      "name": "metric on a module field without an aggregate",
+      "error": "missingMetricsAggregate",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [{ "field": "stage", "modifier": "(no grouping / buckets)" }],
+            "metrics": [{ "field": "amount", "type": "bar" }]
+          }
+        ]
+      }
+    },
+    {
+      "name": "metric without a field",
+      "error": "missingMetricsField",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [{ "field": "stage", "modifier": "(no grouping / buckets)" }],
+            "metrics": [{ "type": "bar" }]
+          }
+        ]
+      }
+    },
+    {
+      "name": "metric without a type",
+      "error": "missingMetricsType",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [{ "field": "stage", "modifier": "(no grouping / buckets)" }],
+            "metrics": [{ "field": "count" }]
+          }
+        ]
+      }
+    },
+    {
+      "name": "dimension without a field",
+      "error": "missingDimensionsField",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [{ "modifier": "MONTH" }],
+            "metrics": [{ "field": "count", "type": "line" }]
+          }
+        ]
+      }
+    },
+    {
+      "name": "gauge metric whose dimension carries no steps",
+      "error": "missingDimensionsSteps",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [{ "field": "stage", "modifier": "(no grouping / buckets)" }],
+            "metrics": [{ "field": "count", "type": "gauge" }]
+          }
+        ]
+      }
+    }
+  ],
+
+  "accepted": [
+    {
+      "name": "records counted, grouped by a Select field",
+      "config": {
+        "colorScheme": "tableau.Tableau10",
+        "reports": [
+          {
+            "moduleID": "1",
+            "filter": "",
+            "dimensions": [{ "field": "stage", "modifier": "(no grouping / buckets)", "conditions": {} }],
+            "metrics": [{ "field": "count", "type": "doughnut" }]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a numeric field summed over months",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [{ "field": "createdAt", "modifier": "MONTH" }],
+            "metrics": [{ "field": "amount", "aggregate": "SUM", "type": "bar" }]
+          }
+        ]
+      }
+    },
+    {
+      "name": "funnel",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [{ "field": "stage", "modifier": "(no grouping / buckets)" }],
+            "metrics": [{ "field": "count", "type": "funnel" }]
+          }
+        ]
+      }
+    },
+    {
+      "name": "gauge with its bands",
+      "config": {
+        "reports": [
+          {
+            "moduleID": "1",
+            "dimensions": [
+              {
+                "field": "stage",
+                "modifier": "(no grouping / buckets)",
+                "meta": { "steps": [{ "value": 0 }, { "value": 50 }, { "value": 100 }] }
+              }
+            ],
+            "metrics": [{ "field": "count", "type": "gauge" }]
+          }
+        ]
+      }
+    }
+  ]
+}

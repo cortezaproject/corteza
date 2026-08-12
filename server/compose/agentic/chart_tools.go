@@ -9,9 +9,17 @@ import (
 
 // canonical config contract validated against the unify webapp renderer
 // (client/web/unify/src/sections/compose/components/Chart/, lib/js chart types)
-const chartConfigDoc = `JSON chart configuration. Canonical shape:
+const chartConfigDoc = `JSON chart configuration. Canonical shape, counting records grouped by a Select field:
 {"colorScheme":"tableau.Tableau10","reports":[{"moduleID":"<id from compose_module_lookup>","filter":"","dimensions":[{"field":"<grouping field>","modifier":"(no grouping / buckets)","conditions":{}}],"metrics":[{"field":"count","type":"doughnut"}]}]}
-Metric "field":"count" counts records; a numeric module field aggregates instead. "type" per metric: doughnut, pie, bar, line. The dimension field is what values are grouped by (Select fields work well).`
+
+A metric needs "field" and "type", and needs "aggregate" as well whenever "field" is anything other than "count":
+- "field":"count" counts records and takes no aggregate.
+- any other field is a numeric module field being reduced, so it MUST carry "aggregate": one of SUM, MAX, MIN, AVG, STD. Summing an amount is {"field":"amount","aggregate":"SUM","type":"bar"}. Leaving it out is the single most common way to end up with a chart that renders "Metrics aggregate not defined" instead of data.
+- "type": pie, doughnut, bar, line, funnel, gauge, radar or scatter. This is also what shapes the chart, so a funnel is made by naming it here. A gauge additionally needs bands on its dimension: "meta":{"steps":[{"value":0},{"value":50},{"value":100}]}.
+
+A dimension is what the metric is grouped by. "field" is a module field — a Select field groups well — and "modifier" is one of "(no grouping / buckets)" (the field's own values, and the default when omitted), DATE, WEEK, MONTH, QUARTER or YEAR, the last five for bucketing a date field.
+
+moduleID is the numeric ID from compose_module_lookup; a handle here leaves the chart with nothing to query.`
 
 // Callers ask for a report or a dashboard; Human calls the thing a chart.
 var chartKeywords = hmcp.WithKeywords("report", "dashboard", "graph", "analytics", "visualisation")
