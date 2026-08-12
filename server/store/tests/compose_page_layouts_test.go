@@ -184,8 +184,10 @@ func testComposePageLayouts(t *testing.T, s store.ComposePageLayouts) {
 		req.NoError(err)
 		req.Len(set, 1)
 
-		// find all prefixed
-		set, f, err = s.SearchComposePageLayouts(ctx, types.PageLayoutFilter{Query: "/two-"})
+		// find all prefixed. Query searches the handle only: a layout's title
+		// lives inside the meta JSON, not in a column, so it cannot be matched
+		// by the generated filter (see query: ["handle"] in page_layout.cue).
+		set, f, err = s.SearchComposePageLayouts(ctx, types.PageLayoutFilter{Query: "page-2-"})
 		req.NoError(err)
 		req.Len(set, 2)
 
