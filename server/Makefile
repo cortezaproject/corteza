@@ -112,8 +112,13 @@ $(RELEASE_PKEY):
 # Dev only — output is teed to build/dev.log so agents/tools can read server
 # errors (dev/agent/logs.sh). Production runs the binary directly (serve-api)
 # and is unaffected.
+#
+# tee -a, not tee: running this while a watcher is already up fails on the port
+# and would otherwise truncate the running server's log on its way out, throwing
+# away the history someone was in the middle of reading. Readers tail it
+# (logs.sh -n), so appending across restarts costs nothing.
 watch: $(GIN)
-	$(GIN) $(GIN_ARGS) -- $(GIN_HUMAN_BIN_ARGS) serve 2>&1 | tee build/dev.log
+	$(GIN) $(GIN_ARGS) -- $(GIN_HUMAN_BIN_ARGS) serve 2>&1 | tee -a build/dev.log
 
 dev: watch # Alias for watch
 
