@@ -92,13 +92,12 @@
             <label class="font-medium text-sm text-primary">
               {{ $t('block.recordList.export.filter.from') }}
             </label>
-            <DatePicker
+            <CInputDateTime
               v-model="startDate"
+              value-type="date"
+              only-date
               date-format="yy-mm-dd"
-              show-icon
-              show-button-bar
               :max-date="endDate || undefined"
-              class="w-full"
             />
           </div>
 
@@ -106,13 +105,12 @@
             <label class="font-medium text-sm text-primary">
               {{ $t('block.recordList.export.filter.to') }}
             </label>
-            <DatePicker
+            <CInputDateTime
               v-model="endDate"
+              value-type="date"
+              only-date
               date-format="yy-mm-dd"
-              show-icon
-              show-button-bar
               :min-date="startDate || undefined"
-              class="w-full"
             />
           </div>
         </div>
@@ -183,7 +181,11 @@
       <template #footer>
         <div class="flex items-center justify-between gap-2 w-full">
           <div class="flex items-center gap-2 text-sm text-muted-color">
-            <ProgressSpinner v-if="countLoading" style="width: 1rem; height: 1rem" stroke-width="6" />
+            <ProgressSpinner
+              v-if="countLoading"
+              style="width: 1rem; height: 1rem"
+              stroke-width="6"
+            />
             <span v-else>
               {{ $t('block.recordList.export.recordCount', { count: exportableCount }) }}
             </span>
@@ -213,7 +215,10 @@
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import moment from 'moment'
+import { components } from '@planetcrust/human-vue'
 import { getFieldFilter } from '../../../../lib/record-filter'
+
+const { CInputDateTime } = components
 
 const { t } = useI18n()
 const $ComposeAPI = inject('$ComposeAPI')
@@ -244,11 +249,15 @@ const allFields = computed(() => {
 
 const selectedFieldNames = ref([])
 
-watch(allFields, (fields) => {
-  if (selectedFieldNames.value.length === 0) {
-    selectedFieldNames.value = fields.map(f => f.name)
-  }
-}, { immediate: true })
+watch(
+  allFields,
+  fields => {
+    if (selectedFieldNames.value.length === 0) {
+      selectedFieldNames.value = fields.map(f => f.name)
+    }
+  },
+  { immediate: true },
+)
 
 const hasSelection = computed(() => props.selection.length > 0)
 
@@ -311,7 +320,7 @@ function applyPreset(preset) {
 // init preset to lastMonth
 applyPreset('lastMonth')
 
-watch(rangePreset, (p) => {
+watch(rangePreset, p => {
   if (p !== 'custom') applyPreset(p)
   fetchCount()
 })
@@ -322,14 +331,19 @@ watch([startDate, endDate], () => {
     userEditingDate = true
     rangePreset.value = 'custom'
     // defer reset so the watcher doesn't loop
-    setTimeout(() => { userEditingDate = false }, 0)
+    setTimeout(() => {
+      userEditingDate = false
+    }, 0)
   }
   fetchCount()
 })
 
-watch(() => props.filter, (f) => {
-  extraFilter.value = f || ''
-})
+watch(
+  () => props.filter,
+  f => {
+    extraFilter.value = f || ''
+  },
+)
 
 // --- timezone ---
 const forTimezone = ref(false)
@@ -340,8 +354,20 @@ const timezones = computed(() => {
     if (typeof Intl !== 'undefined' && typeof Intl.supportedValuesOf === 'function') {
       return Intl.supportedValuesOf('timeZone')
     }
-  } catch { /* ignore */ }
-  return ['UTC', 'Europe/London', 'Europe/Berlin', 'Europe/Ljubljana', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo', 'Asia/Shanghai', 'Australia/Sydney']
+  } catch {
+    /* ignore */
+  }
+  return [
+    'UTC',
+    'Europe/London',
+    'Europe/Berlin',
+    'Europe/Ljubljana',
+    'America/New_York',
+    'America/Los_Angeles',
+    'Asia/Tokyo',
+    'Asia/Shanghai',
+    'Australia/Sydney',
+  ]
 })
 
 // --- delimiter / refs ---
@@ -388,14 +414,20 @@ function makeFilter() {
   const endOfDay = d => moment(d, 'YYYY-MM-DD').endOf('day').utc().format()
 
   if (start && end) {
-    dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', { start: startOfDay(start), end: endOfDay(end) }, 'BETWEEN') || ''
+    dateRangeQuery =
+      getFieldFilter(
+        rangeBy.value,
+        'DateTime',
+        { start: startOfDay(start), end: endOfDay(end) },
+        'BETWEEN',
+      ) || ''
   } else if (start) {
     dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', startOfDay(start), '>=') || ''
   } else if (end) {
     dateRangeQuery = getFieldFilter(rangeBy.value, 'DateTime', endOfDay(end), '<=') || ''
   }
 
-  return base && dateRangeQuery ? `(${base}) AND ${dateRangeQuery}` : (dateRangeQuery || base)
+  return base && dateRangeQuery ? `(${base}) AND ${dateRangeQuery}` : dateRangeQuery || base
 }
 
 const canExport = computed(() => selectedFieldNames.value.length > 0 && dateRangeValid.value)

@@ -23,14 +23,11 @@
             <label class="text-sm font-medium text-muted-color">
               {{ $t('system.actionlog.list.filter.from') }}
             </label>
-            <DatePicker
+            <CInputDateTime
               v-model="filter.from"
-              showTime
-              hourFormat="24"
-              showButtonBar
+              value-type="date"
               size="small"
-              fluid
-              @update:modelValue="reload"
+              @update:model-value="reload"
             />
           </div>
 
@@ -38,14 +35,11 @@
             <label class="text-sm font-medium text-muted-color">
               {{ $t('system.actionlog.list.filter.to') }}
             </label>
-            <DatePicker
+            <CInputDateTime
               v-model="filter.to"
-              showTime
-              hourFormat="24"
-              showButtonBar
+              value-type="date"
               size="small"
-              fluid
-              @update:modelValue="reload"
+              @update:model-value="reload"
             />
           </div>
 
@@ -307,7 +301,7 @@ import {
   originLabel,
 } from './vocab'
 
-const { CResourceList, CInputUser } = components
+const { CResourceList, CInputUser, CInputDateTime } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()
@@ -462,9 +456,7 @@ const actorCache = ref(new Map())
 async function resolveActors(rows) {
   const ids = [
     ...new Set(
-      rows
-        .map(r => r.actorID)
-        .filter(id => id && id !== '0' && !actorCache.value.has(id)),
+      rows.map(r => r.actorID).filter(id => id && id !== '0' && !actorCache.value.has(id)),
     ),
   ]
   if (!ids.length) return

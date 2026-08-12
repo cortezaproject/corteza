@@ -1,9 +1,6 @@
 <template>
   <div class="flex flex-col gap-6">
-    <div
-      v-for="(section, i) in schema"
-      :key="section.titleKey || i"
-    >
+    <div v-for="(section, i) in schema" :key="section.titleKey || i">
       <div class="grid grid-cols-1 gap-x-6 gap-y-4" :class="{ 'sm:grid-cols-2': columns === 2 }">
         <CFormGroup
           v-for="field in section.fields"
@@ -41,24 +38,18 @@
             fluid
             @update:model-value="update(field.key, $event)"
           />
-          <DatePicker
-            v-else-if="field.type === 'datetime'"
+          <!-- The dashboard read path spreads API rows straight through, so a
+               saved date arrives here as a string while an edited one is a Date;
+               CInputDateTime normalises both before PrimeVue sees them, and
+               `value-type="date"` keeps the Date the write path (stores/
+               dateUtils normalizeDates) expects on the way back out. -->
+          <CInputDateTime
+            v-else-if="field.type === 'datetime' || field.type === 'date'"
             :model-value="modelValue[field.key]"
             :disabled="disabled"
             :invalid="submitted && !!errors[field.key]"
-            show-time
-            hour-format="24"
-            show-button-bar
-            fluid
-            @update:model-value="update(field.key, $event)"
-          />
-          <DatePicker
-            v-else-if="field.type === 'date'"
-            :model-value="modelValue[field.key]"
-            :disabled="disabled"
-            :invalid="submitted && !!errors[field.key]"
-            show-button-bar
-            fluid
+            :only-date="field.type === 'date'"
+            value-type="date"
             @update:model-value="update(field.key, $event)"
           />
           <Select
@@ -121,7 +112,10 @@
 import EventBadge from '@/sections/project/components/dashboard/EventBadge.vue'
 import RiskPips from '@/sections/project/components/dashboard/RiskPips.vue'
 import ValidationMessage from '@/sections/project/components/ValidationMessage.vue'
+import { components } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
+
+const { CInputDateTime } = components
 
 const { t } = useI18n()
 

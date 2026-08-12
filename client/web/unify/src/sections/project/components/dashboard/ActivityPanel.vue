@@ -106,14 +106,11 @@
             <span class="text-sm font-medium text-muted-color">
               {{ $t('system.actionlog.list.filter.from') }}
             </span>
-            <DatePicker
+            <CInputDateTime
               v-model="filter.from"
-              showTime
-              hourFormat="24"
-              showButtonBar
+              value-type="date"
               size="small"
-              fluid
-              @update:modelValue="reload"
+              @update:model-value="reload"
             />
           </label>
 
@@ -121,14 +118,11 @@
             <span class="text-sm font-medium text-muted-color">
               {{ $t('system.actionlog.list.filter.to') }}
             </span>
-            <DatePicker
+            <CInputDateTime
               v-model="filter.to"
-              showTime
-              hourFormat="24"
-              showButtonBar
+              value-type="date"
               size="small"
-              fluid
-              @update:modelValue="reload"
+              @update:model-value="reload"
             />
           </label>
 
@@ -358,7 +352,7 @@ import TimeRangeSelect from '@/sections/project/components/dashboard/TimeRangeSe
 import { useEventActivity } from '@/sections/project/composables/useEventActivity'
 import { RANGES, rangeFrom } from '@/sections/project/config/trend'
 
-const { CInputUser, CInputSearch } = components
+const { CInputUser, CInputSearch, CInputDateTime } = components
 const { locDate } = filters
 
 const { t } = useI18n()

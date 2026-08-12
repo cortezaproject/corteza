@@ -26,7 +26,12 @@
       </div>
 
       <!-- Info -->
-      <Panel :header="$t('system.authclients.editor.info.title')" toggleable :collapsed="false" class="shadow">
+      <Panel
+        :header="$t('system.authclients.editor.info.title')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('system.authclients.editor.info.name')" required>
             <InputText id="name" name="name" v-model="authClient.meta.name" />
@@ -100,11 +105,7 @@
 
           <CFormGroup :label="$t('system.authclients.editor.info.validGrant')">
             <div class="flex flex-col gap-2">
-              <div
-                v-for="opt in grantOptions"
-                :key="opt.value"
-                class="flex items-center gap-2"
-              >
+              <div v-for="opt in grantOptions" :key="opt.value" class="flex items-center gap-2">
                 <RadioButton
                   v-model="authClient.validGrant"
                   :inputId="`grant-${opt.value}`"
@@ -148,14 +149,14 @@
             :label="$t('system.authclients.editor.info.validFrom')"
             :description="$t('system.authclients.editor.info.validFromDescription')"
           >
-            <DatePicker v-model="authClient.validFrom" showTime hourFormat="24" showIcon showButtonBar fluid />
+            <CInputDateTime v-model="authClient.validFrom" value-type="date" />
           </CFormGroup>
 
           <CFormGroup
             :label="$t('system.authclients.editor.info.expiresAt')"
             :description="$t('system.authclients.editor.info.expiresAtDescription')"
           >
-            <DatePicker v-model="authClient.expiresAt" showTime hourFormat="24" showIcon showButtonBar fluid />
+            <CInputDateTime v-model="authClient.expiresAt" value-type="date" />
           </CFormGroup>
 
           <CInputToggleCard
@@ -173,7 +174,12 @@
       </Panel>
 
       <!-- Security -->
-      <Panel :header="$t('system.authclients.editor.tabs.security')" toggleable :collapsed="false" class="shadow">
+      <Panel
+        :header="$t('system.authclients.editor.tabs.security')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup
             :label="$t('system.authclients.editor.info.security.permittedRoles.label')"
@@ -251,7 +257,9 @@
           >
             <CInputUser
               v-model="authClient.security.impersonateUser"
-              :placeholder="$t('system.authclients.editor.info.security.impersonateUser.placeholder')"
+              :placeholder="
+                $t('system.authclients.editor.info.security.impersonateUser.placeholder')
+              "
               class="w-full"
             />
           </CFormGroup>
@@ -259,7 +267,9 @@
           <CFormGroup :label="$t('system.authclients.editor.info.security.defaultUserGroup.label')">
             <CInputUserGroup
               v-model="authClient.security.userGroup"
-              :placeholder="$t('system.authclients.editor.info.security.defaultUserGroup.placeholder')"
+              :placeholder="
+                $t('system.authclients.editor.info.security.defaultUserGroup.placeholder')
+              "
               class="w-full"
             />
           </CFormGroup>
@@ -277,7 +287,13 @@
         <div class="flex flex-col gap-6">
           <CFormGroup :label="$t('system.authclients.editor.info.curl')">
             <template #actions>
-              <Button icon="pi pi-copy" text size="small" severity="secondary" @click="copyToClipboard(curlExample)" />
+              <Button
+                icon="pi pi-copy"
+                text
+                size="small"
+                severity="secondary"
+                @click="copyToClipboard(curlExample)"
+              />
             </template>
             <Textarea :value="curlExample" readonly rows="3" class="font-mono text-sm" />
           </CFormGroup>
@@ -288,7 +304,13 @@
               :label="$t('system.authclients.editor.info.accessToken')"
             >
               <template #actions>
-                <Button icon="pi pi-copy" text size="small" severity="secondary" @click="copyToClipboard(tokenRequest.token)" />
+                <Button
+                  icon="pi pi-copy"
+                  text
+                  size="small"
+                  severity="secondary"
+                  @click="copyToClipboard(tokenRequest.token)"
+                />
               </template>
               <Textarea :value="tokenRequest.token" readonly rows="4" class="font-mono text-sm" />
             </CFormGroup>
@@ -299,7 +321,9 @@
                 :loading="tokenRequest.loading"
                 @click="generateToken"
               />
-              <p v-if="tokenRequest.error" class="text-red-500 text-sm mt-2">{{ tokenRequest.error }}</p>
+              <p v-if="tokenRequest.error" class="text-red-500 text-sm mt-2">
+                {{ tokenRequest.error }}
+              </p>
             </div>
           </div>
         </div>
@@ -315,12 +339,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
@@ -334,7 +353,15 @@ import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import axios from 'axios'
 
-const { CInputDelete, CInputRole, CInputToggleCard, CInputUser, CInputUserGroup, CViewContainer } = components
+const {
+  CInputDateTime,
+  CInputDelete,
+  CInputRole,
+  CInputToggleCard,
+  CInputUser,
+  CInputUserGroup,
+  CViewContainer,
+} = components
 
 const route = useRoute()
 const router = useRouter()
@@ -420,10 +447,16 @@ function toggleScope(s, val) {
   authClient.value.scope = parts.join(' ')
 }
 
-const scopeProfile = computed({ get: () => hasScope('profile'), set: v => toggleScope('profile', v) })
+const scopeProfile = computed({
+  get: () => hasScope('profile'),
+  set: v => toggleScope('profile', v),
+})
 const scopeApi = computed({ get: () => hasScope('api'), set: v => toggleScope('api', v) })
 const scopeOpenid = computed({ get: () => hasScope('openid'), set: v => toggleScope('openid', v) })
-const scopeDiscovery = computed({ get: () => hasScope('discovery'), set: v => toggleScope('discovery', v) })
+const scopeDiscovery = computed({
+  get: () => hasScope('discovery'),
+  set: v => toggleScope('discovery', v),
+})
 
 // Redirect URIs management
 function syncRedirectURIs() {
@@ -438,7 +471,9 @@ function addURI() {
 async function showSecret() {
   if (!secret.value) {
     try {
-      const result = await $SystemAPI.authClientExposeSecret({ clientID: authClient.value.authClientID })
+      const result = await $SystemAPI.authClientExposeSecret({
+        clientID: authClient.value.authClientID,
+      })
       secret.value = result
     } catch (e) {
       $toast.toastErrorHandler('Failed to get secret')(e)
@@ -453,7 +488,9 @@ function hideSecret() {
 
 async function regenerateSecret() {
   try {
-    const result = await $SystemAPI.authClientRegenerateSecret({ clientID: authClient.value.authClientID })
+    const result = await $SystemAPI.authClientRegenerateSecret({
+      clientID: authClient.value.authClientID,
+    })
     secret.value = result
     secretVisible.value = true
     $toast.toastSuccess('Secret regenerated')
@@ -493,7 +530,6 @@ function copyToClipboard(text) {
   navigator.clipboard.writeText(text).catch(() => {})
 }
 
-
 function addRoleToList(listName, role) {
   if (!role) return
   const list = { permittedRoles, prohibitedRoles, forcedRoles }[listName]
@@ -524,9 +560,13 @@ async function fetchDefaultUserGroup() {
   try {
     const result = await $SystemAPI.userGroupList({ limit: 100 })
     if (result?.set?.length > 0) {
-      const defaultGroup = result.set.find(
-        g => g.handle === 'default-root' || g.handle === 'users' || g.meta?.short?.includes('Default'),
-      ) || result.set[0]
+      const defaultGroup =
+        result.set.find(
+          g =>
+            g.handle === 'default-root' ||
+            g.handle === 'users' ||
+            g.meta?.short?.includes('Default'),
+        ) || result.set[0]
       if (defaultGroup && authClient.value) {
         authClient.value.security.userGroup = defaultGroup.userGroupID
       }
@@ -573,7 +613,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -640,7 +682,12 @@ async function handleDelete() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!authClient.value && !!initialAuthClient.value && !isEqual(authClient.value, initialAuthClient.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!authClient.value &&
+    !!initialAuthClient.value &&
+    !isEqual(authClient.value, initialAuthClient.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 
@@ -653,7 +700,7 @@ watch(
 // Auto-default impersonateUser when switching to client_credentials
 watch(
   () => authClient.value?.validGrant,
-  (grant) => {
+  grant => {
     if (!authClient.value) return
     if (
       grant === 'client_credentials' &&
