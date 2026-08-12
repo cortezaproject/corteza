@@ -42,6 +42,24 @@ export function escapeQlString(str, isLikePattern = false) {
   return result
 }
 
+// How a date value arrives from the filter UI.
+//
+// CInputDateTime (lib/vue) emits one of three shapes, depending on the field's
+// options: Date.toISOString() for a datetime field ('2024-06-29T12:30:00.000Z'),
+// YYYY-MM-DD when it is date-only, and HH:mm:ss when it is time-only. Parsing
+// used to demand 'YYYY-MM-DDTHH:mm:ssZ' or 'HH:mm' exactly, so an ISO timestamp
+// and a seconds-bearing time both failed every branch, getFieldFilter returned
+// undefined, and getRecordListFilterSql dropped the condition — the filter read
+// as applied in the UI and never reached the API.
+//
+// Date-only is tested BEFORE datetime: moment's ISO_8601 accepts a bare
+// YYYY-MM-DD too, and letting it through the timestamp branch would resolve the
+// value to midnight and lose the day-level comparison that keeps an end-of-day
+// bound inclusive.
+const asDateOnly = value => moment(value, 'YYYY-MM-DD', true)
+const asDateTime = value => moment(value, moment.ISO_8601, true)
+const asTimeOnly = value => moment(value, ['HH:mm:ss', 'HH:mm'], true)
+
 // Generate record list sql query string based on filter object input
 
 export function getRecordListFilterSql(filter) {
@@ -137,8 +155,18 @@ export function getFieldFilter(name, kind, query = '', operator = '=') {
       `TIMESTAMP(DATE_FORMAT('${date.format()}', '%Y-%m-%dT%H:%i:%s.%f+00:00'))`
 
     if (['BETWEEN', 'NOT BETWEEN'].includes(operator)) {
-      const startDateTime = moment(query.start, 'YYYY-MM-DDTHH:mm:ssZ', true)
-      const endDateTime = moment(query.end, 'YYYY-MM-DDTHH:mm:ssZ', true)
+      const startDate = asDateOnly(query.start)
+      const endDate = asDateOnly(query.end)
+
+      if (startDate.isValid() && endDate.isValid()) {
+        // Compare on the field's date part so a date-only range is inclusive of the
+        // whole end day; otherwise DATE('end') resolves to midnight and records
+        // logged during the end day itself are excluded.
+        return build(operator, `DATE(${name})`, `DATE('${query.start}') DATE('${query.end}')`)
+      }
+
+      const startDateTime = asDateTime(query.start)
+      const endDateTime = asDateTime(query.end)
 
       if (startDateTime.isValid() && endDateTime.isValid()) {
         return build(
@@ -148,47 +176,40 @@ export function getFieldFilter(name, kind, query = '', operator = '=') {
         )
       }
 
-      const startDate = moment(query.start, 'YYYY-MM-DD', true)
-      const endDate = moment(query.end, 'YYYY-MM-DD', true)
-
-      if (startDate.isValid() && endDate.isValid()) {
-        // Compare on the field's date part so a date-only range is inclusive of the
-        // whole end day; otherwise DATE('end') resolves to midnight and records
-        // logged during the end day itself are excluded.
-        return build(operator, `DATE(${name})`, `DATE('${query.start}') DATE('${query.end}')`)
-      }
-
-      const startTime = moment(query.start, 'HH:mm', true)
-      const endTime = moment(query.end, 'HH:mm', true)
+      const startTime = asTimeOnly(query.start)
+      const endTime = asTimeOnly(query.end)
 
       if (startTime.isValid() && endTime.isValid()) {
-        return build(operator, name, `TIME('${query.start}') TIME('${query.end}')`)
+        // Compare on the field's time part, as the date branch does with DATE():
+        // the value is stored as a timestamp, and postgres refuses
+        // "timestamp >= time" outright.
+        return build(operator, `TIME(${name})`, `TIME('${query.start}') TIME('${query.end}')`)
       }
 
       // Special case where between object is invalid
       return undefined
     } else {
       // Build different querries if date, time or datetime
-      const dateTime = moment(query, 'YYYY-MM-DDTHH:mm:ssZ', true)
-      const date = moment(query, 'YYYY-MM-DD', true)
-      const time = moment(query, 'HH:mm', true)
+      const date = asDateOnly(query)
+      const dateTime = asDateTime(query)
+      const time = asTimeOnly(query)
 
       // @note tweaking the template a bit:
       // * adding %f to include fractions; mysql sometimes forces them when formatting date
       // * changing Z to +00:00
       // * doing the same for time-only fields
-      if (dateTime.isValid()) {
+      if (date.isValid()) {
+        // Compare on the field's date part so date-only operators (e.g. <=) include
+        // the whole day instead of resolving the value to midnight.
+        return build(operator, `DATE(${name})`, `DATE('${query}')`)
+      } else if (dateTime.isValid()) {
         return build(
           operator,
           `TIMESTAMP(DATE_FORMAT(${name}, '%Y-%m-%dT%H:%i:%s.%f+00:00'))`,
           dataFmtEntry(dateTime),
         )
-      } else if (date.isValid()) {
-        // Compare on the field's date part so date-only operators (e.g. <=) include
-        // the whole day instead of resolving the value to midnight.
-        return build(operator, `DATE(${name})`, `DATE('${query}')`)
       } else if (time.isValid()) {
-        return build(operator, name, `TIME('${query}')`)
+        return build(operator, `TIME(${name})`, `TIME('${query}')`)
       }
     }
   }

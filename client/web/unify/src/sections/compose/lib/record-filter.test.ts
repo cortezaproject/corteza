@@ -81,6 +81,46 @@ describe('lib/record-filter', () => {
         ),
       ).toBe("(DATE(created_at) BETWEEN DATE('2024-06-26') DATE('2024-06-29'))")
     })
+
+    // These are the strings the filter UI actually produces: CInputDateTime emits
+    // Date.toISOString() for a datetime field and HH:mm:ss for a time-only one
+    // (lib/vue/src/components/input/CInputDateTime.vue). Neither matched the strict
+    // formats parsed here, so getFieldFilter returned undefined and
+    // getRecordListFilterSql dropped the condition — the filter looked applied and
+    // never reached the API. Every other field kind built its condition fine, which
+    // is what made it look like a date-only problem.
+    // The emitted instant is re-rendered in the runner's timezone, so this pins the
+    // shape of the comparison rather than a wall-clock string that only holds in UTC.
+    it('accepts the ISO timestamp the date-time editor emits', () => {
+      expect(getFieldFilter('created_at', 'DateTime', '2024-06-29T12:30:00.000Z', '>=')).toMatch(
+        /^\(TIMESTAMP\(DATE_FORMAT\(created_at, '%Y-%m-%dT%H:%i:%s\.%f\+00:00'\)\) >= TIMESTAMP\(DATE_FORMAT\('2024-06-29T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}', '%Y-%m-%dT%H:%i:%s\.%f\+00:00'\)\)\)$/,
+      )
+    })
+
+    it('accepts an ISO timestamp on both ends of a BETWEEN range', () => {
+      expect(
+        getFieldFilter(
+          'created_at',
+          'DateTime',
+          { start: '2024-06-26T00:00:00.000Z', end: '2024-06-29T23:59:59.000Z' },
+          'BETWEEN',
+        ),
+      ).toBeDefined()
+    })
+
+    // TIME(field), not the bare field: the value is stored as a timestamp, and
+    // postgres rejects "timestamp with time zone >= time without time zone".
+    it('accepts the HH:mm:ss the time-only editor emits, comparing on the field time', () => {
+      expect(getFieldFilter('start_time', 'DateTime', '14:30:00', '>=')).toBe(
+        "(TIME(start_time) >= TIME('14:30:00'))",
+      )
+    })
+
+    it('compares a time-only BETWEEN range on the field time', () => {
+      expect(
+        getFieldFilter('start_time', 'DateTime', { start: '09:00:00', end: '17:00:00' }, 'BETWEEN'),
+      ).toBe("(TIME(start_time) BETWEEN TIME('09:00:00') TIME('17:00:00'))")
+    })
   })
 
   describe('evaluatePrefilter', () => {
