@@ -1068,3 +1068,68 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].RawExpr)
 	})
 }
+
+func TestRecordReportCorrectTypes(t *testing.T) {
+	// Records with no value for the grouped field aggregate into their own group,
+	// which the DAL returns with a nil dimension value. Casting that nil to 0 made
+	// it indistinguishable from records really holding 0, which left the chart's
+	// "skip missing values" and "default value" options with nothing to act on.
+	// See crusttech/human#39.
+	def := &dal.Aggregate{
+		Group: []dal.AggregateAttr{
+			{Identifier: "dimension_0", Type: &dal.TypeNumber{}},
+		},
+		OutAttributes: []dal.AggregateAttr{
+			{Identifier: "count", Type: &dal.TypeNumber{}},
+			{Identifier: "sum_amount", Type: &dal.TypeNumber{}},
+		},
+	}
+
+	t.Run("nil dimension stays nil", func(t *testing.T) {
+		entry := recordReportEntry{"dimension_0": nil, "count": "3", "sum_amount": nil}
+		recordReportCorrectTypes(def, entry)
+
+		require.Nil(t, entry["dimension_0"])
+		require.Nil(t, entry["sum_amount"])
+		require.Equal(t, float64(3), entry["count"])
+	})
+
+	t.Run("real zero is still a number", func(t *testing.T) {
+		entry := recordReportEntry{"dimension_0": "0", "count": "1", "sum_amount": "0"}
+		recordReportCorrectTypes(def, entry)
+
+		require.Equal(t, float64(0), entry["dimension_0"])
+		require.Equal(t, float64(0), entry["sum_amount"])
+	})
+
+	t.Run("ordinary values are cast as before", func(t *testing.T) {
+		entry := recordReportEntry{"dimension_0": "5", "count": "1", "sum_amount": "5"}
+		recordReportCorrectTypes(def, entry)
+
+		require.Equal(t, float64(5), entry["dimension_0"])
+		require.Equal(t, float64(5), entry["sum_amount"])
+	})
+
+	t.Run("text dimension keeps its nil apart from an empty string", func(t *testing.T) {
+		textDef := &dal.Aggregate{
+			Group:         []dal.AggregateAttr{{Identifier: "dimension_0", Type: &dal.TypeText{}}},
+			OutAttributes: []dal.AggregateAttr{{Identifier: "count", Type: &dal.TypeNumber{}}},
+		}
+
+		missing := recordReportEntry{"dimension_0": nil, "count": "2"}
+		recordReportCorrectTypes(textDef, missing)
+		require.Nil(t, missing["dimension_0"])
+
+		blank := recordReportEntry{"dimension_0": "", "count": "2"}
+		recordReportCorrectTypes(textDef, blank)
+		require.Equal(t, "", blank["dimension_0"])
+	})
+
+	t.Run("absent key is not invented", func(t *testing.T) {
+		entry := recordReportEntry{"count": "1"}
+		recordReportCorrectTypes(def, entry)
+
+		_, has := entry["dimension_0"]
+		require.False(t, has)
+	})
+}

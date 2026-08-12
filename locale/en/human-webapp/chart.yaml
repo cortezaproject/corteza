@@ -282,4 +282,4 @@ notification:
   saved: Chart saved
 searchPlaceholder: Search charts in this namespace
 title: List of Charts
-undefined: undefined
+undefined: (empty)

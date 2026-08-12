@@ -2579,32 +2579,37 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 // This addresses:
 // - output metrics are presented as numbers
 // - dimenssion values are presented as strings for ID and ref., float for number, string for rest
+//
+// A nil value is left as nil in both cases. Records with no value for the grouped
+// field aggregate into their own group, and casting that group's nil to 0 would make
+// it indistinguishable from records that really do hold 0 -- which is what the chart
+// needs in order to skip or relabel empty groups.
 func recordReportCorrectTypes(def *dal.Aggregate, entry recordReportEntry) {
 	for _, a := range def.OutAttributes {
-		if _, ok := entry[a.Identifier]; !ok {
+		v, ok := entry[a.Identifier]
+		if !ok || v == nil {
 			continue
 		}
+
 		// Metrics are currently always numbers so we don't need to be fancy
-		entry[a.Identifier] = cast.ToFloat64(entry[a.Identifier])
+		entry[a.Identifier] = cast.ToFloat64(v)
 	}
 
 	for _, a := range def.Group {
-		if _, ok := entry[a.Identifier]; !ok {
+		v, ok := entry[a.Identifier]
+		if !ok || v == nil {
 			continue
 		}
 
 		switch a.Type.(type) {
 		case *dal.TypeNumber:
-			entry[a.Identifier] = cast.ToFloat64(entry[a.Identifier])
-			return
+			entry[a.Identifier] = cast.ToFloat64(v)
 
 		case *dal.TypeText:
-			entry[a.Identifier] = cast.ToString(entry[a.Identifier])
-			return
+			entry[a.Identifier] = cast.ToString(v)
 
 		case *dal.TypeID, *dal.TypeRef:
-			entry[a.Identifier] = cast.ToString(entry[a.Identifier])
-			return
+			entry[a.Identifier] = cast.ToString(v)
 		}
 	}
 }

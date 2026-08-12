@@ -41,7 +41,10 @@ export default class GaugeChart extends BaseChart {
 
     const value = data
       .reduce((acc: any, cur: any) => {
-        return !isNaN(cur) ? acc + parseFloat(cur) : acc
+        // isNaN(null) is false but parseFloat(null) is NaN, so the old guard let
+        // an empty group poison the whole total.
+        const n = parseFloat(cur as string)
+        return Number.isFinite(n) ? acc + n : acc
       }, 0)
       .toFixed(3)
 

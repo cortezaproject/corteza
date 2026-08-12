@@ -203,7 +203,9 @@ export default class Chart extends BaseChart {
               trigger: 'item',
               appendToBody: true,
               formatter: (params: TooltipParams): string => {
-                const v = formatChartValue(params.value || '', formatting)
+                // ?? not ||: a slice worth 0 is a value, and blanking it here
+                // used to surface as "NaN" once formatted.
+                const v = formatChartValue(params.value ?? '', formatting)
 
                 if (t?.formatting) {
                   return formatChartTooltip(t?.formatting, params)
@@ -215,7 +217,7 @@ export default class Chart extends BaseChart {
             label: {
               ...lbl,
               formatter: (params: TooltipParams): string =>
-                formatChartValue(params.value || '', formatting),
+                formatChartValue(params.value ?? '', formatting),
             },
             itemStyle: {
               borderRadius: 5,

@@ -254,23 +254,31 @@ export class BaseChart {
     let labels: Array<string> = []
 
     // helper to choose between eight the provided value, default value or a generic 'undefined'
-    const pickValue = (val: unknown, { default: dDft }: Dimension): unknown => {
+    // The 'undefined' string is a sentinel the renderer swaps for a translated label.
+    const pickLabel = (val: unknown, { default: dDft }: Dimension): unknown => {
       return val || val === 0 ? val : dDft || 'undefined'
     }
 
-    // Skip missing values; if so requested
+    // Skip missing values; if so requested.
+    // The report returns null for the group holding records with no value for
+    // the dimension field, which is what makes this (and the default label
+    // above) able to tell an empty group from one that really holds 0.
     if (dimension.skipMissing) {
       results = results.filter((r: any) => r[dLabel] || r[dLabel] === 0)
     }
 
     // Not a time dimensions, build set of labels
-    labels = results.map((r: any) => pickValue(r[dLabel], dimension)) as Array<string>
+    labels = results.map((r: any) => pickLabel(r[dLabel], dimension)) as Array<string>
 
     // Build data sets
     const datasets = report.metrics?.map(m => {
       const alias = makeAlias({ field: m.field, aggregate: m.aggregate })
       const data = results.map((r: any) => {
-        return pickValue(r[m.field === 'count' ? m.field : alias], dimension)
+        // Metric values are numbers, never labels: the dimension's default text
+        // must not leak in here. An absent aggregate stays null so the renderer
+        // draws a gap instead of a fabricated zero.
+        const val = r[m.field === 'count' ? m.field : alias]
+        return val === undefined ? null : val
       })
 
       // Any sub class has the ability to define how the dataset looks like.

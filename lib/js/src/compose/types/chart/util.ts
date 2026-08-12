@@ -263,14 +263,23 @@ export const hasRelativeDisplay = ({ type }: KV) => isRadialChart({ type })
 export const makeAlias = ({ alias, aggregate, modifier, field }: Partial<Metric>) =>
   alias || `${aggregate || modifier || 'none'}_${field}`.toLocaleLowerCase()
 
-export function formatChartValue(value: string | number, formatting?: FormatData): string {
+export function formatChartValue(
+  value: string | number | null | undefined,
+  formatting?: FormatData,
+): string {
   let n: number | string = ''
   // if value contains alphabetic chars parseFloat() will return NaN
   // and n will equal 0
   const containsAlphabeticChars = isNaN(Number(value))
   let result = ''
 
-  if (!containsAlphabeticChars) {
+  // A blank value is not a number. Number('') is 0, so the check above lets it
+  // through, but parseFloat('') is NaN and formatting that renders the literal
+  // string "NaN" to the user -- which is what an empty group used to show.
+  const isBlank =
+    value === null || value === undefined || (typeof value === 'string' && value.trim() === '')
+
+  if (!isBlank && !containsAlphabeticChars) {
     switch (typeof value) {
       case 'string':
         n = parseFloat(value)
@@ -282,18 +291,22 @@ export function formatChartValue(value: string | number, formatting?: FormatData
         n = 0
     }
 
-    if (formatting?.format) {
-      result = numeral(n).format(formatting.format)
-    } else {
-      result = fmt.number(n)
+    if (Number.isFinite(n as number)) {
+      if (formatting?.format) {
+        result = numeral(n).format(formatting.format)
+      } else {
+        result = fmt.number(n as number)
+      }
     }
   }
 
-  if (formatting?.presetFormat === 'accounting') {
+  if (!isBlank && formatting?.presetFormat === 'accounting' && Number.isFinite(Number(n))) {
     result = fmt.accountingNumber(Number(n))
   }
 
-  return ` ${formatting?.prefix ?? ''} ${result || value} ${formatting?.suffix ?? ''}`
+  // A blank value falls back to '' rather than to itself, so null never reaches
+  // the template and renders as the string "null".
+  return ` ${formatting?.prefix ?? ''} ${result || (isBlank ? '' : value)} ${formatting?.suffix ?? ''}`
 }
 
 export function formatChartTooltip(tooltip: string, params: TooltipParams): string {
