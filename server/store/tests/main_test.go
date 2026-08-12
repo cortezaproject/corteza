@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/mssql"
 	"github.com/crusttech/human/server/store/adapters/rdbms/drivers/mysql"
@@ -25,6 +26,11 @@ var (
 
 func init() {
 	helpers.RecursiveDotEnvLoad()
+
+	// Every generated store test mints IDs with id.Next(), which panics until
+	// the generator is initialized. Nothing else in this package does it, so
+	// the suite paniced on its first create. It is idempotent.
+	id.Init(context.Background())
 }
 
 func Test_RDBMS_SQLITE(t *testing.T) {
