@@ -121,7 +121,7 @@
               style="border-radius: var(--p-border-radius)"
               @remove="removeFilter(fg.originalIndex, fi)"
             >
-              <span class="font-medium">{{ getField(f.name)?.label || f.label || f.name }}</span>
+              <span class="font-medium">{{ getFieldLabel(f) }}</span>
               <span class="mx-1 text-muted-color">{{ getOperatorLabel(f.operator) }}</span>
               <span
                 v-if="f.value != null"
@@ -1720,9 +1720,38 @@ const groupedActiveFilters = computed(() => {
   return segments
 })
 
+// Resolves a filtered field for the active-filter chips.
+//
+// The filter builder offers system fields alongside the module's own
+// (RecordListFilter.vue builds its list from both), so looking only at
+// module.fields left every createdAt/ownedBy filter unresolved: the chip fell
+// back to the raw field name and the raw stored value, showing
+// "createdAt >= 2024-06-29T12:30:00.000Z" where a module field showed
+// "Status = Open". System labels are translated the same way the builder does.
 function getField(name) {
   if (!recordListModule.value) return null
-  return recordListModule.value.fields.find(f => f.name === name)
+
+  return (
+    recordListModule.value.fields.find(f => f.name === name) ||
+    (recordListModule.value.systemFields?.() || []).find(f => f.name === name) ||
+    null
+  )
+}
+
+// The field instance is returned as-is above rather than copied with a
+// translated label: a spread would drop its prototype, and with it formatValue()
+// and isSystem, which are exactly what the viewer needs to render the value.
+// The system-field label is translated here instead, as the builder does for its
+// own picker.
+function getFieldLabel(f) {
+  const field = getField(f.name)
+  if (!field) return f.label || f.name
+
+  if (field.isSystem) {
+    return t(`field.system.${field.name}`, field.label || field.name)
+  }
+
+  return field.label || field.name
 }
 
 function getFilterMockRecord(f, val) {
@@ -1731,11 +1760,16 @@ function getFilterMockRecord(f, val) {
   if (base?.isMulti && !Array.isArray(value)) {
     value = value != null && value !== '' ? [value] : []
   }
-  return new compose.Record(recordListModule.value, {
-    values: {
-      [f.name]: value,
-    },
-  })
+
+  // A system field is read off the record itself, not out of values
+  // (CFieldDateTimeViewer, CFieldUserViewer both branch on field.isSystem), so
+  // the mock has to carry it in both places for the viewer to find it.
+  const mock = { values: { [f.name]: value } }
+  if (base?.isSystem) {
+    mock[f.name] = value
+  }
+
+  return new compose.Record(recordListModule.value, mock)
 }
 
 function getOperatorLabel(op) {
