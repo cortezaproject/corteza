@@ -14,6 +14,7 @@ import {
   SystemAPIPlugin,
   ToastPlugin,
   getTheme,
+  primeVueLocale,
   setThemes,
 } from '@planetcrust/human-vue'
 import { createPinia } from 'pinia'
@@ -28,7 +29,7 @@ import TrimOnBlurPlugin from './trimOnBlur'
 /**
  * Sets up PrimeVue with theming and services
  */
-function setupPrimeVue(app, theme) {
+function setupPrimeVue(app, theme, locale) {
   app.use(PrimeVue, {
     theme: {
       preset: getTheme(theme),
@@ -40,6 +41,11 @@ function setupPrimeVue(app, theme) {
         },
       },
     },
+    // Date ordering follows the user's language rather than PrimeVue's US
+    // default; merged over its built-in locale, so every string this does not
+    // name keeps its default. Reaches every date input in the app through
+    // CInputDateTime.
+    locale: primeVueLocale(locale),
     ripple: true,
   })
 
@@ -111,7 +117,7 @@ export function setupAndAuthenticate(app) {
 
       return $Settings.init().then(() => {
         setThemes($Settings.get('ui.studio.themes'))
-        setupPrimeVue(app, $Auth.user.meta.theme)
+        setupPrimeVue(app, $Auth.user.meta.theme, locale)
 
         return true
       })

@@ -96,7 +96,6 @@
               v-model="startDate"
               value-type="date"
               only-date
-              date-format="yy-mm-dd"
               :max-date="endDate || undefined"
             />
           </div>
@@ -109,7 +108,6 @@
               v-model="endDate"
               value-type="date"
               only-date
-              date-format="yy-mm-dd"
               :min-date="startDate || undefined"
             />
           </div>

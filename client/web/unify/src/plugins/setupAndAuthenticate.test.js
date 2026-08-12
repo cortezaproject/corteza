@@ -18,6 +18,9 @@ const stubs = vi.hoisted(() => ({
   startAuthenticationFlow: vi.fn(),
   settingsInit: vi.fn(() => Promise.resolve()),
   localeGet: vi.fn(() => Promise.resolve({})),
+  // Reset per test; the signed-in user's language drives both the i18n bundle
+  // and PrimeVue's date format.
+  userMeta: {},
 }))
 
 vi.mock('@planetcrust/human-vue', () => {
@@ -30,7 +33,7 @@ vi.mock('@planetcrust/human-vue', () => {
         app.config.globalProperties.$Auth = {
           handle: stubs.handle,
           startAuthenticationFlow: stubs.startAuthenticationFlow,
-          user: { meta: {} },
+          user: { meta: stubs.userMeta },
         }
       },
     },
@@ -59,6 +62,9 @@ vi.mock('@planetcrust/human-vue', () => {
     ToastPlugin: named('ToastPlugin'),
     getTheme: () => ({}),
     setThemes: () => {},
+    // Echoes the language it was handed so the assertion below can prove the
+    // user's locale actually reaches the PrimeVue config rather than a default.
+    primeVueLocale: lang => ({ dateFormat: `format-for-${lang}` }),
   }
 })
 
@@ -84,12 +90,19 @@ const { setupAndAuthenticate } = await import('./index')
 function fakeApp() {
   const installed = []
 
+  // Keyed by plugin name so a test can inspect what a plugin was configured
+  // with, not only that it was installed.
+  const optionsFor = {}
+
   const app = {
     installed,
+    optionsFor,
     config: { globalProperties: {} },
     directive: () => app,
     use(plugin, options) {
-      installed.push(plugin?.pluginName ?? 'anonymous')
+      const name = plugin?.pluginName ?? 'anonymous'
+      installed.push(name)
+      optionsFor[name] = options
       plugin?.install?.(app, options)
       return app
     },
@@ -103,6 +116,28 @@ describe('setupAndAuthenticate', () => {
     vi.clearAllMocks()
     stubs.settingsInit.mockResolvedValue()
     stubs.localeGet.mockResolvedValue({})
+    Object.keys(stubs.userMeta).forEach(k => delete stubs.userMeta[k])
+  })
+
+  it("configures PrimeVue with the user's own date format", async () => {
+    // Dates used to render US-formatted for everyone because PrimeVue's locale
+    // was never configured at all.
+    stubs.userMeta.preferredLanguage = 'sl'
+    stubs.handle.mockResolvedValue()
+
+    const app = fakeApp()
+    await setupAndAuthenticate(app)
+
+    expect(app.optionsFor.PrimeVue.locale).toEqual({ dateFormat: 'format-for-sl' })
+  })
+
+  it('falls back to en when the user has no language set', async () => {
+    stubs.handle.mockResolvedValue()
+
+    const app = fakeApp()
+    await setupAndAuthenticate(app)
+
+    expect(app.optionsFor.PrimeVue.locale).toEqual({ dateFormat: 'format-for-en' })
   })
 
   it('resolves false and starts the auth flow when unauthenticated', async () => {

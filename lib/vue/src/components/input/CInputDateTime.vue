@@ -8,7 +8,6 @@
     :disabled="disabled"
     :invalid="invalid"
     :placeholder="placeholder"
-    :date-format="dateFormat"
     hour-format="24"
     show-icon
     fluid
@@ -67,12 +66,6 @@ const props = defineProps({
     default: false,
   },
   placeholder: {
-    type: String,
-    default: undefined,
-  },
-  // Leave unset to inherit the PrimeVue locale's format; pass one only where a
-  // screen has a reason to differ.
-  dateFormat: {
     type: String,
     default: undefined,
   },
