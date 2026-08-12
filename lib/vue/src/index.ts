@@ -13,7 +13,7 @@ export {
 export { I18nPlugin } from './plugins/i18n'
 export { SettingsPlugin } from './plugins/settings'
 export { PrimeVueComponentsPlugin } from './plugins/primevue-components'
-export { primeVueLocale, localeDateFormat } from './plugins/primevue-locale'
+export { primeVueLocale, localeDateFormat, localeFirstDayOfWeek } from './plugins/primevue-locale'
 export { ToastPlugin } from './plugins/toast'
 export { EventBusPlugin } from './plugins/event-bus'
 
