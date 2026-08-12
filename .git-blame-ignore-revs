@@ -1,0 +1,8 @@
+# Revisions to skip when running git blame — mechanical, whole-tree reformats
+# that would otherwise claim authorship of every line they touched.
+#
+# Enable locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Format the frontend with prettier
+353f3cbfdd3970e05a95004d1eb13af449828a06
