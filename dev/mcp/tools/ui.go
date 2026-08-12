@@ -18,8 +18,16 @@ import (
 // click that "does nothing" almost always leaves one or the other behind, and
 // neither is visible from the final URL.
 type uiResult struct {
-	URL            string   `json:"url,omitempty"`
-	Title          string   `json:"title,omitempty"`
+	URL   string `json:"url,omitempty"`
+	Title string `json:"title,omitempty"`
+
+	// Where the caller asked to go and where the app was once it had settled.
+	// They differ whenever a route redirects, and — the case worth catching —
+	// whenever no route matched at all, since the webapp's catch-all sends an
+	// unknown path to the home section instead of showing anything broken.
+	RequestedPath string `json:"requestedPath,omitempty"`
+	LandedPath    string `json:"landedPath,omitempty"`
+
 	ConsoleErrors  []string `json:"consoleErrors,omitempty"`
 	FailedRequests []string `json:"failedRequests,omitempty"`
 	Steps          []uiStep `json:"steps,omitempty"`
@@ -50,7 +58,10 @@ func registerUIVerify(reg *mcpkit.Registry, root string) {
 					"dev/agent/bootstrap.sh once if it reports no password.",
 			),
 			mcp.WithString("path", mcp.Description(
-				"App path to open, e.g. '/compose/ns/my-namespace/pages/123'. Defaults to '/'.")),
+				"App path to open, e.g. '/compose/namespace/my-namespace/pages/123' — every compose route "+
+					"is under /compose, and a namespace is addressed by slug. Defaults to '/'. A path no route "+
+					"matches is not an error: the app's catch-all redirects it to the home section, which the "+
+					"result reports as landedPath differing from requestedPath.")),
 			mcp.WithString("steps", mcp.Description(
 				"JSON array of interactions, run in order, e.g. "+
 					`[{"action":"click","selector":"button:has-text('Add')"}]. `+
@@ -140,6 +151,17 @@ func uiNote(out uiResult) string {
 	switch {
 	case failed != nil:
 		return fmt.Sprintf("step %q failed, so any step after it never ran", failed.Selector)
+	case leftRequestedPath(out):
+		// Ranked above console errors on purpose: everything else in the result
+		// describes a page that is not the one that was asked for, so reading it
+		// as a verdict on that page is the wrong conclusion to draw first.
+		return fmt.Sprintf(
+			"the app did not stay on %s — it settled on %s, so the screenshot and every error below "+
+				"describe that page instead. Either the route redirects deliberately or nothing matched the "+
+				"path and the catch-all sent the app home; check the path against the section's routes "+
+				"(compose pages live under /compose/namespace/<slug>/pages/<pageID>)",
+			out.RequestedPath, out.LandedPath,
+		)
 	case len(out.ConsoleErrors) > 0:
 		return "the steps ran, but the page logged console errors — read them before calling this a pass, " +
 			"since a click that appears to do nothing usually leaves one here"
@@ -149,6 +171,24 @@ func uiNote(out uiResult) string {
 		return "all steps ran with no console errors. Check url and the screenshot against what you expected — " +
 			"a step that clicks successfully has not necessarily done the right thing"
 	}
+}
+
+// leftRequestedPath reports whether the app ended up somewhere other than the
+// path the caller asked for. A trailing slash is not a difference, and neither
+// is a query string — the app appends its own list parameters after mount.
+func leftRequestedPath(out uiResult) bool {
+	if out.RequestedPath == "" || out.LandedPath == "" {
+		return false
+	}
+
+	trim := func(p string) string {
+		if i := strings.IndexAny(p, "?#"); i >= 0 {
+			p = p[:i]
+		}
+		return strings.TrimSuffix(p, "/")
+	}
+
+	return trim(out.RequestedPath) != trim(out.LandedPath)
 }
 
 // webappURL is where vite serves the app.

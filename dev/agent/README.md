@@ -90,6 +90,15 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_
   before staging too, so it mangles the file **at commit time**, after the
   suite you just ran went green — commit a regenerated `TOOLS.md` with plain
   `git`, and check `git show --stat` afterwards.
+- **A webapp path no route matches renders the home page, not an error.** The
+  router's catch-all (`client/web/unify/src/router/index.js`) redirects an
+  unknown path to `/`, which loads cleanly — so a wrong path used to come back
+  from `verify-ui.mjs` / `dev_ui_verify` as a pass, with a screenshot of a
+  healthy page nobody asked about. Both now compare where the app settled
+  against what was requested and say so. Every compose route is under
+  `/compose` (`sections/compose/index.js` prefixes them): a page is
+  `/compose/namespace/<slug>/pages/<pageID>`, addressed by namespace **slug**,
+  not `/compose/ns/…`.
 - **`stale: false` can still mean a stale binary.** The check compares the
   binary's build time against source mtimes, so a rebuild that the watcher
   started _before_ you edited, and finished _after_, reports as fresh while

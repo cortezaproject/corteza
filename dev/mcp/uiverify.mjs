@@ -37,18 +37,20 @@ const statePath = join(root, 'dev', 'mcp', '.state', 'ui-session.json')
 const out = {
   url: null,
   title: null,
+  requestedPath: input.path || '/',
+  landedPath: null,
   consoleErrors: [],
   failedRequests: [],
   steps: [],
   screenshot: null,
 }
 
-function fail (message, hint) {
+function fail(message, hint) {
   console.log(JSON.stringify({ error: message, hint }))
   process.exit(0)
 }
 
-function credentials () {
+function credentials() {
   const passwordFile = join(root, 'dev', 'agent', '.state', 'ui-password')
   if (!existsSync(passwordFile)) {
     fail(
@@ -74,7 +76,7 @@ function credentials () {
 // convincing picture of an app that "never boots" — it had simply not been
 // given the three seconds it takes. The header is what auth.setup.ts waits for
 // too, and the fallback keeps a page without one from failing the whole run.
-async function settle (page, selector) {
+async function settle(page, selector) {
   const target = selector || input.waitFor || 'header'
 
   // The app exchanges its session for a token through a full-page oauth
@@ -85,14 +87,18 @@ async function settle (page, selector) {
   try {
     await page.waitForURL(url => !url.pathname.startsWith('/auth/'), { timeout: 30000 })
   } catch {
-    out.consoleErrors.push('(driver) still on the auth server after 30s; the login may not have completed')
+    out.consoleErrors.push(
+      '(driver) still on the auth server after 30s; the login may not have completed',
+    )
     return
   }
 
   try {
     await page.locator(target).first().waitFor({ state: 'visible', timeout: 15000 })
   } catch {
-    out.consoleErrors.push(`(driver) never saw "${target}"; the page may not have finished rendering`)
+    out.consoleErrors.push(
+      `(driver) never saw "${target}"; the page may not have finished rendering`,
+    )
   }
 
   // Then wait for the URL to stop moving. The app rewrites it after mount —
@@ -107,7 +113,7 @@ async function settle (page, selector) {
   }
 }
 
-async function login (page) {
+async function login(page) {
   const { email, password } = credentials()
 
   await page.goto(baseURL + '/')
@@ -147,10 +153,13 @@ try {
     if (msg.type() === 'error') out.consoleErrors.push(msg.text().slice(0, 500))
   })
   page.on('requestfailed', req => {
-    out.failedRequests.push(`${req.method()} ${req.url()} — ${req.failure()?.errorText || 'failed'}`)
+    out.failedRequests.push(
+      `${req.method()} ${req.url()} — ${req.failure()?.errorText || 'failed'}`,
+    )
   })
   page.on('response', res => {
-    if (res.status() >= 400) out.failedRequests.push(`${res.status()} ${res.request().method()} ${res.url()}`)
+    if (res.status() >= 400)
+      out.failedRequests.push(`${res.status()} ${res.request().method()} ${res.url()}`)
   })
 
   await page.goto(baseURL + (input.path || '/'), { waitUntil: 'networkidle', timeout: 30000 })
@@ -163,6 +172,14 @@ try {
   }
 
   await settle(page)
+
+  // Where the app actually ended up, recorded BEFORE any step runs — a step is
+  // allowed to navigate, the initial load is not. A path the router does not
+  // recognise is not an error anywhere: the catch-all route redirects it to the
+  // home section and the app renders perfectly, just not the page that was
+  // asked for. Reporting only console errors made that look like a pass, so a
+  // caller could "verify" a page it never opened.
+  out.landedPath = new URL(page.url()).pathname
 
   for (const step of input.steps || []) {
     const target = page.locator(step.selector).first()

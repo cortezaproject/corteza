@@ -38,7 +38,9 @@ if (!pwDir) {
   console.error('playwright-core not found in node_modules/.pnpm — run pnpm install')
   process.exit(1)
 }
-const require = createRequire(join(pnpmDir, pwDir, 'node_modules', 'playwright-core', 'package.json'))
+const require = createRequire(
+  join(pnpmDir, pwDir, 'node_modules', 'playwright-core', 'package.json'),
+)
 const { chromium } = require(join(pnpmDir, pwDir, 'node_modules', 'playwright-core'))
 
 const args = process.argv.slice(2)
@@ -92,11 +94,26 @@ for (const p of paths) {
   // "App setup failed … app.use" — a reload fixes it, so retry once
   for (let attempt = 0; attempt < 2; attempt++) {
     problems.length = 0
-    await page.goto(WEBAPP + p, { waitUntil: 'networkidle', timeout: 30000 }).catch(e => problems.push(`nav: ${e.message}`))
+    await page
+      .goto(WEBAPP + p, { waitUntil: 'networkidle', timeout: 30000 })
+      .catch(e => problems.push(`nav: ${e.message}`))
     await page.waitForTimeout(1500) // charts/metrics fetch after load
     if (attempt === 0 && problems.some(x => x.includes('App setup failed'))) continue
     break
   }
+  // Where the app ended up. An unmatched path is not an error anywhere — the
+  // webapp's catch-all route redirects it to the home section and that page
+  // renders cleanly — so without this check a typo'd path passes, and the
+  // screenshot shows a perfectly healthy page nobody asked about.
+  const landed = new URL(page.url()).pathname
+  const bare = s => s.split(/[?#]/)[0].replace(/\/$/, '')
+  if (bare(landed) !== bare(p)) {
+    problems.push(
+      `redirected: asked for ${p}, settled on ${landed} — the route may redirect, or nothing matched ` +
+        `the path (compose pages are /compose/namespace/<slug>/pages/<pageID>)`,
+    )
+  }
+
   const shot = join(outDir, p.replace(/[^a-z0-9-]+/gi, '_').replace(/^_+|_+$/g, '') + '.png')
   await page.screenshot({ path: shot, fullPage: true })
   const status = problems.length ? 'FAIL' : 'OK'
