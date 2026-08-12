@@ -11,7 +11,10 @@
         :style="progressStyle"
         class="w-full h-full"
       />
-      <div v-if="showValue" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div
+        v-if="showValue"
+        class="absolute inset-0 flex items-center justify-center pointer-events-none"
+      >
         <span class="text-sm font-medium" :style="textStyle">{{ displayLabel }}</span>
       </div>
     </div>
@@ -117,7 +120,8 @@ async function refresh() {
     const additionalOptions = {
       value: {
         filter: evaluatePrefilter(options.value.value?.filter || '', {
-          record, user,
+          record,
+          user,
           recordID: record?.recordID || '0',
           ownerID: record?.ownedBy || '0',
           userID: user?.userID || '0',
@@ -125,7 +129,8 @@ async function refresh() {
       },
       minValue: {
         filter: evaluatePrefilter(options.value.minValue?.filter || '', {
-          record, user,
+          record,
+          user,
           recordID: record?.recordID || '0',
           ownerID: record?.ownedBy || '0',
           userID: user?.userID || '0',
@@ -133,7 +138,8 @@ async function refresh() {
       },
       maxValue: {
         filter: evaluatePrefilter(options.value.maxValue?.filter || '', {
-          record, user,
+          record,
+          user,
           recordID: record?.recordID || '0',
           ownerID: record?.ownedBy || '0',
           userID: user?.userID || '0',
@@ -141,7 +147,11 @@ async function refresh() {
       },
     }
 
-    const result = await props.block.fetch(additionalOptions, $ComposeAPI, props.namespace.namespaceID)
+    const result = await props.block.fetch(
+      additionalOptions,
+      $ComposeAPI,
+      props.namespace.namespaceID,
+    )
     value.value = result.value ?? 0
     min.value = result.min ?? 0
     max.value = result.max ?? 100
@@ -157,8 +167,15 @@ async function refresh() {
 
 onMounted(() => refresh())
 
-watch(() => props.record?.recordID, () => refresh())
-watch(() => props.block.options, () => refresh(), { deep: true })
+watch(
+  () => props.record?.recordID,
+  () => refresh(),
+)
+watch(
+  () => props.block.options,
+  () => refresh(),
+  { deep: true },
+)
 
 const offRefetch = $eventBus?.on('refetch-records', () => refresh())
 

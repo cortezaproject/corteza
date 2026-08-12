@@ -80,7 +80,6 @@
       <template #body-updatedAt="{ data }">
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
-
     </CResourceList>
   </div>
 </template>
@@ -234,7 +233,10 @@ function onConfirmDelete(module) {
 async function handleDelete(module) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await moduleStore.delete({ namespaceID: props.namespace.namespaceID, moduleID: module.moduleID })
+    await moduleStore.delete({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: module.moduleID,
+    })
     $toast.toastSuccess(t('notification.module.deleted'))
     filterList()
   } catch (e) {
@@ -244,10 +246,9 @@ async function handleDelete(module) {
 }
 
 function exportModule(module) {
-  const blob = new Blob(
-    [JSON.stringify({ type: 'module', list: [module] }, null, 2)],
-    { type: 'application/json' },
-  )
+  const blob = new Blob([JSON.stringify({ type: 'module', list: [module] }, null, 2)], {
+    type: 'application/json',
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -257,10 +258,9 @@ function exportModule(module) {
 }
 
 function exportAllModules() {
-  const blob = new Blob(
-    [JSON.stringify({ type: 'module', list: moduleList.value }, null, 2)],
-    { type: 'application/json' },
-  )
+  const blob = new Blob([JSON.stringify({ type: 'module', list: moduleList.value }, null, 2)], {
+    type: 'application/json',
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

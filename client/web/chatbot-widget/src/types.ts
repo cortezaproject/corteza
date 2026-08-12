@@ -23,7 +23,17 @@ export interface Styling {
     userBubble: string
     agentBubble: string
   }
-  launcher: { iconURL: string; iconAttachmentID?: string; iconVisible: boolean; label: string; buttonLabel: string; size: string; shape: string; position: string; startOpen: boolean }
+  launcher: {
+    iconURL: string
+    iconAttachmentID?: string
+    iconVisible: boolean
+    label: string
+    buttonLabel: string
+    size: string
+    shape: string
+    position: string
+    startOpen: boolean
+  }
 }
 
 export interface ChatbotConfig {

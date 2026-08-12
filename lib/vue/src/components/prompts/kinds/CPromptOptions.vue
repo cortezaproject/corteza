@@ -31,7 +31,11 @@
 
     <div v-else class="flex flex-col gap-2">
       <div v-for="option in itemOptions" :key="option.value" class="flex items-center gap-2">
-        <RadioButton v-model="value" :input-id="`prompt-option-${option.value}`" :value="option.value" />
+        <RadioButton
+          v-model="value"
+          :input-id="`prompt-option-${option.value}`"
+          :value="option.value"
+        />
         <label :for="`prompt-option-${option.value}`">{{ option.text }}</label>
       </div>
     </div>
@@ -84,7 +88,7 @@ export default {
 
     if (this.multiple && this.inputType === 'select') {
       if (Array.isArray(value)) {
-        value = value.map(v => (v && typeof v === 'object' && '@value' in v) ? v['@value'] : v)
+        value = value.map(v => (v && typeof v === 'object' && '@value' in v ? v['@value'] : v))
       } else {
         value = value ? [value] : []
       }

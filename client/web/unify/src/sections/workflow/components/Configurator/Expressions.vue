@@ -51,11 +51,7 @@
             size="small"
             @click="resetExpression"
           />
-          <Button
-            :label="$t('general.save')"
-            size="small"
-            @click="saveExpression"
-          />
+          <Button :label="$t('general.save')" size="small" @click="saveExpression" />
         </div>
       </template>
     </Dialog>
@@ -76,7 +72,7 @@ export default {
 
   extends: base,
 
-  data () {
+  data() {
     return {
       fieldTypes: [],
 
@@ -89,24 +85,26 @@ export default {
 
   computed: {
     currentExpressionValue: {
-      get () {
-        return this.expressionEditor.currentExpression ? this.expressionEditor.currentExpression.expr : ''
+      get() {
+        return this.expressionEditor.currentExpression
+          ? this.expressionEditor.currentExpression.expr
+          : ''
       },
 
-      set (value) {
+      set(value) {
         if (this.expressionEditor.currentExpression) {
           this.expressionEditor.currentExpression.expr = value
         }
       },
     },
 
-    argumentFields () {
+    argumentFields() {
       return [
         {
           key: 'target',
           label: this.$t('steps.expressions.configurator.target'),
           thClass: 'pl-4 ml-1',
-          formatter: (item) => {
+          formatter: item => {
             return `${item.target}(${item.type})`
           },
         },
@@ -118,7 +116,7 @@ export default {
       ]
     },
 
-    hasArguments () {
+    hasArguments() {
       const { config } = this.item || {}
       return (config && (config.arguments || []).length) || []
     },
@@ -127,18 +125,18 @@ export default {
   watch: {
     'item.config.stepID': {
       immediate: true,
-      handler () {
+      handler() {
         this.item.config['arguments'] = this.item.config.arguments || []
       },
     },
   },
 
-  created () {
+  created() {
     this.getTypes()
   },
 
   methods: {
-    addArgument () {
+    addArgument() {
       this.item.config.arguments.push({
         target: '',
         expr: '',
@@ -148,19 +146,19 @@ export default {
       eventBus.emit('change-detected')
     },
 
-    removeArgument (index) {
+    removeArgument(index) {
       this.item.config.arguments.splice(index, 1)
       eventBus.emit('change-detected')
     },
 
-    openInEditor (index = -1) {
+    openInEditor(index = -1) {
       this.expressionEditor = {
         currentIndex: index >= -1 ? index : undefined,
         currentExpression: index >= 0 ? { ...this.item.config.arguments[index] } : undefined,
       }
     },
 
-    saveExpression () {
+    saveExpression() {
       if (this.expressionEditor.currentIndex >= 0) {
         const args = [...this.item.config.arguments]
         args[this.expressionEditor.currentIndex] = this.expressionEditor.currentExpression
@@ -171,22 +169,30 @@ export default {
       this.resetExpression()
     },
 
-    resetExpression () {
+    resetExpression() {
       this.expressionEditor = {
         currentIndex: undefined,
         currentExpression: undefined,
       }
     },
 
-    async getTypes () {
-      return this.$AutomationAPI.typeList()
+    async getTypes() {
+      return this.$AutomationAPI
+        .typeList()
         .then(({ set = [] }) => {
           this.fieldTypes = set
         })
-        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.fetch-types-failed'), detail: e?.message, life: 5000 }))
+        .catch(e =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('notification.fetch-types-failed'),
+            detail: e?.message,
+            life: 5000,
+          }),
+        )
     },
 
-    getTypeDescription (type) {
+    getTypeDescription(type) {
       // This will be moved to backend field type information
       const typeDescriptions = {
         ID: 'Make sure to provide the ID in double quotes if you\'re using a literal value. Example "123"',

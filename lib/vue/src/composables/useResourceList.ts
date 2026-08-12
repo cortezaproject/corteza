@@ -177,7 +177,10 @@ export function useResourceList<T = any>(
         ...Object.fromEntries(
           Object.entries(filter)
             .filter(([, value]) => value !== null && value !== undefined && value !== '')
-            .map(([key, value]) => [key, typeof value === 'boolean' ? value.toString() : String(value)]),
+            .map(([key, value]) => [
+              key,
+              typeof value === 'boolean' ? value.toString() : String(value),
+            ]),
         ),
         page: page.toString(),
         pageCursor: pageCursor || '',

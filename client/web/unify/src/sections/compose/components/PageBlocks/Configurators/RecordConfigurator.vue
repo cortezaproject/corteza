@@ -282,7 +282,8 @@ function resolveReferenceModule(moduleID) {
     referenceModule.value = cached
     return
   }
-  moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID })
+  moduleStore
+    .findByID({ namespaceID: props.namespace.namespaceID, moduleID })
     .then(mod => {
       referenceModule.value = mod
     })
@@ -312,7 +313,8 @@ function updateReferenceModule(fieldID) {
       patchOptions({ referenceField: fieldID, referenceModuleID: moduleID, fields: [] })
     } else {
       patchOptions({ referenceField: fieldID, fields: [] })
-      moduleStore.findByID({ namespaceID: props.namespace.namespaceID, moduleID })
+      moduleStore
+        .findByID({ namespaceID: props.namespace.namespaceID, moduleID })
         .then(mod => {
           referenceModule.value = mod
           patchOptions({ referenceField: fieldID, referenceModuleID: mod.moduleID, fields: [] })

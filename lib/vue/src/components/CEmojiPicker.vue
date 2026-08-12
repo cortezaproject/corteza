@@ -9,13 +9,11 @@
         @input="onSearch"
         @click.stop
         @keydown.stop
-      >
-      <svg
-        class="c-emoji-picker-search-icon"
-        viewBox="0 0 16 16"
-        fill="currentColor"
-      >
-        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.44 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" />
+      />
+      <svg class="c-emoji-picker-search-icon" viewBox="0 0 16 16" fill="currentColor">
+        <path
+          d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.44 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
+        />
       </svg>
     </div>
 
@@ -25,16 +23,10 @@
       :style="{ height: viewportHeight + 'px', width: viewportWidth + 'px' }"
       @scroll="onScroll"
     >
-      <div
-        ref="scrollContent"
-        class="c-emoji-picker-scroll-content"
-      />
+      <div ref="scrollContent" class="c-emoji-picker-scroll-content" />
     </div>
 
-    <div
-      v-if="showQuickReactions"
-      class="c-emoji-picker-quick"
-    >
+    <div v-if="showQuickReactions" class="c-emoji-picker-quick">
       <div class="c-emoji-picker-quick-label">
         {{ labels.quickReactions || 'Quick Reactions' }}
       </div>
@@ -67,7 +59,12 @@ const EMOJI_BLACKLIST = new Set(['relaxed', 'frowning_face'])
 
 const GROUP_CONFIG = [
   { name: 'smileys-people', icon: '😀', label: 'Smileys & People', sources: ['', 'people & body'] },
-  { name: 'animals & nature', icon: '🐶', label: 'Animals & Nature', sources: ['animals & nature'] },
+  {
+    name: 'animals & nature',
+    icon: '🐶',
+    label: 'Animals & Nature',
+    sources: ['animals & nature'],
+  },
   { name: 'food & drink', icon: '🍎', label: 'Food & Drink', sources: ['food & drink'] },
   { name: 'travel & places', icon: '🚗', label: 'Travel & Places', sources: ['travel & places'] },
   { name: 'activities', icon: '⚽', label: 'Activities', sources: ['activities'] },
@@ -112,7 +109,7 @@ export default {
 
   emits: ['select'],
 
-  data () {
+  data() {
     return {
       search: '',
       frequentlyUsed: [],
@@ -123,11 +120,11 @@ export default {
   },
 
   computed: {
-    allEmojis () {
+    allEmojis() {
       return this.emojis || []
     },
 
-    emojiByGroup () {
+    emojiByGroup() {
       const raw = {}
       for (const emoji of this.allEmojis) {
         if (emoji.name.startsWith('regional_indicator')) continue
@@ -148,46 +145,47 @@ export default {
       return map
     },
 
-    groups () {
+    groups() {
       const byGroup = this.emojiByGroup
       return GROUP_CONFIG.filter(g => byGroup[g.name]?.length)
     },
 
-    frequentEmojis () {
+    frequentEmojis() {
       if (!this.showFrequent) return []
       return this.frequentlyUsed
         .map(name => this.allEmojis.find(e => e.name === name))
         .filter(Boolean)
     },
 
-    quickReactionsList () {
+    quickReactionsList() {
       const names = ['+1', '-1', 'smile', 'tada', 'blush', 'rocket', 'eyes']
-      return names
-        .map(name => this.allEmojis.find(e => e.name === name))
-        .filter(Boolean)
+      return names.map(name => this.allEmojis.find(e => e.name === name)).filter(Boolean)
     },
 
-    filteredEmojis () {
+    filteredEmojis() {
       if (!this.search) return []
 
       const q = this.search.toLowerCase()
-      return this.allEmojis.filter((emoji) => {
-        if (emoji.name.startsWith('regional_indicator')) return false
-        if (EMOJI_BLACKLIST.has(emoji.name)) return false
-        if (emoji.name.toLowerCase().includes(q)) return true
-        if (emoji.shortcodes && emoji.shortcodes.some(s => s.toLowerCase().includes(q))) return true
-        if (emoji.tags && emoji.tags.some(t => t.toLowerCase().includes(q))) return true
-        return false
-      }).slice(0, 60)
+      return this.allEmojis
+        .filter(emoji => {
+          if (emoji.name.startsWith('regional_indicator')) return false
+          if (EMOJI_BLACKLIST.has(emoji.name)) return false
+          if (emoji.name.toLowerCase().includes(q)) return true
+          if (emoji.shortcodes && emoji.shortcodes.some(s => s.toLowerCase().includes(q)))
+            return true
+          if (emoji.tags && emoji.tags.some(t => t.toLowerCase().includes(q))) return true
+          return false
+        })
+        .slice(0, 60)
     },
   },
 
-  mounted () {
+  mounted() {
     this.loadFrequentlyUsed()
   },
 
   methods: {
-    async reset () {
+    async reset() {
       this.search = ''
       this.loadFrequentlyUsed()
 
@@ -212,7 +210,7 @@ export default {
       })
     },
 
-    loadFrequentlyUsed () {
+    loadFrequentlyUsed() {
       try {
         const stored = localStorage.getItem(STORAGE_KEY)
         this.frequentlyUsed = stored ? JSON.parse(stored) : []
@@ -221,8 +219,11 @@ export default {
       }
     },
 
-    saveFrequentlyUsed (emojiName) {
-      const list = [emojiName, ...this.frequentlyUsed.filter(n => n !== emojiName)].slice(0, MAX_FREQUENT)
+    saveFrequentlyUsed(emojiName) {
+      const list = [emojiName, ...this.frequentlyUsed.filter(n => n !== emojiName)].slice(
+        0,
+        MAX_FREQUENT,
+      )
       this.frequentlyUsed = list
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
@@ -231,7 +232,7 @@ export default {
       }
     },
 
-    onSearch (e) {
+    onSearch(e) {
       this.search = e.target.value
       this.rebuildVirtualRows()
       this.renderedRange = { start: -1, end: -1 }
@@ -241,7 +242,7 @@ export default {
       this.renderVisible()
     },
 
-    onEmojiClick (e) {
+    onEmojiClick(e) {
       const el = e.target.closest('[data-emoji]')
       if (el) {
         e.stopPropagation()
@@ -253,7 +254,7 @@ export default {
       }
     },
 
-    rebuildVirtualRows () {
+    rebuildVirtualRows() {
       const rows = []
       let y = 0
 
@@ -295,11 +296,11 @@ export default {
       this.totalHeight = y
     },
 
-    onScroll () {
+    onScroll() {
       this.renderVisible()
     },
 
-    renderVisible () {
+    renderVisible() {
       const viewport = this.$refs.viewport
       const content = this.$refs.scrollContent
       if (!viewport || !content) return
@@ -329,22 +330,30 @@ export default {
       for (let i = first; i <= last; i++) {
         const row = rows[i]
         if (row.type === 'label') {
-          parts.push(`<div class="c-emoji-picker-section-label" style="position:absolute;top:${row.y}px;left:0;right:0;">${this.esc(row.text)}</div>`)
+          parts.push(
+            `<div class="c-emoji-picker-section-label" style="position:absolute;top:${row.y}px;left:0;right:0;">${this.esc(row.text)}</div>`,
+          )
         } else if (row.type === 'emojis') {
-          parts.push(`<div class="c-emoji-picker-vrow" style="position:absolute;top:${row.y}px;left:0;right:0;height:${ITEM_SIZE}px;">`)
+          parts.push(
+            `<div class="c-emoji-picker-vrow" style="position:absolute;top:${row.y}px;left:0;right:0;height:${ITEM_SIZE}px;">`,
+          )
           for (const e of row.items) {
-            parts.push(`<span class="epi" data-emoji="${e.name}" title=":${e.name}:">${e.emoji}</span>`)
+            parts.push(
+              `<span class="epi" data-emoji="${e.name}" title=":${e.name}:">${e.emoji}</span>`,
+            )
           }
           parts.push('</div>')
         } else if (row.type === 'empty') {
-          parts.push(`<div class="c-emoji-picker-empty" style="position:absolute;top:${row.y}px;left:0;right:0;">${this.esc(this.labels.noResults || 'No emojis found')}</div>`)
+          parts.push(
+            `<div class="c-emoji-picker-empty" style="position:absolute;top:${row.y}px;left:0;right:0;">${this.esc(this.labels.noResults || 'No emojis found')}</div>`,
+          )
         }
       }
 
       content.innerHTML = parts.join('')
     },
 
-    findFirstRow (y) {
+    findFirstRow(y) {
       const rows = this.virtualRows
       let lo = 0
       let hi = rows.length - 1
@@ -359,7 +368,7 @@ export default {
       return lo
     },
 
-    findLastRow (y) {
+    findLastRow(y) {
       const rows = this.virtualRows
       let lo = 0
       let hi = rows.length - 1
@@ -374,13 +383,17 @@ export default {
       return Math.min(lo, rows.length - 1)
     },
 
-    onQuickReactionClick (emoji) {
+    onQuickReactionClick(emoji) {
       this.saveFrequentlyUsed(emoji.name)
       this.$emit('select', emoji)
     },
 
-    esc (str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    esc(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
     },
   },
 }

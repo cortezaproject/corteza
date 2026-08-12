@@ -8,13 +8,13 @@
  * @param {Ref|Array} [edges] - reactive edges array (or .value)
  * @returns {number} next available integer ID
  */
-export function nextId (nodes, edges) {
-  const nodeArr = Array.isArray(nodes) ? nodes : (nodes?.value || [])
-  const edgeArr = Array.isArray(edges) ? edges : (edges?.value || [])
+export function nextId(nodes, edges) {
+  const nodeArr = Array.isArray(nodes) ? nodes : nodes?.value || []
+  const edgeArr = Array.isArray(edges) ? edges : edges?.value || []
 
   let max = 1 // mxGraph reserves 1 for root
 
-  const parse = (id) => {
+  const parse = id => {
     const n = parseInt(id, 10)
     if (!isNaN(n) && n > max) {
       max = n

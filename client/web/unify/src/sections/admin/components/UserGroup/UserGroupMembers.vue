@@ -16,7 +16,10 @@
     >
       <template #default="{ item }">
         <span class="font-medium">{{ item.name || item.email || item.handle || item.userID }}</span>
-        <span v-if="(item.name || item.handle) && item.email" class="text-xs text-muted-color block">
+        <span
+          v-if="(item.name || item.handle) && item.email"
+          class="text-xs text-muted-color block"
+        >
           {{ item.email }}
         </span>
       </template>

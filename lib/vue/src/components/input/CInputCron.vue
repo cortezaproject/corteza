@@ -15,7 +15,7 @@
       </template>
       <template #value="slotProps">
         <template v-if="slotProps.value">
-           {{ getTranslatedLabel(props.options.find(o => o.value === slotProps.value)?.label) }}
+          {{ getTranslatedLabel(props.options.find(o => o.value === slotProps.value)?.label) }}
         </template>
         <template v-else>
           {{ placeholder }}
@@ -68,9 +68,9 @@ function getTranslatedLabel(label) {
     'Every hour': 'builder.triggers.interval.everyHour',
     'Every day at midnight': 'builder.triggers.interval.everyDay',
     'Every Monday at midnight': 'builder.triggers.interval.everyMonday',
-    'Every month on the 1st': 'builder.triggers.interval.everyMonth'
+    'Every month on the 1st': 'builder.triggers.interval.everyMonth',
   }
-  
+
   if (keyMap[label] && te(keyMap[label])) {
     return t(keyMap[label])
   } else if (te(label)) {
@@ -82,7 +82,7 @@ function getTranslatedLabel(label) {
 // Initialize from modelValue
 watch(
   () => props.modelValue,
-  (newVal) => {
+  newVal => {
     let actualValue = newVal
     while (actualValue !== null && actualValue !== undefined && typeof actualValue === 'object') {
       if (Array.isArray(actualValue)) {
@@ -98,14 +98,13 @@ watch(
       selectedValue.value = null
       return
     }
-    
+
     selectedValue.value = actualValue
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 function onChange() {
   emit('update:modelValue', selectedValue.value)
 }
 </script>
-

@@ -78,7 +78,7 @@ const title = computed(() => {
 
 watch(
   () => translatorStore.visible,
-  async (open) => {
+  async open => {
     if (!open) {
       translations.value = []
       pendingChanges.value = []

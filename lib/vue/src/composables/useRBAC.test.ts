@@ -32,7 +32,9 @@ describe('useRBACStore', () => {
     it('stores rules from all provided APIs', async () => {
       const store = setup({
         $SystemAPI: makeAPI([{ resource: 'corteza::system/user', operation: 'read', allow: true }]),
-        $AutomationAPI: makeAPI([{ resource: 'corteza::compose/namespace', operation: 'create', allow: false }]),
+        $AutomationAPI: makeAPI([
+          { resource: 'corteza::compose/namespace', operation: 'create', allow: false },
+        ]),
       })
       await store.load()
       expect(store.rules).toHaveLength(2)
@@ -87,7 +89,9 @@ describe('useRBACStore', () => {
 
     it('returns false when rule is deny', async () => {
       const store = setup({
-        $SystemAPI: makeAPI([{ resource: 'corteza::system/user', operation: 'read', allow: false }]),
+        $SystemAPI: makeAPI([
+          { resource: 'corteza::system/user', operation: 'read', allow: false },
+        ]),
       })
       await store.load()
       expect(store.can('system/user', 'read')).toBe(false)

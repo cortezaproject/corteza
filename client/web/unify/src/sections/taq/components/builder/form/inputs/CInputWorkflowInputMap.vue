@@ -1,24 +1,15 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div
-      v-if="!workflowID"
-      class="text-sm text-muted-color"
-    >
+    <div v-if="!workflowID" class="text-sm text-muted-color">
       {{ t('builder.workflowInputMap.selectWorkflowFirst') }}
     </div>
 
-    <div
-      v-else-if="loading"
-      class="flex items-center gap-2 text-sm text-muted-color"
-    >
+    <div v-else-if="loading" class="flex items-center gap-2 text-sm text-muted-color">
       <i class="pi pi-spin pi-spinner" />
       {{ t('builder.workflowInputMap.loading') }}
     </div>
 
-    <div
-      v-else-if="rows.length === 0"
-      class="text-sm text-muted-color"
-    >
+    <div v-else-if="rows.length === 0" class="text-sm text-muted-color">
       {{ t('builder.workflowInputMap.noInputs') }}
     </div>
 

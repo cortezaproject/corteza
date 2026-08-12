@@ -19,10 +19,7 @@
     >
       <div class="flex flex-col" style="width: min(90vw, 850px); max-height: 60vh">
         <!-- Presets dropdown -->
-        <div
-          v-if="presets.length"
-          class="flex items-center gap-2 p-3 border-b"
-        >
+        <div v-if="presets.length" class="flex items-center gap-2 p-3 border-b">
           <i class="pi pi-bookmark text-muted-color" />
           <Select
             :model-value="null"
@@ -59,7 +56,9 @@
                 :key="`${gi}-${fi}`"
                 class="flex items-start gap-2"
               >
-                <div class="flex items-start gap-2 flex-1 min-w-0 border border-surface rounded-border p-2">
+                <div
+                  class="flex items-start gap-2 flex-1 min-w-0 border border-surface rounded-border p-2"
+                >
                   <!-- Field picker -->
                   <Select
                     v-model="f.name"
@@ -244,7 +243,6 @@
   </div>
 </template>
 
-
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -262,7 +260,13 @@ const props = defineProps({
   presets: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:modelValue', 'reset', 'save-preset', 'delete-preset', 'load-preset'])
+const emit = defineEmits([
+  'update:modelValue',
+  'reset',
+  'save-preset',
+  'delete-preset',
+  'load-preset',
+])
 
 const popoverRef = ref(null)
 const filterBtnRef = ref(null)
@@ -325,7 +329,10 @@ function getEditorField(name, operator) {
     // Ensure multi-absorbing types get selectType=multiple so CFieldEditor handles them
     options: keepMulti
       ? { ...f.options, selectType: 'multiple' }
-      : { ...f.options, selectType: f.options?.selectType === 'multiple' ? 'default' : f.options?.selectType },
+      : {
+          ...f.options,
+          selectType: f.options?.selectType === 'multiple' ? 'default' : f.options?.selectType,
+        },
   }
 }
 
@@ -347,9 +354,7 @@ function makeBetweenField(name, suffix) {
 // --- Active filter tracking ---
 const hasActiveFilters = computed(() => props.modelValue?.some(g => g.filter?.some(f => f.name)))
 
-const hasValidFilters = computed(() =>
-  internalFilter.value?.some(g => g.filter?.some(f => f.name)),
-)
+const hasValidFilters = computed(() => internalFilter.value?.some(g => g.filter?.some(f => f.name)))
 
 // --- Operators ---
 const groupConditionOptions = [

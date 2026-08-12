@@ -40,7 +40,9 @@
       v-if="agentStore.activeAgentID && visibleAgents.length > 0"
       :tabs="conversationTabs"
       :active-index="activeConversationIndex"
-      @update:active-index="idx => agentStore.setActiveConversationIndex(agentStore.activeAgentID, idx)"
+      @update:active-index="
+        idx => agentStore.setActiveConversationIndex(agentStore.activeAgentID, idx)
+      "
       @close="idx => agentStore.closeConversation(agentStore.activeAgentID, idx)"
     >
       <template #actions>
@@ -272,9 +274,11 @@ function tabLabel(conv: any): string {
   return text.slice(0, 21) + '…'
 }
 
-const conversationTabs = computed(() => conversations.value.map((conv: any) => ({
-  label: tabLabel(conv),
-})))
+const conversationTabs = computed(() =>
+  conversations.value.map((conv: any) => ({
+    label: tabLabel(conv),
+  })),
+)
 
 const executing = ref(false)
 const chatMessagesRef = ref<InstanceType<typeof CChatMessages> | null>(null)
@@ -310,10 +314,7 @@ function onPickHistory(conv: any) {
 
 async function onDeleteHistory(conv: any) {
   if (!agentStore.activeAgentID || !conv) return
-  await agentStore.deleteConversation(
-    agentStore.activeAgentID,
-    String(conv.aiConversationID),
-  )
+  await agentStore.deleteConversation(agentStore.activeAgentID, String(conv.aiConversationID))
 }
 
 function historyLabel(conv: any): string {

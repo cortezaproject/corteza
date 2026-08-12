@@ -126,7 +126,7 @@ async function resolveExistingUsers() {
   if (!ids.length) return
 
   for (const id of ids) {
-    if (id && !userOptions.value.find((u) => u.userID === id)) {
+    if (id && !userOptions.value.find(u => u.userID === id)) {
       try {
         const user = await resolveUser(id)
         if (user) {
@@ -147,11 +147,7 @@ onMounted(async () => {
   }
 
   // presetWithAuthenticated: auto-fill with current user if value is empty
-  if (
-    props.field.options?.presetWithAuthenticated &&
-    $Auth?.user?.userID &&
-    !props.modelValue
-  ) {
+  if (props.field.options?.presetWithAuthenticated && $Auth?.user?.userID && !props.modelValue) {
     emit('update:modelValue', $Auth.user.userID)
   }
 })

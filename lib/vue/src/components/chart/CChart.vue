@@ -12,7 +12,15 @@
 import { computed, ref, onBeforeUnmount } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { BarChart, LineChart, PieChart, ScatterChart, RadarChart, FunnelChart, GaugeChart } from 'echarts/charts'
+import {
+  BarChart,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  RadarChart,
+  FunnelChart,
+  GaugeChart,
+} from 'echarts/charts'
 import {
   TitleComponent,
   TooltipComponent,

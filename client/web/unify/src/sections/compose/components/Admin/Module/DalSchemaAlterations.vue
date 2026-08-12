@@ -11,7 +11,10 @@
       <ProgressSpinner />
     </div>
 
-    <div v-else-if="!sortedAlterations.length" class="flex justify-center items-center py-12 text-muted-color">
+    <div
+      v-else-if="!sortedAlterations.length"
+      class="flex justify-center items-center py-12 text-muted-color"
+    >
       {{ $t('module.edit.schemaAlterations.noAlterations') }}
     </div>
 
@@ -22,10 +25,13 @@
       responsiveLayout="scroll"
       :rowClass="rowClassFunc"
       class="border-t border-surface"
-      @row-mouseenter="(e) => dependOnHover = e.data.dependsOn"
+      @row-mouseenter="e => (dependOnHover = e.data.dependsOn)"
       @row-mouseleave="dependOnHover = undefined"
     >
-      <Column :header="$t('module.edit.schemaAlterations.columns.alteration')" field="alterationID" />
+      <Column
+        :header="$t('module.edit.schemaAlterations.columns.alteration')"
+        field="alterationID"
+      />
 
       <Column :header="$t('module.edit.schemaAlterations.columns.change')" style="max-width: 300px">
         <template #body="{ data }">
@@ -37,15 +43,27 @@
         <template #body="{ data }">
           <div class="flex justify-center">
             <Badge v-if="data.error" severity="danger" :value="data.error" />
-            <Badge v-else-if="data.completedAt" severity="success" :value="$t('module.edit.schemaAlterations.resolved')" />
-            <Badge v-else-if="data.dependsOn" severity="secondary" :value="$t('module.edit.schemaAlterations.waitingFor', { id: data.dependsOn })" />
+            <Badge
+              v-else-if="data.completedAt"
+              severity="success"
+              :value="$t('module.edit.schemaAlterations.resolved')"
+            />
+            <Badge
+              v-else-if="data.dependsOn"
+              severity="secondary"
+              :value="$t('module.edit.schemaAlterations.waitingFor', { id: data.dependsOn })"
+            />
           </div>
         </template>
       </Column>
 
       <Column headerStyle="width: 200px" bodyClass="text-right">
         <template #body="{ data }">
-          <ProgressSpinner v-if="data.processing" style="width: 20px; height: 20px;" strokeWidth="4" />
+          <ProgressSpinner
+            v-if="data.processing"
+            style="width: 20px; height: 20px"
+            strokeWidth="4"
+          />
           <div v-else-if="!data.completedAt" class="flex justify-end gap-2">
             <Button
               :label="$t('general.label.resolve')"
@@ -122,30 +140,31 @@ const alterations = ref([])
 
 watch(
   () => props.modal,
-  (val) => {
+  val => {
     showModal.value = val
   },
-  { immediate: true }
+  { immediate: true },
 )
 
-watch(showModal, (val) => {
+watch(showModal, val => {
   emit('update:modal', val)
 })
 
 watch(
   () => props.batch,
-  (newBatch) => {
+  newBatch => {
     if (newBatch && newBatch.length) {
       load(...newBatch)
     }
   },
-  { deep: true, immediate: true }
+  { deep: true, immediate: true },
 )
 
 const sortedAlterations = computed(() => {
-  return [...alterations.value].sort((a, b) => 
-    (a.batchID || '').localeCompare(b.batchID || '') || 
-    (a.dependsOn || '').localeCompare(b.dependsOn || '')
+  return [...alterations.value].sort(
+    (a, b) =>
+      (a.batchID || '').localeCompare(b.batchID || '') ||
+      (a.dependsOn || '').localeCompare(b.dependsOn || ''),
   )
 })
 
@@ -153,7 +172,7 @@ const canResolveAlterations = computed(() => {
   return sortedAlterations.value.some(canResolve)
 })
 
-const rowClassFunc = (data) => {
+const rowClassFunc = data => {
   return {
     'bg-emphasis': data.alterationID === dependOnHover.value,
   }
@@ -173,7 +192,8 @@ async function load(...batchID) {
       showModal.value = true
     }
   } catch (e) {
-    if ($toast && $toast.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.schemaAlterations.notification.load.error'))(e)
+    if ($toast && $toast.toastErrorHandler)
+      $toast.toastErrorHandler(t('module.edit.schemaAlterations.notification.load.error'))(e)
   } finally {
     loading.value = false
   }
@@ -207,11 +227,15 @@ async function onDismiss(alteration) {
 
   try {
     await $SystemAPI.dalSchemaAlterationDismiss({ alterationID })
-    if ($toast && $toast.toastSuccess) $toast.toastSuccess(t('module.edit.schemaAlterations.notification.dismiss.success'))
+    if ($toast && $toast.toastSuccess)
+      $toast.toastSuccess(t('module.edit.schemaAlterations.notification.dismiss.success'))
   } catch (e) {
-    if ($toast && $toast.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.schemaAlterations.notification.dismiss.error'))(e)
+    if ($toast && $toast.toastErrorHandler)
+      $toast.toastErrorHandler(t('module.edit.schemaAlterations.notification.dismiss.error'))(e)
   } finally {
-    list.forEach(a => { a.processing = false })
+    list.forEach(a => {
+      a.processing = false
+    })
     load(...(props.batch || []))
     processing.value = false
   }
@@ -229,11 +253,15 @@ async function onResolve(alteration) {
 
   try {
     await $SystemAPI.dalSchemaAlterationApply({ alterationID })
-    if ($toast && $toast.toastSuccess) $toast.toastSuccess(t('module.edit.schemaAlterations.notification.resolve.success'))
+    if ($toast && $toast.toastSuccess)
+      $toast.toastSuccess(t('module.edit.schemaAlterations.notification.resolve.success'))
   } catch (e) {
-    if ($toast && $toast.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.schemaAlterations.notification.resolve.error'))(e)
+    if ($toast && $toast.toastErrorHandler)
+      $toast.toastErrorHandler(t('module.edit.schemaAlterations.notification.resolve.error'))(e)
   } finally {
-    list.forEach(a => { a.processing = false })
+    list.forEach(a => {
+      a.processing = false
+    })
     load(...(props.batch || []))
     processing.value = false
   }
@@ -266,19 +294,32 @@ function stringifyParams(params) {
 }
 
 function stringifyAttributeAddParams({ attr = {} }) {
-  return t('module.edit.schemaAlterations.params.attribute.add', { ident: attr.ident, storeType: attr.store?.type, attrType: attr.type?.type })
+  return t('module.edit.schemaAlterations.params.attribute.add', {
+    ident: attr.ident,
+    storeType: attr.store?.type,
+    attrType: attr.type?.type,
+  })
 }
 
 function stringifyAttributeDeleteParams({ attr = {} }) {
-  return t('module.edit.schemaAlterations.params.attribute.delete', { ident: attr.ident, storeType: attr.store?.type })
+  return t('module.edit.schemaAlterations.params.attribute.delete', {
+    ident: attr.ident,
+    storeType: attr.store?.type,
+  })
 }
 
 function stringifyAttributeReTypeParams({ attr = {}, to = {} }) {
-  return t('module.edit.schemaAlterations.params.attribute.reType', { ident: attr.ident, toType: to.type })
+  return t('module.edit.schemaAlterations.params.attribute.reType', {
+    ident: attr.ident,
+    toType: to.type,
+  })
 }
 
 function stringifyAttributeReEncodeParams({ attr = {}, to = {} }) {
-  return t('module.edit.schemaAlterations.params.attribute.reEncode', { ident: attr.ident, toType: to.type })
+  return t('module.edit.schemaAlterations.params.attribute.reEncode', {
+    ident: attr.ident,
+    toType: to.type,
+  })
 }
 
 function stringifyModelAddParams({ model = {} }) {

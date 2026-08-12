@@ -120,7 +120,10 @@ const systemFields = sysFieldsBase.map(sf => ({ ...sf, label: t(`field.system.${
 const optionsGroups = [
   { text: t('module.edit.config.dal.system-fields.grouptypes.all'), value: 'all' },
   { text: t('module.edit.config.dal.system-fields.grouptypes.partition'), value: 'partition' },
-  { text: t('module.edit.config.dal.system-fields.grouptypes.userReference'), value: 'user_reference' },
+  {
+    text: t('module.edit.config.dal.system-fields.grouptypes.userReference'),
+    value: 'user_reference',
+  },
   { text: t('module.edit.config.dal.system-fields.grouptypes.timestamps'), value: 'timestamps' },
   { text: t('module.edit.config.dal.system-fields.grouptypes.extras'), value: 'extras' },
 ]
@@ -133,13 +136,14 @@ const moduleFieldEncoding = ref({})
 const selectedGroup = ref('all')
 
 const initialSystemFieldEncoding =
-  (module.value?.config?.dal?.systemFieldEncoding && typeof module.value.config.dal.systemFieldEncoding === 'object')
+  module.value?.config?.dal?.systemFieldEncoding &&
+  typeof module.value.config.dal.systemFieldEncoding === 'object'
     ? module.value.config.dal.systemFieldEncoding
     : {}
 
 const systemFieldEncoding = ref(
   systemFields.reduce((enc, { field }) => {
-    enc[field] = field === 'id' ? {} : (initialSystemFieldEncoding[field] || {})
+    enc[field] = field === 'id' ? {} : initialSystemFieldEncoding[field] || {}
     return enc
   }, {}),
 )

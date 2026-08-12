@@ -10,7 +10,9 @@
         <KindIcon kind="agent" size="lg" plain-icon />
         <div class="min-w-0">
           <DialogEyebrow>{{ $t('project.kinds.agent.single') }}</DialogEyebrow>
-          <div class="font-semibold truncate leading-tight">{{ draft.name || $t('project.agentDetail.unnamed') }}</div>
+          <div class="font-semibold truncate leading-tight">
+            {{ draft.name || $t('project.agentDetail.unnamed') }}
+          </div>
         </div>
       </div>
     </template>
@@ -65,12 +67,7 @@
           size="small"
           @click="visible = false"
         />
-        <Button
-          :label="$t('general.label.save')"
-          size="small"
-          :loading="saving"
-          @click="onSave"
-        />
+        <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
       </div>
     </template>
   </Dialog>
@@ -105,9 +102,10 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-
 const agent = computed(() =>
-  props.resourceId ? store.agentsFor(props.project?.projectID).find(a => a.id === props.resourceId) : null,
+  props.resourceId
+    ? store.agentsFor(props.project?.projectID).find(a => a.id === props.resourceId)
+    : null,
 )
 
 // --- Draft (staged; nothing persists until Save) -------------------------------
@@ -132,9 +130,7 @@ watch(
 // --- Validation -----------------------------------------------------------------
 const submitted = ref(false)
 
-const nameError = computed(() =>
-  draft.name.trim() ? '' : t('project.agentDetail.nameRequired'),
-)
+const nameError = computed(() => (draft.name.trim() ? '' : t('project.agentDetail.nameRequired')))
 
 const isValid = computed(() => !nameError.value)
 

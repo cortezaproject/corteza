@@ -37,29 +37,59 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       basicControls: [
-        { action: this.$t('help.basic-controls.action.select'), shortcut: this.$t('help.basic-controls.shortcut.left-click.label') },
-        { action: this.$t('help.basic-controls.action.select-multiple'), shortcut: this.$t('help.basic-controls.shortcut.left-click.drag') },
-        { action: this.$t('help.basic-controls.action.deselect'), shortcut: this.$t('help.basic-controls.shortcut.left-click.background') },
-        { action: this.$t('help.basic-controls.action.pan'), shortcut: this.$t('help.basic-controls.shortcut.pan') },
-        { action: this.$t('help.basic-controls.action.zoom-in/out'), shortcut: this.$t('help.basic-controls.shortcut.zoom') },
+        {
+          action: this.$t('help.basic-controls.action.select'),
+          shortcut: this.$t('help.basic-controls.shortcut.left-click.label'),
+        },
+        {
+          action: this.$t('help.basic-controls.action.select-multiple'),
+          shortcut: this.$t('help.basic-controls.shortcut.left-click.drag'),
+        },
+        {
+          action: this.$t('help.basic-controls.action.deselect'),
+          shortcut: this.$t('help.basic-controls.shortcut.left-click.background'),
+        },
+        {
+          action: this.$t('help.basic-controls.action.pan'),
+          shortcut: this.$t('help.basic-controls.shortcut.pan'),
+        },
+        {
+          action: this.$t('help.basic-controls.action.zoom-in/out'),
+          shortcut: this.$t('help.basic-controls.shortcut.zoom'),
+        },
       ],
 
       keyboardShortcuts: [
         { action: this.$t('help.keyboard-shortcuts.action.select-all'), shortcut: 'Ctrl + A' },
-        { action: this.$t('help.keyboard-shortcuts.action.add-selection'), shortcut: `Ctrl + ${this.$t('help.keyboard-shortcuts.shortcut.left-mouse-button')}` },
-        { action: this.$t('help.keyboard-shortcuts.action.delete-selected-elements'), shortcut: 'Delete or Backspace' },
-        { action: this.$t('help.keyboard-shortcuts.action.reset-view-to-start-point'), shortcut: 'Ctrl + Space' },
+        {
+          action: this.$t('help.keyboard-shortcuts.action.add-selection'),
+          shortcut: `Ctrl + ${this.$t('help.keyboard-shortcuts.shortcut.left-mouse-button')}`,
+        },
+        {
+          action: this.$t('help.keyboard-shortcuts.action.delete-selected-elements'),
+          shortcut: 'Delete or Backspace',
+        },
+        {
+          action: this.$t('help.keyboard-shortcuts.action.reset-view-to-start-point'),
+          shortcut: 'Ctrl + Space',
+        },
         { action: this.$t('help.keyboard-shortcuts.action.undo'), shortcut: 'Ctrl + Z' },
         { action: this.$t('help.keyboard-shortcuts.action.redo'), shortcut: 'Ctrl + Shift + Z' },
         { action: this.$t('help.keyboard-shortcuts.action.cut'), shortcut: 'Ctrl + X' },
         { action: this.$t('help.keyboard-shortcuts.action.copy'), shortcut: 'Ctrl + C' },
         { action: this.$t('help.keyboard-shortcuts.action.paste'), shortcut: 'Ctrl + V' },
         { action: this.$t('help.keyboard-shortcuts.action.save'), shortcut: 'Ctrl + S' },
-        { action: this.$t('help.keyboard-shortcuts.action.nudge'), shortcut: `${this.$t('help.keyboard-shortcuts.shortcut.arrow-keys')} Shift ${this.$t('help.keyboard-shortcuts.shortcut.adjust-distance')}` },
-        { action: this.$t('help.keyboard-shortcuts.action.hide-guides'), shortcut: `${this.$t('help.keyboard-shortcuts.shortcut.hold')} Alt` },
+        {
+          action: this.$t('help.keyboard-shortcuts.action.nudge'),
+          shortcut: `${this.$t('help.keyboard-shortcuts.shortcut.arrow-keys')} Shift ${this.$t('help.keyboard-shortcuts.shortcut.adjust-distance')}`,
+        },
+        {
+          action: this.$t('help.keyboard-shortcuts.action.hide-guides'),
+          shortcut: `${this.$t('help.keyboard-shortcuts.shortcut.hold')} Alt`,
+        },
         { action: this.$t('help.keyboard-shortcuts.action.show-help'), shortcut: 'Shift + ?' },
       ],
     }

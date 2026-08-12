@@ -145,9 +145,7 @@ function getProgressVariant(v) {
   if (!thresholds.length) return baseVariant
 
   const pct = normalizedProgress(v)
-  const sorted = [...thresholds]
-    .filter(t => t.value >= 0)
-    .sort((a, b) => b.value - a.value)
+  const sorted = [...thresholds].filter(t => t.value >= 0).sort((a, b) => b.value - a.value)
 
   for (const t of sorted) {
     if (pct >= t.value) return t.variant || baseVariant

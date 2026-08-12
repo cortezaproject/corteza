@@ -38,11 +38,11 @@ onMounted(async () => {
 
       const sidebarRoles = agent.meta?.sidebarRoles || []
       if (!Array.isArray(sidebarRoles) || sidebarRoles.length === 0) return false
-      
+
       // Superadmin bypass (role ID 2) or explicit role check
       return userRoles.includes('2') || sidebarRoles.some((r: string) => userRoles.includes(r))
     })
-    
+
     agentStore.setAvailableAgents(configuredAgents)
   } catch {
     // silent

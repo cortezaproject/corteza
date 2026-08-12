@@ -1,14 +1,7 @@
 <template>
   <!-- Gallery mode -->
-  <div
-    v-if="isGallery"
-    class="flex items-start justify-around gap-3 flex-wrap h-full"
-  >
-    <div
-      v-for="att in resolvedAttachments"
-      :key="att.attachmentID"
-      class="item-preview relative"
-    >
+  <div v-if="isGallery" class="flex items-start justify-around gap-3 flex-wrap h-full">
+    <div v-for="att in resolvedAttachments" :key="att.attachmentID" class="item-preview relative">
       <!-- Image preview -->
       <template v-if="att.isImage">
         <a
@@ -42,7 +35,7 @@
         <div
           v-if="!opts.hideFileName"
           class="filename-container text-center"
-          style="margin-top: 0.1rem;"
+          style="margin-top: 0.1rem"
         >
           <a
             v-if="isClickToView && att.originalUrl"
@@ -64,12 +57,7 @@
         class="preview-download-button absolute top-0 right-0"
         @click.stop
       >
-        <Button
-          icon="pi pi-download"
-          text
-          size="small"
-          severity="secondary"
-        />
+        <Button icon="pi pi-download" text size="small" severity="secondary" />
       </a>
     </div>
   </div>
@@ -97,17 +85,8 @@
         </div>
         <div v-if="att.size" class="text-xs text-muted-color">{{ formatSize(att.size) }}</div>
       </div>
-      <a
-        v-if="isDownloadEnabled && att.downloadUrl"
-        :href="att.downloadUrl"
-        @click.stop
-      >
-        <Button
-          icon="pi pi-download"
-          text
-          size="small"
-          severity="secondary"
-        />
+      <a v-if="isDownloadEnabled && att.downloadUrl" :href="att.downloadUrl" @click.stop>
+        <Button icon="pi pi-download" text size="small" severity="secondary" />
       </a>
     </div>
     <span v-if="!resolvedAttachments.length" class="text-muted-color text-sm">—</span>
@@ -161,7 +140,7 @@ const attachmentIDs = computed(() => {
 
 const resolvedAttachments = ref([])
 
-function inlineCustomStyles (att) {
+function inlineCustomStyles(att) {
   const o = opts.value
   let { width, height, maxWidth, maxHeight, margin, borderRadius, backgroundColor } = o
 
@@ -268,4 +247,3 @@ watch(attachmentIDs, ids => resolveAttachments(ids), { immediate: true })
   overflow: visible;
 }
 </style>
-

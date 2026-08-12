@@ -11,7 +11,10 @@
         />
         <label
           :for="checkboxId"
-          :class="['select-none', disabled ? 'cursor-not-allowed text-muted-color' : 'cursor-pointer']"
+          :class="[
+            'select-none',
+            disabled ? 'cursor-not-allowed text-muted-color' : 'cursor-pointer',
+          ]"
         >
           {{ label }}
         </label>
@@ -81,11 +84,24 @@ const undoOmit = ref(props.defaultStrategy)
 
 const checkboxId = computed(() => `dal-fse-${props.field}`)
 
-const strategies = computed(() => [
-  { value: types.Plain, text: t('module.edit.config.dal.encoding-strategy.strategies.plain.label'), disabled: props.isMulti },
-  { value: types.Alias, text: t('module.edit.config.dal.encoding-strategy.strategies.alias.label'), disabled: props.isMulti },
-  { value: types.JSON, text: t('module.edit.config.dal.encoding-strategy.strategies.json.label') },
-].filter(({ disabled }) => !disabled))
+const strategies = computed(() =>
+  [
+    {
+      value: types.Plain,
+      text: t('module.edit.config.dal.encoding-strategy.strategies.plain.label'),
+      disabled: props.isMulti,
+    },
+    {
+      value: types.Alias,
+      text: t('module.edit.config.dal.encoding-strategy.strategies.alias.label'),
+      disabled: props.isMulti,
+    },
+    {
+      value: types.JSON,
+      text: t('module.edit.config.dal.encoding-strategy.strategies.json.label'),
+    },
+  ].filter(({ disabled }) => !disabled),
+)
 
 const strategy = computed(() => {
   for (const type of Object.values(types)) {
@@ -96,7 +112,9 @@ const strategy = computed(() => {
 
 const use = computed(() => strategy.value !== types.Omit)
 
-const showIdentInput = computed(() => [types.JSON, types.Alias, types.Plain].includes(strategy.value))
+const showIdentInput = computed(() =>
+  [types.JSON, types.Alias, types.Plain].includes(strategy.value),
+)
 
 function onUseToggle(newUse) {
   if (strategy.value !== types.Omit) {
@@ -118,7 +136,7 @@ function onIdentInput() {
 // Keep draft in sync if parent feeds a different config (e.g. preset reset)
 watch(
   () => props.config,
-  (cfg) => {
+  cfg => {
     const next = defaultConfigDraft(cfg, props.storeIdent)
     if (next.ident !== draft.value.ident) {
       draft.value = next

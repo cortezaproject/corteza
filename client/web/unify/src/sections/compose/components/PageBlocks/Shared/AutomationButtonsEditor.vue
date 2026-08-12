@@ -26,13 +26,7 @@
             size="small"
             class="pointer-events-none truncate justify-self-start"
           />
-          <Button
-            icon="pi pi-pencil"
-            text
-            rounded
-            size="small"
-            @click="selectButton(index)"
-          />
+          <Button icon="pi pi-pencil" text rounded size="small" @click="selectButton(index)" />
         </template>
 
         <template #extra="{ item, index }">
@@ -85,7 +79,9 @@
     <Divider />
 
     <CFormGroup
-      :label="$t('block.automation.availableScriptsAndWorkflow', { count: availableTriggers.length })"
+      :label="
+        $t('block.automation.availableScriptsAndWorkflow', { count: availableTriggers.length })
+      "
     >
       <div v-if="loadingTriggers" class="flex justify-center p-3">
         <ProgressSpinner style="width: 24px; height: 24px" />
@@ -98,7 +94,10 @@
           class="w-full"
         />
 
-        <Tabs v-model:value="activeTab" class="border border-surface rounded-border overflow-hidden">
+        <Tabs
+          v-model:value="activeTab"
+          class="border border-surface rounded-border overflow-hidden"
+        >
           <TabList>
             <Tab value="taqs">{{ $t('block.automation.tabs.taqs') }}</Tab>
             <Tab value="workflows">{{ $t('block.automation.tabs.workflows') }}</Tab>

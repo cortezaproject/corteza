@@ -3,7 +3,11 @@ import { getMaxOutbound, isValidConnection } from './connectionRules'
 
 const node = (id, type, kind, ref) => ({ id, type, data: { kind, ref } })
 const edge = (id, source, target, sourceHandle = null, targetHandle = null) => ({
-  id, source, target, sourceHandle, targetHandle,
+  id,
+  source,
+  target,
+  sourceHandle,
+  targetHandle,
 })
 
 describe('getMaxOutbound', () => {
@@ -52,7 +56,9 @@ describe('isValidConnection', () => {
       node('term', 'termination'),
     ]
     const edges = [edge('e1', 'a', 'term')]
-    expect(isValidConnection({ id: 'e2', source: 'b', target: 'term' }, { nodes, edges })).toBe(false)
+    expect(isValidConnection({ id: 'e2', source: 'b', target: 'term' }, { nodes, edges })).toBe(
+      false,
+    )
   })
 
   it('caps trigger outbound at 1', () => {
@@ -72,10 +78,12 @@ describe('isValidConnection', () => {
       node('c', 'workflow', 'function'),
     ]
     const edges = [edge('e1', 'a', 'b', 'sh1')]
-    expect(isValidConnection(
-      { id: 'e2', source: 'a', target: 'c', sourceHandle: 'sh2' },
-      { nodes, edges },
-    )).toBe(false)
+    expect(
+      isValidConnection(
+        { id: 'e2', source: 'a', target: 'c', sourceHandle: 'sh2' },
+        { nodes, edges },
+      ),
+    ).toBe(false)
   })
 
   it('allows >1 outbound from an exclusive gateway', () => {
@@ -91,10 +99,12 @@ describe('isValidConnection', () => {
       edge('e2', 'g', 'b', 'sh2'),
       edge('e3', 'g', 'c', 'sh3'),
     ]
-    expect(isValidConnection(
-      { id: 'e4', source: 'g', target: 'd', sourceHandle: 'sh4' },
-      { nodes, edges },
-    )).toBe(true)
+    expect(
+      isValidConnection(
+        { id: 'e4', source: 'g', target: 'd', sourceHandle: 'sh4' },
+        { nodes, edges },
+      ),
+    ).toBe(true)
   })
 
   it('allows >1 outbound from inclusive and fork gateways', () => {
@@ -105,10 +115,12 @@ describe('isValidConnection', () => {
         node('b', 'workflow', 'function'),
       ]
       const edges = [edge('e1', 'g', 'a', 'sh1')]
-      expect(isValidConnection(
-        { id: 'e2', source: 'g', target: 'b', sourceHandle: 'sh2' },
-        { nodes, edges },
-      )).toBe(true)
+      expect(
+        isValidConnection(
+          { id: 'e2', source: 'g', target: 'b', sourceHandle: 'sh2' },
+          { nodes, edges },
+        ),
+      ).toBe(true)
     }
   })
 
@@ -119,10 +131,12 @@ describe('isValidConnection', () => {
       node('b', 'workflow', 'function'),
     ]
     const edges = [edge('e1', 'g', 'a', 'sh1')]
-    expect(isValidConnection(
-      { id: 'e2', source: 'g', target: 'b', sourceHandle: 'sh2' },
-      { nodes, edges },
-    )).toBe(false)
+    expect(
+      isValidConnection(
+        { id: 'e2', source: 'g', target: 'b', sourceHandle: 'sh2' },
+        { nodes, edges },
+      ),
+    ).toBe(false)
   })
 
   it('caps iterator outbound at 2', () => {
@@ -133,16 +147,20 @@ describe('isValidConnection', () => {
       node('c', 'workflow', 'function'),
     ]
     const oneEdge = [edge('e1', 'it', 'a', 'sh1')]
-    expect(isValidConnection(
-      { id: 'e2', source: 'it', target: 'b', sourceHandle: 'sh2' },
-      { nodes, edges: oneEdge },
-    )).toBe(true)
+    expect(
+      isValidConnection(
+        { id: 'e2', source: 'it', target: 'b', sourceHandle: 'sh2' },
+        { nodes, edges: oneEdge },
+      ),
+    ).toBe(true)
 
     const twoEdges = [edge('e1', 'it', 'a', 'sh1'), edge('e2', 'it', 'b', 'sh2')]
-    expect(isValidConnection(
-      { id: 'e3', source: 'it', target: 'c', sourceHandle: 'sh3' },
-      { nodes, edges: twoEdges },
-    )).toBe(false)
+    expect(
+      isValidConnection(
+        { id: 'e3', source: 'it', target: 'c', sourceHandle: 'sh3' },
+        { nodes, edges: twoEdges },
+      ),
+    ).toBe(false)
   })
 
   it('caps error-handler outbound at 2', () => {
@@ -153,10 +171,12 @@ describe('isValidConnection', () => {
       node('c', 'workflow', 'function'),
     ]
     const twoEdges = [edge('e1', 'eh', 'a', 'sh1'), edge('e2', 'eh', 'b', 'sh2')]
-    expect(isValidConnection(
-      { id: 'e3', source: 'eh', target: 'c', sourceHandle: 'sh3' },
-      { nodes, edges: twoEdges },
-    )).toBe(false)
+    expect(
+      isValidConnection(
+        { id: 'e3', source: 'eh', target: 'c', sourceHandle: 'sh3' },
+        { nodes, edges: twoEdges },
+      ),
+    ).toBe(false)
   })
 
   it('rejects self-loops', () => {
@@ -171,10 +191,12 @@ describe('isValidConnection', () => {
       node('b', 'workflow', 'function'),
     ]
     const edges = [edge('e1', 'g', 'a', 'source-bottom')]
-    expect(isValidConnection(
-      { id: 'e2', source: 'g', target: 'b', sourceHandle: 'source-bottom' },
-      { nodes, edges },
-    )).toBe(false)
+    expect(
+      isValidConnection(
+        { id: 'e2', source: 'g', target: 'b', sourceHandle: 'source-bottom' },
+        { nodes, edges },
+      ),
+    ).toBe(false)
   })
 
   it('rejects a second edge into the same target handle', () => {
@@ -184,10 +206,12 @@ describe('isValidConnection', () => {
       node('b', 'workflow', 'function'),
     ]
     const edges = [edge('e1', 'a', 'b', null, 'target-top')]
-    expect(isValidConnection(
-      { id: 'e2', source: 'g', target: 'b', sourceHandle: 'sh', targetHandle: 'target-top' },
-      { nodes, edges },
-    )).toBe(false)
+    expect(
+      isValidConnection(
+        { id: 'e2', source: 'g', target: 'b', sourceHandle: 'sh', targetHandle: 'target-top' },
+        { nodes, edges },
+      ),
+    ).toBe(false)
   })
 
   it('excludes the edge being reconnected when counting caps', () => {
@@ -199,9 +223,11 @@ describe('isValidConnection', () => {
     const edges = [edge('e1', 'a', 'b', 'source-bottom')]
     // Reconnecting e1 from a→b to a→c with the same handle: cap=1 should
     // see 0 edges (the one being moved is excluded) and allow.
-    expect(isValidConnection(
-      { id: 'e1', source: 'a', target: 'c', sourceHandle: 'source-bottom' },
-      { nodes, edges, edgeUpdatingId: 'e1' },
-    )).toBe(true)
+    expect(
+      isValidConnection(
+        { id: 'e1', source: 'a', target: 'c', sourceHandle: 'source-bottom' },
+        { nodes, edges, edgeUpdatingId: 'e1' },
+      ),
+    ).toBe(true)
   })
 })

@@ -91,9 +91,7 @@ watch(visible, open => {
 // --- Validation -----------------------------------------------------------------
 const submitted = ref(false)
 
-const nameError = computed(() =>
-  name.value.trim() ? '' : t('project.chatbotCreate.nameRequired'),
-)
+const nameError = computed(() => (name.value.trim() ? '' : t('project.chatbotCreate.nameRequired')))
 
 const isValid = computed(() => !nameError.value)
 

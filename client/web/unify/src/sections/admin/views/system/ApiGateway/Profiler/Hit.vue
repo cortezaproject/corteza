@@ -21,24 +21,41 @@
       <Panel v-else-if="hit" :header="$t('system.apigw.profiler.hit.title')" class="shadow">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">{{ $t('system.apigw.profiler.hit.columns.hitID') }}</label>
+            <label class="text-sm font-medium text-muted-color">
+              {{ $t('system.apigw.profiler.hit.columns.hitID') }}
+            </label>
             <span class="font-mono text-sm">{{ hit.hitID }}</span>
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">{{ $t('system.apigw.profiler.hit.columns.status') }}</label>
-            <Tag :value="String(hit.status || '')" :severity="hit.status >= 200 && hit.status < 300 ? 'success' : 'warn'" />
+            <label class="text-sm font-medium text-muted-color">
+              {{ $t('system.apigw.profiler.hit.columns.status') }}
+            </label>
+            <Tag
+              :value="String(hit.status || '')"
+              :severity="hit.status >= 200 && hit.status < 300 ? 'success' : 'warn'"
+            />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">{{ $t('system.apigw.profiler.hit.columns.time') }}</label>
+            <label class="text-sm font-medium text-muted-color">
+              {{ $t('system.apigw.profiler.hit.columns.time') }}
+            </label>
             <span>{{ hit.ts ? new Date(hit.ts).toLocaleString() : '' }}</span>
           </div>
           <div class="flex flex-col gap-2 md:col-span-2">
-            <label class="text-sm font-medium text-muted-color">{{ $t('system.apigw.profiler.hit.request') }}</label>
-            <pre class="text-xs bg-emphasis p-3 rounded-lg overflow-auto max-h-64">{{ JSON.stringify(hit.request, null, 2) }}</pre>
+            <label class="text-sm font-medium text-muted-color">
+              {{ $t('system.apigw.profiler.hit.request') }}
+            </label>
+            <pre class="text-xs bg-emphasis p-3 rounded-lg overflow-auto max-h-64">{{
+              JSON.stringify(hit.request, null, 2)
+            }}</pre>
           </div>
           <div class="flex flex-col gap-2 md:col-span-2">
-            <label class="text-sm font-medium text-muted-color">{{ $t('system.apigw.profiler.hit.response') }}</label>
-            <pre class="text-xs bg-emphasis p-3 rounded-lg overflow-auto max-h-64">{{ JSON.stringify(hit.response, null, 2) }}</pre>
+            <label class="text-sm font-medium text-muted-color">
+              {{ $t('system.apigw.profiler.hit.response') }}
+            </label>
+            <pre class="text-xs bg-emphasis p-3 rounded-lg overflow-auto max-h-64">{{
+              JSON.stringify(hit.response, null, 2)
+            }}</pre>
           </div>
         </div>
       </Panel>

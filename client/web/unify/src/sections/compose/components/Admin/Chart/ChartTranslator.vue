@@ -28,12 +28,10 @@ const emit = defineEmits<{
 const $ComposeAPI = inject('$ComposeAPI') as any
 const { t } = useI18n()
 
-const isEdit = computed(() =>
-  props.chart?.chartID && props.chart.chartID !== '0',
-)
+const isEdit = computed(() => props.chart?.chartID && props.chart.chartID !== '0')
 
-const resource = computed(() =>
-  `compose:chart/${props.namespace.namespaceID}/${props.chart.chartID}`,
+const resource = computed(
+  () => `compose:chart/${props.namespace.namespaceID}/${props.chart.chartID}`,
 )
 
 const titles = computed(() => ({

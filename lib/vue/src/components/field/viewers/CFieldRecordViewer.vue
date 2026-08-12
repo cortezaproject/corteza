@@ -131,7 +131,7 @@ function navigateToRecord(rec) {
             ...route.query,
             recordPageID: page.pageID,
             recordID: recordID,
-          }
+          },
         })
         return
       }

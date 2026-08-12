@@ -1,6 +1,12 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ isEdit ? $t('federation.nodes.editor.title.edit') : $t('federation.nodes.editor.title.create') }}</span>
+    <span>
+      {{
+        isEdit
+          ? $t('federation.nodes.editor.title.edit')
+          : $t('federation.nodes.editor.title.create')
+      }}
+    </span>
   </Teleport>
 
   <div v-if="loading" class="flex items-center justify-center h-full">
@@ -26,7 +32,12 @@
       <Card class="shadow">
         <template #content>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CFormGroup name="name" :label="$t('federation.nodes.editor.info.name')" required class="md:col-span-2">
+            <CFormGroup
+              name="name"
+              :label="$t('federation.nodes.editor.info.name')"
+              required
+              class="md:col-span-2"
+            >
               <InputText
                 id="name"
                 name="name"
@@ -35,7 +46,12 @@
               />
             </CFormGroup>
 
-            <CFormGroup name="baseURL" :label="$t('federation.nodes.editor.info.baseURL')" required class="md:col-span-2">
+            <CFormGroup
+              name="baseURL"
+              :label="$t('federation.nodes.editor.info.baseURL')"
+              required
+              class="md:col-span-2"
+            >
               <InputText
                 id="baseURL"
                 name="baseURL"
@@ -78,12 +94,7 @@
         outlined
         @click="handleGenerateURI"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 
@@ -99,14 +110,11 @@
         <ProgressSpinner />
       </div>
       <template v-else>
-        <p class="text-sm text-muted-color">{{ $t('federation.nodes.editor.generatedURI.description') }}</p>
+        <p class="text-sm text-muted-color">
+          {{ $t('federation.nodes.editor.generatedURI.description') }}
+        </p>
         <div class="flex flex-col gap-2">
-          <Textarea
-            :value="generatedURI"
-            readonly
-            rows="4"
-            class="font-mono text-sm w-full"
-          />
+          <Textarea :value="generatedURI" readonly rows="4" class="font-mono text-sm w-full" />
         </div>
         <div class="flex justify-end gap-2">
           <Button
@@ -204,7 +212,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -230,7 +240,9 @@ async function handleSubmit({ valid }) {
       router.push({ name: 'federation.nodes.edit', params: { nodeID: created.nodeID } })
     }
   } catch (e) {
-    $toast.toastErrorHandler(t(`federation.nodes.editor.${isEdit.value ? 'update' : 'create'}.error`))(e)
+    $toast.toastErrorHandler(
+      t(`federation.nodes.editor.${isEdit.value ? 'update' : 'create'}.error`),
+    )(e)
   } finally {
     saving.value = false
   }
@@ -243,7 +255,7 @@ async function handleGenerateURI() {
 
   try {
     const result = await $FederationAPI.nodeGenerateUri({ nodeID: node.value.nodeID })
-    generatedURI.value = typeof result === 'string' ? result : (result?.uri || JSON.stringify(result))
+    generatedURI.value = typeof result === 'string' ? result : result?.uri || JSON.stringify(result)
   } catch (e) {
     $toast.toastErrorHandler(t('federation.nodes.editor.generateURI.error'))(e)
     uriDialogVisible.value = false
@@ -271,7 +283,12 @@ function copyURI() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!node.value && !!initialNode.value && !isEqual(node.value, initialNode.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!node.value &&
+    !!initialNode.value &&
+    !isEqual(node.value, initialNode.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 

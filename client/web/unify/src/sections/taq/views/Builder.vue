@@ -16,7 +16,9 @@
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
     <!-- Top-left overlay actions -->
-    <div class="absolute top-3 left-3 bottom-20 z-20 flex flex-col gap-2 max-w-screen-lg pointer-events-none [&>*]:pointer-events-auto">
+    <div
+      class="absolute top-3 left-3 bottom-20 z-20 flex flex-col gap-2 max-w-screen-lg pointer-events-none [&>*]:pointer-events-auto"
+    >
       <!-- Optional Description -->
       <div
         v-if="editor.automation.value.meta?.description"
@@ -363,11 +365,7 @@
       leave-from-class="translate-x-0"
       leave-to-class="translate-x-full"
     >
-      <div
-        v-if="selectedNode"
-        class="right-sidebar flex"
-        :style="{ width: `${drawerWidth}px` }"
-      >
+      <div v-if="selectedNode" class="right-sidebar flex" :style="{ width: `${drawerWidth}px` }">
         <!-- Resize handle -->
         <div
           class="resize-handle w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors"
@@ -467,7 +465,12 @@ import { components } from '@planetcrust/human-vue'
 
 const { CToolbar, CInputUser } = components
 
-import { useConfirmDelete, useRightSidebarResize, useRightSidebarStore, useUnsavedGuard } from '@planetcrust/human-vue'
+import {
+  useConfirmDelete,
+  useRightSidebarResize,
+  useRightSidebarStore,
+  useUnsavedGuard,
+} from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -647,9 +650,12 @@ watch(selectedNode, node => {
   else rightSidebarStore.close('taq-config')
 })
 
-watch(() => rightSidebarStore.isOpen('taq-config'), isOpen => {
-  if (!isOpen && selectedNode.value) clearSelection()
-})
+watch(
+  () => rightSidebarStore.isOpen('taq-config'),
+  isOpen => {
+    if (!isOpen && selectedNode.value) clearSelection()
+  },
+)
 
 // Update edge highlighting when selection changes
 watch(
@@ -751,7 +757,6 @@ async function proceedRun(saveFirst) {
 function onRunConfirm(scope) {
   editor.exec(scope)
 }
-
 
 // Center viewport on a node (preserving current zoom)
 import { getNodeCenterOffset } from '@/sections/taq/utils/flow-constants'

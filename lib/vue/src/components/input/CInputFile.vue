@@ -29,11 +29,9 @@
 
     <!-- Validation errors -->
     <div v-if="validationErrors.length" class="flex flex-col gap-1">
-      <span
-        v-for="(err, i) in validationErrors"
-        :key="i"
-        class="text-red-500 text-xs"
-      >{{ err }}</span>
+      <span v-for="(err, i) in validationErrors" :key="i" class="text-red-500 text-xs">
+        {{ err }}
+      </span>
     </div>
 
     <!-- File list (staged + uploaded) -->
@@ -69,7 +67,9 @@
         <i class="pi pi-file text-primary" />
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium truncate">{{ attachmentInfo[attID]?.name || attID }}</div>
-          <div v-if="attachmentInfo[attID]?.size" class="text-xs text-muted-color">{{ formatSize(attachmentInfo[attID].size) }}</div>
+          <div v-if="attachmentInfo[attID]?.size" class="text-xs text-muted-color">
+            {{ formatSize(attachmentInfo[attID].size) }}
+          </div>
         </div>
         <button
           v-if="attachmentInfo[attID]?.downloadUrl"
@@ -166,7 +166,10 @@ function processFiles(files) {
   }
 
   validationErrors.value = errors
-  emit('stage-files', stagedFiles.value.map(s => s.file))
+  emit(
+    'stage-files',
+    stagedFiles.value.map(s => s.file),
+  )
 }
 
 function onFileInputChange(event) {
@@ -186,7 +189,10 @@ function onDrop(event) {
 function removeStagedFile(id) {
   const index = stagedFiles.value.findIndex(s => s.id === id)
   if (index !== -1) stagedFiles.value.splice(index, 1)
-  emit('stage-files', stagedFiles.value.map(s => s.file))
+  emit(
+    'stage-files',
+    stagedFiles.value.map(s => s.file),
+  )
 }
 
 function downloadFile(url) {
@@ -199,4 +205,3 @@ function removeUploaded(index) {
   emit('update:modelValue', updated)
 }
 </script>
-

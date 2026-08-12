@@ -88,7 +88,12 @@ const PROJECT_BADGE = {
 
 // Backlog items are category-neutral (they span all five) — same neutral
 // th-large mark BacklogItemDialog/BacklogView use.
-const BACKLOG_BADGE = { icon: 'pi pi-th-large', bg: 'bg-emphasis', ring: 'ring-surface', text: 'text-color' }
+const BACKLOG_BADGE = {
+  icon: 'pi pi-th-large',
+  bg: 'bg-emphasis',
+  ring: 'ring-surface',
+  text: 'text-color',
+}
 
 // Project-dashboard resources wear the dashboard's own badges (the category
 // badge for category events, the backlog/project marks above) — these take

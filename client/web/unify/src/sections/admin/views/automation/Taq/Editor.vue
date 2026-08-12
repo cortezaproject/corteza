@@ -27,7 +27,12 @@
         />
       </div>
 
-      <Panel :header="$t('automation.taq.editor.info.title')" toggleable :collapsed="false" class="shadow">
+      <Panel
+        :header="$t('automation.taq.editor.info.title')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('automation.taq.editor.info.name')" required>
             <InputText id="name" name="name" v-model="taq.meta.short" />
@@ -37,13 +42,12 @@
             <InputText id="handle" name="handle" v-model="taq.handle" />
           </CFormGroup>
 
-          <CFormGroup name="description" :label="$t('automation.taq.editor.info.description')" class="md:col-span-2">
-            <Textarea
-              id="description"
-              name="description"
-              v-model="taq.meta.description"
-              rows="3"
-            />
+          <CFormGroup
+            name="description"
+            :label="$t('automation.taq.editor.info.description')"
+            class="md:col-span-2"
+          >
+            <Textarea id="description" name="description" v-model="taq.meta.description" rows="3" />
           </CFormGroup>
 
           <CFormGroup :label="$t('automation.taq.editor.info.enabled')">
@@ -66,12 +70,16 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-muted-color">{{ $t('automation.taq.editor.meta.createdAt') }}</span>
+            <span class="text-xs text-muted-color">
+              {{ $t('automation.taq.editor.meta.createdAt') }}
+            </span>
             <span>{{ locFullDateTime(taq.createdAt) }}</span>
           </div>
 
           <div v-if="taq.updatedAt" class="flex flex-col gap-1">
-            <span class="text-xs text-muted-color">{{ $t('automation.taq.editor.meta.updatedAt') }}</span>
+            <span class="text-xs text-muted-color">
+              {{ $t('automation.taq.editor.meta.updatedAt') }}
+            </span>
             <span>{{ locFullDateTime(taq.updatedAt) }}</span>
           </div>
         </div>
@@ -94,12 +102,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
@@ -186,7 +189,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }

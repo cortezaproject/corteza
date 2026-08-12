@@ -12,8 +12,19 @@
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="$emit('update:visible', false)" />
-        <Button :label="$t('general.label.save')" size="small" :disabled="!draft.trim()" @click="save" />
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          text
+          size="small"
+          @click="$emit('update:visible', false)"
+        />
+        <Button
+          :label="$t('general.label.save')"
+          size="small"
+          :disabled="!draft.trim()"
+          @click="save"
+        />
       </div>
     </template>
   </Dialog>

@@ -4,16 +4,16 @@
     @update:visible="emit('update:visible', $event)"
     modal
     :header="
-      mode === 'create'
-        ? $t('list.dialog.create.header')
-        : $t('builder.generalConfig.header')
+      mode === 'create' ? $t('list.dialog.create.header') : $t('builder.generalConfig.header')
     "
     :style="{ width: '700px' }"
     @hide="resetForm"
   >
     <div class="flex flex-col gap-6">
       <CFormGroup
-        :label="mode === 'create' ? $t('list.dialog.create.name') : $t('builder.configSidebar.node')"
+        :label="
+          mode === 'create' ? $t('list.dialog.create.name') : $t('builder.configSidebar.node')
+        "
         required
         input-id="automation-name"
       >
@@ -29,10 +29,7 @@
         <small v-if="nameError" class="text-red-500">{{ nameError }}</small>
       </CFormGroup>
 
-      <CFormGroup
-        :label="$t('list.dialog.create.description')"
-        input-id="automation-description"
-      >
+      <CFormGroup :label="$t('list.dialog.create.description')" input-id="automation-description">
         <Textarea
           id="automation-description"
           v-model="form.description"

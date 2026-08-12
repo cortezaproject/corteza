@@ -40,7 +40,10 @@
     class="flex flex-col h-full"
   >
     <div class="container mx-auto p-4 flex-1 overflow-auto">
-      <div v-if="isEdit && (namespace?.canExportNamespace || namespace?.canGrant)" class="flex justify-end gap-2 mb-4">
+      <div
+        v-if="isEdit && (namespace?.canExportNamespace || namespace?.canGrant)"
+        class="flex justify-end gap-2 mb-4"
+      >
         <Button
           v-if="namespace?.canExportNamespace"
           :label="$t('namespace.export')"
@@ -164,7 +167,6 @@
               <Checkbox id="hideSidebar" v-model="namespace.meta.hideSidebar" binary />
               <label for="hideSidebar">{{ $t('namespace.sidebar.hide') }}</label>
             </div>
-
           </div>
         </template>
       </Card>
@@ -227,12 +229,22 @@ const namespace = ref(null)
 const initialNamespace = ref(null)
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!namespace.value && !!initialNamespace.value && !isEqual(namespace.value, initialNamespace.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!namespace.value &&
+    !!initialNamespace.value &&
+    !isEqual(namespace.value, initialNamespace.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 
 // Logo upload
-const { uploading: logoUploading, uploadError: logoError, uploadFileRaw: uploadLogoRaw, reset: resetLogoUpload } = useFileUpload()
+const {
+  uploading: logoUploading,
+  uploadError: logoError,
+  uploadFileRaw: uploadLogoRaw,
+  reset: resetLogoUpload,
+} = useFileUpload()
 
 const logoPreviewUrl = computed(() => {
   const logo = namespace.value?.meta?.logo
@@ -325,7 +337,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }

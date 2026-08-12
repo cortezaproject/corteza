@@ -19,16 +19,8 @@
 
     <CFormGroup :label="$t('block.chatbotInbox.config.status')">
       <div class="flex flex-wrap gap-3">
-        <div
-          v-for="s in statusChoices"
-          :key="s.value"
-          class="flex items-center gap-2"
-        >
-          <Checkbox
-            v-model="statusFilter"
-            :input-id="`cb-inbox-st-${s.value}`"
-            :value="s.value"
-          />
+        <div v-for="s in statusChoices" :key="s.value" class="flex items-center gap-2">
+          <Checkbox v-model="statusFilter" :input-id="`cb-inbox-st-${s.value}`" :value="s.value" />
           <label :for="`cb-inbox-st-${s.value}`" class="text-sm">
             {{ s.label }}
           </label>
@@ -40,13 +32,7 @@
       :label="$t('block.chatbotInbox.config.refresh')"
       :description="$t('block.chatbotInbox.config.refreshHint')"
     >
-      <InputNumber
-        v-model="refreshRate"
-        :min="1"
-        :step="1"
-        show-buttons
-        class="w-full"
-      />
+      <InputNumber v-model="refreshRate" :min="1" :step="1" show-buttons class="w-full" />
     </CFormGroup>
 
     <div class="flex items-center gap-2">
@@ -89,27 +75,37 @@ const opts = computed(() => block.value.options)
 
 const chatbotIDs = computed({
   get: () => opts.value.chatbotIDs,
-  set: v => { opts.value.chatbotIDs = v },
+  set: v => {
+    opts.value.chatbotIDs = v
+  },
 })
 
 const statusFilter = computed({
   get: () => opts.value.statusFilter,
-  set: v => { opts.value.statusFilter = v },
+  set: v => {
+    opts.value.statusFilter = v
+  },
 })
 
 const refreshRate = computed({
   get: () => opts.value.refreshRate,
-  set: v => { opts.value.refreshRate = Number(v) || opts.value.refreshRate },
+  set: v => {
+    opts.value.refreshRate = Number(v) || opts.value.refreshRate
+  },
 })
 
 const autoOpenFirst = computed({
   get: () => opts.value.autoOpenFirst,
-  set: v => { opts.value.autoOpenFirst = !!v },
+  set: v => {
+    opts.value.autoOpenFirst = !!v
+  },
 })
 
 const showFilter = computed({
   get: () => opts.value.showFilter,
-  set: v => { opts.value.showFilter = !!v },
+  set: v => {
+    opts.value.showFilter = !!v
+  },
 })
 
 onMounted(async () => {

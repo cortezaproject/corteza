@@ -13,7 +13,10 @@ export function getMaxOutbound(node) {
   return 1
 }
 
-export function isValidConnection(connection, { nodes = [], edges = [], edgeUpdatingId = null } = {}) {
+export function isValidConnection(
+  connection,
+  { nodes = [], edges = [], edgeUpdatingId = null } = {},
+) {
   const sourceNode = nodes.find(n => n.id === connection.source)
   const targetNode = nodes.find(n => n.id === connection.target)
   const updatingId = edgeUpdatingId

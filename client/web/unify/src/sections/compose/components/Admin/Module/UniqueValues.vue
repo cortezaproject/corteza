@@ -197,7 +197,7 @@ function addNewConstraint() {
 function updateRuleConstraint(rule) {
   const currentFieldName = rule.currentField
   const fieldObj = module.value.fields.find(({ name }) => name === currentFieldName)
-  
+
   if (!fieldObj) {
     rule.currentField = undefined
     return

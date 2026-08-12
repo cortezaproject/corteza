@@ -21,8 +21,24 @@ function capitalizeFirst(s: string): string {
 // editor emits raw HTML from a rich-text editor and we don't want to push
 // that straight into innerHTML.
 const HB_CONSENT_ALLOWED_TAGS = new Set([
-  'p', 'br', 'span', 'strong', 'em', 'u', 's', 'a', 'ul', 'ol', 'li',
-  'h1', 'h2', 'h3', 'h4', 'blockquote', 'code', 'pre',
+  'p',
+  'br',
+  'span',
+  'strong',
+  'em',
+  'u',
+  's',
+  'a',
+  'ul',
+  'ol',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'blockquote',
+  'code',
+  'pre',
 ])
 // Inline-style declarations the RTE produces that we want to preserve so the
 // chatbot renders text the way the author saw it in the editor (TipTap's
@@ -30,8 +46,13 @@ const HB_CONSENT_ALLOWED_TAGS = new Set([
 // list is dropped. We additionally reject values containing url(), expression()
 // or javascript: to block CSS-vector XSS.
 const HB_CONSENT_ALLOWED_STYLE_PROPS = new Set([
-  'color', 'background-color', 'font-weight', 'font-style',
-  'text-decoration', 'text-decoration-line', 'text-align',
+  'color',
+  'background-color',
+  'font-weight',
+  'font-style',
+  'text-decoration',
+  'text-decoration-line',
+  'text-align',
 ])
 function sanitizeStyle(raw: string): string {
   return raw
@@ -151,9 +172,14 @@ export class WidgetUI {
 
     const rootEl = document.createElement('div')
     const allowedPositions = [
-      'bottom-right', 'bottom-left', 'bottom-center',
-      'top-right', 'top-left', 'top-center',
-      'left-middle', 'right-middle',
+      'bottom-right',
+      'bottom-left',
+      'bottom-center',
+      'top-right',
+      'top-left',
+      'top-center',
+      'left-middle',
+      'right-middle',
     ]
     const position = allowedPositions.includes(cfg.styling.launcher.position)
       ? cfg.styling.launcher.position
@@ -294,11 +320,7 @@ export class WidgetUI {
   appendMessage(m: Message, opts: { error?: boolean } = {}) {
     const row = document.createElement('div')
     const cls =
-      m.role === 'user'
-        ? 'user'
-        : m.role === 'agent' || m.role === 'operator'
-          ? 'agent'
-          : 'system'
+      m.role === 'user' ? 'user' : m.role === 'agent' || m.role === 'operator' ? 'agent' : 'system'
     row.className = `hb-msg ${cls}${opts.error ? ' error' : ''}`
     if (m.role === 'operator') {
       const tag = document.createElement('div')
@@ -456,7 +478,7 @@ export class WidgetUI {
       submit.disabled = true
       submit.textContent = '✓'
       form.querySelectorAll('input, textarea, select').forEach(el => {
-        (el as HTMLInputElement).disabled = true
+        ;(el as HTMLInputElement).disabled = true
       })
       this.onFormSubmit(values)
     })
@@ -559,7 +581,8 @@ export class WidgetUI {
     end.className = 'hb-action'
     end.type = 'button'
     end.dataset.action = 'end'
-    end.textContent = (p.config as { endLabel?: string } | undefined)?.endLabel || 'End conversation'
+    end.textContent =
+      (p.config as { endLabel?: string } | undefined)?.endLabel || 'End conversation'
     end.addEventListener('click', () => this.onEndConversation())
     actions.appendChild(end)
 
@@ -571,9 +594,11 @@ export class WidgetUI {
     if (state.phase === 'idle') {
       if (badge) badge.remove()
       // Re-enable any handoff buttons (persistent bar + any per-step buttons).
-      this.panelEl.querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]').forEach(b => {
-        b.disabled = false
-      })
+      this.panelEl
+        .querySelectorAll<HTMLButtonElement>('button[data-action="handoff"]')
+        .forEach(b => {
+          b.disabled = false
+        })
       return
     }
     if (!badge) {

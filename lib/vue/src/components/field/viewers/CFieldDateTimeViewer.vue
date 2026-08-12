@@ -106,12 +106,23 @@ function formatRelative(date) {
 
   const isFuture = diffMs < 0
 
-  if (diffSecs < 60) return isFuture ? t('field.kind.dateTime.relative.inFewSeconds') : t('field.kind.dateTime.relative.fewSecondsAgo')
-  if (diffMins < 60) return isFuture ? t('field.kind.dateTime.relative.inMinutes', { n: diffMins }) : t('field.kind.dateTime.relative.minutesAgo', { n: diffMins })
-  if (diffHours < 24) return isFuture ? t('field.kind.dateTime.relative.inHours', { n: diffHours }) : t('field.kind.dateTime.relative.hoursAgo', { n: diffHours })
-  if (diffDays < 30) return isFuture ? t('field.kind.dateTime.relative.inDays', { n: diffDays }) : t('field.kind.dateTime.relative.daysAgo', { n: diffDays })
+  if (diffSecs < 60)
+    return isFuture
+      ? t('field.kind.dateTime.relative.inFewSeconds')
+      : t('field.kind.dateTime.relative.fewSecondsAgo')
+  if (diffMins < 60)
+    return isFuture
+      ? t('field.kind.dateTime.relative.inMinutes', { n: diffMins })
+      : t('field.kind.dateTime.relative.minutesAgo', { n: diffMins })
+  if (diffHours < 24)
+    return isFuture
+      ? t('field.kind.dateTime.relative.inHours', { n: diffHours })
+      : t('field.kind.dateTime.relative.hoursAgo', { n: diffHours })
+  if (diffDays < 30)
+    return isFuture
+      ? t('field.kind.dateTime.relative.inDays', { n: diffDays })
+      : t('field.kind.dateTime.relative.daysAgo', { n: diffDays })
 
   return date.toLocaleDateString()
 }
-
 </script>

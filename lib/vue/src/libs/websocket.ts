@@ -2,14 +2,14 @@ import type { Auth } from '../plugins/auth'
 import { Make } from './url'
 
 export interface RealtimeClientOptions {
-  auth: Auth;
-  onMessage: (_message: MessageEvent<string>) => void;
-  onError?: (_event: Event) => void;
-  onOpen?: (_socket: WebSocket) => void;
-  onClose?: (_event: CloseEvent) => void;
-  reconnect?: boolean;
-  reconnectAttempts?: number;
-  reconnectDelay?: number;
+  auth: Auth
+  onMessage: (_message: MessageEvent<string>) => void
+  onError?: (_event: Event) => void
+  onOpen?: (_socket: WebSocket) => void
+  onClose?: (_event: CloseEvent) => void
+  reconnect?: boolean
+  reconnectAttempts?: number
+  reconnectDelay?: number
 }
 
 export function endpoint(): string {
@@ -123,10 +123,12 @@ export class RealtimeClient {
       return
     }
 
-    this.socket.send(JSON.stringify({
-      '@type': 'credentials',
-      '@value': { accessToken },
-    }))
+    this.socket.send(
+      JSON.stringify({
+        '@type': 'credentials',
+        '@value': { accessToken },
+      }),
+    )
   }
 }
 

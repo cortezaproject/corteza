@@ -1,9 +1,6 @@
 <template>
   <div v-if="filter.params && filter.params.length" class="flex flex-col gap-4">
-    <CFormGroup
-      v-for="(param, index) in filter.params"
-      :key="index"
-    >
+    <CFormGroup v-for="(param, index) in filter.params" :key="index">
       <template #label>
         {{ getParamLabel(param.label) }}
         <a
@@ -26,10 +23,7 @@
       </template>
 
       <!-- Boolean -->
-      <ToggleSwitch
-        v-if="param.type === 'bool'"
-        v-model="param.value"
-      />
+      <ToggleSwitch v-if="param.type === 'bool'" v-model="param.value" />
 
       <!-- Workflow picker -->
       <Select
@@ -56,11 +50,7 @@
 
       <!-- Response filter: input type -->
       <template v-else-if="filter.ref === 'response' && param.type === 'input'">
-        <Select
-          v-model="getInputValue(param).type"
-          :options="inputTypeOptions"
-          class="mb-2"
-        />
+        <Select v-model="getInputValue(param).type" :options="inputTypeOptions" class="mb-2" />
         <InputGroup>
           <InputGroupAddon>ƒ</InputGroupAddon>
           <InputText
@@ -112,10 +102,7 @@
       </InputGroup>
 
       <!-- Default text input -->
-      <InputText
-        v-else
-        v-model="param.value"
-      />
+      <InputText v-else v-model="param.value" />
     </CFormGroup>
   </div>
 </template>
@@ -163,7 +150,9 @@ const inputTypeOptions = [
 // otherwise humanizes the raw label (e.g. "jsfunc" → "Jsfunc")
 function getParamLabel(label) {
   const key = `system.apigw.editor.filters.labels.${label}`
-  return te(key) ? t(key) : (label || '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())
+  return te(key)
+    ? t(key)
+    : (label || '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())
 }
 
 // Null-safe getter for response input param value
@@ -200,5 +189,9 @@ async function loadWorkflows() {
   }
 }
 
-watch(() => props.filter, () => loadWorkflows(), { immediate: true })
+watch(
+  () => props.filter,
+  () => loadWorkflows(),
+  { immediate: true },
+)
 </script>

@@ -2,7 +2,9 @@
   <div class="flex flex-col gap-4">
     <div class="flex items-center gap-2">
       <Checkbox v-model="preload" binary input-id="preload" />
-      <label for="preload" class="text-sm">{{ $t('block.recordRevisions.configurator.preload') }}</label>
+      <label for="preload" class="text-sm">
+        {{ $t('block.recordRevisions.configurator.preload') }}
+      </label>
     </div>
 
     <CFormGroup
@@ -82,11 +84,15 @@ const sortDirection = computed({
 // --- Field picker for displayedFields ---
 const selectedFieldNames = ref([])
 
-watch(() => block.value.options?.displayedFields, (fields) => {
-  if (fields?.length) {
-    selectedFieldNames.value = fields.map(f => (typeof f === 'string' ? f : f.name))
-  }
-}, { immediate: true })
+watch(
+  () => block.value.options?.displayedFields,
+  fields => {
+    if (fields?.length) {
+      selectedFieldNames.value = fields.map(f => (typeof f === 'string' ? f : f.name))
+    }
+  },
+  { immediate: true },
+)
 
 const allModuleFields = computed(() => {
   if (!selectedModule.value) return []

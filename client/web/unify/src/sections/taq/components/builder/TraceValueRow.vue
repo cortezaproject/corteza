@@ -16,7 +16,9 @@
         ]"
       />
 
-      <span class="trace-key text-sm text-color font-medium shrink-0 whitespace-nowrap">{{ row.key }}</span>
+      <span class="trace-key text-sm text-color font-medium shrink-0 whitespace-nowrap">
+        {{ row.key }}
+      </span>
 
       <span class="trace-pill text-muted-color bg-emphasis shrink-0">{{ row.type }}</span>
 
@@ -25,8 +27,15 @@
           <Badge :value="String(row.count)" severity="secondary" />
         </template>
         <template v-else>
-          <span v-if="row.value === null || row.value === undefined" class="text-muted-color italic">null</span>
-          <span v-else-if="typeof row.value === 'string'" class="trace-value text-color">"{{ row.value }}"</span>
+          <span
+            v-if="row.value === null || row.value === undefined"
+            class="text-muted-color italic"
+          >
+            null
+          </span>
+          <span v-else-if="typeof row.value === 'string'" class="trace-value text-color">
+            "{{ row.value }}"
+          </span>
           <span v-else class="trace-value text-color">{{ String(row.value) }}</span>
         </template>
       </span>
@@ -56,14 +65,16 @@ const expanded = computed(() => {
   return manualExpanded.value
 })
 
-watch(() => props.search, (s) => {
-  if (!s) manualExpanded.value = false
-})
+watch(
+  () => props.search,
+  s => {
+    if (!s) manualExpanded.value = false
+  },
+)
 
 function toggle() {
   manualExpanded.value = !manualExpanded.value
 }
-
 </script>
 
 <style scoped>

@@ -11,7 +11,9 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const hasMorePages = computed(() => !!pageCursor.value)
   const hasUnread = computed(() => notifications.value.some(notification => !notification.readAt))
   const hasRead = computed(() => notifications.value.some(notification => !!notification.readAt))
-  const unreadCount = computed(() => notifications.value.filter(notification => !notification.readAt).length)
+  const unreadCount = computed(
+    () => notifications.value.filter(notification => !notification.readAt).length,
+  )
 
   function setNotifications(set: Array<system.Notification> = []) {
     notifications.value = set.map(notification => new system.Notification(notification))
@@ -98,15 +100,23 @@ export const useNotificationsStore = defineStore('notifications', () => {
     notifications.value.unshift(new system.Notification(notification))
   }
 
-  function updateReadNotification(notification: Partial<system.Notification> & { notificationID: string }) {
-    const existing = notifications.value.find(n => String(n.notificationID) === String(notification.notificationID))
+  function updateReadNotification(
+    notification: Partial<system.Notification> & { notificationID: string },
+  ) {
+    const existing = notifications.value.find(
+      n => String(n.notificationID) === String(notification.notificationID),
+    )
     if (existing) {
       existing.readAt = notification.readAt ? new Date(notification.readAt) : new Date()
     }
   }
 
-  function updateUnreadNotification(notification: Partial<system.Notification> & { notificationID: string }) {
-    const existing = notifications.value.find(n => String(n.notificationID) === String(notification.notificationID))
+  function updateUnreadNotification(
+    notification: Partial<system.Notification> & { notificationID: string },
+  ) {
+    const existing = notifications.value.find(
+      n => String(n.notificationID) === String(notification.notificationID),
+    )
     if (existing) {
       existing.readAt = undefined
     }
@@ -132,7 +142,9 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   function removeNotification(notification: { notificationID: string }) {
-    notifications.value = notifications.value.filter(n => String(n.notificationID) !== String(notification.notificationID))
+    notifications.value = notifications.value.filter(
+      n => String(n.notificationID) !== String(notification.notificationID),
+    )
   }
 
   // Applies a realtime websocket message if it is a notification.* type.

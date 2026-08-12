@@ -2,7 +2,9 @@
   <div class="flex flex-col gap-6">
     <!-- View mode -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.file.view.modeLabel') }}</label>
+      <label class="font-medium text-muted-color text-sm">
+        {{ $t('field.kind.file.view.modeLabel') }}
+      </label>
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <RadioButton inputId="modeList" v-model="field.options.mode" value="list" />
@@ -10,7 +12,9 @@
         </div>
         <div class="flex items-center gap-2">
           <RadioButton inputId="modeGallery" v-model="field.options.mode" value="gallery" />
-          <label for="modeGallery" class="cursor-pointer">{{ $t('field.kind.file.view.gallery') }}</label>
+          <label for="modeGallery" class="cursor-pointer">
+            {{ $t('field.kind.file.view.gallery') }}
+          </label>
         </div>
       </div>
       <small class="text-muted-color">{{ $t('field.kind.file.view.modeFootnote') }}</small>
@@ -18,18 +22,17 @@
 
     <!-- Max size -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.file.view.maxSizeLabel') }}</label>
-      <InputNumber
-        v-model="field.options.maxSize"
-        :min="0"
-        show-buttons
-        class="w-full md:w-1/2"
-      />
+      <label class="font-medium text-muted-color text-sm">
+        {{ $t('field.kind.file.view.maxSizeLabel') }}
+      </label>
+      <InputNumber v-model="field.options.maxSize" :min="0" show-buttons class="w-full md:w-1/2" />
     </div>
 
     <!-- MIME types -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.file.view.mimetypesLabel') }}</label>
+      <label class="font-medium text-muted-color text-sm">
+        {{ $t('field.kind.file.view.mimetypesLabel') }}
+      </label>
       <InputText v-model="field.options.mimetypes" class="w-full" />
       <small class="text-muted-color">{{ $t('field.kind.file.view.mimetypesFootnote') }}</small>
     </div>
@@ -38,19 +41,27 @@
     <div class="flex flex-col gap-3">
       <div class="flex items-center gap-2">
         <Checkbox v-model="field.options.clickToView" inputId="clickToView" :binary="true" />
-        <label for="clickToView" class="cursor-pointer">{{ $t('field.kind.file.view.clickToView') }}</label>
+        <label for="clickToView" class="cursor-pointer">
+          {{ $t('field.kind.file.view.clickToView') }}
+        </label>
       </div>
       <div class="flex items-center gap-2">
         <Checkbox v-model="field.options.enableDownload" inputId="enableDownload" :binary="true" />
-        <label for="enableDownload" class="cursor-pointer">{{ $t('field.kind.file.view.enableDownload') }}</label>
+        <label for="enableDownload" class="cursor-pointer">
+          {{ $t('field.kind.file.view.enableDownload') }}
+        </label>
       </div>
       <div class="flex items-center gap-2">
         <Checkbox v-model="field.options.enableWebcam" inputId="enableWebcam" :binary="true" />
-        <label for="enableWebcam" class="cursor-pointer">{{ $t('field.kind.file.view.webcam.enable.label') }}</label>
+        <label for="enableWebcam" class="cursor-pointer">
+          {{ $t('field.kind.file.view.webcam.enable.label') }}
+        </label>
       </div>
       <div v-if="field.options.mode === 'gallery'" class="flex items-center gap-2">
         <Checkbox v-model="field.options.hideFileName" inputId="hideFileName" :binary="true" />
-        <label for="hideFileName" class="cursor-pointer">{{ $t('field.kind.file.view.showName') }}</label>
+        <label for="hideFileName" class="cursor-pointer">
+          {{ $t('field.kind.file.view.showName') }}
+        </label>
       </div>
     </div>
 
@@ -77,7 +88,9 @@
           <InputText v-model="field.options.maxWidth" placeholder="300px" class="w-full" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.borderRadius') }}</label>
+          <label class="text-sm text-muted-color">
+            {{ $t('field.kind.file.view.borderRadius') }}
+          </label>
           <InputText v-model="field.options.borderRadius" placeholder="4px" class="w-full" />
         </div>
         <div class="flex flex-col gap-1">
@@ -88,10 +101,7 @@
 
       <div class="flex items-center gap-3">
         <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.background') }}</label>
-        <CInputColorPicker
-          v-model="field.options.backgroundColor"
-          show-text
-        />
+        <CInputColorPicker v-model="field.options.backgroundColor" show-text />
       </div>
     </div>
   </div>

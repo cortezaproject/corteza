@@ -13,7 +13,11 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import { useAutomationStore } from '@planetcrust/human-vue'
-import { applyDagreLayout, automationToVueFlow, type FlowNodeData } from '@/sections/taq/utils/taq-parser'
+import {
+  applyDagreLayout,
+  automationToVueFlow,
+  type FlowNodeData,
+} from '@/sections/taq/utils/taq-parser'
 
 const { NgAutomation } = automation
 type NgAutomationInstance = InstanceType<typeof NgAutomation>
@@ -1057,16 +1061,48 @@ export function useFlowEditor() {
     // so each click emits {scope:'invoker', source:'email'} which maps directly
     // to how the runtime resolves these names.
     const SYSTEM_USER_FIELDS = [
-      { name: t('builder.referencePanel.systemUser.userID'),         sourceName: 'userID',         types: ['ID'] },
-      { name: t('builder.referencePanel.systemUser.email'),          sourceName: 'email',          types: ['String'] },
-      { name: t('builder.referencePanel.systemUser.name'),           sourceName: 'name',           types: ['String'] },
-      { name: t('builder.referencePanel.systemUser.username'),       sourceName: 'username',       types: ['String'] },
-      { name: t('builder.referencePanel.systemUser.handle'),         sourceName: 'handle',         types: ['Handle'] },
-      { name: t('builder.referencePanel.systemUser.emailConfirmed'), sourceName: 'emailConfirmed', types: ['Boolean'] },
-      { name: t('builder.referencePanel.systemUser.createdAt'),      sourceName: 'createdAt',      types: ['DateTime'] },
-      { name: t('builder.referencePanel.systemUser.updatedAt'),      sourceName: 'updatedAt',      types: ['DateTime'] },
-      { name: t('builder.referencePanel.systemUser.deletedAt'),      sourceName: 'deletedAt',      types: ['DateTime'] },
-      { name: t('builder.referencePanel.systemUser.suspendedAt'),    sourceName: 'suspendedAt',    types: ['DateTime'] },
+      { name: t('builder.referencePanel.systemUser.userID'), sourceName: 'userID', types: ['ID'] },
+      {
+        name: t('builder.referencePanel.systemUser.email'),
+        sourceName: 'email',
+        types: ['String'],
+      },
+      { name: t('builder.referencePanel.systemUser.name'), sourceName: 'name', types: ['String'] },
+      {
+        name: t('builder.referencePanel.systemUser.username'),
+        sourceName: 'username',
+        types: ['String'],
+      },
+      {
+        name: t('builder.referencePanel.systemUser.handle'),
+        sourceName: 'handle',
+        types: ['Handle'],
+      },
+      {
+        name: t('builder.referencePanel.systemUser.emailConfirmed'),
+        sourceName: 'emailConfirmed',
+        types: ['Boolean'],
+      },
+      {
+        name: t('builder.referencePanel.systemUser.createdAt'),
+        sourceName: 'createdAt',
+        types: ['DateTime'],
+      },
+      {
+        name: t('builder.referencePanel.systemUser.updatedAt'),
+        sourceName: 'updatedAt',
+        types: ['DateTime'],
+      },
+      {
+        name: t('builder.referencePanel.systemUser.deletedAt'),
+        sourceName: 'deletedAt',
+        types: ['DateTime'],
+      },
+      {
+        name: t('builder.referencePanel.systemUser.suspendedAt'),
+        sourceName: 'suspendedAt',
+        types: ['DateTime'],
+      },
     ]
 
     upstream.push(
@@ -1099,7 +1135,8 @@ export function useFlowEditor() {
         // Agent trigger: properties come from the node's own inputSchema, not the catalog.
         // Each TAQ declares its own params, so the catalog definition is empty.
         if (eventType === 'onAgentic' || resourceType === 'automation:trigger:agentic') {
-          const schema = (node.data?.inputSchema as Array<{ name: string; type: string }> | undefined) || []
+          const schema =
+            (node.data?.inputSchema as Array<{ name: string; type: string }> | undefined) || []
           if (!schema.length) continue
 
           upstream.push({
@@ -1447,18 +1484,24 @@ export function useFlowEditor() {
           resourceType === 'automation:trigger:agentic' ||
           resourceType?.startsWith('automation:trigger-definition:')
         ) {
-          const schema: Array<{ name: string; type: string; required?: boolean; description?: string }> =
-            node.data?.inputSchema || []
-          schema.filter(p => p.name).forEach(p => {
-            if (!allProperties.has(p.name)) {
-              allProperties.set(p.name, {
-                name: p.name,
-                type: p.type || 'String',
-                required: !!p.required,
-                meta: { short: p.name, description: p.description || '' },
-              })
-            }
-          })
+          const schema: Array<{
+            name: string
+            type: string
+            required?: boolean
+            description?: string
+          }> = node.data?.inputSchema || []
+          schema
+            .filter(p => p.name)
+            .forEach(p => {
+              if (!allProperties.has(p.name)) {
+                allProperties.set(p.name, {
+                  name: p.name,
+                  type: p.type || 'String',
+                  required: !!p.required,
+                  meta: { short: p.name, description: p.description || '' },
+                })
+              }
+            })
           return
         }
 

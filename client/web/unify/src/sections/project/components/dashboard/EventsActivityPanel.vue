@@ -129,11 +129,19 @@ function dayLabel(d) {
   const yesterday = new Date()
   yesterday.setDate(today.getDate() - 1)
   if (d.toDateString() === today.toDateString()) return t('project.dashboard.activity.today')
-  if (d.toDateString() === yesterday.toDateString()) return t('project.dashboard.activity.yesterday')
+  if (d.toDateString() === yesterday.toDateString())
+    return t('project.dashboard.activity.yesterday')
   return locDate(d)
 }
 
-const metrics = reactive({ labels: [], rangeLabels: [], series: [], total: 0, actors: 0, errors: 0 })
+const metrics = reactive({
+  labels: [],
+  rangeLabels: [],
+  series: [],
+  total: 0,
+  actors: 0,
+  errors: 0,
+})
 const recent = ref([])
 const failed = ref(false)
 

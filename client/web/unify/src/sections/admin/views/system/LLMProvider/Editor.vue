@@ -69,7 +69,11 @@
 
           <Divider class="md:col-span-2" />
 
-          <CFormGroup name="provider" :label="$t('system.llmProviders.editor.info.provider')" required>
+          <CFormGroup
+            name="provider"
+            :label="$t('system.llmProviders.editor.info.provider')"
+            required
+          >
             <Select
               id="provider"
               name="provider"
@@ -88,7 +92,12 @@
             <InputText id="promptURL" v-model="llmProvider.config.promptURL" />
           </CFormGroup>
 
-          <CFormGroup v-if="!isEdit" name="apiKey" :label="$t('system.llmProviders.editor.info.apiKey')" required>
+          <CFormGroup
+            v-if="!isEdit"
+            name="apiKey"
+            :label="$t('system.llmProviders.editor.info.apiKey')"
+            required
+          >
             <InputText id="apiKey" name="apiKey" v-model="apiKey" />
           </CFormGroup>
         </div>
@@ -104,12 +113,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 
@@ -208,9 +212,7 @@ const resolver = ref(({ values }) => {
   }
 
   if (values.handle && !/^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$|^[A-Za-z]$/.test(values.handle)) {
-    errors.handle = [
-      { message: t('system.llmProviders.editor.info.invalid-handle-characters') },
-    ]
+    errors.handle = [{ message: t('system.llmProviders.editor.info.invalid-handle-characters') }]
   }
 
   return { errors }

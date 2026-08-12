@@ -69,8 +69,14 @@ export const FederationAPIPlugin = {
 
 export const DiscoveryAPIPlugin = {
   install(app: App, opt: Options) {
-    const baseURL = opt?.baseURL ?? (window as unknown as Record<string, string>).HumanDiscoveryAPI ?? 'http://localhost:3200/'
-    const DiscoveryAPI = new apiClients.Discovery({ baseURL, accessTokenFn: getAccessTokenFn(app, opt) })
+    const baseURL =
+      opt?.baseURL ??
+      (window as unknown as Record<string, string>).HumanDiscoveryAPI ??
+      'http://localhost:3200/'
+    const DiscoveryAPI = new apiClients.Discovery({
+      baseURL,
+      accessTokenFn: getAccessTokenFn(app, opt),
+    })
     app.config.globalProperties.$DiscoveryAPI = DiscoveryAPI
     app.provide('$DiscoveryAPI', DiscoveryAPI)
   },

@@ -36,10 +36,14 @@ function record(values: Record<string, unknown> = {}) {
 }
 
 function mountViewer(props: Record<string, unknown>) {
-  return mountWithContext(CFieldRecordViewer, { namespace: { namespaceID: 'ns1' } }, {
-    props: { namespace: { namespaceID: 'ns1' }, ...props },
-    global: { stubs: { CFieldViewer: CFieldViewerStub } },
-  })
+  return mountWithContext(
+    CFieldRecordViewer,
+    { namespace: { namespaceID: 'ns1' } },
+    {
+      props: { namespace: { namespaceID: 'ns1' }, ...props },
+      global: { stubs: { CFieldViewer: CFieldViewerStub } },
+    },
+  )
 }
 
 describe('CFieldRecordViewer', () => {
@@ -79,13 +83,19 @@ describe('CFieldRecordViewer', () => {
 
   describe('with resolved record', () => {
     it('renders the implicit first field via CFieldViewer', () => {
-      getByID.mockReturnValue({ recordID: 'r1', values: { title: 'My Record', email: 'a@test.com' } })
+      getByID.mockReturnValue({
+        recordID: 'r1',
+        values: { title: 'My Record', email: 'a@test.com' },
+      })
       const wrapper = mountViewer({ field: field(), record: record({ ref: 'r1' }) })
       expect(wrapper.find('.cfv').text()).toBe('My Record')
     })
 
     it('uses labelField from field options', () => {
-      getByID.mockReturnValue({ recordID: 'r1', values: { title: 'My Record', email: 'a@test.com' } })
+      getByID.mockReturnValue({
+        recordID: 'r1',
+        values: { title: 'My Record', email: 'a@test.com' },
+      })
       const wrapper = mountViewer({
         field: field({ options: { moduleID: 'm1', labelField: 'email' } }),
         record: record({ ref: 'r1' }),
@@ -103,7 +113,10 @@ describe('CFieldRecordViewer', () => {
 
   describe('delimiter', () => {
     it('uses default ", " delimiter between multi values', () => {
-      getByID.mockImplementation((id: string) => ({ recordID: id, values: { title: id === 'a' ? 'Rec A' : 'Rec B' } }))
+      getByID.mockImplementation((id: string) => ({
+        recordID: id,
+        values: { title: id === 'a' ? 'Rec A' : 'Rec B' },
+      }))
       const wrapper = mountViewer({
         field: field({ isMulti: true }),
         record: record({ ref: ['a', 'b'] }),

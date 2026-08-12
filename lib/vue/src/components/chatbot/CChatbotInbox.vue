@@ -261,9 +261,7 @@
                 <div
                   :class="[
                     'p-3 rounded-xl max-w-[85%] text-sm shadow-sm',
-                    msg.isPrimary
-                      ? 'bg-primary text-primary-contrast'
-                      : 'bg-emphasis text-color',
+                    msg.isPrimary ? 'bg-primary text-primary-contrast' : 'bg-emphasis text-color',
                     msg.role === 'user' ? 'whitespace-pre-wrap' : '',
                   ]"
                 >
@@ -332,9 +330,7 @@ function l(key, params) {
   const raw = props.translations[key]
   if (raw == null) return ''
   if (params && typeof raw === 'string') {
-    return raw.replace(/\{(\w+)\}/g, (_, k) =>
-      params[k] !== undefined ? String(params[k]) : '',
-    )
+    return raw.replace(/\{(\w+)\}/g, (_, k) => (params[k] !== undefined ? String(params[k]) : ''))
   }
   return raw
 }

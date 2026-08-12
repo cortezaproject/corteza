@@ -155,12 +155,21 @@ function weekRangeLabel(start, toDate) {
 
   const startMonthDay = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   if (start.getFullYear() === end.getFullYear()) {
-    if (start.getMonth() === end.getMonth()) return `${startMonthDay} – ${end.getDate()}, ${end.getFullYear()}`
+    if (start.getMonth() === end.getMonth())
+      return `${startMonthDay} – ${end.getDate()}, ${end.getFullYear()}`
     const endMonthDay = end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
     return `${startMonthDay} – ${endMonthDay}, ${end.getFullYear()}`
   }
-  const startFull = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  const endFull = end.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  const startFull = start.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const endFull = end.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
   return `${startFull} – ${endFull}`
 }
 
@@ -245,7 +254,14 @@ export function adaptiveWindow(from, to) {
     bucket = points => bucketMonthly(points, starts)
   }
 
-  return { fromISO: fromDate.toISOString(), toISO: toDate.toISOString(), starts, labels, rangeLabels, bucket }
+  return {
+    fromISO: fromDate.toISOString(),
+    toISO: toDate.toISOString(),
+    starts,
+    labels,
+    rangeLabels,
+    bucket,
+  }
 }
 
 // Earliest point date across one or more fetched series, as a Date — how the

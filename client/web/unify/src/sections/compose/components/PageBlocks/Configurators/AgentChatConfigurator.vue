@@ -55,17 +55,23 @@ const opts = computed(() => block.value.options)
 
 const allowedAgentIDs = computed({
   get: () => opts.value.allowedAgentIDs,
-  set: v => { opts.value.allowedAgentIDs = (v || []).map(String) },
+  set: v => {
+    opts.value.allowedAgentIDs = (v || []).map(String)
+  },
 })
 
 const defaultAgentID = computed({
   get: () => opts.value.defaultAgentID,
-  set: v => { opts.value.defaultAgentID = v ? String(v) : '' },
+  set: v => {
+    opts.value.defaultAgentID = v ? String(v) : ''
+  },
 })
 
 const autoResume = computed({
   get: () => opts.value.autoResume,
-  set: v => { opts.value.autoResume = !!v },
+  set: v => {
+    opts.value.autoResume = !!v
+  },
 })
 
 // Default agent picker is constrained to whatever the allowlist contains so

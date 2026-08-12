@@ -1,10 +1,6 @@
 <template>
   <div>
-    <p
-      v-if="formatted"
-      :class="viewerClasses"
-      v-html="formatted"
-    />
+    <p v-if="formatted" :class="viewerClasses" v-html="formatted" />
   </div>
 </template>
 

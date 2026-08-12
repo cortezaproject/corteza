@@ -1,11 +1,7 @@
 <template>
   <!-- Checkbox group mode (multi + list selectType) -->
   <div v-if="isListType && field.isMulti" class="flex flex-col gap-2">
-    <div
-      v-for="option in selectOptions"
-      :key="option.value"
-      class="flex items-center gap-2"
-    >
+    <div v-for="option in selectOptions" :key="option.value" class="flex items-center gap-2">
       <Checkbox
         :input-id="`select-${field.fieldID}-${option.value}`"
         :model-value="multiValue"
@@ -26,11 +22,7 @@
 
   <!-- Radio button group mode (single + list selectType) -->
   <div v-else-if="isListType" class="flex flex-col gap-2">
-    <div
-      v-for="option in selectOptions"
-      :key="option.value"
-      class="flex items-center gap-2"
-    >
+    <div v-for="option in selectOptions" :key="option.value" class="flex items-center gap-2">
       <RadioButton
         :input-id="`select-${field.fieldID}-${option.value}`"
         :model-value="modelValue"
@@ -119,9 +111,13 @@ const props = defineProps({
 defineEmits(['update:modelValue'])
 
 const isBadgeDisplay = computed(() => props.field.options?.displayType === 'badge')
-const isMultipleType = computed(() => props.field.isMulti && props.field.options?.selectType === 'multiple')
+const isMultipleType = computed(
+  () => props.field.isMulti && props.field.options?.selectType === 'multiple',
+)
 const isListType = computed(() => props.field.options?.selectType === 'list')
-const selectOptions = computed(() => (props.field.options?.options || []).filter(o => o.value && o.text))
+const selectOptions = computed(() =>
+  (props.field.options?.options || []).filter(o => o.value && o.text),
+)
 
 // Filter out already-selected values when isUniqueMultiValue is set
 const availableOptions = computed(() => {
@@ -170,4 +166,3 @@ function badgeInlineStyle(val) {
   }
 }
 </script>
-

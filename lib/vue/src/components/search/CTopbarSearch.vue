@@ -83,11 +83,7 @@
 
       <!-- Results -->
       <div v-else-if="hasResults" class="flex-1 overflow-auto">
-        <div
-          v-for="ns in sortedGroups"
-          :key="ns.id"
-          class="border-b border-surface"
-        >
+        <div v-for="ns in sortedGroups" :key="ns.id" class="border-b border-surface">
           <ItemGroup
             :title="ns.name"
             :items="ns.items"

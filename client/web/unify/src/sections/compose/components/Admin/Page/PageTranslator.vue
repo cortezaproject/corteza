@@ -38,13 +38,9 @@ const $ComposeAPI = inject('$ComposeAPI') as any
 const { t } = useI18n()
 const { currentLanguage } = useResourceTranslations()
 
-const isEdit = computed(() =>
-  props.page?.pageID && props.page.pageID !== '0',
-)
+const isEdit = computed(() => props.page?.pageID && props.page.pageID !== '0')
 
-const resource = computed(() =>
-  `compose:page/${props.namespace.namespaceID}/${props.page.pageID}`,
-)
+const resource = computed(() => `compose:page/${props.namespace.namespaceID}/${props.page.pageID}`)
 
 const titles = computed(() => {
   const tt: Record<string, string> = {}
@@ -70,14 +66,12 @@ const titles = computed(() => {
 
 function fetcher() {
   const { namespaceID, pageID } = props.page
-  return $ComposeAPI
-    .pageListTranslations({ namespaceID, pageID })
-    .then((set: any[]) => {
-      if (props.block) {
-        return set.filter((tr: any) => tr.key.startsWith(`pageBlock.${props.block.blockID}.`))
-      }
-      return set
-    })
+  return $ComposeAPI.pageListTranslations({ namespaceID, pageID }).then((set: any[]) => {
+    if (props.block) {
+      return set.filter((tr: any) => tr.key.startsWith(`pageBlock.${props.block.blockID}.`))
+    }
+    return set
+  })
 }
 
 async function updater(changes: any[]) {

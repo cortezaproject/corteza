@@ -40,17 +40,21 @@ const router = useRouter()
 const route = useRoute()
 const pageStore = usePageStore()
 
-const homePage = computed(() =>
-  [...pageStore.set]
-    .filter(p => p.visible && p.selfID === NoID && p.moduleID === NoID)
-    .sort((a, b) => a.weight - b.weight)[0],
+const homePage = computed(
+  () =>
+    [...pageStore.set]
+      .filter(p => p.visible && p.selfID === NoID && p.moduleID === NoID)
+      .sort((a, b) => a.weight - b.weight)[0],
 )
 
 const redirecting = computed(() => !!homePage.value)
 
 watchEffect(() => {
   if (homePage.value) {
-    router.replace({ name: 'page', params: { slug: route.params.slug, pageID: homePage.value.pageID } })
+    router.replace({
+      name: 'page',
+      params: { slug: route.params.slug, pageID: homePage.value.pageID },
+    })
   }
 })
 

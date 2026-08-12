@@ -13,18 +13,19 @@
       :min-width="160"
       :min-height="80"
       :line-style="{ borderColor: 'var(--p-primary-color)' }"
-      :handle-style="{ backgroundColor: 'var(--p-primary-color)', borderColor: 'transparent', width: '9px', height: '9px' }"
+      :handle-style="{
+        backgroundColor: 'var(--p-primary-color)',
+        borderColor: 'transparent',
+        width: '9px',
+        height: '9px',
+      }"
       @resize="onResize"
     />
 
     <div v-if="isSwimlane" class="visual-node__swimlane-label">
       {{ data?.label || '' }}
     </div>
-    <div
-      v-else-if="data?.label"
-      class="visual-node__content"
-      v-html="data.label"
-    />
+    <div v-else-if="data?.label" class="visual-node__content" v-html="data.label" />
     <div v-else class="visual-node__content visual-node__content--placeholder">
       {{ t('steps.content.placeholder') }}
     </div>
@@ -53,7 +54,7 @@ const { findNode } = useVueFlow()
 const isSwimlane = computed(() => props.data?.ref === 'swimlane')
 const isContent = computed(() => props.data?.ref === 'content')
 
-function onResize ({ params }) {
+function onResize({ params }) {
   const { width, height } = params || {}
   if (width == null || height == null) return
   const node = findNode(props.id)
@@ -138,19 +139,45 @@ function onResize ({ params }) {
 
 /* Basic typographic styles so rich-text output (from any WYSIWYG) renders
    with sensible defaults. Scoped to .visual-node__content only. */
-.visual-node__content :deep(h1) { font-size: 1.4em; font-weight: 700; margin: 0 0 0.4em; }
-.visual-node__content :deep(h2) { font-size: 1.2em; font-weight: 700; margin: 0 0 0.35em; }
-.visual-node__content :deep(h3) { font-size: 1.05em; font-weight: 700; margin: 0 0 0.3em; }
-.visual-node__content :deep(p) { margin: 0 0 0.5em; }
+.visual-node__content :deep(h1) {
+  font-size: 1.4em;
+  font-weight: 700;
+  margin: 0 0 0.4em;
+}
+.visual-node__content :deep(h2) {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin: 0 0 0.35em;
+}
+.visual-node__content :deep(h3) {
+  font-size: 1.05em;
+  font-weight: 700;
+  margin: 0 0 0.3em;
+}
+.visual-node__content :deep(p) {
+  margin: 0 0 0.5em;
+}
 .visual-node__content :deep(ul),
-.visual-node__content :deep(ol) { margin: 0 0 0.5em; padding-left: 1.4em; }
-.visual-node__content :deep(li) { margin: 0.15em 0; }
-.visual-node__content :deep(a) { color: var(--p-primary-color); text-decoration: underline; }
-.visual-node__content :deep(strong) { font-weight: 700; }
-.visual-node__content :deep(em) { font-style: italic; }
+.visual-node__content :deep(ol) {
+  margin: 0 0 0.5em;
+  padding-left: 1.4em;
+}
+.visual-node__content :deep(li) {
+  margin: 0.15em 0;
+}
+.visual-node__content :deep(a) {
+  color: var(--p-primary-color);
+  text-decoration: underline;
+}
+.visual-node__content :deep(strong) {
+  font-weight: 700;
+}
+.visual-node__content :deep(em) {
+  font-style: italic;
+}
 .visual-node__content :deep(code) {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  background: var(--p-surface-100, rgba(0,0,0,0.05));
+  background: var(--p-surface-100, rgba(0, 0, 0, 0.05));
   padding: 0 0.2em;
   border-radius: 3px;
 }

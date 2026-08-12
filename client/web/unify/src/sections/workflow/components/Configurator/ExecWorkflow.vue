@@ -4,7 +4,7 @@ import Function from './Function.vue'
 export default {
   extends: Function,
 
-  data () {
+  data() {
     return {
       showFunctionList: false,
       expressionResults: true,
@@ -14,14 +14,14 @@ export default {
     }
   },
 
-  mounted () {
+  mounted() {
     if (!this.workflowOptions.length) {
       this.searchWorkflows('', () => {})
     }
   },
 
   methods: {
-    async getFunctionTypes () {
+    async getFunctionTypes() {
       this.functions = [
         {
           ref: 'exec-workflow',
@@ -32,17 +32,12 @@ export default {
           parameters: [
             {
               name: 'workflow',
-              types: [
-                'ID',
-                'Handle',
-              ],
+              types: ['ID', 'Handle'],
               required: true,
             },
             {
               name: 'scope',
-              types: [
-                'Vars',
-              ],
+              types: ['Vars'],
               required: false,
             },
           ],
@@ -51,10 +46,11 @@ export default {
       ]
     },
 
-    searchWorkflows (query = '', loading) {
+    searchWorkflows(query = '', loading) {
       loading(true)
 
-      this.$AutomationAPI.workflowList({ query, subWorkflow: 2 })
+      this.$AutomationAPI
+        .workflowList({ query, subWorkflow: 2 })
         .then(({ set = [] }) => {
           this.workflowOptions = set.map(m => Object.freeze(m))
         })
@@ -66,11 +62,11 @@ export default {
         })
     },
 
-    getWorkflowLabel ({ workflowID, handle, meta = {} }) {
+    getWorkflowLabel({ workflowID, handle, meta = {} }) {
       return meta.name || handle || workflowID
     },
 
-    getWorkflowKey ({ workflowID, handle }) {
+    getWorkflowKey({ workflowID, handle }) {
       return handle || workflowID
     },
   },

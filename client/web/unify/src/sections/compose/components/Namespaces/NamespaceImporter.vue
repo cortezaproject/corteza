@@ -53,7 +53,12 @@
             :placeholder="$t('namespace.slug.placeholder')"
             :invalid="slug.length > 0 && !slugValid"
           />
-          <Message v-if="slug.length > 0 && !slugValid" severity="error" size="small" variant="simple">
+          <Message
+            v-if="slug.length > 0 && !slugValid"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
             {{ $t('namespace.slug.invalid-handle-characters') }}
           </Message>
         </CFormGroup>

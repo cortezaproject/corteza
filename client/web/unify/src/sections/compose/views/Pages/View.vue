@@ -79,7 +79,10 @@ const pageLayoutStore = usePageLayoutStore()
 const $SystemAPI = inject('$SystemAPI', null)
 const $Auth = inject('$Auth', null)
 
-const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $Auth)
+const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility(
+  $SystemAPI,
+  $Auth,
+)
 const { showTranslatorButton } = useResourceTranslations()
 
 const loading = ref(false)

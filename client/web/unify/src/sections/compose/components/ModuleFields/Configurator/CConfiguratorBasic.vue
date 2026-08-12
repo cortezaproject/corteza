@@ -47,7 +47,10 @@
       </div>
     </div>
 
-    <Divider layout="horizontal" v-if="showValueExpr || (showDefaultValue && defaultValueEnabled)" />
+    <Divider
+      layout="horizontal"
+      v-if="showValueExpr || (showDefaultValue && defaultValueEnabled)"
+    />
 
     <!-- Value Expression / Default Value Editor -->
     <CFormGroup
@@ -75,7 +78,10 @@
       />
     </CFormGroup>
 
-    <Divider layout="horizontal" v-if="showValueExpr || (showDefaultValue && defaultValueEnabled)" />
+    <Divider
+      layout="horizontal"
+      v-if="showValueExpr || (showDefaultValue && defaultValueEnabled)"
+    />
 
     <!-- Description (View / Edit) -->
     <div class="flex flex-col gap-5 mt-2">
@@ -195,13 +201,11 @@ function onMockValueChange(val) {
 const showValueExpr = ref(false)
 const valueExpression = computed({
   get: () => field.value.expressions?.value || '',
-  set: (val) => {
+  set: val => {
     if (!field.value.expressions) field.value.expressions = {}
     field.value.expressions.value = val || undefined
   },
 })
-
-
 
 // Initialize local state based on field options
 onMounted(() => {
@@ -228,11 +232,10 @@ onMounted(() => {
   if (field.value.expressions.value && field.value.expressions.value.length > 0) {
     showValueExpr.value = true
   }
-
 })
 
 // Sync default value back to field
-watch(defaultValueEnabled, (val) => {
+watch(defaultValueEnabled, val => {
   if (!val) {
     field.value.defaultValue = []
   } else {
@@ -243,7 +246,7 @@ watch(defaultValueEnabled, (val) => {
   }
 })
 
-watch(showValueExpr, (val) => {
+watch(showValueExpr, val => {
   if (val) {
     field.value.isRequired = false
     field.value.defaultValue = []

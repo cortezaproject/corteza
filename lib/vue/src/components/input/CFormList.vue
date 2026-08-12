@@ -8,7 +8,10 @@
     </div>
 
     <!-- Bounded table: header bar + divided rows inside a single border. -->
-    <div v-else class="flex flex-col min-w-max rounded-border border border-surface bg-surface overflow-hidden">
+    <div
+      v-else
+      class="flex flex-col min-w-max rounded-border border border-surface bg-surface overflow-hidden"
+    >
       <!-- Column headers (the `cform-list-header` class is a stable hook for
            consumers that restyle the list). -->
       <div
@@ -24,7 +27,10 @@
           :class="col.headerClass"
         >
           <!-- Same required marker as CFormGroup labels -->
-          <span v-if="col.label">{{ col.label }}<span v-if="col.required" class="text-red-500">*</span></span>
+          <span v-if="col.label">
+            {{ col.label }}
+            <span v-if="col.required" class="text-red-500">*</span>
+          </span>
           <i
             v-if="col.tooltip"
             v-tooltip.top="col.tooltip"

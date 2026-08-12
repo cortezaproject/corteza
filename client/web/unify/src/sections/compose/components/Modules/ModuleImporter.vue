@@ -53,16 +53,8 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          <div
-            v-for="(item, index) in parsedItems"
-            :key="index"
-            class="flex items-center gap-2"
-          >
-            <Checkbox
-              v-model="item.import"
-              :binary="true"
-              :input-id="`import-item-${index}`"
-            />
+          <div v-for="(item, index) in parsedItems" :key="index" class="flex items-center gap-2">
+            <Checkbox v-model="item.import" :binary="true" :input-id="`import-item-${index}`" />
             <label :for="`import-item-${index}`" class="cursor-pointer">
               {{ item.name || item.title }}
             </label>

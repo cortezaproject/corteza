@@ -1,9 +1,5 @@
 <template>
-  <BoardPanel
-    :project-id="rootProjectId"
-    :revision-id="revisionId"
-    :disabled="disabled"
-  />
+  <BoardPanel :project-id="rootProjectId" :revision-id="revisionId" :disabled="disabled" />
 </template>
 
 <script setup>

@@ -26,7 +26,7 @@ import { useVueFlow } from '@vue-flow/core'
  * @param {(ids?: string[]) => void} [opts.updateNodeInternals] explicit
  *   remeasure callback; overrides the auto-resolved VueFlow one.
  */
-export function useWorkflowHistory (nodes, edges, opts = {}) {
+export function useWorkflowHistory(nodes, edges, opts = {}) {
   // Each entry:
   //   { type: 'full',  nodes: Map<id, frozenSnap>, edges: Map<id, frozenSnap> }
   //   { type: 'delta', nodes: Delta, edges: Delta }
@@ -42,11 +42,10 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
   let needsCheckpoint = false
 
   const vfId = opts.vfId ?? 'workflow-editor-flow'
-  let resolvedUpdate = typeof opts.updateNodeInternals === 'function'
-    ? opts.updateNodeInternals
-    : null
+  let resolvedUpdate =
+    typeof opts.updateNodeInternals === 'function' ? opts.updateNodeInternals : null
 
-  function remeasure (ids) {
+  function remeasure(ids) {
     if (!resolvedUpdate) {
       try {
         const vf = useVueFlow(vfId)
@@ -62,7 +61,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
     }
   }
 
-  function snapshotNode (n) {
+  function snapshotNode(n) {
     return {
       id: n.id,
       type: n.type,
@@ -76,7 +75,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
     }
   }
 
-  function snapshotEdge (e) {
+  function snapshotEdge(e) {
     return {
       id: e.id,
       source: e.source,
@@ -91,12 +90,12 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
   }
 
   // Build a Map<id, frozenSnap> from a reactive array.
-  function toMap (arr, snapshotFn) {
+  function toMap(arr, snapshotFn) {
     return new Map(arr.map(x => [x.id, Object.freeze(snapshotFn(x))]))
   }
 
   // Compute what changed between two Maps. Returns a Delta.
-  function computeDelta (prevMap, currMap) {
+  function computeDelta(prevMap, currMap) {
     const added = []
     const removed = []
     const changed = []
@@ -114,7 +113,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
   }
 
   // Apply a Delta to a Map, returning a new Map (non-mutating).
-  function applyDelta (map, delta) {
+  function applyDelta(map, delta) {
     const next = new Map(map)
     for (const id of delta.removed) next.delete(id)
     for (const snap of delta.added) next.set(snap.id, snap)
@@ -124,7 +123,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
 
   // Reconstruct full node/edge Maps at the given history index.
   // Walks back to the nearest full checkpoint, then replays deltas forward.
-  function reconstructAt (index) {
+  function reconstructAt(index) {
     let base = index
     while (base > 0 && history.value[base].type !== 'full') base--
     let nodeMap = new Map(history.value[base].nodes)
@@ -136,7 +135,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
     return { nodeMap, edgeMap }
   }
 
-  function restore ({ nodeMap, edgeMap }) {
+  function restore({ nodeMap, edgeMap }) {
     skipwatch.value = true
 
     const currentNodeById = new Map(nodes.value.map(n => [n.id, n]))
@@ -189,7 +188,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
     })
   }
 
-  function saveToHistory () {
+  function saveToHistory() {
     if (skipwatch.value) return
 
     const currNodeMap = toMap(nodes.value, snapshotNode)
@@ -234,7 +233,7 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
   // Reset to a clean single-entry history using the current nodes/edges as the
   // new base. Called after the workflow is initially loaded so that the loaded
   // state is the floor — undo is disabled until the user makes a real change.
-  function resetHistory () {
+  function resetHistory() {
     const currNodeMap = toMap(nodes.value, snapshotNode)
     const currEdgeMap = toMap(edges.value, snapshotEdge)
     history.value = [{ type: 'full', nodes: currNodeMap, edges: currEdgeMap }]
@@ -242,14 +241,14 @@ export function useWorkflowHistory (nodes, edges, opts = {}) {
     pointer.value = 0
   }
 
-  function undo () {
+  function undo() {
     if (pointer.value > 0) {
       pointer.value--
       restore(reconstructAt(pointer.value))
     }
   }
 
-  function redo () {
+  function redo() {
     if (pointer.value < history.value.length - 1) {
       pointer.value++
       restore(reconstructAt(pointer.value))

@@ -37,11 +37,7 @@
             size="small"
             @click="resetExpression"
           />
-          <Button
-            :label="$t('general.save')"
-            size="small"
-            @click="saveExpression"
-          />
+          <Button :label="$t('general.save')" size="small" @click="saveExpression" />
         </div>
       </template>
     </Dialog>
@@ -60,7 +56,7 @@ export default {
 
   extends: base,
 
-  data () {
+  data() {
     return {
       expressionEditor: {
         currentExpression: undefined,
@@ -68,12 +64,14 @@ export default {
     }
   },
 
-  created () {
-    let args = [{
-      target: 'message',
-      type: 'String',
-      expr: '',
-    }]
+  created() {
+    let args = [
+      {
+        target: 'message',
+        type: 'String',
+        expr: '',
+      },
+    ]
 
     if (this.item.config.arguments && this.item.config.arguments.length) {
       args = this.item.config.arguments.map(({ target, type, value, expr }) => {
@@ -89,7 +87,7 @@ export default {
   },
 
   methods: {
-    valueChanged (value) {
+    valueChanged(value) {
       this.$emit('update-default-value', {
         value: `Stop workflow with error: ${value}`,
         force: !this.item.node.value,
@@ -97,11 +95,11 @@ export default {
       eventBus.emit('change-detected')
     },
 
-    openInEditor () {
+    openInEditor() {
       this.expressionEditor.currentExpression = this.item.config.arguments[0].expr
     },
 
-    saveExpression () {
+    saveExpression() {
       const { currentExpression } = this.expressionEditor
       this.item.config.arguments[0]['expr'] = currentExpression
       eventBus.emit('change-detected')
@@ -109,7 +107,7 @@ export default {
       this.resetExpression()
     },
 
-    resetExpression () {
+    resetExpression() {
       this.expressionEditor.currentExpression = undefined
     },
   },

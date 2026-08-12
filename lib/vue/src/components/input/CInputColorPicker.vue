@@ -20,7 +20,14 @@
           </defs>
           <circle cx="16" cy="16" r="15" :fill="`url(#${patternId})`" />
           <circle cx="16" cy="16" r="15" :fill="displayColor" />
-          <circle cx="16" cy="16" r="15" fill="none" stroke="var(--p-content-border-color)" stroke-width="1" />
+          <circle
+            cx="16"
+            cy="16"
+            r="15"
+            fill="none"
+            stroke="var(--p-content-border-color)"
+            stroke-width="1"
+          />
         </svg>
         <svg v-else viewBox="0 0 32 32" :style="{ width, height }">
           <defs>
@@ -33,7 +40,16 @@
           </defs>
           <rect x="0.5" y="0.5" width="31" height="31" rx="4" :fill="`url(#${patternId})`" />
           <rect x="0.5" y="0.5" width="31" height="31" rx="4" :fill="displayColor" />
-          <rect x="0.5" y="0.5" width="31" height="31" rx="4" fill="none" stroke="var(--p-content-border-color)" stroke-width="1" />
+          <rect
+            x="0.5"
+            y="0.5"
+            width="31"
+            height="31"
+            rx="4"
+            fill="none"
+            stroke="var(--p-content-border-color)"
+            stroke-width="1"
+          />
         </svg>
       </button>
     </slot>
@@ -46,11 +62,7 @@
     <Popover ref="popover" class="c-color-popover">
       <div class="flex flex-col gap-3 p-2">
         <!-- Color picker -->
-        <ColorPicker
-          v-model="pickerHex"
-          inline
-          class="c-color-picker-inline"
-        />
+        <ColorPicker v-model="pickerHex" inline class="c-color-picker-inline" />
 
         <!-- Alpha slider -->
         <div class="flex items-center gap-2">
@@ -61,8 +73,8 @@
             min="0"
             max="255"
             class="c-alpha-slider flex-1"
-          >
-          <span class="text-xs w-8 text-right">{{ Math.round(alpha / 255 * 100) }}%</span>
+          />
+          <span class="text-xs w-8 text-right">{{ Math.round((alpha / 255) * 100) }}%</span>
         </div>
 
         <!-- Hex display -->
@@ -77,13 +89,7 @@
 
         <!-- Actions -->
         <div v-if="defaultValue" class="flex justify-end">
-          <Button
-            :label="'Default'"
-            size="small"
-            severity="secondary"
-            text
-            @click="resetDefault"
-          />
+          <Button :label="'Default'" size="small" severity="secondary" text @click="resetDefault" />
         </div>
       </div>
     </Popover>
@@ -121,7 +127,7 @@ const props = defineProps({
   shape: {
     type: String,
     default: 'square',
-    validator: (v) => ['square', 'circle'].includes(v),
+    validator: v => ['square', 'circle'].includes(v),
   },
 })
 
@@ -167,12 +173,15 @@ function parseColor(val) {
 // Initialize
 parseColor(props.modelValue)
 
-watch(() => props.modelValue, (val) => {
-  if (!internalUpdate) {
-    parseColor(val)
-  }
-  internalUpdate = false
-})
+watch(
+  () => props.modelValue,
+  val => {
+    if (!internalUpdate) {
+      parseColor(val)
+    }
+    internalUpdate = false
+  },
+)
 
 // Emit live on every change
 let internalUpdate = false
@@ -239,7 +248,9 @@ const swatchStyle = computed(() => ({
 // Editable hex input
 const hexInput = computed({
   get: () => hex8.value,
-  set: () => { /* handled by applyHexInput */ },
+  set: () => {
+    /* handled by applyHexInput */
+  },
 })
 
 function applyHexInput() {
@@ -289,11 +300,9 @@ defineExpose({ toggle })
   appearance: none;
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(to right,
-    transparent 0%,
-    var(--p-text-color, #000) 100%
-  ),
-  repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px;
+  background:
+    linear-gradient(to right, transparent 0%, var(--p-text-color, #000) 100%),
+    repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px;
   outline: none;
 }
 

@@ -20,9 +20,9 @@ const notification = markRaw(notificationCmp)
 const options = markRaw(optionsCmp)
 
 interface PromptDefinition {
-  component?: Component;
-  handler?: (_this: any, _input: any) => void | Promise<void>;
-  passive?: boolean;
+  component?: Component
+  handler?: (_this: any, _input: any) => void | Promise<void>
+  passive?: boolean
 }
 
 const definitions: Record<string, PromptDefinition> = {

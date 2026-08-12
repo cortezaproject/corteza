@@ -3,7 +3,7 @@ import { decodeWorkflow, encodeWorkflow } from './codec'
 
 // ─── Minimal factories ────────────────────────────────────────────────────────
 
-function makeStep (overrides = {}) {
+function makeStep(overrides = {}) {
   return {
     stepID: '10',
     kind: 'function',
@@ -24,7 +24,7 @@ function makeStep (overrides = {}) {
   }
 }
 
-function makeTrigger (overrides = {}) {
+function makeTrigger(overrides = {}) {
   return {
     triggerID: 'T1',
     workflowID: 'W1',
@@ -48,7 +48,7 @@ function makeTrigger (overrides = {}) {
   }
 }
 
-function makeWorkflow (steps = [], paths = []) {
+function makeWorkflow(steps = [], paths = []) {
   return { steps, paths }
 }
 
@@ -56,17 +56,21 @@ function makeWorkflow (steps = [], paths = []) {
 
 describe('handle ↔ mxGraph round-trip', () => {
   const HANDLE_PAIRS = [
-    ['source-bottom',       'target-top'],
-    ['source-bottom-left',  'target-top-right'],
+    ['source-bottom', 'target-top'],
+    ['source-bottom-left', 'target-top-right'],
     ['source-bottom-right', 'target-top-left'],
-    ['source-right',        'target-left'],
-    ['source-left',         'target-right'],
-    ['source-top',          'target-bottom'],
+    ['source-right', 'target-left'],
+    ['source-left', 'target-right'],
+    ['source-top', 'target-bottom'],
   ]
 
   it.each(HANDLE_PAIRS)('%s → %s survives encode→decode', (src, tgt) => {
     const step = makeStep()
-    const termination = makeStep({ stepID: '20', kind: 'termination', meta: { label: 'End', visual: { id: '20', xywh: [300, 200, 200, 80], parent: '1' } } })
+    const termination = makeStep({
+      stepID: '20',
+      kind: 'termination',
+      meta: { label: 'End', visual: { id: '20', xywh: [300, 200, 200, 80], parent: '1' } },
+    })
     const path = {
       parentID: '10',
       childID: '20',
@@ -74,7 +78,7 @@ describe('handle ↔ mxGraph round-trip', () => {
       meta: {
         visual: {
           id: 'E1',
-          style: '',  // will be populated by encode
+          style: '', // will be populated by encode
           points: [],
           parent: '1',
         },
@@ -96,7 +100,10 @@ describe('handle ↔ mxGraph round-trip', () => {
     const encodedStyle = paths[0].meta.visual.style
 
     // Decode the encoded style
-    const workflow2 = makeWorkflow([step, termination], [{ ...path, meta: { visual: { id: 'E1', style: encodedStyle, points: [], parent: '1' } } }])
+    const workflow2 = makeWorkflow(
+      [step, termination],
+      [{ ...path, meta: { visual: { id: 'E1', style: encodedStyle, points: [], parent: '1' } } }],
+    )
     const { edges: edges2 } = decodeWorkflow(workflow2, [])
     const edge2 = edges2.find(e => e.source === '10' && e.target === '20')
     expect(edge2).toBeDefined()
@@ -140,11 +147,28 @@ describe('decodeWorkflow', () => {
   })
 
   it('converts paths to edges', () => {
-    const step1 = makeStep({ stepID: '1', meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } } })
-    const step2 = makeStep({ stepID: '2', meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } } })
+    const step1 = makeStep({
+      stepID: '1',
+      meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } },
+    })
+    const step2 = makeStep({
+      stepID: '2',
+      meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } },
+    })
     const path = {
-      parentID: '1', childID: '2', expr: 'x > 0',
-      meta: { label: 'yes', visual: { id: 'P1', value: 'yes', style: 'exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;', points: [], parent: '1' } },
+      parentID: '1',
+      childID: '2',
+      expr: 'x > 0',
+      meta: {
+        label: 'yes',
+        visual: {
+          id: 'P1',
+          value: 'yes',
+          style: 'exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;',
+          points: [],
+          parent: '1',
+        },
+      },
     }
     const { edges } = decodeWorkflow(makeWorkflow([step1, step2], [path]), [])
     expect(edges).toHaveLength(1)
@@ -186,7 +210,7 @@ describe('decodeWorkflow', () => {
       meta: {
         visual: {
           id: '101',
-          xywh: [250, 350, 200, 80],  // absolute: parent offset + 50,50
+          xywh: [250, 350, 200, 80], // absolute: parent offset + 50,50
           parent: '100',
         },
       },
@@ -230,12 +254,28 @@ describe('encodeWorkflow', () => {
   })
 
   it('encodes edges as paths with mxGraph style', () => {
-    const step1 = makeStep({ stepID: '1', meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } } })
-    const step2 = makeStep({ stepID: '2', meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } } })
-    const { nodes, edges } = decodeWorkflow(makeWorkflow([step1, step2], [{
-      parentID: '1', childID: '2', expr: '',
-      meta: { visual: { id: 'E1', style: '', points: [], parent: '1' } },
-    }]), [])
+    const step1 = makeStep({
+      stepID: '1',
+      meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } },
+    })
+    const step2 = makeStep({
+      stepID: '2',
+      meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } },
+    })
+    const { nodes, edges } = decodeWorkflow(
+      makeWorkflow(
+        [step1, step2],
+        [
+          {
+            parentID: '1',
+            childID: '2',
+            expr: '',
+            meta: { visual: { id: 'E1', style: '', points: [], parent: '1' } },
+          },
+        ],
+      ),
+      [],
+    )
     edges[0].sourceHandle = 'source-right'
     edges[0].targetHandle = 'target-left'
     const { paths } = encodeWorkflow(nodes, edges)
@@ -281,8 +321,8 @@ describe('encodeWorkflow', () => {
     const { steps } = encodeWorkflow(nodes, edges)
     const childStep = steps.find(s => s.stepID === '101')
     // Encoded xywh should be absolute (parent pos + relative pos)
-    expect(childStep.meta.visual.xywh[0]).toBe(250)  // 200 + 50
-    expect(childStep.meta.visual.xywh[1]).toBe(350)  // 300 + 50
+    expect(childStep.meta.visual.xywh[0]).toBe(250) // 200 + 50
+    expect(childStep.meta.visual.xywh[1]).toBe(350) // 300 + 50
   })
 })
 
@@ -290,15 +330,31 @@ describe('encodeWorkflow', () => {
 
 describe('full decode → encode round-trip', () => {
   it('steps survive without mutation', () => {
-    const wf = makeWorkflow([
-      makeStep(),
-      makeStep({ stepID: '20', kind: 'termination', meta: { visual: { id: '20', xywh: [400, 200, 200, 80], parent: '1' } } }),
-    ], [{
-      parentID: '10',
-      childID: '20',
-      expr: 'ok',
-      meta: { visual: { id: 'P1', style: 'exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;', points: [], parent: '1' } },
-    }])
+    const wf = makeWorkflow(
+      [
+        makeStep(),
+        makeStep({
+          stepID: '20',
+          kind: 'termination',
+          meta: { visual: { id: '20', xywh: [400, 200, 200, 80], parent: '1' } },
+        }),
+      ],
+      [
+        {
+          parentID: '10',
+          childID: '20',
+          expr: 'ok',
+          meta: {
+            visual: {
+              id: 'P1',
+              style: 'exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;',
+              points: [],
+              parent: '1',
+            },
+          },
+        },
+      ],
+    )
 
     const { nodes, edges } = decodeWorkflow(wf, [])
     const { steps, paths } = encodeWorkflow(nodes, edges)
@@ -322,24 +378,58 @@ describe('full decode → encode round-trip', () => {
   it('snapCoord: off-by-small value snaps to nearest handle', () => {
     // Simulate an mxGraph-written style with a slightly off coordinate
     // (e.g., a user dragged to exitX=0.247 instead of 0.25)
-    const step1 = makeStep({ stepID: '1', meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } } })
-    const step2 = makeStep({ stepID: '2', meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } } })
-    const wf = makeWorkflow([step1, step2], [{
-      parentID: '1', childID: '2', expr: '',
-      meta: { visual: { id: 'E1', style: 'exitX=0.247;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;', points: [], parent: '1' } },
-    }])
+    const step1 = makeStep({
+      stepID: '1',
+      meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } },
+    })
+    const step2 = makeStep({
+      stepID: '2',
+      meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } },
+    })
+    const wf = makeWorkflow(
+      [step1, step2],
+      [
+        {
+          parentID: '1',
+          childID: '2',
+          expr: '',
+          meta: {
+            visual: {
+              id: 'E1',
+              style:
+                'exitX=0.247;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;',
+              points: [],
+              parent: '1',
+            },
+          },
+        },
+      ],
+    )
     const { edges } = decodeWorkflow(wf, [])
     // 0.247 should snap to 0.25 → source-bottom-left
     expect(edges[0].sourceHandle).toBe('source-bottom-left')
   })
 
   it('unknown coords fall back to defaults', () => {
-    const step1 = makeStep({ stepID: '1', meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } } })
-    const step2 = makeStep({ stepID: '2', meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } } })
-    const wf = makeWorkflow([step1, step2], [{
-      parentID: '1', childID: '2', expr: '',
-      meta: { visual: { id: 'E1', style: '', points: [], parent: '1' } },
-    }])
+    const step1 = makeStep({
+      stepID: '1',
+      meta: { visual: { id: '1', xywh: [0, 0, 200, 80], parent: '1' } },
+    })
+    const step2 = makeStep({
+      stepID: '2',
+      meta: { visual: { id: '2', xywh: [300, 0, 200, 80], parent: '1' } },
+    })
+    const wf = makeWorkflow(
+      [step1, step2],
+      [
+        {
+          parentID: '1',
+          childID: '2',
+          expr: '',
+          meta: { visual: { id: 'E1', style: '', points: [], parent: '1' } },
+        },
+      ],
+    )
     const { edges } = decodeWorkflow(wf, [])
     // No style → no handle set (null)
     expect(edges[0].sourceHandle).toBeNull()

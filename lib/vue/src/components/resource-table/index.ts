@@ -1,1 +1,1 @@
-export { default as CResourceTable } from './CResourceTable.vue';
+export { default as CResourceTable } from './CResourceTable.vue'

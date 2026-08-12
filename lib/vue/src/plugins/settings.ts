@@ -32,7 +32,6 @@ export class Settings {
 
       return response
     } catch (error) {
-       
       console.error('Failed to fetch settings:', error)
       throw error
     }
@@ -103,10 +102,8 @@ export const SettingsPlugin = {
 
       app.provide('$Settings', settings)
 
-       
       console.log('Settings plugin configured successfully')
     } catch (error) {
-       
       console.error('Failed to install Settings plugin:', error)
       throw error
     }

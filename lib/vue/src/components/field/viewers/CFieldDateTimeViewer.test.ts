@@ -47,7 +47,10 @@ describe('CFieldDateTimeViewer', () => {
 
   describe('fallback formatting', () => {
     it('renders a date string via toLocaleString', () => {
-      const wrapper = mountViewer({ field: field(), record: record({ createdAt: '2024-06-15T12:00:00Z' }) })
+      const wrapper = mountViewer({
+        field: field(),
+        record: record({ createdAt: '2024-06-15T12:00:00Z' }),
+      })
       const span = wrapper.find('span')
       expect(span.exists()).toBe(true)
       expect(span.text()).toBeTruthy()

@@ -1,9 +1,6 @@
 import type { automation } from '@planetcrust/human-js'
 import type { IconDef } from '@planetcrust/human-js/src/automation/types/icon'
-import {
-  DEFAULT_ICONS,
-  normalizeIcon,
-} from '@planetcrust/human-js/src/automation/types/icon'
+import { DEFAULT_ICONS, normalizeIcon } from '@planetcrust/human-js/src/automation/types/icon'
 import type { Edge, Node } from '@vue-flow/core'
 import dagre from 'dagre'
 
@@ -137,7 +134,8 @@ export function automationToVueFlow(
         description: step.meta?.description || '',
         icon: isTermination
           ? DEFAULT_ICONS.END
-          : normalizeIcon(step.meta?.icon) || getStepIcon(step.ref, isCondition, catalog, isIterator),
+          : normalizeIcon(step.meta?.icon) ||
+            getStepIcon(step.ref, isCondition, catalog, isIterator),
         nodeType: isTermination ? 'termination' : step.ref,
         config: {},
         arguments: step.arguments || [],
@@ -162,7 +160,11 @@ export function automationToVueFlow(
     const targetNode = nodes.find(n => n.id === targetId)
     if (targetNode?.type === 'iterator') {
       // Check if source is reachable from the iterator (i.e., source is in the body chain)
-      const isDescendant = (startId: string, searchId: string, visited = new Set<string>()): boolean => {
+      const isDescendant = (
+        startId: string,
+        searchId: string,
+        visited = new Set<string>(),
+      ): boolean => {
         if (startId === searchId) return true
         if (visited.has(startId)) return false
         visited.add(startId)
@@ -433,7 +435,12 @@ function getTriggerIcon(
 }
 
 // Helper: Resolve step icon from catalog or fallback
-function getStepIcon(ref?: string, isCondition?: boolean, catalog?: ConversionCatalog, isIterator?: boolean): IconDef {
+function getStepIcon(
+  ref?: string,
+  isCondition?: boolean,
+  catalog?: ConversionCatalog,
+  isIterator?: boolean,
+): IconDef {
   if (isCondition) return DEFAULT_ICONS.BRANCH
 
   // Check catalog for function-specific icon (both regular functions and iterators)

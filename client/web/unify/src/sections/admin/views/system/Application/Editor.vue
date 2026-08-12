@@ -26,7 +26,12 @@
       </div>
       <Panel :header="$t('system.applications.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <CFormGroup name="name" :label="$t('system.applications.editor.info.name')" required class="md:col-span-2">
+          <CFormGroup
+            name="name"
+            :label="$t('system.applications.editor.info.name')"
+            required
+            class="md:col-span-2"
+          >
             <InputText id="name" name="name" v-model="application.name" />
           </CFormGroup>
 
@@ -40,7 +45,10 @@
 
       <Panel :header="$t('system.applications.editor.unify.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <CFormGroup :label="$t('system.applications.editor.unify.name.label')" input-id="unifyName">
+          <CFormGroup
+            :label="$t('system.applications.editor.unify.name.label')"
+            input-id="unifyName"
+          >
             <InputText id="unifyName" v-model="application.unify.name" />
           </CFormGroup>
 
@@ -84,12 +92,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
@@ -194,7 +197,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -275,7 +280,12 @@ function onLogoClear() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!application.value && !!initialApplication.value && !isEqual(application.value, initialApplication.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!application.value &&
+    !!initialApplication.value &&
+    !isEqual(application.value, initialApplication.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 

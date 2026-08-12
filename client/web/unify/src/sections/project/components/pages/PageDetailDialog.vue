@@ -10,7 +10,9 @@
         <KindIcon kind="page" size="lg" plain-icon />
         <div class="min-w-0">
           <DialogEyebrow>{{ $t('project.kinds.page.single') }}</DialogEyebrow>
-          <div class="font-semibold truncate leading-tight">{{ draft.name || $t('project.pageDetail.unnamed') }}</div>
+          <div class="font-semibold truncate leading-tight">
+            {{ draft.name || $t('project.pageDetail.unnamed') }}
+          </div>
         </div>
       </div>
     </template>
@@ -52,7 +54,10 @@
     <template #footer>
       <CRouterLinkButton
         v-if="props.resourceId && project?.hasNamespace"
-        :to="{ name: 'admin.pages.builder', params: { slug: project.namespaceID, pageID: props.resourceId } }"
+        :to="{
+          name: 'admin.pages.builder',
+          params: { slug: project.namespaceID, pageID: props.resourceId },
+        }"
         target="_blank"
         rel="noopener"
         :label="$t('project.pageDetail.openEditor')"
@@ -71,12 +76,7 @@
           size="small"
           @click="visible = false"
         />
-        <Button
-          :label="$t('general.label.save')"
-          size="small"
-          :loading="saving"
-          @click="onSave"
-        />
+        <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
       </div>
     </template>
   </Dialog>
@@ -111,9 +111,10 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-
 const page = computed(() =>
-  props.resourceId ? store.pagesFor(props.project?.projectID).find(p => p.id === props.resourceId) : null,
+  props.resourceId
+    ? store.pagesFor(props.project?.projectID).find(p => p.id === props.resourceId)
+    : null,
 )
 
 // --- Draft (staged; nothing persists until Save) -------------------------------
@@ -138,9 +139,7 @@ watch(
 // --- Validation -----------------------------------------------------------------
 const submitted = ref(false)
 
-const nameError = computed(() =>
-  draft.name.trim() ? '' : t('project.pageDetail.nameRequired'),
-)
+const nameError = computed(() => (draft.name.trim() ? '' : t('project.pageDetail.nameRequired')))
 
 const isValid = computed(() => !nameError.value)
 

@@ -36,7 +36,11 @@
             <InputText id="handle" name="handle" v-model="userGroup.handle" />
           </CFormGroup>
 
-          <CFormGroup name="description" :label="$t('system.user-groups.editor.info.meta.description')" class="md:col-span-2">
+          <CFormGroup
+            name="description"
+            :label="$t('system.user-groups.editor.info.meta.description')"
+            class="md:col-span-2"
+          >
             <Textarea
               id="description"
               name="description"
@@ -123,12 +127,7 @@
         :disabled="saving"
         @click="handleUndelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>

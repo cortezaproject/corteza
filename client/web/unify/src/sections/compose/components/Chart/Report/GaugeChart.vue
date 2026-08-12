@@ -118,18 +118,22 @@
             class="w-full"
           />
           <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
-            {{ $t(`chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`) }}
+            {{
+              $t(
+                `chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`,
+              )
+            }}
           </small>
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-primary font-medium text-sm">
             {{ $t('chart.edit.formatting.format.label') }}
           </label>
-          <InputText 
-            v-model="metric.formatting.format" 
-            :disabled="metric.formatting.presetFormat !== 'custom'" 
-            :placeholder="$t('chart.edit.formatting.format.placeholder')" 
-            class="w-full" 
+          <InputText
+            v-model="metric.formatting.format"
+            :disabled="metric.formatting.presetFormat !== 'custom'"
+            :placeholder="$t('chart.edit.formatting.format.placeholder')"
+            class="w-full"
           />
         </div>
       </div>

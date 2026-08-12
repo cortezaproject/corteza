@@ -5,12 +5,23 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { EditorState } from '@codemirror/state'
-import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter } from '@codemirror/view'
+import {
+  EditorView,
+  keymap,
+  lineNumbers,
+  highlightActiveLine,
+  highlightActiveLineGutter,
+} from '@codemirror/view'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
 import { html } from '@codemirror/lang-html'
 import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldGutter } from '@codemirror/language'
+import {
+  syntaxHighlighting,
+  defaultHighlightStyle,
+  bracketMatching,
+  foldGutter,
+} from '@codemirror/language'
 
 const props = defineProps({
   modelValue: {
@@ -62,7 +73,7 @@ function getExtensions() {
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     keymap.of([...defaultKeymap, indentWithTab]),
     EditorView.lineWrapping,
-    EditorView.updateListener.of((update) => {
+    EditorView.updateListener.of(update => {
       if (update.docChanged && !isUpdating) {
         emit('update:modelValue', update.state.doc.toString())
       }
@@ -130,33 +141,39 @@ function destroyEditor() {
   }
 }
 
-watch(() => props.modelValue, (newVal) => {
-  if (!view) return
-  const currentVal = view.state.doc.toString()
-  if (newVal !== currentVal) {
-    isUpdating = true
-    view.dispatch({
-      changes: {
-        from: 0,
-        to: view.state.doc.length,
-        insert: newVal || '',
-      },
-    })
-    isUpdating = false
-  }
-})
-
-watch(() => props.language, () => {
-  // Recreate editor when language changes
-  const currentDoc = view ? view.state.doc.toString() : props.modelValue
-  destroyEditor()
-  nextTick(() => {
-    createEditor()
-    if (currentDoc !== props.modelValue) {
-      emit('update:modelValue', currentDoc)
+watch(
+  () => props.modelValue,
+  newVal => {
+    if (!view) return
+    const currentVal = view.state.doc.toString()
+    if (newVal !== currentVal) {
+      isUpdating = true
+      view.dispatch({
+        changes: {
+          from: 0,
+          to: view.state.doc.length,
+          insert: newVal || '',
+        },
+      })
+      isUpdating = false
     }
-  })
-})
+  },
+)
+
+watch(
+  () => props.language,
+  () => {
+    // Recreate editor when language changes
+    const currentDoc = view ? view.state.doc.toString() : props.modelValue
+    destroyEditor()
+    nextTick(() => {
+      createEditor()
+      if (currentDoc !== props.modelValue) {
+        emit('update:modelValue', currentDoc)
+      }
+    })
+  },
+)
 
 onMounted(() => {
   createEditor()

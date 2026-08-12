@@ -43,6 +43,7 @@ const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const isVisible = computed({
   get: () => rightSidebarStore.isOpen('notifications'),
-  set: value => value ? rightSidebarStore.open('notifications') : rightSidebarStore.close('notifications'),
+  set: value =>
+    value ? rightSidebarStore.open('notifications') : rightSidebarStore.close('notifications'),
 })
 </script>

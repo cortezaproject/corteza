@@ -42,10 +42,14 @@ const currentNamespace = computed(() => {
   return namespaceStore.getByUrlPart(slug) || null
 })
 
-function startCreate (seed = {}) {
+function startCreate(seed = {}) {
   store.startCreate({
     assignedTo: $Auth?.user?.userID,
-    resource: seed.resource || (currentNamespace.value ? `namespace:${currentNamespace.value.namespaceID}` : `system:user:${$Auth?.user?.userID || '0'}`),
+    resource:
+      seed.resource ||
+      (currentNamespace.value
+        ? `namespace:${currentNamespace.value.namespaceID}`
+        : `system:user:${$Auth?.user?.userID || '0'}`),
     payload: seed.payload || {},
     remindAt: seed.remindAt,
   })

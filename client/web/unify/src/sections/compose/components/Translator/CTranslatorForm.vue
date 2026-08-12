@@ -3,7 +3,9 @@
   <div class="flex flex-col gap-0 overflow-hidden">
     <!-- Language column manager -->
     <div class="flex items-center gap-2 px-3 py-2 border-b border-surface bg-surface flex-wrap">
-      <span class="text-sm font-medium text-muted-color shrink-0">{{ $t('translator.languages') }}</span>
+      <span class="text-sm font-medium text-muted-color shrink-0">
+        {{ $t('translator.languages') }}
+      </span>
       <div class="flex flex-wrap items-center gap-1 flex-1">
         <span
           v-for="lang in visibleLanguages"
@@ -38,7 +40,9 @@
       <table class="w-full text-sm border-collapse">
         <thead class="bg-surface sticky top-0 z-10">
           <tr>
-            <th class="text-left px-3 py-2 font-medium text-muted-color whitespace-nowrap border-b border-surface">
+            <th
+              class="text-left px-3 py-2 font-medium text-muted-color whitespace-nowrap border-b border-surface"
+            >
               {{ $t('translator.key') }}
             </th>
             <th
@@ -67,7 +71,9 @@
               :key="`${section.resource}:${key}`"
               :class="{ 'bg-amber-50 dark:bg-amber-950': isRowDirty(section.resource, key) }"
             >
-              <td class="px-3 py-2 border-b border-surface text-muted-color font-mono text-xs align-top leading-relaxed whitespace-nowrap">
+              <td
+                class="px-3 py-2 border-b border-surface text-muted-color font-mono text-xs align-top leading-relaxed whitespace-nowrap"
+              >
                 {{ prettyKey(key) }}
               </td>
               <td
@@ -84,7 +90,14 @@
                   rows="1"
                   class="w-full bg-transparent text-sm px-3 py-2 resize-none focus:outline-none placeholder:text-muted-color placeholder:opacity-50 min-h-9"
                   style="field-sizing: content"
-                  @input="onUpdate(section.resource, key, lang.tag, ($event.target as HTMLTextAreaElement).value)"
+                  @input="
+                    onUpdate(
+                      section.resource,
+                      key,
+                      lang.tag,
+                      ($event.target as HTMLTextAreaElement).value,
+                    )
+                  "
                 />
               </td>
             </tr>
@@ -144,7 +157,10 @@ const intTranslations = reactive<InternalTranslation[]>(
 watch(
   intLanguages,
   () => {
-    const tags = intLanguages.filter(l => l.visible).map(l => l.tag).join(',')
+    const tags = intLanguages
+      .filter(l => l.visible)
+      .map(l => l.tag)
+      .join(',')
     localStorage.setItem(LS_KEY, tags)
   },
   { deep: true },

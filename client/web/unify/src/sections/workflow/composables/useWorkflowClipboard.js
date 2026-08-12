@@ -15,14 +15,14 @@ import { nextId } from '../lib/id'
 
 const CLIPBOARD_PREFIX = '__human_workflow_clipboard__:'
 
-export function useWorkflowClipboard (nodes, edges, saveToHistory) {
+export function useWorkflowClipboard(nodes, edges, saveToHistory) {
   let localClipboard = null
 
-  function getSelected () {
+  function getSelected() {
     return nodes.value.filter(n => n.selected)
   }
 
-  function expandSelectionWithChildren (selectedIds) {
+  function expandSelectionWithChildren(selectedIds) {
     // When a swimlane is selected, its nested children come along.
     const expanded = new Set(selectedIds)
     let changed = true
@@ -38,16 +38,14 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
     return expanded
   }
 
-  function buildPayload () {
+  function buildPayload() {
     const selectedNodes = getSelected()
     if (!selectedNodes.length) return null
 
     const rootIds = new Set(selectedNodes.map(n => n.id))
     const allIds = expandSelectionWithChildren(rootIds)
     const allNodes = nodes.value.filter(n => allIds.has(n.id))
-    const connectedEdges = edges.value.filter(
-      e => allIds.has(e.source) && allIds.has(e.target),
-    )
+    const connectedEdges = edges.value.filter(e => allIds.has(e.source) && allIds.has(e.target))
 
     return {
       nodes: JSON.parse(JSON.stringify(allNodes)),
@@ -55,7 +53,7 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
     }
   }
 
-  async function writeSystemClipboard (payload) {
+  async function writeSystemClipboard(payload) {
     if (!navigator.clipboard?.writeText) return
     try {
       await navigator.clipboard.writeText(CLIPBOARD_PREFIX + JSON.stringify(payload))
@@ -64,7 +62,7 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
     }
   }
 
-  async function readSystemClipboard () {
+  async function readSystemClipboard() {
     if (!navigator.clipboard?.readText) return null
     try {
       const text = await navigator.clipboard.readText()
@@ -75,14 +73,14 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
     }
   }
 
-  function copySelected () {
+  function copySelected() {
     const payload = buildPayload()
     if (!payload) return
     localClipboard = payload
     writeSystemClipboard(payload)
   }
 
-  function cutSelected () {
+  function cutSelected() {
     const payload = buildPayload()
     if (!payload) return
     localClipboard = payload
@@ -90,14 +88,12 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
 
     const removeIds = new Set(payload.nodes.map(n => n.id))
     nodes.value = nodes.value.filter(n => !removeIds.has(n.id))
-    edges.value = edges.value.filter(
-      e => !removeIds.has(e.source) && !removeIds.has(e.target),
-    )
+    edges.value = edges.value.filter(e => !removeIds.has(e.source) && !removeIds.has(e.target))
 
     if (saveToHistory) saveToHistory()
   }
 
-  async function pasteClipboard () {
+  async function pasteClipboard() {
     const payload = (await readSystemClipboard()) || localClipboard
     if (!payload) return
 
@@ -106,32 +102,34 @@ export function useWorkflowClipboard (nodes, edges, saveToHistory) {
 
     let currentId = nextId(nodes, edges)
 
-    const newNodes = payload.nodes.map(n => {
-      const newId = String(currentId++)
-      idMap[n.id] = newId
-      return n
-    }).map(n => {
-      // Root-level nodes (those whose parent is not part of the payload) get
-      // the paste offset. Nested children keep their relative position so the
-      // swimlane layout is preserved.
-      const parentMapped = n.parentNode && idMap[n.parentNode] ? idMap[n.parentNode] : undefined
-      const applyOffset = !parentMapped
-      return {
-        ...n,
-        id: idMap[n.id],
-        selected: true,
-        parentNode: parentMapped,
-        extent: parentMapped ? 'parent' : undefined,
-        position: {
-          x: (n.position?.x || 0) + (applyOffset ? offset : 0),
-          y: (n.position?.y || 0) + (applyOffset ? offset : 0),
-        },
-        data: {
-          ...n.data,
-          stepID: idMap[n.id],
-        },
-      }
-    })
+    const newNodes = payload.nodes
+      .map(n => {
+        const newId = String(currentId++)
+        idMap[n.id] = newId
+        return n
+      })
+      .map(n => {
+        // Root-level nodes (those whose parent is not part of the payload) get
+        // the paste offset. Nested children keep their relative position so the
+        // swimlane layout is preserved.
+        const parentMapped = n.parentNode && idMap[n.parentNode] ? idMap[n.parentNode] : undefined
+        const applyOffset = !parentMapped
+        return {
+          ...n,
+          id: idMap[n.id],
+          selected: true,
+          parentNode: parentMapped,
+          extent: parentMapped ? 'parent' : undefined,
+          position: {
+            x: (n.position?.x || 0) + (applyOffset ? offset : 0),
+            y: (n.position?.y || 0) + (applyOffset ? offset : 0),
+          },
+          data: {
+            ...n.data,
+            stepID: idMap[n.id],
+          },
+        }
+      })
 
     const newEdges = payload.edges
       .filter(e => idMap[e.source] && idMap[e.target])

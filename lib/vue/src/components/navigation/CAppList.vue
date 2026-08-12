@@ -12,12 +12,16 @@
       :href="app.enabled ? getAppUrl(app) : '#'"
       target="_self"
       :draggable="canReorder && app.enabled"
-      :class="[itemClass, {
-        'cursor-grab': canReorder && app.enabled,
-        'cursor-not-allowed opacity-50': !app.enabled,
-        'border-t-2 !border-t-primary': canReorder && variant === 'list' && dropTargetIndex === index,
-        '!border-primary bg-primary/5': variant === 'list' && isActiveApp(app),
-      }]"
+      :class="[
+        itemClass,
+        {
+          'cursor-grab': canReorder && app.enabled,
+          'cursor-not-allowed opacity-50': !app.enabled,
+          'border-t-2 !border-t-primary':
+            canReorder && variant === 'list' && dropTargetIndex === index,
+          '!border-primary bg-primary/5': variant === 'list' && isActiveApp(app),
+        },
+      ]"
       @click="onItemClick($event, app)"
       @dragstart="canReorder && app.enabled && onDragStart(index)"
       @dragover="canReorder && app.enabled && onDragOver($event, index)"
@@ -44,7 +48,13 @@
             body: { class: 'grow justify-center gap-0 py-1' },
             title: { class: 'text-center line-clamp-2 group-hover:line-clamp-none' },
           }"
-          :class="['group w-80 min-h-72 overflow-hidden transition-all duration-100', app.enabled ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:text-primary' : 'cursor-not-allowed', { 'ring-2 ring-primary ring-offset-2': canReorder && dropTargetIndex === index }]"
+          :class="[
+            'group w-80 min-h-72 overflow-hidden transition-all duration-100',
+            app.enabled
+              ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:text-primary'
+              : 'cursor-not-allowed',
+            { 'ring-2 ring-primary ring-offset-2': canReorder && dropTargetIndex === index },
+          ]"
         >
           <template #header>
             <img
@@ -182,9 +192,7 @@ function onDrop(index) {
 
 // Layout classes
 const containerClass = computed(() =>
-  props.variant === 'list'
-    ? 'flex flex-col gap-2'
-    : 'flex flex-wrap justify-center gap-7',
+  props.variant === 'list' ? 'flex flex-col gap-2' : 'flex flex-wrap justify-center gap-7',
 )
 
 const itemClass = computed(() =>

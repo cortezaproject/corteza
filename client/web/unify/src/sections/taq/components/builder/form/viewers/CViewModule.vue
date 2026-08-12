@@ -32,7 +32,10 @@ async function resolve(moduleID) {
   }
 
   try {
-    const mod = await moduleStore.findByID({ namespaceID: String(props.namespaceID), moduleID: String(moduleID) })
+    const mod = await moduleStore.findByID({
+      namespaceID: String(props.namespaceID),
+      moduleID: String(moduleID),
+    })
     displayLabel.value = mod?.name || mod?.handle || String(moduleID)
   } catch {
     displayLabel.value = String(moduleID)
@@ -40,6 +43,9 @@ async function resolve(moduleID) {
 }
 
 watch(() => props.modelValue, resolve, { immediate: false })
-watch(() => props.namespaceID, () => resolve(props.modelValue))
+watch(
+  () => props.namespaceID,
+  () => resolve(props.modelValue),
+)
 onMounted(() => resolve(props.modelValue))
 </script>

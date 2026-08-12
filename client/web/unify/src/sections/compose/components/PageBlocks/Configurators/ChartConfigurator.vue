@@ -117,9 +117,9 @@ const drillDownFields = computed({
     const recordListOptions = drillDown.recordListOptions || {}
     updateOptions('drillDown', {
       ...drillDown,
-      recordListOptions: { ...recordListOptions, fields: v }
+      recordListOptions: { ...recordListOptions, fields: v },
     })
-  }
+  },
 })
 
 function onFieldPickerUpdate(names) {
@@ -128,17 +128,24 @@ function onFieldPickerUpdate(names) {
 
 const selectedChart = ref(null)
 
-watch(() => block.value.options?.chartID, async (id) => {
-  if (id && props.namespace?.namespaceID) {
-    try {
-      selectedChart.value = await chartStore.findByID({ namespaceID: props.namespace.namespaceID, chartID: id })
-    } catch {
+watch(
+  () => block.value.options?.chartID,
+  async id => {
+    if (id && props.namespace?.namespaceID) {
+      try {
+        selectedChart.value = await chartStore.findByID({
+          namespaceID: props.namespace.namespaceID,
+          chartID: id,
+        })
+      } catch {
+        selectedChart.value = null
+      }
+    } else {
       selectedChart.value = null
     }
-  } else {
-    selectedChart.value = null
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 const selectedChartModuleID = computed(() => {
   return selectedChart.value?.config?.reports?.[0]?.moduleID
@@ -158,10 +165,13 @@ const isDrillDownAvailable = computed(() => {
 const drillDownOptions = computed(() => {
   if (!props.page?.blocks) return []
   return props.page.blocks
-    .filter(b => b.kind === 'RecordList' && b.blockID && b.options?.moduleID === selectedChartModuleID.value)
+    .filter(
+      b =>
+        b.kind === 'RecordList' && b.blockID && b.options?.moduleID === selectedChartModuleID.value,
+    )
     .map(b => ({
       label: b.title || b.kind,
-      value: b.blockID
+      value: b.blockID,
     }))
 })
 

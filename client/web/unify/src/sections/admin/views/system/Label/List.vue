@@ -84,11 +84,7 @@
           size="small"
           @click="showCreateDialog = false"
         />
-        <Button
-          :label="$t('general.label.save')"
-          size="small"
-          @click="createFormRef?.submit?.()"
-        />
+        <Button :label="$t('general.label.save')" size="small" @click="createFormRef?.submit?.()" />
       </div>
     </template>
   </Dialog>
@@ -98,10 +94,7 @@
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import {
-  components,
-  useResourceList,
-} from '@planetcrust/human-vue'
+import { components, useResourceList } from '@planetcrust/human-vue'
 
 const { CResourceList, CViewContainer } = components
 

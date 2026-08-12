@@ -6,18 +6,12 @@
       <span class="px-2 py-1 flex-1">{{ $t('builder.preview.value') }}</span>
     </div>
     <!-- Rows -->
-    <div
-      v-for="row in rows"
-      :key="row.field"
-      class="flex text-xs border-t border-surface"
-    >
+    <div v-for="row in rows" :key="row.field" class="flex text-xs border-t border-surface">
       <span class="px-2 py-1 text-muted-color shrink-0 w-[90px] truncate" :title="row.fieldLabel">
         {{ row.fieldLabel }}
       </span>
       <div v-if="row.isRef" class="px-2 py-1 flex-1">
-        <CViewReference
-          :source="row.refLabel"
-        />
+        <CViewReference :source="row.refLabel" />
       </div>
       <span
         v-else
@@ -60,7 +54,10 @@ async function fetchFields() {
   if (!props.namespaceID || !props.moduleID) return
 
   try {
-    const mod = await moduleStore.findByID({ namespaceID: String(props.namespaceID), moduleID: String(props.moduleID) })
+    const mod = await moduleStore.findByID({
+      namespaceID: String(props.namespaceID),
+      moduleID: String(props.moduleID),
+    })
     if (mod?.fields) {
       const map = new Map()
       for (const f of mod.fields) {

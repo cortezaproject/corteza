@@ -22,7 +22,7 @@
           @blur="finishEditing"
           @keydown.enter="finishEditing"
           @keydown.escape="cancelEditing"
-        >
+        />
       </template>
       <template v-else>
         {{ label }}
@@ -60,7 +60,7 @@ const editing = ref(false)
 const editValue = ref('')
 const editInput = ref(null)
 
-function startEditing () {
+function startEditing() {
   editValue.value = props.label || ''
   editing.value = true
   nextTick(() => {
@@ -69,12 +69,12 @@ function startEditing () {
   })
 }
 
-function finishEditing () {
+function finishEditing() {
   editing.value = false
   emit('update-label', { id: props.id, label: editValue.value })
 }
 
-function cancelEditing () {
+function cancelEditing() {
   editing.value = false
 }
 

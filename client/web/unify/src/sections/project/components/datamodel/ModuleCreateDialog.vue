@@ -10,7 +10,9 @@
         <KindIcon kind="module" size="lg" plain-icon />
         <div class="min-w-0">
           <DialogEyebrow>{{ $t('project.module.label') }}</DialogEyebrow>
-          <div class="font-semibold truncate leading-tight">{{ draft.name || $t('project.moduleCreate.title') }}</div>
+          <div class="font-semibold truncate leading-tight">
+            {{ draft.name || $t('project.moduleCreate.title') }}
+          </div>
         </div>
       </div>
     </template>
@@ -38,7 +40,12 @@
         size="small"
         @click="visible = false"
       />
-      <Button :label="$t('project.moduleCreate.create')" size="small" :loading="saving" @click="onSave" />
+      <Button
+        :label="$t('project.moduleCreate.create')"
+        size="small"
+        :loading="saving"
+        @click="onSave"
+      />
     </template>
   </Dialog>
 </template>
@@ -125,7 +132,10 @@ async function onSave() {
     if (!id) {
       // createdId guards against duplicates when the create partially fails and
       // the user re-saves: the module exists, so the retry reuses it.
-      id = await store.addResource(props.project.projectID, { kind: 'module', name: draft.name.trim() })
+      id = await store.addResource(props.project.projectID, {
+        kind: 'module',
+        name: draft.name.trim(),
+      })
       createdId.value = id
     }
     emit('created', id)

@@ -137,7 +137,11 @@ export function useSegmentForm(options: {
               key: `input-${sIdx}-${secIdx}-${elIdx}`,
               type: element.input.type,
               label: element.input.label,
-              placeholder: element.input.placeholder || t('builder.form.selectPlaceholder', { field: element.input.label || element.input.argument }),
+              placeholder:
+                element.input.placeholder ||
+                t('builder.form.selectPlaceholder', {
+                  field: element.input.label || element.input.argument,
+                }),
               disabledPlaceholder,
               disabled,
               argument: element.input.argument,
@@ -145,7 +149,7 @@ export function useSegmentForm(options: {
               contextProps: resolveContextProps(element.input.context),
               value: isAgg
                 ? options.getAggregateValue(element.input.argument)
-                : options.getValue(element.input.argument) ?? element.input.default,
+                : (options.getValue(element.input.argument) ?? element.input.default),
               defaultValue: element.input.default,
               isReference,
               referenceLabel,

@@ -2,11 +2,7 @@
   <!-- Switch: No ──[switch]── Yes -->
   <div v-if="field.options?.switch" class="flex items-center gap-2">
     <span class="text-sm text-muted-color">{{ falseLabel }}</span>
-    <ToggleSwitch
-      :model-value="boolValue"
-      :disabled="disabled"
-      @update:model-value="onUpdate"
-    />
+    <ToggleSwitch :model-value="boolValue" :disabled="disabled" @update:model-value="onUpdate" />
     <span class="text-sm text-muted-color">{{ trueLabel }}</span>
   </div>
 

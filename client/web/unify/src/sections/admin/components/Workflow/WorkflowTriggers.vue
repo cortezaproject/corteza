@@ -6,11 +6,7 @@
     >
       {{ $t('automation.workflows.editor.triggers.empty') }}
     </div>
-    <CResourceTable
-      v-else
-      :items="triggers"
-      :fields="triggerFields"
-    >
+    <CResourceTable v-else :items="triggers" :fields="triggerFields">
       <template #body-resourceType="{ data }">
         {{ formatResourceType(data.resourceType) }}
       </template>
@@ -18,7 +14,7 @@
         <span v-for="(c, i) in data.constraints" :key="i" class="text-xs font-mono">
           <template v-if="c.name">
             {{ capitalize(c.name) }} {{ c.op }} "{{ (c.values || []).join(' or ') }}"
-            <code v-if="i < data.constraints.length - 1">and </code>
+            <code v-if="i < data.constraints.length - 1">and</code>
           </template>
         </span>
       </template>
@@ -45,7 +41,10 @@ const triggerFields = [
 
 function formatResourceType(rt) {
   if (!rt) return ''
-  return rt.split(':').map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()).join(' ')
+  return rt
+    .split(':')
+    .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+    .join(' ')
 }
 
 function capitalize(s) {

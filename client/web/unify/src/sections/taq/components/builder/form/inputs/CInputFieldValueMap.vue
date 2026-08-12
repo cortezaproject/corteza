@@ -220,7 +220,10 @@ async function fetchModuleFields() {
 
   loading.value = true
   try {
-    const mod = await moduleStore.findByID({ namespaceID: props.namespaceID, moduleID: props.moduleID })
+    const mod = await moduleStore.findByID({
+      namespaceID: props.namespaceID,
+      moduleID: props.moduleID,
+    })
     if (!mod) {
       fields.value = []
       return

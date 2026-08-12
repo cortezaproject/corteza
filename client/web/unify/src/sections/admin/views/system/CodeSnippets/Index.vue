@@ -33,9 +33,7 @@
           </template>
           <template #body-enabled="{ data }">
             <i
-              :class="
-                data.enabled ? 'pi pi-check text-green-500' : 'pi pi-times text-muted-color'
-              "
+              :class="data.enabled ? 'pi pi-check text-green-500' : 'pi pi-times text-muted-color'"
             />
           </template>
         </CResourceTable>

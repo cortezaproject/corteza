@@ -76,9 +76,7 @@ const currentNamespaceSlug = computed(() => {
 
 const currentNamespaceObject = computed(() => {
   const urlPart = currentNamespaceSlug.value
-  return (
-    namespaceStore.set.find(ns => ns.slug === urlPart || ns.namespaceID === urlPart) || null
-  )
+  return namespaceStore.set.find(ns => ns.slug === urlPart || ns.namespaceID === urlPart) || null
 })
 
 const isAdminRoute = computed(() => {

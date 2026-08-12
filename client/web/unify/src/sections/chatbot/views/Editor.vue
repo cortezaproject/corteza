@@ -98,7 +98,12 @@
 </template>
 
 <script setup>
-import { CChatbotInbox, components, makeChatbotInboxTranslations, useUnsavedGuard } from '@planetcrust/human-vue'
+import {
+  CChatbotInbox,
+  components,
+  makeChatbotInboxTranslations,
+  useUnsavedGuard,
+} from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, ref, watch } from 'vue'

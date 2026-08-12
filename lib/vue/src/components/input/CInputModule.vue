@@ -140,7 +140,10 @@ async function loadModuleById(moduleID) {
 
 function onMultiSelect(modules) {
   selectedModules.value = modules
-  emit('update:modelValue', modules.map(m => m.moduleID))
+  emit(
+    'update:modelValue',
+    modules.map(m => m.moduleID),
+  )
 }
 
 async function loadModulesById(moduleIDs) {
@@ -162,11 +165,11 @@ async function loadModulesById(moduleIDs) {
 }
 
 function syncMultiSelection(ids) {
-  selectedModules.value = options.value.filter(m =>
-    ids.includes(m.moduleID) || ids.includes(String(m.moduleID)),
+  selectedModules.value = options.value.filter(
+    m => ids.includes(m.moduleID) || ids.includes(String(m.moduleID)),
   )
-  const missing = ids.filter(id =>
-    !selectedModules.value.find(m => m.moduleID === id || m.moduleID === String(id)),
+  const missing = ids.filter(
+    id => !selectedModules.value.find(m => m.moduleID === id || m.moduleID === String(id)),
   )
   if (missing.length) {
     loadModulesById(missing)

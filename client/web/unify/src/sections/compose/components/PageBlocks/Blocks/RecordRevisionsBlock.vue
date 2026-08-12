@@ -2,7 +2,10 @@
   <PageBlock :block="block" @refreshBlock="loadRevisions">
     <div class="flex flex-col h-full overflow-hidden">
       <!-- Revisions disabled on module -->
-      <div v-if="revisionsDisabled" class="flex items-center justify-center h-full p-3 text-muted-color italic">
+      <div
+        v-if="revisionsDisabled"
+        class="flex items-center justify-center h-full p-3 text-muted-color italic"
+      >
         {{ $t('block.recordRevisions.viewer.errors.disabled-on-module') }}
       </div>
 
@@ -12,9 +15,14 @@
       </div>
 
       <!-- Load button (when not preloading) -->
-      <div v-else-if="!preloadRevisions && !loadedRevisions" class="flex items-center justify-center h-full">
+      <div
+        v-else-if="!preloadRevisions && !loadedRevisions"
+        class="flex items-center justify-center h-full"
+      >
         <Button
-          :label="$t('block.recordRevisions.viewer.show-revisions', { revision: record?.revision || 0 })"
+          :label="
+            $t('block.recordRevisions.viewer.show-revisions', { revision: record?.revision || 0 })
+          "
           severity="secondary"
           @click="loadRevisions"
         />
@@ -22,7 +30,10 @@
 
       <!-- Revisions table -->
       <template v-else>
-        <div v-if="!revisions.length" class="flex items-center justify-center h-full p-3 text-muted-color italic">
+        <div
+          v-if="!revisions.length"
+          class="flex items-center justify-center h-full p-3 text-muted-color italic"
+        >
           {{ $t('block.recordRevisions.viewer.errors.no-revisions') }}
         </div>
 
@@ -53,13 +64,12 @@
               {{ formatTimestamp(data.timestamp) }}
             </template>
           </Column>
-          <Column
-            :header="''"
-            style="width: 10rem"
-          >
+          <Column :header="''" style="width: 10rem">
             <template #body="{ data }">
               <span v-if="data.changes && data.changes.length" class="text-primary text-sm">
-                {{ $t('block.recordRevisions.viewer.show-changes', { count: data.changes.length }) }}
+                {{
+                  $t('block.recordRevisions.viewer.show-changes', { count: data.changes.length })
+                }}
               </span>
             </template>
           </Column>
@@ -83,12 +93,24 @@
             />
             <Column :header="$t('block.recordRevisions.viewer.changes.columns.old-value.label')">
               <template #body="{ data }">
-                {{ data.old !== undefined ? (Array.isArray(data.old) ? data.old.join(', ') : data.old) : '-' }}
+                {{
+                  data.old !== undefined
+                    ? Array.isArray(data.old)
+                      ? data.old.join(', ')
+                      : data.old
+                    : '-'
+                }}
               </template>
             </Column>
             <Column :header="$t('block.recordRevisions.viewer.changes.columns.new-value.label')">
               <template #body="{ data }">
-                {{ data.new !== undefined ? (Array.isArray(data.new) ? data.new.join(', ') : data.new) : '-' }}
+                {{
+                  data.new !== undefined
+                    ? Array.isArray(data.new)
+                      ? data.new.join(', ')
+                      : data.new
+                    : '-'
+                }}
               </template>
             </Column>
           </DataTable>
@@ -179,9 +201,12 @@ onMounted(() => {
   }
 })
 
-watch(() => props.record?.recordID, () => {
-  if (preloadRevisions.value) loadRevisions()
-})
+watch(
+  () => props.record?.recordID,
+  () => {
+    if (preloadRevisions.value) loadRevisions()
+  },
+)
 
 const offRefetch = $eventBus?.on('refetch-records', () => {
   if (preloadRevisions.value) {

@@ -49,7 +49,7 @@
             @click="confirmRevokeSessions"
           />
         </template>
-        
+
         <CPermissionsButton
           v-if="user.canGrant"
           v-tooltip.bottom="$t('general.label.permissions')"
@@ -79,7 +79,12 @@
           </CFormGroup>
 
           <CFormGroup name="userGroupID" :label="$t('system.users.editor.info.userGroup.label')">
-            <CInputUserGroup id="userGroupID" v-model="user.userGroupID" :clearable="false" class="w-full" />
+            <CInputUserGroup
+              id="userGroupID"
+              v-model="user.userGroupID"
+              :clearable="false"
+              class="w-full"
+            />
           </CFormGroup>
         </div>
       </Panel>
@@ -110,11 +115,21 @@
         />
       </Panel>
 
-      <Panel v-if="isEdit" :header="$t('system.users.editor.avatar.title')" toggleable class="shadow">
-        <UserAvatar :user="user" @update:user="(u) => (user = u)" />
+      <Panel
+        v-if="isEdit"
+        :header="$t('system.users.editor.avatar.title')"
+        toggleable
+        class="shadow"
+      >
+        <UserAvatar :user="user" @update:user="u => (user = u)" />
       </Panel>
 
-      <Panel v-if="isEdit" :header="$t('system.users.editor.externalAuth.title')" toggleable class="shadow">
+      <Panel
+        v-if="isEdit"
+        :header="$t('system.users.editor.externalAuth.title')"
+        toggleable
+        class="shadow"
+      >
         <UserExternalAuth ref="externalAuthRef" :userID="user.userID" />
       </Panel>
     </CViewContainer>
@@ -128,12 +143,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
@@ -260,12 +270,14 @@ async function fetchDefaultUserGroup() {
     const result = await $SystemAPI.userGroupList({ limit: 100 })
     if (result?.set?.length > 0) {
       // Find 'default-root', 'users', or anything with 'Default' in name, otherwise fallback to the first available group
-      const defaultGroup = result.set.find(g => 
-        g.handle === 'default-root' || 
-        g.handle === 'users' || 
-        g.meta?.short?.includes('Default')
-      ) || result.set[0]
-      
+      const defaultGroup =
+        result.set.find(
+          g =>
+            g.handle === 'default-root' ||
+            g.handle === 'users' ||
+            g.meta?.short?.includes('Default'),
+        ) || result.set[0]
+
       if (defaultGroup) {
         user.value.userGroupID = defaultGroup.userGroupID
       }
@@ -279,7 +291,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -482,7 +496,13 @@ function confirmRevokeSessions(event) {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!user.value && !!initialUser.value && (!isEqual(user.value, initialUser.value) || !isEqual([...membershipIDs.value], [...initialMembershipIDs.value])),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!user.value &&
+    !!initialUser.value &&
+    (!isEqual(user.value, initialUser.value) ||
+      !isEqual([...membershipIDs.value], [...initialMembershipIDs.value])),
   messageKey: 'general.editor.unsavedChanges',
 })
 
@@ -492,7 +512,7 @@ watch(
     if (newID !== oldID) {
       loadUser()
     }
-  }
+  },
 )
 
 onMounted(() => {

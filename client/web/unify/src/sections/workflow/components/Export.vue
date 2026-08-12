@@ -19,7 +19,7 @@ export default {
   props: {
     workflows: {
       type: Array,
-      default: () => ([]),
+      default: () => [],
     },
 
     fileName: {
@@ -38,52 +38,72 @@ export default {
     },
   },
 
-  setup () {
+  setup() {
     const toast = useToast()
     return { toast }
   },
 
   methods: {
-    async jsonExport (workflowID = []) {
+    async jsonExport(workflowID = []) {
       const triggers = {}
       let workflows = []
 
       // Get workflow triggers
-      await this.$AutomationAPI.triggerList({ workflowID, disabled: 1 })
+      await this.$AutomationAPI
+        .triggerList({ workflowID, disabled: 1 })
         .then(({ set = [] }) => {
-          set.forEach(({ workflowID, resourceType, eventType, constraints, enabled, stepID, meta }) => {
-            if (!triggers[workflowID]) {
-              triggers[workflowID] = []
-            }
+          set.forEach(
+            ({ workflowID, resourceType, eventType, constraints, enabled, stepID, meta }) => {
+              if (!triggers[workflowID]) {
+                triggers[workflowID] = []
+              }
 
-            triggers[workflowID].push({
-              resourceType,
-              eventType,
-              constraints,
-              enabled,
-              stepID,
-              meta,
-            })
-          })
+              triggers[workflowID].push({
+                resourceType,
+                eventType,
+                constraints,
+                enabled,
+                stepID,
+                meta,
+              })
+            },
+          )
         })
-        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.failed-fetch-triggers'), detail: e?.message, life: 5000 }))
+        .catch(e =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('notification.failed-fetch-triggers'),
+            detail: e?.message,
+            life: 5000,
+          }),
+        )
 
       // Get workflows, add related triggers
-      await this.$AutomationAPI.workflowList({ workflowID, disabled: 1, subWorkflow: 1 })
+      await this.$AutomationAPI
+        .workflowList({ workflowID, disabled: 1, subWorkflow: 1 })
         .then(({ set = [] }) => {
-          workflows = set.map(({ workflowID, handle, enabled, keepSessions, steps, paths, meta }) => {
-            return {
-              handle,
-              enabled,
-              meta,
-              keepSessions,
-              steps,
-              paths,
-              triggers: triggers[workflowID],
-            }
-          })
+          workflows = set.map(
+            ({ workflowID, handle, enabled, keepSessions, steps, paths, meta }) => {
+              return {
+                handle,
+                enabled,
+                meta,
+                keepSessions,
+                steps,
+                paths,
+                triggers: triggers[workflowID],
+              }
+            },
+          )
         })
-        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.failed-fetch-workflows'), detail: e?.message, life: 5000 }))
+        .catch(e =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('notification.failed-fetch-workflows'),
+            detail: e?.message,
+            life: 5000,
+          }),
+        )
 
       // Save file
       const blob = new Blob([JSON.stringify({ workflows }, null, 2)], { type: 'application/json' })

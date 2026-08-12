@@ -29,11 +29,11 @@ export default {
 
   computed: {
     label: {
-      get () {
+      get() {
         return this.item.node.value
       },
 
-      set (label) {
+      set(label) {
         this.item.node.value = label
       },
     },
@@ -44,7 +44,7 @@ export default {
 <style scoped>
 .content-rte-wrap :deep(.ProseMirror),
 .content-rte-wrap :deep(.ql-editor),
-.content-rte-wrap :deep([contenteditable="true"]) {
+.content-rte-wrap :deep([contenteditable='true']) {
   min-height: 200px;
 }
 </style>

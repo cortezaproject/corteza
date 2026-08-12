@@ -13,7 +13,10 @@
           <div class="truncate font-semibold">
             {{ reminder.payload?.title || reminder.payload?.link?.label || reminder.resource }}
           </div>
-          <div v-if="reminder.payload?.notes" class="mt-1 whitespace-pre-wrap text-sm text-muted-color">
+          <div
+            v-if="reminder.payload?.notes"
+            class="mt-1 whitespace-pre-wrap text-sm text-muted-color"
+          >
             {{ reminder.payload.notes }}
           </div>
           <div v-if="reminder.remindAt" class="mt-2 text-xs text-muted-color">
@@ -76,7 +79,7 @@ const snoozeOptions = [
   { label: '1d', duration: 1000 * 60 * 60 * 24 },
 ]
 
-function recordRoute (reminder) {
+function recordRoute(reminder) {
   const link = reminder?.payload?.link
   return link?.params ? { name: link.name || 'page.record', params: link.params } : null
 }

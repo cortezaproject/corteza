@@ -1,8 +1,5 @@
 <template>
-  <DynamicForm
-    :processed-segments="processedSegments"
-    @update:value="handleValueUpdate"
-  />
+  <DynamicForm :processed-segments="processedSegments" @update:value="handleValueUpdate" />
 </template>
 
 <script setup>
@@ -25,7 +22,7 @@ const emit = defineEmits(['update:constraints'])
 
 // Derive parameters from catalog constraint definitions
 const parameters = computed(() =>
-  (props.triggerDef.constraints || []).map((c) => ({
+  (props.triggerDef.constraints || []).map(c => ({
     argumentName: c.name,
     types: c.types || [],
     required: false,
@@ -35,12 +32,12 @@ const parameters = computed(() =>
 
 // Find catalog constraint definition by name
 function getCatalogConstraint(name) {
-  return (props.triggerDef.constraints || []).find((c) => c.name === name)
+  return (props.triggerDef.constraints || []).find(c => c.name === name)
 }
 
 // Read value from constraint: find by name, extract @value from first entry
 function getValue(argumentName) {
-  const constraint = props.constraints.find((c) => c.name === argumentName)
+  const constraint = props.constraints.find(c => c.name === argumentName)
   if (!constraint?.values?.length) return null
   return constraint.values[0]['@value'] ?? null
 }
@@ -55,7 +52,7 @@ function onUpdate(argumentName, value) {
 
   if (value === null || value === undefined || value === '') {
     // Remove constraint when value is cleared
-    newConstraints = newConstraints.filter((c) => c.name !== argumentName)
+    newConstraints = newConstraints.filter(c => c.name !== argumentName)
   } else {
     // Find the catalog constraint to get the @type
     const catalogDef = getCatalogConstraint(argumentName)
@@ -66,7 +63,7 @@ function onUpdate(argumentName, value) {
       '@value': String(value),
     }
 
-    const idx = newConstraints.findIndex((c) => c.name === argumentName)
+    const idx = newConstraints.findIndex(c => c.name === argumentName)
     if (idx !== -1) {
       newConstraints[idx] = {
         ...newConstraints[idx],

@@ -5,12 +5,7 @@
       :key="index"
       :class="{ block: isNewlineDelimiter, 'mt-1': isNewlineDelimiter && index !== 0 }"
     >
-      <Tag
-        v-if="isBadgeDisplay"
-        :value="v.text"
-        :pt="{ root: { style: v.style } }"
-        class="mr-1"
-      />
+      <Tag v-if="isBadgeDisplay" :value="v.text" :pt="{ root: { style: v.style } }" class="mr-1" />
       <span v-else>{{ v.text }}{{ index !== resolvedValues.length - 1 ? delimiter : '' }}</span>
     </span>
   </div>

@@ -12,32 +12,32 @@
       </template>
 
       <CFormList
-      v-model="metrics"
-      draggable
-      :empty-message="$t('block.metric.edit.empty')"
-      :columns="[{ width: '3rem' }, { width: '1fr' }]"
-      @change="expandedMetric = -1"
-      @reorder="expandedMetric = -1"
-    >
-      <template #row="{ item: metric, index: i }">
-        <Button
-          :icon="expandedMetric === i ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-          text
-          rounded
-          size="small"
-          @click="toggleMetric(i)"
-        />
-        <span
-          class="text-sm font-semibold truncate cursor-pointer select-none w-full"
-          @click="toggleMetric(i)"
-        >
-          {{ metric.label || $t('block.metric.defaultMetricLabel') }}
-        </span>
-      </template>
+        v-model="metrics"
+        draggable
+        :empty-message="$t('block.metric.edit.empty')"
+        :columns="[{ width: '3rem' }, { width: '1fr' }]"
+        @change="expandedMetric = -1"
+        @reorder="expandedMetric = -1"
+      >
+        <template #row="{ item: metric, index: i }">
+          <Button
+            :icon="expandedMetric === i ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            text
+            rounded
+            size="small"
+            @click="toggleMetric(i)"
+          />
+          <span
+            class="text-sm font-semibold truncate cursor-pointer select-none w-full"
+            @click="toggleMetric(i)"
+          >
+            {{ metric.label || $t('block.metric.defaultMetricLabel') }}
+          </span>
+        </template>
 
-      <template #extra="{ item: metric, index: i }">
-        <div v-if="expandedMetric === i" class="flex flex-col gap-3 border-t border-surface pt-3">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <template #extra="{ item: metric, index: i }">
+          <div v-if="expandedMetric === i" class="flex flex-col gap-3 border-t border-surface pt-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <CFormGroup :label="$t('block.metric.edit.labelLabel')">
                 <InputText
                   v-model="metric.label"
@@ -232,9 +232,9 @@
                 </CFormGroup>
               </template>
             </div>
-        </div>
-      </template>
-    </CFormList>
+          </div>
+        </template>
+      </CFormList>
     </CFormGroup>
   </div>
 </template>

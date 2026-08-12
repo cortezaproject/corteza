@@ -36,7 +36,9 @@ describe('useUserResolver', () => {
     it('prefers name over handle and email', () => {
       createTestPinia()
       const { formatUser } = mountResolver()
-      expect(formatUser({ userID: '1', name: 'Alice', handle: 'alice', email: 'a@b.com' })).toBe('Alice')
+      expect(formatUser({ userID: '1', name: 'Alice', handle: 'alice', email: 'a@b.com' })).toBe(
+        'Alice',
+      )
     })
 
     it('falls back to handle when no name', () => {
@@ -67,7 +69,7 @@ describe('useUserResolver', () => {
 
     it('returns cached user when present', () => {
       const api = createMockSystemAPI()
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
       const user = makeUser({ userID: '90001', name: 'Alice' })
       useUserStore().storeUsers([user])
 
@@ -77,7 +79,7 @@ describe('useUserResolver', () => {
 
     it('returns null when user not in cache', () => {
       const api = createMockSystemAPI()
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
 
       const { findCached } = mountResolver({ systemAPI: api })
       expect(findCached('90099')).toBeNull()
@@ -93,7 +95,7 @@ describe('useUserResolver', () => {
 
     it('returns cached user without hitting API', async () => {
       const api = createMockSystemAPI()
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
       const user = makeUser({ userID: '90001' })
       useUserStore().storeUsers([user])
 
@@ -106,7 +108,7 @@ describe('useUserResolver', () => {
     it('fetches from API when not cached', async () => {
       const user = makeUser({ userID: '90002', name: 'Bob' })
       const api = createMockSystemAPI({ userRead: vi.fn().mockResolvedValue(user) })
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
 
       const { resolveUser } = mountResolver({ systemAPI: api })
       const result = await resolveUser('90002')
@@ -119,7 +121,7 @@ describe('useUserResolver', () => {
     it('caches fetched user into store', async () => {
       const user = makeUser({ userID: '90003' })
       const api = createMockSystemAPI({ userRead: vi.fn().mockResolvedValue(user) })
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
 
       const { resolveUser, findCached } = mountResolver({ systemAPI: api })
       await resolveUser('90003')
@@ -134,7 +136,7 @@ describe('useUserResolver', () => {
 
     it('returns null when API throws', async () => {
       const api = createMockSystemAPI({ userRead: vi.fn().mockRejectedValue(new Error('fail')) })
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
 
       const { resolveUser } = mountResolver({ systemAPI: api })
       expect(await resolveUser('u1')).toBeNull()
@@ -144,7 +146,7 @@ describe('useUserResolver', () => {
   describe('resolveUsers (batch)', () => {
     it('calls API userList with the given IDs', async () => {
       const api = createMockSystemAPI()
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
 
       const { resolveUsers } = mountResolver({ systemAPI: api })
       await resolveUsers(['a', 'b'])
@@ -155,7 +157,7 @@ describe('useUserResolver', () => {
 
     it('no-ops when userIDs is empty', async () => {
       const api = createMockSystemAPI()
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
 
       const { resolveUsers } = mountResolver({ systemAPI: api })
       await resolveUsers([])
@@ -164,7 +166,7 @@ describe('useUserResolver', () => {
 
     it('skips IDs already in cache', async () => {
       const api = createMockSystemAPI()
-      createTestPinia({ '$SystemAPI': api })
+      createTestPinia({ $SystemAPI: api })
       const user = makeUser({ userID: '90004' })
       useUserStore().storeUsers([user])
 

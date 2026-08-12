@@ -13,7 +13,7 @@ export const EVENT_ICONS: Record<string, IconDef> = {
   onManual: { type: 'name', value: 'play' },
   onInterval: { type: 'name', value: 'sync' },
   onTimestamp: { type: 'name', value: 'clock' },
-  
+
   // Record lifecycle events
   beforeCreate: { type: 'name', value: 'plus-circle' },
   afterCreate: { type: 'name', value: 'plus-circle' },

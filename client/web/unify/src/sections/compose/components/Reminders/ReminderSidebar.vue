@@ -14,26 +14,26 @@
     >
       <CResizeHandle @mousedown="startDrawerResize" />
       <div class="flex-1 flex flex-col min-w-0">
-      <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
-        <h3 class="m-0 text-lg font-semibold">
-          {{ $t('reminder.listLabel') }}
-        </h3>
+        <div class="flex items-center justify-between pl-3 pt-3 pb-2 pr-1">
+          <h3 class="m-0 text-lg font-semibold">
+            {{ $t('reminder.listLabel') }}
+          </h3>
 
-        <Button
-          icon="pi pi-times"
-          severity="secondary"
-          variant="text"
-          rounded
-          size="small"
-          @click="isVisible = false"
-        />
-      </div>
-
-      <div class="flex min-h-0 flex-1 flex-col">
-        <div class="min-h-0 flex-1">
-          <ReminderManager />
+          <Button
+            icon="pi pi-times"
+            severity="secondary"
+            variant="text"
+            rounded
+            size="small"
+            @click="isVisible = false"
+          />
         </div>
-      </div>
+
+        <div class="flex min-h-0 flex-1 flex-col">
+          <div class="min-h-0 flex-1">
+            <ReminderManager />
+          </div>
+        </div>
       </div>
     </div>
   </Transition>
@@ -53,7 +53,8 @@ const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const isVisible = computed({
   get: () => rightSidebarStore.isOpen('reminders'),
-  set: value => value ? rightSidebarStore.open('reminders') : rightSidebarStore.close('reminders'),
+  set: value =>
+    value ? rightSidebarStore.open('reminders') : rightSidebarStore.close('reminders'),
 })
 
 watch(isVisible, async visible => {

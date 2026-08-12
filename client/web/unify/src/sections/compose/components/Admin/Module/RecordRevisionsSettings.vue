@@ -5,7 +5,10 @@
         v-model="module.config.recordRevisions.enabled"
         inputId="recordRevisionsEnabled"
       />
-      <label for="recordRevisionsEnabled" class="font-medium text-primary cursor-pointer select-none">
+      <label
+        for="recordRevisionsEnabled"
+        class="font-medium text-primary cursor-pointer select-none"
+      >
         {{ $t('module.edit.config.record-revisions.enabled') }}
       </label>
     </div>

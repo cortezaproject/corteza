@@ -26,7 +26,11 @@
     <!-- Error -->
     <div v-if="errorMessage" class="shrink-0 px-3 pt-2">
       <div class="text-xs font-semibold text-red-500 mb-1">{{ $t('builder.trace.error') }}</div>
-      <div class="bg-emphasis rounded-border p-2 text-xs text-red-500 whitespace-pre-wrap break-words">{{ errorMessage }}</div>
+      <div
+        class="bg-emphasis rounded-border p-2 text-xs text-red-500 whitespace-pre-wrap break-words"
+      >
+        {{ errorMessage }}
+      </div>
     </div>
 
     <!-- Tabs: Input / Output / Scope -->
@@ -104,7 +108,9 @@ const errorMessage = computed(() => {
       try {
         const parsed = JSON.parse(trimmed)
         if (parsed && typeof parsed === 'object' && parsed.message) return parsed.message
-      } catch { /* fall through */ }
+      } catch {
+        /* fall through */
+      }
     }
     return raw
   }
@@ -124,15 +130,18 @@ const duration = computed(() => {
 })
 
 // Reset searches & active tab when switching frames.
-watch(() => props.frame?.id, () => {
-  searchInput.value = ''
-  searchOutput.value = ''
-  searchScope.value = ''
-  activeTab.value = 'input'
-})
+watch(
+  () => props.frame?.id,
+  () => {
+    searchInput.value = ''
+    searchOutput.value = ''
+    searchScope.value = ''
+    activeTab.value = 'input'
+  },
+)
 
 // If Scope tab becomes unavailable while active, fall back.
-watch(hasScope, (v) => {
+watch(hasScope, v => {
   if (!v && activeTab.value === 'scope') activeTab.value = 'input'
 })
 </script>

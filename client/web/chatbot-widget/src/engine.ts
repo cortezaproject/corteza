@@ -1,8 +1,4 @@
-import type {
-  ChatbotConfig,
-  Scenario,
-  StepStartPayload,
-} from './types'
+import type { ChatbotConfig, Scenario, StepStartPayload } from './types'
 
 export type Message =
   | { role: 'user'; content: string }

@@ -2,7 +2,9 @@
   <nav class="w-full h-full overflow-y-auto rounded-xl border border-surface bg-surface">
     <div class="p-3 flex flex-col gap-4">
       <div v-for="section in nav" :key="section.key" class="flex flex-col gap-0.5">
-        <div class="px-3 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-color">
+        <div
+          class="px-3 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-color"
+        >
           {{ $t(section.labelKey) }}
         </div>
         <button
@@ -10,11 +12,7 @@
           :key="item.key"
           type="button"
           class="w-full text-left rounded-md px-3 py-2 flex items-center gap-2 text-sm transition-colors"
-          :class="
-            isActive(item)
-              ? 'bg-primary/10 text-primary font-medium'
-              : 'hover:bg-emphasis'
-          "
+          :class="isActive(item) ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-emphasis'"
           @click="go(item)"
         >
           <span

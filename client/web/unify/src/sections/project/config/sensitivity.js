@@ -17,4 +17,5 @@ export const SENSITIVITY_OPTIONS = [
 ]
 
 export const sensitivity = id => SENSITIVITY_LEVELS.find(s => s.id === id)
-export const sensitivityLabelKey = id => sensitivity(id)?.labelKey || 'project.sensitivity.unspecified'
+export const sensitivityLabelKey = id =>
+  sensitivity(id)?.labelKey || 'project.sensitivity.unspecified'

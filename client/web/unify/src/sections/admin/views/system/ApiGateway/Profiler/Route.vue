@@ -89,9 +89,8 @@ async function load(reset = false) {
   if (loading.value) return
   loading.value = true
   try {
-    const before = reset || items.value.length === 0
-      ? undefined
-      : items.value[items.value.length - 1].hitID
+    const before =
+      reset || items.value.length === 0 ? undefined : items.value[items.value.length - 1].hitID
     const result = await $SystemAPI.apigwProfilerRoute({
       routeID: route.params.routeID,
       before,
@@ -119,7 +118,10 @@ const hitFields = [
 ]
 
 function handleRowClick({ data }) {
-  router.push({ name: 'system.apiGateway.profiler.hit', params: { routeID: route.params.routeID, hitID: data.hitID } })
+  router.push({
+    name: 'system.apiGateway.profiler.hit',
+    params: { routeID: route.params.routeID, hitID: data.hitID },
+  })
 }
 
 function getHitActions(data) {
@@ -127,7 +129,11 @@ function getHitActions(data) {
     {
       label: t('general.label.details'),
       icon: 'pi pi-info-circle',
-      command: () => router.push({ name: 'system.apiGateway.profiler.hit', params: { routeID: route.params.routeID, hitID: data.hitID } }),
+      command: () =>
+        router.push({
+          name: 'system.apiGateway.profiler.hit',
+          params: { routeID: route.params.routeID, hitID: data.hitID },
+        }),
     },
   ]
 }

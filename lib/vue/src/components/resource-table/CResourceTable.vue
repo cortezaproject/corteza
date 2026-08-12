@@ -1,5 +1,8 @@
 <template>
-  <div class="c-resource-table flex flex-col" :class="{ 'h-full': fillHeight, 'is-reorderable': reorderableRows }">
+  <div
+    class="c-resource-table flex flex-col"
+    :class="{ 'h-full': fillHeight, 'is-reorderable': reorderableRows }"
+  >
     <!-- Header slot -->
     <div v-if="$slots.header" class="flex items-center justify-between gap-3 mb-3 shrink-0">
       <slot name="header" />
@@ -65,10 +68,7 @@
         <template v-if="field.hint" #header>
           <span class="flex items-center gap-1">
             {{ field.header }}
-            <i
-              v-tooltip.top="field.hint"
-              class="pi pi-info-circle text-xs cursor-help"
-            />
+            <i v-tooltip.top="field.hint" class="pi pi-info-circle text-xs cursor-help" />
           </span>
         </template>
         <template #body="slotProps">

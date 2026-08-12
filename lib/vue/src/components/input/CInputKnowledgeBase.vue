@@ -222,7 +222,10 @@ const props = defineProps({
   saveLabel: { type: String, default: 'Save' },
   cancelLabel: { type: String, default: 'Cancel' },
   deleteLabel: { type: String, default: 'Delete' },
-  deleteMessage: { type: String, default: 'Are you sure you want to permanently delete this knowledge base?' },
+  deleteMessage: {
+    type: String,
+    default: 'Are you sure you want to permanently delete this knowledge base?',
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])

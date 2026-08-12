@@ -51,7 +51,10 @@ const rbacStore = useRBACStore()
 const canCreate = rbacStore.can('automation/', 'workflow.create')
 
 const workflowID = computed(() => {
-  return route.params.workflowID || (workflow.value.workflowID !== '0' ? workflow.value.workflowID : undefined)
+  return (
+    route.params.workflowID ||
+    (workflow.value.workflowID !== '0' ? workflow.value.workflowID : undefined)
+  )
 })
 
 const userID = computed(() => {
@@ -68,10 +71,13 @@ onMounted(load)
 
 // Re-fetch when navigating between workflows — Vue Router reuses this
 // component instance for route-param changes, so onMounted doesn't fire again.
-watch(() => route.params.workflowID, (next, prev) => {
-  if (next === prev) return
-  load()
-})
+watch(
+  () => route.params.workflowID,
+  (next, prev) => {
+    if (next === prev) return
+    load()
+  },
+)
 
 async function load() {
   const seq = ++loadSeq
@@ -121,74 +127,90 @@ function onChangeDetected() {
 // Expose for WorkflowEditor to use
 defineExpose({ onChangeDetected })
 
-const saveWorkflow = throttle(async function (wf) {
-  try {
-    processingSave.value = true
+const saveWorkflow = throttle(
+  async function (wf) {
+    try {
+      processingSave.value = true
 
-    const isNew = wf.workflowID === '0'
-    const { triggers: wfTriggers = [] } = wf
+      const isNew = wf.workflowID === '0'
+      const { triggers: wfTriggers = [] } = wf
 
-    // For new workflows, create the workflow first to get a real workflowID
-    // before creating triggers — otherwise triggers are created with workflowID='0'
-    if (isNew) {
-      wf = await $AutomationAPI.workflowCreate(wf)
-      workflowStore.updateInList(wf)
-    }
+      // For new workflows, create the workflow first to get a real workflowID
+      // before creating triggers — otherwise triggers are created with workflowID='0'
+      if (isNew) {
+        wf = await $AutomationAPI.workflowCreate(wf)
+        workflowStore.updateInList(wf)
+      }
 
-    // Handle trigger updates - delete removed triggers, then create/update remaining
-    await Promise.all(triggers.value.filter(({ triggerID }) => {
-      return !wfTriggers.find(t => triggerID === t.triggerID)
-    }).map(({ triggerID }) => {
-      return $AutomationAPI.triggerDelete({ triggerID })
-    })).then(async () => {
-      await Promise.all(wfTriggers.map(t => {
-        if (t.triggerID) {
-          return $AutomationAPI.triggerUpdate({
-            ...t,
-            workflowStepID: t.stepID,
+      // Handle trigger updates - delete removed triggers, then create/update remaining
+      await Promise.all(
+        triggers.value
+          .filter(({ triggerID }) => {
+            return !wfTriggers.find(t => triggerID === t.triggerID)
           })
-        } else {
-          return $AutomationAPI.triggerCreate({
-            ...t,
-            workflowID: wf.workflowID,
-            workflowStepID: t.stepID,
-            ownedBy: userID.value,
-          })
-        }
-      })).catch(() => {
-        throw new Error(t('notification.configure-triggers'))
+          .map(({ triggerID }) => {
+            return $AutomationAPI.triggerDelete({ triggerID })
+          }),
+      ).then(async () => {
+        await Promise.all(
+          wfTriggers.map(t => {
+            if (t.triggerID) {
+              return $AutomationAPI.triggerUpdate({
+                ...t,
+                workflowStepID: t.stepID,
+              })
+            } else {
+              return $AutomationAPI.triggerCreate({
+                ...t,
+                workflowID: wf.workflowID,
+                workflowStepID: t.stepID,
+                ownedBy: userID.value,
+              })
+            }
+          }),
+        ).catch(() => {
+          throw new Error(t('notification.configure-triggers'))
+        })
       })
-    })
 
-    // For existing workflows, update after triggers are saved
-    if (!isNew) {
-      wf = await $AutomationAPI.workflowUpdate(wf)
-      workflowStore.updateInList(wf)
+      // For existing workflows, update after triggers are saved
+      if (!isNew) {
+        wf = await $AutomationAPI.workflowUpdate(wf)
+        workflowStore.updateInList(wf)
+      }
+
+      // Refresh triggers
+      await fetchTriggers(wf.workflowID)
+
+      changeDetected.value = false
+
+      workflow.value = new automation.Workflow(wf)
+      toast.add({ severity: 'success', summary: t('notification.update.success'), life: 3000 })
+
+      if (isNew) {
+        router.push({ name: 'workflow.edit', params: { workflowID: workflow.value.workflowID } })
+      }
+    } catch (e) {
+      toast.add({
+        severity: 'error',
+        summary: t('notification.failed-save'),
+        detail: e.message,
+        life: 5000,
+      })
     }
 
-    // Refresh triggers
-    await fetchTriggers(wf.workflowID)
-
-    changeDetected.value = false
-
-    workflow.value = new automation.Workflow(wf)
-    toast.add({ severity: 'success', summary: t('notification.update.success'), life: 3000 })
-
-    if (isNew) {
-      router.push({ name: 'workflow.edit', params: { workflowID: workflow.value.workflowID } })
-    }
-  } catch (e) {
-    toast.add({ severity: 'error', summary: t('notification.failed-save'), detail: e.message, life: 5000 })
-  }
-
-  processingSave.value = false
-}, 500, { leading: true, trailing: false })
+    processingSave.value = false
+  },
+  500,
+  { leading: true, trailing: false },
+)
 
 function deleteWorkflow() {
   if (workflow.value.workflowID) {
     processingDelete.value = true
 
-    $AutomationAPI.workflowDelete(workflow.value)
+    $AutomationAPI
+      .workflowDelete(workflow.value)
       .then(() => {
         workflowStore.removeFromList(workflow.value.workflowID)
         workflow.value = {}
@@ -209,7 +231,8 @@ function undeleteWorkflow() {
   if (workflow.value.workflowID) {
     processingDelete.value = true
 
-    $AutomationAPI.workflowUndelete(workflow.value)
+    $AutomationAPI
+      .workflowUndelete(workflow.value)
       .then(() => {
         workflow.value.deletedAt = undefined
         workflow.value.deletedBy = undefined

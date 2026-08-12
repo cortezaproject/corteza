@@ -10,7 +10,9 @@
     </div>
     <div class="flex items-center gap-2">
       <Checkbox v-model="field.options.trimQuery" inputId="trimQuery" :binary="true" />
-      <label for="trimQuery" class="cursor-pointer">{{ $t('field.kind.url.trimQuestionMark') }}</label>
+      <label for="trimQuery" class="cursor-pointer">
+        {{ $t('field.kind.url.trimQuestionMark') }}
+      </label>
     </div>
     <div class="flex items-center gap-2">
       <Checkbox v-model="field.options.onlySecure" inputId="onlySecure" :binary="true" />
@@ -18,7 +20,9 @@
     </div>
     <div class="flex items-center gap-2">
       <Checkbox v-model="field.options.outputPlain" inputId="outputPlain" :binary="true" />
-      <label for="outputPlain" class="cursor-pointer">{{ $t('field.kind.url.preventToLink') }}</label>
+      <label for="outputPlain" class="cursor-pointer">
+        {{ $t('field.kind.url.preventToLink') }}
+      </label>
     </div>
 
     <CConfiguratorMultiDelimiter />

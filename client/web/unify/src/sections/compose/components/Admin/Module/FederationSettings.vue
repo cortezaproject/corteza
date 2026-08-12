@@ -15,7 +15,7 @@
 
       <TabPanels class="p-0">
         <!-- Upstream Tab -->
-        <TabPanel value="upstream" class="flex p-0" style="min-height: 400px; max-height: 60vh;">
+        <TabPanel value="upstream" class="flex p-0" style="min-height: 400px; max-height: 60vh">
           <div class="w-1/3 border-r border-surface overflow-y-auto bg-emphasis">
             <Listbox
               v-model="upstream.active"
@@ -38,7 +38,7 @@
             <div v-if="upstream.processing" class="flex justify-center items-center h-full">
               <ProgressSpinner />
             </div>
-            
+
             <div v-else-if="upstream[upstream.active]" class="flex flex-col gap-4">
               <div v-if="upstream[upstream.active].canManageModule" class="flex flex-col gap-4">
                 <p class="text-muted-color m-0">
@@ -84,7 +84,10 @@
                       :inputId="`uf_${upstream.active}_${f.name}`"
                       @change="checkChange($event, 'upstream')"
                     />
-                    <label :for="`uf_${upstream.active}_${f.name}`" class="cursor-pointer select-none">
+                    <label
+                      :for="`uf_${upstream.active}_${f.name}`"
+                      class="cursor-pointer select-none"
+                    >
                       {{ f.label }}
                     </label>
                   </div>
@@ -103,7 +106,7 @@
         </TabPanel>
 
         <!-- Downstream Tab -->
-        <TabPanel value="downstream" class="flex p-0" style="min-height: 400px; max-height: 60vh;">
+        <TabPanel value="downstream" class="flex p-0" style="min-height: 400px; max-height: 60vh">
           <div class="w-1/3 border-r border-surface overflow-y-auto bg-emphasis">
             <Listbox
               v-model="downstream.active"
@@ -144,7 +147,11 @@
                   </p>
                   <div class="flex items-center gap-2">
                     <Checkbox
-                      v-model="downstream[downstream.active].allFields[downstream[downstream.active].module]"
+                      v-model="
+                        downstream[downstream.active].allFields[
+                          downstream[downstream.active].module
+                        ]
+                      "
                       :binary="true"
                       inputId="downstreamAllFields"
                       @change="selectAllFields($event, 'downstream')"
@@ -168,7 +175,10 @@
                         :inputId="`df_${downstream.active}_${sharedModuleFields.name}`"
                         @change="checkChange($event, 'downstream')"
                       />
-                      <label :for="`df_${downstream.active}_${sharedModuleFields.name}`" class="truncate cursor-pointer select-none">
+                      <label
+                        :for="`df_${downstream.active}_${sharedModuleFields.name}`"
+                        class="truncate cursor-pointer select-none"
+                      >
                         {{ sharedModuleFields.label }}
                       </label>
                     </div>
@@ -271,16 +281,21 @@ const federationModalTitle = computed(() => {
 
 const activeSharedModules = computed(() => {
   if (!downstream.value[downstream.value.active]?.module) return []
-  return (sharedModulesMapped.value[downstream.value.active] || {})[downstream.value[downstream.value.active].module] || []
+  return (
+    (sharedModulesMapped.value[downstream.value.active] || {})[
+      downstream.value[downstream.value.active].module
+    ] || []
+  )
 })
 
 const transformedModuleMappings = computed(() => {
   const tf = transformFields(moduleFields.value)
-  const mm = ((sharedModules.value[downstream.value.active] || {})[sharedModule.value] || {}).fields || []
+  const mm =
+    ((sharedModules.value[downstream.value.active] || {})[sharedModule.value] || {}).fields || []
 
-  return tf.map((el) => {
+  return tf.map(el => {
     el.origin.value = false
-    if (mm.find((e) => e.origin.name === el.origin.name)) {
+    if (mm.find(e => e.origin.name === el.origin.name)) {
       el.destination.name = el.origin.name
       el.origin.value = true
     }
@@ -291,7 +306,7 @@ const transformedModuleMappings = computed(() => {
 const transformedModuleFields = computed(() => {
   return [
     { name: null, label: t('module.edit.federationSettings.pickModuleField') },
-    ...transformedModuleMappings.value.map((el) => ({
+    ...transformedModuleMappings.value.map(el => ({
       name: el.origin.name,
       label: el.origin.label,
     })),
@@ -301,7 +316,7 @@ const transformedModuleFields = computed(() => {
 // Watchers
 watch(
   () => props.modal,
-  (val) => {
+  val => {
     showModal.value = val
     if (val && servers.value.length === 0) {
       preload()
@@ -310,16 +325,16 @@ watch(
   { immediate: true },
 )
 
-watch(showModal, (val) => {
+watch(showModal, val => {
   emit('update:modal', val)
   emit('change', val)
 })
 
 watch(
   () => props.module.fields,
-  (fields) => {
+  fields => {
     moduleFields.value = (fields || [])
-      .map((f) => ({
+      .map(f => ({
         kind: f.kind,
         name: f.name,
         label: f.label || f.name,
@@ -334,12 +349,12 @@ watch(
 
 watch(
   () => upstream.value.active,
-  (nodeID) => getNodeUpstream(nodeID),
+  nodeID => getNodeUpstream(nodeID),
 )
 
 watch(
   () => downstream.value.active,
-  (nodeID) => getNodeDownstream(nodeID),
+  nodeID => getNodeDownstream(nodeID),
 )
 
 onBeforeUnmount(() => {
@@ -357,24 +372,28 @@ async function preload() {
     const { set = [] } = await $FederationAPI.nodeSearch({ status: 'paired' })
     servers.value = set.filter(({ canManageNode }) => canManageNode)
   } catch (e) {
-    if ($toast?.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.node'))(e)
+    if ($toast?.toastErrorHandler)
+      $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.node'))(e)
   }
 
   for (const node of servers.value) {
     try {
       await loadExposedModules(node.nodeID)
     } catch (e) {
-      if ($toast?.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.exposed'))(e)
+      if ($toast?.toastErrorHandler)
+        $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.exposed'))(e)
     }
     try {
       await loadSharedModules(node.nodeID)
     } catch (e) {
-      if ($toast?.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.shared'))(e)
+      if ($toast?.toastErrorHandler)
+        $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.shared'))(e)
     }
     try {
       await loadModuleMappings(node.nodeID)
     } catch (e) {
-      if ($toast?.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.mmap'))(e)
+      if ($toast?.toastErrorHandler)
+        $toast.toastErrorHandler(t('module.edit.federationSettings.error.fetch.mmap'))(e)
     }
   }
 
@@ -397,12 +416,12 @@ function getSharedModulesMapped() {
 
       const mappedFields = ((moduleMappings.value[nodeID] || {})[sm.moduleID] || {}).fields || []
 
-      f = f.map((el) => {
+      f = f.map(el => {
         let found = false
         let mapped = (moduleFields.value.find(({ name }) => name === el.name) || {}).name || null
 
         if (mappedFields && mappedFields.length) {
-          const m = mappedFields.find((mf) => el.name === mf.origin?.name)
+          const m = mappedFields.find(mf => el.name === mf.origin?.name)
           mapped = ((m || {}).destination || {}).name || null
           found = !!mapped
         }
@@ -427,7 +446,7 @@ async function handleFederationSettingsSave() {
     // module mappings (downstream)
     for (const nodeID in sharedModulesMapped.value) {
       for (const moduleID in sharedModulesMapped.value[nodeID]) {
-        const crtModule = sharedModules.value[nodeID].find((m) => m.moduleID === moduleID)
+        const crtModule = sharedModules.value[nodeID].find(m => m.moduleID === moduleID)
         if (!crtModule || !crtModule.updated) continue
 
         const fields = toModuleMappingFormat(sharedModulesMapped.value[nodeID][moduleID])
@@ -444,18 +463,19 @@ async function handleFederationSettingsSave() {
           await persistModuleMappings(payload)
           crtModule.updated = false
         } catch (e) {
-          if ($toast?.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.federationSettings.error.persist.mmap'))(e)
+          if ($toast?.toastErrorHandler)
+            $toast.toastErrorHandler(t('module.edit.federationSettings.error.persist.mmap'))(e)
         }
       }
     }
 
-    const nodes = servers.value.map((s) => s.nodeID)
+    const nodes = servers.value.map(s => s.nodeID)
 
     // upstream
     for (const nodeID of nodes) {
       if (!upstream.value[nodeID] || !upstream.value[nodeID].updated) continue
 
-      const fields = (upstream.value[nodeID].fields || []).filter((el) => el.value)
+      const fields = (upstream.value[nodeID].fields || []).filter(el => el.value)
 
       const payload = {
         nodeID,
@@ -474,7 +494,8 @@ async function handleFederationSettingsSave() {
           exposedModules.value[nodeID] = response
         }
       } catch (e) {
-        if ($toast?.toastErrorHandler) $toast.toastErrorHandler(t('module.edit.federationSettings.error.persist.exposed'))(e)
+        if ($toast?.toastErrorHandler)
+          $toast.toastErrorHandler(t('module.edit.federationSettings.error.persist.exposed'))(e)
       }
     }
 
@@ -486,16 +507,16 @@ async function handleFederationSettingsSave() {
 
 function toModuleMappingFormat(fields) {
   return fields
-    .filter((el) => el.map)
-    .filter((el) => !!el.mapped)
-    .map((el) => ({
+    .filter(el => el.map)
+    .filter(el => !!el.mapped)
+    .map(el => ({
       origin: { kind: el.kind, name: el.name, label: el.label, isMulti: el.isMulti },
       destination: { kind: el.kind, name: el.mapped, label: el.label, isMulti: el.isMulti },
     }))
 }
 
 function transformFields(fields) {
-  return fields.map((el) => ({
+  return fields.map(el => ({
     origin: { kind: el.kind, name: el.name, label: el.label || 'N/A', isMulti: false },
     destination: { kind: el.kind, name: '', label: '', isMulti: false },
   }))
@@ -506,20 +527,20 @@ function getNodeUpstream(nodeID) {
 
   upstream.value.processing = true
   const exposedModule = exposedModules.value[nodeID] || {}
-  const fields = moduleFields.value.map((f) => ({ ...f, value: false }))
+  const fields = moduleFields.value.map(f => ({ ...f, value: false }))
   const exposedFields = exposedModule.fields || []
 
   exposedFields.forEach(({ name }) => {
-    const f = fields.find((field) => field.name === name)
+    const f = fields.find(field => field.name === name)
     if (f) f.value = true
   })
 
-  const server = servers.value.find((s) => s.nodeID === nodeID) || {}
+  const server = servers.value.find(s => s.nodeID === nodeID) || {}
 
   const upstreamNode = {
     options: [
       { nodeID: null, name: t('module.edit.federationSettings.pickServer') },
-      ...servers.value.filter((s) => s.nodeID !== nodeID),
+      ...servers.value.filter(s => s.nodeID !== nodeID),
     ],
     copy: null,
     allFields: false,
@@ -528,7 +549,7 @@ function getNodeUpstream(nodeID) {
     canManageModule: !!exposedModule.canManageModule || !!server.canCreateModule,
   }
 
-  upstreamNode.allFields = upstreamNode.fields.length > 0 && upstreamNode.fields.every((f) => f.value)
+  upstreamNode.allFields = upstreamNode.fields.length > 0 && upstreamNode.fields.every(f => f.value)
 
   upstream.value[nodeID] = upstreamNode
   upstream.value.processing = false
@@ -538,13 +559,15 @@ async function getNodeDownstream(nodeID) {
   if (!nodeID || downstream.value[nodeID]) return
 
   downstream.value.processing = true
-  const fields = moduleFields.value.map((f) => ({ ...f, value: false }))
+  const fields = moduleFields.value.map(f => ({ ...f, value: false }))
 
   const sharedModuleOpts = Object.values(sharedModules.value[nodeID] || {})
     .filter(({ canMapModule }) => canMapModule)
-    .map((m) => ({ moduleID: m.moduleID, name: m.name }))
+    .map(m => ({ moduleID: m.moduleID, name: m.name }))
 
-  const preselectedMod = (sharedModules.value[nodeID] || []).find(({ handle }) => handle === props.module.handle)
+  const preselectedMod = (sharedModules.value[nodeID] || []).find(
+    ({ handle }) => handle === props.module.handle,
+  )
 
   const downstreamNode = {
     options: [
@@ -558,7 +581,7 @@ async function getNodeDownstream(nodeID) {
 
   Object.entries(sharedModulesMapped.value[nodeID] || {}).forEach(([key, value]) => {
     if (value && value.length) {
-      downstreamNode.allFields[key] = value.every((f) => f.map)
+      downstreamNode.allFields[key] = value.every(f => f.map)
     } else {
       downstreamNode.allFields[key] = false
     }
@@ -573,15 +596,15 @@ function selectAllFields(event, target) {
   const active = target === 'upstream' ? upstream.value.active : downstream.value.active
 
   if (target === 'upstream') {
-    upstream.value[active].fields.forEach((f) => (f.value = value))
+    upstream.value[active].fields.forEach(f => (f.value = value))
     upstream.value[active].allFields = value
     upstream.value[active].updated = true
   } else if (target === 'downstream') {
     const activeModule = downstream.value[active].module
     if (!activeModule) return
-    sharedModulesMapped.value[active][activeModule]?.forEach((f) => (f.map = value))
+    sharedModulesMapped.value[active][activeModule]?.forEach(f => (f.map = value))
     downstream.value[active].allFields[activeModule] = value
-    const mod = sharedModules.value[active]?.find((m) => m.moduleID === activeModule)
+    const mod = sharedModules.value[active]?.find(m => m.moduleID === activeModule)
     if (mod) mod.updated = true
   }
 }
@@ -593,7 +616,7 @@ function setUpdated(target) {
     upstream.value[active].updated = true
   } else if (target === 'downstream') {
     const activeModule = downstream.value[active].module
-    const mod = sharedModules.value[active]?.find((m) => m.moduleID === activeModule)
+    const mod = sharedModules.value[active]?.find(m => m.moduleID === activeModule)
     if (mod) mod.updated = true
   }
 }
@@ -601,8 +624,8 @@ function setUpdated(target) {
 function copyUpstreamFrom(event) {
   const nodeID = event.value || event
   const active = upstream.value.active
-  
-  upstream.value[active].fields.forEach((f) => {
+
+  upstream.value[active].fields.forEach(f => {
     let value = false
     if (upstream.value[nodeID]) {
       value = !!upstream.value[nodeID].fields.find(({ name, value: v }) => name === f.name && v)
@@ -618,7 +641,9 @@ function checkChange(event, target) {
   const active = target === 'upstream' ? upstream.value.active : downstream.value.active
 
   if (target === 'upstream') {
-    upstream.value[active].allFields = value ? upstream.value[active].fields.every((f) => f.value) : false
+    upstream.value[active].allFields = value
+      ? upstream.value[active].fields.every(f => f.value)
+      : false
   } else if (target === 'downstream') {
     const activeModule = downstream.value[active].module
     if (!activeModule) return
@@ -644,14 +669,16 @@ async function loadSharedModules(nodeID) {
   if (sharedModules.value[nodeID]) return
 
   const data = await $FederationAPI.manageStructureListAll({ nodeID, shared: 1 })
-  sharedModules.value[nodeID] = (data || []).map((d) => ({ ...d, updated: false }))
+  sharedModules.value[nodeID] = (data || []).map(d => ({ ...d, updated: false }))
 }
 
 async function loadExposedModules(nodeID) {
   if (exposedModules.value[nodeID]) return
 
   const data = await $FederationAPI.manageStructureListAll({ nodeID, exposed: 1 })
-  const exposedModule = (data || []).find(({ composeModuleID }) => composeModuleID === props.module.moduleID)
+  const exposedModule = (data || []).find(
+    ({ composeModuleID }) => composeModuleID === props.module.moduleID,
+  )
   if (exposedModule) {
     exposedModules.value[nodeID] = exposedModule
   }
@@ -664,7 +691,11 @@ async function loadModuleMappings(nodeID) {
   for (const { moduleID } of sharedModules.value[nodeID]) {
     mm[moduleID] = []
     try {
-      const data = await $FederationAPI.manageStructureReadMappings({ nodeID, moduleID, composeModuleID: props.module.moduleID })
+      const data = await $FederationAPI.manageStructureReadMappings({
+        nodeID,
+        moduleID,
+        composeModuleID: props.module.moduleID,
+      })
       mm[moduleID] = data
     } catch {
       // silent

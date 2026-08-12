@@ -93,9 +93,7 @@
           :model-value="row.description"
           size="small"
           class="w-full"
-          :placeholder="
-            $t('builder.inputSchema.descriptionPlaceholder')
-          "
+          :placeholder="$t('builder.inputSchema.descriptionPlaceholder')"
           @update:model-value="updateRow(index, { description: $event })"
         />
       </div>

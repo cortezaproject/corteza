@@ -6,11 +6,7 @@
         {{ $t('field.kind.select.optionType.label') }}
       </label>
       <div class="flex flex-col gap-2">
-        <div
-          v-for="opt in selectTypeOptions"
-          :key="opt.value"
-          class="flex items-center gap-2"
-        >
+        <div v-for="opt in selectTypeOptions" :key="opt.value" class="flex items-center gap-2">
           <RadioButton
             :input-id="`selectType-${opt.value}`"
             v-model="field.options.selectType"
@@ -29,7 +25,9 @@
         :binary="true"
         @update:model-value="field.options.isUniqueMultiValue = !$event"
       />
-      <label for="allowDuplicates" class="cursor-pointer">{{ $t('field.kind.select.allow-duplicates') }}</label>
+      <label for="allowDuplicates" class="cursor-pointer">
+        {{ $t('field.kind.select.allow-duplicates') }}
+      </label>
     </div>
 
     <!-- Display type -->
@@ -40,11 +38,15 @@
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <RadioButton inputId="displayText" v-model="field.options.displayType" value="text" />
-          <label for="displayText" class="cursor-pointer">{{ $t('field.kind.select.displayType.text') }}</label>
+          <label for="displayText" class="cursor-pointer">
+            {{ $t('field.kind.select.displayType.text') }}
+          </label>
         </div>
         <div class="flex items-center gap-2">
           <RadioButton inputId="displayBadge" v-model="field.options.displayType" value="badge" />
-          <label for="displayBadge" class="cursor-pointer">{{ $t('field.kind.select.displayType.badge') }}</label>
+          <label for="displayBadge" class="cursor-pointer">
+            {{ $t('field.kind.select.displayType.badge') }}
+          </label>
         </div>
       </div>
     </div>
@@ -79,7 +81,9 @@
         <!-- Badge color styling -->
         <div v-if="field.options.displayType === 'badge'" class="flex gap-4 pl-1">
           <div class="flex items-center gap-2">
-            <label class="text-xs text-muted-color">{{ $t('field.kind.select.options.style.textColor') }}</label>
+            <label class="text-xs text-muted-color">
+              {{ $t('field.kind.select.options.style.textColor') }}
+            </label>
             <CInputColorPicker
               v-model="opt.style.textColor"
               :default-value="DEFAULT_BADGE_TEXT_COLOR"
@@ -87,7 +91,9 @@
             />
           </div>
           <div class="flex items-center gap-2">
-            <label class="text-xs text-muted-color">{{ $t('field.kind.select.options.style.backgroundColor') }}</label>
+            <label class="text-xs text-muted-color">
+              {{ $t('field.kind.select.options.style.backgroundColor') }}
+            </label>
             <CInputColorPicker
               v-model="opt.style.backgroundColor"
               :default-value="DEFAULT_BADGE_BG_COLOR"
@@ -129,8 +135,16 @@ const selectTypeOptions = computed(() => {
   const allOptions = [
     { value: 'default', label: t('field.kind.select.optionType.default'), allowDuplicates: true },
     { value: 'multiple', label: t('field.kind.select.optionType.multiple'), onlyMulti: true },
-    { value: 'each', label: t('field.kind.select.optionType.each'), allowDuplicates: true, onlyMulti: true },
-    { value: 'list', label: t(`field.kind.select.optionType.${field.value.isMulti ? 'checkbox' : 'radio'}`) },
+    {
+      value: 'each',
+      label: t('field.kind.select.optionType.each'),
+      allowDuplicates: true,
+      onlyMulti: true,
+    },
+    {
+      value: 'list',
+      label: t(`field.kind.select.optionType.${field.value.isMulti ? 'checkbox' : 'radio'}`),
+    },
   ]
 
   if (field.value.isMulti) return allOptions

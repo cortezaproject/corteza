@@ -27,12 +27,14 @@ export default {
   watch: {
     'item.config.stepID': {
       immediate: true,
-      handler () {
-        let args = [{
-          target: 'offset',
-          type: 'Duration',
-          expr: '',
-        }]
+      handler() {
+        let args = [
+          {
+            target: 'offset',
+            type: 'Duration',
+            expr: '',
+          },
+        ]
 
         if (this.item.config.arguments && this.item.config.arguments.length) {
           args = this.item.config.arguments.map(({ target, type, value, expr }) => {
@@ -50,7 +52,7 @@ export default {
   },
 
   methods: {
-    valueChanged (value) {
+    valueChanged(value) {
       this.$emit('update-default-value', {
         value: `Delay workflow execution for ${value}`,
         force: !this.item.node.value,

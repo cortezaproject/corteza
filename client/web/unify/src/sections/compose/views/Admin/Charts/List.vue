@@ -72,7 +72,6 @@
       <template #body-updatedAt="{ data }">
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
-
     </CResourceList>
 
     <!-- Chart Type Selector Dialog -->
@@ -267,10 +266,9 @@ async function handleDelete(chart) {
 }
 
 function exportChart(chart) {
-  const blob = new Blob(
-    [JSON.stringify({ type: 'chart', list: [chart] }, null, 2)],
-    { type: 'application/json' },
-  )
+  const blob = new Blob([JSON.stringify({ type: 'chart', list: [chart] }, null, 2)], {
+    type: 'application/json',
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -280,10 +278,9 @@ function exportChart(chart) {
 }
 
 function exportAllCharts() {
-  const blob = new Blob(
-    [JSON.stringify({ type: 'chart', list: chartList.value }, null, 2)],
-    { type: 'application/json' },
-  )
+  const blob = new Blob([JSON.stringify({ type: 'chart', list: chartList.value }, null, 2)], {
+    type: 'application/json',
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

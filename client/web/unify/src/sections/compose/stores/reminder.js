@@ -3,11 +3,11 @@ import { useRightSidebarStore } from '@planetcrust/human-vue'
 import { defineStore } from 'pinia'
 import { computed, inject, reactive, toRef } from 'vue'
 
-function normalizeReminder (raw = {}) {
+function normalizeReminder(raw = {}) {
   return raw instanceof system.Reminder ? raw : new system.Reminder(raw)
 }
 
-function sortReminders (items = []) {
+function sortReminders(items = []) {
   return [...items].sort((a, b) => {
     if (!!a.dismissedAt !== !!b.dismissedAt) {
       return a.dismissedAt ? 1 : -1
@@ -25,7 +25,7 @@ function sortReminders (items = []) {
   })
 }
 
-function reminderVersion (reminder) {
+function reminderVersion(reminder) {
   return [
     reminder.remindAt ? new Date(reminder.remindAt).toISOString() : '',
     reminder.dismissedAt ? new Date(reminder.dismissedAt).toISOString() : '',
@@ -51,20 +51,22 @@ export const useReminderStore = defineStore('compose-reminder', () => {
   })
 
   const currentUserID = computed(() => $Auth?.user?.userID || NoID)
-  const activeCount = computed(() => state.reminders.filter(({ dismissedAt }) => !dismissedAt).length)
+  const activeCount = computed(
+    () => state.reminders.filter(({ dismissedAt }) => !dismissedAt).length,
+  )
 
-  function clearTimer () {
+  function clearTimer() {
     if (state.timer) {
       window.clearTimeout(state.timer)
       state.timer = null
     }
   }
 
-  function findReminder (reminderID) {
+  function findReminder(reminderID) {
     return state.reminders.find(({ reminderID: id }) => id === reminderID)
   }
 
-  function setReminders (reminders = []) {
+  function setReminders(reminders = []) {
     state.reminders = sortReminders(reminders.map(normalizeReminder))
 
     state.toasts = state.toasts
@@ -74,7 +76,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     scheduleDueProcessing()
   }
 
-  function upsertReminder (raw) {
+  function upsertReminder(raw) {
     const reminder = normalizeReminder(raw)
     const next = [...state.reminders]
     const index = next.findIndex(({ reminderID }) => reminderID === reminder.reminderID)
@@ -89,7 +91,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     return reminder
   }
 
-  function removeReminder (reminderID) {
+  function removeReminder(reminderID) {
     state.reminders = state.reminders.filter(({ reminderID: id }) => id !== reminderID)
     state.toasts = state.toasts.filter(({ reminderID: id }) => id !== reminderID)
     state.shownVersions.delete(reminderID)
@@ -101,7 +103,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     scheduleDueProcessing()
   }
 
-  function showToast (raw) {
+  function showToast(raw) {
     const reminder = normalizeReminder(raw)
     if (reminder.dismissedAt) {
       hideToast(reminder.reminderID)
@@ -121,11 +123,11 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     }
   }
 
-  function hideToast (reminderID) {
+  function hideToast(reminderID) {
     state.toasts = state.toasts.filter(({ reminderID: id }) => id !== reminderID)
   }
 
-  function processDueReminders (now = new Date()) {
+  function processDueReminders(now = new Date()) {
     state.reminders.forEach(reminder => {
       if (reminder.dismissedAt || !reminder.remindAt) {
         return
@@ -142,7 +144,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     scheduleDueProcessing()
   }
 
-  function scheduleDueProcessing () {
+  function scheduleDueProcessing() {
     clearTimer()
 
     const now = new Date()
@@ -172,7 +174,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     state.timer = window.setTimeout(() => processDueReminders(new Date()), delay)
   }
 
-  async function fetchReminders () {
+  async function fetchReminders() {
     if (!$SystemAPI || !currentUserID.value || currentUserID.value === NoID) {
       setReminders([])
       return []
@@ -190,11 +192,11 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     return reminders
   }
 
-  function clearEdit () {
+  function clearEdit() {
     state.editing = null
   }
 
-  function startCreate ({ resource, assignedTo, payload = {}, remindAt } = {}) {
+  function startCreate({ resource, assignedTo, payload = {}, remindAt } = {}) {
     state.editing = new system.Reminder({
       resource,
       assignedTo: assignedTo || currentUserID.value || NoID,
@@ -204,18 +206,19 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     rightSidebarStore.open('reminders')
   }
 
-  function startEdit (reminder) {
+  function startEdit(reminder) {
     state.editing = normalizeReminder(reminder)
     rightSidebarStore.open('reminders')
   }
 
-  async function saveReminder (reminder) {
+  async function saveReminder(reminder) {
     if (!$SystemAPI) return
 
     state.processing = true
 
     try {
-      const endpoint = reminder.reminderID && reminder.reminderID !== NoID ? 'reminderUpdate' : 'reminderCreate'
+      const endpoint =
+        reminder.reminderID && reminder.reminderID !== NoID ? 'reminderUpdate' : 'reminderCreate'
       await $SystemAPI[endpoint]({
         reminderID: reminder.reminderID,
         resource: reminder.resource,
@@ -232,7 +235,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     }
   }
 
-  async function setDismissed (reminder, value) {
+  async function setDismissed(reminder, value) {
     if (!$SystemAPI) return
 
     const endpoint = value ? 'reminderDismiss' : 'reminderUndismiss'
@@ -246,14 +249,14 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     await fetchReminders()
   }
 
-  async function deleteReminder (reminder) {
+  async function deleteReminder(reminder) {
     if (!$SystemAPI) return
 
     await $SystemAPI.reminderDelete({ reminderID: reminder.reminderID })
     removeReminder(reminder.reminderID)
   }
 
-  async function snoozeReminder (reminder, duration) {
+  async function snoozeReminder(reminder, duration) {
     if (!$SystemAPI) return
 
     const remindAt = new Date(Date.now() + duration).toISOString()
@@ -267,7 +270,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     await fetchReminders()
   }
 
-  function handleRealtimeReminder (raw) {
+  function handleRealtimeReminder(raw) {
     const reminder = upsertReminder(raw)
 
     if (reminder.dismissedAt) {
@@ -281,7 +284,7 @@ export const useReminderStore = defineStore('compose-reminder', () => {
     }
   }
 
-  function dispose () {
+  function dispose() {
     clearTimer()
   }
 

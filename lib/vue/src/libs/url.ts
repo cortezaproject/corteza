@@ -10,7 +10,13 @@ const baseQsConfig = {
  *
  * We need it to handle relative URLs, especially ones w/o schema
  */
-export function Make ({ url = '', query = {}, hash = '', ref = window.location.toString(), config = {} }): string {
+export function Make({
+  url = '',
+  query = {},
+  hash = '',
+  ref = window.location.toString(),
+  config = {},
+}): string {
   let u
 
   if (/^http(s)?:\/\//.test(url)) {

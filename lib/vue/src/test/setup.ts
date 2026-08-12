@@ -6,11 +6,7 @@ import { beforeEach, vi } from 'vitest'
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {} } })
 
-config.global.plugins = [
-  i18n,
-  [PrimeVue, { unstyled: true }],
-  PrimeVueComponentsPlugin,
-]
+config.global.plugins = [i18n, [PrimeVue, { unstyled: true }], PrimeVueComponentsPlugin]
 
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})

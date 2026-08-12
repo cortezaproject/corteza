@@ -12,7 +12,9 @@
         <CInputDelete
           text
           size="small"
-          :message="t('builder.arrayInput.deleteConfirm', 'Are you sure you want to remove this item?')"
+          :message="
+            t('builder.arrayInput.deleteConfirm', 'Are you sure you want to remove this item?')
+          "
           :header="t('builder.arrayInput.itemHead', 'Item')"
           @confirm="removeRow(index)"
         />

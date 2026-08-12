@@ -414,7 +414,16 @@ function fieldKey(step, result) {
 
 // Type compatibility check
 // Scalar types that can always be represented as String
-const STRINGABLE_TYPES = ['ID', 'Boolean', 'Integer', 'UnsignedInteger', 'Float', 'DateTime', 'Handle', 'String']
+const STRINGABLE_TYPES = [
+  'ID',
+  'Boolean',
+  'Integer',
+  'UnsignedInteger',
+  'Float',
+  'DateTime',
+  'Handle',
+  'String',
+]
 
 function typesOverlap(acceptedTypes, resultTypes) {
   if (!acceptedTypes?.length || acceptedTypes.includes('Any')) return true
@@ -422,7 +431,8 @@ function typesOverlap(acceptedTypes, resultTypes) {
   if (acceptedTypes.some(t => resultTypes.includes(t))) return true
 
   // String accepts any scalar type (IDs, booleans, dates, etc. are all stringifiable)
-  if (acceptedTypes.includes('String') && resultTypes.some(t => STRINGABLE_TYPES.includes(t))) return true
+  if (acceptedTypes.includes('String') && resultTypes.some(t => STRINGABLE_TYPES.includes(t)))
+    return true
 
   return false
 }
@@ -511,7 +521,10 @@ async function fetchFields(step, result) {
   if (result.types?.includes('ComposeRecord') && result.namespaceID && result.moduleID) {
     loadingFields[key] = true
     try {
-      const mod = await moduleStore.findByID({ namespaceID: result.namespaceID, moduleID: result.moduleID })
+      const mod = await moduleStore.findByID({
+        namespaceID: result.namespaceID,
+        moduleID: result.moduleID,
+      })
       if (mod?.fields) {
         const moduleFields = mod.fields
           .filter(f => !f.isSystem)

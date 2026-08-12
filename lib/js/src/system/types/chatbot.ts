@@ -68,9 +68,7 @@ interface ChatbotHandoff {
   automation?: ChatbotHandoffAutomation
 }
 
-interface PartialChatbot extends Partial<
-  Omit<Chatbot, 'createdAt' | 'updatedAt' | 'deletedAt'>
-> {
+interface PartialChatbot extends Partial<Omit<Chatbot, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
   deletedAt?: string | number | Date
@@ -216,9 +214,7 @@ export interface ChatbotSessionHandoff {
   closedAt?: Date
 }
 
-interface PartialChatbotSession extends Partial<
-  Omit<ChatbotSession, 'createdAt' | 'updatedAt'>
-> {
+interface PartialChatbotSession extends Partial<Omit<ChatbotSession, 'createdAt' | 'updatedAt'>> {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
 }
@@ -257,7 +253,10 @@ export class ChatbotSession {
     Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt')
 
     if (IsOf(o, 'handoff') && o.handoff) {
-      const h = o.handoff as Partial<ChatbotSessionHandoff> & { startedAt?: string | Date; closedAt?: string | Date }
+      const h = o.handoff as Partial<ChatbotSessionHandoff> & {
+        startedAt?: string | Date
+        closedAt?: string | Date
+      }
       this.handoff = {
         id: String(h.id || ''),
         status: String(h.status || ''),
@@ -268,9 +267,7 @@ export class ChatbotSession {
   }
 }
 
-interface PartialChatbotSessionStep extends Partial<
-  Omit<ChatbotSessionStep, 'createdAt'>
-> {
+interface PartialChatbotSessionStep extends Partial<Omit<ChatbotSessionStep, 'createdAt'>> {
   createdAt?: string | number | Date
 }
 

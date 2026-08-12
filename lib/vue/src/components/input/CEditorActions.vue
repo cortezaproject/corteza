@@ -1,9 +1,6 @@
 <template>
   <div class="shrink-0 border-t border-surface bg-surface">
-    <div
-      class="p-3 flex items-center"
-      :class="hasLeft ? 'justify-between' : 'justify-end'"
-    >
+    <div class="p-3 flex items-center" :class="hasLeft ? 'justify-between' : 'justify-end'">
       <div v-if="hasLeft" class="flex items-center gap-2">
         <Button
           v-if="backTo"

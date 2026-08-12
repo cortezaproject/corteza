@@ -19,7 +19,10 @@ export const useAgentChatStore = defineStore('agentChat', () => {
       const nameB = b.meta?.short || b.handle || ''
       return nameA.localeCompare(nameB)
     })
-    if (availableAgents.value.length > 0 && (!activeAgentID.value || !availableAgents.value.find(a => a.agentID === activeAgentID.value))) {
+    if (
+      availableAgents.value.length > 0 &&
+      (!activeAgentID.value || !availableAgents.value.find(a => a.agentID === activeAgentID.value))
+    ) {
       activeAgentID.value = availableAgents.value[0].agentID
     }
   }
@@ -30,11 +33,13 @@ export const useAgentChatStore = defineStore('agentChat', () => {
 
   function initConversation(agentID: string) {
     if (!conversations.value[agentID] || conversations.value[agentID].length === 0) {
-      conversations.value[agentID] = [{
-        id: 1,
-        messages: [],
-        conversationID: null,
-      }]
+      conversations.value[agentID] = [
+        {
+          id: 1,
+          messages: [],
+          conversationID: null,
+        },
+      ]
       activeConversationIndex.value[agentID] = 0
     }
   }
@@ -110,11 +115,13 @@ export const useAgentChatStore = defineStore('agentChat', () => {
   }
 
   function clearConversation(agentID: string) {
-    conversations.value[agentID] = [{
-      id: 1,
-      messages: [],
-      conversationID: null,
-    }]
+    conversations.value[agentID] = [
+      {
+        id: 1,
+        messages: [],
+        conversationID: null,
+      },
+    ]
     activeConversationIndex.value[agentID] = 0
   }
 
@@ -169,7 +176,12 @@ export const useAgentChatStore = defineStore('agentChat', () => {
     // If the only tab is an empty, fresh one, reuse it instead of stacking.
     const current = conversations.value[agentID]
     const last = current[current.length - 1]
-    if (current.length === 1 && last && !last.conversationID && (!last.messages || last.messages.length === 0)) {
+    if (
+      current.length === 1 &&
+      last &&
+      !last.conversationID &&
+      (!last.messages || last.messages.length === 0)
+    ) {
       last.conversationID = cid
       last.messages = messages
       activeConversationIndex.value[agentID] = current.length - 1

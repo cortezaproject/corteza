@@ -6,11 +6,7 @@
       </div>
 
       <div v-else class="flex flex-col gap-4">
-        <CFormGroup
-          v-for="edge in gatewayEdges"
-          :key="edge.id"
-          :label="edge.value"
-        >
+        <CFormGroup v-for="edge in gatewayEdges" :key="edge.id" :label="edge.value">
           <expression-editor
             v-model="edge.expr"
             show-line-numbers
@@ -36,11 +32,11 @@ export default {
   extends: base,
 
   computed: {
-    gatewayKind () {
+    gatewayKind() {
       return this.item.config.ref
     },
 
-    gatewayEdges () {
+    gatewayEdges() {
       const edges = []
       if (['incl', 'excl'].includes(this.gatewayKind)) {
         if (this.outEdges && this.item.node.edges) {
@@ -51,7 +47,8 @@ export default {
                 source: source.id,
                 target: target.id,
                 value,
-                expr: (this.edges[id] && this.edges[id].config) ? this.edges[id].config.expr || '' : '',
+                expr:
+                  this.edges[id] && this.edges[id].config ? this.edges[id].config.expr || '' : '',
               })
             }
           })
@@ -62,7 +59,7 @@ export default {
   },
 
   methods: {
-    updateEdge (id, expr) {
+    updateEdge(id, expr) {
       if (this.edges[id] && this.edges[id].config) {
         this.edges[id].config.expr = expr
       }

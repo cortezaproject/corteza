@@ -41,12 +41,7 @@
         </Tab>
       </TabList>
 
-      <Menu
-        v-if="inEditMode"
-        ref="tabMenuRef"
-        :model="tabMenuItems"
-        popup
-      >
+      <Menu v-if="inEditMode" ref="tabMenuRef" :model="tabMenuItems" popup>
         <template #item="{ item, props: itemProps }">
           <a v-ripple v-bind="itemProps.action" :class="item.class">
             <span :class="item.icon" />
@@ -175,13 +170,14 @@ const tabListPt = computed(() => ({
   },
   tabList: {
     style: {
-      borderWidth: tabStyle.value.orientation === 'vertical'
-        ? tabStyle.value.position === 'end'
-          ? '0 0 0 1px'
-          : '0 1px 0 0'
-        : tabStyle.value.position === 'end'
-          ? '1px 0 0 0'
-          : '0 0 1px 0',
+      borderWidth:
+        tabStyle.value.orientation === 'vertical'
+          ? tabStyle.value.position === 'end'
+            ? '0 0 0 1px'
+            : '0 1px 0 0'
+          : tabStyle.value.position === 'end'
+            ? '1px 0 0 0'
+            : '0 0 1px 0',
     },
     class: [
       'flex w-full flex-nowrap border-solid border-surface',

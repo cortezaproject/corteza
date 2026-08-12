@@ -41,7 +41,14 @@ async function mountGuardedRoute(isDirty: boolean, tabClose = false) {
   await router.push('/')
   await flushPromises()
 
-  return { wrapper, router, dirty, get guard() { return guardRef! } }
+  return {
+    wrapper,
+    router,
+    dirty,
+    get guard() {
+      return guardRef!
+    },
+  }
 }
 
 describe('useUnsavedGuard', () => {

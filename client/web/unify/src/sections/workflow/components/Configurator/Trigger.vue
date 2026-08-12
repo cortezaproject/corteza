@@ -47,10 +47,7 @@
       </div>
     </div>
 
-    <div
-      v-if="showConstraints"
-      class="configurator-section"
-    >
+    <div v-if="showConstraints" class="configurator-section">
       <CFormGroup :label="$t('steps.trigger.configurator.constraints')">
         <template #actions>
           <Button
@@ -64,10 +61,7 @@
       </CFormGroup>
 
       <div v-if="constraintNameTypes.length">
-        <div
-          v-if="!item.triggers.constraints.length"
-          class="text-center text-muted-color py-4"
-        >
+        <div v-if="!item.triggers.constraints.length" class="text-center text-muted-color py-4">
           {{ $t('steps.trigger.configurator.no-constraints') }}
         </div>
 
@@ -126,24 +120,13 @@
             </CFormGroup>
 
             <CFormGroup label="Values">
-              <div
-                v-for="(value, vIndex) in c.values"
-                :key="vIndex"
-                class="mb-2"
-              >
-                <p
-                  v-if="vIndex > 0"
-                  class="text-center uppercase text-muted-color text-sm mb-2"
-                >
+              <div v-for="(value, vIndex) in c.values" :key="vIndex" class="mb-2">
+                <p v-if="vIndex > 0" class="text-center uppercase text-muted-color text-sm mb-2">
                   {{ $t('general.label.or') }}
                 </p>
 
                 <div class="flex items-center gap-2">
-                  <InputText
-                    v-model="c.values[vIndex]"
-                    class="flex-1"
-                    @input="emitChange"
-                  />
+                  <InputText v-model="c.values[vIndex]" class="flex-1" @input="emitChange" />
                   <CInputDelete
                     icon="pi pi-trash"
                     severity="danger"
@@ -182,22 +165,12 @@
           @update:modelValue="emitChange"
         />
 
-        <InputText
-          v-else
-          v-model="item.triggers.constraints[0].values[0]"
-          @input="emitChange"
-        />
+        <InputText v-else v-model="item.triggers.constraints[0].values[0]" @input="emitChange" />
       </CFormGroup>
     </div>
 
-    <div
-      v-if="(eventType.properties || []).length"
-      class="configurator-section"
-    >
-      <DataTable
-        :value="eventType.properties || []"
-        class="border border-surface rounded-border"
-      >
+    <div v-if="(eventType.properties || []).length" class="configurator-section">
+      <DataTable :value="eventType.properties || []" class="border border-surface rounded-border">
         <Column field="name" :header="$t('general.label.name')" />
         <Column field="type" :header="$t('general.label.type')">
           <template #body="{ data }">
@@ -225,7 +198,7 @@ export default {
 
   extends: base,
 
-  data () {
+  data() {
     return {
       modules: [],
 
@@ -235,26 +208,34 @@ export default {
   },
 
   computed: {
-    resourceTypeOptions () {
+    resourceTypeOptions() {
       return this.resourceTypes
     },
 
-    eventTypeOptions () {
-      return this.eventTypes.filter(({ resourceType }) => resourceType === this.item.triggers.resourceType)
+    eventTypeOptions() {
+      return this.eventTypes.filter(
+        ({ resourceType }) => resourceType === this.item.triggers.resourceType,
+      )
     },
 
-    eventType () {
-      return this.eventTypes.find(({ resourceType, eventType }) => resourceType === this.item.triggers.resourceType && eventType === this.item.triggers.eventType) || {}
+    eventType() {
+      return (
+        this.eventTypes.find(
+          ({ resourceType, eventType }) =>
+            resourceType === this.item.triggers.resourceType &&
+            eventType === this.item.triggers.eventType,
+        ) || {}
+      )
     },
 
-    showConstraints () {
+    showConstraints() {
       if (this.item.triggers.resourceType && this.item.triggers.eventType) {
         return this.constraintNameTypes.length ? true : this.item.triggers.eventType !== 'onManual'
       }
       return false
     },
 
-    constraintNameTypes () {
+    constraintNameTypes() {
       const constraints = this.eventType.constraints || []
 
       return constraints.reduce((cons, { name }) => {
@@ -269,7 +250,7 @@ export default {
       }, [])
     },
 
-    constraintOperatorTypes () {
+    constraintOperatorTypes() {
       return [
         { value: '=', text: this.$t('steps.trigger.configurator.equal') },
         { value: '!=', text: this.$t('steps.trigger.configurator.not-equal') },
@@ -279,7 +260,7 @@ export default {
     },
   },
 
-  async created () {
+  async created() {
     if (!this.item.triggers) {
       this.item['triggers'] = {
         resourceType: 'system',
@@ -295,12 +276,13 @@ export default {
   methods: {
     getConstraintNameLabel,
 
-    emitChange () {
+    emitChange() {
       eventBus.emit('change-detected')
     },
 
-    async getEventTypes () {
-      return this.$AutomationAPI.eventTypesList()
+    async getEventTypes() {
+      return this.$AutomationAPI
+        .eventTypesList()
         .then(({ set = [] }) => {
           this.eventTypes = set
           const resourceTypes = new Set(set.map(({ resourceType }) => resourceType))
@@ -311,10 +293,17 @@ export default {
             }
           })
         })
-        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('steps.trigger.configurator.failed-fetch-event-types'), detail: e?.message, life: 5000 }))
+        .catch(e =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('steps.trigger.configurator.failed-fetch-event-types'),
+            detail: e?.message,
+            life: 5000,
+          }),
+        )
     },
 
-    addConstraint () {
+    addConstraint() {
       this.item.triggers.constraints.push({
         name: '',
         op: '=',
@@ -325,19 +314,19 @@ export default {
       eventBus.emit('change-detected')
     },
 
-    removeConstraint (index) {
+    removeConstraint(index) {
       this.item.triggers.constraints.splice(index, 1)
       eventBus.emit('change-detected')
     },
 
-    resourceChanged () {
+    resourceChanged() {
       this.item.triggers.eventType = null
       this.item.triggers.constraints = []
       eventBus.emit('change-detected')
       this.updateDefaultName()
     },
 
-    eventChanged () {
+    eventChanged() {
       if (['onTimestamp', 'onInterval'].includes(this.item.triggers.eventType)) {
         this.item.triggers.constraints = []
         this.addConstraint()
@@ -347,49 +336,52 @@ export default {
       this.updateDefaultName()
     },
 
-    enabledChanged () {
+    enabledChanged() {
       eventBus.emit('trigger-updated', this.item.node)
       eventBus.emit('change-detected')
     },
 
-    updateDefaultName () {
+    updateDefaultName() {
       const { resourceType, eventType } = this.item.triggers
 
       if (resourceType) {
-        let value = [this.getResourceTypeLabel(resourceType), this.getEventTypeLabel({ eventType })].filter(v => v).join(' - ')
+        let value = [this.getResourceTypeLabel(resourceType), this.getEventTypeLabel({ eventType })]
+          .filter(v => v)
+          .join(' - ')
         value = value.charAt(0).toUpperCase() + value.slice(1)
         this.$emit('update-default-value', { value, force: !this.item.node.value })
       }
     },
 
-    getOptionTypeKey ({ value }) {
+    getOptionTypeKey({ value }) {
       return value
     },
 
-    getOptionEventTypeKey ({ eventType }) {
+    getOptionEventTypeKey({ eventType }) {
       return eventType
     },
 
-    getResourceTypeLabel (resourceType) {
+    getResourceTypeLabel(resourceType) {
       if (!resourceType) return ''
 
       return resourceType
         .split(':')
-        .map(part => part
-          .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' '),
+        .map(part =>
+          part
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' '),
         )
         .join(' - ')
     },
 
-    getEventTypeLabel ({ eventType = '' } = {}) {
+    getEventTypeLabel({ eventType = '' } = {}) {
       if (!eventType) return ''
 
       return camelToTitle(eventType.replace('on', ''))
     },
 
-    getConstraintOperatorLabel (op) {
+    getConstraintOperatorLabel(op) {
       const operator = this.constraintOperatorTypes.find(type => type.value === op)
       return operator ? operator.text : op
     },

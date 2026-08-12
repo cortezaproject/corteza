@@ -157,7 +157,10 @@ async function onCreate() {
   try {
     let userId = draft.userId
     if (draft.mode === 'new') {
-      userId = await store.addProjectUser(props.project.projectID, { email: draft.email, name: draft.name })
+      userId = await store.addProjectUser(props.project.projectID, {
+        email: draft.email,
+        name: draft.name,
+      })
       // Refresh the directory so the new user resolves to a name/email.
       await usersStore.reload()
     }

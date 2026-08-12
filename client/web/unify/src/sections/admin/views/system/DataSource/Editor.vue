@@ -70,7 +70,10 @@
           >
             <CInputLocation
               :model-value="locationPoint"
-              :dialog-header="dataSource.meta?.name || $t('system.data-sources.editor.basic.form.location-geometry.label')"
+              :dialog-header="
+                dataSource.meta?.name ||
+                $t('system.data-sources.editor.basic.form.location-geometry.label')
+              "
               @update:model-value="onLocationUpdate"
             />
           </CFormGroup>
@@ -104,12 +107,24 @@
             <div class="flex flex-col gap-3">
               <CInputToggleCard
                 v-model="dataSource.meta.properties[prop].enabled"
-                :label="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.checkbox.label`)"
-                :description="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.checkbox.description`)"
+                :label="
+                  $t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.checkbox.label`)
+                "
+                :description="
+                  $t(
+                    `system.data-sources.editor.properties.form.${kebabCase(prop)}.checkbox.description`,
+                  )
+                "
               />
               <CFormGroup
-                :label="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.notes.label`)"
-                :description="$t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.notes.description`)"
+                :label="
+                  $t(`system.data-sources.editor.properties.form.${kebabCase(prop)}.notes.label`)
+                "
+                :description="
+                  $t(
+                    `system.data-sources.editor.properties.form.${kebabCase(prop)}.notes.description`,
+                  )
+                "
                 :input-id="`${prop}Notes`"
                 class="ml-2"
               >
@@ -146,7 +161,11 @@
 
           <CFormGroup
             :label="$t('system.data-sources.editor.dal.form.model-ident.label')"
-            :description="$t('system.data-sources.editor.dal.form.model-ident.description', { interpolation: { prefix: '{{{', suffix: '}}}' } })"
+            :description="
+              $t('system.data-sources.editor.dal.form.model-ident.description', {
+                interpolation: { prefix: '{{{', suffix: '}}}' },
+              })
+            "
             input-id="modelIdent"
           >
             <InputText
@@ -191,11 +210,7 @@
         </div>
       </Panel>
 
-      <Message
-        v-if="isEdit && !canManageDal"
-        severity="warn"
-        :closable="false"
-      >
+      <Message v-if="isEdit && !canManageDal" severity="warn" :closable="false">
         {{ $t('system.data-sources.editor.dal.no-access-warning') }}
       </Message>
     </CViewContainer>
@@ -209,12 +224,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
@@ -282,7 +292,11 @@ function onLocationUpdate(point) {
 function ensureLocationShape() {
   const meta = dataSource.value.meta
   if (!meta.location || typeof meta.location !== 'object') {
-    meta.location = { type: 'Feature', geometry: { type: 'Point', coordinates: [] }, properties: { name: '' } }
+    meta.location = {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [] },
+      properties: { name: '' },
+    }
     return
   }
   if (!meta.location.type) meta.location.type = 'Feature'
@@ -319,7 +333,9 @@ const resolver = ref(({ values }) => {
     try {
       const parsed = JSON.parse(values.dalParams)
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        errors.dalParams = [{ message: t('system.data-sources.editor.dal.form.params.description') }]
+        errors.dalParams = [
+          { message: t('system.data-sources.editor.dal.form.params.description') },
+        ]
       }
     } catch {
       errors.dalParams = [{ message: t('system.data-sources.editor.dal.form.params.description') }]
@@ -375,7 +391,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }

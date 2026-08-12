@@ -96,9 +96,7 @@ interface AgentInvocation {
   system: AgentInvocationSystem
 }
 
-interface PartialAgent extends Partial<
-  Omit<Agent, 'createdAt' | 'updatedAt' | 'deletedAt'>
-> {
+interface PartialAgent extends Partial<Omit<Agent, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
   deletedAt?: string | number | Date
@@ -193,7 +191,9 @@ export class Agent {
       this.meta = {
         ...this.meta,
         ...o.meta,
-        sidebarRoles: Array.isArray(o.meta?.sidebarRoles) ? o.meta.sidebarRoles : this.meta.sidebarRoles,
+        sidebarRoles: Array.isArray(o.meta?.sidebarRoles)
+          ? o.meta.sidebarRoles
+          : this.meta.sidebarRoles,
       }
     }
 
@@ -201,9 +201,15 @@ export class Agent {
       this.behavior = {
         ...this.behavior,
         ...o.behavior,
-        guardrails: Array.isArray(o.behavior?.guardrails) ? o.behavior.guardrails : this.behavior.guardrails,
-        knowledgeBases: Array.isArray(o.behavior?.knowledgeBases) ? o.behavior.knowledgeBases : this.behavior.knowledgeBases,
-        tclArticles: Array.isArray(o.behavior?.tclArticles) ? o.behavior.tclArticles : this.behavior.tclArticles,
+        guardrails: Array.isArray(o.behavior?.guardrails)
+          ? o.behavior.guardrails
+          : this.behavior.guardrails,
+        knowledgeBases: Array.isArray(o.behavior?.knowledgeBases)
+          ? o.behavior.knowledgeBases
+          : this.behavior.knowledgeBases,
+        tclArticles: Array.isArray(o.behavior?.tclArticles)
+          ? o.behavior.tclArticles
+          : this.behavior.tclArticles,
       }
     }
 
@@ -213,7 +219,12 @@ export class Agent {
         model: {
           ...this.execution.model,
           ...m,
-          temperature: 'temperature' in m ? m.temperature : (this.agentID ? null : this.execution.model.temperature),
+          temperature:
+            'temperature' in m
+              ? m.temperature
+              : this.agentID
+                ? null
+                : this.execution.model.temperature,
         },
         limits: { ...this.execution.limits, ...(o.execution?.limits || {}) },
       }

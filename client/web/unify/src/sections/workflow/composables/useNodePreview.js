@@ -5,11 +5,11 @@ import { ref } from 'vue'
  * node's bounding rect so the popup can render via Teleport outside the
  * transformed wrapper that traps its stacking context.
  */
-export function useNodePreview () {
+export function useNodePreview() {
   const rootEl = ref(null)
   const popupStyle = ref(null)
 
-  function showPopup () {
+  function showPopup() {
     const r = rootEl.value?.getBoundingClientRect()
     if (!r) return
     popupStyle.value = {
@@ -20,7 +20,7 @@ export function useNodePreview () {
     }
   }
 
-  function hidePopup () {
+  function hidePopup() {
     popupStyle.value = null
   }
 

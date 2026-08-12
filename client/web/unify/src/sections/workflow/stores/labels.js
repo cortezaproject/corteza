@@ -52,9 +52,7 @@ export const useLabelsStore = defineStore('labels', () => {
   }
 
   async function resolveMultipleNamespaces({ namespaceIDs }) {
-    return Promise.all(
-      namespaceIDs.map(namespaceID => resolveNamespace({ namespaceID })),
-    )
+    return Promise.all(namespaceIDs.map(namespaceID => resolveNamespace({ namespaceID })))
   }
 
   async function resolveMultipleModules({ modules: modList }) {

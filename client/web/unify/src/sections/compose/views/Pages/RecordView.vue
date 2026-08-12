@@ -201,7 +201,10 @@ const $SystemAPI = inject('$SystemAPI', null)
 const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 
-const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility($SystemAPI, $Auth)
+const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility(
+  $SystemAPI,
+  $Auth,
+)
 
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
@@ -588,7 +591,9 @@ async function handleSave({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }

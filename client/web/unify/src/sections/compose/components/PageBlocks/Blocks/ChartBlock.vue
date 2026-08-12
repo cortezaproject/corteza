@@ -1,7 +1,14 @@
 <template>
   <PageBlock :block="block" @refreshBlock="fetchChart">
     <div class="relative h-full">
-      <ChartRenderer v-if="chart" ref="chartRenderer" :chart="chart" :reporter="reporter" :record="record" @drill-down="drillDown" />
+      <ChartRenderer
+        v-if="chart"
+        ref="chartRenderer"
+        :chart="chart"
+        :reporter="reporter"
+        :record="record"
+        @drill-down="drillDown"
+      />
       <div v-else-if="!block.options?.chartID" class="p-3 text-muted-color italic">
         {{ $t('block.chart.noChart') }}
       </div>
@@ -31,7 +38,7 @@
       dismissableMask
       :style="{ width: '90vw', height: '90vh' }"
       :pt="{
-        content: { class: 'flex-1 flex flex-col overflow-hidden p-0 bg-surface h-full' }
+        content: { class: 'flex-1 flex flex-col overflow-hidden p-0 bg-surface h-full' },
       }"
     >
       <RecordListBlock
@@ -88,9 +95,19 @@
               {{ $t('chart.filter.modal.options.label') }}
             </label>
             <div class="flex flex-col gap-2">
-              <div v-for="opt in filterCombineOptions" :key="opt.value" class="flex items-center gap-2">
-                <RadioButton v-model="liveFilterModalOption" :value="opt.value" :input-id="`filter-opt-${opt.value}`" />
-                <label :for="`filter-opt-${opt.value}`">{{ $t(`chart.filter.modal.options.${opt.label}`) }}</label>
+              <div
+                v-for="opt in filterCombineOptions"
+                :key="opt.value"
+                class="flex items-center gap-2"
+              >
+                <RadioButton
+                  v-model="liveFilterModalOption"
+                  :value="opt.value"
+                  :input-id="`filter-opt-${opt.value}`"
+                />
+                <label :for="`filter-opt-${opt.value}`">
+                  {{ $t(`chart.filter.modal.options.${opt.label}`) }}
+                </label>
               </div>
             </div>
           </div>
@@ -114,11 +131,7 @@
               size="small"
               @click="showFilterModal = false"
             />
-            <Button
-              :label="$t('general.label.save')"
-              size="small"
-              @click="applyLiveFilter"
-            />
+            <Button :label="$t('general.label.save')" size="small" @click="applyLiveFilter" />
           </div>
         </div>
       </template>
@@ -318,7 +331,7 @@ function drillDown({ trueName, value }) {
     $eventBus.emit(`drill-down-recordList:${drillDownOpts.blockID}`, {
       prefilter: dimensionFilter,
       name: trueName || dimensions,
-      value: drillDownValue
+      value: drillDownValue,
     })
   } else {
     let mergedFilter = filter ? `(${filter})` : ''
@@ -348,8 +361,8 @@ function drillDown({ trueName, value }) {
         recordDisplayOption: 'modal',
       },
       style: {
-        wrap: { kind: 'plain' }
-      }
+        wrap: { kind: 'plain' },
+      },
     })
 
     drillDownModalVisible.value = true

@@ -181,7 +181,6 @@
           </div>
         </CFormGroup>
       </template>
-
     </div>
 
     <template #footer>
@@ -255,7 +254,9 @@ const typeCfg = computed(() => fieldType(draft.type))
 const typeLabel = computed(() => (typeCfg.value ? t(typeCfg.value.labelKey) : draft.type))
 
 const module = computed(() =>
-  props.moduleId ? store.resourcesFor(props.project?.projectID).find(r => r.id === props.moduleId) : null,
+  props.moduleId
+    ? store.resourcesFor(props.project?.projectID).find(r => r.id === props.moduleId)
+    : null,
 )
 const moduleName = computed(() => module.value?.name || '')
 const field = computed(() =>
@@ -264,7 +265,9 @@ const field = computed(() =>
 
 // Modules a Record field can point at (anything but its own module).
 const moduleOptions = computed(() =>
-  store.resourcesFor(props.project?.projectID).filter(r => r.kind === 'module' && r.id !== props.moduleId),
+  store
+    .resourcesFor(props.project?.projectID)
+    .filter(r => r.kind === 'module' && r.id !== props.moduleId),
 )
 
 // --- Draft (staged) edits; nothing persists until Save -----------------------

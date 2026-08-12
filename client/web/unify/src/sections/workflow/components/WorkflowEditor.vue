@@ -111,10 +111,7 @@
       </div>
 
       <!-- Bottom bar: save + zoom -->
-      <div
-        class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full"
-        style="z-index: 1"
-      >
+      <div class="flex flex-wrap absolute bottom-0 left-0 p-2 gap-2 w-full" style="z-index: 1">
         <Button
           v-if="changeDetected && canUpdateWorkflow"
           data-test-id="button-save-workflow"
@@ -137,7 +134,10 @@
             severity="secondary"
             class="p-0"
             :disabled="!canUndo"
-            @click="undo(); refreshSidebar()"
+            @click="
+              undo()
+              refreshSidebar()
+            "
           >
             <i class="pi pi-undo" />
           </Button>
@@ -147,7 +147,10 @@
             severity="secondary"
             class="p-0"
             :disabled="!canRedo"
-            @click="redo(); refreshSidebar()"
+            @click="
+              redo()
+              refreshSidebar()
+            "
           >
             <i class="pi pi-undo" style="transform: scaleX(-1); display: inline-block" />
           </Button>
@@ -265,11 +268,7 @@
       leave-from-class="translate-x-0"
       leave-to-class="translate-x-full"
     >
-      <div
-        v-show="sidebar.show"
-        class="right-sidebar flex"
-        :style="{ width: `${drawerWidth}px` }"
-      >
+      <div v-show="sidebar.show" class="right-sidebar flex" :style="{ width: `${drawerWidth}px` }">
         <!-- Resize handle -->
         <CResizeHandle @mousedown="startDrawerResize" />
         <!-- Drawer content -->
@@ -591,7 +590,10 @@ const rightSidebarStore = useRightSidebarStore()
 
 const defaultEdgeOptions = { markerEnd: MarkerType.ArrowClosed }
 
-const { saveToHistory, resetHistory, undo, redo, canUndo, canRedo } = useWorkflowHistory(nodes, edges)
+const { saveToHistory, resetHistory, undo, redo, canUndo, canRedo } = useWorkflowHistory(
+  nodes,
+  edges,
+)
 const debouncedSaveToHistory = debounce(saveToHistory, 600)
 const {
   onToolbarDragStart,
@@ -690,9 +692,7 @@ const dryRun = ref({
 // as empty variables at encode time
 const visibleDryRunFields = computed(() => dryRun.value.fields.filter(f => f.widget))
 
-const hasScopeLookups = computed(() =>
-  visibleDryRunFields.value.some(f => f.section === 'scope'),
-)
+const hasScopeLookups = computed(() => visibleDryRunFields.value.some(f => f.section === 'scope'))
 
 // name → picked value of the scope fields, so dependent fields can cascade
 const dryRunScopeValues = computed(() =>
@@ -800,7 +800,10 @@ watch(
       const nextLabel = newItem.node.value || ''
       const nextDesc = newItem.node.description || ''
       let edgeChanged = false
-      if (edge.label !== nextLabel) { edge.label = nextLabel; edgeChanged = true }
+      if (edge.label !== nextLabel) {
+        edge.label = nextLabel
+        edgeChanged = true
+      }
       if ((edge.data?.description || '') !== nextDesc) {
         edge.data = { ...edge.data, description: nextDesc }
         edgeChanged = true
@@ -1409,26 +1412,43 @@ function refreshSidebar() {
   if (!sidebar.value.show || !sidebar.value.item?.node?.id) return
   if (sidebar.value.itemType === 'edge') {
     const edge = edges.value.find(e => e.id === sidebar.value.item.node.id)
-    if (!edge) { sidebarClose(); return }
+    if (!edge) {
+      sidebarClose()
+      return
+    }
     sidebar.value.item = {
       node: {
         id: edge.id,
         value: edge.label || '',
         description: edge.data?.description || '',
         edge: true,
-        source: { id: edge.source, style: nodes.value.find(n => n.id === edge.source)?.data?.kind || '' },
+        source: {
+          id: edge.source,
+          style: nodes.value.find(n => n.id === edge.source)?.data?.kind || '',
+        },
         target: { id: edge.target },
         edges: [],
       },
-      config: { kind: 'edge', stepID: edge.id, parentID: edge.source, childID: edge.target, expr: edge.data?.expr || '' },
+      config: {
+        kind: 'edge',
+        stepID: edge.id,
+        parentID: edge.source,
+        childID: edge.target,
+        expr: edge.data?.expr || '',
+      },
     }
     return
   }
   const node = nodes.value.find(n => n.id === sidebar.value.item.node.id)
-  if (!node) { sidebarClose(); return }
+  if (!node) {
+    sidebarClose()
+    return
+  }
   sidebar.value.showItem = false
   sidebar.value.item = buildSidebarItem(node)
-  nextTick(() => { sidebar.value.showItem = true })
+  nextTick(() => {
+    sidebar.value.showItem = true
+  })
 }
 
 function sidebarClose() {
@@ -1717,9 +1737,12 @@ watch(
   { deep: false },
 )
 
-watch(() => rightSidebarStore.isOpen('workflow-config'), isOpen => {
-  if (!isOpen && sidebar.value.show) sidebarClose()
-})
+watch(
+  () => rightSidebarStore.isOpen('workflow-config'),
+  isOpen => {
+    if (!isOpen && sidebar.value.show) sidebarClose()
+  },
+)
 
 /**
  * Relabel remaining out-edges of certain source kinds after deletion so their
@@ -1795,7 +1818,6 @@ function showToolbarTooltip(event, item) {
   }
 }
 
-
 /* ─── Trigger path check ─── */
 function checkExistingTriggerPaths() {
   triggersPathsChanged.value = [...triggers.value].some(({ stepID = '0', meta = {} }) => {
@@ -1860,10 +1882,13 @@ async function loadTestScope() {
 
   // One field per scope property and declared named input; already-entered
   // values survive re-opening the dialog
-  const previous = dryRun.value.fields.reduce((prev, f) => {
-    prev[f.section][f.name] = f
-    return prev
-  }, { scope: {}, input: {} })
+  const previous = dryRun.value.fields.reduce(
+    (prev, f) => {
+      prev[f.section][f.name] = f
+      return prev
+    },
+    { scope: {}, input: {} },
+  )
   dryRun.value.fields = [
     ...buildScopeFields(et, t, previous.scope),
     ...buildInputFields(workflow.value?.meta?.input, previous.input),
@@ -1902,7 +1927,10 @@ async function dryRunOk(e) {
   if (dryRun.value.lookup) {
     e.preventDefault()
     try {
-      const merged = await encodeFields(dryRun.value.fields, { ComposeAPI: $ComposeAPI, SystemAPI: $SystemAPI })
+      const merged = await encodeFields(dryRun.value.fields, {
+        ComposeAPI: $ComposeAPI,
+        SystemAPI: $SystemAPI,
+      })
       dryRun.value.input = merged
       dryRun.value.inputEdited = merged
       dryRun.value.lookup = false

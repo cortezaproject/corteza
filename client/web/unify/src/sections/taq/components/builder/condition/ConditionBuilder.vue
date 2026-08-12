@@ -42,12 +42,16 @@
           <div class="flex-1 border-t border-surface" />
           <button
             class="text-xs font-semibold px-2 py-0.5 rounded-border cursor-pointer transition-colors"
-            :class="modelValue.ref === 'and'
-              ? 'bg-primary text-primary-contrast'
-              : 'bg-highlight text-primary'"
+            :class="
+              modelValue.ref === 'and'
+                ? 'bg-primary text-primary-contrast'
+                : 'bg-highlight text-primary'
+            "
             @click="onCombinatorToggle"
           >
-            {{ modelValue.ref === 'and' ? $t('builder.condition.and') : $t('builder.condition.or') }}
+            {{
+              modelValue.ref === 'and' ? $t('builder.condition.and') : $t('builder.condition.or')
+            }}
           </button>
           <div class="flex-1 border-t border-surface" />
         </div>
@@ -104,10 +108,7 @@ function childKey(child, index) {
 function makeEmptyComparison() {
   return {
     ref: 'eq',
-    args: [
-      { symbol: '', meta: {} },
-      { value: { '@type': 'String', '@value': '' } },
-    ],
+    args: [{ symbol: '', meta: {} }, { value: { '@type': 'String', '@value': '' } }],
   }
 }
 

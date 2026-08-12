@@ -48,7 +48,9 @@
 
       <!-- Thinking bubble -->
       <div v-if="executing" class="flex items-start">
-        <div class="bg-emphasis text-color shadow-sm p-3 rounded-xl flex items-center gap-2 text-sm">
+        <div
+          class="bg-emphasis text-color shadow-sm p-3 rounded-xl flex items-center gap-2 text-sm"
+        >
           <ProgressSpinner style="width: 16px; height: 16px" strokeWidth="4" />
           <span class="text-muted-color">{{ thinkingLabel }}</span>
         </div>
@@ -122,9 +124,7 @@ const chatMsgRefs = ref<Record<number, HTMLElement>>({})
 const chatPromptRefs = ref<Record<number, HTMLElement>>({})
 
 const visibleMessages = computed(() =>
-  props.messages.filter(
-    m => ['user', 'agent', 'assistant'].includes(m.role) && m.content,
-  ),
+  props.messages.filter(m => ['user', 'agent', 'assistant'].includes(m.role) && m.content),
 )
 
 function assignMsgRef(el: any, msg: ChatMessage) {
@@ -155,7 +155,10 @@ async function scrollToBottom() {
 }
 
 // Scroll when new messages arrive
-watch(() => props.messages.length, () => scrollToBottom())
+watch(
+  () => props.messages.length,
+  () => scrollToBottom(),
+)
 
 // Scroll to the relevant bubble when trace selection changes
 watch(
@@ -178,6 +181,10 @@ defineExpose({ scrollToBottom })
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
-.rt-content :deep(p:first-child) { margin-top: 0; }
-.rt-content :deep(p:last-child) { margin-bottom: 0; }
+.rt-content :deep(p:first-child) {
+  margin-top: 0;
+}
+.rt-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
 </style>

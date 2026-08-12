@@ -111,7 +111,10 @@
         <template #body-name="{ data }">
           <div class="flex flex-col">
             <span>{{ data.meta?.name || '—' }}</span>
-            <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+            <span
+              v-if="data.meta?.description"
+              class="text-xs text-muted-color truncate max-w-full"
+            >
               {{ data.meta.description }}
             </span>
           </div>
@@ -170,12 +173,7 @@
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  components,
-  filters,
-  useConfirmDelete,
-  useResourceList,
-} from '@planetcrust/human-vue'
+import { components, filters, useConfirmDelete, useResourceList } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters

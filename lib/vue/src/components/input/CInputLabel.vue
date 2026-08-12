@@ -48,17 +48,8 @@
             <label for="label-name" class="font-medium text-primary text-sm">
               {{ nameLabel }}
             </label>
-            <InputText
-              id="label-name"
-              name="name"
-              v-model="dialogForm.name"
-            />
-            <Message
-              v-if="$form.name?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-            >
+            <InputText id="label-name" name="name" v-model="dialogForm.name" />
+            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
               {{ $form.name.error?.message }}
             </Message>
           </FormField>
@@ -117,7 +108,8 @@ const props = defineProps({
   requiredMessage: { type: String, default: 'Name is required' },
   invalidHandleMessage: {
     type: String,
-    default: 'Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number',
+    default:
+      'Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number',
   },
 })
 

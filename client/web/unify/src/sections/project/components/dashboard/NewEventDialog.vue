@@ -127,7 +127,12 @@ const resolvedSchema = computed(() =>
           return { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
         }
         if (f.source === 'revisions') {
-          return { ...f, options: revisionOptions.value, optionLabel: 'label', optionValue: 'value' }
+          return {
+            ...f,
+            options: revisionOptions.value,
+            optionLabel: 'label',
+            optionValue: 'value',
+          }
         }
         return f
       }),
@@ -166,7 +171,9 @@ function addBacklogDraft() {
 
 // "New {type}" where {type} is the singular category label.
 const createLabel = computed(() =>
-  t('project.dashboard.newButton', { type: t(`project.dashboard.categorySingular.${props.category}`) }),
+  t('project.dashboard.newButton', {
+    type: t(`project.dashboard.categorySingular.${props.category}`),
+  }),
 )
 const headerText = createLabel
 
@@ -176,7 +183,9 @@ const headerText = createLabel
 // collapse to that check — none of the schemas use 0/false as a real value).
 const submitted = ref(false)
 
-const requiredFields = computed(() => resolvedSchema.value.flatMap(s => s.fields.filter(f => f.required)))
+const requiredFields = computed(() =>
+  resolvedSchema.value.flatMap(s => s.fields.filter(f => f.required)),
+)
 
 const isEmpty = v => v === null || v === undefined || (typeof v === 'string' && v.trim() === '')
 

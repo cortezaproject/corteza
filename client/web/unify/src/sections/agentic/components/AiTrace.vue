@@ -8,7 +8,6 @@
       <span>{{ $t('agent.editor.inspect.noActiveChat') }}</span>
     </div>
     <div v-else class="flex-1 overflow-y-auto" ref="traceScrollContainer">
-
       <!-- Context section -->
       <div v-if="conversation.context" class="p-3 pb-0">
         <Panel
@@ -30,10 +29,7 @@
       </div>
 
       <!-- Card-based trace view -->
-      <div
-        v-if="conversation.traceHistory.length"
-        class="p-3 flex flex-col gap-4"
-      >
+      <div v-if="conversation.traceHistory.length" class="p-3 flex flex-col gap-4">
         <div
           v-for="(traceEntry, tIdx) in conversation.traceHistory"
           :key="'t' + tIdx"
@@ -92,11 +88,7 @@
                     "
                   >
                     <i
-                      :class="
-                        decision.decision === 'tool_call'
-                          ? 'pi pi-wrench'
-                          : 'pi pi-comment'
-                      "
+                      :class="decision.decision === 'tool_call' ? 'pi pi-wrench' : 'pi pi-comment'"
                       class="text-xs"
                     />
                   </div>
@@ -118,10 +110,7 @@
                   </span>
                 </div>
 
-                <div
-                  v-if="decision.reasoning"
-                  class="border-t border-surface px-2.5 py-1.5"
-                >
+                <div v-if="decision.reasoning" class="border-t border-surface px-2.5 py-1.5">
                   <div
                     class="flex items-start gap-1.5 cursor-pointer"
                     @click.stop="toggleReasoningExpand(tIdx, dIdx)"
@@ -129,9 +118,7 @@
                     <i
                       class="pi text-xs text-muted-color mt-0.5 transition-transform duration-200"
                       :class="
-                        isReasoningExpanded(tIdx, dIdx)
-                          ? 'pi-chevron-down'
-                          : 'pi-chevron-right'
+                        isReasoningExpanded(tIdx, dIdx) ? 'pi-chevron-down' : 'pi-chevron-right'
                       "
                     />
                     <p
@@ -167,10 +154,7 @@
                         </span>
                       </div>
                       <div class="flex items-center gap-2 shrink-0 text-xs">
-                        <span
-                          v-if="getToolCallError(traceEntry, toolName)"
-                          class="text-red-500"
-                        >
+                        <span v-if="getToolCallError(traceEntry, toolName)" class="text-red-500">
                           <i class="pi pi-exclamation-triangle text-xs" />
                         </span>
                         <span
@@ -204,11 +188,7 @@
                             class="text-xs text-muted-color hover:text-color transition-colors p-0.5"
                             @click.stop="
                               copyToClipboard(
-                                JSON.stringify(
-                                  getToolCallArgs(traceEntry, toolName),
-                                  null,
-                                  2,
-                                ),
+                                JSON.stringify(getToolCallArgs(traceEntry, toolName), null, 2),
                               )
                             "
                             v-tooltip.left="$t('agent.editor.inspect.copy')"
@@ -218,13 +198,7 @@
                         </div>
                         <pre
                           class="text-xs font-mono bg-emphasis rounded px-2 py-1.5 overflow-x-auto max-h-40 whitespace-pre-wrap break-all text-color"
-                          >{{
-                            JSON.stringify(
-                              getToolCallArgs(traceEntry, toolName),
-                              null,
-                              2,
-                            )
-                          }}</pre
+                          >{{ JSON.stringify(getToolCallArgs(traceEntry, toolName), null, 2) }}</pre
                         >
                       </div>
 
@@ -237,11 +211,7 @@
                             class="text-xs text-muted-color hover:text-color transition-colors p-0.5"
                             @click.stop="
                               copyToClipboard(
-                                JSON.stringify(
-                                  getToolCallResult(traceEntry, toolName),
-                                  null,
-                                  2,
-                                ),
+                                JSON.stringify(getToolCallResult(traceEntry, toolName), null, 2),
                               )
                             "
                             v-tooltip.left="$t('agent.editor.inspect.copy')"
@@ -252,11 +222,7 @@
                         <pre
                           class="text-xs font-mono bg-emphasis rounded px-2 py-1.5 overflow-x-auto max-h-40 whitespace-pre-wrap break-all text-color"
                           >{{
-                            JSON.stringify(
-                              getToolCallResult(traceEntry, toolName),
-                              null,
-                              2,
-                            )
+                            JSON.stringify(getToolCallResult(traceEntry, toolName), null, 2)
                           }}</pre
                         >
                       </div>
@@ -279,8 +245,7 @@
                     <span class="text-muted-color">
                       ({{
                         Math.round(
-                          (traceEntry.usage.contextWindow /
-                            agent.execution.limits.contextWindow) *
+                          (traceEntry.usage.contextWindow / agent.execution.limits.contextWindow) *
                             100,
                         )
                       }}%)
@@ -303,9 +268,8 @@
         <i class="pi pi-chart-bar text-xs" />
         <span class="font-medium text-color">
           {{
-            conversation.traceHistory[
-              conversation.traceHistory.length - 1
-            ]?.usage?.contextWindow || 0
+            conversation.traceHistory[conversation.traceHistory.length - 1]?.usage?.contextWindow ||
+            0
           }}
           {{ $t('agent.editor.inspect.contextTokens') }}
         </span>
@@ -313,9 +277,8 @@
           <span class="text-muted-color">
             ({{
               Math.round(
-                ((conversation.traceHistory[
-                  conversation.traceHistory.length - 1
-                ]?.usage?.contextWindow || 0) /
+                ((conversation.traceHistory[conversation.traceHistory.length - 1]?.usage
+                  ?.contextWindow || 0) /
                   agent.execution.limits.contextWindow) *
                   100,
               )

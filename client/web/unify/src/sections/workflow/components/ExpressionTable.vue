@@ -5,7 +5,10 @@
       :key="index"
       :class="[
         'expression-row border border-surface rounded-border mb-3',
-        { 'expression-row--dragging': dragIndex === index, 'expression-row--drop-target': dragOverIndex === index && dragIndex !== index },
+        {
+          'expression-row--dragging': dragIndex === index,
+          'expression-row--drop-target': dragOverIndex === index && dragIndex !== index,
+        },
       ]"
       @dragover.prevent="onDragOver(index)"
       @dragleave="onDragLeave(index)"
@@ -134,7 +137,11 @@ export default {
       this.dragIndex = index
       event.dataTransfer.effectAllowed = 'move'
       // Required for Firefox to actually start the drag.
-      try { event.dataTransfer.setData('text/plain', String(index)) } catch { /* ignore */ }
+      try {
+        event.dataTransfer.setData('text/plain', String(index))
+      } catch {
+        /* ignore */
+      }
       // Use the whole row as the drag image instead of just the handle icon.
       const row = event.currentTarget?.closest?.('.expression-row')
       if (row) {
@@ -190,7 +197,10 @@ export default {
 }
 
 .expression-row {
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
 }
 
 .expression-row--dragging {

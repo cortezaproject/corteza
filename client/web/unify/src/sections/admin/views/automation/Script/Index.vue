@@ -151,7 +151,13 @@ const filter = reactive({
 
 const scriptFields = [
   { key: 'name', header: t('automation.scripts.list.columns.name') },
-  { key: 'updatedAt', header: t('automation.scripts.list.columns.updatedAt'), headerStyle: 'width: 12rem', headerClass: 'text-right', bodyClass: 'text-right' },
+  {
+    key: 'updatedAt',
+    header: t('automation.scripts.list.columns.updatedAt'),
+    headerStyle: 'width: 12rem',
+    headerClass: 'text-right',
+    bodyClass: 'text-right',
+  },
 ]
 
 const filtered = computed(() => {

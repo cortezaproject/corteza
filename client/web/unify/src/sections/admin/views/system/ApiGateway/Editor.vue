@@ -168,11 +168,7 @@
             size="small"
             @click="filterModalVisible = false"
           />
-          <Button
-            :label="$t('general.label.save')"
-            size="small"
-            @click="onFilterModalSave"
-          />
+          <Button :label="$t('general.label.save')" size="small" @click="onFilterModalSave" />
         </div>
       </template>
     </Dialog>
@@ -186,12 +182,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>

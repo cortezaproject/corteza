@@ -28,7 +28,10 @@
         clickable
         @update:filter="Object.assign(filter, $event)"
         @sort="handleSort"
-        @row-click="({ data }) => $router.push({ name: 'federation.nodes.edit', params: { nodeID: data.nodeID } })"
+        @row-click="
+          ({ data }) =>
+            $router.push({ name: 'federation.nodes.edit', params: { nodeID: data.nodeID } })
+        "
         @page-change="handlePageChange"
       >
         <template #header>
@@ -57,10 +60,15 @@
         <template #body-status="{ data }">
           <Tag
             :value="data.status || 'unknown'"
-            :severity="data.status === 'paired' ? 'success' : data.status === 'pair_requested' ? 'warn' : 'secondary'"
+            :severity="
+              data.status === 'paired'
+                ? 'success'
+                : data.status === 'pair_requested'
+                  ? 'warn'
+                  : 'secondary'
+            "
           />
         </template>
-
       </CResourceList>
     </div>
   </div>
@@ -74,11 +82,7 @@
   >
     <div class="flex flex-col gap-4 p-2">
       <p class="text-sm text-muted-color">{{ $t('federation.nodes.pair.description') }}</p>
-      <InputText
-        v-model="pairURL"
-        placeholder="https://..."
-        class="w-full"
-      />
+      <InputText v-model="pairURL" placeholder="https://..." class="w-full" />
     </div>
     <template #footer>
       <div class="flex justify-end gap-2">
@@ -102,12 +106,7 @@
 </template>
 
 <script setup>
-import {
-  components,
-  useResourceList,
-  useRBACStore,
-  usePermissions,
-} from '@planetcrust/human-vue'
+import { components, useResourceList, useRBACStore, usePermissions } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -139,23 +138,12 @@ const fields = [
   { key: 'actions', header: '', class: 'text-right w-24' },
 ]
 
-const {
-  items,
-  loading,
-  filter,
-  sorting,
-  pagination,
-  handleSort,
-  handlePageChange,
-  filterList,
-} = useResourceList(
-  params => $FederationAPI.nodeSearchCancellable(params),
-  {
+const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
+  useResourceList(params => $FederationAPI.nodeSearchCancellable(params), {
     filter: { query: '' },
     sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 20 },
-  },
-)
+  })
 
 function getActionsMenuItems(node) {
   const actions = []

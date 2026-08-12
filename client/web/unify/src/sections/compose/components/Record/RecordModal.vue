@@ -23,15 +23,9 @@
         size="small"
         @click="openFullPage"
       />
-      <Button
-        icon="pi pi-times"
-        text
-        severity="secondary"
-        size="small"
-        @click="closeCallback"
-      />
+      <Button icon="pi pi-times" text severity="secondary" size="small" @click="closeCallback" />
     </template>
-    
+
     <div v-if="showModal && recordPageID && recordID && namespace" class="h-full">
       <RecordView
         :namespace="namespace"
@@ -52,8 +46,8 @@ import RecordView from '@/sections/compose/views/Pages/RecordView.vue'
 const props = defineProps({
   namespace: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const route = useRoute()
@@ -79,7 +73,7 @@ watch(
       showModal.value = false
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 function onVisibleChange(isVisible) {

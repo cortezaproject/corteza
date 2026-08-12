@@ -30,7 +30,9 @@ function saveWidth(value) {
 
 export function useEditorSplit() {
   const chatWidth = ref(loadWidth())
-  const showChat = ref(typeof window !== 'undefined' ? window.innerWidth >= HIDE_BELOW_VIEWPORT : true)
+  const showChat = ref(
+    typeof window !== 'undefined' ? window.innerWidth >= HIDE_BELOW_VIEWPORT : true,
+  )
   let dragging = false
 
   function onResize() {

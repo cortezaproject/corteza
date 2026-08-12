@@ -70,7 +70,7 @@ async function resolveAttachments(ids) {
   }
 }
 
-watch(normalizedValue, (ids) => resolveAttachments(ids), { immediate: true })
+watch(normalizedValue, ids => resolveAttachments(ids), { immediate: true })
 
 function onStageFiles(files) {
   if ($fileUploadContext) {
@@ -88,4 +88,3 @@ onUnmounted(() => {
   }
 })
 </script>
-

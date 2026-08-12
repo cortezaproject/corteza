@@ -237,16 +237,12 @@ async function handleBulkUpdate() {
       query: props.query,
       values,
     })
-    $toast?.toastSuccess?.(
-      t('notification.record.bulkRecordUpdateSuccess'),
-    )
+    $toast?.toastSuccess?.(t('notification.record.bulkRecordUpdateSuccess'))
     emit('update:visible', false)
     emit('save')
   } catch (error) {
     console.error('Failed to bulk update records', error)
-    $toast?.toastDanger?.(
-      t('notification.record.bulkRecordUpdateFailed'),
-    )
+    $toast?.toastDanger?.(t('notification.record.bulkRecordUpdateFailed'))
   } finally {
     processing.value = false
   }

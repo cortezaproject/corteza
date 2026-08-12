@@ -134,7 +134,9 @@ watch(
   () => options.value.length,
   () => {
     if (props.modelValue && options.value.length) {
-      const found = options.value.find(c => c.chartID === props.modelValue || c.chartID === String(props.modelValue))
+      const found = options.value.find(
+        c => c.chartID === props.modelValue || c.chartID === String(props.modelValue),
+      )
       if (found) selectedChart.value = found
     }
   },

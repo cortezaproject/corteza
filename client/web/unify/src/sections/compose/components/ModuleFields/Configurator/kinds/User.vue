@@ -2,13 +2,21 @@
   <div class="flex flex-col gap-6">
     <!-- Preset with current user -->
     <div class="flex items-center gap-2">
-      <Checkbox v-model="field.options.presetWithAuthenticated" inputId="presetWithAuth" :binary="true" />
-      <label for="presetWithAuth" class="cursor-pointer">{{ $t('field.kind.user.presetWithCurrentUser') }}</label>
+      <Checkbox
+        v-model="field.options.presetWithAuthenticated"
+        inputId="presetWithAuth"
+        :binary="true"
+      />
+      <label for="presetWithAuth" class="cursor-pointer">
+        {{ $t('field.kind.user.presetWithCurrentUser') }}
+      </label>
     </div>
 
     <!-- Role filter -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.user.roles.label') }}</label>
+      <label class="font-medium text-muted-color text-sm">
+        {{ $t('field.kind.user.roles.label') }}
+      </label>
       <MultiSelect
         v-model="selectedRoles"
         :options="roleOptions"
@@ -29,18 +37,16 @@
           {{ $t('field.kind.select.optionType.label') }}
         </label>
         <div class="flex flex-col gap-2">
-          <div
-            v-for="opt in selectTypeOptions"
-            :key="opt.value"
-            class="flex items-center gap-2"
-          >
+          <div v-for="opt in selectTypeOptions" :key="opt.value" class="flex items-center gap-2">
             <RadioButton
               :input-id="`userSelectType-${opt.value}`"
               v-model="field.options.selectType"
               :value="opt.value"
               @update:model-value="onSelectTypeChange"
             />
-            <label :for="`userSelectType-${opt.value}`" class="cursor-pointer">{{ opt.label }}</label>
+            <label :for="`userSelectType-${opt.value}`" class="cursor-pointer">
+              {{ opt.label }}
+            </label>
           </div>
         </div>
       </div>
@@ -52,7 +58,9 @@
           :binary="true"
           @update:model-value="field.options.isUniqueMultiValue = !$event"
         />
-        <label for="userAllowDuplicates" class="cursor-pointer">{{ $t('field.kind.select.allow-duplicates') }}</label>
+        <label for="userAllowDuplicates" class="cursor-pointer">
+          {{ $t('field.kind.select.allow-duplicates') }}
+        </label>
       </div>
     </template>
   </div>
@@ -86,7 +94,9 @@ const selectTypeOptions = computed(() => [
 // selectedRoles is initialized from field.options.roles (array of roleIDs)
 const selectedRoles = computed({
   get: () => field.value.options.roles || [],
-  set: val => { field.value.options.roles = val },
+  set: val => {
+    field.value.options.roles = val
+  },
 })
 
 function onSelectTypeChange(val) {

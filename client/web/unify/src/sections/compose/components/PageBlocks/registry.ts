@@ -20,7 +20,6 @@ const BLOCK_REGISTRY: Record<string, Component> = {
   Geometry: defineAsyncComponent(() => import('./Blocks/GeometryBlock.vue')),
   ChatbotInbox: defineAsyncComponent(() => import('./Blocks/ChatbotInboxBlock.vue')),
   AgentChat: defineAsyncComponent(() => import('./Blocks/AgentChatBlock.vue')),
-
 }
 
 export function resolveBlock(kind: string): Component | null {

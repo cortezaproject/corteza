@@ -65,10 +65,7 @@ type Translator = (key: string) => string
 // `prefix` against the supplied vue-i18n `t` function. The component has no
 // built-in fallbacks, so the consumer's locale tree must define every key
 // under `prefix` — anything missing renders as empty in the UI.
-export function makeChatbotInboxTranslations(
-  t: Translator,
-  prefix = '',
-): ChatbotInboxTranslations {
+export function makeChatbotInboxTranslations(t: Translator, prefix = ''): ChatbotInboxTranslations {
   const out: ChatbotInboxTranslations = {}
   for (const key of CHATBOT_INBOX_TRANSLATION_KEYS) {
     out[key] = t(`${prefix}${key}`)

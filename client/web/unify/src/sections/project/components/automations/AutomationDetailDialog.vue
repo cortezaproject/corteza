@@ -66,12 +66,7 @@
           size="small"
           @click="visible = false"
         />
-        <Button
-          :label="$t('general.label.save')"
-          size="small"
-          :loading="saving"
-          @click="onSave"
-        />
+        <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
       </div>
     </template>
   </Dialog>
@@ -105,7 +100,6 @@ const visible = computed({
   get: () => props.modelValue,
   set: v => emit('update:modelValue', v),
 })
-
 
 const automation = computed(() =>
   props.resourceId

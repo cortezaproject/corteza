@@ -9,7 +9,8 @@ vi.mock('./registry', () => ({
     defineComponent({
       props: ['field', 'modelValue', 'disabled', 'namespace'],
       emits: ['update:modelValue'],
-      template: '<input data-testid="sub-editor" :value="modelValue" :disabled="disabled || undefined" @input="$emit(\'update:modelValue\', $event.target.value)"/>',
+      template:
+        '<input data-testid="sub-editor" :value="modelValue" :disabled="disabled || undefined" @input="$emit(\'update:modelValue\', $event.target.value)"/>',
     }),
 }))
 
@@ -32,7 +33,9 @@ describe('CFieldEditor', () => {
 
     it('passes modelValue to sub-editor', async () => {
       const wrapper = await mountEditor({ field: field(), modelValue: 'test-value' })
-      expect((wrapper.find('[data-testid="sub-editor"]').element as HTMLInputElement).value).toBe('test-value')
+      expect((wrapper.find('[data-testid="sub-editor"]').element as HTMLInputElement).value).toBe(
+        'test-value',
+      )
     })
 
     it('emits update:modelValue when sub-editor emits', async () => {

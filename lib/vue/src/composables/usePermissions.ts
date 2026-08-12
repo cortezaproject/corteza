@@ -54,7 +54,9 @@ export function providePermissions(): PermissionsContext {
 export function usePermissions(): PermissionsContext {
   const ctx = inject(PermissionsKey)
   if (!ctx) {
-    throw new Error('usePermissions() requires providePermissions() to be called in a parent component')
+    throw new Error(
+      'usePermissions() requires providePermissions() to be called in a parent component',
+    )
   }
   return ctx
 }

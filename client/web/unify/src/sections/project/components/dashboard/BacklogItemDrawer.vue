@@ -65,7 +65,9 @@
             <div class="text-xs font-medium text-muted-color uppercase tracking-wide mb-1">
               {{ $t('project.dashboard.event.f.description') }}
             </div>
-            <div class="whitespace-pre-wrap text-sm text-color">{{ record?.description || '—' }}</div>
+            <div class="whitespace-pre-wrap text-sm text-color">
+              {{ record?.description || '—' }}
+            </div>
           </div>
 
           <div>
@@ -79,7 +81,12 @@
             <div class="text-xs font-medium text-muted-color uppercase tracking-wide mb-1">
               {{ $t('project.dashboard.backlog.f.priority') }}
             </div>
-            <EventBadge v-if="record?.priority" :value="record.priority" variant="priority" size="md" />
+            <EventBadge
+              v-if="record?.priority"
+              :value="record.priority"
+              variant="priority"
+              size="md"
+            />
             <div v-else class="text-sm text-color">—</div>
           </div>
 
@@ -137,7 +144,12 @@ const eventsStore = useEventsStore()
 // Neutral badge — same one BacklogItemDialog falls back to — used only if
 // the record's category is somehow unresolved; the header otherwise borrows
 // the category's own badge, same idiom as EventDetailDrawer.
-const NEUTRAL_BADGE = { icon: 'pi pi-th-large', bg: 'bg-emphasis', ring: 'ring-surface', text: 'text-color' }
+const NEUTRAL_BADGE = {
+  icon: 'pi pi-th-large',
+  bg: 'bg-emphasis',
+  ring: 'ring-surface',
+  text: 'text-color',
+}
 const badge = computed(() => CATEGORY_CONFIG[props.record?.category]?.badge || NEUTRAL_BADGE)
 
 const categoryLabel = computed(() => {
@@ -151,7 +163,11 @@ const categoryLabel = computed(() => {
 // raw `#<eventID>` reference (see template).
 const linkedEvent = computed(() => {
   if (!props.record) return null
-  return eventsStore.byCategory(props.record.category).find(e => e.id === String(props.record.eventID)) || null
+  return (
+    eventsStore
+      .byCategory(props.record.category)
+      .find(e => e.id === String(props.record.eventID)) || null
+  )
 })
 
 const formatDate = v => {

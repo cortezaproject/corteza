@@ -12,11 +12,10 @@ import { nextId } from '../lib/id'
  * @param {Function} saveToHistory - history snapshot function
  * @param {Function} projectPosition - VueFlow's project() fn (container-relative → flow coords)
  */
-export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
-
+export function useWorkflowDnD(nodes, edges, saveToHistory, projectPosition) {
   const draggedItem = ref(null)
 
-  function onToolbarDragStart (event, toolbarItem) {
+  function onToolbarDragStart(event, toolbarItem) {
     draggedItem.value = toolbarItem
     event.dataTransfer.effectAllowed = 'move'
     event.dataTransfer.setData('application/workflow-node', JSON.stringify(toolbarItem))
@@ -48,12 +47,12 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
     setTimeout(() => ghost.remove(), 0)
   }
 
-  function onCanvasDragOver (event) {
+  function onCanvasDragOver(event) {
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
   }
 
-  function onCanvasDrop (event) {
+  function onCanvasDrop(event) {
     event.preventDefault()
 
     let item = draggedItem.value
@@ -77,10 +76,12 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
     let position
     try {
       if (typeof projectPosition === 'function') {
-        position = { ...projectPosition({
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        }) }
+        position = {
+          ...projectPosition({
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          }),
+        }
       } else {
         throw new Error('project not available')
       }
@@ -121,9 +122,8 @@ export function useWorkflowDnD (nodes, edges, saveToHistory, projectPosition) {
       position,
       zIndex: nodeType === 'visual' ? -1 : undefined,
       connectable: nodeType === 'visual' ? false : undefined,
-      style: nodeType === 'visual'
-        ? { width: `${nodeWidth}px`, height: `${nodeHeight}px` }
-        : undefined,
+      style:
+        nodeType === 'visual' ? { width: `${nodeWidth}px`, height: `${nodeHeight}px` } : undefined,
       data: {
         stepID: id,
         kind: item.kind || '',

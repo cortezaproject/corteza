@@ -110,7 +110,6 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-
 // The configured connection entry from the store — it carries
 // configuredConnectionID (NOT configurationID, which is only on the raw API
 // response). Keyed by project id.

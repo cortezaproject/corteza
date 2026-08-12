@@ -13,13 +13,7 @@
       :show-time="fieldType === 'datetime'"
     />
 
-    <InputText
-      v-else
-      v-model="value"
-      :type="fieldType"
-      :disabled="loading"
-      @keyup.enter="submit"
-    />
+    <InputText v-else v-model="value" :type="fieldType" :disabled="loading" @keyup.enter="submit" />
 
     <div class="flex justify-end">
       <Button

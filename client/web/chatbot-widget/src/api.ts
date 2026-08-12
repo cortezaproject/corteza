@@ -67,7 +67,10 @@ export class WidgetAPI {
 
   // submitForm posts the form values. Returns a map of field→error when the
   // server rejects validation (HTTP 422). Resolves with null on success.
-  async submitForm(sessionID: string, fields: Record<string, string>): Promise<Record<string, string> | null> {
+  async submitForm(
+    sessionID: string,
+    fields: Record<string, string>,
+  ): Promise<Record<string, string> | null> {
     const r = await this.post(sessionID, 'submit', { type: 'form', data: { fields } })
     if (r.status === 204) return null
     if (r.status === 422) {

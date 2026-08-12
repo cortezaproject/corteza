@@ -1,8 +1,8 @@
-export function getStyleFromKind ({ kind = '', ref = '' }) {
+export function getStyleFromKind({ kind = '', ref = '' }) {
   let kindRef = kind
 
   if (['visual', 'gateway'].includes(kind)) {
-    kindRef = `${kind}${ref ? (ref[0].toUpperCase() + ref.slice(1).toLowerCase()) : ''}`
+    kindRef = `${kind}${ref ? ref[0].toUpperCase() + ref.slice(1).toLowerCase() : ''}`
   }
 
   return kindToStyle[kindRef] || {}
@@ -145,7 +145,7 @@ const kindToStyle = {
 }
 
 // When adding & or copy/pasting a new cell, this is used to determine the kind & ref
-export function getKindFromStyle (vertex) {
+export function getKindFromStyle(vertex) {
   const { style } = vertex
   if (!style) {
     return {}
@@ -170,7 +170,7 @@ export function getKindFromStyle (vertex) {
         }
       })
 
-      return { kind: 'gateway', ref: (inEdgeCount > outEdgeCount ? 'join' : 'fork') }
+      return { kind: 'gateway', ref: inEdgeCount > outEdgeCount ? 'join' : 'fork' }
     }
   } else if (kind === 'swimlane') {
     return { kind: 'visual', ref: 'swimlane' }

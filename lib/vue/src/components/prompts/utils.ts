@@ -23,13 +23,20 @@ export interface ButtonStyle {
 
 export function variantToSeverity(name: string | undefined): ButtonStyle {
   switch (name) {
-    case 'secondary': return { severity: 'secondary' }
-    case 'success': return { severity: 'success' }
-    case 'warning': return { severity: 'warn' }
-    case 'danger': return { severity: 'danger' }
-    case 'info': return { severity: 'info' }
-    case 'light': return { severity: 'secondary', variant: 'text' }
-    case 'dark': return { severity: 'contrast' }
+    case 'secondary':
+      return { severity: 'secondary' }
+    case 'success':
+      return { severity: 'success' }
+    case 'warning':
+      return { severity: 'warn' }
+    case 'danger':
+      return { severity: 'danger' }
+    case 'info':
+      return { severity: 'info' }
+    case 'light':
+      return { severity: 'secondary', variant: 'text' }
+    case 'dark':
+      return { severity: 'contrast' }
     case 'primary':
     default:
       return { severity: 'primary' }

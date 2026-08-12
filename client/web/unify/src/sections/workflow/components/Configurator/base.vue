@@ -24,7 +24,7 @@ export default {
     },
   },
 
-  setup () {
+  setup() {
     const toast = useToast()
     return { toast }
   },

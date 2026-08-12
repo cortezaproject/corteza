@@ -62,7 +62,9 @@ const props = defineProps({
 })
 
 const visibleMessages = computed(() => {
-  return (props.conversation?.messages || []).filter(m => ['user', 'agent', 'assistant'].includes(m.role) && m.content)
+  return (props.conversation?.messages || []).filter(
+    m => ['user', 'agent', 'assistant'].includes(m.role) && m.content,
+  )
 })
 
 const { t } = useI18n()
@@ -79,11 +81,16 @@ const aiTraceRef = ref(null)
 async function sendChatMessage(input) {
   if (!input || executing.value) return
 
-  props.conversation.messages.push({ role: 'user', content: input, traceIndex: props.conversation.traceHistory.length })
+  props.conversation.messages.push({
+    role: 'user',
+    content: input,
+    traceIndex: props.conversation.traceHistory.length,
+  })
   executing.value = true
 
   try {
-    const activeConvId = props.conversation.conversationID || props.conversation.aiConversationID || null
+    const activeConvId =
+      props.conversation.conversationID || props.conversation.aiConversationID || null
     const res = await $SystemAPI.agentExec({
       agentID: props.agent.agentID,
       input: input,

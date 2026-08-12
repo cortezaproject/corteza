@@ -56,8 +56,7 @@ function agentContext(ctx) {
   if (params.recordID) {
     const recordStore = useRecordStore()
     const record =
-      recordStore.records?.get?.(params.recordID) ||
-      recordStore.labelCache?.get?.(params.recordID)
+      recordStore.records?.get?.(params.recordID) || recordStore.labelCache?.get?.(params.recordID)
     if (record) {
       ctx.record = {
         recordID: String(record.recordID),

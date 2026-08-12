@@ -2,8 +2,8 @@
  * Ctrl+click path highlighting composable.
  * Sets node.data.highlighted and edge.data.highlighted on connected paths.
  */
-export function useWorkflowHighlight (nodes, edges) {
-  function highlightConnected (nodeId) {
+export function useWorkflowHighlight(nodes, edges) {
+  function highlightConnected(nodeId) {
     // Find the node
     const node = nodes.value.find(n => n.id === nodeId)
     if (!node) return
@@ -30,7 +30,7 @@ export function useWorkflowHighlight (nodes, edges) {
       })
   }
 
-  function clearHighlights () {
+  function clearHighlights() {
     nodes.value.forEach(node => {
       if (node.data?.highlighted) {
         node.data = { ...node.data, highlighted: false }

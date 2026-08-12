@@ -15,7 +15,9 @@
           :empty-message="$t('system.labels.editor.namespaces.empty')"
           :action-items="getNsActions"
           :row-class="() => 'cursor-pointer'"
-          @row-click="({ data }) => openInNewTab('compose', `namespace/${data.slug || data.namespaceID}`)"
+          @row-click="
+            ({ data }) => openInNewTab('compose', `namespace/${data.slug || data.namespaceID}`)
+          "
         >
           <template #header>
             <div class="flex gap-2">
@@ -276,10 +278,11 @@ function getNsActions(data) {
     items.push({
       label: t('general.label.permissions'),
       icon: 'pi pi-lock',
-      command: () => openPermissions({
-        resource: `corteza::compose:namespace/${data.namespaceID}`,
-        title: data.name || data.slug || data.namespaceID,
-      }),
+      command: () =>
+        openPermissions({
+          resource: `corteza::compose:namespace/${data.namespaceID}`,
+          title: data.name || data.slug || data.namespaceID,
+        }),
     })
   }
 
@@ -303,10 +306,11 @@ function getAgentActions(data) {
     items.push({
       label: t('general.label.permissions'),
       icon: 'pi pi-lock',
-      command: () => openPermissions({
-        resource: `corteza::system:agent/${data.agentID}`,
-        title: data.meta?.short || data.handle || data.agentID,
-      }),
+      command: () =>
+        openPermissions({
+          resource: `corteza::system:agent/${data.agentID}`,
+          title: data.meta?.short || data.handle || data.agentID,
+        }),
     })
   }
 
@@ -330,11 +334,12 @@ function getTaqActions(data) {
     items.push({
       label: t('general.label.permissions'),
       icon: 'pi pi-lock',
-      command: () => openPermissions({
-        resource: `corteza::automation:ng-automation/${data.automationID}`,
-        title: data.meta?.short || data.handle || data.automationID,
-        target: data.meta?.short || data.handle || data.automationID,
-      }),
+      command: () =>
+        openPermissions({
+          resource: `corteza::automation:ng-automation/${data.automationID}`,
+          title: data.meta?.short || data.handle || data.automationID,
+          target: data.meta?.short || data.handle || data.automationID,
+        }),
     })
   }
 
@@ -474,7 +479,11 @@ const agentFields = [{ key: 'name', header: t('system.labels.editor.agents.colum
 async function fetchAgents() {
   agentLoading.value = true
   try {
-    const result = await $SystemAPI.agentList({ labels: `${labelName.value}=`, limit: 100, sort: 'name ASC' })
+    const result = await $SystemAPI.agentList({
+      labels: `${labelName.value}=`,
+      limit: 100,
+      sort: 'name ASC',
+    })
     agentItems.value = result.set || []
   } catch (e) {
     console.error('Failed to load agents:', e)
@@ -525,7 +534,11 @@ const taqFields = [
 async function fetchAutomations() {
   taqLoading.value = true
   try {
-    const result = await $AutomationAPI.ngAutomationList({ labels: `${labelName.value}=`, disabled: 1, limit: 100 })
+    const result = await $AutomationAPI.ngAutomationList({
+      labels: `${labelName.value}=`,
+      disabled: 1,
+      limit: 100,
+    })
     taqItems.value = result.set || []
   } catch (e) {
     console.error('Failed to load automations:', e)

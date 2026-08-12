@@ -66,7 +66,11 @@
             <InputText id="handle" name="handle" v-model="role.handle" :disabled="role.isClosed" />
           </CFormGroup>
 
-          <CFormGroup name="description" :label="$t('system.roles.editor.info.description')" class="md:col-span-2">
+          <CFormGroup
+            name="description"
+            :label="$t('system.roles.editor.info.description')"
+            class="md:col-span-2"
+          >
             <Textarea
               id="description"
               name="description"
@@ -299,7 +303,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -395,7 +401,12 @@ function confirmArchive(event) {
     message: t('system.roles.editor.info.archiveConfirm'),
     header: t('system.roles.editor.info.archive'),
     icon: 'pi pi-box',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
     acceptProps: { label: t('system.roles.editor.info.archive'), severity: 'warn', size: 'small' },
     accept: () => handleArchive(),
   })
@@ -407,8 +418,17 @@ function confirmUnarchive(event) {
     message: t('system.roles.editor.info.unarchiveConfirm'),
     header: t('system.roles.editor.info.unarchive'),
     icon: 'pi pi-box',
-    rejectProps: { label: t('general.label.cancel'), severity: 'secondary', text: true, size: 'small' },
-    acceptProps: { label: t('system.roles.editor.info.unarchive'), severity: 'success', size: 'small' },
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: t('system.roles.editor.info.unarchive'),
+      severity: 'success',
+      size: 'small',
+    },
     accept: () => handleUnarchive(),
   })
 }
@@ -442,7 +462,13 @@ async function handleUnarchive() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!role.value && !!initialRole.value && (!isEqual(role.value, initialRole.value) || !isEqual([...memberIDs.value], [...initialMemberIDs.value])),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!role.value &&
+    !!initialRole.value &&
+    (!isEqual(role.value, initialRole.value) ||
+      !isEqual([...memberIDs.value], [...initialMemberIDs.value])),
   messageKey: 'general.editor.unsavedChanges',
 })
 

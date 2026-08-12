@@ -1,9 +1,5 @@
 <template>
-  <ReportEdit
-    :chart="chart"
-    :modules="modules"
-    :supported-metrics="supportedMetrics"
-  >
+  <ReportEdit :chart="chart" :modules="modules" :supported-metrics="supportedMetrics">
     <template #dimension-options-options="{ dimension, isTemporal }">
       <div
         v-if="isTemporal && !['WEEK', 'QUARTER'].includes(dimension.modifier)"
@@ -149,19 +145,26 @@
               option-value="value"
               class="w-full"
             />
-            <small v-if="r.yAxis.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
-              {{ $t(`chart.edit.formatting.presetFormats.description.${r.yAxis.formatting.presetFormat}`) }}
+            <small
+              v-if="r.yAxis.formatting.presetFormat"
+              class="text-muted-color whitespace-pre-line"
+            >
+              {{
+                $t(
+                  `chart.edit.formatting.presetFormats.description.${r.yAxis.formatting.presetFormat}`,
+                )
+              }}
             </small>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-primary font-medium text-sm">
               {{ $t('chart.edit.formatting.format.label') }}
             </label>
-            <InputText 
-              v-model="r.yAxis.formatting.format" 
-              :disabled="r.yAxis.formatting.presetFormat !== 'custom'" 
-              :placeholder="$t('chart.edit.formatting.format.placeholder')" 
-              class="w-full" 
+            <InputText
+              v-model="r.yAxis.formatting.format"
+              :disabled="r.yAxis.formatting.presetFormat !== 'custom'"
+              :placeholder="$t('chart.edit.formatting.format.placeholder')"
+              class="w-full"
             />
           </div>
         </div>
@@ -295,18 +298,22 @@
             class="w-full"
           />
           <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
-            {{ $t(`chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`) }}
+            {{
+              $t(
+                `chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`,
+              )
+            }}
           </small>
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-primary font-medium text-sm">
             {{ $t('chart.edit.formatting.format.label') }}
           </label>
-          <InputText 
-            v-model="metric.formatting.format" 
-            :disabled="metric.formatting.presetFormat !== 'custom'" 
-            :placeholder="$t('chart.edit.formatting.format.placeholder')" 
-            class="w-full" 
+          <InputText
+            v-model="metric.formatting.format"
+            :disabled="metric.formatting.presetFormat !== 'custom'"
+            :placeholder="$t('chart.edit.formatting.format.placeholder')"
+            class="w-full"
           />
         </div>
       </div>
@@ -365,23 +372,33 @@
 
         <div v-if="!r.offset.isDefault" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.top') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.additionalConfig.offset.position.top') }}
+            </label>
             <InputText v-model="r.offset.top" class="w-full" />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.right') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.additionalConfig.offset.position.right') }}
+            </label>
             <InputText v-model="r.offset.right" class="w-full" />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.bottom') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.additionalConfig.offset.position.bottom') }}
+            </label>
             <InputText v-model="r.offset.bottom" class="w-full" />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">{{ $t('chart.edit.additionalConfig.offset.position.left') }}</label>
+            <label class="text-primary font-medium text-sm">
+              {{ $t('chart.edit.additionalConfig.offset.position.left') }}
+            </label>
             <InputText v-model="r.offset.left" class="w-full" />
           </div>
           <div class="col-span-1 lg:col-span-2">
-            <small class="text-muted-color">{{ $t('chart.edit.additionalConfig.offset.valueRange') }}</small>
+            <small class="text-muted-color">
+              {{ $t('chart.edit.additionalConfig.offset.valueRange') }}
+            </small>
           </div>
         </div>
       </div>

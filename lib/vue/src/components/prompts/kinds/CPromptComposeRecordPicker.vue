@@ -4,12 +4,7 @@
 
     <label v-if="label" class="text-sm font-medium text-color">{{ label }}</label>
 
-    <Message
-      v-if="resolveError"
-      severity="error"
-      :closable="false"
-      class="text-sm"
-    >
+    <Message v-if="resolveError" severity="error" :closable="false" class="text-sm">
       {{ resolveError }}
     </Message>
 
@@ -94,7 +89,10 @@ export default {
   },
   computed: {
     placeholder() {
-      return this.pVal('placeholder', this.tF('prompt.record-picker.placeholder', 'Select a record'))
+      return this.pVal(
+        'placeholder',
+        this.tF('prompt.record-picker.placeholder', 'Select a record'),
+      )
     },
     labelField() {
       if (!this.module) return undefined
@@ -175,11 +173,17 @@ export default {
       const moduleType = this.pType('module')
 
       if (moduleType === 'ID') {
-        this.module = await this.$ComposeAPI.moduleRead({ namespaceID: this.namespaceID, moduleID: module })
+        this.module = await this.$ComposeAPI.moduleRead({
+          namespaceID: this.namespaceID,
+          moduleID: module,
+        })
       } else if (moduleType === 'ComposeModule') {
         this.module = module
       } else {
-        const { set = [] } = await this.$ComposeAPI.moduleList({ handle: module, namespaceID: this.namespaceID })
+        const { set = [] } = await this.$ComposeAPI.moduleList({
+          handle: module,
+          namespaceID: this.namespaceID,
+        })
         if (set.length !== 1) throw new Error('module not resolved')
         this.module = set[0]
       }
@@ -208,7 +212,7 @@ export default {
 
       const queryFields = this.pVal('queryFields') || []
       let qf = (Array.isArray(queryFields) ? queryFields : [])
-        .map(f => (f && typeof f === 'object' && '@value' in f) ? f['@value'] : f)
+        .map(f => (f && typeof f === 'object' && '@value' in f ? f['@value'] : f))
         .filter(f => !!f)
 
       if (qf.length === 0 && this.pVal('labelField')) {

@@ -23,27 +23,56 @@
       </CFormGroup>
 
       <CFormGroup :label="$t('project.llmDialog.nameLabel')">
-        <InputText v-model="form.short" fluid :placeholder="$t('project.llmDialog.namePlaceholder')" />
+        <InputText
+          v-model="form.short"
+          fluid
+          :placeholder="$t('project.llmDialog.namePlaceholder')"
+        />
       </CFormGroup>
 
       <CFormGroup :label="$t('general.label.handle')">
-        <InputText v-model="form.handle" fluid :placeholder="$t('project.llmDialog.handlePlaceholder')" />
+        <InputText
+          v-model="form.handle"
+          fluid
+          :placeholder="$t('project.llmDialog.handlePlaceholder')"
+        />
       </CFormGroup>
 
       <CFormGroup :label="$t('project.llmDialog.promptURL')" class="md:col-span-2">
-        <InputText v-model="form.promptURL" fluid :placeholder="$t('project.llmDialog.promptURLPlaceholder')" />
+        <InputText
+          v-model="form.promptURL"
+          fluid
+          :placeholder="$t('project.llmDialog.promptURLPlaceholder')"
+        />
       </CFormGroup>
 
       <CFormGroup :label="$t('project.llmDialog.apiKey')" required class="md:col-span-2">
-        <InputText v-model="apiKey" fluid autocomplete="off" :placeholder="$t('project.llmDialog.apiKeyPlaceholder')" />
+        <InputText
+          v-model="apiKey"
+          fluid
+          autocomplete="off"
+          :placeholder="$t('project.llmDialog.apiKeyPlaceholder')"
+        />
       </CFormGroup>
     </div>
 
     <p v-if="error" class="text-sm text-red-500 mt-3">{{ error }}</p>
 
     <template #footer>
-      <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="visible = false" />
-      <Button :label="$t('general.label.create')" size="small" :loading="saving" :disabled="!canSubmit" @click="submit" />
+      <Button
+        :label="$t('general.label.cancel')"
+        severity="secondary"
+        text
+        size="small"
+        @click="visible = false"
+      />
+      <Button
+        :label="$t('general.label.create')"
+        size="small"
+        :loading="saving"
+        :disabled="!canSubmit"
+        @click="submit"
+      />
     </template>
   </Dialog>
 </template>

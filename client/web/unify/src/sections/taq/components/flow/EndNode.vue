@@ -1,5 +1,8 @@
 <template>
-  <div class="end-node-wrapper flex justify-center" :style="{ width: `${NODE_DIMENSIONS.WIDTH}px` }">
+  <div
+    class="end-node-wrapper flex justify-center"
+    :style="{ width: `${NODE_DIMENSIONS.WIDTH}px` }"
+  >
     <Handle type="target" :position="Position.Top" />
 
     <div
@@ -11,8 +14,8 @@
 </template>
 
 <script setup>
-import { NODE_DIMENSIONS } from '@/sections/taq/utils/flow-constants';
-import { Handle, Position } from '@vue-flow/core';
+import { NODE_DIMENSIONS } from '@/sections/taq/utils/flow-constants'
+import { Handle, Position } from '@vue-flow/core'
 
 defineProps({
   id: { type: String, required: true },

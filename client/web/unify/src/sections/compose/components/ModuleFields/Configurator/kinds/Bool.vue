@@ -33,7 +33,9 @@
       </label>
       <div class="flex items-center gap-2">
         <Checkbox v-model="field.options.switch" inputId="boolSwitch" :binary="true" />
-        <label for="boolSwitch" class="cursor-pointer">{{ $t('field.kind.bool.toggleType') }}</label>
+        <label for="boolSwitch" class="cursor-pointer">
+          {{ $t('field.kind.bool.toggleType') }}
+        </label>
       </div>
     </div>
   </div>

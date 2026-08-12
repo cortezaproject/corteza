@@ -1,5 +1,8 @@
 <template>
-  <div v-if="!hideToasts" class="pointer-events-none fixed left-1/2 top-[calc(var(--topbar-height)+1rem)] z-[1200] flex w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 flex-col gap-3">
+  <div
+    v-if="!hideToasts"
+    class="pointer-events-none fixed left-1/2 top-[calc(var(--topbar-height)+1rem)] z-[1200] flex w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 flex-col gap-3"
+  >
     <div
       v-for="entry in toasts"
       :key="entry.prompt.stateID"
@@ -48,7 +51,7 @@ const DEFAULT_TIMEOUT_SEC = 7
 const store = useWorkflowPromptsStore()
 const instance = getCurrentInstance()
 const { t, te } = useI18n()
-const tF = (key: string, fallback: string): string => te(key) ? t(key) : fallback
+const tF = (key: string, fallback: string): string => (te(key) ? t(key) : fallback)
 
 const passivePrompts = ref<any[]>([])
 const hasFocus = ref(document.hasFocus())
@@ -71,7 +74,9 @@ const activePrompts = computed(() => withComponents.value.filter(({ passive }: a
 
 const toasts = computed(() => {
   if (props.hideToasts) return []
-  const live = store.isActive ? passivePrompts.value : [...passivePrompts.value, ...activePrompts.value]
+  const live = store.isActive
+    ? passivePrompts.value
+    : [...passivePrompts.value, ...activePrompts.value]
   return live
 })
 
@@ -89,7 +94,10 @@ watch(
   withComponents,
   next => {
     next.forEach(entry => {
-      if (entry.passive && !passivePrompts.value.some(({ prompt }) => prompt.stateID === entry.prompt.stateID)) {
+      if (
+        entry.passive &&
+        !passivePrompts.value.some(({ prompt }) => prompt.stateID === entry.prompt.stateID)
+      ) {
         passivePrompts.value.push(entry)
         schedulePassiveAutoHide(entry)
       }
@@ -123,7 +131,9 @@ function clearPassiveTimer(stateID: string) {
 }
 
 async function removePassive(prompt) {
-  passivePrompts.value = passivePrompts.value.filter(({ prompt: p }) => p.stateID !== prompt.stateID)
+  passivePrompts.value = passivePrompts.value.filter(
+    ({ prompt: p }) => p.stateID !== prompt.stateID,
+  )
   await store.clear(prompt)
 }
 

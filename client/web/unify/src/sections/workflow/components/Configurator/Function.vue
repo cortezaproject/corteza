@@ -1,14 +1,7 @@
 <template>
-  <div
-    v-if="!processing"
-  >
-    <div
-      v-if="showFunctionList"
-    >
-      <div
-        v-if="functionTypes.length"
-        class="flex flex-col gap-3"
-      >
+  <div v-if="!processing">
+    <div v-if="showFunctionList">
+      <div v-if="functionTypes.length" class="flex flex-col gap-3">
         <CFormGroup :label="$t('steps.function.configurator.type')">
           <Select
             v-model="functionRef"
@@ -19,14 +12,11 @@
             :optionDisabled="f => f.disabled"
             :placeholder="$t('steps.function.configurator.select-function')"
             class="w-full"
-          @change="functionChanged(functionRef)"
+            @change="functionChanged(functionRef)"
           />
         </CFormGroup>
 
-        <p
-          v-if="functionDescription"
-          class="text-muted-color text-sm"
-        >
+        <p v-if="functionDescription" class="text-muted-color text-sm">
           {{ functionDescription }}
         </p>
       </div>
@@ -34,11 +24,13 @@
 
     <Divider v-if="showFunctionList && args.length" />
 
-    <div
-      v-if="args.length"
-    >
+    <div v-if="args.length">
       <label class="text-xs font-semibold uppercase tracking-wider text-muted-color mb-2 block">
-        {{ $te('steps.function.configurator.parameters') ? $t('steps.function.configurator.parameters') : 'Parameters' }}
+        {{
+          $te('steps.function.configurator.parameters')
+            ? $t('steps.function.configurator.parameters')
+            : 'Parameters'
+        }}
       </label>
       <div
         v-for="(a, index) in args"
@@ -52,7 +44,8 @@
           <div class="flex-1 min-w-0 flex flex-col gap-0.5">
             <div class="flex items-center gap-2 min-w-0">
               <div class="font-medium text-primary truncate">
-                <span>{{ a.label || a.target }}</span><span v-if="a.required" class="text-red-500">*</span>
+                <span>{{ a.label || a.target }}</span>
+                <span v-if="a.required" class="text-red-500">*</span>
               </div>
               <div v-if="a.label" class="text-muted-color text-sm truncate">
                 <span>{{ a.target }}</span>
@@ -87,7 +80,7 @@
           >
             <Select
               v-model="a.type"
-              :options="(paramTypes[functionRef][a.target] || [])"
+              :options="paramTypes[functionRef][a.target] || []"
               filter
               class="w-full"
               @change="emitChange"
@@ -95,15 +88,13 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <div
-              v-if="a.valueType === 'value'"
-            >
+            <div v-if="a.valueType === 'value'">
               <Select
                 v-if="a.target === 'workflow'"
                 v-model="a.value"
                 :options="workflowOptions"
                 :optionLabel="getWorkflowLabel"
-                :optionValue="wf => a.type === 'ID' ? wf.workflowID : wf.handle"
+                :optionValue="wf => (a.type === 'ID' ? wf.workflowID : wf.handle)"
                 filter
                 :placeholder="$t('steps.function.configurator.search-workflow')"
                 class="w-full"
@@ -123,10 +114,7 @@
                 @change="emitChange"
               />
 
-              <div
-                v-else-if="a.type === 'Boolean'"
-                class="flex items-center gap-2"
-              >
+              <div v-else-if="a.type === 'Boolean'" class="flex items-center gap-2">
                 <Checkbox
                   v-model="a.value"
                   :binary="true"
@@ -156,10 +144,7 @@
             />
           </div>
 
-          <div
-            v-if="!isWhileIterator"
-            class="flex items-center gap-2 justify-end"
-          >
+          <div v-if="!isWhileIterator" class="flex items-center gap-2 justify-end">
             <ToggleSwitch
               v-model="a.valueType"
               :true-value="'expr'"
@@ -175,12 +160,17 @@
 
     <Divider v-if="args.length && (expressionResults || results.length)" />
 
-    <div
-      v-if="expressionResults || results.length"
-    >
-      <div v-if="results.length || expressionResults" class="flex items-center justify-between mb-2">
+    <div v-if="expressionResults || results.length">
+      <div
+        v-if="results.length || expressionResults"
+        class="flex items-center justify-between mb-2"
+      >
         <label class="text-xs font-semibold uppercase tracking-wider text-muted-color">
-          {{ $te('steps.function.configurator.results') ? $t('steps.function.configurator.results') : 'Results' }}
+          {{
+            $te('steps.function.configurator.results')
+              ? $t('steps.function.configurator.results')
+              : 'Results'
+          }}
         </label>
         <Button
           v-if="expressionResults"
@@ -215,7 +205,9 @@
               <div class="flex-1 min-w-0 flex flex-col gap-0.5">
                 <div class="flex items-center gap-2 min-w-0">
                   <div class="font-medium text-primary truncate">{{ a.target }}</div>
-                  <div class="ml-auto text-xs text-muted-color truncate shrink-0">({{ a.type }})</div>
+                  <div class="ml-auto text-xs text-muted-color truncate shrink-0">
+                    ({{ a.type }})
+                  </div>
                 </div>
                 <div class="text-sm truncate">
                   <samp class="text-color">{{ a.expr }}</samp>
@@ -223,10 +215,7 @@
               </div>
             </div>
 
-            <div
-              v-if="a._showDetails"
-              class="px-4 py-3 border-t border-surface bg-emphasis"
-            >
+            <div v-if="a._showDetails" class="px-4 py-3 border-t border-surface bg-emphasis">
               <InputText
                 v-model="a.target"
                 :placeholder="$t('configurator.target')"
@@ -265,11 +254,7 @@
             size="small"
             @click="resetExpression"
           />
-          <Button
-            :label="$t('general.save')"
-            size="small"
-            @click="saveExpression"
-          />
+          <Button :label="$t('general.save')" size="small" @click="saveExpression" />
         </div>
       </template>
     </Dialog>
@@ -290,7 +275,7 @@ export default {
 
   extends: base,
 
-  data () {
+  data() {
     return {
       processing: true,
 
@@ -317,12 +302,12 @@ export default {
 
   computed: {
     currentExpressionValue: {
-      get () {
+      get() {
         const { currentExpression } = this.expressionEditor
         return currentExpression ? currentExpression[currentExpression.valueType] : ''
       },
 
-      set (value) {
+      set(value) {
         const { currentExpression } = this.expressionEditor
 
         if (currentExpression) {
@@ -331,11 +316,15 @@ export default {
       },
     },
 
-    functionTypes () {
-      return this.functions.map(({ ref, meta, disabled = false }) => ({ value: ref, text: meta.short, disabled }))
+    functionTypes() {
+      return this.functions.map(({ ref, meta, disabled = false }) => ({
+        value: ref,
+        text: meta.short,
+        disabled,
+      }))
     },
 
-    resultFields () {
+    resultFields() {
       return [
         {
           key: 'target',
@@ -352,22 +341,25 @@ export default {
       ]
     },
 
-    valueTypes () {
+    valueTypes() {
       return [
         { text: this.$t('steps.function.configurator.expression'), value: 'expr' },
         { text: this.$t('steps.function.configurator.constant'), value: 'value' },
       ]
     },
 
-    defaultOptions () {
-      return [{ value: null, text: this.$t('steps.function.configurator.option-select'), disabled: true }]
+    defaultOptions() {
+      return [
+        { value: null, text: this.$t('steps.function.configurator.option-select'), disabled: true },
+      ]
     },
 
-    functionDescription () {
-      return (this.functions.find(({ ref }) => ref === this.functionRef) || { meta: {} }).meta.description
+    functionDescription() {
+      return (this.functions.find(({ ref }) => ref === this.functionRef) || { meta: {} }).meta
+        .description
     },
 
-    isWhileIterator () {
+    isWhileIterator() {
       if (this.item.config) {
         return this.item.config.kind === 'iterator' && this.functionRef === 'loopDo'
       }
@@ -378,7 +370,7 @@ export default {
   watch: {
     'item.config.stepID': {
       immediate: true,
-      async handler () {
+      async handler() {
         this.processing = true
 
         this.item.config['arguments'] = this.item.config.arguments || []
@@ -397,8 +389,9 @@ export default {
 
     args: {
       deep: true,
-      handler (args) {
-        this.item.config.arguments = args.filter(({ value, source, expr }) => value || source || expr)
+      handler(args) {
+        this.item.config.arguments = args
+          .filter(({ value, source, expr }) => value || source || expr)
           .map(arg => {
             const argMapped = {
               target: arg.target,
@@ -414,19 +407,20 @@ export default {
 
     results: {
       deep: true,
-      handler (res) {
-        this.item.config.results = res.filter(({ target }) => target).map(({ target, expr, type }) => ({ target, type, expr }))
+      handler(res) {
+        this.item.config.results = res
+          .filter(({ target }) => target)
+          .map(({ target, expr, type }) => ({ target, type, expr }))
       },
     },
   },
 
   methods: {
-
-    emitChange () {
+    emitChange() {
       eventBus.emit('change-detected')
     },
 
-    setParams (fName, immediate = false) {
+    setParams(fName, immediate = false) {
       this.args = []
       this.results = []
 
@@ -444,21 +438,22 @@ export default {
           })
         }
 
-        this.args = func.parameters?.map(param => {
-          const arg = this.item.config.arguments.find(({ target }) => target === param.name) || {}
-          const { input = {} } = (param.meta || {}).visual || {}
-          return {
-            name: param.name,
-            target: param.name,
-            label: (param.meta || {}).label,
-            type: arg.type || this.paramTypes[func.ref][param.name][0],
-            valueType: arg.expr !== undefined ? 'expr' : 'value',
-            value: arg.value || input.default || null,
-            expr: arg.expr || arg.source || null,
-            required: param.required || false,
-            input,
-          }
-        }) || []
+        this.args =
+          func.parameters?.map(param => {
+            const arg = this.item.config.arguments.find(({ target }) => target === param.name) || {}
+            const { input = {} } = (param.meta || {}).visual || {}
+            return {
+              name: param.name,
+              target: param.name,
+              label: (param.meta || {}).label,
+              type: arg.type || this.paramTypes[func.ref][param.name][0],
+              valueType: arg.expr !== undefined ? 'expr' : 'value',
+              value: arg.value || input.default || null,
+              expr: arg.expr || arg.source || null,
+              required: param.required || false,
+              input,
+            }
+          }) || []
 
         if (!this.expressionResults) {
           if (!this.resultTypes[func.ref] && func.results) {
@@ -468,39 +463,42 @@ export default {
             })
           }
 
-          this.results = func.results?.map(result => {
-            const res = this.item.config.results.find(({ expr }) => expr === result.name) || {}
-            return {
-              name: result.name,
-              valueType: 'expr',
-              target: res.target || undefined,
-              type: this.resultTypes[func.ref][result.name][0],
-              expr: res.expr || result.name,
-            }
-          }) || []
+          this.results =
+            func.results?.map(result => {
+              const res = this.item.config.results.find(({ expr }) => expr === result.name) || {}
+              return {
+                name: result.name,
+                valueType: 'expr',
+                target: res.target || undefined,
+                type: this.resultTypes[func.ref][result.name][0],
+                expr: res.expr || result.name,
+              }
+            }) || []
         } else {
-          this.results = this.item.config.results.map(({ target, type, expr }) => {
-            return {
-              valueType: 'expr',
-              target,
-              type,
-              expr,
-            }
-          }) || []
+          this.results =
+            this.item.config.results.map(({ target, type, expr }) => {
+              return {
+                valueType: 'expr',
+                target,
+                type,
+                expr,
+              }
+            }) || []
         }
       }
     },
 
-    openInEditor (index = -1) {
+    openInEditor(index = -1) {
       this.expressionEditor = {
         currentIndex: index >= -1 ? index : undefined,
         currentExpression: index >= 0 ? { ...this.args[index] } : undefined,
       }
 
-      this.expressionEditor.lang = this.expressionEditor.currentExpression.valueType === 'expr' ? 'javascript' : 'text'
+      this.expressionEditor.lang =
+        this.expressionEditor.currentExpression.valueType === 'expr' ? 'javascript' : 'text'
     },
 
-    saveExpression () {
+    saveExpression() {
       const { currentIndex = -1, currentExpression } = this.expressionEditor
       if (currentIndex >= 0) {
         this.args[currentIndex] = currentExpression
@@ -511,7 +509,7 @@ export default {
       this.resetExpression()
     },
 
-    resetExpression () {
+    resetExpression() {
       this.expressionEditor = {
         currentIndex: undefined,
         currentExpression: undefined,
@@ -519,23 +517,41 @@ export default {
       }
     },
 
-    async getFunctionTypes () {
-      return this.$AutomationAPI.functionList()
+    async getFunctionTypes() {
+      return this.$AutomationAPI
+        .functionList()
         .then(({ set = [] }) => {
-          this.functions = set.filter(({ kind = '' }) => kind !== 'iterator').sort((a, b) => a.meta.short.localeCompare(b.meta.short))
+          this.functions = set
+            .filter(({ kind = '' }) => kind !== 'iterator')
+            .sort((a, b) => a.meta.short.localeCompare(b.meta.short))
         })
-        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.failed-fetch-functions'), detail: e?.message, life: 5000 }))
+        .catch(e =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('notification.failed-fetch-functions'),
+            detail: e?.message,
+            life: 5000,
+          }),
+        )
     },
 
-    async getTypes () {
-      return this.$AutomationAPI.typeList()
+    async getTypes() {
+      return this.$AutomationAPI
+        .typeList()
         .then(({ set = [] }) => {
           this.fieldTypes = set
         })
-        .catch(e => this.toast.add({ severity: 'error', summary: this.$t('notification.fetch-types-failed'), detail: e?.message, life: 5000 }))
+        .catch(e =>
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('notification.fetch-types-failed'),
+            detail: e?.message,
+            life: 5000,
+          }),
+        )
     },
 
-    functionChanged (functionRef) {
+    functionChanged(functionRef) {
       this.item.config.ref = functionRef
 
       this.setParams(functionRef)
@@ -546,7 +562,7 @@ export default {
       })
     },
 
-    valueTypeChanged (valueType, index) {
+    valueTypeChanged(valueType, index) {
       const oldType = valueType === 'value' ? 'expr' : 'value'
       this.args[index][valueType] = this.args[index][oldType]
 
@@ -557,7 +573,7 @@ export default {
       eventBus.emit('change-detected')
     },
 
-    addResult () {
+    addResult() {
       this.results.push({
         target: '',
         expr: '',
@@ -567,12 +583,12 @@ export default {
       eventBus.emit('change-detected')
     },
 
-    removeResult (index) {
+    removeResult(index) {
       this.results.splice(index, 1)
       eventBus.emit('change-detected')
     },
 
-    getTypeDescription (type) {
+    getTypeDescription(type) {
       const typeDescriptions = {
         ID: 'Make sure to provide the ID in double quotes if you\'re using a literal value. Example "123"',
       }
@@ -580,15 +596,15 @@ export default {
       return typeDescriptions[type]
     },
 
-    getOptionTypeKey ({ value }) {
+    getOptionTypeKey({ value }) {
       return value
     },
 
-    getOptionEWorkflowLabelKey ({ workflowID }) {
+    getOptionEWorkflowLabelKey({ workflowID }) {
       return workflowID
     },
 
-    getOptionParamKey (type) {
+    getOptionParamKey(type) {
       return type
     },
   },

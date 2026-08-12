@@ -42,7 +42,10 @@ export function useColumnResize() {
       const newWidth = Math.max(MIN_MENU_WIDTH, Math.min(MAX_MENU_WIDTH, e.clientX))
       menuWidth.value = newWidth
     } else if (activeHandle === 'notifications') {
-      const newWidth = Math.max(MIN_NOTIFICATIONS_WIDTH, Math.min(MAX_NOTIFICATIONS_WIDTH, window.innerWidth - e.clientX))
+      const newWidth = Math.max(
+        MIN_NOTIFICATIONS_WIDTH,
+        Math.min(MAX_NOTIFICATIONS_WIDTH, window.innerWidth - e.clientX),
+      )
       notificationsWidth.value = newWidth
     }
   }

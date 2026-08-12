@@ -42,9 +42,10 @@
           <CFormGroup
             name="pollDelay"
             :label="$t('system.queues.editor.info.poll_delay')"
-            :description="queue.meta.poll_delay
-              ? $t('system.queues.editor.info.poll_delay_set')
-              : $t('system.queues.editor.info.poll_delay_empty')
+            :description="
+              queue.meta.poll_delay
+                ? $t('system.queues.editor.info.poll_delay_set')
+                : $t('system.queues.editor.info.poll_delay_empty')
             "
           >
             <InputText
@@ -67,12 +68,7 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button
-        type="submit"
-        :label="$t('general.label.save')"
-        icon="pi pi-save"
-        :loading="saving"
-      />
+      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
 </template>
@@ -184,7 +180,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -230,7 +228,12 @@ async function handleDelete() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!queue.value && !!initialQueue.value && !isEqual(queue.value, initialQueue.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!queue.value &&
+    !!initialQueue.value &&
+    !isEqual(queue.value, initialQueue.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 

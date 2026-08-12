@@ -314,8 +314,16 @@ describe('useRecordStore', () => {
         }),
       )
 
-      const p1 = store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40044'] })
-      const p2 = store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40044'] })
+      const p1 = store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40044'],
+      })
+      const p2 = store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40044'],
+      })
       await Promise.all([p1, p2])
 
       expect(api.recordList).toHaveBeenCalledTimes(1)
@@ -332,9 +340,17 @@ describe('useRecordStore', () => {
         }),
       )
 
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40045'] })
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40045'],
+      })
       api.recordList.mockClear()
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40045'] })
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40045'],
+      })
       expect(api.recordList).not.toHaveBeenCalled()
     })
 
@@ -350,7 +366,11 @@ describe('useRecordStore', () => {
         }),
       )
 
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['40046'] })
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40046'],
+      })
 
       expect(api.recordList).toHaveBeenCalled()
       expect(api.recordRead).toHaveBeenCalledWith({
@@ -377,7 +397,11 @@ describe('useRecordStore', () => {
 
     it('ignores non-numeric IDs (cannot be batched safely)', async () => {
       const { store, api } = setup()
-      await store.resolveRecordLabels({ namespaceID: NS_ID, moduleID: MOD_ID, recordIDs: ['bad-id'] })
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['bad-id'],
+      })
       expect(api.recordList).not.toHaveBeenCalled()
       expect(api.recordRead).not.toHaveBeenCalled()
       expect(store.getByID('bad-id')).toBeNull()

@@ -55,7 +55,7 @@ import { pVal } from './utils'
 
 const store = useWorkflowPromptsStore()
 const { t, te } = useI18n()
-const tF = (key, fallback) => te(key) ? t(key) : fallback
+const tF = (key, fallback) => (te(key) ? t(key) : fallback)
 
 const opened = computed({
   get: () => store.isActive,
@@ -87,7 +87,9 @@ const current = computed(() => {
   return list.value.find(({ prompt }) => prompt.stateID === store.current?.stateID)
 })
 
-const currentTitle = computed(() => current.value?.title || tF('prompt.title.list', 'Workflow prompts'))
+const currentTitle = computed(
+  () => current.value?.title || tF('prompt.title.list', 'Workflow prompts'),
+)
 
 async function handleSubmit(input) {
   if (!current.value) {

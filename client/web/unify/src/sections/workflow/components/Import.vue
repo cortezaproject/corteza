@@ -75,12 +75,12 @@ export default {
     },
   },
 
-  setup () {
+  setup() {
     const toast = useToast()
     return { toast }
   },
 
-  data () {
+  data() {
     return {
       showDialog: false,
       workflows: [],
@@ -91,19 +91,19 @@ export default {
   },
 
   methods: {
-    onDialogHide () {
+    onDialogHide() {
       if (!this.processing) {
         this.clearFile()
       }
     },
 
-    clearFile () {
+    clearFile() {
       this.workflows = []
       this.fileName = ''
       this.parseError = ''
     },
 
-    onFilesSelected (files = []) {
+    onFilesSelected(files = []) {
       const file = files[0]
       if (!file) return
 
@@ -113,7 +113,7 @@ export default {
 
       reader.readAsText(file)
 
-      reader.onload = (evt) => {
+      reader.onload = evt => {
         try {
           const { workflows = [] } = JSON.parse(evt.target.result)
           if (!workflows.length) {
@@ -128,7 +128,12 @@ export default {
           this.parseError = err?.message || ''
           this.workflows = []
           this.fileName = ''
-          this.toast.add({ severity: 'error', summary: this.$t('notification.general.warning'), detail: err?.message, life: 5000 })
+          this.toast.add({
+            severity: 'error',
+            summary: this.$t('notification.general.warning'),
+            detail: err?.message,
+            life: 5000,
+          })
         } finally {
           this.processing = false
         }
@@ -136,12 +141,16 @@ export default {
 
       reader.onerror = () => {
         this.parseError = this.$t('notification.failed-load-file')
-        this.toast.add({ severity: 'error', summary: this.$t('notification.failed-load-file'), life: 5000 })
+        this.toast.add({
+          severity: 'error',
+          summary: this.$t('notification.failed-load-file'),
+          life: 5000,
+        })
         this.processing = false
       }
     },
 
-    onImport () {
+    onImport() {
       this.$emit('import', this.workflows)
       this.showDialog = false
     },

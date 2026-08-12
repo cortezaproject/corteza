@@ -7,7 +7,7 @@ describe('useNamespaceStore', () => {
 
   beforeEach(() => {
     api = createMockComposeAPI()
-    createTestPinia({ '$ComposeAPI': api })
+    createTestPinia({ $ComposeAPI: api })
   })
 
   describe('load()', () => {

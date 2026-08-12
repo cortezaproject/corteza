@@ -99,9 +99,7 @@ watch(visible, open => {
 // --- Validation -----------------------------------------------------------------
 const submitted = ref(false)
 
-const nameError = computed(() =>
-  name.value.trim() ? '' : t('project.agentCreate.nameRequired'),
-)
+const nameError = computed(() => (name.value.trim() ? '' : t('project.agentCreate.nameRequired')))
 
 const isValid = computed(() => !nameError.value)
 

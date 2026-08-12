@@ -14,10 +14,7 @@
     >
       <CResizeHandle @mousedown="startDrawerResize" />
       <div class="flex-1 flex flex-col min-w-0">
-        <CAgentChat
-          :translations="translations"
-          :context-provider="contextProvider"
-        >
+        <CAgentChat :translations="translations" :context-provider="contextProvider">
           <template #actions>
             <Button
               icon="pi pi-times"
@@ -64,6 +61,6 @@ const { drawerWidth, startDrawerResize } = useRightSidebarResize()
 
 const isVisible = computed({
   get: () => rightSidebarStore.isOpen('agent'),
-  set: value => value ? rightSidebarStore.open('agent') : rightSidebarStore.close('agent'),
+  set: value => (value ? rightSidebarStore.open('agent') : rightSidebarStore.close('agent')),
 })
 </script>

@@ -122,7 +122,6 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-
 const roles = computed(() => store.rolesFor(props.project?.projectID))
 
 // The project-user row carries the userId + the roles they currently hold.
@@ -146,9 +145,7 @@ const draft = reactive({ roleIds: [] })
 // shows/hides that role's column immediately. The evaluated column re-traces on
 // its own once the membership write lands (loadProjectUsers → touch bumps
 // graphVersion, which the matrix watches).
-const membershipRoles = computed(() =>
-  roles.value.filter(r => draft.roleIds.includes(r.id)),
-)
+const membershipRoles = computed(() => roles.value.filter(r => draft.roleIds.includes(r.id)))
 
 function initDraft() {
   draft.roleIds = [...(entity.value?.roleIds || [])]
@@ -199,11 +196,7 @@ watch(
     initDraft() // instant seed from the (possibly stale) cache
     const seeded = [...draft.roleIds]
     await loadContext(props.project?.projectID)
-    if (
-      props.modelValue &&
-      props.resourceId === openedFor &&
-      sameSet(draft.roleIds, seeded)
-    ) {
+    if (props.modelValue && props.resourceId === openedFor && sameSet(draft.roleIds, seeded)) {
       initDraft()
     }
   },

@@ -1,6 +1,6 @@
 <script setup>
-import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useVueFlow } from '@vue-flow/core';
-import { computed } from 'vue';
+import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -32,7 +32,7 @@ const emit = defineEmits(['add'])
 const { getNodes, getEdges } = useVueFlow()
 
 // Constants for branch edge layout
-const FORK_DROP = 30      // How far down before splitting
+const FORK_DROP = 30 // How far down before splitting
 
 // Determine if this is a branch edge (source is a branch node)
 const isBranchEdge = computed(() => {
@@ -75,8 +75,8 @@ const path = computed(() => {
 
     // Label near top of vertical segment, button centered
     const labelX = endX
-    const labelY = forkY + 20  // 20px from top of vertical segment
-    const buttonY = forkY + (endY - forkY) / 2  // Centered on vertical segment
+    const labelY = forkY + 20 // 20px from top of vertical segment
+    const buttonY = forkY + (endY - forkY) / 2 // Centered on vertical segment
 
     return { edgePath, labelX, labelY, buttonY }
   } else {
@@ -135,12 +135,7 @@ function handleAdd() {
 <template>
   <!-- The edge path wrapped for highlighting -->
   <g :class="{ 'highlighted-edge': isHighlighted && !traceActive }">
-    <BaseEdge
-      :id="id"
-      :path="path.edgePath"
-      :marker-end="markerEnd"
-      :style="edgeStyle"
-    />
+    <BaseEdge :id="id" :path="path.edgePath" :marker-end="markerEnd" :style="edgeStyle" />
   </g>
 
   <!-- Edge label and + button -->

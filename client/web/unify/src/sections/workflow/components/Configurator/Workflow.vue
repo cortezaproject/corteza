@@ -115,11 +115,7 @@
       <Divider class="!my-1" />
 
       <!-- Named input/output contract, read by the "Run Workflow" step -->
-      <CFormGroup
-        v-for="section in ioSections"
-        :key="section.key"
-        :label="section.label"
-      >
+      <CFormGroup v-for="section in ioSections" :key="section.key" :label="section.label">
         <small class="text-muted-color block mb-2">{{ section.description }}</small>
 
         <div class="flex items-center mb-2">
@@ -292,7 +288,10 @@ export default {
 
   computed: {
     ioTypeOptions() {
-      return IO_TYPES.map(t => ({ label: this.$t(`configurator.io.types.${t.key}`), value: t.value }))
+      return IO_TYPES.map(t => ({
+        label: this.$t(`configurator.io.types.${t.key}`),
+        value: t.value,
+      }))
     },
 
     ioColumns() {
@@ -300,7 +299,11 @@ export default {
         { label: this.$t('configurator.io.columns.name'), width: 'minmax(140px, 1.2fr)' },
         { label: this.$t('configurator.io.columns.label'), width: 'minmax(140px, 1.2fr)' },
         { label: this.$t('configurator.io.columns.type'), width: 'minmax(140px, 1fr)' },
-        { label: this.$t('configurator.io.columns.required'), width: '90px', headerClass: 'text-center' },
+        {
+          label: this.$t('configurator.io.columns.required'),
+          width: '90px',
+          headerClass: 'text-center',
+        },
       ]
     },
 

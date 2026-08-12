@@ -28,6 +28,6 @@ const props = defineProps({
 
 // Use actual server-side issues from module.issues (matching Human behavior)
 const issues = computed(() => {
-  return (props.module?.issues || [])
+  return props.module?.issues || []
 })
 </script>

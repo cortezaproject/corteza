@@ -41,12 +41,18 @@ function detectType(value) {
   if (value === null) return 'Null'
   if (Array.isArray(value)) return 'Array'
   switch (typeof value) {
-    case 'string': return 'String'
-    case 'number': return 'Number'
-    case 'boolean': return 'Boolean'
-    case 'undefined': return 'Null'
-    case 'object': return 'Object'
-    default: return 'Any'
+    case 'string':
+      return 'String'
+    case 'number':
+      return 'Number'
+    case 'boolean':
+      return 'Boolean'
+    case 'undefined':
+      return 'Null'
+    case 'object':
+      return 'Object'
+    default:
+      return 'Any'
   }
 }
 

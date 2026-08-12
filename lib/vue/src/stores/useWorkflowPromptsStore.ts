@@ -3,7 +3,10 @@ import { defineStore } from 'pinia'
 import { computed, inject, ref } from 'vue'
 import { promptDefinitions } from '../components/prompts'
 
-function onlyFresh(existing: Array<automation.Prompt>, fresh: Array<automation.Prompt>): Array<automation.Prompt> {
+function onlyFresh(
+  existing: Array<automation.Prompt>,
+  fresh: Array<automation.Prompt>,
+): Array<automation.Prompt> {
   const index = existing.map(({ stateID }) => stateID)
   return fresh.filter(({ stateID = undefined }) => stateID && !index.includes(stateID))
 }
@@ -18,7 +21,7 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
   const all = computed(() => prompts.value)
   const isLoading = computed(() => loading.value)
   const isActive = computed(() => active.value !== false)
-  const current = computed(() => typeof active.value === 'boolean' ? undefined : active.value)
+  const current = computed(() => (typeof active.value === 'boolean' ? undefined : active.value))
 
   function activate(prompt?: true | automation.Prompt) {
     active.value = prompt ?? true
@@ -85,7 +88,10 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
   function appendPrompts(next: Array<automation.Prompt>, webapp: string) {
     const allowed = next.filter(({ ref }) => {
       return promptDefinitions.some(definition => {
-        return definition.ref === ref && (!definition.meta.webapps || definition.meta.webapps.includes(webapp))
+        return (
+          definition.ref === ref &&
+          (!definition.meta.webapps || definition.meta.webapps.includes(webapp))
+        )
       })
     })
 

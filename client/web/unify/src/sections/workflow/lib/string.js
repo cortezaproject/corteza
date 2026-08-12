@@ -7,7 +7,7 @@
  * @param {string} str - The camelCase string to convert
  * @returns {string} The converted title case string
  */
-export function camelToTitle (str) {
+export function camelToTitle(str) {
   if (!str) return ''
 
   return str

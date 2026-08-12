@@ -23,9 +23,7 @@ export default {
   component,
   props,
 
-  controls: [
-    checkbox('CanCreate', 'canCreate'),
-  ],
+  controls: [checkbox('CanCreate', 'canCreate')],
 
   scenarios: [
     {

@@ -2,7 +2,9 @@
   <div class="flex flex-col gap-6">
     <!-- Module selector -->
     <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.moduleLabel') }}</label>
+      <label class="font-medium text-muted-color text-sm">
+        {{ $t('field.kind.record.moduleLabel') }}
+      </label>
       <Select
         v-model="field.options.moduleID"
         :options="moduleOptions"
@@ -17,7 +19,9 @@
 
     <template v-if="selectedModule">
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.moduleField') }}</label>
+        <label class="font-medium text-muted-color text-sm">
+          {{ $t('field.kind.record.moduleField') }}
+        </label>
         <Select
           v-model="field.options.labelField"
           :options="fieldOptions"
@@ -32,7 +36,9 @@
 
       <!-- Record label field (when label field is a Record field itself) -->
       <div v-if="labelField && labelField.kind === 'Record'" class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.fieldFromModuleField') }}</label>
+        <label class="font-medium text-muted-color text-sm">
+          {{ $t('field.kind.record.fieldFromModuleField') }}
+        </label>
         <Select
           v-model="field.options.recordLabelField"
           :options="labelFieldOptions"
@@ -47,7 +53,9 @@
 
       <!-- Query fields -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.queryFieldsLabel') }}</label>
+        <label class="font-medium text-muted-color text-sm">
+          {{ $t('field.kind.record.queryFieldsLabel') }}
+        </label>
         <MultiSelect
           v-model="field.options.queryFields"
           :options="queryFieldOptions"
@@ -61,7 +69,9 @@
 
       <!-- Prefilter -->
       <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">{{ $t('field.kind.record.prefilterLabel') }}</label>
+        <label class="font-medium text-muted-color text-sm">
+          {{ $t('field.kind.record.prefilterLabel') }}
+        </label>
         <Textarea
           v-model="field.options.prefilter"
           :placeholder="$t('field.kind.record.prefilterPlaceholder')"
@@ -69,7 +79,14 @@
           class="w-full"
         />
         <small class="text-muted-color">
-          {{ $t('field.kind.record.prefilterFootnote', ['${record.values.fieldName}', '${recordID}', '${ownerID}', '${userID}']) }}
+          {{
+            $t('field.kind.record.prefilterFootnote', [
+              '${record.values.fieldName}',
+              '${recordID}',
+              '${ownerID}',
+              '${userID}',
+            ])
+          }}
         </small>
       </div>
     </template>
@@ -81,18 +98,16 @@
           {{ $t('field.kind.select.optionType.label') }}
         </label>
         <div class="flex flex-col gap-2">
-          <div
-            v-for="opt in selectTypeOptions"
-            :key="opt.value"
-            class="flex items-center gap-2"
-          >
+          <div v-for="opt in selectTypeOptions" :key="opt.value" class="flex items-center gap-2">
             <RadioButton
               :input-id="`recordSelectType-${opt.value}`"
               v-model="field.options.selectType"
               :value="opt.value"
               @update:model-value="onSelectTypeChange"
             />
-            <label :for="`recordSelectType-${opt.value}`" class="cursor-pointer">{{ opt.label }}</label>
+            <label :for="`recordSelectType-${opt.value}`" class="cursor-pointer">
+              {{ opt.label }}
+            </label>
           </div>
         </div>
       </div>
@@ -104,7 +119,9 @@
           :binary="true"
           @update:model-value="field.options.isUniqueMultiValue = !$event"
         />
-        <label for="recordAllowDuplicates" class="cursor-pointer">{{ $t('field.kind.select.allow-duplicates') }}</label>
+        <label for="recordAllowDuplicates" class="cursor-pointer">
+          {{ $t('field.kind.select.allow-duplicates') }}
+        </label>
       </div>
     </template>
   </div>

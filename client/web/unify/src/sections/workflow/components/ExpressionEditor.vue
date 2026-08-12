@@ -63,12 +63,12 @@ export default {
 
   computed: {
     expressionValue: {
-      get () {
+      get() {
         // Support both v-model:value and v-model (modelValue)
         return this.modelValue !== undefined ? this.modelValue : this.value
       },
 
-      set (val = '') {
+      set(val = '') {
         this.$emit('update:value', val)
         this.$emit('update:modelValue', val)
         this.$emit('input', val)

@@ -4,10 +4,7 @@
     @click="$emit('click')"
   >
     <div class="flex items-center gap-1">
-      <div
-        :title="authorName"
-        class="avatar flex items-center justify-center font-semibold"
-      >
+      <div :title="authorName" class="avatar flex items-center justify-center font-semibold">
         {{ authorInitials }}
       </div>
 

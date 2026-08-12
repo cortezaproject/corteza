@@ -30,13 +30,9 @@ const $ComposeAPI = inject('$ComposeAPI') as any
 const { t } = useI18n()
 const { currentLanguage } = useResourceTranslations()
 
-const isEdit = computed(() =>
-  props.namespace?.namespaceID && props.namespace.namespaceID !== '0',
-)
+const isEdit = computed(() => props.namespace?.namespaceID && props.namespace.namespaceID !== '0')
 
-const resource = computed(() =>
-  `compose:namespace/${props.namespace.namespaceID}`,
-)
+const resource = computed(() => `compose:namespace/${props.namespace.namespaceID}`)
 
 const titles = computed(() => ({
   [resource.value]: t('translator.resources.namespace.title', {

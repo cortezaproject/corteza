@@ -1,16 +1,10 @@
 <template>
-  <div
-    v-if="items.length"
-    class="emoji-dropdown"
-  >
+  <div v-if="items.length" class="emoji-dropdown">
     <button
       v-for="(item, index) in items"
       :key="item.name"
       type="button"
-      :class="[
-        'emoji-option',
-        { 'emoji-option--highlighted': index === selectedIndex }
-      ]"
+      :class="['emoji-option', { 'emoji-option--highlighted': index === selectedIndex }]"
       @click="handleClick(index)"
       @mouseenter="selectedIndex = index"
     >
@@ -69,7 +63,7 @@ export default {
     },
 
     upHandler() {
-      this.selectedIndex = ((this.selectedIndex + this.items.length) - 1) % this.items.length
+      this.selectedIndex = (this.selectedIndex + this.items.length - 1) % this.items.length
     },
 
     downHandler() {

@@ -114,7 +114,7 @@ const isConnecting = computed(() => !!connectionStartHandle.value)
 
 const { t } = useI18n()
 
-const getIcon = (name) => resolveIcon(name, props.currentTheme)
+const getIcon = name => resolveIcon(name, props.currentTheme)
 
 const iconSrc = computed(() => {
   const styleInfo = getStyleFromKind({ kind: 'termination' })

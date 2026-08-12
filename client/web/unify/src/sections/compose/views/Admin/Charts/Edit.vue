@@ -5,11 +5,7 @@
 
   <Teleport to="#topbar-tools" defer>
     <ButtonGroup v-if="isEdit && chart && namespace" class="gap-1">
-      <ChartTranslator
-        :chart="chart"
-        :namespace="namespace"
-        @update:chart="chart = $event"
-      />
+      <ChartTranslator :chart="chart" :namespace="namespace" @update:chart="chart = $event" />
     </ButtonGroup>
   </Teleport>
 
@@ -261,7 +257,13 @@ const chart = ref(null)
 const initialChart = ref(null)
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !processingSave.value && !processingDelete.value && !processingClone.value && !!chart.value && !!initialChart.value && !isEqual(toRaw(chart.value), initialChart.value),
+  isDirty: () =>
+    !processingSave.value &&
+    !processingDelete.value &&
+    !processingClone.value &&
+    !!chart.value &&
+    !!initialChart.value &&
+    !isEqual(toRaw(chart.value), initialChart.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 const loading = ref(false)
@@ -522,10 +524,9 @@ async function handleDelete() {
 
 function exportChart() {
   if (!chart.value) return
-  const blob = new Blob(
-    [JSON.stringify({ type: 'chart', list: [chart.value] }, null, 2)],
-    { type: 'application/json' },
-  )
+  const blob = new Blob([JSON.stringify({ type: 'chart', list: [chart.value] }, null, 2)], {
+    type: 'application/json',
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

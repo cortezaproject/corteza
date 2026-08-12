@@ -224,7 +224,12 @@ watchEffect(async () => {
       resolvedFieldDef.value = makeFieldDef('ID')
       return
     }
-    if (fieldPath === 'ownedBy' || fieldPath === 'createdBy' || fieldPath === 'updatedBy' || fieldPath === 'deletedBy') {
+    if (
+      fieldPath === 'ownedBy' ||
+      fieldPath === 'createdBy' ||
+      fieldPath === 'updatedBy' ||
+      fieldPath === 'deletedBy'
+    ) {
       resolvedFieldDef.value = makeFieldDef('UserSelector')
       return
     }
@@ -236,7 +241,10 @@ watchEffect(async () => {
       const customFieldName = fieldPath.substring(7)
       if (topLevel.namespaceID && topLevel.moduleID) {
         try {
-          const mod = await moduleStore.findByID({ namespaceID: topLevel.namespaceID, moduleID: topLevel.moduleID })
+          const mod = await moduleStore.findByID({
+            namespaceID: topLevel.namespaceID,
+            moduleID: topLevel.moduleID,
+          })
           const field = mod.fields?.find(f => f.name === customFieldName)
           if (field) {
             resolvedFieldDef.value = {
@@ -355,11 +363,16 @@ function onValueChange(val) {
   if (!newNode.args) newNode.args = [{ symbol: '', meta: {} }]
 
   let typedVal
-  
+
   if (resolvedVariableType.value === 'Boolean' || resolvedVariableType.value === 'Bool') {
     typedVal = { '@type': 'Boolean', '@value': Boolean(val) }
-  } else if (resolvedVariableType.value === 'DateTime' || resolvedVariableType.value === 'UserSelector' || resolvedVariableType.value === 'ID' || resolvedVariableType.value === 'String') {
-    typedVal = { '@type': 'String', '@value': String(val || '') } 
+  } else if (
+    resolvedVariableType.value === 'DateTime' ||
+    resolvedVariableType.value === 'UserSelector' ||
+    resolvedVariableType.value === 'ID' ||
+    resolvedVariableType.value === 'String'
+  ) {
+    typedVal = { '@type': 'String', '@value': String(val || '') }
   } else {
     // Detect type: boolean > number > string
     const lower = String(val).toLowerCase().trim()

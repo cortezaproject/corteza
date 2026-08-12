@@ -26,7 +26,12 @@
           :target="workflow.meta?.name || workflow.handle || workflow.workflowID"
         />
       </div>
-      <Panel :header="$t('automation.workflows.editor.info.title')" toggleable :collapsed="false" class="shadow">
+      <Panel
+        :header="$t('automation.workflows.editor.info.title')"
+        toggleable
+        :collapsed="false"
+        class="shadow"
+      >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('automation.workflows.editor.info.name')" required>
             <InputText id="name" name="name" v-model="workflow.meta.name" />
@@ -36,7 +41,11 @@
             <InputText id="handle" name="handle" v-model="workflow.handle" />
           </CFormGroup>
 
-          <CFormGroup name="description" :label="$t('automation.workflows.editor.info.description')" class="md:col-span-2">
+          <CFormGroup
+            name="description"
+            :label="$t('automation.workflows.editor.info.description')"
+            class="md:col-span-2"
+          >
             <Textarea
               id="description"
               name="description"
@@ -171,7 +180,9 @@ async function handleSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
     nextTick(() => {
-      document.querySelector('.p-message-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      document
+        .querySelector('.p-message-error')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
     return
   }
@@ -226,7 +237,12 @@ async function handleDelete() {
 }
 
 const { markSaved } = useUnsavedGuard({
-  isDirty: () => !saving.value && !deleting.value && !!workflow.value && !!initialWorkflow.value && !isEqual(workflow.value, initialWorkflow.value),
+  isDirty: () =>
+    !saving.value &&
+    !deleting.value &&
+    !!workflow.value &&
+    !!initialWorkflow.value &&
+    !isEqual(workflow.value, initialWorkflow.value),
   messageKey: 'general.editor.unsavedChanges',
 })
 

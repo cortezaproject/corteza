@@ -4,7 +4,7 @@ import Function from './Function.vue'
 export default {
   extends: Function,
 
-  data () {
+  data() {
     return {
       showFunctionList: false,
       functionRef: 'error-handler',
@@ -12,7 +12,7 @@ export default {
   },
 
   methods: {
-    async getFunctionTypes () {
+    async getFunctionTypes() {
       this.functions = [
         {
           ref: 'error-handler',
@@ -24,21 +24,15 @@ export default {
           results: [
             {
               name: 'error',
-              types: [
-                'Any',
-              ],
+              types: ['Any'],
             },
             {
               name: 'errorMessage',
-              types: [
-                'String',
-              ],
+              types: ['String'],
             },
             {
               name: 'errorStepID',
-              types: [
-                'Integer',
-              ],
+              types: ['Integer'],
             },
           ],
         },

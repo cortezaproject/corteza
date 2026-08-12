@@ -103,7 +103,13 @@ describe('CFieldSelectViewer', () => {
         field: field({
           options: {
             displayType: 'badge',
-            options: [{ value: 'v', text: 'V', style: { textColor: '#FF0000FF', backgroundColor: '#00FF00FF' } }],
+            options: [
+              {
+                value: 'v',
+                text: 'V',
+                style: { textColor: '#FF0000FF', backgroundColor: '#00FF00FF' },
+              },
+            ],
           },
         }),
         record: record({ status: 'v' }),

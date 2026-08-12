@@ -100,7 +100,8 @@ function resolveReferenceValue(scope, source) {
 
 function onUpdate(argumentName, value) {
   const param = getParam(argumentName)
-  const isTypeAggregate = param?.types && (param.types.includes('FieldValueMap') || param.types.includes('Array'))
+  const isTypeAggregate =
+    param?.types && (param.types.includes('FieldValueMap') || param.types.includes('Array'))
   const isAgg = param?.aggregate || isTypeAggregate || false
 
   let newArgs = [...props.arguments]
@@ -300,9 +301,7 @@ function onToggleReference(payload) {
   // If selecting a reference for an entire array argument, use param.types.
   // If selecting a reference for a single ELEMENT (target is defined), prefer the
   // declared row types when provided (e.g. WorkflowInputMap), else fall back to Any.
-  const expectedTypes = target
-    ? (rowTypes?.length ? rowTypes : ['Any'])
-    : (param?.types || ['Any'])
+  const expectedTypes = target ? (rowTypes?.length ? rowTypes : ['Any']) : param?.types || ['Any']
 
   emit('toggleReference', {
     name: argumentName,

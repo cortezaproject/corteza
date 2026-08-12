@@ -43,7 +43,13 @@ function mountList(apiFn: ReturnType<typeof makeAPI>, options = {}) {
     attachTo: document.body,
   })
   wrappers.push(wrapper)
-  return { wrapper, router, get list() { return listRef! } }
+  return {
+    wrapper,
+    router,
+    get list() {
+      return listRef!
+    },
+  }
 }
 
 describe('useResourceList', () => {

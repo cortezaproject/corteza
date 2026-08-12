@@ -11,7 +11,7 @@
         :max-bounds="lockBounds ? lockedBounds : null"
         :hide-geo-search="hideGeoSearch"
         :hide-current-location-button="hideCurrentLocationButton"
-        style="height: 40vh;"
+        style="height: 40vh"
         @update:center="onMapCenter"
         @update:zoom="onMapZoom"
         @update:bounds="onMapBounds"
@@ -62,10 +62,7 @@ const center = computed(() => {
 const zoom = computed(() => field.value.options?.zoom || 3)
 
 function onMapCenter([lat, lng]) {
-  field.value.options.center = [
-    Math.round(lat * 1e6) / 1e6,
-    Math.round(lng * 1e6) / 1e6,
-  ]
+  field.value.options.center = [Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6]
 }
 
 function onMapZoom(z) {
@@ -74,17 +71,23 @@ function onMapZoom(z) {
 
 const prefillWithCurrentLocation = computed({
   get: () => !!field.value.options?.prefillWithCurrentLocation,
-  set: v => { field.value.options.prefillWithCurrentLocation = v },
+  set: v => {
+    field.value.options.prefillWithCurrentLocation = v
+  },
 })
 
 const hideCurrentLocationButton = computed({
   get: () => !!field.value.options?.hideCurrentLocationButton,
-  set: v => { field.value.options.hideCurrentLocationButton = v },
+  set: v => {
+    field.value.options.hideCurrentLocationButton = v
+  },
 })
 
 const hideGeoSearch = computed({
   get: () => !!field.value.options?.hideGeoSearch,
-  set: v => { field.value.options.hideGeoSearch = v },
+  set: v => {
+    field.value.options.hideGeoSearch = v
+  },
 })
 
 const lockBounds = computed(() => !!field.value.options?.lockBounds)

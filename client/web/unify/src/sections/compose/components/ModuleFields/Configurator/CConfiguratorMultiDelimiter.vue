@@ -5,16 +5,37 @@
     </label>
     <div class="flex flex-col gap-2">
       <div class="flex items-center gap-2">
-        <RadioButton inputId="delimComma" :model-value="delimiterType" value="comma" @update:model-value="setDelimiter(', ')" />
-        <label for="delimComma" class="cursor-pointer">{{ $t('field.options.multiDelimiter.comma') }}</label>
+        <RadioButton
+          inputId="delimComma"
+          :model-value="delimiterType"
+          value="comma"
+          @update:model-value="setDelimiter(', ')"
+        />
+        <label for="delimComma" class="cursor-pointer">
+          {{ $t('field.options.multiDelimiter.comma') }}
+        </label>
       </div>
       <div class="flex items-center gap-2">
-        <RadioButton inputId="delimNewline" :model-value="delimiterType" value="newline" @update:model-value="setDelimiter('\n')" />
-        <label for="delimNewline" class="cursor-pointer">{{ $t('field.options.multiDelimiter.newline') }}</label>
+        <RadioButton
+          inputId="delimNewline"
+          :model-value="delimiterType"
+          value="newline"
+          @update:model-value="setDelimiter('\n')"
+        />
+        <label for="delimNewline" class="cursor-pointer">
+          {{ $t('field.options.multiDelimiter.newline') }}
+        </label>
       </div>
       <div class="flex items-center gap-2">
-        <RadioButton inputId="delimCustom" :model-value="delimiterType" value="custom" @update:model-value="setDelimiter(customDelimiter || ' ')" />
-        <label for="delimCustom" class="cursor-pointer">{{ $t('field.options.multiDelimiter.custom') }}</label>
+        <RadioButton
+          inputId="delimCustom"
+          :model-value="delimiterType"
+          value="custom"
+          @update:model-value="setDelimiter(customDelimiter || ' ')"
+        />
+        <label for="delimCustom" class="cursor-pointer">
+          {{ $t('field.options.multiDelimiter.custom') }}
+        </label>
       </div>
     </div>
     <InputText

@@ -111,9 +111,10 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-
 const role = computed(() =>
-  props.resourceId ? store.rolesFor(props.project?.projectID).find(r => r.id === props.resourceId) : null,
+  props.resourceId
+    ? store.rolesFor(props.project?.projectID).find(r => r.id === props.resourceId)
+    : null,
 )
 
 // --- Role meta draft (staged; nothing persists until Save) --------------------

@@ -6,7 +6,7 @@ export default {
   extends: Function,
 
   methods: {
-    async getFunctionTypes () {
+    async getFunctionTypes() {
       this.functions = components.promptDefinitions || []
     },
   },

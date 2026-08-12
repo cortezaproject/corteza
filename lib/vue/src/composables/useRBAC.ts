@@ -23,7 +23,7 @@ export const useRBACStore = defineStore('rbac', () => {
 
   function can(resource: string, operation: string): boolean {
     const rule = rules.value.find(
-      (r) => r.resource === resourcePrefix + resource && r.operation === operation,
+      r => r.resource === resourcePrefix + resource && r.operation === operation,
     )
     return rule?.allow ?? false
   }
@@ -32,11 +32,9 @@ export const useRBACStore = defineStore('rbac', () => {
     const apis = [$SystemAPI, $AutomationAPI, $ComposeAPI].filter(Boolean) as APIClient[]
     loaded.value = false
     const results = await Promise.all(
-      apis.map((api) => api.permissionsEffective({}).catch(() => [] as Rule[])),
+      apis.map(api => api.permissionsEffective({}).catch(() => [] as Rule[])),
     )
-    rules.value = results
-      .flat()
-      .filter(({ resource }) => resource.startsWith(resourcePrefix))
+    rules.value = results.flat().filter(({ resource }) => resource.startsWith(resourcePrefix))
     loaded.value = true
   }
 

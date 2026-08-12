@@ -117,14 +117,19 @@ async function boot() {
       // scenario after `autoAdvanceMs`; the last step auto-closes after
       // `autoCloseAfterMs`. Either field is optional.
       if (p.type === 'static_message') {
-        const c = (p.config as { autoAdvanceMs?: number; autoCloseAfterMs?: number } | undefined) || {}
+        const c =
+          (p.config as { autoAdvanceMs?: number; autoCloseAfterMs?: number } | undefined) || {}
         const lastIdx = cfg.scenarios.length - 1
         const isLast = p.scenarioIndex >= lastIdx
         clearAutoClose()
         if (!isLast && typeof c.autoAdvanceMs === 'number' && c.autoAdvanceMs >= 0) {
-          autoCloseTimer = setTimeout(() => { void advanceStep() }, c.autoAdvanceMs)
+          autoCloseTimer = setTimeout(() => {
+            void advanceStep()
+          }, c.autoAdvanceMs)
         } else if (isLast && typeof c.autoCloseAfterMs === 'number' && c.autoCloseAfterMs > 0) {
-          autoCloseTimer = setTimeout(() => { void closeSession() }, c.autoCloseAfterMs)
+          autoCloseTimer = setTimeout(() => {
+            void closeSession()
+          }, c.autoCloseAfterMs)
         }
       }
     })

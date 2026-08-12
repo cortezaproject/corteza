@@ -157,7 +157,9 @@ function buildModel() {
 // user-resolved) schema, blank on submit only.
 const submitted = ref(false)
 
-const requiredFields = computed(() => resolvedSchema.value.flatMap(s => s.fields.filter(f => f.required)))
+const requiredFields = computed(() =>
+  resolvedSchema.value.flatMap(s => s.fields.filter(f => f.required)),
+)
 
 const isEmpty = v => v === null || v === undefined || (typeof v === 'string' && v.trim() === '')
 

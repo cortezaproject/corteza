@@ -1,13 +1,11 @@
 <template>
-  <ReportEdit
-    :chart="chart"
-    :modules="modules"
-    :supported-metrics="supportedMetrics"
-  >
+  <ReportEdit :chart="chart" :modules="modules" :supported-metrics="supportedMetrics">
     <template #dimension-options="{ index, dimension, field }">
       <div v-if="showPicker(field)" class="grid grid-cols-1 gap-4 mt-4">
         <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">{{ $t('chart.edit.dimension.options.label') }}</label>
+          <label class="text-primary font-medium text-sm">
+            {{ $t('chart.edit.dimension.options.label') }}
+          </label>
           <MultiSelect
             :model-value="getOptions(dimension)"
             :options="field.options.options"
@@ -40,7 +38,11 @@
               <label for="funnelFixTooltips">{{ $t('chart.edit.metric.fixTooltips') }}</label>
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox v-model="metric.relativeValue" :binary="true" input-id="funnelRelativeValue" />
+              <Checkbox
+                v-model="metric.relativeValue"
+                :binary="true"
+                input-id="funnelRelativeValue"
+              />
               <label for="funnelRelativeValue">{{ $t('chart.edit.metric.relative') }}</label>
             </div>
             <div class="flex items-center gap-2">
@@ -86,18 +88,22 @@
             class="w-full"
           />
           <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
-            {{ $t(`chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`) }}
+            {{
+              $t(
+                `chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`,
+              )
+            }}
           </small>
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-primary font-medium text-sm">
             {{ $t('chart.edit.formatting.format.label') }}
           </label>
-          <InputText 
-            v-model="metric.formatting.format" 
-            :disabled="metric.formatting.presetFormat !== 'custom'" 
-            :placeholder="$t('chart.edit.formatting.format.placeholder')" 
-            class="w-full" 
+          <InputText
+            v-model="metric.formatting.format"
+            :disabled="metric.formatting.presetFormat !== 'custom'"
+            :placeholder="$t('chart.edit.formatting.format.placeholder')"
+            class="w-full"
           />
         </div>
       </div>
@@ -146,8 +152,8 @@ function setOptions(index, field, values) {
     report.value.dimensions[index].meta = {}
   }
   const options = field.options?.options || []
-  report.value.dimensions[index].meta.fields = values.map(v =>
-    options.find(o => o.value === v)
-  ).filter(Boolean)
+  report.value.dimensions[index].meta.fields = values
+    .map(v => options.find(o => o.value === v))
+    .filter(Boolean)
 }
 </script>

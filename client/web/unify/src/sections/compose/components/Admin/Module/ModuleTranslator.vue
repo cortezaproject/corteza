@@ -29,17 +29,17 @@ const $ComposeAPI = inject('$ComposeAPI') as any
 const { t } = useI18n()
 const { currentLanguage } = useResourceTranslations()
 
-const isEdit = computed(() =>
-  props.module?.moduleID && props.module.moduleID !== '0',
-)
+const isEdit = computed(() => props.module?.moduleID && props.module.moduleID !== '0')
 
-const resource = computed(() =>
-  `compose:module/${props.namespace.namespaceID}/${props.module.moduleID}`,
+const resource = computed(
+  () => `compose:module/${props.namespace.namespaceID}/${props.module.moduleID}`,
 )
 
 const titles = computed(() => {
   const tt: Record<string, string> = {}
-  tt[resource.value] = t('translator.resources.module.title', { handle: props.module.name || props.module.handle || props.module.moduleID })
+  tt[resource.value] = t('translator.resources.module.title', {
+    handle: props.module.name || props.module.handle || props.module.moduleID,
+  })
   for (const field of props.module.fields || []) {
     const fRes = `compose:module-field/${props.namespace.namespaceID}/${props.module.moduleID}/${field.fieldID}`
     tt[fRes] = t('translator.resources.module.field.title', { name: field.label || field.name })

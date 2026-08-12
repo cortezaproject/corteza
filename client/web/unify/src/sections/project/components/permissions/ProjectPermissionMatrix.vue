@@ -232,11 +232,7 @@
                 <div
                   v-if="evalUserId"
                   class="flex items-center justify-center px-1"
-                  :class="
-                    isHeaderRow(row)
-                      ? ''
-                      : 'border-l border-surface bg-emphasis'
-                  "
+                  :class="isHeaderRow(row) ? '' : 'border-l border-surface bg-emphasis'"
                 >
                   <span
                     v-if="!isHeaderRow(row)"
@@ -776,7 +772,8 @@ function capState(roleId, ops) {
   const states = ops.map(({ resource, op }) =>
     store.effectiveAccess(props.project.projectID, roleId, resource, op),
   )
-  if (states.some(s => !s) && store.isEffectiveAccessLoading(props.project.projectID)) return 'loading'
+  if (states.some(s => !s) && store.isEffectiveAccessLoading(props.project.projectID))
+    return 'loading'
   const defined = states.filter(Boolean)
   if (!defined.length) return 'none'
   const uniq = [...new Set(defined)]

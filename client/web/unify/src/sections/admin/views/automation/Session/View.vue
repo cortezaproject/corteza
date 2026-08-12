@@ -92,7 +92,12 @@
         :label="$t('automation.sessions.editor.info.openWorkflow')"
         icon="pi pi-arrow-right"
         severity="secondary"
-        @click="$router.push({ name: 'automation.workflows.edit', params: { workflowID: session.workflowID } })"
+        @click="
+          $router.push({
+            name: 'automation.workflows.edit',
+            params: { workflowID: session.workflowID },
+          })
+        "
       />
       <Button
         v-if="isActive"

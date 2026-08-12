@@ -110,7 +110,7 @@ function syncSanitizers() {
 const validators = ref([])
 const disableDefaultValidators = computed({
   get: () => field.value.expressions?.disableDefaultValidators || false,
-  set: (val) => {
+  set: val => {
     if (!field.value.expressions) field.value.expressions = {}
     field.value.expressions.disableDefaultValidators = val
   },

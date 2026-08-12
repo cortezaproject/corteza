@@ -12,7 +12,12 @@
 
     <IconField class="mb-3">
       <InputIcon class="pi pi-search" />
-      <InputText v-model="query" :placeholder="$t('project.connectorPicker.searchPlaceholder')" fluid autofocus />
+      <InputText
+        v-model="query"
+        :placeholder="$t('project.connectorPicker.searchPlaceholder')"
+        fluid
+        autofocus
+      />
     </IconField>
 
     <div class="max-h-[26rem] overflow-auto p-1">
@@ -24,7 +29,9 @@
           class="flex items-start gap-3 p-3 rounded-xl border border-surface hover:border-primary hover:bg-emphasis transition-colors text-left"
           @click="$emit('pick', c)"
         >
-          <span class="inline-flex items-center justify-center w-9 h-9 rounded-md ring-1 ring-surface bg-emphasis shrink-0">
+          <span
+            class="inline-flex items-center justify-center w-9 h-9 rounded-md ring-1 ring-surface bg-emphasis shrink-0"
+          >
             <i :class="[c.icon, 'text-lg text-primary']" />
           </span>
           <div class="min-w-0">
@@ -39,7 +46,13 @@
     </div>
 
     <template #footer>
-      <Button :label="$t('general.label.cancel')" severity="secondary" text size="small" @click="visible = false" />
+      <Button
+        :label="$t('general.label.cancel')"
+        severity="secondary"
+        text
+        size="small"
+        @click="visible = false"
+      />
     </template>
   </Dialog>
 </template>

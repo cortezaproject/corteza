@@ -32,9 +32,11 @@ export function applyFieldTranslations(
 
   if (!field.options) field.options = {}
   const descView = g('meta.description.view')
-  if (descView !== undefined) field.options.description = { ...field.options.description, view: descView }
+  if (descView !== undefined)
+    field.options.description = { ...field.options.description, view: descView }
   const descEdit = g('meta.description.edit')
-  if (descEdit !== undefined) field.options.description = { ...field.options.description, edit: descEdit }
+  if (descEdit !== undefined)
+    field.options.description = { ...field.options.description, edit: descEdit }
   const hintView = g('meta.hint.view')
   if (hintView !== undefined) field.options.hint = { ...field.options.hint, view: hintView }
   const hintEdit = g('meta.hint.edit')

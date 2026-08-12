@@ -132,7 +132,12 @@ const PRIORITY_OPTIONS = ['High', 'Medium', 'Low']
 // Neutral title-bar badge for create mode / an unrecognized category (mirrors
 // the old BacklogView page badge); once a category is picked the icon swaps
 // to that category's own badge, live.
-const NEUTRAL_BADGE = { icon: 'pi pi-th-large', bg: 'bg-emphasis', ring: 'ring-surface', text: 'text-color' }
+const NEUTRAL_BADGE = {
+  icon: 'pi pi-th-large',
+  bg: 'bg-emphasis',
+  ring: 'ring-surface',
+  text: 'text-color',
+}
 const badge = computed(() => CATEGORY_CONFIG[model.value.category]?.badge || NEUTRAL_BADGE)
 
 const categoryOptions = computed(() =>
@@ -241,7 +246,12 @@ const resolvedSchema = computed(() =>
           return { ...f, options: props.userOptions, optionLabel: 'label', optionValue: 'value' }
         }
         if (f.source === 'revisions') {
-          return { ...f, options: revisionOptions.value, optionLabel: 'label', optionValue: 'value' }
+          return {
+            ...f,
+            options: revisionOptions.value,
+            optionLabel: 'label',
+            optionValue: 'value',
+          }
         }
         return f
       }),
@@ -309,7 +319,9 @@ function onModelUpdate(next) {
 // --- Validation ------------------------------------------------------------------
 const submitted = ref(false)
 
-const requiredFields = computed(() => resolvedSchema.value.flatMap(s => s.fields.filter(f => f.required)))
+const requiredFields = computed(() =>
+  resolvedSchema.value.flatMap(s => s.fields.filter(f => f.required)),
+)
 
 const isEmpty = v => v === null || v === undefined || (typeof v === 'string' && v.trim() === '')
 

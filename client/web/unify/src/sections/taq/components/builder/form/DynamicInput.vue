@@ -106,7 +106,12 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference', 'updateReferenceSource'])
+const emit = defineEmits([
+  'update:modelValue',
+  'toggleReference',
+  'clearReference',
+  'updateReferenceSource',
+])
 
 const inputComponent = computed(() => resolveInputComponent(props.type))
 

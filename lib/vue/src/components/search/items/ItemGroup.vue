@@ -13,13 +13,11 @@
         <span
           class="font-semibold truncate"
           :class="subgroup ? 'text-xs text-muted-color' : 'text-sm text-color'"
-        >{{ title }}</span>
+        >
+          {{ title }}
+        </span>
       </div>
-      <Badge
-        :value="items.length"
-        severity="secondary"
-        class="shrink-0"
-      />
+      <Badge :value="items.length" severity="secondary" class="shrink-0" />
     </div>
 
     <div v-if="isExpanded">

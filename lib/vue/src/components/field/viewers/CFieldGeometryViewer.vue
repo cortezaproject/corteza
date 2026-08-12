@@ -4,17 +4,19 @@
       <span
         v-for="(coord, index) in coordList"
         :key="index"
-        :class="{ 'block': field.options?.multiDelimiter === '\n' }"
+        :class="{ block: field.options?.multiDelimiter === '\n' }"
       >
         <a
           v-if="!disableClick"
           class="text-primary cursor-pointer text-nowrap"
           @click.stop="openMap(index)"
         >
-          {{ coord[0] }}, {{ coord[1] }}{{ index < coordList.length - 1 ? (field.options?.multiDelimiter || ', ') : '' }}
+          {{ coord[0] }}, {{ coord[1]
+          }}{{ index < coordList.length - 1 ? field.options?.multiDelimiter || ', ' : '' }}
         </a>
         <span v-else class="text-nowrap">
-          {{ coord[0] }}, {{ coord[1] }}{{ index < coordList.length - 1 ? (field.options?.multiDelimiter || ', ') : '' }}
+          {{ coord[0] }}, {{ coord[1]
+          }}{{ index < coordList.length - 1 ? field.options?.multiDelimiter || ', ' : '' }}
         </span>
       </span>
     </template>
@@ -91,7 +93,7 @@ const coordList = computed(() => {
   const v = rawValue.value
   if (!v) return []
 
-  const parseCoords = (str) => {
+  const parseCoords = str => {
     try {
       const parsed = JSON.parse(str || '{}')
       if (parsed?.coordinates?.length === 2) return parsed.coordinates

@@ -7,7 +7,7 @@
  * @param {string} name - The constraint name (e.g., "user.email")
  * @returns {string} The formatted label (e.g., "User Email")
  */
-export function getConstraintNameLabel (name) {
+export function getConstraintNameLabel(name) {
   if (!name) return ''
 
   return name

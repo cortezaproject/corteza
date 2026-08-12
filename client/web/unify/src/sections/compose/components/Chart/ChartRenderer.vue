@@ -8,7 +8,12 @@
       {{ error }}
     </div>
 
-    <CChart v-else-if="renderer" :chart="renderer" class="absolute inset-0 p-1" @click="handleChartClick" />
+    <CChart
+      v-else-if="renderer"
+      :chart="renderer"
+      class="absolute inset-0 p-1"
+      @click="handleChartClick"
+    />
   </div>
 </template>
 
@@ -131,9 +136,10 @@ async function updateChart() {
           if (fieldObj.kind === 'Bool') {
             const { trueLabel, falseLabel } = fieldObj.options || {}
             data.labels = data.labels.map(value => {
-              const label = value === '1'
-                ? trueLabel || t('general.label.yes')
-                : falseLabel || t('general.label.no')
+              const label =
+                value === '1'
+                  ? trueLabel || t('general.label.yes')
+                  : falseLabel || t('general.label.no')
               valueMap.value.set(label, value)
               return label
             })
@@ -178,11 +184,11 @@ async function updateChart() {
     renderer.value = chart.makeOptions(data)
   } catch (e) {
     let msg = e instanceof Error ? e.message : String(e)
-    
+
     if (msg && msg.startsWith('notification.')) {
       msg = t(msg)
     }
-    
+
     error.value = msg || t('notification.chart.loadFailed')
     processing.value = false
     return

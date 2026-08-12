@@ -1,7 +1,9 @@
 <template>
   <span
     class="truncate"
-    :class="modelValue != null && modelValue !== '' ? 'text-color-emphasis' : 'italic text-muted-color'"
+    :class="
+      modelValue != null && modelValue !== '' ? 'text-color-emphasis' : 'italic text-muted-color'
+    "
     :title="displayLabel"
   >
     {{ displayLabel }}

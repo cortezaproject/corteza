@@ -438,11 +438,7 @@
               size="small"
               @click="modal.open = false"
             />
-            <Button
-              :label="$t('general.label.save')"
-              size="small"
-              @click="applyModal"
-            />
+            <Button :label="$t('general.label.save')" size="small" @click="applyModal" />
           </div>
         </template>
       </Dialog>

@@ -53,45 +53,45 @@ describe('WorkflowNode --hoverable class binding', () => {
   })
 
   it('exclusive gateway stays hoverable past the first edge', () => {
-    expect(
-      mountNode({ data: { kind: 'gateway', ref: 'excl' }, outCount: 5 }).classes(),
-    ).toContain('workflow-node--hoverable')
+    expect(mountNode({ data: { kind: 'gateway', ref: 'excl' }, outCount: 5 }).classes()).toContain(
+      'workflow-node--hoverable',
+    )
   })
 
   it('inclusive gateway stays hoverable past the first edge', () => {
-    expect(
-      mountNode({ data: { kind: 'gateway', ref: 'incl' }, outCount: 3 }).classes(),
-    ).toContain('workflow-node--hoverable')
+    expect(mountNode({ data: { kind: 'gateway', ref: 'incl' }, outCount: 3 }).classes()).toContain(
+      'workflow-node--hoverable',
+    )
   })
 
   it('fork gateway stays hoverable past the first edge', () => {
-    expect(
-      mountNode({ data: { kind: 'gateway', ref: 'fork' }, outCount: 4 }).classes(),
-    ).toContain('workflow-node--hoverable')
+    expect(mountNode({ data: { kind: 'gateway', ref: 'fork' }, outCount: 4 }).classes()).toContain(
+      'workflow-node--hoverable',
+    )
   })
 
   it('iterator is hoverable with 1 edge, drops at 2', () => {
-    expect(
-      mountNode({ data: { kind: 'iterator' }, outCount: 1 }).classes(),
-    ).toContain('workflow-node--hoverable')
-    expect(
-      mountNode({ data: { kind: 'iterator' }, outCount: 2 }).classes(),
-    ).not.toContain('workflow-node--hoverable')
+    expect(mountNode({ data: { kind: 'iterator' }, outCount: 1 }).classes()).toContain(
+      'workflow-node--hoverable',
+    )
+    expect(mountNode({ data: { kind: 'iterator' }, outCount: 2 }).classes()).not.toContain(
+      'workflow-node--hoverable',
+    )
   })
 
   it('error-handler is hoverable with 1 edge, drops at 2', () => {
-    expect(
-      mountNode({ data: { kind: 'error-handler' }, outCount: 1 }).classes(),
-    ).toContain('workflow-node--hoverable')
-    expect(
-      mountNode({ data: { kind: 'error-handler' }, outCount: 2 }).classes(),
-    ).not.toContain('workflow-node--hoverable')
+    expect(mountNode({ data: { kind: 'error-handler' }, outCount: 1 }).classes()).toContain(
+      'workflow-node--hoverable',
+    )
+    expect(mountNode({ data: { kind: 'error-handler' }, outCount: 2 }).classes()).not.toContain(
+      'workflow-node--hoverable',
+    )
   })
 
   it('join gateway is hoverable with 0 edges, drops at 1 (cap 1)', () => {
-    expect(
-      mountNode({ data: { kind: 'gateway', ref: 'join' }, outCount: 0 }).classes(),
-    ).toContain('workflow-node--hoverable')
+    expect(mountNode({ data: { kind: 'gateway', ref: 'join' }, outCount: 0 }).classes()).toContain(
+      'workflow-node--hoverable',
+    )
     expect(
       mountNode({ data: { kind: 'gateway', ref: 'join' }, outCount: 1 }).classes(),
     ).not.toContain('workflow-node--hoverable')

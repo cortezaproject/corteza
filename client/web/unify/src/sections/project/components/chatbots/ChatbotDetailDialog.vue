@@ -10,7 +10,9 @@
         <KindIcon kind="chatbot" size="lg" plain-icon />
         <div class="min-w-0">
           <DialogEyebrow>{{ $t('project.kinds.chatbot.single') }}</DialogEyebrow>
-          <div class="font-semibold truncate leading-tight">{{ draft.name || $t('project.chatbotDetail.unnamed') }}</div>
+          <div class="font-semibold truncate leading-tight">
+            {{ draft.name || $t('project.chatbotDetail.unnamed') }}
+          </div>
         </div>
       </div>
     </template>
@@ -61,12 +63,7 @@
           size="small"
           @click="visible = false"
         />
-        <Button
-          :label="$t('general.label.save')"
-          size="small"
-          :loading="saving"
-          @click="onSave"
-        />
+        <Button :label="$t('general.label.save')" size="small" :loading="saving" @click="onSave" />
       </div>
     </template>
   </Dialog>
@@ -101,9 +98,10 @@ const visible = computed({
   set: v => emit('update:modelValue', v),
 })
 
-
 const chatbot = computed(() =>
-  props.resourceId ? store.chatbotsFor(props.project?.projectID).find(c => c.id === props.resourceId) : null,
+  props.resourceId
+    ? store.chatbotsFor(props.project?.projectID).find(c => c.id === props.resourceId)
+    : null,
 )
 
 // --- Draft (staged; nothing persists until Save) -------------------------------
@@ -127,9 +125,7 @@ watch(
 // --- Validation -----------------------------------------------------------------
 const submitted = ref(false)
 
-const nameError = computed(() =>
-  draft.name.trim() ? '' : t('project.chatbotDetail.nameRequired'),
-)
+const nameError = computed(() => (draft.name.trim() ? '' : t('project.chatbotDetail.nameRequired')))
 
 const isValid = computed(() => !nameError.value)
 

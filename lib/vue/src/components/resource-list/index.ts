@@ -1,7 +1,1 @@
-export { default as CResourceList } from './CResourceList.vue';
-
-
-
-
-
-
+export { default as CResourceList } from './CResourceList.vue'

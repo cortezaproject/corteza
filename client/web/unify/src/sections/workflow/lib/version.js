@@ -7,7 +7,7 @@
  * @param {string} version - Version string (e.g., "2024.1.0")
  * @returns {Object} Object with year and month properties
  */
-export function parseVersion (version) {
+export function parseVersion(version) {
   if (!version) return { year: '', month: '' }
 
   const [year, month] = version.split('.')
@@ -19,7 +19,7 @@ export function parseVersion (version) {
  * @param {string} path - Documentation path (e.g., "integrator-guide/automation/workflows/index.html")
  * @returns {string} Full documentation URL
  */
-export function getDocumentationURL (path) {
+export function getDocumentationURL(path) {
   // eslint-disable-next-line no-undef
   const { year, month } = parseVersion(VERSION)
   return `https://docs.planetcrust.io/human-docs/${year}.${month}/${path}`

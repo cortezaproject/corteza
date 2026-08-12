@@ -52,10 +52,17 @@ function getBreakpoint(): string {
 export { fetchBlockID, getBreakpoint }
 
 export function usePageVisibility(
-  $SystemAPI: { expressionEvaluate: (_a: { variables: Record<string, unknown>; expressions: Record<string, string> }) => Promise<Record<string, boolean>> } | null,
+  $SystemAPI: {
+    expressionEvaluate: (_a: {
+      variables: Record<string, unknown>
+      expressions: Record<string, string>
+    }) => Promise<Record<string, boolean>>
+  } | null,
   $auth: { user?: { roles?: string[] } } | null,
 ) {
-  function buildExpressionVariables(options: ExpressionVariablesOptions = {}): Record<string, unknown> {
+  function buildExpressionVariables(
+    options: ExpressionVariablesOptions = {},
+  ): Record<string, unknown> {
     const { record, isRecordPage, mode } = options
     const vars: Record<string, unknown> = {
       user: $auth?.user || {},

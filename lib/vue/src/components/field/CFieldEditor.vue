@@ -103,7 +103,13 @@ const multiAbsorbing = computed(() => {
   if (props.field.kind === 'File') return true
   if (!props.field.isMulti) return false
   const selectType = props.field.options?.selectType
-  if ((props.field.kind === 'Select' || props.field.kind === 'User' || props.field.kind === 'Record') && selectType === 'multiple') return true
+  if (
+    (props.field.kind === 'Select' ||
+      props.field.kind === 'User' ||
+      props.field.kind === 'Record') &&
+    selectType === 'multiple'
+  )
+    return true
   return false
 })
 
@@ -121,7 +127,8 @@ function valuesToEntries(vals) {
 }
 
 function getValuesArray() {
-  if (Array.isArray(props.modelValue)) return props.modelValue.length ? props.modelValue : (props.allowEmpty ? [] : [''])
+  if (Array.isArray(props.modelValue))
+    return props.modelValue.length ? props.modelValue : props.allowEmpty ? [] : ['']
   if (props.modelValue) return [props.modelValue]
   return props.allowEmpty ? [] : ['']
 }
@@ -133,10 +140,7 @@ watch(
     const incoming = getValuesArray()
     const current = entries.value.map(e => e.value)
     // Only rebuild entries if the values actually differ to preserve stable keys
-    if (
-      incoming.length !== current.length ||
-      incoming.some((v, i) => v !== current[i])
-    ) {
+    if (incoming.length !== current.length || incoming.some((v, i) => v !== current[i])) {
       entries.value = valuesToEntries(incoming)
     }
   },
@@ -147,7 +151,10 @@ function updateValue(id, value) {
   const index = entries.value.findIndex(e => e.id === id)
   if (index === -1) return
   entries.value[index].value = value
-  emit('update:modelValue', entries.value.map(e => e.value))
+  emit(
+    'update:modelValue',
+    entries.value.map(e => e.value),
+  )
 }
 
 function removeValue(id) {
@@ -157,11 +164,17 @@ function removeValue(id) {
   if (!entries.value.length && !props.allowEmpty) {
     entries.value = [{ id: nextId++, value: '' }]
   }
-  emit('update:modelValue', entries.value.map(e => e.value))
+  emit(
+    'update:modelValue',
+    entries.value.map(e => e.value),
+  )
 }
 
 function addValue() {
   entries.value.push({ id: nextId++, value: '' })
-  emit('update:modelValue', entries.value.map(e => e.value))
+  emit(
+    'update:modelValue',
+    entries.value.map(e => e.value),
+  )
 }
 </script>

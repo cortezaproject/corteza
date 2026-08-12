@@ -20,11 +20,7 @@
         {{ $t('field.kind.dateTime.constraints.label') }}
       </label>
       <div class="flex flex-col gap-2">
-        <div
-          v-for="opt in constraintOptions"
-          :key="opt.value"
-          class="flex items-center gap-2"
-        >
+        <div v-for="opt in constraintOptions" :key="opt.value" class="flex items-center gap-2">
           <RadioButton
             :input-id="`constraint-${opt.value}`"
             :model-value="constraintType"
@@ -43,15 +39,15 @@
       </label>
       <div class="flex items-center gap-2 mb-3">
         <Checkbox v-model="field.options.outputRelative" inputId="outputRelative" :binary="true" />
-        <label for="outputRelative" class="cursor-pointer">{{ $t('field.kind.dateTime.relativeOutput') }}</label>
+        <label for="outputRelative" class="cursor-pointer">
+          {{ $t('field.kind.dateTime.relativeOutput') }}
+        </label>
       </div>
       <template v-if="!field.options.outputRelative">
-        <InputText
-          v-model="field.options.format"
-          placeholder="YYYY-MM-DD HH:mm"
-          class="w-full"
-        />
-        <small class="text-muted-color mt-1 block">{{ $t('field.kind.dateTime.outputFormatFootnote', ['Moment.js']) }}</small>
+        <InputText v-model="field.options.format" placeholder="YYYY-MM-DD HH:mm" class="w-full" />
+        <small class="text-muted-color mt-1 block">
+          {{ $t('field.kind.dateTime.outputFormatFootnote', ['Moment.js']) }}
+        </small>
       </template>
     </div>
   </div>
@@ -74,7 +70,10 @@ const inputTypeOptions = computed(() => [
 const constraintOptions = computed(() => [
   { value: 'all', label: t('field.kind.dateTime.constraints.options.all') },
   { value: 'pastValuesOnly', label: t('field.kind.dateTime.constraints.options.pastValuesOnly') },
-  { value: 'futureValuesOnly', label: t('field.kind.dateTime.constraints.options.futureValuesOnly') },
+  {
+    value: 'futureValuesOnly',
+    label: t('field.kind.dateTime.constraints.options.futureValuesOnly'),
+  },
 ])
 
 const inputType = computed(() => {

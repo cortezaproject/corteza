@@ -15,11 +15,7 @@
       />
     </CFormGroup>
 
-    <CFormGroup
-      v-for="ns in namespace.values"
-      :key="ns"
-      :label="getModuleLabel(ns)"
-    >
+    <CFormGroup v-for="ns in namespace.values" :key="ns" :label="getModuleLabel(ns)">
       <MultiSelect
         class="module-selector w-full"
         :options="getModulesForNamespace(ns.split('/')[1])"
@@ -59,7 +55,7 @@ export default {
     },
   },
 
-  data () {
+  data() {
     return {
       namespace: {
         processing: false,
@@ -86,7 +82,7 @@ export default {
   },
 
   computed: {
-    modulesByNamespace () {
+    modulesByNamespace() {
       const grouped = {}
 
       this.module.options.forEach(module => {
@@ -102,7 +98,7 @@ export default {
 
   watch: {
     namespaceLabels: {
-      handler (newVal) {
+      handler(newVal) {
         if (newVal && newVal.length > 0 && this.namespace.options.length > 0) {
           this.initializeFromProps()
         }
@@ -111,7 +107,7 @@ export default {
     },
   },
 
-  created () {
+  created() {
     this.fetchNamespaces()
       .then(() => {
         this.initializeFromProps()
@@ -122,7 +118,7 @@ export default {
   },
 
   methods: {
-    initializeFromProps () {
+    initializeFromProps() {
       this.namespace.values = this.namespaceLabels || []
 
       if (this.namespace.values.length > 0) {
@@ -136,39 +132,51 @@ export default {
       }
     },
 
-    fetchNamespaces () {
+    fetchNamespaces() {
       this.namespace.processing = true
 
-      return this.$ComposeAPI.namespaceList(this.namespace.filter).then(({ set = [] } = {}) => {
-        const namespacePromises = []
+      return this.$ComposeAPI
+        .namespaceList(this.namespace.filter)
+        .then(({ set = [] } = {}) => {
+          const namespacePromises = []
 
-        if (this.namespaceLabels && this.namespaceLabels.length > 0 && !this.namespace.filter.query) {
-          const namespaceIDs = this.namespaceLabels.map(label => label.split('/')[1]).filter(Boolean)
+          if (
+            this.namespaceLabels &&
+            this.namespaceLabels.length > 0 &&
+            !this.namespace.filter.query
+          ) {
+            const namespaceIDs = this.namespaceLabels
+              .map(label => label.split('/')[1])
+              .filter(Boolean)
 
-          namespaceIDs.forEach(namespaceID => {
-            if (!set.some(n => n.namespaceID === namespaceID)) {
-              namespacePromises.push(
-                this.$ComposeAPI.namespaceRead({ namespaceID })
-                  .then(n => [n])
-                  .catch(() => []),
+            namespaceIDs.forEach(namespaceID => {
+              if (!set.some(n => n.namespaceID === namespaceID)) {
+                namespacePromises.push(
+                  this.$ComposeAPI
+                    .namespaceRead({ namespaceID })
+                    .then(n => [n])
+                    .catch(() => []),
+                )
+              }
+            })
+          }
+
+          return Promise.all(namespacePromises)
+            .then(results => {
+              this.namespace.options = [...set, ...results.flat()].sort((a, b) =>
+                (a.name || '').localeCompare(b.name || ''),
               )
-            }
-          })
-        }
-
-        return Promise.all(namespacePromises).then(results => {
-          this.namespace.options = [...set, ...results.flat()].sort((a, b) =>
-            (a.name || '').localeCompare(b.name || ''),
-          )
-        }).catch(() => {
-          this.namespace.options = []
+            })
+            .catch(() => {
+              this.namespace.options = []
+            })
         })
-      }).finally(() => {
-        this.namespace.processing = false
-      })
+        .finally(() => {
+          this.namespace.processing = false
+        })
     },
 
-    fetchModules () {
+    fetchModules() {
       if (!this.namespace.values || this.namespace.values.length === 0) {
         this.module.options = []
         return Promise.resolve()
@@ -179,19 +187,24 @@ export default {
       const namespaceIDs = this.namespace.values.map(label => label.split('/')[1])
 
       const promises = namespaceIDs.map(namespaceID =>
-        this.$ComposeAPI.moduleList({
-          namespaceID,
-          ...this.module.filter,
-        }).then(({ set = [] }) => set),
+        this.$ComposeAPI
+          .moduleList({
+            namespaceID,
+            ...this.module.filter,
+          })
+          .then(({ set = [] }) => set),
       )
 
-      return Promise.all(promises).then(results => {
-        this.module.options = results.flat()
-      }).catch(() => {
-        this.module.options = []
-      }).finally(() => {
-        this.module.processing = false
-      })
+      return Promise.all(promises)
+        .then(results => {
+          this.module.options = results.flat()
+        })
+        .catch(() => {
+          this.module.options = []
+        })
+        .finally(() => {
+          this.module.processing = false
+        })
     },
 
     searchNamespaces: debounce(function (query) {
@@ -208,7 +221,7 @@ export default {
       this.fetchModules()
     }, 300),
 
-    updateNamespaces (namespaceLabels) {
+    updateNamespaces(namespaceLabels) {
       this.namespace.values = namespaceLabels || []
 
       if (this.namespace.values.length > 0) {
@@ -227,7 +240,7 @@ export default {
       this.emitChange()
     },
 
-    updateModulesForNamespace (moduleLabels, namespaceID) {
+    updateModulesForNamespace(moduleLabels, namespaceID) {
       this.module.values = this.module.values.filter(label => {
         const nsID = label.split('/')[1]
         return nsID !== namespaceID
@@ -240,22 +253,22 @@ export default {
       this.emitChange()
     },
 
-    emitChange () {
+    emitChange() {
       this.$emit('change', {
         namespaceLabels: this.namespace.values,
         moduleLabels: this.module.values,
       })
     },
 
-    getNamespaceOptionLabel ({ name, handle } = {}) {
+    getNamespaceOptionLabel({ name, handle } = {}) {
       return name || handle || 'Unnamed Namespace'
     },
 
-    getModuleOptionLabel (module) {
+    getModuleOptionLabel(module) {
       return module.name || module.handle || 'Unnamed Module'
     },
 
-    getModuleLabel (namespaceLabel) {
+    getModuleLabel(namespaceLabel) {
       const namespaceID = namespaceLabel.split('/')[1]
       const namespace = this.namespace.options.find(n => n.namespaceID === namespaceID)
       const nsLabel = namespace ? this.getNamespaceOptionLabel(namespace) : namespaceID
@@ -263,18 +276,18 @@ export default {
       return this.$t('general.filter.module.template', { namespace: nsLabel })
     },
 
-    getModulesForNamespace (namespaceID) {
+    getModulesForNamespace(namespaceID) {
       return this.modulesByNamespace[namespaceID] || []
     },
 
-    getModuleValuesForNamespace (namespaceID) {
+    getModuleValuesForNamespace(namespaceID) {
       return this.module.values.filter(label => {
         const nsID = label.split('/')[1]
         return nsID === namespaceID
       })
     },
 
-    reset () {
+    reset() {
       this.namespace.values = []
       this.module.values = []
       this.module.options = []

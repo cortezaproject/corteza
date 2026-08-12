@@ -10,7 +10,9 @@
         <KindIcon kind="module" size="lg" plain-icon />
         <div class="min-w-0">
           <DialogEyebrow>{{ $t('project.module.label') }}</DialogEyebrow>
-          <div class="font-semibold truncate leading-tight">{{ draft.name || $t('project.module.unnamed') }}</div>
+          <div class="font-semibold truncate leading-tight">
+            {{ draft.name || $t('project.module.unnamed') }}
+          </div>
         </div>
       </div>
     </template>
@@ -97,7 +99,10 @@
     <template #footer>
       <CRouterLinkButton
         v-if="resourceId && project?.hasNamespace"
-        :to="{ name: 'admin.modules.edit', params: { slug: project.namespaceID, moduleID: resourceId } }"
+        :to="{
+          name: 'admin.modules.edit',
+          params: { slug: project.namespaceID, moduleID: resourceId },
+        }"
         target="_blank"
         rel="noopener"
         :label="$t('project.module.openEditor')"
@@ -163,7 +168,9 @@ const visible = computed({
 })
 
 const module = computed(() =>
-  props.resourceId ? store.resourcesFor(props.project?.projectID).find(r => r.id === props.resourceId) : null,
+  props.resourceId
+    ? store.resourcesFor(props.project?.projectID).find(r => r.id === props.resourceId)
+    : null,
 )
 // Live field list — reflects immediate field mutations without closing.
 const fields = computed(() => module.value?.fields || [])

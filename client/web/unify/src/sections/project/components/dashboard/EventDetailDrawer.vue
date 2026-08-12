@@ -46,10 +46,7 @@
             <div class="text-xs font-medium text-muted-color uppercase tracking-wide mb-1">
               {{ $t(field.labelKey) }}
             </div>
-            <span
-              v-if="field.source === 'revisions'"
-              class="inline-flex items-center gap-1"
-            >
+            <span v-if="field.source === 'revisions'" class="inline-flex items-center gap-1">
               <span
                 v-if="revisionInfo(record?.[field.key]).unassigned"
                 class="inline-flex items-center gap-1 text-xs text-muted-color italic"

@@ -68,20 +68,10 @@
           </p>
         </div>
 
-        <DataTable
-          :value="rows"
-          size="small"
-          scrollable
-          scroll-height="50vh"
-          class="text-sm"
-        >
+        <DataTable :value="rows" size="small" scrollable scroll-height="50vh" class="text-sm">
           <Column style="width: 3rem">
             <template #header>
-              <Checkbox
-                :model-value="allSelected"
-                binary
-                @update:model-value="toggleAll"
-              />
+              <Checkbox :model-value="allSelected" binary @update:model-value="toggleAll" />
             </template>
             <template #body="{ data }">
               <Checkbox v-model="data.selected" binary />
@@ -100,10 +90,7 @@
                 class="w-full"
                 @update:model-value="onFieldMapped(data)"
               />
-              <small
-                v-if="data.fileColumn === 'id'"
-                class="text-muted-color block mt-1"
-              >
+              <small v-if="data.fileColumn === 'id'" class="text-muted-color block mt-1">
                 {{ $t('block.recordList.import.idFieldDescription') }}
               </small>
             </template>
@@ -113,11 +100,7 @@
 
       <!-- Step 2: Progress -->
       <div v-else-if="step === 2" class="flex flex-col gap-4 py-2">
-        <ProgressBar
-          :value="progressPct"
-          :show-value="true"
-          style="height: 1.75rem"
-        />
+        <ProgressBar :value="progressPct" :show-value="true" style="height: 1.75rem" />
         <div class="flex items-center justify-between">
           <div v-if="!progress.finishedAt" class="flex items-center gap-2 text-muted-color text-sm">
             <ProgressSpinner style="width: 1.25rem; height: 1.25rem" stroke-width="6" />
@@ -143,23 +126,33 @@
           </label>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm pl-1">
             <div>
-              <span class="text-muted-color">{{ $t('block.recordList.import.report.startedAt') }}:</span>
+              <span class="text-muted-color">
+                {{ $t('block.recordList.import.report.startedAt') }}:
+              </span>
               <span class="font-medium ml-1">{{ fmtDate(progress.startedAt) }}</span>
             </div>
             <div>
-              <span class="text-muted-color">{{ $t('block.recordList.import.report.finishedAt') }}:</span>
+              <span class="text-muted-color">
+                {{ $t('block.recordList.import.report.finishedAt') }}:
+              </span>
               <span class="font-medium ml-1">{{ fmtDate(progress.finishedAt) }}</span>
             </div>
             <div>
-              <span class="text-muted-color">{{ $t('block.recordList.import.report.totalRecords') }}:</span>
+              <span class="text-muted-color">
+                {{ $t('block.recordList.import.report.totalRecords') }}:
+              </span>
               <span class="font-medium ml-1">{{ progress.entryCount }}</span>
             </div>
             <div>
-              <span class="text-muted-color">{{ $t('block.recordList.import.report.importedRecords') }}:</span>
+              <span class="text-muted-color">
+                {{ $t('block.recordList.import.report.importedRecords') }}:
+              </span>
               <span class="font-medium ml-1 text-green-600">{{ progress.completed }}</span>
             </div>
             <div>
-              <span class="text-muted-color">{{ $t('block.recordList.import.report.failedRecords') }}:</span>
+              <span class="text-muted-color">
+                {{ $t('block.recordList.import.report.failedRecords') }}:
+              </span>
               <span class="font-medium ml-1 text-red-500">{{ progress.failed }}</span>
             </div>
           </div>
@@ -171,7 +164,11 @@
           </label>
           <DataTable :value="errorRows" size="small" class="text-sm">
             <Column :header="$t('block.recordList.import.report.error')" field="message" />
-            <Column :header="$t('block.recordList.import.report.count')" field="count" style="width: 8rem" />
+            <Column
+              :header="$t('block.recordList.import.report.count')"
+              field="count"
+              style="width: 8rem"
+            />
           </DataTable>
         </div>
 
@@ -281,7 +278,7 @@ const mappableFields = computed(() => {
     .filter(f => f.kind !== 'File')
     .map(f => ({
       name: f.name,
-      label: f.isRequired ? `${f.label || f.name}*` : (f.label || f.name),
+      label: f.isRequired ? `${f.label || f.name}*` : f.label || f.name,
       isRequired: f.isRequired,
     }))
 
@@ -294,16 +291,14 @@ const mappableFields = computed(() => {
   return [...moduleFields, ...systemFields]
 })
 
-const requiredFields = computed(() =>
-  (props.module.fields || []).filter(f => f.isRequired),
-)
+const requiredFields = computed(() => (props.module.fields || []).filter(f => f.isRequired))
 
 const mappedRequiredFields = computed(() =>
   rows.value.filter(r => r.selected && requiredFields.value.some(rf => rf.name === r.moduleField)),
 )
 
-const hasUnmappedRequired = computed(() =>
-  mappedRequiredFields.value.length < requiredFields.value.length,
+const hasUnmappedRequired = computed(
+  () => mappedRequiredFields.value.length < requiredFields.value.length,
 )
 
 const unmappedRequiredNames = computed(() => {
@@ -316,11 +311,7 @@ const unmappedRequiredNames = computed(() => {
 
 const canImport = computed(() => {
   const selected = rows.value.filter(r => r.selected)
-  return (
-    selected.length > 0 &&
-    selected.every(r => !!r.moduleField) &&
-    !hasUnmappedRequired.value
-  )
+  return selected.length > 0 && selected.every(r => !!r.moduleField) && !hasUnmappedRequired.value
 })
 
 const allSelected = computed(() => rows.value.length > 0 && rows.value.every(r => r.selected))
@@ -381,10 +372,12 @@ async function onFilesSelected(files) {
   if (!file) return
 
   try {
-    const endpoint = $ComposeAPI.baseURL + $ComposeAPI.recordImportInitEndpoint({
-      namespaceID: props.namespace.namespaceID,
-      moduleID: props.module.moduleID,
-    })
+    const endpoint =
+      $ComposeAPI.baseURL +
+      $ComposeAPI.recordImportInitEndpoint({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: props.module.moduleID,
+      })
     const token = $ComposeAPI.accessTokenFn ? $ComposeAPI.accessTokenFn() : ''
 
     const data = await uploadFileRaw(file, { url: endpoint, token })
@@ -398,8 +391,12 @@ async function onFilesSelected(files) {
 
     // Build field mapping rows with auto-match
     const fieldMap = {}
-    ;(props.module.fields || []).forEach(f => { fieldMap[f.name] = f.name })
-    ;(props.module.systemFields?.() || []).forEach(f => { fieldMap[f.name] = f.name })
+    ;(props.module.fields || []).forEach(f => {
+      fieldMap[f.name] = f.name
+    })
+    ;(props.module.systemFields?.() || []).forEach(f => {
+      fieldMap[f.name] = f.name
+    })
     fieldMap['id'] = 'recordID'
 
     rows.value = Object.keys(data.fields || {}).map(fileColumn => {

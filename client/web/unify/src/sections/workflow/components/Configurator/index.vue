@@ -23,7 +23,7 @@ export default {
 
   extends: base,
 
-  data () {
+  data() {
     return {
       collapse: {
         basic: true,
@@ -33,11 +33,11 @@ export default {
   },
 
   computed: {
-    stepComponent () {
+    stepComponent() {
       return Configurators[this.kind]
     },
 
-    kind () {
+    kind() {
       const { kind, ref } = this.item.config
 
       if (kind === 'exec-workflow') {
@@ -61,7 +61,7 @@ export default {
   },
 
   methods: {
-    updateDefaultName ({ value, force = false }) {
+    updateDefaultName({ value, force = false }) {
       if (force || this.item.config.defaultName || this.item.config.defaultName === undefined) {
         this.$emit('update-default-value', value)
       }

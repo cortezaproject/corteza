@@ -153,9 +153,7 @@ async function openRecordNotification() {
     }
 
     // Same tab (default) or modal fallback outside Compose
-    return hasComposeRoute
-      ? router.push(routeLocation)
-      : (window.location = externalUrl)
+    return hasComposeRoute ? router.push(routeLocation) : (window.location = externalUrl)
   } catch {
     $toast?.toastDanger?.(t('notifications.recordRedirectError'))
   }

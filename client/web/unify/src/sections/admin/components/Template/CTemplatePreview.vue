@@ -10,11 +10,7 @@
         :label="$t('system.templates.editor.content.preview.title')"
         :description="$t('system.templates.editor.content.preview.description')"
       >
-        <CCodeEditor
-          v-model="previewData"
-          language="json"
-          min-height="200px"
-        />
+        <CCodeEditor v-model="previewData" language="json" min-height="200px" />
       </CFormGroup>
 
       <!-- Preview buttons -->
@@ -64,20 +60,26 @@ const props = defineProps({
 const previewLoading = ref(null)
 const availableDrivers = ref([])
 
-const previewData = ref(JSON.stringify({
-  variables: {
-    param1: 'value1',
-    param2: {
-      nestedParam1: 'value2',
+const previewData = ref(
+  JSON.stringify(
+    {
+      variables: {
+        param1: 'value1',
+        param2: {
+          nestedParam1: 'value2',
+        },
+      },
+      options: {
+        documentSize: 'A4',
+        contentScale: '1',
+        orientation: 'portrait',
+        margin: '0.3',
+      },
     },
-  },
-  options: {
-    documentSize: 'A4',
-    contentScale: '1',
-    orientation: 'portrait',
-    margin: '0.3',
-  },
-}, null, 2))
+    null,
+    2,
+  ),
+)
 
 const canPreviewHTML = computed(() =>
   availableDrivers.value.some(d => (d.outputTypes || []).includes('text/html')),

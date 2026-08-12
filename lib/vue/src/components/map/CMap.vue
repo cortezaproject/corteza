@@ -148,8 +148,11 @@ const validPolygons = computed(() =>
     .map(p => ({
       ...p,
       latLngs: p.latLngs.filter(
-        pt => Array.isArray(pt) && pt.length === 2 &&
-          typeof pt[0] === 'number' && typeof pt[1] === 'number',
+        pt =>
+          Array.isArray(pt) &&
+          pt.length === 2 &&
+          typeof pt[0] === 'number' &&
+          typeof pt[1] === 'number',
       ),
     }))
     .filter(p => p.latLngs.length >= 3),

@@ -68,7 +68,6 @@
       <template #body-updatedAt="{ data }">
         {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
       </template>
-
     </CResourceList>
   </div>
 </template>
