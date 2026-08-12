@@ -781,10 +781,14 @@ function makeAttachmentUrl(src) {
   return `${$ComposeAPI.baseURL}${src}`
 }
 
-// Page icon source
+// Page icon source. Only 'link' (a URL already) and 'attachment' (a path on this
+// instance) resolve to something an <img> can load; a 'library' or inline-svg
+// icon has no URL and would preview as a broken image, same as it does in the
+// navigation, so it previews as nothing.
 const pageIconSrc = computed(() => {
   const icon = pageIcon.value
   if (!icon?.src) return ''
+  if (icon.type === 'library' || icon.type === 'inline-svg' || icon.type === 'svg') return ''
   return icon.type === 'link' ? icon.src : makeAttachmentUrl(icon.src)
 })
 

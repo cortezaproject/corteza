@@ -226,19 +226,13 @@ func (h *pageHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		if err = resolveBlockRefs(ctx, nsID, pg.Blocks); err != nil {
 			return nil, err
 		}
+
+		pg.Blocks = autoLayoutBlocks(pg.Blocks)
 	}
 
 	if rawConfig, ok := args["config"]; ok && rawConfig != nil {
 		if pg.Config, err = parsePageConfig(rawConfig); err != nil {
 			return nil, fmt.Errorf("invalid config: %w", err)
-		}
-	}
-
-	// Applied after config so an explicit icon argument wins over whatever the
-	// config object carried, which is the same order update uses.
-	if rawIcon, ok := args["icon"]; ok && rawIcon != nil {
-		if pg.Config.NavItem.Icon, err = parsePageIcon(rawIcon); err != nil {
-			return nil, fmt.Errorf("invalid icon: %w", err)
 		}
 	}
 
@@ -332,22 +326,23 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 			return nil, err
 		}
 
+		// A block sent to change its options only, with no xywh, keeps where it
+		// already sits — moving it would be a side effect of an edit that never
+		// mentioned layout. Blocks genuinely new to the page have nothing to
+		// inherit and are placed by autoLayoutBlocks below the existing ones.
+		inheritBlockLayout(pg.Blocks, blocks)
+
 		if pg.Blocks, err = mergePageBlocks(pg.Blocks, blocks); err != nil {
 			return nil, err
 		}
+
+		pg.Blocks = autoLayoutBlocks(pg.Blocks)
 	}
 
 	// Config and meta replace wholesale: present-and-empty clears them.
 	if rawConfig, ok := args["config"]; ok && rawConfig != nil {
 		if pg.Config, err = parsePageConfig(rawConfig); err != nil {
 			return nil, fmt.Errorf("invalid config: %w", err)
-		}
-	}
-
-	// After config, so an explicit icon argument wins.
-	if rawIcon, ok := args["icon"]; ok && rawIcon != nil {
-		if pg.Config.NavItem.Icon, err = parsePageIcon(rawIcon); err != nil {
-			return nil, fmt.Errorf("invalid icon: %w", err)
 		}
 	}
 
@@ -626,6 +621,33 @@ func findPageByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTyp
 	return nil, fmt.Errorf("page %q not found", ref)
 }
 
+// inheritBlockLayout copies the stored xywh onto every incoming block that
+// names an existing block but carries no layout of its own, so an options-only
+// update leaves the page's layout untouched. An incoming block that does carry a
+// width overrides the stored one, which is how a block gets moved or resized.
+func inheritBlockLayout(existing, incoming cmpTypes.PageBlocks) {
+	if len(existing) == 0 || len(incoming) == 0 {
+		return
+	}
+
+	stored := make(map[uint64][4]int, len(existing))
+	for _, b := range existing {
+		if b.BlockID != 0 {
+			stored[b.BlockID] = b.XYWH
+		}
+	}
+
+	for i := range incoming {
+		b := &incoming[i]
+		if b.BlockID == 0 || b.XYWH[2] > 0 {
+			continue
+		}
+		if xywh, ok := stored[b.BlockID]; ok {
+			b.XYWH = xywh
+		}
+	}
+}
+
 // mergePageBlocks merges incoming blocks into the existing ones by blockID.
 // Existing blocks not mentioned are kept; a block without a blockID is appended
 // and numbered by the service.
@@ -727,9 +749,9 @@ func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBloc
 	return nil
 }
 
-// parsePageBlocks unmarshals a JSON string or array into PageBlocks and
-// normalizes layout: width defaults to 12 (full grid) and blocks are stacked
-// vertically in the order given, so agents only need to supply kind + options.
+// parsePageBlocks unmarshals a JSON string or array into PageBlocks. Layout is
+// left exactly as sent here; autoLayoutBlocks is what places the blocks that
+// carry none, and it runs after the update path has merged.
 func parsePageBlocks(raw any) (cmpTypes.PageBlocks, error) {
 	var data []byte
 
@@ -747,83 +769,114 @@ func parsePageBlocks(raw any) (cmpTypes.PageBlocks, error) {
 	if err := json.Unmarshal(data, &blocks); err != nil {
 		return nil, fmt.Errorf("blocks must be a JSON array: %w", err)
 	}
-	return autoLayoutBlocks(blocks), nil
+	return blocks, nil
 }
 
-// autoLayoutBlocks stacks blocks top-to-bottom at full grid width (12 columns).
-// This corrects the common agent mistake of passing wrong or missing xywh values.
-// Explicit heights are preserved; missing heights get a per-kind default.
+// Grid facts, mirrored from the gridstack setup the webapp page builder uses
+// (client/web/unify/src/sections/compose/components/PageBlocks/Grid.vue).
+// A quarter here is 12 columns, which is why a block sized as if the grid had
+// 12 columns renders as a narrow strip down the left edge.
+const (
+	gridColumns = 48
+	gridHalf    = gridColumns / 2
+	gridQuarter = gridColumns / 4
+)
+
+// autoLayoutBlocks places the blocks that carry no width and leaves every block
+// that carries one exactly where the caller put it.
+//
+// A width is what marks a block as deliberately positioned: it is the one
+// coordinate that cannot be a meaningful zero, since a block 0 columns wide
+// renders nothing. Auto-placed blocks flow left to right at a per-kind width and
+// wrap to a new row when the current one fills, so a handful of Metric tiles
+// land side by side instead of one per row. They start below the lowest block
+// the caller positioned, which keeps a page that mixes both from stacking an
+// auto-placed block on top of an explicit one.
 func autoLayoutBlocks(blocks cmpTypes.PageBlocks) cmpTypes.PageBlocks {
-	y := 0
+	rowY := 0
 	for i := range blocks {
 		b := &blocks[i]
-		b.XYWH[0] = 0  // x: left edge
-		b.XYWH[1] = y  // y: stacked below previous block
-		b.XYWH[2] = 12 // w: full grid width
-		if b.XYWH[3] == 0 {
+		if b.XYWH[2] <= 0 {
+			continue
+		}
+
+		// Normalize only what the grid cannot render: an off-grid or negative
+		// coordinate. Anything that fits is the caller's layout and stands.
+		if b.XYWH[0] < 0 {
+			b.XYWH[0] = 0
+		}
+		if b.XYWH[1] < 0 {
+			b.XYWH[1] = 0
+		}
+		if b.XYWH[2] > gridColumns {
+			b.XYWH[2] = gridColumns
+		}
+		if b.XYWH[3] <= 0 {
 			b.XYWH[3] = defaultBlockHeight(b.Kind)
 		}
-		y += b.XYWH[3]
+
+		if bottom := b.XYWH[1] + b.XYWH[3]; bottom > rowY {
+			rowY = bottom
+		}
 	}
+
+	x, rowHeight := 0, 0
+	for i := range blocks {
+		b := &blocks[i]
+		if b.XYWH[2] > 0 {
+			continue
+		}
+
+		w := defaultBlockWidth(b.Kind)
+		if x+w > gridColumns {
+			rowY += rowHeight
+			x, rowHeight = 0, 0
+		}
+
+		if b.XYWH[3] <= 0 {
+			b.XYWH[3] = defaultBlockHeight(b.Kind)
+		}
+		b.XYWH[0], b.XYWH[1], b.XYWH[2] = x, rowY, w
+
+		x += w
+		if b.XYWH[3] > rowHeight {
+			rowHeight = b.XYWH[3]
+		}
+	}
+
 	return blocks
 }
 
-func defaultBlockHeight(kind string) int {
+// defaultBlockWidth is how wide a block goes when the caller supplied no width:
+// as wide as the block kind needs to be readable, and no wider, so the page uses
+// its horizontal space instead of running down the left edge.
+func defaultBlockWidth(kind string) int {
 	switch kind {
-	case "RecordList", "Record", "Calendar", "RecordOrganizer", "ChatbotInbox":
-		return 20
-	case "Chart":
-		return 12
 	case "Metric", "Progress":
-		return 6
-	case "Content", "SocialFeed", "Comment":
-		return 10
-	case "Automation":
-		return 8
+		// Tiles: a single number each, four to a row.
+		return gridQuarter
+	case "Chart", "Calendar", "Comment", "Content", "SocialFeed", "Automation":
+		// Readable in half a page, so two sit side by side.
+		return gridHalf
 	default:
-		return 15
+		// RecordList, Record, RecordOrganizer, ChatbotInbox and any kind added
+		// later: tabular or form content that needs the full width.
+		return gridColumns
 	}
 }
 
-// parsePageIcon unmarshals a JSON string or object into PageConfigIcon.
-// parsePageIcon unmarshals a JSON string or object into a PageConfigIcon.
-//
-// A nil result means "clear the icon", which is what §8.2's present-and-empty
-// rule requires and what the service already supports. Without the two cases
-// below an icon could be set and changed but never removed: an empty string
-// failed to unmarshal, and "null" produced a zero-value struct that stored as
-// {"type":"","src":""} rather than nothing.
-func parsePageIcon(raw any) (*cmpTypes.PageConfigIcon, error) {
-	var data []byte
-
-	switch v := raw.(type) {
-	case nil:
-		return nil, nil
-	case string:
-		if v == "" || v == "null" {
-			return nil, nil
-		}
-		data = []byte(v)
+// defaultBlockHeight is in grid cells of 10px. Blocks CLIP silently rather than
+// scroll, so these are the heights at which a kind shows something rather than
+// the least it can be given.
+func defaultBlockHeight(kind string) int {
+	switch kind {
+	case "Metric", "Progress":
+		return 20
+	case "Content", "Automation":
+		return 20
 	default:
-		var err error
-		if data, err = json.Marshal(v); err != nil {
-			return nil, fmt.Errorf("cannot encode icon: %w", err)
-		}
+		return 30
 	}
-
-	var icon cmpTypes.PageConfigIcon
-	if err := json.Unmarshal(data, &icon); err != nil {
-		return nil, fmt.Errorf("icon must be a JSON object: %w", err)
-	}
-
-	// A literal JSON null decodes without error but leaves a zero value.
-	// PageConfigIcon holds a map so it is not comparable; Type and Src are what
-	// make an icon meaningful, and Style alone renders nothing.
-	if icon.Type == "" && icon.Src == "" {
-		return nil, nil
-	}
-
-	return &icon, nil
 }
 
 // parsePageConfig unmarshals a JSON string or object into PageConfig.
@@ -845,7 +898,39 @@ func parsePageConfig(raw any) (cmpTypes.PageConfig, error) {
 		return cmpTypes.PageConfig{}, fmt.Errorf("config must be a JSON object: %w", err)
 	}
 
+	if err := checkNavIcon(cfg.NavItem.Icon); err != nil {
+		return cmpTypes.PageConfig{}, err
+	}
+
 	return cfg, nil
+}
+
+// checkNavIcon rejects the icon types the webapp cannot draw.
+//
+// The navigation renders a page icon as an <img>: a "link" icon is a URL in its
+// own right and an "attachment" is a path on this instance, so both resolve. A
+// "library" icon ("font-awesome://home") and an inline SVG have no URL to point
+// at — the webapp still builds an <img> src out of them and the page ends up
+// with a broken image next to its name. The failure is silent server-side, so it
+// is refused here rather than stored. Nothing else can set an icon through these
+// tools; an icon is a human's choice made in the page editor, which uploads the
+// image it then references.
+func checkNavIcon(icon *cmpTypes.PageConfigIcon) error {
+	if icon == nil {
+		return nil
+	}
+
+	switch icon.Type {
+	case cmpTypes.IconTypeLibrary, cmpTypes.IconTypeInlineSvg, "svg":
+		return fmt.Errorf(
+			"config.navItem.icon: type %q is not rendered by the webapp and shows as a broken image; "+
+				"only %q (an absolute image URL) and %q (an image uploaded in the page editor) resolve, "+
+				"and a page needs no icon at all",
+			icon.Type, cmpTypes.IconTypeLink, cmpTypes.IconTypeAttachment,
+		)
+	}
+
+	return nil
 }
 
 // parsePageMeta unmarshals a JSON string or object into PageMeta.

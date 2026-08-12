@@ -77,11 +77,18 @@ dev/agent/mcp.py schema compose_page_create    # grid + page-type guidance
 
 What the schemas cannot express (layout semantics):
 
-- **48-column grid**, cell height 10px, defaults w=24 h=18; `xywh` required.
+- **48-column grid**, cell height 10px; `xywh` required in pagebuild specs.
   Blocks CLIP silently when too short — Metric h≥20, RecordList/Chart h≥30.
+- **Lay pages out as rows**: blocks sit side by side by stepping x and
+  keeping y — four tiles are `[0,0,12,20]`, `[12,0,12,20]`, `[24,0,12,20]`,
+  `[36,0,12,20]`. Full width (48) is for lists and forms; half (24) suits
+  charts, a quarter (12) suits Metric/Progress tiles. Stepping y for every
+  block leaves the page empty down its right-hand side.
 - Record page = page with `"module": "<handle>"` + a Record block (`{}` =
-  all fields), `"visible": false`. Dashboards: `"visible": true`, optional
-  `"icon": "font-awesome://<name>"`, `"weight"` for nav order.
+  all fields), `"visible": false`. Dashboards: `"visible": true`,
+  `"weight"` for nav order. **No nav icons** — the webapp draws one as an
+  image, so a `font-awesome://` icon renders as a broken image; icons are
+  for a human to upload in the page editor.
 - In pagebuild specs, `{"module"/"chart": "<handle>"}` are resolved to
   `moduleID`/`chartID`; via MCP/REST you pass real IDs yourself.
 

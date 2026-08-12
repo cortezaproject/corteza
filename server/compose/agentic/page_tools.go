@@ -11,7 +11,13 @@ import (
 // gridstack setup the webapp page builder uses
 // (client/web/unify/src/sections/compose/components/PageBlocks/Grid.vue: 48
 // columns, 10px cell height, default block 24x18).
-const pageGridDoc = `The layout grid is 48 columns wide (cell height 10px; default block size is w=24 h=18). A full-width block uses xywh [0,0,48,20]. Blocks sit SIDE BY SIDE by stepping x, not y: a row of four tiles is [0,0,12,20], [12,0,12,20], [24,0,12,20], [36,0,12,20] — same y, x advancing by the width. Stepping y instead puts every tile in its own row, and w=12 is a QUARTER of this grid rather than the half it would be on a 12-column one, so that mistake renders as a narrow column down the left with the page empty beside it. Blocks CLIP their content when too short and fail silently as blank UI — give Metric blocks h>=20 and RecordList/Chart blocks h>=30.`
+const pageGridDoc = `The layout grid is 48 columns wide, cell height 10px. Full width is w=48, half is 24, a quarter is 12 — w=12 is a QUARTER of this grid, not the half it would be on a 12-column one.
+
+Blocks sit SIDE BY SIDE by stepping x and keeping y: a row of four tiles is [0,0,12,20], [12,0,12,20], [24,0,12,20], [36,0,12,20]. Stepping y instead puts every block in its own row with the page empty beside it, which is the layout to avoid — a dashboard reads as rows of tiles, and only tabular or form blocks earn the full 48.
+
+The xywh you send is kept as sent. Omit xywh (or send w=0) on a block and it is placed for you: it flows into the current row at a width that suits its kind — Metric and Progress a quarter, Chart, Calendar, Content, Comment, SocialFeed and Automation a half, RecordList, Record and RecordOrganizer the full width — and wraps to a new row when the row fills, always below any block you positioned yourself. Mixing the two is fine; laying out the whole page yourself gives the better result.
+
+Blocks CLIP their content when too short and fail silently as blank UI — give Metric blocks h>=20 and RecordList/Chart blocks h>=30.`
 
 // A page is what a user sees, and they name it after what it shows.
 var pageKeywords = hmcp.WithKeywords("dashboard", "screen", "view", "layout", "form")
@@ -64,9 +70,8 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("parent", mcp.Description("Parent page title, handle, or ID (as string to prevent precision loss). Omit for a root-level page.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID (as string to prevent precision loss). Set ONLY for record detail pages (the single-record form). Do not set for record list pages — put the module in the RecordList block options instead.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation (default: true)")),
-			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Grid is 48 columns wide. Full-width block: [{"kind":"RecordList","title":"My Block","xywh":[0,0,48,20],"options":{...}}]. A row of tiles steps x and keeps y: [{"kind":"Metric","title":"Total","xywh":[0,0,12,20]},{"kind":"Metric","title":"Open","xywh":[12,0,12,20]},{"kind":"Metric","title":"Urgent","xywh":[24,0,12,20]},{"kind":"Metric","title":"Tasks","xywh":[36,0,12,20]}] — stepping y instead stacks them in a narrow column down the left. Call compose_page_block_schema first for kind-specific options.`)),
-			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}. Pass an empty string to remove the icon.`)),
-			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Example: {"navItem":{"expanded":true}}`)),
+			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Grid is 48 columns wide. A dashboard is rows of blocks: a row of four tiles above a full-width list is [{"kind":"Metric","title":"Total","xywh":[0,0,12,20],"options":{...}},{"kind":"Metric","title":"Open","xywh":[12,0,12,20],"options":{...}},{"kind":"Metric","title":"Urgent","xywh":[24,0,12,20],"options":{...}},{"kind":"Metric","title":"Overdue","xywh":[36,0,12,20],"options":{...}},{"kind":"Chart","title":"By month","xywh":[0,20,24,30],"options":{...}},{"kind":"Chart","title":"By owner","xywh":[24,20,24,30],"options":{...}},{"kind":"RecordList","title":"All tasks","xywh":[0,50,48,30],"options":{...}}] — four tiles across at y=0, two half-width charts across at y=20, the list full width below them. Omit xywh on a block to have it placed for you. Call compose_page_block_schema first for kind-specific options.`)),
+			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Example: {"navItem":{"expanded":true}}. A navigation icon is not something to set here — the webapp draws one as an image, so a font-awesome or inline-svg icon renders as a broken image and is rejected.`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Example: {"allowPersonalLayouts":true}`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			pageKeywords,
@@ -90,8 +95,9 @@ Call compose_page_block_schema with the block kind to get its options before cre
 					"mention are kept — so send only the blocks you are adding or changing. An unknown "+
 					"blockID is rejected. Because the merge never removes, this tool cannot take a block away: "+
 					"use compose_page_remove_blocks for that. "+
-					"'config' and 'meta' each replace their whole object; 'icon' is applied after 'config', "+
-					"so passing both leaves 'icon' in charge of the navigation icon. "+
+					"A block sent without xywh keeps the position it already has, so changing one block's "+
+					"options never moves it; a new block with no xywh is placed below the existing layout. "+
+					"'config' and 'meta' each replace their whole object. "+
 					"Call compose_page_lookup with 'page' first when you need the current blocks or their "+
 					"blockIDs.",
 			),
@@ -103,9 +109,8 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			mcp.WithString("parent", mcp.Description("New parent page title, handle, or ID (as string to prevent precision loss). Pass an empty string to move the page to the root.")),
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID (as string to prevent precision loss) for record detail pages. Pass an empty string to unlink the module.")),
 			mcp.WithBoolean("visible", mcp.Description("Show page in navigation")),
-			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Merged by blockID — include blockID to update an existing block, omit blockID to add a new one. Blocks are never removed here; omitting one keeps it, and compose_page_remove_blocks is what deletes one. Grid is 48 columns wide; a full-width block uses xywh [0,0,48,20].`)),
-			mcp.WithString("icon", mcp.Description(`JSON object for nav icon: {"type":"library","src":"font-awesome://home"} or {"type":"link","src":"https://..."} or {"type":"svg","src":"<svg>..."}. Pass an empty string to remove the icon.`)),
-			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}`)),
+			mcp.WithString("blocks", mcp.Description(`JSON array of page blocks. Merged by blockID — include blockID to update an existing block, omit blockID to add a new one. Blocks are never removed here; omitting one keeps it, and compose_page_remove_blocks is what deletes one. Grid is 48 columns wide; a full-width block uses xywh [0,0,48,20] and a quarter-width tile [0,0,12,20]. Send xywh to move or resize a block, omit it to leave the block where it is.`)),
+			mcp.WithString("config", mcp.Description(`JSON object for page configuration. Replaces existing config. Example: {"navItem":{"expanded":true}}. A navigation icon is not something to set here — the webapp draws one as an image, so a font-awesome or inline-svg icon renders as a broken image and is rejected.`)),
 			mcp.WithString("meta", mcp.Description(`JSON object for page meta. Replaces existing meta. Example: {"allowPersonalLayouts":true}`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			pageKeywords,

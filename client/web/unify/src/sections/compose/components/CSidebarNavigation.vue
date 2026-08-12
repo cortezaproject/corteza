@@ -79,9 +79,15 @@ const searchPlaceholder = computed(() => {
     : t('sidebar.searchPlaceholder.public')
 })
 
+// The nav draws a page icon as an <img>, so only the types that carry a URL can
+// resolve: 'link' is one already, 'attachment' is a path on this instance. A
+// 'library' ("font-awesome://home") or inline-svg icon has nothing to point at —
+// left to fall through it becomes an <img> src that 404s and the page shows a
+// broken image next to its name, so it renders as no icon instead.
 function resolvePageIcon(p) {
   const icon = p?.config?.navItem?.icon
   if (!icon?.src) return undefined
+  if (icon.type === 'library' || icon.type === 'inline-svg' || icon.type === 'svg') return undefined
   if (icon.type === 'link') return icon.src
   return `${$ComposeAPI?.baseURL || ''}${icon.src}`
 }

@@ -17,7 +17,6 @@ Spec format:
   ],
   "pages": [
     {"handle": "...", "title": "...", "visible": true, "weight": 0,
-     "icon": "font-awesome://rocket",           // optional nav icon
      "module": "<module-handle>",               // makes it a record page
      "blocks": [
        {"kind": "RecordList", "title": "...", "xywh": [x,y,w,h],
@@ -31,7 +30,11 @@ Anywhere in chart configs / block options, {"module": "<handle>"} and
 {"chart": "<handle>"} are replaced with resolved {"moduleID"}/{"chartID"}.
 Unknown handles are an error. Every block must have xywh (48-col grid,
 cell height 10px; blocks CLIP when too short — Metric needs h>=20,
-RecordList/Chart h>=30).
+RecordList/Chart h>=30). Blocks sit side by side by stepping x and keeping
+y — a row of four tiles is [0,0,12,20], [12,0,12,20], [24,0,12,20],
+[36,0,12,20] — so lay a page out as rows and give the full 48 only to
+lists and forms. Pages get no nav icon: the webapp draws one as an image,
+and only a human uploading one in the page editor produces a URL for it.
 """
 
 import json
@@ -152,10 +155,13 @@ def upsert_page(nsid, spec, modules, charts, existing_pages, self_id="0"):
         "meta": spec.get("meta", {}),
     }
     if "icon" in spec:
-        payload["config"].setdefault("navItem", {})["icon"] = {
-            "type": "library",
-            "src": spec["icon"],
-        }
+        raise RuntimeError(
+            f"page '{spec['handle']}': drop the \"icon\" key. It used to write a "
+            '{"type":"library","src":"font-awesome://..."} icon, which the webapp '
+            "renders as a broken image — it draws nav icons as <img>, and a library "
+            "icon has no URL. Icons are set by a person in the page editor, which "
+            "uploads the image first."
+        )
 
     if spec["handle"] in existing_pages:
         pid = existing_pages[spec["handle"]]["pageID"]

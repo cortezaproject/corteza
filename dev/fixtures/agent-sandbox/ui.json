@@ -34,7 +34,6 @@
       "title": "Agent Sandbox Dashboard",
       "visible": true,
       "weight": 10,
-      "icon": "font-awesome://rocket",
       "blocks": [
         {
           "kind": "RecordList",
