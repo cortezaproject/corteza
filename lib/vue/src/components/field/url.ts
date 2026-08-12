@@ -34,13 +34,11 @@ export function trimUrlQuery(url: string): string {
 }
 
 /**
- * Removes URL's path
+ * Trims the URL down to the domain only, dropping path, query and fragment
  */
 export function trimUrlPath(url: string): string {
   if (!url) return url
-  const u = makeURL(url)
-  u.pathname = ''
-  return u.toString()
+  return makeURL(url).origin
 }
 
 /**
