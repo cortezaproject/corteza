@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -48,13 +50,14 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 	reg.RegisterTool(
 		mcp.NewTool("dev_test_run",
 			mcp.WithDescription(
-				"Run a package's tests and get back only what failed. Go and vitest are both handled — the "+
-					"suite is chosen from the target path, so 'server/automation/...' runs go test and "+
-					"'client/web/unify' runs vitest. A passing run returns passed:true and nothing else, "+
-					"because the output of a green suite is not information. A failing one returns each "+
-					"failure with its package, test name and the assertion output, which is what you would "+
-					"have had to scroll for. Run this rather than shelling out to go test or npx vitest: the "+
-					"raw output of either is thousands of lines.",
+				"Run a package's tests and get back only what failed. Go, vitest and mocha are all handled — "+
+					"the runner is chosen from the target path, so 'server/automation/...' runs go test, "+
+					"'client/web/unify' and 'lib/vue' run vitest, and 'lib/js' runs mocha because that is what "+
+					"it is configured with. A passing run returns passed:true and nothing else, because the "+
+					"output of a green suite is not information. A failing one returns each failure with its "+
+					"package, test name and the assertion output, which is what you would have had to scroll "+
+					"for. Run this rather than shelling out to go test, npx vitest or npx mocha: the raw "+
+					"output of any of them is thousands of lines.",
 			),
 			mcp.WithString("target", mcp.Required(), mcp.Description(
 				"Repo-relative path to test. Go: a package or pattern such as 'server/automation/...' or "+
@@ -79,9 +82,13 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 			}
 
 			var report testReport
-			if module, ok := goModuleFor(target); ok {
+			switch runnerFor(root, target) {
+			case "go":
+				module, _ := goModuleFor(target)
 				report, err = runGoTests(ctx, root, module, target, toolkit.Str(args, "run"))
-			} else {
+			case "mocha":
+				report, err = runMocha(ctx, root, target, toolkit.Str(args, "run"))
+			default:
 				report, err = runVitest(ctx, root, target, toolkit.Str(args, "run"))
 			}
 			if err != nil {
@@ -103,7 +110,7 @@ var goModules = []struct{ prefix, dir string }{
 }
 
 // goModuleFor decides which runner to use and where to run it. An empty dir
-// means this is not Go and the JS runner takes it.
+// means this is not Go and a JS runner takes it.
 func goModuleFor(target string) (dir string, ok bool) {
 	clean := strings.TrimPrefix(target, "./")
 
@@ -114,6 +121,44 @@ func goModuleFor(target string) (dir string, ok bool) {
 	}
 
 	return "", false
+}
+
+// runnerFor names the suite a target belongs to: "go", "mocha" or "vitest".
+//
+// Which JS runner a workspace uses is read off disk rather than listed here,
+// because it is a fact about the workspace and drifts with it.
+func runnerFor(root, target string) string {
+	if _, ok := goModuleFor(target); ok {
+		return "go"
+	}
+
+	if dir, _ := splitWorkspace(target); mochaConfig(root, dir) != "" {
+		return "mocha"
+	}
+
+	return "vitest"
+}
+
+// mochaConfig returns the workspace's mocha config, or "" if it has none.
+//
+// Which JS runner a workspace uses is a fact about the workspace, so it is read
+// off disk rather than hard-coded: lib/js runs mocha while lib/vue and the
+// webapp run vitest, and sending a mocha workspace to vitest produces "no tests
+// ran: nothing matched <target>" — a message that reads as a wrong path and
+// sends the caller hunting for a target that was right all along.
+func mochaConfig(root, dir string) string {
+	if dir == "" {
+		return ""
+	}
+
+	for _, name := range []string{".mocharc.js", ".mocharc.cjs", ".mocharc.json", ".mocharc.yml"} {
+		path := filepath.Join(root, dir, name)
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+
+	return ""
 }
 
 // runGoTests runs go test and keeps only the failures.
@@ -311,6 +356,116 @@ func runGoTests(ctx context.Context, root, module, target, run string) (testRepo
 	}
 
 	return out, nil
+}
+
+// runMocha runs a mocha workspace's suite and keeps only the failures.
+//
+// mocha's json reporter reports `stats` alongside a `failures` array, which is
+// everything needed; as with vitest the object is located in the stream rather
+// than assumed to be all of it, since a test's own console output shares stdout.
+func runMocha(ctx context.Context, root, target, run string) (testReport, error) {
+	out := testReport{Suite: "mocha", Target: target}
+
+	dir, spec := splitWorkspace(target)
+
+	argv := []string{"mocha", "--reporter", "json"}
+	if spec != "" {
+		argv = append(argv, spec)
+	}
+	if run != "" {
+		argv = append(argv, "--grep", run)
+	}
+
+	cmd := exec.CommandContext(ctx, "npx", argv...)
+	cmd.Dir = filepath.Join(root, dir)
+
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	stdout, _ := cmd.Output()
+
+	raw := extractJSON(string(stdout))
+	if raw == "" {
+		msg := strings.TrimSpace(stderr.String())
+		if msg == "" {
+			msg = strings.TrimSpace(string(stdout))
+		}
+		return out, fmt.Errorf("mocha in %s produced no report: %s", dir, firstLines(msg, 20))
+	}
+
+	var report struct {
+		Stats struct {
+			Suites   int `json:"suites"`
+			Tests    int `json:"tests"`
+			Pending  int `json:"pending"`
+			Failures int `json:"failures"`
+		} `json:"stats"`
+		Failures []struct {
+			FullTitle string `json:"fullTitle"`
+			File      string `json:"file"`
+			Err       struct {
+				Message string `json:"message"`
+				Stack   string `json:"stack"`
+			} `json:"err"`
+		} `json:"failures"`
+	}
+
+	if err := json.Unmarshal([]byte(raw), &report); err != nil {
+		return out, fmt.Errorf("cannot read mocha report: %w", err)
+	}
+
+	for _, f := range report.Failures {
+		output := f.Err.Stack
+		if output == "" {
+			output = f.Err.Message
+		}
+
+		out.Failures = append(out.Failures, testFail{
+			Test:   f.FullTitle,
+			File:   relativeTo(root, f.File),
+			Output: trimString(output),
+		})
+	}
+
+	out.Packages = report.Stats.Suites
+	out.Skipped = report.Stats.Pending
+	out.Passed = len(out.Failures) == 0 && report.Stats.Failures == 0
+
+	// Zero tests is not a pass, for the same reason it is not one under vitest:
+	// a spec path that matches nothing exits clean with an empty report.
+	if report.Stats.Tests == 0 {
+		out.Passed = false
+		out.Note = "no tests ran: nothing matched " + target +
+			". Check the path is inside the config's spec globs and that the spec name is right."
+		return out, nil
+	}
+
+	// bail stops the run at the first failure, so everything after it never
+	// executed and is absent from the report rather than passing. Reporting one
+	// failure without saying so reads as "the rest were fine".
+	if len(out.Failures) > 0 && mochaBails(mochaConfig(root, dir)) {
+		out.Note = "this workspace's mocha config sets bail, so the run STOPPED at the first failure — " +
+			"tests after it never ran and this result is NOT a full picture of the suite. Fix this one and " +
+			"re-run to see the rest."
+	}
+
+	return out, nil
+}
+
+func mochaBails(configPath string) bool {
+	if configPath == "" {
+		return false
+	}
+
+	raw, err := os.ReadFile(configPath)
+	if err != nil {
+		return false
+	}
+
+	// Good enough for the note it drives: a false negative only costs the
+	// caveat, and the config is a literal in every form mocha accepts.
+	body := strings.Join(strings.Fields(string(raw)), "")
+
+	return strings.Contains(body, "bail:true") || strings.Contains(body, `"bail":true`)
 }
 
 // runVitest runs the JS suite for a workspace.
