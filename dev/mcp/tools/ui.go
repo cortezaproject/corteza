@@ -30,11 +30,17 @@ type uiResult struct {
 
 	ConsoleErrors  []string `json:"consoleErrors,omitempty"`
 	FailedRequests []string `json:"failedRequests,omitempty"`
-	Steps          []uiStep `json:"steps,omitempty"`
-	Screenshot     string   `json:"screenshot,omitempty"`
-	Error          string   `json:"error,omitempty"`
-	Hint           string   `json:"hint,omitempty"`
-	Note           string   `json:"note,omitempty"`
+
+	// Errors belonging to a page load that was replaced before it finished,
+	// kept apart so they cannot be mistaken for the rendered page's own.
+	SupersededErrors []string `json:"supersededErrors,omitempty"`
+	SupersededNote   string   `json:"supersededNote,omitempty"`
+
+	Steps      []uiStep `json:"steps,omitempty"`
+	Screenshot string   `json:"screenshot,omitempty"`
+	Error      string   `json:"error,omitempty"`
+	Hint       string   `json:"hint,omitempty"`
+	Note       string   `json:"note,omitempty"`
 }
 
 type uiStep struct {

@@ -45,6 +45,11 @@ const out = {
   screenshot: null,
 }
 
+// Assigned once the page's event collectors exist. Declared out here so the
+// catch below can call it: the failure path is the one where the console
+// matters most, and a block-scoped helper would be invisible from it.
+let finalize = () => {}
+
 function fail(message, hint) {
   console.log(JSON.stringify({ error: message, hint }))
   process.exit(0)
@@ -149,18 +154,61 @@ try {
 
   // Collected for the whole run: a console error explains a click that
   // "did nothing" far better than the final URL does.
+  //
+  // Everything is tagged with the document it came from. Vite full-reloads the
+  // page whenever a watched source changes, which aborts the bootstrap already
+  // in flight — the locale fetch is cancelled, setupAndAuthenticate rejects, and
+  // main.js logs "App setup failed". None of that describes the page that ends
+  // up on screen, but reporting it flat put a stack trace at the top of every
+  // single run of a page that renders perfectly, which is the fastest way to
+  // teach a caller to stop reading the field that exists to be read.
+  let generation = 0
+  page.on('framenavigated', frame => {
+    if (frame === page.mainFrame()) generation++
+  })
+
+  const events = []
+  const record = (kind, text) => events.push({ generation, kind, text: text.slice(0, 500) })
+
   page.on('console', msg => {
-    if (msg.type() === 'error') out.consoleErrors.push(msg.text().slice(0, 500))
+    if (msg.type() === 'error') record('console', msg.text())
   })
   page.on('requestfailed', req => {
-    out.failedRequests.push(
-      `${req.method()} ${req.url()} — ${req.failure()?.errorText || 'failed'}`,
-    )
+    record('request', `${req.method()} ${req.url()} — ${req.failure()?.errorText || 'failed'}`)
   })
   page.on('response', res => {
     if (res.status() >= 400)
-      out.failedRequests.push(`${res.status()} ${res.request().method()} ${res.url()}`)
+      record('request', `${res.status()} ${res.request().method()} ${res.url()}`)
   })
+
+  // index.html references these unconditionally and a stock checkout has
+  // neither, so they 404 on every run everywhere. They are customisation hooks,
+  // and their absence is the normal state rather than a finding.
+  const expectedMissing = ['/custom.css', '/code-snippets.js']
+  const isExpected = text => expectedMissing.some(name => text.includes(name))
+
+  // Sorting the collected events into what belongs to the page that survived
+  // and what does not. Called on the way out of BOTH the success and the failure
+  // path: a run that threw is exactly when the console is worth reading, and
+  // building this only on success would have emptied the field that explains the
+  // throw.
+  finalize = () => {
+    // Driver notes are pushed straight onto out by settle() and belong to no
+    // document; they lead, because they say the page never got where it was going.
+    const driver = out.consoleErrors.filter(t => t.startsWith('(driver)'))
+    const live = events.filter(e => e.generation === generation && !isExpected(e.text))
+
+    out.consoleErrors = [...driver, ...live.filter(e => e.kind === 'console').map(e => e.text)]
+    out.failedRequests = live.filter(e => e.kind === 'request').map(e => e.text)
+
+    const superseded = events.filter(e => e.generation !== generation && !isExpected(e.text))
+    if (superseded.length) {
+      out.supersededErrors = superseded.map(e => e.text)
+      out.supersededNote =
+        'from a page load that was replaced before this one finished — usually a vite hot reload ' +
+        'aborting the previous bootstrap. Not this page unless it is also empty or broken.'
+    }
+  }
 
   await page.goto(baseURL + (input.path || '/'), { waitUntil: 'networkidle', timeout: 30000 })
 
@@ -208,6 +256,8 @@ try {
   out.url = page.url()
   out.title = await page.title()
 
+  finalize()
+
   if (input.screenshot !== false) {
     const shot = join(root, 'dev', 'mcp', '.state', 'ui-verify.png')
     mkdirSync(dirname(shot), { recursive: true })
@@ -220,6 +270,12 @@ try {
 
   console.log(JSON.stringify(out))
 } catch (e) {
+  try {
+    finalize()
+  } catch {
+    // finalize is a best effort here: if the run threw before the collectors
+    // were even attached, whatever out already holds is still worth printing.
+  }
   console.log(JSON.stringify({ ...out, error: String(e.message || e).slice(0, 500) }))
 } finally {
   await browser.close()
