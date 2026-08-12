@@ -972,6 +972,9 @@ recordList:
   modulePlaceholder: Select a module
   noModule: No module selected
   noRecords: There are no records matching your request
+  noRecordContext:
+    This record list has a prefilter that reads values from the page record, so it can
+    only list records on a record page. Open the page with a record to see its records.
   pagination:
     next: Next
     prev: Previous

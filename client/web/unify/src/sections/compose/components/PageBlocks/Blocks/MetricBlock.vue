@@ -62,7 +62,7 @@ import { compose } from '@planetcrust/human-js'
 import numeral from 'numeral'
 import PageBlock from './PageBlock.vue'
 import MetricItem from './Metric/MetricItem.vue'
-import { evaluatePrefilter } from '../../../lib/record-filter'
+import { evaluatePrefilter, usesRecordVariables } from '../../../lib/record-filter'
 const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
 
 const props = defineProps({
@@ -172,10 +172,6 @@ function computeChange(current, previous) {
   return change
 }
 
-function usesRecordVars(filter) {
-  return !!filter && (filter.includes('${record') || filter.includes('${ownerID}'))
-}
-
 function interpolateFilter(filter) {
   if (!filter) return filter
 
@@ -217,7 +213,7 @@ async function refresh() {
 
       const customFilter = m.comparison?.customFilter
 
-      if (!props.record && (usesRecordVars(m.filter) || usesRecordVars(customFilter))) {
+      if (!props.record && (usesRecordVariables(m.filter) || usesRecordVariables(customFilter))) {
         console.warn('Skipping metric: filter uses record variables outside a record page')
         continue
       }

@@ -75,7 +75,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list'
-import { evaluatePrefilter } from '../../../lib/record-filter'
+import { evaluatePrefilter, usesRecordVariables } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -200,7 +200,7 @@ async function loadEvents(start, end) {
             const record = props.record
             const user = $Auth?.user || {}
 
-            if (!record && (prefilter.includes('${record') || prefilter.includes('${ownerID}'))) {
+            if (!record && usesRecordVariables(prefilter)) {
               console.warn(
                 'Skipping calendar feed: prefilter uses record variables outside a record page',
               )

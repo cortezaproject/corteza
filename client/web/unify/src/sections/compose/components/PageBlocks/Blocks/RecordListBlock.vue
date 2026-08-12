@@ -349,8 +349,12 @@
         }"
       >
         <template #empty>
-          <div class="flex items-center justify-center p-4 text-muted-color">
-            {{ $t('block.recordList.noRecords') }}
+          <div class="flex items-center justify-center p-4 text-muted-color text-center">
+            {{
+              prefilterUnresolved
+                ? $t('block.recordList.noRecordContext')
+                : $t('block.recordList.noRecords')
+            }}
           </div>
         </template>
 
@@ -606,6 +610,7 @@ import RecordImporter from '../../Public/Record/Importer/index.vue'
 import RecordExporter from '../../Public/Record/Exporter/index.vue'
 import {
   evaluatePrefilter,
+  usesRecordVariables,
   queryToFilter,
   getFieldFilter,
   convertRecordListFilter,
@@ -1132,6 +1137,14 @@ function abortPendingRequest() {
   }
 }
 
+// A prefilter reading record variables (${record.values.x}, ${ownerID}) can only be
+// resolved on a record page. In the page builder or on a list page there is no record
+// to interpolate, so the block lists nothing — evaluating anyway threw on the missing
+// record, and dropping the prefilter would list the whole module instead.
+const prefilterUnresolved = computed(
+  () => !props.record && usesRecordVariables(options.value.prefilter || ''),
+)
+
 /**
  * Build the evaluated prefilter string from block options,
  * matching Human's prepRecordList() logic.
@@ -1144,7 +1157,7 @@ function buildPrefilter() {
   const mod = recordListModule.value
   const filterParts = []
 
-  if (prefilter) {
+  if (prefilter && !prefilterUnresolved.value) {
     const record = props.record
     const user = $Auth?.user || {}
     const pf = evaluatePrefilter(prefilter, {
@@ -1190,6 +1203,11 @@ function clearSelection() {
 const currentQuery = computed(() => {
   if (!recordListModule.value) return ''
 
+  // An unresolvable record prefilter must not degrade into "no prefilter": every
+  // consumer of this query (export, bulk actions, navigation) has to see an empty
+  // set, not the whole module. recordID '0' is NoID, so nothing matches.
+  if (prefilterUnresolved.value) return "recordID = '0'"
+
   const evaluatedPrefilter = buildPrefilter()
 
   let searchFields = []
@@ -1216,7 +1234,7 @@ const activeBulkQuery = computed(() => {
 
 // Fetch a flat list of record IDs for prev/next navigation (mirrors Human's loadPaginationRecords)
 async function loadNavigationIDs() {
-  if (!recordListModule.value) return
+  if (!recordListModule.value || prefilterUnresolved.value) return
   try {
     let sort = options.value.presort || ''
     if (sortField.value) {
@@ -1239,6 +1257,21 @@ async function loadNavigationIDs() {
 // Fetch records with cancellation support
 async function fetchRecords(resetCursor = false) {
   if (!recordListModule.value) return
+
+  if (prefilterUnresolved.value) {
+    console.warn(
+      'Skipping record list: prefilter uses record variables outside a record page',
+      options.value.prefilter,
+    )
+    abortPendingRequest()
+    records.value = []
+    totalRecords.value = 0
+    nextPageCursor.value = null
+    pageCursors.value = []
+    currentPageIndex.value = 0
+    loading.value = false
+    return
+  }
 
   abortPendingRequest()
   loading.value = true
@@ -1631,6 +1664,18 @@ watch(
     fetchRecords(true)
   },
   { immediate: true },
+)
+
+// Reload when the page record changes — the block stays mounted across record
+// swaps, so a query built from the record (prefilter variables, refField) would
+// otherwise keep showing the previous record's rows. This is also what recovers
+// the list once a record arrives and prefilterUnresolved clears.
+watch(
+  () => props.record?.recordID,
+  () => {
+    if (!options.value.refField && !usesRecordVariables(options.value.prefilter || '')) return
+    fetchRecords(true)
+  },
 )
 
 // --- Filter logic ---

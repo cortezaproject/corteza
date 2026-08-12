@@ -344,6 +344,15 @@ export function evaluatePrefilter(prefilter, { record, user, recordID, ownerID, 
   return compose.interpolateTemplate(prefilter, { record, user, recordID, ownerID, userID })
 }
 
+// Reports whether an author-typed template reads the page record. Such a
+// template can only be evaluated where a record exists — off a record page
+// (page builder, list page) `${record.values.x}` throws on the missing record
+// and `${ownerID}`/`${recordID}` have nothing to resolve to, so callers skip
+// the feed/metric/list instead of evaluating it.
+export function usesRecordVariables(template = '') {
+  return !!template && (template.includes('${record') || template.includes('${ownerID}'))
+}
+
 // Removes char from end of string
 export function trimChar(text = '', char = '') {
   if (text.substring(text.length - char.length, text.length) === char) {

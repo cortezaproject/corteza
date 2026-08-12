@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   escapeQlString,
   evaluatePrefilter,
+  usesRecordVariables,
   getFieldFilter,
   getRecordListFilterSql,
   queryToFilter,
@@ -148,6 +149,36 @@ describe('lib/record-filter', () => {
           userID: '0',
         }),
       ).toBe('LocalGroupID = 5')
+    })
+
+    // Callers must not reach evaluation without a record: reading through the
+    // missing record is what threw "Cannot read properties of undefined".
+    it('throws when a record expression is evaluated without a record', () => {
+      expect(() =>
+        evaluatePrefilter('status = ${record.values.status}', {
+          record: undefined,
+          user: undefined,
+          recordID: '0',
+          ownerID: '0',
+          userID: '0',
+        }),
+      ).toThrow()
+    })
+  })
+
+  describe('usesRecordVariables', () => {
+    it('detects the record-dependent expressions', () => {
+      expect(usesRecordVariables('status = ${record.values.status}')).toBe(true)
+      expect(usesRecordVariables('parent = ${recordID}')).toBe(true)
+      expect(usesRecordVariables('owner = ${ownerID}')).toBe(true)
+    })
+
+    it('passes filters that need no record', () => {
+      expect(usesRecordVariables('LocalGroupID = 5')).toBe(false)
+      expect(usesRecordVariables('assignee = ${userID}')).toBe(false)
+      expect(usesRecordVariables('author = ${user.name}')).toBe(false)
+      expect(usesRecordVariables('')).toBe(false)
+      expect(usesRecordVariables(undefined)).toBe(false)
     })
   })
 

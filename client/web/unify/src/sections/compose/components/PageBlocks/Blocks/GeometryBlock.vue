@@ -33,7 +33,7 @@ import { useModuleStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
-import { evaluatePrefilter } from '../../../lib/record-filter'
+import { evaluatePrefilter, usesRecordVariables } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -135,7 +135,7 @@ async function loadFeeds() {
           const record = props.record
           const user = $Auth?.user || {}
 
-          if (!record && (prefilter.includes('${record') || prefilter.includes('${ownerID}'))) {
+          if (!record && usesRecordVariables(prefilter)) {
             console.warn(
               'Skipping geometry feed: prefilter uses record variables outside a record page',
             )
