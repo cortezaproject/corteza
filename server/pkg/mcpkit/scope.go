@@ -24,15 +24,17 @@ type Scope struct {
 	Group   Group
 	MaxRisk Risk
 
-	// AllTools opts out of progressive disclosure and lists everything the
-	// group and risk allow.
+	// FullDocs sends every tool's complete description and per-parameter
+	// documentation in the listing, instead of the one-line summary.
 	//
-	// For tooling, not for agents: dev/agent/mcp-verify.py has to audit the
-	// whole surface, and a human debugging "why can the model not see X" needs
-	// to see the unfiltered list. An agent using it would pay the ~27k tokens
-	// disclosure exists to avoid, so it is deliberately not mentioned in any
-	// tool description.
-	AllTools bool
+	// For tooling, not for agents: dev/agent/mcp-verify.py has to audit what the
+	// tools actually declare, and a human debugging "why did the model call it
+	// like that" needs to read what the model was shown. An agent using it pays
+	// ~40k tokens per request instead of ~7k for a surface it can already call
+	// in full, so it is deliberately not mentioned in any tool description —
+	// human_tool_load is the supported way to get the same prose for the two or
+	// three tools that actually need it.
+	FullDocs bool
 }
 
 type scopeCtxKey struct{}
@@ -89,7 +91,14 @@ func scopeFromRequest(base string, r *http.Request) Scope {
 		}
 	}
 
-	s.AllTools = r.URL.Query().Get("tools") == "all"
+	// `tools=all` is the historical spelling from when this opted out of
+	// progressive disclosure. Every tool is listed either way now, so what it
+	// selects is the documentation depth; both spellings are accepted because
+	// the old one is in checked-in tooling and in people's notes.
+	switch {
+	case r.URL.Query().Get("docs") == "full", r.URL.Query().Get("tools") == "all":
+		s.FullDocs = true
+	}
 
 	switch Risk(r.URL.Query().Get("maxRisk")) {
 	case RiskRead:

@@ -42,6 +42,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. recordDeDup rules: {"name":"rule-name","strict":true,"constraints":[{"attribute":"fieldName","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}. recordRevisions: {"enabled":true}. privacy: {"usageDisclosure":"text","sensitivityLevelID":"123"}.`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
+			hmcp.NeedsFullDocs(),
 		),
 		"Create module",
 		h.create,

@@ -8,29 +8,79 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDisclosureIsPerSession(t *testing.T) {
-	d := newDisclosure()
+func TestSummarize(t *testing.T) {
+	cases := []struct {
+		name, in, want string
+	}{
+		{
+			"cuts at the first sentence",
+			"Create a new page in a namespace. A page is a screen in the navigation.",
+			"Create a new page in a namespace.",
+		},
+		{
+			"cuts at a line break that comes first",
+			"Create a module.\n\nModules define a data structure with typed fields.",
+			"Create a module.",
+		},
+		{
+			// Splitting naively on ". " truncates this to "Query by resource, e.g."
+			// which says nothing about what the tool does.
+			"does not stop at an abbreviation",
+			"Query by resource, e.g. a page or a role. Ranked by term count.",
+			"Query by resource, e.g. a page or a role.",
+		},
+		{
+			"a single sentence is returned whole",
+			"Delete a role by name, handle, or ID",
+			"Delete a role by name, handle, or ID",
+		},
+		{"empty stays empty", "", ""},
+	}
 
-	d.load("session-a", "system_role_create", "system_role_delete")
-
-	assert.True(t, d.isLoaded("session-a", "system_role_create"))
-	assert.False(t, d.isLoaded("session-a", "system_user_create"), "only what was loaded")
-
-	// One session pulling a tool in must not reveal it to another. This is the
-	// property that makes disclosure per-session state rather than a global
-	// cache.
-	assert.False(t, d.isLoaded("session-b", "system_role_create"))
-
-	d.forget("session-a")
-	assert.False(t, d.isLoaded("session-a", "system_role_create"), "teardown clears state")
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			assert.Equal(t, c.want, summarize(c.in))
+		})
+	}
 }
 
-// A request with no session cannot accumulate anything. It still works — the
-// search result carries the schemas inline — but nothing is remembered.
-func TestDisclosureWithoutSession(t *testing.T) {
-	d := newDisclosure()
-	d.load("", "system_role_create")
-	assert.False(t, d.isLoaded("", "system_role_create"))
+// The registry hands out tools whose schema maps are shared, so slimming a copy
+// must not reach back into the original. Getting this wrong would delete the
+// documentation on first use, for human_tool_load and for the in-process
+// runtime as well as for the listing — and it would look like it worked.
+func TestSlimToolDoesNotMutateTheOriginal(t *testing.T) {
+	full := mcp.NewTool("compose_page_create",
+		mcp.WithDescription("Create a page. The grid is 48 columns wide."),
+		mcp.WithString("namespace", mcp.Description("Namespace name, handle, slug, or ID.")),
+		InGroup(GroupConfiguring), WithRisk(RiskWrite),
+	)
+
+	slim := slimTool(full)
+
+	assert.Equal(t, "Create a page.", slim.Description)
+	require.Contains(t, slim.InputSchema.Properties, "namespace")
+	assert.NotContains(t, slim.InputSchema.Properties["namespace"], "description",
+		"parameter prose is what the listing drops")
+	assert.Contains(t, slim.InputSchema.Properties["namespace"], "type",
+		"the shape a caller needs to build the call must survive")
+
+	assert.Equal(t, "Create a page. The grid is 48 columns wide.", full.Description)
+	assert.Equal(t, "Namespace name, handle, slug, or ID.",
+		full.InputSchema.Properties["namespace"].(map[string]any)["description"],
+		"the registry's own copy must be untouched")
+}
+
+func TestSlimToolFlagsToolsThatNeedTheirDocs(t *testing.T) {
+	plain := slimTool(mcp.NewTool("system_role_create",
+		mcp.WithDescription("Create a role. It grants nothing until rules are added."),
+		InGroup(GroupConfiguring), WithRisk(RiskWrite)))
+	assert.Equal(t, "Create a role.", plain.Description)
+
+	flagged := slimTool(mcp.NewTool("compose_page_create",
+		mcp.WithDescription("Create a page. The grid is 48 columns wide."),
+		InGroup(GroupConfiguring), WithRisk(RiskWrite), NeedsFullDocs()))
+	assert.Contains(t, flagged.Description, toolLoadName,
+		"a tool whose rules live in its prose must say so in the summary")
 }
 
 func searchFixture(t *testing.T) *MCPServer {
@@ -58,7 +108,7 @@ func searchFixture(t *testing.T) *MCPServer {
 	add("compose_chart_create", "Create a chart in a namespace.", GroupConfiguring, RiskWrite,
 		WithKeywords("report", "dashboard"))
 
-	return &MCPServer{reg: reg, disclosed: newDisclosure()}
+	return &MCPServer{reg: reg}
 }
 
 func names(tools []mcp.Tool) []string {
@@ -163,7 +213,12 @@ func TestSearchRanking(t *testing.T) {
 	})
 }
 
-func TestAlwaysOnToolsAreNotSearchResults(t *testing.T) {
+// Search used to skip the five always-on tools, because a tool already in the
+// listing could not be "disclosed" and returning it wasted a slot. Now search
+// returns documentation rather than access, so every listed tool is a legitimate
+// result — a caller asking about a lookup tool wants its parameter docs, and
+// excluding it would answer "no such tool" about one they can plainly see.
+func TestSearchReturnsToolsThatAreAlreadyListed(t *testing.T) {
 	m := searchFixture(t)
 	m.reg.RegisterTool(
 		mcp.NewTool("compose_module_lookup", mcp.WithDescription("Look up modules."),
@@ -171,7 +226,5 @@ func TestAlwaysOnToolsAreNotSearchResults(t *testing.T) {
 		"compose_module_lookup", nil,
 	)
 
-	// It is already listed, so returning it would waste a search slot.
-	assert.NotContains(t, names(m.searchTools("module lookup", Scope{})), "compose_module_lookup")
-	assert.True(t, alwaysOn["compose_module_lookup"])
+	assert.Contains(t, names(m.searchTools("module lookup", Scope{})), "compose_module_lookup")
 }

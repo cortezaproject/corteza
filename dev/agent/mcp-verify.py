@@ -32,9 +32,9 @@ import urllib.request
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 API = os.environ.get("HUMAN_API", "http://localhost:1043/api")
 MCP = API + "/mcp"
-# Progressive disclosure means tools/list shows ~5 by default. Auditing the
-# surface needs the documented tooling opt-out; agents must never use it.
-MCP_ALL = MCP + "?tools=all"
+# The listing summarises every tool by default. Auditing what tools declare
+# needs the documented tooling opt-out; agents must never use it.
+MCP_ALL = MCP + "?docs=full"
 
 if urllib.parse.urlparse(API).hostname not in ("localhost", "127.0.0.1", "::1"):
     sys.exit(f"mcp-verify.py is local-only; refusing to touch {API}")
@@ -190,8 +190,12 @@ def verify_schema(_sid):
                     bad_lookup.append(f"{name} requires its own ref {ref}")
             # A lookup must be bounded, not necessarily paged. The exemptions
             # mirror server/tests/mcp/registry_test.go and are claims about the
-            # data source: event types are a compile-time slice, not a store.
-            if "limit" not in props and name not in ("automation_event_type_lookup",):
+            # data source: event types are a compile-time slice, not a store,
+            # and a theme lookup reads three fixed variants.
+            if "limit" not in props and name not in (
+                "automation_event_type_lookup",
+                "system_theme_lookup",
+            ):
                 bad_lookup.append(f"{name} declares no limit")
 
     check(not untagged, "every tool carries group and risk in _meta", ", ".join(untagged))
@@ -274,8 +278,8 @@ def verify_scope():
     _, all_tools = list_tools_at(MCP_ALL)
     names = {t["name"] for t in all_tools}
 
-    _, configuring = list_tools_at(MCP + "/configuring?tools=all")
-    _, usage = list_tools_at(MCP + "/usage?tools=all")
+    _, configuring = list_tools_at(MCP + "/configuring?docs=full")
+    _, usage = list_tools_at(MCP + "/usage?docs=full")
 
     meta = {"human_tool_search", "human_tool_load"}
     cfg = {t["name"] for t in configuring} - meta
@@ -288,7 +292,7 @@ def verify_scope():
     check(cfg | use == names, "the groups together account for every tool",
           "missing: " + ", ".join(sorted(names - (cfg | use))))
 
-    _, read_only = list_tools_at(MCP + "?maxRisk=read&tools=all")
+    _, read_only = list_tools_at(MCP + "?maxRisk=read&docs=full")
     risks = {(t.get("_meta") or {}).get("human.dev/risk") for t in read_only}
     check(risks <= {"read"}, f"a read ceiling lists only read tools (saw {sorted(r for r in risks if r)})")
 
@@ -486,7 +490,13 @@ def verify_cost(tools):
     if tools:
         worst = max(tools, key=lambda t: len(json.dumps(t)))
         print(f"  largest: {worst['name']} (~{len(json.dumps(worst)) // 4:,} tokens)")
-    print(f"  projected at 200 tools: ~{approx * 200 // max(len(tools), 1):,} tokens per request")
+
+    # Project from the slim listing, which is what a session actually pays.
+    # Projecting the full surface answered a question nobody asks and made the
+    # slim listing look like it had not helped.
+    n = max(len(tools), 1)
+    print(f"  projected at 200 tools: ~{start * 200 // n:,} tokens per request"
+          f"  (full descriptions would be ~{approx * 200 // n:,})")
 
 
 def main():

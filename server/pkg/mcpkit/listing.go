@@ -1,112 +1,145 @@
 package mcpkit
 
 import (
-	"context"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/mark3labs/mcp-go/server"
 )
 
-// Progressive disclosure: a session starts with a handful of tools and asks for
-// the rest.
+// Slim listing: every tool is listed and callable from the first request, but
+// summarised to its first sentence, with the per-parameter prose left out.
 //
-// The problem it solves is measured, not assumed. 80 tools cost ~27,000 tokens
-// in every request before any work happens, and the surface is heading for
-// ~200. Group endpoints help but not enough — `configuring` alone is 64 of the
-// 80 — because most tools genuinely are configuration.
+// The numbers are measured, not assumed. The full surface is 96 tools and
+// ~40,000 tokens, of which ~28,000 is prose: 15,700 in tool descriptions and
+// 12,200 in per-parameter descriptions. What a client needs to *register and
+// call* a tool — names, types, required fields — is only ~12,400, and slimming
+// lands the whole listing at ~7,400.
 //
-// Trimming descriptions is the obvious alternative and the wrong one: §8.5
-// deliberately made them rich because a caller working through Claude Code
-// against a hosted instance has no source to read. Disclosure resolves that
-// tension rather than trading against it — a description can be as long as it
-// needs to be if only six are loaded by default. It also scales the right way:
-// 200 tools cost a session the same as 20.
+// This replaced progressive disclosure, which showed five tools until a session
+// searched and cost ~1,500. That was cheaper and it did not work. Disclosure
+// makes a tool callable by adding it to a later tools/list, so it needs a client
+// that honours notifications/tools/list_changed and re-lists on one session. The
+// claude.ai connector does not: its search returned the full definitions and its
+// own note promised they were "now available", and every call then came back
+// "tool not found" from the client, having never reached Human at all. Returning
+// definitions inline was supposed to be the fallback for exactly that client,
+// and it is not one — a client that will not call an unlisted tool is not
+// helped by being handed its schema.
 //
-// The mechanism is the one Claude Code itself uses on its own tools: a small
-// always-on set plus a search that pulls in the rest by name.
-
-// alwaysOn is what a session sees before it searches for anything.
+// Slimming has no such dependency. Nothing has to arrive later, so nothing can
+// fail to arrive. human_tool_load survives as documentation rather than
+// registration: the tool it describes was already callable, and loading only
+// adds the prose the listing dropped. That works on every MCP client, because
+// it is just text in a tool result.
 //
-// The two meta-tools, plus the compose read path — because "what namespaces
-// exist, what shape is this module, what records are in it" is how almost every
-// task opens, and making that cost a search round-trip would be a tax on the
-// common case. Everything that writes is behind a search.
-var alwaysOn = map[string]bool{
-	toolSearchName:             true,
-	toolLoadName:               true,
-	"compose_namespace_lookup": true,
-	"compose_module_lookup":    true,
-	"compose_record_lookup":    true,
-}
+// The cost is ~7,400 tokens per request against disclosure's ~1,500, on a
+// surface heading for ~200 tools. Slimming scales with the tool count where
+// disclosure was flat, which is the real thing being traded away — and the
+// mitigation is that summarising is per-tool, so 200 tools cost ~15,000 rather
+// than the ~84,000 a full listing would.
 
 const (
 	toolSearchName = "human_tool_search"
 	toolLoadName   = "human_tool_load"
 
-	// maxSearchResults bounds a vague query. A search that returned sixty tools
-	// would reintroduce exactly the payload this exists to avoid.
+	// maxSearchResults bounds a vague query. Search now returns full
+	// documentation for each hit, which is the expensive part, so the ceiling
+	// matters more than it did when it merely bounded a listing.
 	maxSearchResults = 12
 )
 
-// disclosure tracks which tools each session has pulled in.
+// loadHint is appended to the summary of a tool marked NeedsFullDocs.
 //
-// Keyed by MCP session ID and cleaned up on session teardown, so a long-lived
-// server does not accumulate state for clients that have gone away.
-type disclosure struct {
-	mu     sync.RWMutex
-	loaded map[string]map[string]bool
-}
+// Phrased as an instruction rather than a note because a model reading "see the
+// full documentation" treats it as optional and calls the tool anyway.
+const loadHint = " IMPORTANT: call " + toolLoadName + " for this tool before using it — its full " +
+	"documentation carries rules that are not visible in the parameter list, and guessing them " +
+	"produces a call that succeeds and is wrong."
 
-func newDisclosure() *disclosure {
-	return &disclosure{loaded: make(map[string]map[string]bool)}
-}
-
-func (d *disclosure) load(sessionID string, names ...string) {
-	if sessionID == "" {
-		return
-	}
-
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	if d.loaded[sessionID] == nil {
-		d.loaded[sessionID] = make(map[string]bool, len(names))
-	}
-	for _, n := range names {
-		d.loaded[sessionID][n] = true
-	}
-}
-
-func (d *disclosure) isLoaded(sessionID, name string) bool {
-	if sessionID == "" {
-		return false
-	}
-
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-
-	return d.loaded[sessionID][name]
-}
-
-func (d *disclosure) forget(sessionID string) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	delete(d.loaded, sessionID)
-}
-
-// sessionID returns the MCP session for this request, or "" when there is none.
+// slimTool returns t summarised for the listing: first sentence only, and no
+// per-parameter prose.
 //
-// A request with no session cannot accumulate loaded tools, so it sees the
-// always-on set and whatever a search returns inline. That is the degradation
-// path for a client that does not maintain a session, and it still works.
-func sessionID(ctx context.Context) string {
-	if s := server.ClientSessionFromContext(ctx); s != nil {
-		return s.SessionID()
+// The copying is not incidental. mcp.Tool is a value, but InputSchema.Properties
+// is a map shared with the Registry, and so is every property inside it.
+// Stripping in place would delete those descriptions permanently — for every
+// later request, for human_tool_load, and for Human's own in-process agentic
+// runtime, which reads the same tools. The first slim listing would quietly
+// destroy the documentation it exists to defer.
+func slimTool(t mcp.Tool) mcp.Tool {
+	// Shallow copy. Name, Annotations, Required and the Meta pointer are shared
+	// with the registry and none of them is written below.
+	out := t
+
+	out.Description = summarize(t.Description)
+	if WantsFullDocs(t) {
+		out.Description += loadHint
 	}
-	return ""
+
+	if len(t.InputSchema.Properties) == 0 {
+		return out
+	}
+
+	props := make(map[string]any, len(t.InputSchema.Properties))
+	for name, raw := range t.InputSchema.Properties {
+		prop, ok := raw.(map[string]any)
+		if !ok {
+			props[name] = raw
+			continue
+		}
+
+		cp := make(map[string]any, len(prop))
+		for k, v := range prop {
+			if k == "description" {
+				continue
+			}
+			cp[k] = v
+		}
+		props[name] = cp
+	}
+	out.InputSchema.Properties = props
+
+	return out
+}
+
+// abbreviations end in a period without ending a sentence. Without this, the
+// summary of a description whose first sentence contains "e.g." stops there,
+// and the listing says half of what the tool does.
+var abbreviations = map[string]bool{
+	"e.g": true, "i.e": true, "etc": true, "cf": true, "vs": true, "no": true,
+}
+
+// summarize cuts a description to its first sentence, or its first line when
+// that comes sooner.
+//
+// A line break first is deliberate: several descriptions open with a one-line
+// statement of what the tool is and then a paragraph of rules, and cutting at
+// the break gives a better summary than hunting for a period that may be
+// several sentences further on.
+func summarize(desc string) string {
+	desc = strings.TrimSpace(desc)
+
+	for i := 0; i < len(desc)-1; i++ {
+		if desc[i] == '\n' {
+			return strings.TrimSpace(desc[:i])
+		}
+
+		if desc[i] != '.' || desc[i+1] != ' ' {
+			continue
+		}
+
+		word := desc[:i]
+		if j := strings.LastIndexAny(word, " ("); j >= 0 {
+			word = word[j+1:]
+		}
+		if abbreviations[strings.ToLower(word)] {
+			continue
+		}
+
+		return desc[:i+1]
+	}
+
+	return desc
 }
 
 // searchTools matches a query against tool names, keywords and descriptions.
@@ -138,9 +171,6 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 			continue
 		}
 		if !scope.Permits(GroupsOf(t), RiskOf(t)) {
-			continue
-		}
-		if alwaysOn[t.Name] {
 			continue
 		}
 

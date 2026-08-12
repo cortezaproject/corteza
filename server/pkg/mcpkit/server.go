@@ -19,7 +19,6 @@ type MCPServer struct {
 	server     *server.MCPServer
 	httpServer *server.StreamableHTTPServer
 	reg        *Registry
-	disclosed  *disclosure
 }
 
 // NewMCPServer exposes the registry over the HTTP (streamable) transport.
@@ -35,15 +34,10 @@ type MCPServer struct {
 //     boot. It goes through the tool filter, which mcp-go re-runs per request.
 //   - Scope (group, risk ceiling) comes from the request URL; see scope.go.
 //
-// On top of that, a session sees only the always-on tools until it searches for
-// more — see disclosure.go for why.
+// On top of that, every tool in the listing is summarised unless the request
+// asks for full documentation — see listing.go for why.
 func NewMCPServer(reg *Registry, name, version string) *MCPServer {
-	m := &MCPServer{reg: reg, disclosed: newDisclosure()}
-
-	hooks := &server.Hooks{}
-	hooks.AddOnUnregisterSession(func(_ context.Context, s server.ClientSession) {
-		m.disclosed.forget(s.SessionID())
-	})
+	m := &MCPServer{reg: reg}
 
 	m.server = server.NewMCPServer(
 		name,
@@ -52,7 +46,6 @@ func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 		server.WithResourceCapabilities(true, false),
 		server.WithToolFilter(m.listFilter()),
 		server.WithToolHandlerMiddleware(m.riskCeiling()),
-		server.WithHooks(hooks),
 	)
 
 	for _, t := range reg.tools {
@@ -77,14 +70,16 @@ func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 	return m
 }
 
-// listFilter decides what a given request may see: available, in scope, and
-// either always-on or already pulled in by this session.
+// listFilter decides what a given request sees: every available, in-scope tool,
+// summarised unless full documentation was asked for.
+//
+// mcp-go assigns this function's return value straight into the result, so it
+// rewrites as well as filters. That is the whole implementation of slimming —
+// no second transport and no protocol extension, because a listing is the only
+// place a tool description is ever sent.
 func (m *MCPServer) listFilter() server.ToolFilterFunc {
 	return func(ctx context.Context, tools []mcp.Tool) []mcp.Tool {
-		var (
-			scope = ScopeFromContext(ctx)
-			sid   = sessionID(ctx)
-		)
+		scope := ScopeFromContext(ctx)
 
 		out := make([]mcp.Tool, 0, len(tools))
 		for _, tool := range tools {
@@ -94,8 +89,8 @@ func (m *MCPServer) listFilter() server.ToolFilterFunc {
 			if !scope.Permits(GroupsOf(tool), RiskOf(tool)) {
 				continue
 			}
-			if !scope.AllTools && !alwaysOn[tool.Name] && !m.disclosed.isLoaded(sid, tool.Name) {
-				continue
+			if !scope.FullDocs {
+				tool = slimTool(tool)
 			}
 			out = append(out, tool)
 		}
@@ -109,10 +104,8 @@ func (m *MCPServer) listFilter() server.ToolFilterFunc {
 // a name could still call it. The ceiling has to refuse at dispatch to mean
 // anything, which is why this middleware exists as well as the filter.
 //
-// Neither group nor disclosure is enforced here. Both are presentation: a
-// caller who names a tool it was never shown has done nothing RBAC would not
-// already permit, and refusing would break the very clients that ignore
-// list_changed and call straight from a search result.
+// Group is not enforced here. It is presentation: a caller who names a tool
+// outside its group has done nothing RBAC would not already permit.
 func (m *MCPServer) riskCeiling() server.ToolHandlerMiddleware {
 	return func(next server.ToolHandlerFunc) server.ToolHandlerFunc {
 		return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -149,15 +142,15 @@ func (m *MCPServer) registerMetaTools() {
 	m.server.AddTool(
 		mcp.NewTool(toolSearchName,
 			mcp.WithDescription(
-				"Find tools by what you are trying to do, and load them for this session. "+
-					"Only a few tools are listed up front — this server has far more than it advertises, "+
-					"because listing them all would cost tens of thousands of tokens per request. "+
-					"Search returns each matching tool's full definition, so you can call anything it "+
-					"returns immediately; the tools also become visible in the tool list from now on. "+
-					"Query by resource or action, in as many words as you like: \"page\", \"delete role\", "+
-					"\"create a user\", \"workflow\". Tools matching more of your words rank first, so an "+
-					"extra word narrows the ranking rather than emptying the result. If you get nothing "+
-					"back, try a different word.",
+				"Find the right tool for what you are trying to do, and get its full documentation. "+
+					"Every tool on this server is already listed and callable, but the listing shows only "+
+					"a one-line summary of each and omits the per-parameter detail; this returns the "+
+					"complete description and parameter documentation for the tools that match. Use it "+
+					"when you are unsure which tool does the job, and whenever a tool's summary tells you "+
+					"to load it first. Query by resource or action, in as many words as you like: "+
+					"\"page\", \"delete role\", \"create a user\", \"workflow\". Tools matching more of "+
+					"your words rank first, so an extra word narrows the ranking rather than emptying the "+
+					"result. If you get nothing back, try a different word.",
 			),
 			mcp.WithString("query", mcp.Required(), mcp.Description("What you want to do, e.g. \"page\", \"delete role\", \"reminder snooze\".")),
 			InGroup(GroupConfiguring, GroupUsage),
@@ -169,9 +162,11 @@ func (m *MCPServer) registerMetaTools() {
 	m.server.AddTool(
 		mcp.NewTool(toolLoadName,
 			mcp.WithDescription(
-				"Load named tools into this session when you already know their names, without searching. "+
-					"Returns their full definitions. Use "+toolSearchName+" instead when you know what you "+
-					"want to do but not what it is called.",
+				"Get the full documentation for tools you can already name, without searching. The tool "+
+					"list summarises every tool to one line and drops the per-parameter detail; this "+
+					"returns it in full. Call this before using any tool whose summary says to, and any "+
+					"time a call was rejected for arguments you are unsure about. Use "+toolSearchName+
+					" instead when you know what you want to do but not what it is called.",
 			),
 			mcp.WithString("names", mcp.Required(), mcp.Description("JSON array of exact tool names, e.g. [\"system_role_create\",\"system_role_member_add\"].")),
 			InGroup(GroupConfiguring, GroupUsage),
@@ -193,7 +188,7 @@ func (m *MCPServer) handleToolSearch(ctx context.Context, req mcp.CallToolReques
 	}
 
 	hits := m.searchTools(query, ScopeFromContext(ctx))
-	return m.discloseResult(ctx, hits, fmt.Sprintf("no tool matches %q — try one broader word", query))
+	return m.toolDefsResult(hits, fmt.Sprintf("no tool matches %q — try one broader word", query))
 }
 
 func (m *MCPServer) handleToolLoad(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -237,18 +232,16 @@ func (m *MCPServer) handleToolLoad(ctx context.Context, req mcp.CallToolRequest)
 		return nil, fmt.Errorf("no such tool: %v — use %s to find one", unknown, toolSearchName)
 	}
 
-	return m.discloseResult(ctx, hits, "")
+	return m.toolDefsResult(hits, "")
 }
 
-// discloseResult marks the tools loaded for this session, tells the client its
-// list changed, and returns the definitions inline.
+// toolDefsResult returns full documentation for the named tools.
 //
-// Returning them inline is deliberate belt and braces. A client that honours
-// notifications/tools/list_changed will re-list and see them properly; one that
-// ignores it still has everything it needs to make the call, straight out of
-// this result. Without that, disclosure would be silently broken on any client
-// that does not re-list, and the failure would look like the tool not existing.
-func (m *MCPServer) discloseResult(ctx context.Context, hits []mcp.Tool, emptyMsg string) (*mcp.CallToolResult, error) {
+// It changes nothing about what the session can call. Every tool is already
+// listed and callable; the listing merely summarised it. That is what makes
+// this work on clients where the old disclosure did not — nothing has to be
+// registered, so no client has to cooperate, and the result is only text.
+func (m *MCPServer) toolDefsResult(hits []mcp.Tool, emptyMsg string) (*mcp.CallToolResult, error) {
 	if len(hits) == 0 {
 		if emptyMsg == "" {
 			emptyMsg = "nothing matched"
@@ -256,21 +249,10 @@ func (m *MCPServer) discloseResult(ctx context.Context, hits []mcp.Tool, emptyMs
 		return mcp.NewToolResultText(emptyMsg), nil
 	}
 
-	names := make([]string, 0, len(hits))
-	for _, t := range hits {
-		names = append(names, t.Name)
-	}
-
-	if sid := sessionID(ctx); sid != "" {
-		m.disclosed.load(sid, names...)
-		// Best effort: a client that cannot receive it still has the payload.
-		_ = m.server.SendNotificationToSpecificClient(sid, "notifications/tools/list_changed", nil)
-	}
-
 	out, err := json.Marshal(map[string]any{
 		"tools": hits,
-		"note": "These tools are now available for the rest of this session. " +
-			"You can call them straight away using the schemas above.",
+		"note": "Full documentation for these tools, including the parameter detail the tool " +
+			"list leaves out. They were already callable — this adds the guidance, not the tools.",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal tools: %w", err)

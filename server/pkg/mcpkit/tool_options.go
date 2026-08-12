@@ -58,6 +58,7 @@ const (
 	MetaGroups   = "human.dev/groups"
 	MetaRisk     = "human.dev/risk"
 	MetaKeywords = "human.dev/keywords"
+	MetaFullDocs = "human.dev/fullDocs"
 )
 
 func ensureMeta(t *mcp.Tool) {
@@ -143,6 +144,41 @@ func WithKeywords(keywords ...string) mcp.ToolOption {
 		}
 		t.Meta.AdditionalFields[MetaKeywords] = out
 	}
+}
+
+// NeedsFullDocs marks a tool whose description carries rules a caller cannot
+// infer from the parameter list, so the slim listing must send them to
+// human_tool_load before they use it.
+//
+// The listing summarises every tool to its first sentence, which is enough to
+// pick compose_record_update or system_role_member_add and call it correctly.
+// It is not enough for compose_page_create, where the description is the only
+// place the 48-column grid exists and a caller who guesses lays every block
+// down the left-hand edge, or automation_trigger_create, where the omitted
+// prose is what says the trigger fires for every record in every namespace.
+// Those failures are silent — the call succeeds and the result is wrong — which
+// is what separates a tool that needs this from one that merely has a long
+// description.
+func NeedsFullDocs() mcp.ToolOption {
+	return func(t *mcp.Tool) {
+		ensureMeta(t)
+		t.Meta.AdditionalFields[MetaFullDocs] = true
+	}
+}
+
+// WantsFullDocs reports whether a tool is marked by NeedsFullDocs.
+func WantsFullDocs(t mcp.Tool) bool {
+	if t.Meta == nil || t.Meta.AdditionalFields == nil {
+		return false
+	}
+	// Written as bool; tolerate the JSON round trip the way GroupsOf does.
+	switch v := t.Meta.AdditionalFields[MetaFullDocs].(type) {
+	case bool:
+		return v
+	case string:
+		return v == "true"
+	}
+	return false
 }
 
 // KeywordsOf reports a tool's search keywords, or nil if it declares none.

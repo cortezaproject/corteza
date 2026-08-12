@@ -48,6 +48,7 @@ func (h *chartHandler) register() {
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			chartKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
+			hmcp.NeedsFullDocs(),
 		),
 		"Create chart",
 		h.create,

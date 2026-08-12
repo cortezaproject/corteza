@@ -22,10 +22,10 @@ tool. Read it as a spec, not as background.
 Human exposes its capabilities to LLM agents through a single MCP tool
 registry (`mcp_registry.go`). That registry has two consumers:
 
-| Surface | Path | Consumer |
-|---|---|---|
+| Surface    | Path                                | Consumer                                                      |
+| ---------- | ----------------------------------- | ------------------------------------------------------------- |
 | In-process | `Registry.GetTools` / `ExecuteTool` | Human's own agentic runtime (agents, chatbots, magic buttons) |
-| HTTP | `/api/mcp` (streamable) | External MCP clients, primarily Claude Code |
+| HTTP       | `/api/mcp` (streamable)             | External MCP clients, primarily Claude Code                   |
 
 Both surfaces call the same handler functions. Where they legitimately differ
 is documented in §2.3; where they differed by accident, that has been fixed.
@@ -49,16 +49,16 @@ Four usage layers, **not** four servers:
 
 ## 2. Locked decisions
 
-| Decision | Ruling |
-|---|---|
-| Topology | One server, one registry. No per-layer servers. |
-| Groups | `development` / `configuring` / `usage`. Connections deferred. |
-| Group semantics | **Filtering only.** Decides what gets listed. Not a security boundary. |
-| Risk semantics | `read` / `write` / `destructive`. Sole writer of the protocol's annotation hints, and an enforced per-session ceiling. |
-| Scope | Per request, from the URL: `/api/mcp/{group}` narrows the listing, `?maxRisk=` caps and is refused on dispatch. See §2.5. |
-| Security boundary | authclient + RBAC — with documented exceptions, see §2.2. |
-| Coverage target | Hand-written tools, full resource coverage, ~200 tools. |
-| Tenancy | Single instance. Multi-tenant MCP is out of scope. |
+| Decision          | Ruling                                                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Topology          | One server, one registry. No per-layer servers.                                                                           |
+| Groups            | `development` / `configuring` / `usage`. Connections deferred.                                                            |
+| Group semantics   | **Filtering only.** Decides what gets listed. Not a security boundary.                                                    |
+| Risk semantics    | `read` / `write` / `destructive`. Sole writer of the protocol's annotation hints, and an enforced per-session ceiling.    |
+| Scope             | Per request, from the URL: `/api/mcp/{group}` narrows the listing, `?maxRisk=` caps and is refused on dispatch. See §2.5. |
+| Security boundary | authclient + RBAC — with documented exceptions, see §2.2.                                                                 |
+| Coverage target   | Hand-written tools, full resource coverage, ~200 tools.                                                                   |
+| Tenancy           | Single instance. Multi-tenant MCP is out of scope.                                                                        |
 
 ### 2.1 Why groups are not enforcement
 
@@ -79,7 +79,7 @@ operation needs authorisation it comes from RBAC in the service layer — and
 
 ### 2.2 The RBAC premise is not an invariant
 
-RBAC is the boundary *for most services*. Known exceptions:
+RBAC is the boundary _for most services_. Known exceptions:
 
 - `compose/agentic/module_handler.go` and `namespace_handler.go` both call
   `a.SetIdentityToContext(ctx, a.ServiceUser())` — the super-admin bypass role
@@ -126,7 +126,7 @@ cannot work (§8.1). It declares `limit` only, and says so.
 HTTP path never calls it.
 
 Per-TAQ tools are minted at runtime as `automation_<numeric id>`. Policy used
-to treat *any* `automation_*` name outside a hardcoded three-item list as a TAQ
+to treat _any_ `automation_*` name outside a hardcoded three-item list as a TAQ
 ID, which denied `automation_taq_exec`, `automation_taq_executions` and
 `automation_taq_execution_trace` outright. Now matched on a numeric suffix,
 which is how the names are actually minted.
@@ -136,7 +136,7 @@ A tool with no `buildResource` case gets no resource-level narrowing. That is
 deny-by-default, and denying here would break every newly added tool until
 someone edited `policy.go`, a cross-package coupling a tool author has no
 reason to discover. `policy.IsClassified` backs a CI-time assertion instead.
-The problem was that the default was *silent*, not that it was permissive.
+The problem was that the default was _silent_, not that it was permissive.
 
 `policy.go` holds a second alias map that must stay in sync with
 `mcp_registry.go`.
@@ -145,17 +145,17 @@ The problem was that the default was *silent*, not that it was permissive.
 
 A request carries a `Scope` resolved from its URL (`scope.go`):
 
-| URL | Effect |
-|---|---|
-| `/api/mcp` | No group narrowing and no ceiling — but progressively disclosed, so five tools until the session searches. See §2.6. |
-| `/api/mcp/configuring` | Configuring tools only, still progressively disclosed. |
-| `/api/mcp/usage?maxRisk=read` | Usage reads only, and refuses anything above read on dispatch. |
-| `/api/mcp?tools=all` | Opts out of disclosure. Tooling only; see §2.6. |
+| URL                           | Effect                                                                                                         |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `/api/mcp`                    | Every tool, no ceiling, summarised. See §2.6.                                                                  |
+| `/api/mcp/configuring`        | Configuring tools only, summarised.                                                                            |
+| `/api/mcp/usage?maxRisk=read` | Usage reads only, and refuses anything above read on dispatch.                                                 |
+| `/api/mcp?docs=full`          | Full descriptions in the listing. Tooling only; see §2.6. `?tools=all` is accepted as the historical spelling. |
 
 The two dimensions are enforced differently, on purpose. **Group is filtered
 only** — it decides what `tools/list` returns, because its job is to keep the
 list small, and a caller naming a tool outside its group has done nothing RBAC
-would not already allow. **Risk is filtered *and* refused at dispatch**, because
+would not already allow. **Risk is filtered _and_ refused at dispatch**, because
 a ceiling that only hid tools would mean nothing to a client that already knew a
 name.
 
@@ -168,39 +168,61 @@ session at production and having it delete a namespace — not a lock against a
 hostile caller, who simply would not set it. Moving it somewhere a caller cannot
 choose means putting it in the token; see §14.
 
-### 2.6 Progressive disclosure
+### 2.6 Slim listing
 
-A session sees five tools until it asks for more: `human_tool_search`,
-`human_tool_load`, and the compose read path (`namespace`, `module`, `record`
-lookups). Everything else is loaded by searching for it.
+Every tool is listed and callable from the first request. What the listing
+omits is prose: each description is cut to its first sentence, and per-parameter
+descriptions are dropped. `human_tool_load` and `human_tool_search` return the
+full text on demand.
 
-Measured on the running server: **~1,442 tokens instead of ~27,368, a 19x
-reduction**, and it stops growing — 200 tools cost a session the same as 20.
+Measured on the running server: **~13,118 tokens instead of ~40,482**. The
+remainder is not compressible without breaking clients — `inputSchema` structure
+is 4,067 and `annotations` 2,304, and both are read by the client rather than by
+the model.
 
-Why not the alternatives. Trimming descriptions fights §8.5, which made them
-rich precisely because a caller without the repo has nothing else; disclosure
-lets a description be as long as it needs to be because few are loaded. Group
-endpoints help but not enough — `configuring` is 64 of 80, because most tools
-genuinely are configuration. `tools/list` pagination does nothing, because
-clients drain every page.
+**This replaced progressive disclosure, which was cheaper and did not work.**
+Disclosure showed five tools (`human_tool_search`, `human_tool_load`, and the
+three compose lookups) for ~1,442 tokens and pulled the rest in by search. It
+depends on the client honouring `notifications/tools/list_changed` and
+re-listing on one session. The claude.ai connector does not: the search returned
+full definitions and promised they were "now available", every subsequent call
+came back `Tool not found` **from the client**, and Human never saw a
+`tools/call` at all. Returning definitions inline was supposed to be the
+fallback for precisely that client and is not one — a client that will not call
+an unlisted tool is not helped by being handed its schema. The failure reads to
+a user as "the connector is read-only", because the five always-on tools all
+happen to be reads.
 
-`human_tool_search` returns each match's **full definition inline** as well as
-registering it for `notifications/tools/list_changed`. That is deliberate
-redundancy: a client that honours the notification re-lists and sees the tools
-properly, and one that ignores it can still call straight from the search
-result. Without it, disclosure would break silently on any client that does not
-re-list, and the failure would look like the tool not existing.
+Slimming has no such dependency. Nothing arrives later, so nothing can fail to
+arrive, and `human_tool_load` degrades from registration to documentation: the
+tool it describes was already callable. That works on every MCP client, because
+it is only text in a tool result.
 
-Neither disclosure nor group is enforced at dispatch. A caller naming a tool it
-was never shown has done nothing RBAC would not already allow, and refusing
-would break exactly the clients the inline schemas exist for. The risk ceiling
-*is* enforced — see §2.5.
+What this trades away is flatness. Disclosure cost the same for 20 tools as for
+200; slimming scales with the surface. At the current 96 tools it is ~13,000,
+and at 200 it projects to ~27,000 rather than the ~84,000 a full listing would
+cost. If that becomes the binding constraint, the next lever is `_meta` (2,121
+tokens, of which 354 is `human.dev/keywords`, which only the server's own search
+reads) — not the descriptions, which are what §8.5 exists to protect.
 
-`?tools=all` opts out and lists everything the group and risk allow. It is for
-tooling: `dev/agent/mcp-verify.py` has to audit the whole surface, and a human
-debugging "why can the model not see X" needs the unfiltered list. It is
-deliberately absent from every tool description, because an agent using it
-would pay the cost this exists to avoid.
+A tool whose omitted prose carries rules a caller cannot infer declares
+`NeedsFullDocs()`, which appends an instruction to load it before use. The test
+is silent wrongness, not description length: `compose_page_create` without the
+48-column grid lays every block down the left-hand edge and reports success,
+and `automation_trigger_create` without its prose creates a trigger that fires
+for every record in every namespace. Eleven tools carry it — page
+create/update/reorder, module create, chart create, and the workflow, TAQ and
+trigger create/update pairs.
+
+Group is not enforced at dispatch. A caller naming a tool outside its group has
+done nothing RBAC would not already allow. The risk ceiling _is_ enforced — see
+§2.5.
+
+`?docs=full` sends complete descriptions. It is for tooling:
+`dev/agent/mcp-verify.py` audits what tools declare, and a human debugging "why
+did the model call it that way" needs to read what the model was shown. It is
+deliberately absent from every tool description, because an agent using it pays
+40,482 tokens for a surface it can already call in full.
 
 The two meta-tools live on the mcp-go server, not in the `Registry`: they are a
 property of this transport, not of Human. The in-process runtime scopes an
@@ -212,11 +234,11 @@ and out of the structural test, which asserts things about resource tools.
 
 ## 3. Groups
 
-| Group | Contains | Test |
-|---|---|---|
-| `configuring` | Schema and definition level | Changes what the system *is* |
-| `usage` | Data and execution level | Changes what the system *holds*, or runs it |
-| `development` | Repo-level tooling | Operates on source, not on an instance |
+| Group         | Contains                    | Test                                        |
+| ------------- | --------------------------- | ------------------------------------------- |
+| `configuring` | Schema and definition level | Changes what the system _is_                |
+| `usage`       | Data and execution level    | Changes what the system _holds_, or runs it |
+| `development` | Repo-level tooling          | Operates on source, not on an instance      |
 
 The line already exists in code: `compose_module_*` is configuring,
 `compose_record_*` is usage. Definitions are configuring, runs are usage —
@@ -233,11 +255,11 @@ later retrofit.
 
 ## 4. Risk levels
 
-| Level | Meaning | Ops |
-|---|---|---|
-| `read` | No state change | `lookup`, `executions`, `execution_trace` |
-| `write` | Creates or modifies | `create`, `update`, `undelete`, `exec` |
-| `destructive` | Removes from view or loses data | `delete`, revoke, purge |
+| Level         | Meaning                         | Ops                                       |
+| ------------- | ------------------------------- | ----------------------------------------- |
+| `read`        | No state change                 | `lookup`, `executions`, `execution_trace` |
+| `write`       | Creates or modifies             | `create`, `update`, `undelete`, `exec`    |
+| `destructive` | Removes from view or loses data | `delete`, revoke, purge                   |
 
 `exec` is `write`, not `read`, even when the executed thing happens to be
 read-only — the registry cannot know what a TAQ or workflow does.
@@ -256,11 +278,11 @@ that, read-only lookups included.
 `hmcp.WithRisk` therefore sets all four hints and **authors never write them by
 hand**:
 
-| Risk | readOnly | destructive | idempotent | openWorld |
-|---|---|---|---|---|
-| `read` | true | false | true | false |
-| `write` | false | false | false | false |
-| `destructive` | false | true | true | false |
+| Risk          | readOnly | destructive | idempotent | openWorld |
+| ------------- | -------- | ----------- | ---------- | --------- |
+| `read`        | true     | false       | true       | false     |
+| `write`       | false    | false       | false      | false     |
+| `destructive` | false    | true        | true       | false     |
 
 `openWorld` is always false: every Human tool acts on this instance's own data.
 
@@ -352,7 +374,7 @@ Handlers mirror declaration order exactly.
 `lookup` covers both fetch-one and list. One tool, not two — see §8.1 for the
 contract that makes this unambiguous.
 
-**Renames** go in `ToolAliases` *and* in `policy.go`'s alias map.
+**Renames** go in `ToolAliases` _and_ in `policy.go`'s alias map.
 
 ### Legacy names
 
@@ -369,15 +391,15 @@ exception list rather than renamed: `discovery_search` (two segments, app
 `server/pkg/mcpkit/toolkit` removes the boilerplate every handler repeats
 and, more importantly, creates single choke points.
 
-| Helper | Purpose |
-|---|---|
-| `Args(req)` | Unwrap arguments, uniform error |
-| `Str` / `ReqStr` | Optional / required string |
-| `ID` / `ReqID` | Parse a string ID to `uint64`; **rejects** a numeric argument rather than coercing it |
-| `Page(args)` | `limit` (default 50, capped 200) and `pageCursor` |
-| `JSONResult(v)` | Marshal, enforce the 256 KiB ceiling, wrap |
-| `TextResult(...)` | Non-JSON results — delete handlers acknowledge in plain text |
-| `Errf(subject, err)` | Uniform error wrapping |
+| Helper               | Purpose                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `Args(req)`          | Unwrap arguments, uniform error                                                       |
+| `Str` / `ReqStr`     | Optional / required string                                                            |
+| `ID` / `ReqID`       | Parse a string ID to `uint64`; **rejects** a numeric argument rather than coercing it |
+| `Page(args)`         | `limit` (default 50, capped 200) and `pageCursor`                                     |
+| `JSONResult(v)`      | Marshal, enforce the 256 KiB ceiling, wrap                                            |
+| `TextResult(...)`    | Non-JSON results — delete handlers acknowledge in plain text                          |
+| `Errf(subject, err)` | Uniform error wrapping                                                                |
 
 `JSONResult` is the only sanctioned path from a Go value to a tool result. The
 size ceiling lives there, and if tool output ever needs to mark third-party
@@ -399,7 +421,7 @@ service type. This is what the code already does: module, chart and namespace
 lookups all build trimmed items for lists. Projection shape:
 `{<res>ID, name/title, handle}` plus whatever disambiguates.
 
-The exception is a resource whose heavy field *is* the answer. A module's
+The exception is a resource whose heavy field _is_ the answer. A module's
 fields, a chart's config and a reminder's payload are incidental to picking one
 out of a list, so they are projected away; a record's values are the thing the
 caller asked for, so `compose_record_lookup` returns records in full. Where you
@@ -457,7 +479,7 @@ Descriptions are the entire interface for a caller without the repository. A
 configurator using Claude Code against a hosted instance has no source to read.
 
 Every description states: what the tool does; when to use it and, where there
-is a common mistake, when *not* to; how it relates to adjacent tools; the shape
+is a common mistake, when _not_ to; how it relates to adjacent tools; the shape
 of anything non-obvious.
 
 Worth copying: `compose_record_lookup` ("Do NOT call this before creating a
@@ -502,7 +524,7 @@ Seed deny-list: `chatbotSession`, `chatbotPreview`, `role.Membership`.
 ### 8.6b Disclosure is a separate reason not to write a tool
 
 A method can pass §8.6 and still not deserve a tool.
-`authClient.ExposeSecret` is the case: it *is* authorized — `lookupByID` calls
+`authClient.ExposeSecret` is the case: it _is_ authorized — `lookupByID` calls
 `CanReadAuthClient` — but it returns a working credential, and read permission
 is a lower bar than a credential deserves. `LookupByID` deliberately blanks
 `Secret` before returning; `ExposeSecret` does not.
@@ -664,7 +686,7 @@ the hazard most likely to force revisiting "groups are filtering only".
 
 - `/api/mcp` requires **both** `auth.HttpTokenValidator("api")` and
   `auth.HttpAuthenticatedOnly()`, and they do different jobs. The validator
-  rejects a token minted for another scope; on its own it does *not* require a
+  rejects a token minted for another scope; on its own it does _not_ require a
   token at all, because it deliberately passes `jwtauth.ErrNoTokenFound`
   through. That is fine for REST, whose handlers reach RBAC and RBAC denies the
   anonymous role — but MCP tool discovery never reaches RBAC, it lists every
@@ -675,6 +697,7 @@ the hazard most likely to force revisiting "groups are filtering only".
   Known and pre-existing: a **malformed** token yields 500 rather than 401.
   This is global to the API, not specific to `/mcp` (`/system/settings/current`
   behaves the same), and lives in the shared token verifier.
+
 - `Hidden` enforced by exclusion; `Available` enforced per-request via
   `server.WithToolFilter`.
 - `ExecuteTool` resolves aliases. Duplicate registration panics. Schema

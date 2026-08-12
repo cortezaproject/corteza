@@ -21,11 +21,11 @@ import urllib.request
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 API = os.environ.get("HUMAN_API", "http://localhost:1043/api")
 
-# ?tools=all opts out of progressive disclosure. A session normally sees five
-# tools and searches for the rest; this script exists to inspect the surface, so
-# it wants the whole list. Agents must not use the opt-out — it costs the ~30k
-# tokens disclosure exists to avoid.
-MCP = API + "/mcp?tools=all"
+# ?docs=full sends complete descriptions. A session normally gets every tool
+# summarised to one line and loads the detail it needs; this script exists to
+# inspect what the tools declare, so it wants the full text. Agents must not use
+# it — it costs ~40k tokens for a surface they can already call in full.
+MCP = API + "/mcp?docs=full"
 
 if urllib.parse.urlparse(API).hostname not in ("localhost", "127.0.0.1", "::1"):
     sys.exit(f"mcp.py is local-only; refusing to touch {API}")
