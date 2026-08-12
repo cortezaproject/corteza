@@ -92,12 +92,15 @@ func testUsers(t *testing.T, s store.Users) {
 		req.EqualError(s.CreateUser(ctx, makeNew("a")), store.ErrNotUniqueOn("systemType.User", "Email").Error())
 	})
 
+	// Unlike the duplicate email above, this re-creates the same record: the
+	// store's own uniqueness check skips a match on the same ID, so the
+	// database raises its own constraint and the error is the generic one.
 	t.Run("create with duplicate ID", func(t *testing.T) {
 		req := require.New(t)
 		req.NoError(s.TruncateUsers(ctx))
 		user := makeNew("a")
 		req.NoError(s.CreateUser(ctx, user))
-		req.EqualError(s.CreateUser(ctx, user), store.ErrNotUniqueOn("systemType.User", "Email").Error())
+		req.EqualError(s.CreateUser(ctx, user), store.ErrNotUnique.Error())
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
