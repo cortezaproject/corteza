@@ -173,7 +173,9 @@
                   <span v-else>{{ formatFilterValue(f) }}</span>
                 </template>
               </span>
-              <span v-else class="text-muted-color italic">
+              <!-- "is empty" already says what it tests; appending NULL to it
+                   would read "Text is empty NULL". -->
+              <span v-else-if="!isValuelessOperator(f.operator)" class="text-muted-color italic">
                 {{ $t('block.recordList.filter.nil') }}
               </span>
             </Chip>
@@ -616,6 +618,7 @@ import {
   convertRecordListFilter,
   formatActiveFilterOperator,
   isBetweenOperator,
+  isValuelessOperator,
   recordListFilterStorageKey,
   recordListPresetsStorageKey,
 } from '../../../lib/record-filter'

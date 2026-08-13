@@ -8,6 +8,8 @@ import {
   queryToFilter,
   recordListFilterStorageKey,
   recordListPresetsStorageKey,
+  isValuelessOperator,
+  formatActiveFilterOperator,
 } from './record-filter'
 
 // Helper to build a single-field filter group as consumed by queryToFilter.
@@ -270,6 +272,97 @@ describe('lib/record-filter', () => {
         [group([field('A', '1')]), group([field('B', '2')], 'OR')],
       )
       expect(out).toBe("(((A = '1')) OR ((B = '2')))")
+    })
+  })
+
+  // Verified against real records on the dev server: a field never set has no
+  // value row (IS NULL finds it), while a field the user cleared keeps its row
+  // with an empty string (only = '' finds it). Both read as empty on screen, so
+  // "is empty" has to cover both — but only on the kinds stored in a text
+  // column. `Num = ''` is a hard postgres error, not an empty result.
+  describe('is empty / is not empty', () => {
+    it('covers both a missing row and a cleared value on text kinds', () => {
+      expect(getFieldFilter('Text', 'String', undefined, 'IS EMPTY')).toBe(
+        "((Text IS NULL) OR (Text = ''))",
+      )
+    })
+
+    it('excludes both from is-not-empty on text kinds', () => {
+      // `NULL != ''` is unknown in SQL, so this drops missing rows too.
+      expect(getFieldFilter('Text', 'String', undefined, 'IS NOT EMPTY')).toBe("(Text != '')")
+    })
+
+    it('never compares a typed column against an empty string', () => {
+      // `Num = ''` -> pq: invalid input syntax for type numeric: ""
+      for (const kind of ['Number', 'DateTime', 'Bool', 'User', 'Record', 'File']) {
+        expect(getFieldFilter('F', kind, undefined, 'IS EMPTY')).toBe('(F IS NULL)')
+        expect(getFieldFilter('F', kind, undefined, 'IS NOT EMPTY')).toBe('(F IS NOT NULL)')
+      }
+    })
+
+    it('treats an unrecognised kind as typed, so a new kind cannot error', () => {
+      expect(getFieldFilter('F', 'SomeFutureKind', undefined, 'IS EMPTY')).toBe('(F IS NULL)')
+    })
+
+    it('applies the text form to every text-column kind', () => {
+      for (const kind of ['String', 'Email', 'Url', 'Select']) {
+        expect(getFieldFilter('F', kind, undefined, 'IS EMPTY')).toBe("((F IS NULL) OR (F = ''))")
+      }
+    })
+
+    // The Bool branch reads a missing value as `false`; reaching it with these
+    // operators would turn "is empty" into "is false" and lose the distinction
+    // between a box never touched and one explicitly unchecked.
+    it('does not fall into the Bool branch', () => {
+      expect(getFieldFilter('Flag', 'Bool', undefined, 'IS EMPTY')).toBe('(Flag IS NULL)')
+      expect(getFieldFilter('Flag', 'Bool', undefined, 'IS EMPTY')).not.toContain('false')
+    })
+
+    it('ignores any value left over from a previous operator', () => {
+      expect(getFieldFilter('Text', 'String', 'stale', 'IS EMPTY')).toBe(
+        "((Text IS NULL) OR (Text = ''))",
+      )
+    })
+
+    it('identifies the operators that carry no value', () => {
+      expect(isValuelessOperator('IS EMPTY')).toBe(true)
+      expect(isValuelessOperator('IS NOT EMPTY')).toBe(true)
+      expect(isValuelessOperator('=')).toBe(false)
+      expect(isValuelessOperator('BETWEEN')).toBe(false)
+      expect(isValuelessOperator(undefined)).toBe(false)
+    })
+
+    it('labels them for the active-filter chip', () => {
+      expect(formatActiveFilterOperator('IS EMPTY')).toBe('isEmpty')
+      expect(formatActiveFilterOperator('IS NOT EMPTY')).toBe('isNotEmpty')
+    })
+
+    // The not-empty form must not contain ' AND ': getRecordListFilterSql
+    // splits the assembled query on it to group OR conditions, so an ' AND '
+    // inside a single field's condition gets taken apart and re-wrapped.
+    it('keeps a whole-query build intact alongside other conditions', () => {
+      expect(
+        getRecordListFilterSql([
+          { name: 'Text', kind: 'String', operator: 'IS NOT EMPTY', condition: '' },
+          { name: 'Num', kind: 'Number', value: '1', operator: '=', condition: 'AND' },
+        ]),
+      ).toBe("((Text != '') AND (Num = '1'))")
+    })
+
+    it('survives grouping when combined with an OR condition', () => {
+      expect(
+        getRecordListFilterSql([
+          { name: 'Text', kind: 'String', operator: 'IS EMPTY', condition: '' },
+          { name: 'Num', kind: 'Number', value: '1', operator: '=', condition: 'OR' },
+        ]),
+      ).toBe("((((Text IS NULL) OR (Text = '')) OR (Num = '1')))")
+    })
+
+    // The old way of asking this — pick "is equal" and leave the box blank —
+    // is still in saved filters, presets and prefilters out there.
+    it('leaves the blank-value shorthand working', () => {
+      expect(getFieldFilter('Text', 'String', '', '=')).toBe('(Text IS NULL)')
+      expect(getFieldFilter('Text', 'String', '', '!=')).toBe('(Text IS NOT NULL)')
     })
   })
 

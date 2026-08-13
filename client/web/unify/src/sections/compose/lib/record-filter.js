@@ -99,9 +99,50 @@ export function getRecordListFilterSql(filter) {
   return query ? `(${query})` : query
 }
 
+// Operators that test for the presence of a value and so carry none of their
+// own. The UI hides the value editor for these, and getFieldFilter builds the
+// condition from the field kind alone.
+export const IS_EMPTY = 'IS EMPTY'
+export const IS_NOT_EMPTY = 'IS NOT EMPTY'
+
+export function isValuelessOperator(op) {
+  return [IS_EMPTY, IS_NOT_EMPTY].includes(op)
+}
+
+// Kinds whose value lands in a text column, where "empty" has two spellings: a
+// record that never held a value has no row at all (IS NULL), while one whose
+// value was cleared keeps its row with an empty string. Only testing IS NULL
+// finds the first and misses the second, which is the more common of the two —
+// clearing a field is something users do, never setting one happens once.
+//
+// Every other kind is stored in a typed column (numeric, boolean, timestamptz,
+// bigint) where comparing against '' is a hard postgres error, e.g.
+// `invalid input syntax for type numeric: ""`. Those get the NULL test alone.
+//
+// An allowlist rather than a denylist on purpose: a kind not named here falls
+// to the form that cannot error, so a new field kind fails safe.
+const emptyStringKinds = ['String', 'Email', 'Url', 'Select']
+
 // Helper function that creates a query for a specific field kind
 export function getFieldFilter(name, kind, query = '', operator = '=') {
   const numQuery = Number.parseFloat(query)
+
+  // Before every other branch: these ignore the value entirely, and the Bool
+  // branch below would otherwise read their absent value as `false`.
+  if (isValuelessOperator(operator)) {
+    const wantEmpty = operator === IS_EMPTY
+
+    if (emptyStringKinds.includes(kind)) {
+      // `!=` alone is the whole not-empty test: SQL makes `NULL != ''` unknown,
+      // so a missing row is excluded without a second condition. Spelling it
+      // out as `(x IS NOT NULL) AND (x != '')` returns the same rows but puts
+      // an ' AND ' inside one field's condition, which getRecordListFilterSql
+      // splits on when it groups OR conditions.
+      return wantEmpty ? `((${name} IS NULL) OR (${name} = ''))` : `(${name} != '')`
+    }
+
+    return wantEmpty ? `(${name} IS NULL)` : `(${name} IS NOT NULL)`
+  }
 
   const build = (op, left, right) => {
     switch (op.toUpperCase()) {
@@ -380,6 +421,8 @@ export function formatActiveFilterOperator(op) {
     'NOT LIKE': 'notLike',
     BETWEEN: 'between',
     'NOT BETWEEN': 'notBetween',
+    [IS_EMPTY]: 'isEmpty',
+    [IS_NOT_EMPTY]: 'isNotEmpty',
   }
 
   return operators[op] || 'is'

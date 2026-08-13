@@ -81,10 +81,12 @@
                     option-value="value"
                     class="w-40 shrink-0"
                     size="small"
+                    @change="onOperatorChange(gi, fi)"
                   />
 
-                  <!-- Value editor -->
-                  <template v-if="f.name">
+                  <!-- Value editor — omitted for the operators that test only
+                       for the presence of a value -->
+                  <template v-if="f.name && !isValuelessOperator(f.operator)">
                     <template v-if="isBetween(f.operator)">
                       <div class="flex flex-col gap-1 flex-1 min-w-0">
                         <CFieldEditor
@@ -247,7 +249,12 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
-import { isBetweenOperator } from '../../lib/record-filter'
+import {
+  isBetweenOperator,
+  isValuelessOperator,
+  IS_EMPTY,
+  IS_NOT_EMPTY,
+} from '../../lib/record-filter'
 
 const { CFieldEditor } = components
 const { t } = useI18n()
@@ -383,19 +390,28 @@ function getOperators(kind, field) {
     { value: 'BETWEEN', text: t('block.recordList.filter.operators.between') },
     { value: 'NOT BETWEEN', text: t('block.recordList.filter.operators.notBetween') },
   ]
+  // Offered for every kind, multi-value fields included — those carry only
+  // Contains/Not contains otherwise, and so had no way to ask for the records
+  // where nothing has been picked at all. Geometry is the one kind the server
+  // refuses to query on ("attribute can not be used in query expression"), but
+  // that is true of its every operator, not just these.
+  const empty = [
+    { value: IS_EMPTY, text: t('block.recordList.filter.operators.isEmpty') },
+    { value: IS_NOT_EMPTY, text: t('block.recordList.filter.operators.isNotEmpty') },
+  ]
 
-  if (field?.multi || field?.isMulti) return containsOps
+  if (field?.multi || field?.isMulti) return [...containsOps, ...empty]
 
   switch (kind) {
     case 'Number':
     case 'DateTime':
-      return [...eq, ...cmp, ...between]
+      return [...eq, ...cmp, ...between, ...empty]
     case 'String':
     case 'Url':
     case 'Email':
-      return [...eq, ...like]
+      return [...eq, ...like, ...empty]
     default:
-      return eq
+      return [...eq, ...empty]
   }
 }
 
@@ -429,6 +445,16 @@ function onFieldChange(gi, fi) {
     const multi = field.isMulti
     f.operator = multi ? 'IN' : '='
     f.value = multi ? [] : undefined
+  }
+}
+
+// Switching to "is empty" drops whatever was typed for the previous operator:
+// the editor for it is gone, so a value left behind is one nobody can see, edit
+// or clear, and it would ride along into a saved preset.
+function onOperatorChange(gi, fi) {
+  const f = internalFilter.value[gi].filter[fi]
+  if (isValuelessOperator(f.operator)) {
+    f.value = undefined
   }
 }
 

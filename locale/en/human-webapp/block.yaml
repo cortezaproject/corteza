@@ -873,6 +873,8 @@ recordList:
       greaterThan: is greater than
       in: contains
       is: is
+      isEmpty: is empty
+      isNotEmpty: is not empty
       lessThan: is less than
       like: is like
       notBetween: is not between
@@ -884,6 +886,8 @@ recordList:
       contains: Contains
       equal: Equal
       greaterThan: Greater than
+      isEmpty: Is empty
+      isNotEmpty: Is not empty
       lessThan: Less than
       like: Like
       notBetween: Not between
