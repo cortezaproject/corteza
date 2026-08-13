@@ -117,6 +117,9 @@ provide('$fileUploadContext', {
 const moduleID = computed(() => route.params.moduleID)
 const recordModule = computed(() => (moduleID.value ? moduleStore.getByID(moduleID.value) : null))
 
+const isMultiField = fieldName =>
+  !!recordModule.value?.fields.find(f => f.name === fieldName)?.isMulti
+
 const mode = ref('create')
 const isNew = ref(true)
 
@@ -245,7 +248,10 @@ async function handleSave({ valid }) {
           }),
         ),
       )
-      record.value.setValue(fieldName, mergeAttachmentIDs(record.value.values[fieldName], ids))
+      record.value.setValue(
+        fieldName,
+        mergeAttachmentIDs(record.value.values[fieldName], ids, isMultiField(fieldName)),
+      )
     }
 
     const saved = await recordStore.create(record.value)

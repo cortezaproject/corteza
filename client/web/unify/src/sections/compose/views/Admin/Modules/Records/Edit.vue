@@ -153,6 +153,9 @@ provide('$fileUploadContext', {
 const moduleID = computed(() => route.params.moduleID)
 const recordID = computed(() => route.params.recordID)
 const recordModule = computed(() => (moduleID.value ? moduleStore.getByID(moduleID.value) : null))
+
+const isMultiField = fieldName =>
+  !!recordModule.value?.fields.find(f => f.name === fieldName)?.isMulti
 const isEditMode = computed(() => route.name === 'admin.modules.record.edit')
 const mode = computed(() => (isEditMode.value ? 'edit' : 'view'))
 const isNew = computed(() => false)
@@ -256,7 +259,10 @@ async function handleSave({ valid }) {
           }),
         ),
       )
-      record.value.setValue(fieldName, mergeAttachmentIDs(record.value.values[fieldName], ids))
+      record.value.setValue(
+        fieldName,
+        mergeAttachmentIDs(record.value.values[fieldName], ids, isMultiField(fieldName)),
+      )
     }
 
     const saved = await recordStore.update(record.value)

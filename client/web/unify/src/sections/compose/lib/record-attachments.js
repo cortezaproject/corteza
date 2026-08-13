@@ -34,14 +34,22 @@ export async function uploadRecordAttachment(
 }
 
 /**
- * Append new attachment IDs to whatever the field already holds, normalising
- * the single-value and multi-value shapes to one array.
+ * Fold new attachment IDs into whatever the field already holds, normalising the
+ * single-value and multi-value shapes to one array.
+ *
+ * A single-value field holds one attachment, so an upload replaces what was
+ * there. Appending hands the server two references for a one-value field, which
+ * it rejects as an invalid reference format; and `Record.setValue` keeps only
+ * the first entry, so the file just uploaded is silently dropped instead.
  */
-export function mergeAttachmentIDs(existing, ids) {
+export function mergeAttachmentIDs(existing, ids, isMulti = true) {
   const existingIDs = Array.isArray(existing)
     ? existing.filter(Boolean)
     : existing
       ? [existing]
       : []
+
+  if (!isMulti) return ids.length ? [ids[ids.length - 1]] : existingIDs
+
   return [...existingIDs, ...ids]
 }

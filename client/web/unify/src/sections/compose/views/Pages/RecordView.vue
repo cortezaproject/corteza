@@ -214,6 +214,9 @@ const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVis
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 const moduleStore = useModuleStore()
+
+const isMultiField = fieldName =>
+  !!moduleStore.getByID(page.value?.moduleID)?.fields.find(f => f.name === fieldName)?.isMulti
 const recordStore = useRecordStore()
 
 const formRef = ref(null)
@@ -634,7 +637,10 @@ async function handleSave({ valid }) {
           uploadRecordAttachment($ComposeAPI, { namespaceID, moduleID, recordID, fieldName, file }),
         ),
       )
-      record.value.setValue(fieldName, mergeAttachmentIDs(record.value.values[fieldName], ids))
+      record.value.setValue(
+        fieldName,
+        mergeAttachmentIDs(record.value.values[fieldName], ids, isMultiField(fieldName)),
+      )
     }
 
     const saved = isNew.value
