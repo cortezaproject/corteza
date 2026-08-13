@@ -14,9 +14,9 @@ equivalents (`git status`, `go test`, `gofmt`).
 
 `dev_branch_status` — branch, base, how far ahead, what is already dirty.
 
-A tree with unrelated changes already in it is worth knowing about _before_ you
-edit, because it decides whether you can commit with staged files or must name
-paths explicitly to keep the commit atomic.
+Know this _before_ you edit: a tree holding unrelated changes decides whether
+you can commit staged files or must name paths explicitly to keep the commit
+atomic.
 
 ## 2. Read the contracts before editing, not after
 
@@ -40,10 +40,8 @@ contract.
 
 `dev_test_run` on the package you are about to change.
 
-If it is already failing, you need to know now — this repo has pre-existing
-breakage (`federation/service` does not build; `lib/js` rollup is broken), and
-half an hour spent debugging someone else's failure is the cost of skipping
-this.
+If it is already failing, you need to know now: pre-existing breakage is not
+yours to debug, and you cannot tell it from your own once you have edited.
 
 ## 4. Make the change
 
@@ -64,9 +62,8 @@ In this order, because each one can invalidate the next:
 1. `dev_test_run` — the touched package. Returns failures only; a green run is
    one line.
 2. `dev_format_run` — no arguments formats what you changed. **Never format a
-   directory**: this repo has files that were already unformatted before you
-   arrived, and reformatting them has turned a small diff into an unreviewable
-   one twice.
+   directory**: it sweeps up files that were already unformatted and turns a
+   small diff into an unreviewable one.
 3. `dev_intent_check` — reports your drift separately from the repo's
    pre-existing baseline. Reconcile the docs listed under `yours`. Leave the
    baseline alone.
@@ -81,16 +78,10 @@ In this order, because each one can invalidate the next:
 If you added or changed a test, break the thing it covers — revert your fix,
 flip a condition — and confirm the suite fails, then put it back.
 
-This exists because of a real case in this repo: `inputguard`'s
-`TestKnownFalsePositives` used `t.Logf` when an input stopped being blocked, so
-removing three detection patterns left the suite green. `dev_test_run` reported
-`passed: true`, correctly and meaninglessly. **A green suite proves nothing
-about a test that does not assert.** No tool can tell you this; you have to
-break something and watch.
-
-The same shape shows up everywhere in this codebase's history: a check that
-reports success without having checked. Treat "it passed first time" as a
-question, not an answer.
+**A green suite proves nothing about a test that does not assert** — a test that
+logs instead of failing reports `passed: true`, correctly and meaninglessly. No
+tool can tell you this; you have to break something and watch. Treat "it passed
+first time" as a question, not an answer.
 
 ## 7. Commit — once the work is verified
 
