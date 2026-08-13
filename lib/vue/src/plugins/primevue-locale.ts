@@ -1,63 +1,46 @@
-// Date presentation for PrimeVue, derived from the signed-in user's language.
+// Date presentation for PrimeVue, taken from Intl rather than from any data of
+// our own. PrimeVue ships one hard-coded default — US ordering, English names,
+// Sunday-first — and the app never configured it.
 //
-// PrimeVue ships one hard-coded default — 'mm/dd/yy' — and the app never
-// configured it, so every date input in Human read as US-formatted whatever the
-// user's language. Nothing here picks a house format: the ordering and
-// separators come from Intl for the locale, so a user on `sl` sees
-// `20. 08. 2026` and one on `en-US` still sees `08/20/2026`.
+// The UI language and the date locale are separate concerns: someone reading an
+// English interface still expects their own date order. So when the user has set
+// no explicit language we resolve to the BROWSER's locale, region and all,
+// rather than falling back to 'en'.
 //
 // PrimeVue's date tokens are the jQuery-UI set, not moment's: `dd` zero-padded
 // day, `mm` zero-padded month, `yy` FOUR-digit year (`y` is the two-digit one).
-//
-// Week start comes from the table below rather than from Intl's `getWeekInfo`,
-// which is missing from Firefox and from Node: reading it at runtime would give
-// the same user a different calendar in different browsers, and leave this
-// untestable in CI.
 
 // A date whose parts are all distinguishable — day 22, month 11 — so a locale
 // that happens to put them in the same position cannot be misread.
 const SAMPLE = new Date(Date.UTC(2026, 10, 22))
 
-// CLDR week data, keyed by region. Extracted from Chromium's ICU on 2026-08-12
-// (`new Intl.Locale('und-XX').getWeekInfo().firstDay` over every ISO region)
-// rather than written from memory, which had UAE on Saturday — it moved to
-// Monday after the 2022 workweek change — and China on Sunday, which CLDR has
-// never said. Regenerate the same way if it needs refreshing; obsolete ISO codes
-// (BU, RH, YD) are dropped.
-//
-// Only the regions that are NOT Monday-first are listed: Monday is CLDR's own
-// `001` default and covers 200-odd of them.
-const SUNDAY_FIRST = new Set(
-  `AG AS BD BR BS BT BW BZ CA CO DM DO ET GT GU HK HN ID IL IN IS JM JP KE KH KR
-   LA MH MM MO MT MX MZ NI NP PA PE PH PK PR PT PY SA SG SV TH TT TW UM US VE VI
-   WS YE ZA ZW`.split(/\s+/),
-)
-const SATURDAY_FIRST = new Set('AF BH DJ DZ EG IQ IR JO KW LY OM QA SD SY'.split(' '))
-const FRIDAY_FIRST = new Set(['MV'])
-
-// PrimeVue counts Sunday..Saturday as 0..6.
-const SUNDAY = 0
-const MONDAY = 1
-const FRIDAY = 5
-const SATURDAY = 6
+// 2026-01-04 is a Sunday, so +0..+6 walks Sunday..Saturday — the order PrimeVue
+// indexes day names in, whatever the week actually starts on.
+const SUNDAY = Date.UTC(2026, 0, 4)
+const DAY_MS = 86400000
 
 /**
- * PrimeVue `dateFormat` for a locale, e.g. 'mm/dd/yy' for en-US,
- * 'dd. mm. yy' for sl. Falls back to PrimeVue's own default if Intl cannot
- * resolve the locale.
+ * The locale actually in force: the requested one when Intl can resolve it,
+ * otherwise the runtime's own. A bare language is left bare — Intl applies
+ * CLDR's likely region itself, so 'en' already formats and starts its week the
+ * US way without us spelling that out.
  */
-export function localeDateFormat(locale: string): string {
-  let parts: Intl.DateTimeFormatPart[]
+export function resolveLocale(locale?: string): string {
   try {
-    parts = new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      timeZone: 'UTC',
-    }).formatToParts(SAMPLE)
+    return new Intl.DateTimeFormat(locale).resolvedOptions().locale
   } catch {
-    return 'mm/dd/yy'
+    return new Intl.DateTimeFormat().resolvedOptions().locale
   }
+}
+
+/** PrimeVue `dateFormat`, e.g. 'mm/dd/yy' for en-US, 'dd. mm. yy' for sl-SI. */
+export function localeDateFormat(locale?: string): string {
+  const parts = new Intl.DateTimeFormat(resolveLocale(locale), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).formatToParts(SAMPLE)
 
   return parts
     .map(p => {
@@ -73,34 +56,72 @@ export function localeDateFormat(locale: string): string {
     .join('')
 }
 
+function names(
+  locale: string,
+  count: number,
+  at: (i: number) => Date,
+  opts: Intl.DateTimeFormatOptions,
+): string[] {
+  const fmt = new Intl.DateTimeFormat(locale, { ...opts, timeZone: 'UTC' })
+  return Array.from({ length: count }, (_, i) => fmt.format(at(i)))
+}
+
+const dayAt = (i: number) => new Date(SUNDAY + i * DAY_MS)
+const monthAt = (i: number) => new Date(Date.UTC(2026, i, 1))
+
 /**
- * PrimeVue `firstDayOfWeek` (0 = Sunday) for a locale. The language alone
- * decides it: CLDR keys week data by region, so a bare `sl` is widened to its
- * likely region (`sl-Latn-SI`) first — the same widening that makes `en` mean
- * en-US, which is what PrimeVue already assumed.
+ * PrimeVue `firstDayOfWeek` (0 = Sunday), or undefined where the engine carries
+ * no week data — `getWeekInfo` is ES2023 and not everywhere yet, so PrimeVue's
+ * own default stands in until the browser ships it. Deliberately not backed by a
+ * hand-kept CLDR table: that data goes stale silently and nobody notices.
  */
-export function localeFirstDayOfWeek(locale: string): number {
-  let region: string | undefined
+export function localeFirstDayOfWeek(locale?: string): number | undefined {
   try {
-    region = new Intl.Locale(locale).maximize().region
+    // The RAW tag, not the resolved one. resolveLocale negotiates against the
+    // formatting data the runtime actually ships, so a language its ICU lacks
+    // collapses to en-US and takes the region with it — 'dv-MV' would answer
+    // Sunday instead of Friday. Week data needs no formatting data, only a
+    // parseable tag.
+    //
+    // Both spellings matter: `getWeekInfo()` is the standardised one, `weekInfo`
+    // the property engines shipped first — Node 22 has only the latter, and
+    // probing for the method alone makes a runtime that HAS the data look like
+    // one that does not.
+    const l = new Intl.Locale(locale ?? resolveLocale()) as Intl.Locale & {
+      getWeekInfo?: () => { firstDay: number }
+      weekInfo?: { firstDay: number }
+    }
+    const firstDay = l.getWeekInfo?.().firstDay ?? l.weekInfo?.firstDay
+    if (!firstDay) return undefined
+    // Intl counts Monday..Sunday as 1..7; PrimeVue counts Sunday..Saturday as 0..6.
+    return firstDay === 7 ? 0 : firstDay
   } catch {
-    // Unresolvable, so match what localeDateFormat falls back to: en-US.
-    return SUNDAY
+    return undefined
   }
-  if (!region) return SUNDAY
-  if (SUNDAY_FIRST.has(region)) return SUNDAY
-  if (SATURDAY_FIRST.has(region)) return SATURDAY
-  if (FRIDAY_FIRST.has(region)) return FRIDAY
-  return MONDAY
 }
 
 /**
  * The partial PrimeVue `locale` config for a language. PrimeVue deep-merges it
- * over its defaults, so every key left out here keeps its built-in value.
+ * over its defaults, so every key left out here keeps its built-in value — which
+ * is why `firstDayOfWeek` is omitted rather than sent as undefined when unknown.
+ *
+ * The button and aria strings ('Today', 'Clear', 'Choose Date') are NOT set
+ * here: they are app chrome, not locale data, and belong in the `human-webapp`
+ * i18n bundle with everything else the user reads.
  */
-export function primeVueLocale(locale: string): Record<string, unknown> {
+export function primeVueLocale(locale?: string): Record<string, unknown> {
+  const resolved = resolveLocale(locale)
+  // Names and format need the resolved tag (they need data the runtime ships);
+  // week start takes the raw one, see localeFirstDayOfWeek.
+  const firstDayOfWeek = localeFirstDayOfWeek(locale)
+
   return {
-    dateFormat: localeDateFormat(locale),
-    firstDayOfWeek: localeFirstDayOfWeek(locale),
+    dateFormat: localeDateFormat(resolved),
+    dayNames: names(resolved, 7, dayAt, { weekday: 'long' }),
+    dayNamesShort: names(resolved, 7, dayAt, { weekday: 'short' }),
+    dayNamesMin: names(resolved, 7, dayAt, { weekday: 'narrow' }),
+    monthNames: names(resolved, 12, monthAt, { month: 'long' }),
+    monthNamesShort: names(resolved, 12, monthAt, { month: 'short' }),
+    ...(firstDayOfWeek === undefined ? {} : { firstDayOfWeek }),
   }
 }

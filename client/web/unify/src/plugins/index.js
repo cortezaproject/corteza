@@ -41,10 +41,12 @@ function setupPrimeVue(app, theme, locale) {
         },
       },
     },
-    // Date ordering follows the user's language rather than PrimeVue's US
-    // default; merged over its built-in locale, so every string this does not
-    // name keeps its default. Reaches every date input in the app through
-    // CInputDateTime.
+    // Date ordering, day/month names and week start come from Intl rather than
+    // PrimeVue's US default; merged over its built-in locale, so every string
+    // this does not name keeps its default. `locale` is the user's explicit
+    // preference or undefined — undefined means the browser's own, which is
+    // what someone reading an English UI still expects their dates in. Reaches
+    // every date input in the app through CInputDateTime.
     locale: primeVueLocale(locale),
     ripple: true,
   })
@@ -101,8 +103,12 @@ export function setupAndAuthenticate(app) {
       app.use(EventBusPlugin)
       app.use(router)
 
-      // i18n — single consolidated locale bundle for chrome + every section
-      const locale = $Auth.user.meta.preferredLanguage || 'en'
+      // i18n — single consolidated locale bundle for chrome + every section.
+      // The UI falls back to English because that is the only bundle there is;
+      // dates must NOT, so they take the unset value and let Intl use the
+      // browser's locale instead (see setupPrimeVue).
+      const preferredLanguage = $Auth.user.meta.preferredLanguage
+      const locale = preferredLanguage || 'en'
       const translations = await app.config.globalProperties.$SystemAPI
         .localeGet({ lang: locale, application: 'human-webapp' })
         .catch(() => ({}))
@@ -117,7 +123,7 @@ export function setupAndAuthenticate(app) {
 
       return $Settings.init().then(() => {
         setThemes($Settings.get('ui.studio.themes'))
-        setupPrimeVue(app, $Auth.user.meta.theme, locale)
+        setupPrimeVue(app, $Auth.user.meta.theme, preferredLanguage)
 
         return true
       })

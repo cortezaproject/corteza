@@ -131,13 +131,17 @@ describe('setupAndAuthenticate', () => {
     expect(app.optionsFor.PrimeVue.locale).toEqual({ dateFormat: 'format-for-sl' })
   })
 
-  it('falls back to en when the user has no language set', async () => {
+  it('leaves dates to the browser when the user has no language set', async () => {
+    // The UI has to fall back to English — it is the only bundle there is — but
+    // dates must not: an English interface does not mean the reader wants
+    // American date order. Passing undefined lets Intl use the browser locale.
     stubs.handle.mockResolvedValue()
 
     const app = fakeApp()
     await setupAndAuthenticate(app)
 
-    expect(app.optionsFor.PrimeVue.locale).toEqual({ dateFormat: 'format-for-en' })
+    expect(app.optionsFor.PrimeVue.locale).toEqual({ dateFormat: 'format-for-undefined' })
+    expect(stubs.localeGet).toHaveBeenCalledWith({ lang: 'en', application: 'human-webapp' })
   })
 
   it('resolves false and starts the auth flow when unauthenticated', async () => {
