@@ -377,13 +377,15 @@
           :sortable="!options.hideSorting && !options.editable && !col.isMulti"
         >
           <template #body="{ data }">
-            <CFieldEditor
+            <CInlineFieldEditor
               v-if="shouldShowEditor(data, col)"
+              :key="`${getRecordKey(data)}:${editorGeneration[getRecordKey(data)] || 0}`"
               :field="col"
               :namespace="namespace"
               :model-value="data.values[col.name]"
               style="min-width: 200px"
               @update:model-value="onInlineFieldUpdate(data, col.name, $event)"
+              @stage-files="onInlineFilesStaged(data, $event)"
               @click.stop
             />
             <div v-else class="group flex items-start gap-1 min-w-0">
@@ -599,13 +601,18 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@planetcrust/human-js'
 import { components, useConfirmDelete, usePermissions } from '@planetcrust/human-vue'
-const { CFieldViewer, CFieldEditor, CInputSearch, CFieldPicker } = components
+const { CFieldViewer, CInputSearch, CFieldPicker } = components
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import { useReminderStore } from '@/sections/compose/stores/reminder'
 import PageBlock from './PageBlock.vue'
 import { usePageStore } from '@planetcrust/human-vue'
 import CBulkRecordEditModal from './CBulkRecordEditModal.vue'
+import CInlineFieldEditor from './CInlineFieldEditor.vue'
+import {
+  mergeAttachmentIDs,
+  uploadRecordAttachment,
+} from '@/sections/compose/lib/record-attachments'
 import AutomationButtons from '../Shared/AutomationButtons.vue'
 import RecordListFilter from '../../Common/RecordListFilter.vue'
 import RecordImporter from '../../Public/Record/Importer/index.vue'
@@ -974,6 +981,68 @@ function onInlineFieldUpdate(record, fieldName, value) {
   onInlineFieldChange(record)
 }
 
+// Files picked in a File cell are only uploaded once the row is saved — a brand
+// new row has no recordID to attach them to yet. Hold them per row until then.
+// Not reactive: nothing renders from this, and the cells keep their own preview.
+const stagedFiles = new Map()
+
+function onInlineFilesStaged(record, { fieldName, files }) {
+  const key = getRecordKey(record)
+  const forRecord = stagedFiles.get(key)
+
+  if (!files.length) {
+    forRecord?.delete(fieldName)
+    if (forRecord && !forRecord.size) stagedFiles.delete(key)
+    return
+  }
+
+  if (forRecord) {
+    forRecord.set(fieldName, files)
+  } else {
+    stagedFiles.set(key, new Map([[fieldName, files]]))
+  }
+  // A staged file is an unsaved change like any other — without this the row
+  // never goes dirty and there is no save control to flush it with.
+  onInlineFieldChange(record)
+}
+
+// A File cell keeps its staged files in local state that the saved record cannot
+// reach, so it would go on showing them as pending next to the attachment they
+// became. Bumping this remounts that row's editors on the values that persisted.
+const editorGeneration = reactive({})
+
+// Upload whatever the row staged and fold the attachment IDs into its values.
+// Runs before the save so a new record claims its attachments on create: the
+// upload endpoint accepts an empty recordID and the server binds them there.
+// Reports whether anything was uploaded, since only then do the editors go stale.
+async function applyStagedFiles(record) {
+  const staged = stagedFiles.get(getRecordKey(record))
+  if (!staged?.size) return false
+
+  for (const [fieldName, files] of staged) {
+    const ids = await Promise.all(
+      files.map(file =>
+        uploadRecordAttachment($ComposeAPI, {
+          namespaceID: props.namespace.namespaceID,
+          moduleID: recordListModule.value.moduleID,
+          recordID: record.recordID || '',
+          fieldName,
+          file,
+        }),
+      ),
+    )
+    // setValue rather than a plain assignment: it normalises the value to the
+    // field's own multiplicity, the same way the record editors write it.
+    const field = recordListModule.value.fields.find(f => f.name === fieldName)
+    record.setValue(fieldName, mergeAttachmentIDs(record.values[fieldName], ids, !!field?.isMulti))
+  }
+  return true
+}
+
+function refreshRowEditors(key) {
+  editorGeneration[key] = (editorGeneration[key] || 0) + 1
+}
+
 function onInlineFieldChange(record) {
   const key = getRecordKey(record)
   if (!dirtyRecords[key]) {
@@ -1015,12 +1084,15 @@ async function handleSaveInline(record, index) {
   const key = getRecordKey(record)
   processingRecords[key] = 'save'
   try {
+    const uploaded = await applyStagedFiles(record)
     const isNew = !record.recordID || record.recordID === '0'
     const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
     delete dirtyRecords[key]
+    stagedFiles.delete(key)
     clearInlineEdits(record)
     const newRecord = new compose.Record(recordListModule.value, saved)
     records.value.splice(index, 1, newRecord)
+    if (uploaded) refreshRowEditors(getRecordKey(newRecord))
   } catch (e) {
     console.error('Failed to save inline record:', e)
   } finally {
@@ -1033,6 +1105,7 @@ async function handleDenyInline(record, index) {
   const key = getRecordKey(record)
   processingRecords[key] = 'deny'
   delete dirtyRecords[key]
+  stagedFiles.delete(key)
   clearInlineEdits(record)
   const isNew = !record.recordID || record.recordID === '0'
   if (isNew) {
@@ -1076,11 +1149,14 @@ async function handleSaveDirtyRecords() {
     if (index === -1) continue
     const isNew = !record.recordID || record.recordID === '0'
     try {
+      const uploaded = await applyStagedFiles(record)
       const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
       delete dirtyRecords[key]
+      stagedFiles.delete(key)
       clearInlineEdits(record)
       const newRecord = new compose.Record(recordListModule.value, saved)
       records.value.splice(index, 1, newRecord)
+      if (uploaded) refreshRowEditors(getRecordKey(newRecord))
     } catch (e) {
       hasError = true
       console.error('Failed to save record:', e)
@@ -1289,6 +1365,7 @@ async function fetchRecords(resetCursor = false) {
     // Clear inline editing state on full refresh
     Object.keys(dirtyRecords).forEach(k => delete dirtyRecords[k])
     activeInlineEdits.value.clear()
+    stagedFiles.clear()
     Object.keys(processingRecords).forEach(k => delete processingRecords[k])
   }
 
