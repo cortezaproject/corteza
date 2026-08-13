@@ -12,7 +12,9 @@ depends-on:
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
   - client/web/unify/src/sections/compose/components/Record/RecordModal.vue
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/views/Pages/RecordView.layout.test.js
+  - client/web/unify/src/sections/compose/views/Pages/RecordView.title.test.js
 ---
 
 # Record View (public record page)
@@ -34,6 +36,7 @@ navigation via query params instead of route params).
 - `resolveLayout()` picks the layout once the record it needs is resolved, and re-runs on initial load, on a same-page record swap, on view/edit/create mode changes, and after save — but never on field-value edits, since a layout swap remounts the block set and would discard in-progress input. An explicit `?layoutID=` (e.g. from a navigation block) wins only if that layout's own condition/roles pass, else selection falls back to normal order.
 - Block visibility, unlike layout, is reactive to record values: re-evaluated (debounced 300ms) on value edits as well as mode/record changes.
 - Provides `recordViewContext` (mode/record/isNew/isSaving) that RecordBlock consumes.
+- The displayed title is the page's, unless the active layout sets `config.useTitle` — then its `meta.title` is interpolated against the open record (`${record.values.x}`, `${recordID}`, `${ownerID}`, `${userID}`), so one page can title itself per layout. Any failure to evaluate falls back to the page title rather than surfacing a broken string.
 
 ## Routes
 

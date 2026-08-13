@@ -1241,8 +1241,13 @@
       "doc": "client/web/unify/src/sections/compose/views/Pages/Pages.intent.md",
       "t": "2026-07-27"
     },
+    "client/web/unify/src/sections/compose/views/Pages/RecordView.title.test.js": {
+      "h": "f818c3311f3f",
+      "doc": "client/web/unify/src/sections/compose/views/Pages/Pages.intent.md",
+      "t": "2026-08-13"
+    },
     "client/web/unify/src/sections/compose/views/Pages/RecordView.vue": {
-      "h": "1b757837e24b",
+      "h": "e34663021cd0",
       "doc": "client/web/unify/src/sections/compose/views/Pages/RecordView.intent.md",
       "t": "2026-08-13"
     },
