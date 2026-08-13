@@ -6,6 +6,8 @@ import {
   getFieldFilter,
   getRecordListFilterSql,
   queryToFilter,
+  recordListFilterStorageKey,
+  recordListPresetsStorageKey,
 } from './record-filter'
 
 // Helper to build a single-field filter group as consumed by queryToFilter.
@@ -268,6 +270,42 @@ describe('lib/record-filter', () => {
         [group([field('A', '1')]), group([field('B', '2')], 'OR')],
       )
       expect(out).toBe("(((A = '1')) OR ((B = '2')))")
+    })
+  })
+
+  // A blockID counts from 1 within its own page, so two record lists on
+  // different pages are routinely both blockID 1. Keys built from the blockID
+  // alone collided, and one page's saved filter surfaced on the other page's
+  // list — against a different module, hiding every record it held.
+  describe('storage keys', () => {
+    it('separates the same blockID on different pages', () => {
+      expect(recordListFilterStorageKey('P1', '1')).not.toBe(recordListFilterStorageKey('P2', '1'))
+      expect(recordListPresetsStorageKey('P1', '1')).not.toBe(
+        recordListPresetsStorageKey('P2', '1'),
+      )
+    })
+
+    it('separates different blocks on the same page', () => {
+      expect(recordListFilterStorageKey('P1', '1')).not.toBe(recordListFilterStorageKey('P1', '2'))
+    })
+
+    it('is stable for one record list, so its filter survives a revisit', () => {
+      expect(recordListFilterStorageKey('P1', '1')).toBe(recordListFilterStorageKey('P1', '1'))
+      expect(recordListFilterStorageKey('P1', '1')).toBe('recordListFilter-P1-1')
+      expect(recordListPresetsStorageKey('P1', '1')).toBe('recordListFilterPresets-P1-1')
+    })
+
+    it('does not collide with the un-scoped keys older builds wrote', () => {
+      // Those were `recordListFilter-<blockID>`; nothing may read them again.
+      expect(recordListFilterStorageKey('P1', '1')).not.toBe('recordListFilter-1')
+    })
+
+    it('keeps filters and presets in separate buckets', () => {
+      expect(recordListFilterStorageKey('P1', '1')).not.toBe(recordListPresetsStorageKey('P1', '1'))
+    })
+
+    it('falls back to a placeholder page when there is no pageID', () => {
+      expect(recordListFilterStorageKey(undefined, '1')).toBe('recordListFilter-0-1')
     })
   })
 })

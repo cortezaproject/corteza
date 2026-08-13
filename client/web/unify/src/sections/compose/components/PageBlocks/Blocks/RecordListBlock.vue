@@ -616,6 +616,8 @@ import {
   convertRecordListFilter,
   formatActiveFilterOperator,
   isBetweenOperator,
+  recordListFilterStorageKey,
+  recordListPresetsStorageKey,
 } from '../../../lib/record-filter'
 
 const props = defineProps({
@@ -1898,8 +1900,16 @@ function filterByValue(record, col) {
 
 // --- Filter persistence (localStorage) ---
 
+// Scoped to the page as well as the block — see recordListFilterStorageKey.
+//
+// A function, not a computed: the moduleID watcher below runs with
+// `immediate: true` from higher up in this setup block, so a `const` declared
+// down here is still in its temporal dead zone when loadStoredFilter() first
+// runs. The ReferenceError that produces lands in that function's catch —
+// written for "localStorage not available" — and the saved filter silently
+// never loads. A function declaration hoists, so the first call works.
 function filterStorageKey() {
-  return `recordListFilter-${props.block.blockID}`
+  return recordListFilterStorageKey(props.page?.pageID, props.block.blockID)
 }
 
 function persistFilter() {
@@ -1929,12 +1939,15 @@ function loadStoredFilter() {
 
 // --- Filter presets ---
 
-const userPresetsKey = computed(() => `recordListFilterPresets-${props.block.blockID}`)
+// Page-scoped for the same reason the filter key is — see the helper's comment.
+const userPresetsKey = computed(() =>
+  recordListPresetsStorageKey(props.page?.pageID, props.block.blockID),
+)
 const userPresets = ref([])
 
 // Load user presets from localStorage on init
 try {
-  const stored = localStorage.getItem(`recordListFilterPresets-${props.block.blockID}`)
+  const stored = localStorage.getItem(userPresetsKey.value)
   if (stored) userPresets.value = JSON.parse(stored)
 } catch {
   // ignore

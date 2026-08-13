@@ -388,3 +388,20 @@ export function formatActiveFilterOperator(op) {
 export function isBetweenOperator(op) {
   return ['BETWEEN', 'NOT BETWEEN'].includes(op)
 }
+
+// Browser-storage keys for one record list's saved filter and saved presets.
+//
+// The pageID is part of the key because a blockID is only unique WITHIN its
+// page: the server numbers a page's blocks from 1 (server/compose/service/
+// page.go), so the first record list of every page is blockID 1. Keying on the
+// blockID alone put all of those lists in one bucket — a filter set on one
+// page's list came back on an unrelated page's list, against a different
+// module, silently hiding its records. A pageID is globally unique, so
+// page+block names exactly one record list.
+export function recordListFilterStorageKey(pageID, blockID) {
+  return `recordListFilter-${pageID || '0'}-${blockID}`
+}
+
+export function recordListPresetsStorageKey(pageID, blockID) {
+  return `recordListFilterPresets-${pageID || '0'}-${blockID}`
+}
