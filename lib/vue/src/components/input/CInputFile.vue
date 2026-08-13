@@ -130,10 +130,12 @@ let nextId = 0
 const stagedFiles = ref([])
 const validationErrors = ref([])
 
+// Decimal units, matching the server's megabyte (1_000_000) so a configured
+// limit of 5 MB is reported back as 5 MB and not 4.8.
 function formatSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes < 1000) return `${bytes} B`
+  if (bytes < 1000 * 1000) return `${(bytes / 1000).toFixed(1)} KB`
+  return `${(bytes / (1000 * 1000)).toFixed(1)} MB`
 }
 
 function validateFile(file) {
