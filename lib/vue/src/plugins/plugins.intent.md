@@ -29,7 +29,7 @@ registry. Together they define the injection surface (`$Auth`, `$SystemAPI`,
 - human-api.ts — one install-plugin per API client (System/Compose/Automation/Federation/Discovery); base URL from `window.HumanAPI` per service, token from `$Auth`. Discovery is the exception: a separate service, so it reads `window.HumanDiscoveryAPI` and falls back to localhost.
 - i18n.ts — creates vue-i18n (Composition mode) from a pre-loaded translations bundle, `en` fallback.
 - primevue-components.ts — globally registers PrimeVue components plus shared C\* inputs/permission components so SFCs skip per-file imports.
-- primevue-locale.ts — derives PrimeVue's whole locale (day/month names, date format, first day of week) from `Intl` for the resolved locale, so translations never hand-maintain calendar strings.
+- primevue-locale.ts — derives PrimeVue's calendar locale (day/month names, date format, first day of week) from `Intl`, so translations never hand-maintain calendar strings. It returns a PARTIAL config that PrimeVue deep-merges over its defaults: a key the engine can't answer for — `firstDayOfWeek` on runtimes without week-info — is omitted rather than sent as undefined, so the built-in value survives. Button/aria strings stay in the i18n bundle; they are chrome, not locale data.
 - settings.ts — `Settings` service around `settingsCurrent()`: dot-path `get(k, d)` and attachment-URL resolution; provides `$Settings`.
 - toast.ts — wraps PrimeVue toast into `$toast` helpers (`toastSuccess/Warning/Info/Danger`, `toastErrorHandler`).
 

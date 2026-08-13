@@ -28,8 +28,8 @@ wrappers so templates across sections share one date-formatting vocabulary.
 
 - Admin/section list columns (createdAt/updatedAt cells) render through these
   — output format changes are visible everywhere at once. Datetime _field_
-  viewers deliberately do not: a module field's own options (`onlyDate`,
-  `onlyTime`, `outputRelative`, `format`) decide its format, so
+  viewers deliberately do not: the field's own `formatValue`, else its
+  `onlyDate`/`onlyTime`/`outputRelative` options, decide the format, so
   `CFieldDateTimeViewer` formats independently.
 - Keep these pure and locale-driven; new formatting logic belongs in lib/js
   `fmt`, with only a named wrapper added here.
