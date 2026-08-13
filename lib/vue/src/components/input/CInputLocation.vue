@@ -141,9 +141,17 @@ const draftCoords = ref(null)
 const dialogCenter = ref([30, 30])
 const dialogZoom = ref(3)
 
-const longitude = computed(() => props.modelValue?.coordinates?.[0] ?? null)
-const latitude = computed(() => props.modelValue?.coordinates?.[1] ?? null)
-const hasValue = computed(() => latitude.value != null && longitude.value != null)
+// A point needs both coordinates, so a half-entered one has no representation in
+// the model — entering latitude emits null, which used to erase the latitude too,
+// leaving the longitude keystroke nothing to pair with. Typed coordinates were
+// impossible to save that way. Hold what was entered until the pair completes.
+const typedLng = ref(null)
+const typedLat = ref(null)
+
+const longitude = computed(() => props.modelValue?.coordinates?.[0] ?? typedLng.value)
+const latitude = computed(() => props.modelValue?.coordinates?.[1] ?? typedLat.value)
+// Either coordinate alone is still worth a clear button.
+const hasValue = computed(() => latitude.value != null || longitude.value != null)
 
 function round7(n) {
   return Math.round(n * 1e7) / 1e7
@@ -156,7 +164,11 @@ function buildPoint(lng, lat) {
   return { type: 'Point', coordinates: [round7(lng), round7(lat)] }
 }
 
+// Every path that sets a coordinate goes through here, so the retained pair
+// never drifts from what the model was last told.
 function emitValue(lng, lat) {
+  typedLng.value = lng ?? null
+  typedLat.value = lat ?? null
   emit('update:modelValue', buildPoint(lng, lat))
 }
 
@@ -169,7 +181,7 @@ function onLngChange(val) {
 }
 
 function clearValue() {
-  emit('update:modelValue', null)
+  emitValue(null, null)
 }
 
 function openMap() {
@@ -213,7 +225,7 @@ function saveMapValue() {
     const [lng, lat] = draftCoords.value
     emitValue(lng, lat)
   } else {
-    emit('update:modelValue', null)
+    emitValue(null, null)
   }
   showMapDialog.value = false
   draftCoords.value = null
