@@ -26,6 +26,13 @@
         {{ $t('field.kind.file.view.maxSizeLabel') }}
       </label>
       <InputNumber v-model="field.options.maxSize" :min="0" show-buttons class="w-full md:w-1/2" />
+      <small class="text-muted-color">
+        {{
+          globalMaxSize
+            ? $t('field.kind.file.view.maxSizeFootnote', { size: globalMaxSize })
+            : $t('field.kind.file.view.maxSizeFootnoteUnlimited')
+        }}
+      </small>
     </div>
 
     <!-- MIME types -->
@@ -35,6 +42,9 @@
       </label>
       <InputText v-model="field.options.mimetypes" class="w-full" />
       <small class="text-muted-color">{{ $t('field.kind.file.view.mimetypesFootnote') }}</small>
+      <small v-if="globalMimetypes" class="text-muted-color">
+        {{ $t('field.kind.file.view.mimetypesGlobalFootnote', { types: globalMimetypes }) }}
+      </small>
     </div>
 
     <!-- General options -->
@@ -108,10 +118,22 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { components } from '@planetcrust/human-vue'
 
 const { CInputColorPicker } = components
 
 const field = inject('fieldDraft')
+
+// Both options fall back to the system-wide record-attachment settings when left
+// empty, so name the inherited value rather than leaving "0" looking unlimited.
+// These read back capital-cased — the current-settings endpoint returns the
+// server's struct, not the kv keys the settings editor writes.
+const $Settings = inject('$Settings', null)
+const globalMaxSize = computed(
+  () => Number($Settings?.get('compose.Record.Attachments.MaxSize')) || 0,
+)
+const globalMimetypes = computed(() =>
+  ($Settings?.get('compose.Record.Attachments.Mimetypes') || []).join(', '),
+)
 </script>

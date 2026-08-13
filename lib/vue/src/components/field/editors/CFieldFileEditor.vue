@@ -3,7 +3,7 @@
     :model-value="normalizedValue"
     :disabled="disabled"
     :multiple="field.isMulti"
-    :accept="field.options?.mimetypes || ''"
+    :accept="accept"
     :max-file-size="maxFileSize"
     :attachment-info="attachmentInfo"
     @update:model-value="$emit('update:modelValue', $event)"
@@ -42,10 +42,32 @@ const normalizedValue = computed(() => {
   return []
 })
 
-// The field option is configured (and stored) in megabytes; the server enforces
-// it as maxSize * 1_000_000 (compose/service/attachment.go). CInputFile compares
-// raw byte counts, so convert with the same factor the server uses.
-const maxFileSize = computed(() => (props.field.options?.maxSize || 0) * 1_000_000)
+const $Settings = inject('$Settings', null)
+
+// Both constraints mirror the server's resolution order in
+// compose/service/attachment.go: the field option overrides the system-wide
+// record-attachment setting, and an unset constraint means "no limit".
+// Staying in step matters — uploads are deferred to record save, so a check the
+// client skips surfaces as a failed save rather than a rejected file.
+const maxFileSize = computed(() => {
+  // Configured and stored in megabytes; the server enforces maxSize * 1_000_000.
+  // CInputFile compares raw byte counts, so convert with the same factor.
+  const mb = props.field.options?.maxSize || globalSetting('MaxSize') || 0
+  return mb * 1_000_000
+})
+
+const accept = computed(() => {
+  const own = props.field.options?.mimetypes
+  if (own) return own
+  // The system-wide allow list is a list; CInputFile takes it comma-separated.
+  return (globalSetting('Mimetypes') || []).join(',')
+})
+
+// The current-settings endpoint returns the server's struct, so these read back
+// capital-cased — unlike the kv keys the settings editor writes.
+function globalSetting(name) {
+  return $Settings?.get(`compose.Record.Attachments.${name}`)
+}
 
 const $ComposeAPI = inject('$ComposeAPI', null)
 const $fileUploadContext = inject('$fileUploadContext', null)

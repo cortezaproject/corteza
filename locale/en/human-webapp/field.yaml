@@ -75,9 +75,12 @@ kind:
       list: List
       margin: Margin
       maxHeight: Max height
+      maxSizeFootnote: Leave this at 0 to inherit the system-wide limit for record attachments, which is currently {size} MB.
+      maxSizeFootnoteUnlimited: Leave this at 0 to accept files of any size. No system-wide limit for record attachments is configured.
       maxSizeLabel: Maximum file size (MB)
       maxWidth: Max width
       mimetypesFootnote: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
+      mimetypesGlobalFootnote: Leave this empty to inherit the system-wide allow list for record attachments, which currently accepts {types}.
       mimetypesLabel: File type allow list
       modeFootnote: How files are represented in page blocks
       modeLabel: View mode
