@@ -1,7 +1,7 @@
 <template>
   <!-- Page title in topbar -->
   <Teleport v-if="!inModal" to="#topbar-title" :defer="true">
-    <span v-if="page">{{ page.title }}</span>
+    <span v-if="page">{{ pageTitle }}</span>
   </Teleport>
 
   <!-- Admin tools in topbar -->
@@ -163,11 +163,16 @@ import { useModuleStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
-import { compose, validator } from '@planetcrust/human-js'
+import { compose, validator, NoID } from '@planetcrust/human-js'
+import { evaluatePrefilter, usesRecordVariables } from '@/sections/compose/lib/record-filter'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onBeforeUnmount, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
+import {
+  mergeAttachmentIDs,
+  uploadRecordAttachment,
+} from '@/sections/compose/lib/record-attachments'
 
 const { CInputDelete } = components
 
@@ -247,6 +252,39 @@ const isSaving = ref(false)
 const page = ref(null)
 const layout = ref(null)
 const record = ref(null)
+
+/**
+ * The record page's displayed title. A layout may override the page title with
+ * its own, interpolated against the open record (`config.useTitle`) — so a
+ * layout can title the screen `${record.values.name}` rather than the static
+ * page title. Falls back to the page title whenever the override is off, empty,
+ * or cannot be evaluated yet.
+ */
+const pageTitle = computed(() => {
+  if (!page.value) return ''
+
+  const { config = {}, meta = {} } = layout.value || {}
+  if (!config.useTitle || !meta.title) return page.value.title
+
+  // The record resolves after the layout is picked; a template reading it would
+  // throw until then, so keep showing the page title rather than flashing an
+  // error or a half-interpolated string.
+  if (usesRecordVariables(meta.title) && !record.value) return page.value.title
+
+  try {
+    return (
+      evaluatePrefilter(meta.title, {
+        record: record.value,
+        user: $Auth?.user || {},
+        recordID: record.value?.recordID || NoID,
+        ownerID: record.value?.ownedBy || NoID,
+        userID: $Auth?.user?.userID || NoID,
+      }) || page.value.title
+    )
+  } catch {
+    return page.value.title
+  }
+})
 const pristineRecord = ref(null)
 const navigatingAfterSave = ref(false)
 
@@ -571,22 +609,6 @@ function resolver() {
   return { errors }
 }
 
-async function uploadFile({ namespaceID, moduleID, recordID, fieldName, file }) {
-  const url = $ComposeAPI.recordUploadEndpoint({ namespaceID, moduleID })
-  const formData = new FormData()
-  formData.append('recordID', recordID || '')
-  formData.append('fieldName', fieldName)
-  formData.append('upload', file, file.name)
-  const { data } = await $ComposeAPI
-    .api()
-    .post(url, formData, { headers: { 'Content-Type': undefined } })
-  if (data?.error) throw new Error(data.error)
-  const attachment = data?.response ?? data
-  if (!attachment?.attachmentID)
-    throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
-  return attachment.attachmentID
-}
-
 async function handleSave({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
@@ -608,15 +630,11 @@ async function handleSave({ valid }) {
 
     for (const [fieldName, files] of pendingByField) {
       const ids = await Promise.all(
-        files.map(file => uploadFile({ namespaceID, moduleID, recordID, fieldName, file })),
+        files.map(file =>
+          uploadRecordAttachment($ComposeAPI, { namespaceID, moduleID, recordID, fieldName, file }),
+        ),
       )
-      const existing = record.value.values[fieldName]
-      const existingIDs = Array.isArray(existing)
-        ? existing.filter(Boolean)
-        : existing
-          ? [existing]
-          : []
-      record.value.setValue(fieldName, [...existingIDs, ...ids])
+      record.value.setValue(fieldName, mergeAttachmentIDs(record.value.values[fieldName], ids))
     }
 
     const saved = isNew.value

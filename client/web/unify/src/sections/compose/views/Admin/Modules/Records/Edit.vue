@@ -111,6 +111,10 @@ import { components } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
+import {
+  mergeAttachmentIDs,
+  uploadRecordAttachment,
+} from '@/sections/compose/lib/record-attachments'
 
 const { CInputDelete, CRouterLinkButton } = components
 
@@ -225,22 +229,6 @@ function resolver() {
   return { errors }
 }
 
-async function uploadFile({ namespaceID, moduleID, recordID, fieldName, file }) {
-  const url = $ComposeAPI.recordUploadEndpoint({ namespaceID, moduleID })
-  const formData = new FormData()
-  formData.append('recordID', recordID || '')
-  formData.append('fieldName', fieldName)
-  formData.append('upload', file, file.name)
-  const { data } = await $ComposeAPI
-    .api()
-    .post(url, formData, { headers: { 'Content-Type': undefined } })
-  if (data?.error) throw new Error(data.error)
-  const attachment = data?.response ?? data
-  if (!attachment?.attachmentID)
-    throw new Error(`Upload failed for "${file.name}": no attachmentID in response`)
-  return attachment.attachmentID
-}
-
 async function handleSave({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
@@ -259,7 +247,7 @@ async function handleSave({ valid }) {
     for (const [fieldName, files] of pendingByField) {
       const ids = await Promise.all(
         files.map(file =>
-          uploadFile({
+          uploadRecordAttachment($ComposeAPI, {
             namespaceID: props.namespace.namespaceID,
             moduleID: moduleID.value,
             recordID: record.value.recordID,
@@ -268,13 +256,7 @@ async function handleSave({ valid }) {
           }),
         ),
       )
-      const existing = record.value.values[fieldName]
-      const existingIDs = Array.isArray(existing)
-        ? existing.filter(Boolean)
-        : existing
-          ? [existing]
-          : []
-      record.value.setValue(fieldName, [...existingIDs, ...ids])
+      record.value.setValue(fieldName, mergeAttachmentIDs(record.value.values[fieldName], ids))
     }
 
     const saved = await recordStore.update(record.value)
