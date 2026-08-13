@@ -49,6 +49,11 @@ this.
 
 Ordinary Read/Edit. The tools do not do the thinking.
 
+Edit at the layer that owns the concept: `server/` and `lib/` are the source of
+truth and the app imports them one-way. Check upstream for an existing rule
+before writing one in `client/web/unify` — otherwise you ship a second copy that
+drifts from the first.
+
 Scope discipline: do what was asked. If you find a second, real problem, finish
 the first, then say what you found — do not fold it in silently.
 

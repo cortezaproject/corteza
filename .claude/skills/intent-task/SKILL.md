@@ -10,7 +10,9 @@ confirmation phase — every task gets one, that is the team contract.
 
 ## Phase 1 — Orient
 
-1. Identify the files the task will touch (search, don't guess).
+1. Identify the files the task will touch (search, don't guess). Search
+   `server/` and `lib/` before `client/web/unify` — the higher layer is the
+   source of truth, and the app often only inherits what it decided.
 2. Read their governing intent docs: sibling `<name>.intent.md`, else nearest
    folder doc; ALWAYS also the area constitution if one exists (e.g.
    `sections/project/project.intent.md`).

@@ -77,6 +77,12 @@ can ask a sharper question than you could five minutes ago** — that is the who
 purpose of this step. Reading the whole subsystem here means asking questions
 you have already answered, badly.
 
+**Read down the dependency tree: `server/` and `lib/` before
+`client/web/unify`.** The higher layer is the single source of truth; the app
+usually just inherits what it already decided, so starting at the app reads an
+effect as a cause. A defect was once argued from the app's predicate and the
+server's error while the guard that settled it sat in `lib/js` between them.
+
 Use `Explore` or a read-only subagent for breadth; keep the depth for step 4.
 
 ## 3. Reproduce it — before you have a theory
