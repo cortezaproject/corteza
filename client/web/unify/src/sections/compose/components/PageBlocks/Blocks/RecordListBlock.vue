@@ -373,21 +373,43 @@
           v-for="col in columns"
           :key="col.name"
           :field="col.name"
-          :header="col.label"
           :sortable="!options.hideSorting && !options.editable && !col.isMulti"
         >
+          <!-- The header slot renders in place of PrimeVue's built-in title span,
+               so it has to carry that span's class or the labels lose their
+               weight. The mark goes inside it: header items are laid out with a
+               flex gap that would otherwise push it away from the label. -->
+          <template #header>
+            <span class="p-datatable-column-title">
+              {{ col.label }}
+              <span
+                v-if="showsRequiredMark(col)"
+                v-tooltip.top="$t('field.required-field')"
+                class="text-red-500"
+                aria-hidden="true"
+              >
+                *
+              </span>
+            </span>
+          </template>
+
           <template #body="{ data }">
-            <CInlineFieldEditor
-              v-if="shouldShowEditor(data, col)"
-              :key="`${getRecordKey(data)}:${editorGeneration[getRecordKey(data)] || 0}`"
-              :field="col"
-              :namespace="namespace"
-              :model-value="data.values[col.name]"
-              style="min-width: 200px"
-              @update:model-value="onInlineFieldUpdate(data, col.name, $event)"
-              @stage-files="onInlineFilesStaged(data, $event)"
-              @click.stop
-            />
+            <div v-if="shouldShowEditor(data, col)">
+              <CInlineFieldEditor
+                :key="`${getRecordKey(data)}:${editorGeneration[getRecordKey(data)] || 0}`"
+                :field="col"
+                :namespace="namespace"
+                :model-value="data.values[col.name]"
+                :class="{ 'rounded ring-1 ring-red-500': cellError(data, col) }"
+                style="min-width: 200px"
+                @update:model-value="onInlineFieldUpdate(data, col.name, $event)"
+                @stage-files="onInlineFilesStaged(data, $event)"
+                @click.stop
+              />
+              <small v-if="cellError(data, col)" class="block mt-1 text-red-500">
+                {{ cellError(data, col) }}
+              </small>
+            </div>
             <div v-else class="group flex items-start gap-1 min-w-0">
               <CFieldViewer :field="col" :record="data" :namespace="namespace" />
               <div
@@ -599,7 +621,7 @@ import axios from 'axios'
 import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { compose } from '@planetcrust/human-js'
+import { compose, validator } from '@planetcrust/human-js'
 import { components, useConfirmDelete, usePermissions } from '@planetcrust/human-vue'
 const { CFieldViewer, CInputSearch, CFieldPicker } = components
 import { useModuleStore } from '@planetcrust/human-vue'
@@ -976,8 +998,74 @@ function clearInlineEdits(record) {
   activeInlineEdits.value.delete(key)
 }
 
+// Validation errors per row, as { recordKey: { fieldName: message } }. Shown
+// under the offending cell, the way the record editors show them under a field.
+const rowErrors = reactive({})
+
+function cellError(record, col) {
+  return rowErrors[getRecordKey(record)]?.[col.name]
+}
+
+// Only worth marking a column required where the list can actually be edited.
+function showsRequiredMark(col) {
+  if (!options.value.editable && !options.value.inlineRecordEditEnabled) return false
+  return !!col.isRequired && isInlineEditField(col)
+}
+
+function clearRowErrors(record, fieldName) {
+  const errors = rowErrors[getRecordKey(record)]
+  if (!errors) return
+  if (fieldName) delete errors[fieldName]
+  if (!fieldName || !Object.keys(errors).length) delete rowErrors[getRecordKey(record)]
+}
+
+// Required fields the user can actually fill from here. One that is required but
+// not shown as a column has no cell to complain in, so it is left to the server —
+// its message still reaches the user through the toast below.
+function missingRequiredValues(record) {
+  const errors = {}
+  for (const field of columns.value) {
+    if (!field.isRequired || !isInlineEditField(field)) continue
+    if (validator.IsEmpty(record.values[field.name])) {
+      errors[field.name] = t('field.required-field')
+    }
+  }
+  return errors
+}
+
+// Map a rejected save onto the cells it came from. Anything that does not match a
+// visible column is reported in the toast instead of vanishing into the console.
+function reportSaveFailure(record, e, fallbackKey) {
+  const key = getRecordKey(record)
+  const shown = new Set(columns.value.map(c => c.name))
+  const errors = {}
+  const unshown = []
+
+  for (const detail of e?.details ?? []) {
+    const field = detail.meta?.field
+    if (!field || !detail.message) continue
+    if (shown.has(field)) {
+      errors[field] = detail.message
+    } else {
+      const label = recordListModule.value?.fields.find(f => f.name === field)?.label || field
+      unshown.push(`${label}: ${detail.message}`)
+    }
+  }
+
+  if (Object.keys(errors).length) rowErrors[key] = errors
+
+  if (unshown.length) {
+    $toast?.toastDanger(unshown.join('\n'))
+  } else if (Object.keys(errors).length) {
+    $toast?.toastWarning(t('general.notification.formErrors'))
+  } else {
+    $toast?.toastErrorHandler(t(fallbackKey))(e)
+  }
+}
+
 function onInlineFieldUpdate(record, fieldName, value) {
   record.values[fieldName] = value
+  clearRowErrors(record, fieldName)
   onInlineFieldChange(record)
 }
 
@@ -1082,19 +1170,33 @@ function addInlineRecord() {
 async function handleSaveInline(record, index) {
   if (!recordListModule.value) return
   const key = getRecordKey(record)
+  const isNew = !record.recordID || record.recordID === '0'
+
+  const missing = missingRequiredValues(record)
+  if (Object.keys(missing).length) {
+    rowErrors[key] = missing
+    $toast?.toastWarning(t('general.notification.formErrors'))
+    return
+  }
+
   processingRecords[key] = 'save'
   try {
     const uploaded = await applyStagedFiles(record)
-    const isNew = !record.recordID || record.recordID === '0'
     const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
     delete dirtyRecords[key]
     stagedFiles.delete(key)
+    clearRowErrors(record)
     clearInlineEdits(record)
     const newRecord = new compose.Record(recordListModule.value, saved)
     records.value.splice(index, 1, newRecord)
     if (uploaded) refreshRowEditors(getRecordKey(newRecord))
   } catch (e) {
     console.error('Failed to save inline record:', e)
+    reportSaveFailure(
+      record,
+      e,
+      isNew ? 'notification.record.createFailed' : 'notification.record.updateFailed',
+    )
   } finally {
     delete processingRecords[key]
   }
@@ -1106,6 +1208,7 @@ async function handleDenyInline(record, index) {
   processingRecords[key] = 'deny'
   delete dirtyRecords[key]
   stagedFiles.delete(key)
+  clearRowErrors(record)
   clearInlineEdits(record)
   const isNew = !record.recordID || record.recordID === '0'
   if (isNew) {
@@ -1142,17 +1245,29 @@ async function handleSaveDirtyRecords() {
 
   processingDirtyRecords.value = 'save'
   let hasError = false
+  let hasRequiredGap = false
 
   for (const record of toSave) {
     const key = getRecordKey(record)
     const index = records.value.findIndex(r => getRecordKey(r) === key)
     if (index === -1) continue
     const isNew = !record.recordID || record.recordID === '0'
+
+    // Marked in place and skipped — the other rows still save.
+    const missing = missingRequiredValues(record)
+    if (Object.keys(missing).length) {
+      rowErrors[key] = missing
+      hasError = true
+      hasRequiredGap = true
+      continue
+    }
+
     try {
       const uploaded = await applyStagedFiles(record)
       const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
       delete dirtyRecords[key]
       stagedFiles.delete(key)
+      clearRowErrors(record)
       clearInlineEdits(record)
       const newRecord = new compose.Record(recordListModule.value, saved)
       records.value.splice(index, 1, newRecord)
@@ -1160,10 +1275,16 @@ async function handleSaveDirtyRecords() {
     } catch (e) {
       hasError = true
       console.error('Failed to save record:', e)
+      reportSaveFailure(
+        record,
+        e,
+        isNew ? 'notification.record.createFailed' : 'notification.record.updateFailed',
+      )
     }
   }
 
   processingDirtyRecords.value = ''
+  if (hasRequiredGap) $toast?.toastWarning(t('general.notification.formErrors'))
   if (!hasError) selectedRecords.value = []
 }
 
@@ -1364,6 +1485,7 @@ async function fetchRecords(resetCursor = false) {
     selectedRecords.value = []
     // Clear inline editing state on full refresh
     Object.keys(dirtyRecords).forEach(k => delete dirtyRecords[k])
+    Object.keys(rowErrors).forEach(k => delete rowErrors[k])
     activeInlineEdits.value.clear()
     stagedFiles.clear()
     Object.keys(processingRecords).forEach(k => delete processingRecords[k])
