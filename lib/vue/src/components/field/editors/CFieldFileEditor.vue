@@ -4,7 +4,7 @@
     :disabled="disabled"
     :multiple="field.isMulti"
     :accept="field.options?.mimetypes || ''"
-    :max-file-size="field.options?.maxSize || 0"
+    :max-file-size="maxFileSize"
     :attachment-info="attachmentInfo"
     @update:model-value="$emit('update:modelValue', $event)"
     @stage-files="onStageFiles"
@@ -41,6 +41,11 @@ const normalizedValue = computed(() => {
   if (props.modelValue) return [props.modelValue]
   return []
 })
+
+// The field option is configured (and stored) in megabytes; the server enforces
+// it as maxSize * 1_000_000 (compose/service/attachment.go). CInputFile compares
+// raw byte counts, so convert with the same factor the server uses.
+const maxFileSize = computed(() => (props.field.options?.maxSize || 0) * 1_000_000)
 
 const $ComposeAPI = inject('$ComposeAPI', null)
 const $fileUploadContext = inject('$fileUploadContext', null)
