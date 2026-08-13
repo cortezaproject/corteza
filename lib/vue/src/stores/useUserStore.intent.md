@@ -30,7 +30,8 @@ without per-component fetching.
 ## Consumers
 
 Unify shell preloads the first 500 users on mount (`load({ limit: 500 })`);
-`useUserResolver`, user field viewers/editors, admin user views.
+`useUserResolver`, user field viewers/editors, admin user views, project
+activity feed.
 
 ## Invariants
 
@@ -39,4 +40,5 @@ Unify shell preloads the first 500 users on mount (`load({ limit: 500 })`);
 - `resolveUsers(ids)` is dedup-aware: fetches only IDs missing from the cache,
   in one batched `userList` call; no-op when everything is cached.
 - `storeUsers(users)` caches pre-fetched users (upsert) without an API call —
-  use it when another fetch already returned user objects.
+  use it when another fetch already returned user objects; `removeUsers(ids)`
+  is its inverse, called after a delete so the cache cannot serve a dead user.

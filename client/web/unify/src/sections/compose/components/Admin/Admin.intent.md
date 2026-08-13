@@ -22,22 +22,25 @@ Each encapsulates one advanced concern so the editor views stay orchestration-on
 
 ## Data touched
 
-Module panels edit `module.config.*` (DAL, discovery, record revisions,
-privacy/federation) in place on the module object the parent passes; the parent
-saves. DAL panels also read `$SystemAPI` (connection list, schema alterations,
-alteration apply/dismiss). Translators call the Compose API translation endpoints
-through the shared Translator components.
+Most module panels edit `module.config.*` (DAL, discovery, record revisions,
+privacy) in place on the module object the parent passes; the parent saves. DAL
+panels also read `$SystemAPI` (connection list, schema alterations, alteration
+apply/dismiss). Translators call the Compose API translation endpoints through
+the shared Translator components.
 
 ## Map
 
 - Module/DalSettings.vue, DalFieldStoreEncoding.vue, encoding-strategy.js — per-field store-encoding strategy (omit/plain/alias/json); encoding-strategy.js maps strategy → config payload and knows system-field defaults differ (null)
 - Module/DalSchemaAlterations.vue — pending DAL schema alterations for the module
-- Module/RecordRevisionsSettings.vue, DiscoverySettings.vue, FederationSettings.vue — feature toggles on module.config
+- Module/RecordRevisionsSettings.vue, DiscoverySettings.vue — feature toggles on module.config
+- Module/FederationSettings.vue — standalone field-mapping modal, shown only when the global `federation.enabled` setting is on; persists through `$FederationAPI` itself and never touches `module.config`
 - Module/ModuleIssues.vue, UniqueValues.vue — issue display and unique-value constraints
-- Module/ModuleTranslator.vue, Page/PageTranslator.vue, Chart/ChartTranslator.vue — per-resource CTranslatorButton wrappers: each supplies the resource ident, titles, fetcher and updater for its resource (page variant also covers block-level keys)
+- Module/ModuleTranslator.vue, Page/PageTranslator.vue, Chart/ChartTranslator.vue — per-resource CTranslatorButton wrappers: each supplies the resource ident, titles, fetcher and updater for its resource (the page variant also covers block-level keys and, via a `layouts` prop + `update:layouts` emit, page-layout keys)
 
 ## When changing this
 
 These panels mutate the parent-owned resource object; keep them side-effect free
-until the parent view saves. Translator wrappers are the pattern to copy for a new
+until the parent view saves. The two exceptions own their own writes and say so
+by having their own action buttons: FederationSettings (its Save) and
+DalSchemaAlterations (apply/dismiss). Translator wrappers are the pattern to copy for a new
 translatable compose resource — the shared Translator family defines the contract.

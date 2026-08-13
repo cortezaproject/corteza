@@ -27,4 +27,5 @@ Small components used by both TAQ views.
 
 - Run-as '0'/0/empty must normalize to null in the form and back to '0' on
   save — the backend uses '0' as "nobody".
-- Create must not send `triggers`/`steps`/`paths`; the builder owns the graph.
+- Create sends `triggers`/`steps`/`paths` as empty arrays and never any graph
+  content; the builder owns the graph from then on.

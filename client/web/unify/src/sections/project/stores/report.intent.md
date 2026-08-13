@@ -24,10 +24,12 @@ None — a stateless action wrapper (no cached refs).
 ## API surface consumed
 
 `$SystemAPI.projectReportReport` (GET /project-report): `report(projectId,
-resource, { dimensions, metrics, from, to })` returns the raw row set
-(empty dimensions ⇒ one grand-total row); `trend(...)` shapes it into
-created-over-time points `{ date, group, value }` sorted ascending,
-optionally split by a `groupBy` dimension.
+resource, { dimensions, metrics, from, to, revisionId })` returns the raw row
+set (empty dimensions ⇒ one grand-total row); `trend(...)` takes the same
+options and shapes it into created-over-time points `{ date, group, value }`
+sorted ascending, optionally split by a `groupBy` dimension. `revisionId`
+narrows aggregation to one revision server-side — that is how the same panels
+serve the chain-wide dashboard and the wizard's single-revision tab.
 
 ## Consumers
 

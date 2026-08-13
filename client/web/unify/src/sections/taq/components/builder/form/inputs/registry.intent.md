@@ -31,3 +31,6 @@ builder's step-config forms.
 - Keep inputs and viewers registries in sync when adding a type.
 - Shared inputs come from lib/vue; only TAQ-specific editors live beside this
   file.
+
+> **DRIFT:** nine of this registry's types have no viewer counterpart — see
+> the DRIFT note in `../../builder.intent.md` for the list.

@@ -32,7 +32,8 @@ namespace) and cross-namespace pickers, without either disturbing the other.
 ## Consumers
 
 Compose nav/admin/record views, record store (record construction requires the
-module), module pickers, TAQ builder.
+module), module pickers, TAQ builder, agentic editor (resolves module names in
+an agent's tool-access rules).
 
 ## Invariants
 

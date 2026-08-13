@@ -29,6 +29,7 @@ carry their own docs.
 - `Import.vue` / `Export.vue` — JSON workflow exchange (workflows + triggers), shared by list and configurator.
 - `NamespaceModuleSelector.vue` — multi-select of `ref_namespace`/`ref_module` label values; used by list filter and workflow configurator.
 - `ExpressionEditor.vue` / `ExpressionTable.vue` — expression input and reorderable target/type/expr rows for configurators.
+- `DryRunField.vue` — one input row in the dry-run/test dialog, typed from the workflow's declared input.
 - `Help.vue` — static controls/shortcuts reference dialog.
 - `C3.js`, `WorkflowEditor.c3.js` — component-catalog scenarios.
 

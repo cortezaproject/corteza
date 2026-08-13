@@ -29,7 +29,7 @@ of available functions and triggers the builder composes from.
 
 ## Consumers
 
-TAQ section list views and builder.
+TAQ section list views and builder; admin automation TAQ list/editor.
 
 ## Invariants
 

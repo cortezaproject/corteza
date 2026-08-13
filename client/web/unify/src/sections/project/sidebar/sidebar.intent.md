@@ -40,20 +40,21 @@ mutations.
   right-side chevron toggles the children independently — behavior inherited
   from `CSidebarNavItem`, not implemented here. Children: the projects,
   sorted by name.
-- Routing rule (locked lifecycle): a live project (`status: active`; the BE
-  never sets `published`, handled only defensively) opens its dashboard
-  (`project.overview`); anything else opens the wizard (`project.wizard`).
+- Routing rule (locked lifecycle): a project whose chain has ever published
+  (`chainHasPublished` — any non-draft status, or any revision with a parent)
+  opens its dashboard (`project.overview`); anything else opens the wizard
+  (`project.wizard`).
 - Archived projects are hidden from the tree (soft-deleted ones never reach
   the store); the All Projects list still shows everything.
 - One entry per revision chain, not per revision. The filter is client-side
   here — unlike ProjectList, which asks the backend for heads — because the
   shared store cache stops being heads-only as soon as a wizard visit absorbs
   a whole chain. Detect heads by which rows are named as a `parentRevisionID`.
-- Each project carries a one-letter status badge; severity mapping mirrors
-  ProjectList's and must stay in sync with it.
+- Each project carries an icon-only `StatusChip` — the section's one status
+  indicator, so no severity mapping lives here.
 
 ## When changing this
 
-- Keep the live-status routing rule identical to ProjectList's — both derive
-  "live" from `active`.
+- Keep the routing rule identical to ProjectList's — both go through
+  `config/publishState.js#chainHasPublished`.
 - The tree relies on the section preload; do not add its own fetch.

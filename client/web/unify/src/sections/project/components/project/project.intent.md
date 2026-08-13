@@ -44,18 +44,21 @@ contract lives one level up in `sections/project/project.intent.md`.
   the tools hold Members and View project. The publish/approval cluster is
   deliberately NOT here — its home in the wizard's tab row is locked.
 - `RenameProjectDialog.vue` — pure prompt; emits `rename`, caller persists.
+- `StatusChip.vue` — THE status indicator for this whole section (wizard step
+  headers, Publish tab, revision switcher, sidebar, list); it replaced the
+  per-surface Tag/pill/severity maps. Supports `icon-only` and `tooltip`.
 
 ## Data touched
 
-`useProjectsStore` — `create` (sends the `deployer` answers), `membersFor`,
+`useProjectsStore` — `create` (name + description only), `membersFor`,
 `addMember`/`updateMember`/`removeMember` (backend-persisted, unlike
 governance state); `useProjectUsersStore` for the user directory;
 `ROLE_PRESETS`/`rolePreset` from config/roles define the capability model
 the Wizard later reads for review gating.
 
-> **WIP:** FRIA/deployer questions — both their content AND their placement
-> are now unsettled: the 2026-07-28 ruling moves the determination out of
-> creation entirely, so treat this dialog's step 2 as scheduled for removal.
+> **WIP:** FRIA/deployer question CONTENT is still unsettled. Their placement
+> is settled and done: the 2026-07-28 ruling moved the determination out of
+> creation, and this dialog's step 2 has since been removed.
 
 ## When changing this
 

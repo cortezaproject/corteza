@@ -20,7 +20,8 @@ namespaces, system agents, and NG (TAQ) automations, each in its own panel.
 
 - Per kind: table of tagged resources, create-with-label-pre-applied dialog,
   delete with confirm, and permission dialogs (wildcard header button gated
-  by that component's `grant`; per-row gated by the row's `canGrant`).
+  by that component's `grant`; per-row gated by the row's `canGrant` — except
+  the agent panel, which also opens on the component-wide `system/` grant).
 - Row click opens the resource in its owning app (compose/agentic/taq) in a
   new tab — this view never edits the resources themselves.
 

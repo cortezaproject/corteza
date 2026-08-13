@@ -13,8 +13,8 @@ tests: []
 
 ## Intention
 
-Shared workflow list cache for workflow section views, admin workflow views
-and workflow pickers (e.g. the TAQ Run Workflow step selector).
+Shared workflow list cache for workflow section views and admin workflow
+views.
 
 ## State owned
 
@@ -26,8 +26,9 @@ and workflow pickers (e.g. the TAQ Run Workflow step selector).
 
 ## Consumers
 
-Workflow section home/editor/sidebar, admin automation views, workflow
-selector inputs.
+Workflow section home/editor/sidebar, admin automation views. NOT the workflow
+picker inputs: `CInputWorkflow` queries `$AutomationAPI` directly (cancellable,
+server-side search), so the TAQ Run Workflow selector never warms this cache.
 
 ## Invariants
 

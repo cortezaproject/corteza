@@ -32,6 +32,7 @@ then runs a server-side import session.
 
 Each component is self-contained around `module`/`namespace` props from the
 record list — keep them usable without any block context. Field mapping in the
-importer must track module fields; exported field selection defaults should stay
-aligned with the record list's visible columns. Import runs server-side: closing
-guards during step 2 protect a running session.
+importer must track module fields. The exporter deliberately defaults to every
+module field (minus File kinds), NOT to the record list's visible columns: it
+is reachable from selections and filters the list's columns don't describe.
+Import runs server-side: closing guards during step 2 protect a running session.

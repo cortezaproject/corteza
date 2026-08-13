@@ -6,7 +6,9 @@ depends-on:
   - lib/vue
 touched-by:
   - client/web/unify/src/main.js
-tests: []
+tests:
+  - client/web/unify/src/plugins/setupAndAuthenticate.test.js
+  - client/web/unify/src/plugins/trimOnBlur.test.js
 ---
 
 # Plugins / bootstrap sequence
@@ -25,5 +27,5 @@ plugin registration, settings, Pinia, router, i18n, theming, PrimeVue services.
 
 ## When changing this
 
-- Order is a contract (see `../intent doc`). Settings must be initialized before PrimeVue theming.
+- Order is a contract (see `../src.intent.md`). Settings must be initialized before PrimeVue theming.
 - New global plugins/services belong here, not in `main.js` or `App.vue`.

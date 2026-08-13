@@ -42,6 +42,7 @@ editing forms.
 - `form/inputs/registry.ts` — `input.type` → editor component map (lib CInput\* + local aggregates); fallback InputText.
 - `form/inputs/CInputArray.vue` — multi-row list argument; per-row value-or-reference (`toggleRowReference` with stable row targets).
 - `form/inputs/CInputFieldValueMap.vue` — record field→value rows (module fields + system fields); per-field value-or-reference.
+- `form/inputs/CInputWorkflowInputMap.vue` — Run Workflow step: the selected workflow's declared inputs as value-or-reference rows (registered as `WorkflowInputMap`, alongside `Workflow`/`WorkflowSelector` → lib `CInputWorkflow`).
 - `form/viewers/registry.ts` — `input.type` → read-only viewer map used by `StepPreviewPopover`; falls back to `CViewText`.
 - `form/viewers/CView*.vue` — one viewer per input type: `Text`, `Select` (label lookup), `Namespace`/`Module`/`User`/`Agent` (ID → display name), `Reference` (chip), `FieldValueMap` (row summary).
 
@@ -49,6 +50,12 @@ editing forms.
 
 - Keep `inputs/registry.ts` and `viewers/registry.ts` type keys in sync — an
   editable type without a viewer degrades step previews to raw text.
+
+> **DRIFT:** the two registries are NOT in sync today. Nine of 24 editable
+> types have no viewer — `Record`, `RecordSelector`, `Workflow`,
+> `WorkflowSelector`, `WorkflowInputMap`, `Array`, `Boolean`, `Cron`,
+> `Interval` — so those step previews render raw text.
+
 - Reference bindings must stay `{scope, source}` end-to-end (panel → chip →
   saved `Expr`); condition references address rows as
   `condition:<edgeId>:<side>:<rowIndex>`.

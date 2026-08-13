@@ -21,8 +21,10 @@ global permissions dialog for a resource. Open-state plumbing lives in
 
 - `CPermissionsButton.vue` — opens the dialog for its `resource`; PrimeVue
   Button passthrough props for styling.
-- `CPermissionsDialog.vue` — role/user column editor: loads effective rules,
-  diffs against initial state, saves per role/user.
+- `CPermissionsDialog.vue` — per-role rule editor: loads effective rules,
+  diffs against initial state, saves per role. A user can be added as a
+  read-only _evaluation_ column (`permissionsTrace`) — rules are never
+  written for a user, only for roles.
 
 ## Contracts consumers rely on
 
@@ -32,7 +34,9 @@ global permissions dialog for a resource. Open-state plumbing lives in
 - Dialog resolves the owning API client from the resource string — inject
   `$SystemAPI`/`$ComposeAPI`/`$AutomationAPI` (all optional); a component kind
   from a service whose API isn't provided cannot be edited in that app.
-- Strings come from `permissions.ui.*` keys in the host app's locale bundle.
+- Chrome strings come from `permissions.ui.*`; the dialog title and every
+  operation title/description come from `permissions.resources.<kind>.*` —
+  a resource kind with no entry there renders unlabelled operations.
 
 ## When changing this
 

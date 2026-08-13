@@ -10,6 +10,7 @@ touched-by:
   - client/web/unify/src/sections/compose/ComposeHost.vue
   - client/web/unify/src/sections/compose/index.js
   - client/web/unify/src/sections/compose/components/Reminders
+  - client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordListBlock.vue
 tests: []
 ---
 
@@ -40,7 +41,7 @@ the `reminders` panel on create/edit/save.
 
 ComposeHost (fetch on mount, realtime forwarding, `dispose()` on unmount),
 Reminders components (sidebar, toast host, manager), section `profileItems`
-(`activeCount` badge).
+(`activeCount` badge), RecordListBlock (per-record "add reminder" row action).
 
 ## Invariants
 

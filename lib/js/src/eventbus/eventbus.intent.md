@@ -25,9 +25,9 @@ that forward execution to the API (and on to corredor).
 
 ## Contract
 
-- `Dispatch()` fires implicit event handlers; `Exec()` runs a manually invoked (`onManual`) script by name — the two are distinct entry points, not aliases.
+- `Dispatch(ev, script?)` is the single entry point: without `script` it fires implicit event handlers; with one it runs that manually invoked (`onManual`) script by name.
 - Handlers match on resource + event + constraints; constraint values support minimatch globs (`constraints.ts`), mirroring server-side trigger constraint semantics.
-- Matching handlers run ordered by ascending `weight`; a manual `Exec` additionally matches on `scriptName`.
+- Matching handlers run ordered by ascending `weight`; a manual dispatch additionally matches on `scriptName`.
 
 ## When changing this
 

@@ -23,13 +23,11 @@ persist (statuses, AI Act options) stay literal.
 
 ## Map
 
-- `pipeline.js` — the build pipeline: STEPS (key/type/tab/kind), the Build vs
-  Govern tab split (Manage & Monitor has no steps), `kindsThroughStep`
-  (graph gating), and `PUBLISH_GOVERNANCE_STEP_KEY` — publish is the Publish
+- `pipeline.js` — the build pipeline: STEPS (key/type/tab/kind), `resolveSteps`
+  /`stepsForTab`, and `PUBLISH_GOVERNANCE_STEP_KEY` — publish is the Publish
   tab's own flow, not a wizard step.
 - `kinds.js` — per-resource-kind visual config (icon/colors), RESOURCE_KINDS
-  (pipeline order), OVERVIEW_KINDS, graph LAYERS (data/logic/experience),
-  NODE_LAYER_KINDS, ACCESS_KINDS (role/user ride the access overlay).
+  (pipeline order) and OVERVIEW_KINDS (the graph's initial visible set).
 - `roles.js` — fixed member role presets with capability flags
   (read/write/requestApproval/grantApproval); flags gate review actions,
   never tab/step visibility (AI Act Art. 17(m) accountability framework).
@@ -40,11 +38,18 @@ persist (statuses, AI Act options) stay literal.
 - `connectors.js` — the connection catalog (catalogID + brand + tags),
   mirroring the Admin connection catalog.
 - `dashboard.js` — the dashboard left-rail nav (locked view set: Overview,
-  Events, five Categories, Backlog, Reports stub).
+  Board, Activity, five Categories, plus an insights group: Backlog, Reports).
 - `manageNav.js` — the M&M left-rail sections; the tab renders from this,
-  never from STEPS ("Manage & Monitor has no steps"). SAME section set as
-  `dashboard.js` (ruled 2026-07-28: one surface, two scopes) — only the
-  navigation differs (child routes there, `?section=` here); keep in step.
+  never from STEPS. Meant to hold the SAME section set as `dashboard.js`
+  (ruled 2026-07-28: one surface, two scopes), differing only in navigation
+  (child routes there, `?section=` here).
+- `aiSystemClasses.js`, `friaDeterminationForm.js`, `friaScenario.js` — the
+  Govern tab's AI-system and FRIA vocabularies and form schemas.
+- `publishState.js` — `chainHasPublished`/`projectStatusTag`: the one place
+  lifecycle status becomes a routing decision or a chip.
+- `resourceRefs.js` — A PERSISTED INTERFACE (see its header): how a resource
+  declares the refs the graph and the revision clone walk.
+
 - `categories.js` — per-category dashboard config: columns, charts, KPIs,
   badges, trend grouping; reuses eventForm's schemas and visual identity.
 - `eventForm.js` — New Event form schemas per category + EVENT_STATUS;
@@ -72,6 +77,9 @@ persist (statuses, AI Act options) stay literal.
 > **WIP:** Govern/FRIA content — `summaryForm.js`, `resourceManagementForm.js`
 > and the Govern step entries in `pipeline.js` are governance CONTENT and due
 > to change; only the step mechanism, tab shapes and kind catalogs are locked.
+
+> **DRIFT:** `manageNav.js` is missing dashboard.js's whole insights group
+> (Backlog, Reports), so the two section sets are not in step.
 
 ## When changing this
 

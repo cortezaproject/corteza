@@ -3,10 +3,9 @@ kind: folder
 covers: recursive
 backfilled: true
 owner: fe
-depends-on:
-  - client/web/unify/src/sections/index.js
+depends-on: []
 touched-by:
-  - client/web/unify/src/router/index.js
+  - client/web/unify/src/sections/index.js
 tests:
   - client/web/unify/e2e/sections/home/home.spec.ts
 ---

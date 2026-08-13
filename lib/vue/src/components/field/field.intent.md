@@ -17,6 +17,8 @@ touched-by:
   - client/web/unify/src/sections/taq/components/builder
 tests:
   - lib/vue/src/components/field/CFieldEditor.test.ts
+  - lib/vue/src/components/field/CFieldEditor.formfield.test.ts
+  - lib/vue/src/components/field/url.test.ts
   - lib/vue/src/components/field/viewers/CFieldBoolViewer.test.ts
   - lib/vue/src/components/field/viewers/CFieldDateTimeViewer.test.ts
   - lib/vue/src/components/field/viewers/CFieldNumberViewer.test.ts
@@ -56,6 +58,10 @@ pages, page blocks, filters and the TAQ builder.
   keeps one blank entry). Exception ("multi-absorbing"): File always, and
   Select/User/Record with `options.selectType === 'multiple'`, receive the whole
   array as modelValue and manage it themselves.
+- CFieldEditor severs the `@primevue/forms` injections (`$pcFormField`,
+  `$pcForm`) for its subtree. A field editor placed inside a `<FormField>`
+  would otherwise have all its multi-value inputs write one shared value,
+  overwriting each other.
 - Record value shape: viewers expect the normalized compose.Record shape
   (`values` keyed by field name). Raw API records (`values` = array of
   {name, value}) exist only in the record store's label cache when the module

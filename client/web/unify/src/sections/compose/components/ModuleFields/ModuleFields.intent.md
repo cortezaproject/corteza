@@ -21,9 +21,11 @@ This is the _authoring_ side only — field value editors/viewers live in
 
 ## Data touched
 
-No API calls. Works on an in-memory draft: `index.vue` deep-clones the incoming
-field and rebuilds a class instance via `compose.ModuleFieldMaker`
-(`@planetcrust/human-js`), so class-level defaults/capabilities apply.
+Works on an in-memory draft: `index.vue` deep-clones the incoming field and
+rebuilds a class instance via `compose.ModuleFieldMaker`
+(`@planetcrust/human-js`), so class-level defaults/capabilities apply. No API
+calls except the User kind's panel, which reads `$SystemAPI.roleList` on mount
+to offer role-restricted user pickers.
 
 ## Map
 

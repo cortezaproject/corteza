@@ -22,9 +22,10 @@ the Editor's "author it".
 
 - Read-only header card with the connection's name and description, plus a
   permissions button (active connections only, grant-gated).
-- The rest of the page is `ConfiguredConnectionsPanel` (list/delete
-  configured instances); the footer offers only Back — no save actions
-  exist by design.
+- The rest of the page is `ConfiguredConnectionsPanel`, which owns the full
+  instance lifecycle (create/edit/check/enable/delete, saving through its own
+  dialog). The view's own footer offers only Back: the connection
+  _definition_ is deliberately not editable here.
 
 ## Routes
 

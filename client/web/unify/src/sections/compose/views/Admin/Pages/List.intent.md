@@ -19,7 +19,7 @@ restructure it: reorder siblings and re-parent pages by drag and drop.
 
 ## UX capabilities
 
-- Tree from `pageStore.loadTree`, sorted by weight, all parents expanded initially; record pages are visually distinguishable from top-level ones.
+- Tree from `pageStore.loadTree`, sorted by weight, all parents expanded initially; root-level pages (`selfID === '0'`) are visually distinguishable from nested ones.
 - Client-side lenient filtering by title; clicking a node opens the page editor.
 - Drag and drop persists the full new structure: re-parented pages get their `selfID` updated first, then each level is reordered, recursively; afterwards both the tree and the flat page list are re-fetched so the sidebar reflects the change.
 - Create button gated by `canCreatePage`.
@@ -31,4 +31,9 @@ restructure it: reorder siblings and re-parent pages by drag and drop.
 ## When changing this
 
 - Reorder must run update-selfID before `pageStore.reorder` per level — reordering against stale parents scrambles weights.
-- A failed drop leaves the optimistic tree on screen until the refetch corrects it; keep the refetch.
+- The refetch after a successful drop is what keeps the sidebar in step; keep it.
+
+> **DRIFT:** a FAILED drop is never corrected. The refetch sits inside the same
+> `try` as the reorder, so a failed persist jumps to `catch` (log + toast) and
+> the optimistic tree stays on screen showing an order the server rejected,
+> until the user reloads.

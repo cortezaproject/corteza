@@ -19,8 +19,9 @@ tests: []
 Client-side model layer for the system subsystem: one class per resource
 (`User`, `Role`, `UserGroup`, `Application`, `AuthClient`, `Template`,
 `Reminder`, `DalConnection`, `Connection`, `Notification`, `Sink`,
-`LlmProvider`, `Agent`, `Chatbot`/session types, …) plus system event
-constructors (`events.ts`) for the eventbus.
+`LlmProvider`, `Agent`, `Chatbot`/session types, `Project`/`ProjectMember`/
+`ProjectAiSystem`, …) plus system event constructors (`events.ts`) for the
+eventbus.
 
 ## Contract (what apps may rely on)
 

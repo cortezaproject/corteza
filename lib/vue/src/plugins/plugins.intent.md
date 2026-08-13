@@ -8,7 +8,8 @@ depends-on:
   - lib/vue/src/libs/url.ts
 touched-by:
   - client/web/unify/src/plugins
-tests: []
+tests:
+  - lib/vue/src/plugins/primevue-locale.test.ts
 ---
 
 # App bootstrap plugins
@@ -18,16 +19,17 @@ tests: []
 The Vue plugins every host app installs at boot: authentication, API clients,
 i18n, settings, event bus, toasts, and the global PrimeVue/shared component
 registry. Together they define the injection surface (`$Auth`, `$SystemAPI`,
-`$ComposeAPI`, `$AutomationAPI`, `$toast`, `$eventBus`, `$Settings`) that
-stores and components in this lib assume exists.
+`$ComposeAPI`, `$AutomationAPI`, `$FederationAPI`, `$DiscoveryAPI`, `$toast`,
+`$eventBus`, `$Settings`) that stores and components in this lib assume exists.
 
 ## Map
 
 - auth.ts — OAuth2 default-client flow + refresh-token lifecycle; provides `$Auth` with `accessTokenFn` and the authenticated user; derives auth/callback URLs from `window.HumanAPI`/base tag.
 - event-bus.ts — minimal typed pub/sub; provides `$eventBus` (used e.g. for realtime message re-broadcast).
-- human-api.ts — one install-plugin per API client (System/Compose/Automation/Federation/Discovery); base URL from `window.HumanAPI`, token from `$Auth`.
+- human-api.ts — one install-plugin per API client (System/Compose/Automation/Federation/Discovery); base URL from `window.HumanAPI` per service, token from `$Auth`. Discovery is the exception: a separate service, so it reads `window.HumanDiscoveryAPI` and falls back to localhost.
 - i18n.ts — creates vue-i18n (Composition mode) from a pre-loaded translations bundle, `en` fallback.
 - primevue-components.ts — globally registers PrimeVue components plus shared C\* inputs/permission components so SFCs skip per-file imports.
+- primevue-locale.ts — derives PrimeVue's whole locale (day/month names, date format, first day of week) from `Intl` for the resolved locale, so translations never hand-maintain calendar strings.
 - settings.ts — `Settings` service around `settingsCurrent()`: dot-path `get(k, d)` and attachment-URL resolution; provides `$Settings`.
 - toast.ts — wraps PrimeVue toast into `$toast` helpers (`toastSuccess/Warning/Info/Danger`, `toastErrorHandler`).
 

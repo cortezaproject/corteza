@@ -21,7 +21,7 @@ to none of them.
 
 ## Map
 
-- `types/attachment.ts` — `Attachment` class: file attachments with URL/preview handling, shared by record files, page blocks, and corredor helpers.
+- `types/attachment.ts` — `Attachment` class: file attachments with URL/preview handling. Only the corredor helpers construct it today; the file field/page-block carry bare attachment IDs and their viewer rebuilds the same preview/download URLs by hand.
 - `types/chart/colorschemes` — the bundled chart color scheme catalog; `types/chart/helper.ts` — `getColorschemeColors()` resolves a scheme name (or custom colors) to a color array.
 
 ## When changing this

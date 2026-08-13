@@ -38,8 +38,10 @@ archived or deleted.
   because the dashboard is the project's home and the wizard is entered
   deliberately from its revision switcher. Only a chain that has never
   published — draft, no parent revision — opens the wizard directly.
-- Per-row actions: rename (edits `meta.short`), archive/unarchive
-  (status `archived` ↔ `draft`), delete with confirmation.
+- Per-row actions: rename (edits `meta.short`), archive/unarchive via the
+  dedicated `projectArchive`/`projectUnarchive` endpoints (`archivedAt` is a
+  shelf state, deliberately NOT the lifecycle `status` — writing `draft` to
+  unarchive would silently un-publish a live project), delete with confirmation.
 
 ## Routes
 

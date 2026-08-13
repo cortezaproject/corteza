@@ -22,8 +22,8 @@ the editor or queue permissions.
 - Search, sort, paginate via `useResourceList`; tri-state deleted filter
   (excluded/inclusive/exclusive) in a popover.
 - Wildcard permissions button (`queue/*`, gated by system `grant`); per-row
-  permissions and delete in the action menu (gated by row `canGrant` /
-  `canDeleteQueue`).
+  permissions (row `canGrant` OR the system-wide `grant`) and delete
+  (`canDeleteQueue`) in the action menu.
 
 ## Routes
 

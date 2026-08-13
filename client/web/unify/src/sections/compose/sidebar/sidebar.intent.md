@@ -23,7 +23,7 @@ one sidebar body the shell provides.
 ## Map
 
 - `ComposeSidebar.vue` — thin column composition: CSidebarNamespaceSwitcher on
-  top, CSidebarNavigation (the namespace page tree) filling the rest.
+  top, CSidebarNavigation (search + page tree + admin nav) filling the rest.
 
 ## When changing this
 

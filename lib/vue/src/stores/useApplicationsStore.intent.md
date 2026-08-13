@@ -6,7 +6,7 @@ owner: fe
 depends-on: []
 touched-by:
   - client/web/unify/src/App.vue
-  - lib/vue/src/components/navigation/CAppListSidebar.vue
+  - lib/vue/src/components/navigation/CAppList.vue
 tests: []
 ---
 

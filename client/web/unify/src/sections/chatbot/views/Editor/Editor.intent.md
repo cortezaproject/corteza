@@ -17,9 +17,10 @@ tests: []
 ## Intention
 
 The config panels and live preview composed by `views/Editor.vue`. Data flows by
-in-place mutation: each panel receives a slice of the shared chatbot object as a
-prop and edits it directly (no data emits), so the parent's dirty check and
-preview remount react automatically.
+in-place mutation: each panel receives the shared chatbot object (Scenarios and
+Styling take just their slice) and edits it directly, so the parent's dirty check
+and preview remount react automatically. Emits carry actions, never data — the
+only one is General's `regenerate-key`.
 
 ## Map
 

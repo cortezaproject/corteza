@@ -33,11 +33,11 @@ the resource-translator UI state.
 - `languages.ts` — server locale list for the translator (own sidecar doc).
 - `translator.ts` — translator dialog visibility + per-invocation config (own
   sidecar doc).
-- `module.test.ts`, `namespace.test.ts`, `record.test.ts` — vitest specs for
-  the **shared** lib/vue stores (`useModuleStore`, `useNamespaceStore`,
-  `useRecordStore`), kept here because compose is their main consumer. They
-  are covered by this folder doc; the stores under test are not in this
-  folder.
+- `module.test.ts`, `namespace.test.ts`, `record.test.ts`,
+  `module-delete-callers.test.ts` — vitest specs for the **shared** lib/vue
+  stores (`useModuleStore`, `useNamespaceStore`, `useRecordStore`), kept here
+  because compose is their main consumer. They are covered by this folder doc;
+  the stores under test are not in this folder.
 
 ## When changing this
 

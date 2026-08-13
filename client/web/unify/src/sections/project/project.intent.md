@@ -66,9 +66,9 @@ publishable unit. **Locked** below; WIP notes mark what must not be relied on.
   revision, reassignable, left behind when it publishes. Where an item is
   created decides its revision; anywhere else it starts unassigned.
 
-> **WIP:** approval **persistence** — the flow is session-local FE scaffolding
-> (governance backend dropped); backend persistence is planned. Do not rely on
-> approval state surviving a reload.
+> **WIP:** **per-step** review persistence — the Govern/Build step reviews are
+> session-local FE scaffolding; backend persistence is planned. The revision's
+> OWN publish approval is real server state and does survive a reload.
 
 > **WIP:** **Govern tab content and FRIA question content** — anything
 > governance-content is due to change; only the flow shapes above are locked.

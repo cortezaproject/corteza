@@ -27,7 +27,8 @@ the page admin/builder, including tree structure operations.
 
 ## Consumers
 
-Compose sidebar navigation, page views, page admin/builder.
+Compose sidebar navigation, page views, page admin/builder, and
+`CFieldRecordViewer` (reads `set` directly to build record links).
 
 ## Invariants
 

@@ -39,8 +39,8 @@ view.
 ## Routes
 
 - Parent route at `/project/projects/:projectId` with children `project.overview`
-  (index), `.events`, `.category`, `.reports` (stub), `.backlog`. Child route
-  meta carries `titleKey`/`icon` consumed by the nav and the stub view.
+  (index), `.board`, `.activity`, `.category`, `.reports` (stub), `.backlog`.
+  Child route meta carries `titleKey`/`icon` consumed by the nav and the stub view.
 
 ## When changing this
 

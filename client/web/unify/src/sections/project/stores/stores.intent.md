@@ -39,7 +39,8 @@ Each store file carries its own sidecar doc:
 
 - Lifecycle statuses handled here are exactly the locked set: `draft` →
   `active` (publish flips; the BE never sets `published`), plus `archived`,
-  `suspended` and soft-`deleted`.
+  `suspended`, soft-`deleted` and `deprecated` (stamped on the outgoing
+  revision when its successor goes live).
 - Dashboard stores (events, backlogItems) share idioms: flat reactive list
   for the active project, wholesale replace on load, in-place patch after
   mutations (no refetch), user refs resolved to names on read / IDs on

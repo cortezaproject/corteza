@@ -30,9 +30,10 @@ test in isolation.
   `nonQueryableFieldNames`/`nonQueryableFieldKinds`), prefilter macro
   evaluation (`evaluatePrefilter` — signature/behaviour unchanged, delegates
   to lib/js's `compose.interpolateTemplate` so lib/vue can reuse the same
-  template evaluation), plus small operator/format utilities.
-- `record-filter.test.ts` — vitest spec for the above (escaping and grouping
-  edge cases live here; keep it green when touching escaping).
+  template evaluation), the valueless `IS EMPTY`/`IS NOT EMPTY` operators, and
+  the page-scoped storage-key helpers, plus small operator/format utilities.
+- `record-filter.test.ts` — vitest spec for the above (escaping, grouping,
+  empty-operators and storage keys; keep it green when touching escaping).
 - `charts.js` — `chartConstructor(c)`: inspects report metric types to pick
   the concrete chart class (Funnel/Gauge/Radar, else base `compose.Chart`).
 - `resource-translations.ts` — applies fetched resource-translation sets

@@ -25,9 +25,9 @@ state and dispatch; everything here is presentational or a thin store list.
 
 **Locked:** the step mechanism AND the step set. `config/pipeline.js` `STEPS`
 is the single source of truth — key, type (`form|resource|sensitivity|
-permissions`), resource `kind`, and `tab` (Build/Govern; Manage & Monitor has
-no steps). Adding a step = pipeline entry + panel here + dispatch branch in
-Wizard.vue; `kindsThroughStep` then scopes the graph automatically.
+permissions|ai-systems|fria-scenarios`), resource `kind`, and `tab`
+(Build/Govern; Manage & Monitor has no steps). Adding a step takes three
+things: a pipeline entry, a panel here, and a dispatch branch in Wizard.vue.
 
 **Locked approval UX:** direct per-step review — a granter may Approve or
 Request changes (required note) on any Build/Govern step, any status, any
@@ -38,8 +38,8 @@ only, never tab/step visibility; governance status never locks editing.
 
 ## Map
 
-- `StepNav.vue` — step list; badges flip to amber (changes-requested) /
-  green (approved) from per-step governance status.
+- `StepNav.vue` — step list; badges ONLY for changes-requested. Approval is
+  the expected end state, so badging it would mark nearly every row.
 - `ManageNav.vue` — the M&M rail; NOT a step list: prop-driven (`activeKey`
   in, `select` out) over `config/manageNav.js`; twin of the dashboard rail.
 - `manage/` — one component per M&M section via Wizard.vue's key→component
@@ -57,13 +57,13 @@ only, never tab/step visibility; governance status never locks editing.
   go-live stage); refresh = stores' `mutations` counters, never capped lists.
 - `publish/` — Publish tab stage components, mounted like `manage/`; the plan,
   mapping decisions and publish actions are store state, never stage-local.
-- `StepStatusBanner.vue` — surfaces the changes-requested review note.
+- `aiSystems/` — AI-system editor + risk-class badge for the ai-systems step.
 - `GovernanceForm.vue` — schema-driven form renderer; also reused by the
   dashboard event/backlog dialogs (cross-folder consumer).
 - `LlmProviderDialog.vue` (ResourceManagementStep); `YesNo.vue` — boolean
   glyph, also used by project/MembersDialog.
-- `fria/` + Fria* step panels — the Art. 27 assessment (determination +
-  scenarios); taxonomy keys persist, scenario state is session-local.
+- `fria/` + Fria\* step panels — the Art. 27 assessment (determination +
+  scenarios). Scenarios are backend-persisted (`ProjectFriaScenario`).
 - `steps/` — one panel per STEPS entry. Resource steps are lists that open
   the Wizard-mounted dialogs via injected `createResource(kind)` /
   `inspectResource(kind, id)` (module fields: `editField`/`createField`) —

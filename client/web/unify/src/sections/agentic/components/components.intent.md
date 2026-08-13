@@ -28,6 +28,6 @@ exposes how each answer was produced. Both are embedded only by
 
 ## When changing this
 
-- Both components deliberately mutate the `conversation` prop in place (`{label, messages, conversationID/aiConversationID, traceHistory, context}`); that shape is an informal contract shared with the editor's history and tab handling — change all of them together.
+- AiChat deliberately mutates the `conversation` prop in place (`{label, messages, conversationID/aiConversationID, traceHistory, context}`); AiTrace only reads it. That shape is an informal contract shared with the editor's history and tab handling — change all of them together.
 - Errors are surfaced in-band: a failed exec pushes an agent error message plus an `{error}` trace entry; keep that so traces stay aligned with messages by index.
 - Chat renders only `user`/`agent`/`assistant` roles with content — other roles are trace-only.

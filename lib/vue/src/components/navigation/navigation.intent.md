@@ -26,6 +26,9 @@ so branding/visibility changes need no code.
 - `CSidebarNav.vue` / `CSidebarNavItem.vue` — generic nav tree; item id/parent/
   label/icon/weight fields are configurable via `*Key` props (defaults are the
   compose-page shape: `pageID`/`selfID`/`title`/`weight`); emits `select`.
+  A trailing marker comes from `badgeKey` (`{ value, severity?, title? }`),
+  overridable through the `#badge` slot — the tree never learns what the
+  marker means (project's status chip is the live example).
 - `CAppList.vue` / `CAppListSidebar.vue` — application switcher (grid / sidebar).
 - `CToolbar.vue` — slot-only bottom bar (`start`/`center`/`end`).
 - `CRouterLinkButton.vue` — Button-styled router-link.

@@ -30,8 +30,10 @@ sidecar intent doc — this folder doc only maps the family.
 - Routes and route meta live in `../index.js`; views set the topbar via
   Teleport (`#topbar-title` / `#topbar-tools`) — one owner per screen
   (DashboardLayout owns it for all dashboard children).
-- Lifecycle split: draft projects open the Wizard, live (`active`) projects
-  open the dashboard.
+- Lifecycle split is by CHAIN, not by row status: a project whose chain has
+  never published opens the Wizard, anything else opens the dashboard — so a
+  branched `draft` revision stays on the dashboard (`config/publishState.js`
+  `chainHasPublished`).
 
 ## When changing this
 

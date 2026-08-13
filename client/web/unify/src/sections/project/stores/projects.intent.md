@@ -54,7 +54,8 @@ permissions) — routed per resource string by `apiForResource`.
 ## Invariants
 
 - Lifecycle is the locked set: publish promotes `draft` → `active` (BE never
-  sets `published`); `archived`, `suspended`, soft-`deleted` complete it.
+  sets `published`) and stamps the outgoing revision `deprecated`; `archived`,
+  `suspended` and soft-`deleted` complete it.
 - `publishProject` must carry real `mappings`: the BE skips record migration
   entirely on an empty set and then soft-deletes the old namespace, so an empty
   publish silently drops every record. `deploymentPlan` is where they come

@@ -35,5 +35,6 @@ governs only `index.ts` and the loose root components.
 
 ## When changing this
 
-`actions/` and `layout/` are currently empty placeholders — no doc until they
-gain content. Keep `index.ts` additive; deprecate before deleting exports.
+This doc `covers: '.'`, so a family subfolder without its own doc (`tag/`,
+`chip/`) falls through to `lib/vue/vue.intent.md`, not to here. Keep `index.ts`
+additive; deprecate before deleting exports.

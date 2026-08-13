@@ -32,12 +32,15 @@ in the per-resource wrappers. Visibility is gated by `useResourceTranslations`
 
 - CTranslatorButton.vue — the entry point wrappers render; on click passes `{resource, titles, fetcher, updater, highlightKey?, keyPrettifier?}` to `translatorStore.open()`
 - CTranslatorDialog.vue — singleton dialog mounted in ComposeHost; opens whenever the store holds a config
-- CTranslatorForm.vue — language-column manager + key × language editing table; saves via the config's `updater`
+- CTranslatorForm.vue — language-column manager + key × language editing table; emits dirty rows via `change`, the dialog is what calls the config's `updater`
 
 ## When changing this
 
 The store-config shape (`TranslatorConfig`) is the contract every wrapper
 (Admin/\*Translator, NamespaceTranslator) depends on — extend it
 backward-compatibly. Never mount a second dialog. The default language column is
-not removable; `highlightKey` scrolls/marks one row for "translate this field"
-entry points.
+not removable.
+
+> **DRIFT:** `highlightKey` is threaded store → dialog → form for the
+> "translate this field" entry points, but the form never reads it — no row is
+> scrolled to or marked. Either implement it or drop it from the config shape.

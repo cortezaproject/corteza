@@ -3,6 +3,39 @@
 Maintained checklist of what the intent system still needs. Update in the same
 commit as the work that resolves an item.
 
+## From the 2026-08-13 full-surface audit
+
+First audit covering all five enforced roots at once (260 docs, 874 files).
+Every doc was checked against code; doc-wrong findings were fixed in that
+commit. What it left open:
+
+- [ ] **`drift-age` does not respond to an audit.** `intent status` reports the
+      OLDEST lock timestamp in a root, and `sync` only re-stamps files that
+      actually drifted — so after auditing and syncing all five roots, every
+      root still reads `2026-07-23`. The SPEC leans on drift-age for the
+      "oldest-audited area is always next" rotation (§6, §8 rot defenses), and
+      that signal currently cannot move. Either stamp every covered file on
+      sync, or record audit dates per root separately from file hashes.
+- [ ] **240 of 260 docs still carry `backfilled: true`.** Per SPEC §4 the flag
+      is removed "the first time a human-driven change vets it". An audit is
+      not a human-driven change, so the flag stayed. Decide whether an audited
+      doc should shed it — otherwise the flag stops distinguishing anything.
+- [ ] **Rubber-stamp syncs are real and the hash layer cannot see them.** Two
+      project dashboard views (`Overview.vue`, `CategoryView.vue`) were gutted
+      into thin panel wrappers on 2026-07-28 and their docs were re-synced with
+      the prose untouched — both still described the pre-extraction files. Only
+      the audit caught it. This is the failure mode SPEC §6 predicts; it now
+      has a confirmed instance.
+- [ ] **Consumer/`touched-by` lists rot fastest.** The single largest finding
+      class was stale consumer lists and reverse-dependency paths that exist on
+      disk but no longer describe a real relationship. Phase 6 dependency
+      hardening should treat these as derived, not hand-maintained.
+- [ ] **`manageNav.js` is missing dashboard.js's insights group** (Backlog,
+      Reports) though `config.intent.md` locks them to the same section set.
+      DRIFT note recorded; needs either the sections or a revised ruling.
+- [ ] **ModuleImporter aborts a batch import on first failure**, contrary to
+      `Modules.intent.md`. DRIFT note recorded; the fix is per-item state.
+
 ## Rollout phases
 
 - [ ] **Phase 4 — server backfill.** Scoped 2026-08-04; the three open
@@ -72,12 +105,15 @@ commit as the work that resolves an item.
 
 ## Event-driven reconciles (intent check will flag these when they happen)
 
-- [ ] When `feat-run-wf-named-io` merges: add the Run Workflow step
+- [x] ~~When `feat-run-wf-named-io` merges: add the Run Workflow step
       (`CInputWorkflowInputMap.vue`, Workflow/WorkflowSelector registry
-      entries) to `taq/components/builder/builder.intent.md`.
-- [ ] When `main` merges into this lineage: `lib/vue` field docs must gain the
-      PrimeVue `$pcFormField`/`$pcForm` severing contract (fix `928c3bc50`,
-      currently absent here — the multivalue-input bug is live on this branch).
+      entries) to `taq/components/builder/builder.intent.md`~~ — merged and
+      recorded 2026-08-13, along with `WorkflowInputMap` in the aggregate-type
+      list in `taq/composables/composables.intent.md`.
+- [x] ~~When `main` merges into this lineage: `lib/vue` field docs must gain the
+      PrimeVue `$pcFormField`/`$pcForm` severing contract~~ — merged and
+      recorded 2026-08-13: `CFieldEditor.vue` provides both as `undefined`, and
+      `field.intent.md` now documents it with its regression spec.
 - [x] ~~Document `sections/project` when the POC stabilizes~~ — done 2026-07-24
       via interview-first (rulings in `project/project.intent.md`). Remaining
       project-section follow-ups:

@@ -28,5 +28,10 @@ export file.
 ## When changing this
 
 Import must stay compatible with the export format produced elsewhere in the
-product (namespace/module export). Keep failure states visible per module rather
-than aborting the whole import silently.
+product (namespace/module export). Failure states should be visible per module
+rather than aborting the whole import silently.
+
+> **DRIFT:** they are not. `ModuleImporter` creates modules in one loop inside
+> a single try/catch, so the first failure stops the remaining modules, shows
+> one generic toast and closes the dialog — leaving a half-imported namespace
+> with no indication of which module failed.

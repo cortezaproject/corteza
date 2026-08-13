@@ -15,6 +15,9 @@ tests:
   - lib/js/src/compose/types/namespace.test.ts
   - lib/js/src/compose/types/page.test.ts
   - lib/js/src/compose/types/module-field/base.test.ts
+  - lib/js/src/compose/types/chart/config-contract.test.ts
+  - lib/js/src/compose/types/chart/empty-dimension.test.ts
+  - lib/js/src/compose/types/page-block/schema-contract.test.ts
 ---
 
 # Compose resource classes

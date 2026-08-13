@@ -29,10 +29,11 @@ covered by this doc.
 - `auth/ExternalStd.vue` — standard OAuth provider form (dumb `defineModel`).
 - `auth/ExternalOIDC.vue` — OIDC provider form (dynamic, deletable).
 - `auth/ExternalSAML.vue` — SAML provider form.
-- `auth/ExternalSecurity.vue` — role-mapping rules, embedded by the others.
+- `auth/ExternalSecurity.vue` — role-mapping rules, embedded by the others;
+  the one panel still on `defineProps`/`defineEmits` rather than `defineModel`.
 
 ## When changing this
 
-- Sub-components are dumb object forms bound via `defineModel`; all
-  load/save/mapping logic stays in `Index.vue` — don't let API calls leak
-  into `auth/`.
+- Sub-components are dumb object forms (bound via `defineModel`, except
+  ExternalSecurity); all load/save/mapping logic stays in `Index.vue` —
+  don't let API calls leak into `auth/`.

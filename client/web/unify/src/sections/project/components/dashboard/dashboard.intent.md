@@ -21,9 +21,9 @@ tests:
 ## Intention
 
 Parts for the Manage & Monitor dashboards. The **view set is locked and
-lives in `views/dashboard/`** (Overview, Category, Backlog, All Events);
-this folder holds only their reusable pieces — navigation, charts, badges,
-and the event/backlog dialogs and drawers.
+lives in `views/dashboard/`** (Overview, Board, Category, Backlog, Activity,
+Reports); this folder holds only their reusable pieces — the shared panels,
+navigation, charts, badges, and the event/backlog dialogs and drawers.
 
 ## Map
 
@@ -31,18 +31,26 @@ and the event/backlog dialogs and drawers.
   and reuse the same coloured badge as their view.
 - `CategoryPanel.vue` — the whole category screen (header, metrics band,
   table, dialogs), route-free so both surfaces mount it: `views/dashboard/
-  CategoryView.vue` is now a thin route wrapper, and each
+CategoryView.vue` is now a thin route wrapper, and each
   `components/wizard/manage/Manage<Category>.vue` mounts it with a revision.
   An optional `revisionId` flips it to single-revision mode. IMPORTANT: the
   report endpoint has no revision parameter, so revision-scoped metrics are
   computed client-side from loaded store rows — accurate only within the
   stores' 200-row cap. Chain-wide mode still uses the aggregate-correct
   report endpoint.
+- `OverviewPanel.vue`, `BoardPanel.vue` (+ `BoardColumn`/`BoardCard`) — the
+  Overview and Board screens, route-free and mounted twice the same way as
+  CategoryPanel.
 - `ActivityPanel.vue` — the Activity timeline, shared the same way: the
   dashboard route mounts it chain-wide, the wizard's Activity section with a
   revision. CAVEAT worth keeping: work items file against the chain root, so
   their audit events are never revision-attributable — only a revision's own
   build artifacts filter. The UI copy says so; don't let it drift.
+
+> **WIP:** ActivityPanel's `revisionId` is wired through but inert — the
+> actionlog endpoints do not accept the filter yet, so the wizard's Activity
+> section still shows the same chain-wide events as the dashboard.
+
 - Charts (presentational — parents map store data in): `CategoryKpiRow`,
   `CategoryDonutChart`, `CategoryTrendChart`, `CategoryRankBar`,
   `ChartLegend`; colours come from `config/chartColors`.

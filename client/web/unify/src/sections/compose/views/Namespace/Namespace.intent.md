@@ -22,7 +22,8 @@ screens render as its router children.
 ## Data touched
 
 - `useNamespaceStore` — set of all namespaces; lookup by slug-or-ID via
-  `getByUrlPart`; create/update/clone/delete go through the store.
+  `getByUrlPart`; create/update/clone/delete should go through the store so the
+  cached set stays true (List.vue's delete does not — see its DRIFT note).
 - `$ComposeAPI` — namespace list (paginated table), delete, export endpoint
   (JWT-signed download URL), namespace attachment upload for logos.
 - `View.vue` additionally preloads module, page, chart, and page-layout stores.

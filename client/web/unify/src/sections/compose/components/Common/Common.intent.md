@@ -34,3 +34,7 @@ the module field kinds.
 InterpolationFootnote's variable list is a static hint, not derived from code —
 keep it in sync with what `evaluatePrefilter` (lib/record-filter.js) actually
 supports.
+
+> **DRIFT:** the builder consumer is miswired. `RecordListConfigurator` mounts
+> `RecordListFilter` without the required `namespace` prop and passes a
+> `show-reset` prop the component never declared.

@@ -6,7 +6,8 @@ owner: fe
 depends-on:
   - lib/vue/src/stores/useWorkflowPromptsStore.ts
   - lib/js
-touched-by: []
+touched-by:
+  - client/web/unify/src/App.vue
 tests: []
 ---
 
@@ -23,7 +24,9 @@ modal), collect input, and resume/cancel the workflow through
 
 - `CPrompts.vue` — mount-once host rendering CPromptToast + CPromptModal;
   `hideToasts` prop for surfaces that only want modals.
-- `CPromptToast.vue` — passive prompt list (only while the tab has focus).
+- `CPromptToast.vue` — toast list (only while the tab has focus): passive
+  prompts always, plus the active ones whenever the modal is not showing one,
+  so an active prompt is never invisible.
 - `CPromptModal.vue` — active prompt dialog; resumes with collected input.
 - `kinds/` — one component per prompt ref (alert, choice, input, options,
   notification, composeRecordPicker) extending `base.vue`.

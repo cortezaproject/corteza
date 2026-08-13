@@ -19,7 +19,7 @@ so all apps format values identically.
 
 ## Map
 
-- `datetime.ts` — parse via moment, format via `Intl.DateTimeFormat` (fullDateTime/dateTime/date/time variants).
+- `datetime.ts` — parse via moment, format via `Intl.DateTimeFormat` (fullDateTime/date/time variants).
 - `number.ts` — `Intl.NumberFormat` formatting + accounting style (negatives in parentheses, zero as `-`).
 - `locale.ts` — `currentLanguage()`: browser-derived language used by the Intl calls (temporary until wired to user preference).
 

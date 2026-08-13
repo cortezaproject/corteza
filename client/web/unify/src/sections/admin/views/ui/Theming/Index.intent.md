@@ -21,7 +21,7 @@ custom CSS (`ui.studio` settings), with changes applied live on save.
 ## UX capabilities
 
 - Logo drop zones upload straight to the `ui.mainLogo` / `ui.iconLogo` setting endpoints; a logo is clearable (back to default) only when its raw setting value starts with `attachment:`.
-- Theme studio tabs — general / light / dark: color variables (light+dark only; primary, success, warning, danger, body/sidebar/topbar backgrounds) with per-variable reset-to-default, and custom CSS per tab.
+- Theme studio tabs — light (default) / dark / general: color variables (light+dark only; primary, success, warning, danger, body/sidebar/topbar backgrounds) with per-variable reset-to-default, and custom CSS per tab.
 - Save writes `ui.studio.themes` + `ui.studio.custom-css` and re-applies the theme immediately (`setThemes` + `useTheme`) so the admin sees changes without refreshing.
 
 ## Routes

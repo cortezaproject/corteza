@@ -29,9 +29,9 @@ which manages DAL/database connections.
 - `List.vue` — connection list, routes rows by source (sidecar).
 - `Editor.vue` — local-definition editor + enable flow (sidecar).
 - `Configure.vue` — configured-instances page, catalog/active (sidecar).
-- `ConfiguredConnectionsPanel.vue` — non-route sub-component listing and
-  deleting one connection's configured instances; embedded by Editor and
-  Configure.
+- `ConfiguredConnectionsPanel.vue` — non-route sub-component owning one
+  connection's configured instances end to end (list, create/edit dialog,
+  connectivity check, enable, delete); embedded by Editor and Configure.
 
 ## When changing this
 

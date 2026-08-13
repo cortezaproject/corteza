@@ -17,10 +17,10 @@ tests: []
 
 ## Intention
 
-Shared reactive logic for the project dashboards that is neither global state
-(stores) nor pure functions (utils). Session-local approval/governance state
-does NOT live here — it lives in `stores/projects.js` (see the WIP note
-there).
+Shared reactive logic for the project dashboards and the wizard's Govern tab
+that is neither global state (stores) nor pure functions (utils).
+Session-local approval/governance state does NOT live here — it lives in
+`stores/projects.js` (see the WIP note there).
 
 ## Map
 
@@ -33,7 +33,7 @@ there).
   display. Single definition shared by the Overview activity band and
   AllEventsView's metrics band — do not fork it.
 - `revisionCompleteness.js` — `fetchRevisionCompleteness($SystemAPI,
-  projectId, revisionId)`: completed-vs-assigned work-item totals plus the
+projectId, revisionId)`: completed-vs-assigned work-item totals plus the
   per-status breakdown (`byStatus`) for ONE revision off a single board call
   (`$SystemAPI.projectBoardBoard`, `limit: 1` — totals only, never cards).
   THE completeness formula, shared by
@@ -46,6 +46,10 @@ there).
   view never has to know whether it holds a root or a later revision. Options
   include an explicit Unassigned entry (value `null`) — clearing an
   assignment is as valid as setting one.
+- `useActiveAiSystem.js` / `useFriaActiveScenario.js` — "which AI system /
+  which risk scenario is open" for the Govern tab's ai-systems and
+  fria-scenarios steps: shared selection state between a step's list and its
+  editor, so neither owns it.
 
 ## Data touched
 

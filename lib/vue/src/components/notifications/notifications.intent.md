@@ -28,8 +28,9 @@ websocket delivery live in `useNotificationsStore`; this folder is the view.
 - `Notifications.vue` — tabs (unread/all), mark-all-read, mute toggle.
 - `NotificationList.vue` / `NotificationItem.vue` — list + row; row emits
   `mark-read`/`mark-unread`/`delete` and resolves record links via `$ComposeAPI`.
-- `types/` — per-kind bodies (NotificationSimple, NotificationRecord); a new
-  notification kind means a new component here plus its dispatch entry.
+- `types/` — per-kind bodies (NotificationSimple, NotificationRecord). Nothing
+  renders them: NotificationItem draws the body itself and only branches on
+  `kind === 'record'` for the open-record action.
 
 ## When changing this
 

@@ -39,4 +39,10 @@ record-toolbar configuration. Blocks are the builder's job.
 - Seeded layouts must use the `compose.PageLayout` type (default toolbar buttons enabled) and — when cloning — carry the page's blocks; an empty layout hides every block in the public view.
 - The layout config dialog edits a deep clone; nothing applies until its Save splices the clone back and marks `_updated`.
 - Layout builder links pass `?layoutID`; deleting layouts is deferred to the main save (they accumulate in `removedLayouts`).
+
+> **DRIFT:** the per-layout `useTitle` toggle has no render-time effect. Nothing
+> reads `layout.config.useTitle` / `layout.meta.title` when a record page
+> renders — `RecordView.vue` always shows `page.title` — so an admin can set a
+> custom title and see nothing change.
+
 - The record-page condition hint (`record.values.fieldName`) is accurate only because `RecordView.vue`/`View.vue` resolve the record before picking a layout (see their sidecars) — keep hint copy and actual evaluation timing in sync.

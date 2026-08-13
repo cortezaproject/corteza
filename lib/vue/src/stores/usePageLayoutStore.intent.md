@@ -27,7 +27,8 @@ page can render (per role/condition), used by page views and the builder.
 
 ## Consumers
 
-Compose page views (layout selection), page builder/admin.
+Compose page views (layout selection), page builder/admin, and the module
+admin editor (creates a default layout for a new module's record page).
 
 ## Invariants
 

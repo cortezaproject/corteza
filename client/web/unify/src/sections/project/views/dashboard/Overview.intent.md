@@ -1,12 +1,11 @@
 ---
 kind: file
 covers: Overview.vue
-backfilled: true
 owner: fe
 depends-on:
-  - client/web/unify/src/sections/project/stores/report.js
-  - client/web/unify/src/sections/project/config/categories.js
-touched-by: []
+  - client/web/unify/src/sections/project/components/dashboard/OverviewPanel.vue
+touched-by:
+  - client/web/unify/src/sections/project/index.js
 tests: []
 ---
 
@@ -14,19 +13,18 @@ tests: []
 
 ## Intention
 
-Landing dashboard of a live project: per-category health at a glance plus the
-project's activity pulse, driven entirely by the server-side report endpoint
-(grouped counts — accurate beyond any list row cap).
+Route target for the dashboard's landing screen, chain-wide. A thin wrapper:
+the screen itself is `components/dashboard/OverviewPanel.vue`, the same
+component the wizard's Manage & Monitor tab mounts (via `ManageOverview.vue`)
+scoped to one revision.
 
 ## UX capabilities
 
-- One card per governance category (open count + status doughnut with total),
-  each linking to that category's page.
-- Audit-events activity panel (admin-only; hides itself when unavailable).
-- Cross-category created-over-time trend, windowed by a time-range control
-  (default 6 months); changing the range reloads only the trend.
-- Skeletons on first load; a failed report shows a visible retry instead of
-  silently rendering zeros.
+All of them live in `OverviewPanel`: per-category health cards (open count +
+status doughnut) linking to each category's page, the admin-only audit-events
+activity panel, and the cross-category created-over-time trend with its
+time-range control. Counts come from the server-side report endpoint, so they
+stay accurate beyond any list row cap.
 
 ## Routes
 
@@ -35,7 +33,7 @@ project's activity pulse, driven entirely by the server-side report endpoint
 
 ## When changing this
 
-- Keep the separate staleness guards for cards vs trend (a range change must
-  not orphan an in-flight project load, and vice versa).
+- Keep it thin. Overview behaviour belongs in `OverviewPanel`, so the
+  dashboard and the wizard cannot drift — that is the point of the panel.
 - "Open" means not-Completed — the single definition lives in
   `stores/events.js#isOpenStatus`; don't restate the rule here.

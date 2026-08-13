@@ -35,7 +35,8 @@ values, and expand entries for their full context. Strictly read-only.
 
 - Cursor = `beforeActionID` of the last loaded row; keep append semantics
   and the `loadSeq` stale-response guard when touching `load()`.
-- Actor names resolve via per-ID `userRead` into a local cache (the admin
-  section has no user store); keep per-user failures silent.
+- Actor names resolve via per-ID `userRead` into a local cache rather than
+  through `useUserStore` — the log's actors are arbitrary historical IDs, not
+  the working set the store preloads; keep per-user failures silent.
 - Drill-down values missing from `vocab.js` become virtual Select options —
   keep that or the filter renders blank.

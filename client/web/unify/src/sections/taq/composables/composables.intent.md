@@ -23,7 +23,7 @@ The builder's logic layer, kept out of the components.
 ## Map
 
 - `useFlowEditor.ts` — the entire editor model: load/save/exec a TAQ, node/edge mutation (add, replace, delete-with-reconnect, branch outputs, gateway type, edge conditions), snapshot undo/redo, dirty tracking, trace state, `getUpstreamResults` (reference panel sources incl. always-present invoker/runner system-user fields), `getTriggerProperties` (RunModal inputs).
-- `useSegmentForm.ts` — shared segment-form processing for FunctionForm/TriggerForm: flattens catalog segments into renderable inputs, resolves `context.dependsOn` (disabled placeholders, cascade-clears dependents on change, design-time reference resolution), detects aggregate types (FieldValueMap/Array).
+- `useSegmentForm.ts` — shared segment-form processing for FunctionForm/TriggerForm: flattens catalog segments into renderable inputs, resolves `context.dependsOn` (disabled placeholders, cascade-clears dependents on change, design-time reference resolution), detects aggregate types (FieldValueMap/WorkflowInputMap/Array).
 
 ## When changing this
 

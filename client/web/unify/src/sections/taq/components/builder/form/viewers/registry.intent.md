@@ -25,3 +25,6 @@ step previews and the reference panel.
 ## When changing this
 
 - Add entries in the same change that extends the inputs registry.
+
+> **DRIFT:** nine editable types currently have no viewer entry — see the
+> DRIFT note in `../../builder.intent.md` for the list.

@@ -41,9 +41,13 @@ composing a DataTable by hand.
   pageCursor, incTotal, ...filter }) and must return { response, cancel }
   (abortable). Returns readonly `items`/`loading`/`error`, reactive
   `filter`/`sorting`/`pagination`, and handlers (`fetchItems`, `filterList`,
-  `handleSort`, `handlePageChange`, `handleRowClick`, `abortRequests`) that map
-  1:1 onto CResourceList's props/events. State round-trips through the route
-  query so lists are deep-linkable; in-flight requests are cancelled on refetch.
+  `handleSort`, `handlePageChange`, `abortRequests`) that map 1:1 onto
+  CResourceList's props/events. State round-trips through the route query so
+  lists are deep-linkable; in-flight requests are cancelled on refetch.
+- Row navigation is NOT part of the pairing: every list screen binds its own
+  `@row-click`, because the target route is per-resource. (The composable also
+  returns a `handleRowClick`, but it is hardcoded to `namespace.edit` and no
+  screen uses it.)
 
 ## When changing this
 

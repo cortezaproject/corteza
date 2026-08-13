@@ -31,12 +31,13 @@ sidebar files.
 - Reminders — reminder sidebar/list/edit/toast components over the reminder store
 - Translator — resource-translation button/dialog/form trio over the translator store
 - CSidebarNamespaceSwitcher.vue — namespace Select for the compose sidebar; navigates on switch, links to namespace manage/edit
-- CSidebarNavigation.vue — sidebar tree: public page tree, or admin nav (modules/pages/charts) when on an `admin.*` route
+- CSidebarNavigation.vue — sidebar search box plus two trees rendered together, each when it has items: the public page tree and the admin nav (modules/pages/charts). The current route only changes the search placeholder, never which tree shows
 
 ## Data touched
 
-Sidebar files read namespace, page, and module stores from `@planetcrust/human-vue`
-and build `_id/_parentId/_label/_route` tree items for the shared tree component.
+Sidebar files read namespace, page, and module stores from `@planetcrust/human-vue`.
+The admin nav builds `_id/_parentId/_label/_route` items; the page tree instead
+points the shared tree at the page shape via `*-key` props (`pageID`/`selfID`/`title`).
 
 ## When changing this
 

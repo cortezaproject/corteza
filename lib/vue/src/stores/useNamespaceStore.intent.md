@@ -29,7 +29,8 @@ sections and pickers can resolve them synchronously.
 ## Consumers
 
 Unify shell (preload on mount), compose section (URL slug → namespace via
-`getByUrlPart`), namespace pickers.
+`getByUrlPart`), namespace pickers, agentic editor (resolves namespace names in
+an agent's tool-access rules).
 
 ## Invariants
 

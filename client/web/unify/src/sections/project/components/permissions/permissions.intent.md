@@ -28,9 +28,11 @@ to what an END USER of the deployed app can do at runtime — module records,
 page viewing, agent/chatbot use, automation running. Build-time ops stay out;
 rare ops remain reachable via the per-row ⚙ full permission editor
 (`usePermissions`). The locked contract: a shared `ResourcePermissionsSection`
-is embedded in each resource detail dialog; the matrix takes a `scope` prop;
-automation appears as a runtime **Run** kind (read + execute); **connection is
-deliberately omitted**.
+is embedded in every BUILT-resource detail dialog (agent, automation, chatbot,
+module, page); the matrix takes a `scope` prop; automation appears as a runtime
+**Run** kind (read + execute); **connection is deliberately omitted**. Role and
+user dialogs embed `ProjectPermissionMatrix` directly instead — they are the
+subjects of permissions, not resources holding them.
 
 ## Data touched
 

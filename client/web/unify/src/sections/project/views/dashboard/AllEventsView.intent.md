@@ -35,7 +35,7 @@ day-grouped, newest first, with a metrics band over the effective window.
 
 ## Routes
 
-- `project.overview.events` at `events` under the dashboard layout.
+- `project.overview.activity` at `activity` under the dashboard layout.
 
 ## When changing this
 

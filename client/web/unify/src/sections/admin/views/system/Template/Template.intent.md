@@ -29,7 +29,8 @@ composition via partial templates.
 
 ## When changing this
 
-- Partial vs full template distinction drives both the list and the
-  editor's partial picker — preserve the `partial` flag semantics.
+- Partial vs full template distinction drives the editor's partial picker —
+  preserve the `partial` flag semantics. The list ignores the flag: partials
+  and full templates are listed together, undifferentiated.
 - Editor building blocks (code editor, toolbox, preview) live in
   `sections/admin/components/Template/`.

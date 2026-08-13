@@ -31,14 +31,17 @@ provide/inject (`$SystemAPI`, `$ComposeAPI`, `$Auth`, `$Settings`, `$toast`,
 - `components/` — shared components (see its own intent docs)
 - `composables/` — reusable composition fns (useResourceList, usePermissions, useTheme, ...)
 - `stores/` — shared Pinia stores (user, record, module, notifications, agent chat, ...)
-- `plugins/` — app bootstrap: auth, human-api, i18n, settings, toast, event-bus, primevue-components
+- `plugins/` — app bootstrap: auth, human-api, i18n, settings, toast, event-bus, primevue-components, primevue-locale
 - `filters/` — date formatting helpers
 - `libs/` — url + websocket helpers
 - `utils/` — app icons, internal navigation helpers
 - `assets/`, `test/` — static assets, test setup
 - `index.ts` — package entry re-exporting the public surface; `vue.d.ts` — ambient types
 
-Subfolders carrying their own `*.intent.md` override this doc for their subtree.
+Subfolders carrying their own `*.intent.md` override this doc for their
+subtree. `components/components.intent.md` covers only its direct children, so
+component families without a doc of their own (`tag/`, `chip/`) fall through
+to this doc.
 
 ## When changing this
 

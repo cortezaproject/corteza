@@ -28,7 +28,7 @@ None.
 ## Consumers
 
 Shell topbar buttons, notifications panel, agent sidebar, section panels
-(e.g. workflow/compose sidebars).
+(workflow/compose sidebars, project dashboard board/category/backlog panels).
 
 ## Invariants
 

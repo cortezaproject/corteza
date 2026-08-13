@@ -26,7 +26,7 @@ from the section's declaration — App.vue must know no section specifics.
 
 ## Data touched
 
-- Stores: applications, notifications, rightSidebar, workflowPrompts, rbac, users, namespaces, modules (all from lib/vue).
+- Stores: applications, notifications, rightSidebar, workflowPrompts, rbac, users, namespaces (all from lib/vue).
 - `$Settings` (`ui.topbar`, `discovery.enabled`), `$Auth`, websocket, event bus.
 - Provides `$appIconMap`; agent context = route context + active section (+ section `agentContext` enrichment).
 

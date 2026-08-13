@@ -38,5 +38,5 @@ notifications sidebar panel.
   returns true when handled — the shell uses this to short-circuit its own
   dispatch. New realtime notification types belong here.
 - `fetchNotifications` appends when a `pageCursor` is set, replaces otherwise;
-  mark-as-read mutations update local state optimistically after the API call
-  (no refetch).
+  mark-as-read mutations patch local state after the API call resolves, never
+  optimistically before it, and never by refetching.

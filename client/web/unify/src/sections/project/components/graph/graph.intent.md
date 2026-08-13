@@ -34,20 +34,22 @@ support the canvas, not the other way around.
 Node/edge model — the backend is the single source of truth:
 `$SystemAPI.projectGraph({ projectID })` (via `store.graph`) re-derives the
 graph from saved state. Nodes `{ id, name, kind }`; edges
-`{ sourceID, targetID, reason }` (store renames to source/target). Known
-edge reasons: `module-field-ref`, `role-rbac`, `user-role`; record
-references render directed (referencing → referenced module).
+`{ sourceID, targetID, reason }` (store renames to source/target), plus
+`missing` and `warnings` arrays that drive the Issues panel and per-node
+severity badges. A node may carry `external`, which exempts it from being
+clickable/inspectable. `EDGE_REASONS` in `ResourceGraph.vue` is the full
+vocabulary (18 today: module/page/chart/trigger/agent/chatbot/step wiring
+plus `role-rbac`/`user-role`); record references render directed
+(referencing → referenced module).
 
 - **Scoping:** strictly project-scoped — always fetched by `projectID`; the
   cross-project leak (store.Search ignoring ctx scope) was fixed server-side.
   Resources join the graph by being stamped with the project (rel_project).
 - **Refresh:** `store.graphVersion` (bumped by `touch()` on every persisting
   mutation) triggers a refetch; concurrent reloads coalesce.
-- **Visibility:** store-owned, not local — `graphVisibleKinds` is re-seeded
-  per step from `kindsThroughStep` (the build is a process: only kinds built
-  so far show); role/user (`ACCESS_KINDS`) form a separate overlay set
-  auto-enabled on access steps. Hiding a kind hides its edges; chips still
-  show counts.
+- **Visibility:** store-owned, not local — `graphVisibleKinds` starts from
+  `OVERVIEW_KINDS` (`config/kinds.js`) and is toggled from the chips. Hiding
+  a kind hides its edges; chips still show counts.
 
 ## When changing this
 

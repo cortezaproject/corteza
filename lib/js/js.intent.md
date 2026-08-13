@@ -44,5 +44,5 @@ intent system. Chain order matters: server codegen runs first (finalizing
 ## When changing this
 
 - `NoID = '0'` is a backend contract: IDs are uint64 serialized as strings; never treat IDs as numbers.
-- Anything exported from `src/index.ts` is public API for three apps plus lib/vue — removing/renaming exports needs a consumer sweep.
+- Anything exported from `src/index.ts` is public API for both apps plus lib/vue — removing/renaming exports needs a consumer sweep.
 - Endpoint changes start in server `rest.yaml` + codegen, never in `src/api-clients/`.

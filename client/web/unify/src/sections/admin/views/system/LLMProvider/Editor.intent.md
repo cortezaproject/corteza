@@ -23,8 +23,9 @@ and the API key — the credential AI features depend on.
 - Create mode requires provider + API key inline; edit mode moves the key to
   a dedicated "update key" dialog (write-only — entered fresh, never shown).
 - Provider and prompt URL sync both ways: picking a provider prefills its
-  default URL; typing a known default URL switches the provider, anything
-  else flips to "other".
+  default URL, but only over an empty field or another provider's default —
+  a hand-edited URL survives a provider switch. Typing a known default URL
+  switches the provider, anything else flips to "other".
 - Delete (gated by `canDeleteLlmProvider`); unsaved-changes guard on leave.
 
 ## Routes

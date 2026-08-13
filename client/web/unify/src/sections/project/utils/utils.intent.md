@@ -25,9 +25,11 @@ would otherwise be duplicated between the store and components.
   human label. Shared by the store (marshalling) and the data-model editors
   (predicting the machine name of unsaved fields); both sides MUST use it so
   predictions match what gets persisted.
-- `kindIcons.js` — `kindIconDataUri(kind)`: inline-SVG data URIs per resource
-  kind for ECharts node symbols; reuses the exact PrimeIcons artwork and
-  kind color from `config/kinds.js` so graph nodes match the metrics strip.
+- `kindIcons.js` — `kindIconDataUri(kind, { external, badge })`: inline-SVG
+  data URIs per resource kind for ECharts node symbols; reuses the exact
+  PrimeIcons artwork and kind color from `config/kinds.js` so graph nodes
+  match the metrics strip. `badge` draws the missing/warning severity mark,
+  `external` the out-of-project tile.
 
 ## When changing this
 

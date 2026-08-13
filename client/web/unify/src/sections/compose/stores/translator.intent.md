@@ -31,8 +31,10 @@ None directly; all server I/O goes through the callbacks the opener provides
 
 ## Consumers
 
-CTranslatorButton (and the Module/Page/Namespace translator wrappers) open
-it; CTranslatorDialog reads it and calls the callbacks.
+CTranslatorButton (and the Module/Page/Namespace translator wrappers) open it;
+so do the page Builder and module Edit views directly, for per-block and
+per-field translation where there is no button to hang a wrapper on.
+CTranslatorDialog reads it and calls the callbacks.
 
 ## Invariants
 

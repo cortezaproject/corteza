@@ -48,8 +48,9 @@ Loads users + project user sets first so owner refs resolve.
 
 ## Consumers
 
-Dashboard views (Overview, CategoryView, AllEventsView), NewEventDialog,
-DashboardNav badges, backlogItems (reuses `isOpenStatus`).
+Dashboard panels (OverviewPanel, CategoryPanel), NewEventDialog, DashboardNav
+badges, backlogItems (reuses `isOpenStatus`). NOT the Activity screen — that
+reads the audit log, a different data source entirely.
 
 ## Invariants
 
@@ -58,7 +59,8 @@ DashboardNav badges, backlogItems (reuses `isOpenStatus`).
 - Mutations patch the local list in place — lists/KPIs/badges must react
   without a refetch.
 - `updateStatus` is optimistic: mutate in place, push, roll back the previous
-  status on failure. The board's drag-between-columns depends on the card
-  moving immediately and snapping back when the write is rejected.
+  status on failure. BoardPanel does not ride on this patch — it pages the
+  board endpoint past the 200-row cap and keeps its own optimistic column
+  state, rolling back independently on the same failure.
 - Payload dates go through `normalizeDates` (YYYY-MM-DD); owner fields are
   sent as user IDs, shown as names.
