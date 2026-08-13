@@ -256,3 +256,56 @@ func Test_validator_customExpr(t *testing.T) {
 	rve = vldtr.Run(context.Background(), nil, m, r)
 	require.True(t, rve.IsValid())
 }
+
+// An empty value used to return from Run outright, which threw away every error
+// gathered before it — a required field left blank was reported as valid, and
+// any value after the empty one went unvalidated.
+func Test_validator_emptyValueKeepsEarlierErrors(t *testing.T) {
+	var (
+		req   = require.New(t)
+		vldtr = validator{localeSvc: makeLocaleService()}
+
+		m = &types.Module{Fields: types.ModuleFieldSet{
+			&types.ModuleField{Name: "req_string", Kind: "String", Required: true},
+			&types.ModuleField{Name: "opt_string", Kind: "String"},
+		}}
+	)
+
+	t.Run("required field sent empty is still reported", func(t *testing.T) {
+		r := &types.Record{Values: types.RecordValueSet{
+			&types.RecordValue{Name: "req_string", Value: "", Updated: true},
+		}}
+
+		out := vldtr.Run(context.Background(), nil, m, r)
+		req.NotNil(out)
+		req.False(out.IsValid())
+		req.Len(out.Set, 1)
+		req.Equal("empty", out.Set[0].Kind)
+		req.Equal("req_string", out.Set[0].Meta["field"])
+	})
+
+	t.Run("an empty optional value does not clear the required error", func(t *testing.T) {
+		// The optional empty value is walked after the required one; returning on
+		// it discarded the error the required field had already produced.
+		r := &types.Record{Values: types.RecordValueSet{
+			&types.RecordValue{Name: "req_string", Value: "", Updated: true},
+			&types.RecordValue{Name: "opt_string", Value: "", Updated: true},
+		}}
+
+		out := vldtr.Run(context.Background(), nil, m, r)
+		req.NotNil(out)
+		req.False(out.IsValid())
+		req.Len(out.Set, 1)
+		req.Equal("req_string", out.Set[0].Meta["field"])
+	})
+
+	t.Run("no errors when the required field is filled", func(t *testing.T) {
+		r := &types.Record{Values: types.RecordValueSet{
+			&types.RecordValue{Name: "req_string", Value: "given", Updated: true},
+			&types.RecordValue{Name: "opt_string", Value: "", Updated: true},
+		}}
+
+		// Run signals "valid" by returning nil.
+		req.Nil(vldtr.Run(context.Background(), nil, m, r))
+	})
+}

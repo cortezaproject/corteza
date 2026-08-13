@@ -187,8 +187,13 @@ fields:
 
 		if !(f.Expressions.DisableDefaultValidators && len(f.Expressions.Validators) > 0) {
 			if v.Value == "" {
-				// Nothing to do with empty value
-				return nil
+				// Nothing to do with empty value.
+				//
+				// Skip this value only: returning here would discard every error
+				// gathered so far — including the required-field errors raised
+				// above — and leave the remaining values unvalidated, so a single
+				// empty value anywhere in the record passed the whole thing.
+				continue
 			}
 
 			// Per field type validators
