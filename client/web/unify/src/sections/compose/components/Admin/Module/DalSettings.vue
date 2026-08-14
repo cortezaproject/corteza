@@ -8,7 +8,7 @@
       >
         <Select
           id="connectionID"
-          v-model="module.config.dal.connectionID"
+          v-model="connectionID"
           :options="connections"
           optionLabel="label"
           optionValue="connectionID"
@@ -150,6 +150,26 @@ const systemFieldEncoding = ref(
 
 const moduleFieldDefaultEncodingStrategy = computed(() => types.JSON)
 
+// An unset connection ('0') means "whichever connection is primary", and the
+// module is meant to keep meaning that. So the primary is resolved for display
+// only: writing it into the draft would both dirty an untouched editor and, on
+// the next save, pin the module to one connection for good.
+const primaryConnectionID = computed(
+  () => connections.value.find(c => c.type === PrimaryConnType)?.connectionID || '0',
+)
+
+const connectionID = computed({
+  get() {
+    const stored = module.value?.config?.dal?.connectionID
+    return !stored || stored === '0' ? primaryConnectionID.value : stored
+  },
+  set(value) {
+    if (!module.value.config) module.value.config = {}
+    if (!module.value.config.dal) module.value.config.dal = {}
+    module.value.config.dal.connectionID = value
+  },
+})
+
 watch(
   () => module.value?.fields,
   () => {
@@ -185,14 +205,7 @@ watch(
   { deep: true, immediate: true },
 )
 
-onMounted(() => {
-  // recordID is always on; strip any stale omit so it cannot persist as omitted
-  const sfe = module.value?.config?.dal?.systemFieldEncoding
-  if (sfe && sfe.id) {
-    delete sfe.id
-  }
-  fetchConnections()
-})
+onMounted(fetchConnections)
 
 async function fetchConnections() {
   processing.value = true
@@ -202,14 +215,6 @@ async function fetchConnections() {
       ...c,
       label: c.meta?.name || c.handle || c.connectionID,
     }))
-
-    const connectionID = module.value.config?.dal?.connectionID
-    if (!connectionID || connectionID === '0') {
-      const primary = connections.value.find(c => c.type === PrimaryConnType)
-      if (!module.value.config) module.value.config = {}
-      if (!module.value.config.dal) module.value.config.dal = {}
-      module.value.config.dal.connectionID = primary ? primary.connectionID : '0'
-    }
   } catch (e) {
     if ($toast?.toastErrorHandler) {
       $toast.toastErrorHandler(t('module.edit.config.dal.connections.fetch-failed'))(e)

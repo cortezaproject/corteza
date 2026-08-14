@@ -606,10 +606,15 @@
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
       "t": "2026-08-13"
     },
-    "client/web/unify/src/sections/compose/components/Admin/Module/DalSettings.vue": {
-      "h": "63e17f3b3740",
+    "client/web/unify/src/sections/compose/components/Admin/Module/DalSettings.draft.test.js": {
+      "h": "130a1ff85586",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/Module/DalSettings.vue": {
+      "h": "595ca13d5c20",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/components/Admin/Module/DiscoverySettings.vue": {
       "h": "7329074c6c4b",

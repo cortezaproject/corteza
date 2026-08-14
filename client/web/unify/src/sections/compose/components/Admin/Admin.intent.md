@@ -10,7 +10,8 @@ touched-by:
   - client/web/unify/src/sections/compose/views/Admin/Pages/Edit.vue
   - client/web/unify/src/sections/compose/views/Admin/Pages/Builder.vue
   - client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/components/Admin/Module/DalSettings.draft.test.js
 ---
 
 # Compose admin panels
@@ -30,7 +31,7 @@ the shared Translator components.
 
 ## Map
 
-- Module/DalSettings.vue, DalFieldStoreEncoding.vue, encoding-strategy.js — per-field store-encoding strategy (omit/plain/alias/json); encoding-strategy.js maps strategy → config payload and knows system-field defaults differ (null)
+- Module/DalSettings.vue, DalFieldStoreEncoding.vue, encoding-strategy.js — connection choice plus per-field store-encoding strategy (omit/plain/alias/json); encoding-strategy.js maps strategy → config payload and knows system-field defaults differ (null). An unset `connectionID` ('0') means "whichever connection is primary" and stays unset: the primary is resolved for display only
 - Module/DalSchemaAlterations.vue — pending DAL schema alterations for the module
 - Module/RecordRevisionsSettings.vue, DiscoverySettings.vue — feature toggles on module.config
 - Module/FederationSettings.vue — standalone field-mapping modal, shown only when the global `federation.enabled` setting is on; persists through `$FederationAPI` itself and never touches `module.config`
@@ -40,7 +41,10 @@ the shared Translator components.
 ## When changing this
 
 These panels mutate the parent-owned resource object; keep them side-effect free
-until the parent view saves. The two exceptions own their own writes and say so
+until the parent view saves. Loading counts: a panel that writes a resolved
+default into the draft on mount makes an untouched editor report unsaved
+changes, and turns the next save into a change the user never asked for — show
+the default, write only what the user picks. The two exceptions own their own writes and say so
 by having their own action buttons: FederationSettings (its Save) and
 DalSchemaAlterations (apply/dismiss). Translator wrappers are the pattern to copy for a new
 translatable compose resource — the shared Translator family defines the contract.
