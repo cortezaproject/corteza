@@ -72,7 +72,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { components, useRecordStore, useModuleStore, usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
-import { evaluatePrefilter } from '../../../lib/record-filter'
+import { evaluatePrefilter, getFieldFilter } from '../../../lib/record-filter'
 
 const { CFieldViewer } = components
 
@@ -166,8 +166,14 @@ async function pullRecords() {
       )
     }
 
+    // Through the shared filter helper, never string interpolation: it escapes
+    // the value, and reads an empty group as IS NULL — the ungrouped column —
+    // where a bare `= ''` finds nothing on a text column and is a hard postgres
+    // error on a numeric one.
     if (groupField && group !== undefined) {
-      filterParts.push(`(${groupField} = '${group}')`)
+      const kind = fieldDef(groupField)?.kind || 'String'
+      const condition = getFieldFilter(groupField, kind, group, '=')
+      if (condition) filterParts.push(`(${condition})`)
     }
 
     const query = filterParts.join(' AND ')
