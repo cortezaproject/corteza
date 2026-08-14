@@ -45,6 +45,7 @@ export { providePermissions, usePermissions, PermissionsKey } from './composable
 export { useRightSidebarResize } from './composables/useRightSidebarResize'
 export { useAgentRouteContextProvider } from './composables/useAgentRouteContextProvider'
 export { useUnsavedGuard } from './composables/useUnsavedGuard'
+export { useHistoryBack } from './composables/useHistoryBack'
 export { resolveAppLogoUrl } from './utils/appIcons'
 export * as websocket from './libs/websocket'
 

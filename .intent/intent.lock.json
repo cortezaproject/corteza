@@ -4161,6 +4161,16 @@
       "doc": "lib/vue/src/composables/composables.intent.md",
       "t": "2026-07-23"
     },
+    "lib/vue/src/composables/useHistoryBack.test.ts": {
+      "h": "8b5016c7959a",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-08-14"
+    },
+    "lib/vue/src/composables/useHistoryBack.ts": {
+      "h": "2b3f239e2226",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-08-14"
+    },
     "lib/vue/src/composables/useInternalLink.ts": {
       "h": "7864f2158268",
       "doc": "lib/vue/src/composables/composables.intent.md",
@@ -4242,9 +4252,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/index.ts": {
-      "h": "977c0424a453",
+      "h": "ec91df85e9c9",
       "doc": "lib/vue/vue.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
     },
     "lib/vue/src/libs/url.ts": {
       "h": "2ce73c48a4fa",

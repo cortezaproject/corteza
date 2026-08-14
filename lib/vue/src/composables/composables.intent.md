@@ -9,6 +9,7 @@ depends-on:
 touched-by:
   - client/web/unify/src
 tests:
+  - lib/vue/src/composables/useHistoryBack.test.ts
   - lib/vue/src/composables/useMinDuration.test.ts
   - lib/vue/src/composables/useRBAC.test.ts
   - lib/vue/src/composables/useResourceList.test.ts
@@ -29,6 +30,7 @@ Sections use these instead of re-implementing per-app variants.
 - useAgentRouteContextProvider.ts — default route-snapshot context provider for CAgentSidebar; apps layer richer context on top.
 - useConfirmDelete.ts — standardized PrimeVue delete-confirmation dialog (labels, severities).
 - useFileUpload.ts — drag-and-drop + FormData upload via an API client's axios instance (auth + base URL).
+- useHistoryBack.ts — a Back that always lands somewhere: the previous screen when the history holds one, otherwise a fallback route the caller names.
 - useInternalLink.ts — router-aware links: client-side nav for internal shell routes, native nav otherwise.
 - useMinDuration.ts — minimum-duration wrapper for async work so spinners don't flash.
 - usePermissions.ts — provide/inject context for the app-level permission dialog (`providePermissions` once in App).
@@ -47,3 +49,6 @@ Sections use these instead of re-implementing per-app variants.
   sort, filters); changing serialization breaks bookmarked lists.
 - `usePermissions` throws when no provider exists — keep `providePermissions`
   in the app root.
+- `useHistoryBack` reads the router's `state.back`, never `history.length`:
+  that counts entries from before the app and never shrinks, so it calls a
+  dead end a live one.
