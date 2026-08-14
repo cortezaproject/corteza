@@ -83,9 +83,12 @@ async function loadNamespace() {
         ns = namespaceStore.getByUrlPart(props.slug)
       }
 
+      // These bounces replace rather than push: the URL they leave is one this
+      // view refuses to render, so keeping it in history makes Back land on it
+      // and bounce again.
       if (!ns) {
         $toast.toastDanger(t('notification.namespace.loadFailed'))
-        router.push({ name: 'root' })
+        router.replace({ name: 'root' })
         return
       }
 
@@ -95,11 +98,11 @@ async function loadNamespace() {
           // allow through — admin configuring a disabled namespace
         } else if (ns.canUpdateNamespace) {
           $toast.toastWarning(t('notification.namespace.disabled'))
-          router.push({ name: 'namespace.edit', params: { slug: props.slug } })
+          router.replace({ name: 'namespace.edit', params: { slug: props.slug } })
           return
         } else {
           $toast.toastWarning(t('notification.namespace.disabled'))
-          router.push({ name: 'root' })
+          router.replace({ name: 'root' })
           return
         }
       }

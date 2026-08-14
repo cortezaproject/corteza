@@ -172,7 +172,7 @@
       </Card>
     </div>
 
-    <CEditorActions :back-to="true" @back="$router.back()">
+    <CEditorActions :back-to="true" @back="goBack">
       <CInputDelete
         v-if="isEdit && namespace.canDeleteNamespace"
         :label="$t('general.label.delete')"
@@ -415,6 +415,17 @@ async function handleDelete() {
   } finally {
     deleting.value = false
   }
+}
+
+// Back means the screen before this one, and the namespace list when there is
+// none — a deep link or a redirect into the editor opens it as the first entry
+// in the history, where router.back() would leave the app entirely.
+function goBack() {
+  if (router.options.history.state?.back) {
+    router.back()
+    return
+  }
+  router.push({ name: 'namespace.list' })
 }
 
 function visitNamespace() {

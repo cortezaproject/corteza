@@ -12,7 +12,8 @@ depends-on:
   - client/web/unify/src/sections/compose/components/Record/RecordModal.vue
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/views/Namespace/View.redirect.test.js
 ---
 
 # Namespace View (context shell)
@@ -27,6 +28,7 @@ view. Every nested compose screen depends on the context established here.
 
 - Resolves slug-or-ID; unknown namespaces toast and bounce to `root`.
 - Disabled namespaces: admins may still use `admin.*` routes; users with update rights are redirected to the namespace editor; everyone else to `root`.
+- Every one of those bounces replaces the history entry rather than pushing one, so Back cannot return to a URL this view refuses and be bounced again.
 - Clears then preloads module/page/chart/page-layout stores in parallel on every namespace switch — children may assume the stores are populated.
 - Provides `$namespace` and `$pageStore` for deeply nested consumers (e.g. record field editors), passes `:namespace` as a prop to the child view, and mounts the global `RecordModal`.
 - Landing on the bare namespace route redirects to the first visible root-level non-record page (by weight).

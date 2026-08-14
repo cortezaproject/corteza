@@ -8,7 +8,8 @@ depends-on:
   - client/web/unify/src/sections/compose/components/Namespaces/NamespaceTranslator.vue
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/views/Namespace/Edit.back.test.js
 ---
 
 # Namespace Edit view
@@ -25,6 +26,7 @@ hide sidebar).
 - Logo: opt-in toggle plus drop-zone upload to the namespace attachment endpoint; preview falls back to the global `ui.mainLogo` setting; clearable.
 - Edit mode adds topbar tools (visit — disabled while namespace is disabled, configure → `admin.modules`, translator) and export/permissions buttons.
 - Save gated by `canUpdateNamespace` on edit; clone creates a copy with blank slug; delete returns to the list.
+- Back reaches the previous screen, falling back to the namespace list when the editor is the first history entry — which it is whenever a deep link or a disabled namespace's redirect opened it.
 - Unsaved-changes guard (deep compare against loaded snapshot); after create the user lands on the namespace's `pages` route so onboarding shows.
 
 ## Routes
