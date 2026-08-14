@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
-    <AutomationButtonsEditor :buttons="buttons" @update:buttons="onButtonsUpdate" />
+    <AutomationButtonsEditor :buttons="buttons" :scope="scope" @update:buttons="onButtonsUpdate" />
     <CExpressionHint :scope="scope" :insertable="false" />
   </div>
 </template>

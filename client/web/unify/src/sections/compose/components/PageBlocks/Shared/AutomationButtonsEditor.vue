@@ -35,11 +35,14 @@
             class="flex flex-col gap-2 border-t border-surface pt-3"
           >
             <CFormGroup :label="$t('block.automation.buttonLabel')">
-              <InputText
+              <CInputExpression
+                :ref="el => (labelInputs[index] = el)"
                 :model-value="item.label"
-                class="w-full"
+                dialect="interpolation"
+                :scope="scope"
                 @update:model-value="updateField(index, 'label', $event)"
               />
+              <CExpressionHint :scope="scope" @insert="labelInputs[index]?.insert($event)" />
             </CFormGroup>
 
             <CFormGroup :label="$t('block.automation.buttonVariant')">
@@ -166,11 +169,19 @@ const { t } = useI18n()
 
 const props = defineProps({
   buttons: { type: Array, default: () => [] },
+  // ScopeEntry[] for the ${} variables a label may reference.
+  scope: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:buttons'])
 
 const $AutomationAPI = inject('$AutomationAPI', null)
+
+// Button labels are interpolated at render time (AutomationBlock.buttonLabel).
+const labelInputs = ref([])
 
 const activeTab = ref('taqs')
 const selectedIndex = ref(-1)

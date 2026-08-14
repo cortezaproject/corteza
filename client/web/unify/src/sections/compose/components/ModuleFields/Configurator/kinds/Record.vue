@@ -72,22 +72,15 @@
         <label class="font-medium text-muted-color text-sm">
           {{ $t('field.kind.record.prefilterLabel') }}
         </label>
-        <Textarea
+        <CInputExpression
+          ref="prefilterInput"
           v-model="field.options.prefilter"
+          dialect="ql"
+          :scope="scope"
+          :query-fields="selectedModule?.fields || []"
           :placeholder="$t('field.kind.record.prefilterPlaceholder')"
-          rows="3"
-          class="w-full"
         />
-        <small class="text-muted-color">
-          {{
-            $t('field.kind.record.prefilterFootnote', [
-              '${record.values.fieldName}',
-              '${recordID}',
-              '${ownerID}',
-              '${userID}',
-            ])
-          }}
-        </small>
+        <CExpressionHint :scope="scope" @insert="prefilterInput?.insert($event)" />
       </div>
     </template>
 
@@ -128,15 +121,24 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useModuleStore } from '@planetcrust/human-vue'
+import { buildScope, useModuleStore } from '@planetcrust/human-vue'
 
 const { t } = useI18n()
 
 const field = inject('fieldDraft')
 
 const moduleStore = useModuleStore()
+
+// `${record...}` is the record being edited, so it resolves against the module
+// this field belongs to; the prefilter itself queries the module the field
+// points at.
+const fieldModule = inject('fieldModule', null)
+const prefilterInput = ref(null)
+const scope = computed(() =>
+  buildScope({ recordModule: fieldModule?.value || null, hasRecord: true }),
+)
 
 // Non-queryable field kinds (same as in lib/js/src/compose/types/module-field/base.ts)
 const nonQueryableFieldKinds = ['Number', 'Record', 'User', 'Bool', 'DateTime', 'File', 'Geometry']

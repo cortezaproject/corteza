@@ -468,6 +468,7 @@
         <TabPanel v-if="hasAutomationTab" value="automation">
           <AutomationButtonsEditor
             :buttons="editingBlock.options.selectionButtons || []"
+            :scope="scope"
             @update:buttons="onSelectionButtonsUpdate"
           />
         </TabPanel>
@@ -589,7 +590,7 @@ const magnifyOptions = computed(() => [
 const isRecordPage = computed(() => !!page.value?.isRecordPage)
 
 const visibilityInput = ref(null)
-const { exprScope } = useExpressionScope({
+const { scope, exprScope } = useExpressionScope({
   page: computed(() => page.value),
   hasRecord: isRecordPage,
 })

@@ -386,6 +386,7 @@
       v-model:visible="configuratorVisible"
       :field="activeConfiguratorField"
       :namespace="namespace"
+      :module="module"
       @save="onFieldSave"
     />
 

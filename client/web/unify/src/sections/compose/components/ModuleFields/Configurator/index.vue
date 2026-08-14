@@ -82,6 +82,12 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  // Module the field belongs to — what `${record...}` resolves against in an
+  // expression typed here.
+  module: {
+    type: Object,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['update:visible', 'save'])
@@ -91,6 +97,10 @@ const mockField = ref(null)
 const kindComponent = shallowRef(null)
 
 provide('fieldDraft', mockField)
+provide(
+  'fieldModule',
+  computed(() => props.module),
+)
 
 watch(
   () => props.visible,

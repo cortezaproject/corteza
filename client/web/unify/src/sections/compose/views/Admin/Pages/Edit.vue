@@ -272,13 +272,16 @@
     <template v-if="configLayout">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <CFormGroup :label="$t('page.page-layout.title')">
-          <InputGroup v-if="isRecordPage && configLayout.config.useTitle">
-            <InputGroupAddon>ƒ</InputGroupAddon>
-            <InputText
+          <template v-if="isRecordPage && configLayout.config.useTitle">
+            <CInputExpression
+              ref="layoutTitleInput"
               v-model="configLayout.meta.title"
+              dialect="interpolation"
+              :scope="scope"
               :placeholder="$t('page.page-layout.titleExpressionPlaceholder')"
             />
-          </InputGroup>
+            <CExpressionHint :scope="scope" @insert="layoutTitleInput?.insert($event)" />
+          </template>
           <InputText v-else v-model="configLayout.meta.title" />
         </CFormGroup>
         <CFormGroup :label="$t('page.page-layout.handle')">
@@ -712,7 +715,8 @@ const isRecordPage = computed(() => {
   return page.value && page.value.moduleID && page.value.moduleID !== NoID
 })
 
-const { exprScope } = useExpressionScope({
+const layoutTitleInput = ref(null)
+const { scope, exprScope } = useExpressionScope({
   page: computed(() => page.value),
   hasRecord: isRecordPage,
 })
