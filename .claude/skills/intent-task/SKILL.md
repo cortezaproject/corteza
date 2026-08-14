@@ -77,3 +77,5 @@ Only proceed on approval.
    together, never the doc split off into its own. Update `.intent/TODO.md` in
    that same commit when the work resolves or creates an item.
 5. Report: outcome, doc changes, any new WIP/DRIFT markers, open questions.
+   Closing or commenting on an issue is never one of them — the tracker is the
+   human's (CLAUDE.md § Commit convention).

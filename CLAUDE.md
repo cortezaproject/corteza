@@ -69,8 +69,11 @@ warns on the rest; `/dev-change`, `/dev-task` and `/intent-task` point here.
   thread is one the next turn has to amend. Judge the scope: something
   unrelated that surfaced is the next task, not an open thread. Commit then,
   without being asked.
-- **Never push.** A local commit is reversible; publishing is not. Pushes and
-  PRs are the human's call, every time.
+- **Never push, never touch the tracker.** A local commit is reversible;
+  publishing is not. Pushes, PRs, and closing or commenting on an issue are the
+  human's call, every time — a fix landing locally is not the issue's verdict,
+  so don't ask about closing it either. Naming the issue a commit addresses is
+  enough.
 
 ## Layout
 

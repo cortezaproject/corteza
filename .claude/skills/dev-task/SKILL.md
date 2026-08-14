@@ -173,7 +173,9 @@ Anything that fails here goes back to step 7 — or further, per the loop rules.
 ## 9. Present, and record what surprised you
 
 Report what changed, what you verified and how, and what you deliberately did
-not do. Failures and skipped work get stated plainly, with the output.
+not do. Failures and skipped work get stated plainly, with the output. The
+report is where a task ends: the issue tracker is never yours to close, comment
+on, or ask about (CLAUDE.md § Commit convention).
 
 **Remove what you created.** `dev_fixture_cleanup` (or `dev/agent/cleanup.sh`)
 deletes what this session's ledger records and nothing else — data the session
