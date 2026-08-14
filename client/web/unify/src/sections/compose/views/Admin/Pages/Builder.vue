@@ -119,7 +119,10 @@
       </Grid>
     </div>
 
-    <CEditorActions :back-to="true" @back="$router.back()">
+    <CEditorActions
+      :back-to="true"
+      @back="goBack({ name: 'admin.pages', params: { slug: route.params.slug } })"
+    >
       <template #center>
         <Button
           v-if="pageLayout"
@@ -494,6 +497,7 @@ import { compose } from '@planetcrust/human-js'
 import { usePageStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
+import { useHistoryBack } from '@planetcrust/human-vue'
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 
 // Block configurators — lazy imported
@@ -525,6 +529,7 @@ const { t } = useI18n()
 const confirm = useConfirm()
 const route = useRoute()
 const router = useRouter()
+const goBack = useHistoryBack()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 const pageStore = usePageStore()

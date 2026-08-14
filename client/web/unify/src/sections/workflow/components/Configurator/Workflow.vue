@@ -192,7 +192,7 @@
           severity="secondary"
           text
           size="small"
-          @click="$router.back()"
+          @click="goBack({ name: 'workflow.list' })"
         />
         <Button
           v-if="workflow.workflowID !== '0'"
@@ -217,7 +217,7 @@
 </template>
 
 <script>
-import { components, useConfirmDelete } from '@planetcrust/human-vue'
+import { components, useConfirmDelete, useHistoryBack } from '@planetcrust/human-vue'
 import { automation } from '@planetcrust/human-js'
 import Import from '../Import.vue'
 import Export from '../Export.vue'
@@ -277,7 +277,8 @@ export default {
 
   setup() {
     const { confirmDelete } = useConfirmDelete()
-    return { confirmDelete }
+    const goBack = useHistoryBack()
+    return { confirmDelete, goBack }
   },
 
   data() {

@@ -29,6 +29,7 @@ navigation via query params instead of route params).
 ## UX capabilities
 
 - Record toolbar: back/cancel, delete, save-as-copy, new, edit, save — each individually toggleable via the active layout's `config.buttons`, further gated by record `can*` flags.
+- Back leaves edit mode by dropping the `?edit` query; from view mode it returns to the previous screen, or the namespace's pages when the record was opened directly.
 - Prev/next navigation across the record set last listed by a RecordList block (`recordStore.paginationRecordIDs`).
 - Create supports cloning (`?cloneFromID`) and reference prefill (`?refField`/`?refValue`, multi-aware); `ownedBy` defaults to the current user.
 - Save flushes pending file uploads (collected from field editors via the provided `$fileUploadContext`) before create/update; server-side field errors map back onto the form; required fields validated client-side.

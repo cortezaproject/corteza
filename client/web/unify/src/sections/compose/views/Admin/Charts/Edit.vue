@@ -188,7 +188,10 @@
       </div>
     </div>
 
-    <CEditorActions :back-to="true" @back="$router.back()">
+    <CEditorActions
+      :back-to="true"
+      @back="goBack({ name: 'admin.charts', params: { slug: route.params.slug } })"
+    >
       <CInputDelete
         v-if="isEdit && chart.canDeleteChart"
         :label="$t('general.label.delete')"
@@ -223,7 +226,7 @@ import { ref, computed, watch, inject, provide, toRaw, markRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { compose, shared } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, useHistoryBack, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { chartConstructor } from '../../../lib/charts'
 import { useChartStore } from '@planetcrust/human-vue'
@@ -237,6 +240,7 @@ const { CInputDelete } = components
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
+const goBack = useHistoryBack()
 const $ComposeAPI = inject('$ComposeAPI')
 const $toast = inject('$toast')
 

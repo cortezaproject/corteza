@@ -77,7 +77,7 @@
       </div>
     </div>
 
-    <CEditorActions :back-to="true" @back="$router.back()">
+    <CEditorActions :back-to="true" @back="goBack({ name: 'chatbot' })">
       <CInputDelete
         v-if="!isCreate && chatbot.canDeleteChatbot"
         :label="$t('general.label.delete')"
@@ -102,6 +102,7 @@ import {
   CChatbotInbox,
   components,
   makeChatbotInboxTranslations,
+  useHistoryBack,
   useUnsavedGuard,
 } from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
@@ -120,6 +121,7 @@ const { CInputDelete } = components
 
 const route = useRoute()
 const router = useRouter()
+const goBack = useHistoryBack()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')

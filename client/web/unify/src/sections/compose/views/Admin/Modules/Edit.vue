@@ -351,7 +351,10 @@
       </Card>
     </div>
 
-    <CEditorActions :back-to="true" @back="$router.back()">
+    <CEditorActions
+      :back-to="true"
+      @back="goBack({ name: 'admin.modules', params: { slug: route.params.slug } })"
+    >
       <CInputDelete
         v-if="isEdit && module.canDeleteModule"
         :label="$t('general.label.delete')"
@@ -406,6 +409,7 @@ import { compose } from '@planetcrust/human-js'
 import {
   components,
   useConfirmDelete,
+  useHistoryBack,
   usePermissions,
   useUnsavedGuard,
 } from '@planetcrust/human-vue'
@@ -441,6 +445,7 @@ const props = defineProps({
 
 const route = useRoute()
 const router = useRouter()
+const goBack = useHistoryBack()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')

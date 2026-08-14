@@ -59,7 +59,12 @@
             :label="$t('general.label.back')"
             icon="pi pi-arrow-left"
             severity="secondary"
-            @click="$router.back()"
+            @click="
+              goBack({
+                name: 'admin.modules.record.list',
+                params: { slug: route.params.slug, moduleID: route.params.moduleID },
+              })
+            "
           />
           <Button
             v-else
@@ -107,7 +112,7 @@ import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import { validator } from '@planetcrust/human-js'
-import { components } from '@planetcrust/human-vue'
+import { components, useHistoryBack } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
@@ -127,6 +132,7 @@ const props = defineProps({
 
 const route = useRoute()
 const router = useRouter()
+const goBack = useHistoryBack()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')

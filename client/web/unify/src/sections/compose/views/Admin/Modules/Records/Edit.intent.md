@@ -23,6 +23,7 @@ the mode is derived from the matched route name.
 ## UX capabilities
 
 - View mode: back, delete (`canDeleteRecord`), edit (`canUpdateRecord`); edit mode: cancel (back to view), delete, save.
+- Back returns to the previous screen, or this module's record list when the record was opened directly.
 - Edit works on a clone of the pristine record; cancel and view↔edit transitions restore/re-clone without refetching. Navigating away while in edit mode always prompts an unsaved-changes confirm — there is no dirty comparison, so it prompts even when nothing was touched.
 - Required-field validation, server field errors mapped onto the form, pending file uploads flushed before update.
 - Delete replaces to the admin record list; save replaces to the view route.

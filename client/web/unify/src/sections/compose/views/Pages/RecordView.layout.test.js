@@ -57,6 +57,7 @@ vi.mock('@planetcrust/human-vue', () => ({
   usePageStore: () => pageStore,
   usePageLayoutStore: () => pageLayoutStore,
   useRecordStore: () => recordStore,
+  useHistoryBack: () => vi.fn(),
   components: { CInputDelete: { template: '<div />' } },
 }))
 

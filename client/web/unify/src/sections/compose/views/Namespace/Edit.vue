@@ -172,7 +172,7 @@
       </Card>
     </div>
 
-    <CEditorActions :back-to="true" @back="goBack">
+    <CEditorActions :back-to="true" @back="goBack({ name: 'namespace.list' })">
       <CInputDelete
         v-if="isEdit && namespace.canDeleteNamespace"
         :label="$t('general.label.delete')"
@@ -203,7 +203,7 @@
 <script setup>
 import { useNamespaceStore } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
-import { components, useFileUpload, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, useFileUpload, useHistoryBack, useUnsavedGuard } from '@planetcrust/human-vue'
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
@@ -214,6 +214,7 @@ import NamespaceTranslator from '@/sections/compose/components/Namespaces/Namesp
 
 const route = useRoute()
 const router = useRouter()
+const goBack = useHistoryBack()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
@@ -415,17 +416,6 @@ async function handleDelete() {
   } finally {
     deleting.value = false
   }
-}
-
-// Back means the screen before this one, and the namespace list when there is
-// none — a deep link or a redirect into the editor opens it as the first entry
-// in the history, where router.back() would leave the app entirely.
-function goBack() {
-  if (router.options.history.state?.back) {
-    router.back()
-    return
-  }
-  router.push({ name: 'namespace.list' })
 }
 
 function visitNamespace() {

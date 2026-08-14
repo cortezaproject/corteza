@@ -3,18 +3,19 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { reactive, ref } from 'vue'
 
 // The editor is reachable without a screen before it — a deep link, or the
-// bounce a disabled namespace performs. There router.back() walks out of the
-// app (or does nothing at all), so Back has to fall back to the namespace list.
+// bounce a disabled namespace performs. Where Back lands then is decided by
+// useHistoryBack (covered in lib/vue); what this screen owns is which fallback
+// it names, and the namespace list is the only one that always exists.
 
 const route = reactive({ name: 'namespace.edit', params: { slug: 'ns' }, query: {} })
 
-const history = { state: {} }
 const router = {
   push: vi.fn(),
   replace: vi.fn(),
   back: vi.fn(),
-  options: { history },
 }
+
+const goBack = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRoute: () => route,
@@ -36,6 +37,7 @@ const namespaceStore = {
 
 vi.mock('@planetcrust/human-vue', () => ({
   useNamespaceStore: () => namespaceStore,
+  useHistoryBack: () => goBack,
   useUnsavedGuard: () => ({ markSaved: vi.fn() }),
   useFileUpload: () => ({
     uploading: ref(false),
@@ -97,9 +99,9 @@ async function mountEditor() {
 }
 
 beforeEach(() => {
-  history.state = {}
   router.push.mockClear()
   router.back.mockClear()
+  goBack.mockClear()
 })
 
 afterEach(() => {
@@ -108,23 +110,18 @@ afterEach(() => {
 })
 
 describe('Namespace Edit back button', () => {
-  it('returns to the previous screen when there is one', async () => {
-    history.state = { back: '/compose/namespaces' }
-
+  it('names the namespace list as the fallback', async () => {
     await mountEditor()
     await wrapper.find('.editor-actions').trigger('click')
 
-    expect(router.back).toHaveBeenCalled()
-    expect(router.push).not.toHaveBeenCalled()
+    expect(goBack).toHaveBeenCalledWith({ name: 'namespace.list' })
   })
 
-  it('falls back to the namespace list when the editor is the first entry', async () => {
-    history.state = { back: null }
-
+  it('never navigates on its own', async () => {
     await mountEditor()
     await wrapper.find('.editor-actions').trigger('click')
 
-    expect(router.push).toHaveBeenCalledWith({ name: 'namespace.list' })
     expect(router.back).not.toHaveBeenCalled()
+    expect(router.push).not.toHaveBeenCalled()
   })
 })

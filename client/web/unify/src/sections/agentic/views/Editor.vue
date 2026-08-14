@@ -753,7 +753,7 @@
       </template>
     </Dialog>
 
-    <CEditorActions :back-to="true" @back="$router.back()">
+    <CEditorActions :back-to="true" @back="goBack({ name: 'agentic' })">
       <CInputDelete
         v-if="!isCreate && agent.canDeleteAgent"
         :label="$t('general.label.delete')"
@@ -779,7 +779,12 @@ import { cloneDeep, isEqual } from 'lodash-es'
 
 import { useAgentStore } from '@planetcrust/human-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useNamespaceStore, useModuleStore, useUnsavedGuard } from '@planetcrust/human-vue'
+import {
+  useNamespaceStore,
+  useModuleStore,
+  useHistoryBack,
+  useUnsavedGuard,
+} from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
 
 // Components (not globally registered)
@@ -807,6 +812,7 @@ const {
 
 const route = useRoute()
 const router = useRouter()
+const goBack = useHistoryBack()
 const { t } = useI18n()
 
 const $toast = inject('$toast')

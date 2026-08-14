@@ -165,7 +165,7 @@ import { usePageStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import { compose, validator, NoID } from '@planetcrust/human-js'
 import { evaluatePrefilter, usesRecordVariables } from '@/sections/compose/lib/record-filter'
-import { components } from '@planetcrust/human-vue'
+import { components, useHistoryBack } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onBeforeUnmount, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
@@ -199,6 +199,7 @@ const emit = defineEmits(['close'])
 
 const route = useRoute()
 const router = useRouter()
+const historyBack = useHistoryBack()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
@@ -788,15 +789,7 @@ function handleCancel() {
 }
 
 function goBack() {
-  // If we have history, go back. Otherwise navigate to the namespace pages.
-  if (window.history.length > 1) {
-    router.back()
-  } else {
-    router.push({
-      name: 'pages',
-      params: { slug: route.params.slug },
-    })
-  }
+  historyBack({ name: 'pages', params: { slug: route.params.slug } })
 }
 
 async function handleDelete() {
