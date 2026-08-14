@@ -447,6 +447,7 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	cmpAgentic.ModuleHandler(sysService.DefaultMCPRegistry, sysService.DefaultAgent)
 	cmpAgentic.PageHandler(sysService.DefaultMCPRegistry)
 	cmpAgentic.ChartHandler(sysService.DefaultMCPRegistry)
+	cmpAgentic.PageLayoutHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.TAQHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.WorkflowHandler(sysService.DefaultMCPRegistry)
 	autoAgentic.TriggerHandler(sysService.DefaultMCPRegistry)

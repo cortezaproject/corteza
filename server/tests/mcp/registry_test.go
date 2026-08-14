@@ -52,6 +52,7 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	cmpAgentic.NamespaceHandler(reg, nil)
 	cmpAgentic.ModuleHandler(reg, nil)
 	cmpAgentic.PageHandler(reg)
+	cmpAgentic.PageLayoutHandler(reg)
 	cmpAgentic.ChartHandler(reg)
 	autoAgentic.TAQHandler(reg)
 	autoAgentic.WorkflowHandler(reg)
@@ -341,7 +342,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 	src := string(body)
 	for _, ctor := range []string{
 		"RecordHandler(", "NamespaceHandler(", "ModuleHandler(", "PageHandler(",
-		"ChartHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ReminderHandler(",
+		"ChartHandler(", "PageLayoutHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ReminderHandler(",
 		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
 		"AuthClientHandler(", "ApplicationHandler(", "ThemeHandler(",
 	} {
@@ -353,7 +354,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 	// one this test knows about.
 	known := map[string]bool{
 		"RecordHandler": true, "NamespaceHandler": true, "ModuleHandler": true,
-		"PageHandler": true, "ChartHandler": true, "TAQHandler": true,
+		"PageHandler": true, "ChartHandler": true, "PageLayoutHandler": true, "TAQHandler": true,
 		"WorkflowHandler": true, "TriggerHandler": true, "EventTypeHandler": true,
 		"ReminderHandler": true, "DiscoveryHandler": true,
 		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
