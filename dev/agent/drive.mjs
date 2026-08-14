@@ -40,10 +40,17 @@ const SHOT_DIR = join(STATE_DIR, 'drive')
 const STORAGE = join(STATE_DIR, 'ui-storage.json')
 
 const WEBAPP = process.env.HUMAN_WEBAPP || 'http://localhost:5173'
+const API_BASE = (process.env.HUMAN_API || 'http://localhost:1043/api').replace(/\/api$/, '')
 
 // Per-action ceiling. Long enough for a slow render, short enough that a
 // selector matching nothing reports as a failure rather than a hang.
 const ACTION_TIMEOUT = Number(process.env.DRIVE_TIMEOUT || 8000)
+
+// What an element is given to appear before it counts as absent. Higher than
+// the action ceiling on purpose: waiting for something to render and asserting
+// it exists are different questions, and a cold vite compiling a route for the
+// first time answers the first one slowly without changing the second.
+const RENDER_TIMEOUT = Number(process.env.DRIVE_RENDER_TIMEOUT || 20000)
 
 for (const u of [WEBAPP]) {
   if (!['localhost', '127.0.0.1', '::1'].includes(new URL(u).hostname)) {
@@ -113,10 +120,20 @@ function drivePage(page, state) {
     path: () => new URL(page.url()).pathname,
     url: () => page.url(),
 
-    /** Navigate and settle. networkidle is deliberately not used: editors that
-     *  hold a live connection (the chatbot inbox) never reach it. */
-    async open(path, { settle = 2500 } = {}) {
+    /** Navigate, then wait for the shell to actually be up.
+     *
+     *  networkidle is deliberately not used: editors holding a live connection
+     *  (the chatbot inbox) never reach it. Nor is a fixed sleep enough on its
+     *  own — vite compiles a route the first time it is asked for, so the first
+     *  check of a run waits seconds longer than the rest and a timeout tuned to
+     *  the warm case reports a cold one as a missing element. The topbar
+     *  landmark is the honest signal that the app has mounted. */
+    async open(path, { settle = 800 } = {}) {
       await page.goto(WEBAPP + path, { waitUntil: 'domcontentloaded', timeout: 30000 })
+      await page
+        .locator('[data-testid="app-topbar"]')
+        .waitFor({ state: 'visible', timeout: 30000 })
+        .catch(() => {})
       await page.waitForTimeout(settle)
       return api
     },
@@ -124,13 +141,16 @@ function drivePage(page, state) {
     async click(selector, { hasText, nth = 0, settle = 2000 } = {}) {
       let loc = page.locator(selector)
       if (hasText) loc = loc.filter({ hasText })
+      await loc.nth(nth).waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
       await loc.nth(nth).click()
       await page.waitForTimeout(settle)
       return api
     },
 
     async fill(selector, value, { settle = 800 } = {}) {
-      await page.locator(selector).first().fill(value)
+      const loc = page.locator(selector).first()
+      await loc.waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
+      await loc.fill(value)
       await page.waitForTimeout(settle)
       return api
     },
@@ -139,7 +159,9 @@ function drivePage(page, state) {
      *  the one whose selector was guessed at most often before the shell grew
      *  a test id for it. */
     async back({ settle = 2500 } = {}) {
-      await page.locator('[data-testid="editor-back"]').first().click()
+      const loc = page.locator('[data-testid="editor-back"]').first()
+      await loc.waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
+      await loc.click()
       await page.waitForTimeout(settle)
       return api
     },
@@ -176,9 +198,12 @@ function drivePage(page, state) {
      *  about:blank — and localStorage there is a SecurityError, not an empty
      *  store. So the app origin is established first. */
     async expandSidebar(section) {
-      if (!page.url().startsWith(WEBAPP)) {
-        await page.goto(WEBAPP, { waitUntil: 'domcontentloaded' }).catch(() => {})
-      }
+      // Always navigated, never conditionally: the page may be on about:blank,
+      // on the auth server's origin, or midway through a redirect that swaps
+      // the document out from under evaluate() — and all three raise a
+      // SecurityError on localStorage rather than returning an empty store.
+      // Landing on the app root first makes the origin a fact, not a guess.
+      await api.open('/')
       await page.evaluate(
         s => localStorage.setItem('ui.sidebar.expanded', JSON.stringify({ [s]: true })),
         section,
@@ -215,6 +240,23 @@ const DEV_NOISE = ['/custom.css', '/code-snippets.js']
 function isKnownDevNoise(url) {
   const { pathname } = new URL(url)
   return DEV_NOISE.includes(pathname)
+}
+
+// A repo edited underneath a run breaks the app in ways that are not results:
+// the API restarting mid-request (a concurrent session rebuilding Go), or vite
+// serving a module halfway through someone's save. Both leave every check
+// failing on a page that never mounted, both read as product bugs, and both
+// cost a full diagnosis to disprove. So they are named instead.
+const CHURN = [
+  'App setup failed',
+  'Network Error',
+  'ERR_CONNECTION',
+  'does not provide an export named',
+  'Failed to fetch dynamically imported module',
+]
+
+function looksLikeEnvironmentChurn(problems) {
+  return problems.some(p => CHURN.some(sig => p.includes(sig)))
 }
 
 // --- session -----------------------------------------------------------------
@@ -276,10 +318,30 @@ export async function run({ only = null, headed = false } = {}) {
     process.exit(1)
   }
 
+  // A dev server that is mid-restart — another session rebuilding Go, most
+  // often — makes every check fail on a page whose API calls never landed.
+  // Those failures look exactly like product bugs and cost a full diagnosis
+  // before the cause turns out to be the clock. Say it up front instead.
+  for (const [what, url] of [
+    ['the webapp (vite)', WEBAPP],
+    ['the API', API_BASE],
+  ]) {
+    const reachable = await fetch(url, { method: 'HEAD' }).then(
+      () => true,
+      () => false,
+    )
+    if (!reachable) {
+      console.error(`${what} is not answering at ${url} — is it restarting? Nothing was checked.`)
+      process.exitCode = 1
+      return false
+    }
+  }
+
   mkdirSync(SHOT_DIR, { recursive: true })
   const browser = await chromium.launch({ headless: !headed })
 
   let failed = 0
+  let churn = false
 
   // Anything thrown outside a check body — a login that never finds its form,
   // a browser that dies — must still close the browser, or node keeps its
@@ -339,6 +401,11 @@ export async function run({ only = null, headed = false } = {}) {
         current.checks.push({ name: 'threw', ok: false, detail: e.message })
       }
 
+      if (looksLikeEnvironmentChurn(state.problems)) {
+        current.churn = true
+        churn = true
+      }
+
       if (!c.opts.allowProblems && state.problems.length) {
         current.checks.push({
           name: 'no console or network errors',
@@ -371,6 +438,14 @@ export async function run({ only = null, headed = false } = {}) {
   console.log(
     failed ? `\n${failed}/${results.length} checks FAILED` : `\nall ${total} assertions passed`,
   )
+
+  if (churn) {
+    console.log(
+      '\nThe app failed to load for at least one check: the API was unreachable, or vite served a\n' +
+        'module mid-save. Another session was editing or restarting the server while this ran.\n' +
+        'These failures are NOT results — check dev_server_status and run it again.',
+    )
+  }
 
   process.exitCode = failed ? 1 : 0
   return failed === 0
