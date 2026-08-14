@@ -2452,9 +2452,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/components/WorkflowEditor.vue": {
-      "h": "96004a2afd94",
+      "h": "06cd50d615ec",
       "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/workflow/composables/useNodePreview.js": {
       "h": "a9196c22aec0",

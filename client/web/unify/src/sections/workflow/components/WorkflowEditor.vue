@@ -134,10 +134,7 @@
             severity="secondary"
             class="p-0"
             :disabled="!canUndo"
-            @click="
-              undo()
-              refreshSidebar()
-            "
+            @click="undoStep"
           >
             <i class="pi pi-undo" />
           </Button>
@@ -147,10 +144,7 @@
             severity="secondary"
             class="p-0"
             :disabled="!canRedo"
-            @click="
-              redo()
-              refreshSidebar()
-            "
+            @click="redoStep"
           >
             <i class="pi pi-undo" style="transform: scaleX(-1); display: inline-block" />
           </Button>
@@ -1406,6 +1400,18 @@ function sidebarReopen(item, itemType) {
       sidebar.value.showItem = true
     }, 100)
   }
+}
+
+// A history step and the sidebar it invalidates travel together, from the
+// toolbar buttons as well as from the keyboard shortcuts.
+function undoStep() {
+  undo()
+  refreshSidebar()
+}
+
+function redoStep() {
+  redo()
+  refreshSidebar()
 }
 
 function refreshSidebar() {
