@@ -1,14 +1,19 @@
 <template>
   <div class="flex flex-col gap-3">
-    <!-- Starting view: pan/zoom to set starting center and zoom -->
-    <div class="flex flex-col gap-2">
-      <label class="text-primary font-medium text-sm">
-        {{ $t('field.kind.geometry.startingView') }}
-      </label>
+    <CFormGroup
+      :label="$t('field.kind.geometry.startingView')"
+      :description="
+        lockBounds
+          ? $t('field.kind.geometry.boundsLockedHint')
+          : $t('field.kind.geometry.mapHelpText')
+      "
+    >
       <CMap
         :center="center"
         :zoom="zoom"
-        :max-bounds="lockBounds ? lockedBounds : null"
+        :max-bounds="lockedBounds"
+        :polygons="boundsOutline"
+        :disable-pan="lockBounds"
         :hide-geo-search="hideGeoSearch"
         :hide-current-location-button="hideCurrentLocationButton"
         style="height: 40vh"
@@ -16,9 +21,8 @@
         @update:zoom="onMapZoom"
         @update:bounds="onMapBounds"
       />
-    </div>
+    </CFormGroup>
 
-    <!-- Toggles -->
     <div class="grid grid-cols-2 gap-3 items-start">
       <CInputToggleCard
         v-model="prefillWithCurrentLocation"
@@ -47,75 +51,93 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
-import { components } from '@planetcrust/human-vue'
-import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
+import { components, mapGeo } from '@planetcrust/human-vue'
 
-const { CInputToggleCard } = components
+const { CInputToggleCard, CMap } = components
 
 const field = inject('fieldDraft')
 
-const center = computed(() => {
-  const c = field.value.options?.center
-  return Array.isArray(c) && c.length === 2 ? c : [30, 30]
-})
+function getPrimaryColor() {
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() ||
+    '#09344E'
+  )
+}
+
+function updateOptions(patch) {
+  Object.assign(field.value.options, patch)
+}
+
+const center = computed(() => mapGeo.parseLatLng(field.value.options?.center) || [30, 30])
 
 const zoom = computed(() => field.value.options?.zoom || 3)
 
-function onMapCenter([lat, lng]) {
-  field.value.options.center = [Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6]
+function onMapCenter(next) {
+  const rounded = mapGeo.roundLatLng(next)
+  if (rounded) updateOptions({ center: rounded })
 }
 
 function onMapZoom(z) {
-  field.value.options.zoom = z
+  updateOptions({ zoom: z })
 }
 
 const prefillWithCurrentLocation = computed({
   get: () => !!field.value.options?.prefillWithCurrentLocation,
-  set: v => {
-    field.value.options.prefillWithCurrentLocation = v
-  },
+  set: v => updateOptions({ prefillWithCurrentLocation: v }),
 })
 
 const hideCurrentLocationButton = computed({
   get: () => !!field.value.options?.hideCurrentLocationButton,
-  set: v => {
-    field.value.options.hideCurrentLocationButton = v
-  },
+  set: v => updateOptions({ hideCurrentLocationButton: v }),
 })
 
 const hideGeoSearch = computed({
   get: () => !!field.value.options?.hideGeoSearch,
-  set: v => {
-    field.value.options.hideGeoSearch = v
-  },
+  set: v => updateOptions({ hideGeoSearch: v }),
 })
 
 const lockBounds = computed(() => !!field.value.options?.lockBounds)
 
-const lockedBounds = computed(() => {
-  const b = field.value.options?.bounds
-  if (Array.isArray(b) && b.length === 2 && b.every(p => Array.isArray(p) && p.length === 2)) {
-    return b
-  }
-  return null
+// options.bounds is [[swLat, swLng], [neLat, neLng]], and holds the locked area
+// only — unlocking clears it.
+const lockedBounds = computed(() =>
+  lockBounds.value ? mapGeo.parseBounds(field.value.options?.bounds) : null,
+)
+
+// Outlines the locked area, which stays visible when zooming out past it.
+const boundsOutline = computed(() => {
+  const ring = mapGeo.boundsRing(lockedBounds.value)
+  if (!ring) return []
+  return [
+    {
+      latLngs: ring,
+      color: getPrimaryColor(),
+      weight: 2,
+      dashArray: '6 4',
+      fillOpacity: 0.05,
+      interactive: false,
+    },
+  ]
 })
 
+// The map's live viewport, reported by CMap on ready and on every move.
 const currentMapBounds = ref(null)
 
 function onMapBounds(b) {
   currentMapBounds.value = b
 }
 
+// Locking captures the area on screen right now and freezes the preview on it;
+// unlocking gives the map back and drops the area, since nothing is bounded any
+// more.
 function onLockBoundsToggle(v) {
-  if (v) {
-    const b = currentMapBounds.value || lockedBounds.value
-    if (b) {
-      field.value.options.bounds = b
-    }
-    field.value.options.lockBounds = true
-  } else {
-    field.value.options.lockBounds = false
+  if (!v) {
+    updateOptions({ lockBounds: false, bounds: null })
+    return
   }
+
+  const bounds = mapGeo.roundBounds(currentMapBounds.value)
+  updateOptions({ lockBounds: true, ...(bounds ? { bounds } : {}) })
 }
 
 onMounted(() => {

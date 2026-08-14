@@ -95,6 +95,7 @@ kind:
           label: Enable Webcam Capture
       width: Width
   geometry:
+    boundsLockedHint: Bounds are locked to the outlined area, so the preview cannot be moved. Zooming is still allowed. Turn the lock off to move the map and save a different area.
     clickToPlaceMarker: Click to place/remove a marker
     geosearchInputPlaceholder: Enter address, place or postcode
     hideCurrentLocationButton: Hide current location button
@@ -105,8 +106,9 @@ kind:
     label: Location
     latitude: Latitude
     lockBounds: Lock bounds
-    lockBoundsDescription: Restrict panning to the current map viewport
+    lockBoundsDescription: Save the area currently shown as the map's bounds, so that people editing this field cannot pan outside it
     longitude: Longitude
+    mapHelpText: Move and zoom the map to the view this field's map should open with.
     prefillWithCurrentLocation: Prefill with current location
     prefillWithCurrentLocationDescription: Automatically fill new records with the user's current location
     startingView: Starting view

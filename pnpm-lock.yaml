@@ -46,9 +46,6 @@ importers:
       '@types/leaflet':
         specifier: ^1.9.21
         version: 1.9.21
-      '@vue-leaflet/vue-leaflet':
-        specifier: ^0.10.1
-        version: 0.10.1(@types/leaflet@1.9.21)(leaflet@1.9.4)(typescript@5.9.3)
       autoprefixer:
         specifier: ^10.4.21
         version: 10.4.23(postcss@8.5.6)
@@ -2003,15 +2000,6 @@ packages:
     peerDependencies:
       '@vue-flow/core': ^1.23.0
       vue: ^3.3.0
-
-  '@vue-leaflet/vue-leaflet@0.10.1':
-    resolution: {integrity: sha512-RNEDk8TbnwrJl8ujdbKgZRFygLCxd0aBcWLQ05q/pGv4+d0jamE3KXQgQBqGAteE1mbQsk3xoNcqqUgaIGfWVg==}
-    peerDependencies:
-      '@types/leaflet': ^1.5.7
-      leaflet: ^1.6.0
-    peerDependenciesMeta:
-      '@types/leaflet':
-        optional: true
 
   '@vue/babel-helper-vue-transform-on@1.5.0':
     resolution: {integrity: sha512-0dAYkerNhhHutHZ34JtTl2czVQHUNWv6xEbkdF5W+Yrv5pCWsqjeORdOgbtW2I9gWlt+wBmVn+ttqN9ZxR5tzA==}
@@ -5922,15 +5910,6 @@ snapshots:
       d3-drag: 3.0.0
       d3-selection: 3.0.0
       vue: 3.5.26(typescript@5.9.3)
-
-  '@vue-leaflet/vue-leaflet@0.10.1(@types/leaflet@1.9.21)(leaflet@1.9.4)(typescript@5.9.3)':
-    dependencies:
-      leaflet: 1.9.4
-      vue: 3.5.26(typescript@5.9.3)
-    optionalDependencies:
-      '@types/leaflet': 1.9.21
-    transitivePeerDependencies:
-      - typescript
 
   '@vue/babel-helper-vue-transform-on@1.5.0': {}
 

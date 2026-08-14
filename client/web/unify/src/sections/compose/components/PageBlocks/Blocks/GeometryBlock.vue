@@ -9,7 +9,6 @@
       </div>
 
       <CMap
-        ref="mapRef"
         :center="mapCenter"
         :zoom="zoomStarting"
         :min-zoom="zoomMin"
@@ -26,14 +25,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, inject, nextTick, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, inject, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@planetcrust/human-js'
-import { useModuleStore } from '@planetcrust/human-vue'
-import { usePageStore } from '@planetcrust/human-vue'
+import { components, mapGeo, useModuleStore, usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
-import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
 import { evaluatePrefilter, usesRecordVariables } from '../../../lib/record-filter'
+
+const { CMap } = components
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -50,7 +49,6 @@ const router = useRouter()
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
 
-const mapRef = ref(null)
 const processing = ref(false)
 const markers = ref([])
 const polygons = ref([])
@@ -66,14 +64,12 @@ const mapCenter = computed(() => {
   return Array.isArray(c) && c.length === 2 ? c : [30, 30]
 })
 
-// bounds: [[swLat, swLng], [neLat, neLng]] — applied as maxBounds only when locked
-const boundsPair = computed(() => {
-  const b = options.value.bounds
-  if (!Array.isArray(b) || b.length !== 2) return null
-  if (!b.every(p => Array.isArray(p) && p.length === 2)) return null
-  return b
-})
-const lockedBounds = computed(() => (options.value.lockBounds ? boundsPair.value : null))
+// options.bounds is [[swLat, swLng], [neLat, neLng]], and holds the locked area
+// the configurator captured — it caps panning, the starting view stays
+// center/zoom.
+const lockedBounds = computed(() =>
+  options.value.lockBounds ? mapGeo.parseBounds(options.value.bounds) : null,
+)
 
 function parseCoords(raw) {
   if (!raw) return null
@@ -189,12 +185,6 @@ async function loadFeeds() {
 
     markers.value = outMarkers
     polygons.value = outPolygons
-
-    // Non-locking bounds: fit once to the configured bounds on load.
-    // (Leaflet can only constrain panning via maxBounds, which we apply when locked.)
-    if (boundsPair.value && !options.value.lockBounds) {
-      nextTick(() => mapRef.value?.fitBounds(boundsPair.value))
-    }
   } finally {
     processing.value = false
   }

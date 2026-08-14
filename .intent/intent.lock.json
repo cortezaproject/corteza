@@ -747,9 +747,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Geometry.vue": {
-      "h": "3fbd30e4b10f",
+      "h": "9aebd6991b47",
       "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Number.vue": {
       "h": "719e9c360d4a",
@@ -852,9 +852,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/GeometryBlock.vue": {
-      "h": "dbcff9be073d",
+      "h": "9f18228fbbbe",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/IFrameBlock.vue": {
       "h": "1c3f21acdfed",
@@ -952,9 +952,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/GeometryConfigurator.vue": {
-      "h": "d7c3760a8b40",
+      "h": "2ffd96b814af",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/IFrameConfigurator.vue": {
       "h": "2ce382e8f365",
@@ -3881,10 +3881,25 @@
       "doc": "lib/vue/src/components/loader/loader.intent.md",
       "t": "2026-07-23"
     },
-    "lib/vue/src/components/map/CMap.vue": {
-      "h": "c7aa92827a87",
+    "lib/vue/src/components/map/CMap.test.ts": {
+      "h": "77353bff4a63",
       "doc": "lib/vue/src/components/map/map.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
+    },
+    "lib/vue/src/components/map/CMap.vue": {
+      "h": "b4a73bba2107",
+      "doc": "lib/vue/src/components/map/map.intent.md",
+      "t": "2026-08-14"
+    },
+    "lib/vue/src/components/map/geo.test.ts": {
+      "h": "f62082177f67",
+      "doc": "lib/vue/src/components/map/map.intent.md",
+      "t": "2026-08-14"
+    },
+    "lib/vue/src/components/map/geo.ts": {
+      "h": "a30fb7d3ce27",
+      "doc": "lib/vue/src/components/map/map.intent.md",
+      "t": "2026-08-14"
     },
     "lib/vue/src/components/navigation/CAppList.vue": {
       "h": "6a48898ed0b9",

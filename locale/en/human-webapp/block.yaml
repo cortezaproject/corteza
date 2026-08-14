@@ -411,6 +411,7 @@ geometry:
     lockBounds: Lock bounds
     lowerRight: Bounds lower right
     topLeft: Bounds top left
+  boundsLockedHint: Bounds are locked to the outlined area, so the preview cannot be moved. Zooming is still allowed. Turn the lock off to move the map and save a different area.
   boundsMaxLat: Max latitude
   boundsMaxLng: Max longitude
   boundsMinLat: Min latitude
@@ -441,8 +442,8 @@ geometry:
   label: Map
   lock: Lock
   lockBounds: Lock bounds
-  lockBoundsDescription: Restrict panning to the current map viewport
-  mapHelpText: Move and scroll the map to the position that will be used as a default. You can also lock the position or zoom to prevent users from moving too far.
+  lockBoundsDescription: Save the area currently shown as the map's bounds, so that people viewing this block cannot pan outside it
+  mapHelpText: Move and zoom the map to the view this block should open with.
   mapSettings: Map settings
   onMarkerClick: On marker click
   openInModal: Open in a modal

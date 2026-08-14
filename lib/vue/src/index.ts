@@ -51,6 +51,9 @@ export * as websocket from './libs/websocket'
 // Export filters
 export * as filters from './filters'
 
+// Coordinate helpers shared with anything that stores a map view
+export * as mapGeo from './components/map/geo'
+
 // Export components
 export * as components from './components'
 

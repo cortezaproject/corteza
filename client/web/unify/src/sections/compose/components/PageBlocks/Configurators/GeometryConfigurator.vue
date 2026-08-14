@@ -2,13 +2,20 @@
   <div class="flex flex-col gap-5">
     <Fieldset :legend="$t('block.geometry.viewLabel')">
       <div class="flex flex-col gap-3">
-        <CFormGroup :label="$t('block.geometry.startingView')">
+        <CFormGroup
+          :label="$t('block.geometry.startingView')"
+          :description="
+            lockBounds ? $t('block.geometry.boundsLockedHint') : $t('block.geometry.mapHelpText')
+          "
+        >
           <CMap
             :center="center"
             :zoom="zoomStarting"
             :min-zoom="zoomMin"
             :max-zoom="zoomMax"
-            :max-bounds="lockBounds ? lockedBounds : null"
+            :max-bounds="lockedBounds"
+            :polygons="boundsOutline"
+            :disable-pan="lockBounds"
             :hide-geo-search="hideGeoSearch"
             hide-current-location-button
             style="height: 40vh"
@@ -143,14 +150,16 @@
           </div>
 
           <CFormGroup :label="$t('block.geometry.feedPrefilter')">
-            <Textarea
+            <CInputExpression
+              :ref="el => (prefilterInputs[i] = el)"
               :model-value="feed.options?.prefilter || ''"
+              dialect="ql"
+              :scope="scope"
+              :query-fields="getFields(feed.options?.moduleID)"
               :placeholder="$t('block.geometry.feedPrefilterPlaceholder')"
-              rows="2"
-              class="w-full"
               @update:model-value="updateFeedOption(i, 'prefilter', $event || '')"
             />
-            <InterpolationFootnote :is-record-page="isRecordPage" />
+            <CExpressionHint :scope="scope" @insert="prefilterInputs[i]?.insert($event)" />
           </CFormGroup>
 
           <div class="flex gap-4">
@@ -185,13 +194,11 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
-import { components } from '@planetcrust/human-vue'
-import CMap from '@planetcrust/human-vue/src/components/map/CMap.vue'
-import { useModuleStore } from '@planetcrust/human-vue'
+import { components, mapGeo, useModuleStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
-const { CInputColorPicker, CInputToggleCard } = components
+const { CInputColorPicker, CInputToggleCard, CMap } = components
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
@@ -201,7 +208,8 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
 })
 
-const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
+const prefilterInputs = ref([])
+const { scope } = useExpressionScope({ page: computed(() => props.page) })
 
 const block = inject('blockDraft')
 
@@ -264,10 +272,9 @@ const center = computed(() => {
 
 const zoomStarting = computed(() => block.value.options?.zoomStarting ?? 2)
 
-function onMapCenter([lat, lng]) {
-  updateOptions({
-    center: [Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6],
-  })
+function onMapCenter(center) {
+  const rounded = mapGeo.roundLatLng(center)
+  if (rounded) updateOptions({ center: rounded })
 }
 
 function onMapZoom(z) {
@@ -284,30 +291,46 @@ const zoomMax = computed({
 
 const lockBounds = computed(() => !!block.value.options?.lockBounds)
 
-// bounds shape stored in options: [[swLat, swLng], [neLat, neLng]]
-const lockedBounds = computed(() => {
-  const b = block.value.options?.bounds
-  if (Array.isArray(b) && b.length === 2 && b.every(p => Array.isArray(p) && p.length === 2)) {
-    return b
-  }
-  return null
+// options.bounds is [[swLat, swLng], [neLat, neLng]], and holds the locked area
+// only — unlocking clears it.
+const lockedBounds = computed(() =>
+  lockBounds.value ? mapGeo.parseBounds(block.value.options?.bounds) : null,
+)
+
+// Outlines the locked area, which stays visible when zooming out past it.
+const boundsOutline = computed(() => {
+  const ring = mapGeo.boundsRing(lockedBounds.value)
+  if (!ring) return []
+  return [
+    {
+      latLngs: ring,
+      color: getPrimaryColor(),
+      weight: 2,
+      dashArray: '6 4',
+      fillOpacity: 0.05,
+      interactive: false,
+    },
+  ]
 })
 
-// Track the map's current viewport bounds (emitted by CMap on move/zoom)
+// The map's live viewport, reported by CMap on ready and on every move.
 const currentMapBounds = ref(null)
 
 function onMapBounds(b) {
   currentMapBounds.value = b
 }
 
+// Locking captures the area on screen right now and freezes the preview on it;
+// unlocking gives the map back and drops the area, since nothing is bounded any
+// more.
 function onLockBoundsToggle(v) {
-  if (v) {
-    const b = currentMapBounds.value || lockedBounds.value
-    if (b) updateOptions({ lockBounds: true, bounds: b })
-    else updateOptions({ lockBounds: true })
-  } else {
-    updateOptions({ lockBounds: false })
+  if (!v) {
+    updateOptions({ lockBounds: false, bounds: null })
+    return
   }
+
+  const bounds = mapGeo.roundBounds(currentMapBounds.value)
+  updateOptions({ lockBounds: true, ...(bounds ? { bounds } : {}) })
 }
 
 // --- Feeds ---

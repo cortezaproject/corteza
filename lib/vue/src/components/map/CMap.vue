@@ -23,26 +23,11 @@
       </div>
     </div>
 
-    <!-- Leaflet Map (rendering only — markers/polygons & events managed below) -->
-    <!-- use-global-leaflet must be true so vue-leaflet and our direct L.*
-         calls below share one leaflet module instance (else bounds math
-         operates across two prototype chains and throws). -->
-    <LMap
-      ref="mapRef"
-      :zoom="effectiveZoom"
-      :center="effectiveCenter"
-      :min-zoom="minZoom || undefined"
-      :max-zoom="maxZoom || undefined"
-      :max-bounds="maxBounds || undefined"
-      :use-global-leaflet="true"
-      class="w-full h-full"
-      @ready="onMapReady"
-    >
-      <LTileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; <a target='_blank' href='http://osm.org/copyright'>OpenStreetMap</a>"
-      />
-    </LMap>
+    <!-- Leaflet renders into this element. Layers, events and controls are all
+         driven imperatively below: leaflet owns the viewport, props only ever
+         nudge it, and every emit is de-duplicated so a parent that writes back
+         what we emitted cannot start a pan/emit loop. -->
+    <div ref="mapEl" class="c-map-canvas w-full h-full" />
 
     <!-- Floating map controls (zoom + current location) -->
     <div class="map-controls">
@@ -52,6 +37,7 @@
           icon="pi pi-plus"
           severity="secondary"
           size="small"
+          :disabled="!canZoomIn"
           aria-label="Zoom in"
           @click="onZoomIn"
         />
@@ -60,6 +46,7 @@
           icon="pi pi-minus"
           severity="secondary"
           size="small"
+          :disabled="!canZoomOut"
           aria-label="Zoom out"
           @click="onZoomOut"
         />
@@ -79,12 +66,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { computed, ref, shallowRef, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import { LMap, LTileLayer } from '@vue-leaflet/vue-leaflet'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
+import { parseBounds, parseLatLng, sameBounds, sameLatLng } from './geo'
 
 const { t: $t } = useI18n()
 
@@ -98,6 +85,11 @@ const props = defineProps({
   minZoom: { type: Number, default: 0 },
   maxZoom: { type: Number, default: 0 },
   maxBounds: { type: Array, default: null },
+  // Pins the viewport centre: no dragging, no box zoom, no keyboard panning,
+  // and zoom anchors on the centre instead of the pointer. Configurators turn
+  // this on once bounds are locked — the saved area is then exactly what the
+  // preview shows, and nothing but unlocking can move it.
+  disablePan: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -110,13 +102,30 @@ const emit = defineEmits([
   'update:bounds',
 ])
 
-const mapRef = ref(null)
 const rootRef = ref(null)
-const leafletMap = ref(null)
+const mapEl = ref(null)
+// shallowRef: leaflet keeps identity-sensitive internal references, so the map
+// must never be wrapped in a deep reactive proxy.
+const leafletMap = shallowRef(null)
 
 // Persistent layer that holds whatever markers/polygons CMap is responsible for
 let renderLayer = null
 let resizeObserver = null
+
+// Last view we told the parent about. Also seeded before a prop-driven move, so
+// the moveend that move causes is recognised as our own doing.
+let lastCenter = null
+let lastZoom = null
+let lastBounds = null
+// What we last handed to setMaxBounds — re-applying an unchanged box would
+// re-pan the view for nothing.
+let appliedMaxBounds = null
+
+const currentZoom = ref(0)
+// Read off the map rather than guessed from props: with no maxZoom set, the
+// ceiling comes from the tile layer.
+const zoomFloor = ref(0)
+const zoomCeil = ref(18)
 
 // Geo search state
 const geoSearchQuery = ref('')
@@ -124,88 +133,161 @@ const geoSearchResults = ref([])
 let searchTimeout = null
 const provider = new OpenStreetMapProvider()
 
-const effectiveCenter = computed(() => {
-  if (Array.isArray(props.center) && props.center.length === 2) {
-    const [lat, lng] = props.center
-    if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
-      return props.center
-    }
-  }
-  return [30, 30]
-})
-
+const effectiveCenter = computed(() => parseLatLng(props.center) || [30, 30])
 const effectiveZoom = computed(() => props.zoom || 3)
+const effectiveMaxBounds = computed(() => parseBounds(props.maxBounds))
+
+const canZoomIn = computed(() => currentZoom.value < zoomCeil.value)
+const canZoomOut = computed(() => currentZoom.value > zoomFloor.value)
 
 const validMarkers = computed(() =>
-  (props.markers || [])
-    .filter(m => m?.value && Array.isArray(m.value) && m.value.length === 2)
-    .filter(m => typeof m.value[0] === 'number' && typeof m.value[1] === 'number'),
+  (props.markers || []).filter(m => parseLatLng(m?.value) !== null),
 )
 
 const validPolygons = computed(() =>
   (props.polygons || [])
-    .filter(p => Array.isArray(p?.latLngs) && p.latLngs.length >= 3)
-    .map(p => ({
-      ...p,
-      latLngs: p.latLngs.filter(
-        pt =>
-          Array.isArray(pt) &&
-          pt.length === 2 &&
-          typeof pt[0] === 'number' &&
-          typeof pt[1] === 'number',
-      ),
-    }))
+    .filter(p => Array.isArray(p?.latLngs))
+    .map(p => ({ ...p, latLngs: p.latLngs.filter(pt => parseLatLng(pt) !== null) }))
     .filter(p => p.latLngs.length >= 3),
 )
 
-function onMapReady(map) {
-  const lmap = map || mapRef.value?.leafletObject
-  if (!lmap) return
-  leafletMap.value = lmap
+function initMap() {
+  if (!mapEl.value || leafletMap.value) return
 
-  // Hide leaflet's default +/- zoom control — we render PrimeVue buttons
-  // overlay-style instead so they respect the active theme (dark/light).
-  if (lmap.zoomControl) {
-    lmap.removeControl(lmap.zoomControl)
+  const map = L.map(mapEl.value, {
+    center: effectiveCenter.value,
+    zoom: effectiveZoom.value,
+    // Our own themed buttons stand in for leaflet's default control, which
+    // ignores the active theme.
+    zoomControl: false,
+    minZoom: props.minZoom || undefined,
+    maxZoom: props.maxZoom || undefined,
+    maxBounds: effectiveMaxBounds.value || undefined,
+  })
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: "&copy; <a target='_blank' href='http://osm.org/copyright'>OpenStreetMap</a>",
+  }).addTo(map)
+
+  renderLayer = L.layerGroup().addTo(map)
+
+  map.on('click', handleMapClick)
+  map.on('moveend zoomend', handleViewChange)
+
+  leafletMap.value = map
+  appliedMaxBounds = effectiveMaxBounds.value
+  snapshotView()
+  applyInteraction()
+  renderAll()
+  // The viewport is a function of the container size, so only the map knows it.
+  // Reporting it up front means a consumer that captures bounds has them before
+  // the first gesture rather than only after one.
+  emit('update:bounds', lastBounds)
+  emit('ready', map)
+}
+
+/** Read the map's view without emitting — used to seed the echo guard. */
+function snapshotView() {
+  const map = leafletMap.value
+  if (!map) return
+  const c = map.getCenter()
+  lastCenter = [c.lat, c.lng]
+  lastZoom = map.getZoom()
+  lastBounds = readBounds()
+  currentZoom.value = lastZoom
+  syncZoomLimits()
+}
+
+function syncZoomLimits() {
+  const map = leafletMap.value
+  if (!map) return
+  const floor = map.getMinZoom()
+  const ceil = map.getMaxZoom()
+  zoomFloor.value = Number.isFinite(floor) ? floor : 0
+  zoomCeil.value = Number.isFinite(ceil) ? ceil : 18
+}
+
+function readBounds() {
+  const map = leafletMap.value
+  if (!map) return null
+  const b = map.getBounds()
+  return [
+    [b.getSouthWest().lat, b.getSouthWest().lng],
+    [b.getNorthEast().lat, b.getNorthEast().lng],
+  ]
+}
+
+/**
+ * The single place the map reports its viewport. Each value is emitted only
+ * when it actually differs from the last one the parent was given, so a parent
+ * that stores what we emit and hands it straight back settles after one round
+ * instead of oscillating.
+ */
+function handleViewChange() {
+  const map = leafletMap.value
+  if (!map) return
+
+  const c = map.getCenter()
+  const center = [c.lat, c.lng]
+  if (!sameLatLng(center, lastCenter)) {
+    lastCenter = center
+    emit('update:center', center)
   }
 
-  renderLayer = L.layerGroup().addTo(lmap)
+  const zoom = map.getZoom()
+  if (zoom !== lastZoom) {
+    lastZoom = zoom
+    currentZoom.value = zoom
+    emit('update:zoom', zoom)
+  }
 
-  // vue-leaflet 0.10 does not reliably forward leaflet events to Vue,
-  // so bind them directly on the leaflet map.
-  lmap.on('click', handleMapClick)
-  lmap.on('moveend', handleMoveEnd)
+  const bounds = readBounds()
+  if (!sameBounds(bounds, lastBounds)) {
+    lastBounds = bounds
+    emit('update:bounds', bounds)
+  }
+}
 
-  renderAll()
-  emit('ready', lmap)
+/**
+ * Panning is what a locked view must not allow; zooming still may. A zoom
+ * anchored on the pointer shifts the centre, which is a pan by another name, so
+ * while pan is disabled every zoom gesture anchors on the centre instead.
+ */
+function applyInteraction() {
+  const map = leafletMap.value
+  if (!map) return
+
+  const locked = props.disablePan
+  const anchor = locked ? 'center' : true
+
+  if (locked) {
+    map.dragging.disable()
+    map.boxZoom.disable()
+    map.keyboard.disable()
+  } else {
+    map.dragging.enable()
+    map.boxZoom.enable()
+    map.keyboard.enable()
+  }
+
+  // Handlers read these at gesture time, so flipping them is enough.
+  map.options.scrollWheelZoom = anchor
+  map.options.doubleClickZoom = anchor
+  map.options.touchZoom = anchor
 }
 
 function onZoomIn() {
-  const lmap = leafletMap.value
-  if (lmap) lmap.zoomIn()
+  leafletMap.value?.zoomIn()
 }
 
 function onZoomOut() {
-  const lmap = leafletMap.value
-  if (lmap) lmap.zoomOut()
+  leafletMap.value?.zoomOut()
 }
 
 function handleMapClick(e) {
   // If propagation was stopped (e.g. by a marker click), bail out.
   if (e.originalEvent?.defaultPrevented) return
   emit('map-click', e)
-}
-
-function handleMoveEnd() {
-  const lmap = leafletMap.value
-  if (!lmap) return
-  emit('update:zoom', lmap.getZoom())
-  emit('update:center', [lmap.getCenter().lat, lmap.getCenter().lng])
-  const bounds = lmap.getBounds()
-  emit('update:bounds', [
-    [bounds.getSouthWest().lat, bounds.getSouthWest().lng],
-    [bounds.getNorthEast().lat, bounds.getNorthEast().lng],
-  ])
 }
 
 function clearRenderLayer() {
@@ -256,7 +338,10 @@ function renderPolygons() {
   validPolygons.value.forEach(polygon => {
     L.polygon(polygon.latLngs, {
       color: polygon.color || '#09344E',
+      weight: polygon.weight ?? 3,
+      dashArray: polygon.dashArray || undefined,
       fillOpacity: polygon.fillOpacity ?? 0.2,
+      interactive: polygon.interactive ?? true,
     }).addTo(renderLayer)
   })
 }
@@ -291,12 +376,16 @@ function onGeoSearch() {
 }
 
 function placeGeoSearchResult(result) {
-  const lmap = leafletMap.value
-  if (!lmap) return
+  const map = leafletMap.value
+  if (!map) return
 
   geoSearchResults.value = []
   geoSearchQuery.value = result.label
-  lmap.flyTo([result.lat, result.lng], 15, { animate: true })
+  // A locked view stays where it is; the pick is still reported so a consumer
+  // placing a marker gets it.
+  if (!props.disablePan) {
+    map.flyTo([result.lat, result.lng], 15, { animate: true })
+  }
   // Drop the consumer's marker at the picked location. Goes through the
   // normal map-click path — for CInputLocation this only updates draftCoords
   // (in-dialog), the lat/lng value is still committed only on Save.
@@ -308,8 +397,10 @@ function goToCurrentLocation() {
 
   navigator.geolocation.getCurrentPosition(
     ({ coords }) => {
-      const lmap = leafletMap.value
-      if (lmap) lmap.flyTo([coords.latitude, coords.longitude], 15)
+      const map = leafletMap.value
+      if (map && !props.disablePan) {
+        map.flyTo([coords.latitude, coords.longitude], 15)
+      }
       emit('location-found', { latlng: { lat: coords.latitude, lng: coords.longitude } })
     },
     () => {
@@ -319,20 +410,22 @@ function goToCurrentLocation() {
 }
 
 function invalidateSize() {
-  const lmap = leafletMap.value
-  if (lmap) lmap.invalidateSize()
+  leafletMap.value?.invalidateSize()
 }
 
 function fitBounds(bounds, options = {}) {
-  const lmap = leafletMap.value
-  if (lmap && Array.isArray(bounds) && bounds.length === 2) {
-    lmap.fitBounds(bounds, options)
+  const map = leafletMap.value
+  const box = parseBounds(bounds)
+  if (map && box) {
+    map.fitBounds(box, options)
   }
 }
 
 defineExpose({ invalidateSize, fitBounds })
 
 onMounted(() => {
+  initMap()
+
   if (rootRef.value && typeof ResizeObserver !== 'undefined') {
     resizeObserver = new ResizeObserver(() => {
       nextTick(() => invalidateSize())
@@ -342,30 +435,65 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
   if (resizeObserver) {
     resizeObserver.disconnect()
     resizeObserver = null
   }
-  const lmap = leafletMap.value
-  if (lmap) {
-    lmap.off('click', handleMapClick)
-    lmap.off('moveend', handleMoveEnd)
+  const map = leafletMap.value
+  if (map) {
+    map.off()
+    map.remove()
   }
-  if (renderLayer) {
-    renderLayer.clearLayers()
-    renderLayer = null
-  }
+  leafletMap.value = null
+  renderLayer = null
 })
 
 watch(
   () => props.center,
-  newCenter => {
-    const lmap = leafletMap.value
-    if (lmap && Array.isArray(newCenter) && newCenter.length === 2) {
-      lmap.panTo(newCenter)
-    }
+  center => {
+    const map = leafletMap.value
+    const target = parseLatLng(center)
+    if (!map || !target) return
+    const c = map.getCenter()
+    // Ignore our own emitted centre coming back through the parent.
+    if (sameLatLng([c.lat, c.lng], target)) return
+    lastCenter = target
+    map.panTo(target)
   },
 )
+
+watch(
+  () => props.zoom,
+  zoom => {
+    const map = leafletMap.value
+    if (!map || !zoom || zoom === map.getZoom()) return
+    lastZoom = zoom
+    map.setZoom(zoom)
+  },
+)
+
+watch(
+  () => [props.minZoom, props.maxZoom],
+  ([min, max]) => {
+    const map = leafletMap.value
+    if (!map) return
+    map.setMinZoom(min || undefined)
+    map.setMaxZoom(max || undefined)
+    syncZoomLimits()
+  },
+)
+
+watch(effectiveMaxBounds, bounds => {
+  const map = leafletMap.value
+  // setMaxBounds re-pans the view into the new box, which is a real move worth
+  // reporting — but re-applying an unchanged box would move it for nothing.
+  if (!map || sameBounds(bounds, appliedMaxBounds)) return
+  appliedMaxBounds = bounds
+  map.setMaxBounds(bounds || null)
+})
+
+watch(() => props.disablePan, applyInteraction)
 </script>
 
 <style>
