@@ -16,6 +16,7 @@ import (
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 	labelsType "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/store"
@@ -86,6 +87,7 @@ var (
 		fix_2026_07_30_backfillProjectRefOnComposeResources,
 		fix_2026_07_31_addApprovalOnProjects,
 		fix_2026_08_06_addCreatedByOnComposeNamespace,
+		fix_2026_08_14_addPrimaryLayoutToLayoutlessPages,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -2035,4 +2037,113 @@ func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (
 	}
 
 	return
+}
+
+// fix_2026_08_14_addPrimaryLayoutToLayoutlessPages gives every page that has
+// blocks but no layout the primary layout that positions them.
+//
+// A compose page holds what its blocks ARE -- kind, options, title. A page
+// LAYOUT holds where they go, as {blockID, xywh}, and the builder draws the
+// layout: a page without one opens on an empty canvas reading "This page has no
+// layout yet", however many blocks it carries, and Add layout starts empty too,
+// so every block has to be placed again by hand.
+//
+// Creating that layout used to be a webapp convention, done at four separate
+// call sites, which meant every other writer produced a page nobody could edit.
+// Three cohorts exist in the wild for exactly that reason: pages made before
+// the layout model landed, pages brought in by an envoy import, and pages built
+// through the compose MCP tools. The page service now creates the layout inside
+// the transaction that creates the page, so no new ones can appear -- this is
+// the one-off pass over the ones that already do.
+//
+// Idempotent by construction: it only touches pages with no layout row at all,
+// so a second run selects nothing. Pages with no blocks are skipped as well --
+// an empty page gains nothing from an empty layout, and the page service will
+// give it one the moment it is recreated.
+func fix_2026_08_14_addPrimaryLayoutToLayoutlessPages(ctx context.Context, s *Store) error {
+	for _, table := range []string{"compose_page", "compose_page_layout"} {
+		if _, err := s.DataDefiner.TableLookup(ctx, table); err != nil {
+			if errors.IsNotFound(err) {
+				return nil
+			}
+			return err
+		}
+	}
+
+	rows, err := s.DB.QueryContext(ctx, `
+		SELECT p.id, p.rel_namespace, p.rel_project, p.rel_tenant, p.title, p.blocks
+		  FROM compose_page AS p
+		 WHERE NOT EXISTS (
+		       SELECT 1 FROM compose_page_layout AS l WHERE l.page_id = p.id
+		 )`)
+	if err != nil {
+		return err
+	}
+
+	type layoutless struct {
+		pageID, namespaceID, projectID, tenantID uint64
+		title                                    string
+		blocks                                   types.PageBlocks
+	}
+
+	var pending []layoutless
+	for rows.Next() {
+		var (
+			l      layoutless
+			blocks []byte
+		)
+
+		if err = rows.Scan(&l.pageID, &l.namespaceID, &l.projectID, &l.tenantID, &l.title, &blocks); err != nil {
+			rows.Close()
+			return err
+		}
+
+		// A page whose blocks will not decode is left alone: a layout built from
+		// a guess at its contents would be worse than the empty canvas.
+		if len(blocks) == 0 || json.Unmarshal(blocks, &l.blocks) != nil || len(l.blocks) == 0 {
+			continue
+		}
+
+		pending = append(pending, l)
+	}
+	if err = rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	rows.Close()
+
+	// Every button on, matching what the page service writes for a new page.
+	// A zero-value config disables the whole record toolbar.
+	on := types.PageLayoutButton{Enabled: true}
+	config := types.PageLayoutConfig{Buttons: types.PageLayoutButtonConfig{
+		New: on, Edit: on, Submit: on, Delete: on, Clone: on, Back: on,
+	}}
+
+	for _, l := range pending {
+		layout := &types.PageLayout{
+			ID:          id.Next(),
+			Handle:      "primary",
+			PageID:      l.pageID,
+			NamespaceID: l.namespaceID,
+			ProjectID:   l.projectID,
+			TenantID:    l.tenantID,
+			Meta:        types.PageLayoutMeta{Title: l.title},
+			Config:      config,
+			Blocks:      make(types.PageLayoutBlocks, 0, len(l.blocks)),
+			CreatedAt:   time.Now(),
+		}
+
+		for _, b := range l.blocks {
+			layout.Blocks = append(layout.Blocks, types.PageLayoutBlock{
+				BlockID: b.BlockID,
+				XYWH:    b.XYWH,
+			})
+		}
+
+		if err = store.CreateComposePageLayout(ctx, s, layout); err != nil {
+			return fmt.Errorf("cannot add primary layout to page %d: %w", l.pageID, err)
+		}
+	}
+
+	return nil
 }
