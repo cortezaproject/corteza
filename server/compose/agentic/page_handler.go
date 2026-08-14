@@ -219,7 +219,7 @@ func (h *pageHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	}
 
 	if rawBlocks, ok := args["blocks"]; ok && rawBlocks != nil {
-		if pg.Blocks, err = parsePageBlocks(rawBlocks); err != nil {
+		if pg.Blocks, _, err = parsePageBlocks(rawBlocks); err != nil {
 			return nil, fmt.Errorf("invalid blocks: %w", err)
 		}
 
@@ -318,7 +318,7 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	// blockID against the existing set instead of replacing it, so a caller can
 	// add or amend one block without resending the page's whole layout.
 	if rawBlocks, ok := args["blocks"]; ok && rawBlocks != nil {
-		blocks, err := parsePageBlocks(rawBlocks)
+		blocks, sent, err := parsePageBlocks(rawBlocks)
 		if err != nil {
 			return nil, fmt.Errorf("invalid blocks: %w", err)
 		}
@@ -332,7 +332,7 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		// inherit and are placed by autoLayoutBlocks below the existing ones.
 		inheritBlockLayout(pg.Blocks, blocks)
 
-		if pg.Blocks, err = mergePageBlocks(pg.Blocks, blocks); err != nil {
+		if pg.Blocks, err = mergePageBlocks(pg.Blocks, blocks, sent); err != nil {
 			return nil, err
 		}
 
@@ -648,10 +648,49 @@ func inheritBlockLayout(existing, incoming cmpTypes.PageBlocks) {
 	}
 }
 
-// mergePageBlocks merges incoming blocks into the existing ones by blockID.
-// Existing blocks not mentioned are kept; a block without a blockID is appended
-// and numbered by the service.
-func mergePageBlocks(existing, incoming cmpTypes.PageBlocks) (cmpTypes.PageBlocks, error) {
+// blockFields is the set of keys one incoming block carried in the request.
+type blockFields map[string]struct{}
+
+func (f blockFields) has(name string) bool {
+	_, ok := f[name]
+	return ok
+}
+
+// mergeBlock overwrites only what the caller sent, so a block keeps every field
+// the request left out. Naming a block by its blockID to change its title is
+// what the tool documents, and that must not cost the block its kind, its
+// options or its style.
+func mergeBlock(dst, src cmpTypes.PageBlock, sent blockFields) cmpTypes.PageBlock {
+	if sent.has("kind") {
+		dst.Kind = src.Kind
+	}
+	if sent.has("title") {
+		dst.Title = src.Title
+	}
+	if sent.has("description") {
+		dst.Description = src.Description
+	}
+	if sent.has("xywh") {
+		dst.XYWH = src.XYWH
+	}
+	if sent.has("options") {
+		dst.Options = src.Options
+	}
+	if sent.has("meta") {
+		dst.Meta = src.Meta
+	}
+	if sent.has("style") {
+		dst.Style = src.Style
+	}
+
+	dst.BlockID = src.BlockID
+	return dst
+}
+
+// mergePageBlocks merges incoming blocks into the existing ones by blockID,
+// field by field. Existing blocks not mentioned are kept; a block without a
+// blockID is appended and numbered by the service.
+func mergePageBlocks(existing, incoming cmpTypes.PageBlocks, sent []blockFields) (cmpTypes.PageBlocks, error) {
 	if len(incoming) == 0 {
 		return existing, nil
 	}
@@ -666,7 +705,7 @@ func mergePageBlocks(existing, incoming cmpTypes.PageBlocks) (cmpTypes.PageBlock
 	out := make(cmpTypes.PageBlocks, len(existing))
 	copy(out, existing)
 
-	for _, b := range incoming {
+	for i, b := range incoming {
 		if b.BlockID == 0 {
 			out = append(out, b)
 			continue
@@ -676,7 +715,12 @@ func mergePageBlocks(existing, incoming cmpTypes.PageBlocks) (cmpTypes.PageBlock
 		if !ok {
 			return nil, fmt.Errorf("unknown block ID %d", b.BlockID)
 		}
-		out[idx] = b
+
+		fields := blockFields{}
+		if i < len(sent) {
+			fields = sent[i]
+		}
+		out[idx] = mergeBlock(out[idx], b, fields)
 	}
 
 	return out, nil
@@ -768,7 +812,7 @@ func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBloc
 // parsePageBlocks unmarshals a JSON string or array into PageBlocks. Layout is
 // left exactly as sent here; autoLayoutBlocks is what places the blocks that
 // carry none, and it runs after the update path has merged.
-func parsePageBlocks(raw any) (cmpTypes.PageBlocks, error) {
+func parsePageBlocks(raw any) (cmpTypes.PageBlocks, []blockFields, error) {
 	var data []byte
 
 	switch v := raw.(type) {
@@ -777,15 +821,32 @@ func parsePageBlocks(raw any) (cmpTypes.PageBlocks, error) {
 	default:
 		var err error
 		if data, err = json.Marshal(v); err != nil {
-			return nil, fmt.Errorf("cannot encode blocks: %w", err)
+			return nil, nil, fmt.Errorf("cannot encode blocks: %w", err)
 		}
 	}
 
 	var blocks cmpTypes.PageBlocks
 	if err := json.Unmarshal(data, &blocks); err != nil {
-		return nil, fmt.Errorf("blocks must be a JSON array: %w", err)
+		return nil, nil, fmt.Errorf("blocks must be a JSON array: %w", err)
 	}
-	return blocks, nil
+
+	// Which keys each block actually carried. A struct cannot answer this after
+	// unmarshalling — an omitted field and a zero one hold the same value — and
+	// the update merge has to tell them apart to leave an omitted field alone.
+	var rawBlocks []map[string]json.RawMessage
+	if err := json.Unmarshal(data, &rawBlocks); err != nil {
+		return nil, nil, fmt.Errorf("blocks must be a JSON array: %w", err)
+	}
+
+	sent := make([]blockFields, len(rawBlocks))
+	for i, rb := range rawBlocks {
+		sent[i] = make(blockFields, len(rb))
+		for k := range rb {
+			sent[i][k] = struct{}{}
+		}
+	}
+
+	return blocks, sent, nil
 }
 
 // Grid facts, mirrored from the gridstack setup the webapp page builder uses

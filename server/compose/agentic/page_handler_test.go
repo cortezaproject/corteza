@@ -201,3 +201,118 @@ func TestParsePageConfigRejectsUnrenderableIcons(t *testing.T) {
 		}
 	}
 }
+
+// The tool documents naming a block by its blockID to change one thing about
+// it ("Send xywh to move or resize a block, omit it to leave the block where it
+// is"). A whole-block replace turns that into silent destruction: the block
+// keeps its ID, loses its kind and options, and renders as "No block
+// configured".
+func TestMergePageBlocksKeepsFieldsTheRequestOmits(t *testing.T) {
+	existing := cmpTypes.PageBlocks{{
+		BlockID:     1,
+		Kind:        "Content",
+		Title:       "Before",
+		Description: "a description",
+		XYWH:        [4]int{0, 0, 24, 20},
+		Options:     map[string]any{"body": "<p>original</p>"},
+		Meta:        map[string]any{"customID": "keep-me"},
+	}}
+
+	incoming, sent, err := parsePageBlocks(`[{"blockID":"1","title":"After"}]`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	out, err := mergePageBlocks(existing, incoming, sent)
+	if err != nil {
+		t.Fatalf("merge: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("got %d blocks, want 1", len(out))
+	}
+
+	got := out[0]
+	if got.Title != "After" {
+		t.Errorf("title: got %q, want %q", got.Title, "After")
+	}
+	if got.Kind != "Content" {
+		t.Errorf("kind: got %q, want it kept as %q", got.Kind, "Content")
+	}
+	if got.Options["body"] != "<p>original</p>" {
+		t.Errorf("options: got %v, want them kept", got.Options)
+	}
+	if got.Description != "a description" {
+		t.Errorf("description: got %q, want it kept", got.Description)
+	}
+	if got.Meta["customID"] != "keep-me" {
+		t.Errorf("meta: got %v, want it kept", got.Meta)
+	}
+	if got.XYWH != ([4]int{0, 0, 24, 20}) {
+		t.Errorf("xywh: got %v, want it kept", got.XYWH)
+	}
+}
+
+func TestMergePageBlocksOverwritesFieldsTheRequestSends(t *testing.T) {
+	existing := cmpTypes.PageBlocks{{
+		BlockID: 1,
+		Kind:    "Content",
+		Title:   "Before",
+		Options: map[string]any{"body": "<p>original</p>"},
+	}}
+
+	incoming, sent, err := parsePageBlocks(
+		`[{"blockID":"1","options":{"body":"<p>replaced</p>"}}]`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	out, err := mergePageBlocks(existing, incoming, sent)
+	if err != nil {
+		t.Fatalf("merge: %v", err)
+	}
+	if out[0].Options["body"] != "<p>replaced</p>" {
+		t.Errorf("options: got %v, want them replaced", out[0].Options)
+	}
+	if out[0].Title != "Before" {
+		t.Errorf("title: got %q, want it kept", out[0].Title)
+	}
+}
+
+// An empty value the caller did send is a real value: clearing a title has to
+// clear it, not read as an omission.
+func TestMergePageBlocksAcceptsAnExplicitlyEmptyValue(t *testing.T) {
+	existing := cmpTypes.PageBlocks{{BlockID: 1, Kind: "Content", Title: "Before"}}
+
+	incoming, sent, err := parsePageBlocks(`[{"blockID":"1","title":""}]`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	out, err := mergePageBlocks(existing, incoming, sent)
+	if err != nil {
+		t.Fatalf("merge: %v", err)
+	}
+	if out[0].Title != "" {
+		t.Errorf("title: got %q, want it cleared", out[0].Title)
+	}
+	if out[0].Kind != "Content" {
+		t.Errorf("kind: got %q, want it kept", out[0].Kind)
+	}
+}
+
+func TestMergePageBlocksAppendsBlocksWithoutAnID(t *testing.T) {
+	existing := cmpTypes.PageBlocks{{BlockID: 1, Kind: "Content", Title: "One"}}
+
+	incoming, sent, err := parsePageBlocks(`[{"kind":"Metric","title":"Two"}]`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	out, err := mergePageBlocks(existing, incoming, sent)
+	if err != nil {
+		t.Fatalf("merge: %v", err)
+	}
+	if len(out) != 2 || out[1].Kind != "Metric" || out[0].Kind != "Content" {
+		t.Fatalf("got %+v, want the new block appended after the existing one", out)
+	}
+}
