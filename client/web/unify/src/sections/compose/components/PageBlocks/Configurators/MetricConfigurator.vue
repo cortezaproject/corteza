@@ -109,12 +109,15 @@
                 :description="$t('block.metric.edit.filterFootnote')"
                 class="md:col-span-2"
               >
-                <InputText
+                <CInputExpression
+                  :ref="el => (filterInputs[i] = el)"
                   v-model="metric.filter"
-                  class="w-full"
+                  dialect="ql"
+                  :scope="scope"
+                  :query-fields="moduleFields(metric.moduleID)"
                   placeholder="field1 = 1 AND field2 > 0"
                 />
-                <InterpolationFootnote :is-record-page="isRecordPage" />
+                <CExpressionHint :scope="scope" @insert="filterInputs[i]?.insert($event)" />
               </CFormGroup>
             </div>
 
@@ -244,7 +247,7 @@ import { ref, computed, inject, onMounted } from 'vue'
 import { components } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { CInputColorPicker } = components
 
@@ -256,7 +259,13 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
 })
 
-const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
+const filterInputs = ref([])
+const { scope } = useExpressionScope({ page: computed(() => props.page) })
+
+// Fields of the module this row queries — bare identifiers in its filter.
+function moduleFields(moduleID) {
+  return (moduleID && moduleStore.getByID(moduleID)?.fields) || []
+}
 
 const block = inject('blockDraft')
 

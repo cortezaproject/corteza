@@ -70,3 +70,9 @@ export {
   makeAgentChatTranslations,
 } from './components'
 export type { AgentChatTranslations } from './components/agent/translations'
+
+// Expression inputs: scope building for CInputExpression / CExpressionHint,
+// both registered globally by PrimeVueComponentsPlugin.
+export { buildScope, membersAt, resolvePath } from './components/expression/catalog'
+export type { ScopeEntry, ScopeModule, ScopeSource } from './components/expression/catalog'
+export { lintExpression, scanHoles, tokenRanges, QL_KEYWORDS } from './components/expression/syntax'

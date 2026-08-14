@@ -21,21 +21,23 @@
       :label="$t('block.iframe.srcLabel')"
       :description="isRecordPage ? $t('block.iframe.srcDesc') : ''"
     >
-      <InputText
+      <CInputExpression
+        ref="srcUrlInput"
         v-model="srcUrl"
+        dialect="interpolation"
+        :scope="scope"
         :placeholder="$t('block.content.urlPlaceholder')"
-        class="w-full"
       />
     </CFormGroup>
 
-    <InterpolationFootnote :is-record-page="isRecordPage" />
+    <CExpressionHint :scope="scope" @insert="srcUrlInput?.insert($event)" />
   </div>
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useModuleStore } from '@planetcrust/human-vue'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const props = defineProps({
   namespace: { type: Object, default: () => ({}) },
@@ -47,6 +49,9 @@ const block = inject('blockDraft')
 const moduleStore = useModuleStore()
 
 const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
+
+const srcUrlInput = ref(null)
+const { scope } = useExpressionScope({ page: computed(() => props.page) })
 
 const urlFields = computed(() => {
   if (!props.page?.moduleID) return []

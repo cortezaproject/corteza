@@ -14,12 +14,15 @@
 
     <template v-if="selectedModule">
       <CFormGroup :label="$t('block.recordList.record.prefilterLabel')">
-        <InputText
-          v-model.trim="options.filter"
+        <CInputExpression
+          ref="filterInput"
+          v-model="options.filter"
+          dialect="ql"
+          :scope="scope"
+          :query-fields="queryFields"
           :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
-          class="w-full"
         />
-        <InterpolationFootnote :is-record-page="isRecordPage" />
+        <CExpressionHint :scope="scope" @insert="filterInput?.insert($event)" />
       </CFormGroup>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,10 +134,10 @@
 </template>
 
 <script setup>
-import { computed, inject, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { t } = useI18n()
 
@@ -143,8 +146,6 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
   record: { type: Object, default: undefined },
 })
-
-const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
 
 const block = inject('blockDraft')
 
@@ -157,6 +158,12 @@ const modules = computed(() => moduleStore.set || [])
 const selectedModule = computed(() =>
   modules.value.find(m => m.moduleID === options.value.moduleID),
 )
+
+const filterInput = ref(null)
+const { scope, queryFields } = useExpressionScope({
+  page: computed(() => props.page),
+  queryModule: computed(() => selectedModule.value),
+})
 
 const moduleFields = computed(() => {
   if (!selectedModule.value) return []

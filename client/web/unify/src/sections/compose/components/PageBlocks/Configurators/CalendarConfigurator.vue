@@ -171,12 +171,15 @@
               :label="$t('block.calendar.recordFeed.prefilterLabel')"
               class="md:col-span-2"
             >
-              <InputText
+              <CInputExpression
+                :ref="el => (prefilterInputs[i] = el)"
                 v-model="feed.options.prefilter"
+                dialect="ql"
+                :scope="scope"
+                :query-fields="moduleFields(feed.options?.moduleID)"
                 :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
-                class="w-full"
               />
-              <InterpolationFootnote :is-record-page="isRecordPage" />
+              <CExpressionHint :scope="scope" @insert="prefilterInputs[i]?.insert($event)" />
             </CFormGroup>
 
             <CFormGroup :label="$t('block.calendar.colorLabel')">
@@ -203,12 +206,12 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { compose } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { CInputColorPicker } = components
 
@@ -220,7 +223,13 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
 })
 
-const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
+const prefilterInputs = ref([])
+const { scope } = useExpressionScope({ page: computed(() => props.page) })
+
+// Fields of the module this row queries — bare identifiers in its filter.
+function moduleFields(moduleID) {
+  return (moduleID && moduleStore.getByID(moduleID)?.fields) || []
+}
 
 const block = inject('blockDraft')
 

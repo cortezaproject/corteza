@@ -130,13 +130,15 @@
             :label="$t('block.recordList.record.prefilterLabel')"
             :description="$t('block.recordList.record.prefilterFootnote')"
           >
-            <Textarea
+            <CInputExpression
+              ref="prefilterInput"
               v-model="prefilter"
-              rows="3"
-              class="w-full"
+              dialect="ql"
+              :scope="scope"
+              :query-fields="queryFields"
               :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
             />
-            <InterpolationFootnote :is-record-page="isRecordPage" />
+            <CExpressionHint :scope="scope" @insert="prefilterInput?.insert($event)" />
           </CFormGroup>
 
           <!-- Filter Presets -->
@@ -546,7 +548,7 @@ import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
 import RecordListFilter from '@/sections/compose/components/Common/RecordListFilter.vue'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { t } = useI18n()
 
@@ -574,9 +576,13 @@ const parentModule = computed(() => {
 
 const onRecordPage = computed(() => !!parentModule.value)
 
-// Independent of module loading — the footnote must not flip variable lists
-// while the parent module is still being fetched.
-const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
+// `${record...}` reads the page record, so it resolves against the page's
+// module; the bare identifiers in the QL are fields of the module being listed.
+const prefilterInput = ref(null)
+const { scope, queryFields } = useExpressionScope({
+  page: computed(() => props.page),
+  queryModule: recordListModule,
+})
 
 const recordDisplayOptions = [
   { value: 'sameTab', text: t('block.recordList.record.openInSameTab') },

@@ -42,14 +42,21 @@
           <label class="text-primary font-medium text-sm">
             {{ $t('chart.edit.filter.label') }}
           </label>
-          <Textarea
+          <CInputExpression
+            ref="filterInput"
             v-model="reportFilter"
+            dialect="ql"
+            :scope="scope"
+            :query-fields="module?.fields || []"
             :placeholder="$t('chart.edit.filter.placeholder')"
-            class="w-full"
-            rows="2"
           />
           <small class="text-muted-color">{{ $t('chart.edit.filter.footnote') }}</small>
-          <InterpolationFootnote is-record-page depends-on-placement class="block" />
+          <CExpressionHint
+            :scope="scope"
+            depends-on-placement
+            class="block"
+            @insert="filterInput?.insert($event)"
+          />
         </div>
       </div>
     </div>
@@ -276,10 +283,10 @@
 </template>
 
 <script setup>
-import { computed, inject, toRaw } from 'vue'
+import { computed, inject, ref, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@planetcrust/human-js'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { t } = useI18n()
 
@@ -367,6 +374,12 @@ const dimensions = computed({
 const module = computed(() => {
   return props.modules.find(m => m.moduleID === moduleID.value)
 })
+
+const filterInput = ref(null)
+
+// A chart is namespace-level and may be placed on a record page or not, so the
+// record variables are offered and the hint says they depend on placement.
+const { scope } = useExpressionScope({ hasRecord: true })
 
 const metricFields = computed(() => {
   if (!module.value) return []

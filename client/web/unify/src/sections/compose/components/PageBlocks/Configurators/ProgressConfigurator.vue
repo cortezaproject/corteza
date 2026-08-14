@@ -61,13 +61,15 @@
                 :disabled="!valueField || valueField === 'count'"
               />
             </div>
-            <Textarea
+            <CInputExpression
+              ref="valueFilterInput"
               v-model="valueFilter"
+              dialect="ql"
+              :scope="scope"
+              :query-fields="moduleFields(valueModuleID)"
               :placeholder="$t('block.progress.value.filterPlaceholder')"
-              rows="2"
-              class="w-full"
             />
-            <InterpolationFootnote :is-record-page="isRecordPage" />
+            <CExpressionHint :scope="scope" @insert="valueFilterInput?.insert($event)" />
           </template>
         </div>
       </Fieldset>
@@ -134,13 +136,15 @@
                 :disabled="!minValueField || minValueField === 'count'"
               />
             </div>
-            <Textarea
+            <CInputExpression
+              ref="minValueFilterInput"
               v-model="minValueFilter"
+              dialect="ql"
+              :scope="scope"
+              :query-fields="moduleFields(minValueModuleID)"
               :placeholder="$t('block.progress.value.filterPlaceholder')"
-              rows="2"
-              class="w-full"
             />
-            <InterpolationFootnote :is-record-page="isRecordPage" />
+            <CExpressionHint :scope="scope" @insert="minValueFilterInput?.insert($event)" />
           </template>
         </div>
       </Fieldset>
@@ -207,13 +211,15 @@
                 :disabled="!maxValueField || maxValueField === 'count'"
               />
             </div>
-            <Textarea
+            <CInputExpression
+              ref="maxValueFilterInput"
               v-model="maxValueFilter"
+              dialect="ql"
+              :scope="scope"
+              :query-fields="moduleFields(maxValueModuleID)"
               :placeholder="$t('block.progress.value.filterPlaceholder')"
-              rows="2"
-              class="w-full"
             />
-            <InterpolationFootnote :is-record-page="isRecordPage" />
+            <CExpressionHint :scope="scope" @insert="maxValueFilterInput?.insert($event)" />
           </template>
         </div>
       </Fieldset>
@@ -378,11 +384,11 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
 import ProgressBlock from '../Blocks/ProgressBlock.vue'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { t } = useI18n()
 const moduleStore = useModuleStore()
@@ -392,7 +398,16 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
 })
 
-const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
+const valueFilterInput = ref(null)
+const minValueFilterInput = ref(null)
+const maxValueFilterInput = ref(null)
+
+const { scope } = useExpressionScope({ page: computed(() => props.page) })
+
+// Fields of the module each bar counts over — bare identifiers in its filter.
+function moduleFields(moduleID) {
+  return (moduleID && moduleStore.getByID(moduleID)?.fields) || []
+}
 
 const block = inject('blockDraft')
 

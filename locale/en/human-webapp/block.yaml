@@ -290,6 +290,7 @@ comment:
   yesterday: Yesterday
 content:
   interpolationFootnote: 'Available variables (evaluated when present):'
+  interpolationFootnoteInsert: Click to insert this variable at the cursor position
   interpolationFootnoteNonRecord: 'Available variables (evaluated when present). Record variables are not available on this page — they require a record page:'
   interpolationFootnotePlacement: Record variables are evaluated only when this is placed on a record page.
   label: Content

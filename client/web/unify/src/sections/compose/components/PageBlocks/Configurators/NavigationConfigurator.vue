@@ -105,13 +105,15 @@
 
             <template v-if="item.type === 'url'">
               <CFormGroup :label="$t('block.navigation.url')">
-                <InputText
+                <CInputExpression
+                  :ref="el => (urlInputs[index] = el)"
                   :model-value="item.options?.item?.url || ''"
+                  dialect="interpolation"
+                  :scope="scope"
                   placeholder="https://"
-                  class="w-full"
                   @update:model-value="updateNavItemOption(index, 'url', $event)"
                 />
-                <InterpolationFootnote :is-record-page="isRecordPage" />
+                <CExpressionHint :scope="scope" @insert="urlInputs[index]?.insert($event)" />
               </CFormGroup>
               <CFormGroup :label="$t('block.navigation.target')">
                 <Select
@@ -245,11 +247,11 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
-import InterpolationFootnote from '@/sections/compose/components/Common/InterpolationFootnote.vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { CInputColorPicker, CInputToggleCard } = components
 
@@ -260,7 +262,8 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
 })
 
-const isRecordPage = computed(() => !!props.page?.moduleID && props.page.moduleID !== '0')
+const urlInputs = ref([])
+const { scope } = useExpressionScope({ page: computed(() => props.page) })
 
 const block = inject('blockDraft')
 
