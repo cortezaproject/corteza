@@ -138,8 +138,12 @@ type (
 	}
 
 	RecordOrganizerBlockOptions struct {
-		ModuleID         string `json:"moduleID"`
-		GroupField       string `json:"groupField"`
+		ModuleID   string `json:"moduleID"`
+		GroupField string `json:"groupField"`
+		// One block is one column of a board: the value of GroupField that this
+		// block holds. Without it the block filters on the empty value and shows
+		// nothing, so a board is one block per value.
+		Group            string `json:"group"`
 		LabelField       string `json:"labelField"`
 		DescriptionField string `json:"descriptionField"`
 		PositionField    string `json:"positionField"`

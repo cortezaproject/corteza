@@ -138,6 +138,7 @@
   "RecordOrganizer": {
     "moduleID": "",
     "groupField": "",
+    "group": "",
     "labelField": "",
     "descriptionField": "",
     "positionField": "",
