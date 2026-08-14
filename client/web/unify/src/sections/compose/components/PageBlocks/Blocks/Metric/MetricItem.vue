@@ -67,9 +67,20 @@ const containerStyle = computed(() => {
   return d
 })
 
+// What the value row actually renders, prefix and suffix included — the CSS
+// sizes the text against this length, so it has to match the template.
+const valueChars = computed(() =>
+  Math.max(
+    [props.metric.prefix, props.value.value, props.metric.suffix]
+      .filter(part => part !== undefined && part !== null && part !== '')
+      .join(' ').length,
+    1,
+  ),
+)
+
 const valueStyle = computed(() => {
   const s = props.metric.valueStyle || {}
-  const d = {}
+  const d = { '--metric-chars': valueChars.value }
   if (s.color && s.color !== 'transparent') d.color = s.color
   return d
 })
@@ -110,7 +121,10 @@ const formattedChange = computed(() => {
   justify-content: center;
   flex: 1;
   min-height: 0;
-  font-size: min(90cqw, 60cqh);
+  /* Container units size one glyph against the box, so the width budget has to
+   * be shared out over the characters there are: a bold digit advances about
+   * 0.6em, and 150cqw / chars fills ~90% of the width whatever the length. */
+  font-size: min(calc(150cqw / var(--metric-chars, 3)), 60cqh);
   line-height: 1;
   letter-spacing: -0.02em;
 }
