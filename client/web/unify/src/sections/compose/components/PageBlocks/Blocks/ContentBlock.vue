@@ -1,6 +1,8 @@
 <template>
   <PageBlock :block="block">
-    <div class="p-3" style="white-space: pre-wrap" v-html="contentBody" />
+    <!-- rt-content carries the typography for authored HTML (headings, lists,
+         quotes, tables); it is global, from lib/vue's rt-content.css. -->
+    <div class="rt-content p-3" style="white-space: pre-wrap" v-html="contentBody" />
   </PageBlock>
 </template>
 
