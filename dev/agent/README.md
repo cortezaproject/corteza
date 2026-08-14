@@ -40,6 +40,8 @@ Requires: `curl`, `python3` (no jq dependency), a built server binary in
 | `pagebuild.py SLUG SPEC.json`                | build/refresh charts + pages via REST (spec format in its header)                                                                                                                            |
 | `mcp.py tools\|schema\|call`                 | call Human's own MCP server (`/api/mcp`: compose CRUD incl. charts, TAQ/workflow exec)                                                                                                       |
 | `verify-ui.mjs PATH…`                        | render-verify webapp paths in headless Chromium as agent-ui; screenshots + console/page errors                                                                                               |
+| `drive.mjs SUITE.mjs [--only N]`             | multi-step browser checks: navigate, click, assert where you landed. Logged in already, dialogs recorded, console/network collected per check                                                |
+| `ids.sh [SLUG…]`                             | handle → ID map for a namespace (modules/pages/charts/records) cached in `.state/ids.json`; `seed.sh` refreshes it                                                                           |
 
 For interactive Claude Code sessions, `.mcp.json` registers the `human` MCP
 server; it needs `HUMAN_MCP_TOKEN` exported before starting Claude Code:
@@ -51,6 +53,49 @@ dev/agent/smoke.sh
 dev/agent/api.sh GET '/system/users/?limit=5'
 dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_demo"}'
 ```
+
+## Checking the webapp
+
+`verify-ui.mjs` answers "did this path render clean". Anything needing a second
+step — click Back and assert where you land, search and count rows, leave an
+editor and see whether it warns — goes through `drive.mjs`:
+
+```js
+// dev/agent/checks/mine.mjs
+import { drive, check, expectPath, ids } from '../drive.mjs'
+const id = ids('catalogue') // handles, not pasted IDs
+
+drive('back from a deep link reaches the list', async page => {
+  await page.open(`/compose/namespace/catalogue/admin/modules/${id.module.catalogue_field}/edit`)
+  await page.back()
+  expectPath(page, '/compose/namespace/catalogue/admin/modules')
+})
+```
+
+```sh
+dev/agent/ids.sh catalogue                       # once, or via seed.sh
+node dev/agent/drive.mjs dev/agent/checks/mine.mjs
+node dev/agent/drive.mjs dev/agent/checks/mine.mjs --only "back"
+```
+
+Each check gets its own browser context, so a deep link genuinely has no
+history to go back to. Native dialogs are **recorded, not dismissed** —
+playwright's default dismiss turns an unsaved-changes confirm into a phantom
+"the button does nothing". Console errors, page errors and HTTP 500s fail the
+check unless it passes `{ allowProblems: true }`. Screenshots are written only
+on failure.
+
+In a dev build the app also exposes `window.__human` — `routes()` (name → path,
+so route paths need not be grepped), `stores()` (every Pinia store, state
+readable) and `globals()` (`$Settings`, `$Auth`, …). Reach for it instead of
+editing a component to park state on `window`:
+
+```js
+const ns = await page.evaluate(() => window.__human.stores().namespace.set.length)
+```
+
+Shell landmarks carry test ids: `app-sidebar`, `app-topbar`, `editor-actions`,
+`editor-back`.
 
 ## API gotchas (learned the hard way)
 

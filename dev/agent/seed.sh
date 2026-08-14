@@ -94,5 +94,9 @@ for m in json.load(sys.stdin)["response"]["set"]:
     python3 "$AGENT_DIR/pagebuild.py" "$slug" "$FIXTURES_DIR/$slug/ui.json"
   fi
 
+  # Refresh the handle → ID map so checks can look resources up instead of
+  # spending a request per kind rediscovering what seeding just created.
+  "$AGENT_DIR/ids.sh" "$slug" >/dev/null || true
+
   echo "seeded fixture $slug (namespace ID $id)"
 done

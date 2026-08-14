@@ -52,6 +52,19 @@ if ! python3 -m json.tool <"$body" 2>/dev/null; then
     exit 75
   fi
 
+  # No route matched, so the server fell through to the SPA and served the
+  # webapp's index.html with HTTP 200. Dumping a page of markup reads as a
+  # broken endpoint; the cause is almost always a missing service prefix,
+  # because the JS clients carry theirs in the client's base URL and the paths
+  # in api-clients/*.ts are written relative to it.
+  if grep -qiE '<!doctype html|<html' "$body"; then
+    echo "no API route matched $path — the server returned the webapp's HTML, not a response." >&2
+    echo "Paths here are absolute and need the service prefix: /system, /compose," >&2
+    echo "/automation, /federation. So '/agents/' is '/system/agents/'." >&2
+    echo "Collection endpoints also need the trailing slash." >&2
+    exit 44
+  fi
+
   cat "$body"
   echo
 fi
