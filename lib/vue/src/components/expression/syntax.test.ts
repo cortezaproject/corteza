@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { buildExprScope, buildFieldExprScope, buildScope, membersAt, resolvePath } from './catalog'
+import {
+  buildExprScope,
+  buildFieldExprScope,
+  buildScope,
+  buildWorkflowScope,
+  membersAt,
+  resolvePath,
+} from './catalog'
 import { completionAt, lintExpression, scanHoles, tokenRanges } from './syntax'
 
 const orders = {
@@ -530,5 +537,59 @@ describe('lintExpression — field expressions', () => {
     expect(lint('values.status', scope)[0].message).toContain(
       "'values' is not an available variable",
     )
+  })
+})
+
+// Workflow expressions: the scope is whatever the workflow's triggers put in
+// scope, which the server describes per event type.
+describe('buildWorkflowScope', () => {
+  const props = [
+    { name: 'record', types: ['ComposeRecord'] },
+    { name: 'oldRecord', types: ['ComposeRecord'] },
+    { name: 'module', types: ['ComposeModule'] },
+  ]
+
+  it('names each trigger property with its type', () => {
+    expect(buildWorkflowScope(props)).toEqual([
+      { name: 'module', type: 'ComposeModule' },
+      { name: 'oldRecord', type: 'ComposeRecord' },
+      { name: 'record', type: 'ComposeRecord' },
+    ])
+  })
+
+  it('unions several triggers without repeating a property', () => {
+    const scope = buildWorkflowScope([...props, { name: 'record', types: ['ComposeRecord'] }])
+    expect(scope.filter(e => e.name === 'record')).toHaveLength(1)
+  })
+
+  it("keeps the first trigger's type when two declare the same name", () => {
+    // Not the Map de-duplicating: the guard decides which type survives.
+    const scope = buildWorkflowScope([
+      { name: 'record', types: ['ComposeRecord'] },
+      { name: 'record', types: ['SomethingElse'] },
+    ])
+    expect(scope).toEqual([{ name: 'record', type: 'ComposeRecord' }])
+  })
+
+  it('falls back to Any when the server declares no type', () => {
+    expect(buildWorkflowScope([{ name: 'thing' }])[0].type).toBe('Any')
+  })
+
+  it('is empty, not broken, when there is no trigger yet', () => {
+    expect(buildWorkflowScope()).toEqual([])
+    expect(buildWorkflowScope([])).toEqual([])
+  })
+
+  it('lints a workflow expression against it', () => {
+    const scope = buildWorkflowScope(props)
+    expect(lintExpression('record != oldRecord', scope, 'expr')).toEqual([])
+    const [d] = lintExpression('recrd != oldRecord', scope, 'expr')
+    expect(d.severity).toBe('error')
+    expect(d.message).toContain("'recrd' is not an available variable")
+  })
+
+  it('says nothing about members it cannot see', () => {
+    // Trigger properties are opaque here — no field list came with them.
+    expect(lintExpression('record.values.anything', buildWorkflowScope(props), 'expr')).toEqual([])
   })
 })

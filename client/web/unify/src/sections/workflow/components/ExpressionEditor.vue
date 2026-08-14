@@ -1,17 +1,18 @@
 <template>
   <div class="expression-editor">
-    <Textarea
-      v-model="expressionValue"
-      :auto-resize="true"
-      rows="3"
-      class="expression-textarea w-full font-mono text-sm"
-      spellcheck="false"
-    />
+    <CInputExpression v-model="expressionValue" dialect="expr" :scope="scope" :min-lines="3" />
   </div>
 </template>
 
 <script>
 export default {
+  // The scope comes from the workflow's triggers, provided by WorkflowEditor:
+  // this component sits at five different depths and none of its parents would
+  // otherwise carry it.
+  inject: {
+    workflowScope: { default: () => [] },
+  },
+
   props: {
     value: {
       type: String,
@@ -62,6 +63,11 @@ export default {
   emits: ['update:value', 'update:modelValue', 'input', 'open'],
 
   computed: {
+    scope() {
+      const s = this.workflowScope
+      return (s && 'value' in s ? s.value : s) || []
+    },
+
     expressionValue: {
       get() {
         // Support both v-model:value and v-model (modelValue)

@@ -228,6 +228,30 @@ export function buildFieldExprScope(
   ]
 }
 
+// A workflow expression sees the variables its trigger puts in scope. The
+// server describes those per event type (GET /automations/event-types →
+// `properties`), and the dry-run form already reads the same list, so this
+// takes it as given rather than restating it.
+//
+// A workflow may carry several triggers; pass the union. Types come through as
+// the expr type names the automation registry uses (`ComposeRecord`, `User`…),
+// which is what the reference panel shows too.
+export interface TriggerProperty {
+  name: string
+  types?: string[]
+}
+
+export function buildWorkflowScope(properties: TriggerProperty[] = []): ScopeEntry[] {
+  const seen = new Map<string, ScopeEntry>()
+
+  for (const p of properties) {
+    if (!p?.name || seen.has(p.name)) continue
+    seen.set(p.name, { name: p.name, type: p.types?.[0] || 'Any' })
+  }
+
+  return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name))
+}
+
 // Walks a dotted path against the scope.
 //
 // The third outcome matters as much as the other two: a path that runs into a

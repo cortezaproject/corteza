@@ -487,7 +487,7 @@ import { Background } from '@vue-flow/background'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject, provide } from 'vue'
 import { debounce } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
@@ -500,7 +500,12 @@ import eventBus from '../lib/eventBus'
 import { nextId } from '../lib/id'
 import { getIcon } from '../lib/icon'
 import { NoID } from '@planetcrust/human-js'
-import { components, useRightSidebarResize, useRightSidebarStore } from '@planetcrust/human-vue'
+import {
+  buildWorkflowScope,
+  components,
+  useRightSidebarResize,
+  useRightSidebarStore,
+} from '@planetcrust/human-vue'
 const { CInputDelete, CResizeHandle } = components
 
 import Configurator from './Configurator/index.vue'
@@ -557,6 +562,24 @@ const nodes = ref([])
 const edges = ref([])
 
 const eventTypes = ref([])
+
+// Variables a workflow expression may name: the union of what every trigger on
+// this workflow puts in scope. Provided rather than passed — ExpressionEditor
+// appears at five different depths beneath here.
+const workflowScope = computed(() => {
+  const props = []
+
+  for (const t of triggers.value || []) {
+    const et = eventTypes.value.find(
+      e => e.resourceType === t.resourceType && e.eventType === t.eventType,
+    )
+    if (et?.properties) props.push(...et.properties)
+  }
+
+  return buildWorkflowScope(props)
+})
+
+provide('workflowScope', workflowScope)
 const functionTypes = ref([])
 
 const deferredKinds = ['delay', 'prompt']

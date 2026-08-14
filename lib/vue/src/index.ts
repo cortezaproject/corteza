@@ -78,6 +78,7 @@ export {
   buildScope,
   buildExprScope,
   buildFieldExprScope,
+  buildWorkflowScope,
   membersAt,
   resolvePath,
 } from './components/expression/catalog'
@@ -86,6 +87,7 @@ export type {
   ScopeModule,
   ScopeSource,
   FieldExprKind,
+  TriggerProperty,
 } from './components/expression/catalog'
 export {
   lintExpression,
