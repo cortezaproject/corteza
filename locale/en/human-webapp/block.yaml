@@ -478,6 +478,8 @@ geometry:
     zoomStartingLabel: Zoom Starting
   zoomMax: Zoom max
   zoomMin: Zoom min
+  zoomRange: Zoom range
+  zoomRangeDescription: How far viewers may zoom out and in. Locking an area raises the lower end to the zoom the area was captured at.
   zoomStarting: Zoom starting
 iframe:
   label: IFrame
@@ -1213,6 +1215,7 @@ recordOrganizer:
     label: Label field
   module:
     placeholder: Select a module
+  moveFailed: The record could not be moved to this column. Its position and key field are unchanged.
   noRecords: No records in module linked with record organizer. Drag and drop records here.
   notConfigured: Record organizer is not configured correctly
   onRecordClick: Record display mode

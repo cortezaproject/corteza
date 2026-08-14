@@ -26,7 +26,14 @@
       </div>
 
       <!-- Records -->
-      <div class="flex-1 overflow-auto p-3">
+      <div
+        ref="dropZone"
+        class="flex-1 overflow-auto p-3"
+        :class="{ 'drop-active': dropActive }"
+        @dragover="onDragOver"
+        @dragleave="onDragLeave"
+        @drop="onDrop"
+      >
         <div v-if="!records.length" class="text-muted-color text-sm">
           {{ $t('block.recordOrganizer.noRecords') }}
         </div>
@@ -34,7 +41,12 @@
         <div
           v-for="record in records"
           :key="record.recordID"
+          data-organizer-card
           class="record-card p-3 mb-3 border border-surface rounded-border cursor-pointer hover:bg-emphasis transition-colors"
+          :class="{ grab: canDrag, dragging: draggingID === record.recordID }"
+          :draggable="canDrag"
+          @dragstart="onDragStart($event, record)"
+          @dragend="onDragEnd"
           @click="handleRecordClick(record)"
         >
           <h6 v-if="labelFieldName" class="font-medium mb-1 text-color">
@@ -70,6 +82,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { components, useRecordStore, useModuleStore, usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter, getFieldFilter } from '../../../lib/record-filter'
@@ -85,6 +98,9 @@ const props = defineProps({
 
 const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
+const $ComposeAPI = inject('$ComposeAPI', null)
+const $toast = inject('$toast', null)
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const recordStore = useRecordStore()
@@ -137,6 +153,40 @@ function getFieldValue(record, fieldName) {
   return val || ''
 }
 
+// The records this column holds: the block's own prefilter AND its group.
+// Shared by the listing and by organize(), which scopes its repositioning to
+// the same set.
+function buildQuery() {
+  const { filter: prefilter, groupField, group } = options.value
+  const filterParts = []
+
+  if (prefilter) {
+    const record = props.record
+    const user = $Auth?.user || {}
+    filterParts.push(
+      `(${evaluatePrefilter(prefilter, {
+        record,
+        user,
+        recordID: record?.recordID || '0',
+        ownerID: record?.ownedBy || '0',
+        userID: user?.userID || '0',
+      })})`,
+    )
+  }
+
+  // Through the shared filter helper, never string interpolation: it escapes
+  // the value, and reads an empty group as IS NULL — the ungrouped column —
+  // where a bare `= ''` finds nothing on a text column and is a hard postgres
+  // error on a numeric one.
+  if (groupField && group !== undefined) {
+    const kind = fieldDef(groupField)?.kind || 'String'
+    const condition = getFieldFilter(groupField, kind, group, '=')
+    if (condition) filterParts.push(`(${condition})`)
+  }
+
+  return filterParts.join(' AND ')
+}
+
 async function pullRecords() {
   if (!options.value.moduleID) return
 
@@ -144,39 +194,13 @@ async function pullRecords() {
 
   try {
     const { namespaceID } = props.namespace
-    const { moduleID, positionField, filter: prefilter, groupField, group } = options.value
+    const { moduleID, positionField } = options.value
 
     // The shared record store requires the module in the module store; ensure
     // it's loaded before listing (organizer modules may differ from the page's).
     await moduleStore.findByID({ namespaceID, moduleID })
 
-    const filterParts = []
-
-    if (prefilter) {
-      const record = props.record
-      const user = $Auth?.user || {}
-      filterParts.push(
-        `(${evaluatePrefilter(prefilter, {
-          record,
-          user,
-          recordID: record?.recordID || '0',
-          ownerID: record?.ownedBy || '0',
-          userID: user?.userID || '0',
-        })})`,
-      )
-    }
-
-    // Through the shared filter helper, never string interpolation: it escapes
-    // the value, and reads an empty group as IS NULL — the ungrouped column —
-    // where a bare `= ''` finds nothing on a text column and is a hard postgres
-    // error on a numeric one.
-    if (groupField && group !== undefined) {
-      const kind = fieldDef(groupField)?.kind || 'String'
-      const condition = getFieldFilter(groupField, kind, group, '=')
-      if (condition) filterParts.push(`(${condition})`)
-    }
-
-    const query = filterParts.join(' AND ')
+    const query = buildQuery()
     const sort = positionField || 'updatedAt'
 
     const { set = [] } = await recordStore.list({ namespaceID, moduleID, query, sort })
@@ -272,6 +296,118 @@ function createNewRecord() {
   }
 }
 
+// ---- Board drag and drop ----
+//
+// Columns are separate block instances, so a card crosses between them through
+// the browser's dataTransfer rather than any shared state. The moduleID is part
+// of the MIME type because dragover may read `types` but never the payload —
+// putting it in the type is what lets a board refuse a card from another
+// module while the pointer is still moving, instead of on drop.
+const dragMime = moduleID => `application/x-human-record-${moduleID}`
+
+const dropZone = ref(null)
+const dropActive = ref(false)
+const draggingID = ref(null)
+
+// Repositioning needs a position field; regrouping needs a group field. With
+// neither there is nothing a drop could change.
+const canDrag = computed(() => !!(options.value.positionField || options.value.groupField))
+
+function onDragStart(e, record) {
+  const { moduleID } = options.value
+  draggingID.value = record.recordID
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData(
+    dragMime(moduleID),
+    JSON.stringify({ recordID: record.recordID, moduleID }),
+  )
+}
+
+function onDragEnd() {
+  draggingID.value = null
+  dropActive.value = false
+}
+
+function accepts(e) {
+  return canDrag.value && e.dataTransfer.types.includes(dragMime(options.value.moduleID))
+}
+
+function onDragOver(e) {
+  if (!accepts(e)) return
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  dropActive.value = true
+}
+
+function onDragLeave(e) {
+  if (!dropZone.value?.contains(e.relatedTarget)) dropActive.value = false
+}
+
+// Where the pointer landed among the cards already in this column.
+function dropIndex(clientY) {
+  const cards = [...(dropZone.value?.querySelectorAll('[data-organizer-card]') || [])]
+  const above = cards.filter(el => {
+    const box = el.getBoundingClientRect()
+    return clientY > box.top + box.height / 2
+  })
+  return above.length
+}
+
+// Corteza's calcNewPosition: sit one past the card you were dropped behind.
+function positionFor(index) {
+  const { positionField } = options.value
+  if (!positionField || index <= 0) return 0
+  const before = records.value[Math.min(index, records.value.length) - 1]
+  return parseInt(before?.values?.[positionField] || 0, 10) + 1
+}
+
+async function onDrop(e) {
+  if (!accepts(e)) return
+  e.preventDefault()
+  dropActive.value = false
+
+  const { moduleID, positionField, groupField, group } = options.value
+  let payload
+  try {
+    payload = JSON.parse(e.dataTransfer.getData(dragMime(moduleID)) || '{}')
+  } catch {
+    return
+  }
+
+  // A card only ever belongs to a board over its own module.
+  if (!payload.recordID || payload.moduleID !== moduleID) return
+
+  const index = dropIndex(e.clientY)
+  const args = [
+    { name: 'recordID', value: String(payload.recordID) },
+    { name: 'filter', value: buildQuery() },
+    { name: 'positionField', value: positionField || '' },
+    { name: 'position', value: String(positionFor(index)) },
+  ]
+
+  // Dropping into a column is what sets the record's group — an empty group is
+  // meaningful (the ungrouped column), so it is sent as an empty string.
+  if (groupField) {
+    args.push({ name: 'groupField', value: groupField })
+    args.push({ name: 'group', value: group ?? '' })
+  }
+
+  try {
+    await $ComposeAPI.recordExec({
+      procedure: 'organize',
+      namespaceID: props.namespace.namespaceID,
+      moduleID,
+      args,
+    })
+    // every column on the board reloads, the one it left included
+    $eventBus?.emit('refetch-records')
+  } catch (err) {
+    console.error('Failed to organize record:', err)
+    $toast?.toastErrorHandler(t('block.recordOrganizer.moveFailed'))(err)
+    pullRecords()
+  }
+}
+
 onMounted(() => pullRecords())
 watch(
   () => props.record?.recordID,
@@ -289,3 +425,23 @@ onBeforeUnmount(() => {
   offRefetch?.()
 })
 </script>
+
+<style scoped>
+.grab {
+  cursor: grab;
+}
+
+.grab:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  opacity: 0.4;
+}
+
+.drop-active {
+  outline: 2px dashed var(--p-primary-color);
+  outline-offset: -4px;
+  border-radius: var(--p-content-border-radius);
+}
+</style>
