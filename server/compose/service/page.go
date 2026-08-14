@@ -280,9 +280,11 @@ func (svc page) uniqueCheck(ctx context.Context, p *types.Page) (err error) {
 		}
 	}
 
+	// One record page per module. The module itself is fine — it is the page
+	// that is already taken.
 	if p.ModuleID > 0 {
 		if e, _ := store.LookupComposePageByNamespaceIDModuleID(ctx, svc.store, p.NamespaceID, p.ModuleID); e != nil && e.ID != p.ID {
-			return PageErrModuleNotFound()
+			return PageErrRecordPageNotUnique()
 		}
 	}
 

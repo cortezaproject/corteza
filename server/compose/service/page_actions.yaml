@@ -83,6 +83,11 @@ errors:
     log: "used duplicate handle ({{page.handle}}) for page"
     severity: warning
 
+  - error: recordPageNotUnique
+    message: "a record page for this module already exists"
+    log: "used module ({{page.moduleID}}) that already has a record page"
+    severity: warning
+
   - error: staleData
     message: "page was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version"
     severity: warning

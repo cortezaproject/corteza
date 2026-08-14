@@ -14,4 +14,5 @@ errors:
   notAllowedToUndelete: not allowed to undelete this page
   notAllowedToUpdate: not allowed to update this page
   notFound: page does not exist
+  recordPageNotUnique: a record page for this module already exists
   staleData: page was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version

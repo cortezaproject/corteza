@@ -179,3 +179,43 @@ func TestPageDefaultLayoutButtons(t *testing.T) {
 		req.True(svc.defaultLayoutButtons().Edit.Enabled)
 	})
 }
+
+// A module may have only one record page. The check used to report that as
+// PageErrModuleNotFound — "module does not exist" — which sends whoever hit it
+// looking for a missing module instead of the page already using it.
+func TestPageUniqueCheckRecordPage(t *testing.T) {
+	var (
+		ctx    = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+		s, err = sqlite.ConnectInMemory(ctx)
+
+		namespaceID = nextID()
+		moduleID    = nextID()
+	)
+
+	require.NoError(t, err)
+	require.NoError(t, store.Upgrade(ctx, logger.MakeDebugLogger(), s))
+
+	svc := &page{store: s}
+
+	existing := &types.Page{ID: nextID(), NamespaceID: namespaceID, ModuleID: moduleID, Handle: "taken"}
+	require.NoError(t, store.CreateComposePage(ctx, s, existing))
+
+	t.Run("a second record page for the same module is refused, and says so", func(t *testing.T) {
+		err := svc.uniqueCheck(ctx, &types.Page{ID: nextID(), NamespaceID: namespaceID, ModuleID: moduleID})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "a record page for this module already exists")
+		require.NotContains(t, err.Error(), "module does not exist")
+	})
+
+	t.Run("the page that already holds the module may still be updated", func(t *testing.T) {
+		require.NoError(t, svc.uniqueCheck(ctx, existing))
+	})
+
+	t.Run("another module is free", func(t *testing.T) {
+		require.NoError(t, svc.uniqueCheck(ctx, &types.Page{ID: nextID(), NamespaceID: namespaceID, ModuleID: nextID()}))
+	})
+
+	t.Run("a non-record page is unaffected", func(t *testing.T) {
+		require.NoError(t, svc.uniqueCheck(ctx, &types.Page{ID: nextID(), NamespaceID: namespaceID}))
+	})
+}

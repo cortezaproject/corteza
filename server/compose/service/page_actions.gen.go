@@ -727,6 +727,40 @@ func PageErrHandleNotUnique(mm ...*pageActionProps) *errors.Error {
 	return e
 }
 
+// PageErrRecordPageNotUnique returns "compose:page.recordPageNotUnique" as *errors.Error
+//
+// This function is auto-generated.
+func PageErrRecordPageNotUnique(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("a record page for this module already exists", nil),
+
+		errors.Meta("type", "recordPageNotUnique"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "used module ({{page.moduleID}}) that already has a record page"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.recordPageNotUnique"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // PageErrStaleData returns "compose:page.staleData" as *errors.Error
 //
 // This function is auto-generated.
