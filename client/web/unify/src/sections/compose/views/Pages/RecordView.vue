@@ -354,10 +354,12 @@ const positionedBlocks = computed(() => {
         const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
         if (!pageBlock) return null
 
-        return {
+        // PageBlockMaker, not a spread: blocks reach their renderer with the
+        // methods their class defines (fetch, reorderViews), not just options.
+        return compose.PageBlockMaker({
           ...pageBlock,
           xywh: layoutBlock.xywh || pageBlock.xywh,
-        }
+        })
       })
       .filter(Boolean)
   })()

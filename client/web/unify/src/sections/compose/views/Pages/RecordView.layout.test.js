@@ -60,28 +60,41 @@ vi.mock('@planetcrust/human-vue', () => ({
   components: { CInputDelete: { template: '<div />' } },
 }))
 
-vi.mock('@planetcrust/human-js', () => ({
-  compose: {
-    Record: class {
-      constructor(mod, opts = {}) {
-        this.values = {}
-        Object.assign(this, opts)
-      }
-      setValue(name, value) {
-        this.values[name] = value
-      }
-      serialize() {
-        return { values: this.values }
-      }
+vi.mock('@planetcrust/human-js', () => {
+  // Stands in for the page-block registry: a kind whose class carries a method
+  // the renderer calls, so a block that lost its prototype is visible in a test.
+  class PageBlockRecordRevisions {
+    fetch() {
+      return Promise.resolve([])
+    }
+  }
+
+  return {
+    compose: {
+      Record: class {
+        constructor(mod, opts = {}) {
+          this.values = {}
+          Object.assign(this, opts)
+        }
+        setValue(name, value) {
+          this.values[name] = value
+        }
+        serialize() {
+          return { values: this.values }
+        }
+      },
+      PageBlockMaker: i =>
+        i.kind === 'RecordRevisions' ? Object.assign(new PageBlockRecordRevisions(), i) : { ...i },
     },
-  },
-  validator: { IsEmpty: () => false },
-}))
+    validator: { IsEmpty: () => false },
+  }
+})
 
 vi.mock('@/sections/compose/components/PageBlocks/Grid.vue', () => ({
-  default: { template: '<div />' },
+  default: { props: ['blocks', 'namespace', 'page', 'record'], template: '<div />' },
 }))
 
+import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 import RecordView from './RecordView.vue'
 
 let page
@@ -261,6 +274,20 @@ describe('RecordView layout resolution', () => {
     expect(blocks).toHaveLength(2)
     expect(blocks[1].record.values.status).toBe('closed')
     expect(layoutEvaluations()).toHaveLength(1)
+  })
+
+  it('builds layout blocks through PageBlockMaker so they keep their class methods', async () => {
+    // A spread carries options but drops the prototype, and the block renderers
+    // call methods on it (block.fetch, block.reorderViews).
+    page.blocks = [{ blockID: 'B1', kind: 'RecordRevisions', options: { preload: true } }]
+    layouts[0].blocks = [{ blockID: 'B1', xywh: [0, 0, 24, 20] }]
+
+    await mountView()
+
+    const [block] = wrapper.findComponent(Grid).props('blocks')
+    expect(typeof block.fetch).toBe('function')
+    expect(block.options).toEqual({ preload: true })
+    expect(block.xywh).toEqual([0, 0, 24, 20])
   })
 
   it('does not re-evaluate while field values are edited', async () => {
