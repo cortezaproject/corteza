@@ -1,4 +1,9 @@
 {
+  "AgentChat": {
+    "allowedAgentIDs": [],
+    "defaultAgentID": "",
+    "autoResume": false
+  },
   "Automation": {
     "buttons": [
       {
@@ -6,12 +11,19 @@
         "enabled": false,
         "resourceType": "",
         "script": "",
-        "workflowID": ""
+        "workflowID": "",
+        "automationID": "",
+        "stepID": "",
+        "variant": ""
       }
     ],
-    "sealed": false
+    "sealed": false,
+    "magnifyOption": ""
   },
   "Calendar": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
     "defaultView": "",
     "feeds": [
       {
@@ -26,10 +38,34 @@
           "prefilter": ""
         }
       }
-    ]
+    ],
+    "header": {
+      "hide": false,
+      "views": [],
+      "hidePrevNext": false,
+      "hideToday": false,
+      "hideTitle": false
+    },
+    "locale": "",
+    "eventDisplayOption": ""
   },
   "Chart": {
-    "chartID": ""
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
+    "chartID": "",
+    "liveFilterEnabled": false,
+    "drillDown": {
+      "enabled": false,
+      "blockID": "",
+      "recordListOptions": {
+        "fields": [
+          {
+            "name": ""
+          }
+        ]
+      }
+    }
   },
   "ChatbotInbox": {
     "chatbotIDs": [],
@@ -39,6 +75,9 @@
     "showFilter": false
   },
   "Comment": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
     "moduleID": "",
     "filter": "",
     "titleField": "",
@@ -50,9 +89,65 @@
     "sortDirection": ""
   },
   "Content": {
-    "body": ""
+    "body": "",
+    "magnifyOption": ""
+  },
+  "File": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
+    "mode": "",
+    "attachments": [],
+    "hideFileName": false,
+    "height": "",
+    "width": "",
+    "maxHeight": "",
+    "maxWidth": "",
+    "borderRadius": "",
+    "margin": "",
+    "backgroundColor": "",
+    "clickToView": false,
+    "enableDownload": false
+  },
+  "Geometry": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
+    "defaultView": "",
+    "center": [],
+    "feeds": [
+      {
+        "resource": "",
+        "titleField": "",
+        "geometryField": "",
+        "displayMarker": false,
+        "displayPolygon": false,
+        "options": {
+          "moduleID": "",
+          "color": "",
+          "prefilter": ""
+        }
+      }
+    ],
+    "zoomStarting": 0,
+    "zoomMin": 0,
+    "zoomMax": 0,
+    "bounds": null,
+    "lockBounds": false,
+    "displayOption": "",
+    "hideGeoSearch": false
+  },
+  "IFrame": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
+    "src": "",
+    "srcField": ""
   },
   "Metric": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
     "metrics": [
       {
         "label": "",
@@ -62,11 +157,78 @@
         "operation": "",
         "prefix": "",
         "suffix": "",
-        "numberFormat": ""
+        "numberFormat": "",
+        "dimensionField": "",
+        "dateFormat": "",
+        "bucketSize": "",
+        "transformFx": "",
+        "valueStyle": {
+          "color": "",
+          "backgroundColor": ""
+        },
+        "drillDown": {
+          "enabled": false,
+          "blockID": "",
+          "recordListOptions": {
+            "fields": [
+              {
+                "name": ""
+              }
+            ]
+          }
+        },
+        "comparison": {
+          "enabled": false,
+          "type": "",
+          "period": "",
+          "customFilter": ""
+        }
       }
     ]
   },
+  "Navigation": {
+    "display": {
+      "appearance": "",
+      "alignment": "",
+      "justify": ""
+    },
+    "navigationItems": [
+      {
+        "type": "",
+        "options": {
+          "enabled": false,
+          "textColor": "",
+          "backgroundColor": "",
+          "item": {
+            "label": "",
+            "url": "",
+            "target": "",
+            "delimiter": false,
+            "pageID": "",
+            "pageLayoutID": "",
+            "moduleID": "",
+            "displaySubPages": false,
+            "align": "",
+            "dropdown": {
+              "items": [
+                {
+                  "label": "",
+                  "url": "",
+                  "delimiter": false,
+                  "target": ""
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "magnifyOption": ""
+  },
   "Progress": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
     "value": {
       "default": 0,
       "moduleID": "",
@@ -106,9 +268,30 @@
       {
         "name": ""
       }
-    ]
+    ],
+    "fieldConditions": [
+      {
+        "field": "",
+        "condition": "",
+        "clearOnHide": false
+      }
+    ],
+    "clearConditionalFieldsOnHide": false,
+    "recordSelectorShowAddRecordButton": false,
+    "recordSelectorDisplayOption": "",
+    "recordSelectorAddRecordDisplayOption": "",
+    "referenceField": "",
+    "referenceModuleID": "",
+    "inlineRecordEditEnabled": false,
+    "inlineRecordCopyEnabled": false,
+    "horizontalFieldLayoutEnabled": false,
+    "recordFieldLayoutOption": "",
+    "magnifyOption": ""
   },
   "RecordList": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
     "moduleID": "",
     "fields": [
       {
@@ -120,32 +303,122 @@
     "perPage": 0,
     "selectable": false,
     "selectMode": "",
-    "editable": false,
-    "draggable": false,
-    "allowExport": false,
-    "hideRecordViewButton": false,
-    "hideRecordEditButton": false,
-    "hideRecordCloneButton": false,
-    "hideRecordReminderButton": false,
     "selectionButtons": [
       {
         "label": "",
         "buttonID": "",
         "enabled": false
       }
-    ]
+    ],
+    "editable": false,
+    "draggable": false,
+    "editFields": [
+      {
+        "name": ""
+      }
+    ],
+    "inlineEditFields": [
+      {
+        "name": ""
+      }
+    ],
+    "inlineRecordEditEnabled": false,
+    "inlineRecordEditAllowAddField": false,
+    "inlineRecordCopyEnabled": false,
+    "inlineValueFiltering": false,
+    "bulkRecordEditEnabled": false,
+    "openRecordInEditMode": false,
+    "hideHeader": false,
+    "hideAddButton": false,
+    "hideImportButton": false,
+    "hideConfigureFieldsButton": false,
+    "hideSearch": false,
+    "hidePaging": false,
+    "hideSorting": false,
+    "hideFiltering": false,
+    "hideRecordViewButton": false,
+    "hideRecordEditButton": false,
+    "hideRecordCloneButton": false,
+    "hideRecordReminderButton": false,
+    "hideRecordPermissionsButton": false,
+    "hideRecordDeleteButton": false,
+    "allowExport": false,
+    "enableRecordPageNavigation": false,
+    "fullPageNavigation": false,
+    "showTotalCount": false,
+    "showRecordPerPageOption": false,
+    "showDeletedRecordsOption": false,
+    "searchableFields": [],
+    "searchSubmitMode": "",
+    "linkToParent": false,
+    "openInNewTab": false,
+    "positionField": "",
+    "refField": "",
+    "recordDisplayOption": "",
+    "recordSelectorDisplayOption": "",
+    "addRecordDisplayOption": "",
+    "customFilterPresets": false,
+    "filterPresets": [
+      {
+        "name": "",
+        "filter": null,
+        "roles": null
+      }
+    ],
+    "customSummaries": false,
+    "summaries": [
+      {
+        "label": "",
+        "field": null,
+        "metric": "",
+        "roles": null
+      }
+    ],
+    "textStyles": {
+      "wrappedFields": null
+    }
   },
   "RecordOrganizer": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
     "moduleID": "",
     "groupField": "",
     "group": "",
     "labelField": "",
     "descriptionField": "",
     "positionField": "",
-    "filter": ""
+    "filter": "",
+    "displayOption": "",
+    "addRecordDisplayOption": ""
+  },
+  "RecordRevisions": {
+    "refreshRate": 0,
+    "showRefresh": false,
+    "magnifyOption": "",
+    "preload": false,
+    "displayedFields": [],
+    "sortDirection": ""
   },
   "SocialFeed": {
     "profileSourceField": "",
     "profileUrl": ""
+  },
+  "Tabs": {
+    "style": {
+      "appearance": "",
+      "alignment": "",
+      "justify": "",
+      "orientation": "",
+      "position": ""
+    },
+    "tabs": [
+      {
+        "blockID": "",
+        "title": "",
+        "lazy": false
+      }
+    ],
+    "magnifyOption": ""
   }
 }

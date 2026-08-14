@@ -56,6 +56,31 @@ describe('server page-block schemas match webapp page-block contracts', () => {
     })
   }
 
+  // The other direction, and the one that used to go unwatched: a key the
+  // webapp reads but the server never advertises is a key no agent can discover.
+  // It fails as a block built exactly to the published contract that still does
+  // not work — a RecordOrganizer with no `group` shows nothing, an Automation
+  // button with no `automationID` cannot reach a TAQ.
+  it('every rendered block kind has a server schema', () => {
+    const unadvertised = [...PageBlockRegistry.keys()].filter(kind => !schemas[kind])
+
+    expect(unadvertised, 'block kinds the webapp renders with no server schema').to.deep.equal([])
+  })
+
+  for (const [kind, schema] of Object.entries(schemas)) {
+    if (UNRENDERED_KINDS.includes(kind)) continue
+
+    it(`${kind}: every option the webapp reads is advertised`, () => {
+      const srvKeys = keysOf(schema)
+      const missing = keysOf(PageBlockMaker({ kind }).options).filter(k => !srvKeys.includes(k))
+
+      expect(
+        missing,
+        `${kind} options the webapp reads but the server never advertises`,
+      ).to.deep.equal([])
+    })
+  }
+
   it('Metric: advertised metric item keys exist in the metric defaults', () => {
     const feMetricKeys = keysOf(new PageBlockMetric().makeMetric())
     const [item] = schemas.Metric.metrics as Record<string, unknown>[]
