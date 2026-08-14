@@ -497,6 +497,10 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 			return err
 		}
 
+		if err = svc.createPrimaryLayout(ctx, s, new); err != nil {
+			return err
+		}
+
 		if err = updateTranslations(ctx, svc.ac, svc.services.locale, new.EncodeTranslations()...); err != nil {
 			return
 		}
@@ -508,6 +512,68 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 		_ = svc.services.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns, nil))
 		return err
 	})
+}
+
+// createPrimaryLayout gives every new page the layout that positions its
+// blocks.
+//
+// A page holds what its blocks ARE — kind, options, title. A layout holds where
+// they go, as {blockID, xywh}, and the builder renders the layout: a page
+// without one opens on an empty canvas with "This page has no layout yet",
+// however many blocks it carries.
+//
+// This lived in the webapp, at four separate call sites, which meant every
+// other writer produced a page nobody could edit — the MCP page tools, envoy
+// imports, REST callers and CLI seeds all did. Creating it here, inside the
+// transaction that creates the page, is what makes a layout-less page
+// impossible to produce rather than merely unlikely.
+//
+// Seeded from the page's own blocks, because an empty layout hides every one of
+// them until somebody places them again by hand.
+func (svc *page) createPrimaryLayout(ctx context.Context, s store.Storer, p *types.Page) error {
+	layout := &types.PageLayout{
+		ID:          nextID(),
+		Handle:      "primary",
+		PageID:      p.ID,
+		NamespaceID: p.NamespaceID,
+		ProjectID:   p.ProjectID,
+		Meta:        types.PageLayoutMeta{Title: p.Title},
+		// A zero-value config turns every record-toolbar button off, which is a
+		// useless record page. On is the default, minus whatever the instance
+		// hides through Compose.UI.RecordToolbar.
+		Config:    types.PageLayoutConfig{Buttons: svc.defaultLayoutButtons()},
+		Blocks:    make(types.PageLayoutBlocks, 0, len(p.Blocks)),
+		CreatedAt: *now(),
+	}
+
+	for _, b := range p.Blocks {
+		layout.Blocks = append(layout.Blocks, types.PageLayoutBlock{
+			BlockID: b.BlockID,
+			XYWH:    b.XYWH,
+		})
+	}
+
+	return store.CreateComposePageLayout(ctx, s, layout)
+}
+
+func (svc *page) defaultLayoutButtons() types.PageLayoutButtonConfig {
+	s := svc.services.pageSettings
+	if s == nil {
+		s = &pageSettings{}
+	}
+
+	shown := func(hidden bool) types.PageLayoutButton {
+		return types.PageLayoutButton{Enabled: !hidden}
+	}
+
+	return types.PageLayoutButtonConfig{
+		New:    shown(s.hideNew),
+		Edit:   shown(s.hideEdit),
+		Submit: shown(s.hideSubmit),
+		Delete: shown(s.hideDelete),
+		Clone:  shown(s.hideClone),
+		Back:   shown(s.hideBack),
+	}
 }
 
 func (svc *page) onUpdate(ctx context.Context, s store.Storer, upd *types.Page, res *types.Page, _ *pageActionProps, before func() error, after func() error) error {

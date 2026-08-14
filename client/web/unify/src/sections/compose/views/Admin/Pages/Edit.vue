@@ -1107,19 +1107,9 @@ async function handleSubmit({ valid }) {
 
       $toast.toastSuccess(t('notification.page.saved'))
     } else {
+      // The primary layout comes with the page: compose's page service creates
+      // it, seeded from the page's blocks, so every client gets one.
       const created = await pageStore.create(payload)
-
-      // Auto-create a primary layout for the new page (matching Human).
-      // Use the PageLayout type so the default config (all record toolbar
-      // buttons enabled) is persisted instead of zero-value disabled buttons.
-      await pageLayoutStore.create(
-        new compose.PageLayout({
-          namespaceID: props.namespace.namespaceID,
-          pageID: created.pageID,
-          handle: 'primary',
-          meta: { title: created.title || payload.title },
-        }),
-      )
 
       $toast.toastSuccess(t('notification.page.created'))
       markSaved()
@@ -1216,24 +1206,10 @@ async function handleClone() {
       meta: page.value.meta || {},
     }
 
+    // The clone's primary layout comes with it, seeded from the blocks the
+    // payload carries — the page service creates it.
     const created = await pageStore.create(payload)
-    // Seed layout with the cloned blocks — View.vue intersects layout.blocks with
-    // page.blocks, so an empty layout would hide everything until the next save.
-    const layoutBlocks = (created.blocks || []).map(b => ({
-      blockID: b.blockID,
-      xywh: b.xywh,
-    }))
-    // Use the PageLayout type so the default config (all record toolbar
-    // buttons enabled) is persisted instead of zero-value disabled buttons.
-    await pageLayoutStore.create(
-      new compose.PageLayout({
-        namespaceID: props.namespace.namespaceID,
-        pageID: created.pageID,
-        handle: 'primary',
-        meta: { title: created.title || payload.title },
-        blocks: layoutBlocks,
-      }),
-    )
+
     $toast.toastSuccess(t('notification.page.created'))
     markSaved()
     router.push({

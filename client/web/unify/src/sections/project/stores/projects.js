@@ -2045,7 +2045,7 @@ export const useProjectsStore = defineStore('projects', () => {
         // Matrix row label: a custom title that isn't just a copy of the page
         // name always wins. Otherwise, when the page has a single layout whose
         // title merely mirrors the page (the auto-created default via
-        // createDefaultPageLayout), show "Primary" (capitalized handle) rather
+        // the page service creates), show "Primary" (capitalized handle) rather
         // than a child row identical to its parent page.
         layouts: rawLayouts.map(l => {
           let name
@@ -2064,23 +2064,6 @@ export const useProjectsStore = defineStore('projects', () => {
     return pagesByProject.value[key]
   }
 
-  // Seed the layout from the page's blocks (blockID + xywh) so the Builder shows
-  // them — an empty layout would hide every block until the user saves. Mirrors
-  // the compose module editor's default-layout creation.
-  async function createDefaultPageLayout(namespaceID, page) {
-    if (!page?.pageID) return
-    const blocks = (page.blocks || []).map(b => ({ blockID: b.blockID, xywh: b.xywh }))
-    await $ComposeAPI.pageLayoutCreate(
-      new compose.PageLayout({
-        namespaceID,
-        pageID: page.pageID,
-        handle: 'primary',
-        meta: { title: page.title },
-        blocks,
-      }),
-    )
-  }
-
   // Replicates the compose module editor's "Create record page" button: a page
   // bound to the module with a single Record block, plus a default layout. Named
   // "<Module> Details" per the detail-page convention.
@@ -2094,7 +2077,6 @@ export const useProjectsStore = defineStore('projects', () => {
       blocks: [new compose.PageBlockRecord({ xywh: [0, 0, 48, 36] })],
     })
     const created = await $ComposeAPI.pageCreate(page)
-    await createDefaultPageLayout(namespaceID, created)
     return created
   }
 
@@ -2111,7 +2093,6 @@ export const useProjectsStore = defineStore('projects', () => {
       blocks: [],
     })
     const created = await $ComposeAPI.pageCreate(page)
-    await createDefaultPageLayout(p.namespaceID, created)
     await loadPages(projectId)
     return String(created.pageID)
   }

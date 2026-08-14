@@ -405,7 +405,6 @@
 <script setup>
 import { useModuleStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
-import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
 import {
   components,
@@ -452,7 +451,6 @@ const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
-const pageLayoutStore = usePageLayoutStore()
 
 // State
 const loading = ref(false)
@@ -1035,33 +1033,6 @@ async function checkSchemaAlterations() {
   }
 }
 
-async function createDefaultLayout(page) {
-  if (!page?.pageID) return
-  try {
-    // Seed layout with the page's blocks — View.vue intersects layout.blocks with
-    // page.blocks, so an empty layout hides every block until the user saves the
-    // Builder (which rebuilds layout.blocks from the page).
-    const layoutBlocks = (page.blocks || []).map(b => ({
-      blockID: b.blockID,
-      xywh: b.xywh,
-    }))
-    // Use the PageLayout type so the default config (all record toolbar
-    // buttons enabled) is persisted. Passing a plain object omits config,
-    // and the backend stores zero-value buttons (all disabled).
-    await pageLayoutStore.create(
-      new compose.PageLayout({
-        namespaceID: props.namespace.namespaceID,
-        pageID: page.pageID,
-        handle: 'primary',
-        meta: { title: page.title },
-        blocks: layoutBlocks,
-      }),
-    )
-  } catch (e) {
-    console.error('Failed to create default page layout:', e)
-  }
-}
-
 async function handleRecordPageCreation() {
   creatingRecordPage.value = true
   try {
@@ -1080,8 +1051,7 @@ async function handleRecordPageCreation() {
       blocks,
     })
 
-    const created = await pageStore.create(page)
-    await createDefaultLayout(created)
+    await pageStore.create(page)
     $toast.toastSuccess(t('notification.page.created'))
   } catch (e) {
     console.error('Failed to create record page:', e)
@@ -1116,7 +1086,6 @@ async function handleRecordListPageCreation() {
     })
 
     const createdPage = await pageStore.create(page)
-    await createDefaultLayout(createdPage)
 
     // Update the record page to set this as its parent
     if (recordPage.value) {

@@ -145,3 +145,37 @@ func TestPageDeleting(t *testing.T) {
 
 	})
 }
+
+// A page holds what its blocks are; a layout holds where they go, and the
+// builder draws the layout. Creating the layout alongside the page is what
+// stops any client producing a page that opens on an empty canvas.
+func TestPageDefaultLayoutButtons(t *testing.T) {
+	var (
+		req = require.New(t)
+		svc = &page{services: &pageServices{pageSettings: &pageSettings{}}}
+	)
+
+	t.Run("every record toolbar button on by default", func(t *testing.T) {
+		b := svc.defaultLayoutButtons()
+		for name, btn := range map[string]types.PageLayoutButton{
+			"new": b.New, "edit": b.Edit, "submit": b.Submit,
+			"delete": b.Delete, "clone": b.Clone, "back": b.Back,
+		} {
+			req.True(btn.Enabled, "%s should be enabled by default", name)
+		}
+	})
+
+	t.Run("instance settings hide what they hide", func(t *testing.T) {
+		svc.services.pageSettings = &pageSettings{hideDelete: true, hideClone: true}
+		b := svc.defaultLayoutButtons()
+
+		req.False(b.Delete.Enabled)
+		req.False(b.Clone.Enabled)
+		req.True(b.Edit.Enabled, "a setting that hides delete must not hide edit")
+	})
+
+	t.Run("survives unconfigured settings", func(t *testing.T) {
+		svc.services.pageSettings = nil
+		req.True(svc.defaultLayoutButtons().Edit.Enabled)
+	})
+}
