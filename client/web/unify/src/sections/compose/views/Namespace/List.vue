@@ -387,8 +387,12 @@ function handleDelete(namespace) {
     }),
     header: t('general.label.delete'),
     onConfirm: () => {
-      $ComposeAPI
-        .namespaceDelete({ namespaceID: namespace.namespaceID })
+      // Through the store, not the API: the store drops the namespace from the
+      // shared set, which is what the card grid and every sidebar read. A bare
+      // API call leaves it in all of them until a page reload, because the
+      // store's load only upserts.
+      namespaceStore
+        .delete({ namespaceID: namespace.namespaceID })
         .then(() => {
           $toast.toastSuccess(t('namespace.manage.delete.success'))
           refreshAll()

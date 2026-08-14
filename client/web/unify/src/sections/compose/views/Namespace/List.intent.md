@@ -24,8 +24,8 @@ namespace lifecycle (create, import, export, permissions, delete) from one place
 - Clicking a namespace enters it at the `pages` route (slug, falling back to namespaceID).
 - Create and import buttons gated by `compose/` `namespace.create`; wildcard permissions button gated by `compose/` `grant`.
 - Per-namespace actions menu (card hover ⋮ / table row): edit, export (opens JWT-signed download URL), permissions dialog, delete — each gated by that item's `can*` flags.
-- Delete confirms first; success refreshes the table (see the DRIFT note on
-  card mode below).
+- Delete confirms first, then goes through `namespaceStore.delete` so the shared
+  set drops the namespace and every consumer of it follows; the table refetches.
 
 ## Routes
 
@@ -35,9 +35,5 @@ namespace lifecycle (create, import, export, permissions, delete) from one place
 
 - Card mode reads `namespaceStore.set` while table mode fetches independently via `useResourceList` — any mutation must refresh both (`refreshAll`).
 - Permission resource is `corteza::compose:namespace/<id|*>`.
-
-> **DRIFT:** delete does not refresh card mode. It calls
-> `$ComposeAPI.namespaceDelete` directly instead of `namespaceStore.delete`,
-> and `refreshAll`'s `namespaceStore.load()` only upserts — it never removes —
-> so the deleted namespace stays in the grid until a page reload. Deleting
-> through the store (as `Admin/Modules/List` does) is the fix.
+- Mutations go through the store, never `$ComposeAPI` directly: `load` only
+  upserts, so a deletion made behind the store's back never leaves the set.
