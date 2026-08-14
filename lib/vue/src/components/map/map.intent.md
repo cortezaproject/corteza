@@ -41,9 +41,10 @@ component (historically deep-imported; fixed as an oversight).
   The viewport is a function of container size, so only the map knows it, and
   a consumer that captures an area needs it without having to move the map
   first.
-- `disablePan` pins the centre: dragging, box zoom and keyboard panning off,
-  and zoom anchored on the centre instead of the pointer. Geosearch picks and
-  the locate button still report their result, they just don't move the view.
+- `maxBounds` goes straight to leaflet, which means a bounded view rather than
+  a frozen one: dragging past the box snaps back, and zooming in leaves room to
+  move around inside it. There is no separate "don't move" mode — a caller that
+  wants the view held still hands over the box it wants held.
 - Geosearch picks emit a synthetic `map-click` — pick-a-location flows get it
   for free; value commit stays the caller's job.
 - Exposes `invalidateSize()` / `fitBounds()`; size is auto-invalidated via

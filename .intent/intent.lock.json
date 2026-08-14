@@ -686,11 +686,6 @@
       "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
       "t": "2026-07-27"
     },
-    "client/web/unify/src/sections/compose/components/Common/InterpolationFootnote.vue": {
-      "h": "081cffd3c800",
-      "doc": "client/web/unify/src/sections/compose/components/Common/Common.intent.md",
-      "t": "2026-07-27"
-    },
     "client/web/unify/src/sections/compose/components/Common/RecordListFilter.vue": {
       "h": "7c199cc6827e",
       "doc": "client/web/unify/src/sections/compose/components/Common/Common.intent.md",
@@ -747,7 +742,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Geometry.vue": {
-      "h": "9aebd6991b47",
+      "h": "e1ecae01d553",
       "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
       "t": "2026-08-14"
     },
@@ -952,7 +947,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/GeometryConfigurator.vue": {
-      "h": "2ffd96b814af",
+      "h": "ddba0d778640",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-08-14"
     },
@@ -3882,12 +3877,12 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/map/CMap.test.ts": {
-      "h": "77353bff4a63",
+      "h": "80e9edd9d1c2",
       "doc": "lib/vue/src/components/map/map.intent.md",
       "t": "2026-08-14"
     },
     "lib/vue/src/components/map/CMap.vue": {
-      "h": "b4a73bba2107",
+      "h": "a78281566425",
       "doc": "lib/vue/src/components/map/map.intent.md",
       "t": "2026-08-14"
     },

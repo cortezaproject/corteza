@@ -13,7 +13,6 @@
         :zoom="zoom"
         :max-bounds="lockedBounds"
         :polygons="boundsOutline"
-        :disable-pan="lockBounds"
         :hide-geo-search="hideGeoSearch"
         :hide-current-location-button="hideCurrentLocationButton"
         style="height: 40vh"

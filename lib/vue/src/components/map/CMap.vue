@@ -85,11 +85,6 @@ const props = defineProps({
   minZoom: { type: Number, default: 0 },
   maxZoom: { type: Number, default: 0 },
   maxBounds: { type: Array, default: null },
-  // Pins the viewport centre: no dragging, no box zoom, no keyboard panning,
-  // and zoom anchors on the centre instead of the pointer. Configurators turn
-  // this on once bounds are locked — the saved area is then exactly what the
-  // preview shows, and nothing but unlocking can move it.
-  disablePan: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -177,7 +172,6 @@ function initMap() {
   leafletMap.value = map
   appliedMaxBounds = effectiveMaxBounds.value
   snapshotView()
-  applyInteraction()
   renderAll()
   // The viewport is a function of the container size, so only the map knows it.
   // Reporting it up front means a consumer that captures bounds has them before
@@ -246,34 +240,6 @@ function handleViewChange() {
     lastBounds = bounds
     emit('update:bounds', bounds)
   }
-}
-
-/**
- * Panning is what a locked view must not allow; zooming still may. A zoom
- * anchored on the pointer shifts the centre, which is a pan by another name, so
- * while pan is disabled every zoom gesture anchors on the centre instead.
- */
-function applyInteraction() {
-  const map = leafletMap.value
-  if (!map) return
-
-  const locked = props.disablePan
-  const anchor = locked ? 'center' : true
-
-  if (locked) {
-    map.dragging.disable()
-    map.boxZoom.disable()
-    map.keyboard.disable()
-  } else {
-    map.dragging.enable()
-    map.boxZoom.enable()
-    map.keyboard.enable()
-  }
-
-  // Handlers read these at gesture time, so flipping them is enough.
-  map.options.scrollWheelZoom = anchor
-  map.options.doubleClickZoom = anchor
-  map.options.touchZoom = anchor
 }
 
 function onZoomIn() {
@@ -381,11 +347,7 @@ function placeGeoSearchResult(result) {
 
   geoSearchResults.value = []
   geoSearchQuery.value = result.label
-  // A locked view stays where it is; the pick is still reported so a consumer
-  // placing a marker gets it.
-  if (!props.disablePan) {
-    map.flyTo([result.lat, result.lng], 15, { animate: true })
-  }
+  map.flyTo([result.lat, result.lng], 15, { animate: true })
   // Drop the consumer's marker at the picked location. Goes through the
   // normal map-click path — for CInputLocation this only updates draftCoords
   // (in-dialog), the lat/lng value is still committed only on Save.
@@ -398,9 +360,7 @@ function goToCurrentLocation() {
   navigator.geolocation.getCurrentPosition(
     ({ coords }) => {
       const map = leafletMap.value
-      if (map && !props.disablePan) {
-        map.flyTo([coords.latitude, coords.longitude], 15)
-      }
+      if (map) map.flyTo([coords.latitude, coords.longitude], 15)
       emit('location-found', { latlng: { lat: coords.latitude, lng: coords.longitude } })
     },
     () => {
@@ -492,8 +452,6 @@ watch(effectiveMaxBounds, bounds => {
   appliedMaxBounds = bounds
   map.setMaxBounds(bounds || null)
 })
-
-watch(() => props.disablePan, applyInteraction)
 </script>
 
 <style>

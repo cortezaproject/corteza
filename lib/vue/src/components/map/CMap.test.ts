@@ -14,7 +14,7 @@ import { roundLatLng } from './geo'
 const Parent = defineComponent({
   components: { CMap },
   props: {
-    disablePan: { type: Boolean, default: false },
+    maxBounds: { type: Array, default: null },
   },
   setup() {
     const center = ref<[number, number]>([30, 30])
@@ -32,7 +32,7 @@ const Parent = defineComponent({
     <CMap
       :center="center"
       :zoom="zoom"
-      :disable-pan="disablePan"
+      :max-bounds="maxBounds"
       style="width: 400px; height: 300px"
       @ready="$emit('map-ready', $event)"
       @update:center="onCenter"
@@ -103,21 +103,35 @@ describe('CMap', () => {
     wrapper.unmount()
   })
 
-  it('freezes panning but keeps zoom when the view is locked', async () => {
-    const { wrapper, map } = await mountMap({ disablePan: true })
+  // What a locked view is: the box is handed to leaflet as maxBounds, so a
+  // view set outside it is dragged back in rather than refused.
+  it('pulls the view back inside locked bounds', async () => {
+    // jsdom lays nothing out, and leaflet reads the viewport off the container.
+    // A zero-size map is inside every box, so without a size it never pulls
+    // back and this test would pass on a broken guard.
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400)
+    const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300)
 
-    expect(map!.dragging.enabled()).toBe(false)
-    expect(map!.boxZoom.enabled()).toBe(false)
-    // Zoom stays usable — anchored on the centre so it cannot shift the view.
-    expect(map!.options.scrollWheelZoom).toBe('center')
-    expect(map!.options.doubleClickZoom).toBe('center')
+    try {
+      const { wrapper, map } = await mountMap({
+        maxBounds: [
+          [46, 14],
+          [47, 16],
+        ],
+      })
 
-    await wrapper.setProps({ disablePan: false })
-    await nextTick()
+      map!.setView([10, 10], 8)
+      await flushPromises()
+      await nextTick()
 
-    expect(map!.dragging.enabled()).toBe(true)
-    expect(map!.options.scrollWheelZoom).toBe(true)
+      const centre = map!.getCenter()
+      expect(centre.lat).toBeGreaterThan(40)
+      expect(centre.lng).toBeGreaterThan(10)
 
-    wrapper.unmount()
+      wrapper.unmount()
+    } finally {
+      width.mockRestore()
+      height.mockRestore()
+    }
   })
 })
