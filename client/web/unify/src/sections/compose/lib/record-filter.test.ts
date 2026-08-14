@@ -126,6 +126,33 @@ describe('lib/record-filter', () => {
         getFieldFilter('start_time', 'DateTime', { start: '09:00:00', end: '17:00:00' }, 'BETWEEN'),
       ).toBe("(TIME(start_time) BETWEEN TIME('09:00:00') TIME('17:00:00'))")
     })
+
+    // compose.Record.createdAt is a Date, and CommentBlock polls for newer
+    // comments with it. Interpolated raw it reads as 'Fri Aug 14 2026 13:19:57
+    // GMT+0200 (Central European Summer Time)' and postgres answers
+    // `time zone "gmt+0200" not recognized`; moment also calls a Date valid
+    // against the strict date-only format, which drops the time from the
+    // comparison. Both are why a Date has to become ISO before either branch.
+    it('accepts a Date and compares it as a timestamp, not a date', () => {
+      const built = getFieldFilter('created_at', 'DateTime', new Date('2026-08-14T11:19:57Z'), '>')
+
+      expect(built).not.toMatch(/GMT/)
+      expect(built).toMatch(
+        /^\(TIMESTAMP\(DATE_FORMAT\(created_at, '%Y-%m-%dT%H:%i:%s\.%f\+00:00'\)\) > TIMESTAMP\(DATE_FORMAT\('2026-08-14T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}', '%Y-%m-%dT%H:%i:%s\.%f\+00:00'\)\)\)$/,
+      )
+    })
+
+    it('accepts a Date on both ends of a BETWEEN range', () => {
+      const built = getFieldFilter(
+        'created_at',
+        'DateTime',
+        { start: new Date('2026-08-14T00:00:00Z'), end: new Date('2026-08-15T23:59:59Z') },
+        'BETWEEN',
+      )
+
+      expect(built).not.toMatch(/GMT/)
+      expect(built).toMatch(/^\(TIMESTAMP\(DATE_FORMAT\(created_at, .*BETWEEN TIMESTAMP\(/)
+    })
   })
 
   describe('evaluatePrefilter', () => {

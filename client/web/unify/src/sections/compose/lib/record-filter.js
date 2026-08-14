@@ -190,6 +190,19 @@ export function getFieldFilter(name, kind, query = '', operator = '=') {
   }
 
   if (['DateTime'].includes(kind)) {
+    // Callers hold dates as Date objects (compose.Record.createdAt is one). A
+    // Date stringifies as 'Fri Aug 14 2026 13:19:57 GMT+0200 (Central European
+    // Summer Time)', which postgres rejects outright, and moment reports a Date
+    // valid against any format — so the strict date-only parse below claims it
+    // and drops the time. ISO first, and both branches read a string.
+    const asIso = v => (v instanceof Date || moment.isMoment(v) ? moment(v).toISOString() : v)
+
+    if (['BETWEEN', 'NOT BETWEEN'].includes(operator)) {
+      query = { ...query, start: asIso(query.start), end: asIso(query.end) }
+    } else {
+      query = asIso(query)
+    }
+
     const dataFmtEntry = date =>
       `TIMESTAMP(DATE_FORMAT('${date.format()}', '%Y-%m-%dT%H:%i:%s.%f+00:00'))`
 
