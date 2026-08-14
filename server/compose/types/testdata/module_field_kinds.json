@@ -1,0 +1,13 @@
+[
+  "String",
+  "Number",
+  "Bool",
+  "DateTime",
+  "Select",
+  "Email",
+  "Url",
+  "File",
+  "User",
+  "Record",
+  "Geometry"
+]

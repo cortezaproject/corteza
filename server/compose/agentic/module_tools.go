@@ -1,8 +1,31 @@
 package agentic
 
 import (
+	"fmt"
+	"strings"
+
+	cmpTypes "github.com/crusttech/human/server/compose/types"
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
 	"github.com/mark3labs/mcp-go/mcp"
+)
+
+// The kind list is read from types.ModuleFieldKinds rather than written out
+// again here. Spelling it twice is what let this documentation advertise a
+// Currency and a Duration the platform never had, and omit Geometry, which it
+// did — with nothing to catch the drift, since an unknown kind is stored as
+// written and rendered as text.
+var fieldsParamDoc = fmt.Sprintf(
+	`JSON array of field definitions. Each field: {"name":"fieldName","kind":"String",`+
+		`"label":"Field Label","isRequired":false,"isMulti":false,"options":{},`+
+		`"defaultValue":[{"name":"fieldName","value":"default"}],`+
+		`"expressions":{"value":"","sanitizers":[],"validators":[],"formatters":[]}}. `+
+		`Supported kinds: %s — these are the whole set, and a kind outside it is not a field `+
+		`type the webapp can render. `+
+		`Kind-specific options: Select→{"options":[{"value":"a","text":"A"}]}, `+
+		`Record→{"moduleID":"123","recordLabelField":"name"}, Number→{"precision":2}, `+
+		`DateTime→{"onlyDate":false,"onlyTime":false}, Bool→{"trueLabel":"Yes","falseLabel":"No"}, `+
+		`Geometry→{"center":[46.05,14.51],"zoom":7}.`,
+	strings.Join(cmpTypes.ModuleFieldKinds, ", "),
 )
 
 // Declarations only. Implementations are in module_handler.go, in this order.
@@ -38,7 +61,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name for the module")),
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and underscores only)")),
-			mcp.WithString("fields", mcp.Description(`JSON array of field definitions. Each field: {"name":"fieldName","kind":"String","label":"Field Label","isRequired":false,"isMulti":false,"options":{},"defaultValue":[{"name":"fieldName","value":"default"}],"expressions":{"value":"","sanitizers":[],"validators":[],"formatters":[]}}. Supported kinds: String, Number, DateTime, Bool, Record, User, File, Select, Email, Url, Currency, Duration. Kind-specific options: Select→{"options":[{"value":"a","text":"A"}]}, Record→{"moduleID":"123","recordLabelField":"name"}, Number→{"precision":2}, DateTime→{"onlyDate":false,"onlyTime":false}, Bool→{"trueLabel":"Yes","falseLabel":"No"}.`)),
+			mcp.WithString("fields", mcp.Description(fieldsParamDoc)),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. recordDeDup rules: {"name":"rule-name","strict":true,"constraints":[{"attribute":"fieldName","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}. recordRevisions: {"enabled":true}. privacy: {"usageDisclosure":"text","sensitivityLevelID":"123"}.`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
