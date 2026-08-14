@@ -957,7 +957,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/GeometryConfigurator.vue": {
-      "h": "63112335c3e0",
+      "h": "400148fb1065",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-08-14"
     },
@@ -3897,12 +3897,12 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/map/CMap.test.ts": {
-      "h": "80e9edd9d1c2",
+      "h": "f3e7b01fd2f7",
       "doc": "lib/vue/src/components/map/map.intent.md",
       "t": "2026-08-14"
     },
     "lib/vue/src/components/map/CMap.vue": {
-      "h": "a78281566425",
+      "h": "7561996d707d",
       "doc": "lib/vue/src/components/map/map.intent.md",
       "t": "2026-08-14"
     },

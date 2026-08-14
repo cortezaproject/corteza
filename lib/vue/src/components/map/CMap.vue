@@ -171,6 +171,7 @@ function initMap() {
 
   leafletMap.value = map
   appliedMaxBounds = effectiveMaxBounds.value
+  applyZoomFloor(map)
   snapshotView()
   renderAll()
   // The viewport is a function of the container size, so only the map knows it.
@@ -189,6 +190,28 @@ function snapshotView() {
   lastZoom = map.getZoom()
   lastBounds = readBounds()
   currentZoom.value = lastZoom
+  syncZoomLimits()
+}
+
+/**
+ * A bounded map has a zoom floor: below the zoom where the box fills the
+ * viewport you would be looking outside the area the box exists to enclose.
+ * Leaflet does not derive it, and it depends on the container size, so it is
+ * recomputed whenever the box, the authored limits or the size change.
+ */
+function applyZoomFloor(target) {
+  const map = target || leafletMap.value
+  if (!map) return
+
+  const authored = props.minZoom || undefined
+  const bounds = effectiveMaxBounds.value
+  const floor = bounds ? map.getBoundsZoom(bounds) : undefined
+
+  if (floor === undefined) {
+    map.setMinZoom(authored)
+  } else {
+    map.setMinZoom(authored === undefined ? floor : Math.max(authored, floor))
+  }
   syncZoomLimits()
 }
 
@@ -370,7 +393,11 @@ function goToCurrentLocation() {
 }
 
 function invalidateSize() {
-  leafletMap.value?.invalidateSize()
+  const map = leafletMap.value
+  if (!map) return
+  map.invalidateSize()
+  // The floor is a function of the viewport, so a resize moves it.
+  applyZoomFloor(map)
 }
 
 function fitBounds(bounds, options = {}) {
@@ -435,12 +462,12 @@ watch(
 
 watch(
   () => [props.minZoom, props.maxZoom],
-  ([min, max]) => {
+  ([, max]) => {
     const map = leafletMap.value
     if (!map) return
-    map.setMinZoom(min || undefined)
     map.setMaxZoom(max || undefined)
-    syncZoomLimits()
+    // The authored floor is only one half of the real one.
+    applyZoomFloor(map)
   },
 )
 
@@ -451,6 +478,7 @@ watch(effectiveMaxBounds, bounds => {
   if (!map || sameBounds(bounds, appliedMaxBounds)) return
   appliedMaxBounds = bounds
   map.setMaxBounds(bounds || null)
+  applyZoomFloor(map)
 })
 </script>
 

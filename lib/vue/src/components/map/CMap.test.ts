@@ -103,6 +103,37 @@ describe('CMap', () => {
     wrapper.unmount()
   })
 
+  // A box you can zoom out of is not a box: below the zoom where it fills the
+  // viewport, the map shows ground the box exists to keep off screen.
+  it('will not zoom out past locked bounds', async () => {
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400)
+    const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300)
+
+    try {
+      const { wrapper, map } = await mountMap({
+        maxBounds: [
+          [46, 14],
+          [47, 16],
+        ],
+      })
+
+      const floor = map!.getBoundsZoom([
+        [46, 14],
+        [47, 16],
+      ])
+      expect(map!.getMinZoom()).toBe(floor)
+
+      map!.setZoom(1)
+      await flushPromises()
+      expect(map!.getZoom()).toBeGreaterThanOrEqual(floor)
+
+      wrapper.unmount()
+    } finally {
+      width.mockRestore()
+      height.mockRestore()
+    }
+  })
+
   // What a locked view is: the box is handed to leaflet as maxBounds, so a
   // view set outside it is dragged back in rather than refused.
   it('pulls the view back inside locked bounds', async () => {

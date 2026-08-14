@@ -45,6 +45,10 @@ component (historically deep-imported; fixed as an oversight).
   a frozen one: dragging past the box snaps back, and zooming in leaves room to
   move around inside it. There is no separate "don't move" mode — a caller that
   wants the view held still hands over the box it wants held.
+- A box also sets the zoom floor (`getBoundsZoom`, recomputed whenever the box,
+  the authored limits or the container size change), since below it the map
+  would show ground the box exists to keep off screen. An authored `minZoom`
+  can raise that floor, never lower it.
 - Geosearch picks emit a synthetic `map-click` — pick-a-location flows get it
   for free; value commit stays the caller's job.
 - Exposes `invalidateSize()` / `fitBounds()`; size is auto-invalidated via

@@ -24,28 +24,27 @@
           />
         </CFormGroup>
 
-        <div class="grid grid-cols-2 gap-2">
-          <CFormGroup :label="$t('block.geometry.zoomMin')">
-            <InputNumber
-              :model-value="zoomMin"
+        <CFormGroup
+          :label="$t('block.geometry.zoomRange')"
+          :description="$t('block.geometry.zoomRangeDescription')"
+        >
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-muted-color whitespace-nowrap">
+              {{ $t('block.geometry.zoomMin') }} {{ zoomRange[0] }}
+            </span>
+            <Slider
+              :model-value="zoomRange"
+              range
               :min="1"
               :max="20"
-              show-buttons
-              class="w-full"
-              @input="e => (zoomMin = e.value)"
+              class="flex-1"
+              @update:model-value="onZoomRange"
             />
-          </CFormGroup>
-          <CFormGroup :label="$t('block.geometry.zoomMax')">
-            <InputNumber
-              :model-value="zoomMax"
-              :min="1"
-              :max="20"
-              show-buttons
-              class="w-full"
-              @input="e => (zoomMax = e.value)"
-            />
-          </CFormGroup>
-        </div>
+            <span class="text-sm text-muted-color whitespace-nowrap">
+              {{ $t('block.geometry.zoomMax') }} {{ zoomRange[1] }}
+            </span>
+          </div>
+        </CFormGroup>
 
         <div class="grid grid-cols-2 gap-3 items-start">
           <CInputToggleCard
@@ -291,14 +290,16 @@ function onMapCenter(center) {
 function onMapZoom(z) {
   updateOptions({ zoomStarting: z })
 }
-const zoomMin = computed({
-  get: () => block.value.options?.zoomMin ?? 1,
-  set: v => updateOptions({ zoomMin: v }),
-})
-const zoomMax = computed({
-  get: () => block.value.options?.zoomMax ?? 18,
-  set: v => updateOptions({ zoomMax: v }),
-})
+const zoomMin = computed(() => block.value.options?.zoomMin ?? 1)
+const zoomMax = computed(() => block.value.options?.zoomMax ?? 18)
+
+// One control for both ends: a min above the max is not a configuration
+// anybody wants, and a range slider cannot express it.
+const zoomRange = computed(() => [zoomMin.value, zoomMax.value])
+
+function onZoomRange([min, max]) {
+  updateOptions({ zoomMin: min, zoomMax: max })
+}
 
 const lockBounds = computed(() => !!block.value.options?.lockBounds)
 
@@ -340,9 +341,16 @@ const boundsDifferFromView = computed(
     !mapGeo.sameBounds(mapGeo.roundBounds(currentMapBounds.value), lockedBounds.value),
 )
 
-function updateBoundsToView() {
+// Capturing an area also raises the zoom floor to the zoom it was captured at:
+// below that the map would show ground outside the area. The map enforces this
+// on its own, so the option is written to keep the number beside it honest.
+function captureView() {
   const bounds = mapGeo.roundBounds(currentMapBounds.value)
-  if (bounds) updateOptions({ bounds })
+  return bounds ? { bounds, zoomMin: zoomStarting.value } : {}
+}
+
+function updateBoundsToView() {
+  updateOptions(captureView())
 }
 
 // Locking captures the area on screen right now; unlocking drops it, since a
@@ -353,8 +361,7 @@ function onLockBoundsToggle(v) {
     return
   }
 
-  const bounds = mapGeo.roundBounds(currentMapBounds.value)
-  updateOptions({ lockBounds: true, ...(bounds ? { bounds } : {}) })
+  updateOptions({ lockBounds: true, ...captureView() })
 }
 
 // --- Feeds ---
