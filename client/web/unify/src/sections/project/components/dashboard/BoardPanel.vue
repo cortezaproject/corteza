@@ -80,13 +80,11 @@
           :has-more="!!col.nextPage"
           :loading-more="col.loadingMore"
           :disabled="disabled"
-          :dragged-key="draggedKey"
           :add-label="quickAddLabel"
           :show-revision="!isRevisionScoped"
-          @drop-item="onDropItem(col.status, $event)"
+          @update:items="col.items = $event"
+          @card-added="onCardAdded(col.status, $event)"
           @add-item="onQuickAdd(col.status)"
-          @card-dragstart="draggedKey = $event"
-          @card-dragend="draggedKey = null"
           @card-click="onCardClick"
           @load-more="loadMoreColumn(col.status)"
         />
@@ -368,15 +366,13 @@ function findItem(key) {
 }
 
 // --- Drag & drop -------------------------------------------------------------
-// `draggedKey` is the one piece of state shared across columns/cards (which
-// card, if any, is the current drag source), for the dimmed-source-card
-// style; which item got dropped where is read off dataTransfer instead (see
-// BoardColumn.vue), so this stays a single flat ref rather than needing
-// provide/inject.
-const draggedKey = ref(null)
-
-// Move the card between this component's own column state immediately
-// (optimistic), persist via the store, and roll the move back on failure —
+// The shared draggable has already carried the card between the two columns'
+// item lists by the time this runs; what is left is the part only this
+// component knows — the card's status, the per-column totals, persisting it,
+// and putting the card back if the server refuses.
+//
+// The card is moved between this component's own column state immediately
+// (optimistic), persisted via the store, and rolled back on failure —
 // stores/projects.intent.md's "Update flows are optimistic with rollback on
 // push failure", now implemented at the board's own column-state level
 // rather than relying on a store mutation to ripple into this component's
@@ -405,26 +401,25 @@ const draggedKey = ref(null)
 // never reads or sets revisionID itself, so dropping a card into another
 // column changes ONLY its status. A chain-wide drag can never clear or
 // reassign the item's revision.
-async function onDropItem(status, key) {
-  // Clear the drag flag here rather than relying on @card-dragend alone: a
-  // card that changes column unmounts from its source list, so the native
-  // dragend never reaches it and the dimmed styling would stick until some
-  // later interaction re-rendered it. Cleared before the early returns so it
-  // resets on a no-op drop too.
-  draggedKey.value = null
+async function onCardAdded(status, key) {
+  if (!key) return
+
   const item = findItem(key)
+  // The card carries the status it had in the column it came from, which is
+  // how the column it left is identified after the fact.
   if (!item || item.status === status) return
+
   const sourceCol = columns.find(c => c.status === item.status)
   const targetCol = columns.find(c => c.status === status)
-  const idx = sourceCol?.items.findIndex(it => it.key === key) ?? -1
-  if (!sourceCol || !targetCol || idx === -1) return
+  if (!sourceCol || !targetCol) return
 
   const prevStatus = item.status
-  const [moved] = sourceCol.items.splice(idx, 1)
-  moved.status = status
-  targetCol.items.unshift(moved)
+  const idx = targetCol.items.findIndex(it => it.key === key)
+  item.status = status
   sourceCol.total = Math.max(0, sourceCol.total - 1)
   targetCol.total += 1
+
+  const moved = item
 
   try {
     if (item.itemType === 'backlog') {
@@ -433,14 +428,14 @@ async function onDropItem(status, key) {
       await eventsStore.updateStatus(item.itemType, item.id, status)
     }
   } catch (err) {
-    // Roll back the optimistic move — best-effort re-insert at the source's
-    // original index; exact position among same-status cards doesn't matter
-    // (the board endpoint's own ordering is "all of one source before the
-    // next", not chronological — see project_board.go's doc comment).
-    const revertIdx = targetCol.items.findIndex(it => it.key === key)
+    // Put the card back where it was dragged from — exact position among
+    // same-status cards doesn't matter (the board endpoint's own ordering is
+    // "all of one source before the next", not chronological — see
+    // project_board.go's doc comment).
+    const revertIdx = idx === -1 ? targetCol.items.findIndex(it => it.key === key) : idx
     if (revertIdx !== -1) targetCol.items.splice(revertIdx, 1)
     moved.status = prevStatus
-    sourceCol.items.splice(Math.min(idx, sourceCol.items.length), 0, moved)
+    sourceCol.items.unshift(moved)
     sourceCol.total += 1
     targetCol.total = Math.max(0, targetCol.total - 1)
     $toast.toastErrorHandler(t('project.dashboard.board.toast.moveFailed'))(err)

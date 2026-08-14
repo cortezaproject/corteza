@@ -1,25 +1,15 @@
 <template>
-  <div>
+  <CDraggableList v-model="ordered" handle=".expression-row__header" @update="emitChange">
     <div
       v-for="(item, index) in items"
       :key="index"
-      :class="[
-        'expression-row border border-surface rounded-border mb-3',
-        {
-          'expression-row--dragging': dragIndex === index,
-          'expression-row--drop-target': dragOverIndex === index && dragIndex !== index,
-        },
-      ]"
-      @dragover.prevent="onDragOver(index)"
-      @dragleave="onDragLeave(index)"
-      @drop.prevent="onDrop(index)"
+      data-drag-item
+      class="expression-row border border-surface rounded-border mb-3"
     >
+      <!-- The header is the grab target; the details below it hold inputs. -->
       <div
-        class="expression-row__header flex items-start gap-2 px-3 py-2 hover:bg-emphasis"
-        draggable="true"
+        class="expression-row__header flex items-start gap-2 px-3 py-2 hover:bg-emphasis cursor-grab"
         @click="item._showDetails = !item._showDetails"
-        @dragstart="onDragStart(index, $event)"
-        @dragend="onDragEnd"
       >
         <div class="flex-1 min-w-0 flex flex-col gap-0.5">
           <div class="flex items-center gap-2 min-w-0">
@@ -81,7 +71,7 @@
         </div>
       </transition>
     </div>
-  </div>
+  </CDraggableList>
 </template>
 
 <script>
@@ -89,12 +79,13 @@ import ExpressionEditor from './ExpressionEditor.vue'
 import eventBus from '../lib/eventBus'
 import { components } from '@planetcrust/human-vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CDraggableList } = components
 
 export default {
   components: {
     ExpressionEditor,
     CInputDelete,
+    CDraggableList,
   },
 
   props: {
@@ -121,58 +112,20 @@ export default {
 
   emits: ['update:items', 'remove', 'open-editor'],
 
-  data() {
-    return {
-      dragIndex: -1,
-      dragOverIndex: -1,
-    }
+  computed: {
+    ordered: {
+      get() {
+        return this.items
+      },
+      set(next) {
+        this.$emit('update:items', next)
+      },
+    },
   },
 
   methods: {
     emitChange() {
       eventBus.emit('change-detected')
-    },
-
-    onDragStart(index, event) {
-      this.dragIndex = index
-      event.dataTransfer.effectAllowed = 'move'
-      // Required for Firefox to actually start the drag.
-      try {
-        event.dataTransfer.setData('text/plain', String(index))
-      } catch {
-        /* ignore */
-      }
-      // Use the whole row as the drag image instead of just the handle icon.
-      const row = event.currentTarget?.closest?.('.expression-row')
-      if (row) {
-        const r = row.getBoundingClientRect()
-        event.dataTransfer.setDragImage(row, event.clientX - r.left, event.clientY - r.top)
-      }
-    },
-
-    onDragOver(index) {
-      if (this.dragIndex < 0 || this.dragIndex === index) return
-      this.dragOverIndex = index
-    },
-
-    onDragLeave(index) {
-      if (this.dragOverIndex === index) this.dragOverIndex = -1
-    },
-
-    onDrop(targetIndex) {
-      if (this.dragIndex < 0 || this.dragIndex === targetIndex) return
-      const next = [...this.items]
-      const moved = next.splice(this.dragIndex, 1)[0]
-      next.splice(targetIndex, 0, moved)
-      this.$emit('update:items', next)
-      this.dragIndex = -1
-      this.dragOverIndex = -1
-      this.emitChange()
-    },
-
-    onDragEnd() {
-      this.dragIndex = -1
-      this.dragOverIndex = -1
     },
 
     getTypeDescription(type) {
@@ -201,15 +154,6 @@ export default {
     background 0.15s,
     border-color 0.15s,
     transform 0.15s;
-}
-
-.expression-row--dragging {
-  opacity: 0.4;
-}
-
-.expression-row--drop-target {
-  border-color: var(--p-primary-color);
-  background: color-mix(in srgb, var(--p-primary-color) 6%, transparent);
 }
 
 .expression-row__header {

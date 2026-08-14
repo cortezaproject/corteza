@@ -7,6 +7,8 @@
     :disabled="disabled"
     :handle="handle"
     :draggable="itemSelector"
+    :filter="filter"
+    :prevent-on-filter="false"
     :clone="clone"
     :animation="150"
     :fallback-tolerance="5"
@@ -38,6 +40,12 @@ import { VueDraggable } from 'vue-draggable-plus'
 // also hold an empty-state message or a header without them becoming
 // draggable.
 //
+// Render the v-for unconditionally and make the empty state a sibling. Wrapping
+// it in a v-if on the list's length tears the branch down as the last item is
+// dragged out, while the sortable is still putting the dragged node back, and
+// the node is left behind — visible in a list the data says is empty. It only
+// bites lists an item can leave, but it costs nothing to write it the safe way.
+//
 // force-fallback replaces the browser's native drag image with a clone
 // SortableJS positions itself. That is what makes touch work at all — native
 // HTML5 drag never fires on a touchscreen — and what keeps the lifted card
@@ -55,6 +63,19 @@ defineProps({
   // A selector inside an item; unset means the whole item is the grab target.
   handle: { type: String, default: undefined },
   itemSelector: { type: String, default: '[data-drag-item]' },
+  // Where a drag may NOT start, even on a whole-item surface. A form control
+  // owns its own pointer gesture — dragging across an input is how you select
+  // its text — and a row that is mostly inputs would otherwise be impossible to
+  // type in. `prevent-on-filter` stays off so the control still takes the
+  // click and places its caret; filtering only declines to start a drag.
+  //
+  // No `a` here on purpose: CAppList's rows ARE anchors, and SortableJS matches
+  // the filter against the item root as well as its descendants, so listing it
+  // would make that list undraggable rather than protecting anything.
+  filter: {
+    type: String,
+    default: 'input, textarea, select, button, [contenteditable="true"]',
+  },
   tag: { type: String, default: 'div' },
   // What the receiving list is handed when an item crosses into it. The item
   // itself, because these lists hold live model objects: the library's own

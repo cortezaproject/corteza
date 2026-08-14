@@ -7,26 +7,27 @@
     {{ emptyMessage }}
   </CEmptyState>
 
-  <div v-else-if="items.length" class="flex flex-col gap-4">
+  <CDraggableList
+    v-else-if="items.length"
+    v-model="ordered"
+    class="flex flex-col gap-4"
+    handle=".c-drag-handle"
+    :disabled="!draggable"
+  >
     <div
       v-for="(item, index) in items"
       :key="getKey(item, index)"
-      :draggable="draggable"
+      data-drag-item
       :class="[
         'group flex items-center gap-2 p-3 border border-surface rounded-border shadow-sm cursor-pointer hover:bg-emphasis transition-colors',
         isSelected(item, index) ? 'bg-highlight' : 'bg-surface',
-        draggable && dropTargetIndex === index && draggedIndex !== index
-          ? '!border-t-2 !border-t-primary'
-          : '',
       ]"
       @click="$emit('select', item, index)"
-      @dragstart="draggable && onDragStart(index)"
-      @dragover="draggable && onDragOver($event, index)"
-      @dragleave="draggable && onDragLeave()"
-      @drop.prevent="draggable && onDrop(index)"
-      @dragend="draggable && onDragEnd()"
     >
-      <i v-if="draggable" class="pi pi-bars text-muted-color cursor-grab shrink-0 mx-2" />
+      <i
+        v-if="draggable"
+        class="c-drag-handle pi pi-bars text-muted-color cursor-grab shrink-0 mx-2"
+      />
       <div class="flex-1 min-w-0 min-h-10 flex flex-col justify-center">
         <slot :item="item" :index="index" />
       </div>
@@ -67,12 +68,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </CDraggableList>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import CEmptyState from '../CEmptyState.vue'
+import CDraggableList from '../drag/CDraggableList.vue'
 
 const props = defineProps({
   items: { type: Array, required: true },
@@ -105,35 +107,12 @@ function isSelected(item, index) {
   return getKey(item, index) === props.selectedKey
 }
 
-const draggedIndex = ref(null)
-const dropTargetIndex = ref(null)
-
-function onDragStart(index) {
-  draggedIndex.value = index
-}
-
-function onDragOver(e, index) {
-  e.preventDefault()
-  dropTargetIndex.value = index
-}
-
-function onDragLeave() {
-  dropTargetIndex.value = null
-}
-
-function onDrop(index) {
-  const from = draggedIndex.value
-  draggedIndex.value = null
-  dropTargetIndex.value = null
-  if (from === null || from === index) return
-  const reordered = [...props.items]
-  const [moved] = reordered.splice(from, 1)
-  reordered.splice(index, 0, moved)
-  emit('reorder', reordered)
-}
-
-function onDragEnd() {
-  draggedIndex.value = null
-  dropTargetIndex.value = null
-}
+// The list is a prop, so a drag has nowhere of its own to write: reading gives
+// the parent's array and writing reports the new order. A parent that ignores
+// `reorder` re-renders from its unchanged prop, and the row returns — which is
+// the honest outcome for a list whose owner declined the move.
+const ordered = computed({
+  get: () => props.items,
+  set: next => emit('reorder', next),
+})
 </script>

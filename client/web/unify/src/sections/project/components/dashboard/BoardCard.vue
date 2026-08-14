@@ -1,10 +1,8 @@
 <template>
-  <!-- One work item on the board — draggable by native HTML5 DnD (there is no
-       drag/sort library in this repo; see the other native-DnD components in
-       this section, e.g. wizard/steps/PagesStep.vue and lib/vue's
-       CFormItemList.vue, for the same idiom). `dragging` dims the card while
-       it's the drag source; the actual move happens in BoardPanel.vue once a
-       BoardColumn reports a drop. Also click/keyboard-activatable — opens the
+  <!-- One work item on the board. The card is carried by the column's shared
+       draggable (lib/vue CDraggableList); this component only says what a card
+       looks like. The move itself lands in BoardPanel.vue, which owns status,
+       totals and the rollback. Also click/keyboard-activatable — opens the
        read-only detail drawer in BoardPanel.vue (mirrors the dashboard's
        row-click idiom); this stays enabled even while `disabled` (viewing
        never needs write capability, only the drag move does). -->
@@ -12,10 +10,7 @@
     role="button"
     tabindex="0"
     class="rounded-md border border-surface bg-surface p-2.5 shadow-sm transition hover:bg-emphasis"
-    :class="[dragging ? 'opacity-40' : '', disabled ? '' : 'cursor-grab active:cursor-grabbing']"
-    :draggable="!disabled"
-    @dragstart="onDragStart"
-    @dragend="$emit('dragend')"
+    :class="[disabled ? '' : 'cursor-grab active:cursor-grabbing']"
     @click="onClick"
     @keydown.enter.prevent="onClick"
     @keydown.space.prevent="onClick"
@@ -108,7 +103,7 @@ const props = defineProps({
   // reasoning; threaded straight through from there.
   showRevision: { type: Boolean, default: false },
 })
-const emit = defineEmits(['dragstart', 'dragend', 'click'])
+const emit = defineEmits(['click'])
 
 // Neutral fallback badge — mirrors BacklogItemDialog.vue's NEUTRAL_BADGE, used
 // only if a backlog item's linked category ever fails to resolve.
@@ -139,20 +134,8 @@ const formattedDueDate = computed(() => {
   return Number.isNaN(d.getTime()) ? String(props.item.dueDate) : d.toLocaleDateString()
 })
 
-function onDragStart(e) {
-  if (props.disabled) return
-  e.dataTransfer.effectAllowed = 'move'
-  // BoardColumn's onDrop reads this back to identify which item moved — the
-  // two components aren't otherwise related, so dataTransfer is the bridge
-  // (mirrors PagesStep.vue's onDragStart, which sets the same MIME type for
-  // Firefox's benefit).
-  e.dataTransfer.setData('text/plain', props.item.key)
-  emit('dragstart', props.item.key)
-}
-
-// Same key-based payload as dragstart — BoardPanel.vue looks the full item
-// back up by key (findItem) rather than this component threading the whole
-// object through two emit hops.
+// Keyed payload — BoardPanel.vue looks the full item back up by key (findItem)
+// rather than this component threading the whole object through two emit hops.
 function onClick() {
   emit('click', props.item.key)
 }

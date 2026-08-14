@@ -1,16 +1,10 @@
 <template>
-  <!-- One status column. Drop target for native HTML5 DnD — reads the
-       dragged item's key off dataTransfer (set by BoardCard's dragstart) so
-       it doesn't need a shared ref with its sibling columns; BoardPanel.vue
-       still keeps a single `draggedKey` for the dimmed-source-card styling,
-       threaded down as a prop. -->
-  <div
-    class="flex flex-col min-h-0 rounded-lg border bg-surface transition-colors"
-    :class="over ? 'border-primary ring-1 ring-primary' : 'border-surface'"
-    @dragover="onDragOver"
-    @dragleave="onDragLeave"
-    @drop="onDrop"
-  >
+  <!-- One status column. Columns share a drag group, so a card crosses between
+       them through the shared draggable rather than any state of this
+       component's own; the card lands in `items` and BoardPanel.vue is told
+       which one moved, so it can set the status and undo the move if the
+       server refuses it. -->
+  <div class="flex flex-col min-h-0 rounded-lg border border-surface bg-surface transition-colors">
     <!-- Status accent — the SAME hex the status donut and the EventBadge
          pills use (config/chartColors STATUS_COLORS), so a column, a chart
          slice and a badge for the same status always read as one colour.
@@ -61,27 +55,35 @@
         />
       </span>
     </div>
-    <div class="flex-1 min-h-0 overflow-y-auto p-2 flex flex-col gap-2" @scroll="onScroll">
-      <template v-if="items.length">
+    <CDraggableList
+      v-model="cards"
+      class="flex-1 min-h-0 overflow-y-auto p-2 flex flex-col gap-2"
+      :drag-key="status"
+      :group="dragGroup"
+      :disabled="disabled"
+      @scroll="onScroll"
+      @add="$emit('card-added', $event.item?.key)"
+    >
+      <!-- The v-for is never wrapped in a v-if on `items.length`: dragging the
+           last card out would tear the whole branch down while the sortable is
+           putting the dragged node back, and the node is left behind, untracked
+           and visible in a column the data says is empty. The empty state is a
+           sibling for the same reason. -->
+      <div v-for="item in items" :key="item.key" data-drag-item>
         <BoardCard
-          v-for="item in items"
-          :key="item.key"
           :item="item"
           :disabled="disabled"
-          :dragging="item.key === draggedKey"
           :show-revision="showRevision"
-          @dragstart="$emit('card-dragstart', $event)"
-          @dragend="$emit('card-dragend')"
           @click="$emit('card-click', $event)"
         />
-      </template>
+      </div>
       <!-- Per-column empty affordance — an empty status still reads as a
            real (drop-targetable, quick-addable) column rather than a blank
            gap, which is the whole point of always rendering every column
            (see BoardPanel.vue). This is now the ONLY empty-state affordance
            the board carries — the old whole-board note above the columns
            was dropped as redundant noise on top of this. -->
-      <div v-else class="flex-1 flex items-center justify-center px-2">
+      <div v-if="!items.length" class="flex-1 flex items-center justify-center px-2">
         <p class="text-xs text-muted-color text-center">{{ $t('project.dashboard.list.empty') }}</p>
       </div>
 
@@ -101,14 +103,17 @@
           {{ $t('project.dashboard.board.loadMore') }}
         </button>
       </div>
-    </div>
+    </CDraggableList>
   </div>
 </template>
 
 <script setup>
 import BoardCard from './BoardCard.vue'
 import { colorFor } from '@/sections/project/config/chartColors'
-import { computed, ref } from 'vue'
+import { components } from '@planetcrust/human-vue'
+import { computed } from 'vue'
+
+const { CDraggableList } = components
 
 const props = defineProps({
   status: { type: String, required: true },
@@ -123,9 +128,6 @@ const props = defineProps({
   // A load-more request for this column is in flight.
   loadingMore: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
-  // The key of the card currently being dragged (shared across every
-  // column so only the true source card dims, not just the one under it).
-  draggedKey: { type: String, default: null },
   // Tooltip/aria-label for the quick-add button — owned by BoardPanel.vue
   // (it knows the default created type), kept out of this presentational
   // component.
@@ -137,14 +139,19 @@ const props = defineProps({
   // to drop its revision column when scoped).
   showRevision: { type: Boolean, default: false },
 })
-const emit = defineEmits([
-  'drop-item',
-  'card-dragstart',
-  'card-dragend',
-  'add-item',
-  'card-click',
-  'load-more',
-])
+const emit = defineEmits(['card-added', 'update:items', 'add-item', 'card-click', 'load-more'])
+
+// Every column of one board shares a group, so a card may be pulled from any of
+// them and put into any other.
+const dragGroup = { name: 'project-board-items', pull: true, put: true }
+
+// The column's cards are a prop; the sortable writes the new list back up so
+// BoardPanel, which owns the board's state, stays the only thing that mutates
+// it.
+const cards = computed({
+  get: () => props.items,
+  set: next => emit('update:items', next),
+})
 
 // Infinite-scroll trigger — fires once per approach to the bottom (loadingMore
 // guards re-entrancy; BoardPanel also no-ops a load-more call with no
@@ -160,23 +167,4 @@ function onScroll(e) {
 // Resolved through colorFor rather than reading STATUS_COLORS directly, so an
 // unrecognised status degrades to the shared MUTED grey instead of undefined.
 const statusColor = computed(() => colorFor('status', props.status))
-
-const over = ref(false)
-
-function onDragOver(e) {
-  if (props.disabled) return
-  e.preventDefault()
-  e.dataTransfer.dropEffect = 'move'
-  over.value = true
-}
-function onDragLeave() {
-  over.value = false
-}
-function onDrop(e) {
-  if (props.disabled) return
-  e.preventDefault()
-  over.value = false
-  const key = e.dataTransfer.getData('text/plain')
-  if (key) emit('drop-item', key)
-}
 </script>

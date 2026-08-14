@@ -1,77 +1,76 @@
 <template>
   <!-- App items -->
-  <TransitionGroup
+  <CDraggableList
     v-if="areAppsVisible"
+    v-model="ordered"
     :class="containerClass"
-    tag="div"
-    move-class="transition-transform duration-300 ease-in-out"
+    :disabled="!canReorder"
+    filter="[data-app-disabled]"
   >
-    <a
-      v-for="(app, index) in filteredApps"
-      :key="app.applicationID"
-      :href="app.enabled ? getAppUrl(app) : '#'"
-      target="_self"
-      :draggable="canReorder && app.enabled"
-      :class="[
-        itemClass,
-        {
-          'cursor-grab': canReorder && app.enabled,
-          'cursor-not-allowed opacity-50': !app.enabled,
-          'border-t-2 !border-t-primary':
-            canReorder && variant === 'list' && dropTargetIndex === index,
-          '!border-primary bg-primary/5': variant === 'list' && isActiveApp(app),
-        },
-      ]"
-      @click="onItemClick($event, app)"
-      @dragstart="canReorder && app.enabled && onDragStart(index)"
-      @dragover="canReorder && app.enabled && onDragOver($event, index)"
-      @dragleave="canReorder && onDragLeave()"
-      @drop.prevent="canReorder && app.enabled && onDrop(index)"
-    >
-      <!-- List variant -->
-      <template v-if="variant === 'list'">
-        <img
-          :src="getAppLogoUrl(app)"
-          :alt="app.unify?.name || app.name"
-          class="w-16 h-16 object-contain rounded-md shrink-0"
-          loading="lazy"
-        />
-        <span class="font-medium text-sm truncate">
-          {{ app.unify?.name || app.name }}
-        </span>
-      </template>
-
-      <!-- Grid variant -->
-      <template v-else>
-        <Card
-          :pt="{
-            body: { class: 'grow justify-center gap-0 py-1' },
-            title: { class: 'text-center line-clamp-2 group-hover:line-clamp-none' },
-          }"
-          :class="[
-            'group w-80 min-h-72 overflow-hidden transition-all duration-100',
-            app.enabled
-              ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:text-primary'
-              : 'cursor-not-allowed',
-            { 'ring-2 ring-primary ring-offset-2': canReorder && dropTargetIndex === index },
-          ]"
-        >
-          <template #header>
-            <img
-              :src="getAppLogoUrl(app)"
-              :alt="app.unify?.name || app.name"
-              class="w-full h-full object-contain"
-              loading="lazy"
-              decoding="async"
-            />
-          </template>
-          <template #title>
+    <!-- Tagless, so the anchors stay direct children of the sortable while
+         still animating to their new places once a drop settles. -->
+    <TransitionGroup move-class="transition-transform duration-300 ease-in-out">
+      <a
+        v-for="app in filteredApps"
+        :key="app.applicationID"
+        data-drag-item
+        :data-app-disabled="app.enabled ? undefined : ''"
+        :href="app.enabled ? getAppUrl(app) : '#'"
+        target="_self"
+        :class="[
+          itemClass,
+          {
+            'cursor-grab': canReorder && app.enabled,
+            'cursor-not-allowed opacity-50': !app.enabled,
+            '!border-primary bg-primary/5': variant === 'list' && isActiveApp(app),
+          },
+        ]"
+        @click="onItemClick($event, app)"
+      >
+        <!-- List variant -->
+        <template v-if="variant === 'list'">
+          <img
+            :src="getAppLogoUrl(app)"
+            :alt="app.unify?.name || app.name"
+            class="w-16 h-16 object-contain rounded-md shrink-0"
+            loading="lazy"
+          />
+          <span class="font-medium text-sm truncate">
             {{ app.unify?.name || app.name }}
-          </template>
-        </Card>
-      </template>
-    </a>
-  </TransitionGroup>
+          </span>
+        </template>
+
+        <!-- Grid variant -->
+        <template v-else>
+          <Card
+            :pt="{
+              body: { class: 'grow justify-center gap-0 py-1' },
+              title: { class: 'text-center line-clamp-2 group-hover:line-clamp-none' },
+            }"
+            :class="[
+              'group w-80 min-h-72 overflow-hidden transition-all duration-100',
+              app.enabled
+                ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:text-primary'
+                : 'cursor-not-allowed',
+            ]"
+          >
+            <template #header>
+              <img
+                :src="getAppLogoUrl(app)"
+                :alt="app.unify?.name || app.name"
+                class="w-full h-full object-contain"
+                loading="lazy"
+                decoding="async"
+              />
+            </template>
+            <template #title>
+              {{ app.unify?.name || app.name }}
+            </template>
+          </Card>
+        </template>
+      </a>
+    </TransitionGroup>
+  </CDraggableList>
 
   <!-- Empty state -->
   <div v-else :class="emptyClass">
@@ -82,8 +81,9 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue'
+import { computed, inject } from 'vue'
 import { useRoute } from 'vue-router'
+import CDraggableList from '../drag/CDraggableList.vue'
 import { useInternalLink } from '../../composables/useInternalLink'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
 import { resolveAppLogoUrl } from '../../utils/appIcons'
@@ -159,36 +159,26 @@ const getAppUrl = app => {
   return '/' + url
 }
 
-// Drag state
-const draggedIndex = ref(null)
-const dropTargetIndex = ref(null)
+// The list being dragged is the filtered one, but the order being saved is the
+// whole one. The visible apps are put back into the slots they already occupy,
+// in their new sequence, so an app hidden by the search keeps its place instead
+// of being displaced by an index that never referred to it.
+const ordered = computed({
+  get: () => filteredApps.value,
+  set: next => {
+    const slots = []
+    apps.value.forEach((app, i) => {
+      if (isAppVisible(app)) slots.push(i)
+    })
 
-function onDragStart(index) {
-  draggedIndex.value = index
-}
+    const full = [...apps.value]
+    slots.forEach((slot, i) => {
+      full[slot] = next[i]
+    })
 
-function onDragOver(e, index) {
-  e.preventDefault()
-  dropTargetIndex.value = index
-}
-
-function onDragLeave() {
-  dropTargetIndex.value = null
-}
-
-function onDrop(index) {
-  if (draggedIndex.value === null || draggedIndex.value === index) {
-    draggedIndex.value = null
-    dropTargetIndex.value = null
-    return
-  }
-  const reordered = [...apps.value]
-  const [moved] = reordered.splice(draggedIndex.value, 1)
-  reordered.splice(index, 0, moved)
-  draggedIndex.value = null
-  dropTargetIndex.value = null
-  applicationsStore.reorder(reordered)
-}
+    applicationsStore.reorder(full)
+  },
+})
 
 // Layout classes
 const containerClass = computed(() =>

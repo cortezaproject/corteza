@@ -7,10 +7,16 @@
       {{ emptyMessage }}
     </div>
 
-    <!-- Bounded table: header bar + divided rows inside a single border. -->
-    <div
+    <!-- Bounded table: header bar + divided rows inside a single border. The
+         header and footer live inside the sortable too, and stay put: only
+         [data-drag-item] rows are addressed. -->
+    <CDraggableList
       v-else
+      v-model="items"
       class="flex flex-col min-w-max rounded-border border border-surface bg-surface overflow-hidden"
+      handle=".c-drag-handle"
+      :disabled="!draggable"
+      @update="() => emit('reorder', items)"
     >
       <!-- Column headers (the `cform-list-header` class is a stable hook for
            consumers that restyle the list). -->
@@ -44,21 +50,14 @@
       <div
         v-for="(item, index) in items"
         :key="index"
-        :draggable="draggable"
-        :class="[
-          'border-t border-surface first:border-t-0 p-3 flex flex-col gap-2 hover:bg-emphasis transition-colors',
-          draggable && dropTargetIndex === index && draggedIndex !== index
-            ? '!border-t-2 !border-t-primary'
-            : '',
-        ]"
-        @dragstart="draggable && onDragStart(index)"
-        @dragover="draggable && onDragOver($event, index)"
-        @dragleave="draggable && onDragLeave()"
-        @drop.prevent="draggable && onDrop(index)"
-        @dragend="draggable && onDragEnd()"
+        data-drag-item
+        class="border-t border-surface first:border-t-0 p-3 flex flex-col gap-2 hover:bg-emphasis transition-colors"
       >
         <div :style="gridStyle" class="grid gap-2 items-center">
-          <i v-if="draggable" class="pi pi-bars text-muted-color cursor-grab text-center" />
+          <i
+            v-if="draggable"
+            class="c-drag-handle pi pi-bars text-muted-color cursor-grab text-center"
+          />
           <slot name="row" :item="item" :index="index" />
           <div v-if="!hideRemove" class="w-10 flex justify-end">
             <CInputDelete
@@ -88,13 +87,14 @@
         :draggable="draggable"
         :hide-remove="hideRemove"
       />
-    </div>
+    </CDraggableList>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import CInputDelete from './CInputDelete.vue'
+import CDraggableList from '../drag/CDraggableList.vue'
 
 const items = defineModel({ type: Array, required: true })
 
@@ -126,38 +126,5 @@ const gridStyle = computed(() => {
 function remove(index) {
   items.value.splice(index, 1)
   emit('change')
-}
-
-const draggedIndex = ref(null)
-const dropTargetIndex = ref(null)
-
-function onDragStart(index) {
-  draggedIndex.value = index
-}
-
-function onDragOver(e, index) {
-  e.preventDefault()
-  dropTargetIndex.value = index
-}
-
-function onDragLeave() {
-  dropTargetIndex.value = null
-}
-
-function onDrop(index) {
-  const from = draggedIndex.value
-  draggedIndex.value = null
-  dropTargetIndex.value = null
-  if (from === null || from === index) return
-  const reordered = [...items.value]
-  const [moved] = reordered.splice(from, 1)
-  reordered.splice(index, 0, moved)
-  items.value = reordered
-  emit('reorder', reordered)
-}
-
-function onDragEnd() {
-  draggedIndex.value = null
-  dropTargetIndex.value = null
 }
 </script>
