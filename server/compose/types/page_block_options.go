@@ -205,6 +205,10 @@ type (
 		Justify    string `json:"justify"`
 	}
 
+	// Type decides what the item renders as and which of Options.Item it reads:
+	// "compose" follows pageID, "url" follows url, "dropdown" opens the
+	// dropdown items, "text-section" is a plain label. An item with no type
+	// matches none of them and renders nothing.
 	NavigationItem struct {
 		Type    string                `json:"type"`
 		Options NavigationItemOptions `json:"options"`
