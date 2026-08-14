@@ -17,19 +17,19 @@
     "format:check": "prettier --check src/"
   },
   "dependencies": {
-    "@planetcrust/human-js": "workspace:*",
     "@fortawesome/fontawesome-svg-core": "^6.7.0",
     "@fortawesome/free-solid-svg-icons": "^6.7.0",
     "@fortawesome/vue-fontawesome": "^3.0.0",
+    "@planetcrust/human-js": "workspace:*",
     "@tiptap/extension-color": "^2.11.0",
     "@tiptap/extension-emoji": "^2.11.0",
     "@tiptap/extension-highlight": "^2.11.0",
     "@tiptap/extension-link": "^2.11.0",
     "@tiptap/extension-placeholder": "^2.11.0",
     "@tiptap/extension-table": "^2.11.0",
+    "@tiptap/extension-table-cell": "^2.11.0",
     "@tiptap/extension-table-header": "^2.11.0",
     "@tiptap/extension-table-row": "^2.11.0",
-    "@tiptap/extension-table-cell": "^2.11.0",
     "@tiptap/extension-task-item": "^2.11.0",
     "@tiptap/extension-task-list": "^2.11.0",
     "@tiptap/extension-text-align": "^2.11.0",
@@ -38,17 +38,18 @@
     "@tiptap/starter-kit": "^2.11.0",
     "@tiptap/vue-3": "^2.11.0",
     "echarts": "^6.0.0",
+    "vue-draggable-plus": "^0.6.1",
     "vue-echarts": "^8.0.1"
   },
   "devDependencies": {
     "@planetcrust/human-test-utils": "workspace:*"
   },
   "peerDependencies": {
-    "lodash-es": "^4.18.0",
-    "vue": "^3.5.0",
-    "vue-i18n": "^11.0.0",
+    "@primeuix/themes": ">=1.0.0",
     "axios": "^1.15.0",
+    "lodash-es": "^4.18.0",
     "qs": "^6.14.2",
-    "@primeuix/themes": ">=1.0.0"
+    "vue": "^3.5.0",
+    "vue-i18n": "^11.0.0"
   }
 }

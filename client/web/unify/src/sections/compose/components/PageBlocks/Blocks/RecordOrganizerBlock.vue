@@ -26,13 +26,14 @@
       </div>
 
       <!-- Records -->
-      <div
-        ref="dropZone"
+      <CDraggableList
+        v-model="records"
         class="flex-1 overflow-auto p-3"
-        :class="{ 'drop-active': dropActive }"
-        @dragover="onDragOver"
-        @dragleave="onDragLeave"
-        @drop="onDrop"
+        :drag-key="blockKey"
+        :group="dragGroup"
+        :disabled="!canDrag"
+        @add="onAdd"
+        @update="onUpdate"
       >
         <div v-if="!records.length" class="text-muted-color text-sm">
           {{ $t('block.recordOrganizer.noRecords') }}
@@ -41,12 +42,10 @@
         <div
           v-for="record in records"
           :key="record.recordID"
+          data-drag-item
           data-organizer-card
           class="record-card p-3 mb-3 border border-surface rounded-border cursor-pointer hover:bg-emphasis transition-colors"
-          :class="{ grab: canDrag, dragging: draggingID === record.recordID }"
-          :draggable="canDrag"
-          @dragstart="onDragStart($event, record)"
-          @dragend="onDragEnd"
+          :class="{ grab: canDrag }"
           @click="handleRecordClick(record)"
         >
           <h6 v-if="labelFieldName" class="font-medium mb-1 text-color">
@@ -74,7 +73,7 @@
             <template v-else>{{ getFieldValue(record, descriptionFieldName) }}</template>
           </p>
         </div>
-      </div>
+      </CDraggableList>
     </div>
   </PageBlock>
 </template>
@@ -87,7 +86,7 @@ import { components, useRecordStore, useModuleStore, usePageStore } from '@plane
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter, getFieldFilter } from '../../../lib/record-filter'
 
-const { CFieldViewer } = components
+const { CFieldViewer, CDraggableList } = components
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -187,10 +186,12 @@ function buildQuery() {
   return filterParts.join(' AND ')
 }
 
-async function pullRecords() {
+// silent skips the spinner: a column refreshing because something moved
+// somewhere else swaps its cards in place rather than blanking to a spinner.
+async function pullRecords({ silent = false } = {}) {
   if (!options.value.moduleID) return
 
-  loading.value = true
+  if (!silent) loading.value = true
 
   try {
     const { namespaceID } = props.namespace
@@ -298,88 +299,50 @@ function createNewRecord() {
 
 // ---- Board drag and drop ----
 //
-// Columns are separate block instances, so a card crosses between them through
-// the browser's dataTransfer rather than any shared state. The moduleID is part
-// of the MIME type because dragover may read `types` but never the payload —
-// putting it in the type is what lets a board refuse a card from another
-// module while the pointer is still moving, instead of on drop.
-const dragMime = moduleID => `application/x-human-record-${moduleID}`
-
-const dropZone = ref(null)
-const dropActive = ref(false)
-const draggingID = ref(null)
+// Columns are separate block instances of one board, joined by the shared
+// draggable's group: the name carries the moduleID, so a column refuses a card
+// from a board over another module before the pointer ever lands.
+//
+// The move itself is local — the card leaves one column's list and enters the
+// other's — so neither of the two columns you are watching refetches anything.
+// The server is told afterwards, and only a rejection moves the card back.
+const blockKey = computed(() => String(props.block.blockID ?? ''))
 
 // Repositioning needs a position field; regrouping needs a group field. With
 // neither there is nothing a drop could change.
 const canDrag = computed(() => !!(options.value.positionField || options.value.groupField))
 
-function onDragStart(e, record) {
-  const { moduleID } = options.value
-  draggingID.value = record.recordID
-  e.dataTransfer.effectAllowed = 'move'
-  e.dataTransfer.setData(
-    dragMime(moduleID),
-    JSON.stringify({ recordID: record.recordID, moduleID }),
-  )
-}
-
-function onDragEnd() {
-  draggingID.value = null
-  dropActive.value = false
-}
-
-function accepts(e) {
-  return canDrag.value && e.dataTransfer.types.includes(dragMime(options.value.moduleID))
-}
-
-function onDragOver(e) {
-  if (!accepts(e)) return
-  e.preventDefault()
-  e.dataTransfer.dropEffect = 'move'
-  dropActive.value = true
-}
-
-function onDragLeave(e) {
-  if (!dropZone.value?.contains(e.relatedTarget)) dropActive.value = false
-}
-
-// Where the pointer landed among the cards already in this column.
-function dropIndex(clientY) {
-  const cards = [...(dropZone.value?.querySelectorAll('[data-organizer-card]') || [])]
-  const above = cards.filter(el => {
-    const box = el.getBoundingClientRect()
-    return clientY > box.top + box.height / 2
-  })
-  return above.length
-}
+const dragGroup = computed(() => ({
+  name: `record-organizer-${options.value.moduleID}`,
+  pull: canDrag.value,
+  put: canDrag.value,
+}))
 
 // Corteza's calcNewPosition: sit one past the card you were dropped behind.
+// The card is already in the list at `index`, so index - 1 is that card.
 function positionFor(index) {
   const { positionField } = options.value
   if (!positionField || index <= 0) return 0
-  const before = records.value[Math.min(index, records.value.length) - 1]
+  const before = records.value[index - 1]
   return parseInt(before?.values?.[positionField] || 0, 10) + 1
 }
 
-async function onDrop(e) {
-  if (!accepts(e)) return
-  e.preventDefault()
-  dropActive.value = false
+// A card dropped in from another column of the board.
+function onAdd({ item, index, fromKey }) {
+  return organize(item, index, fromKey)
+}
+
+// A card moved within this column: it never left, so this column is both ends.
+function onUpdate({ item, index }) {
+  return organize(item, index, blockKey.value)
+}
+
+async function organize(record, index, fromKey) {
+  if (!record?.recordID) return
 
   const { moduleID, positionField, groupField, group } = options.value
-  let payload
-  try {
-    payload = JSON.parse(e.dataTransfer.getData(dragMime(moduleID)) || '{}')
-  } catch {
-    return
-  }
-
-  // A card only ever belongs to a board over its own module.
-  if (!payload.recordID || payload.moduleID !== moduleID) return
-
-  const index = dropIndex(e.clientY)
   const args = [
-    { name: 'recordID', value: String(payload.recordID) },
+    { name: 'recordID', value: String(record.recordID) },
     { name: 'filter', value: buildQuery() },
     { name: 'positionField', value: positionField || '' },
     { name: 'position', value: String(positionFor(index)) },
@@ -392,6 +355,15 @@ async function onDrop(e) {
     args.push({ name: 'group', value: group ?? '' })
   }
 
+  // What the two ends of the move are, so they can ignore an event that only
+  // tells them what they already show.
+  const organized = {
+    recordID: String(record.recordID),
+    moduleID,
+    fromKey,
+    toKey: blockKey.value,
+  }
+
   try {
     await $ComposeAPI.recordExec({
       procedure: 'organize',
@@ -399,12 +371,13 @@ async function onDrop(e) {
       moduleID,
       args,
     })
-    // every column on the board reloads, the one it left included
-    $eventBus?.emit('refetch-records')
+    $eventBus?.emit('refetch-records', { organized })
   } catch (err) {
     console.error('Failed to organize record:', err)
     $toast?.toastErrorHandler(t('block.recordOrganizer.moveFailed'))(err)
-    pullRecords()
+    // The card sits where the server refused to put it; both ends re-read and
+    // it lands back where it came from.
+    $eventBus?.emit('refetch-records', { organized: { ...organized, failed: true } })
   }
 }
 
@@ -419,7 +392,23 @@ watch(
   { deep: true },
 )
 
-const offRefetch = $eventBus?.on('refetch-records', () => pullRecords())
+// A bare refetch — a record was saved somewhere — reloads the column as before.
+// One carrying an organized move is narrower: the two columns it moved between
+// already show it, everyone else swaps their cards in silently.
+const offRefetch = $eventBus?.on('refetch-records', payload => {
+  const organized = payload?.organized
+  if (!organized) return pullRecords()
+
+  const mine = organized.fromKey === blockKey.value || organized.toKey === blockKey.value
+
+  if (organized.failed) {
+    if (mine) pullRecords({ silent: true })
+    return
+  }
+
+  if (mine) return
+  pullRecords({ silent: true })
+})
 
 onBeforeUnmount(() => {
   offRefetch?.()
@@ -433,15 +422,5 @@ onBeforeUnmount(() => {
 
 .grab:active {
   cursor: grabbing;
-}
-
-.dragging {
-  opacity: 0.4;
-}
-
-.drop-active {
-  outline: 2px dashed var(--p-primary-color);
-  outline-offset: -4px;
-  border-radius: var(--p-content-border-radius);
 }
 </style>

@@ -27,7 +27,18 @@ vi.mock('@planetcrust/human-vue', () => ({
   useRecordStore: () => ({ list }),
   useModuleStore: () => moduleStore,
   usePageStore: () => ({ set: [] }),
-  components: { CInputConfirm: { template: '<div />' } },
+  components: {
+    CInputConfirm: { template: '<div />' },
+    CFieldViewer: { props: ['field', 'record'], template: '<span />' },
+    // Stands in for the shared draggable: renders its items and lets a test
+    // emit the moves SortableJS would, which jsdom cannot produce.
+    CDraggableList: {
+      name: 'CDraggableList',
+      props: ['modelValue', 'dragKey', 'group', 'disabled', 'handle', 'itemSelector', 'tag'],
+      emits: ['add', 'update', 'remove', 'end'],
+      template: '<div><slot /></div>',
+    },
+  },
 }))
 
 vi.mock('vue-router', () => ({
@@ -44,21 +55,34 @@ import RecordOrganizerBlock from './RecordOrganizerBlock.vue'
 const recordExec = vi.fn(() => Promise.resolve({}))
 const emit = vi.fn()
 
+// The block's own refetch-records handler, so a test can deliver an event the
+// way another column on the board would.
+let onRefetch = null
+
+const BLOCK_ID = 3
+
 async function mountWith(options, records = []) {
   list.mockResolvedValueOnce({ set: records })
   const w = mount(RecordOrganizerBlock, {
     props: {
-      block: { options: { moduleID: 'M1', labelField: 'title', ...options } },
+      block: { blockID: BLOCK_ID, options: { moduleID: 'M1', labelField: 'title', ...options } },
       namespace: { namespaceID: 'N1' },
     },
     global: {
-      stubs: { Button: true, ProgressSpinner: true, draggable: true },
+      stubs: { Button: true, ProgressSpinner: true },
       directives: { tooltip: {} },
       mocks: { $t: k => k },
       provide: {
         $ComposeAPI: { recordExec },
         $Auth: { user: { userID: 'U1' } },
-        $eventBus: { on: () => () => {}, emit },
+        $eventBus: {
+          on: (name, fn) => {
+            if (name === 'refetch-records') onRefetch = fn
+            return () => {}
+          },
+          emit,
+        },
+        $toast: { toastErrorHandler: () => () => {} },
       },
     },
   })
@@ -66,33 +90,17 @@ async function mountWith(options, records = []) {
   return w
 }
 
+const dragList = w => w.findComponent({ name: 'CDraggableList' })
+const organizeArgs = call => Object.fromEntries(call.args.map(a => [a.name, a.value]))
+
 const lastQuery = () => list.mock.calls.at(-1)[0].query
-
-// A DataTransfer stand-in: jsdom has no drag support, and `types` is the only
-// thing a dragover handler may read, which is why the moduleID rides in the
-// MIME type rather than the payload.
-function transfer(mime, payload) {
-  const store = payload === undefined ? {} : { [mime]: JSON.stringify(payload) }
-  return {
-    // a getter, not a snapshot: setData during dragstart has to show up here
-    get types() {
-      return Object.keys(store)
-    },
-    setData: (t, v) => {
-      store[t] = v
-    },
-    getData: t => store[t] || '',
-    effectAllowed: '',
-    dropEffect: '',
-  }
-}
-
-const MIME = 'application/x-human-record-M1'
 
 beforeEach(() => {
   list.mockClear()
   recordExec.mockClear()
+  recordExec.mockResolvedValue({})
   emit.mockClear()
+  onRefetch = null
 })
 
 describe('RecordOrganizerBlock group filter', () => {
@@ -140,83 +148,168 @@ describe('RecordOrganizerBlock as a board', () => {
     { recordID: 'R2', values: { title: 'Two', pos: '2' } },
   ]
 
-  const zone = w =>
-    w.find('[ref="dropZone"]').exists()
-      ? w.find('[ref="dropZone"]')
-      : w
-          .findAll('div')
-          .find(d => d.attributes('draggable') === undefined && d.classes('overflow-auto'))
+  const moved = { recordID: 'R9', values: { title: 'Nine' } }
+  const board = { groupField: 'status', group: 'done', positionField: 'pos' }
 
-  it('marks cards draggable when a position or group field is configured', async () => {
-    const w = await mountWith({ groupField: 'status', group: 'doing', positionField: 'pos' }, cards)
+  it('drags when a position or group field is configured', async () => {
+    const w = await mountWith({ groupField: 'status', group: 'doing' }, cards)
 
-    expect(w.findAll('[data-organizer-card]')[0].attributes('draggable')).toBe('true')
+    expect(dragList(w).props('disabled')).toBe(false)
   })
 
-  it('leaves cards undraggable when neither field is configured', async () => {
+  it('does not drag when neither field is configured', async () => {
     const w = await mountWith({}, cards)
 
-    expect(w.findAll('[data-organizer-card]')[0].attributes('draggable')).toBe('false')
+    expect(dragList(w).props('disabled')).toBe(true)
   })
 
-  it('puts the moduleID in the drag type so a foreign board refuses the card', async () => {
-    const w = await mountWith({ groupField: 'status', group: 'doing', positionField: 'pos' }, cards)
-    const dataTransfer = transfer(MIME)
+  it('names the drag group after the module so a foreign board refuses the card', async () => {
+    const w = await mountWith(board, cards)
 
-    await w.findAll('[data-organizer-card]')[0].trigger('dragstart', { dataTransfer })
-
-    expect(dataTransfer.types).toContain(MIME)
-    expect(JSON.parse(dataTransfer.getData(MIME))).toMatchObject({
-      recordID: 'R1',
-      moduleID: 'M1',
-    })
+    expect(dragList(w).props('group')).toMatchObject({ name: 'record-organizer-M1' })
   })
 
   it('organizes the record into this column on drop, setting the key field', async () => {
-    const w = await mountWith({ groupField: 'status', group: 'done', positionField: 'pos' }, cards)
+    const w = await mountWith(board, cards)
 
-    await zone(w).trigger('drop', {
-      clientY: 0,
-      dataTransfer: transfer(MIME, { recordID: 'R9', moduleID: 'M1' }),
-    })
+    dragList(w).vm.$emit('add', { item: moved, index: 0, fromKey: '7' })
     await flushPromises()
 
     expect(recordExec).toHaveBeenCalledTimes(1)
     const call = recordExec.mock.calls[0][0]
     expect(call.procedure).toBe('organize')
     expect(call.moduleID).toBe('M1')
-    expect(Object.fromEntries(call.args.map(a => [a.name, a.value]))).toMatchObject({
+    expect(organizeArgs(call)).toMatchObject({
       recordID: 'R9',
       groupField: 'status',
       group: 'done',
       positionField: 'pos',
     })
-    // every column reloads, the one the card left included
-    expect(emit).toHaveBeenCalledWith('refetch-records')
+  })
+
+  it('positions the card one past the card it was dropped behind', async () => {
+    const w = await mountWith(board, cards)
+
+    // dropped at the end: the card now above it is R2, at position 2
+    dragList(w).vm.$emit('add', { item: moved, index: 2, fromKey: '7' })
+    await flushPromises()
+
+    expect(organizeArgs(recordExec.mock.calls[0][0]).position).toBe('3')
+  })
+
+  it('positions a card dropped at the top at zero', async () => {
+    const w = await mountWith(board, cards)
+
+    dragList(w).vm.$emit('add', { item: moved, index: 0, fromKey: '7' })
+    await flushPromises()
+
+    expect(organizeArgs(recordExec.mock.calls[0][0]).position).toBe('0')
+  })
+
+  it('repositions a card moved within the column, naming itself both ends', async () => {
+    const w = await mountWith(board, cards)
+
+    dragList(w).vm.$emit('update', { item: cards[1], index: 0, oldIndex: 1 })
+    await flushPromises()
+
+    expect(recordExec).toHaveBeenCalledTimes(1)
+    expect(emit).toHaveBeenCalledWith('refetch-records', {
+      organized: { recordID: 'R2', moduleID: 'M1', fromKey: '3', toKey: '3' },
+    })
   })
 
   it('sends an empty group for the ungrouped column rather than omitting it', async () => {
-    const w = await mountWith({ groupField: 'status', group: '', positionField: 'pos' }, cards)
+    const w = await mountWith({ ...board, group: '' }, cards)
 
-    await zone(w).trigger('drop', {
-      clientY: 0,
-      dataTransfer: transfer(MIME, { recordID: 'R9', moduleID: 'M1' }),
-    })
+    dragList(w).vm.$emit('add', { item: moved, index: 0, fromKey: '7' })
     await flushPromises()
 
-    const args = Object.fromEntries(recordExec.mock.calls[0][0].args.map(a => [a.name, a.value]))
-    expect(args.group).toBe('')
+    expect(organizeArgs(recordExec.mock.calls[0][0]).group).toBe('')
   })
 
-  it('ignores a card dropped from another module', async () => {
-    const w = await mountWith({ groupField: 'status', group: 'done', positionField: 'pos' }, cards)
+  it('tells the board which two columns the card moved between', async () => {
+    const w = await mountWith(board, cards)
 
-    await zone(w).trigger('drop', {
-      clientY: 0,
-      dataTransfer: transfer('application/x-human-record-M2', { recordID: 'R9', moduleID: 'M2' }),
-    })
+    dragList(w).vm.$emit('add', { item: moved, index: 0, fromKey: '7' })
     await flushPromises()
 
-    expect(recordExec).not.toHaveBeenCalled()
+    expect(emit).toHaveBeenCalledWith('refetch-records', {
+      organized: { recordID: 'R9', moduleID: 'M1', fromKey: '7', toKey: '3' },
+    })
+  })
+})
+
+// A drop used to broadcast a bare refetch-records, and every block on the page
+// answered it with a spinner — eight of them on an eight-column board, for a
+// move two of those columns already showed.
+describe('RecordOrganizerBlock refresh on someone else’s move', () => {
+  const board = { groupField: 'status', group: 'done', positionField: 'pos' }
+
+  const organized = extra => ({ organized: { recordID: 'R9', moduleID: 'M1', ...extra } })
+
+  it('reloads on a bare refetch, as a saved record still requires', async () => {
+    await mountWith(board)
+    list.mockClear()
+
+    onRefetch()
+    await flushPromises()
+
+    expect(list).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaves the two columns the card moved between alone', async () => {
+    await mountWith(board)
+    list.mockClear()
+
+    onRefetch(organized({ fromKey: '3', toKey: '9' }))
+    await flushPromises()
+    onRefetch(organized({ fromKey: '9', toKey: '3' }))
+    await flushPromises()
+
+    expect(list).not.toHaveBeenCalled()
+  })
+
+  it('refreshes a column the move did not touch without blanking it', async () => {
+    const w = await mountWith(board, [
+      { recordID: 'R1', values: { title: 'One', pos: '1' } },
+      { recordID: 'R2', values: { title: 'Two', pos: '2' } },
+    ])
+    list.mockClear()
+
+    let release
+    list.mockReturnValueOnce(new Promise(res => (release = res)))
+
+    onRefetch(organized({ fromKey: '8', toKey: '9' }))
+    await flushPromises()
+
+    // mid-flight: the cards are still on screen, not replaced by a spinner
+    expect(list).toHaveBeenCalledTimes(1)
+    expect(w.findAll('[data-organizer-card]')).toHaveLength(2)
+
+    release({ set: [] })
+    await flushPromises()
+  })
+
+  it('moves the card back when the server refuses it', async () => {
+    const w = await mountWith(board, [{ recordID: 'R1', values: { title: 'One', pos: '1' } }])
+    recordExec.mockRejectedValueOnce(new Error('nope'))
+
+    dragList(w).vm.$emit('add', { item: { recordID: 'R9', values: {} }, index: 0, fromKey: '7' })
+    await flushPromises()
+
+    expect(emit).toHaveBeenCalledWith('refetch-records', {
+      organized: { recordID: 'R9', moduleID: 'M1', fromKey: '7', toKey: '3', failed: true },
+    })
+
+    // and the two ends are exactly who re-reads, so the card lands back
+    list.mockClear()
+    onRefetch(organized({ fromKey: '7', toKey: '3', failed: true }))
+    await flushPromises()
+    expect(list).toHaveBeenCalledTimes(1)
+
+    list.mockClear()
+    onRefetch(organized({ fromKey: '8', toKey: '9', failed: true }))
+    await flushPromises()
+    expect(list).not.toHaveBeenCalled()
   })
 })
