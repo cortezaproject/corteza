@@ -29,8 +29,9 @@ realtime socket, shared stores) to the unify shell.
   named parent).
 - `routes.js` holds the raw legacy route tree (names unchanged: `namespace.*`,
   `pages`/`page`, `admin.modules|pages|charts.*`, `page.record`); index.js
-  prefixes its absolute paths/redirects. Namespace chooser routes set
-  `meta.hideSidebar`.
+  prefixes its absolute paths/redirects. Route meta picks the sidebar: the
+  namespace list sets `meta.hideSidebar`, the create/edit screens set
+  `meta.sidebar: 'namespaces'`.
 - `sidebar: ComposeSidebar`, expanded by default.
 - `agentContext(ctx)`: enriches AI agent context from route params — resolves
   `slug`→namespace, `pageID`→page, `moduleID`→module, `recordID`→record via the

@@ -691,6 +691,11 @@
       "doc": "client/web/unify/src/sections/compose/components/Common/Common.intent.md",
       "t": "2026-08-13"
     },
+    "client/web/unify/src/sections/compose/components/CSidebarNamespaceNav.vue": {
+      "h": "665d8b065ae8",
+      "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
+      "t": "2026-08-14"
+    },
     "client/web/unify/src/sections/compose/components/CSidebarNamespaceSwitcher.vue": {
       "h": "99e0f04d6651",
       "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
@@ -1117,14 +1122,14 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/routes.js": {
-      "h": "71363e0e0164",
+      "h": "4078ab3ba099",
       "doc": "client/web/unify/src/sections/compose/compose.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/sidebar/ComposeSidebar.vue": {
-      "h": "b954733dd1bd",
+      "h": "ae59920896e3",
       "doc": "client/web/unify/src/sections/compose/sidebar/sidebar.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/stores/languages.ts": {
       "h": "42e0bfe1033b",

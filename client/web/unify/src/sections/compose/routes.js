@@ -21,13 +21,15 @@ export const composeRoutes = [
         path: '/namespaces/create',
         name: 'namespace.create',
         component: () => import('./views/Namespace/Edit.vue'),
-        meta: { hideSidebar: true },
+        // The editor sidebar lists the namespaces themselves — the page/module
+        // tree needs a namespace you have entered, which these routes have not.
+        meta: { sidebar: 'namespaces' },
       },
       {
         path: '/namespaces/edit/:slug',
         name: 'namespace.edit',
         component: () => import('./views/Namespace/Edit.vue'),
-        meta: { hideSidebar: true },
+        meta: { sidebar: 'namespaces' },
       },
       {
         path: '/namespace/:slug',

@@ -39,5 +39,6 @@ screens render as its router children.
 ## When changing this
 
 - Slug is optional: every namespace link must fall back to `namespaceID`.
-- Namespace chooser routes keep the sidebar collapsed (`meta.hideSidebar`).
+- The namespace list keeps the sidebar collapsed (`meta.hideSidebar`); create
+  and edit carry the namespace nav instead (`meta.sidebar: 'namespaces'`).
 - Sibling components live in `../../components/Namespaces/` (importer, translator).

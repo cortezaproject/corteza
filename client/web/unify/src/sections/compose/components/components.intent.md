@@ -14,7 +14,7 @@ tests: []
 ## Intention
 
 Shared, non-route components of the compose section. Each family folder carries
-its own intent doc; this doc indexes them and directly governs the two loose
+its own intent doc; this doc indexes them and directly governs the three loose
 sidebar files.
 
 ## Map
@@ -32,6 +32,7 @@ sidebar files.
 - Translator — resource-translation button/dialog/form trio over the translator store
 - CSidebarNamespaceSwitcher.vue — namespace Select for the compose sidebar; navigates on switch, links to namespace manage/edit
 - CSidebarNavigation.vue — sidebar search box plus two trees rendered together, each when it has items: the public page tree and the admin nav (modules/pages/charts). The current route only changes the search placeholder, never which tree shows
+- CSidebarNamespaceNav.vue — the namespace editor's sidebar: a local name/short-name filter over every listable namespace, disabled ones included and badged, each row opening that namespace's editor. Disabled namespaces belong here precisely because this is where they get configured — the switcher, which navigates into a namespace, filters them out
 
 ## Data touched
 

@@ -29,7 +29,7 @@ hide sidebar).
 
 ## Routes
 
-`namespace.create` at `/namespaces/create` and `namespace.edit` at `/namespaces/edit/:slug` (both hide the sidebar). Loads by slug-or-ID via `namespaceStore.getByUrlPart`; unknown slug bounces to `namespace.list`.
+`namespace.create` at `/namespaces/create` and `namespace.edit` at `/namespaces/edit/:slug` (both carry the namespace nav sidebar, `meta.sidebar: 'namespaces'`). Loads by slug-or-ID via `namespaceStore.getByUrlPart`; unknown slug bounces to `namespace.list`.
 
 ## When changing this
 
