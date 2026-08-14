@@ -27,7 +27,7 @@ module's whole lifecycle.
 
 - Tabs: Fields (name/handle + draggable field list), DAL, unique values, record revisions, and an Issues tab shown only when the server reports module issues (opening it triggers the schema-alterations dialog).
 - Per-field row: name/label/kind, required/multi flags, kind-specific configurator modal (shares the draft via `moduleDraft` provide), field permissions, and translation actions (label, select options, bool labels) behind the translator gate; system fields shown read-only below.
-- Validation: module name and handle patterns, field names valid and unique, labels required — errors surface on the Fields tab and block save.
+- Validation: module name required (free text — no pattern), handle matches the handle pattern, field names valid identifiers and unique, field labels required — errors surface on the Fields tab and block save.
 - Related-page actions (`canManageNamespace`): open-or-create the module's record page and record-list page (created pages get a seeded `primary` layout; record page parents under the list page), edit in builder.
 - Discovery/federation settings modals gated by `$Settings` feature flags; export JSON; permissions menu covering module, all fields, and all records wildcards.
 - Save/clone/delete with unsaved-changes guard; create redirects into edit mode.
@@ -41,3 +41,9 @@ module's whole lifecycle.
 - Auto-created pages must use the `compose.PageLayout` type and seed `layout.blocks` from the page blocks — a plain object or empty layout persists disabled toolbar buttons / hides every block (see in-code comments).
 - Record-list detection scans page blocks for a `RecordList` targeting this module; record-page detection is `page.moduleID` — creating the record page requires the list page decision first (`selfID`).
 - Modules with issues auto-open the schema alterations dialog on load.
+- The module name is a label, the handle is the identifier — never apply
+  `isValidFieldName` (the field-name identifier regex) to it; the server validates
+  `Handle` and field names, never `Name`. The name/handle inputs sit in a resolver
+  `Form`, which paints them invalid and renders the message via `CFormGroup`: a
+  hand-bound `:invalid` there is a second rule that `handleSubmit` never checks,
+  so it can show red on something that saves fine.

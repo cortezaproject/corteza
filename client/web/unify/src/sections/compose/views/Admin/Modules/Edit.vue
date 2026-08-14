@@ -159,12 +159,10 @@
               <TabPanel value="fields">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <CFormGroup name="name" :label="$t('module.general.label.name')" required>
-                    <InputText
-                      id="name"
-                      name="name"
-                      v-model="module.name"
-                      :invalid="!module.name || !isValidFieldName(module.name)"
-                    />
+                    <!-- No :invalid here: the module name is a free-text label (the
+                         handle is the identifier), so the resolver's required-only rule
+                         is the whole rule, and the form drives the state from it. -->
+                    <InputText id="name" name="name" v-model="module.name" />
                   </CFormGroup>
 
                   <CFormGroup name="handle" :label="$t('module.general.label.handle')">
@@ -639,7 +637,9 @@ const resolver = ref(({ values }) => {
   return { errors }
 })
 
-// Valid field/module name: starts with letter, only letters/numbers/underscores
+// Valid field name: starts with letter, only letters/numbers/underscores. Field
+// names are identifiers (the server runs handle.IsValid over them); module names
+// are not, so this must not be applied to module.name.
 function isValidFieldName(name) {
   return /^[A-Za-z][A-Za-z0-9_]*$/.test(name)
 }
