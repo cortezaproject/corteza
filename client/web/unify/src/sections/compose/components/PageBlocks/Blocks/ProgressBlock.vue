@@ -52,13 +52,19 @@ const percentage = computed(() => {
   return Math.min(100, Math.max(0, ((value.value - min.value) / range) * 100))
 })
 
+// An aggregate lands here at full float precision — an averaged progress field
+// is 42.77777777777778 — so the absolute label needs the rounding the relative
+// one already applies to its percentage.
+const round2 = n => (Number.isFinite(n) ? String(Math.round(n * 100) / 100) : String(n))
+
 const displayLabel = computed(() => {
   const showProgress = displayOpts.value.showProgress
   if (displayOpts.value.showRelative) {
     const pct = `${Math.round(percentage.value)}%`
     return showProgress ? `${pct} / 100%` : pct
   }
-  return showProgress ? `${value.value} / ${max.value}` : `${value.value}`
+  const val = round2(value.value)
+  return showProgress ? `${val} / ${round2(max.value)}` : val
 })
 
 // Map progress variant → PrimeVue Button severity token suffix
