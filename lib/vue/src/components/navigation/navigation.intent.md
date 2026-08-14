@@ -7,7 +7,8 @@ depends-on:
   - lib/vue/src/plugins/settings.ts
   - lib/vue/src/composables/useInternalLink.ts
 touched-by: []
-tests: []
+tests:
+  - lib/vue/src/components/navigation/CSidebarNav.expand.test.ts
 ---
 
 # navigation/
@@ -53,6 +54,10 @@ so branding/visibility changes need no code.
   grows it; fixed-position elements offset by `--topbar-height` (right
   sidebar, toasts, search overlay) accept the overlap on wrapped bars.
 - All string labels come in via the required `labels` prop (no i18n inside).
+- `expandAll` is a standing instruction, not a starting state. Navs are fed by
+  stores that are still loading at setup, so a group opens when its items
+  arrive, and again whenever the prop turns back on (search toggles it); a
+  group the user collapsed stays collapsed until then.
 
 ## When changing this
 

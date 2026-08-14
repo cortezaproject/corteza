@@ -110,7 +110,28 @@ function getAllParentIds(items) {
   return childParents
 }
 
-const expandedIds = ref(props.expandAll ? getAllParentIds(props.items) : new Set())
+const expandedIds = ref(new Set())
+
+// `expandAll` has to survive items that arrive after setup — a nav fed by a store
+// that is still loading renders its groups empty, and a snapshot taken then keeps
+// them shut for good — and a caller that toggles the prop (search). Each group is
+// expanded once per spell of `expandAll`, so a manual collapse holds.
+const autoExpanded = new Set()
+watch(
+  [() => props.expandAll, () => props.items],
+  ([expandAll, items]) => {
+    if (!expandAll) {
+      autoExpanded.clear()
+      return
+    }
+    for (const id of getAllParentIds(items)) {
+      if (autoExpanded.has(id)) continue
+      autoExpanded.add(id)
+      expandedIds.value.add(id)
+    }
+  },
+  { immediate: true },
+)
 
 // Build tree from flat items
 const tree = computed(() => {
