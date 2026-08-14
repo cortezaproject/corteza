@@ -99,9 +99,12 @@ export function setupAndAuthenticate(app) {
       })
 
       // State management & routing
-      app.use(createPinia())
+      const pinia = createPinia()
+      app.use(pinia)
       app.use(EventBusPlugin)
       app.use(router)
+
+      exposeForDebugging(app, { pinia, router })
 
       // i18n — single consolidated locale bundle for chrome + every section.
       // The UI falls back to English because that is the only bundle there is;
@@ -138,4 +141,32 @@ export function setupAndAuthenticate(app) {
       }
       throw err
     })
+}
+
+// Hands a dev build's router, stores and global properties to whatever is
+// driving the browser — a devtools console, or an automated UI check.
+//
+// Without it, reading component or store state from outside the app means
+// editing the component to park something on `window`, running, then
+// remembering to take it out again: a source edit as a debugging step, on code
+// that is not the one under investigation. `import.meta.env.DEV` is statically
+// false in a production build, so this whole function is dropped at build time.
+function exposeForDebugging(app, { pinia, router }) {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return
+
+  window.__human = {
+    app,
+    router,
+    pinia,
+
+    // Route table as name → path, so a check can look a route up instead of
+    // grepping the section's index.js for it.
+    routes: () => router.getRoutes().map(r => ({ name: r.name, path: r.path, meta: r.meta })),
+
+    // Every initialised Pinia store, by id, with its state readable.
+    stores: () => Object.fromEntries(pinia._s),
+
+    // The `$Foo` globals (`$SystemAPI`, `$Settings`, `$Auth`, …).
+    globals: () => app.config.globalProperties,
+  }
 }

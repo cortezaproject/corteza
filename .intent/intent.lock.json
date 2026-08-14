@@ -117,9 +117,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/plugins/index.js": {
-      "h": "637feb0b4a51",
+      "h": "da8269f33081",
       "doc": "client/web/unify/src/plugins/plugins.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/plugins/setupAndAuthenticate.test.js": {
       "h": "48ff1416139b",
@@ -3707,9 +3707,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/components/input/CEditorActions.vue": {
-      "h": "c212de6892bd",
+      "h": "71b4e9d2c906",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-14"
     },
     "lib/vue/src/components/input/CFieldPicker.vue": {
       "h": "41a9b8517b55",
@@ -3932,9 +3932,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/navigation/CSidebar.vue": {
-      "h": "5742b6a87ffa",
+      "h": "07987a636910",
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-14"
     },
     "lib/vue/src/components/navigation/CSidebarNav.expand.test.ts": {
       "h": "aeccd4420b1c",
@@ -3957,9 +3957,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/components/navigation/CTopbar.vue": {
-      "h": "152b5dcb904f",
+      "h": "1c7738e2b8db",
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-08-14"
     },
     "lib/vue/src/components/navigation/index.ts": {
       "h": "8a1e0cf55eef",

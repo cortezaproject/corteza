@@ -24,6 +24,7 @@ plugin registration, settings, Pinia, router, i18n, theming, PrimeVue services.
 - API plugins registered here (`$SystemAPI`, `$ComposeAPI`, `$AutomationAPI`, `$DiscoveryAPI`, `$FederationAPI`) are the only API access path for the app.
 - i18n loads the single merged `human-webapp` bundle in the user's preferred language; missing translations fall back to `{}`, never block boot.
 - PrimeVue theme preset comes from user meta + studio themes setting; CSS layer order `tailwind-base, primevue, tailwind-utilities` is load-bearing for styling.
+- A dev build publishes `window.__human` (`router`, `pinia`, `routes()`, `stores()`, `globals()`) so the running app can be inspected from a console or a UI check without editing a component to park state on `window`. Guarded by `import.meta.env.DEV`, so a production build drops it.
 
 ## When changing this
 
