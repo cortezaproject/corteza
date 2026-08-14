@@ -21,6 +21,11 @@ const (
 	// minSubject catches "fix", "wip" and "update" — subjects that pass every
 	// other rule and say nothing.
 	minSubject = 12
+
+	// maxBody is one short sentence. Measured in characters rather than lines
+	// because a wrapped sentence is still one sentence, while three tight lines
+	// are already an essay.
+	maxBody = 160
 )
 
 // aiTrailer matches the attribution this repo does not use. Checked over the
@@ -60,8 +65,9 @@ func registerCommit(reg *mcpkit.Registry, root string) {
 				"One imperative line, under 72 characters, no trailing period. \"Fix the parser\" not "+
 					"\"Fixed the parser\" and not \"fix\".")),
 			mcp.WithString("body", mcp.Description(
-				"Optional, two or three lines, only when the why is not obvious from the diff. Most commits "+
-					"here have no body.")),
+				"Optional and usually omitted: at most one short sentence naming what changed, for when the "+
+					"subject cannot hold it. Not prose, not the reasoning — the diff shows what, the intent "+
+					"doc holds why.")),
 			mcp.WithString("files", mcp.Description(
 				"Space-separated repo-relative paths to stage. Omit to commit what is already staged, which "+
 					"is how you keep a commit atomic when the working tree holds unrelated work.")),
@@ -204,9 +210,16 @@ func checkMessage(subject, body string) []string {
 		}
 	}
 
-	if strings.Count(body, "\n") > 4 {
-		out = append(out, "body is longer than three or four lines; this repo keeps the why short, and the "+
-			"diff says the what")
+	if trimmed := strings.TrimSpace(body); trimmed != "" {
+		if len(trimmed) > maxBody {
+			out = append(out, fmt.Sprintf("body is %d characters, over the %d limit — a body here is one "+
+				"short sentence naming what changed, not prose and not the reasoning",
+				len(trimmed), maxBody))
+		}
+
+		if strings.Contains(trimmed, "\n\n") {
+			out = append(out, "body has more than one paragraph; it is one short sentence or nothing")
+		}
 	}
 
 	return out

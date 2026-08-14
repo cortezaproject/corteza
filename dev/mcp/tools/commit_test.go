@@ -16,8 +16,8 @@ func TestCheckMessage(t *testing.T) {
 		want    string // substring of the expected refusal; empty means accept
 	}{
 		{name: "ordinary subject", subject: "Fix the argument binding path"},
-		{name: "subject with a short body", subject: "Resolve notification recipient IDs",
-			body: "The ID path trusted its input, so a nonexistent user\nwrote a notification addressed to nobody."},
+		{name: "subject with a one-sentence body", subject: "Resolve notification recipient IDs",
+			body: "Recipient IDs now go through a lookup instead of being trusted."},
 
 		{name: "past tense", subject: "Fixed the argument binding path", want: "not imperative"},
 		{name: "third person", subject: "Fixes the argument binding path", want: "not imperative"},
@@ -43,10 +43,18 @@ func TestCheckMessage(t *testing.T) {
 			want:    "AI attribution",
 		},
 		{
-			name:    "essay body",
+			name:    "prose body",
 			subject: "Fix the argument binding path",
-			body:    "one\ntwo\nthree\nfour\nfive\nsix",
-			want:    "longer than three",
+			body: "The converter trusted whatever the caller supplied, which meant a malformed " +
+				"argument stored cleanly and then failed at execution time with nothing in the log " +
+				"to say which step had gone wrong.",
+			want: "over the 160",
+		},
+		{
+			name:    "two paragraphs",
+			subject: "Fix the argument binding path",
+			body:    "Binds arguments by name.\n\nAlso tidies the converter.",
+			want:    "more than one paragraph",
 		},
 	}
 

@@ -51,8 +51,10 @@ warns on the rest; `/dev-change`, `/dev-task` and `/intent-task` point here.
 - **Author**: the human user. No `Co-Authored-By`, no generated-with line, no
   robot emoji, anywhere in the message.
 - **Message**: one imperative subject, capitalised, under 72 characters, no
-  trailing period. Body only when the why isn't obvious from the diff — 2–3
-  lines, never more.
+  trailing period — usually the whole message. A body is at most **one short
+  sentence naming what changed**, for when the subject cannot hold it. Never
+  prose, never the reasoning: why belongs in the intent doc, the diff shows
+  what.
 - **Atomic**: docs, bugfix and cleanup are separate commits. A product fix and
   a tooling fix are two commits even when made in one sitting. Name the files
   in `files` rather than sweeping the tree — it often holds someone else's
