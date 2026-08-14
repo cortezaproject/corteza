@@ -56,9 +56,22 @@
           <CInputToggleCard
             :model-value="lockBounds"
             :label="$t('block.geometry.lockBounds')"
-            :description="$t('block.geometry.lockBoundsDescription')"
             @update:model-value="onLockBoundsToggle"
-          />
+          >
+            <template #description>
+              {{ $t('block.geometry.lockBoundsDescription') }}
+              <Button
+                v-if="lockBounds"
+                :label="$t('block.geometry.updateBounds')"
+                :disabled="!boundsDifferFromView"
+                size="small"
+                severity="secondary"
+                outlined
+                class="mt-2"
+                @click.stop="updateBoundsToView"
+              />
+            </template>
+          </CInputToggleCard>
         </div>
       </div>
     </Fieldset>
@@ -319,9 +332,22 @@ function onMapBounds(b) {
   currentMapBounds.value = b
 }
 
-// Locking captures the area on screen right now and freezes the preview on it;
-// unlocking gives the map back and drops the area, since nothing is bounded any
-// more.
+// While locked the map can still be zoomed, so the view and the saved area
+// drift apart; the update button is offered only when they actually have.
+const boundsDifferFromView = computed(
+  () =>
+    lockBounds.value &&
+    !!currentMapBounds.value &&
+    !mapGeo.sameBounds(mapGeo.roundBounds(currentMapBounds.value), lockedBounds.value),
+)
+
+function updateBoundsToView() {
+  const bounds = mapGeo.roundBounds(currentMapBounds.value)
+  if (bounds) updateOptions({ bounds })
+}
+
+// Locking captures the area on screen right now; unlocking drops it, since a
+// map with nothing to bound it has no area to remember.
 function onLockBoundsToggle(v) {
   if (!v) {
     updateOptions({ lockBounds: false, bounds: null })

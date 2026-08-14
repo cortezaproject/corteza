@@ -747,7 +747,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/ModuleFields/Configurator/kinds/Geometry.vue": {
-      "h": "e1ecae01d553",
+      "h": "62ff04a27b20",
       "doc": "client/web/unify/src/sections/compose/components/ModuleFields/ModuleFields.intent.md",
       "t": "2026-08-14"
     },
@@ -952,7 +952,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/GeometryConfigurator.vue": {
-      "h": "ddba0d778640",
+      "h": "3edd15d3ae69",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-08-14"
     },

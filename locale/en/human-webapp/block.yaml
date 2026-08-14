@@ -412,7 +412,7 @@ geometry:
     lockBounds: Lock bounds
     lowerRight: Bounds lower right
     topLeft: Bounds top left
-  boundsLockedHint: Panning is limited to the outlined area — drag past it and the map snaps back. Zoom in to move around inside the area. Turn the lock off to save a different one.
+  boundsLockedHint: Panning is limited to the outlined area — drag past it and the map snaps back. Zoom in to move around inside it, then use Update locked area to save what you see. Turn the lock off to start over.
   boundsMaxLat: Max latitude
   boundsMaxLng: Max longitude
   boundsMinLat: Min latitude
@@ -468,6 +468,7 @@ geometry:
   startingView: Starting view
   tooltip:
     goToCurrentLocation: Go to current location
+  updateBounds: Update locked area to this view
   viewLabel: Map
   zoom: Zoom
   zoom-config:

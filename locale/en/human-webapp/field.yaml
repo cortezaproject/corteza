@@ -95,7 +95,7 @@ kind:
           label: Enable Webcam Capture
       width: Width
   geometry:
-    boundsLockedHint: Panning is limited to the outlined area — drag past it and the map snaps back. Zoom in to move around inside the area. Turn the lock off to save a different one.
+    boundsLockedHint: Panning is limited to the outlined area — drag past it and the map snaps back. Zoom in to move around inside it, then use Update locked area to save what you see. Turn the lock off to start over.
     clickToPlaceMarker: Click to place/remove a marker
     geosearchInputPlaceholder: Enter address, place or postcode
     hideCurrentLocationButton: Hide current location button
@@ -118,6 +118,7 @@ kind:
       useCurrentLocation: Use current location
       zoomIn: Zoom in
       zoomOut: Zoom out
+    updateBounds: Update locked area to this view
   number:
     displayType:
       label: Display type
