@@ -97,6 +97,12 @@ const ns = await page.evaluate(() => window.__human.stores().namespace.set.lengt
 Shell landmarks carry test ids: `app-sidebar`, `app-topbar`, `editor-actions`,
 `editor-back`.
 
+Read a container's text with `textContent`, not `innerText`. `innerText` is
+layout-dependent and returns only part of the subtree for panels inside a
+dialog — a check asking "does this form have a Page Layout field" answers no
+while the screenshot of the same moment shows the field. `textContent` sees the
+DOM as it is; use a visibility assertion when visibility is the question.
+
 ## API gotchas (learned the hard way)
 
 - **Trailing slash matters** on collection endpoints: `/system/users/` works,
@@ -125,6 +131,12 @@ Shell landmarks carry test ids: `app-sidebar`, `app-topbar`, `editor-actions`,
   is keyed by resource kind while the SetValue write-back expects
   `Blocks.N.Options.…` paths (`server/compose/envoy/store_decode.go`
   `toEnvoyRefs`). Pages/charts go through `pagebuild.py` instead.
+- **Re-running `pagebuild.py` over an existing page does not extend its
+  layout.** The tool writes `blocks` and nothing else; the layout the server
+  gave the page at creation still lists the original blockIDs, so blocks a
+  later run adds are stored but never rendered — the page quietly shows a
+  subset while the tool prints "page … updated". Delete the page and let it be
+  created again when the block set changes.
 - **Do not let the formatter touch a generated file.** `dev_format_run` with no
   arguments formats everything git reports as changed, and prettier realigns
   the markdown tables in `server/system/agentic/mcp/TOOLS.md` — which is
