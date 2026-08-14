@@ -527,9 +527,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/agentic/sidebar/AgenticSidebar.vue": {
-      "h": "5be372c847a7",
+      "h": "9cd6875eac46",
       "doc": "client/web/unify/src/sections/agentic/sidebar/sidebar.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/agentic/views/Editor.vue": {
       "h": "59cb1ba4af78",
@@ -692,7 +692,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/CSidebarNamespaceNav.vue": {
-      "h": "665d8b065ae8",
+      "h": "49d853d066cc",
       "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
       "t": "2026-08-14"
     },
@@ -2567,9 +2567,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/sidebar/WorkflowSidebar.vue": {
-      "h": "9fef2c77ab77",
+      "h": "945c5046dc8f",
       "doc": "client/web/unify/src/sections/workflow/sidebar/sidebar.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-14"
     },
     "client/web/unify/src/sections/workflow/stores/labels.js": {
       "h": "17f6abdc1b36",

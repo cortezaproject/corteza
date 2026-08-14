@@ -14,13 +14,14 @@ tests: []
 
 ## Intention
 
-Left navigation for the section: a Home entry plus a deep link to every
-workflow, so any workflow's canvas is one click away from anywhere in the
-section.
+Left navigation for the section: a deep link to every workflow, so any
+workflow's canvas is one click away from anywhere in the section. The
+"Workflows" header is itself the link to the list — clicking it navigates, its
+chevron expands — so the list needs no second entry of its own.
 
 ## Map
 
-- `WorkflowSidebar.vue` — CSidebarNav tree: Home (`workflow.list`) and an alphabetized (by display label) child list of workflows → `workflow.edit`.
+- `WorkflowSidebar.vue` — CSidebarNav tree: a "Workflows" header (`workflow.list`) over an alphabetized (by display label) child list of workflows → `workflow.edit`.
 
 ## Data touched
 

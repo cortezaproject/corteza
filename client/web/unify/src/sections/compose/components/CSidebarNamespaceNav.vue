@@ -68,23 +68,12 @@ const filteredNamespaces = computed(() => {
 
 const navItems = computed(() => [
   {
-    _id: 'all',
+    _id: 'namespaces',
     _parentId: '0',
-    _label: t('sidebar.allNamespaces'),
+    _label: t('general.label.namespace.plural'),
     _icon: 'pi pi-th-large',
     _route: { name: 'namespace.list' },
   },
-  ...(filteredNamespaces.value.length
-    ? [
-        {
-          _id: 'namespaces',
-          _parentId: '0',
-          _label: t('general.label.namespace.plural'),
-          _icon: 'pi pi-folder',
-          _divider: true,
-        },
-      ]
-    : []),
   ...filteredNamespaces.value.map(ns => ({
     _id: ns.namespaceID,
     _parentId: 'namespaces',

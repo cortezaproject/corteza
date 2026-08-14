@@ -14,12 +14,14 @@ tests: []
 
 ## Intention
 
-The section's left navigation: a Home entry plus an "Agents" group with one
-child link per agent, so any agent's editor is one click away.
+The section's left navigation: an "Agents" group holding one child link per
+agent, so any agent's editor is one click away. The group header is itself the
+link to the agent list — clicking it navigates, its chevron expands — so the
+list needs no second entry of its own.
 
 ## Map
 
-- `AgenticSidebar.vue` — `CSidebarNav` tree (exact route matching, all groups expanded, divider before the agents group).
+- `AgenticSidebar.vue` — `CSidebarNav` tree (exact route matching, all groups expanded).
 
 ## Data touched
 

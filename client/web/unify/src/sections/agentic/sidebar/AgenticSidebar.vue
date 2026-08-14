@@ -35,18 +35,11 @@ onMounted(() => {
 
 const navItems = computed(() => [
   {
-    _id: 'home',
-    _parentId: '0',
-    _label: t('navigation.home'),
-    _icon: 'pi pi-home',
-    _route: { name: 'agentic' },
-  },
-  {
     _id: 'agents',
     _parentId: '0',
     _label: t('navigation.agents'),
     _icon: 'pi pi-android',
-    _divider: true,
+    _route: { name: 'agentic' },
   },
   ...[...agentStore.list]
     .sort((a, b) => {
