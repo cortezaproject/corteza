@@ -41,7 +41,7 @@ func (h *recordHandler) register() {
 			mcp.WithDescription("Create a new record. If you do not know the field names, call compose_module_lookup first to get them."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
-			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs")),
+			mcp.WithString("values", mcp.Required(), mcp.Description(recordValuesDoc)),
 			hmcp.InGroup(hmcp.GroupUsage),
 			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
@@ -60,7 +60,7 @@ func (h *recordHandler) register() {
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
-			mcp.WithString("values", mcp.Required(), mcp.Description("JSON object of field name-value pairs to update")),
+			mcp.WithString("values", mcp.Required(), mcp.Description(recordValuesDoc+" On update these REPLACE the record's values: send the whole set a field should end up with, not just what changed. Adding one value to a multi-value field means reading the record with compose_record_lookup and writing the full list back.")),
 			hmcp.InGroup(hmcp.GroupUsage),
 			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),
@@ -112,3 +112,9 @@ func (h *recordHandler) register() {
 		h.undelete,
 	)
 }
+
+const recordValuesDoc = `JSON object of field name to value: {"title":"Kickoff","attendees":42,"done":true}. ` +
+	`A MULTI-VALUE field takes an array, and each element becomes one of the record's values in the ` +
+	`order given: {"tags":["red","blue"]}. A field whose value is itself structured takes an object, ` +
+	`stored as its JSON — a Geometry point is {"geo":{"coordinates":[46.05,14.51]}} (latitude first). ` +
+	`Anything else is refused rather than guessed at.`

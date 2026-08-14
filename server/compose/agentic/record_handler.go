@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -108,15 +109,12 @@ func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	valuesMap, err := parseValues(args["values"])
+	values, err := parseValues(args["values"])
 	if err != nil {
 		return nil, err
 	}
 
-	rec := &cmpTypes.Record{NamespaceID: nsID, ModuleID: modID}
-	for name, value := range valuesMap {
-		rec.Values = append(rec.Values, &cmpTypes.RecordValue{Name: name, Value: value})
-	}
+	rec := &cmpTypes.Record{NamespaceID: nsID, ModuleID: modID, Values: values}
 
 	rec, _, err = cmpService.DefaultRecord.Create(ctx, rec)
 	if err != nil {
@@ -141,15 +139,12 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	valuesMap, err := parseValues(args["values"])
+	values, err := parseValues(args["values"])
 	if err != nil {
 		return nil, err
 	}
 
-	rec := &cmpTypes.Record{ID: recID, NamespaceID: nsID, ModuleID: modID}
-	for name, value := range valuesMap {
-		rec.Values = append(rec.Values, &cmpTypes.RecordValue{Name: name, Value: value})
-	}
+	rec := &cmpTypes.Record{ID: recID, NamespaceID: nsID, ModuleID: modID, Values: values}
 
 	rec, _, err = cmpService.DefaultRecord.Update(ctx, rec)
 	if err != nil {
@@ -205,9 +200,23 @@ func (h *recordHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (
 	return toolkit.TextResult("record %d restored", recID), nil
 }
 
-// parseValues accepts field values as either a JSON object or a JSON string
-// holding one, because models produce both.
-func parseValues(raw any) (map[string]string, error) {
+// parseValues turns the `values` argument into the record values the store
+// actually holds: a LIST of {name, value, place}, not a map of name to value.
+//
+// A multi-value field is several values sharing a name, told apart by place, so
+// a map cannot express one — and the tool's own parameter is a JSON object,
+// which cannot carry a key twice. An array is therefore how a caller says
+// "these several", and each element becomes its own value.
+//
+// Everything that is not a scalar, an array or an object is refused rather than
+// stringified. The predecessor ran every value through fmt.Sprintf("%v"), which
+// turned ["a","b"] into the literal `[a b]` and {"coordinates":[46,14]} into
+// `map[coordinates:[46 14]]`; whether that surfaced as an error or as stored
+// garbage was decided by how strict the field kind's validator happened to be,
+// so String, Number, DateTime and Geometry took it silently.
+func parseValues(raw any) (cmpTypes.RecordValueSet, error) {
+	var m map[string]any
+
 	switch v := raw.(type) {
 	case nil:
 		return nil, fmt.Errorf("values is required")
@@ -215,22 +224,67 @@ func parseValues(raw any) (map[string]string, error) {
 		if v == "" {
 			return nil, fmt.Errorf("values is required")
 		}
-		var m map[string]any
 		if err := json.Unmarshal([]byte(v), &m); err != nil {
 			return nil, fmt.Errorf("invalid values JSON: %w", err)
 		}
-		out := make(map[string]string, len(m))
-		for key, val := range m {
-			out[key] = fmt.Sprintf("%v", val)
-		}
-		return out, nil
 	case map[string]any:
-		out := make(map[string]string, len(v))
-		for key, val := range v {
-			out[key] = fmt.Sprintf("%v", val)
-		}
-		return out, nil
+		m = v
 	default:
 		return nil, fmt.Errorf("invalid values: expected JSON string or object")
+	}
+
+	// Map iteration is unordered and these become rows; fix an order so the
+	// same payload always produces the same record.
+	names := make([]string, 0, len(m))
+	for name := range m {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	out := make(cmpTypes.RecordValueSet, 0, len(m))
+	for _, name := range names {
+		switch val := m[name].(type) {
+		case []any:
+			for i, item := range val {
+				str, err := recordValueString(name, item)
+				if err != nil {
+					return nil, err
+				}
+				out = append(out, &cmpTypes.RecordValue{Name: name, Value: str, Place: uint(i)})
+			}
+		default:
+			str, err := recordValueString(name, val)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, &cmpTypes.RecordValue{Name: name, Value: str})
+		}
+	}
+
+	return out, nil
+}
+
+// recordValueString renders one value the way the store keeps it: scalars as
+// themselves, and an object as its JSON, which is the form a Geometry value is
+// held in. A nested array has no meaning — a field is one value or a list of
+// them, never a list of lists — so it is refused rather than guessed at.
+func recordValueString(name string, val any) (string, error) {
+	switch v := val.(type) {
+	case nil:
+		return "", nil
+	case string:
+		return v, nil
+	case bool, float64, float32, int, int64, uint64, json.Number:
+		return fmt.Sprintf("%v", v), nil
+	case map[string]any:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return "", fmt.Errorf("value of %q cannot be encoded: %w", name, err)
+		}
+		return string(b), nil
+	default:
+		return "", fmt.Errorf(
+			"value of %q is a %T, which is not a field value; send a string, number, "+
+				"boolean, an object, or an array of those for a multi-value field", name, val)
 	}
 }
