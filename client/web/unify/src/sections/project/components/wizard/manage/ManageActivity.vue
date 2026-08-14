@@ -13,11 +13,7 @@
 // Manage & Monitor > Monitor > Activity — the dashboard's activity screen
 // (components/dashboard/ActivityPanel.vue), scoped to the ONE revision open in
 // the wizard (route.params.projectId), same revision-scoping contract as
-// ManageOverview.vue/ManageBoard.vue/the Manage<Category>.vue files. Absorbs
-// what used to be this file's placeholder body (ruled 2026-07-28 — see
-// views/views.intent.md / DashboardLayout.intent.md: the dashboard and the
-// wizard's Manage & Monitor tab are ONE surface differing only in scope, "All
-// Events" renamed to "Activity" on both).
+// ManageOverview.vue/ManageBoard.vue/the Manage<Category>.vue files.
 //
 // UNLIKE ManageBoard.vue/the Manage<Category>.vue files, this section loads
 // NO stores of its own — ActivityPanel talks to the actionlog endpoints
@@ -26,15 +22,13 @@
 // (rootProjectId, revisionId) from the `project` prop and passing them
 // through, same as ManageOverview.vue.
 //
-// REVISION FILTERING CAVEAT: the actionlog endpoints do not accept a
-// revisionID filter yet (it is landing separately, server-side) — until it
-// does, `revisionId` is wired through but has no effect, so this panel shows
-// the same chain-wide events the dashboard does. Even once the filter lands,
-// it will not show everything for this revision: work items are filed
+// REVISION FILTERING CAVEAT: the actionlog endpoints accept no revisionID
+// filter, so `revisionId` is wired through but has no effect and this panel
+// shows the same chain-wide events the dashboard does. Work items are filed
 // against the chain ROOT (project.rootProjectID), not a revision, so their
 // audit events are never revision-attributable — only this revision's own
-// build artifacts (namespaces, workflows, agents, etc.) will actually narrow.
-// See ActivityPanel.vue's own prop comment for the full detail.
+// build artifacts (namespaces, workflows, agents) can narrow at all. See
+// ActivityPanel.vue's own prop comment.
 import ActivityPanel from '@/sections/project/components/dashboard/ActivityPanel.vue'
 import { computed } from 'vue'
 

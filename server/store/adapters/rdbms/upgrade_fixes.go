@@ -1869,12 +1869,7 @@ func fix_2026_07_30_addArchivedAtOnProjects(ctx context.Context, s *Store) error
 }
 
 // fix_2026_07_31_addApprovalOnProjects gives the publish approval cycle a home
-// on the revision row.
-//
-// It used to live in a Pinia ref in the browser: it did not survive a reload, a
-// second user never saw a submitted request, a submitter could approve their
-// own work, and the server published on confirm=true alone -- so the entire
-// gate was advisory. Publishing is now refused unless the row says approved.
+// on the revision row, so publishing is refused unless the row says approved.
 //
 // Existing rows come back as drafts (the zero value of the new column), which
 // is the safe reading: nothing that was never reviewed should be publishable

@@ -114,8 +114,7 @@ const { revisionOptions, ensureLoaded: ensureRevisionsLoaded } = useRevisionOpti
 // approver selects render names and yield user IDs; inject the revision chain
 // into the `source: 'revisions'` field the same way. The revision field itself
 // is dropped entirely (not just disabled) when `allowRevisionSelect` is false,
-// so its `default: null` never seeds `model.revisionID` — an unshown field
-// must behave exactly as it did before this field existed (see the prop's own
+// so its `default: null` never seeds `model.revisionID` (see the prop's own
 // comment).
 const resolvedSchema = computed(() =>
   props.schema.map(section => ({

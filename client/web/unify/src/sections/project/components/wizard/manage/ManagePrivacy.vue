@@ -25,10 +25,8 @@ const props = defineProps({
   // filed against (see stores/projects.js's Project class).
   project: { type: Object, required: true },
   // Passed by Wizard.vue to every M&M section, but deliberately NOT enforced
-  // here: creating/editing/deleting items is ungated, matching the
-  // dashboard's own CategoryView (never capability-gated) and ManageBoard.vue's
-  // quick-add. Ruled 2026-07-28 — revisit when member roles and what each may
-  // do are refined.
+  // here: creating/editing/deleting items is ungated, matching the dashboard's
+  // own CategoryView and ManageBoard.vue's quick-add.
   disabled: { type: Boolean, default: false },
 })
 

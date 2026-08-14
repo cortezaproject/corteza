@@ -83,15 +83,14 @@ func InGroup(groups ...Group) mcp.ToolOption {
 	}
 }
 
-// WithRisk tags a tool's risk level and is the sole writer of the protocol's
+// WithRisk tags a tool’s risk level and is the sole writer of the protocol’s
 // four annotation hints.
 //
 // Authors must not set the hints by hand. mcp.NewTool defaults DestructiveHint
 // and OpenWorldHint to true and always serializes annotations, so a tool that
 // does not override them advertises itself to every client as destructive and
-// open-world — which is what all 29 tools did before this existed, read-only
-// lookups included. Deriving the hints from one declared risk level makes that
-// state unreachable.
+// open-world, read-only lookups included. Deriving the hints from one declared
+// risk level makes that state unreachable.
 func WithRisk(r Risk) mcp.ToolOption {
 	return func(t *mcp.Tool) {
 		ensureMeta(t)
@@ -122,13 +121,11 @@ func WithRisk(r Risk) mcp.ToolOption {
 // WithKeywords records the words a caller is likely to use for this tool that
 // its name does not contain.
 //
-// Search ranks a name match far above a description match, which leaves no way
-// to make a tool findable by a word that is not in its name: putting "report"
-// in a chart tool's description scores the same +1 as every unrelated tool that
-// happens to mention reporting in passing, so the tie falls through to
-// alphabetical order and the right answer loses. Measured before this existed:
-// "dashboard" matched nothing at all, and "report" returned five TAQ tools and
-// no charts or pages.
+// Search ranks a name match far above a description match, leaving no other way
+// to make a tool findable by a word outside its name: "report" in a chart
+// tool’s description scores the same +1 as every unrelated tool mentioning
+// reporting in passing, so the tie falls through to alphabetical order and the
+// right answer loses.
 //
 // Keywords are for vocabulary the user brings and Human does not use — the
 // outside word for an inside thing. They are not a place to repeat the name, or

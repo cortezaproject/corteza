@@ -17,16 +17,13 @@ import (
 
 // The publish approval cycle: draft -> submitted -> approved | rejected.
 //
-// Until 2026-07-31 every bit of this lived in a Pinia ref in the browser. It
-// did not survive a reload, a second user never saw a submitted request, the
-// submitter could approve their own work, and Publish asked for nothing but
-// confirm=true -- its own doc comment said so. On a compliance product the
-// approval is the point: it is the record that a human other than the author
-// agreed to put this revision in front of real users.
+// Server state, not the browser's: it survives a reload, a second user sees a
+// submitted request, and the submitter cannot approve their own work. On a
+// compliance product the approval is the point -- it is the record that a human
+// other than the author agreed to put this revision in front of real users.
 //
-// Two capabilities, both already computed by ProjectMemberRole.Capabilities()
-// and, until this file, checked nowhere: CanRequestApproval submits,
-// CanGrantApproval decides. They are read off the caller's membership of the
+// Two capabilities, computed by ProjectMemberRole.Capabilities():
+// CanRequestApproval submits, CanGrantApproval decides. They are read off the caller's membership of the
 // chain ROOT (members are stored there -- see onAddMember), so a role granted
 // on a project applies to every revision of it.
 

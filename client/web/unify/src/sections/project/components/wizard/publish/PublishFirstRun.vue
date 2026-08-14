@@ -68,11 +68,10 @@
 
 <script setup>
 // The first publish — its own screen, not the revision flow with its middle
-// emptied out (ruled 2026-07-29). Nothing is being replaced and nothing can be
-// lost, so there is no diff to read and no migration to decide; the questions
-// worth answering are what this project contains and who is about to get it.
-// It reports what exists and never judges readiness: everything shown is real
-// persisted data, so it cannot be wrong.
+// emptied out. Nothing is being replaced and nothing can be lost, so there is no
+// diff to read and no migration to decide; the questions worth answering are
+// what this project contains and who is about to get it. It reports what exists
+// and never judges readiness.
 import ResourceCount from './ResourceCount.vue'
 import { rolePreset } from '@/sections/project/config/roles'
 import { useProjectUsersStore } from '@/sections/project/stores/users'

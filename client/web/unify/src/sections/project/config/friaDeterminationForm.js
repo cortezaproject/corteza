@@ -1,17 +1,12 @@
 // FRIA Determination — the AI Act deployer-category questions that decide
 // whether a Fundamental Rights Impact Assessment is required (Art. 27).
 //
-// Moved here from components/project/NewProjectDialog.vue's old create-flow
-// step 2 (ruled 2026-07-28): project creation collects name + description
-// only now; this data is instead the Govern tab's own FRIA flow, first step
+// The first step of the Govern tab's FRIA flow, not part of project creation
 // (see config/pipeline.js's 'fria-determination' entry and
-// components/wizard/steps/FriaDeterminationStep.vue). Labels intentionally
-// keep the existing project.deployer.* i18n keys (in
-// locale/en/human-webapp/project.yaml) rather than moving them into
-// fria.yaml — the backend fields this data still feeds
-// (ProjectDeployerCategories, FriaRequired) are untouched by this pass, and
-// those keys are the copy for that same backend concept, just relocated in
-// the UI.
+// components/wizard/steps/FriaDeterminationStep.vue). Labels keep the
+// project.deployer.* i18n keys in locale/en/human-webapp/project.yaml rather
+// than moving to fria.yaml: they are the copy for the backend fields this feeds
+// (ProjectDeployerCategories, FriaRequired).
 export const DEPLOYER_QUESTIONS = [
   { key: 'publicAuthorityAnnex3', labelKey: 'project.deployer.questions.publicAuthorityAnnex3' },
   {

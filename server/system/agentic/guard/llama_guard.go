@@ -193,16 +193,10 @@ func (lg *LlamaGuard) parseLlamaGuardOutput(output string) *GuardResult {
 		}
 	}
 
-	// The model said "unsafe". Block, whatever came after it.
-	//
-	// This used to fall through to safe() when no category survived parsing —
-	// a bare "unsafe", an unrecognised category, or every category held below
-	// its threshold all produced "not blocked". A guard that fails open on a
-	// response it does not fully understand is worse than no guard, because the
-	// content it silently passes is exactly the content the model flagged.
-	//
-	// A threshold can still suppress a *named* category; what it cannot do any
-	// more is suppress the verdict itself.
+	// The model said "unsafe". Block, whatever came after it — a bare "unsafe", an
+	// unrecognised category, or every category below its threshold all still block.
+	// A guard that fails open on a response it does not fully understand is worse
+	// than no guard, because what it silently passes is what the model flagged.
 	if len(blockedNames) == 0 {
 		reason := "content classified as unsafe"
 		if len(categories) > 0 {

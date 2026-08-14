@@ -18,10 +18,7 @@
 // Manage & Monitor > Monitor > Overview — the dashboard's overview screen
 // (components/dashboard/OverviewPanel.vue), scoped to the ONE revision open in
 // the wizard (route.params.projectId), same revision-scoping contract as
-// ManageBoard.vue/the Manage<Category>.vue files. Absorbs what used to be the
-// separate ManageMetrics.vue panel (ruled 2026-07-28 — see
-// views/views.intent.md / DashboardLayout.intent.md: the dashboard and the
-// wizard's Manage & Monitor tab are ONE surface differing only in scope).
+// ManageBoard.vue/the Manage<Category>.vue files.
 //
 // UNLIKE ManageBoard.vue/the Manage<Category>.vue files, this section loads
 // NO stores of its own — OverviewPanel is entirely report-endpoint-driven,

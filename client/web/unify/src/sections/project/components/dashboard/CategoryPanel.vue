@@ -280,69 +280,48 @@
 </template>
 
 <script setup>
-// The dashboard's per-category screen, extracted from views/dashboard/
-// CategoryView.vue (which now just resolves route params into props below)
-// so the wizard's Manage & Monitor category sections
-// (components/wizard/manage/Manage{Incident,Feature,Privacy,Task,Review}.vue)
-// can mount the exact same screen, revision-scoped. Deliberately free of
-// route assumptions — `category` is a prop, not read off route.params — so
-// it works the same whether mounted as a routed view's body or inline inside
-// the wizard tab. See dashboard.intent.md for why this lives here rather than
-// under the locked views/dashboard/ set.
+// The dashboard's per-category screen, mounted both by views/dashboard/
+// CategoryView.vue and, revision-scoped, by the wizard's Manage & Monitor
+// sections (components/wizard/manage/Manage{Incident,Feature,Privacy,Task,
+// Review}.vue). Free of route assumptions — `category` is a prop, not read off
+// route.params — so both mountings behave identically. See dashboard.intent.md
+// for why this lives here rather than under the locked views/dashboard/ set.
 //
-// DATA LOADING: this component does NOT call eventsStore.load()/
-// backlogStore.load() itself — the metrics band (KPIs/donuts/trend/completed
-// stat) is entirely report-endpoint-driven now, chain-wide AND revision-
-// scoped alike (see loadMetrics below; the report endpoint's `revisionID`
-// param — server/system/rest/request/projectReport.go, landed commit
-// d3e89ab07 — narrows aggregation server-side), so it never reads the
-// events/backlog stores' own rows at all. Those two stores stay loaded by
-// whoever mounts this component only for CRUD (add/update/remove),
-// ownerOptions and drawer-record resolution below — at whatever scope that
-// host needs:
-//   - views/dashboard/DashboardLayout.vue loads both stores chain-wide (no
-//     revisionId) for every child route, CategoryView.vue included — that
-//     mirrors this component's pre-extraction behaviour exactly.
-//   - Each components/wizard/manage/Manage<Category>.vue file loads both
-//     stores scoped to (root project, open revision) itself, watching
-//     [rootProjectId, revisionId] — the same pattern ManageBoard.vue and
-//     ManageMetrics.vue already use, copied rather than shared so each
-//     category section stays independently editable (see wizard.intent.md).
-// This keeps exactly one load per (stores, scope) pair per screen instead of
-// this component re-loading on top of a host that already did.
+// DATA LOADING: this component calls neither eventsStore.load() nor
+// backlogStore.load(). The metrics band (KPIs/donuts/trend/completed stat) is
+// entirely report-endpoint-driven, chain-wide and revision-scoped alike (see
+// loadMetrics; the endpoint's `revisionID` param narrows aggregation
+// server-side), so it never reads those stores' rows. Whoever mounts this
+// component loads them, at the scope that host needs, for CRUD, ownerOptions
+// and drawer-record resolution only:
+//   - views/dashboard/DashboardLayout.vue loads both chain-wide (no
+//     revisionId) for every child route.
+//   - Each components/wizard/manage/Manage<Category>.vue loads both scoped to
+//     (root project, open revision), watching [rootProjectId, revisionId] —
+//     the same pattern ManageBoard.vue uses, copied rather than shared so each
+//     section stays independently editable (see wizard.intent.md).
+// That keeps exactly one load per (stores, scope) pair per screen.
 //
-// THE LIST ITSELF is no longer store-driven, though — see the useResourceList call
-// below, built with useResourceList (the same server-paged idiom
-// views/ProjectList.vue uses) directly against the category's own resource
-// endpoint (e.g. GET /project-incidents/), with `incTotal` for a true count.
-// The store's own `events` (capped at 200 rows per category — load()'s own
-// comment) now stays the source only for resolving a clicked row's owner
-// options and the update handler's fresh-row lookup — no longer for the
-// metrics band above (see the DATA LOADING note) nor this component's row
-// source, so a category with more than 200 items now lists (and counts)
-// correctly instead of silently truncating.
+// THE LIST ITSELF is not store-driven — see the useResourceList call below (the
+// server-paged idiom views/ProjectList.vue uses) against the category's own
+// resource endpoint (e.g. GET /project-incidents/), with `incTotal` for a true
+// count. The store's `events` is capped at 200 rows per category, so it serves
+// only a clicked row's owner options and the update handler's fresh-row lookup.
 //
-// ROOT PROJECT ID for the list call: `props.projectId` chain-wide (see its
-// own prop comment), but that prop is NEVER passed revision-scoped (see e.g.
-// components/wizard/manage/ManageIncident.vue's `<CategoryPanel category=".."
-// :revision-id="revisionId" />` — no project-id) since it used to matter only
-// for the chain-wide report calls, which are skipped entirely when
-// isRevisionScoped. The list call needs the chain ROOT regardless of scope
-// though, so `effectiveProjectId` below falls back to the events store's own
-// `currentProjectId` — already set to that same root by the mounting
-// Manage<Category>.vue's own `eventsStore.load(rootProjectId, revisionId)`
-// call (see that store's load()), synchronously before this component's
-// setup runs, rather than requiring every Manage<Category>.vue file to grow
-// a redundant prop.
+// ROOT PROJECT ID for the list call: `props.projectId` chain-wide, never passed
+// revision-scoped (see ManageIncident.vue's `<CategoryPanel :revision-id>` with
+// no project-id). The list call needs the chain ROOT at either scope, so
+// `effectiveProjectId` below falls back to the events store's
+// `currentProjectId`, set to that root by the mounting Manage<Category>.vue's
+// own `eventsStore.load(rootProjectId, revisionId)` synchronously before this
+// setup runs.
 //
-// UNASSIGNED FILTER — DROPPED, not just hidden revision-scoped (see the old
-// template's Popover/Chip, now gone): the generated resource filters treat
-// `revisionID = 0` as "no constraint", not "unassigned only" (see
+// NO UNASSIGNED FILTER: the generated resource filters treat `revisionID = 0`
+// as "no constraint" rather than "unassigned only" (see
 // server/store/adapters/rdbms/filters.gen.go's `if f.RevisionID > 0` guard,
-// applied identically across every one of these six resources) — there is no
-// server-side way to ask for "only unassigned rows" today. Client-filtering
-// one fetched PAGE to fake it would misreport a page's own unassigned count
-// as the whole category's, which is worse than not offering the filter.
+// identical across all six resources), so there is no server-side way to ask
+// for unassigned rows. Client-filtering one fetched PAGE would misreport that
+// page's unassigned count as the whole category's.
 import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
 import CategoryKpiRow from '@/sections/project/components/dashboard/CategoryKpiRow.vue'
 import CategoryRankBar from '@/sections/project/components/dashboard/CategoryRankBar.vue'
@@ -490,9 +469,8 @@ const {
 const reportStore = useReportStore()
 const reportTrend = reactive({ labels: [], rangeLabels: [], series: [] })
 // Default m6 (6 months) — matches Overview's default; see that view's comment
-// for why. Chain-wide only — revision-scoped stays on a fixed ~6-month
-// lookback with no selector (see loadTrend/the template's TimeRangeSelect
-// v-if), same as before this change.
+// for why. Chain-wide only: revision-scoped stays on a fixed ~6-month lookback
+// with no selector (see loadTrend/the template's TimeRangeSelect v-if).
 const trendRange = ref('m6')
 const reportBreakdowns = reactive({ total: 0, open: 0, overdue: 0, byDim: {} })
 const reportLoading = ref(false)
@@ -669,24 +647,16 @@ async function onRangeChange(key) {
   }
 }
 
-// Completed — a stat, not a chart (ruled 2026-07-28, revising the original
-// brief's "completed over time" trend series): plain Completed ÷ total off
-// the status column, computed from the SAME count/open metrics the KPI trio
-// above already fetched in loadReport (no extra report call, no client-side
-// re-derivation of the open/closed rule — `completed = total - open` is pure
-// arithmetic over numbers the server already classified, per
-// isOpenReportStatus in server/system/service/project_report.go). This is
-// deliberately the SAME formula components/wizard/RevisionCompletenessBar.vue
-// uses for its header stat (completed ÷ assigned, rounded, with the identical
-// "zero items has no percentage" honest-empty-state rule) — just narrowed to
-// this one category instead of summed across all six work-item types, so the
-// two never disagree on what "complete" means even though their SCOPE
-// differs (one category here vs. the whole revision there). A time-series
-// alternative was ruled out: only incident/task carry a real CompletedDate
-// (feature/privacy/review/backlog-item don't), and the report endpoint has
-// no way to bucket by anything but CreatedAt at all today (see
-// aggregateProjectReport/reportDimValue) — plotting "completed over time"
-// would have meant inventing data no resource reliably records.
+// Completed — a stat, not a chart: plain Completed ÷ total off the status
+// column, from the SAME count/open metrics the KPI trio above already fetched
+// in loadReport, so `completed = total - open` is pure arithmetic over numbers
+// the server already classified (isOpenReportStatus in
+// server/system/service/project_report.go). Deliberately the SAME formula
+// components/wizard/RevisionCompletenessBar.vue uses, narrowed to one category
+// rather than summed across all six work-item types, so the two can never
+// disagree on what "complete" means. No time series is possible: only
+// incident/task carry a CompletedDate, and the report endpoint buckets by
+// nothing but CreatedAt (see aggregateProjectReport/reportDimValue).
 
 // Chart data helper — grouped counts for a report dimension, ordered
 // canonically for ranked variants (severity/risk/status) so bars read
@@ -778,19 +748,15 @@ const actionItemsFor = row => [
 ]
 
 // Columns → CResourceList fields, headers resolved via i18n. `sortable` comes
-// straight from each column's own config/categories.js declaration now — NOT
-// a blanket `true` — since only some of these are actually sortable
-// server-side (see that file's col() comment for the verified set; clicking
-// an unsortable header sends an unrecognised sort column and the store
-// rejects the query, blanking the whole list). The trailing revisionID
-// column is fixed (every category gets it, see the #body-revisionID slot
-// above) rather than part of cfg.columns, and only added chain-wide — see
-// that slot's comment for why the wizard's revision-scoped panels drop it
-// instead. It's marked sortable ahead of the backend actually supporting it
-// (a concurrent change is making `revision_id` sortable on all six resources
-// — needs codegen + a server restart before this works): a sortable Revision
-// column is the agreed replacement for the removed unassigned-only filter,
-// grouping unassigned rows together when sorted.
+// from each column's own config/categories.js declaration, NOT a blanket
+// `true`: only some are sortable server-side (see that file's col() comment for
+// the verified set), and clicking an unsortable header sends an unrecognised
+// sort column, which the store rejects, blanking the whole list. The trailing
+// revisionID column is fixed rather than part of cfg.columns and added
+// chain-wide only (see the #body-revisionID slot above). It is marked sortable
+// ahead of backend support — `revision_id` sortability needs codegen and a
+// server restart — because a sortable Revision column is what groups unassigned
+// rows together in place of an unassigned-only filter.
 const fields = computed(() => {
   const cols = (cfg.value?.columns ?? []).map(c => ({
     key: c.key,

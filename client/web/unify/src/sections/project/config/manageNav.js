@@ -19,13 +19,10 @@ export const MANAGE_NAV = [
     key: 'monitor',
     labelKey: 'project.manage.nav.monitor',
     items: [
-      // Overview absorbs the old standalone Metrics panel (ruled 2026-07-28 —
-      // see views/views.intent.md / DashboardLayout.intent.md): it shares
-      // components/dashboard/OverviewPanel.vue with the live dashboard's own
-      // Overview page, revision-scoped here via
-      // components/wizard/manage/ManageOverview.vue. Leads the group (mirrors
-      // the dashboard rail's own "Dashboard" entry leading its monitor group
-      // — see config/dashboard.js).
+      // Shares components/dashboard/OverviewPanel.vue with the live dashboard's
+      // Overview page, revision-scoped via
+      // components/wizard/manage/ManageOverview.vue. Leads the group, mirroring
+      // the dashboard rail's own "Dashboard" entry (see config/dashboard.js).
       { key: 'overview', labelKey: 'project.manage.views.overview', icon: 'pi-gauge' },
       { key: 'board', labelKey: 'project.manage.views.board', icon: 'pi-objects-column' },
       { key: 'activity', labelKey: 'project.manage.views.activity', icon: 'pi-history' },

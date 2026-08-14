@@ -315,11 +315,10 @@ func (svc *project) onUndelete(ctx context.Context, s store.Storer, p *types.Pro
 // Archive takes a project out of service and puts it on the shelf, without
 // touching its lifecycle status.
 //
-// Archiving used to be a status value, which forced the generic update to
-// accept a status from the client -- and that is what let a live project be
-// flipped back to "draft" and have its schema edited underneath its own
-// records. Keeping the two apart also makes coming back off the shelf
-// answerable: status was never overwritten, so Unarchive has nothing to guess.
+// Archiving is deliberately not a status value: a client-writable status is
+// what lets a live project be flipped back to "draft" and have its schema
+// edited underneath its own records. Keeping the two apart also means status is
+// never overwritten, so Unarchive has nothing to guess.
 //
 // Gated on update rather than delete: shelving is an edit to how the project is
 // presented, not a removal, and it is reversible by anyone who could do it.
@@ -440,16 +439,12 @@ func (svc *project) setNamespaceEnabled(ctx context.Context, s store.Storer, nam
 
 // --- members ---
 //
-// Membership is CHAIN-wide, not per revision (ruled 2026-07-29): every read and
-// write below resolves the project it was handed to that project's chain ROOT,
-// so one list serves every revision. Callers keep passing whichever revision
-// they have open and need to know nothing about this.
-//
-// Before, member rows were written against the revision they were added on, and
-// CreateRevision copied none of them — so a freshly branched draft had zero
-// members, which resolves to the fallback role preset: no write, no approval,
-// no publish. Every branched revision was unusable by everyone, including the
-// person who branched it.
+// Membership is CHAIN-wide, not per revision: every read and write below
+// resolves the project it was handed to that project’s chain ROOT, so one list
+// serves every revision. Callers keep passing whichever revision they have open
+// and need to know nothing about this. Per-revision rows would leave a freshly
+// branched draft with zero members, which resolves to the fallback role preset:
+// no write, no approval, no publish.
 //
 // The access check still runs against the project as ASKED FOR, not the root:
 // permission to read or manage a revision is a question about that revision.

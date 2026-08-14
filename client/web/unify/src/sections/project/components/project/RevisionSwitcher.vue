@@ -2,9 +2,8 @@
   <template v-if="project">
     <!-- Revision switcher trigger — shared by the Wizard header and the
          dashboard topbar (DashboardLayout.vue mounts this exact component),
-         replacing what used to be two divergent bits of chrome: the wizard's
-         own version Tag + New-revision menu, and the dashboard's static
-         version Tag + "view overview" button. role="button"/tabindex mirror
+         so the two cannot drift into divergent chrome.
+         role="button"/tabindex mirror
          the icon-trigger idiom used for other popup Menus in this app (e.g.
          TabsBlock.vue's tab menu). -->
     <span
@@ -114,9 +113,8 @@ const onDashboard = computed(
 
 // User-facing versions are 1-based (the original live project is v1), so we
 // display the backend revision + 1. Just the version, exactly as the dropdown
-// entries name it — the trigger used to append "draft" and turn amber for an
-// unpublished revision, which now says twice, worse, what the project status
-// tag beside it states properly (see Wizard.vue's topbar).
+// entries name it — the project status tag beside it (see Wizard.vue's topbar)
+// carries draft/published state, so the trigger never repeats it.
 const versionLabel = computed(() =>
   t('project.dashboard.version', { number: (props.project?.revision ?? 0) + 1 }),
 )

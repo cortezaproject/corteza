@@ -10,12 +10,10 @@ const pp = 'project.dashboard.event.placeholder.'
 // Shared option sets. Statuses are fixed; users are resolved at render time
 // from the project's user directory (see NewEventDialog userOptions) — owner
 // and approver fields carry `source: 'users'` instead of static options.
-// All six work-item types (the five categories below, plus backlog items)
-// share this one four-value set — AGREED INTENT (2026-07-28): review used to
-// carry a shorter STATUS_REVIEW (no "Ready to Test"), but the Manage & Monitor
-// board renders one shared column set across every type, so review's schema
-// now uses the same STATUS list as everything else. Status is a free-text
-// string in the backend, so this is a frontend-only change.
+// All six work-item types (the five categories below, plus backlog items) share
+// this one four-value set: the Manage & Monitor board renders one shared column
+// set across every type. Status is a free-text string in the backend, so the
+// list is a frontend concern only.
 const STATUS = ['Open', 'In Progress', 'Ready to Test', 'Completed']
 // Exported so other schemas that share the same lifecycle (backlog items —
 // see components/dashboard/BacklogItemDialog.vue) don't redeclare the list.

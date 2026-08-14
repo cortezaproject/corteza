@@ -104,13 +104,10 @@
       <EventsActivityPanel v-if="!isRevisionScoped" :project-id="props.projectId" />
 
       <!-- KPI trio — total/open/overdue across every category PLUS backlog
-           items, revision-scoped only (ruled 2026-07-28): chain-wide Overview
-           has never carried a single cross-category trio (each card already
-           states its own open count), and adding one there was out of scope
-           for this change. Revision-scoped, this is what used to be
-           ManageMetrics.vue's KPI row — its status donut and priority
-           rank-bar are deliberately NOT reproduced here: redundant with the
-           category cards above (each already breaks its own category down by
+           items, revision-scoped only: chain-wide Overview carries no single
+           cross-category trio, since each card already states its own open
+           count. No status donut or priority rank-bar either — redundant with
+           the category cards above (each breaks its own category down by
            status), doubly so at a single revision's typically small volume. -->
       <section v-if="isRevisionScoped">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-color mb-3">
@@ -169,29 +166,20 @@
 </template>
 
 <script setup>
-// The project overview, extracted from views/dashboard/Overview.vue (which
-// now just resolves route.params into props below) so the wizard's Manage &
-// Monitor tab can mount the exact same screen, revision-scoped, absorbing
-// what used to be the separate ManageMetrics.vue panel (ruled 2026-07-28 —
-// see views/views.intent.md / DashboardLayout.intent.md: the dashboard and
-// the wizard's Manage & Monitor tab are ONE surface differing only in scope).
-// Deliberately free of route assumptions — `projectId`/`revisionId` are
-// props, not read off route.params — so it works the same whether mounted as
-// a routed view's body (views/dashboard/Overview.vue) or inline inside the
-// wizard tab (components/wizard/manage/ManageOverview.vue). Mirrors
-// components/dashboard/CategoryPanel.vue's own extraction exactly; see
+// The project overview, mounted both by views/dashboard/Overview.vue and,
+// revision-scoped, by the wizard's Manage & Monitor tab
+// (components/wizard/manage/ManageOverview.vue). Free of route assumptions —
+// `projectId`/`revisionId` are props, not read off route.params — so both
+// mountings behave identically. Mirrors CategoryPanel.vue; see
 // dashboard.intent.md for why both live here rather than under the locked
 // views/dashboard/ set.
 //
-// DATA LOADING: unlike CategoryPanel, this component has NO events/backlog
-// store dependency at all, chain-wide or revision-scoped — every number here
-// (category cards, KPI trio, trend) comes from the report endpoint, which now
-// accepts an optional revisionID that scopes aggregation server-side (see
-// stores/report.js). That is a deliberate, EXACT alternative to the
-// events/backlog stores' 200-row-per-category cap: ManageOverview.vue does
-// not need to watch/load those stores the way ManageBoard.vue and the
-// Manage<Category>.vue files do — it only derives (rootProjectId, revisionId)
-// from the `project` prop and passes them straight through as props here.
+// DATA LOADING: unlike CategoryPanel, no events/backlog store dependency at
+// all, at either scope — every number here (category cards, KPI trio, trend)
+// comes from the report endpoint, which accepts an optional revisionID that
+// scopes aggregation server-side (see stores/report.js). That sidesteps those
+// stores' 200-row-per-category cap, so ManageOverview.vue only derives
+// (rootProjectId, revisionId) from the `project` prop and passes them through.
 import CategoryDonutChart from '@/sections/project/components/dashboard/CategoryDonutChart.vue'
 import CategoryKpiRow from '@/sections/project/components/dashboard/CategoryKpiRow.vue'
 import CategoryTrendChart from '@/sections/project/components/dashboard/CategoryTrendChart.vue'
@@ -295,22 +283,16 @@ const cards = computed(() =>
 // to (the wizard's category sections live behind a `section` query param, not
 // routes), so the card emits category-selected instead.
 //
-// A DIV with button semantics, deliberately NOT a real <button>: a native
-// button inherits a theme background that beats this card's `bg-surface`,
-// which rendered the revision-scoped cards dark-on-dark in a light theme
-// while the chain-wide (anchor) cards looked correct. Same reason
-// components/project/RevisionSwitcher.vue uses `span role="button"` for its
-// trigger. Keyboard activation is wired explicitly below since a div gives
+// A DIV with button semantics at BOTH scopes, deliberately neither a real
+// <button> nor a RouterLink. A native button inherits a theme background that
+// beats this card's `bg-surface`, rendering revision-scoped cards dark-on-dark
+// in a light theme (same reason RevisionSwitcher.vue uses `span role="button"`);
+// an anchor would nest the chart legend's own toggle buttons inside it, which is
+// invalid HTML. Keyboard activation is wired explicitly below since a div gives
 // none of it for free.
-// BOTH scopes render a div with button semantics — chain-wide used to be a
-// RouterLink, but the card now contains the chart legend's own toggle buttons,
-// and interactive-inside-interactive (<button> inside <a>) is invalid HTML.
-// The stopPropagation guards in ChartLegend make it BEHAVE correctly either
-// way; this removes the invalid nesting itself (ruled 2026-07-28).
 //
-// The cost, accepted deliberately: chain-wide cards lose real anchor semantics
-// — no ctrl/cmd-click into a new tab, no copy-link — because a programmatic
-// push replaces the href.
+// The cost: chain-wide cards have no anchor semantics — no ctrl/cmd-click into a
+// new tab, no copy-link — because a programmatic push replaces the href.
 const cardTag = computed(() => 'div')
 const cardProps = key => ({ role: 'button', tabindex: 0, 'aria-label': key })
 

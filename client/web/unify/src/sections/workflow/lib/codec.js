@@ -528,13 +528,12 @@ export function encodeWorkflow(nodes, edges) {
     // Skip edges that originate from a trigger node
     if (triggerNodeIds.has(edge.source)) return
 
-    // Fix #1: rebuild mxGraph style so that anchor changes (user dragged an
-    // edge to a different handle) survive the round-trip. When handles are
-    // known, re-emit canonical exit/entry coords while preserving any
-    // non-handle properties from the previously-loaded style string so that
-    // Human-written edges (orthogonalEdgeStyle, strokeColor, rounded, …)
-    // aren't clobbered. When no handles are set, keep the original style so
-    // server-side geometry isn't lost.
+    // Rebuild mxGraph style so anchor changes (user dragged an edge to a
+    // different handle) survive the round-trip. When handles are known, re-emit
+    // canonical exit/entry coords while preserving the loaded style string's
+    // non-handle properties, so Human-written edges (orthogonalEdgeStyle,
+    // strokeColor, rounded, …) aren't clobbered. With no handles set, keep the
+    // original style so server-side geometry isn't lost.
     const baseStyle = edge.data?.style || ''
     const edgeStyle =
       edge.sourceHandle || edge.targetHandle

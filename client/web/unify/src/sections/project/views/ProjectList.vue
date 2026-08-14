@@ -229,10 +229,10 @@ const formatDate = date => {
 }
 
 // Each row is a chain head (headsOnly, see the list request above). Routing
-// favours the dashboard once a chain has ever published (ruled 2026-07-28):
-// it's the project's home, and the wizard is entered deliberately from its
-// revision switcher from here on. A chain that has never published has no
-// dashboard at all (see config/publishState.js), so it opens the wizard.
+// favours the dashboard once a chain has ever published — it's the project's
+// home, and the wizard is entered from its revision switcher. A chain that has
+// never published has no dashboard (see config/publishState.js), so it opens
+// the wizard.
 const onRowClick = ({ data }) => {
   const name = chainHasPublished(data) ? 'project.overview' : 'project.wizard'
   router.push({ name, params: { projectId: data.projectID } })

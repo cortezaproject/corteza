@@ -142,9 +142,8 @@ const dialogCenter = ref([30, 30])
 const dialogZoom = ref(3)
 
 // A point needs both coordinates, so a half-entered one has no representation in
-// the model — entering latitude emits null, which used to erase the latitude too,
-// leaving the longitude keystroke nothing to pair with. Typed coordinates were
-// impossible to save that way. Hold what was entered until the pair completes.
+// the model and entering latitude alone emits null. Hold what was typed locally
+// until the pair completes, or the second keystroke has nothing to pair with.
 const typedLng = ref(null)
 const typedLat = ref(null)
 

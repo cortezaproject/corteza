@@ -185,12 +185,10 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (a
 			return err
 		}
 
-		// Triggers carry an ID so paths can reference them. Only mint one where
-		// the caller did not supply it — this used to overwrite unconditionally,
-		// which orphaned any trigger->step path in the same payload and made a
-		// one-call create impossible. Update already only fills zeros; this
-		// brings create in line, so an automation can be authored in one request
-		// rather than the webapp's create-empty-then-update dance.
+		// Triggers carry an ID so paths can reference them. Only mint one where the
+		// caller did not supply it: overwriting unconditionally orphans any
+		// trigger->step path in the same payload, making a one-call create impossible.
+		// Matches Update, which also fills zeros only.
 		triggers := make(types.NgAutomationTriggerSet, len(new.Triggers))
 		for i := range triggers {
 			t := new.Triggers[i]

@@ -1,7 +1,7 @@
 <template>
   <!-- The FRIA scenario editor: ONE scrolling page stacking all five design-
-       mockup sections, replacing what used to be five separate wizard steps
-       (fria-harm/trigger/parties/rights/vectors — see config/pipeline.js).
+       mockup sections rather than five separate wizard steps (see
+       config/pipeline.js).
        Mounted by components/wizard/steps/FriaScenariosStep.vue in place of
        the scenario list whenever a scenario is open (existing or new — see
        composables/useFriaActiveScenario.js), keyed by scenario id so a

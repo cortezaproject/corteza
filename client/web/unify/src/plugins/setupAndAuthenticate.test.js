@@ -3,14 +3,8 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 /**
  * The bootstrap's two documented contracts (src.intent.md, plugins.intent.md):
  * "nothing renders before auth resolves", and on `Unauthenticated` the auth flow
- * starts and "setup aborts silently".
- *
- * It did neither. The catch started the flow and then RESOLVED, so main.js
- * mounted an app on which none of the plugins in the success path had been
- * installed, and App.vue's first useI18n() threw "Need to install with
- * `app.use` function". A cold-load trace put that crash at 617ms and the
- * navigation to /auth/callback at 820ms — the broken mount was only ever hidden
- * by losing a race to the redirect.
+ * starts and "setup aborts silently" — the promise must never resolve, or main.js
+ * mounts an app with none of the success path's plugins installed.
  */
 
 const stubs = vi.hoisted(() => ({

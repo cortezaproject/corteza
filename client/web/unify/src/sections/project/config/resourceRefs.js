@@ -75,9 +75,9 @@ export function buildResourceRef(kind, id) {
 
 // Splits a stored ref back into { kind, id }. Returns nulls for a ref whose
 // resource type is unknown to this frontend rather than throwing: refs
-// deliberately outlive the resources they point at (a deleted member is kept
-// and shown as a tombstone, ruled 2026-07-30), and a ref may name a type this
-// build has never heard of. Callers render what they can and say so otherwise.
+// deliberately outlive the resources they point at (a deleted member is kept and
+// shown as a tombstone), and a ref may name a type this build has never heard
+// of. Callers render what they can and say so otherwise.
 export function parseResourceRef(ref) {
   if (typeof ref !== 'string') return { kind: null, id: null, type: null }
 

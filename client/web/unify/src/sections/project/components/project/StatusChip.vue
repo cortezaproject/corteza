@@ -24,10 +24,10 @@
 
 <script setup>
 // The one status indicator this section renders — wizard step headers, the
-// Publish tab and the revision switcher each had their own Tag/pill/severity
-// map before this existed, so the same state could read green in one place and
-// grey in another. CTag (lib) is the dumb pill; the palette lives here,
-// because these statuses are the project section's vocabulary.
+// Publish tab and the revision switcher all go through it, so a given state
+// cannot read green in one place and grey in another. CTag (lib) is the dumb
+// pill; the palette lives here, because these statuses are the project
+// section's vocabulary.
 //
 // Two axes end up in the same tag, deliberately:
 //   - REVIEW status, the wizard's per-step and per-publish governance flag
@@ -76,8 +76,7 @@ const TONES = {
   neutral: { bg: 'bg-surface-500/20', ring: 'ring-surface-500/40', text: 'text-muted-color' },
   // Being worked on. Blue rather than grey because a draft is work in progress,
   // which grey — the tone of archived and deprecated — states as an absence of
-  // state. (The project list used to keep a blue draft chip of its own; it
-  // renders this component now, so there is one blue left to agree with.)
+  // state.
   progress: { bg: 'bg-blue-500/10', ring: 'ring-blue-500/30', text: 'text-blue-500' },
   info: { bg: 'bg-primary/10', ring: 'ring-primary/30', text: 'text-primary' },
   warn: { bg: 'bg-amber-500/10', ring: 'ring-amber-500/30', text: 'text-amber-500' },

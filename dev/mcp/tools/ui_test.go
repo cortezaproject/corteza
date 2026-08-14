@@ -7,8 +7,8 @@ import (
 
 // TestUINoteReportsLeavingTheRequestedPath pins the case this check exists for:
 // the webapp's router redirects a path it does not recognise to the home
-// section, which renders cleanly, so a mistyped path used to come back as a
-// pass with a screenshot of a page the caller never asked about.
+// section, which renders cleanly, so a mistyped path reports a pass with a
+// screenshot of a page the caller never asked about unless the note catches it.
 func TestUINoteReportsLeavingTheRequestedPath(t *testing.T) {
 	cases := []struct {
 		name string

@@ -82,14 +82,9 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 	// Per-TAQ tools are minted at runtime as "automation_<taqID>"
 	// (runtime/executor.go mints them; the ID is always numeric). Matching on a
 	// numeric suffix is what distinguishes them from the static automation_*
-	// families.
-	//
-	// This used to be a negative match — any automation_* name outside a
-	// hardcoded three-item exception list was read as a TAQ ID — which denied
-	// automation_taq_exec, automation_taq_executions and
-	// automation_taq_execution_trace outright, with the nonsense reason
-	// `agent is not allowed to execute automation "taq_exec"`. The executor
-	// already discriminates correctly by prefix; this brings policy in line.
+	// families, and it is a positive match: reading any automation_* name outside
+	// an exception list as a TAQ ID denies the static tools whenever the list
+	// falls behind.
 	if taqIDStr, ok := dynamicTAQRef(tool); ok {
 		if findTAQ(agent, taqIDStr) == nil {
 			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute automation %q", taqIDStr)}

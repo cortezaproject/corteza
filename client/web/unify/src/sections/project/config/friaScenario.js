@@ -5,9 +5,8 @@
 // derives display-only values; it holds no state of its own.
 //
 // Scenario STORAGE is the backend type ProjectFriaScenario, cached in
-// stores/projects.js's "FRIA risk scenarios" section. It was session-local
-// under the 'fria-scenarios' governance step until 2026-07-30; the shape below
-// is the flat form that section maps the API to and from.
+// stores/projects.js's "FRIA risk scenarios" section; the shape below is the
+// flat form that section maps the API to and from.
 
 // A fresh, empty scenario — the shape the editor seeds a new draft from (see
 // FriaScenarioEditor.vue) and every section component reads a slice of and
@@ -21,12 +20,11 @@
 export function newFriaScenario() {
   return {
     id: `fria-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-    // The AI system this scenario assesses. REQUIRED -- a scenario cannot be
-    // saved without one (ruled 2026-07-30). Art. 27 attaches the FRIA to a
-    // specific high-risk AI SYSTEM, not to a project, and a project can hold
-    // several; the design mockup agrees, every scenario card names its AI
-    // system. It is also what gives detection rules something to scope to.
-    // Holds a ProjectAiSystem ID; see the ai-systems Govern step.
+    // The AI system this scenario assesses. REQUIRED — a scenario cannot be
+    // saved without one: Art. 27 attaches the FRIA to a specific high-risk AI
+    // SYSTEM, not to a project, and a project can hold several. It is also what
+    // gives detection rules something to scope to. Holds a ProjectAiSystem ID;
+    // see the ai-systems Govern step.
     aiSystemID: null,
     title: '',
     description: '',
@@ -130,21 +128,18 @@ export const RIGHTS_CHAPTER_ICONS = {
 }
 
 // Whether a scenario may be saved at all. The AI system is the one field the
-// editor blocks on (ruled 2026-07-30): everything else can be filled in over
-// time, but a scenario that assesses nothing in particular is not a partial
-// FRIA, it is a category error. Kept separate from completion below on
-// purpose -- completion measures how much of the assessment is written, this
-// measures whether it is addressable at all.
+// editor blocks on: everything else can be filled in over time, but a scenario
+// that assesses nothing in particular is not a partial FRIA, it is a category
+// error. Separate from completion below on purpose — completion measures how
+// much of the assessment is written, this measures whether it is addressable.
 export function friaScenarioSaveable(scenario) {
   return !!scenario?.aiSystemID
 }
 
-// Completion = how many of the editor's FIVE sections carry any content
-// (ruled 2026-07-28). This deliberately DIVERGES from the design mockup's own
-// prog(), which counted six required fields and never looked at vulnerable
-// groups or harm vectors at all — so a scenario could read "complete" having
-// identified no AI harm vector, the very thing Art. 27 is asking about.
-// One definition, used by both the summary list's Complete / In Progress
+// Completion = how many of the editor's FIVE sections carry any content. Both
+// vulnerable groups and harm vectors count, so a scenario cannot read
+// "complete" having identified no AI harm vector — the very thing Art. 27 asks
+// about. One definition, used by both the summary list's Complete / In Progress
 // status and the editor's progress bar, so the two can never disagree.
 //
 // The AI system ref is deliberately NOT a sixth check: a scenario cannot exist

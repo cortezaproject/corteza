@@ -153,8 +153,7 @@ const nameError = computed(() =>
 const isValid = computed(() => !nameError.value)
 
 // On open, import the base connection to learn its schema, then seed the form
-// from the existing configured connection. This mirrors what ConnectionsStep
-// used to do before opening the configure dialog — now owned by the dialog.
+// from the existing configured connection.
 async function loadContext() {
   const target = entity.value
   submitted.value = false

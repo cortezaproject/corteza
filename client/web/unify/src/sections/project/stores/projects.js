@@ -411,15 +411,12 @@ export const useProjectsStore = defineStore('projects', () => {
 
   // Create a draft project. The backend generates the internal handle, creates
   // the compose namespace and adds the creator as a developer. Name and
-  // description only — the AI Act deployer-category questions that used to
-  // ride along here (driving the backend's FriaRequired derivation) moved out
-  // of the create flow per the 2026-07-28 ruling: they're now the Govern
-  // tab's own 'fria-determination' step (see config/pipeline.js and
+  // description only: the AI Act deployer-category questions belong to the
+  // Govern tab's 'fria-determination' step (see config/pipeline.js and
   // components/wizard/steps/FriaDeterminationStep.vue), so nothing here
-  // populates config.deployerCategories any more. The backend fields
-  // (ProjectDeployerCategories, FriaRequired) are untouched — this is a
-  // frontend-only change; wiring the new step's answers to them is a
-  // separate backend slice.
+  // populates config.deployerCategories. Wiring that step's answers to the
+  // backend fields (ProjectDeployerCategories, FriaRequired) is a separate
+  // backend slice.
   async function create({ name, description = '' } = {}) {
     const raw = await $SystemAPI.projectCreate({
       status: 'draft',
@@ -476,12 +473,9 @@ export const useProjectsStore = defineStore('projects', () => {
   // carries its new status, which we absorb into the cache. `mappings` stays
   // empty until the revision/migration flow is wired.
   //
-  // The endpoint itself is unguarded now (the governance approval gate that
-  // used to block it server-side is gone along with the rest of the removed
-  // governance backend — see the governance section below), so we reset the
-  // local `'publish'` governance step back to draft ourselves on success,
-  // mirroring what the old backend used to do — every publish, first or
-  // subsequent, needs its own fresh submit → approve cycle.
+  // The endpoint is unguarded (see the governance section below), so we reset
+  // the local `'publish'` governance step back to draft ourselves on success:
+  // every publish, first or subsequent, needs its own submit → approve cycle.
   // `mappings` is how records reach the new revision: the backend's
   // migrateRecords no-ops on an empty set and publish then soft-deletes the old
   // namespace, so publishing without them silently drops every record in the
@@ -800,9 +794,9 @@ export const useProjectsStore = defineStore('projects', () => {
   // the FE UX keep iterating quickly — so don't "fix" the lack of
   // persistence.
   //
-  // The revision's OWN publish approval is NO LONGER part of this (2026-07-31)
-  // — it is real server state on the project row, see publishApprovalStatus and
-  // the three actions above. What remains here is the per-step review only.
+  // Per-step review only. The revision's OWN publish approval is real server
+  // state on the project row — see publishApprovalStatus and the three actions
+  // above.
   //
   // ONE cycle for everything: every step runs draft -> submitted -> approved |
   // changes-requested. Nothing is ever approved without having been submitted
@@ -972,10 +966,9 @@ export const useProjectsStore = defineStore('projects', () => {
   // correct -- a revision's resources are its own, so a boundary drawn around
   // them cannot span revisions.
   //
-  // No touch(): AI systems are deliberately NOT a resource kind (ruled
-  // 2026-07-30) -- no graph node, no kinds.js entry, no permission-matrix row --
-  // so nothing here changes the resource graph or the effective-access picture
-  // that touch() exists to refresh.
+  // No touch(): AI systems are deliberately NOT a resource kind — no graph node,
+  // no kinds.js entry, no permission-matrix row — so nothing here changes the
+  // resource graph or the effective-access picture that touch() refreshes.
   const aiSystemsByProject = ref({})
 
   function aiSystemsFor(projectId) {
@@ -1075,10 +1068,9 @@ export const useProjectsStore = defineStore('projects', () => {
   // vocabulary -- so refs stay parseable by machinery that already exists.
   //
   // A ref whose resource has since been deleted is KEPT and rendered as a
-  // tombstone rather than swept up (ruled 2026-07-30): the FRIA claimed to
-  // cover that resource, so its removal is material compliance information and
-  // a reassessment trigger, not cleanup. Resolution of a ref to a live resource
-  // is therefore always allowed to fail.
+  // tombstone rather than swept up: the FRIA claimed to cover that resource, so
+  // its removal is material compliance information and a reassessment trigger,
+  // not cleanup. Resolving a ref to a live resource is always allowed to fail.
   // Re-read ONE system (and therefore its membership) without refetching the
   // list. There is no entry-list endpoint -- entries only ever arrive embedded
   // in a system payload -- so the single-resource read is the way to resync.
@@ -1127,11 +1119,9 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   // --- FRIA risk scenarios --------------------------------------------------------
-  // PERSISTED as of 2026-07-30 (ProjectFriaScenario). Scenarios used to live
-  // in the session-local governance surface above and were lost on reload,
-  // which is untenable for the artefact an Art. 27 assessment IS. They now
-  // have their own backend type, so an assessment survives, can be approved
-  // against, and detection rules have something durable to reference.
+  // PERSISTED (ProjectFriaScenario), unlike the session-local governance surface
+  // above: an Art. 27 assessment has to survive a reload, be approvable against,
+  // and give detection rules something durable to reference.
   //
   // Split of concerns on the backend: `aiSystemID`, `title` and `severity` are
   // REAL COLUMNS because a compliance product has to answer questions like
@@ -1139,12 +1129,10 @@ export const useProjectsStore = defineStore('projects', () => {
   // taxonomy key lists and free prose — rides in a meta JSON blob, because
   // those move with EU guidance and must not cost a migration each time.
   //
-  // EXPLICIT SAVE, NOT KEYSTROKE WRITES — unchanged by persistence. The editor
-  // holds a LOCAL DRAFT (config/friaScenario.js's cloneFriaScenario) while
-  // editing; nothing below runs until its Save commits the whole draft in one
-  // shot, and Cancel just drops the draft with no call at all. A cancelled
-  // create therefore still leaves no trace — the difference is only that Save
-  // now writes to the server rather than to a ref.
+  // EXPLICIT SAVE, NOT KEYSTROKE WRITES. The editor holds a LOCAL DRAFT
+  // (config/friaScenario.js's cloneFriaScenario) while editing; nothing below
+  // runs until its Save commits the whole draft in one shot, and Cancel drops
+  // the draft with no call at all, so a cancelled create leaves no trace.
   //
   // Still no touch(): scenarios are not resources and carry no graph, kind or
   // effective-access implications.

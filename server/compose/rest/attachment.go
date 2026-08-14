@@ -38,9 +38,8 @@ func (Attachment) New() *Attachment {
 
 // makeFilter builds the search filter for the generated List controller.
 //
-// It also carries the identity Valid() unauthorized check that used to sit
-// at the top of the hand-written List: the generated List returns this
-// hook's error before calling Search, so the behavior is preserved exactly.
+// It also carries the identity Valid() unauthorized check: the generated List
+// returns this hook’s error before calling Search.
 func (ctrl Attachment) makeFilter(ctx context.Context, r *request.AttachmentList) (types.AttachmentFilter, error) {
 	if !auth.GetIdentityFromContext(ctx).Valid() {
 		return types.AttachmentFilter{}, errors.Unauthorized("cannot list attachments")

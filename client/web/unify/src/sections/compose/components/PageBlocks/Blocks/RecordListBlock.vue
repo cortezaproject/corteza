@@ -777,9 +777,8 @@ const recordListModule = computed(() => {
 })
 
 // Find the record page for this module (page with matching moduleID)
-// Disabled rather than hidden when there is no record page to open: the button
-// used to vanish, which told nobody why. Inline editing needs no destination,
-// so it is never disabled in that mode.
+// Disabled rather than hidden when there is no record page to open. Inline
+// editing needs no destination, so it is never disabled in that mode.
 const addRecordDisabled = computed(() => !options.value.editable && !recordPageID.value)
 
 const recordPageID = computed(() => {

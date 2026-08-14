@@ -23,17 +23,15 @@ import (
 // Copying a revision's system-scoped resources into its draft.
 //
 // CreateRevision clones the compose namespace via the compose envoy path, which
-// carries modules, pages, layouts and charts. Nothing carried the resources
-// scoped by PROJECT rather than by namespace -- agents, chatbots, automations,
-// connections, roles -- so until 2026-07-30 a branch produced a draft holding
-// the parent's data model and none of its logic or access model. The draft's
-// own deployment plan then reported every one of them as a deletion, with the
-// user having changed nothing.
+// carries modules, pages, layouts and charts. This file carries what that path
+// cannot: the resources scoped by PROJECT rather than by namespace -- agents,
+// chatbots, automations, connections, roles. Without them a branch produces a
+// draft holding the parent's data model and none of its logic or access model,
+// whose deployment plan then reports every one of them as a deletion.
 //
 // WHY THIS IS HAND-WRITTEN. Envoy is the obvious tool: rewiring references
 // across an ID remap is exactly what it does, and it is how the namespace
-// clone works. It cannot do it for system resources. Two independent blockers,
-// both verified 2026-07-30:
+// clone works. It cannot do it for system resources. Two independent blockers:
 //
 //   - Scope resolution is generated for compose only: getScopeNodes outside
 //     compose is a stub, so a project-scoped decode silently reads every row
@@ -44,13 +42,6 @@ import (
 //     compose/envoy/store_encode.gen.go, which searches EVERY row unscoped and
 //     matches on any identifier). The system component generates none, so an
 //     encode here has no defined create-vs-update behaviour to rely on.
-//
-// CORRECTION (2026-07-30, second audit): an earlier version of this comment
-// cited "matchupAgents in system/envoy/store_encode.gen.go" as proof that a
-// copy would MOVE its source. That function does not exist -- the mechanism
-// described is compose's, and it was never verified against agents. The
-// conclusion below stands on the two blockers above; the original evidence for
-// it did not.
 //
 // Both are fixable only by generating real scope support for system resources,
 // which rewrites the encode path of every system type. That is a deliberate
@@ -588,10 +579,10 @@ func (c *projectClone) remapConnFunctionRef(ref string) string {
 	return fmt.Sprintf("conn_%d_%s", mapped, op)
 }
 
-// repointTAQAgentRefs closes the TAQ/agent reference cycle: the TAQ copies were
-// stored before any agent had been copied, so their agentRun/agentPrompt steps
-// still named the parent's agents. Now that the agent id map is complete, those
-// arguments are rewritten and the changed rows updated.
+// repointTAQAgentRefs closes the TAQ/agent reference cycle: TAQ copies are
+// stored before any agent is copied, so their agentRun/agentPrompt steps still
+// name the parent's agents. With the agent id map complete, those arguments are
+// rewritten and the changed rows updated.
 //
 // Runs over the in-memory copies rather than re-reading them, so it sees the
 // same structs the create wrote.
@@ -644,8 +635,8 @@ func (svc *project) repointTAQAgentRefs(ctx context.Context, s store.Storer, c *
 // project_revision.go), so a renamed copy would read as a removal plus an
 // addition and the diff would be useless. That is only possible because the
 // agent handle index is scoped per project (see agent.cue's
-// unique_handle_per_project); it was global until 2026-07-30, which made a
-// same-handle copy impossible to store at all.
+// unique_handle_per_project); a global index would make a same-handle copy
+// impossible to store at all.
 func (svc *project) cloneProjectAgents(ctx context.Context, s store.Storer, c *projectClone) (err error) {
 	aa, _, err := store.SearchAgents(ctx, s, types.AgentFilter{
 		ProjectID: c.parent.ID,

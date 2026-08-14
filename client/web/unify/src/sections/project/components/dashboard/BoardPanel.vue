@@ -1,13 +1,9 @@
 <template>
   <!-- The project's kanban board: every work item as a card in one of four
-       shared status columns, drag-to-move between them. Route-free, extracted
-       from components/wizard/manage/ManageBoard.vue (which now just resolves
-       the wizard's open revision into props below) so the live dashboard can
-       mount the exact same board, chain-wide (see views/dashboard/BoardView.vue) —
-       ruled 2026-07-28: the project dashboard and the wizard's Manage &
-       Monitor tab are ONE surface differing only in scope (see
-       views/views.intent.md / DashboardLayout.intent.md). Mirrors
-       CategoryPanel.vue/ActivityPanel.vue's own extraction exactly.
+       shared status columns, drag-to-move between them. Route-free, so both
+       components/wizard/manage/ManageBoard.vue (revision-scoped) and
+       views/dashboard/BoardView.vue (chain-wide) mount the same board.
+       Mirrors CategoryPanel.vue/ActivityPanel.vue.
 
        NO background on this container, unlike ActivityPanel.vue: the columns
        below are themselves bg-surface, so a bg-surface container would flatten
@@ -24,8 +20,8 @@
        (create/save/delete/status-change — see the Drag & Drop / Quick-add /
        Detail drawer sections below) and for `ownerOptions`, which is why
        views/dashboard/DashboardLayout.vue and
-       components/wizard/manage/ManageBoard.vue still load them chain-wide /
-       revision-scoped respectively — unchanged, see those files. -->
+       components/wizard/manage/ManageBoard.vue load them chain-wide and
+       revision-scoped respectively. -->
   <div class="h-full flex flex-col min-h-0">
     <header class="shrink-0 border-b border-surface px-4 py-3 flex items-center gap-3">
       <span
@@ -70,10 +66,8 @@
 
     <!-- Columns always render, even with zero items — an empty board (chain-
          wide, or a fresh revision) must stay usable, with per-column quick-add
-         (see BoardColumn.vue). The old whole-board "no work items" note that
-         used to sit above the columns is gone — the per-column empty
-         affordance already carries that message, and stacking a second one
-         above it read as noise. -->
+         (see BoardColumn.vue). No whole-board "no work items" note: the
+         per-column empty affordance already carries that message. -->
     <div v-else class="flex-1 min-h-0 overflow-x-auto">
       <div class="h-full flex gap-3 p-4 min-w-max">
         <BoardColumn
@@ -230,10 +224,8 @@ const props = defineProps({
   // CategoryPanel's onCreate exactly).
   revisionId: { type: [String, Number], default: null },
   // Passed by Wizard.vue to every M&M section, but deliberately NOT enforced
-  // chain-wide either: creating and moving work items is ungated, matching
-  // the dashboard's own New-event button (CategoryPanel), which has never
-  // been capability-gated. Ruled 2026-07-28 — revisit when member roles and
-  // what each may do are refined.
+  // chain-wide either: creating and moving work items is ungated, matching the
+  // dashboard's own New-event button (CategoryPanel).
   disabled: { type: Boolean, default: false },
 })
 

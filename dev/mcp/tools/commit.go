@@ -269,12 +269,8 @@ func isIntentPath(f string) bool {
 }
 
 // checkIntentPaired warns when a commit changes code an intent doc governs and
-// leaves the intent side for later.
-//
-// The rule is that the two travel together, so the failure this catches is the
-// commit that looks complete and is not: code landed, doc still describing what
-// the code used to do. It stays a warning because reconciling a doc is a
-// judgement call the human may have decided against for now.
+// leaves the intent side for later — a commit that looks complete and is not.
+// A warning, not a refusal: reconciling a doc is the human's judgement call.
 func checkIntentPaired(ctx context.Context, root string, files []string) []string {
 	for _, f := range files {
 		if isIntentPath(f) {

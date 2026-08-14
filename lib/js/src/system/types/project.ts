@@ -121,11 +121,9 @@ export class Project {
   // directly. Set means archived.
   public archivedAt?: Date = undefined
 
-  // Publish approval, server-owned exactly like status. It used to live in a
-  // Pinia ref, so it did not survive a reload and a second user never saw a
-  // submitted request; the backend now refuses to publish anything that is not
-  // 'approved' here. approvalPlan fingerprints the deployment plan the
-  // approval was granted against — publish recomputes it and sends the
+  // Server-owned publish approval, like status: the backend refuses to publish
+  // anything not 'approved' here. approvalPlan fingerprints the deployment plan
+  // the approval was granted against; publish recomputes it and sends the
   // revision back for re-approval on a mismatch.
   public approvalStatus: ProjectApprovalStatus = 'draft'
   public approvalPlan = ''

@@ -95,10 +95,9 @@ func inputSchema(tool mcp.Tool) map[string]any {
 
 // RegisterTool adds a tool to the registry.
 //
-// Registration happens once, at boot. A duplicate name is a programming error
-// — previously it silently overwrote the earlier tool, which meant two
-// handlers claiming one name produced a green build with one tool missing —
-// so it panics rather than returning an error no caller would check.
+// Registration happens once, at boot. A duplicate name is a programming error —
+// two handlers claiming one name would otherwise produce a green build with one
+// tool missing — so it panics rather than returning an error no caller checks.
 func (r *Registry) RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc, opts ...RegisterOption) {
 	if _, exists := r.tools[tool.Name]; exists {
 		panic(fmt.Sprintf("mcp: duplicate tool registration for %q", tool.Name))

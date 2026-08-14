@@ -112,23 +112,20 @@ func TestCheckWithMaxLength(t *testing.T) {
 	}
 }
 
-// TestOrdinaryTextIsAllowed guards the false positives that were fixed.
+// TestOrdinaryTextIsAllowed asserts the ordinary business strings the guard
+// must not block, so narrowing the patterns fails here rather than quietly
+// costing users their input.
 //
-// These are ordinary business strings the guard used to block. It documented
-// them as known-wrong before; now they are asserted, so narrowing the patterns
-// again would fail here instead of quietly costing users their input.
+// Three shapes it has to stay clear of:
 //
-// Three causes were removed:
-//
-//   - "act as" and "new instructions" were bare phrases in the override list.
-//     "This field will act as a filter" is a sentence someone writes in a CRM
-//     note.
-//   - roleImpersonation carried the multiline flag, so it matched a role label
-//     at the start of *any* line — the shape of a pasted transcript or a log
-//     line. It is now anchored to the start of the input.
-//   - "<|" and "|>" were listed as markers in their own right. They are
-//     substrings of the full ChatML tokens beside them, so they added no
-//     coverage, and "|>" is the pipe operator in three languages.
+//   - "act as" and "new instructions" as bare phrases: "This field will act
+//     as a filter" is a sentence someone writes in a CRM note.
+//   - roleImpersonation with the multiline flag, which matches a role label at
+//     the start of *any* line — the shape of a pasted transcript or a log
+//     line. It is anchored to the start of the input.
+//   - "<|" and "|>" as markers in their own right. They are substrings of the
+//     full ChatML tokens, so they add no coverage, and "|>" is the pipe
+//     operator in three languages.
 func TestOrdinaryTextIsAllowed(t *testing.T) {
 	allowed := []string{
 		"This field will act as a filter for the report.",

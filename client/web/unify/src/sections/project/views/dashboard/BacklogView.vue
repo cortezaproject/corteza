@@ -467,28 +467,21 @@ const categoryBreakdown = computed(() =>
   })),
 )
 
-// Completed — a stat, not a chart (ruled 2026-07-28): plain Completed ÷ total
-// off the status column, from the SAME count/open metrics the KPI trio above
-// already fetched (no extra report call, no client-side re-derivation of the
-// open/closed rule). Deliberately the SAME formula
-// components/wizard/RevisionCompletenessBar.vue uses for its header stat —
-// see CategoryPanel.vue's identical completedPercent comment for the full
-// reasoning (a completed-over-time series was ruled out: backlog items carry
-// no CompletedDate at all, only status, and the report endpoint can't bucket
-// by anything but CreatedAt today).
+// Completed — a stat, not a chart: plain Completed ÷ total off the status
+// column, from the SAME count/open metrics the KPI trio above already fetched.
+// The SAME formula components/wizard/RevisionCompletenessBar.vue uses; see
+// CategoryPanel.vue's completedPercent comment. No time series is possible:
+// backlog items carry no CompletedDate, only status, and the report endpoint
+// buckets by nothing but CreatedAt.
 
 // `sortable` is an EXPLICIT per-column declaration, verified against
-// server/store/adapters/rdbms/rdbms.gen.go's sortableProjectBacklogItemFields()
-// map as of 2026-07-28 — NOT a blanket assumption: clicking an unsortable
-// header sends an unrecognised sort column and the store rejects the query,
-// blanking the whole list. title/status/dateDue are sortable there; assignee
-// and priority are not (yet — a concurrent backend change is adding
-// sortability to those, but "planned" isn't "true" until verified again
-// here). revisionID is the one deliberate exception: marked sortable AHEAD of
-// that same concurrent change (needs codegen + a server restart before it
-// actually works) because a sortable Revision column is the agreed
-// replacement for the removed unassigned-only filter — see this file's
-// UNASSIGNED FILTER comment above.
+// server/store/adapters/rdbms/rdbms.gen.go's sortableProjectBacklogItemFields(),
+// NOT a blanket assumption: clicking an unsortable header sends an unrecognised
+// sort column, which the store rejects, blanking the whole list. title, status
+// and dateDue are sortable there; assignee and priority are not. revisionID is
+// the one exception, marked sortable ahead of backend support (needs codegen and
+// a server restart) because a sortable Revision column is what groups unassigned
+// rows together — see this file's UNASSIGNED FILTER comment above.
 const fields = computed(() => [
   { key: 'title', header: t('project.dashboard.columns.title'), sortable: true },
   { key: 'eventID', header: t('project.dashboard.backlog.columns.linkedEvent'), sortable: false },

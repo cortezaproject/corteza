@@ -36,7 +36,7 @@ func TestStaleAgainstPrefersTheRunningProcess(t *testing.T) {
 		want        bool
 	}{
 		{
-			// The regression itself: mtimes say fresh, the process says otherwise.
+			// mtimes say fresh, the process says otherwise.
 			name:        "binary newer than source but process predates the edit",
 			sourceAt:    sourceEdit,
 			processAt:   processStart,

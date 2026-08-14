@@ -52,15 +52,11 @@ func NotificationHandler(reg notificationHandlerRegistry, ntfSvc notificationSer
 
 // send creates and sends a notification
 func (h notificationHandler) send(ctx context.Context, args *notificationSendArgs) error {
-	// Resolve the recipient, whichever way it was given.
-	//
-	// An ID used to be trusted without a lookup, which made the same mistake
-	// loud or silent depending on which type the author happened to pick: a bad
-	// handle failed with "user not found", while a well-formed ID naming nobody
-	// bound cleanly, executed as "completed", and wrote a notification addressed
-	// to a user that does not exist — a row no one can list or delete, because
-	// the notification endpoints scope to the authenticated caller. Resolve all
-	// three the same way.
+	// Resolve the recipient, whichever way it was given — an ID included, never
+	// trusted without a lookup. A well-formed ID naming nobody would otherwise bind
+	// cleanly, execute as "completed", and write a notification addressed to a user
+	// that does not exist: a row no one can list or delete, because the notification
+	// endpoints scope to the authenticated caller.
 	var (
 		user *systemTypes.User
 		err  error

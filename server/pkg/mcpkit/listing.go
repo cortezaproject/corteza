@@ -205,12 +205,10 @@ func (m *MCPServer) searchTools(query string, scope Scope) []mcp.Tool {
 
 		// One term is enough to be a candidate; matching more ranks higher.
 		//
-		// Requiring every term used to be the rule, and it made a natural
-		// question the worst possible input: "workflow create tool" returned
-		// nothing, because no single tool contains all three words, while
-		// "workflow" returned the family. A model reading "no tool matches"
-		// concludes the capability does not exist, so the stricter rule did not
-		// merely narrow results — it hid the surface.
+		// Requiring every term would make a natural question the worst possible
+		// input: no single tool contains all of "workflow create tool", so it
+		// would return nothing where "workflow" returns the family. A model
+		// reading "no tool matches" concludes the capability does not exist.
 		if matched == 0 {
 			continue
 		}

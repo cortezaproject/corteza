@@ -25,6 +25,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 ## Conventions
 
 - **Formatting**: prettier (FE) / gofmt (Go) on changed files only, after edits.
+- **Comments** (code and templates): short, and about what the thing **is** —
+  never why it changed. No "used to", no "now that", no dated rulings, no
+  pointer to the decision that produced the line. History is git's job and
+  rationale is the intent doc's; a comment earns its place only by saying
+  something the code next to it cannot.
 - **Commits**: see **[Commit convention](#commit-convention)** below — the one
   statement of it. Skills and `dev_commit_create` point here rather than
   restating it.

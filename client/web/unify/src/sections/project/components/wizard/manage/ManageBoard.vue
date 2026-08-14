@@ -26,10 +26,8 @@ const props = defineProps({
   // filed against (see stores/projects.js's Project class).
   project: { type: Object, required: true },
   // Passed by Wizard.vue to every M&M section, but deliberately NOT enforced
-  // here: creating and moving work items is ungated, matching the
-  // dashboard's own New-event button (CategoryPanel.vue), which has never
-  // been capability-gated. Ruled 2026-07-28 — revisit when member roles and
-  // what each may do are refined.
+  // here: creating and moving work items is ungated, matching the dashboard's
+  // own New-event button (CategoryPanel.vue).
   disabled: { type: Boolean, default: false },
 })
 

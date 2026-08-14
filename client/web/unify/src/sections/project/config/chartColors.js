@@ -16,17 +16,15 @@ import { EVENT_FORMS } from './eventForm'
 // Lifecycle ramp: colour tracks progress toward done (urgency lives in the
 // separate "overdue" metric, not here). Distinct hues, green = done, and Open
 // is off-grey so it never reads as the "unknown/blank" fallback.
-// Validated both modes (ALL PASS, no contrast relief needed): the older
-// amber/emerald steps (#f59e0b, #10b981) overflowed the dark-mode lightness
-// cap. Emerald sits one family step darker; amber sits at 600 — the
-// yellowest step that still clears both mode bands (ruled 2026-07-29: the
-// 700 step read as brown, not yellow, in the progress bar/donuts).
+// Every step clears both mode bands: emerald sits one family step darker than
+// its default, amber at 600 — the yellowest step that still passes, since 700
+// reads as brown in the progress bar and donuts.
+//
 // Relationship to EventBadge's status pills: same Tailwind hue FAMILIES,
-// deliberately NOT the same hexes (ruled 2026-07-29, reverting the one-hex
-// unification tried that day): the pills' text is theme-aware (700 steps on
-// light, 300 on dark) while a chart mark carries ONE hex that must clear
-// both mode bands — no single value can be both. Family mirroring is the
-// contract; keep the two in the same families or change both.
+// deliberately NOT the same hexes. The pills' text is theme-aware (700 steps on
+// light, 300 on dark) while a chart mark carries ONE hex that must clear both
+// bands, and no single value can be both. Family mirroring is the contract:
+// keep the two in the same families or change both.
 export const STATUS_COLORS = {
   Open: '#3b82f6', // blue — new, logged
   'In Progress': '#d97706', // amber — active, in-flight

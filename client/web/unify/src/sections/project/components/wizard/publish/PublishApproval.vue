@@ -4,9 +4,8 @@
       {{ hint }}
     </Message>
 
-    <!-- The reviewer's note used to live only in a button tooltip, where it was
-         effectively unreadable. It is the single most important thing on the
-         screen when a publish has been sent back, so it gets the room. -->
+    <!-- The reviewer's note is the most important thing on the screen when a
+         publish has been sent back, so it gets the room. -->
     <blockquote v-if="noteVisible" class="border-l-2 border-amber-500 pl-3 py-1 text-sm">
       <span class="block text-xs uppercase tracking-wide text-muted-color mb-0.5">
         {{ $t('project.publish.note.label') }}

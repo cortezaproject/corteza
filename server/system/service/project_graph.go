@@ -47,9 +47,8 @@ func ProjectGraph(s store.Storer) *projectGraphService {
 // for the deployment plan) has already checked read on both revisions, and a
 // second check there would only be a chance to disagree with the first.
 //
-// This is the endpoint that leaked: until 2026-07-30 it returned the full
-// resource list -- module names and IDs -- to callers who were refused a plain
-// read of the same project.
+// Without the check here this endpoint hands the full resource list -- module
+// names and IDs -- to a caller refused a plain read of the same project.
 func (s *projectGraphService) Graph(ctx context.Context, projectID uint64) (*types.ProjectGraph, error) {
 	proj, err := store.LookupProjectByID(ctx, s.store, projectID)
 	if err != nil {

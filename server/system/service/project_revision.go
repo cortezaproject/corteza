@@ -462,10 +462,6 @@ func (svc *project) DeploymentPlan(ctx context.Context, projectID uint64) (*type
 // (they are allowed to ship it). Neither implies the other, which is exactly
 // why an executive authority who approves nothing else and a release engineer
 // who reviews nothing can both exist.
-//
-// Until 2026-07-31 there was neither: the approval cycle lived in a browser ref
-// and this function's own doc comment said "the backend publishes directly once
-// confirm=true".
 func (svc *project) Publish(ctx context.Context, projectID uint64, req types.PublishRequest) (*types.Project, error) {
 	if !req.Confirm {
 		return nil, fmt.Errorf("publish requires confirm=true")

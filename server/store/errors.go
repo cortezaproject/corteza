@@ -21,10 +21,9 @@ var (
 // ErrNotUniqueOn is ErrNotUnique with the offending resource and fields named.
 //
 // A bare "not unique" tells whoever hits it nothing: a resource can carry
-// several unique constraints (agents alone have handle and, historically, a
-// project-scoped variant), and the service layer and the database can both
-// raise it. Debugging then means guessing which one fired -- and guessing
-// wrong is expensive, because the two have completely different fixes.
+// several unique constraints, and the service layer and the database can both
+// raise it. Debugging then means guessing which one fired, and guessing wrong
+// is expensive, because the two have completely different fixes.
 //
 // Same errors.KindDuplicateData as ErrNotUnique, so anything switching on the
 // KIND keeps working; only the human-readable message gains detail.

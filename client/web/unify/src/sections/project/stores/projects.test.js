@@ -18,8 +18,7 @@ describe('useProjectsStore', () => {
   // server state: it lives on the project row, and the backend refuses to
   // publish anything that is not approved, refuses a decision from whoever
   // submitted the request, and refuses an approval granted against a different
-  // version of the revision. All of that used to live in a ref in this browser
-  // tab, where it did not survive a reload and a second user never saw it.
+  // version of the revision.
   describe('publish approval', () => {
     const seed = async (api, project) => {
       api.projectList = vi.fn().mockResolvedValue({ set: [project] })
@@ -83,12 +82,10 @@ describe('useProjectsStore', () => {
   })
 
   describe('deploymentPlan()', () => {
-    // The regression: Go marshals a nil slice as `null`, not `[]`, so a plan
-    // with nothing in it arrives as {changes: null}. Spreading the response
-    // over array defaults overwrote them with null, and the Publish tab then
-    // died on `changes.filter(...)` and reported that it could not work out
-    // what the revision changes — on every first revision, which is exactly
-    // the case that has an empty plan.
+    // Go marshals a nil slice as `null`, not `[]`, so an empty plan arrives as
+    // {changes: null}. Spreading that over array defaults overwrites them with
+    // null and the Publish tab dies on `changes.filter(...)` — on every first
+    // revision, which is exactly the case with an empty plan.
     it('turns null slices into arrays', async () => {
       api.projectGetDeploymentPlan = vi.fn().mockResolvedValue({
         risk: 'safe',
@@ -127,10 +124,9 @@ describe('useProjectsStore', () => {
     })
   })
 
-  // The regression: the store destructured only `nodes` and `edges`, so the
-  // endpoint's whole account of what it could NOT resolve — a chatbot pointing
-  // at another revision's agent, a TAQ binding a branch copy dropped — was
-  // thrown away between the API and the canvas, and a broken project rendered
+  // The endpoint's account of what it could NOT resolve — a chatbot pointing at
+  // another revision's agent, a TAQ binding a branch copy dropped — has to reach
+  // the canvas. Destructuring only `nodes` and `edges` renders a broken project
   // as a correct one with one fewer line on it.
   describe('graph()', () => {
     const call = async response => {
@@ -228,10 +224,9 @@ describe('useProjectsStore', () => {
     const P = '42'
 
     describe('transitionStep()', () => {
-      // The regression: Approve used to be a direct action from ANY status, so
-      // a step could be approved before anyone asked for approval, and an
-      // already-approved step could be approved again to no effect. The button
-      // that fired it is gated on the same rule now (Wizard.vue canApproveStep).
+      // Approve is reachable only from 'submitted': nothing is approved before
+      // anyone asked, and an approved step cannot be approved again. The button
+      // is gated on the same rule (Wizard.vue canApproveStep).
       it('refuses to approve a step that was never submitted', async () => {
         const store = useProjectsStore()
 

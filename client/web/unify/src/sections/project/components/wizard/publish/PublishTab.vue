@@ -1,8 +1,8 @@
 <template>
   <div class="h-full overflow-y-auto">
     <!-- Deliberately a single centred column with no left rail, unlike every
-         other tab (ruled 2026-07-29): publishing is a rare one-way action, so
-         it reads as a sequence to complete, not a place to browse. -->
+         other tab: publishing is a rare one-way action, so it reads as a
+         sequence to complete, not a place to browse. -->
     <div class="max-w-3xl mx-auto p-4 flex flex-col gap-4">
       <!-- No project-level status tag here: the revision switcher in the topbar
            states that on every screen, and repeating it beside this heading was
@@ -40,7 +40,7 @@
 
       <!-- A first publish has no parent to diff against and no records to
            migrate, so it gets its own screen rather than the revision flow
-           with two of its four stages emptied out (ruled 2026-07-29). -->
+           with two of its four stages emptied out. -->
       <PublishFirstRun
         v-else-if="!hasParent"
         :project-name="project.name"
@@ -176,9 +176,9 @@
 </template>
 
 <script setup>
-// The Publish tab — the whole request → approve → publish cycle, which lived in
-// the wizard's tab row until 2026-07-29 (see views/Wizard.intent.md). Self
-// contained on purpose, the same way each manage/ section is: Wizard.vue mounts
+// The Publish tab — the whole request → approve → publish cycle (see
+// views/Wizard.intent.md). Self-contained on purpose, the same way each
+// manage/ section is: Wizard.vue mounts
 // it with the open revision and the caller's capabilities, and everything else
 // — the deployment plan, the migration decisions, the governance transitions
 // and the publish call — is owned here.
@@ -375,9 +375,8 @@ const resolvedMappings = computed(() =>
 
 // --- governance ------------------------------------------------------------
 // The revision's own approval is SERVER state, read straight off the project
-// row. It used to be a ref in this browser tab: it did not survive a reload, a
-// second user never saw a submitted request, and nothing stopped a submitter
-// from approving their own work — the backend published on confirm=true alone.
+// row: it survives a reload, a second user sees a submitted request, and the
+// backend refuses a decision from whoever submitted it.
 const publishStatus = computed(() =>
   projectId.value ? store.publishApprovalStatus(projectId.value) : 'draft',
 )

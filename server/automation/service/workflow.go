@@ -542,17 +542,12 @@ func (svc *workflow) onExec(ctx context.Context, aProps *workflowActionProps, wo
 			return nil
 		}
 
-		// StepID is assigned where the selected trigger is in hand.
-		//
-		// It used to be assigned in a tail block that read the trigger from
-		// this closure's own return value — a variable only written once the
-		// closure returns, so inside it the trigger was nil on every path and
-		// the assignment never ran. Manual exec therefore reached the runtime
-		// with StepID still 0, and session.Start reads a zero StepID as "find
-		// the entry structurally", counts the parentless steps, and refuses
-		// anything with more than one. A workflow with two entry points ran
-		// fine when fired by an event, which passes the step explicitly, and
-		// failed every time it was run by hand.
+		// StepID is assigned here, where the selected trigger is in hand — not in a
+		// tail block reading this closure’s own return value, which is written only
+		// once the closure returns. A zero StepID makes session.Start find the entry
+		// structurally, count the parentless steps, and refuse anything with more
+		// than one, so a two-entry workflow runs on an event (which passes the step)
+		// and fails every manual exec.
 		if p.StepID == 0 {
 			t := tt[0]
 			aProps.setTrigger(t)

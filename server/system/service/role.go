@@ -315,11 +315,11 @@ func (svc *role) onLookup(ctx context.Context, roleID uint64, aProps *roleAction
 }
 
 func (svc *role) onUpdate(ctx context.Context, _ store.Storer, upd *types.Role, res *types.Role, _ *roleActionProps, _ func() error, _ func() error) error {
-	// Permission first, identity second. This check used to sit below the
-	// system-role branch, and that branch returns nil when handle and name are
-	// unchanged — so an edit to a system role's description or meta succeeded
-	// without update permission at all. Whether a system role may be touched is
-	// a separate question from whether this caller may touch any role.
+	// Permission first, identity second. The system-role branch below returns nil
+	// when handle and name are unchanged, so this check has to precede it or an
+	// edit to a system role’s description or meta lands without update permission.
+	// Whether a system role may be touched is a separate question from whether this
+	// caller may touch any role.
 	if !svc.ac.CanUpdateRole(ctx, res) {
 		return RoleErrNotAllowedToUpdate()
 	}
@@ -458,9 +458,8 @@ func (svc *role) onCloneRules(ctx context.Context, _ *roleActionProps, roleID ui
 // onMembership returns every role a user holds.
 //
 // The read check is on the subject, not on each role: this answers "what does
-// this user have", so the caller must be allowed to read that user. Previously
-// it checked nothing at all beyond checkScope, so any authenticated caller
-// could enumerate anyone's roles.
+// this user have", so the caller must be allowed to read that user. Without it
+// any authenticated caller could enumerate anyone’s roles.
 //
 // A caller reading their own memberships is always permitted — that is the
 // self-service case the webapp relies on.

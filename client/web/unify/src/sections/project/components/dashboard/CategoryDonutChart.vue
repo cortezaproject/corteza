@@ -62,13 +62,12 @@ const props = defineProps({
   height: { type: Number, default: 200 },
 })
 
-// The donut hole's number, summed over the VISIBLE slices (ruled 2026-07-28):
-// filtering the legend re-sums the hole, so hiding "Completed" reads the open
-// total straight off the ring. The trade, accepted deliberately: while a filter
-// is active this number no longer matches the KPI tiles or board totals beside
-// it — it answers "what's showing" rather than "what the category holds".
-// `fullTotal` still gates the empty state, so a chart with data never renders
-// as empty just because every slice was toggled off.
+// The donut hole's number, summed over the VISIBLE slices: filtering the legend
+// re-sums the hole, so hiding "Completed" reads the open total straight off the
+// ring. While a filter is active it answers "what's showing" rather than "what
+// the category holds", so it will not match the KPI tiles or board totals beside
+// it. `fullTotal` gates the empty state, so a chart with data never renders as
+// empty just because every slice was toggled off.
 const fullTotal = computed(() => props.data.reduce((s, d) => s + (d.value || 0), 0))
 
 // Same identity ChartLegend's own keyFor uses for a row — `key` when the data

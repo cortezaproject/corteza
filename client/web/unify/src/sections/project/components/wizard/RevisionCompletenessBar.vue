@@ -2,19 +2,15 @@
   <!-- Revision completeness — a stacked status bar plus a weighted percent
        (see the `percent` computed) over the work items assigned to the OPEN
        revision, across all six work-item types (five categories + backlog
-       items). Sits at the FOOT OF THE MANAGE & MONITOR RAIL and
-       nowhere else (ruled 2026-07-28): it measures work items, so it only
-       appears on the tab that is about work items — it used to live in the
-       tab row and therefore also sat over Build and Govern, next to work it
-       wasn't measuring. Entirely board-endpoint-driven (GET /project-board/,
+       items). Sits at the FOOT OF THE MANAGE & MONITOR RAIL and nowhere
+       else: it measures work items, so it only appears on the tab that is
+       about work items. Entirely board-endpoint-driven (GET /project-board/,
        via composables/revisionCompleteness.js — see the script below), never
-       the events/backlog stores for its NUMBERS (nor, any more, the report
-       endpoint — see the script's own comment for why this moved off six
-       report() calls onto one board call), so it stays accurate past those
-       stores' 200-row-per-category cap. The stores do serve as the bar's
-       refresh SIGNAL (their `mutations` counters), so completing a card on
-       the board beside this bar moves it — data and invalidation are
-       deliberately separate channels. -->
+       the events/backlog stores nor the report endpoint for its NUMBERS, so
+       it stays accurate past those stores' 200-row-per-category cap. The
+       stores do serve as the bar's refresh SIGNAL (their `mutations`
+       counters), so completing a card on the board beside this bar moves it —
+       data and invalidation are deliberately separate channels. -->
   <div v-if="hasData" class="flex flex-col gap-1.5" v-tooltip.top="tooltip">
     <div class="flex items-center justify-between gap-2">
       <span class="text-xs font-medium text-muted-color uppercase tracking-wide">
@@ -145,11 +141,10 @@ const segments = computed(() =>
   })).filter(seg => seg.count > 0),
 )
 
-// WEIGHTED percent (ruled 2026-07-29, replacing plain completed ÷ assigned):
-// every item contributes its lifecycle position — the statuses are an even
-// 0 → 1 ramp in EVENT_STATUS order (Open 0, In Progress ⅓, Ready to Test ⅔,
-// Completed 1) — so in-flight work moves the number instead of counting the
-// same as untouched work. All-Completed still reads exactly 100%, all-Open 0%.
+// WEIGHTED percent: every item contributes its lifecycle position — the statuses
+// are an even 0 → 1 ramp in EVENT_STATUS order (Open 0, In Progress ⅓, Ready to
+// Test ⅔, Completed 1) — so in-flight work moves the number instead of counting
+// the same as untouched work. All-Completed reads exactly 100%, all-Open 0%.
 const percent = computed(() => {
   if (!hasItems.value) return 0
   const span = EVENT_STATUS.length - 1

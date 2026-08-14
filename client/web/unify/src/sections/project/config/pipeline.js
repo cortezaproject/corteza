@@ -52,8 +52,7 @@ export const STEPS = [
     tab: 'govern',
   },
   // --- FRIA (Fundamental Rights Impact Assessment, EU AI Act Art. 27) -----
-  // THREE Govern steps, in the order the assessment actually reasons (the
-  // ai-systems step added 2026-07-30):
+  // THREE Govern steps, in the order the assessment actually reasons:
   //
   //   1. determination — are WE, as deployer, in scope at all? Organisation-
   //      level, so it stays a revision-wide answer.
@@ -65,9 +64,9 @@ export const STEPS = [
   //   3. scenarios — HOW could each system cause harm? Every scenario names
   //      exactly one AI system (config/friaScenario.js).
   //
-  // Determination is deliberately split from per-system classification (ruled
-  // 2026-07-30): "are we a public authority / essential-services / banking
-  // deployer" is one answer for the whole revision, while "is THIS system
+  // Determination is deliberately split from per-system classification:
+  // "are we a public authority / essential-services / banking deployer" is one
+  // answer for the whole revision, while "is THIS system
   // Annex III high-risk" differs per system — a project with one high-risk and
   // one minimal-risk system is the common case, and one conflated step cannot
   // express it.
@@ -90,10 +89,10 @@ export const STEPS = [
     tab: 'govern',
   },
   {
-    // NOT a resource step and NOT a kind: an AI system is a boundary drawn
-    // over resources the Build steps already created, so it stays out of
+    // NOT a resource step and NOT a kind: an AI system is a boundary drawn over
+    // resources the Build steps already created, so it stays out of
     // config/kinds.js, out of the graph as a node, and out of the permission
-    // matrix (ruled 2026-07-30). Its own type, like the FRIA steps.
+    // matrix. Its own type, like the FRIA steps.
     key: 'ai-systems',
     labelKey: 'fria.steps.aiSystems.label',
     type: 'ai-systems',

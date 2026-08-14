@@ -7,8 +7,7 @@
     <span class="flex items-center gap-2 min-w-0">
       <span class="truncate">{{ project?.name || $t('project.wizard.fallbackName') }}</span>
       <!-- Revision switcher — shared with the dashboard topbar (see
-           components/project/RevisionSwitcher.vue); replaces what used to be
-           an inline trigger + Menu here. -->
+           components/project/RevisionSwitcher.vue). -->
       <!-- The revision's own status tag lives INSIDE the switcher, on the
            control that names the revision (and matching that revision's row in
            its dropdown). -->
@@ -19,8 +18,7 @@
   <!-- Members + View project — shared with the dashboard topbar, right-
        aligned tools slot (see components/project/ProjectTopbarTools.vue);
        owns the Members button, the MembersDialog mount, and the "View
-       project" compose namespace link that used to live in the tab-row tool
-       cluster below. auto-open-members carries the `?new=1`
+       project" compose namespace link. auto-open-members carries the `?new=1`
        just-created-project deep link (see membersAutoOpen below) into the
        shared dialog. -->
   <Teleport to="#topbar-tools" defer>
@@ -33,9 +31,8 @@
     <!-- Header row: the fixed four-tab switcher — Build / Govern / Manage &
          Monitor / Publish, visible to every member regardless of capability
          (only the per-step and per-project review ACTIONS are capability-gated,
-         not tab access). Just tabs: the publish approval cluster that used to
-         sit here moved into the Publish tab itself (ruled 2026-07-29 — see
-         Wizard.intent.md). -->
+         not tab access). Just tabs — the publish approval cluster lives in
+         the Publish tab itself (see Wizard.intent.md). -->
     <div class="shrink-0 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 px-3 pt-2">
       <Tabs v-model:value="activeTab" class="wizard-tabs shrink-0">
         <TabList>
@@ -130,16 +127,14 @@
             <p class="text-sm text-muted-color mt-1">{{ headerHint }}</p>
           </div>
 
-          <!-- Per-step review lives HERE, not in a bottom bar (ruled
-               2026-07-28): it acts on the step whose header this is, so it
-               belongs beside its title and status. The PROJECT-level
-               request → approve → publish cycle is the same shape around the
-               revision as a whole and lives in the Publish tab (ruled
-               2026-07-29).
-               Each control is gated on the capability that owns it AND on the
-               step's current status (ruled 2026-07-30): submitting is the
-               builder's, approving the reviewer's, and neither is offered when
-               it would decide nothing. -->
+          <!-- Per-step review lives HERE, not in a bottom bar: it acts on the
+               step whose header this is, so it belongs beside its title and
+               status. The PROJECT-level request → approve → publish cycle is
+               the same shape around the revision as a whole and lives in the
+               Publish tab. Each control is gated on the capability that owns
+               it AND on the step's current status: submitting is the builder's,
+               approving the reviewer's, and neither is offered when it would
+               decide nothing. -->
           <div class="ml-auto flex items-center gap-2 shrink-0">
             <template v-if="activeStep">
               <Button
@@ -292,9 +287,8 @@
         </div>
 
         <!-- Save footer — INSIDE the step panel, not a bar across the whole
-             screen (ruled 2026-07-28). Form steps only: resource and
-             sensitivity steps persist each change as it's made and have
-             nothing to save. -->
+             screen. Form steps only: resource and sensitivity steps persist
+             each change as it's made and have nothing to save. -->
         <div
           v-if="showStepSave"
           class="shrink-0 border-t border-surface px-4 py-3 flex items-center justify-end"
@@ -310,11 +304,11 @@
       </div>
     </div>
 
-    <!-- Publish: the ONE tab with no left rail (ruled 2026-07-29). Publishing
-         is a rare one-way action, so it reads as a sequence to complete rather
-         than a place to browse. Self-contained like the manage/ sections — it
-         owns the deployment plan, the migration decisions, the governance
-         transitions and the publish call itself. -->
+    <!-- Publish: the ONE tab with no left rail. Publishing is a rare one-way
+         action, so it reads as a sequence to complete rather than a place to
+         browse. Self-contained like the manage/ sections — it owns the
+         deployment plan, the migration decisions, the governance transitions
+         and the publish call itself. -->
     <div v-else-if="activeTab === 'publish'" class="flex-1 min-h-0 p-3">
       <PublishTab
         :project="project"
@@ -335,9 +329,8 @@
          without every one of them editing this region of Wizard.vue. -->
     <div v-else class="flex-1 flex gap-4 p-3 min-h-0">
       <!-- Rail + revision progress. The bar lives at the FOOT OF THIS RAIL and
-           on no other tab (ruled 2026-07-28): it measures work items assigned
-           to the open revision, so it belongs beside the sections that show
-           them, not in the tab row where it also sat over Build and Govern. -->
+           on no other tab: it measures work items assigned to the open
+           revision, so it belongs beside the sections that show them. -->
       <aside class="w-72 shrink-0 h-full flex flex-col gap-3 min-h-0">
         <ManageNav
           class="flex-1 min-h-0"
@@ -647,10 +640,9 @@ const canGrant = computed(() => !!currentRole.value.grantApproval)
 const canRequestApproval = computed(() => !!currentRole.value.requestApproval)
 
 // --- Members dialog auto-open signal ----------------------------------------
-// Members are no longer a wizard step — the shared ProjectTopbarTools (see
-// the Teleport above) owns both the "Members" button and the MembersDialog
-// mount now; it wraps exactly the table the old MembersStep held. Just-
-// created-project flag: ProjectList.vue's onCreated() lands here with
+// Members are not a wizard step — the shared ProjectTopbarTools (see the
+// Teleport above) owns both the "Members" button and the MembersDialog mount.
+// Just-created-project flag: ProjectList.vue's onCreated() lands here with
 // `?new=1` right after creating a project — members are the first thing to
 // define on a fresh one, so this signals the shared component to auto-open
 // the dialog once (its auto-open-members prop). Derived directly from the
@@ -922,11 +914,11 @@ const startResize = () => {
 
 // --- Per-step governance state --------------------------------------------
 // A Build/Govern step runs the same submit → approve/request-changes cycle as
-// the revision itself (ruled 2026-07-30, see stores/projects.js
-// transitionStep): 'draft' (the default) → 'submitted' → 'approved' or
-// 'changes-requested'. Nothing is approved that was not put up for approval
-// first, and editing a step's contents drops it back to 'draft' — the store
-// retires the review, this view only ever reads the resulting status.
+// the revision itself (see stores/projects.js transitionStep): 'draft' (the
+// default) → 'submitted' → 'approved' or 'changes-requested'. Nothing is
+// approved that was not put up for approval first, and editing a step's
+// contents drops it back to 'draft' — the store retires the review, this view
+// only reads the resulting status.
 const stepStatus = key =>
   project.value ? store.governanceStatus(project.value.projectID, key) : 'draft'
 const status = computed(() => stepStatus(activeKey.value))
@@ -1166,11 +1158,9 @@ async function confirmRequestChanges() {
   background: transparent;
 }
 
-/* Squared segmented control (ruled 2026-07-28). The radii deliberately match
-   the rest of the section rather than the pill shape this used to have:
-   0.5rem on the track is the step/content panels' own rounding, 0.375rem on a
-   tab is what StepNav items and the step-header badge use. A fully-rounded
-   pill was the only element in the wizard speaking that language. */
+/* Squared segmented control. The radii match the rest of the section: 0.5rem on
+   the track is the step/content panels' own rounding, 0.375rem on a tab is what
+   StepNav items and the step-header badge use. */
 .wizard-tabs :deep(.p-tablist-tab-list) {
   display: inline-flex;
   gap: 0.25rem;

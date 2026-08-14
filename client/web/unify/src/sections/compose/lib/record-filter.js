@@ -46,11 +46,9 @@ export function escapeQlString(str, isLikePattern = false) {
 //
 // CInputDateTime (lib/vue) emits one of three shapes, depending on the field's
 // options: Date.toISOString() for a datetime field ('2024-06-29T12:30:00.000Z'),
-// YYYY-MM-DD when it is date-only, and HH:mm:ss when it is time-only. Parsing
-// used to demand 'YYYY-MM-DDTHH:mm:ssZ' or 'HH:mm' exactly, so an ISO timestamp
-// and a seconds-bearing time both failed every branch, getFieldFilter returned
-// undefined, and getRecordListFilterSql dropped the condition — the filter read
-// as applied in the UI and never reached the API.
+// YYYY-MM-DD when it is date-only, and HH:mm:ss when it is time-only. A shape
+// no branch matches makes getFieldFilter return undefined and
+// getRecordListFilterSql drop the condition silently.
 //
 // Date-only is tested BEFORE datetime: moment's ISO_8601 accepts a bare
 // YYYY-MM-DD too, and letting it through the timestamp branch would resolve the

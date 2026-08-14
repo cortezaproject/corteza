@@ -80,7 +80,7 @@
 <script setup>
 // Publish stage 4 — what happens the moment you publish, in plain language,
 // plus the confirmation itself. There is no confirm dialog: this stage IS the
-// confirmation (ruled 2026-07-29).
+// confirmation.
 import { computed, useId } from 'vue'
 
 const props = defineProps({

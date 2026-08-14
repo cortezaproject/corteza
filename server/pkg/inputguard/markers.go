@@ -5,11 +5,9 @@ package inputguard
 var injectionMarkers = []string{
 	// ChatML
 	//
-	// The bare two-character fragments "<|" and "|>" used to be listed here as
-	// well, and they blocked ordinary text: "|>" is the pipe operator in
-	// Elixir, F# and OCaml, and both appear in ASCII art and diagrams. They
-	// also added no coverage, since a real ChatML delimiter contains one of the
-	// full tokens below.
+	// The bare fragments "<|" and "|>" are deliberately not listed: they are
+	// substrings of the full tokens below, so they add no coverage, while "|>" is
+	// the pipe operator in Elixir, F# and OCaml and both appear in ASCII art.
 	"<|im_start|>",
 	"<|im_end|>",
 

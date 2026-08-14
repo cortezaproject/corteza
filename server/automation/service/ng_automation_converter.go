@@ -202,15 +202,11 @@ func buildExecSteps(
 		var err error
 		aux.Handler, err = stepConv(svc, step)
 		if err != nil {
-			// Report it. This used to be `spew.Dump(err); continue`, which sent
-			// the diagnosis to stdout and dropped the step — so an unsupported
-			// kind, an unknown function ref, a missing or misnamed argument, a
-			// wrong type or an unparseable expression all stored cleanly,
-			// returned no issues, registered an executable with a hole in it,
-			// and then executed as "completed" having run nothing.
-			//
-			// Six distinct failure classes were invisible this way. They are
-			// each diagnosed correctly here; the diagnosis just was not kept.
+			// Report each conversion failure as an issue. Dropping the step instead
+			// stores it cleanly, returns no issues, registers an executable with a hole
+			// in it, and executes as "completed" having run nothing — for an unsupported
+			// kind, an unknown function ref, a missing or misnamed argument, a wrong type
+			// or an unparseable expression alike.
 			// -1: stepIdx is a map, so there is no positional index to report.
 			issues = append(issues, automationTypes.NewStepConversionIssue(uiID, -1, err))
 			continue

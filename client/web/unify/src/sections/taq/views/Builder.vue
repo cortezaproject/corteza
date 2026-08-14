@@ -1073,7 +1073,7 @@ function onKeyDown(event) {
 
 onMounted(() => {
   // The unified shell does global setup only — the builder loads its own
-  // functions/triggers catalog (the old standalone App.vue used to do this).
+  // functions/triggers catalog.
   if (!store.catalogReady) {
     store.loadCatalog()
   }

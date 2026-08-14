@@ -287,12 +287,10 @@ func (im *Importer) importTable(
 			continue
 		}
 
-		// One value per place, not just the first. importRow keeps every value
-		// the source produced (the iterator sets them by place), but this loop
-		// used to read position 0 alone -- so a multi-value field arrived with
-		// its first entry and the rest were dropped without a word. On a
-		// project publish that is silent data loss inside a record that
-		// otherwise migrated fine.
+		// One value per place, not just the first. importRow keeps every value the
+		// source produced (the iterator sets them by place); reading position 0 alone
+		// drops the rest of a multi-value field without a word, which on a project
+		// publish is silent data loss inside a record that otherwise migrated fine.
 		var values, links composeTypes.RecordValueSet
 		counts := row.CountValues()
 		for _, col := range mp.Columns {

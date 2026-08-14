@@ -234,8 +234,7 @@ const schema = computed(() => [
 // chain into the revisionID field, same mechanism as NewEventDialog/
 // EventDetailDialog. The revision field is dropped entirely (not just
 // disabled) when showRevisionField is false, so its `default: null` never
-// seeds `model.revisionID` — an unshown field must behave exactly as it did
-// before this field existed.
+// seeds `model.revisionID`.
 const resolvedSchema = computed(() =>
   schema.value.map(section => ({
     ...section,

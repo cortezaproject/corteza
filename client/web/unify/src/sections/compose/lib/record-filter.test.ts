@@ -215,10 +215,9 @@ describe('lib/record-filter', () => {
       expect(queryToFilter('', PRE, [], [group([field('A', '1')])])).toBe(`${PRE} AND ((A = '1'))`)
     })
 
-    // The regression this suite primarily guards: a top-level OR in the user
-    // filter must be parenthesised so the prefilter constrains BOTH branches.
-    // Before the fix the result was `PRE AND (a) OR (b)`, which SQL reads as
-    // `(PRE AND a) OR b`, letting branch `b` escape the prefilter entirely.
+    // A top-level OR in the user filter must be parenthesised so the prefilter
+    // constrains BOTH branches: `PRE AND (a) OR (b)` reads as `(PRE AND a) OR b`
+    // in SQL, letting branch `b` escape the prefilter entirely.
     it('wraps a top-level OR so the prefilter applies to every branch', () => {
       const out = queryToFilter(
         '',
