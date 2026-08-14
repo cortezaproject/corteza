@@ -347,88 +347,104 @@ export async function run({ only = null, headed = false } = {}) {
   // a browser that dies — must still close the browser, or node keeps its
   // handle open and never exits. A finished run that cannot exit is
   // indistinguishable from a hung one, and costs the same to wait on.
+  // One attempt at one check, in its own browser context.
+  async function runCase(c) {
+    // A context per check: no state bleeds between them, and a check that
+    // needs a virgin history (a deep link with nothing to go Back to) gets one
+    // without saying so.
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      ...(existsSync(STORAGE) && !c.opts.freshLogin ? { storageState: STORAGE } : {}),
+    })
+
+    const page = await context.newPage()
+
+    const state = { dialog: null, problems: [] }
+    page.on('dialog', async d => {
+      state.dialog = d.message()
+      await d.accept()
+    })
+    page.on('pageerror', e => state.problems.push(`pageerror: ${e.message}`))
+    page.on('console', m => {
+      if (m.type() === 'error' && !m.text().startsWith('Failed to load resource')) {
+        state.problems.push(`console.error: ${m.text().slice(0, 300)}`)
+      }
+    })
+    page.on('response', r => {
+      if (r.status() >= 500 && !isKnownDevNoise(r.url())) {
+        state.problems.push(`HTTP ${r.status()}: ${r.url()}`)
+      }
+    })
+
+    const driven = drivePage(page, state)
+    current = { name: c.name, checks: [] }
+
+    // storageState may be absent or stale; log in and retry once. The login
+    // form gets playwright's generous default — the auth server is a separate
+    // app and a cold one is slow. Only the checks are held to the fast
+    // timeout, where a miss means a wrong selector rather than a slow page.
+    // Where an unauthenticated browser ends up is decided by the app's auth
+    // handshake, so the URL right after domcontentloaded is mid-flight and
+    // says nothing yet. Settling first is what separates "needs a login" from
+    // "was already on its way in".
+    await page.goto(WEBAPP, { waitUntil: 'domcontentloaded' }).catch(() => {})
+    await page.waitForTimeout(2500)
+    if (page.url().includes('/auth/')) await login(context, page)
+
+    context.setDefaultTimeout(ACTION_TIMEOUT)
+    state.problems.length = 0
+    state.dialog = null
+
+    try {
+      await c.body(driven)
+    } catch (e) {
+      current.checks.push({ name: 'threw', ok: false, detail: e.message })
+    }
+
+    const result = current
+    result.churn = looksLikeEnvironmentChurn(state.problems)
+
+    if (!c.opts.allowProblems && state.problems.length) {
+      result.checks.push({
+        name: 'no console or network errors',
+        ok: false,
+        detail: state.problems.slice(0, 5).join(' | '),
+      })
+    }
+
+    if (result.checks.some(x => !x.ok)) {
+      const shot = join(SHOT_DIR, c.name.replace(/[^a-z0-9]+/gi, '-') + '.png')
+      await page.screenshot({ path: shot, fullPage: true }).catch(() => {})
+      result.shot = shot
+    }
+
+    await context.close()
+    return result
+  }
+
   try {
     for (const c of picked) {
-      // A context per check: no state bleeds between them, and a check that
-      // needs a virgin history (a deep link with nothing to go Back to) gets one
-      // without saying so.
-      const context = await browser.newContext({
-        viewport: { width: 1440, height: 900 },
-        ...(existsSync(STORAGE) && !c.opts.freshLogin ? { storageState: STORAGE } : {}),
-      })
+      let result = await runCase(c)
 
-      const page = await context.newPage()
-
-      const state = { dialog: null, problems: [] }
-      page.on('dialog', async d => {
-        state.dialog = d.message()
-        await d.accept()
-      })
-      page.on('pageerror', e => state.problems.push(`pageerror: ${e.message}`))
-      page.on('console', m => {
-        if (m.type() === 'error' && !m.text().startsWith('Failed to load resource')) {
-          state.problems.push(`console.error: ${m.text().slice(0, 300)}`)
-        }
-      })
-      page.on('response', r => {
-        if (r.status() >= 500 && !isKnownDevNoise(r.url())) {
-          state.problems.push(`HTTP ${r.status()}: ${r.url()}`)
-        }
-      })
-
-      const driven = drivePage(page, state)
-      current = { name: c.name, checks: [] }
-
-      // storageState may be absent or stale; log in and retry once. The login
-      // form gets playwright's generous default — the auth server is a separate
-      // app and a cold one is slow. Only the checks are held to the fast
-      // timeout, where a miss means a wrong selector rather than a slow page.
-      // Where an unauthenticated browser ends up is decided by the app's auth
-      // handshake, so the URL right after domcontentloaded is mid-flight and
-      // says nothing yet. Settling first is what separates "needs a login" from
-      // "was already on its way in".
-      await page.goto(WEBAPP, { waitUntil: 'domcontentloaded' }).catch(() => {})
-      await page.waitForTimeout(2500)
-      if (page.url().includes('/auth/')) await login(context, page)
-
-      context.setDefaultTimeout(ACTION_TIMEOUT)
-      state.problems.length = 0
-      state.dialog = null
-
-      try {
-        await c.body(driven)
-      } catch (e) {
-        current.checks.push({ name: 'threw', ok: false, detail: e.message })
+      // vite re-optimizes its dependency set the moment a new dependency shows
+      // up, invalidating every module URL already served, and swaps modules
+      // under a running page on each save. Either leaves the app unable to boot
+      // for exactly one load. A reload is the recovery — verify-ui.mjs has
+      // retried once for the same reason for as long as it has existed — so a
+      // churned check gets a second attempt before it counts as a result.
+      if (result.churn) {
+        console.log(`RETRY ${c.name} — the app did not load; dev server churn, not a result`)
+        result = await runCase(c)
+        if (result.churn) churn = true
       }
 
-      if (looksLikeEnvironmentChurn(state.problems)) {
-        current.churn = true
-        churn = true
-      }
-
-      if (!c.opts.allowProblems && state.problems.length) {
-        current.checks.push({
-          name: 'no console or network errors',
-          ok: false,
-          detail: state.problems.slice(0, 5).join(' | '),
-        })
-      }
-
-      const bad = current.checks.filter(x => !x.ok)
-      if (bad.length) {
-        failed++
-        const shot = join(SHOT_DIR, c.name.replace(/[^a-z0-9]+/gi, '-') + '.png')
-        await page.screenshot({ path: shot, fullPage: true }).catch(() => {})
-        current.shot = shot
-      }
+      if (result.checks.some(x => !x.ok)) failed++
 
       // Reported as it finishes, not collected for the end: a check that hangs
       // should leave a trail of what already passed, otherwise a stuck run and a
       // slow one look identical from outside.
-      report(current)
-
-      results.push(current)
-      await context.close()
+      report(result)
+      results.push(result)
     }
   } finally {
     await browser.close().catch(() => {})
