@@ -1,9 +1,10 @@
 <template>
-  <div class="shrink-0 border-t border-surface bg-surface">
+  <div data-testid="editor-actions" class="shrink-0 border-t border-surface bg-surface">
     <div class="p-3 flex items-center" :class="hasLeft ? 'justify-between' : 'justify-end'">
       <div v-if="hasLeft" class="flex items-center gap-2">
         <Button
           v-if="backTo"
+          data-testid="editor-back"
           :label="backLabel || $t('general.label.back')"
           icon="pi pi-arrow-left"
           severity="secondary"

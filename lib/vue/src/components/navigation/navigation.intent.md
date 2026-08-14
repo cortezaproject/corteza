@@ -54,6 +54,10 @@ so branding/visibility changes need no code.
   grows it; fixed-position elements offset by `--topbar-height` (right
   sidebar, toasts, search overlay) accept the overlap on wrapped bars.
 - All string labels come in via the required `labels` prop (no i18n inside).
+- The chrome carries `data-testid` landmarks — `app-sidebar` on the sidebar
+  drawer, `app-topbar` on the header — because everything else about them is a
+  styling detail: the sidebar is a PrimeVue Drawer, so any structural selector
+  for it is really a guess about PrimeVue's markup.
 - `expandAll` is a standing instruction, not a starting state. Navs are fed by
   stores that are still loading at setup, so a group opens when its items
   arrive, and again whenever the prop turns back on (search toggles it); a

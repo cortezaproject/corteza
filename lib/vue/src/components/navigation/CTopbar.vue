@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation flex flex-wrap items-center p-2 !pr-3">
+  <div data-testid="app-topbar" class="header-navigation flex flex-wrap items-center p-2 !pr-3">
     <!-- Sidebar toggle + small logo -->
     <div v-if="!hideLogo && !sidebarExpanded">
       <!-- When sidebar is disabled on this route, show only icon logo -->

@@ -1,6 +1,7 @@
 <template>
   <Drawer
     v-model:visible="expanded"
+    data-testid="app-sidebar"
     :modal="isMobile"
     :dismissable="isMobile"
     :pt="{

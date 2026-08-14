@@ -42,7 +42,7 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 - `CInputColorPicker`, `CInputLocation` (map dialog geometry), `CInputFile` + `CFileDropZone` (attachment upload), `CRichTextInput` (tiptap editor + emoji, `submitOnEnter`).
 - `CInputDelete` — confirm-guarded delete button (emits confirmation, no v-model).
 - `CFieldPicker` — dual-list picker of module fields (`allFields` ⇄ v-model selection).
-- `CFormGroup`, `CFormItemContent`, `CFormItemList`, `CFormList`, `CEditorActions` — form/list layout scaffolding for editor screens.
+- `CFormGroup`, `CFormItemContent`, `CFormItemList`, `CFormList`, `CEditorActions` — form/list layout scaffolding for editor screens. `CEditorActions` carries `data-testid` `editor-actions` and `editor-back`: its Back button is the same control on every editor, so it is addressable as one rather than by each screen's label.
 
 ## Cross-cutting
 
