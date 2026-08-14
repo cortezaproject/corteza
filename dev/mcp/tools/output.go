@@ -18,7 +18,17 @@ const (
 	// maxErrors bounds unparseable noise. Past a handful it is never the
 	// signal, and an unbounded list would defeat the purpose of the tool.
 	maxErrors = 10
+
+	// maxAlsoFailing bounds the roll-call of tests that fell to an error
+	// already printed. The names are one line each against a stack's forty, so
+	// the cap is generous; past it the count says the rest.
+	maxAlsoFailing = 25
 )
+
+// failurePrefix matches the file:line a runner stamps on a failure. It is the
+// one part of an otherwise identical message that differs per test, so it comes
+// off before two failures are compared.
+var failurePrefix = regexp.MustCompile(`^\s*[\w./-]+\.(go|ts|tsx|js|jsx|mjs|vue):\d+(:\d+)?:?\s*`)
 
 // fileRef matches the file:line prefix Go puts on a failure, so a caller gets
 // somewhere to go without reading the whole output.
@@ -71,6 +81,67 @@ func appendCapped(dst []string, v string) []string {
 		return dst
 	}
 	return append(dst, v)
+}
+
+// failureSignature reduces a failure to the line that identifies it: the first
+// non-empty line, with any file:line prefix removed.
+func failureSignature(output string) string {
+	for _, line := range strings.Split(output, "\n") {
+		if line = strings.TrimSpace(failurePrefix.ReplaceAllString(line, "")); line != "" {
+			return line
+		}
+	}
+	return ""
+}
+
+// collapseFailures folds failures that share one error into the first of them.
+//
+// One broken import, mock or fixture takes down every test that touches it, and
+// each arrives carrying a full copy of the same stack — fifteen copies of one
+// message, which is the largest avoidable cost this tool had left. The error is
+// worth reading once; what the other fourteen add is their names, so that is
+// all they keep.
+func collapseFailures(ff []testFail) []testFail {
+	if len(ff) < 2 {
+		return ff
+	}
+	out := make([]testFail, 0, len(ff))
+	at := map[string]int{}
+
+	for _, f := range ff {
+		sig := failureSignature(f.Output)
+		if sig == "" {
+			// Nothing to compare on: a failure with no output is kept as its
+			// own entry rather than folded into an unrelated one.
+			out = append(out, f)
+			continue
+		}
+
+		key := f.Package + "\x00" + sig
+
+		i, seen := at[key]
+		if !seen {
+			at[key] = len(out)
+			out = append(out, f)
+			continue
+		}
+
+		if len(out[i].AlsoFailing) < maxAlsoFailing {
+			out[i].AlsoFailing = append(out[i].AlsoFailing, failureName(f))
+		} else {
+			out[i].AlsoFailingMore++
+		}
+	}
+
+	return out
+}
+
+// failureName is what a folded failure is listed as.
+func failureName(f testFail) string {
+	if f.Test != "" {
+		return f.Test
+	}
+	return f.File
 }
 
 func hasFailureIn(ff []testFail, pkg string) bool {

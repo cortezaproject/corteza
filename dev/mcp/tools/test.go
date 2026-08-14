@@ -40,6 +40,10 @@ type testFail struct {
 	Test    string `json:"test,omitempty"`
 	File    string `json:"file,omitempty"`
 	Output  string `json:"output"`
+
+	// Tests that failed with this same error, named but not re-printed.
+	AlsoFailing     []string `json:"alsoFailing,omitempty"`
+	AlsoFailingMore int      `json:"alsoFailingMore,omitempty"`
 }
 
 type testTimings struct {
@@ -93,6 +97,18 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 			}
 			if err != nil {
 				return nil, err
+			}
+
+			if folded := len(report.Failures); folded > 0 {
+				report.Failures = collapseFailures(report.Failures)
+
+				if folded -= len(report.Failures); folded > 0 {
+					report.Note = strings.TrimSpace(report.Note + fmt.Sprintf(
+						" %d further failure(s) carried an error already listed and were folded into"+
+							" its alsoFailing rather than repeated. They are almost certainly one cause,"+
+							" so fix the listed error and re-run before reading anything into the count.",
+						folded))
+				}
 			}
 
 			return toolkit.JSONResult(report)
