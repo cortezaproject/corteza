@@ -66,7 +66,6 @@
                 :disabled="!boundsDifferFromView"
                 size="small"
                 severity="secondary"
-                outlined
                 class="mt-2"
                 @click.stop="updateBoundsToView"
               />
