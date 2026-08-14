@@ -12,14 +12,21 @@
         <template v-for="(navItem, index) in navigationItems" :key="`nav-${index}`">
           <!-- Dropdown type -->
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
-            <div class="relative" :style="itemStyle(navItem)">
+            <div
+              class="relative flex items-center"
+              :class="itemClass(navItem)"
+              :style="itemStyle(navItem)"
+            >
+              <!-- The trigger takes its size, weight and colour from the item
+                   around it, so a dropdown reads as one of the links rather
+                   than as a button that wandered into the row. -->
               <Button
                 :label="displayDropdownText(navItem)"
                 text
-                size="small"
                 icon="pi pi-chevron-down"
                 icon-pos="right"
-                :style="{ color: navItem.options?.item?.textColor }"
+                class="!p-0 !font-normal !text-inherit"
+                :style="{ color: navItem.options?.item?.textColor, fontSize: 'inherit' }"
                 @click="toggleDropdown(index, $event)"
               />
               <Menu
@@ -36,8 +43,11 @@
               v-if="getRouterLink(navItem)"
               :to="getRouterLink(navItem)"
               :target="selectTargetOption(navItem.options?.item?.target)"
-              class="nav-link-item flex items-center justify-center px-3 py-2 no-underline"
-              :class="{ 'opacity-50 pointer-events-none': !navItem.options?.enabled }"
+              class="nav-link-item flex items-center justify-center no-underline"
+              :class="[
+                itemClass(navItem),
+                { 'opacity-50 pointer-events-none': !navItem.options?.enabled },
+              ]"
               :style="itemStyle(navItem)"
             >
               {{ navItem.options?.item?.label || '' }}
@@ -46,8 +56,11 @@
               v-else-if="getHrefLink(navItem)"
               :href="getHrefLink(navItem)"
               :target="selectTargetOption(navItem.options?.item?.target)"
-              class="nav-link-item flex items-center justify-center px-3 py-2 no-underline text-color"
-              :class="{ 'opacity-50 pointer-events-none': !navItem.options?.enabled }"
+              class="nav-link-item flex items-center justify-center no-underline text-color"
+              :class="[
+                itemClass(navItem),
+                { 'opacity-50 pointer-events-none': !navItem.options?.enabled },
+              ]"
               :style="itemStyle(navItem)"
             >
               {{ navItem.options?.item?.label || '' }}
@@ -55,7 +68,8 @@
             <!-- Text section: non-clickable label -->
             <span
               v-else-if="navItem.type === 'text-section'"
-              class="flex items-center px-3 py-2 text-sm"
+              class="flex items-center text-sm"
+              :class="paddingClass"
               :style="itemStyle(navItem)"
             >
               {{ navItem.options?.item?.label || '' }}
@@ -69,7 +83,9 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { NoID } from '@planetcrust/human-js'
+import { usePageStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
 import { evaluatePrefilter } from '../../../lib/record-filter'
 
@@ -82,27 +98,70 @@ const props = defineProps({
 
 const $Auth = inject('$Auth', {})
 const route = useRoute()
+const router = useRouter()
+const pageStore = usePageStore()
 const menuRefs = ref({})
 
 const options = computed(() => props.block.options || {})
 const navigationItems = computed(() => options.value.navigationItems || [])
 const display = computed(() => options.value.display || {})
 
+const appearance = computed(() => display.value.appearance || '')
+const isSmall = computed(() => appearance.value === 'small')
+
+// Small is a tighter version of the same row, not a third shape.
+const paddingClass = computed(() => (isSmall.value ? 'px-2 py-1 text-xs' : 'px-3 py-2'))
+
 const navContainerClass = computed(() => {
-  const classes = ['gap-1', 'items-center']
-  const { alignment, appearance, justify } = display.value
+  const classes = ['gap-1', 'flex-wrap']
+  const { alignment, justify } = display.value
 
   if (justify === 'justify') classes.push('justify-around')
   else if (alignment === 'right') classes.push('justify-end')
   else if (alignment === 'left') classes.push('justify-start')
   else classes.push('justify-center')
 
-  if (appearance === 'pills') classes.push('nav-pills')
-  if (appearance === 'tabs') classes.push('nav-tabs')
+  // Tabs are full-height so each one's underline meets the row's rule; the
+  // other appearances centre their items in the block instead.
+  if (appearance.value === 'tabs') classes.push('items-stretch', 'border-b', 'border-surface')
+  else classes.push('items-center')
 
-  classes.push('flex-wrap')
   return classes
 })
+
+// The appearance decoration for one item, active state included. Author-set
+// colours are inline styles, so they still win over whatever this returns.
+function itemClass(navItem) {
+  const classes = [paddingClass.value]
+  const active = isActiveItem(navItem)
+
+  if (appearance.value === 'tabs') {
+    classes.push('-mb-px', 'border-b-2', 'hover:text-primary')
+    classes.push(active ? 'border-primary text-primary' : 'border-transparent')
+  } else if (appearance.value === 'pills') {
+    classes.push('rounded-full')
+    classes.push(active ? 'bg-primary text-primary-contrast' : 'hover:bg-emphasis')
+  } else {
+    classes.push('hover:underline')
+    if (active) classes.push('text-primary')
+  }
+
+  return classes
+}
+
+// Only a compose item can be the page you are on — a URL leaves the app and a
+// text section is not a destination. A sub-pages item also answers for its
+// children, so the strip stays lit while you are inside one.
+function isActiveItem(navItem) {
+  if (navItem.type !== 'compose') return false
+
+  const pageID = navItem.options?.item?.pageID
+  const current = route.params?.pageID
+  if (!pageID || !current) return false
+  if (pageID === current) return true
+
+  return isComposeDropdownPage(navItem) && subPages(pageID).some(p => p.pageID === current)
+}
 
 function setMenuRef(index, el) {
   menuRefs.value[index] = el
@@ -112,12 +171,24 @@ function toggleDropdown(index, event) {
   menuRefs.value[index]?.toggle(event)
 }
 
+// A sub-pages item only becomes a dropdown once there is something to drop:
+// the flag can outlive the children it was set for, and a menu that opens on
+// nothing is worse than the plain link it replaced.
 function isComposeDropdownPage(navItem) {
-  return navItem.type === 'compose' && navItem.options?.item?.displaySubPages
+  if (navItem.type !== 'compose' || !navItem.options?.item?.displaySubPages) return false
+  return subPages(navItem.options?.item?.pageID).length > 0
 }
 
 function displayDropdownText(navItem) {
-  return navItem.options?.item?.label || ''
+  const item = navItem.options?.item || {}
+  if (item.label) return item.label
+  return isComposeDropdownPage(navItem) ? pageStore.getByID?.(item.pageID)?.title || '' : ''
+}
+
+// The pages nested under a compose page. Record pages are excluded: they need
+// a record to show, so they are not somewhere a menu entry can send you.
+function subPages(pageID) {
+  return (pageStore.set || []).filter(p => p.selfID === pageID && p.moduleID === NoID)
 }
 
 function getDropdownItems(navItem) {
@@ -135,7 +206,29 @@ function getDropdownItems(navItem) {
       }
     })
   }
-  return []
+
+  if (!isComposeDropdownPage(navItem)) return []
+
+  // A sub-pages menu leads with the page it was configured for, so the item
+  // still reaches its own destination once it has become a dropdown.
+  const item = navItem.options?.item || {}
+
+  return [
+    {
+      label: displayDropdownText(navItem),
+      command: () => goToPage(item.pageID, item.pageLayoutID),
+    },
+    { separator: true },
+    ...subPages(item.pageID).map(child => ({
+      label: child.title || child.handle || child.pageID,
+      command: () => goToPage(child.pageID),
+    })),
+  ]
+}
+
+function goToPage(pageID, pageLayoutID) {
+  const to = composeRoute(pageID, pageLayoutID)
+  if (to) router.push(to)
 }
 
 // A URL that isn't a valid template (or uses record vars without a record) keeps working unchanged.
@@ -180,20 +273,29 @@ function itemStyle(navItem) {
   return style
 }
 
+// Where a compose page is reached. The namespace slug is not passed: it is the
+// one the strip is already rendering in, and the router keeps it.
+function composeRoute(pageID, pageLayoutID) {
+  if (!pageID) return null
+
+  const query = pageLayoutID ? { layoutID: pageLayoutID } : {}
+  const page = pageStore.getByID?.(pageID)
+
+  // A record page draws one record. Reached from a navigation item there is
+  // none yet, so it opens on a blank one — the route records are created at.
+  if (page?.moduleID && page.moduleID !== NoID) {
+    return { name: 'page.record', params: { pageID, recordID: NoID }, query }
+  }
+
+  return { name: 'page', params: { pageID }, query }
+}
+
 function getRouterLink(navItem) {
   if (['dropdown', 'text-section'].includes(navItem.type) || isComposeDropdownPage(navItem))
     return null
 
   if (navItem.type === 'compose') {
-    const pageID = navItem.options?.item?.pageID
-    const pageLayoutID = navItem.options?.item?.pageLayoutID
-
-    if (!pageID) return null
-
-    const isSamePage = pageID === route.params?.pageID
-    const query = pageLayoutID ? { layoutID: pageLayoutID } : {}
-
-    return isSamePage ? { ...route, query } : { name: 'page', params: { pageID }, query }
+    return composeRoute(navItem.options?.item?.pageID, navItem.options?.item?.pageLayoutID)
   }
 
   return null
@@ -205,9 +307,3 @@ function getHrefLink(navItem) {
   return navItem.type === 'url' ? evaluateUrl(navItem.options?.item?.url) : null
 }
 </script>
-
-<style scoped>
-.nav-link-item:hover {
-  text-decoration: underline !important;
-}
-</style>

@@ -138,7 +138,20 @@
                   filter
                   show-clear
                   class="w-full"
-                  @update:model-value="updateNavItemOption(index, 'pageID', $event)"
+                  @update:model-value="selectComposePage(index, $event)"
+                />
+              </CFormGroup>
+              <CFormGroup :label="$t('block.navigation.pageLayout')">
+                <Select
+                  :model-value="item.options?.item?.pageLayoutID || null"
+                  :options="layoutOptions(item.options?.item?.pageID)"
+                  option-label="label"
+                  option-value="value"
+                  :placeholder="$t('block.navigation.defaultLayout')"
+                  show-clear
+                  :disabled="!item.options?.item?.pageID"
+                  class="w-full"
+                  @update:model-value="updateNavItemOption(index, 'pageLayoutID', $event || '')"
                 />
               </CFormGroup>
               <CFormGroup :label="$t('block.navigation.target')">
@@ -152,6 +165,7 @@
                 />
               </CFormGroup>
               <CInputToggleCard
+                v-if="subPages(item.options?.item?.pageID).length"
                 :model-value="!!item.options?.item?.displaySubPages"
                 :label="$t('block.navigation.displaySubPages')"
                 :description="$t('block.navigation.displaySubPagesDescription')"
@@ -250,7 +264,8 @@
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
-import { usePageStore } from '@planetcrust/human-vue'
+import { usePageLayoutStore, usePageStore } from '@planetcrust/human-vue'
+import { NoID } from '@planetcrust/human-js'
 import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { CInputColorPicker, CInputToggleCard } = components
@@ -268,6 +283,7 @@ const { scope } = useExpressionScope({ page: computed(() => props.page) })
 const block = inject('blockDraft')
 
 const pageStore = usePageStore()
+const pageLayoutStore = usePageLayoutStore()
 
 const typeOptions = [
   { value: 'url', label: t('block.navigation.url') },
@@ -304,6 +320,23 @@ const pageOptions = computed(() => {
     label: p.title || p.handle || p.pageID,
   }))
 })
+
+// The layouts a chosen page can be opened on. Leaving it unset opens the one
+// the page itself decides on.
+function layoutOptions(pageID) {
+  if (!pageID) return []
+  return (pageLayoutStore.getByPageID?.(pageID) || []).map(l => ({
+    value: l.pageLayoutID,
+    label: l.meta?.title || l.handle || l.pageLayoutID,
+  }))
+}
+
+// Sub-pages are what the display-sub-pages toggle would list; a page with none
+// is not offered it.
+function subPages(pageID) {
+  if (!pageID) return []
+  return (pageStore.set || []).filter(p => p.selfID === pageID && p.moduleID === NoID)
+}
 
 const navItems = computed(() => block.value.options?.navigationItems || [])
 
@@ -352,15 +385,34 @@ function updateNavItem(index, key, value) {
 
 // Update a field inside item.options.item
 function updateNavItemOption(index, key, value) {
+  patchNavItemOption(index, { [key]: value })
+}
+
+function patchNavItemOption(index, patch) {
   const items = [...navItems.value]
   items[index] = {
     ...items[index],
     options: {
       ...items[index].options,
-      item: { ...items[index].options?.item, [key]: value },
+      item: { ...items[index].options?.item, ...patch },
     },
   }
   updateOptions('navigationItems', items)
+}
+
+// Picking a page names the item after it, so a navigation item is never a
+// blank link. A label the author typed is theirs and stays. The layout belongs
+// to the page that was chosen, so it does not survive choosing another.
+function selectComposePage(index, pageID) {
+  const patch = { pageID, pageLayoutID: '' }
+  const page = pageID ? pageStore.getByID?.(pageID) : null
+
+  if (page && !navItems.value[index]?.options?.item?.label) {
+    patch.label = page.title || page.handle || ''
+  }
+  if (!pageID) patch.displaySubPages = false
+
+  patchNavItemOption(index, patch)
 }
 
 function addDropdownItem(index) {
