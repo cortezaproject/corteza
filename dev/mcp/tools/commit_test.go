@@ -83,6 +83,12 @@ func TestCheckAtomic(t *testing.T) {
 		{"server/automation/service/workflow.go", "server/automation/service/workflow_test.go"},
 		{"server/system/types/user.go", "server/system/types/user.gen.go"},
 		{"docs/one.md", "docs/two.md"},
+		// An intent doc states what the code change beside it made true, so the
+		// two belong in one commit — and the lock the sync writes travels with
+		// the doc.
+		{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md"},
+		{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md", ".intent/intent.lock.json"},
+		{"server/pkg/mcpkit/mcpkit.intent.md", ".intent/intent.lock.json"},
 	}
 
 	for _, files := range quiet {
@@ -94,12 +100,56 @@ func TestCheckAtomic(t *testing.T) {
 	loud := [][]string{
 		{"server/automation/service/workflow.go", "README.md"},
 		{"server/automation/service/workflow.go", "locale/en/human-webapp/project.yaml"},
-		{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md"},
+		// An intent doc riding along does not make an unrelated prose doc fine.
+		{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md", "README.md"},
 	}
 
 	for _, files := range loud {
 		if got := checkAtomic(files); len(got) == 0 {
 			t.Errorf("expected a warning for %v, got none", files)
 		}
+	}
+}
+
+// TestIsIntentPath pins what counts as the intent half of a commit. The lock is
+// the easy one to miss: sync writes it, and a commit that leaves it behind
+// reports drift that was already reconciled.
+func TestIsIntentPath(t *testing.T) {
+	yes := []string{
+		"server/pkg/mcpkit/mcpkit.intent.md",
+		"client/web/unify/src/sections/compose/views/Admin/Modules/Edit.intent.md",
+		".intent/intent.lock.json",
+		".intent/SPEC.md",
+	}
+
+	for _, f := range yes {
+		if !isIntentPath(f) {
+			t.Errorf("expected %q to count as an intent path", f)
+		}
+	}
+
+	no := []string{
+		"README.md",
+		"docs/intent.md",
+		"server/automation/service/workflow.go",
+		"client/web/unify/src/sections/compose/views/Admin/Modules/Edit.vue",
+	}
+
+	for _, f := range no {
+		if isIntentPath(f) {
+			t.Errorf("expected %q not to count as an intent path", f)
+		}
+	}
+}
+
+// TestCheckIntentPairedStaysQuiet covers the one branch that must not shell out:
+// a commit already carrying an intent change needs no drift check, and running
+// one would put a node subprocess in the path of every commit that did the right
+// thing. A nil root would fail loudly if the short-circuit ever stopped working.
+func TestCheckIntentPairedStaysQuiet(t *testing.T) {
+	files := []string{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md"}
+
+	if got := checkIntentPaired(t.Context(), "/nonexistent", files); len(got) != 0 {
+		t.Errorf("expected no warning when the intent change is already in the commit, got %v", got)
 	}
 }

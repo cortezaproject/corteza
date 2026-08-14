@@ -85,23 +85,16 @@ first time" as a question, not an answer.
 
 ## 7. Commit — once the work is verified
 
-`dev_commit_create` enforces how a commit is made. When one happens is settled
-by the work itself: verified work gets committed without being asked for.
-Unverified work does not — and if the human asks for the commit anyway, say
-plainly what is still unproven, then do as they asked. **Pushing is separate
-and always theirs**: a local commit is reversible, publishing is not.
+**The rule is CLAUDE.md § Commit convention.** Read it there; it is not
+restated here, and it is not what `dev_commit_create` decides — the tool
+enforces the mechanical half (message shape, no AI attribution, formatting
+before staging) and warns on the rest.
 
-- One imperative line, under 72 characters, capitalised, no trailing period.
-- No AI attribution anywhere in the message — no co-author trailer, no
-  generated-with line, no robot emoji. The tool refuses all three.
-- Pass `files` explicitly to keep a commit atomic when the tree holds unrelated
-  work; omit it to commit what is already staged.
-- Formatting runs before staging, so what lands is what was formatted.
-- Mixing docs with code produces a **warning**, not a refusal. Read it: split
-  the commit unless the pieces genuinely belong together.
-
-Separate atomic commits — a product fix and a tooling fix are two commits, even
-when you made them in the same sitting.
+What this skill adds is only what "verified and nothing open" means here:
+steps 4–6 actually ran — tests green, the change exercised at its own layer,
+the test proven to have teeth — and nothing you turned up in them is still
+waiting. If the human asks for a commit anyway, say plainly what is still open,
+then do as they asked.
 
 ## What this skill is not
 

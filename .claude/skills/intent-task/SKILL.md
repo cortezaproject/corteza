@@ -72,7 +72,8 @@ Only proceed on approval.
    `node .intent/intent.mjs check` — must be green (never pipe through
    tail/head; read exit codes). Sync only after formatting — prettier changes
    hashes.
-4. Commit per repo conventions (atomic; docs/bugfix/cleanup separate; no AI
-   trailers). Update `.intent/TODO.md` in the same commit when the work
-   resolves or creates an item.
+4. Commit per CLAUDE.md § Commit convention — which for this skill means one
+   commit carrying the code, its `*.intent.md` and `.intent/intent.lock.json`
+   together, never the doc split off into its own. Update `.intent/TODO.md` in
+   that same commit when the work resolves or creates an item.
 5. Report: outcome, doc changes, any new WIP/DRIFT markers, open questions.

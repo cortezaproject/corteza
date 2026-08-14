@@ -196,20 +196,20 @@ than absorbing it as another iteration.
 
 ## Committing
 
-Once the work is done and verified, commit it without being asked. Use
-`dev_commit_create`; see `/dev-change` for the message and atomicity rules.
+**The rule is CLAUDE.md § Commit convention** — authorship, message, atomicity,
+intent docs riding with their code, and never pushing. Use `dev_commit_create`.
 
-"Verified" means step 8 actually happened: the reproduction re-run against the
-fix, the step-6 criteria checked one at a time, the touched package's tests
-green.
+What this skill adds is what its two conditions mean in terms of these steps:
 
-Three things this does not license:
+- **Verified** = step 8 actually happened: the reproduction re-run against the
+  fix, the step-6 criteria checked one at a time, the touched package's tests
+  green.
+- **Nothing still open** = step 9's report would raise nothing you then act on:
+  no question waiting on the human, no intent doc you noticed had drifted, no
+  check you named and skipped. Those belong in the commit, not after it. If
+  reconciling a doc needs the human's ruling, that is an open thread — get the
+  ruling, then commit the lot.
 
-- **Pushing.** A local commit is reversible; publishing is not. Pushes, PRs and
-  anything else outward-facing stay the human's call, every time.
-- **Sweeping the tree.** Name the files belonging to the change in `files`.
-  Another session's dirty file, or the human's own half-finished edit, is not
-  yours to commit.
-- **Committing through a conversation.** Work the human is still turning over —
-  changing the values, the shape, the scope — is not done however green it is.
-  Let it settle, then commit once.
+One thing worth stating twice: work the human is still turning over — changing
+the values, the shape, the scope — is not done however green it is. Let it
+settle, then commit once.

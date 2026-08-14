@@ -47,11 +47,14 @@ func registerCommit(reg *mcpkit.Registry, root string) {
 	reg.RegisterTool(
 		mcp.NewTool("dev_commit_create",
 			mcp.WithDescription(
-				"Commit staged or named files with this repo's conventions enforced rather than remembered: "+
-					"a short imperative subject, no AI attribution of any kind, and formatting applied before "+
-					"staging. It refuses rather than fixing a message for you, because the subject is the "+
-					"author's to write. Commit verified work as soon as it is done rather than waiting to be "+
-					"asked — but push nothing: publishing is the human's call, every time.",
+				"Commit staged or named files with this repo's conventions enforced rather than remembered. "+
+					"The convention is stated in one place — CLAUDE.md, section 'Commit convention' — and this "+
+					"tool enforces the half of it a machine can decide: a short imperative subject, no AI "+
+					"attribution of any kind, formatting applied before staging. It refuses rather than fixing "+
+					"a message for you, because the subject is the author's to write, and warns rather than "+
+					"refuses where only judgement can tell (unrelated changes sharing a commit, an intent "+
+					"change missing from one). The two halves it cannot check, from that same section: commit "+
+					"without being asked but only once nothing on the issue is still open, and push nothing.",
 			),
 			mcp.WithString("subject", mcp.Required(), mcp.Description(
 				"One imperative line, under 72 characters, no trailing period. \"Fix the parser\" not "+
@@ -135,6 +138,7 @@ func commit(ctx context.Context, root string, in commitInput) (*mcp.CallToolResu
 	}
 
 	out.Warnings = append(out.Warnings, checkAtomic(out.Files)...)
+	out.Warnings = append(out.Warnings, checkIntentPaired(ctx, root, out.Files)...)
 
 	message := in.Subject
 	if in.Body != "" {
@@ -155,8 +159,8 @@ func commit(ctx context.Context, root string, in commitInput) (*mcp.CallToolResu
 
 	out.Note = fmt.Sprintf("committed %s with %d file(s)", sha, len(out.Files))
 	if len(out.Warnings) > 0 {
-		out.Note += ". The warnings above are worth reading: an unrelated change in the same commit is " +
-			"the thing that makes history hard to read later"
+		out.Note += ". The warnings above are worth reading: what makes history hard to read later is " +
+			"an unrelated change sharing a commit, or a related one missing from it"
 	}
 
 	return toolkit.JSONResult(out)
@@ -219,8 +223,8 @@ func checkAtomic(files []string) []string {
 
 	for _, f := range files {
 		switch {
-		case strings.HasSuffix(f, ".intent.md"):
-			kinds["intent doc"] = true
+		case isIntentPath(f):
+			kinds["intent"] = true
 		case strings.HasSuffix(f, ".md"):
 			kinds["docs"] = true
 		case strings.Contains(f, "/locale/") || strings.HasPrefix(f, "locale/"):
@@ -234,10 +238,14 @@ func checkAtomic(files []string) []string {
 		}
 	}
 
-	// Tests belong with the code they cover, and generated files belong with
-	// the definition that produced them; neither pairing is a mixed commit.
+	// Tests belong with the code they cover, generated files with the definition
+	// that produced them, and an intent doc with the code it governs: the doc
+	// states what that very change made true, so splitting them leaves history
+	// with a commit whose doc contradicts its code. None of the three is a mixed
+	// commit.
 	delete(kinds, "tests")
 	delete(kinds, "generated")
+	delete(kinds, "intent")
 
 	if len(kinds) < 2 {
 		return nil
@@ -250,6 +258,59 @@ func checkAtomic(files []string) []string {
 
 	return []string{fmt.Sprintf("this commit mixes %s. The convention here is separate atomic commits — "+
 		"docs, bugfix and cleanup apart — so split it unless these genuinely belong together",
+		strings.Join(sortedStrings(named), " and "))}
+}
+
+// isIntentPath covers both halves of an intent change: the docs themselves and
+// the lock the sync writes, which has to travel with them or the next check
+// reports drift that was already reconciled.
+func isIntentPath(f string) bool {
+	return strings.HasSuffix(f, ".intent.md") || strings.HasPrefix(f, ".intent/")
+}
+
+// checkIntentPaired warns when a commit changes code an intent doc governs and
+// leaves the intent side for later.
+//
+// The rule is that the two travel together, so the failure this catches is the
+// commit that looks complete and is not: code landed, doc still describing what
+// the code used to do. It stays a warning because reconciling a doc is a
+// judgement call the human may have decided against for now.
+func checkIntentPaired(ctx context.Context, root string, files []string) []string {
+	for _, f := range files {
+		if isIntentPath(f) {
+			return nil
+		}
+	}
+
+	staged := make(map[string]bool, len(files))
+	for _, f := range files {
+		staged[f] = true
+	}
+
+	var governed []intentDrift
+	for _, d := range intentDrifted(ctx, root) {
+		if staged[d.File] {
+			governed = append(governed, d)
+		}
+	}
+
+	if len(governed) == 0 {
+		return nil
+	}
+
+	docs := map[string]bool{}
+	named := make([]string, 0, len(governed))
+	for _, d := range governed {
+		if d.Doc == "" || docs[d.Doc] {
+			continue
+		}
+		docs[d.Doc] = true
+		named = append(named, d.Doc)
+	}
+
+	return []string{fmt.Sprintf("this commit changes code governed by %s, but carries no intent change. "+
+		"The doc and the code it describes belong in one commit — reconcile it, run "+
+		"'node .intent/intent.mjs sync <files>', and include the doc and .intent/intent.lock.json here",
 		strings.Join(sortedStrings(named), " and "))}
 }
 

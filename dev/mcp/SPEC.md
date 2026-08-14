@@ -86,17 +86,28 @@ governs a file — is `dev_intent_governing`.
 | `dev_commit_create` | write | ✅ Stages and commits with the discipline enforced: imperative short subject, no AI trailers, formatted before staging |
 | `dev_branch_status` | read  | ✅ Branch, base, ahead/behind, working tree state                                                                      |
 
-Mixing unrelated changes is a **warning**, not a refusal. "Docs, bugfix and
-cleanup separately" is a rule about intent, and no path heuristic can tell a
-documented fix from a doc change that happens to sit beside one; refusing on a
-guess would make the tool something to route around.
+The convention itself is stated once, in **CLAUDE.md § Commit convention**, and
+not repeated here. What belongs here is which half of it this tool enforces and
+how.
+
+**Refusals** are the mechanical half — message shape, AI attribution, nothing
+staged. These are decidable from the input, so the tool says no and the caller
+fixes it.
+
+**Warnings** are everything a path heuristic can only guess at. Mixing unrelated
+changes is one: no heuristic can tell a documented fix from a doc change that
+happens to sit beside it, and refusing on a guess would make the tool something
+to route around. The intent pairing is the other, and it warns in both
+directions — an intent doc alongside code is not mixing and never warns, while
+code whose governing doc has drifted, committed with no intent change, is told
+what it left behind.
 
 The commit tool writes to history, which is worth being explicit about. It
 changes whether the conventions are followed by an agent remembering CLAUDE.md
 or by code that refuses — enforcement, not judgement. _When_ to commit is not
-the tool's question either: verified work lands without the human asking for
-it, which is the workflow this repo wants. The line that stays with the human
-is **push**, because a local commit is reversible and publishing is not.
+the tool's call either; it states the rule in its description and leaves the
+judgement where it belongs. The line that stays with the human is **push**,
+because a local commit is reversible and publishing is not.
 
 ### Exercise a running Human
 

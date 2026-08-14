@@ -152,9 +152,7 @@ func registerIntentCheck(reg *mcpkit.Registry, root string) {
 //
 // A non-zero exit means drift, which is the normal case here and not an error.
 func intentCheck(ctx context.Context, root string, all bool) (*mcp.CallToolResult, error) {
-	// Non-zero exit is the signal, not an error: intent check fails precisely
-	// when it found drift to report.
-	stdout, _ := runAllowFail(ctx, root, "node", ".intent/intent.mjs", "check")
+	drifted := intentDrifted(ctx, root)
 
 	mine := map[string]bool{}
 	if changed, err := changedFiles(ctx, root); err == nil {
@@ -165,27 +163,10 @@ func intentCheck(ctx context.Context, root string, all bool) (*mcp.CallToolResul
 
 	out := intentReport{}
 
-	for _, line := range strings.Split(stdout, "\n") {
-		// Each drift line is "<file>  (<reason>)  → update & sync: <doc>". The
-		// arrow is what distinguishes it from headings and the summary.
-		arrow := strings.Index(line, "→")
-		if arrow < 0 {
-			continue
-		}
-
-		head := strings.TrimSpace(line[:arrow])
-		doc := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line[arrow+len("→"):]), "update & sync:"))
-
-		file, reason := head, ""
-		if i := strings.Index(head, "("); i >= 0 {
-			file = strings.TrimSpace(head[:i])
-			reason = strings.Trim(strings.TrimSpace(head[i:]), "()")
-		}
-
-		d := intentDrift{File: file, Reason: reason, Doc: doc}
+	for _, d := range drifted {
 		out.Total++
 
-		if mine[file] {
+		if mine[d.File] {
 			out.Yours = append(out.Yours, d)
 		}
 		if all {
@@ -207,6 +188,39 @@ func intentCheck(ctx context.Context, root string, all bool) (*mcp.CallToolResul
 	}
 
 	return toolkit.JSONResult(out)
+}
+
+// intentDrifted runs the repo's own intent CLI and returns every file whose doc
+// has drifted from it. Shared with the commit tool, which uses it to notice an
+// intent change left out of the commit that made it necessary.
+func intentDrifted(ctx context.Context, root string) []intentDrift {
+	// Non-zero exit is the signal, not an error: intent check fails precisely
+	// when it found drift to report.
+	stdout, _ := runAllowFail(ctx, root, "node", ".intent/intent.mjs", "check")
+
+	var out []intentDrift
+
+	for _, line := range strings.Split(stdout, "\n") {
+		// Each drift line is "<file>  (<reason>)  → update & sync: <doc>". The
+		// arrow is what distinguishes it from headings and the summary.
+		arrow := strings.Index(line, "→")
+		if arrow < 0 {
+			continue
+		}
+
+		head := strings.TrimSpace(line[:arrow])
+		doc := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line[arrow+len("→"):]), "update & sync:"))
+
+		file, reason := head, ""
+		if i := strings.Index(head, "("); i >= 0 {
+			file = strings.TrimSpace(head[:i])
+			reason = strings.Trim(strings.TrimSpace(head[i:]), "()")
+		}
+
+		out = append(out, intentDrift{File: file, Reason: reason, Doc: doc})
+	}
+
+	return out
 }
 
 // changedFiles is every path git considers changed: staged, modified or
