@@ -9,7 +9,7 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Compartment, EditorState, RangeSetBuilder } from '@codemirror/state'
+import { Compartment, EditorState, Prec, RangeSetBuilder } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
@@ -18,7 +18,13 @@ import {
   placeholder as cmPlaceholder,
 } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
-import { autocompletion, completionKeymap } from '@codemirror/autocomplete'
+import {
+  autocompletion,
+  closeCompletion,
+  completionKeymap,
+  completionStatus,
+  startCompletion,
+} from '@codemirror/autocomplete'
 import { linter } from '@codemirror/lint'
 import { completionAt, lintExpression, tokenRanges } from './syntax'
 
@@ -32,6 +38,8 @@ const props = defineProps({
   queryFields: { type: Array, default: () => [] },
   placeholder: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
+  // Opens this tall, so a filter has room to read as one.
+  minLines: { type: Number, default: 2 },
   // Grows with the content up to this many lines, then scrolls.
   maxLines: { type: Number, default: 8 },
 })
@@ -85,15 +93,29 @@ function contextExtensions() {
             props.scope,
             props.dialect,
             props.queryFields,
+            cx.explicit,
           )
           if (!res || !res.options.length) return null
           return {
             from: res.from,
             to: res.to,
+            // completionAt has already filtered by prefix and ordered by group.
+            // CodeMirror's own filter would re-match labels against the typed
+            // range, which for a bare `$` contains no letter any label shares —
+            // so it would discard every option.
+            filter: false,
             options: res.options.map(o => ({
               label: o.label,
               detail: o.detail,
-              apply: o.apply || o.label,
+              boost: o.boost,
+              apply: (view, _c, from, to) => {
+                const insert = o.insert ?? o.label
+                view.dispatch({
+                  changes: { from, to, insert },
+                  selection: { anchor: from + (o.cursor ?? insert.length) },
+                })
+                if (o.retrigger) startCompletion(view)
+              },
             })),
           }
         },
@@ -118,6 +140,24 @@ function extensions() {
     highlighter,
     EditorView.lineWrapping,
     cmPlaceholder(props.placeholder || ''),
+    // Escape dismisses the suggestion list and stops there. CodeMirror's keymap
+    // calls preventDefault but lets the event bubble, and these inputs sit
+    // inside a dialog that closes on Escape — so without this, dismissing the
+    // suggestions also discards the block being configured.
+    //
+    // Must outrank completionKeymap: that binding closes the completion first,
+    // leaving completionStatus null by the time a lower-precedence handler asks
+    // whether there was anything to dismiss.
+    Prec.highest(
+      EditorView.domEventHandlers({
+        keydown(event, v) {
+          if (event.key !== 'Escape' || !completionStatus(v.state)) return false
+          event.stopPropagation()
+          closeCompletion(v)
+          return true
+        },
+      }),
+    ),
     keymap.of([...completionKeymap, ...historyKeymap, ...defaultKeymap]),
     context.of(contextExtensions()),
     EditorState.readOnly.of(props.disabled),
@@ -132,9 +172,9 @@ function extensions() {
         fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
       },
       '&.cm-focused': { outline: 'none' },
-      '.cm-content': { padding: '0' },
       '.cm-line': { padding: '0' },
       '.cm-scroller': { lineHeight: '1.5', maxHeight: `calc(${props.maxLines} * 1.5 * 13px)` },
+      '.cm-content': { padding: '0', minHeight: `calc(${props.minLines} * 1.5 * 13px)` },
     }),
   ]
 }

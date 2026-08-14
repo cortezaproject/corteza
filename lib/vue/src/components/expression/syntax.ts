@@ -196,12 +196,40 @@ export function tokenRanges(text: string, dialect: Dialect): TokenRange[] {
   return disjoint
 }
 
+// Record columns a prefilter may name directly, alongside the module's own
+// fields. These are the DAL model's system attributes
+// (server/compose/service/module.go) — `recordID` is an accepted alias for the
+// primary `ID`. Storage-infrastructure attributes the server also resolves
+// (tenantID, projectID, createdByAgent) are left out: valid to type, but not
+// something a page author filters on.
+export const QL_SYSTEM_FIELDS = [
+  'recordID',
+  'ownedBy',
+  'createdAt',
+  'createdBy',
+  'updatedAt',
+  'updatedBy',
+  'deletedAt',
+  'deletedBy',
+]
+
+// Ranking between the groups an author picks from. What they are filtering
+// lands above the record's own bookkeeping, and language keywords last.
+const BOOST = { field: 50, system: 25, keyword: 0 }
+
 export interface CompletionOption {
   label: string
   detail?: string
-  // Written in place of the typed prefix; differs from `label` where the
-  // completion carries punctuation, e.g. closing a hole.
-  apply?: string
+  // Text written in place of [from, to). Defaults to `label`; differs where the
+  // completion carries punctuation, e.g. wrapping a variable in `${…}`.
+  insert?: string
+  // Caret offset within `insert`. Defaults to its end.
+  cursor?: number
+  // Reopen the completion list after applying — used where the accepted option
+  // leaves the author mid-path, e.g. `${record.`.
+  retrigger?: boolean
+  // Higher sorts first.
+  boost?: number
 }
 
 export interface CompletionResult {
@@ -210,12 +238,8 @@ export interface CompletionResult {
   options: CompletionOption[]
 }
 
-function optionFor(entry: ScopeEntry): CompletionOption {
-  return {
-    label: entry.name,
-    detail:
-      entry.label && entry.label !== entry.name ? `${entry.type} · ${entry.label}` : entry.type,
-  }
+function detailOf(entry: ScopeEntry): string {
+  return entry.label && entry.label !== entry.name ? `${entry.type} · ${entry.label}` : entry.type
 }
 
 // The hole the cursor sits inside, if any.
@@ -225,18 +249,61 @@ function holeAt(text: string, pos: number): Hole | null {
   )
 }
 
+// Whether pos sits inside a QL string literal, where a `$` is currency rather
+// than the start of a variable.
+//
+// Counts quotes rather than reusing tokenRanges: the string being typed has no
+// closing quote yet, which is precisely when this is asked. Quotes inside a
+// `${…}` hole belong to the hole's own expression and are skipped.
+function inStringLiteral(text: string, pos: number, dialect: Dialect): boolean {
+  if (dialect !== 'ql') return false
+
+  const holes = scanHoles(text.slice(0, pos))
+  let open = false
+
+  for (let i = 0; i < pos; i++) {
+    const hole = holes.find(h => i >= h.from && i < h.to)
+    if (hole) {
+      i = hole.to - 1
+      continue
+    }
+    if (text[i] === '\\') i++
+    else if (text[i] === "'") open = !open
+  }
+
+  return open
+}
+
+const startsWith = (name: string, word: string) =>
+  !word || name.toLowerCase().startsWith(word.toLowerCase())
+
+// Highest boost first, order within a group preserved — a module's fields stay
+// in the order their author arranged them. The editor consumes this order as
+// given rather than re-sorting.
+function ranked(options: CompletionOption[]): CompletionOption[] {
+  return options
+    .map((o, i) => ({ o, i }))
+    .sort((a, b) => (b.o.boost ?? 0) - (a.o.boost ?? 0) || a.i - b.i)
+    .map(({ o }) => o)
+}
+
 // What to offer at `pos`.
 //
-// Inside a `${...}` hole both dialects offer the same scope. Outside one, only
-// QL has anything to say — the names of the fields being queried — and it says
-// nothing about unknown identifiers, since QL's own functions and literals are
-// indistinguishable from a mistyped field at this level.
+// Three places can complete: inside a `${…}` hole, immediately after a bare `$`
+// (which offers the same scope but writes the braces), and — in QL only — on a
+// bare identifier, where the module's fields and the record's system columns
+// are named. QL identifiers are never reported as *wrong*, since the language's
+// own functions and literals are indistinguishable from a mistyped field here.
+//
+// `explicit` is set when the author asked for the list (Ctrl-Space) rather than
+// typing into it; then an empty prefix offers everything instead of nothing.
 export function completionAt(
   text: string,
   pos: number,
   scope: ScopeEntry[],
   dialect: Dialect,
   queryFields: Array<{ name: string; label?: string; kind?: string }> = [],
+  explicit = false,
 ): CompletionResult | null {
   const hole = holeAt(text, pos)
 
@@ -250,31 +317,70 @@ export function completionAt(
     const members = membersAt(scope, prefixPath)
     if (!members.length) return null
 
-    return {
-      from: pos - word.length,
-      to: pos,
-      options: members.filter(e => e.name.startsWith(word)).map(optionFor),
-    }
+    const options = members
+      .filter(e => startsWith(e.name, word))
+      .map(e => ({
+        label: e.name,
+        detail: detailOf(e),
+        // Stepping into an object leaves the author mid-path, so reopen the
+        // list on the members they just asked for.
+        insert: e.fields ? `${e.name}.` : e.name,
+        retrigger: !!e.fields,
+        boost: e.fields ? BOOST.system : BOOST.field,
+      }))
+
+    return options.length ? { from: pos - word.length, to: pos, options: ranked(options) } : null
+  }
+
+  // A bare `$` — offer the scope and write the braces around the choice.
+  const dollar = /\$([A-Za-z_$][\w$]*)?$/.exec(text.slice(0, pos))
+  if (dollar && !inStringLiteral(text, pos, dialect)) {
+    const word = dollar[1] || ''
+    const options = membersAt(scope, [])
+      .filter(e => startsWith(e.name, word))
+      .map(e => ({
+        label: e.name,
+        detail: detailOf(e),
+        insert: e.fields ? `\${${e.name}.}` : `\${${e.name}}`,
+        // Land inside the braces when there is more path to type.
+        cursor: e.fields ? e.name.length + 3 : undefined,
+        retrigger: !!e.fields,
+        boost: e.fields ? BOOST.system : BOOST.field,
+      }))
+
+    return options.length
+      ? { from: pos - word.length - 1, to: pos, options: ranked(options) }
+      : null
   }
 
   if (dialect !== 'ql') return null
 
   const word = /([A-Za-z_$][\w$]*)$/.exec(text.slice(0, pos))?.[1] || ''
-  if (!word) return null
+  if (!word && !explicit) return null
 
+  const named = new Set(queryFields.map(f => f.name))
   const options: CompletionOption[] = [
     ...queryFields
-      .filter(f => f.name.toLowerCase().startsWith(word.toLowerCase()))
+      .filter(f => startsWith(f.name, word))
       .map(f => ({
         label: f.name,
         detail:
           f.label && f.label !== f.name ? `${f.kind || 'field'} · ${f.label}` : f.kind || 'field',
+        boost: BOOST.field,
       })),
-    ...QL_KEYWORDS.filter(k => k.startsWith(word.toUpperCase())).map(k => ({
+    // A module may declare a field of its own with a system name; the module's
+    // wins, so the built-in is dropped rather than listed twice.
+    ...QL_SYSTEM_FIELDS.filter(n => !named.has(n) && startsWith(n, word)).map(n => ({
+      label: n,
+      detail: 'record field',
+      boost: BOOST.system,
+    })),
+    ...QL_KEYWORDS.filter(k => startsWith(k, word)).map(k => ({
       label: k,
       detail: 'keyword',
+      boost: BOOST.keyword,
     })),
   ]
 
-  return options.length ? { from: pos - word.length, to: pos, options } : null
+  return options.length ? { from: pos - word.length, to: pos, options: ranked(options) } : null
 }

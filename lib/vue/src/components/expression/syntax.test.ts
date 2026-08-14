@@ -216,12 +216,96 @@ describe('completionAt', () => {
     ])
   })
 
-  it('does not offer scope members once the hole is closed', () => {
-    // `rec` here is a bare QL identifier, not a variable reference.
+  it('offers the scope on a bare $ and writes the braces', () => {
+    const res = complete('id = $')
+    expect(res?.options.map(o => o.label)).toContain('recordID')
+    const opt = res?.options.find(o => o.label === 'recordID')
+    expect(opt?.insert).toBe('${recordID}')
+    // The `$` itself is replaced, not left stranded before the completion.
+    expect(res?.from).toBe(5)
+  })
+
+  it('narrows the bare-$ list as more is typed', () => {
+    const res = complete('id = $rec')
+    expect(res?.options.map(o => o.label)).toEqual(['recordID', 'record'])
+    expect(res?.from).toBe(5)
+  })
+
+  it('lands the caret inside the braces when the choice is an object', () => {
+    const opt = complete('x = $')?.options.find(o => o.label === 'record')
+    expect(opt).toMatchObject({ insert: '${record.}', cursor: 9, retrigger: true })
+    expect(opt.insert[opt.cursor]).toBe('}')
+  })
+
+  it('reopens the list after stepping into an object inside a hole', () => {
+    const opt = complete('x = ${rec')?.options.find(o => o.label === 'record')
+    expect(opt).toMatchObject({ insert: 'record.', retrigger: true })
+  })
+
+  it('leaves a $ inside a QL string alone', () => {
+    expect(complete("note = 'costs $")).toBeNull()
+  })
+
+  it('offers record system fields alongside the module fields', () => {
+    const labels = complete('created')?.options.map(o => o.label)
+    expect(labels).toEqual(expect.arrayContaining(['createdAt', 'createdBy']))
+  })
+
+  it('offers recordID as a bare QL identifier', () => {
+    expect(complete('record')?.options.map(o => o.label)).toContain('recordID')
+  })
+
+  it("lets a module's own field win over a system name", () => {
+    const fields = [{ name: 'ownedBy', label: 'Owner', kind: 'User' }]
+    const opts = completionAt('owned', 5, recordScope, 'ql', fields)?.options
+    expect(opts?.filter(o => o.label === 'ownedBy')).toHaveLength(1)
+    expect(opts?.find(o => o.label === 'ownedBy')?.detail).toBe('User · Owner')
+  })
+
+  it('offers nothing on an empty input while typing', () => {
+    expect(completionAt('', 0, recordScope, 'ql', orders.fields)).toBeNull()
+  })
+
+  it('offers everything on an empty input when asked explicitly', () => {
+    const res = completionAt('', 0, recordScope, 'ql', orders.fields, true)
+    const labels = res?.options.map(o => o.label)
+    expect(labels).toEqual(expect.arrayContaining(['status', 'recordID', 'AND']))
+  })
+
+  it('ranks module fields above system fields above keywords', () => {
+    const res = completionAt('', 0, recordScope, 'ql', orders.fields, true)
+    const boost = l => res.options.find(o => o.label === l)?.boost
+    expect(boost('status')).toBeGreaterThan(boost('recordID'))
+    expect(boost('recordID')).toBeGreaterThan(boost('AND'))
+  })
+
+  it('returns the options already in that order', () => {
+    // The editor renders this order as given, so the array itself is the
+    // contract, not just the boost values on it.
+    const res = completionAt('', 0, recordScope, 'ql', orders.fields, true)
+    const at = l => res.options.findIndex(o => o.label === l)
+    expect(at('status')).toBeLessThan(at('recordID'))
+    expect(at('recordID')).toBeLessThan(at('AND'))
+    // Module fields keep the order their author arranged them in.
+    expect(at('status')).toBeLessThan(at('quantity'))
+  })
+
+  it('does not offer scope objects once the hole is closed', () => {
+    // `rec` here is a bare QL identifier. `recordID` is a real record column so
+    // it belongs; `record` is a template variable and does not.
     const labels =
       completionAt('${recordID} AND rec', 19, recordScope, 'ql', [])?.options.map(o => o.label) ||
       []
-    expect(labels).not.toContain('recordID')
+    expect(labels).toContain('recordID')
     expect(labels).not.toContain('record')
+    expect(labels).not.toContain('user')
+  })
+
+  it('still offers the scope on a $ typed after a closed string', () => {
+    expect(complete("note = 'x' AND y = $")?.options.map(o => o.label)).toContain('recordID')
+  })
+
+  it('treats a $ inside a hole-embedded string as part of the hole', () => {
+    expect(complete("x = ${a || 'b'} AND c = $")?.options.map(o => o.label)).toContain('recordID')
   })
 })
