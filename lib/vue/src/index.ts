@@ -74,6 +74,14 @@ export type { AgentChatTranslations } from './components/agent/translations'
 
 // Expression inputs: scope building for CInputExpression / CExpressionHint,
 // both registered globally by PrimeVueComponentsPlugin.
-export { buildScope, membersAt, resolvePath } from './components/expression/catalog'
+export { buildScope, buildExprScope, membersAt, resolvePath } from './components/expression/catalog'
 export type { ScopeEntry, ScopeModule, ScopeSource } from './components/expression/catalog'
-export { lintExpression, scanHoles, tokenRanges, QL_KEYWORDS } from './components/expression/syntax'
+export {
+  lintExpression,
+  scanHoles,
+  scanIdents,
+  tokenRanges,
+  QL_KEYWORDS,
+  QL_SYSTEM_FIELDS,
+  EXPR_FUNCTIONS,
+} from './components/expression/syntax'

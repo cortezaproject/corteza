@@ -300,8 +300,10 @@
       <CFormGroup :label="$t('page.page-layout.condition.label')" class="mb-4">
         <InputGroup>
           <InputGroupAddon>ƒ</InputGroupAddon>
-          <InputText
+          <CInputExpression
             v-model="configLayout.config.visibility.expression"
+            dialect="expr"
+            :scope="exprScope"
             :placeholder="$t('page.page-layout.condition.placeholder')"
           />
         </InputGroup>
@@ -651,6 +653,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 const { CInputDelete, CInputToggleCard, CFileDropZone } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 import PageTranslator from '@/sections/compose/components/Admin/Page/PageTranslator.vue'
 
 const props = defineProps({
@@ -707,6 +710,11 @@ const isEdit = computed(() => !!route.params.pageID)
 
 const isRecordPage = computed(() => {
   return page.value && page.value.moduleID && page.value.moduleID !== NoID
+})
+
+const { exprScope } = useExpressionScope({
+  page: computed(() => page.value),
+  hasRecord: isRecordPage,
 })
 
 const pageTitle = computed(() => {

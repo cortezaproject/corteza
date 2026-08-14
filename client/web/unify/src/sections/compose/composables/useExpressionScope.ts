@@ -1,5 +1,6 @@
 import { computed, unref, type Ref } from 'vue'
 import {
+  buildExprScope,
   buildScope,
   useModuleStore,
   type ScopeEntry,
@@ -28,6 +29,7 @@ interface Source {
 // Scope and field list for a compose expression input.
 export function useExpressionScope(source: Source = {}): {
   scope: Ref<ScopeEntry[]>
+  exprScope: Ref<ScopeEntry[]>
   queryFields: Ref<Array<{ name: string; label?: string; kind?: string }>>
   isRecordPage: Ref<boolean>
 } {
@@ -49,7 +51,16 @@ export function useExpressionScope(source: Source = {}): {
     }),
   )
 
+  // The server-evaluated language sees a different set of variables from a
+  // `${}` template, so it gets its own scope over the same module.
+  const exprScope = computed(() =>
+    buildExprScope({
+      recordModule: pageModuleID.value ? moduleStore.getByID(pageModuleID.value) || null : null,
+      hasRecord: isRecordPage.value,
+    }),
+  )
+
   const queryFields = computed(() => unref(source.queryModule)?.fields || [])
 
-  return { scope, queryFields, isRecordPage }
+  return { scope, exprScope, queryFields, isRecordPage }
 }

@@ -424,11 +424,12 @@
                   :label="$t('block.general.visibility.condition.label')"
                   :description="visibilityConditionDescription"
                 >
-                  <Textarea
+                  <CInputExpression
+                    ref="visibilityInput"
                     v-model="editingBlock.meta.visibility.expression"
+                    dialect="expr"
+                    :scope="exprScope"
                     :placeholder="$t('block.general.visibility.condition.placeholder')"
-                    rows="2"
-                    class="w-full"
                   />
                 </CFormGroup>
 
@@ -498,6 +499,7 @@ import { usePageStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useHistoryBack } from '@planetcrust/human-vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 
 // Block configurators — lazy imported
@@ -585,6 +587,12 @@ const magnifyOptions = computed(() => [
 ])
 
 const isRecordPage = computed(() => !!page.value?.isRecordPage)
+
+const visibilityInput = ref(null)
+const { exprScope } = useExpressionScope({
+  page: computed(() => page.value),
+  hasRecord: isRecordPage,
+})
 
 const visibilityConditionDescription = computed(() =>
   isRecordPage.value

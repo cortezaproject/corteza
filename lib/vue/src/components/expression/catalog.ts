@@ -109,6 +109,67 @@ export function buildScope({ recordModule, hasRecord = true }: ScopeSource = {})
   return entries
 }
 
+// Permission flags a serialized record carries. `serialize()` spreads the whole
+// instance, so these reach the evaluator alongside the stored fields and are
+// the usual way a visibility rule asks "may this user edit?".
+const RECORD_PERMISSIONS: ScopeEntry[] = [
+  { name: 'canUpdateRecord', type: 'Bool' },
+  { name: 'canDeleteRecord', type: 'Bool' },
+  { name: 'canReadRecord', type: 'Bool' },
+  { name: 'canUndeleteRecord', type: 'Bool', suggest: false },
+  { name: 'canManageOwnerOnRecord', type: 'Bool', suggest: false },
+  { name: 'canSearchRevision', type: 'Bool', suggest: false },
+  { name: 'canGrant', type: 'Bool', suggest: false },
+]
+
+const SCREEN_PROPERTIES: ScopeEntry[] = [
+  { name: 'width', type: 'Number' },
+  { name: 'height', type: 'Number' },
+  { name: 'breakpoint', type: 'String', label: 'xxs | xs | sm | md | lg' },
+  { name: 'userAgent', type: 'String', suggest: false },
+]
+
+// Variables for the server-evaluated expression language — block and layout
+// visibility, and record field conditions.
+//
+// A different scope from buildScope(): these are the keys the webapp puts in
+// the `variables` payload of POST /system/expressions/evaluate (see
+// usePageVisibility and RecordBlock), not the bindings a `${...}` template is
+// built over. There is no bare `recordID`/`ownerID`/`userID` here, and `record`
+// arrives serialized, which is what brings the permission flags with it.
+export function buildExprScope({ recordModule, hasRecord = true }: ScopeSource = {}): ScopeEntry[] {
+  const entries: ScopeEntry[] = []
+
+  if (hasRecord) {
+    entries.push({
+      name: 'record',
+      type: 'Record',
+      fields: [
+        ...RECORD_PROPERTIES,
+        recordModule
+          ? { name: 'values', type: 'Object', fields: moduleValueEntries(recordModule) }
+          : { name: 'values', type: 'Object' },
+        ...RECORD_PERMISSIONS,
+      ],
+    })
+  }
+
+  entries.push(
+    { name: 'user', type: 'User', fields: USER_PROPERTIES },
+    { name: 'screen', type: 'Screen', fields: SCREEN_PROPERTIES },
+  )
+
+  if (hasRecord) {
+    entries.push(
+      { name: 'isView', type: 'Bool' },
+      { name: 'isCreate', type: 'Bool' },
+      { name: 'isEdit', type: 'Bool' },
+    )
+  }
+
+  return entries
+}
+
 // Walks a dotted path against the scope.
 //
 // The third outcome matters as much as the other two: a path that runs into a

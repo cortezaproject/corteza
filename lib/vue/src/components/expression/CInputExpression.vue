@@ -30,7 +30,8 @@ import { completionAt, lintExpression, tokenRanges } from './syntax'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
-  // 'ql' for a record filter, 'interpolation' for free text carrying ${} holes.
+  // 'ql' for a record filter, 'interpolation' for free text carrying ${} holes,
+  // 'expr' for a server-evaluated expression (visibility, field conditions).
   dialect: { type: String, default: 'ql' },
   // ScopeEntry[] from buildScope() — what ${...} may reference here.
   scope: { type: Array, default: () => [] },
@@ -55,6 +56,7 @@ const holeMark = Decoration.mark({ class: 'c-expression__hole' })
 const marks = {
   hole: holeMark,
   keyword: Decoration.mark({ class: 'c-expression__keyword' }),
+  function: Decoration.mark({ class: 'c-expression__function' }),
   string: Decoration.mark({ class: 'c-expression__string' }),
   number: Decoration.mark({ class: 'c-expression__number' }),
 }
@@ -124,7 +126,7 @@ function contextExtensions() {
       icons: false,
     }),
     linter(v =>
-      lintExpression(v.state.doc.toString(), props.scope).map(d => ({
+      lintExpression(v.state.doc.toString(), props.scope, props.dialect).map(d => ({
         from: d.from,
         to: d.to,
         severity: d.severity,
@@ -259,6 +261,10 @@ defineExpose({ insert, focus: () => view?.focus() })
 
 .c-expression :deep(.c-expression__string) {
   color: var(--p-green-500, #22c55e);
+}
+
+.c-expression :deep(.c-expression__function) {
+  color: var(--p-purple-500, #a855f7);
 }
 
 .c-expression :deep(.c-expression__number) {

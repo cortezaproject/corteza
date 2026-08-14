@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildScope, membersAt, resolvePath } from './catalog'
+import { buildExprScope, buildScope, membersAt, resolvePath } from './catalog'
 import { completionAt, lintExpression, scanHoles, tokenRanges } from './syntax'
 
 const orders = {
@@ -307,5 +307,155 @@ describe('completionAt', () => {
 
   it('treats a $ inside a hole-embedded string as part of the hole', () => {
     expect(complete("x = ${a || 'b'} AND c = $")?.options.map(o => o.label)).toContain('recordID')
+  })
+})
+
+// The server-evaluated dialect. Severities here were measured against
+// POST /system/expressions/evaluate on the dev server:
+//   unknown root      -> hard error, whole call fails, block hidden
+//   unknown function  -> hard error
+//   unknown member    -> null/false, no error
+const exprScope = buildExprScope({ recordModule: orders, hasRecord: true })
+const exprListScope = buildExprScope({ hasRecord: false })
+
+describe('buildExprScope', () => {
+  it('offers the variables the evaluate payload actually carries', () => {
+    expect(exprScope.map(e => e.name)).toEqual([
+      'record',
+      'user',
+      'screen',
+      'isView',
+      'isCreate',
+      'isEdit',
+    ])
+  })
+
+  it('has no bare recordID/ownerID — those are template-only', () => {
+    const names = exprScope.map(e => e.name)
+    expect(names).not.toContain('recordID')
+    expect(names).not.toContain('ownerID')
+    expect(names).not.toContain('userID')
+  })
+
+  it('carries the record permission flags a visibility rule needs', () => {
+    expect(membersAt(exprScope, ['record']).map(e => e.name)).toContain('canUpdateRecord')
+  })
+
+  it('drops record and the mode flags off a record page', () => {
+    expect(exprListScope.map(e => e.name)).toEqual(['user', 'screen'])
+  })
+})
+
+describe('lintExpression — expr dialect', () => {
+  const lint = (t: string, scope = exprScope) => lintExpression(t, scope, 'expr')
+
+  it('passes a correct expression', () => {
+    expect(lint('user.userID == record.ownedBy && screen.width < 1024')).toEqual([])
+  })
+
+  it('errors on an unknown root, naming the consequence', () => {
+    const [d] = lint('recrd.values.status == "x"')
+    expect(d.severity).toBe('error')
+    expect(d.message).toContain("'recrd' is not an available variable")
+    expect(d.message).toContain('hides this')
+  })
+
+  it('only warns on an unknown member, which the server tolerates', () => {
+    const [d] = lint('record.valuez == 1')
+    expect(d.severity).toBe('warning')
+    expect(d.message).toContain("'valuez' is not a member of record")
+  })
+
+  it('warns on a mistyped module field', () => {
+    const [d] = lint('record.values.statuz == "Open"')
+    expect(d.severity).toBe('warning')
+    expect(d.message).toContain('status')
+  })
+
+  it('errors on an unknown function', () => {
+    const [d] = lint('bogusFn(record.values.status)')
+    expect(d.severity).toBe('error')
+    expect(d.message).toContain("'bogusFn' is not a known function")
+  })
+
+  it('accepts the languages own functions', () => {
+    expect(lint('coalesce(record.values.status, "none") == "none"')).toEqual([])
+    expect(lint('isEmpty(record.values.status)')).toEqual([])
+  })
+
+  it('leaves literals alone', () => {
+    expect(lint('isView == true && record.canUpdateRecord != false')).toEqual([])
+  })
+
+  it('ignores identifiers inside strings', () => {
+    expect(lint('user.email == "recrd.values.nope"')).toEqual([])
+  })
+
+  it('errors on a record variable where no record is in scope', () => {
+    const [d] = lint('record.values.status == "x"', exprListScope)
+    expect(d.severity).toBe('error')
+    expect(d.message).toContain("'record' is not an available variable")
+  })
+
+  it('says nothing about a module it cannot see', () => {
+    const scope = buildExprScope({ recordModule: null, hasRecord: true })
+    expect(lint('record.values.anything == 1', scope)).toEqual([])
+  })
+})
+
+describe('completionAt — expr dialect', () => {
+  const complete = (text: string, scope = exprScope, explicit = false) =>
+    completionAt(text, text.length, scope, 'expr', [], explicit)
+
+  it('offers roots and functions with no ${} to open first', () => {
+    const labels = complete('rec')?.options.map(o => o.label)
+    expect(labels).toContain('record')
+  })
+
+  it('offers the language functions', () => {
+    const opt = complete('coal')?.options.find(o => o.label === 'coalesce')
+    expect(opt).toMatchObject({ detail: 'function', insert: 'coalesce()', cursor: 9 })
+    // Caret lands between the parentheses.
+    expect(opt.insert[opt.cursor]).toBe(')')
+  })
+
+  it('walks into module fields', () => {
+    expect(complete('record.values.')?.options.map(o => o.label)).toEqual(['status', 'quantity'])
+  })
+
+  it('ranks variables above functions', () => {
+    const res = complete('', exprScope, true)
+    const at = l => res.options.findIndex(o => o.label === l)
+    expect(at('record')).toBeLessThan(at('coalesce'))
+  })
+
+  it('offers nothing mid-word until asked, on an empty expression', () => {
+    expect(completionAt('', 0, exprScope, 'expr')).toBeNull()
+    expect(completionAt('', 0, exprScope, 'expr', [], true)).not.toBeNull()
+  })
+})
+
+describe('tokenRanges — expr dialect', () => {
+  const kinds = (text: string) =>
+    tokenRanges(text, 'expr').map(r => [r.kind, text.slice(r.from, r.to)])
+
+  it('colours strings, functions, literals and numbers', () => {
+    expect(kinds('isEmpty(x) == true && n > 10')).toEqual([
+      ['function', 'isEmpty'],
+      ['keyword', 'true'],
+      ['number', '10'],
+    ])
+  })
+
+  it('handles double-quoted strings, which QL does not use', () => {
+    expect(kinds('user.email == "a@b.c"')).toEqual([['string', '"a@b.c"']])
+  })
+
+  it('does not colour a function name inside a string', () => {
+    expect(kinds('"isEmpty(x)"')).toEqual([['string', '"isEmpty(x)"']])
+  })
+
+  it('finds no ${} holes here', () => {
+    expect(kinds('${recordID}').some(([k]) => k === 'hole')).toBe(false)
   })
 })

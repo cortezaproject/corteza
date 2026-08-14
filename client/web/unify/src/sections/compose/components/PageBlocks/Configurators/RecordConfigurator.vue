@@ -136,8 +136,10 @@
                 class="flex-1"
                 filter
               />
-              <InputText
+              <CInputExpression
                 v-model="condition.condition"
+                dialect="expr"
+                :scope="exprScope"
                 :placeholder="$t('block.record.fieldConditions.placeholder')"
                 class="flex-1"
               />
@@ -184,6 +186,7 @@
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { t } = useI18n()
 
@@ -193,6 +196,8 @@ const props = defineProps({
 })
 
 const block = inject('blockDraft')
+
+const { exprScope } = useExpressionScope({ page: computed(() => props.page) })
 const $ComposeAPI = inject('$ComposeAPI')
 
 function patchOptions(patch) {
