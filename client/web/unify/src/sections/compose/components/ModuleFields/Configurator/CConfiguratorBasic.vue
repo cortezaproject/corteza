@@ -58,8 +58,10 @@
       :label="$t('field.valueExpr.label')"
       :description="$t('field.valueExpr.description')"
     >
-      <InputText
+      <CInputExpression
         v-model="valueExpression"
+        dialect="expr"
+        :scope="valueExprScope"
         class="w-full mt-1"
         :placeholder="$t('field.valueExpr.placeholder')"
       />
@@ -146,7 +148,7 @@
 <script setup>
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { compose } from '@planetcrust/human-js'
-import { components } from '@planetcrust/human-vue'
+import { buildFieldExprScope, components } from '@planetcrust/human-vue'
 
 const { CFieldEditor } = components
 
@@ -198,6 +200,12 @@ function onMockValueChange(val) {
 }
 
 // -- Value Expression --
+// Its scope is the record's own fields as bare names, plus `new` and `old`
+// (server/compose/service/values/expr.go) — not the same variables a validator
+// or a visibility rule sees.
+const fieldModule = inject('fieldModule', null)
+const valueExprScope = computed(() => buildFieldExprScope('value', fieldModule?.value || null))
+
 const showValueExpr = ref(false)
 const valueExpression = computed({
   get: () => field.value.expressions?.value || '',

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildExprScope, buildScope, membersAt, resolvePath } from './catalog'
+import { buildExprScope, buildFieldExprScope, buildScope, membersAt, resolvePath } from './catalog'
 import { completionAt, lintExpression, scanHoles, tokenRanges } from './syntax'
 
 const orders = {
@@ -457,5 +457,78 @@ describe('tokenRanges — expr dialect', () => {
 
   it('finds no ${} holes here', () => {
     expect(kinds('${recordID}').some(([k]) => k === 'hole')).toBe(false)
+  })
+})
+
+// Field expressions. Each scope mirrors a different call site in
+// server/compose/service/values/ — they deliberately do not match each other.
+describe('buildFieldExprScope', () => {
+  it('gives a sanitizer only the value', () => {
+    expect(buildFieldExprScope('sanitizer').map(e => e.name)).toEqual(['value'])
+  })
+
+  it('gives a validator the value, its previous value and the other fields', () => {
+    const scope = buildFieldExprScope('validator', orders)
+    expect(scope.map(e => e.name)).toEqual(['value', 'oldValue', 'values'])
+    expect(membersAt(scope, ['values']).map(e => e.name)).toEqual(['status', 'quantity'])
+  })
+
+  it('gives a value expression the fields as bare names, plus new and old', () => {
+    const scope = buildFieldExprScope('value', orders)
+    expect(scope.map(e => e.name)).toEqual(['status', 'quantity', 'new', 'old'])
+    expect(membersAt(scope, ['new', 'values']).map(e => e.name)).toEqual(['status', 'quantity'])
+  })
+
+  it('does not leak the visibility scope into a field expression', () => {
+    for (const kind of ['sanitizer', 'validator', 'value'] as const) {
+      const names = buildFieldExprScope(kind, orders).map(e => e.name)
+      expect(names).not.toContain('record')
+      expect(names).not.toContain('screen')
+      expect(names).not.toContain('user')
+    }
+  })
+
+  it('stays checkable when the module has not loaded', () => {
+    const scope = buildFieldExprScope('validator', null)
+    expect(lintExpression('values.anything != ""', scope, 'expr')).toEqual([])
+  })
+})
+
+describe('lintExpression — field expressions', () => {
+  const validator = buildFieldExprScope('validator', orders)
+  const valueExpr = buildFieldExprScope('value', orders)
+  const lint = (t: string, scope) => lintExpression(t, scope, 'expr')
+
+  it('passes a real validator', () => {
+    expect(lint('value == "" || length(value) > 40', validator)).toEqual([])
+    expect(lint('value != oldValue && values.status == "Open"', validator)).toEqual([])
+  })
+
+  it('errors when a validator reaches for the visibility scope', () => {
+    const [d] = lint('record.values.status == "Open"', validator)
+    expect(d.severity).toBe('error')
+    expect(d.message).toContain("'record' is not an available variable")
+    expect(d.message).toContain('value, oldValue, values')
+  })
+
+  it('passes a real value expression', () => {
+    expect(lint('quantity * 2', valueExpr)).toEqual([])
+    expect(lint('coalesce(new.values.status, old.values.status)', valueExpr)).toEqual([])
+  })
+
+  it('errors on a field name that is not on the module', () => {
+    const [d] = lint('quantitiy * 2', valueExpr)
+    expect(d.severity).toBe('error')
+    expect(d.message).toContain("'quantitiy' is not an available variable")
+  })
+
+  it('does not offer a sanitizer anything but value', () => {
+    const scope = buildFieldExprScope('sanitizer')
+    expect(completionAt('', 0, scope, 'expr', [], true).options.map(o => o.label)).toContain(
+      'value',
+    )
+    expect(lint('values.status', scope)[0].message).toContain(
+      "'values' is not an available variable",
+    )
   })
 })

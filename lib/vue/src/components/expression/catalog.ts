@@ -170,6 +170,64 @@ export function buildExprScope({ recordModule, hasRecord = true }: ScopeSource =
   return entries
 }
 
+// Record shape as the *server* builds it for a field expression
+// (types.Record.Dict) — close to the serialized JS record but not identical: it
+// carries `ID` and `createdByAgent`, and none of the `can…` permission flags.
+const RECORD_DICT: ScopeEntry[] = [
+  ...RECORD_PROPERTIES,
+  { name: 'ID', type: 'ID', suggest: false },
+  { name: 'createdByAgent', type: 'ID', suggest: false },
+]
+
+function recordDict(module?: ScopeModule | null): ScopeEntry {
+  return {
+    name: 'record',
+    type: 'Record',
+    fields: [
+      ...RECORD_DICT,
+      module
+        ? { name: 'values', type: 'Object', fields: moduleValueEntries(module) }
+        : { name: 'values', type: 'Object' },
+    ],
+  }
+}
+
+// Which field expression is being written. Each gets a different scope from the
+// server, so they cannot share one:
+//
+//   sanitizer  value                                    (values/sanitizer.go)
+//   validator  value, oldValue, values.<field>          (values/validator.go)
+//   value      <field> at the top level, new, old       (values/expr.go)
+export type FieldExprKind = 'sanitizer' | 'validator' | 'value'
+
+export function buildFieldExprScope(
+  kind: FieldExprKind,
+  module?: ScopeModule | null,
+): ScopeEntry[] {
+  const values: ScopeEntry = module
+    ? { name: 'values', type: 'Object', fields: moduleValueEntries(module) }
+    : { name: 'values', type: 'Object' }
+
+  if (kind === 'sanitizer') {
+    return [{ name: 'value', type: 'Any', label: 'the value being sanitized' }]
+  }
+
+  if (kind === 'validator') {
+    return [
+      { name: 'value', type: 'Any', label: 'the value being validated' },
+      { name: 'oldValue', type: 'Any', label: 'its value before this change' },
+      values,
+    ]
+  }
+
+  // A value expression reads the record's own fields as bare names.
+  return [
+    ...moduleValueEntries(module),
+    { ...recordDict(module), name: 'new', label: 'the record being saved' },
+    { ...recordDict(module), name: 'old', label: 'the record before this save' },
+  ]
+}
+
 // Walks a dotted path against the scope.
 //
 // The third outcome matters as much as the other two: a path that runs into a

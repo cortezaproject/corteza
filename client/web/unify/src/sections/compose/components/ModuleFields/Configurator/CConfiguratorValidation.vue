@@ -15,9 +15,12 @@
       <small class="text-muted-color">{{ $t('field.sanitizers.description') }}</small>
 
       <div v-for="(_, index) in sanitizers" :key="'san-' + index" class="flex items-center gap-2">
-        <InputText
+        <CInputExpression
           v-model="sanitizers[index]"
+          dialect="expr"
+          :scope="sanitizerScope"
           class="flex-1"
+          :min-lines="1"
           :placeholder="$t('field.sanitizers.expression.placeholder')"
           @update:model-value="syncSanitizers"
         />
@@ -48,9 +51,12 @@
       <small class="text-muted-color">{{ $t('field.validators.description') }}</small>
 
       <div v-for="(v, index) in validators" :key="'val-' + index" class="flex items-center gap-2">
-        <InputText
+        <CInputExpression
           v-model="v.test"
+          dialect="expr"
+          :scope="validatorScope"
           class="flex-1"
+          :min-lines="1"
           :placeholder="$t('field.validators.expression.placeholder')"
           @update:model-value="syncValidators"
         />
@@ -85,8 +91,16 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
+import { buildFieldExprScope } from '@planetcrust/human-vue'
 
 const field = inject('fieldDraft')
+
+// The server hands each of these a different scope — a sanitizer sees only the
+// value, a validator also sees its previous value and the record's other
+// fields (server/compose/service/values/).
+const fieldModule = inject('fieldModule', null)
+const sanitizerScope = computed(() => buildFieldExprScope('sanitizer'))
+const validatorScope = computed(() => buildFieldExprScope('validator', fieldModule?.value || null))
 
 // -- Sanitizers --
 const sanitizers = ref([])
