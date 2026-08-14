@@ -6,8 +6,7 @@
   "module": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "@planetcrust/human-js": "workspace:*",
-    "@planetcrust/human-vue": "workspace:*"
+    "@planetcrust/human-js": "workspace:*"
   },
   "peerDependencies": {
     "vue": "^3.5.0",

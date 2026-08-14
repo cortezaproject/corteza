@@ -5,7 +5,6 @@ backfilled: true
 owner: fe
 depends-on:
   - lib/js
-  - lib/vue
 touched-by:
   - lib/vue/src/components/field/viewers/CFieldUserViewer.test.ts
   - lib/vue/src/components/field/viewers/CFieldRecordViewer.test.ts
@@ -25,7 +24,8 @@ Shared Vitest helpers so component and store specs across `lib/vue` and
 `client/web/unify` do not each reinvent API mocks, fixture factories, and the
 provide/inject scaffolding the apps set up in `App.vue`. Consumed straight from
 source (`main` points at `src/index.ts`, no build step); vitest, Vue tooling and
-PrimeVue are peer dependencies supplied by the consuming package.
+PrimeVue are peer dependencies supplied by the consuming package. `lib/js` is
+the only workspace package it depends on.
 
 ## Map
 
@@ -46,3 +46,6 @@ PrimeVue are peer dependencies supplied by the consuming package.
   given — specs asserting field kinds must pass their own module/overrides.
 - Call `createTestPinia` in `beforeEach`; a stale active Pinia leaks store
   state (and its provides) into the next test.
+- Never depend on `lib/vue` from here: `lib/vue` devDepends on this package for
+  its own specs, so a dependency back makes pnpm report a cyclic workspace
+  dependency. Anything needing a real `lib/vue` component belongs in the spec.

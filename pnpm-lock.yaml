@@ -359,9 +359,6 @@ importers:
       '@planetcrust/human-js':
         specifier: workspace:*
         version: link:../js
-      '@planetcrust/human-vue':
-        specifier: workspace:*
-        version: link:../vue
       '@vue/test-utils':
         specifier: ^2.4.0
         version: 2.4.6
