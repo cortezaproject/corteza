@@ -111,7 +111,7 @@ export function expectPath(page, expected, name = `settles on ${expected}`) {
 
 // --- the driven page ---------------------------------------------------------
 
-function drivePage(page, state) {
+function drivePage(page, state, context) {
   const api = {
     raw: page,
 
@@ -125,15 +125,75 @@ function drivePage(page, state) {
      *  own — vite compiles a route the first time it is asked for, so the first
      *  check of a run waits seconds longer than the rest and a timeout tuned to
      *  the warm case reports a cold one as a missing element. The topbar
-     *  landmark is the honest signal that the app has mounted. */
+     *  landmark is the honest signal that the app has mounted.
+     *
+     *  A session that is absent or stale is answered here rather than ahead of
+     *  every check: where an unauthenticated browser lands is decided by the
+     *  app's auth handshake, so the URL straight after domcontentloaded is
+     *  mid-flight and says nothing. Racing the shell against the auth redirect
+     *  reads whichever arrives, and a check that needs no login pays for none. */
     async open(path, { settle = 800 } = {}) {
-      await page.goto(WEBAPP + path, { waitUntil: 'domcontentloaded', timeout: 30000 })
-      await page
-        .locator('[data-testid="app-topbar"]')
-        .waitFor({ state: 'visible', timeout: 30000 })
-        .catch(() => {})
+      let landed = await api._land(path)
+
+      if (landed === 'auth') {
+        // The auth server is a separate app and a cold one is slow; the check
+        // timeout would call its form missing rather than late.
+        context.setDefaultTimeout(RENDER_TIMEOUT * 2)
+        try {
+          await login(context, page)
+        } finally {
+          context.setDefaultTimeout(ACTION_TIMEOUT)
+        }
+        landed = await api._land(path)
+        // The detour through auth is not the check's business.
+        state.problems.length = 0
+        state.dialog = null
+      }
+
+      if (landed === 'auth') {
+        throw new Error('the app bounced back to auth after logging in')
+      }
+      if (landed !== 'app') {
+        state.neverMounted = true
+        throw new Error(`the app never mounted at ${path}`)
+      }
+
       await page.waitForTimeout(settle)
       return api
+    },
+
+    /** Go to a path and report what rendered: the app shell, the auth form, or
+     *  neither.
+     *
+     *  A login is recognised by the form, not by the URL. The app's auth
+     *  handshake passes a valid session through /auth/ on its way in, so a URL
+     *  seen mid-flight calls a working session a logged-out one; the form is
+     *  drawn only where a login is genuinely wanted. Both arms are held to the
+     *  same ceiling and neither may answer early, or a losing arm resolves
+     *  first and decides the race on its own absence. */
+    async _land(path) {
+      await page.goto(WEBAPP + path, { waitUntil: 'domcontentloaded', timeout: 30000 })
+      return Promise.race([
+        page
+          .locator('[data-testid="app-topbar"]')
+          .waitFor({ state: 'visible', timeout: 30000 })
+          .then(
+            () => 'app',
+            () => 'none',
+          ),
+        page
+          .waitForFunction(
+            () =>
+              !!document.querySelector('input[name="email"]') &&
+              location.href.includes('/auth/'),
+            null,
+            { timeout: 30000 },
+          )
+          .then(
+            () => 'auth',
+            () => 'none',
+          ),
+      ])
     },
 
     async click(selector, { hasText, nth = 0, settle = 2000 } = {}) {
@@ -253,8 +313,14 @@ const CHURN = [
   'Failed to fetch dynamically imported module',
 ]
 
-function looksLikeEnvironmentChurn(problems) {
-  return problems.some(p => CHURN.some(sig => p.includes(sig)))
+// The loud kind names itself in the console. The quiet kind renders a blank
+// page and logs nothing at all, so the symptom is the only evidence there is:
+// a shell that never mounted is churn whatever the console says, and a check
+// that reports it as a result sends someone to diagnose a defect that is not
+// there.
+function looksLikeEnvironmentChurn(state) {
+  if (state.neverMounted) return true
+  return state.problems.some(p => CHURN.some(sig => p.includes(sig)))
 }
 
 // --- session -----------------------------------------------------------------
@@ -362,7 +428,7 @@ export async function run({ only = null, headed = false } = {}) {
 
     const page = await context.newPage()
 
-    const state = { dialog: null, problems: [] }
+    const state = { dialog: null, problems: [], neverMounted: false }
     page.on('dialog', async d => {
       state.dialog = d.message()
       await d.accept()
@@ -379,24 +445,13 @@ export async function run({ only = null, headed = false } = {}) {
       }
     })
 
-    const driven = drivePage(page, state)
+    const driven = drivePage(page, state, context)
     current = { name: c.name, checks: [] }
 
-    // storageState may be absent or stale; log in and retry once. The login
-    // form gets playwright's generous default — the auth server is a separate
-    // app and a cold one is slow. Only the checks are held to the fast
-    // timeout, where a miss means a wrong selector rather than a slow page.
-    // Where an unauthenticated browser ends up is decided by the app's auth
-    // handshake, so the URL right after domcontentloaded is mid-flight and
-    // says nothing yet. Settling first is what separates "needs a login" from
-    // "was already on its way in".
-    await page.goto(WEBAPP, { waitUntil: 'domcontentloaded' }).catch(() => {})
-    await page.waitForTimeout(2500)
-    if (page.url().includes('/auth/')) await login(context, page)
-
+    // Checks are held to the fast timeout, where a miss means a wrong selector
+    // rather than a slow page. open() raises it around a login, which is the
+    // one step whose slowness is not the check's fault.
     context.setDefaultTimeout(ACTION_TIMEOUT)
-    state.problems.length = 0
-    state.dialog = null
 
     try {
       await c.body(driven)
@@ -405,7 +460,7 @@ export async function run({ only = null, headed = false } = {}) {
     }
 
     const result = current
-    result.churn = looksLikeEnvironmentChurn(state.problems)
+    result.churn = looksLikeEnvironmentChurn(state)
 
     if (!c.opts.allowProblems && state.problems.length) {
       result.checks.push({
