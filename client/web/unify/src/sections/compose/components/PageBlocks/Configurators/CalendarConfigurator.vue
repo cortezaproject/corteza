@@ -101,86 +101,90 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <CFormGroup :label="$t('block.calendar.recordFeed.resourceType')" class="md:col-span-2">
+            <CFormGroup :label="$t('block.calendar.eventSource')" class="md:col-span-2">
               <Select
-                :model-value="feed.resourceType || 'record'"
-                :options="resourceTypeOptions"
+                :model-value="feed.resource || feedResources.record"
+                :options="feedSourceOptions"
                 option-label="label"
                 option-value="value"
                 class="w-full"
-                @update:model-value="updateFeedResourceType(feed, $event)"
+                @update:model-value="feed.resource = $event"
               />
             </CFormGroup>
 
-            <CFormGroup :label="$t('block.calendar.recordFeed.moduleLabel')">
-              <Select
-                :model-value="feed.options?.moduleID"
-                :options="modules"
-                option-label="name"
-                option-value="moduleID"
-                :placeholder="$t('block.calendar.recordFeed.modulePlaceholder')"
-                class="w-full"
-                filter
-                @update:model-value="onModuleChange(feed, $event)"
-              />
-            </CFormGroup>
+            <!-- Module and field mapping describe a record feed; a reminder
+                 feed carries its own dates and title. -->
+            <template v-if="isRecordFeed(feed)">
+              <CFormGroup :label="$t('block.calendar.recordFeed.moduleLabel')">
+                <Select
+                  :model-value="feed.options?.moduleID"
+                  :options="modules"
+                  option-label="name"
+                  option-value="moduleID"
+                  :placeholder="$t('block.calendar.recordFeed.modulePlaceholder')"
+                  class="w-full"
+                  filter
+                  @update:model-value="onModuleChange(feed, $event)"
+                />
+              </CFormGroup>
 
-            <CFormGroup :label="$t('block.calendar.recordFeed.titleLabel')">
-              <Select
-                v-model="feed.titleField"
-                :options="getTitleFields(feed.options?.moduleID)"
-                option-label="label"
-                option-value="name"
-                :placeholder="$t('block.calendar.recordFeed.titlePlaceholder')"
-                class="w-full"
-                :disabled="!feed.options?.moduleID"
-              />
-            </CFormGroup>
+              <CFormGroup :label="$t('block.calendar.recordFeed.titleLabel')">
+                <Select
+                  v-model="feed.titleField"
+                  :options="getTitleFields(feed.options?.moduleID)"
+                  option-label="label"
+                  option-value="name"
+                  :placeholder="$t('block.calendar.recordFeed.titlePlaceholder')"
+                  class="w-full"
+                  :disabled="!feed.options?.moduleID"
+                />
+              </CFormGroup>
 
-            <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')">
-              <Select
-                v-model="feed.startField"
-                :options="getDateFields(feed.options?.moduleID)"
-                option-label="label"
-                option-value="name"
-                :placeholder="$t('block.calendar.recordFeed.eventStartFieldPlaceholder')"
-                class="w-full"
-                :disabled="!feed.options?.moduleID"
-              />
-            </CFormGroup>
+              <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')">
+                <Select
+                  v-model="feed.startField"
+                  :options="getDateFields(feed.options?.moduleID)"
+                  option-label="label"
+                  option-value="name"
+                  :placeholder="$t('block.calendar.recordFeed.eventStartFieldPlaceholder')"
+                  class="w-full"
+                  :disabled="!feed.options?.moduleID"
+                />
+              </CFormGroup>
 
-            <CFormGroup :label="$t('block.calendar.recordFeed.eventEndFieldLabel')">
-              <Select
-                v-model="feed.endField"
-                :options="getDateFields(feed.options?.moduleID)"
-                option-label="label"
-                option-value="name"
-                :placeholder="$t('block.calendar.recordFeed.eventEndFieldPlaceholder')"
-                class="w-full"
-                :disabled="!feed.options?.moduleID || feed.allDay"
-              />
-              <div class="flex items-center gap-2 mt-1">
-                <Checkbox v-model="feed.allDay" :input-id="`all-day-${i}`" binary />
-                <label :for="`all-day-${i}`" class="text-sm">
-                  {{ $t('block.calendar.recordFeed.eventAllDay') }}
-                </label>
-              </div>
-            </CFormGroup>
+              <CFormGroup :label="$t('block.calendar.recordFeed.eventEndFieldLabel')">
+                <Select
+                  v-model="feed.endField"
+                  :options="getDateFields(feed.options?.moduleID)"
+                  option-label="label"
+                  option-value="name"
+                  :placeholder="$t('block.calendar.recordFeed.eventEndFieldPlaceholder')"
+                  class="w-full"
+                  :disabled="!feed.options?.moduleID || feed.allDay"
+                />
+                <div class="flex items-center gap-2 mt-1">
+                  <Checkbox v-model="feed.allDay" :input-id="`all-day-${i}`" binary />
+                  <label :for="`all-day-${i}`" class="text-sm">
+                    {{ $t('block.calendar.recordFeed.eventAllDay') }}
+                  </label>
+                </div>
+              </CFormGroup>
 
-            <CFormGroup
-              :label="$t('block.calendar.recordFeed.prefilterLabel')"
-              class="md:col-span-2"
-            >
-              <CInputExpression
-                :ref="el => (prefilterInputs[i] = el)"
-                v-model="feed.options.prefilter"
-                dialect="ql"
-                :scope="scope"
-                :query-fields="moduleFields(feed.options?.moduleID)"
-                :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
-              />
-              <CExpressionHint :scope="scope" @insert="prefilterInputs[i]?.insert($event)" />
-            </CFormGroup>
+              <CFormGroup
+                :label="$t('block.calendar.recordFeed.prefilterLabel')"
+                class="md:col-span-2"
+              >
+                <CInputExpression
+                  :ref="el => (prefilterInputs[i] = el)"
+                  v-model="feed.options.prefilter"
+                  dialect="ql"
+                  :scope="scope"
+                  :query-fields="moduleFields(feed.options?.moduleID)"
+                  :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
+                />
+                <CExpressionHint :scope="scope" @insert="prefilterInputs[i]?.insert($event)" />
+              </CFormGroup>
+            </template>
 
             <CFormGroup :label="$t('block.calendar.colorLabel')">
               <CInputColorPicker
@@ -366,12 +370,19 @@ function onModuleChange(feed, moduleID) {
   feed.endField = ''
 }
 
-const resourceTypeOptions = [
-  { value: 'record', label: t('block.calendar.recordFeed.resourceTypeRecord') },
-  { value: 'reminder', label: t('block.calendar.recordFeed.resourceTypeReminder') },
-]
+// A feed names its source with the resource it reads, which is what the block
+// runtime dispatches on; the option list follows the model so a resource added
+// there needs no change here.
+const feedResources = compose.PageBlockCalendar.feedResources
 
-function updateFeedResourceType(feed, resourceType) {
-  feed.resourceType = resourceType
+const feedSourceOptions = computed(() =>
+  Object.entries(feedResources).map(([key, value]) => ({
+    value,
+    label: t(`block.calendar.${key}Feed.optionLabel`),
+  })),
+)
+
+function isRecordFeed(feed) {
+  return (feed.resource || feedResources.record) === feedResources.record
 }
 </script>

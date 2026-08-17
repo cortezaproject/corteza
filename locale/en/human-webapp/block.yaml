@@ -90,9 +90,6 @@ calendar:
     optionLabel: Records
     prefilterLabel: Prefilter events
     prefilterPlaceholder: field1 = 1 AND field2 = 232
-    resourceType: Resource type
-    resourceTypeRecord: Record
-    resourceTypeReminder: Reminder
     systemField:
       createdAt: Created at
       deletedAt: Deleted at

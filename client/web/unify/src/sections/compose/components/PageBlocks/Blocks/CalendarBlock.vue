@@ -85,6 +85,7 @@ const props = defineProps({
 })
 
 const $ComposeAPI = inject('$ComposeAPI')
+const $SystemAPI = inject('$SystemAPI')
 const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
 const route = useRoute()
@@ -153,7 +154,6 @@ function changeView(view) {
  */
 async function loadEvents(start, end) {
   if (!start || !end) return
-  if (!$ComposeAPI) return
 
   // Skip if same range and not refreshing
   if (
@@ -173,8 +173,29 @@ async function loadEvents(start, end) {
     const allEvents = []
     const feeds = options.value.feeds || []
 
+    const { feedResources } = compose.PageBlockCalendar
+
     for (const feed of feeds) {
-      if (feed.resource === 'compose:record' && feed.options?.moduleID) {
+      // Reminders are the signed-in user's own, so there is nothing to map:
+      // the feed contributes its colour and the API supplies the rest.
+      if (feed.resource === feedResources.reminder) {
+        const user = $Auth?.user
+        if (!$SystemAPI || !user?.userID) continue
+
+        try {
+          const feedEvents = await compose.PageBlockCalendar.ReminderFeed($SystemAPI, user, feed, {
+            start,
+            end,
+          })
+          allEvents.push(...feedEvents)
+        } catch (e) {
+          console.error('Failed to load calendar feed:', e)
+        }
+
+        continue
+      }
+
+      if (feed.resource === feedResources.record && $ComposeAPI && feed.options?.moduleID) {
         const mod = moduleStore.getByID(feed.options.moduleID)
         if (!mod) {
           // Try to load the module
