@@ -165,6 +165,24 @@ DOM as it is; use a visibility assertion when visibility is the question.
   investigation once. When a live result contradicts a passing unit test,
   `touch` the file, wait for the next build, and re-check before believing
   either.
+- **Vite does not pick up edits under `lib/`.** The webapp resolves
+  `@planetcrust/human-js` / `human-vue` to their TypeScript sources, but the
+  running dev server keeps serving the transform it made at startup — a
+  `touch` does not invalidate it, and the file on disk and the module the
+  browser gets disagree indefinitely. A UI check then reports the old
+  behaviour against a fix that is genuinely there, which reads as the fix not
+  working. Confirm what is actually served before believing a UI result about
+  a lib change:
+  `curl -s 'localhost:5173/@fs<abs-path-to-file>' | head`.
+  Only a vite restart clears it — ask the human, never restart it yourself.
+- **`performance.getEntriesByType('resource')` overflows before your XHR.**
+  The buffer holds 250 entries by default and a cold vite page fills it with
+  module scripts, so a probe asking "was this request made" comes back empty
+  for every page and every request — an assertion that nothing was fetched
+  then passes without testing anything. Call
+  `performance.setResourceTimingBufferSize()` and `clearResourceTimings()`
+  first, re-trigger the request, and prove the probe by asserting a call
+  **is** seen somewhere in the same run.
 
 ## Conventions for agent-created data
 
