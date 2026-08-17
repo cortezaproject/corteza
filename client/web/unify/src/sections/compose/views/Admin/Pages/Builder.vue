@@ -501,8 +501,7 @@ import { usePageStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useHistoryBack } from '@planetcrust/human-vue'
-import { useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { useDraftGuard } from '@planetcrust/human-vue'
 import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 
@@ -581,26 +580,11 @@ const stagedBlockDeletes = ref(new Set())
 
 // Everything the builder does is staged until Save: block config, adds, removes,
 // orphan deletes and drag/resize positions all live in memory until then.
-const initialBlocks = ref(null)
-
-// Read through the reactive blocks, not toRaw: a raw read registers no
-// dependency and the computed would never see an edit.
-function blocksSnapshot() {
-  return cloneDeep(blocks.value.map(b => ({ ...b })))
-}
-
-// The point the guard compares against: the working set as loaded or last saved.
-function captureBlocksBaseline() {
-  initialBlocks.value = blocksSnapshot()
-}
-
-const isDirty = computed(() => {
-  if (saving.value || !initialBlocks.value) return false
-  if (stagedBlockDeletes.value.size) return true
-  return !isEqual(blocksSnapshot(), initialBlocks.value)
+const { isDirty, capture: captureBlocksBaseline } = useDraftGuard({
+  draft: blocks,
+  busy: saving,
+  extra: () => [...stagedBlockDeletes.value],
 })
-
-useUnsavedGuard({ isDirty, messageKey: 'general.editor.unsavedChanges' })
 
 const headerTextVariantOptions = computed(() => [
   { value: 'dark', label: t('block.general.style.default') },
@@ -1202,7 +1186,7 @@ const layoutSelectKey = ref(0)
 // The working set is rebuilt from the saved page, so switching layout discards
 // the same staged edits that leaving the builder would.
 function onLayoutSelect(layoutID) {
-  if (!isDirty.value) {
+  if (!isDirty()) {
     setLayout(layoutID)
     return
   }

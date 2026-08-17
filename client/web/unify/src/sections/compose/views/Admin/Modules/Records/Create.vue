@@ -78,9 +78,8 @@ import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import { compose, validator } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
-import { computed, inject, nextTick, provide, reactive, ref, toRaw, watch } from 'vue'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
+import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -112,15 +111,18 @@ const isSaving = ref(false)
 const isCancelling = ref(false)
 const record = ref(null)
 
-// The form as the user was shown it: what a blank record, a clone source, a
-// prefilled reference field and the field editors' own presets add up to. A User
-// field set to preset-with-authenticated fills itself in, and that is not an
-// unsaved edit — anything changing after the user's first touch is.
-const initialValues = ref(null)
+// Whether the guard has a baseline yet. Taken at the user's first touch of the
+// form, not at init: field editors resolve presets on their own schedule (a User
+// field set to preset-with-authenticated fills itself in), so no fixed moment
+// after load is reliably the form as shown — but everything before that touch is.
+const baselineTaken = ref(false)
 
 const pendingByField = reactive(new Map())
 provide('$fileUploadContext', {
   registerPending(fieldName, files) {
+    // Before the map changes: a file can arrive by drag-and-drop without a
+    // pointerdown on the form, and the baseline must predate the attachment.
+    freezeBaseline()
     if (files.length > 0) pendingByField.set(fieldName, files)
     else pendingByField.delete(fieldName)
   },
@@ -165,34 +167,25 @@ const syntheticPage = computed(() => ({
   blocks: [],
 }))
 
+const { capture, reset, markSaved } = useDraftGuard({
+  draft: () => record.value?.values,
+  busy: () => isSaving.value || isCancelling.value,
+  extra: () => pendingByField.size,
+})
+
 function setRecord(rec) {
   record.value = rec
-  initialValues.value = null
+  baselineTaken.value = false
+  reset()
 }
 
-// Taken on the first pointer or key event in the form, before the value that
-// event carries lands. Presets resolve on their own schedule — some after a
-// round trip — so no fixed moment after init is reliably "the form as shown",
-// but everything before the user's first touch of it is.
+// On the first pointer or key event in the form, before the value that event
+// carries lands.
 function freezeBaseline() {
-  if (initialValues.value || !record.value) return
-  initialValues.value = cloneDeep(toRaw(record.value).values)
+  if (baselineTaken.value || !record.value) return
+  baselineTaken.value = true
+  capture()
 }
-
-const isDirty = computed(() => {
-  if (isSaving.value || isCancelling.value) return false
-  if (pendingByField.size) return true
-  // Untouched: the presets a form fills in for itself are not unsaved work.
-  if (!record.value || !initialValues.value) return false
-  // Read through the reactive record, not toRaw: a raw read registers no
-  // dependency and the computed would never see the user's edits.
-  return !isEqual(record.value.values, initialValues.value)
-})
-
-const { markSaved } = useUnsavedGuard({
-  isDirty,
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 function initRecord() {
   // A record needs a module WITH fields (compose.Record throws otherwise).
