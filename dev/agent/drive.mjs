@@ -50,6 +50,12 @@ const ACTION_TIMEOUT = Number(process.env.DRIVE_TIMEOUT || 8000)
 // first time answers the first one slowly without changing the second.
 const RENDER_TIMEOUT = Number(process.env.DRIVE_RENDER_TIMEOUT || 20000)
 
+// What a step sleeps when it is not told what to wait for. Every locator waits
+// for its own target before touching it, so this covers only the reads that
+// wait for nothing — dialog(), problems(), sidebarRows() — and the app answers
+// those in single-digit milliseconds. Prefer `until` and leave this alone.
+const SETTLE = Number(process.env.DRIVE_SETTLE || 150)
+
 for (const u of [WEBAPP]) {
   if (!['localhost', '127.0.0.1', '::1'].includes(new URL(u).hostname)) {
     console.error(`drive is local-only; refusing ${u}`)
@@ -132,7 +138,7 @@ function drivePage(page, state, context) {
      *  app's auth handshake, so the URL straight after domcontentloaded is
      *  mid-flight and says nothing. Racing the shell against the auth redirect
      *  reads whichever arrives, and a check that needs no login pays for none. */
-    async open(path, { settle = 800 } = {}) {
+    async open(path, { settle = 800, until } = {}) {
       let landed = await api._land(path)
 
       if (landed === 'auth') {
@@ -158,7 +164,10 @@ function drivePage(page, state, context) {
         throw new Error(`the app never mounted at ${path}`)
       }
 
-      await page.waitForTimeout(settle)
+      // The shell mounting and the route's own content arriving are different
+      // moments; this covers the second, which no landmark of the shell's can
+      // stand in for.
+      await api._after(settle, until)
       return api
     },
 
@@ -196,31 +205,48 @@ function drivePage(page, state, context) {
       ])
     },
 
-    async click(selector, { hasText, nth = 0, settle = 2000 } = {}) {
+    /** Click, then wait for what the click was for.
+     *
+     *  `until` is a selector the click is expected to bring on screen; where
+     *  one is given nothing is slept at all. Without it the step falls back to
+     *  SETTLE, which covers the gap until the next step's own wait — every
+     *  locator here waits for its target before touching it, so a step that is
+     *  followed by another step is already covered. What SETTLE really buys is
+     *  the reads that wait for nothing: dialog(), problems(), sidebarRows(). */
+    async click(selector, { hasText, nth = 0, settle = SETTLE, until } = {}) {
       let loc = page.locator(selector)
       if (hasText) loc = loc.filter({ hasText })
       await loc.nth(nth).waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
       await loc.nth(nth).click()
-      await page.waitForTimeout(settle)
+      await api._after(settle, until)
       return api
     },
 
-    async fill(selector, value, { settle = 800 } = {}) {
+    async fill(selector, value, { settle = SETTLE, until } = {}) {
       const loc = page.locator(selector).first()
       await loc.waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
       await loc.fill(value)
-      await page.waitForTimeout(settle)
+      await api._after(settle, until)
       return api
+    },
+
+    /** Either wait for the named landmark, or sleep the fallback. */
+    async _after(settle, until) {
+      if (until) {
+        await page.locator(until).first().waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
+        return
+      }
+      if (settle) await page.waitForTimeout(settle)
     },
 
     /** Click an editor's Back button. The commonest interaction there is, and
      *  the one whose selector was guessed at most often before the shell grew
      *  a test id for it. */
-    async back({ settle = 2500 } = {}) {
+    async back({ settle = SETTLE, until } = {}) {
       const loc = page.locator('[data-testid="editor-back"]').first()
       await loc.waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
       await loc.click()
-      await page.waitForTimeout(settle)
+      await api._after(settle, until)
       return api
     },
 
