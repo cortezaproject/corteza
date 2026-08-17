@@ -63,6 +63,9 @@ warns on the rest; `/dev-change`, `/dev-task` and `/intent-task` point here.
   **same** commit as the code they govern, the way tests do. A doc states what
   its change made true, so splitting them leaves history self-contradicting.
   Reconcile the doc, `node .intent/intent.mjs sync <files>`, commit the lot.
+- **Except translations**: `locale/` strings go in the **same** commit as the
+  code that reads them. A commit adding a key nothing uses, or using a key it
+  has not added, is broken at that commit.
 - **When**: once the work is verified _and_ nothing about it is still open — no
   question waiting on the human, no doc flagged and left, no check named and
   skipped. Verified is not the same as finished, and a commit made over a live

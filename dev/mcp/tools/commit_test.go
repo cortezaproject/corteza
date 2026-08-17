@@ -97,6 +97,9 @@ func TestCheckAtomic(t *testing.T) {
 		{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md"},
 		{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md", ".intent/intent.lock.json"},
 		{"server/pkg/mcpkit/mcpkit.intent.md", ".intent/intent.lock.json"},
+		// Strings travel with the code that reads them: a commit adding a key
+		// nothing uses, or using one it has not added, is broken at that commit.
+		{"client/web/unify/src/sections/compose/views/Admin/Pages/Builder.vue", "locale/en/human-webapp/page.yaml"},
 	}
 
 	for _, files := range quiet {
@@ -107,7 +110,6 @@ func TestCheckAtomic(t *testing.T) {
 
 	loud := [][]string{
 		{"server/automation/service/workflow.go", "README.md"},
-		{"server/automation/service/workflow.go", "locale/en/human-webapp/project.yaml"},
 		// An intent doc riding along does not make an unrelated prose doc fine.
 		{"server/pkg/mcpkit/registry.go", "server/pkg/mcpkit/mcpkit.intent.md", "README.md"},
 	}

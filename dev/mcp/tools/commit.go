@@ -252,13 +252,16 @@ func checkAtomic(files []string) []string {
 	}
 
 	// Tests belong with the code they cover, generated files with the definition
-	// that produced them, and an intent doc with the code it governs: the doc
-	// states what that very change made true, so splitting them leaves history
-	// with a commit whose doc contradicts its code. None of the three is a mixed
-	// commit.
+	// that produced them, translations with the code that reads them — a commit
+	// that adds a key its code does not use yet, or uses one it has not added,
+	// is broken at that commit — and an intent doc with the code it governs: the
+	// doc states what that very change made true, so splitting them leaves
+	// history with a commit whose doc contradicts its code. None of the four is
+	// a mixed commit.
 	delete(kinds, "tests")
 	delete(kinds, "generated")
 	delete(kinds, "intent")
+	delete(kinds, "translations")
 
 	if len(kinds) < 2 {
 		return nil
