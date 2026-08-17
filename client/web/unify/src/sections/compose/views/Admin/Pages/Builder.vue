@@ -1315,8 +1315,9 @@ function validateRequiredFields() {
     const fields = block.options?.fields || []
     // No field filter means all fields are shown
     if (!fields.length) return true
+    // A configured field is a name or a {name} object
     for (const f of fields) {
-      required.delete(f.name)
+      required.delete(f.name ?? f)
     }
   }
 
