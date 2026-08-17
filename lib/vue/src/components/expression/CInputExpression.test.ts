@@ -214,4 +214,17 @@ describe('CExpressionHint', () => {
     await w.findAll('.c-expression-hint__chip')[0].trigger('click')
     expect(w.emitted('insert')?.[0]).toEqual(['${recordID}'])
   })
+
+  it('separates the chips instead of running them into one token', () => {
+    const raw = mountHint({ dependsOnPlacement: true }).element.textContent || ''
+    // A run of whitespace is one space once rendered, so the comparison is
+    // against what reaches the page rather than the node count behind it.
+    const rendered = raw.replace(/\s+/g, ' ')
+
+    expect(rendered).toContain('${recordID} ${ownerID}')
+    expect(rendered).toContain('${ownerID} ${userID}')
+    // Every variable ends in '}', so a '}' against a non-space is a chip fused
+    // to whatever follows it — the next chip, or the trailing sentence.
+    expect(raw).not.toMatch(/\}\S/)
+  })
 })

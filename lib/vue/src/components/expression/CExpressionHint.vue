@@ -5,18 +5,23 @@
         ? $t('block.content.interpolationFootnote')
         : $t('block.content.interpolationFootnoteNonRecord')
     }}
-    <component
-      :is="insertable ? 'button' : 'span'"
-      v-for="chip in chips"
-      :key="chip"
-      :type="insertable ? 'button' : undefined"
-      class="c-expression-hint__chip"
-      :class="{ 'c-expression-hint__chip--static': !insertable }"
-      :title="insertable ? $t('block.content.interpolationFootnoteInsert') : undefined"
-      @click="insertable && emit('insert', chip)"
-    >
-      <code>{{ chip }}</code>
-    </component>
+    <!-- The separator is a real space, not a margin: whitespace-only text
+         between two elements is dropped at compile time, and these are snippets
+         an author copies — a gap drawn in CSS would still hand a reader, a
+         clipboard and a screen reader one run-on token. -->
+    <template v-for="chip in chips" :key="chip">
+      <component
+        :is="insertable ? 'button' : 'span'"
+        :type="insertable ? 'button' : undefined"
+        class="c-expression-hint__chip"
+        :class="{ 'c-expression-hint__chip--static': !insertable }"
+        :title="insertable ? $t('block.content.interpolationFootnoteInsert') : undefined"
+        @click="insertable && emit('insert', chip)"
+      >
+        <code>{{ chip }}</code>
+      </component>
+      {{ ' ' }}
+    </template>
     <template v-if="dependsOnPlacement">
       {{ $t('block.content.interpolationFootnotePlacement') }}
     </template>
