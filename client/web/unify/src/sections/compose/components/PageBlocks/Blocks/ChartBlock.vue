@@ -147,7 +147,7 @@ import PageBlock from './PageBlock.vue'
 import ChartRenderer from '../../Chart/ChartRenderer.vue'
 const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
 import { useChartStore } from '@planetcrust/human-vue'
-import { evaluatePrefilter } from '../../../lib/record-filter'
+import { evaluatePlacementFilter } from '../../../lib/record-filter'
 
 const { t } = useI18n()
 
@@ -265,24 +265,14 @@ function reporter(r = {}) {
   // Apply live filter combination
   filter = getFilter()
 
-  // Evaluate prefilter with record context if available
-  if (filter) {
-    const record = props.record
-    const user = $Auth?.user || {}
-
-    // If filter uses ${record} or ${ownerID} and there is no record, return empty
-    if (!record && (filter.includes('${record') || filter.includes('${ownerID}'))) {
-      return Promise.resolve([])
-    }
-
-    filter = evaluatePrefilter(filter, {
-      record,
-      user,
-      recordID: record?.recordID || '0',
-      ownerID: record?.ownedBy || '0',
-      userID: user?.userID || '0',
-    })
-  }
+  // Evaluate prefilter with record context if available; a filter that reads a
+  // record this block does not have reports nothing rather than everything.
+  const evaluated = evaluatePlacementFilter(filter, {
+    record: props.record,
+    user: $Auth?.user || {},
+  })
+  if (evaluated === undefined && filter) return Promise.resolve([])
+  filter = evaluated
 
   return $ComposeAPI.recordReport({ namespaceID, ...r, filter })
 }

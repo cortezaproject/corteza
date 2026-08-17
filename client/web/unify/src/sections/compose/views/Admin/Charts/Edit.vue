@@ -172,8 +172,15 @@
               </template>
               <template #content>
                 <div class="relative" style="height: 400px">
+                  <div
+                    v-if="previewNeedsRecord"
+                    class="absolute inset-0 flex items-center justify-center p-3 text-center text-muted-color text-sm"
+                  >
+                    {{ $t('chart.edit.filter.previewNeedsRecord') }}
+                  </div>
+
                   <ChartRenderer
-                    v-if="chart"
+                    v-else-if="chart"
                     ref="chartRendererRef"
                     :key="previewKey"
                     :chart="chart"
@@ -232,6 +239,7 @@ import { chartConstructor } from '../../../lib/charts'
 import { useChartStore } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import ChartRenderer from '../../../components/Chart/ChartRenderer.vue'
+import { evaluatePlacementFilter, usesRecordVariables } from '../../../lib/record-filter'
 import ChartTranslator from '../../../components/Admin/Chart/ChartTranslator.vue'
 import * as Reports from '../../../components/Chart/Report/index.js'
 
@@ -243,6 +251,7 @@ const route = useRoute()
 const goBack = useHistoryBack()
 const $ComposeAPI = inject('$ComposeAPI')
 const $toast = inject('$toast')
+const $Auth = inject('$Auth', {})
 
 const chartStore = useChartStore()
 const moduleStore = useModuleStore()
@@ -435,8 +444,22 @@ async function fetchChart() {
 
 function reporter(r = {}) {
   const { namespaceID } = props.namespace
-  return $ComposeAPI.recordReport({ namespaceID, ...r })
+  let { filter } = r
+
+  // The preview has no record, so a filter reading one cannot be evaluated
+  // here; previewNeedsRecord says as much in place of the chart.
+  filter = evaluatePlacementFilter(filter, { user: $Auth?.user || {} })
+  if (filter === undefined && r.filter) return Promise.resolve([])
+
+  return $ComposeAPI.recordReport({ namespaceID, ...r, filter })
 }
+
+// The preview has no record to read, and the report editor's hint already
+// tells the author these resolve at placement; saying so here beats a blank
+// chart that looks like an empty result set.
+const previewNeedsRecord = computed(() =>
+  (chart.value?.config?.reports || []).some(({ filter }) => usesRecordVariables(filter)),
+)
 
 function refreshPreview() {
   chart.value.config.noAnimation = true

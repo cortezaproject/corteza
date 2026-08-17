@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   escapeQlString,
   evaluatePrefilter,
+  evaluatePlacementFilter,
   usesRecordVariables,
   getFieldFilter,
   getRecordListFilterSql,
@@ -194,6 +195,45 @@ describe('lib/record-filter', () => {
           userID: '0',
         }),
       ).toThrow()
+    })
+  })
+
+  describe('evaluatePlacementFilter', () => {
+    const user = { userID: '42' }
+
+    // The chart builder's preview: no record anywhere, and an unevaluated
+    // '${recordID}' reaches the report endpoint as an illegal token.
+    it('refuses a record filter when there is no record', () => {
+      expect(evaluatePlacementFilter('recordID = ${recordID}', { user })).toBeUndefined()
+      expect(evaluatePlacementFilter('status = ${record.values.s}', { user })).toBeUndefined()
+      expect(evaluatePlacementFilter('owner = ${ownerID}', { user })).toBeUndefined()
+    })
+
+    it('evaluates what needs no record, with the signed-in user', () => {
+      expect(evaluatePlacementFilter('assignee = ${userID}', { user })).toBe('assignee = 42')
+      expect(evaluatePlacementFilter('LocalGroupID = 5', { user })).toBe('LocalGroupID = 5')
+    })
+
+    it('evaluates a record filter once a record is placed under it', () => {
+      const record = { recordID: '7', ownedBy: '3', values: { status: 'open' } }
+      expect(
+        evaluatePlacementFilter('status = ${record.values.status} AND id = ${recordID}', {
+          record,
+          user,
+        }),
+      ).toBe('status = open AND id = 7')
+      expect(evaluatePlacementFilter('owner = ${ownerID}', { record, user })).toBe('owner = 3')
+    })
+
+    // Refusing must stay distinguishable from "no filter at all": one reports
+    // nothing, the other reports the whole module.
+    it('passes an absent filter through rather than refusing it', () => {
+      expect(evaluatePlacementFilter('', { user })).toBe('')
+      expect(evaluatePlacementFilter(undefined, { user })).toBeUndefined()
+    })
+
+    it('falls back to NoID when the user is missing', () => {
+      expect(evaluatePlacementFilter('assignee = ${userID}', {})).toBe('assignee = 0')
     })
   })
 

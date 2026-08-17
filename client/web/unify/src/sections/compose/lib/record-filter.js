@@ -405,6 +405,25 @@ export function usesRecordVariables(template = '') {
   return !!template && (template.includes('${record') || template.includes('${ownerID}'))
 }
 
+// Evaluates a filter belonging to a resource that is defined in one place and
+// rendered in another — a chart, whose report filter is namespace-level but
+// whose record variables only resolve wherever the chart is placed. Returns
+// undefined when the filter needs a record and there is none: an unevaluated
+// '${...}' reaches the server as an illegal token, and dropping the filter
+// instead would report on the whole module.
+export function evaluatePlacementFilter(filter, { record, user } = {}) {
+  if (!filter) return filter
+  if (!record && usesRecordVariables(filter)) return undefined
+
+  return evaluatePrefilter(filter, {
+    record,
+    user,
+    recordID: record?.recordID || '0',
+    ownerID: record?.ownedBy || '0',
+    userID: user?.userID || '0',
+  })
+}
+
 // Removes char from end of string
 export function trimChar(text = '', char = '') {
   if (text.substring(text.length - char.length, text.length) === char) {
