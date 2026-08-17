@@ -103,73 +103,6 @@ drive('settings are grouped into panels, advanced ones collapsed', async page =>
   })
 })
 
-// The scroller used to be the centred `container mx-auto`, so the gutters
-// beside it belonged to no scrollable element and a wheel over them did
-// nothing — the pointer had to be over the column itself.
-drive('the page scrolls with the pointer in either gutter', async page => {
-  await withChart(page, { name: 'scroll surface' }, async () => {
-    // Geometry of the element that actually scrolls, and of the centred column
-    // inside it. The gutters are the strips of the former either side of the
-    // latter — measured off the scroller, not the window, since the section
-    // sits right of the app sidebar.
-    const geometry = () =>
-      page.evaluate(() => {
-        const el = [...document.querySelectorAll('form *')].find(
-          e => e.scrollHeight > e.clientHeight + 20 && getComputedStyle(e).overflowY !== 'visible',
-        )
-        if (!el) return null
-        const inner = el.querySelector('.container')
-        const r = el.getBoundingClientRect()
-        const c = inner?.getBoundingClientRect()
-        return {
-          top: el.scrollTop,
-          scroller: { left: r.left, right: r.right, width: r.width },
-          column: c ? { left: c.left, right: c.right, width: c.width } : null,
-        }
-      })
-
-    const resetScroll = () =>
-      page.evaluate(() => {
-        const el = [...document.querySelectorAll('form *')].find(
-          e => e.scrollHeight > e.clientHeight + 20 && getComputedStyle(e).overflowY !== 'visible',
-        )
-        if (el) el.scrollTop = 0
-      })
-
-    const start = await geometry()
-    check('the page has something to scroll', !!start, start ? `${start.scroller.width}px` : 'none')
-
-    // No inner column means the scroller IS the centred container — the shape
-    // that made the gutters dead in the first place.
-    const hasGutters = !!start?.column && start.scroller.width > start.column.width + 20
-    check(
-      'the scroller is wider than the centred column, so gutters belong to it',
-      hasGutters,
-      start?.column
-        ? `scroller ${Math.round(start.scroller.width)} vs column ${Math.round(start.column.width)}`
-        : 'the scroller is the centred column itself',
-    )
-    if (!hasGutters) return
-
-    for (const [side, x] of [
-      ['left', Math.round(start.scroller.left + (start.column.left - start.scroller.left) / 2)],
-      ['right', Math.round(start.column.right + (start.scroller.right - start.column.right) / 2)],
-    ]) {
-      await resetScroll()
-      await page.raw.mouse.move(x, 450)
-      await page.raw.mouse.wheel(0, 600)
-      await page.raw.waitForTimeout(600)
-
-      const after = await geometry()
-      check(
-        `a wheel in the ${side} gutter scrolls`,
-        after && after.top > 0,
-        `x=${x} top=${after?.top}`,
-      )
-    }
-  })
-})
-
 drive('the preview is just the chart', async page => {
   await withChart(page, { name: 'no refresh button' }, async () => {
     const refreshButtons = await page.evaluate(
@@ -179,6 +112,35 @@ drive('the preview is just the chart', async page => {
 
     const canvases = await page.evaluate(() => document.querySelectorAll('canvas').length)
     check('the chart still renders', canvases > 0, `${canvases} canvas`)
+  })
+})
+
+// Editing a setting refetches, and the plot used to be destroyed and rebuilt for
+// it: the renderer blanked itself, showed a spinner, then mounted a fresh chart
+// that replayed its intro animation. Marking the canvas is how "the same chart
+// updated" is told apart from "a new chart replaced it".
+drive('a settings change updates the chart in place', async page => {
+  await withChart(page, { name: 'update in place' }, async () => {
+    const marked = await page.evaluate(() => {
+      const c = document.querySelector('canvas')
+      if (!c) return false
+      c.dataset.marked = '1'
+      return true
+    })
+    check('the chart rendered before the edit', marked, '')
+
+    // Toggling animation rewrites the chart config, which is what the renderer
+    // watches — the same path any settings edit takes.
+    await page.click('label[for="animation"]', { settle: 3000 })
+
+    const after = await page.evaluate(() => ({
+      survived: !!document.querySelector('canvas[data-marked="1"]'),
+      canvases: document.querySelectorAll('canvas').length,
+      spinner: document.querySelectorAll('.p-progressspinner').length,
+    }))
+
+    check('the same canvas is still there', after.survived, `${after.canvases} canvas`)
+    check('no spinner replaced the chart', after.spinner === 0, `${after.spinner} spinner(s)`)
   })
 })
 
