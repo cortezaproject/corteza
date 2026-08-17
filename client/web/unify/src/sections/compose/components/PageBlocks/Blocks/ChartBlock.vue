@@ -227,9 +227,13 @@ function applyLiveFilter() {
   updateChart()
 }
 
+// A fresh object identity is what the renderer watches, so replacing it is the
+// whole refetch. The chart's own config is left alone — the renderer already
+// withholds the animation from a re-render, and writing noAnimation here left
+// the block's copy disagreeing with the chart as saved.
 function updateChart() {
   if (chart.value) {
-    chart.value = { ...chart.value, config: { ...chart.value.config, noAnimation: true } }
+    chart.value = { ...chart.value, config: { ...chart.value.config } }
   }
 }
 

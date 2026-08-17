@@ -1,19 +1,23 @@
 <template>
   <div class="relative h-full w-full">
-    <div v-if="processing" class="absolute inset-0 flex items-center justify-center">
-      <ProgressSpinner />
-    </div>
-
-    <div v-else-if="error" class="absolute inset-0 p-3 text-red-500">
-      {{ error }}
-    </div>
-
+    <!-- The chart outlives a refetch: it stays mounted while new data is on the
+         way, so editing a setting updates the plot in place instead of tearing
+         it down and building it again. The spinner is only for having nothing
+         to show yet. -->
     <CChart
-      v-else-if="renderer"
+      v-if="renderer"
       :chart="renderer"
       class="absolute inset-0 p-1"
       @click="handleChartClick"
     />
+
+    <div v-if="processing && !renderer" class="absolute inset-0 flex items-center justify-center">
+      <ProgressSpinner />
+    </div>
+
+    <div v-if="error" class="absolute inset-0 p-3 text-red-500 bg-surface-0 dark:bg-surface-900">
+      {{ error }}
+    </div>
   </div>
 </template>
 
@@ -52,6 +56,10 @@ const error = ref(undefined)
 const processing = ref(false)
 const renderer = ref(undefined)
 const valueMap = ref(new Map())
+// The chart whose configured animation has already played. Held per chart, so
+// opening a different one animates it in rather than inheriting the last one's
+// spent animation.
+const animatedFor = ref(undefined)
 
 // A Record field holds record IDs, so a chart grouped by one labelled its
 // legend with raw IDs. Record lists resolve the same references through the
@@ -104,11 +112,11 @@ function readRecordValue(recordID, labelField) {
 
 async function updateChart() {
   error.value = undefined
-  renderer.value = undefined
 
   const [report = {}] = props.chart.config.reports
 
   if (!report.moduleID) {
+    renderer.value = undefined
     return
   }
 
@@ -181,7 +189,20 @@ async function updateChart() {
     // Add theme variables for chart styling
     data.themeVariables = getThemeVariables()
 
-    renderer.value = chart.makeOptions(data)
+    const options = chart.makeOptions(data)
+
+    // The configured animation belongs to the chart arriving, not to every
+    // refetch after it: an editor that replays the grow-in on each keystroke,
+    // or a block that replays it per live filter, reads as the chart reloading
+    // rather than updating. Later renders hand echarts the new data and let it
+    // transition between states.
+    const chartKey = props.chart?.chartID ?? null
+    if (animatedFor.value === chartKey) {
+      options.animation = false
+    }
+
+    renderer.value = options
+    animatedFor.value = chartKey
   } catch (e) {
     let msg = e instanceof Error ? e.message : String(e)
 
@@ -229,6 +250,7 @@ function setDefaultValues() {
   processing.value = false
   renderer.value = undefined
   valueMap.value.clear()
+  animatedFor.value = undefined
 }
 
 // Watch chart itself for changes (immediate to trigger first render)
