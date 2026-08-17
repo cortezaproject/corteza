@@ -17,14 +17,24 @@ interface Ctor {
   headers?: Headers
 }
 
+interface HumanError {
+  message?: string
+}
+
 interface HumanResponse {
-  error?: string
+  error?: string | HumanError
   response?: unknown
 }
 
+// The API reports failure in the body of a 200, as either a bare string or an
+// { message } object. Both reach callers as an Error so that a catch block can
+// read .message and stringify to something a user can act on.
 function stdResolve(response: AxiosResponse<HumanResponse>): KV | Promise<never> {
   if (response.data.error) {
-    return Promise.reject(response.data.error)
+    const err = response.data.error
+    return Promise.reject(
+      typeof err === 'string' ? new Error(err) : new Error(err.message || 'unknown error'),
+    )
   } else if (response.data.response) {
     return response.data.response as KV
   } else {
