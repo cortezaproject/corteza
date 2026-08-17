@@ -429,7 +429,9 @@ function report(r) {
   const bad = r.checks.filter(c => !c.ok)
   console.log(`${bad.length ? 'FAIL' : 'PASS'}  ${r.name}`)
   for (const c of r.checks) {
-    if (!c.ok || process.env.VERBOSE) {
+    // Skips print on a green run too. A hole in the coverage that only shows up
+    // under VERBOSE is one nobody sees, and silence then reads as "covered".
+    if (!c.ok || process.env.VERBOSE || c.name.startsWith('SKIPPED')) {
       console.log(`   ${c.ok ? 'ok  ' : 'BAD '} ${c.name}${c.detail ? ' — ' + c.detail : ''}`)
     }
   }
