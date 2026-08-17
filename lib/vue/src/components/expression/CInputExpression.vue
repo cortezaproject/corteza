@@ -175,8 +175,20 @@ function extensions() {
       },
       '&.cm-focused': { outline: 'none' },
       '.cm-line': { padding: '0' },
-      '.cm-scroller': { lineHeight: '1.5', maxHeight: `calc(${props.maxLines} * 1.5 * 13px)` },
-      '.cm-content': { padding: '0', minHeight: `calc(${props.minLines} * 1.5 * 13px)` },
+      '.cm-scroller': {
+        lineHeight: '1.5',
+        maxHeight: `calc(${props.maxLines} * 1.5 * 13px + 1rem)`,
+      },
+      // The box's padding lives here rather than on the wrapper: the editable
+      // node is what a click has to land on, so anything between it and the
+      // border is a strip that looks like the input and focuses nothing.
+      //
+      // minLines counts lines of text, and the padding is border-box here, so
+      // it is added on rather than eaten out of the height those lines need.
+      '.cm-content': {
+        padding: '0.5rem 0.75rem',
+        minHeight: `calc(${props.minLines} * 1.5 * 13px + 1rem)`,
+      },
     }),
   ]
 }
@@ -231,7 +243,6 @@ defineExpose({ insert, focus: () => view?.focus() })
 <style scoped>
 .c-expression {
   width: 100%;
-  padding: 0.5rem 0.75rem;
   background: var(--p-content-background);
   border: 1px solid var(--p-content-border-color);
   border-radius: var(--p-content-border-radius, 6px);
