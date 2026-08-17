@@ -39,137 +39,142 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 overflow-auto">
-      <div
-        v-if="isEdit && (namespace?.canExportNamespace || namespace?.canGrant)"
-        class="flex justify-end gap-2 mb-4"
-      >
-        <Button
-          v-if="namespace?.canExportNamespace"
-          :label="$t('namespace.export')"
-          icon="pi pi-download"
-          size="small"
-          severity="secondary"
-          outlined
-          @click="exportNamespace"
-        />
-        <CPermissionsButton
-          v-if="namespace?.canGrant"
-          :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
-          :title="namespace.name || namespace.slug || namespace.namespaceID"
-          :target="namespace.name || namespace.slug || namespace.namespaceID"
-          v-tooltip.bottom="$t('general.label.permissions')"
-          severity="secondary"
-          size="small"
-        />
-      </div>
+    <!-- The scroller is full width; the container only centres what is inside
+         it. Putting overflow on the centred element leaves the gutters outside
+         it, where a wheel over them scrolls nothing. -->
+    <div class="flex-1 overflow-auto">
+      <div class="container mx-auto p-4">
+        <div
+          v-if="isEdit && (namespace?.canExportNamespace || namespace?.canGrant)"
+          class="flex justify-end gap-2 mb-4"
+        >
+          <Button
+            v-if="namespace?.canExportNamespace"
+            :label="$t('namespace.export')"
+            icon="pi pi-download"
+            size="small"
+            severity="secondary"
+            outlined
+            @click="exportNamespace"
+          />
+          <CPermissionsButton
+            v-if="namespace?.canGrant"
+            :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
+            :title="namespace.name || namespace.slug || namespace.namespaceID"
+            :target="namespace.name || namespace.slug || namespace.namespaceID"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            severity="secondary"
+            size="small"
+          />
+        </div>
 
-      <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
-        <template #content>
-          <div class="flex flex-col gap-5 p-5">
-            <!-- Name + Slug inline -->
-            <div class="flex gap-4">
-              <CFormGroup name="name" :label="$t('namespace.name.label')" required class="flex-1">
-                <InputText
-                  id="name"
-                  name="name"
-                  v-model="namespace.name"
-                  :placeholder="$t('namespace.name.placeholder')"
-                />
-              </CFormGroup>
+        <Card :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }" class="overflow-hidden">
+          <template #content>
+            <div class="flex flex-col gap-5 p-5">
+              <!-- Name + Slug inline -->
+              <div class="flex gap-4">
+                <CFormGroup name="name" :label="$t('namespace.name.label')" required class="flex-1">
+                  <InputText
+                    id="name"
+                    name="name"
+                    v-model="namespace.name"
+                    :placeholder="$t('namespace.name.placeholder')"
+                  />
+                </CFormGroup>
 
-              <CFormGroup
-                name="slug"
-                :label="$t('namespace.slug.label')"
-                :description="$t('namespace.slug.description')"
-                class="flex-1"
-              >
-                <InputText
-                  id="slug"
+                <CFormGroup
                   name="slug"
-                  v-model="namespace.slug"
-                  :placeholder="$t('namespace.slug.placeholder')"
-                />
-              </CFormGroup>
-            </div>
-
-            <!-- Labels -->
-            <div class="flex gap-4">
-              <CFormGroup :label="$t('namespace.labels.label')" class="flex-1">
-                <CInputLabel
-                  v-model="namespace.labels"
-                  :placeholder="$t('namespace.labels.placeholder')"
-                  :create-label="$t('namespace.labels.createNew')"
-                  :create-dialog-label="$t('namespace.labels.dialogCreate')"
-                  :name-label="$t('namespace.labels.name')"
-                  :save-btn-label="$t('general.label.save')"
-                  :cancel-btn-label="$t('general.label.cancel')"
-                />
-              </CFormGroup>
-              <div class="flex-1" />
-            </div>
-
-            <!-- Enabled -->
-            <div class="flex items-center gap-2">
-              <Checkbox id="enabled" v-model="namespace.enabled" binary />
-              <label for="enabled">{{ $t('namespace.enabled.label') }}</label>
-            </div>
-
-            <Divider />
-
-            <!-- Logo -->
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2">
-                <Checkbox id="logoEnabled" v-model="namespace.meta.logoEnabled" binary />
-                <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
+                  :label="$t('namespace.slug.label')"
+                  :description="$t('namespace.slug.description')"
+                  class="flex-1"
+                >
+                  <InputText
+                    id="slug"
+                    name="slug"
+                    v-model="namespace.slug"
+                    :placeholder="$t('namespace.slug.placeholder')"
+                  />
+                </CFormGroup>
               </div>
-              <CFileDropZone
-                v-if="namespace.meta.logoEnabled"
-                accept="image/*"
-                :uploading="logoUploading"
-                :error="logoError"
-                :preview-url="logoPreviewUrl"
-                :clearable="!!namespace.meta.logo"
-                :drop-label="$t('namespace.logo.upload')"
-                compact
-                preview-max-width="100%"
-                preview-max-height="200px"
-                :label="$t('namespace.logo.show')"
-                @select="onLogoSelect"
-                @clear="onLogoClear"
-              />
+
+              <!-- Labels -->
+              <div class="flex gap-4">
+                <CFormGroup :label="$t('namespace.labels.label')" class="flex-1">
+                  <CInputLabel
+                    v-model="namespace.labels"
+                    :placeholder="$t('namespace.labels.placeholder')"
+                    :create-label="$t('namespace.labels.createNew')"
+                    :create-dialog-label="$t('namespace.labels.dialogCreate')"
+                    :name-label="$t('namespace.labels.name')"
+                    :save-btn-label="$t('general.label.save')"
+                    :cancel-btn-label="$t('general.label.cancel')"
+                  />
+                </CFormGroup>
+                <div class="flex-1" />
+              </div>
+
+              <!-- Enabled -->
+              <div class="flex items-center gap-2">
+                <Checkbox id="enabled" v-model="namespace.enabled" binary />
+                <label for="enabled">{{ $t('namespace.enabled.label') }}</label>
+              </div>
+
+              <Divider />
+
+              <!-- Logo -->
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <Checkbox id="logoEnabled" v-model="namespace.meta.logoEnabled" binary />
+                  <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
+                </div>
+                <CFileDropZone
+                  v-if="namespace.meta.logoEnabled"
+                  accept="image/*"
+                  :uploading="logoUploading"
+                  :error="logoError"
+                  :preview-url="logoPreviewUrl"
+                  :clearable="!!namespace.meta.logo"
+                  :drop-label="$t('namespace.logo.upload')"
+                  compact
+                  preview-max-width="100%"
+                  preview-max-height="200px"
+                  :label="$t('namespace.logo.show')"
+                  @select="onLogoSelect"
+                  @clear="onLogoClear"
+                />
+              </div>
+
+              <!-- Subtitle -->
+              <CFormGroup :label="$t('namespace.subtitle.label')" input-id="subtitle">
+                <InputText
+                  id="subtitle"
+                  v-model="namespace.meta.subtitle"
+                  :placeholder="$t('namespace.subtitle.placeholder')"
+                />
+              </CFormGroup>
+
+              <!-- Description -->
+              <CFormGroup :label="$t('namespace.description.label')" input-id="description">
+                <Textarea
+                  id="description"
+                  v-model="namespace.meta.description"
+                  :placeholder="$t('namespace.description.placeholder')"
+                  rows="3"
+                  auto-resize
+                />
+              </CFormGroup>
+
+              <Divider />
+
+              <!-- Sidebar -->
+              <div class="flex items-center gap-2">
+                <Checkbox id="hideSidebar" v-model="namespace.meta.hideSidebar" binary />
+                <label for="hideSidebar">{{ $t('namespace.sidebar.hide') }}</label>
+              </div>
             </div>
-
-            <!-- Subtitle -->
-            <CFormGroup :label="$t('namespace.subtitle.label')" input-id="subtitle">
-              <InputText
-                id="subtitle"
-                v-model="namespace.meta.subtitle"
-                :placeholder="$t('namespace.subtitle.placeholder')"
-              />
-            </CFormGroup>
-
-            <!-- Description -->
-            <CFormGroup :label="$t('namespace.description.label')" input-id="description">
-              <Textarea
-                id="description"
-                v-model="namespace.meta.description"
-                :placeholder="$t('namespace.description.placeholder')"
-                rows="3"
-                auto-resize
-              />
-            </CFormGroup>
-
-            <Divider />
-
-            <!-- Sidebar -->
-            <div class="flex items-center gap-2">
-              <Checkbox id="hideSidebar" v-model="namespace.meta.hideSidebar" binary />
-              <label for="hideSidebar">{{ $t('namespace.sidebar.hide') }}</label>
-            </div>
-          </div>
-        </template>
-      </Card>
+          </template>
+        </Card>
+      </div>
     </div>
 
     <CEditorActions :back-to="true" @back="goBack({ name: 'namespace.list' })">
