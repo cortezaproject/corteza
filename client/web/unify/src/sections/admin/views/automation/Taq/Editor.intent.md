@@ -5,7 +5,7 @@ backfilled: true
 owner: fe
 depends-on:
   - lib/js/src/automation/types/taq.ts
-  - lib/vue/src/composables/useUnsavedGuard.ts
+  - lib/vue/src/composables/useDraftGuard.ts
 touched-by:
   - client/web/unify/src/sections/admin/routes.js
 tests: []

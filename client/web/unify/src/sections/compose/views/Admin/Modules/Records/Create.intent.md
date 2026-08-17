@@ -24,7 +24,8 @@ mode, minus the page.
 
 - New records default `ownedBy` to the current user; `?cloneFromID` prefills values from a source record; `?refField`/`?refValue` prefill a reference field (multi-aware).
 - Required-field validation client-side; server field errors mapped back onto the form; pending file uploads flushed before create.
-- Save replaces to the record's admin view; cancel replaces to the admin record list.
+- Save replaces to the record's admin view; cancel replaces to the admin record list — an explicit discard, so it does not ask again.
+- Leaving with anything typed, picked or attached confirms first; an untouched form leaves silently.
 - Modules without fields show an explanatory message instead of a form (a record cannot be constructed).
 - Topbar links to the module editor and the admin record list.
 
@@ -35,4 +36,11 @@ mode, minus the page.
 ## When changing this
 
 - Keep `recordViewContext` / `$fileUploadContext` provides in lockstep with `Pages/RecordView.vue` — RecordBlock and field editors consume them.
+- The unsaved-changes baseline is frozen at the user's first pointer or key
+  event in the form, not when the record is built: field editors fill in their
+  own presets as they mount (a User field set to preset-with-authenticated
+  writes the current user), some after a round trip, so no fixed moment after
+  init is reliably the form as shown — and a baseline taken too early reports
+  an untouched form as dirty. A pending file attachment freezes it too, since a
+  drop can arrive without a pointerdown on the form.
 - A failed clone-source load degrades to a blank record rather than blocking creation.

@@ -43,3 +43,7 @@ memberships, avatar, external auth links, and lifecycle.
   active sessions — "revoke all sessions" is the immediate lever.
 - On create, assign the returned user before navigating so child panels
   never fetch with an empty userID.
+- `initialMembershipIDs` is the role diff the save sends, not the
+  unsaved-changes baseline — the guard tracks memberships through its own
+  `extra`. Removing it as guard bookkeeping would silently stop role changes
+  being applied.

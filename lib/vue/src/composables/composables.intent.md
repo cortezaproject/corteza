@@ -13,6 +13,7 @@ tests:
   - lib/vue/src/composables/useMinDuration.test.ts
   - lib/vue/src/composables/useRBAC.test.ts
   - lib/vue/src/composables/useResourceList.test.ts
+  - lib/vue/src/composables/useDraftGuard.test.ts
   - lib/vue/src/composables/useUnsavedGuard.test.ts
   - lib/vue/src/composables/useUserResolver.test.ts
 ---
@@ -38,7 +39,8 @@ Sections use these instead of re-implementing per-app variants.
 - useResourceList.ts — full list-view state machine: filter/sort/cursor pagination synced to route query, abortable requests.
 - useRightSidebarResize.ts — mouse-drag resize state for the right sidebar (280–800px clamp).
 - useTheme.ts — PrimeVue preset construction from theme variables, light/dark handling.
-- useUnsavedGuard.ts — dirty-state route-leave + tab-close confirmation; `markSaved()` to bypass after save.
+- useDraftGuard.ts — the unsaved-changes guard for a screen editing one resource: owns the baseline, the deep comparison and the busy suppression; `capture()` marks the current state saved, `extra` covers state held beside the draft.
+- useUnsavedGuard.ts — dirty-state route-leave + tab-close confirmation; `markSaved()` to bypass after save. The primitive under `useDraftGuard`, used directly when dirtiness is already a flag rather than a comparison.
 - useUserResolver.ts — userID → display name via useUserStore (cache-first, single read fallback).
 
 ## When changing this
@@ -52,3 +54,12 @@ Sections use these instead of re-implementing per-app variants.
 - `useHistoryBack` reads the router's `state.back`, never `history.length`:
   that counts entries from before the app and never shrinks, so it calls a
   dead end a live one.
+- `useDraftGuard.capture()` is the caller's to invoke, and deliberately not
+  automatic: a screen's data arrives asynchronously and its field editors
+  resolve presets on their own schedule, so any moment the composable picked
+  for itself would sometimes land before the form the user was shown and
+  report an untouched editor as dirty. Only the screen knows when its draft is
+  what the user saw.
+- `useDraftGuard` reads `isDirty` as a getter, never a computed: a draft
+  mutated through a raw (non-reactive) reference registers no dependency, and a
+  cached "clean" would stand while the user's edits went unguarded.

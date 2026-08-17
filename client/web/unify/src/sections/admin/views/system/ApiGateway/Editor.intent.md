@@ -38,5 +38,8 @@ and assemble its filter chain across prefilter/processer/postfilter steps.
 - Filters save as a diff: only entries flagged created/updated/deleted hit
   `apigwFilter*`, only after the route update succeeds — keep that
   reconciliation or orphaned filters accumulate server-side.
+- The dirty baseline is captured after the filters save, not before: their
+  re-fetch clears the pending-changes flag the baseline has to agree with, so
+  capturing first leaves a saved route reading as unsaved.
 - The `response` filter's params are shape-converted FE↔BE; filter identity
   in the editor is `ref` (definition name) — no `filterID` until saved.

@@ -41,3 +41,6 @@ membership-based behavior, members, and lifecycle.
   state; preserve that invariant or roles end up with both.
 - Membership sync is a batched diff after the role update; a partial failure
   leaves membership half-applied — keep the operations grouped.
+- `initialMemberIDs` is that diff's other side, not the unsaved-changes
+  baseline — the guard tracks membership through its own `extra`. Removing it
+  as guard bookkeeping would silently stop the save sending member changes.
