@@ -248,6 +248,14 @@ defineExpose({ insert, focus: () => view?.focus() })
   opacity: 0.6;
 }
 
+/* CodeMirror paints the caret black unless the editor declares itself dark, and
+   this one cannot: the app swaps theme underneath a view whose theme is fixed at
+   construction. Following the text colour holds in both, and the extra class in
+   the selector is what outweighs the library's own rule. */
+.c-expression :deep(.cm-editor .cm-content) {
+  caret-color: currentColor;
+}
+
 .c-expression :deep(.c-expression__hole) {
   background: color-mix(in srgb, var(--p-primary-color) 14%, transparent);
   border-radius: 3px;
