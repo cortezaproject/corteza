@@ -224,9 +224,21 @@ function drivePage(page, state, context) {
       return api
     },
 
-    async text(selector) {
+    /** The element's text, or '' if it is genuinely absent.
+     *
+     *  Waited for rather than read straight away: an element still rendering
+     *  reads as '' the same as one that will never exist, and a check
+     *  comparing that '' against an expectation reports a wrong answer instead
+     *  of a failure. `missing` distinguishes the two for a caller that cares. */
+    async text(selector, { timeout = RENDER_TIMEOUT, missing = '' } = {}) {
       const loc = page.locator(selector).first()
-      if (!(await loc.count())) return ''
+      const there = await loc
+        .waitFor({ state: 'visible', timeout })
+        .then(
+          () => true,
+          () => false,
+        )
+      if (!there) return missing
       return (await loc.innerText()).trim()
     },
 
