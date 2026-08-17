@@ -17,13 +17,18 @@
 import { drive, check } from '../drive.mjs'
 
 const SLUG = 'agent_calendar_feeds'
-const REMINDER_TITLE = 'Calendar feed reminder'
 const RECORD_TITLES = ['Kickoff meeting', 'Design review']
+
+// A reminder feed is a date range, not a due list: the block asks for whatever
+// falls inside the month on screen, on both sides of now. One reminder each side
+// is what says so — a check with only a past one passes just as well against a
+// feed that drops everything still to come.
+const REMINDER_TITLES = { past: 'Reminder already passed', future: 'Reminder still to come' }
 
 // Everything this check needs, created through the app's own API clients.
 async function build(page) {
   return page.evaluate(
-    async ({ slug, reminderTitle, recordTitles }) => {
+    async ({ slug, reminderTitles, recordTitles }) => {
       const { $ComposeAPI, $SystemAPI, $Auth } = window.__human.globals()
 
       // A namespace left behind by a crashed run would take the slug.
@@ -66,12 +71,26 @@ async function build(page) {
         })
       }
 
-      const reminder = await $SystemAPI.reminderCreate({
-        resource: 'agent:calendar-feeds',
-        assignedTo: $Auth.user.userID,
-        payload: { title: reminderTitle },
-        remindAt: at.toISOString(),
-      })
+      // Both ends of today, so each sits inside the month the calendar opens on
+      // whatever the date. Only a run in the first or last five minutes of a day
+      // blurs which side of now they are on, and both still render there.
+      const dayEdge = h => {
+        const t = new Date()
+        t.setHours(h, h === 0 ? 5 : 55, 0, 0)
+        return t.toISOString()
+      }
+
+      const reminders = {}
+      for (const [when, title] of Object.entries(reminderTitles)) {
+        reminders[when] = (
+          await $SystemAPI.reminderCreate({
+            resource: 'agent:calendar-feeds',
+            assignedTo: $Auth.user.userID,
+            payload: { title },
+            remindAt: dayEdge(when === 'past' ? 0 : 23),
+          })
+        ).reminderID
+      }
 
       const feed = resource => ({
         resource,
@@ -104,13 +123,13 @@ async function build(page) {
 
       return {
         namespaceID,
-        reminderID: reminder.reminderID,
+        reminderIDs: Object.values(reminders),
         editPage: await mk('feed_edit', 'Feed edit', 'compose:record'),
         recordPage: await mk('feed_record', 'Record feed', 'compose:record'),
         reminderPage: await mk('feed_reminder', 'Reminder feed', 'system:reminder'),
       }
     },
-    { slug: SLUG, reminderTitle: REMINDER_TITLE, recordTitles: RECORD_TITLES },
+    { slug: SLUG, reminderTitles: REMINDER_TITLES, recordTitles: RECORD_TITLES },
   )
 }
 
@@ -118,7 +137,9 @@ const tearDown = (page, built) =>
   page
     .evaluate(async b => {
       const { $ComposeAPI, $SystemAPI } = window.__human.globals()
-      await $SystemAPI.reminderDelete({ reminderID: b.reminderID }).catch(() => {})
+      for (const reminderID of b.reminderIDs) {
+        await $SystemAPI.reminderDelete({ reminderID }).catch(() => {})
+      }
       await $ComposeAPI.namespaceDelete({ namespaceID: b.namespaceID }).catch(() => {})
     }, built)
     .catch(() => {})
@@ -224,12 +245,17 @@ drive('each event source renders what it reads', async page => {
 
     const reminders = await eventTitles(page)
     check(
-      'a reminder feed renders the reminder',
-      reminders.some(t => t.includes(REMINDER_TITLE)),
+      'a reminder feed renders a reminder already passed',
+      reminders.some(t => t.includes(REMINDER_TITLES.past)),
       JSON.stringify(reminders),
     )
     check(
-      'it is styled as a reminder event',
+      'and one still to come, the range being what decides',
+      reminders.some(t => t.includes(REMINDER_TITLES.future)),
+      JSON.stringify(reminders),
+    )
+    check(
+      'they are styled as reminder events',
       (await firstEventClass(page)).includes('event-reminder'),
       '',
     )
