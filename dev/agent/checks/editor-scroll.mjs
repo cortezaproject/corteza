@@ -121,15 +121,22 @@ drive('the module editor scrolls its fields, not its page', async page => {
   const read = () =>
     page.evaluate(() => {
       const panel = document.querySelector('[role="tabpanel"]')
-      const list = panel?.querySelector('.overflow-y-auto')
+      const list = panel?.querySelector('.overflow-auto')
       const tabs = document.querySelector('[role="tablist"]')
       const form = document.querySelector('form')
+      const header = document.querySelector('.cform-list-header')
+      const card = document.querySelector('.p-card')
+      const cardStyle = card ? getComputedStyle(card) : null
       return {
         tabsTop: tabs ? Math.round(tabs.getBoundingClientRect().top) : null,
         listTop: list ? Math.round(list.scrollTop) : null,
         listOverflows: list ? list.scrollHeight > list.clientHeight + 20 : false,
         pageScrolls: form ? form.scrollHeight > form.clientHeight + 20 : false,
         rect: list ? list.getBoundingClientRect() : null,
+        headerTop: header ? Math.round(header.getBoundingClientRect().top) : null,
+        cardClips: cardStyle
+          ? cardStyle.overflow === 'hidden' && parseFloat(cardStyle.borderBottomLeftRadius) > 0
+          : false,
       }
     })
 
@@ -153,4 +160,16 @@ drive('the module editor scrolls its fields, not its page', async page => {
   const after = await read()
   check('the fields list scrolled', after.listTop > 0, `top=${after.listTop}`)
   check('the tab strip stayed put', after.tabsTop === before.tabsTop, `${after.tabsTop}`)
+
+  // The column headers name what each input is; scrolling them away leaves a
+  // grid of unlabelled boxes.
+  check(
+    'the column headers stayed pinned',
+    after.headerTop !== null && after.headerTop === before.headerTop,
+    `${before.headerTop} -> ${after.headerTop}`,
+  )
+
+  // Without clipping, the scrolling tab body paints square corners over the
+  // card's rounded bottom edge.
+  check('the card clips to its rounded corners', before.cardClips, `${before.cardClips}`)
 })
