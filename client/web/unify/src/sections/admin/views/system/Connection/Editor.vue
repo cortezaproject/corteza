@@ -162,8 +162,7 @@ import { computed, inject, nextTick, onMounted, ref, watch, reactive } from 'vue
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useConfirmDelete, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useConfirmDelete, useDraftGuard } from '@planetcrust/human-vue'
 import ConfiguredConnectionsPanel from './ConfiguredConnectionsPanel.vue'
 
 const { CInputDelete } = components
@@ -183,8 +182,11 @@ const saving = ref(false)
 const deleting = ref(false)
 const enabling = ref(false)
 const connection = ref(null)
-const initialConnection = ref(null)
-const initialRawJSON = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: connection,
+  busy: () => saving.value || deleting.value,
+  extra: () => ({ ...rawJSON }),
+})
 const activeTab = ref('general')
 
 const rawJSON = reactive({
@@ -285,8 +287,7 @@ async function loadConnection() {
       },
     })
     initJSONFields()
-    initialConnection.value = cloneDeep(connection.value)
-    initialRawJSON.value = cloneDeep(rawJSON)
+    capture()
     return
   }
 
@@ -302,8 +303,7 @@ async function loadConnection() {
     }
     connection.value = new system.Connection(raw)
     initJSONFields()
-    initialConnection.value = cloneDeep(connection.value)
-    initialRawJSON.value = cloneDeep(rawJSON)
+    capture()
   } catch (e) {
     console.error('Failed to load connection:', e)
     $toast.toastErrorHandler(t('notification.connection.fetch.error'))(e)
@@ -351,8 +351,7 @@ async function handleSubmit({ valid }) {
       const raw = await $SystemAPI.connectionUpdate(payload)
       connection.value = new system.Connection(raw)
       initJSONFields()
-      initialConnection.value = cloneDeep(connection.value)
-      initialRawJSON.value = cloneDeep(rawJSON)
+      capture()
       $toast.toastSuccess(t('notification.connection.update.success'))
     } else {
       const created = await $SystemAPI.connectionCreate(payload)
@@ -408,8 +407,7 @@ async function handleEnable() {
     })
     connection.value = new system.Connection(raw)
     initJSONFields()
-    initialConnection.value = cloneDeep(connection.value)
-    initialRawJSON.value = cloneDeep(rawJSON)
+    capture()
     $toast.toastSuccess(t('notification.connection.enable.success'))
   } catch (e) {
     console.error('Failed to enable connection:', e)
@@ -418,17 +416,6 @@ async function handleEnable() {
     enabling.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!connection.value &&
-    !!initialConnection.value &&
-    (!isEqual(connection.value, initialConnection.value) ||
-      !isEqual({ ...rawJSON }, initialRawJSON.value)),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 // Lifecycle
 onMounted(() => {

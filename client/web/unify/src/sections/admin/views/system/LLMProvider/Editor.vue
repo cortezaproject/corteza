@@ -153,8 +153,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 
 const { CInputDelete, CViewContainer } = components
 
@@ -171,7 +170,10 @@ const deleting = ref(false)
 const savingApiKey = ref(false)
 const apiKeyDialog = ref(false)
 const llmProvider = ref(null)
-const initialLlmProvider = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: llmProvider,
+  busy: () => saving.value || deleting.value,
+})
 const apiKey = ref('')
 
 const isEdit = computed(() => !!route.params.llmProviderID)
@@ -227,7 +229,7 @@ async function loadLlmProvider() {
       provider: defaultProvider,
       config: { temperature: 0.7, promptURL: providerDefaultURLs[defaultProvider] || '' },
     })
-    initialLlmProvider.value = cloneDeep(llmProvider.value)
+    capture()
     return
   }
 
@@ -235,7 +237,7 @@ async function loadLlmProvider() {
   try {
     const raw = await $SystemAPI.llmProviderRead({ llmProviderID })
     llmProvider.value = new system.LlmProvider(raw)
-    initialLlmProvider.value = cloneDeep(llmProvider.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.llmProvider.fetch.error'))(e)
     router.push({ name: 'system.llmProviders' })
@@ -269,7 +271,7 @@ async function handleSubmit({ valid }) {
       payload.llmProviderID = llmProvider.value.llmProviderID
       const raw = await $SystemAPI.llmProviderUpdate(payload)
       llmProvider.value = new system.LlmProvider(raw)
-      initialLlmProvider.value = cloneDeep(llmProvider.value)
+      capture()
       $toast.toastSuccess(t('notification.llmProvider.update.success'))
     } else {
       payload.apiKey = apiKey.value
@@ -366,16 +368,6 @@ watch(
     }
   },
 )
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!llmProvider.value &&
-    !!initialLlmProvider.value &&
-    !isEqual(llmProvider.value, initialLlmProvider.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => loadLlmProvider())
 watch(

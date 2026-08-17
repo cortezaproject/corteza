@@ -198,8 +198,7 @@ import { ref, computed, watch, inject, provide, toRaw, markRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { compose, shared } from '@planetcrust/human-js'
-import { components, useHistoryBack, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useHistoryBack, useDraftGuard } from '@planetcrust/human-vue'
 import { chartConstructor } from '../../../lib/charts'
 import { useChartStore } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
@@ -232,18 +231,11 @@ const props = defineProps({
 
 // State
 const chart = ref(null)
-const initialChart = ref(null)
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !processingSave.value &&
-    !processingDelete.value &&
-    !processingClone.value &&
-    !!chart.value &&
-    !!initialChart.value &&
-    !isEqual(toRaw(chart.value), initialChart.value),
-  messageKey: 'general.editor.unsavedChanges',
+const { capture, markSaved } = useDraftGuard({
+  draft: chart,
+  busy: () => processingSave.value || processingDelete.value || processingClone.value,
 })
+
 const loading = ref(false)
 const processing = ref(false)
 const processingSave = ref(false)
@@ -402,7 +394,7 @@ async function fetchChart() {
     }
 
     chart.value = c
-    initialChart.value = cloneDeep(toRaw(c))
+    capture()
     editReportIndex.value = 0
   } else {
     loading.value = true
@@ -411,7 +403,7 @@ async function fetchChart() {
     try {
       const raw = await chartStore.findByID({ namespaceID, chartID: cID })
       chart.value = chartConstructor(raw)
-      initialChart.value = cloneDeep(toRaw(chart.value))
+      capture()
       editReportIndex.value = 0
     } catch (e) {
       console.error('Failed to load chart:', e)
@@ -464,14 +456,14 @@ async function handleSubmit({ valid }) {
     if (!isEdit.value) {
       const created = await chartStore.create(c)
       chart.value = chartConstructor(created)
-      initialChart.value = cloneDeep(toRaw(chart.value))
+      capture()
       $toast.toastSuccess(t('notification.chart.created'))
       markSaved()
       router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
     } else {
       const updated = await chartStore.update(c)
       chart.value = chartConstructor(updated)
-      initialChart.value = cloneDeep(toRaw(chart.value))
+      capture()
       $toast.toastSuccess(t('notification.chart.updated'))
     }
   } catch (e) {
@@ -500,7 +492,7 @@ async function handleClone() {
 
     const created = await chartStore.create(cloned)
     chart.value = chartConstructor(created)
-    initialChart.value = cloneDeep(toRaw(chart.value))
+    capture()
     $toast.toastSuccess(t('notification.chart.created'))
     markSaved()
     router.push({ name: 'admin.charts.edit', params: { chartID: created.chartID } })
@@ -519,7 +511,7 @@ async function handleDelete() {
 
   try {
     await chartStore.delete(toRaw(chart.value))
-    initialChart.value = cloneDeep(toRaw(chart.value))
+    capture()
     $toast.toastSuccess(t('notification.chart.deleted'))
     router.push({ name: 'admin.charts' })
   } catch (e) {

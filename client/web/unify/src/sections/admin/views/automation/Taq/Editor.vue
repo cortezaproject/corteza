@@ -112,9 +112,8 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { automation } from '@planetcrust/human-js'
-import { components, filters, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, filters, useDraftGuard } from '@planetcrust/human-vue'
 import { useAutomationStore } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete, CViewContainer } = components
 const { locFullDateTime } = filters
@@ -131,7 +130,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const taq = ref(null)
-const initialTaq = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: taq,
+  busy: () => saving.value || deleting.value,
+})
 
 const isEdit = computed(() => !!route.params.automationID)
 
@@ -168,7 +170,7 @@ async function loadTaq() {
   const automationID = route.params.automationID
   if (!automationID) {
     taq.value = new automation.TAQ({ enabled: true, meta: { short: '' } })
-    initialTaq.value = cloneDeep(taq.value)
+    capture()
     return
   }
 
@@ -176,7 +178,7 @@ async function loadTaq() {
   try {
     const raw = await $AutomationAPI.ngAutomationRead({ automationID })
     taq.value = new automation.TAQ(raw)
-    initialTaq.value = cloneDeep(taq.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.taq.fetch.error'))(e)
     router.push({ name: 'automation.taq' })
@@ -209,7 +211,7 @@ async function handleSubmit({ valid }) {
       payload.automationID = taq.value.automationID
       const raw = await $AutomationAPI.ngAutomationUpdate(payload)
       taq.value = new automation.TAQ(raw)
-      initialTaq.value = cloneDeep(taq.value)
+      capture()
       automationStore.updateInList(taq.value)
       $toast.toastSuccess(t('notification.taq.update.success'))
     } else {
@@ -218,7 +220,7 @@ async function handleSubmit({ valid }) {
       payload.paths = []
       const created = await $AutomationAPI.ngAutomationCreate(payload)
       taq.value = new automation.TAQ(created)
-      initialTaq.value = cloneDeep(taq.value)
+      capture()
       automationStore.updateInList(taq.value)
       $toast.toastSuccess(t('notification.taq.create.success'))
       markSaved()
@@ -246,16 +248,6 @@ async function handleDelete() {
     deleting.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!taq.value &&
-    !!initialTaq.value &&
-    !isEqual(taq.value, initialTaq.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 watch(
   () => route.params.automationID,

@@ -775,7 +775,6 @@
 <script setup>
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { cloneDeep, isEqual } from 'lodash-es'
 
 import { useAgentStore } from '@planetcrust/human-vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -783,7 +782,7 @@ import {
   useNamespaceStore,
   useModuleStore,
   useHistoryBack,
-  useUnsavedGuard,
+  useDraftGuard,
 } from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
 
@@ -826,7 +825,10 @@ const moduleStore = useModuleStore()
 const loading = ref(false)
 const saving = ref(false)
 const agent = ref(null)
-const initialAgent = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: agent,
+  busy: () => saving.value,
+})
 const activeTab = ref('config')
 const formRef = ref(null)
 
@@ -835,15 +837,6 @@ function submitForm() {
 }
 
 const { chatWidth, showChat, startChatResize } = useEditorSplit()
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !!agent.value &&
-    !!initialAgent.value &&
-    !isEqual(agent.value, initialAgent.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 // Conversation tabs
 let convCounter = 1
@@ -1017,7 +1010,7 @@ async function fetchTclMasterList() {
 }
 function applyAgentData(res) {
   agent.value = new system.Agent(res)
-  initialAgent.value = cloneDeep(agent.value)
+  capture()
   initToolSelection()
 }
 
@@ -1050,7 +1043,7 @@ async function loadAgent() {
   const agentID = route.params.agentID
   if (!agentID) {
     agent.value = new system.Agent()
-    initialAgent.value = cloneDeep(agent.value)
+    capture()
     return
   }
 
@@ -1117,7 +1110,7 @@ async function handleDelete() {
     await $SystemAPI.agentDelete({ agentID: route.params.agentID })
     agentStore.removeFromList(route.params.agentID)
     $toast.toastSuccess(t('notification.agent.deleted'))
-    initialAgent.value = cloneDeep(agent.value)
+    capture()
     router.push({ name: 'agentic' })
   } catch (err) {
     console.error(err)

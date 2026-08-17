@@ -77,8 +77,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 
 const { CInputDelete, CViewContainer } = components
 
@@ -93,7 +92,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const queue = ref(null)
-const initialQueue = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: queue,
+  busy: () => saving.value || deleting.value,
+})
 
 const consumerOptions = computed(() => [
   { label: t('system.queues.editor.info.consumerOptions.store'), value: 'store' },
@@ -159,7 +161,7 @@ async function loadQueue() {
   const queueID = route.params.queueID
   if (!queueID) {
     queue.value = newQueue()
-    initialQueue.value = cloneDeep(queue.value)
+    capture()
     return
   }
 
@@ -167,7 +169,7 @@ async function loadQueue() {
   try {
     const raw = await $SystemAPI.queuesRead({ queueID })
     queue.value = normalizeQueue(raw)
-    initialQueue.value = cloneDeep(queue.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.queue.fetch.error'))(e)
     router.push({ name: 'system.queues' })
@@ -199,7 +201,7 @@ async function handleSubmit({ valid }) {
       payload.queueID = queue.value.queueID
       const raw = await $SystemAPI.queuesUpdate(payload)
       queue.value = normalizeQueue(raw)
-      initialQueue.value = cloneDeep(queue.value)
+      capture()
       $toast.toastSuccess(t('notification.queue.update.success'))
     } else {
       const created = await $SystemAPI.queuesCreate(payload)
@@ -226,16 +228,6 @@ async function handleDelete() {
     deleting.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!queue.value &&
-    !!initialQueue.value &&
-    !isEqual(queue.value, initialQueue.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => loadQueue())
 watch(

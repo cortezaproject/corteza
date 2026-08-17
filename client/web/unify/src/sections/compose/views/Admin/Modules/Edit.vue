@@ -412,9 +412,8 @@ import {
   useConfirmDelete,
   useHistoryBack,
   usePermissions,
-  useUnsavedGuard,
+  useDraftGuard,
 } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, provide, ref, watch, nextTick } from 'vue'
 import CFieldConfigurator from '@/sections/compose/components/ModuleFields/Configurator/index.vue'
 import DalSettings from '@/sections/compose/components/Admin/Module/DalSettings.vue'
@@ -459,21 +458,13 @@ const saving = ref(false)
 const deleting = ref(false)
 const cloning = ref(false)
 const module = ref(null)
-const initialModule = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: module,
+  busy: () => saving.value || deleting.value || cloning.value,
+})
 
 provide('moduleDraft', module)
 const activeTab = ref('fields')
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !cloning.value &&
-    !!module.value &&
-    !!initialModule.value &&
-    !isEqual(module.value, initialModule.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 const creatingRecordPage = ref(false)
 const creatingRecordListPage = ref(false)
@@ -717,7 +708,7 @@ async function loadModule() {
       namespaceID: props.namespace?.namespaceID,
       fields: [],
     })
-    initialModule.value = cloneDeep(module.value)
+    capture()
     return
   }
 
@@ -733,7 +724,7 @@ async function loadModule() {
       })
       module.value = new compose.Module({ ...m })
     }
-    initialModule.value = cloneDeep(module.value)
+    capture()
 
     // Auto-trigger schema alterations check if module has issues (matching Human behavior)
     if ((module.value.issues || []).length > 0) {
@@ -951,7 +942,7 @@ async function handleSubmit({ valid }) {
       payload.moduleID = module.value.moduleID
       const updated = await moduleStore.update(payload)
       module.value = new compose.Module({ ...updated })
-      initialModule.value = cloneDeep(module.value)
+      capture()
       $toast.toastSuccess(t('notification.module.saved'))
     } else {
       const created = await moduleStore.create(payload)
@@ -1007,7 +998,7 @@ async function handleDelete() {
       namespaceID: module.value.namespaceID,
       moduleID: module.value.moduleID,
     })
-    initialModule.value = cloneDeep(module.value)
+    capture()
     $toast.toastSuccess(t('notification.module.deleted'))
     router.push({ name: 'admin.modules' })
   } catch (e) {

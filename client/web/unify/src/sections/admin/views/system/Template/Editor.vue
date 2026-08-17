@@ -147,8 +147,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NoID, system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 import CCodeEditor from '@/sections/admin/components/Template/CCodeEditor.vue'
 import CTemplateToolbox from '@/sections/admin/components/Template/CTemplateToolbox.vue'
 import CTemplatePreview from '@/sections/admin/components/Template/CTemplatePreview.vue'
@@ -166,7 +165,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const template = ref(null)
-const initialTemplate = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: template,
+  busy: () => saving.value || deleting.value,
+})
 const partials = ref([])
 
 const typeOptions = computed(() => [
@@ -249,7 +251,7 @@ async function loadTemplate() {
   const templateID = route.params.templateID
   if (!templateID) {
     template.value = new system.Template({ type: 'text/html' })
-    initialTemplate.value = cloneDeep(template.value)
+    capture()
     return
   }
 
@@ -257,7 +259,7 @@ async function loadTemplate() {
   try {
     const raw = await $SystemAPI.templateRead({ templateID })
     template.value = new system.Template(raw)
-    initialTemplate.value = cloneDeep(template.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.template.fetch.error'))(e)
     router.push({ name: 'system.templates' })
@@ -292,7 +294,7 @@ async function handleSubmit({ valid }) {
       payload.templateID = template.value.templateID
       const raw = await $SystemAPI.templateUpdate(payload)
       template.value = new system.Template(raw)
-      initialTemplate.value = cloneDeep(template.value)
+      capture()
       $toast.toastSuccess(t('notification.template.update.success'))
     } else {
       const created = await $SystemAPI.templateCreate(payload)
@@ -324,16 +326,6 @@ async function handleDelete() {
     deleting.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!template.value &&
-    !!initialTemplate.value &&
-    !isEqual(template.value, initialTemplate.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => {
   loadTemplate()

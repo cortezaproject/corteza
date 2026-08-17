@@ -140,8 +140,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 
 const { CInputDelete, CViewContainer } = components
 
@@ -155,7 +154,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const node = ref(null)
-const initialNode = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: node,
+  busy: () => saving.value || deleting.value,
+})
 
 const uriDialogVisible = ref(false)
 const generatingURI = ref(false)
@@ -191,7 +193,7 @@ const resolver = ref(({ values }) => {
 async function loadNode() {
   if (!vueRoute.params.nodeID) {
     node.value = { name: '', baseURL: '', contact: '' }
-    initialNode.value = cloneDeep(node.value)
+    capture()
     return
   }
 
@@ -199,7 +201,7 @@ async function loadNode() {
   try {
     const raw = await $FederationAPI.nodeRead({ nodeID: vueRoute.params.nodeID })
     node.value = raw
-    initialNode.value = cloneDeep(node.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('federation.nodes.editor.fetch.error'))(e)
     router.push({ name: 'federation.nodes' })
@@ -231,7 +233,7 @@ async function handleSubmit({ valid }) {
       payload.nodeID = node.value.nodeID
       await $FederationAPI.nodeUpdate(payload)
       node.value = { ...node.value, ...payload }
-      initialNode.value = cloneDeep(node.value)
+      capture()
       $toast.toastSuccess(t('federation.nodes.editor.update.success'))
     } else {
       const created = await $FederationAPI.nodeCreate(payload)
@@ -281,16 +283,6 @@ function copyURI() {
   navigator.clipboard.writeText(generatedURI.value).catch(() => {})
   $toast.toastSuccess(t('general.label.copied'))
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!node.value &&
-    !!initialNode.value &&
-    !isEqual(node.value, initialNode.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => loadNode())
 watch(

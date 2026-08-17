@@ -103,10 +103,9 @@ import {
   components,
   makeChatbotInboxTranslations,
   useHistoryBack,
-  useUnsavedGuard,
+  useDraftGuard,
 } from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
-import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -136,7 +135,10 @@ const inboxTranslations = computed(() => makeChatbotInboxTranslations(t, 'chatbo
 const loading = ref(false)
 const saving = ref(false)
 const chatbot = ref(null)
-const initialChatbot = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: chatbot,
+  busy: () => saving.value,
+})
 const agents = ref([])
 
 const isCreate = computed(() => !route.params.chatbotID)
@@ -151,18 +153,9 @@ const canSave = computed(() => {
   return true
 })
 
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !!chatbot.value &&
-    !!initialChatbot.value &&
-    !isEqual(chatbot.value, initialChatbot.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
-
 function applyChatbot(res) {
   chatbot.value = new system.Chatbot(res)
-  initialChatbot.value = cloneDeep(chatbot.value)
+  capture()
 }
 
 async function loadChatbot() {
@@ -250,7 +243,7 @@ async function handleDelete() {
     await $SystemAPI.chatbotDelete({ chatbotID: route.params.chatbotID })
     chatbotStore.removeFromList(route.params.chatbotID)
     $toast.toastSuccess(t('notification.chatbot.deleted'))
-    initialChatbot.value = cloneDeep(chatbot.value)
+    capture()
     router.push({ name: 'chatbot' })
   } catch (err) {
     console.error(err)

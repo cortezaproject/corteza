@@ -103,9 +103,8 @@ import WorkflowTriggers from '@/sections/admin/components/Workflow/WorkflowTrigg
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { automation } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 import { useWorkflowStore } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CInputDelete, CViewContainer } = components
 
@@ -121,7 +120,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const workflow = ref(null)
-const initialWorkflow = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: workflow,
+  busy: () => saving.value || deleting.value,
+})
 const triggers = ref([])
 
 const isEdit = computed(() => !!route.params.workflowID)
@@ -155,7 +157,7 @@ async function loadWorkflow() {
   const workflowID = route.params.workflowID
   if (!workflowID) {
     workflow.value = new automation.Workflow({ enabled: true, trace: false, meta: {} })
-    initialWorkflow.value = cloneDeep(workflow.value)
+    capture()
     return
   }
 
@@ -163,7 +165,7 @@ async function loadWorkflow() {
   try {
     const raw = await $AutomationAPI.workflowRead({ workflowID })
     workflow.value = new automation.Workflow(raw)
-    initialWorkflow.value = cloneDeep(workflow.value)
+    capture()
 
     // Load triggers for the workflow
     const triggersResult = await $AutomationAPI.triggerList({ workflowID })
@@ -201,7 +203,7 @@ async function handleSubmit({ valid }) {
       payload.workflowID = workflow.value.workflowID
       const raw = await $AutomationAPI.workflowUpdate(payload)
       workflow.value = new automation.Workflow(raw)
-      initialWorkflow.value = cloneDeep(workflow.value)
+      capture()
       workflowStore.updateInList(workflow.value)
       $toast.toastSuccess(t('notification.workflow.update.success'))
     } else {
@@ -235,16 +237,6 @@ async function handleDelete() {
     deleting.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!workflow.value &&
-    !!initialWorkflow.value &&
-    !isEqual(workflow.value, initialWorkflow.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => {
   loadWorkflow()

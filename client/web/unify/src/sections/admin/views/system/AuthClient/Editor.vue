@@ -349,8 +349,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system, NoID } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 import axios from 'axios'
 
 const {
@@ -375,7 +374,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const authClient = ref(null)
-const initialAuthClient = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: authClient,
+  busy: () => saving.value || deleting.value,
+})
 
 // Local role lists with full role objects for display
 const permittedRoles = ref([])
@@ -582,7 +584,7 @@ async function loadAuthClient() {
     authClient.value = new system.AuthClient({ enabled: true })
     redirectURIs.value = []
     await fetchDefaultUserGroup()
-    initialAuthClient.value = cloneDeep(authClient.value)
+    capture()
     return
   }
 
@@ -600,7 +602,7 @@ async function loadAuthClient() {
       loadRolesForList(authClient.value.security.prohibitedRoles, prohibitedRoles),
       loadRolesForList(authClient.value.security.forcedRoles, forcedRoles),
     ])
-    initialAuthClient.value = cloneDeep(authClient.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.authclient.fetch.error'))(e)
     router.push({ name: 'system.authClients' })
@@ -645,7 +647,7 @@ async function handleSubmit({ valid }) {
       payload.clientID = authClient.value.authClientID
       const raw = await $SystemAPI.authClientUpdate(payload)
       authClient.value = new system.AuthClient(raw)
-      initialAuthClient.value = cloneDeep(authClient.value)
+      capture()
       $toast.toastSuccess(t('notification.authclient.update.success'))
     } else {
       const created = await $SystemAPI.authClientCreate(payload)
@@ -680,16 +682,6 @@ async function handleDelete() {
     deleting.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!authClient.value &&
-    !!initialAuthClient.value &&
-    !isEqual(authClient.value, initialAuthClient.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => loadAuthClient())
 watch(

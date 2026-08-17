@@ -191,9 +191,8 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useConfirmDelete, useUnsavedGuard } from '@planetcrust/human-vue'
+import { components, useConfirmDelete, useDraftGuard } from '@planetcrust/human-vue'
 import { NoID } from '@planetcrust/human-js'
-import { cloneDeep, isEqual } from 'lodash-es'
 import CFilterParamsEditor from '@/sections/admin/components/ApiGateway/CFilterParamsEditor.vue'
 
 const { CInputDelete, CInputToggleCard, CViewContainer } = components
@@ -210,7 +209,11 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const route_ = ref(null)
-const initialRoute_ = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: route_,
+  busy: () => saving.value || deleting.value,
+  extra: () => hasFilterChanges.value,
+})
 
 // Filter state
 const steps = ['prefilter', 'processer', 'postfilter']
@@ -295,7 +298,7 @@ async function loadRoute() {
   const routeID = vueRoute.params.routeID
   if (!routeID) {
     route_.value = newRoute()
-    initialRoute_.value = cloneDeep(route_.value)
+    capture()
     return
   }
 
@@ -306,7 +309,7 @@ async function loadRoute() {
       ...raw,
       meta: { description: raw.meta?.description || '', async: raw.meta?.async || false },
     }
-    initialRoute_.value = cloneDeep(route_.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.gateway.fetch.error'))(e)
     router.push({ name: 'system.apiGateway' })
@@ -544,10 +547,12 @@ async function handleSubmit({ valid }) {
         ...raw,
         meta: { description: raw.meta?.description || '', async: raw.meta?.async || false },
       }
-      initialRoute_.value = cloneDeep(route_.value)
       if (hasFilterChanges.value) {
         await saveFilters(route_.value.routeID)
       }
+      // After the filters, whose re-fetch clears the pending-changes flag the
+      // baseline has to agree with.
+      capture()
       $toast.toastSuccess(t('notification.gateway.update.success'))
     } else {
       const created = await $SystemAPI.apigwRouteCreate(payload)
@@ -576,16 +581,6 @@ async function handleDelete() {
     deleting.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!route_.value &&
-    !!initialRoute_.value &&
-    (!isEqual(route_.value, initialRoute_.value) || hasFilterChanges.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 // --- Lifecycle ---
 

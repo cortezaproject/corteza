@@ -234,8 +234,8 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual, kebabCase } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
+import { kebabCase } from 'lodash-es'
 
 const { CInputDelete, CInputLocation, CInputToggleCard, CViewContainer } = components
 
@@ -250,9 +250,12 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const dataSource = ref(null)
-const initialDataSource = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: dataSource,
+  busy: () => saving.value || deleting.value,
+  extra: () => rawDalParams.value,
+})
 const rawDalParams = ref('{}')
-const initialRawDalParams = ref('{}')
 
 const propertyKeys = [
   'dataAtRestEncryption',
@@ -360,7 +363,6 @@ function parseDalParams() {
 function initRawFields() {
   if (!dataSource.value) return
   rawDalParams.value = JSON.stringify(dataSource.value.config?.dal?.params || { dsn: '' }, null, 2)
-  initialRawDalParams.value = rawDalParams.value
   ensureLocationShape()
 }
 
@@ -369,7 +371,7 @@ async function loadDataSource() {
   if (!connectionID) {
     dataSource.value = new system.DalConnection({})
     initRawFields()
-    initialDataSource.value = cloneDeep(dataSource.value)
+    capture()
     return
   }
 
@@ -378,7 +380,7 @@ async function loadDataSource() {
     const raw = await $SystemAPI.dalConnectionRead({ connectionID })
     dataSource.value = new system.DalConnection(raw)
     initRawFields()
-    initialDataSource.value = cloneDeep(dataSource.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.data-source.fetch.error'))(e)
     router.push({ name: 'system.dataSources' })
@@ -414,7 +416,7 @@ async function handleSubmit({ valid }) {
       const raw = await $SystemAPI.dalConnectionUpdate(payload)
       dataSource.value = new system.DalConnection(raw)
       initRawFields()
-      initialDataSource.value = cloneDeep(dataSource.value)
+      capture()
       $toast.toastSuccess(t('notification.data-source.update.success'))
     } else {
       const created = await $SystemAPI.dalConnectionCreate(payload)
@@ -449,17 +451,6 @@ async function handleDelete() {
     deleting.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!dataSource.value &&
-    !!initialDataSource.value &&
-    (!isEqual(dataSource.value, initialDataSource.value) ||
-      rawDalParams.value !== initialRawDalParams.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => loadDataSource())
 

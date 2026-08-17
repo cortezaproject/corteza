@@ -178,8 +178,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from 'primevue/useconfirm'
 import { system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 import RoleMembers from '@/sections/admin/components/Role/RoleMembers.vue'
 import RolePermissionClone from '@/sections/admin/components/Role/RolePermissionClone.vue'
 
@@ -198,7 +197,11 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const role = ref(null)
-const initialRole = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: role,
+  busy: () => saving.value || deleting.value,
+  extra: () => [...memberIDs.value].sort(),
+})
 const memberIDs = ref(new Set())
 const initialMemberIDs = ref(new Set())
 const showCloneDialog = ref(false)
@@ -260,9 +263,9 @@ async function loadRole() {
   if (!roleID) {
     // Create new
     role.value = new system.Role({ meta: { context: { expr: '', resourceTypes: [] } } })
-    initialRole.value = cloneDeep(role.value)
     memberIDs.value = new Set()
     initialMemberIDs.value = new Set()
+    capture()
     return
   }
 
@@ -289,7 +292,7 @@ async function loadRole() {
       memberIDs.value = new Set()
       initialMemberIDs.value = new Set()
     }
-    initialRole.value = cloneDeep(role.value)
+    capture()
   } catch (e) {
     console.error('Failed to load role:', e)
     $toast.toastErrorHandler(t('notification.role.fetch.error'))(e)
@@ -324,7 +327,6 @@ async function handleSubmit({ valid }) {
       payload.roleID = role.value.roleID
       const raw = await $SystemAPI.roleUpdate(payload)
       role.value = new system.Role(raw)
-      initialRole.value = cloneDeep(role.value)
 
       // Sync member changes
       if (!isContextual.value) {
@@ -345,6 +347,9 @@ async function handleSubmit({ valid }) {
         )
         initialMemberIDs.value = new Set()
       }
+
+      // After the member sync, so the baseline covers the saved membership too.
+      capture()
 
       $toast.toastSuccess(t('notification.role.update.success'))
     } else {
@@ -460,17 +465,6 @@ async function handleUnarchive() {
     saving.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!role.value &&
-    !!initialRole.value &&
-    (!isEqual(role.value, initialRole.value) ||
-      !isEqual([...memberIDs.value], [...initialMemberIDs.value])),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 watch(
   () => route.params.roleID,

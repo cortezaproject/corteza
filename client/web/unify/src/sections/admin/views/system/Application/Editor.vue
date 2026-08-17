@@ -106,11 +106,10 @@ import {
   components,
   useFileUpload,
   resolveAppLogoUrl,
-  useUnsavedGuard,
+  useDraftGuard,
   useApplicationsStore,
 } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
-import { cloneDeep, isEqual } from 'lodash-es'
 
 const { CFileDropZone, CInputDelete, CInputToggleCard, CViewContainer } = components
 
@@ -126,7 +125,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const application = ref(null)
-const initialApplication = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: application,
+  busy: () => saving.value || deleting.value,
+})
 
 // Logo upload
 const {
@@ -176,7 +178,7 @@ async function loadApplication() {
   const applicationID = route.params.applicationID
   if (!applicationID) {
     application.value = new system.Application({ enabled: true })
-    initialApplication.value = cloneDeep(application.value)
+    capture()
     return
   }
 
@@ -184,7 +186,7 @@ async function loadApplication() {
   try {
     const raw = await applicationsStore.findByID(applicationID)
     application.value = new system.Application(raw)
-    initialApplication.value = cloneDeep(application.value)
+    capture()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.application.fetch.error'))(e)
     router.push({ name: 'system.applications' })
@@ -217,7 +219,7 @@ async function handleSubmit({ valid }) {
       payload.applicationID = application.value.applicationID
       const raw = await applicationsStore.update(payload)
       application.value = new system.Application(raw)
-      initialApplication.value = cloneDeep(application.value)
+      capture()
       $toast.toastSuccess(t('notification.application.update.success'))
     } else {
       const created = await applicationsStore.create(payload)
@@ -278,16 +280,6 @@ function onLogoClear() {
   application.value.unify.logoID = '0'
   resetLogoUpload()
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!application.value &&
-    !!initialApplication.value &&
-    !isEqual(application.value, initialApplication.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 onMounted(() => loadApplication())
 watch(

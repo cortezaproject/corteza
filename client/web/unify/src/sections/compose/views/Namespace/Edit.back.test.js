@@ -38,7 +38,7 @@ const namespaceStore = {
 vi.mock('@planetcrust/human-vue', () => ({
   useNamespaceStore: () => namespaceStore,
   useHistoryBack: () => goBack,
-  useUnsavedGuard: () => ({ markSaved: vi.fn() }),
+  useDraftGuard: () => ({ capture: vi.fn(), reset: vi.fn(), markSaved: vi.fn() }),
   useFileUpload: () => ({
     uploading: ref(false),
     uploadError: ref(null),

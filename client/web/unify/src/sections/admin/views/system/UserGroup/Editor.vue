@@ -137,8 +137,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard } from '@planetcrust/human-vue'
 import UserGroupMembers from '@/sections/admin/components/UserGroup/UserGroupMembers.vue'
 import UserGroupRoles from '@/sections/admin/components/UserGroup/UserGroupRoles.vue'
 
@@ -156,7 +155,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const userGroup = ref(null)
-const initialUserGroup = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: userGroup,
+  busy: () => saving.value || deleting.value,
+})
 
 // Computed
 const isEdit = computed(() => !!route.params.userGroupID)
@@ -210,7 +212,7 @@ async function loadUserGroup() {
     } catch {
       // silent — user can pick manually
     }
-    initialUserGroup.value = cloneDeep(userGroup.value)
+    capture()
     return
   }
 
@@ -218,7 +220,7 @@ async function loadUserGroup() {
   try {
     const raw = await $SystemAPI.userGroupRead({ userGroupID })
     userGroup.value = new system.UserGroup(raw)
-    initialUserGroup.value = cloneDeep(userGroup.value)
+    capture()
   } catch (e) {
     console.error('Failed to load user group:', e)
     $toast.toastErrorHandler(t('notification.userGroup.fetch.error'))(e)
@@ -253,7 +255,7 @@ async function handleSubmit({ valid }) {
       payload.userGroupID = userGroup.value.userGroupID
       const raw = await $SystemAPI.userGroupUpdate(payload)
       userGroup.value = new system.UserGroup(raw)
-      initialUserGroup.value = cloneDeep(userGroup.value)
+      capture()
       $toast.toastSuccess(t('notification.userGroup.update.success'))
     } else {
       const created = await $SystemAPI.userGroupCreate(payload)
@@ -304,16 +306,6 @@ async function handleUndelete() {
     saving.value = false
   }
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!userGroup.value &&
-    !!initialUserGroup.value &&
-    !isEqual(userGroup.value, initialUserGroup.value),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 watch(
   () => route.params.userGroupID,

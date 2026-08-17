@@ -203,8 +203,7 @@
 <script setup>
 import { useNamespaceStore } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
-import { components, useFileUpload, useHistoryBack, useUnsavedGuard } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useFileUpload, useHistoryBack, useDraftGuard } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
 const { CInputDelete, CFileDropZone, CInputLabel } = components
@@ -227,16 +226,9 @@ const saving = ref(false)
 const deleting = ref(false)
 const cloning = ref(false)
 const namespace = ref(null)
-const initialNamespace = ref(null)
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!namespace.value &&
-    !!initialNamespace.value &&
-    !isEqual(namespace.value, initialNamespace.value),
-  messageKey: 'general.editor.unsavedChanges',
+const { capture, markSaved } = useDraftGuard({
+  draft: namespace,
+  busy: () => saving.value || deleting.value,
 })
 
 // Logo upload
@@ -304,7 +296,7 @@ async function loadNamespace() {
         logoEnabled: false,
       },
     })
-    initialNamespace.value = cloneDeep(namespace.value)
+    capture()
     return
   }
 
@@ -325,7 +317,7 @@ async function loadNamespace() {
         router.push({ name: 'namespace.list' })
       }
     }
-    initialNamespace.value = cloneDeep(namespace.value)
+    capture()
   } catch (e) {
     console.error('Failed to load namespace:', e)
     $toast.toastDanger(t('notification.namespace.loadFailed'))
@@ -359,7 +351,7 @@ async function handleSubmit({ valid }) {
     if (isEdit.value) {
       payload.namespaceID = namespace.value.namespaceID
       namespace.value = await namespaceStore.update(payload)
-      initialNamespace.value = cloneDeep(namespace.value)
+      capture()
       $toast.toastSuccess(t('notification.namespace.saved'))
     } else {
       const created = await namespaceStore.create(payload)

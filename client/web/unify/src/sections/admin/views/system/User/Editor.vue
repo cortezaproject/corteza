@@ -153,8 +153,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useUnsavedGuard, useUserStore } from '@planetcrust/human-vue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { components, useDraftGuard, useUserStore } from '@planetcrust/human-vue'
 import { useConfirm } from 'primevue/useconfirm'
 
 const { CInputDelete, CInputUserGroup, CViewContainer } = components
@@ -181,7 +180,11 @@ const deleting = ref(false)
 const suspending = ref(false)
 const revoking = ref(false)
 const user = ref(null)
-const initialUser = ref(null)
+const { capture, markSaved } = useDraftGuard({
+  draft: user,
+  busy: () => saving.value || deleting.value,
+  extra: () => [...membershipIDs.value].sort(),
+})
 const externalAuthRef = ref(null)
 
 // Lifted State for Tabs
@@ -236,7 +239,7 @@ async function loadUser() {
     // Preselect the default user group
     await fetchDefaultUserGroup()
 
-    initialUser.value = cloneDeep(user.value)
+    capture()
     return
   }
 
@@ -255,7 +258,7 @@ async function loadUser() {
     const ids = Array.isArray(memRes) ? memRes : (memRes.set || []).map(m => m.roleID)
     initialMembershipIDs.value = new Set(ids)
     membershipIDs.value = new Set(ids)
-    initialUser.value = cloneDeep(user.value)
+    capture()
   } catch (e) {
     console.error('Failed to load user:', e)
     $toast.toastErrorHandler(t('notification.user.fetch.error'))(e)
@@ -314,7 +317,6 @@ async function handleSubmit({ valid }) {
       payload.userID = user.value.userID
       const raw = await $SystemAPI.userUpdate(payload)
       user.value = new system.User(raw)
-      initialUser.value = cloneDeep(user.value)
       userStore.storeUsers([user.value])
 
       // Handle Password if provided
@@ -340,6 +342,9 @@ async function handleSubmit({ valid }) {
         await $SystemAPI.roleMemberRemove({ roleID, userID: payload.userID })
       }
       initialMembershipIDs.value = new Set(membershipIDs.value)
+
+      // After the role sync, so the baseline covers the saved memberships too.
+      capture()
 
       $toast.toastSuccess(t('notification.user.update.success'))
     } else {
@@ -494,17 +499,6 @@ function confirmRevokeSessions(event) {
     },
   })
 }
-
-const { markSaved } = useUnsavedGuard({
-  isDirty: () =>
-    !saving.value &&
-    !deleting.value &&
-    !!user.value &&
-    !!initialUser.value &&
-    (!isEqual(user.value, initialUser.value) ||
-      !isEqual([...membershipIDs.value], [...initialMembershipIDs.value])),
-  messageKey: 'general.editor.unsavedChanges',
-})
 
 watch(
   () => route.params.userID,
