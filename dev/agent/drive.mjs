@@ -213,21 +213,45 @@ function drivePage(page, state, context) {
      *  locator here waits for its target before touching it, so a step that is
      *  followed by another step is already covered. What SETTLE really buys is
      *  the reads that wait for nothing: dialog(), problems(), sidebarRows(). */
-    async click(selector, { hasText, nth = 0, settle = SETTLE, until } = {}) {
+    async click(selector, { hasText, nth, settle = SETTLE, until } = {}) {
       let loc = page.locator(selector)
       if (hasText) loc = loc.filter({ hasText })
-      await loc.nth(nth).waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
-      await loc.nth(nth).click()
+      const pick = await api._one(loc, nth, selector, hasText)
+      await pick.waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
+      await pick.click()
       await api._after(settle, until)
       return api
     },
 
-    async fill(selector, value, { settle = SETTLE, until } = {}) {
-      const loc = page.locator(selector).first()
-      await loc.waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
-      await loc.fill(value)
+    async fill(selector, value, { nth, settle = SETTLE, until } = {}) {
+      const loc = page.locator(selector)
+      const pick = await api._one(loc, nth, selector)
+      await pick.waitFor({ state: 'visible', timeout: RENDER_TIMEOUT })
+      await pick.fill(value)
       await api._after(settle, until)
       return api
+    },
+
+    /** The one element a step means, or a failure naming the others.
+     *
+     *  A selector matching several and being silently served the first is the
+     *  cheapest way to check the wrong thing: the sidebar's picker answers for
+     *  a form's, a stale dialog's Save answers for the open one, and the check
+     *  passes or fails on an element nobody meant. Saying `nth` makes the
+     *  choice deliberate; saying nothing makes ambiguity a failure. */
+    async _one(loc, nth, selector, hasText) {
+      if (nth !== undefined) return loc.nth(nth)
+      // A count of 0 is not ambiguity: leave it to waitFor, which is allowed
+      // to wait for something that has not rendered yet.
+      const n = await loc.count()
+      if (n <= 1) return loc.first()
+      const texts = (await loc.allInnerTexts())
+        .map(s => s.replace(/\s+/g, ' ').trim().slice(0, 40))
+        .map((s, i) => `  [${i}] ${s || '(no text)'}`)
+      throw new Error(
+        `'${selector}'${hasText ? ` (hasText: ${hasText})` : ''} matches ${n} elements; ` +
+          `pass nth to say which:\n${texts.join('\n')}`,
+      )
     },
 
     /** Either wait for the named landmark, or sleep the fallback. */

@@ -72,7 +72,10 @@ drive('the record create form warns once a field is filled', async page => {
   await openRecordForm(page)
   // Typed, not filled: a fill() sets the value with no pointer or key event, so
   // it exercises a path no user can take.
-  await page.click('form input[type="text"]')
+  //
+  // The module has 26 text fields and any one of them dirties the form; the
+  // first is as good as another, so long as the choice is stated.
+  await page.click('form input[type="text"]', { nth: 0 })
   await page.raw.keyboard.type('Draft that must not vanish')
   await page.raw.keyboard.press('Tab')
   await page.raw.waitForTimeout(1000)
