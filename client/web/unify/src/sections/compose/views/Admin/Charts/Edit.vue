@@ -20,150 +20,142 @@
     class="flex flex-col h-full"
     @submit="handleSubmit"
   >
-    <div class="container mx-auto p-4 flex-1 overflow-auto min-w-0">
-      <!-- Actions above cards -->
-      <div v-if="isEdit" class="flex justify-end gap-2 mb-4">
-        <Button
-          v-if="namespace?.canExportCharts"
-          :label="$t('general.label.export')"
-          icon="pi pi-download"
-          size="small"
-          severity="secondary"
-          outlined
-          @click="exportChart"
-        />
-        <CPermissionsButton
-          v-if="chart.canGrant"
-          :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
-          :title="chart.name || chart.handle || chart.chartID"
-          :target="chart.name || chart.handle || chart.chartID"
-          v-tooltip.bottom="$t('general.label.permissions')"
-          outlined
-        />
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <!-- Left column: Settings -->
-        <div class="lg:col-span-7 flex flex-col gap-4">
-          <Panel :header="$t('chart.generalSettings')" toggleable>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <CFormGroup name="name" :label="$t('chart.name')" required>
-                <InputText
-                  id="name"
-                  name="name"
-                  v-model="chart.name"
-                  :placeholder="$t('chart.general.placeholder.name')"
-                  class="w-full"
-                />
-              </CFormGroup>
-
-              <CFormGroup name="handle" :label="$t('chart.handle')">
-                <InputText
-                  id="handle"
-                  name="handle"
-                  v-model="chart.handle"
-                  :placeholder="$t('chart.general.placeholder.handle')"
-                  class="w-full"
-                />
-              </CFormGroup>
-
-              <CFormGroup :label="$t('chart.colorScheme.label')" input-id="colorScheme">
-                <Select
-                  id="colorScheme"
-                  v-model="chart.config.colorScheme"
-                  :options="colorSchemes"
-                  option-label="name"
-                  option-value="id"
-                  :placeholder="$t('chart.colorScheme.placeholder')"
-                  class="w-full"
-                  filter
-                  show-clear
-                >
-                  <template #value="{ value }">
-                    <div v-if="value" class="flex gap-0.5 items-center">
-                      <div
-                        v-for="(color, ci) in getSchemeColors(value)"
-                        :key="ci"
-                        :style="`background: ${color};`"
-                        class="w-3.5 h-3.5 rounded-sm"
-                      />
-                    </div>
-                    <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
-                  </template>
-                  <template #option="{ option }">
-                    <div class="flex gap-0.5 items-center">
-                      <div
-                        v-for="(color, ci) in option.colors"
-                        :key="ci"
-                        :style="`background: ${color};`"
-                        class="w-3.5 h-3.5 rounded-sm"
-                      />
-                    </div>
-                  </template>
-                </Select>
-              </CFormGroup>
-
-              <CFormGroup :label="$t('chart.edit.animation.label')">
-                <div class="flex items-center gap-2">
-                  <ToggleSwitch input-id="animation" v-model="animationEnabled" />
-                  <label for="animation">{{ $t('chart.edit.animation.enabled') }}</label>
-                </div>
-              </CFormGroup>
-            </div>
-          </Panel>
-
-          <!-- Report editor: contributes its own panels -->
-          <component
-            :is="reportEditor"
-            v-if="chart && editReport"
-            :chart="chart"
-            :modules="modules"
-            :supported-metrics="1"
+    <!-- The scroller is full width; the container only centres what is inside
+         it. Putting overflow on the centred element leaves the gutters outside
+         it, where a wheel over them scrolls nothing. -->
+    <div class="flex-1 overflow-auto">
+      <div class="container mx-auto p-4 min-w-0">
+        <!-- Actions above cards -->
+        <div v-if="isEdit" class="flex justify-end gap-2 mb-4">
+          <Button
+            v-if="namespace?.canExportCharts"
+            :label="$t('general.label.export')"
+            icon="pi pi-download"
+            size="small"
+            severity="secondary"
+            outlined
+            @click="exportChart"
           />
-
-          <Panel :header="$t('chart.edit.toolbox.label')" toggleable collapsed>
-            <div class="flex items-center gap-2">
-              <ToggleSwitch input-id="saveAsImage" v-model="saveAsImageEnabled" />
-              <label for="saveAsImage">{{ $t('chart.edit.toolbox.saveAsImage.label') }}</label>
-            </div>
-          </Panel>
+          <CPermissionsButton
+            v-if="chart.canGrant"
+            :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
+            :title="chart.name || chart.handle || chart.chartID"
+            :target="chart.name || chart.handle || chart.chartID"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            outlined
+          />
         </div>
 
-        <!-- Right column: Preview -->
-        <div class="lg:col-span-5">
-          <div class="sticky top-0">
-            <Card>
-              <template #content>
-                <div class="relative" style="height: 400px">
-                  <Button
-                    icon="pi pi-refresh"
-                    text
-                    rounded
-                    size="small"
-                    class="absolute top-0 right-0 z-10"
-                    v-tooltip.bottom="$t('chart.edit.refreshPreview')"
-                    :disabled="processing || !reportsValid"
-                    @click="refreshPreview"
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- Left column: Settings -->
+          <div class="lg:col-span-7 flex flex-col gap-4">
+            <Panel :header="$t('chart.generalSettings')" toggleable>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <CFormGroup name="name" :label="$t('chart.name')" required>
+                  <InputText
+                    id="name"
+                    name="name"
+                    v-model="chart.name"
+                    :placeholder="$t('chart.general.placeholder.name')"
+                    class="w-full"
                   />
+                </CFormGroup>
 
-                  <div
-                    v-if="previewNeedsRecord"
-                    class="absolute inset-0 flex items-center justify-center p-3 text-center text-muted-color text-sm"
+                <CFormGroup name="handle" :label="$t('chart.handle')">
+                  <InputText
+                    id="handle"
+                    name="handle"
+                    v-model="chart.handle"
+                    :placeholder="$t('chart.general.placeholder.handle')"
+                    class="w-full"
+                  />
+                </CFormGroup>
+
+                <CFormGroup :label="$t('chart.colorScheme.label')" input-id="colorScheme">
+                  <Select
+                    id="colorScheme"
+                    v-model="chart.config.colorScheme"
+                    :options="colorSchemes"
+                    option-label="name"
+                    option-value="id"
+                    :placeholder="$t('chart.colorScheme.placeholder')"
+                    class="w-full"
+                    filter
+                    show-clear
                   >
-                    {{ $t('chart.edit.filter.previewNeedsRecord') }}
-                  </div>
+                    <template #value="{ value }">
+                      <div v-if="value" class="flex gap-0.5 items-center">
+                        <div
+                          v-for="(color, ci) in getSchemeColors(value)"
+                          :key="ci"
+                          :style="`background: ${color};`"
+                          class="w-3.5 h-3.5 rounded-sm"
+                        />
+                      </div>
+                      <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
+                    </template>
+                    <template #option="{ option }">
+                      <div class="flex gap-0.5 items-center">
+                        <div
+                          v-for="(color, ci) in option.colors"
+                          :key="ci"
+                          :style="`background: ${color};`"
+                          class="w-3.5 h-3.5 rounded-sm"
+                        />
+                      </div>
+                    </template>
+                  </Select>
+                </CFormGroup>
 
-                  <ChartRenderer
-                    v-else-if="chart"
-                    ref="chartRendererRef"
-                    :key="previewKey"
-                    :chart="chart"
-                    :reporter="reporter"
-                    @updated="onUpdated"
-                  />
-                </div>
-              </template>
-            </Card>
+                <CFormGroup :label="$t('chart.edit.animation.label')">
+                  <div class="flex items-center gap-2">
+                    <ToggleSwitch input-id="animation" v-model="animationEnabled" />
+                    <label for="animation">{{ $t('chart.edit.animation.enabled') }}</label>
+                  </div>
+                </CFormGroup>
+              </div>
+            </Panel>
+
+            <!-- Report editor: contributes its own panels -->
+            <component
+              :is="reportEditor"
+              v-if="chart && editReport"
+              :chart="chart"
+              :modules="modules"
+              :supported-metrics="1"
+            />
+
+            <Panel :header="$t('chart.edit.toolbox.label')" toggleable collapsed>
+              <div class="flex items-center gap-2">
+                <ToggleSwitch input-id="saveAsImage" v-model="saveAsImageEnabled" />
+                <label for="saveAsImage">{{ $t('chart.edit.toolbox.saveAsImage.label') }}</label>
+              </div>
+            </Panel>
+          </div>
+
+          <!-- Right column: Preview -->
+          <div class="lg:col-span-5">
+            <div class="sticky top-0">
+              <Card>
+                <template #content>
+                  <div class="relative" style="height: 400px">
+                    <div
+                      v-if="previewNeedsRecord"
+                      class="absolute inset-0 flex items-center justify-center p-3 text-center text-muted-color text-sm"
+                    >
+                      {{ $t('chart.edit.filter.previewNeedsRecord') }}
+                    </div>
+
+                    <ChartRenderer
+                      v-else-if="chart"
+                      :chart="chart"
+                      :reporter="reporter"
+                      @updated="onUpdated"
+                    />
+                  </div>
+                </template>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
@@ -258,8 +250,6 @@ const processingSave = ref(false)
 const processingClone = ref(false)
 const processingDelete = ref(false)
 const editReportIndex = ref(0)
-const previewKey = ref(0)
-const chartRendererRef = ref(null)
 
 // Computed
 const chartID = computed(() => route.params.chartID)
@@ -311,11 +301,6 @@ const editReport = computed({
 })
 
 provide('reportDraft', editReport)
-
-const reportsValid = computed(() => {
-  if (!chart.value?.config?.reports) return false
-  return !chart.value.config.reports.find(({ moduleID }) => !moduleID)
-})
 
 const reportEditor = computed(() => {
   if (!chart.value) return undefined
@@ -459,11 +444,6 @@ function reporter(r = {}) {
 const previewNeedsRecord = computed(() =>
   (chart.value?.config?.reports || []).some(({ filter }) => usesRecordVariables(filter)),
 )
-
-function refreshPreview() {
-  chart.value.config.noAnimation = true
-  previewKey.value++
-}
 
 function onUpdated() {
   processing.value = false

@@ -201,7 +201,6 @@ edit:
     label: Module
     placeholder: Pick a module
     title: Data Source
-  refreshPreview: Reload the preview with the current settings
   title: Chart builder
   toolbox:
     label: Tools
