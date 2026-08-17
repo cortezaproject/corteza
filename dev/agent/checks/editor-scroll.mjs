@@ -108,3 +108,49 @@ drive('the chart builder scrolls from its gutters', async page => {
   })
   await expectGutterScroll(page, 'chart')
 })
+
+// The module editor is the one that does not scroll as a page: its card takes
+// the height that is left and the active tab scrolls inside it, so a module
+// with many fields keeps its tab strip and Save bar in view.
+drive('the module editor scrolls its fields, not its page', async page => {
+  await shortViewport(page)
+  await page.open(`/compose/namespace/${NS}/admin/modules/${id.module.catalogue_field}/edit`, {
+    settle: 3000,
+  })
+
+  const read = () =>
+    page.evaluate(() => {
+      const panel = document.querySelector('[role="tabpanel"]')
+      const list = panel?.querySelector('.overflow-y-auto')
+      const tabs = document.querySelector('[role="tablist"]')
+      const form = document.querySelector('form')
+      return {
+        tabsTop: tabs ? Math.round(tabs.getBoundingClientRect().top) : null,
+        listTop: list ? Math.round(list.scrollTop) : null,
+        listOverflows: list ? list.scrollHeight > list.clientHeight + 20 : false,
+        pageScrolls: form ? form.scrollHeight > form.clientHeight + 20 : false,
+        rect: list ? list.getBoundingClientRect() : null,
+      }
+    })
+
+  const before = await read()
+  check(
+    'the fields list is its own scroller',
+    before.listOverflows,
+    before.rect ? `top=${before.listTop}` : 'the tab has no scroller of its own',
+  )
+  check('the page itself does not scroll', !before.pageScrolls, `${before.pageScrolls}`)
+  if (!before.rect) return
+
+  // Wheel with the pointer over the list.
+  await page.raw.mouse.move(
+    Math.round(before.rect.left + before.rect.width / 2),
+    Math.round(before.rect.top + before.rect.height / 2),
+  )
+  await page.raw.mouse.wheel(0, 600)
+  await page.raw.waitForTimeout(600)
+
+  const after = await read()
+  check('the fields list scrolled', after.listTop > 0, `top=${after.listTop}`)
+  check('the tab strip stayed put', after.tabsTop === before.tabsTop, `${after.tabsTop}`)
+})
