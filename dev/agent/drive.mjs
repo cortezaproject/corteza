@@ -7,7 +7,7 @@
 // ~80 lines of launch/login/listener preamble, every time. This is that
 // preamble, once.
 //
-//   import { drive, check, expectPath, run } from './drive.mjs'
+//   import { drive, check, expectPath } from './drive.mjs'
 //
 //   drive('back leaves the editor', async page => {
 //     await page.open('/compose/namespaces/edit/catalogue')
@@ -15,10 +15,8 @@
 //     expectPath(page, '/compose/namespaces')
 //   })
 //
-//   await run()
-//
 // Run it: node dev/agent/drive.mjs my-checks.mjs [--only NAME] [--headed]
-// or import it from a script you run with node directly.
+// The runner calls run() once the suite is loaded; a suite never calls it.
 //
 // What you get for free, because each cost a wrong answer once:
 //  - logged in already, and the session is cached so later runs skip the form
@@ -310,7 +308,12 @@ function report(r) {
   if (r.shot) console.log(`   screenshot: ${r.shot}`)
 }
 
+// Whether the checks have already been run in this process. The CLI reads it
+// to keep a suite that runs itself from being run a second time.
+let hasRun = false
+
 export async function run({ only = null, headed = false } = {}) {
+  hasRun = true
   const picked = only ? cases.filter(c => c.name.toLowerCase().includes(only.toLowerCase())) : cases
 
   if (!picked.length) {
@@ -488,7 +491,19 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   setImmediate(async () => {
     try {
       await import(resolve(file))
-      await run({ only, headed: args.includes('--headed') })
+      // A suite that calls run() itself has already run by the time the import
+      // resolves. Running it again here executes every check a second time and
+      // adds those assertions to the totals, so the run reads as passing twice
+      // as much as it checked.
+      if (hasRun) {
+        console.error(
+          `${file} calls run() itself, so the runner did not run it again` +
+            (only ? ` (--only ${only} was ignored)` : '') +
+            '\nDrop the run() call from the suite: the runner is what runs it.',
+        )
+      } else {
+        await run({ only, headed: args.includes('--headed') })
+      }
     } catch (e) {
       console.error(e)
       process.exitCode = 1
