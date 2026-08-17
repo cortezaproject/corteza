@@ -68,18 +68,15 @@
     </template>
   </CResourceList>
 
-  <TieredMenu
-    ref="configuredConnectionActionsMenu"
-    :model="configuredConnectionActionsMenuItems"
-    popup
-  >
+  <!-- One popup shared by every row's actions button -->
+  <Menu ref="configuredConnectionActionsMenu" :model="configuredConnectionActionsMenuItems" popup>
     <template #item="{ item, props }">
       <a v-ripple v-bind="props.action" :class="item.class">
         <span :class="item.icon" />
         <span class="ml-2">{{ item.label }}</span>
       </a>
     </template>
-  </TieredMenu>
+  </Menu>
 
   <Dialog
     v-model:visible="configuredConnectionModal"
@@ -368,7 +365,9 @@ function toggleConfiguredConnectionActionsMenu(event, conn) {
       command: () => onConfirmConfiguredConnectionDelete(conn),
     },
   ]
-  configuredConnectionActionsMenu.value.toggle(event)
+  // show() rather than toggle(): one popup serves every row, so clicking a
+  // second row's button must re-anchor and open there rather than close the first.
+  configuredConnectionActionsMenu.value.show(event, event.currentTarget)
 }
 
 function onConfirmConfiguredConnectionDelete(conn) {

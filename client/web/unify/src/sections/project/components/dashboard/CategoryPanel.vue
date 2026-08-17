@@ -711,7 +711,7 @@ function onRowClick({ data }) {
 }
 
 // Per-row kebab menu — same mechanism as ProjectList.vue (CResourceList's
-// built-in actionItems column/TieredMenu handles the trigger button, popup
+// built-in actionItems column/Menu handles the trigger button, popup
 // positioning and stopPropagation so it never also fires row-click).
 const resourceListRef = ref()
 const closeMenu = () => resourceListRef.value?.hideActionsMenu?.()

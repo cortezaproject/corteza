@@ -207,14 +207,15 @@
     </CResourceList>
   </div>
 
-  <TieredMenu ref="cardMenuRef" :model="cardMenuItems" popup>
+  <!-- One popup shared by every card's actions button -->
+  <Menu ref="cardMenuRef" :model="cardMenuItems" popup>
     <template #item="{ item, props: menuProps }">
       <a v-ripple v-bind="menuProps.action" :class="item.class">
         <span :class="item.icon" />
         <span class="ml-2">{{ item.label }}</span>
       </a>
     </template>
-  </TieredMenu>
+  </Menu>
 </template>
 
 <script setup>
@@ -272,9 +273,11 @@ const areNamespacesVisible = computed(() => sortedNamespaces.value.some(isNamesp
 const cardMenuRef = ref()
 const cardMenuItems = ref([])
 
+// show() rather than toggle(): one popup serves every card, so clicking a second
+// card's button must re-anchor and open there rather than close the first.
 function showCardMenu(event, namespace) {
   cardMenuItems.value = getActionsMenuItems(namespace)
-  cardMenuRef.value?.toggle(event)
+  cardMenuRef.value?.show(event, event.currentTarget)
 }
 
 function getInitials(ns) {

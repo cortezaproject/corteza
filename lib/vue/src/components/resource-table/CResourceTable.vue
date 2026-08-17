@@ -107,15 +107,8 @@
       <slot />
     </DataTable>
 
-    <!-- Centralized TieredMenu for row actions -->
-    <TieredMenu
-      v-if="actionItems"
-      :key="menuKey"
-      ref="actionsMenuRef"
-      :model="currentMenuItems"
-      popup
-      append-to="body"
-    >
+    <!-- One popup shared by every row's actions button -->
+    <Menu v-if="actionItems" ref="actionsMenuRef" :model="currentMenuItems" popup append-to="body">
       <template #item="{ item, props }">
         <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
           <a v-ripple :href="href" v-bind="props.action" @click="navigate">
@@ -128,12 +121,12 @@
           <span class="ml-2">{{ item.label }}</span>
         </a>
       </template>
-    </TieredMenu>
+    </Menu>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 defineOptions({ inheritAttrs: false })
 
@@ -172,6 +165,8 @@ const props = defineProps({
    * Function that returns an array of menu items for a row.
    * Signature: (rowData, rowIndex) => MenuItem[]
    * When provided, an actions column with an ellipsis button is automatically appended.
+   * Flat only — Menu renders a nested `items` array as a section header with its
+   * children inline, and drops anything deeper.
    */
   actionItems: {
     type: Function,
@@ -237,14 +232,12 @@ const actionsHeaderStyle = computed(() => 'width: 3rem')
 // -- Actions menu --
 const actionsMenuRef = ref()
 const currentMenuItems = ref([])
-const menuKey = ref(0)
 
+// show() rather than toggle(): one popup serves every row, so clicking a second
+// row's button must re-anchor and open there rather than close the first.
 function showActionsMenu(event, rowData, rowIndex) {
   currentMenuItems.value = props.actionItems(rowData, rowIndex)
-  menuKey.value++
-  nextTick(() => {
-    actionsMenuRef.value.show(event)
-  })
+  actionsMenuRef.value.show(event, event.currentTarget)
 }
 
 function hideActionsMenu() {

@@ -327,7 +327,8 @@
                   </template>
                 </CFormList>
 
-                <TieredMenu ref="fieldActionsMenuRef" :model="currentFieldMenuItems" popup />
+                <!-- One popup shared by every field row's actions button -->
+                <Menu ref="fieldActionsMenuRef" :model="currentFieldMenuItems" popup />
               </TabPanel>
 
               <TabPanel value="dal">
@@ -901,9 +902,11 @@ function fieldActionsMenuItems(field, index) {
   return items
 }
 
+// show() rather than toggle(): one popup serves every field row, so clicking a
+// second row's button must re-anchor and open there rather than close the first.
 function showFieldActionsMenu(event, field, index) {
   currentFieldMenuItems.value = fieldActionsMenuItems(field, index)
-  nextTick(() => fieldActionsMenuRef.value?.toggle(event))
+  fieldActionsMenuRef.value?.show(event, event.currentTarget)
 }
 
 function openFieldConfigurator(field, index) {

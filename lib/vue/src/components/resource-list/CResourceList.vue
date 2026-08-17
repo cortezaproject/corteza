@@ -183,14 +183,8 @@
         </DataTable>
       </div>
 
-      <!-- Centralized TieredMenu for row actions -->
-      <TieredMenu
-        v-if="actionItems"
-        ref="actionsMenuRef"
-        :key="menuKey"
-        :model="currentMenuItems"
-        popup
-      >
+      <!-- One popup shared by every row's actions button -->
+      <Menu v-if="actionItems" ref="actionsMenuRef" :model="currentMenuItems" popup>
         <template #item="{ item, props: menuProps }">
           <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
             <a v-ripple :href="href" v-bind="menuProps.action" @click="navigate">
@@ -203,13 +197,13 @@
             <span class="ml-2">{{ item.label }}</span>
           </a>
         </template>
-      </TieredMenu>
+      </Menu>
     </template>
   </Card>
 </template>
 
 <script setup>
-import { computed, nextTick, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 
@@ -287,8 +281,10 @@ const props = defineProps({
   /**
    * Function that receives row data and returns an array of PrimeVue MenuItem objects.
    * When provided, the component auto-adds an actions column with ellipsis button
-   * and a centralized TieredMenu.
+   * and one popup Menu shared by every row.
    * Items can have: label, icon, command, class, route (for router-link), separator.
+   * Flat only — Menu renders a nested `items` array as a section header with its
+   * children inline, and drops anything deeper.
    */
   actionItems: {
     type: Function,
@@ -303,7 +299,6 @@ const expandedRows = ref([])
 // -- Actions menu --
 const actionsMenuRef = ref()
 const currentMenuItems = ref([])
-const menuKey = ref(0)
 
 /**
  * Filters out the 'actions' field from the fields array when actionItems is provided,
@@ -316,15 +311,11 @@ const computedFields = computed(() => {
   return props.fields
 })
 
+// show() rather than toggle(): one popup serves every row, so clicking a second
+// row's button must re-anchor and open there rather than close the first.
 function showActionsMenu(event, rowData) {
   currentMenuItems.value = props.actionItems(rowData)
-  // Force Vue to destroy and re-create the TieredMenu by changing its key.
-  // This guarantees a fresh instance with no stale visible/position state,
-  // so show() always anchors to the correct button.
-  menuKey.value++
-  nextTick(() => {
-    actionsMenuRef.value.show(event)
-  })
+  actionsMenuRef.value.show(event, event.currentTarget)
 }
 
 function hideActionsMenu() {
