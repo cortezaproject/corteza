@@ -142,8 +142,10 @@
             body: { class: 'p-0 h-full flex flex-col min-h-0' },
             content: { class: 'p-0 h-full flex flex-col min-h-0' },
           }"
-          class="flex-1 min-h-0 flex flex-col"
+          class="flex-1 min-h-0 flex flex-col overflow-hidden"
         >
+          <!-- overflow-hidden above: the tab body scrolls to the card's edge,
+               and without clipping it paints square corners over the rounding. -->
           <template #content>
             <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
               <TabList class="rounded-t-lg overflow-x-auto whitespace-nowrap shrink-0">
@@ -198,159 +200,152 @@
 
                   <!-- The list is the only part that scrolls, so the fields a
                      module has do not push its tabs or its Save bar away. -->
-                  <div class="flex-1 min-h-0 overflow-y-auto">
-                    <CFormList
-                      v-model="module.fields"
-                      draggable
-                      :empty-message="$t('module.edit.fields.empty')"
-                      :columns="fieldFormListColumns"
-                    >
-                      <template #row="{ item: field, index }">
-                        <div class="flex flex-col gap-1">
+                  <CFormList
+                    v-model="module.fields"
+                    class="flex-1 min-h-0"
+                    sticky-header
+                    draggable
+                    :empty-message="$t('module.edit.fields.empty')"
+                    :columns="fieldFormListColumns"
+                  >
+                    <template #row="{ item: field, index }">
+                      <div class="flex flex-col gap-1">
+                        <InputText
+                          v-model="field.name"
+                          class="w-full"
+                          size="small"
+                          :invalid="validationTriggered && fieldNameError(field) !== ''"
+                        />
+                        <Message
+                          v-if="validationTriggered && fieldNameError(field)"
+                          severity="error"
+                          size="small"
+                          variant="simple"
+                        >
+                          {{ fieldNameError(field) }}
+                        </Message>
+                      </div>
+
+                      <div class="flex flex-col gap-1">
+                        <InputGroup>
                           <InputText
-                            v-model="field.name"
+                            v-model="field.label"
                             class="w-full"
                             size="small"
-                            :invalid="validationTriggered && fieldNameError(field) !== ''"
+                            :invalid="validationTriggered && (!field.label || !field.label.trim())"
                           />
-                          <Message
-                            v-if="validationTriggered && fieldNameError(field)"
-                            severity="error"
-                            size="small"
-                            variant="simple"
+                          <InputGroupAddon
+                            v-if="
+                              showTranslatorButton &&
+                              isEdit &&
+                              field.fieldID &&
+                              field.fieldID !== '0'
+                            "
                           >
-                            {{ fieldNameError(field) }}
-                          </Message>
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                          <InputGroup>
-                            <InputText
-                              v-model="field.label"
-                              class="w-full"
-                              size="small"
-                              :invalid="
-                                validationTriggered && (!field.label || !field.label.trim())
-                              "
-                            />
-                            <InputGroupAddon
-                              v-if="
-                                showTranslatorButton &&
-                                isEdit &&
-                                field.fieldID &&
-                                field.fieldID !== '0'
-                              "
-                            >
-                              <Button
-                                icon="pi pi-language"
-                                severity="secondary"
-                                size="small"
-                                class="w-full border-none"
-                                v-tooltip.top="$t('field.translate.label')"
-                                @click="openFieldTranslation(field)"
-                              />
-                            </InputGroupAddon>
-                          </InputGroup>
-                          <Message
-                            v-if="validationTriggered && (!field.label || !field.label.trim())"
-                            severity="error"
-                            size="small"
-                            variant="simple"
-                          >
-                            {{ $t('general.label.required') }}
-                          </Message>
-                        </div>
-
-                        <InputGroup>
-                          <Select
-                            v-model="field.kind"
-                            :options="fieldKinds"
-                            option-label="label"
-                            option-value="value"
-                            size="small"
-                          />
-                          <InputGroupAddon>
                             <Button
-                              icon="pi pi-cog"
+                              icon="pi pi-language"
                               severity="secondary"
                               size="small"
                               class="w-full border-none"
-                              @click="openFieldConfigurator(field, index)"
+                              v-tooltip.top="$t('field.translate.label')"
+                              @click="openFieldTranslation(field)"
                             />
                           </InputGroupAddon>
                         </InputGroup>
-
-                        <div class="flex justify-center">
-                          <Checkbox v-model="field.isRequired" :binary="true" />
-                        </div>
-
-                        <div class="flex justify-center">
-                          <Checkbox v-model="field.isMulti" :binary="true" />
-                        </div>
-
-                        <div class="flex items-center justify-end gap-1">
-                          <Button
-                            v-if="canGrantField(field)"
-                            icon="pi pi-lock"
-                            text
-                            severity="secondary"
-                            size="small"
-                            v-tooltip.top="$t('general.label.permissions')"
-                            @click="openFieldPermissions(field)"
-                          />
-                          <Button
-                            v-if="fieldActionsMenuItems(field, index).length"
-                            icon="pi pi-ellipsis-v"
-                            text
-                            severity="secondary"
-                            size="small"
-                            @click="showFieldActionsMenu($event, field, index)"
-                          />
-                        </div>
-                      </template>
-
-                      <template #footer="{ gridStyle }">
-                        <div
-                          v-for="f in systemFieldsForDisplay"
-                          :key="f.name"
-                          class="border-t border-surface p-3 bg-highlight text-muted-color"
-                          v-tooltip.left="$t('module.edit.systemField')"
+                        <Message
+                          v-if="validationTriggered && (!field.label || !field.label.trim())"
+                          severity="error"
+                          size="small"
+                          variant="simple"
                         >
-                          <div :style="gridStyle" class="grid gap-2 items-center">
-                            <i class="pi pi-lock text-muted-color text-center" />
-                            <InputText :model-value="f.name" class="w-full" size="small" disabled />
-                            <InputText
-                              :model-value="f.label"
-                              class="w-full"
-                              size="small"
-                              disabled
+                          {{ $t('general.label.required') }}
+                        </Message>
+                      </div>
+
+                      <InputGroup>
+                        <Select
+                          v-model="field.kind"
+                          :options="fieldKinds"
+                          option-label="label"
+                          option-value="value"
+                          size="small"
+                        />
+                        <InputGroupAddon>
+                          <Button
+                            icon="pi pi-cog"
+                            severity="secondary"
+                            size="small"
+                            class="w-full border-none"
+                            @click="openFieldConfigurator(field, index)"
+                          />
+                        </InputGroupAddon>
+                      </InputGroup>
+
+                      <div class="flex justify-center">
+                        <Checkbox v-model="field.isRequired" :binary="true" />
+                      </div>
+
+                      <div class="flex justify-center">
+                        <Checkbox v-model="field.isMulti" :binary="true" />
+                      </div>
+
+                      <div class="flex items-center justify-end gap-1">
+                        <Button
+                          v-if="canGrantField(field)"
+                          icon="pi pi-lock"
+                          text
+                          severity="secondary"
+                          size="small"
+                          v-tooltip.top="$t('general.label.permissions')"
+                          @click="openFieldPermissions(field)"
+                        />
+                        <Button
+                          v-if="fieldActionsMenuItems(field, index).length"
+                          icon="pi pi-ellipsis-v"
+                          text
+                          severity="secondary"
+                          size="small"
+                          @click="showFieldActionsMenu($event, field, index)"
+                        />
+                      </div>
+                    </template>
+
+                    <template #footer="{ gridStyle }">
+                      <div
+                        v-for="f in systemFieldsForDisplay"
+                        :key="f.name"
+                        class="border-t border-surface p-3 bg-highlight text-muted-color"
+                        v-tooltip.left="$t('module.edit.systemField')"
+                      >
+                        <div :style="gridStyle" class="grid gap-2 items-center">
+                          <i class="pi pi-lock text-muted-color text-center" />
+                          <InputText :model-value="f.name" class="w-full" size="small" disabled />
+                          <InputText :model-value="f.label" class="w-full" size="small" disabled />
+                          <InputText :model-value="f.kind" class="w-full" size="small" disabled />
+                          <div class="flex justify-center">
+                            <i
+                              :class="[
+                                'pi',
+                                f.isRequired
+                                  ? 'pi-check text-primary'
+                                  : 'pi-minus text-muted-color',
+                              ]"
                             />
-                            <InputText :model-value="f.kind" class="w-full" size="small" disabled />
-                            <div class="flex justify-center">
-                              <i
-                                :class="[
-                                  'pi',
-                                  f.isRequired
-                                    ? 'pi-check text-primary'
-                                    : 'pi-minus text-muted-color',
-                                ]"
-                              />
-                            </div>
-                            <div class="flex justify-center">
-                              <i
-                                :class="[
-                                  'pi',
-                                  f.isMulti ? 'pi-check text-primary' : 'pi-minus text-muted-color',
-                                ]"
-                              />
-                            </div>
-                            <span />
-                            <span />
                           </div>
+                          <div class="flex justify-center">
+                            <i
+                              :class="[
+                                'pi',
+                                f.isMulti ? 'pi-check text-primary' : 'pi-minus text-muted-color',
+                              ]"
+                            />
+                          </div>
+                          <span />
+                          <span />
                         </div>
-                      </template>
-                    </CFormList>
-                  </div>
+                      </div>
+                    </template>
+                  </CFormList>
 
                   <!-- One popup shared by every field row's actions button -->
                   <Menu ref="fieldActionsMenuRef" :model="currentFieldMenuItems" popup />

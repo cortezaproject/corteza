@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-x-auto">
+  <div :class="rootClass">
     <div
       v-if="!items.length && !$slots.footer && emptyMessage"
       class="text-muted-color text-sm p-3 border border-surface rounded-border bg-emphasis text-center"
@@ -13,7 +13,7 @@
     <CDraggableList
       v-else
       v-model="items"
-      class="flex flex-col min-w-max rounded-border border border-surface bg-surface overflow-hidden"
+      :class="listClass"
       handle=".c-drag-handle"
       :disabled="!draggable"
       @update="() => emit('reorder', items)"
@@ -24,6 +24,7 @@
         v-if="hasHeaders && (items.length || $slots.footer)"
         :style="gridStyle"
         class="cform-list-header grid gap-2 py-2 px-3 bg-emphasis border-b border-surface"
+        :class="{ 'sticky top-0 z-10': stickyHeader }"
       >
         <span v-if="draggable" class="w-10" />
         <span
@@ -106,11 +107,31 @@ const props = defineProps({
   draggable: { type: Boolean, default: false },
   // When set, removing a row asks for confirmation with this message
   confirmRemove: { type: String, default: '' },
+  // Makes the list its own scroll region with the column headers pinned to its
+  // top. The caller supplies the height (`flex-1 min-h-0`, a max-height, …);
+  // without one the list is as tall as its rows and nothing ever scrolls.
+  stickyHeader: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['change', 'reorder'])
 
 const hasHeaders = computed(() => props.columns.some(c => c.label || c.tooltip))
+
+// Sticky resolves against the nearest scrolling ancestor, so the frame and the
+// scrolling have to sit on the same element for a pinned header: the border and
+// rounding move out to the root, which then clips its own corners. Otherwise
+// the bordered list stays the scroll-less box it has always been.
+const rootClass = computed(() =>
+  props.stickyHeader
+    ? 'overflow-auto rounded-border border border-surface bg-surface'
+    : 'overflow-x-auto',
+)
+
+const listClass = computed(() =>
+  props.stickyHeader
+    ? 'flex flex-col min-w-max'
+    : 'flex flex-col min-w-max rounded-border border border-surface bg-surface overflow-hidden',
+)
 
 const gridStyle = computed(() => {
   const cols = props.columns.length ? props.columns.map(c => c.width || '1fr') : ['1fr']
