@@ -6,11 +6,7 @@
     :uses-dimensions-field="false"
   >
     <template #dimension-options="{ dimension }">
-      <div class="px-0 mt-4">
-        <h5 class="mb-3">
-          {{ $t('chart.edit.dimension.gaugeSteps') }}
-        </h5>
-
+      <Fieldset :legend="$t('chart.edit.dimension.gaugeSteps')" class="mt-4">
         <div
           v-for="(step, si) in dimension.meta?.steps || []"
           :key="si"
@@ -46,111 +42,56 @@
           size="small"
           @click="addStep(dimension)"
         />
-      </div>
+      </Fieldset>
     </template>
 
-    <template #metric-options="{ metric }">
+    <template #metric-options="{ metric, index }">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.labelLabel') }}
-          </label>
-          <InputText v-model="metric.label" class="w-full" />
-        </div>
+        <CFormGroup :label="$t('chart.edit.metric.labelLabel')" :input-id="`gaugeLabel${index}`">
+          <InputText :id="`gaugeLabel${index}`" v-model="metric.label" class="w-full" />
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.options.label') }}
-          </label>
+        <CFormGroup :label="$t('chart.edit.metric.options.label')">
           <div class="flex items-center gap-2">
-            <Checkbox v-model="metric.fixTooltips" :binary="true" input-id="gaugeFixTooltips" />
-            <label for="gaugeFixTooltips">{{ $t('chart.edit.metric.fixTooltips') }}</label>
+            <Checkbox
+              v-model="metric.fixTooltips"
+              :binary="true"
+              :input-id="`gaugeFixTooltips${index}`"
+            />
+            <label :for="`gaugeFixTooltips${index}`">
+              {{ $t('chart.edit.metric.fixTooltips') }}
+            </label>
           </div>
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.angle.start') }}
-          </label>
-          <InputNumber v-model="metric.startAngle" class="w-full" />
-        </div>
+        <CFormGroup
+          :label="$t('chart.edit.metric.angle.start')"
+          :input-id="`gaugeStartAngle${index}`"
+        >
+          <InputNumber
+            :input-id="`gaugeStartAngle${index}`"
+            v-model="metric.startAngle"
+            class="w-full"
+          />
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.angle.end') }}
-          </label>
-          <InputNumber v-model="metric.endAngle" class="w-full" />
-        </div>
+        <CFormGroup :label="$t('chart.edit.metric.angle.end')" :input-id="`gaugeEndAngle${index}`">
+          <InputNumber
+            :input-id="`gaugeEndAngle${index}`"
+            v-model="metric.endAngle"
+            class="w-full"
+          />
+        </CFormGroup>
       </div>
 
-      <Divider />
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.prefix.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.prefix"
-            :placeholder="$t('chart.edit.formatting.prefix.placeholder')"
-            class="w-full"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.suffix.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.suffix"
-            :placeholder="$t('chart.edit.formatting.suffix.placeholder')"
-            class="w-full"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.presetFormats.label') }}
-          </label>
-          <Select
-            v-model="metric.formatting.presetFormat"
-            :options="formatOptions"
-            option-label="text"
-            option-value="value"
-            class="w-full"
-          />
-          <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
-            {{
-              $t(
-                `chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`,
-              )
-            }}
-          </small>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.format.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.format"
-            :disabled="metric.formatting.presetFormat !== 'custom'"
-            :placeholder="$t('chart.edit.formatting.format.placeholder')"
-            class="w-full"
-          />
-        </div>
-      </div>
+      <NumberFormatting v-model="metric.formatting" :id-prefix="`gauge${index}`" />
     </template>
   </ReportEdit>
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
 import ReportEdit from './ReportEdit.vue'
-
-const { t } = useI18n()
-
-const formatOptions = [
-  { value: 'custom', text: t('chart.edit.formatting.presetFormats.options.custom') },
-  { value: 'accounting', text: t('chart.edit.formatting.presetFormats.options.accounting') },
-]
+import NumberFormatting from './NumberFormatting.vue'
 
 defineProps({
   chart: {

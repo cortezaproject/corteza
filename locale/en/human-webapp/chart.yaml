@@ -97,8 +97,7 @@ edit:
     noFilter: Select a filter
     placeholder: field1 = 1 AND field2 = 232
     preset: Preset filters
-    previewNeedsRecord:
-      This filter uses record variables. They are evaluated where the chart is
+    previewNeedsRecord: This filter uses record variables. They are evaluated where the chart is
       placed, so the preview cannot run it here.
     recordsCreatedLastMonth: Records created last month
     recordsCreatedLastQuarter: Records created last quarter
@@ -124,7 +123,6 @@ edit:
     suffix:
       label: Suffix
       placeholder: $
-  loadData: Load data
   metric:
     add: Add metric
     angle:
@@ -203,6 +201,7 @@ edit:
     label: Module
     placeholder: Pick a module
     title: Data Source
+  refreshPreview: Reload the preview with the current settings
   title: Chart builder
   toolbox:
     label: Tools

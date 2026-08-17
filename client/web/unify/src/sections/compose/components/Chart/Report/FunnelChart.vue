@@ -2,11 +2,12 @@
   <ReportEdit :chart="chart" :modules="modules" :supported-metrics="supportedMetrics">
     <template #dimension-options="{ index, dimension, field }">
       <div v-if="showPicker(field)" class="grid grid-cols-1 gap-4 mt-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.dimension.options.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('chart.edit.dimension.options.label')"
+          :input-id="`funnelOptions${index}`"
+        >
           <MultiSelect
+            :id="`funnelOptions${index}`"
             :model-value="getOptions(dimension)"
             :options="field.options.options"
             option-label="value"
@@ -15,113 +16,61 @@
             filter
             @update:model-value="v => setOptions(index, field, v)"
           />
-        </div>
+        </CFormGroup>
       </div>
     </template>
 
-    <template #metric-options="{ metric }">
+    <template #metric-options="{ metric, index }">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.labelLabel') }}
-          </label>
-          <InputText v-model="metric.label" class="w-full" />
-        </div>
+        <CFormGroup :label="$t('chart.edit.metric.labelLabel')" :input-id="`funnelLabel${index}`">
+          <InputText :id="`funnelLabel${index}`" v-model="metric.label" class="w-full" />
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.options.label') }}
-          </label>
+        <CFormGroup :label="$t('chart.edit.metric.options.label')">
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
-              <Checkbox v-model="metric.fixTooltips" :binary="true" input-id="funnelFixTooltips" />
-              <label for="funnelFixTooltips">{{ $t('chart.edit.metric.fixTooltips') }}</label>
+              <Checkbox
+                v-model="metric.fixTooltips"
+                :binary="true"
+                :input-id="`funnelFixTooltips${index}`"
+              />
+              <label :for="`funnelFixTooltips${index}`">
+                {{ $t('chart.edit.metric.fixTooltips') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
               <Checkbox
                 v-model="metric.relativeValue"
                 :binary="true"
-                input-id="funnelRelativeValue"
+                :input-id="`funnelRelativeValue${index}`"
               />
-              <label for="funnelRelativeValue">{{ $t('chart.edit.metric.relative') }}</label>
+              <label :for="`funnelRelativeValue${index}`">
+                {{ $t('chart.edit.metric.relative') }}
+              </label>
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox v-model="metric.cumulative" :binary="true" input-id="funnelCumulative" />
-              <label for="funnelCumulative">{{ $t('chart.edit.metric.cumulative') }}</label>
+              <Checkbox
+                v-model="metric.cumulative"
+                :binary="true"
+                :input-id="`funnelCumulative${index}`"
+              />
+              <label :for="`funnelCumulative${index}`">
+                {{ $t('chart.edit.metric.cumulative') }}
+              </label>
             </div>
           </div>
-        </div>
+        </CFormGroup>
       </div>
 
-      <Divider />
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.prefix.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.prefix"
-            :placeholder="$t('chart.edit.formatting.prefix.placeholder')"
-            class="w-full"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.suffix.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.suffix"
-            :placeholder="$t('chart.edit.formatting.suffix.placeholder')"
-            class="w-full"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.presetFormats.label') }}
-          </label>
-          <Select
-            v-model="metric.formatting.presetFormat"
-            :options="formatOptions"
-            option-label="text"
-            option-value="value"
-            class="w-full"
-          />
-          <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
-            {{
-              $t(
-                `chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`,
-              )
-            }}
-          </small>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.format.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.format"
-            :disabled="metric.formatting.presetFormat !== 'custom'"
-            :placeholder="$t('chart.edit.formatting.format.placeholder')"
-            class="w-full"
-          />
-        </div>
-      </div>
+      <NumberFormatting v-model="metric.formatting" :id-prefix="`funnel${index}`" />
     </template>
   </ReportEdit>
 </template>
 
 <script setup>
 import { inject } from 'vue'
-import { useI18n } from 'vue-i18n'
 import ReportEdit from './ReportEdit.vue'
-
-const { t } = useI18n()
-
-const formatOptions = [
-  { value: 'custom', text: t('chart.edit.formatting.presetFormats.options.custom') },
-  { value: 'accounting', text: t('chart.edit.formatting.presetFormats.options.accounting') },
-]
+import NumberFormatting from './NumberFormatting.vue'
 
 defineProps({
   chart: {

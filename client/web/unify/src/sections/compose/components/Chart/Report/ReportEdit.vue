@@ -1,17 +1,12 @@
 <template>
-  <div>
+  <div class="flex flex-col gap-4">
     <!-- Configure source module -->
-    <div class="px-3">
-      <h5 class="mb-3">
-        {{ $t('chart.edit.module.title') }}
-      </h5>
-
+    <Panel :header="$t('chart.edit.module.title')" toggleable>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.module.label') }}
-          </label>
+        <CFormGroup name="moduleID" :label="$t('chart.edit.module.label')" required>
           <Select
+            id="moduleID"
+            name="moduleID"
             v-model="moduleID"
             :options="modules"
             option-label="name"
@@ -20,13 +15,11 @@
             class="w-full"
             filter
           />
-        </div>
+        </CFormGroup>
 
-        <div v-if="module" class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.filter.preset') }}
-          </label>
+        <CFormGroup v-if="module" :label="$t('chart.edit.filter.preset')" input-id="presetFilter">
           <Select
+            id="presetFilter"
             v-model="reportFilter"
             :options="predefinedFilters"
             option-label="text"
@@ -35,13 +28,14 @@
             class="w-full"
             show-clear
           />
-        </div>
+        </CFormGroup>
 
         <!-- Configure report filters -->
-        <div v-if="module" class="col-span-1 lg:col-span-2">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.filter.label') }}
-          </label>
+        <CFormGroup
+          v-if="module"
+          :label="$t('chart.edit.filter.label')"
+          class="col-span-1 lg:col-span-2"
+        >
           <CInputExpression
             ref="filterInput"
             v-model="reportFilter"
@@ -50,6 +44,8 @@
             :query-fields="module?.fields || []"
             :placeholder="$t('chart.edit.filter.placeholder')"
           />
+          <!-- Syntax first, then the variables: the footnote describes what to
+               type, the hint lists what can be dropped into it. -->
           <small class="text-muted-color">{{ $t('chart.edit.filter.footnote') }}</small>
           <CExpressionHint
             :scope="scope"
@@ -57,26 +53,18 @@
             class="block"
             @insert="filterInput?.insert($event)"
           />
-        </div>
+        </CFormGroup>
       </div>
-    </div>
-
-    <Divider v-if="module" />
+    </Panel>
 
     <!-- Configure report dimensions -->
-    <div v-if="module" class="px-3">
+    <Panel v-if="module" :header="$t('chart.edit.dimension.label')" toggleable>
       <div v-for="(d, i) in dimensions" :key="i">
-        <h5 class="mb-3">
-          {{ $t('chart.edit.dimension.label') }}
-        </h5>
-
         <template v-if="usesDimensionsField">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('chart.edit.dimension.fieldLabel') }}
-              </label>
+            <CFormGroup :label="$t('chart.edit.dimension.fieldLabel')" input-id="dimensionField">
               <Select
+                id="dimensionField"
                 v-model="d.field"
                 :options="dimensionFields"
                 option-label="text"
@@ -86,13 +74,14 @@
                 filter
                 @change="e => onDimFieldChange(e.value, d)"
               />
-            </div>
+            </CFormGroup>
 
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('chart.edit.dimension.function.label') }}
-              </label>
+            <CFormGroup
+              :label="$t('chart.edit.dimension.function.label')"
+              input-id="dimensionModifier"
+            >
               <Select
+                id="dimensionModifier"
                 v-model="d.modifier"
                 :options="dimensionModifiers"
                 option-label="text"
@@ -101,24 +90,19 @@
                 :placeholder="$t('chart.edit.dimension.function.placeholder')"
                 class="w-full"
               />
-            </div>
+            </CFormGroup>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('chart.edit.dimension.defaultValueLabel') }}
-              </label>
-              <InputText v-model="d.default" class="w-full" />
-              <small class="text-muted-color">
-                {{ $t('chart.edit.dimension.defaultValueFootnote') }}
-              </small>
-            </div>
+            <CFormGroup
+              :label="$t('chart.edit.dimension.defaultValueLabel')"
+              :description="$t('chart.edit.dimension.defaultValueFootnote')"
+              input-id="dimensionDefault"
+            >
+              <InputText id="dimensionDefault" v-model="d.default" class="w-full" />
+            </CFormGroup>
 
-            <div class="flex flex-col gap-1">
-              <label class="text-primary font-medium text-sm">
-                {{ $t('chart.edit.dimension.options.label') }}
-              </label>
+            <CFormGroup :label="$t('chart.edit.dimension.options.label')">
               <div class="flex items-center gap-2">
                 <Checkbox v-model="d.skipMissing" :binary="true" input-id="skipMissing" />
                 <label for="skipMissing">{{ $t('chart.edit.dimension.skipMissingValues') }}</label>
@@ -128,31 +112,25 @@
                 :dimension="d"
                 :is-temporal="isTemporalField(d.field)"
               />
-            </div>
+            </CFormGroup>
           </div>
         </template>
 
         <slot name="dimension-options" :index="i" :dimension="d" :field="getField(d)" />
       </div>
-    </div>
-
-    <Divider v-if="module" />
+    </Panel>
 
     <!-- Configure report metrics -->
-    <div v-if="module" class="px-3">
-      <div class="flex items-center mb-3">
-        <h5 class="m-0">
-          {{ $t('chart.edit.metric.title') }}
-        </h5>
+    <Panel v-if="module" :header="$t('chart.edit.metric.title')" toggleable>
+      <template #icons>
         <Button
           v-if="canAddMetric"
           :label="'+ ' + $t('chart.edit.metric.add')"
           text
           size="small"
-          class="ml-2"
           @click="addMetric"
         />
-      </div>
+      </template>
 
       <div v-for="(m, i) in metrics" :key="i" class="border border-surface rounded p-3 mb-3">
         <div v-if="metrics.length > 1" class="flex items-center mb-3">
@@ -168,11 +146,9 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.metric.fieldLabel') }}
-            </label>
+          <CFormGroup :label="$t('chart.edit.metric.fieldLabel')" :input-id="`metricField${i}`">
             <Select
+              :id="`metricField${i}`"
               v-model="m.field"
               :options="metricFields"
               option-label="text"
@@ -182,13 +158,14 @@
               filter
               @change="e => onMetricFieldChange(e.value, m)"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.metric.function.label') }}
-            </label>
+          <CFormGroup
+            :label="$t('chart.edit.metric.function.label')"
+            :input-id="`metricAggregate${i}`"
+          >
             <Select
+              :id="`metricAggregate${i}`"
               v-model="m.aggregate"
               :options="metricAggregates"
               option-label="text"
@@ -197,57 +174,49 @@
               :placeholder="$t('chart.edit.metric.function.placeholder')"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
         </div>
 
-        <slot name="metric-options" :metric="m" :report="report" />
+        <slot name="metric-options" :metric="m" :report="report" :index="i" />
       </div>
-    </div>
-
-    <Divider v-if="module && hasAxis" />
+    </Panel>
 
     <template v-if="hasAxis">
       <slot name="y-axis" :report="report" />
     </template>
 
-    <Divider v-if="hasLegend" />
-
     <!-- Legend configuration -->
-    <div v-if="hasLegend" class="px-3">
-      <h5 class="mb-3">
-        {{ $t('chart.edit.additionalConfig.legend.label') }}
-      </h5>
-
+    <Panel
+      v-if="hasLegend"
+      :header="$t('chart.edit.additionalConfig.legend.label')"
+      toggleable
+      collapsed
+    >
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.additionalConfig.legend.orientation.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('chart.edit.additionalConfig.legend.orientation.label')"
+          input-id="legendOrientation"
+        >
           <Select
+            id="legendOrientation"
             v-model="report.legend.orientation"
             :options="orientations"
             option-label="text"
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.additionalConfig.legend.show') }}
-          </label>
-          <div class="flex items-center gap-2">
-            <ToggleSwitch v-model="legendVisible" />
-          </div>
-        </div>
-      </div>
+        <CFormGroup :label="$t('chart.edit.additionalConfig.legend.show')" input-id="legendVisible">
+          <ToggleSwitch input-id="legendVisible" v-model="legendVisible" />
+        </CFormGroup>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.additionalConfig.legend.align.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('chart.edit.additionalConfig.legend.align.label')"
+          input-id="legendAlign"
+        >
           <Select
+            id="legendAlign"
             v-model="report.legend.align"
             :options="alignments"
             option-label="text"
@@ -255,28 +224,23 @@
             :disabled="!report.legend.position?.isDefault"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.additionalConfig.legend.options.label') }}
-          </label>
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center gap-2">
-              <Checkbox
-                v-model="report.legend.isScrollable"
-                :binary="true"
-                :disabled="report.legend.orientation !== 'horizontal'"
-                input-id="legendScrollable"
-              />
-              <label for="legendScrollable">
-                {{ $t('chart.edit.additionalConfig.legend.scrollable') }}
-              </label>
-            </div>
+        <CFormGroup :label="$t('chart.edit.additionalConfig.legend.options.label')">
+          <div class="flex items-center gap-2">
+            <Checkbox
+              v-model="report.legend.isScrollable"
+              :binary="true"
+              :disabled="report.legend.orientation !== 'horizontal'"
+              input-id="legendScrollable"
+            />
+            <label for="legendScrollable">
+              {{ $t('chart.edit.additionalConfig.legend.scrollable') }}
+            </label>
           </div>
-        </div>
+        </CFormGroup>
       </div>
-    </div>
+    </Panel>
 
     <slot name="additional-config" :report="report" :metrics="metrics" :has-axis="hasAxis" />
   </div>

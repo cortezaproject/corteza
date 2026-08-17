@@ -12,83 +12,64 @@
 
     <template #dimension-options="{ dimension }">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.dimension.rotate.label') }}
-          </label>
-          <InputNumber v-model="dimension.rotateLabel" class="w-full" />
-          <small class="text-muted-color">
-            {{ $t('chart.edit.dimension.rotate.description') }}
-          </small>
-        </div>
+        <CFormGroup
+          :label="$t('chart.edit.dimension.rotate.label')"
+          :description="$t('chart.edit.dimension.rotate.description')"
+          input-id="dimensionRotate"
+        >
+          <InputNumber input-id="dimensionRotate" v-model="dimension.rotateLabel" class="w-full" />
+        </CFormGroup>
       </div>
     </template>
 
     <template #y-axis="{ report: r }">
-      <div class="px-3">
-        <h5 class="mb-3">
-          {{ $t('chart.edit.yAxis.label') }}
-        </h5>
-
+      <Panel :header="$t('chart.edit.yAxis.label')" toggleable collapsed>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.yAxis.labelLabel') }}
-            </label>
-            <InputText v-model="r.yAxis.label" class="w-full" />
-          </div>
+          <CFormGroup :label="$t('chart.edit.yAxis.labelLabel')" input-id="yAxisLabel">
+            <InputText id="yAxisLabel" v-model="r.yAxis.label" class="w-full" />
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.yAxis.labelPosition.label') }}
-            </label>
+          <CFormGroup
+            :label="$t('chart.edit.yAxis.labelPosition.label')"
+            input-id="yAxisLabelPosition"
+          >
             <Select
+              id="yAxisLabelPosition"
               v-model="r.yAxis.labelPosition"
               :options="axisLabelPositions"
               option-label="text"
               option-value="value"
               class="w-full"
             />
-          </div>
-        </div>
+          </CFormGroup>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.yAxis.minLabel') }}
-            </label>
+          <CFormGroup :label="$t('chart.edit.yAxis.minLabel')" input-id="yAxisMin">
             <InputNumber
+              input-id="yAxisMin"
               v-model="r.yAxis.min"
               :placeholder="$t('chart.edit.yAxis.minPlaceholder')"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.yAxis.maxLabel') }}
-            </label>
+          <CFormGroup :label="$t('chart.edit.yAxis.maxLabel')" input-id="yAxisMax">
             <InputNumber
+              input-id="yAxisMax"
               v-model="r.yAxis.max"
               :placeholder="$t('chart.edit.yAxis.maxPlaceholder')"
               class="w-full"
             />
-          </div>
-        </div>
+          </CFormGroup>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.yAxis.rotate.label') }}
-            </label>
-            <InputNumber v-model="r.yAxis.rotateLabel" class="w-full" />
-            <small class="text-muted-color">{{ $t('chart.edit.yAxis.rotate.description') }}</small>
-          </div>
+          <CFormGroup
+            :label="$t('chart.edit.yAxis.rotate.label')"
+            :description="$t('chart.edit.yAxis.rotate.description')"
+            input-id="yAxisRotate"
+          >
+            <InputNumber input-id="yAxisRotate" v-model="r.yAxis.rotateLabel" class="w-full" />
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.yAxis.options.label') }}
-            </label>
+          <CFormGroup :label="$t('chart.edit.yAxis.options.label')">
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <Checkbox v-model="logScale" :binary="true" input-id="logScale" />
@@ -107,84 +88,22 @@
                 <label for="horizontal">{{ $t('chart.edit.yAxis.horizontal.label') }}</label>
               </div>
             </div>
-          </div>
+          </CFormGroup>
         </div>
 
-        <Divider />
-
-        <!-- Y-axis formatting -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.formatting.prefix.label') }}
-            </label>
-            <InputText
-              v-model="r.yAxis.formatting.prefix"
-              :placeholder="$t('chart.edit.formatting.prefix.placeholder')"
-              class="w-full"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.formatting.suffix.label') }}
-            </label>
-            <InputText
-              v-model="r.yAxis.formatting.suffix"
-              :placeholder="$t('chart.edit.formatting.suffix.placeholder')"
-              class="w-full"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.formatting.presetFormats.label') }}
-            </label>
-            <Select
-              v-model="r.yAxis.formatting.presetFormat"
-              :options="formatOptions"
-              option-label="text"
-              option-value="value"
-              class="w-full"
-            />
-            <small
-              v-if="r.yAxis.formatting.presetFormat"
-              class="text-muted-color whitespace-pre-line"
-            >
-              {{
-                $t(
-                  `chart.edit.formatting.presetFormats.description.${r.yAxis.formatting.presetFormat}`,
-                )
-              }}
-            </small>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.formatting.format.label') }}
-            </label>
-            <InputText
-              v-model="r.yAxis.formatting.format"
-              :disabled="r.yAxis.formatting.presetFormat !== 'custom'"
-              :placeholder="$t('chart.edit.formatting.format.placeholder')"
-              class="w-full"
-            />
-          </div>
-        </div>
-      </div>
+        <NumberFormatting v-model="r.yAxis.formatting" id-prefix="yAxis" />
+      </Panel>
     </template>
 
-    <template #metric-options="{ metric }">
+    <template #metric-options="{ metric, index }">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.labelLabel') }}
-          </label>
-          <InputText v-model="metric.label" class="w-full" />
-        </div>
+        <CFormGroup :label="$t('chart.edit.metric.labelLabel')" :input-id="`metricLabel${index}`">
+          <InputText :id="`metricLabel${index}`" v-model="metric.label" class="w-full" />
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.output.label') }}
-          </label>
+        <CFormGroup :label="$t('chart.edit.metric.output.label')" :input-id="`metricType${index}`">
           <Select
+            :id="`metricType${index}`"
             v-model="metric.type"
             :options="chartTypes"
             option-label="text"
@@ -192,53 +111,67 @@
             :placeholder="$t('chart.edit.metric.output.placeholder')"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.fx.label') }}
-          </label>
-          <Textarea v-model="metric.fx" placeholder="n" rows="2" class="w-full" />
-          <small class="text-muted-color">{{ $t('chart.edit.metric.fx.description') }}</small>
-        </div>
+        <CFormGroup
+          :label="$t('chart.edit.metric.fx.label')"
+          :description="$t('chart.edit.metric.fx.description')"
+          :input-id="`metricFx${index}`"
+        >
+          <Textarea
+            :id="`metricFx${index}`"
+            v-model="metric.fx"
+            placeholder="n"
+            rows="2"
+            class="w-full"
+          />
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.options.label') }}
-          </label>
+        <CFormGroup :label="$t('chart.edit.metric.options.label')">
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
-              <Checkbox v-model="metric.fixTooltips" :binary="true" input-id="fixTooltips" />
-              <label for="fixTooltips">{{ $t('chart.edit.metric.fixTooltips') }}</label>
+              <Checkbox
+                v-model="metric.fixTooltips"
+                :binary="true"
+                :input-id="`fixTooltips${index}`"
+              />
+              <label :for="`fixTooltips${index}`">{{ $t('chart.edit.metric.fixTooltips') }}</label>
             </div>
             <div v-if="hasRelativeDisplay(metric)" class="flex items-center gap-2">
-              <Checkbox v-model="metric.relativeValue" :binary="true" input-id="relativeValue" />
-              <label for="relativeValue">{{ $t('chart.edit.metric.relative') }}</label>
+              <Checkbox
+                v-model="metric.relativeValue"
+                :binary="true"
+                :input-id="`relativeValue${index}`"
+              />
+              <label :for="`relativeValue${index}`">{{ $t('chart.edit.metric.relative') }}</label>
             </div>
             <div v-if="metric.type === 'pie'" class="flex items-center gap-2">
-              <Checkbox v-model="metric.rose" :binary="true" input-id="rose" />
-              <label for="rose">{{ $t('chart.edit.metric.rose') }}</label>
+              <Checkbox v-model="metric.rose" :binary="true" :input-id="`rose${index}`" />
+              <label :for="`rose${index}`">{{ $t('chart.edit.metric.rose') }}</label>
             </div>
             <div v-if="metric.type === 'line'" class="flex items-center gap-2">
-              <Checkbox v-model="metric.fill" :binary="true" input-id="fill" />
-              <label for="fill">{{ $t('chart.edit.metric.fillArea') }}</label>
+              <Checkbox v-model="metric.fill" :binary="true" :input-id="`fill${index}`" />
+              <label :for="`fill${index}`">{{ $t('chart.edit.metric.fillArea') }}</label>
             </div>
           </div>
-        </div>
+        </CFormGroup>
 
-        <div v-if="!hasRelativeDisplay(metric)" class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.stack.label') }}
-          </label>
-          <InputText v-model="metric.stack" class="w-full" />
-          <small class="text-muted-color">{{ $t('chart.edit.metric.stack.description') }}</small>
-        </div>
+        <CFormGroup
+          v-if="!hasRelativeDisplay(metric)"
+          :label="$t('chart.edit.metric.stack.label')"
+          :description="$t('chart.edit.metric.stack.description')"
+          :input-id="`metricStack${index}`"
+        >
+          <InputText :id="`metricStack${index}`" v-model="metric.stack" class="w-full" />
+        </CFormGroup>
 
-        <div v-if="metric.type === 'line'" class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.lineStyle.label') }}
-          </label>
+        <CFormGroup
+          v-if="metric.type === 'line'"
+          :label="$t('chart.edit.metric.lineStyle.label')"
+          :input-id="`metricLineStyle${index}`"
+        >
           <Select
+            :id="`metricLineStyle${index}`"
             :model-value="getLineStyle(metric)"
             :options="lineStyleOptions"
             option-label="text"
@@ -246,162 +179,100 @@
             class="w-full"
             @change="e => setLineStyle(e.value, metric)"
           />
-        </div>
+        </CFormGroup>
 
-        <div v-if="metric.type === 'scatter'" class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.metric.symbol.label') }}
-          </label>
+        <CFormGroup
+          v-if="metric.type === 'scatter'"
+          :label="$t('chart.edit.metric.symbol.label')"
+          :input-id="`metricSymbol${index}`"
+        >
           <Select
+            :id="`metricSymbol${index}`"
             v-model="metric.symbol"
             :options="scatterSymbolOptions"
             option-label="text"
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
       </div>
-
-      <Divider />
 
       <!-- Metric formatting -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.prefix.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.prefix"
-            :placeholder="$t('chart.edit.formatting.prefix.placeholder')"
-            class="w-full"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.suffix.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.suffix"
-            :placeholder="$t('chart.edit.formatting.suffix.placeholder')"
-            class="w-full"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.presetFormats.label') }}
-          </label>
-          <Select
-            v-model="metric.formatting.presetFormat"
-            :options="formatOptions"
-            option-label="text"
-            option-value="value"
-            class="w-full"
-          />
-          <small v-if="metric.formatting.presetFormat" class="text-muted-color whitespace-pre-line">
-            {{
-              $t(
-                `chart.edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`,
-              )
-            }}
-          </small>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.edit.formatting.format.label') }}
-          </label>
-          <InputText
-            v-model="metric.formatting.format"
-            :disabled="metric.formatting.presetFormat !== 'custom'"
-            :placeholder="$t('chart.edit.formatting.format.placeholder')"
-            class="w-full"
-          />
-        </div>
-      </div>
+      <NumberFormatting v-model="metric.formatting" :id-prefix="`metric${index}`" />
     </template>
 
     <template #additional-config="{ report: r, hasAxis }">
-      <Divider />
-      <div class="px-3">
-        <h5 class="mb-3">
-          {{ $t('chart.edit.additionalConfig.tooltip.label') }}
-        </h5>
-
+      <Panel :header="$t('chart.edit.additionalConfig.tooltip.label')" toggleable collapsed>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.additionalConfig.tooltip.formatting.label') }}
-            </label>
+          <CFormGroup
+            :label="$t('chart.edit.additionalConfig.tooltip.formatting.label')"
+            :description="$t('chart.edit.additionalConfig.tooltip.formatting.description')"
+            input-id="tooltipFormatting"
+          >
             <InputText
+              id="tooltipFormatting"
               v-model="r.tooltip.formatting"
               :placeholder="$t('chart.edit.additionalConfig.tooltip.formatting.placeholder')"
               class="w-full"
             />
-            <small class="text-muted-color">
-              {{ $t('chart.edit.additionalConfig.tooltip.formatting.description') }}
-            </small>
-          </div>
+          </CFormGroup>
 
-          <div v-if="!hasAxis" class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.additionalConfig.tooltip.labelNextToChart') }}
-            </label>
-            <div class="flex items-center gap-2 mt-2">
-              <ToggleSwitch v-model="r.tooltip.labelsNextToPartition" />
-            </div>
-          </div>
+          <CFormGroup
+            v-if="!hasAxis"
+            :label="$t('chart.edit.additionalConfig.tooltip.labelNextToChart')"
+            input-id="labelsNextToPartition"
+          >
+            <ToggleSwitch
+              input-id="labelsNextToPartition"
+              v-model="r.tooltip.labelsNextToPartition"
+            />
+          </CFormGroup>
         </div>
-      </div>
+      </Panel>
 
-      <Divider />
-
-      <div class="px-3 mb-2">
-        <h5 class="mb-3">
-          {{ $t('chart.edit.additionalConfig.offset.label') }}
-        </h5>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.additionalConfig.offset.default') }}
-            </label>
-            <div class="flex items-center gap-2 mt-2">
-              <ToggleSwitch v-model="r.offset.isDefault" />
-            </div>
-          </div>
-        </div>
+      <Panel :header="$t('chart.edit.additionalConfig.offset.label')" toggleable collapsed>
+        <CFormGroup
+          :label="$t('chart.edit.additionalConfig.offset.default')"
+          input-id="offsetDefault"
+          class="mb-4"
+        >
+          <ToggleSwitch input-id="offsetDefault" v-model="r.offset.isDefault" />
+        </CFormGroup>
 
         <div v-if="!r.offset.isDefault" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.additionalConfig.offset.position.top') }}
-            </label>
-            <InputText v-model="r.offset.top" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.additionalConfig.offset.position.right') }}
-            </label>
-            <InputText v-model="r.offset.right" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.additionalConfig.offset.position.bottom') }}
-            </label>
-            <InputText v-model="r.offset.bottom" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.edit.additionalConfig.offset.position.left') }}
-            </label>
-            <InputText v-model="r.offset.left" class="w-full" />
-          </div>
-          <div class="col-span-1 lg:col-span-2">
-            <small class="text-muted-color">
-              {{ $t('chart.edit.additionalConfig.offset.valueRange') }}
-            </small>
-          </div>
+          <CFormGroup
+            :label="$t('chart.edit.additionalConfig.offset.position.top')"
+            input-id="offsetTop"
+          >
+            <InputText id="offsetTop" v-model="r.offset.top" class="w-full" />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('chart.edit.additionalConfig.offset.position.right')"
+            input-id="offsetRight"
+          >
+            <InputText id="offsetRight" v-model="r.offset.right" class="w-full" />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('chart.edit.additionalConfig.offset.position.bottom')"
+            input-id="offsetBottom"
+          >
+            <InputText id="offsetBottom" v-model="r.offset.bottom" class="w-full" />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('chart.edit.additionalConfig.offset.position.left')"
+            input-id="offsetLeft"
+          >
+            <InputText id="offsetLeft" v-model="r.offset.left" class="w-full" />
+          </CFormGroup>
+
+          <small class="text-muted-color col-span-1 lg:col-span-2">
+            {{ $t('chart.edit.additionalConfig.offset.valueRange') }}
+          </small>
         </div>
-      </div>
+      </Panel>
     </template>
   </ReportEdit>
 </template>
@@ -411,6 +282,7 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@planetcrust/human-js'
 import ReportEdit from './ReportEdit.vue'
+import NumberFormatting from './NumberFormatting.vue'
 
 const { t } = useI18n()
 
@@ -432,11 +304,6 @@ defineProps({
 const report = inject('reportDraft')
 
 const ignoredCharts = ['funnel', 'gauge', 'radar']
-
-const formatOptions = [
-  { value: 'custom', text: t('chart.edit.formatting.presetFormats.options.custom') },
-  { value: 'accounting', text: t('chart.edit.formatting.presetFormats.options.accounting') },
-]
 
 const chartTypes = Object.values(compose.chartUtil.ChartType)
   .filter(v => !ignoredCharts.includes(v))

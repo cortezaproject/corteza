@@ -13,7 +13,13 @@
     <ProgressSpinner />
   </div>
 
-  <div v-else-if="chart" class="flex flex-col h-full">
+  <Form
+    v-else-if="chart"
+    :resolver="resolver"
+    :initial-values="formValues"
+    class="flex flex-col h-full"
+    @submit="handleSubmit"
+  >
     <div class="container mx-auto p-4 flex-1 overflow-auto min-w-0">
       <!-- Actions above cards -->
       <div v-if="isEdit" class="flex justify-end gap-2 mb-4">
@@ -38,140 +44,108 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <!-- Left column: Settings -->
-        <div class="lg:col-span-7">
-          <Card>
-            <template #content>
-              <div class="p-3">
-                <!-- General settings -->
-                <h5 class="mb-3">
-                  {{ $t('chart.generalSettings') }}
-                </h5>
+        <div class="lg:col-span-7 flex flex-col gap-4">
+          <Panel :header="$t('chart.generalSettings')" toggleable>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <CFormGroup name="name" :label="$t('chart.name')" required>
+                <InputText
+                  id="name"
+                  name="name"
+                  v-model="chart.name"
+                  :placeholder="$t('chart.general.placeholder.name')"
+                  class="w-full"
+                />
+              </CFormGroup>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div class="flex flex-col gap-1">
-                    <label class="text-primary font-medium text-sm">{{ $t('chart.name') }}</label>
-                    <InputText
-                      v-model="chart.name"
-                      :placeholder="$t('chart.general.placeholder.name')"
-                      :invalid="!chart.name"
-                      class="w-full"
-                    />
-                  </div>
+              <CFormGroup name="handle" :label="$t('chart.handle')">
+                <InputText
+                  id="handle"
+                  name="handle"
+                  v-model="chart.handle"
+                  :placeholder="$t('chart.general.placeholder.handle')"
+                  class="w-full"
+                />
+              </CFormGroup>
 
-                  <div class="flex flex-col gap-1">
-                    <label class="text-primary font-medium text-sm">{{ $t('chart.handle') }}</label>
-                    <InputText
-                      v-model="chart.handle"
-                      :placeholder="$t('chart.general.placeholder.handle')"
-                      class="w-full"
-                    />
-                    <small v-if="handleInvalid" class="text-red-500">
-                      {{ $t('chart.general.placeholder.invalid-handle-characters') }}
-                    </small>
-                  </div>
-
-                  <div class="flex flex-col gap-1">
-                    <label class="text-primary font-medium text-sm">
-                      {{ $t('chart.colorScheme.label') }}
-                    </label>
-                    <Select
-                      v-model="chart.config.colorScheme"
-                      :options="colorSchemes"
-                      option-label="name"
-                      option-value="id"
-                      :placeholder="$t('chart.colorScheme.placeholder')"
-                      class="w-full"
-                      filter
-                      show-clear
-                    >
-                      <template #value="{ value }">
-                        <div v-if="value" class="flex gap-0.5 items-center">
-                          <div
-                            v-for="(color, ci) in getSchemeColors(value)"
-                            :key="ci"
-                            :style="`background: ${color};`"
-                            class="w-3.5 h-3.5 rounded-sm"
-                          />
-                        </div>
-                        <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
-                      </template>
-                      <template #option="{ option }">
-                        <div class="flex gap-0.5 items-center">
-                          <div
-                            v-for="(color, ci) in option.colors"
-                            :key="ci"
-                            :style="`background: ${color};`"
-                            class="w-3.5 h-3.5 rounded-sm"
-                          />
-                        </div>
-                      </template>
-                    </Select>
-                  </div>
-
-                  <div class="flex flex-col gap-1">
-                    <label class="text-primary font-medium text-sm">
-                      {{ $t('chart.edit.animation.label') }}
-                    </label>
-                    <div class="flex items-center gap-2">
-                      <ToggleSwitch v-model="animationEnabled" />
-                      <span>{{ $t('chart.edit.animation.enabled') }}</span>
+              <CFormGroup :label="$t('chart.colorScheme.label')" input-id="colorScheme">
+                <Select
+                  id="colorScheme"
+                  v-model="chart.config.colorScheme"
+                  :options="colorSchemes"
+                  option-label="name"
+                  option-value="id"
+                  :placeholder="$t('chart.colorScheme.placeholder')"
+                  class="w-full"
+                  filter
+                  show-clear
+                >
+                  <template #value="{ value }">
+                    <div v-if="value" class="flex gap-0.5 items-center">
+                      <div
+                        v-for="(color, ci) in getSchemeColors(value)"
+                        :key="ci"
+                        :style="`background: ${color};`"
+                        class="w-3.5 h-3.5 rounded-sm"
+                      />
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <Divider v-if="modules.length" />
-
-              <!-- Report editor -->
-              <component
-                :is="reportEditor"
-                v-if="chart && editReport"
-                :chart="chart"
-                :modules="modules"
-                :supported-metrics="1"
-              />
-
-              <Divider />
-
-              <!-- Toolbox settings -->
-              <div class="px-3">
-                <h5 class="mb-3">
-                  {{ $t('chart.edit.toolbox.label') }}
-                </h5>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div class="flex flex-col gap-1">
-                    <label class="text-primary font-medium text-sm">
-                      {{ $t('chart.edit.toolbox.saveAsImage.label') }}
-                    </label>
-                    <div class="flex items-center gap-2">
-                      <ToggleSwitch v-model="saveAsImageEnabled" />
+                    <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
+                  </template>
+                  <template #option="{ option }">
+                    <div class="flex gap-0.5 items-center">
+                      <div
+                        v-for="(color, ci) in option.colors"
+                        :key="ci"
+                        :style="`background: ${color};`"
+                        class="w-3.5 h-3.5 rounded-sm"
+                      />
                     </div>
-                  </div>
+                  </template>
+                </Select>
+              </CFormGroup>
+
+              <CFormGroup :label="$t('chart.edit.animation.label')">
+                <div class="flex items-center gap-2">
+                  <ToggleSwitch input-id="animation" v-model="animationEnabled" />
+                  <label for="animation">{{ $t('chart.edit.animation.enabled') }}</label>
                 </div>
-              </div>
-            </template>
-          </Card>
+              </CFormGroup>
+            </div>
+          </Panel>
+
+          <!-- Report editor: contributes its own panels -->
+          <component
+            :is="reportEditor"
+            v-if="chart && editReport"
+            :chart="chart"
+            :modules="modules"
+            :supported-metrics="1"
+          />
+
+          <Panel :header="$t('chart.edit.toolbox.label')" toggleable collapsed>
+            <div class="flex items-center gap-2">
+              <ToggleSwitch input-id="saveAsImage" v-model="saveAsImageEnabled" />
+              <label for="saveAsImage">{{ $t('chart.edit.toolbox.saveAsImage.label') }}</label>
+            </div>
+          </Panel>
         </div>
 
         <!-- Right column: Preview -->
         <div class="lg:col-span-5">
           <div class="sticky top-0">
             <Card>
-              <template #title>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-medium">{{ $t('chart.edit.loadData') }}</span>
+              <template #content>
+                <div class="relative" style="height: 400px">
                   <Button
                     icon="pi pi-refresh"
                     text
+                    rounded
                     size="small"
+                    class="absolute top-0 right-0 z-10"
+                    v-tooltip.bottom="$t('chart.edit.refreshPreview')"
                     :disabled="processing || !reportsValid"
                     @click="refreshPreview"
                   />
-                </div>
-              </template>
-              <template #content>
-                <div class="relative" style="height: 400px">
+
                   <div
                     v-if="previewNeedsRecord"
                     class="absolute inset-0 flex items-center justify-center p-3 text-center text-muted-color text-sm"
@@ -213,19 +187,18 @@
         icon="pi pi-copy"
         severity="secondary"
         :loading="processingClone"
-        :disabled="disableSave"
+        :disabled="!isValid"
         @click="handleClone"
       />
       <Button
         v-if="!hideSave"
+        type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
         :loading="processingSave"
-        :disabled="disableSave"
-        @click="handleSave"
       />
     </CEditorActions>
-  </div>
+  </Form>
 </template>
 
 <script setup>
@@ -354,14 +327,40 @@ const reportEditor = computed(() => {
   return markRaw(Reports.GenericChart)
 })
 
-const handleInvalid = computed(() => {
-  if (!chart.value?.handle) return false
-  return !/^[a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9]$/.test(chart.value.handle)
-})
+const handlePattern = /^[a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9]$/
 
-const disableSave = computed(() => {
-  return !chart.value || !chart.value.name || handleInvalid.value
-})
+// The one statement of what makes a chart saveable. The resolver runs it on
+// submit and marks the offending field; save-as-copy, which never submits,
+// reads the same verdict rather than keeping a second copy of the rules.
+function chartErrors({ name, handle, moduleID }) {
+  const errors = {}
+
+  if (!name || !name.trim()) {
+    errors.name = [{ message: t('general.label.required') }]
+  }
+
+  if (handle && !handlePattern.test(handle)) {
+    errors.handle = [{ message: t('chart.general.placeholder.invalid-handle-characters') }]
+  }
+
+  // A report with no module returns nothing to plot, so the chart saves and
+  // then renders empty wherever it is placed.
+  if (!moduleID) {
+    errors.moduleID = [{ message: t('general.label.required') }]
+  }
+
+  return errors
+}
+
+const formValues = computed(() => ({
+  name: chart.value?.name || '',
+  handle: chart.value?.handle || '',
+  moduleID: chart.value?.config?.reports?.[0]?.moduleID || '',
+}))
+
+const resolver = ({ values }) => ({ errors: chartErrors(values) })
+
+const isValid = computed(() => Object.keys(chartErrors(formValues.value)).length === 0)
 
 const hideSave = computed(() => {
   return isEdit.value && !chart.value?.canUpdateChart
@@ -470,8 +469,11 @@ function onUpdated() {
   processing.value = false
 }
 
-async function handleSave() {
-  if (disableSave.value) return
+async function handleSubmit({ valid }) {
+  if (!valid) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    return
+  }
 
   processingSave.value = true
   processing.value = true
@@ -502,7 +504,7 @@ async function handleSave() {
 }
 
 async function handleClone() {
-  if (disableSave.value) return
+  if (!isValid.value) return
 
   processingClone.value = true
   processing.value = true
