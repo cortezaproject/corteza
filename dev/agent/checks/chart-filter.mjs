@@ -18,26 +18,30 @@ const MODULE_ID = id.module.catalogue_field
 
 const bodyText = page => page.evaluate(() => document.body.textContent || '')
 
-// Every XHR the document made, read from the resource timeline. Vite serves
-// hundreds of modules on a cold load and fills the default 250-entry buffer
-// before the first XHR is made, so the buffer is emptied and the preview
-// re-fired — that is what makes "no request" an observation, not an overflow.
-async function reportCallsOnRefresh(page) {
-  await page.evaluate(() => {
-    performance.setResourceTimingBufferSize(1000)
-    performance.clearResourceTimings()
+// Records every report request the page makes, from the first one. Installed
+// before navigating, because the calls that matter here happen during the
+// editor's initial render and nothing re-fires them on demand.
+//
+// The resource timeline cannot answer this: its buffer holds 250 entries by
+// default and a cold vite page fills it with module scripts long before the
+// first XHR, so a probe reading it comes back empty for every page and every
+// request — an assertion that nothing was fetched then passes without testing
+// anything.
+const trackReports = page =>
+  page.raw.addInitScript(() => {
+    window.__reportCalls = []
+    const open = XMLHttpRequest.prototype.open
+    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+      if (String(url).includes('/record/report')) window.__reportCalls.push(String(url))
+      return open.call(this, method, url, ...rest)
+    }
   })
-  await page.click('button:has(.pi-refresh)', { settle: 2500 })
-  return page.evaluate(() =>
-    performance
-      .getEntriesByType('resource')
-      .map(e => e.name)
-      .filter(u => u.includes('/record/report')),
-  )
-}
+
+const reportCalls = page => page.evaluate(() => window.__reportCalls || [])
 
 /** Build a chart with the given filter, run body against its editor, remove it. */
 async function withChart(page, { filter, name }, body) {
+  await trackReports(page)
   await page.open('/compose/namespaces')
 
   const chartID = await page.evaluate(
@@ -86,7 +90,7 @@ drive('a record-variable filter is refused rather than sent unevaluated', async 
 
   await withChart(page, spec, async () => {
     const body = await bodyText(page)
-    const calls = await reportCallsOnRefresh(page)
+    const calls = await reportCalls(page)
 
     check(
       'the preview says record variables resolve at placement',
@@ -119,7 +123,7 @@ drive('a genuine server error reaches the preview as its message', async page =>
 drive('a filter with no record variables still reports', async page => {
   await withChart(page, { filter: "sel_badge = 'live'", name: 'plain filter' }, async () => {
     const body = await bodyText(page)
-    const calls = await reportCallsOnRefresh(page)
+    const calls = await reportCalls(page)
 
     noObjectObject(body)
     check('the report was actually requested', calls.length > 0, `${calls.length} call(s)`)
