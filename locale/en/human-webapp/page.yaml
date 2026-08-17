@@ -27,6 +27,10 @@ build:
     message: Remove this block from the current layout? It stays on the page and can be added again.
   saveAsCopy: Save as copy
   selectBlockTitle: Select type of the new block
+  switchLayout:
+    confirm: Switch layout and discard changes
+    header: Switch layout
+    message: Switching to another layout rebuilds the builder from the saved page, so the unsaved changes in the current layout will be lost. Do you want to switch anyway?
 changeBlock: Change existing block
 copyOf: Copy of {title}
 createLabel: New Page

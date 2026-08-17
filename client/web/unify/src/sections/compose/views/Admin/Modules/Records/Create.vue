@@ -44,7 +44,11 @@
     @submit="handleSave"
     class="flex flex-col h-full"
   >
-    <div class="flex-1 overflow-auto">
+    <div
+      class="flex-1 overflow-auto"
+      @pointerdown.capture="freezeBaseline"
+      @keydown.capture="freezeBaseline"
+    >
       <Grid :blocks="blocks" :namespace="namespace" :page="syntheticPage" :record="record" />
     </div>
 
@@ -74,8 +78,9 @@ import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import { compose, validator } from '@planetcrust/human-js'
-import { components } from '@planetcrust/human-vue'
-import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
+import { cloneDeep, isEqual } from 'lodash-es'
+import { computed, inject, nextTick, provide, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -104,7 +109,14 @@ const recordStore = useRecordStore()
 const formRef = ref(null)
 const serverErrors = ref({})
 const isSaving = ref(false)
+const isCancelling = ref(false)
 const record = ref(null)
+
+// The form as the user was shown it: what a blank record, a clone source, a
+// prefilled reference field and the field editors' own presets add up to. A User
+// field set to preset-with-authenticated fills itself in, and that is not an
+// unsaved edit — anything changing after the user's first touch is.
+const initialValues = ref(null)
 
 const pendingByField = reactive(new Map())
 provide('$fileUploadContext', {
@@ -153,6 +165,35 @@ const syntheticPage = computed(() => ({
   blocks: [],
 }))
 
+function setRecord(rec) {
+  record.value = rec
+  initialValues.value = null
+}
+
+// Taken on the first pointer or key event in the form, before the value that
+// event carries lands. Presets resolve on their own schedule — some after a
+// round trip — so no fixed moment after init is reliably "the form as shown",
+// but everything before the user's first touch of it is.
+function freezeBaseline() {
+  if (initialValues.value || !record.value) return
+  initialValues.value = cloneDeep(toRaw(record.value).values)
+}
+
+const isDirty = computed(() => {
+  if (isSaving.value || isCancelling.value) return false
+  if (pendingByField.size) return true
+  // Untouched: the presets a form fills in for itself are not unsaved work.
+  if (!record.value || !initialValues.value) return false
+  // Read through the reactive record, not toRaw: a raw read registers no
+  // dependency and the computed would never see the user's edits.
+  return !isEqual(record.value.values, initialValues.value)
+})
+
+const { markSaved } = useUnsavedGuard({
+  isDirty,
+  messageKey: 'general.editor.unsavedChanges',
+})
+
 function initRecord() {
   // A record needs a module WITH fields (compose.Record throws otherwise).
   if (!recordModule.value?.fields?.length) return
@@ -189,18 +230,18 @@ function initRecord() {
         // Prefill ownedBy with current user
         newRec.ownedBy = $Auth?.user?.userID || undefined
         prefillRefField(newRec)
-        record.value = newRec
+        setRecord(newRec)
       })
       .catch(e => {
         console.error('Failed to load source record for clone:', e)
         const newRec = new compose.Record(recordModule.value, { ownedBy: $Auth?.user?.userID })
         prefillRefField(newRec)
-        record.value = newRec
+        setRecord(newRec)
       })
   } else {
     const newRec = new compose.Record(recordModule.value, { ownedBy: $Auth?.user?.userID })
     prefillRefField(newRec)
-    record.value = newRec
+    setRecord(newRec)
   }
 }
 
@@ -256,6 +297,7 @@ async function handleSave({ valid }) {
 
     const saved = await recordStore.create(record.value)
     $toast.toastSuccess(t('notification.record.createSuccess'))
+    markSaved()
     router.replace({
       name: 'admin.modules.record.view',
       params: { moduleID: moduleID.value, recordID: saved.recordID },
@@ -282,6 +324,8 @@ async function handleSave({ valid }) {
 }
 
 function handleCancel() {
+  // Cancel is the deliberate discard — the guard has nothing to warn about.
+  isCancelling.value = true
   router.replace({
     name: 'admin.modules.record.list',
     params: { moduleID: moduleID.value },

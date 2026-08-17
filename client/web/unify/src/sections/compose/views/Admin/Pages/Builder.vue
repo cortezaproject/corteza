@@ -7,13 +7,14 @@
     <div v-if="page" class="flex items-center gap-2">
       <Select
         v-if="layouts.length > 1"
+        :key="layoutSelectKey"
         :model-value="pageLayout?.pageLayoutID"
         :options="layoutOptions"
         option-label="label"
         option-value="value"
         size="small"
         style="min-width: 200px"
-        @update:model-value="setLayout"
+        @update:model-value="onLayoutSelect"
       />
       <ButtonGroup class="gap-1">
         <Button
@@ -500,6 +501,8 @@ import { usePageStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useHistoryBack } from '@planetcrust/human-vue'
+import { useUnsavedGuard } from '@planetcrust/human-vue'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 
@@ -571,6 +574,33 @@ const isNewBlock = ref(false)
 const gridRef = ref(null)
 const configuratorTab = ref('block')
 const pendingTabBlockIndex = ref(null)
+
+// Orphan-block deletions are staged like every other edit and applied on Save;
+// leaving without saving discards them.
+const stagedBlockDeletes = ref(new Set())
+
+// Everything the builder does is staged until Save: block config, adds, removes,
+// orphan deletes and drag/resize positions all live in memory until then.
+const initialBlocks = ref(null)
+
+// Read through the reactive blocks, not toRaw: a raw read registers no
+// dependency and the computed would never see an edit.
+function blocksSnapshot() {
+  return cloneDeep(blocks.value.map(b => ({ ...b })))
+}
+
+// The point the guard compares against: the working set as loaded or last saved.
+function captureBlocksBaseline() {
+  initialBlocks.value = blocksSnapshot()
+}
+
+const isDirty = computed(() => {
+  if (saving.value || !initialBlocks.value) return false
+  if (stagedBlockDeletes.value.size) return true
+  return !isEqual(blocksSnapshot(), initialBlocks.value)
+})
+
+useUnsavedGuard({ isDirty, messageKey: 'general.editor.unsavedChanges' })
 
 const headerTextVariantOptions = computed(() => [
   { value: 'dark', label: t('block.general.style.default') },
@@ -1130,10 +1160,6 @@ function buildLayoutBlocks(pg, layout) {
     .filter(Boolean)
 }
 
-// Orphan-block deletions are staged like every other edit and applied on Save;
-// navigating away discards them.
-const stagedBlockDeletes = ref(new Set())
-
 // Page blocks not placed in the current layout — offered in the Add block dialog
 // so the user can re-add an existing (orphaned) block instead of creating one.
 const orphanBlocks = computed(() => {
@@ -1163,7 +1189,40 @@ function setLayout(layoutID) {
   pageLayout.value = layout
   // Each layout positions its own subset of the page's blocks.
   blocks.value = buildLayoutBlocks(page.value, layout)
+  stagedBlockDeletes.value = new Set()
+  captureBlocksBaseline()
   gridRef.value?.rebuildLayout()
+}
+
+// Select keeps its own copy of the selection, so a switch the user backs out of
+// leaves it displaying a layout the builder is not editing. Remounting it puts
+// the label back on whatever pageLayout actually holds.
+const layoutSelectKey = ref(0)
+
+// The working set is rebuilt from the saved page, so switching layout discards
+// the same staged edits that leaving the builder would.
+function onLayoutSelect(layoutID) {
+  if (!isDirty.value) {
+    setLayout(layoutID)
+    return
+  }
+
+  confirm.require({
+    // Both paths out of the dialog: the reject button, and dismissing it.
+    reject: () => layoutSelectKey.value++,
+    onHide: () => layoutSelectKey.value++,
+    header: t('page.build.switchLayout.header'),
+    message: t('page.build.switchLayout.message'),
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: t('general.label.cancel'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
+    acceptProps: { label: t('page.build.switchLayout.confirm'), size: 'small' },
+    accept: () => setLayout(layoutID),
+  })
 }
 
 async function handleCreateLayout() {
@@ -1311,6 +1370,7 @@ async function loadPage() {
     // Show only the current layout's blocks (the view does the same); page
     // blocks not in the layout are orphans, addable via the Add block dialog.
     blocks.value = buildLayoutBlocks(page.value, pageLayout.value)
+    captureBlocksBaseline()
   } catch (e) {
     console.error('Failed to load page:', e)
     $toast.toastDanger(t('notification.page.loadFailed'))
