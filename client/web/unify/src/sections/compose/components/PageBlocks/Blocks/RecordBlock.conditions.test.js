@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { ref, computed } from 'vue'
+import { ref, computed, toValue } from 'vue'
 
 // Field conditions are evaluated server-side against the record every block on
 // the page shares. Two consequences this file pins: a conditioned field must not
@@ -19,6 +19,8 @@ const moduleStore = { getByID: () => module_ }
 const recordStore = { findByID: vi.fn(), update: vi.fn(rec => Promise.resolve(rec)) }
 
 vi.mock('@planetcrust/human-vue', () => ({
+  // No deferral under test: the spinner's timing is pinned in lib/vue
+  useDeferredBusy: src => computed(() => !!toValue(src)),
   useModuleStore: () => moduleStore,
   useRecordStore: () => recordStore,
   components: {

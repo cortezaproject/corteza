@@ -1,7 +1,9 @@
 <template>
   <PageBlock :block="block" :record="activeRecord">
-    <div v-if="loading || conditionsPending" class="flex items-center justify-center h-full p-5">
-      <ProgressSpinner style="width: 28px; height: 28px" />
+    <!-- Withheld whenever the answers are unknown; the spinner is drawn only
+         once the wait is long enough to be worth explaining. -->
+    <div v-if="busy" class="flex items-center justify-center h-full p-5">
+      <ProgressSpinner v-if="showCover" style="width: 28px; height: 28px" />
     </div>
 
     <div v-else-if="!fieldModule" class="p-5 text-muted-color italic">
@@ -207,6 +209,7 @@ import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
 const { CFieldViewer, CFieldEditor } = components
+import { useDeferredBusy } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import PageBlock from './PageBlock.vue'
@@ -264,6 +267,19 @@ const conditionsResolved = ref(false)
  * itself until it knows the new ones, and the whole form changes at once.
  */
 const conditionsPending = ref(false)
+
+// Nothing this block renders is trustworthy while either is true
+const busy = computed(() => loading.value || conditionsPending.value)
+
+/**
+ * Whether to draw a spinner for that wait.
+ *
+ * A record view settles this block's conditions before it applies a record, so
+ * the waits left here are the block's own — a reference record it has to fetch,
+ * or a record that reached it by some other route than a staged transition.
+ * Deferred all the same: most of them are over inside a couple of frames.
+ */
+const showCover = useDeferredBusy(busy)
 
 // ResizeObserver state
 const resizeObserver = ref(null)
@@ -569,6 +585,11 @@ function canDisplay({ fieldID, name }) {
 let _fieldConditionTimer = null
 let _fieldConditionSeq = 0
 
+// The record currently rendered, and the one a staged transition has already
+// answered for — a settled record must not be re-evaluated when it arrives.
+let renderedRecordID = null
+let settledRecordID = null
+
 /**
  * Field conditions follow the record as it is edited — they re-evaluate on
  * every value change, debounced so that typing does not fire a request per
@@ -584,23 +605,31 @@ function evaluateExpressions({ immediate = false } = {}) {
   _fieldConditionTimer = setTimeout(runFieldConditions, 300)
 }
 
-async function runFieldConditions() {
+/**
+ * Which conditioned fields a record and mode hide. Answers, and writes nothing.
+ *
+ * `null` means nothing here can answer — no conditions, no evaluator, or the
+ * builder, where a condition is being authored rather than obeyed. The caller
+ * releases the fields rather than leaving them hidden on a paint that will
+ * never resolve.
+ */
+async function hiddenFieldsFor({ record, mode }) {
   const fieldConditions = options.value.fieldConditions || []
-  // Nothing will answer for the conditioned fields on these paths, so release
-  // them rather than leaving them hidden on a first-paint that never resolves.
-  if (!fieldConditions.length) return resolveConditions()
-  // Don't evaluate in builder mode
-  if (route.name === 'admin.pages.builder') return resolveConditions()
-  if (!$SystemAPI) return resolveConditions()
+  if (!fieldConditions.length) return null
+  if (route.name === 'admin.pages.builder') return null
+  if (!$SystemAPI) return null
 
   const expressions = {}
-  const record = activeRecord.value
-  const serialized = record?.serialize ? record.serialize() : {}
-  const isNew = ctx?.isNew?.value ?? false
-  const isEditMode = ctx ? ctx.mode.value !== 'view' && !isNew : false
+  fieldConditions.forEach(({ field, condition }) => {
+    if (field && condition) expressions[field] = condition
+  })
+  if (Object.keys(expressions).length === 0) return null
+
+  const isNew = mode === 'create'
+  const isEditMode = mode !== 'view' && !isNew
   const variables = {
     user: $Auth?.user || {},
-    record: serialized,
+    record: record?.serialize ? record.serialize() : {},
     screen: {
       width: window.innerWidth,
       height: window.innerHeight,
@@ -619,41 +648,62 @@ async function runFieldConditions() {
     isEdit: isEditMode,
   }
 
-  fieldConditions.forEach(({ field, condition }) => {
-    if (field && condition) {
-      expressions[field] = condition
-    }
-  })
+  const res = await $SystemAPI.expressionEvaluate({ variables, expressions })
+  return Object.keys(res).filter(v => !res[v])
+}
 
-  if (Object.keys(expressions).length === 0) return resolveConditions()
+function applyHiddenFields(hidden) {
+  const previousConditions = [...hiddenConditions.value]
+  hiddenConditions.value = hidden || []
+  resolveConditions()
+  // Clear values for newly hidden fields
+  clearValuesForHiddenFields(previousConditions)
+}
 
+function currentMode() {
+  if (!ctx) return 'view'
+  if (ctx.isNew?.value) return 'create'
+  return ctx.mode.value
+}
+
+async function runFieldConditions() {
   const seq = ++_fieldConditionSeq
-
   try {
-    const res = await $SystemAPI.expressionEvaluate({ variables, expressions })
-
+    const hidden = await hiddenFieldsFor({ record: activeRecord.value, mode: currentMode() })
     // A slower earlier response must not overwrite a newer one, nor clear
     // values based on a stale view of the record
     if (seq !== _fieldConditionSeq) return
-
-    const previousConditions = [...hiddenConditions.value]
-    const newHidden = []
-
-    Object.keys(res).forEach(v => {
-      if (!res[v]) newHidden.push(v)
-    })
-
-    hiddenConditions.value = newHidden
-    resolveConditions()
-
-    // Clear values for newly hidden fields
-    clearValuesForHiddenFields(previousConditions)
+    applyHiddenFields(hidden)
   } catch (e) {
     console.error('Failed to evaluate field conditions:', e)
     // A failed evaluation must not leave the conditioned fields hidden for good
     resolveConditions()
   }
 }
+
+/**
+ * Answers for a record the page has not shown yet, so the record view can apply
+ * it in the same breath as the layout and the block conditions.
+ *
+ * Without this the fields are the one stage left over: a page whose layout and
+ * block set do not change on a swap has nothing else moving, so the form
+ * blanking for the length of one round-trip is the whole of what a viewer sees.
+ */
+const stopSettler = ctx?.registerSettler?.(async ({ record, mode }) => {
+  const seq = ++_fieldConditionSeq
+  let hidden = null
+  try {
+    hidden = await hiddenFieldsFor({ record, mode })
+  } catch (e) {
+    console.error('Failed to evaluate field conditions:', e)
+  }
+  return () => {
+    if (seq !== _fieldConditionSeq) return
+    settledRecordID = record?.recordID ?? null
+    applyHiddenFields(hidden)
+  }
+})
+onBeforeUnmount(() => stopSettler?.())
 
 function resolveConditions() {
   conditionsResolved.value = true
@@ -883,19 +933,25 @@ watch(
 // Evaluate field conditions when record loaded or changes. Arriving at a record
 // is the first-paint case, so it skips the debounce; with no record to evaluate
 // against there is nothing to wait for and the fields are released.
-let renderedRecordID = null
 watch(
   () => activeRecord.value,
   rec => {
-    if (rec) {
-      const swapped = renderedRecordID !== null && rec.recordID !== renderedRecordID
-      if (swapped && conditionedFieldIDs.value.length) conditionsPending.value = true
-      renderedRecordID = rec.recordID
-      evaluateExpressions({ immediate: true })
-    } else {
+    if (!rec) {
       renderedRecordID = null
       resolveConditions()
+      return
     }
+    // The record view settles a staged transition before it applies it, so this
+    // record already has its answers and re-running them would only cost a
+    // round-trip and a repaint.
+    if (rec.recordID != null && rec.recordID === settledRecordID) {
+      renderedRecordID = rec.recordID
+      return
+    }
+    const swapped = renderedRecordID !== null && rec.recordID !== renderedRecordID
+    if (swapped && conditionedFieldIDs.value.length) conditionsPending.value = true
+    renderedRecordID = rec.recordID
+    evaluateExpressions({ immediate: true })
   },
   { immediate: true },
 )

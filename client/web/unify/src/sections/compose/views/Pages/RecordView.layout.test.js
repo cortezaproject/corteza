@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { reactive } from 'vue'
+import { computed, reactive, toValue } from 'vue'
 
 // Layout conditions are evaluated against the record, so the layout must be
 // picked after the record is resolved — and re-picked whenever the record or
@@ -70,6 +70,8 @@ const recordStore = {
 }
 
 vi.mock('@planetcrust/human-vue', () => ({
+  // No deferral under test: the spinner's timing is pinned in lib/vue
+  useDeferredBusy: src => computed(() => !!toValue(src)),
   useModuleStore: () => moduleStore,
   usePageStore: () => pageStore,
   usePageLayoutStore: () => pageLayoutStore,

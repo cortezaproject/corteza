@@ -312,7 +312,11 @@ defineExpose({ rebuildLayout })
 }
 
 /* Sits over the block's own render, which stays mounted: remounting it would
- * cost every block its state and reload what it had already fetched. */
+ * cost every block its state and reload what it had already fetched.
+ *
+ * PageBlock fills this box with a Card, and a view-mode item does not clip
+ * (overflow is visible there so the Card's shadow can show), so the cover takes
+ * the Card's radius itself or it paints square corners over the rounded ones. */
 .block-busy {
   position: absolute;
   inset: 0;
@@ -321,5 +325,6 @@ defineExpose({ rebuildLayout })
   align-items: center;
   justify-content: center;
   background: var(--p-content-background);
+  border-radius: var(--p-card-border-radius);
 }
 </style>

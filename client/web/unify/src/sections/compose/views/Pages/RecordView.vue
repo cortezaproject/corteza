@@ -48,7 +48,7 @@
         :namespace="namespace"
         :page="page"
         :record="record"
-        :loading="swapping"
+        :loading="cover"
       />
     </div>
 
@@ -83,7 +83,7 @@
             icon="pi pi-chevron-left"
             severity="secondary"
             :disabled="!recordNavigation.prev || navigating !== null"
-            :loading="navigating === 'prev'"
+            :loading="navigating === 'prev' && cover"
             :title="$t('general.recordNavigation.prev')"
             @click="navigateToRecord(recordNavigation.prev, 'prev')"
           />
@@ -91,7 +91,7 @@
             icon="pi pi-chevron-right"
             severity="secondary"
             :disabled="!recordNavigation.next || navigating !== null"
-            :loading="navigating === 'next'"
+            :loading="navigating === 'next' && cover"
             :title="$t('general.recordNavigation.next')"
             @click="navigateToRecord(recordNavigation.next, 'next')"
           />
@@ -179,6 +179,7 @@ import {
   refuseOnce,
   usePageVisibility,
 } from '@/sections/compose/composables/usePageVisibility'
+import { useDeferredBusy } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
@@ -353,6 +354,37 @@ const showDeleteButton = computed(() => {
   return false
 })
 
+// A record swap on the page already on screen: the blocks cover themselves
+// rather than the page blanking. `loading` stays for the loads that build the
+// page from nothing.
+const swapping = ref(false)
+
+/**
+ * The one spinner state for a whole transition, deferred.
+ *
+ * A swap on this machine finishes in about 85ms, so a cover that appeared the
+ * moment one started would flash on and straight off again — the very thing the
+ * page spinner was doing. It waits instead, and only a swap slow enough to be
+ * worth explaining ever draws one.
+ */
+const cover = useDeferredBusy(swapping)
+
+/**
+ * Blocks that answer for conditions of their own — RecordBlock's field
+ * conditions — so a transition can settle them before it applies anything.
+ *
+ * Each returns the call that applies what it worked out. The layout and the
+ * block set are only two of the three things a swap changes; a page whose
+ * layout and blocks stay the same has nothing else moving, so fields left to
+ * catch up afterwards are the whole of what a viewer sees change twice.
+ */
+const settlers = new Set()
+
+function registerSettler(fn) {
+  settlers.add(fn)
+  return () => settlers.delete(fn)
+}
+
 const pendingByField = reactive(new Map())
 
 // Provide context so child blocks (RecordBlock) can inject it
@@ -361,6 +393,8 @@ provide('recordViewContext', {
   record,
   isNew,
   isSaving,
+  cover,
+  registerSettler,
 
   /**
    * A block that saved the record on its own (RecordBlock's inline edit) hands
@@ -429,11 +463,6 @@ const emptyStateMessage = computed(() => {
 })
 
 const navigating = ref(null) // 'prev' | 'next' | null
-
-// A record swap on the page already on screen: the blocks cover themselves
-// rather than the page blanking. `loading` stays for the loads that build the
-// page from nothing.
-const swapping = ref(false)
 
 // Cancels the in-flight record load when we navigate to another record / leave.
 let recordLoadAbort = null
@@ -744,10 +773,21 @@ async function stageTransition({ forRecord, forMode }) {
     forRecord,
     forMode,
   })
+  // A block that fails to settle must not hold up the ones that did, nor leave
+  // the page on the record it was showing before.
+  const settled = await Promise.all(
+    [...settlers].map(settle =>
+      settle({ record: forRecord, mode: forMode }).catch(e => {
+        console.error('A block failed to settle:', e)
+        return () => {}
+      }),
+    ),
+  )
 
   return () => {
     if (!commitLayout(picked)) return
     commitBlockVisibility(visibility)
+    settled.forEach(apply => apply())
   }
 }
 

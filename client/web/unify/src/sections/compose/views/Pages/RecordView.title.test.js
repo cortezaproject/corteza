@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { reactive } from 'vue'
+import { computed, reactive, toValue } from 'vue'
 
 // A page layout may override the record page's title with its own, interpolated
 // against the open record (`config.useTitle`). The feature existed in the Vue 2
@@ -51,6 +51,8 @@ const recordStore = {
 }
 
 vi.mock('@planetcrust/human-vue', () => ({
+  // No deferral under test: the spinner's timing is pinned in lib/vue
+  useDeferredBusy: src => computed(() => !!toValue(src)),
   useModuleStore: () => moduleStore,
   usePageStore: () => pageStore,
   usePageLayoutStore: () => pageLayoutStore,
