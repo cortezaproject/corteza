@@ -1,5 +1,5 @@
 import { Apply } from '../../../cast'
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue } from './base'
 
 const kind = 'ChatbotInbox'
 
@@ -45,6 +45,14 @@ export class PageBlockChatbotInbox extends PageBlock {
     Apply(this.options, o, Boolean, 'showRefresh')
     Apply(this.options, o, Boolean, 'autoOpenFirst')
     Apply(this.options, o, Boolean, 'showFilter')
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (!this.options.chatbotIDs.length) {
+      ee.push({ option: 'chatbotIDs', labelKey: 'block.issue.noChatbots' })
+    }
+    return ee
   }
 }
 

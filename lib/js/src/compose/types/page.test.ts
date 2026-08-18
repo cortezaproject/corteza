@@ -139,11 +139,29 @@ describe('page', () => {
     })
 
     it('validate', () => {
-      const page = new Page({
+      const unconfigured = new Page({
         blocks: [{ kind: 'RecordList', xywh: [0, 0, 3, 3] }] as PageBlock[],
       })
 
-      expect(page.validate()).to.deep.eq([])
+      // A page carries its blocks' issues: a record list with no module is
+      // one the builder refuses to save.
+      expect(unconfigured.validate()).to.deep.eq([
+        { option: 'moduleID', labelKey: 'block.issue.module' },
+      ])
+
+      const configured = new Page({
+        blocks: [
+          { kind: 'RecordList', xywh: [0, 0, 3, 3], options: { moduleID: '100001' } },
+        ] as PageBlock[],
+      })
+
+      expect(configured.validate()).to.deep.eq([])
+    })
+
+    it('validate reports a page with no blocks at all', () => {
+      expect(new Page({}).validate()).to.deep.eq([
+        { option: 'blocks', labelKey: 'page.issue.noBlocks' },
+      ])
     })
   })
 

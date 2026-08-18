@@ -1,5 +1,5 @@
 import { Apply } from '../../../cast'
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue } from './base'
 
 const kind = 'AgentChat'
 
@@ -34,6 +34,14 @@ export class PageBlockAgentChat extends PageBlock {
 
     Apply(this.options, o, String, 'defaultAgentID')
     Apply(this.options, o, Boolean, 'autoResume')
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (!this.options.allowedAgentIDs.length) {
+      ee.push({ option: 'allowedAgentIDs', labelKey: 'block.issue.noAgents' })
+    }
+    return ee
   }
 }
 

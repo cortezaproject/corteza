@@ -1,6 +1,6 @@
 import lodash from 'lodash-es'
 import { Apply } from '../../../../cast'
-import { PageBlock, Registry } from '../base'
+import { PageBlock, Registry, BlockIssue, isUnsetID } from '../base'
 import Feed, { FeedInput } from './feed'
 import { RecordFeed } from './feed-record'
 import { ReminderFeed } from './feed-reminder'
@@ -156,6 +156,30 @@ export class PageBlockCalendar extends PageBlock {
 
   static ReminderFeed = ReminderFeed
   static RecordFeed = RecordFeed
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+
+    if (!this.options.feeds.length) {
+      ee.push({ option: 'feeds', labelKey: 'block.issue.noFeeds' })
+      return ee
+    }
+
+    // Only a record feed is mapped onto a module; a reminder feed carries its
+    // own dates and title.
+    this.options.feeds.forEach((f, i) => {
+      if (f.resource && f.resource !== PageBlockCalendar.feedResources.record) return
+
+      if (isUnsetID(f.options?.moduleID)) {
+        ee.push({ option: `feeds.${i}.moduleID`, labelKey: 'block.issue.feedModule' })
+      }
+      if (!f.startField) {
+        ee.push({ option: `feeds.${i}.startField`, labelKey: 'block.issue.feedStartField' })
+      }
+    })
+
+    return ee
+  }
 }
 
 Registry.set(kind, PageBlockCalendar)

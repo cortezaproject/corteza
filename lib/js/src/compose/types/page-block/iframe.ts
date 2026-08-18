@@ -1,4 +1,4 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue } from './base'
 import { Apply } from '../../../cast'
 
 const kind = 'IFrame'
@@ -39,6 +39,14 @@ export class PageBlockIFrame extends PageBlock {
     Apply(this.options, o, String, 'srcField', 'src', 'magnifyOption')
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (!this.options.src && !this.options.srcField) {
+      ee.push({ option: 'src', labelKey: 'block.issue.iframeSource' })
+    }
+    return ee
   }
 }
 

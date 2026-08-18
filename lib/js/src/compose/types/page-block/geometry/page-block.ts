@@ -1,5 +1,5 @@
 import { Apply } from '../../../../cast'
-import { PageBlock, Registry } from '../base'
+import { PageBlock, Registry, BlockIssue, isUnsetID } from '../base'
 import Feed, { FeedInput } from './feed'
 import { RecordFeed } from './feed-record'
 
@@ -69,6 +69,26 @@ export class PageBlockGeometry extends PageBlock {
   }
 
   static RecordFeed = RecordFeed
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+
+    if (!this.options.feeds.length) {
+      ee.push({ option: 'feeds', labelKey: 'block.issue.noFeeds' })
+      return ee
+    }
+
+    this.options.feeds.forEach((f, i) => {
+      if (isUnsetID(f.options?.moduleID)) {
+        ee.push({ option: `feeds.${i}.moduleID`, labelKey: 'block.issue.feedModule' })
+      }
+      if (!f.geometryField) {
+        ee.push({ option: `feeds.${i}.geometryField`, labelKey: 'block.issue.feedGeometryField' })
+      }
+    })
+
+    return ee
+  }
 }
 
 Registry.set(kind, PageBlockGeometry)

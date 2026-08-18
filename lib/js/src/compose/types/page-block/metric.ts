@@ -1,6 +1,6 @@
 import lodash from 'lodash-es'
 import { Apply } from '../../../cast'
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue, isUnsetID } from './base'
 import { Options as PageBlockRecordListOptions } from './record-list'
 const { merge } = lodash
 const kind = 'Metric'
@@ -169,6 +169,23 @@ export class PageBlockMetric extends PageBlock {
 
   makeMetric() {
     return merge({}, defaultMetric)
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+
+    if (!this.options.metrics.length) {
+      ee.push({ option: 'metrics', labelKey: 'block.issue.noMetrics' })
+      return ee
+    }
+
+    this.options.metrics.forEach((m, i) => {
+      if (isUnsetID(m.moduleID)) {
+        ee.push({ option: `metrics.${i}.moduleID`, labelKey: 'block.issue.metricModule' })
+      }
+    })
+
+    return ee
   }
 }
 

@@ -36,3 +36,4 @@ export function PageBlockMaker<T extends PageBlock>(i: { kind: string }): T {
 }
 
 export { Registry as PageBlockRegistry, PageBlock }
+export type { BlockIssue } from './base'

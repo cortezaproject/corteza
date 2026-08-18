@@ -1,6 +1,6 @@
 import lodash from 'lodash-es'
 import { Apply, NoID } from '../../../cast'
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue, isUnsetID } from './base'
 import { Options as PageBlockRecordListOptions } from './record-list'
 const { cloneDeep, merge } = lodash
 
@@ -62,6 +62,14 @@ export class PageBlockChart extends PageBlock {
 
   resetDrillDown(): void {
     this.options.drillDown = cloneDeep(defaults.drillDown)
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (isUnsetID(this.options.chartID)) {
+      ee.push({ option: 'chartID', labelKey: 'block.issue.chart' })
+    }
+    return ee
   }
 }
 

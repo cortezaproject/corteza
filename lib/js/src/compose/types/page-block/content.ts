@@ -1,4 +1,4 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue } from './base'
 import { Apply } from '../../../cast'
 
 const kind = 'Content'
@@ -27,6 +27,14 @@ export class PageBlockContent extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, String, 'body', 'magnifyOption')
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (!this.options.body) {
+      ee.push({ option: 'body', labelKey: 'block.issue.contentBody' })
+    }
+    return ee
   }
 }
 

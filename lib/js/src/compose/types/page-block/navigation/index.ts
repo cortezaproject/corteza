@@ -1,4 +1,4 @@
-import { PageBlock, PageBlockInput, Registry } from '../base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue } from '../base'
 import NavigationItem, { NavigationItemInput } from './navigation-item'
 import { Apply } from '../../../../cast'
 
@@ -48,6 +48,14 @@ export class PageBlockNavigation extends PageBlock {
 
   static makeNavigationItem(item?: NavigationItemInput): NavigationItem {
     return new NavigationItem(item)
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (!this.options.navigationItems.length) {
+      ee.push({ option: 'navigationItems', labelKey: 'block.issue.noNavigationItems' })
+    }
+    return ee
   }
 }
 

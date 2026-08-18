@@ -1,7 +1,7 @@
 import lodash from 'lodash-es'
 import { Apply, HumanID, ISO8601Date, NoID } from '../../cast'
 import { AreObjectsOf, IsOf } from '../../guards'
-import { PageBlock, PageBlockMaker } from './page-block'
+import { PageBlock, PageBlockMaker, BlockIssue } from './page-block'
 const { merge } = lodash
 
 interface PartialPage extends Partial<
@@ -146,11 +146,11 @@ export class Page {
   /**
    * Validates page & it's blocks
    */
-  validate(): Array<string> {
-    const ee: Array<string> = []
+  validate(): Array<BlockIssue> {
+    const ee: Array<BlockIssue> = []
 
     if (this.blocks.length === 0) {
-      ee.push('blocks missing')
+      ee.push({ option: 'blocks', labelKey: 'page.issue.noBlocks' })
     } else {
       this.blocks.forEach(b => {
         ee.push(...b.validate())

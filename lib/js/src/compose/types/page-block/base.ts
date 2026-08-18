@@ -36,6 +36,29 @@ interface PageBlockMeta {
 
 export type PageBlockInput = PageBlock | Partial<PageBlock>
 
+/**
+ * A block option the block cannot render without, left unset.
+ *
+ * `option` is the dotted path into `options` (`metrics.0.moduleID` for a
+ * repeated item); `labelKey` is the i18n key naming it to the author. The
+ * builder reads these to mark the configurator, badge the block on the grid
+ * and refuse the page save, so the block classes are the one place a kind's
+ * requirements are written down.
+ */
+export interface BlockIssue {
+  option: string
+  labelKey: string
+}
+
+/**
+ * An ID-valued option reads as unset at both '' and NoID — HumanID casts a
+ * blank to NoID, so a plain falsy check silently passes a block that has no
+ * module.
+ */
+export function isUnsetID(v?: string): boolean {
+  return !v || v === NoID
+}
+
 const defaultXYWH = [0, 0, 20, 15]
 
 export class PageBlock {
@@ -110,7 +133,7 @@ export class PageBlock {
   }
 
   // Returns Page Block configuration errors
-  validate(): Array<string> {
+  validate(): Array<BlockIssue> {
     return []
   }
 

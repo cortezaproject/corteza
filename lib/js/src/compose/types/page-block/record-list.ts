@@ -1,7 +1,7 @@
 import { Compose as ComposeAPI } from '../../../api-clients'
 import { Apply, HumanID, NoID } from '../../../cast'
 import { Module } from '../module'
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue, isUnsetID } from './base'
 import { Button } from './types'
 
 const kind = 'RecordList'
@@ -302,6 +302,14 @@ export class PageBlockRecordList extends PageBlock {
       const { set: records, filter } = r as { filter: object; set: object[] }
       return { records, filter }
     })
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (isUnsetID(this.options.moduleID)) {
+      ee.push({ option: 'moduleID', labelKey: 'block.issue.module' })
+    }
+    return ee
   }
 }
 

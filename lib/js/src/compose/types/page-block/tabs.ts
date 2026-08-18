@@ -1,4 +1,4 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue } from './base'
 import { Apply } from '../../../cast'
 
 const kind = 'Tabs'
@@ -60,6 +60,14 @@ export class PageBlockTab extends PageBlock {
     if (o.style) {
       this.options.style = { ...this.options.style, ...o.style }
     }
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (!this.options.tabs.length) {
+      ee.push({ option: 'tabs', labelKey: 'block.issue.noTabs' })
+    }
+    return ee
   }
 }
 

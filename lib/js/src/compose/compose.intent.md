@@ -18,6 +18,7 @@ tests:
   - lib/js/src/compose/types/chart/config-contract.test.ts
   - lib/js/src/compose/types/chart/empty-dimension.test.ts
   - lib/js/src/compose/types/page-block/schema-contract.test.ts
+  - lib/js/src/compose/types/page-block/validate.test.ts
 ---
 
 # Compose resource classes
@@ -33,7 +34,7 @@ classes, never with raw API payloads.
 
 - `types/record.ts` — `Record`: the central class; versatile ctor accepts Record/Module/partial/value combos in either argument order.
 - `types/module.ts`, `types/module-field/` — `Module` + one field class per kind (String, Number, Record, User, …); field classes own default values and multi-value semantics.
-- `types/namespace.ts`, `types/page.ts`, `types/page-layout.ts`, `types/page-block/` — page tree; one block class per page-block kind, registered in `page-block/index.ts`.
+- `types/namespace.ts`, `types/page.ts`, `types/page-layout.ts`, `types/page-block/` — page tree; one block class per page-block kind, registered in `page-block/index.ts`. A class also owns its kind's required options: `validate()` returns a `BlockIssue` per option the block cannot render without, and the page builder is the reader.
 - `types/chart/` — chart config classes (generic, funnel, gauge, radar).
 - `types/revision.ts` — record revision types.
 - `events.ts` — compose event/trigger constructors for the eventbus; `helpers/idgen.ts` — `tempID-…` UID generator for not-yet-saved entities; `helpers/interpolate.ts` — `interpolateTemplate` evaluates a JS template literal against record/user variables.

@@ -1,4 +1,4 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue, isUnsetID } from './base'
 import { Apply, HumanID, NoID } from '../../../cast'
 
 const kind = 'RecordOrganizer'
@@ -62,6 +62,14 @@ export class PageBlockRecordOrganizer extends PageBlock {
     )
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+    if (isUnsetID(this.options.moduleID)) {
+      ee.push({ option: 'moduleID', labelKey: 'block.issue.module' })
+    }
+    return ee
   }
 }
 

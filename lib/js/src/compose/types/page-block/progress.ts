@@ -1,7 +1,7 @@
 import { Compose as ComposeAPI } from '../../../api-clients'
 import { Apply } from '../../../cast'
 import { dimensionFunctions } from '../chart/util'
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue, isUnsetID } from './base'
 
 const kind = 'Progress'
 
@@ -245,6 +245,18 @@ export class PageBlockProgress extends PageBlock {
 
       return { value, min, max }
     })
+  }
+
+  validate(): Array<BlockIssue> {
+    const ee = super.validate()
+
+    // A bar with no source reads as a fixed default, which is a value nobody set.
+    const { value } = this.options
+    if (isUnsetID(value.moduleID) && value.default === undefined) {
+      ee.push({ option: 'value', labelKey: 'block.issue.progressValue' })
+    }
+
+    return ee
   }
 }
 

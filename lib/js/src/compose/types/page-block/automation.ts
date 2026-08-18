@@ -1,4 +1,4 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { PageBlock, PageBlockInput, Registry, BlockIssue } from './base'
 import { Button } from './types'
 import { Apply } from '../../../cast'
 
@@ -43,10 +43,14 @@ export class PageBlockAutomation extends PageBlock {
   }
 
   // Validates Page Block configuration
-  validate(): Array<string> {
+  validate(): Array<BlockIssue> {
     const ee = super.validate()
 
-    this.options.buttons.forEach(b => {
+    if (!this.options.buttons.length) {
+      ee.push({ option: 'buttons', labelKey: 'block.issue.noAutomationButtons' })
+    }
+
+    this.options.buttons.forEach((b, i) => {
       if (b.workflowID) {
         // workflow defined
         return
@@ -62,7 +66,10 @@ export class PageBlockAutomation extends PageBlock {
         return
       }
 
-      ee.push('Automation button without configured script or workflow')
+      ee.push({
+        option: `buttons.${i}`,
+        labelKey: 'block.issue.unconfiguredAutomationButton',
+      })
     })
 
     return ee
