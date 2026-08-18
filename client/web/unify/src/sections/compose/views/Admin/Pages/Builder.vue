@@ -414,11 +414,15 @@
                     />
                   </div>
                 </CFormGroup>
-                <div class="flex gap-2">
-                  <CInputSwitch
+                <div class="flex items-end gap-2 pb-2">
+                  <Checkbox
                     v-model="editingBlock.options.showRefresh"
-                    :label="$t('block.general.refresh.show')"
+                    binary
+                    input-id="showRefresh"
                   />
+                  <label for="showRefresh" class="text-sm">
+                    {{ $t('block.general.refresh.show') }}
+                  </label>
                 </div>
               </div>
             </template>

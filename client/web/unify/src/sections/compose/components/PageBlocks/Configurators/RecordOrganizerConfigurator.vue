@@ -9,71 +9,79 @@
     </CFormGroup>
 
     <template v-if="moduleID">
-      <CFormGroup
-        :label="$t('block.recordOrganizer.labelField.label')"
-        :description="$t('block.recordOrganizer.labelField.footnote')"
-      >
-        <CInputModuleField v-model="labelField" :module="selectedModule" />
-      </CFormGroup>
+      <Divider />
 
-      <CFormGroup
-        :label="$t('block.recordOrganizer.descriptionField.label')"
-        :description="$t('block.recordOrganizer.descriptionField.footnote')"
-      >
-        <CInputModuleField v-model="descriptionField" :module="selectedModule" />
-      </CFormGroup>
+      <Fieldset :legend="$t('block.recordOrganizer.cardFields')">
+        <CFormGroup
+          :label="$t('block.recordOrganizer.labelField.label')"
+          :description="$t('block.recordOrganizer.labelField.footnote')"
+        >
+          <CInputModuleField v-model="labelField" :module="selectedModule" />
+        </CFormGroup>
 
-      <CFormGroup
-        :label="$t('block.recordOrganizer.positionField.label')"
-        :description="$t('block.recordOrganizer.positionField.footnote')"
-      >
-        <CInputModuleField
-          v-model="positionField"
-          :module="selectedModule"
-          :kinds="['Number']"
-          :placeholder="$t('block.recordOrganizer.positionField.placeholder')"
-        />
-      </CFormGroup>
+        <CFormGroup
+          :label="$t('block.recordOrganizer.descriptionField.label')"
+          :description="$t('block.recordOrganizer.descriptionField.footnote')"
+        >
+          <CInputModuleField v-model="descriptionField" :module="selectedModule" />
+        </CFormGroup>
 
-      <CFormGroup
-        :label="$t('block.recordOrganizer.groupField.label')"
-        :description="$t('block.recordOrganizer.groupField.footnote')"
-      >
-        <CInputModuleField v-model="groupField" :module="selectedModule" />
-      </CFormGroup>
+        <CFormGroup
+          :label="$t('block.recordOrganizer.positionField.label')"
+          :description="$t('block.recordOrganizer.positionField.footnote')"
+        >
+          <CInputModuleField
+            v-model="positionField"
+            :module="selectedModule"
+            :kinds="['Number']"
+            :placeholder="$t('block.recordOrganizer.positionField.placeholder')"
+          />
+        </CFormGroup>
 
-      <CFormGroup
-        v-if="groupField"
-        :label="$t('block.recordOrganizer.group.label')"
-        :description="$t('block.recordOrganizer.group.footnote')"
-      >
-        <InputText v-model="group" class="w-full" />
-      </CFormGroup>
+        <CFormGroup
+          :label="$t('block.recordOrganizer.groupField.label')"
+          :description="$t('block.recordOrganizer.groupField.footnote')"
+        >
+          <CInputModuleField v-model="groupField" :module="selectedModule" />
+        </CFormGroup>
+      </Fieldset>
 
-      <CFormGroup :label="$t('block.recordOrganizer.displayOption.label')">
-        <Select
-          v-model="displayOption"
-          :options="displayOptions"
-          option-label="label"
-          option-value="value"
-          class="w-full"
-        />
-      </CFormGroup>
+      <Divider />
 
-      <CFormGroup
-        :label="$t('block.recordOrganizer.prefilter.label')"
-        :description="$t('block.recordOrganizer.prefilter.footnote')"
-      >
-        <CInputExpression
-          ref="prefilterInput"
-          v-model="prefilter"
-          dialect="ql"
-          :scope="scope"
-          :query-fields="queryFields"
-          :placeholder="$t('block.recordOrganizer.prefilter.placeholder')"
-        />
-        <CExpressionHint :scope="scope" @insert="prefilterInput?.insert($event)" />
-      </CFormGroup>
+      <Fieldset :legend="$t('block.recordOrganizer.behaviour')">
+        <CFormGroup
+          v-if="groupField"
+          :label="$t('block.recordOrganizer.group.label')"
+          :description="$t('block.recordOrganizer.group.footnote')"
+        >
+          <InputText v-model="group" class="w-full" />
+        </CFormGroup>
+
+        <CFormGroup :label="$t('block.recordOrganizer.displayOption.label')">
+          <Select
+            v-model="displayOption"
+            :options="displayOptions"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          />
+        </CFormGroup>
+
+        <CFormGroup
+          :label="$t('block.recordOrganizer.prefilter.label')"
+          :description="$t('block.recordOrganizer.prefilter.footnote')"
+        >
+          <CInputExpression
+            ref="prefilterInput"
+            v-model="prefilter"
+            dialect="ql"
+            :scope="scope"
+            :query-fields="queryFields"
+            :placeholder="$t('block.recordOrganizer.prefilter.placeholder')"
+          />
+          <CExpressionHint :scope="scope" @insert="prefilterInput?.insert($event)" />
+        </CFormGroup>
+      </Fieldset>
     </template>
   </div>
 </template>

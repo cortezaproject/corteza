@@ -18,30 +18,40 @@
       />
     </CFormGroup>
 
-    <CFormGroup :label="$t('block.chatbotInbox.config.status')">
-      <div class="flex flex-wrap gap-3">
-        <div v-for="s in statusChoices" :key="s.value" class="flex items-center gap-2">
-          <Checkbox v-model="statusFilter" :input-id="`cb-inbox-st-${s.value}`" :value="s.value" />
-          <label :for="`cb-inbox-st-${s.value}`" class="text-sm">
-            {{ s.label }}
+    <Divider />
+
+    <Fieldset :legend="$t('block.chatbotInbox.config.display')">
+      <div class="flex flex-col gap-3">
+        <CFormGroup :label="$t('block.chatbotInbox.config.status')">
+          <div class="flex flex-wrap gap-3">
+            <div v-for="s in statusChoices" :key="s.value" class="flex items-center gap-2">
+              <Checkbox
+                v-model="statusFilter"
+                :input-id="`cb-inbox-st-${s.value}`"
+                :value="s.value"
+              />
+              <label :for="`cb-inbox-st-${s.value}`" class="text-sm">
+                {{ s.label }}
+              </label>
+            </div>
+          </div>
+        </CFormGroup>
+
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="autoOpenFirst" :binary="true" input-id="cb-inbox-auto" />
+          <label for="cb-inbox-auto" class="text-sm">
+            {{ $t('block.chatbotInbox.config.autoOpen') }}
+          </label>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="showFilter" :binary="true" input-id="cb-inbox-show-filter" />
+          <label for="cb-inbox-show-filter" class="text-sm">
+            {{ $t('block.chatbotInbox.config.showFilter') }}
           </label>
         </div>
       </div>
-    </CFormGroup>
-
-    <div class="flex items-center gap-2">
-      <Checkbox v-model="autoOpenFirst" :binary="true" input-id="cb-inbox-auto" />
-      <label for="cb-inbox-auto" class="text-sm">
-        {{ $t('block.chatbotInbox.config.autoOpen') }}
-      </label>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <Checkbox v-model="showFilter" :binary="true" input-id="cb-inbox-show-filter" />
-      <label for="cb-inbox-show-filter" class="text-sm">
-        {{ $t('block.chatbotInbox.config.showFilter') }}
-      </label>
-    </div>
+    </Fieldset>
   </div>
 </template>
 

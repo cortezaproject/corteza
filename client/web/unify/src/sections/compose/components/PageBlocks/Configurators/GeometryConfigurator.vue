@@ -119,33 +119,35 @@
               />
             </CFormGroup>
 
-            <CFormGroup :label="$t('block.geometry.feedGeometryField')" required>
-              <CInputModuleField
-                :model-value="feed.geometryField || ''"
-                :module-i-d="feed.options?.moduleID"
-                :kinds="['Geometry']"
-                :disabled="!feed.options?.moduleID"
-                @update:model-value="updateFeed(i, 'geometryField', $event || '')"
-              />
-            </CFormGroup>
+            <template v-if="feed.options?.moduleID">
+              <CFormGroup :label="$t('block.geometry.feedGeometryField')" required>
+                <CInputModuleField
+                  :model-value="feed.geometryField || ''"
+                  :module-i-d="feed.options?.moduleID"
+                  :kinds="['Geometry']"
+                  :disabled="!feed.options?.moduleID"
+                  @update:model-value="updateFeed(i, 'geometryField', $event || '')"
+                />
+              </CFormGroup>
 
-            <CFormGroup :label="$t('block.geometry.feedTitleField')">
-              <CInputModuleField
-                :model-value="feed.titleField || ''"
-                :module-i-d="feed.options?.moduleID"
-                :kinds="['String', 'Email', 'Url']"
-                :disabled="!feed.options?.moduleID"
-                @update:model-value="updateFeed(i, 'titleField', $event || '')"
-              />
-            </CFormGroup>
+              <CFormGroup :label="$t('block.geometry.feedTitleField')">
+                <CInputModuleField
+                  :model-value="feed.titleField || ''"
+                  :module-i-d="feed.options?.moduleID"
+                  :kinds="['String', 'Email', 'Url']"
+                  :disabled="!feed.options?.moduleID"
+                  @update:model-value="updateFeed(i, 'titleField', $event || '')"
+                />
+              </CFormGroup>
 
-            <CFormGroup :label="$t('block.geometry.feedColor')">
-              <CInputColorPicker
-                :model-value="feed.options?.color || getPrimaryColor()"
-                show-text
-                @update:model-value="updateFeedOption(i, 'color', $event)"
-              />
-            </CFormGroup>
+              <CFormGroup :label="$t('block.geometry.feedColor')">
+                <CInputColorPicker
+                  :model-value="feed.options?.color || getPrimaryColor()"
+                  show-text
+                  @update:model-value="updateFeedOption(i, 'color', $event)"
+                />
+              </CFormGroup>
+            </template>
           </div>
 
           <CFormGroup :label="$t('block.geometry.feedPrefilter')">

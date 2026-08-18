@@ -124,60 +124,62 @@
                 />
               </CFormGroup>
 
-              <CFormGroup :label="$t('block.calendar.recordFeed.titleLabel')">
-                <CInputModuleField
-                  v-model="feed.titleField"
-                  :module-i-d="feed.options?.moduleID"
-                  :kinds="['String', 'Email', 'Url']"
-                  :placeholder="$t('block.calendar.recordFeed.titlePlaceholder')"
-                  :disabled="!feed.options?.moduleID"
-                />
-              </CFormGroup>
+              <template v-if="feed.options?.moduleID">
+                <CFormGroup :label="$t('block.calendar.recordFeed.titleLabel')">
+                  <CInputModuleField
+                    v-model="feed.titleField"
+                    :module-i-d="feed.options?.moduleID"
+                    :kinds="['String', 'Email', 'Url']"
+                    :placeholder="$t('block.calendar.recordFeed.titlePlaceholder')"
+                    :disabled="!feed.options?.moduleID"
+                  />
+                </CFormGroup>
 
-              <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')" required>
-                <CInputModuleField
-                  v-model="feed.startField"
-                  :module-i-d="feed.options?.moduleID"
-                  :kinds="['DateTime']"
-                  exclude-multi
-                  include-system
-                  :placeholder="$t('block.calendar.recordFeed.eventStartFieldPlaceholder')"
-                  :disabled="!feed.options?.moduleID"
-                />
-              </CFormGroup>
+                <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')" required>
+                  <CInputModuleField
+                    v-model="feed.startField"
+                    :module-i-d="feed.options?.moduleID"
+                    :kinds="['DateTime']"
+                    exclude-multi
+                    include-system
+                    :placeholder="$t('block.calendar.recordFeed.eventStartFieldPlaceholder')"
+                    :disabled="!feed.options?.moduleID"
+                  />
+                </CFormGroup>
 
-              <CFormGroup :label="$t('block.calendar.recordFeed.eventEndFieldLabel')">
-                <CInputModuleField
-                  v-model="feed.endField"
-                  :module-i-d="feed.options?.moduleID"
-                  :kinds="['DateTime']"
-                  exclude-multi
-                  include-system
-                  :placeholder="$t('block.calendar.recordFeed.eventEndFieldPlaceholder')"
-                  :disabled="!feed.options?.moduleID || feed.allDay"
-                />
-                <div class="flex items-center gap-2 mt-1">
-                  <Checkbox v-model="feed.allDay" :input-id="`all-day-${i}`" binary />
-                  <label :for="`all-day-${i}`" class="text-sm">
-                    {{ $t('block.calendar.recordFeed.eventAllDay') }}
-                  </label>
-                </div>
-              </CFormGroup>
+                <CFormGroup :label="$t('block.calendar.recordFeed.eventEndFieldLabel')">
+                  <CInputModuleField
+                    v-model="feed.endField"
+                    :module-i-d="feed.options?.moduleID"
+                    :kinds="['DateTime']"
+                    exclude-multi
+                    include-system
+                    :placeholder="$t('block.calendar.recordFeed.eventEndFieldPlaceholder')"
+                    :disabled="!feed.options?.moduleID || feed.allDay"
+                  />
+                  <div class="flex items-center gap-2 mt-1">
+                    <Checkbox v-model="feed.allDay" :input-id="`all-day-${i}`" binary />
+                    <label :for="`all-day-${i}`" class="text-sm">
+                      {{ $t('block.calendar.recordFeed.eventAllDay') }}
+                    </label>
+                  </div>
+                </CFormGroup>
 
-              <CFormGroup
-                :label="$t('block.calendar.recordFeed.prefilterLabel')"
-                class="md:col-span-2"
-              >
-                <CInputExpression
-                  :ref="el => (prefilterInputs[i] = el)"
-                  v-model="feed.options.prefilter"
-                  dialect="ql"
-                  :scope="scope"
-                  :query-fields="moduleFields(feed.options?.moduleID)"
-                  :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
-                />
-                <CExpressionHint :scope="scope" @insert="prefilterInputs[i]?.insert($event)" />
-              </CFormGroup>
+                <CFormGroup
+                  :label="$t('block.calendar.recordFeed.prefilterLabel')"
+                  class="md:col-span-2"
+                >
+                  <CInputExpression
+                    :ref="el => (prefilterInputs[i] = el)"
+                    v-model="feed.options.prefilter"
+                    dialect="ql"
+                    :scope="scope"
+                    :query-fields="moduleFields(feed.options?.moduleID)"
+                    :placeholder="$t('block.calendar.recordFeed.prefilterPlaceholder')"
+                  />
+                  <CExpressionHint :scope="scope" @insert="prefilterInputs[i]?.insert($event)" />
+                </CFormGroup>
+              </template>
             </template>
 
             <CFormGroup :label="$t('block.calendar.colorLabel')">

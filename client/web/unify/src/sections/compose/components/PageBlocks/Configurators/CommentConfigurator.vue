@@ -9,108 +9,116 @@
     </CFormGroup>
 
     <template v-if="selectedModule">
-      <CFormGroup :label="$t('block.recordList.record.prefilterLabel')">
-        <CInputExpression
-          ref="filterInput"
-          v-model="options.filter"
-          dialect="ql"
-          :scope="scope"
-          :query-fields="queryFields"
-          :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
-        />
-        <CExpressionHint :scope="scope" @insert="filterInput?.insert($event)" />
-      </CFormGroup>
+      <Divider />
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <CFormGroup
-          :label="$t('block.comment.titleField.label')"
-          :description="$t('block.comment.titleField.footnote')"
-        >
-          <CInputModuleField
-            v-model="options.titleField"
-            :module="selectedModule"
-            :kinds="['String']"
-            exclude-multi
-            :placeholder="$t('general.label.none')"
+      <Fieldset :legend="$t('block.recordList.record.prefilterLabel')">
+        <CFormGroup :label="$t('block.recordList.record.prefilterLabel')">
+          <CInputExpression
+            ref="filterInput"
+            v-model="options.filter"
+            dialect="ql"
+            :scope="scope"
+            :query-fields="queryFields"
+            :placeholder="$t('block.recordList.record.prefilterPlaceholder')"
           />
+          <CExpressionHint :scope="scope" @insert="filterInput?.insert($event)" />
         </CFormGroup>
+      </Fieldset>
 
-        <CFormGroup
-          :label="$t('block.comment.contentField.label')"
-          :description="$t('block.comment.contentField.footnote')"
-          required
-        >
-          <CInputModuleField
-            v-model="options.contentField"
-            :module="selectedModule"
-            :kinds="['String']"
-            exclude-multi
-            :placeholder="$t('general.label.none')"
-          />
-        </CFormGroup>
+      <Divider />
 
-        <CFormGroup
-          :label="$t('block.comment.replyField.label')"
-          :description="$t('block.comment.replyField.footnote')"
-        >
-          <CInputModuleField
-            v-model="options.replyField"
-            :module="selectedModule"
-            :kinds="['Record']"
-            :placeholder="$t('general.label.none')"
-          />
-        </CFormGroup>
+      <Fieldset :legend="$t('block.comment.fieldMapping')">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CFormGroup
+            :label="$t('block.comment.titleField.label')"
+            :description="$t('block.comment.titleField.footnote')"
+          >
+            <CInputModuleField
+              v-model="options.titleField"
+              :module="selectedModule"
+              :kinds="['String']"
+              exclude-multi
+              :placeholder="$t('general.label.none')"
+            />
+          </CFormGroup>
 
-        <CFormGroup
-          :label="$t('block.comment.referenceField.label')"
-          :description="$t('block.comment.referenceField.footnote')"
-        >
-          <CInputModuleField
-            v-model="options.referenceField"
-            :module="selectedModule"
-            :kinds="['Record']"
-            :placeholder="$t('general.label.none')"
-          />
-        </CFormGroup>
+          <CFormGroup
+            :label="$t('block.comment.contentField.label')"
+            :description="$t('block.comment.contentField.footnote')"
+            required
+          >
+            <CInputModuleField
+              v-model="options.contentField"
+              :module="selectedModule"
+              :kinds="['String']"
+              exclude-multi
+              :placeholder="$t('general.label.none')"
+            />
+          </CFormGroup>
 
-        <CFormGroup
-          :label="$t('block.comment.attachmentField.label')"
-          :description="$t('block.comment.attachmentField.footnote')"
-        >
-          <CInputModuleField
-            v-model="options.attachmentField"
-            :module="selectedModule"
-            :kinds="['File']"
-            :placeholder="$t('general.label.none')"
-          />
-        </CFormGroup>
+          <CFormGroup
+            :label="$t('block.comment.replyField.label')"
+            :description="$t('block.comment.replyField.footnote')"
+          >
+            <CInputModuleField
+              v-model="options.replyField"
+              :module="selectedModule"
+              :kinds="['Record']"
+              :placeholder="$t('general.label.none')"
+            />
+          </CFormGroup>
 
-        <CFormGroup
-          :label="$t('block.comment.sortDirection.label')"
-          :description="$t('block.comment.sortDirection.footnote')"
-        >
-          <Select
-            v-model="options.sortDirection"
-            :options="sortDirections"
-            option-label="label"
-            option-value="value"
-            class="w-full"
-          />
-        </CFormGroup>
+          <CFormGroup
+            :label="$t('block.comment.referenceField.label')"
+            :description="$t('block.comment.referenceField.footnote')"
+          >
+            <CInputModuleField
+              v-model="options.referenceField"
+              :module="selectedModule"
+              :kinds="['Record']"
+              :placeholder="$t('general.label.none')"
+            />
+          </CFormGroup>
 
-        <CFormGroup
-          :label="$t('block.comment.reactionsField.label')"
-          :description="$t('block.comment.reactionsField.footnote')"
-        >
-          <CInputModuleField
-            v-model="options.reactionsField"
-            :module="selectedModule"
-            :kinds="['String']"
-            exclude-multi
-            :placeholder="$t('general.label.none')"
-          />
-        </CFormGroup>
-      </div>
+          <CFormGroup
+            :label="$t('block.comment.attachmentField.label')"
+            :description="$t('block.comment.attachmentField.footnote')"
+          >
+            <CInputModuleField
+              v-model="options.attachmentField"
+              :module="selectedModule"
+              :kinds="['File']"
+              :placeholder="$t('general.label.none')"
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('block.comment.sortDirection.label')"
+            :description="$t('block.comment.sortDirection.footnote')"
+          >
+            <Select
+              v-model="options.sortDirection"
+              :options="sortDirections"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+            />
+          </CFormGroup>
+
+          <CFormGroup
+            :label="$t('block.comment.reactionsField.label')"
+            :description="$t('block.comment.reactionsField.footnote')"
+          >
+            <CInputModuleField
+              v-model="options.reactionsField"
+              :module="selectedModule"
+              :kinds="['String']"
+              exclude-multi
+              :placeholder="$t('general.label.none')"
+            />
+          </CFormGroup>
+        </div>
+      </Fieldset>
     </template>
   </div>
 </template>

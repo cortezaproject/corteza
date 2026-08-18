@@ -49,7 +49,15 @@ A new block kind needs all three: Block component + registry entry + Configurato
 (plus its import/case in Builder.vue) — miss one and the kind renders the
 "no configuration" fallback or is unconfigurable. A kind that cannot render
 without an option states so in its class's `validate()` (lib/js) and marks the
-control `required`; the builder does the rest. Block IDs may be temp
+control `required`; the builder does the rest.
+
+Three house rules keep the eighteen reading as one surface: a configurator picks
+a module with `CInputModule` and a field with `CInputModuleField` rather than
+building option lists (labelling, system fields and the name fallback live
+there); a boolean is a `CInputToggleCard` when it carries a description and a
+plain `Checkbox` when it is one of a compact group of sibling flags; and
+anything downstream of a module choice appears once the module is chosen rather
+than sitting there disabled. Block IDs may be temp
 (`meta.tempID`) before save; Grid keys/rebuilds on `getBlockId`, so keep it stable.
 `meta.hidden` blocks are filtered out before layout. Grid CSS comments encode
 hard-won gridstack workarounds — read them before restyling.

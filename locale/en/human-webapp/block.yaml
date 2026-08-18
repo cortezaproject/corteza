@@ -193,6 +193,7 @@ chatbotInbox:
     chatbots: Chatbots
     chatbotsHint: Sessions from these chatbots show up in the inbox.
     chatbotsPlaceholder: Select chatbots to monitor
+    display: What the inbox shows
     showFilter: Show filter
     status: Status filter
   confirmAcceptHeader: Accept handoff
@@ -241,6 +242,7 @@ comment:
   contentField:
     footnote: Field value will be used as record content
     label: Content field
+  fieldMapping: Field mapping
   invalidOwnerVar: 'Can not use {0} variable in non-record pages'
   invalidRecordVar: 'Can not use {0} variable in non-record pages'
   label: Comments
@@ -1211,6 +1213,8 @@ recordList:
   unselectAllRecords: Clear selection
 recordOrganizer:
   addNewRecord: + Add
+  behaviour: Behaviour
+  cardFields: Card fields
   descriptionField:
     footnote: Field value will be used as record description
     label: Description field

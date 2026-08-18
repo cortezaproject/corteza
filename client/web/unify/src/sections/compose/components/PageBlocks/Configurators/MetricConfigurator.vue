@@ -54,189 +54,194 @@
                   @update:model-value="onModuleChange(metric, $event)"
                 />
               </CFormGroup>
-
-              <CFormGroup :label="$t('block.metric.edit.metricFieldLabel')">
-                <CInputModuleField
-                  :model-value="metric.metricField"
-                  :module-i-d="metric.moduleID"
-                  :kinds="['Number']"
-                  :extra-options="countOption"
-                  :placeholder="$t('block.metric.edit.metricFieldSelect')"
-                  :disabled="!metric.moduleID"
-                  @update:model-value="onMetricFieldChange(metric, $event)"
-                />
-              </CFormGroup>
-
-              <CFormGroup :label="$t('block.metric.edit.metricAggregateLabel')">
-                <Select
-                  v-model="metric.operation"
-                  :options="aggregationOperations"
-                  option-label="label"
-                  option-value="operation"
-                  class="w-full"
-                  :placeholder="$t('block.metric.edit.metricSelectAggregate')"
-                  :disabled="metric.metricField === 'count'"
-                />
-              </CFormGroup>
-
-              <CFormGroup
-                :label="$t('block.metric.edit.transformFunctionLabel')"
-                :description="$t('block.metric.edit.transformFunctionDescription')"
-                class="md:col-span-2"
-              >
-                <InputText v-model="metric.transformFx" class="w-full" placeholder="v" />
-              </CFormGroup>
-
-              <CFormGroup :label="$t('block.metric.edit.numberFormat')">
-                <InputText v-model="metric.numberFormat" class="w-full" placeholder="0,0.00" />
-              </CFormGroup>
-
-              <CFormGroup :label="$t('block.metric.edit.prefixLabel')">
-                <InputText v-model="metric.prefix" class="w-full" placeholder="$" />
-              </CFormGroup>
-
-              <CFormGroup :label="$t('block.metric.edit.suffixLabel')">
-                <InputText v-model="metric.suffix" class="w-full" placeholder="USD/mo" />
-              </CFormGroup>
-
-              <CFormGroup
-                :label="$t('block.metric.edit.filterLabel')"
-                :description="$t('block.metric.edit.filterFootnote')"
-                class="md:col-span-2"
-              >
-                <CInputExpression
-                  :ref="el => (filterInputs[i] = el)"
-                  v-model="metric.filter"
-                  dialect="ql"
-                  :scope="scope"
-                  :query-fields="moduleFields(metric.moduleID)"
-                  :placeholder="$t('block.metric.edit.filterPlaceholder')"
-                />
-                <CExpressionHint :scope="scope" @insert="filterInputs[i]?.insert($event)" />
-              </CFormGroup>
             </div>
 
-            <Divider />
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <CFormGroup :label="$t('block.metric.editStyle.color')">
-                <div class="flex items-center gap-2">
-                  <CInputColorPicker
-                    :model-value="metric.valueStyle?.color || ''"
-                    :default-value="defaultTextColor"
-                    show-text
-                    :empty-label="$t('block.metric.editStyle.default')"
-                    @update:model-value="onStyleChange(metric, 'color', $event)"
-                  />
-                  <Button
-                    icon="pi pi-undo"
-                    severity="secondary"
-                    text
-                    rounded
-                    size="small"
-                    :title="$t('block.metric.editStyle.resetToDefault')"
-                    @click="onStyleChange(metric, 'color', '')"
-                  />
-                </div>
-              </CFormGroup>
-
-              <CFormGroup :label="$t('block.metric.editStyle.backgroundColor')">
-                <div class="flex items-center gap-2">
-                  <CInputColorPicker
-                    :model-value="metric.valueStyle?.backgroundColor || ''"
-                    show-text
-                    :empty-label="$t('block.metric.editStyle.default')"
-                    @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
-                  />
-                  <Button
-                    icon="pi pi-undo"
-                    severity="secondary"
-                    text
-                    rounded
-                    size="small"
-                    :title="$t('block.metric.editStyle.resetToDefault')"
-                    @click="onStyleChange(metric, 'backgroundColor', '')"
-                  />
-                </div>
-              </CFormGroup>
-            </div>
-
-            <Divider />
-
-            <div class="flex flex-col gap-3">
-              <div class="flex items-center gap-2">
-                <Checkbox
-                  :model-value="metric.comparison?.enabled || false"
-                  binary
-                  :input-id="`comparison-enabled-${i}`"
-                  @update:model-value="onComparisonChange(metric, 'enabled', $event)"
-                />
-                <label :for="`comparison-enabled-${i}`" class="text-sm">
-                  {{ $t('block.metric.comparison.enabled') }}
-                </label>
-              </div>
-
-              <template v-if="metric.comparison?.enabled">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <CFormGroup :label="$t('block.metric.comparison.period')">
-                    <Select
-                      :model-value="metric.comparison?.period || 'month'"
-                      :options="comparisonPeriods"
-                      option-label="label"
-                      option-value="value"
-                      class="w-full"
-                      @update:model-value="onComparisonChange(metric, 'period', $event)"
-                    />
-                  </CFormGroup>
-
-                  <CFormGroup :label="$t('block.metric.comparison.customFilter')">
-                    <CInputExpression
-                      :ref="el => (comparisonFilterInputs[i] = el)"
-                      :model-value="metric.comparison?.customFilter || ''"
-                      dialect="ql"
-                      :scope="scope"
-                      :query-fields="moduleFields(metric.moduleID)"
-                      :placeholder="$t('block.metric.edit.filterPlaceholder')"
-                      @update:model-value="onComparisonChange(metric, 'customFilter', $event)"
-                    />
-                    <CExpressionHint
-                      :scope="scope"
-                      @insert="comparisonFilterInputs[i]?.insert($event)"
-                    />
-                  </CFormGroup>
-                </div>
-              </template>
-            </div>
-
-            <Divider />
-
-            <div class="flex flex-col gap-3">
-              <div class="flex items-center gap-2">
-                <Checkbox
-                  :model-value="metric.drillDown?.enabled || false"
-                  binary
-                  :input-id="`drilldown-enabled-${i}`"
-                  @update:model-value="onDrillDownChange(metric, 'enabled', $event)"
-                />
-                <label :for="`drilldown-enabled-${i}`" class="text-sm">
-                  {{ $t('block.metric.drillDown.enabled') }}
-                </label>
-              </div>
-
-              <template v-if="metric.drillDown?.enabled">
-                <CFormGroup
-                  :label="$t('block.metric.drillDown.blockID')"
-                  :description="$t('block.metric.drillDown.blockIDFootnote')"
-                >
-                  <InputText
-                    :model-value="metric.drillDown?.blockID || ''"
-                    :placeholder="$t('block.metric.drillDown.blockIDPlaceholder')"
-                    class="w-full"
-                    @update:model-value="onDrillDownChange(metric, 'blockID', $event)"
+            <!-- Nothing below reads without a module, so it appears with one. -->
+            <template v-if="metric.moduleID">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <CFormGroup :label="$t('block.metric.edit.metricFieldLabel')">
+                  <CInputModuleField
+                    :model-value="metric.metricField"
+                    :module-i-d="metric.moduleID"
+                    :kinds="['Number']"
+                    :extra-options="countOption"
+                    :placeholder="$t('block.metric.edit.metricFieldSelect')"
+                    :disabled="!metric.moduleID"
+                    @update:model-value="onMetricFieldChange(metric, $event)"
                   />
                 </CFormGroup>
-              </template>
-            </div>
+
+                <CFormGroup :label="$t('block.metric.edit.metricAggregateLabel')">
+                  <Select
+                    v-model="metric.operation"
+                    :options="aggregationOperations"
+                    option-label="label"
+                    option-value="operation"
+                    class="w-full"
+                    :placeholder="$t('block.metric.edit.metricSelectAggregate')"
+                    :disabled="metric.metricField === 'count'"
+                  />
+                </CFormGroup>
+
+                <CFormGroup
+                  :label="$t('block.metric.edit.transformFunctionLabel')"
+                  :description="$t('block.metric.edit.transformFunctionDescription')"
+                  class="md:col-span-2"
+                >
+                  <InputText v-model="metric.transformFx" class="w-full" placeholder="v" />
+                </CFormGroup>
+
+                <CFormGroup :label="$t('block.metric.edit.numberFormat')">
+                  <InputText v-model="metric.numberFormat" class="w-full" placeholder="0,0.00" />
+                </CFormGroup>
+
+                <CFormGroup :label="$t('block.metric.edit.prefixLabel')">
+                  <InputText v-model="metric.prefix" class="w-full" placeholder="$" />
+                </CFormGroup>
+
+                <CFormGroup :label="$t('block.metric.edit.suffixLabel')">
+                  <InputText v-model="metric.suffix" class="w-full" placeholder="USD/mo" />
+                </CFormGroup>
+
+                <CFormGroup
+                  :label="$t('block.metric.edit.filterLabel')"
+                  :description="$t('block.metric.edit.filterFootnote')"
+                  class="md:col-span-2"
+                >
+                  <CInputExpression
+                    :ref="el => (filterInputs[i] = el)"
+                    v-model="metric.filter"
+                    dialect="ql"
+                    :scope="scope"
+                    :query-fields="moduleFields(metric.moduleID)"
+                    :placeholder="$t('block.metric.edit.filterPlaceholder')"
+                  />
+                  <CExpressionHint :scope="scope" @insert="filterInputs[i]?.insert($event)" />
+                </CFormGroup>
+              </div>
+
+              <Divider />
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <CFormGroup :label="$t('block.metric.editStyle.color')">
+                  <div class="flex items-center gap-2">
+                    <CInputColorPicker
+                      :model-value="metric.valueStyle?.color || ''"
+                      :default-value="defaultTextColor"
+                      show-text
+                      :empty-label="$t('block.metric.editStyle.default')"
+                      @update:model-value="onStyleChange(metric, 'color', $event)"
+                    />
+                    <Button
+                      icon="pi pi-undo"
+                      severity="secondary"
+                      text
+                      rounded
+                      size="small"
+                      :title="$t('block.metric.editStyle.resetToDefault')"
+                      @click="onStyleChange(metric, 'color', '')"
+                    />
+                  </div>
+                </CFormGroup>
+
+                <CFormGroup :label="$t('block.metric.editStyle.backgroundColor')">
+                  <div class="flex items-center gap-2">
+                    <CInputColorPicker
+                      :model-value="metric.valueStyle?.backgroundColor || ''"
+                      show-text
+                      :empty-label="$t('block.metric.editStyle.default')"
+                      @update:model-value="onStyleChange(metric, 'backgroundColor', $event)"
+                    />
+                    <Button
+                      icon="pi pi-undo"
+                      severity="secondary"
+                      text
+                      rounded
+                      size="small"
+                      :title="$t('block.metric.editStyle.resetToDefault')"
+                      @click="onStyleChange(metric, 'backgroundColor', '')"
+                    />
+                  </div>
+                </CFormGroup>
+              </div>
+
+              <Divider />
+
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-2">
+                  <Checkbox
+                    :model-value="metric.comparison?.enabled || false"
+                    binary
+                    :input-id="`comparison-enabled-${i}`"
+                    @update:model-value="onComparisonChange(metric, 'enabled', $event)"
+                  />
+                  <label :for="`comparison-enabled-${i}`" class="text-sm">
+                    {{ $t('block.metric.comparison.enabled') }}
+                  </label>
+                </div>
+
+                <template v-if="metric.comparison?.enabled">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <CFormGroup :label="$t('block.metric.comparison.period')">
+                      <Select
+                        :model-value="metric.comparison?.period || 'month'"
+                        :options="comparisonPeriods"
+                        option-label="label"
+                        option-value="value"
+                        class="w-full"
+                        @update:model-value="onComparisonChange(metric, 'period', $event)"
+                      />
+                    </CFormGroup>
+
+                    <CFormGroup :label="$t('block.metric.comparison.customFilter')">
+                      <CInputExpression
+                        :ref="el => (comparisonFilterInputs[i] = el)"
+                        :model-value="metric.comparison?.customFilter || ''"
+                        dialect="ql"
+                        :scope="scope"
+                        :query-fields="moduleFields(metric.moduleID)"
+                        :placeholder="$t('block.metric.edit.filterPlaceholder')"
+                        @update:model-value="onComparisonChange(metric, 'customFilter', $event)"
+                      />
+                      <CExpressionHint
+                        :scope="scope"
+                        @insert="comparisonFilterInputs[i]?.insert($event)"
+                      />
+                    </CFormGroup>
+                  </div>
+                </template>
+              </div>
+
+              <Divider />
+
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-2">
+                  <Checkbox
+                    :model-value="metric.drillDown?.enabled || false"
+                    binary
+                    :input-id="`drilldown-enabled-${i}`"
+                    @update:model-value="onDrillDownChange(metric, 'enabled', $event)"
+                  />
+                  <label :for="`drilldown-enabled-${i}`" class="text-sm">
+                    {{ $t('block.metric.drillDown.enabled') }}
+                  </label>
+                </div>
+
+                <template v-if="metric.drillDown?.enabled">
+                  <CFormGroup
+                    :label="$t('block.metric.drillDown.blockID')"
+                    :description="$t('block.metric.drillDown.blockIDFootnote')"
+                  >
+                    <InputText
+                      :model-value="metric.drillDown?.blockID || ''"
+                      :placeholder="$t('block.metric.drillDown.blockIDPlaceholder')"
+                      class="w-full"
+                      @update:model-value="onDrillDownChange(metric, 'blockID', $event)"
+                    />
+                  </CFormGroup>
+                </template>
+              </div>
+            </template>
           </div>
         </template>
       </CFormList>
