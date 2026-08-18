@@ -67,7 +67,7 @@ type (
 	}
 
 	recordValuesSanitizer interface {
-		Run(*types.Module, types.RecordValueSet) types.RecordValueSet
+		Run(*types.Module, types.RecordValueSet, *types.RecordValueErrorSet) types.RecordValueSet
 		RunXSS(*types.Module, types.RecordValueSet) types.RecordValueSet
 	}
 
@@ -1139,9 +1139,9 @@ func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitize
 	// Before values are processed further and
 	// sent to automation scripts (if any)
 	// we need to make sure it does not get un-sanitized data
-	new.Values = ss.Run(m, new.Values)
-
 	rve := &types.RecordValueErrorSet{}
+	new.Values = ss.Run(m, new.Values, rve)
+
 	values.Expression(ctx, m, new, old, rve)
 
 	if !rve.IsValid() {
@@ -1151,7 +1151,7 @@ func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitize
 	// Computed values have only just been assigned, so they go through the same
 	// sanitization every other value already had — which is also what resolves a
 	// reference field's value into the ref the validators check.
-	new.Values = ss.Run(m, new.Values)
+	new.Values = ss.Run(m, new.Values, rve)
 
 	// Run validation of the updated records
 	rve = vv.Run(ctx, s, m, new)
@@ -1477,7 +1477,7 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 	// Before values are merged with existing data and
 	// sent to automation scripts (if any)
 	// we need to make sure it does not get sanitized data
-	upd.Values = svc.sanitizer.Run(m, upd.Values)
+	upd.Values = svc.sanitizer.Run(m, upd.Values, rve)
 
 	if upd.Meta == nil {
 		// meta set to nil means we need to keep the old values!
@@ -1965,12 +1965,17 @@ func (svc record) Validate(ctx context.Context, rec *types.Record) error {
 	// Values arrive from an automation script, where nothing marks them
 	// updated; both the sanitizer and the validator skip values that are not.
 	rec.Values.SetUpdatedFlag(true)
-	rec.Values = svc.sanitizer.Run(m, rec.Values)
+
+	rve := &types.RecordValueErrorSet{}
+	rec.Values = svc.sanitizer.Run(m, rec.Values, rve)
+	if !rve.IsValid() {
+		return rve
+	}
 
 	// svc.validator carries the unique and reference checkers; a bare
 	// values.Validator() skips every reference check and discards the whole
 	// error set the moment the module has a unique field.
-	if rve := svc.validator.Run(ctx, svc.store, m, rec); !rve.IsValid() {
+	if rve = svc.validator.Run(ctx, svc.store, m, rec); !rve.IsValid() {
 		return rve
 	}
 
@@ -1990,7 +1995,7 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 	}
 
 	original := r.Clone()
-	r.Values = values.Sanitizer().Run(m, rvs)
+	r.Values = values.Sanitizer().Run(m, rvs, nil)
 	validated := values.Validator().Run(ctx, svc.store, m, r)
 
 	err = corredor.Service().Exec(ctx, script, event.RecordOnManual(r, original, m, ns, validated, nil))

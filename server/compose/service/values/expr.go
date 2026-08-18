@@ -40,6 +40,14 @@ func makeValueExprKindErr(field *types.ModuleField, err error) types.RecordValue
 	}
 }
 
+func makeInvalidSanitizerExprErr(field *types.ModuleField, expr string, err error) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "sanitizerExpression",
+		Message: fmt.Sprintf("failed to evaluate sanitizer expression %q: %v", expr, err.Error()),
+		Meta:    map[string]interface{}{"field": field.Name},
+	}
+}
+
 // Expression evaluates expression in ModuleField.Expressions.Value and
 // assigns results to the record on that field
 func Expression(ctx context.Context, m *types.Module, r *types.Record, old *types.Record, rve *types.RecordValueErrorSet) {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/crusttech/human/server/compose/types"
 )
@@ -340,7 +341,7 @@ func Test_sanitizer_Run(t *testing.T) {
 			// Need to mark values as updated to trigger sanitization.
 			v.SetUpdatedFlag(true)
 			o.SetUpdatedFlag(true)
-			if sanitized := s.Run(m, v); !reflect.DeepEqual(sanitized, o) {
+			if sanitized := s.Run(m, v, nil); !reflect.DeepEqual(sanitized, o) {
 				t.Errorf("\ninput value:\n%v\n\nresult of sanitization:\n%v\n\nexpected:\n%v\n", tt.input, sanitized, o)
 			}
 		})
@@ -375,7 +376,7 @@ func TestSanitizerExpr(t *testing.T) {
 			// Need to mark values as updated to trigger sanitization.
 			v.SetUpdatedFlag(true)
 			o.SetUpdatedFlag(true)
-			if sanitized := s.Run(m, v); !reflect.DeepEqual(sanitized, o) {
+			if sanitized := s.Run(m, v, nil); !reflect.DeepEqual(sanitized, o) {
 				t.Errorf("\ninput value:\n%v\n\nresult of sanitization:\n%v\n\nexpected:\n%v\n", tt.input, sanitized, o)
 			}
 		})
@@ -399,4 +400,46 @@ func TestDatetimeSanitizer(t *testing.T) {
 			assert.New(t).Equal(tt.rval, sDatetime(tt.input, tt.onlyDate, tt.onlyTime))
 		})
 	}
+}
+
+func Test_sanitizer_brokenExpressionIsReported(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		f = &types.ModuleField{Name: "s", Kind: "String"}
+		m = &types.Module{ID: 1, Fields: types.ModuleFieldSet{f}}
+
+		rve = &types.RecordValueErrorSet{}
+	)
+
+	f.Expressions.Sanitizers = []string{"trimm(value)"}
+
+	out := Sanitizer().Run(m, types.RecordValueSet{
+		&types.RecordValue{Name: "s", Value: "  hi  ", Updated: true},
+	}, rve)
+
+	req.False(rve.IsValid(), "a sanitizer expression that cannot be evaluated went unreported")
+	req.Equal("sanitizerExpression", rve.Set[0].Kind)
+	req.Equal("s", rve.Set[0].Meta["field"])
+	req.Equal("  hi  ", out[0].Value, "value is left as it came in")
+}
+
+func Test_sanitizer_workingExpressionIsSilent(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		f = &types.ModuleField{Name: "s", Kind: "String"}
+		m = &types.Module{ID: 1, Fields: types.ModuleFieldSet{f}}
+
+		rve = &types.RecordValueErrorSet{}
+	)
+
+	f.Expressions.Sanitizers = []string{"trim(value)"}
+
+	out := Sanitizer().Run(m, types.RecordValueSet{
+		&types.RecordValue{Name: "s", Value: "  hi  ", Updated: true},
+	}, rve)
+
+	req.True(rve.IsValid())
+	req.Equal("hi", out[0].Value)
 }

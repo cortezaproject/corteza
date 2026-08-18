@@ -32,8 +32,11 @@ func Sanitizer() *sanitizer {
 //   - parse & format input values to match field specific -- nullify/falsify invalid
 //   - field kind specific, no errors raised, data is modified
 //
-// Existing data (when updating record) is not yet loaded at this point
-func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
+// # Existing data (when updating record) is not yet loaded at this point
+//
+// rve collects sanitizer-expression failures and may be nil where there is
+// nothing to report them to; the failure is logged either way.
+func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet, rve *types.RecordValueErrorSet) (out types.RecordValueSet) {
 	var (
 		exprParser = expr.Parser()
 	)
@@ -92,6 +95,14 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 						zap.String("expr", expr),
 						zap.Error(err),
 					)
+
+					// Skipping silently leaves the author of a mistyped
+					// expression with a value that was never sanitized and no
+					// sign anything went wrong.
+					if rve != nil {
+						rve.Push(makeInvalidSanitizerExprErr(f, expr, err))
+					}
+
 					continue
 				}
 				v.Value = sanitize(f, rval)

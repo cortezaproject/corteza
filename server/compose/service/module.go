@@ -876,7 +876,7 @@ func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Mo
 			return nil, err
 		}
 
-		vv = values.Sanitizer().Run(auxm, vv)
+		vv = values.Sanitizer().Run(auxm, vv, nil)
 
 		r := &types.Record{
 			Values: vv,
