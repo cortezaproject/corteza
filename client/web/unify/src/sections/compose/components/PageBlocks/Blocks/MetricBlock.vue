@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="refresh">
+  <PageBlock :block="block" :record="record" @refreshBlock="refresh">
     <div class="flex flex-col h-full">
       <template v-if="processing">
         <ProgressSpinner style="width: 24px; height: 24px" />
@@ -62,7 +62,11 @@ import { compose } from '@planetcrust/human-js'
 import numeral from 'numeral'
 import PageBlock from './PageBlock.vue'
 import MetricItem from './Metric/MetricItem.vue'
-import { evaluatePrefilter, usesRecordVariables } from '../../../lib/record-filter'
+import {
+  evaluatePrefilter,
+  interpolateDisplayString,
+  usesRecordVariables,
+} from '../../../lib/record-filter'
 const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
 
 const props = defineProps({
@@ -172,13 +176,16 @@ function computeChange(current, previous) {
   return change
 }
 
-function interpolateFilter(filter) {
-  if (!filter) return filter
+// Interpolates one templated metric option — a filter, or the transform
+// formula. Throws on a bad template so the caller can skip the whole metric
+// rather than report on a half-evaluated one.
+function interpolateTemplateOption(template) {
+  if (!template) return template
 
   const record = props.record
   const user = $Auth?.user || {}
 
-  return evaluatePrefilter(filter, {
+  return evaluatePrefilter(template, {
     record,
     user,
     recordID: record?.recordID || '0',
@@ -213,8 +220,12 @@ async function refresh() {
 
       const customFilter = m.comparison?.customFilter
 
-      if (!props.record && (usesRecordVariables(m.filter) || usesRecordVariables(customFilter))) {
-        console.warn('Skipping metric: filter uses record variables outside a record page')
+      // The transform formula is author-typed too — `v * ${record.values.rate}`
+      // is a valid metric, and reaches `new Function` uninterpolated otherwise.
+      const templated = [m.filter, customFilter, m.transformFx]
+
+      if (!props.record && templated.some(t => usesRecordVariables(t))) {
+        console.warn('Skipping metric: it uses record variables outside a record page')
         continue
       }
 
@@ -223,10 +234,14 @@ async function refresh() {
       let evaluatedMetric
       let evaluatedCustomFilter
       try {
-        evaluatedMetric = { ...m, filter: interpolateFilter(m.filter) }
-        evaluatedCustomFilter = interpolateFilter(customFilter)
+        evaluatedMetric = {
+          ...m,
+          filter: interpolateTemplateOption(m.filter),
+          transformFx: interpolateTemplateOption(m.transformFx),
+        }
+        evaluatedCustomFilter = interpolateTemplateOption(customFilter)
       } catch (e) {
-        console.warn('Skipping metric: filter interpolation failed', mi, e)
+        console.warn('Skipping metric: interpolation failed', mi, e)
         continue
       }
 
@@ -322,7 +337,11 @@ function drillDown(metric, value) {
     return
   }
 
-  const title = props.block.title || metric.label
+  const title =
+    interpolateDisplayString(props.block.title, {
+      record: props.record,
+      user: $Auth?.user || {},
+    }) || metric.label
   drillDownModalTitle.value = title ? `${title} - "${drillDownValue}"` : drillDownValue
 
   const fields = drillDownOpts.recordListOptions?.fields || []

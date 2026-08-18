@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="onManualRefresh">
+  <PageBlock :block="block" :record="record" @refreshBlock="onManualRefresh">
     <CChatbotInbox
       ref="inboxRef"
       :chatbot-i-ds="options.chatbotIDs"

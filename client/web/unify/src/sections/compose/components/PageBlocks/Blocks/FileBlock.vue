@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="resolveAttachments(rawAttachments)">
+  <PageBlock :block="block" :record="record" @refreshBlock="resolveAttachments(rawAttachments)">
     <div v-if="loading" class="flex items-center justify-center h-full p-3">
       <ProgressSpinner style="width: 2rem; height: 2rem" />
     </div>
@@ -104,6 +104,7 @@ const props = defineProps({
   block: { type: Object, required: true },
   namespace: { type: Object, default: () => ({}) },
   page: { type: Object, default: () => ({}) },
+  record: { type: Object, default: undefined },
 })
 
 const $ComposeAPI = inject('$ComposeAPI')

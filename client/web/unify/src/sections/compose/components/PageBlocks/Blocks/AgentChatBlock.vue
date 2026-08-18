@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="onManualRefresh">
+  <PageBlock :block="block" :record="record" @refreshBlock="onManualRefresh">
     <CAgentChat
       ref="chatRef"
       :translations="translations"

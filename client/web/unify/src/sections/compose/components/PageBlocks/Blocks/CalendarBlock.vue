@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="refresh">
+  <PageBlock :block="block" :record="record" @refreshBlock="refresh">
     <div class="flex flex-col h-full p-2 calendar-container">
       <!-- Custom Header -->
       <div v-if="!header.hide">

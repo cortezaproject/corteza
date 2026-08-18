@@ -424,6 +424,28 @@ export function evaluatePlacementFilter(filter, { record, user } = {}) {
   })
 }
 
+// Evaluates an author-typed string that is displayed rather than sent to the
+// server — a block title or description, a tab label, a layout's page title.
+// Where a filter must not degrade into "no filter", chrome must not degrade
+// into an error message: a template that reads a record there is none of, or
+// that fails to evaluate, renders exactly as it was authored.
+export function interpolateDisplayString(template, { record, user } = {}) {
+  if (!template) return template
+  if (!record && usesRecordVariables(template)) return template
+
+  try {
+    return evaluatePrefilter(template, {
+      record,
+      user: user || {},
+      recordID: record?.recordID || '0',
+      ownerID: record?.ownedBy || '0',
+      userID: user?.userID || '0',
+    })
+  } catch {
+    return template
+  }
+}
+
 // Removes char from end of string
 export function trimChar(text = '', char = '') {
   if (text.substring(text.length - char.length, text.length) === char) {

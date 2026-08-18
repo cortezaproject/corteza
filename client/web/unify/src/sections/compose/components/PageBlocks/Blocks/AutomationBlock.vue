@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" :record="record">
     <div v-if="buttons.length" class="flex flex-wrap gap-2 p-3">
       <Button
         v-for="(btn, i) in buttons"

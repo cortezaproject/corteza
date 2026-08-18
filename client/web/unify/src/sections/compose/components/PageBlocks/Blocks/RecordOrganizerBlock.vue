@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="pullRecords">
+  <PageBlock :block="block" :record="record" @refreshBlock="pullRecords">
     <div
       v-if="!isConfigured"
       class="flex items-center justify-center h-full p-3 text-muted-color italic"

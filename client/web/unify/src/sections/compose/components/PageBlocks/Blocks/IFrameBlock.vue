@@ -1,12 +1,12 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="refresh">
+  <PageBlock :block="block" :record="record" @refreshBlock="refresh">
     <div v-if="src !== 'about:blank'" class="h-full">
       <iframe
         :key="refreshKey"
         ref="iframeRef"
         :src="src"
         class="w-full h-full border-0"
-        :title="block.title || $t('block.iframe.label')"
+        :title="frameTitle || $t('block.iframe.label')"
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
       />
     </div>
@@ -19,7 +19,7 @@
 <script setup>
 import { computed, inject, ref } from 'vue'
 import PageBlock from './PageBlock.vue'
-import { evaluatePrefilter } from '../../../lib/record-filter'
+import { evaluatePrefilter, interpolateDisplayString } from '../../../lib/record-filter'
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -31,6 +31,15 @@ const props = defineProps({
 const $Auth = inject('$Auth', {})
 const iframeRef = ref(null)
 const refreshKey = ref(0)
+
+// The accessible name of the frame, from the same author-typed title the card
+// header shows.
+const frameTitle = computed(() =>
+  interpolateDisplayString(props.block.title, {
+    record: props.record,
+    user: $Auth?.user || {},
+  }),
+)
 
 function refresh() {
   refreshKey.value++

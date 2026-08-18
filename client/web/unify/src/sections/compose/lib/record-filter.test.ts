@@ -3,6 +3,7 @@ import {
   escapeQlString,
   evaluatePrefilter,
   evaluatePlacementFilter,
+  interpolateDisplayString,
   usesRecordVariables,
   getFieldFilter,
   getRecordListFilterSql,
@@ -465,6 +466,43 @@ describe('lib/record-filter', () => {
 
     it('falls back to a placeholder page when there is no pageID', () => {
       expect(recordListFilterStorageKey(undefined, '1')).toBe('recordListFilter-0-1')
+    })
+  })
+
+  describe('interpolateDisplayString', () => {
+    const record = { recordID: '7', ownedBy: '3', values: { name: 'Acme' } }
+    const user = { userID: '42', name: 'Ada' }
+
+    it('interpolates record and user variables', () => {
+      expect(
+        interpolateDisplayString('${record.values.name} — ${user.name}', { record, user }),
+      ).toBe('Acme — Ada')
+      expect(interpolateDisplayString('${recordID}/${ownerID}/${userID}', { record, user })).toBe(
+        '7/3/42',
+      )
+    })
+
+    it('interpolates user variables with no record', () => {
+      expect(interpolateDisplayString('Welcome, ${user.name}', { user })).toBe('Welcome, Ada')
+    })
+
+    it('renders a record template as authored when there is no record', () => {
+      expect(interpolateDisplayString('${record.values.name}', { user })).toBe(
+        '${record.values.name}',
+      )
+      expect(interpolateDisplayString('owner ${ownerID}', { user })).toBe('owner ${ownerID}')
+    })
+
+    it('renders an unparsable template as authored', () => {
+      expect(interpolateDisplayString('${record.values.name', { record, user })).toBe(
+        '${record.values.name',
+      )
+    })
+
+    it('passes empty and plain strings straight through', () => {
+      expect(interpolateDisplayString('', { record, user })).toBe('')
+      expect(interpolateDisplayString(undefined, { record, user })).toBeUndefined()
+      expect(interpolateDisplayString('Open leads', { record, user })).toBe('Open leads')
     })
   })
 })

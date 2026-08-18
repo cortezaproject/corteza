@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" :record="record">
     <div
       v-if="!tabbedBlocks.length"
       class="flex items-center justify-center h-full p-3 text-muted-color italic"
@@ -85,6 +85,7 @@ import { computed, ref, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PageBlock from './PageBlock.vue'
 import { resolveBlock } from '../registry'
+import { interpolateDisplayString } from '../../../lib/record-filter'
 
 const { t } = useI18n()
 
@@ -97,6 +98,7 @@ const props = defineProps({
   blocks: { type: Array, default: () => [] },
 })
 
+const $Auth = inject('$Auth', {})
 const pageBuilder = inject('$pageBuilder', null)
 const inEditMode = computed(() => !!pageBuilder)
 
@@ -249,7 +251,13 @@ const tabbedBlocks = computed(() => {
 
     if (!block && !title) return acc
 
-    acc.push({ block: block || null, title: title || '', lazy })
+    // Tab labels are author-typed templates, like block titles.
+    const interpolated = interpolateDisplayString(title, {
+      record: props.record,
+      user: $Auth?.user || {},
+    })
+
+    acc.push({ block: block || null, title: interpolated || '', lazy })
     return acc
   }, [])
 })

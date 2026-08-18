@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" :record="activeRecord">
     <div v-if="loading" class="flex items-center justify-center h-full p-5">
       <ProgressSpinner style="width: 28px; height: 28px" />
     </div>

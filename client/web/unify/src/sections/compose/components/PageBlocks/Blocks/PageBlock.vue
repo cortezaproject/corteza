@@ -4,7 +4,7 @@
       <div class="flex items-center gap-2">
         <div class="flex-1 truncate">
           <slot name="title">
-            {{ block.title }}
+            {{ blockTitle }}
           </slot>
         </div>
 
@@ -34,7 +34,7 @@
     </template>
     <template v-if="$slots.subtitle || block.description" #subtitle>
       <slot name="subtitle">
-        {{ block.description }}
+        {{ blockDescription }}
       </slot>
     </template>
     <template #content>
@@ -64,7 +64,7 @@
   >
     <template #header>
       <div class="flex items-center flex-1 min-w-0 pr-2">
-        <span class="font-semibold text-lg truncate">{{ block.title }}</span>
+        <span class="font-semibold text-lg truncate">{{ blockTitle }}</span>
         <Button
           v-if="block.options?.showRefresh"
           v-tooltip.bottom="$t('block.general.label.refresh')"
@@ -93,7 +93,8 @@
 </template>
 
 <script setup>
-import { computed, ref, useSlots, watch, onBeforeUnmount } from 'vue'
+import { computed, inject, ref, useSlots, watch, onBeforeUnmount } from 'vue'
+import { interpolateDisplayString } from '../../../lib/record-filter'
 
 defineOptions({ inheritAttrs: false })
 
@@ -106,7 +107,28 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  // The record the block is rendered against, on a record page. Title and
+  // description are author-typed templates that may read it.
+  record: {
+    type: Object,
+    default: undefined,
+  },
 })
+
+const $Auth = inject('$Auth', {})
+
+const interpolationContext = computed(() => ({
+  record: props.record,
+  user: $Auth?.user || {},
+}))
+
+const blockTitle = computed(() =>
+  interpolateDisplayString(props.block.title, interpolationContext.value),
+)
+
+const blockDescription = computed(() =>
+  interpolateDisplayString(props.block.description, interpolationContext.value),
+)
 
 const magnified = ref(false)
 

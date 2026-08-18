@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="fetchRecords(true)">
+  <PageBlock :block="block" :record="record" @refreshBlock="fetchRecords(true)">
     <!-- Toolbar -->
     <div v-if="recordListModule" class="flex items-center gap-2 p-3 border-b">
       <!-- Add Record button (inline mode: prepend new row; otherwise: navigate) -->

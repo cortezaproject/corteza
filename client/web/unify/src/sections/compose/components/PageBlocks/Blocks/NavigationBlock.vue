@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block">
+  <PageBlock :block="block" :record="record">
     <div
       v-if="!navigationItems.length"
       class="flex items-center justify-center h-full p-3 text-muted-color italic"

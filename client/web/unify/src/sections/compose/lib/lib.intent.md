@@ -32,6 +32,13 @@ test in isolation.
   to lib/js's `compose.interpolateTemplate` so lib/vue can reuse the same
   template evaluation), the valueless `IS EMPTY`/`IS NOT EMPTY` operators, and
   the page-scoped storage-key helpers, plus small operator/format utilities.
+  Three wrappers sit on `evaluatePrefilter`, each carrying the failure contract
+  its callers need: `usesRecordVariables` reports whether a template reads the
+  page record at all; `evaluatePlacementFilter` returns `undefined` for a filter
+  that needs a record there is none of, so the caller reports nothing rather
+  than everything; `interpolateDisplayString` returns the template as authored
+  for the same case and for anything that will not evaluate, because a title or
+  a label must not degrade into an error message.
 - `record-filter.test.ts` — vitest spec for the above (escaping, grouping,
   empty-operators and storage keys; keep it green when touching escaping).
 - `charts.js` — `chartConstructor(c)`: inspects report metric types to pick

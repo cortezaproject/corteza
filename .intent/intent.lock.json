@@ -802,19 +802,19 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/AgentChatBlock.vue": {
-      "h": "1949001109d7",
+      "h": "be305d715139",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/AutomationBlock.vue": {
-      "h": "d769bfef3246",
+      "h": "b69968a0c1cd",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CalendarBlock.vue": {
-      "h": "e4141357fe50",
+      "h": "28f6de2f4eae",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CBulkRecordEditModal.vue": {
       "h": "b8dbaf8c6b1f",
@@ -822,14 +822,14 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ChartBlock.vue": {
-      "h": "eb35bb13d33e",
+      "h": "97cbe144b2cf",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ChatbotInboxBlock.vue": {
-      "h": "53f81ef67a9c",
+      "h": "0201cfeb7c86",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/Comment/CommentItem.vue": {
       "h": "60ff192d06ec",
@@ -842,79 +842,94 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CommentBlock.vue": {
-      "h": "a2e1e0e36a5b",
+      "h": "12cd811f93e2",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ContentBlock.vue": {
-      "h": "2b605d3c9c40",
+      "h": "90015ae5bace",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/FileBlock.vue": {
-      "h": "a2d04bab2bba",
+      "h": "64b7352e67ee",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/GeometryBlock.vue": {
-      "h": "9f18228fbbbe",
+      "h": "12e60db1059c",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/IFrameBlock.vue": {
-      "h": "1c3f21acdfed",
+      "h": "4b5d5876fce1",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/Metric/MetricItem.vue": {
       "h": "56f63b603974",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-07-23"
     },
-    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/MetricBlock.vue": {
-      "h": "6cfd82a83b3e",
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/MetricBlock.test.js": {
+      "h": "53cc7365afff",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/MetricBlock.vue": {
+      "h": "e8ec0137fa09",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/NavigationBlock.vue": {
-      "h": "3bc28f3fab49",
+      "h": "c4617a3dc14b",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-08-18"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/PageBlock.test.js": {
+      "h": "a1c2d336ea14",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/PageBlock.vue": {
-      "h": "e02203304546",
+      "h": "3f111db09358",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/ProgressBlock.vue": {
-      "h": "6b6888709972",
+      "h": "6142a9624f06",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordBlock.vue": {
-      "h": "3e07de1e1cc5",
+      "h": "444ffaa751ae",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordListBlock.vue": {
-      "h": "a7a83063f634",
+      "h": "496677c78e87",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordOrganizerBlock.vue": {
-      "h": "83a1ddc8ad05",
+      "h": "135e07046aa1",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordRevisionsBlock.vue": {
-      "h": "e11e26ed521d",
+      "h": "ce82f2dc4b16",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/TabsBlock.test.js": {
+      "h": "ae68ddd357ff",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/TabsBlock.vue": {
-      "h": "65024255ac95",
+      "h": "08bf4039e7ab",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/AgentChatConfigurator.vue": {
       "h": "f650006caeeb",
@@ -1112,14 +1127,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/lib/record-filter.js": {
-      "h": "4c565357fe48",
+      "h": "5905db9e48da",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/lib/record-filter.test.ts": {
-      "h": "b45029c46819",
+      "h": "c1487490f5fc",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
       "h": "8fe0c8509f9e",

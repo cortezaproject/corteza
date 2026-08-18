@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="fetchChart">
+  <PageBlock :block="block" :record="record" @refreshBlock="fetchChart">
     <div class="relative h-full">
       <ChartRenderer
         v-if="chart"
@@ -147,7 +147,7 @@ import PageBlock from './PageBlock.vue'
 import ChartRenderer from '../../Chart/ChartRenderer.vue'
 const RecordListBlock = defineAsyncComponent(() => import('./RecordListBlock.vue'))
 import { useChartStore } from '@planetcrust/human-vue'
-import { evaluatePlacementFilter } from '../../../lib/record-filter'
+import { evaluatePlacementFilter, interpolateDisplayString } from '../../../lib/record-filter'
 
 const { t } = useI18n()
 
@@ -331,7 +331,10 @@ function drillDown({ trueName, value }) {
     let mergedFilter = filter ? `(${filter})` : ''
     const prefilter = [dimensionFilter, mergedFilter].filter(f => f).join(' AND ')
 
-    const title = props.block.title
+    const title = interpolateDisplayString(props.block.title, {
+      record: props.record,
+      user: $Auth?.user || {},
+    })
     drillDownModalTitle.value = title ? `${title} - "${drillDownValue}"` : drillDownValue
 
     const fields = drillDownOpts.recordListOptions?.fields || []

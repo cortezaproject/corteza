@@ -1,5 +1,5 @@
 <template>
-  <PageBlock :block="block" @refreshBlock="loadRevisions">
+  <PageBlock :block="block" :record="record" @refreshBlock="loadRevisions">
     <div class="flex flex-col h-full overflow-hidden">
       <!-- Revisions disabled on module -->
       <div
