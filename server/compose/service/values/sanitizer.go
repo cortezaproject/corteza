@@ -28,7 +28,7 @@ func Sanitizer() *sanitizer {
 
 // Run cleans up input data
 //   - fix multi-value order/place index
-//   - trim all the strings!
+//   - trim every value but a string's, which keeps the spaces it was given
 //   - parse & format input values to match field specific -- nullify/falsify invalid
 //   - field kind specific, no errors raised, data is modified
 //
