@@ -443,3 +443,42 @@ func Test_sanitizer_workingExpressionIsSilent(t *testing.T) {
 	req.True(rve.IsValid())
 	req.Equal("hi", out[0].Value)
 }
+
+func Test_sanitizer_refusesValuesTheKindCannotHold(t *testing.T) {
+	tests := []struct {
+		name    string
+		kind    string
+		input   string
+		refused bool
+	}{
+		{name: "a word in a number field", kind: "Number", input: "abc", refused: true},
+		{name: "a half-numeric string", kind: "Number", input: "12abc", refused: true},
+		{name: "infinity has no column to sit in", kind: "Number", input: "Inf", refused: true},
+		{name: "a real number is fine", kind: "Number", input: "42.5", refused: false},
+		{name: "an empty number clears the field", kind: "Number", input: "", refused: false},
+		{name: "an unreadable date", kind: "DateTime", input: "not a date", refused: true},
+		{name: "a real date is fine", kind: "DateTime", input: "2020-02-20T10:10:10Z", refused: false},
+		{name: "garbage in a bool field", kind: "Bool", input: "%%#)%)')$)'", refused: true},
+		{name: "a real bool is fine", kind: "Bool", input: "false", refused: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				req = require.New(t)
+				f   = &types.ModuleField{Name: "v", Kind: tc.kind}
+				m   = &types.Module{ID: 1, Fields: types.ModuleFieldSet{f}}
+				rve = &types.RecordValueErrorSet{}
+			)
+
+			Sanitizer().Run(m, types.RecordValueSet{
+				&types.RecordValue{Name: "v", Value: tc.input, Updated: true},
+			}, rve)
+
+			req.Equal(tc.refused, !rve.IsValid(), "input %q", tc.input)
+			if tc.refused {
+				req.Equal("invalidValue", rve.Set[0].Kind)
+			}
+		})
+	}
+}

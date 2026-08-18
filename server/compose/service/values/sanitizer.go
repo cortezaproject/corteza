@@ -2,6 +2,7 @@ package values
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -124,10 +125,28 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet, rve *types.Reco
 			}
 		}
 
-		v.Value = sanitize(f, v.Value)
+		if sv, err := sanitizeStrict(f, v.Value); err != nil {
+			if rve != nil {
+				rve.Push(makeUnreadableValueErr(f, v.Value, err))
+			}
+
+			// The record will not be saved, but leave a well-formed value
+			// behind for callers that collect no errors.
+			v.Value = sanitize(f, v.Value)
+		} else {
+			v.Value = sv
+		}
 	}
 
 	return
+}
+
+func makeUnreadableValueErr(field *types.ModuleField, value string, err error) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "invalidValue",
+		Message: err.Error(),
+		Meta:    map[string]interface{}{"field": field.Name, "value": value},
+	}
 }
 
 func (s sanitizer) RunXSS(m *types.Module, vv types.RecordValueSet) types.RecordValueSet {
@@ -276,11 +295,11 @@ func sString(str interface{}) string {
 // sanitizeStrict casts the value the way sanitize does, but reports one the
 // field's kind cannot hold instead of quietly standing a default in its place.
 //
-// A typed-in value is forgiven its shape because there is a person to show the
-// correction to. A value expression's result has no one: a Number field whose
-// formula produced a word became 0, and the author was never told. Only the
-// kinds sanitize() substitutes for are checked here — the rest are the per-kind
-// validators' business.
+// Standing a default in silently loses what was sent and answers HTTP 200
+// doing it: a Number field given a word became 0, an unreadable date became
+// empty, and neither the person saving nor the author of a value expression was
+// told. Only the kinds sanitize() substitutes for are checked here — the rest
+// are the per-kind validators' business.
 func sanitizeStrict(f *types.ModuleField, v interface{}) (string, error) {
 	raw := fmt.Sprintf("%v", v)
 
@@ -295,8 +314,13 @@ func sanitizeStrict(f *types.ModuleField, v interface{}) (string, error) {
 
 	case "number":
 		if raw != "" {
-			if _, err := strconv.ParseFloat(raw, 64); err != nil {
+			n, err := strconv.ParseFloat(raw, 64)
+			if err != nil {
 				return "", fmt.Errorf("%q is not a number", raw)
+			}
+			if math.IsInf(n, 0) || math.IsNaN(n) {
+				// Parses as a float and no numeric column can hold it.
+				return "", fmt.Errorf("%q is not a finite number", raw)
 			}
 		}
 
