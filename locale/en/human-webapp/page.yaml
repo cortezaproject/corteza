@@ -13,6 +13,9 @@ block:
 build:
   addBlock: Add block
   addLayout: Add layout
+  blockDialog:
+    add: Add {block}
+    edit: Configure {block}
   deleteBlock:
     header: Delete block
     message: Delete this block from the page entirely? It will be removed from the page and every layout when you save. Leaving the builder without saving discards the deletion.
@@ -31,7 +34,6 @@ build:
     confirm: Switch layout and discard changes
     header: Switch layout
     message: Switching to another layout rebuilds the builder from the saved page, so the unsaved changes in the current layout will be lost. Do you want to switch anyway?
-changeBlock: Change existing block
 copyOf: Copy of {title}
 createLabel: New Page
 customTitle: Use custom title

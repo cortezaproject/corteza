@@ -258,7 +258,7 @@
   <!-- Block Configurator Dialog -->
   <Dialog
     v-model:visible="showConfigurator"
-    :header="$t('page.changeBlock')"
+    :header="configuratorHeader"
     modal
     position="top"
     :style="{ width: '50vw' }"
@@ -702,6 +702,14 @@ const editingBlockTypeLabel = computed(() => {
   const bt = availableBlockTypes.value.find(b => b.kind === editingBlock.value.kind)
   return bt?.label || editingBlock.value.kind
 })
+
+// The same dialog stages a new block and edits a placed one, so the header
+// names which of the two is happening and to what.
+const configuratorHeader = computed(() =>
+  t(isNewBlock.value ? 'page.build.blockDialog.add' : 'page.build.blockDialog.edit', {
+    block: editingBlockTypeLabel.value,
+  }),
+)
 
 const hasAutomationTab = computed(() => editingBlock.value?.kind === 'RecordList')
 
