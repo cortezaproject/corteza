@@ -13,6 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import { useAutomationStore } from '@planetcrust/human-vue'
+import { toWireArguments } from '@/sections/taq/utils/reference-binding'
 import {
   applyDagreLayout,
   automationToVueFlow,
@@ -237,7 +238,7 @@ export function useFlowEditor() {
               short: node.type === 'end' ? t('builder.nodes.end') : data.label,
               description: data.description || '',
             },
-            arguments: data.arguments || existing?.arguments || [],
+            arguments: toWireArguments(data.arguments || existing?.arguments),
           })
         }
       }

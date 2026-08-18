@@ -2287,9 +2287,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/taq/composables/useFlowEditor.ts": {
-      "h": "1f18cff8cd29",
+      "h": "8302e4f625c9",
       "doc": "client/web/unify/src/sections/taq/composables/composables.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/taq/composables/useSegmentForm.ts": {
       "h": "3c99a9cae13d",
@@ -2311,10 +2311,20 @@
       "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
       "t": "2026-08-13"
     },
-    "client/web/unify/src/sections/taq/utils/taq-parser.ts": {
-      "h": "ddae29b9c143",
+    "client/web/unify/src/sections/taq/utils/reference-binding.test.ts": {
+      "h": "133c18ba843e",
       "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
+    },
+    "client/web/unify/src/sections/taq/utils/reference-binding.ts": {
+      "h": "c77cc297176c",
+      "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
+      "t": "2026-08-18"
+    },
+    "client/web/unify/src/sections/taq/utils/taq-parser.ts": {
+      "h": "4529501d10ea",
+      "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/taq/utils/trace-path.test.ts": {
       "h": "b92d4b910bfa",

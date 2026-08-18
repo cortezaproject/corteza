@@ -6,6 +6,7 @@ import dagre from 'dagre'
 
 import type { AutomationFunction, AutomationTrigger } from '@planetcrust/human-vue'
 import { getTriggerMeta, DEFAULT_TRIGGER_ICON } from '@/sections/taq/utils/flow-constants'
+import { fromWireArguments } from '@/sections/taq/utils/reference-binding'
 
 type NgAutomation = automation.NgAutomation
 type Expr = automation.Expr
@@ -138,7 +139,7 @@ export function automationToVueFlow(
             getStepIcon(step.ref, isCondition, catalog, isIterator),
         nodeType: isTermination ? 'termination' : step.ref,
         config: {},
-        arguments: step.arguments || [],
+        arguments: fromWireArguments(step.arguments as any) as typeof step.arguments,
         ref: step.handle || '',
         stepID: step.stepID,
       },
