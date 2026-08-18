@@ -273,16 +273,6 @@
       footer: { class: 'border-t border-surface p-3' },
     }"
   >
-    <Message
-      v-if="editingBlockIssues.length"
-      severity="warn"
-      size="small"
-      variant="simple"
-      class="mx-3 mt-3 shrink-0"
-    >
-      {{ $t('block.issue.summary', { needs: issueSummary(editingBlockIssues) }) }}
-    </Message>
-
     <Tabs v-if="editingBlock" v-model:value="configuratorTab" class="flex flex-col flex-1 min-h-0">
       <TabList class="shrink-0 z-10">
         <Tab value="general">{{ $t('block.general.label.general') }}</Tab>
@@ -1355,9 +1345,6 @@ const blockIssues = computed(() => {
   }
   return byBlock
 })
-
-// The draft is not in `blocks` until it is saved, so the dialog asks it directly.
-const editingBlockIssues = computed(() => editingBlock.value?.validate?.() || [])
 
 function issueSummary(issues) {
   return issues.map(i => t(i.labelKey)).join(', ')
