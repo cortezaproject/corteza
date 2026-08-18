@@ -44,3 +44,46 @@ export const toWireArguments = <T extends ArgumentExpr>(args: T[] | undefined): 
 
 export const fromWireArguments = <T extends ArgumentExpr>(args: T[] | undefined): T[] =>
   (args || []).map(fromWireArgument)
+
+interface ConditionNode {
+  symbol?: string
+  meta?: Record<string, unknown>
+  args?: ConditionNode[]
+  [k: string]: unknown
+}
+
+/**
+ * A condition addresses its scope differently from an argument: the evaluator
+ * defaults to the global scope and understands a dotted symbol, so an identity
+ * reference is a dotted symbol there rather than a dotted expression.
+ */
+function mapConditionRefs(
+  node: ConditionNode | null,
+  fn: (n: ConditionNode) => ConditionNode,
+): ConditionNode | null {
+  if (!node || typeof node !== 'object') return node
+  if (Array.isArray(node.args)) {
+    return { ...node, args: node.args.map(a => mapConditionRefs(a, fn) as ConditionNode) }
+  }
+  return node.symbol ? fn(node) : node
+}
+
+/** A condition as the builder holds it → as the API takes it. */
+export function toWireCondition(node: ConditionNode | null): ConditionNode | null {
+  return mapConditionRefs(node, n => {
+    const scope = n.meta?.scope
+    if (typeof scope !== 'string' || !IDENTITY_SCOPES.includes(scope)) return n
+    return { ...n, symbol: `${scope}.${n.symbol}`, meta: { ...n.meta, scope: 'global' } }
+  })
+}
+
+/** A condition as the API returns it → as the builder holds it. */
+export function fromWireCondition(node: ConditionNode | null): ConditionNode | null {
+  return mapConditionRefs(node, n => {
+    const scope = n.meta?.scope
+    if (scope && scope !== 'global') return n
+    const match = typeof n.symbol === 'string' ? n.symbol.match(DOTTED) : null
+    if (!match) return n
+    return { ...n, symbol: match[2], meta: { ...n.meta, scope: match[1] } }
+  })
+}

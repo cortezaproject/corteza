@@ -5,6 +5,8 @@ import {
   fromWireArguments,
   toWireArgument,
   toWireArguments,
+  toWireCondition,
+  fromWireCondition,
 } from '@/sections/taq/utils/reference-binding'
 
 describe('toWireArgument', () => {
@@ -109,5 +111,52 @@ describe('round trip', () => {
   it('tolerates undefined', () => {
     expect(toWireArguments(undefined)).toEqual([])
     expect(fromWireArguments(undefined)).toEqual([])
+  })
+})
+
+describe('conditions', () => {
+  const lit = { value: { '@type': 'String', '@value': 'x' } }
+
+  it('turns an identity scope into a dotted symbol on the global scope', () => {
+    // The evaluator defaults to the global scope and splits the symbol on '.',
+    // so this is the shape a condition can actually resolve.
+    const built = { ref: 'eq', args: [{ symbol: 'email', meta: { scope: 'invoker' } }, lit] }
+    expect(toWireCondition(built)).toEqual({
+      ref: 'eq',
+      args: [{ symbol: 'invoker.email', meta: { scope: 'global' } }, lit],
+    })
+  })
+
+  it('restores it on the way back', () => {
+    const wire = { ref: 'eq', args: [{ symbol: 'runner.name', meta: { scope: 'global' } }, lit] }
+    expect(fromWireCondition(wire)).toEqual({
+      ref: 'eq',
+      args: [{ symbol: 'name', meta: { scope: 'runner' } }, lit],
+    })
+  })
+
+  it('reaches into and/or groups', () => {
+    const built = {
+      ref: 'and',
+      args: [
+        { ref: 'eq', args: [{ symbol: 'email', meta: { scope: 'invoker' } }, lit] },
+        { ref: 'eq', args: [{ symbol: 'counter', meta: { scope: 'step_2' } }, lit] },
+      ],
+    }
+    const wire = toWireCondition(built) as any
+    expect(wire.args[0].args[0]).toEqual({ symbol: 'invoker.email', meta: { scope: 'global' } })
+    expect(wire.args[1].args[0]).toEqual({ symbol: 'counter', meta: { scope: 'step_2' } })
+    expect(fromWireCondition(wire)).toEqual(built)
+  })
+
+  it('leaves an ordinary step reference and a literal alone', () => {
+    const built = { ref: 'eq', args: [{ symbol: 'counter', meta: { scope: 'step_2' } }, lit] }
+    expect(toWireCondition(built)).toEqual(built)
+    expect(fromWireCondition(built)).toEqual(built)
+  })
+
+  it('tolerates null', () => {
+    expect(toWireCondition(null)).toBeNull()
+    expect(fromWireCondition(null)).toBeNull()
   })
 })

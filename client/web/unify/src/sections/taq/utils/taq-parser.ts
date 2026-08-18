@@ -6,7 +6,7 @@ import dagre from 'dagre'
 
 import type { AutomationFunction, AutomationTrigger } from '@planetcrust/human-vue'
 import { getTriggerMeta, DEFAULT_TRIGGER_ICON } from '@/sections/taq/utils/flow-constants'
-import { fromWireArguments } from '@/sections/taq/utils/reference-binding'
+import { fromWireArguments, fromWireCondition } from '@/sections/taq/utils/reference-binding'
 
 type NgAutomation = automation.NgAutomation
 type Expr = automation.Expr
@@ -185,7 +185,7 @@ export function automationToVueFlow(
       target: targetId,
       type: 'addable',
       data: {
-        condition: path.condition || null,
+        condition: fromWireCondition((path.condition as any) || null),
       },
     })
   })

@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import { useAutomationStore } from '@planetcrust/human-vue'
-import { toWireArguments } from '@/sections/taq/utils/reference-binding'
+import { toWireArguments, toWireCondition } from '@/sections/taq/utils/reference-binding'
 import {
   applyDagreLayout,
   automationToVueFlow,
@@ -268,7 +268,7 @@ export function useFlowEditor() {
           seenEdges.add(edgeKey)
 
           // Include condition data for gateway paths
-          const condition = edge.data?.condition || null
+          const condition = toWireCondition(edge.data?.condition || null)
           return {
             parentID: sourceId,
             childID: targetId,
