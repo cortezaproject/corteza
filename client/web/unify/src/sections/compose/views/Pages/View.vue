@@ -125,35 +125,39 @@ const pageTitle = computed(() => {
   }
 })
 
-const positionedBlocks = computed(() => {
-  const blocks = (() => {
-    if (!page.value || !layout.value) {
-      // No layout — fall back to page blocks with their default xywh
-      if (page.value?.blocks?.length) {
-        return page.value.blocks
-      }
-      return []
+// The blocks this page can show, before visibility is applied. This, not
+// page.blocks, is what visibility is evaluated over: a block no layout places is
+// never rendered, so its condition would only add an expression that can fail
+// for nothing.
+const layoutBlocks = computed(() => {
+  if (!page.value || !layout.value) {
+    // No layout — fall back to page blocks with their default xywh
+    if (page.value?.blocks?.length) {
+      return page.value.blocks
     }
+    return []
+  }
 
-    // Merge layout block positions with page block definitions
-    return layout.value.blocks
-      .map(layoutBlock => {
-        const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
-        if (!pageBlock) return null
+  // Merge layout block positions with page block definitions
+  return layout.value.blocks
+    .map(layoutBlock => {
+      const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
+      if (!pageBlock) return null
 
-        // Clone page block and override xywh from layout
-        return compose.PageBlockMaker({
-          ...pageBlock,
-          xywh: layoutBlock.xywh || pageBlock.xywh,
-        })
+      // Clone page block and override xywh from layout
+      return compose.PageBlockMaker({
+        ...pageBlock,
+        xywh: layoutBlock.xywh || pageBlock.xywh,
       })
-      .filter(Boolean)
-  })()
+    })
+    .filter(Boolean)
+})
 
+const positionedBlocks = computed(() =>
   // meta.hidden is handled by Grid (tab children must still reach TabsBlock via props.blocks)
   // invisibleBlockIDs are blocks hidden by visibility expressions/roles — remove entirely
-  return blocks.filter(b => !invisibleBlockIDs.value.has(fetchBlockID(b)))
-})
+  layoutBlocks.value.filter(b => !invisibleBlockIDs.value.has(fetchBlockID(b))),
+)
 
 async function loadPage() {
   const pageID = route.params.pageID
@@ -179,8 +183,8 @@ async function loadPage() {
       )
 
       // Evaluate block visibility after layout is resolved
-      if (page.value.blocks?.length) {
-        invisibleBlockIDs.value = await evaluateBlocks(page.value.blocks, vars)
+      if (layoutBlocks.value.length) {
+        invisibleBlockIDs.value = await evaluateBlocks(layoutBlocks.value, vars)
       }
     }
   } finally {

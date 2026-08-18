@@ -332,6 +332,19 @@ provide('recordViewContext', {
   record,
   isNew,
   isSaving,
+
+  /**
+   * A block that saved the record on its own (RecordBlock's inline edit) hands
+   * the response back through here. Both refs move together — leaving
+   * pristineRecord behind would make the next view→edit clone from stale
+   * values — and the layout is re-picked, since a save can satisfy a different
+   * layout condition than the one the record was opened with.
+   */
+  adoptSaved(saved) {
+    pristineRecord.value = saved
+    record.value = saved
+    resolveLayout()
+  },
 })
 
 provide('$fileUploadContext', {
@@ -341,34 +354,38 @@ provide('$fileUploadContext', {
   },
 })
 
-const positionedBlocks = computed(() => {
-  const blocks = (() => {
-    if (!page.value || !layout.value) {
-      if (page.value?.blocks?.length) {
-        return page.value.blocks
-      }
-      return []
+// The blocks this page can show, before visibility is applied — the layout's
+// selection intersected with the page's definitions. This, not page.blocks, is
+// what visibility is evaluated over: a block no layout places is never rendered,
+// so its condition would only add an expression that can fail for nothing.
+const layoutBlocks = computed(() => {
+  if (!page.value || !layout.value) {
+    if (page.value?.blocks?.length) {
+      return page.value.blocks
     }
+    return []
+  }
 
-    return layout.value.blocks
-      .map(layoutBlock => {
-        const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
-        if (!pageBlock) return null
+  return layout.value.blocks
+    .map(layoutBlock => {
+      const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
+      if (!pageBlock) return null
 
-        // PageBlockMaker, not a spread: blocks reach their renderer with the
-        // methods their class defines (fetch, reorderViews), not just options.
-        return compose.PageBlockMaker({
-          ...pageBlock,
-          xywh: layoutBlock.xywh || pageBlock.xywh,
-        })
+      // PageBlockMaker, not a spread: blocks reach their renderer with the
+      // methods their class defines (fetch, reorderViews), not just options.
+      return compose.PageBlockMaker({
+        ...pageBlock,
+        xywh: layoutBlock.xywh || pageBlock.xywh,
       })
-      .filter(Boolean)
-  })()
+    })
+    .filter(Boolean)
+})
 
+const positionedBlocks = computed(() =>
   // meta.hidden is handled by Grid (tab children must still reach TabsBlock via props.blocks)
   // invisibleBlockIDs are blocks hidden by visibility expressions/roles — remove entirely
-  return blocks.filter(b => !invisibleBlockIDs.value.has(fetchBlockID(b)))
-})
+  layoutBlocks.value.filter(b => !invisibleBlockIDs.value.has(fetchBlockID(b))),
+)
 
 const navigating = ref(null) // 'prev' | 'next' | null
 
@@ -427,6 +444,8 @@ async function loadRecord(recordID) {
   const ac = new AbortController()
   recordLoadAbort = ac
 
+  loading.value = true
+
   try {
     const loaded = await recordStore.findByID({
       namespaceID: mod.namespaceID,
@@ -441,13 +460,20 @@ async function loadRecord(recordID) {
     // Fast-swapping to another record skips loadPage(), so the layout has to be
     // re-picked here or the previous record's layout would stay on screen.
     await resolveLayout()
+    // Awaited, not debounced: a swap is a discrete event, and letting the new
+    // record reach the screen first would show it under the previous record's
+    // block visibility.
+    await runBlockVisibility()
   } catch (e) {
     if (ac.signal.aborted) return
     console.error('Failed to load record:', e)
     record.value = null
   } finally {
     if (recordLoadAbort === ac) recordLoadAbort = null
-    if (!ac.signal.aborted) navigating.value = null
+    if (!ac.signal.aborted) {
+      loading.value = false
+      navigating.value = null
+    }
   }
 }
 
@@ -553,14 +579,7 @@ async function loadPage() {
     }
 
     // Evaluate block visibility before revealing content (no flash)
-    if (page.value?.blocks?.length) {
-      const vars = buildExpressionVariables({
-        record: record.value,
-        isRecordPage: true,
-        mode: mode.value,
-      })
-      invisibleBlockIDs.value = await evaluateBlocks(page.value.blocks, vars)
-    }
+    await runBlockVisibility()
   } finally {
     // If this load was superseded/cancelled, leave state to the newer load.
     if (!ac.signal.aborted) {
@@ -572,23 +591,28 @@ async function loadPage() {
 
 let _blockVisibilityTimer = null
 let _blockVisibilitySeq = 0
-async function evaluateBlockVisibility() {
-  if (!page.value?.blocks?.length) return
-  // Debounce rapid changes (e.g. typing in a field, mode switch, record swap)
+
+async function runBlockVisibility() {
   clearTimeout(_blockVisibilityTimer)
-  _blockVisibilityTimer = setTimeout(async () => {
-    const vars = buildExpressionVariables({
-      record: record.value,
-      isRecordPage: true,
-      mode: mode.value,
-    })
-    const seq = ++_blockVisibilitySeq
-    const invisible = await evaluateBlocks(page.value.blocks, vars)
-    // A slower earlier response must not overwrite a newer one
-    if (seq === _blockVisibilitySeq) {
-      invisibleBlockIDs.value = invisible
-    }
-  }, 300)
+  if (!layoutBlocks.value.length) return
+
+  const vars = buildExpressionVariables({
+    record: record.value,
+    isRecordPage: true,
+    mode: mode.value,
+  })
+  const seq = ++_blockVisibilitySeq
+  const invisible = await evaluateBlocks(layoutBlocks.value, vars)
+  // A slower earlier response must not overwrite a newer one
+  if (seq === _blockVisibilitySeq) {
+    invisibleBlockIDs.value = invisible
+  }
+}
+
+// Debounce rapid changes (e.g. typing in a field, mode switch)
+function evaluateBlockVisibility() {
+  clearTimeout(_blockVisibilityTimer)
+  _blockVisibilityTimer = setTimeout(runBlockVisibility, 300)
 }
 
 // Block conditions follow the record as it is edited: re-evaluate on value
@@ -654,11 +678,12 @@ async function handleSave({ valid }) {
       t(isNew.value ? 'notification.record.createSuccess' : 'notification.record.updateSuccess'),
     )
 
+    // Adopt the response rather than the record we sent: it carries what the
+    // server computed, and conditions read those values. Saving always leaves
+    // edit/create for view, and that mode change re-picks the layout — so
+    // resolving here as well would only spend a request on the older record.
     pristineRecord.value = saved
-
-    // Saved values can satisfy a different layout condition than the ones the
-    // record was opened with
-    await resolveLayout()
+    record.value = saved
 
     if (props.inModal) {
       if (isNew.value) {

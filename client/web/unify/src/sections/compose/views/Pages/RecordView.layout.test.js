@@ -12,7 +12,22 @@ const route = reactive({
   query: {},
 })
 
-const router = { push: vi.fn(), replace: vi.fn() }
+// replace() has to actually move the route: the view leaves edit mode by
+// navigating, and a double that swallows the navigation hides every transition
+// that navigation is what triggers.
+function applyLocation(loc) {
+  if (!loc) return
+  if (loc.params) Object.assign(route.params, loc.params)
+  // An object location carries its whole query; omitting the key clears it,
+  // and an undefined value drops that one, as vue-router does.
+  const query = { ...(loc.query || {}) }
+  for (const k of Object.keys(query)) {
+    if (query[k] === undefined) delete query[k]
+  }
+  route.query = query
+}
+
+const router = { push: vi.fn(), replace: vi.fn(applyLocation) }
 
 vi.mock('vue-router', () => ({
   useRoute: () => route,
@@ -222,6 +237,56 @@ describe('RecordView layout resolution', () => {
     expect(evaluations.at(-1).record.values.status).toBe('closed')
   })
 
+  it('adopts the saved record from the response, not the one it sent', async () => {
+    // The server may compute values of its own; conditions have to read those,
+    // so what comes back replaces what went out.
+    const returned = makeRecord('R1', { status: 'computed-by-server' })
+    recordStore.update.mockResolvedValueOnce(returned)
+
+    await mountView()
+    route.query = { edit: '1' }
+    await flushPromises()
+
+    await wrapper.vm.handleSave({ valid: true })
+    await flushPromises()
+
+    // vm.record is a reactive proxy of the response, so compare what it carries
+    expect(wrapper.vm.record.values.status).toBe('computed-by-server')
+    expect(layoutEvaluations().at(-1).record.values.status).toBe('computed-by-server')
+  })
+
+  it('settles block visibility for a swapped-in record before revealing it', async () => {
+    page.blocks = [
+      {
+        blockID: 'B1',
+        kind: 'Content',
+        meta: { visibility: { expression: 'record.values.status == "open"', roles: [] } },
+      },
+    ]
+    layouts[0].blocks = [{ blockID: 'B1' }]
+    layouts[0].config.visibility.expression = ''
+    await mountView()
+
+    let release
+    recordStore.findByID.mockReturnValueOnce(
+      new Promise(resolve => {
+        release = () => resolve(records.R2)
+      }),
+    )
+
+    route.params = { ...route.params, recordID: 'R2' }
+    await flushPromises()
+
+    // Mid-swap the grid is gone rather than showing R2 under R1's visibility
+    expect(wrapper.findComponent(Grid).exists()).toBe(false)
+
+    release()
+    await flushPromises()
+
+    expect(wrapper.findComponent(Grid).exists()).toBe(true)
+    expect(blockEvaluations().at(-1).record.recordID).toBe('R2')
+  })
+
   describe('with a layout requested via ?layoutID', () => {
     beforeEach(() => {
       layouts = [
@@ -262,6 +327,8 @@ describe('RecordView layout resolution', () => {
         meta: { visibility: { expression: 'record.values.status == "open"', roles: [] } },
       },
     ]
+    // Only blocks the layout places are evaluated, so it has to place this one
+    layouts[0].blocks = [{ blockID: 'B1' }]
     await mountView()
     expect(layoutEvaluations()).toHaveLength(1)
     expect(blockEvaluations()).toHaveLength(1)
