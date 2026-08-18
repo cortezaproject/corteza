@@ -14,7 +14,8 @@ touched-by:
   - client/web/unify/src/sections/admin
   - client/web/unify/src/sections/compose
   - lib/vue/src/components/field/editors
-tests: []
+tests:
+  - lib/vue/src/components/input/CInputModuleField.test.ts
 ---
 
 # Shared input components
@@ -42,6 +43,7 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 - `CInputColorPicker`, `CInputLocation` (map dialog geometry), `CInputFile` + `CFileDropZone` (attachment upload), `CRichTextInput` (tiptap editor + emoji, `submitOnEnter`).
 - `CInputDelete` — confirm-guarded delete button (emits confirmation, no v-model).
 - `CFieldPicker` — dual-list picker of module fields (`allFields` ⇄ v-model selection).
+- `CInputModuleField` — single/`multiple` select of one module's fields by name; takes `module` or a store-resolved `moduleID`, narrows with `kinds`/`excludeMulti`/`queryableOnly`, and appends the record's system fields under `includeSystem`. Labels fall back to the field name, system labels come from `field.system.<name>`, and system fields sort last — a caller that filters fields itself will drift from all four.
 - `CFormGroup`, `CFormItemContent`, `CFormItemList`, `CFormList`, `CEditorActions` — form/list layout scaffolding for editor screens. `CEditorActions` carries `data-testid` `editor-actions` and `editor-back`: its Back button is the same control on every editor, so it is addressable as one rather than by each screen's label.
 
 ## Cross-cutting

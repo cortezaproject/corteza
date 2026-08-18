@@ -8,6 +8,8 @@ import CInputSwitch from '../components/input/CInputSwitch.vue'
 import CInputRole from '../components/input/CInputRole.vue'
 import CInputToggleCard from '../components/input/CInputToggleCard.vue'
 import CFieldPicker from '../components/input/CFieldPicker.vue'
+import CInputModule from '../components/input/CInputModule.vue'
+import CInputModuleField from '../components/input/CInputModuleField.vue'
 import CInputExpression from '../components/expression/CInputExpression.vue'
 import CExpressionHint from '../components/expression/CExpressionHint.vue'
 import CPermissionsButton from '../components/permissions/CPermissionsButton.vue'
@@ -154,6 +156,8 @@ export const PrimeVueComponentsPlugin: Plugin = {
     app.component('CInputRole', CInputRole)
     app.component('CInputToggleCard', CInputToggleCard)
     app.component('CFieldPicker', CFieldPicker)
+    app.component('CInputModule', CInputModule)
+    app.component('CInputModuleField', CInputModuleField)
     app.component('CInputExpression', CInputExpression)
     app.component('CExpressionHint', CExpressionHint)
     app.component('CPermissionsButton', CPermissionsButton)
