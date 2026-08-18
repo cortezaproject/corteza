@@ -124,47 +124,6 @@
             :description="$t('block.record.fieldConditions.clearAllOnHideDescription')"
           />
 
-          <div class="flex flex-col gap-2">
-            <div v-for="(condition, i) in fieldConditions" :key="i" class="flex items-center gap-2">
-              <Select
-                :model-value="condition.field"
-                :options="conditionFieldOptions"
-                option-label="text"
-                option-value="value"
-                :placeholder="$t('block.record.fieldConditions.selectPlaceholder')"
-                class="flex-1"
-                filter
-                @update:model-value="updateCondition(i, 'field', $event)"
-              />
-              <CInputExpression
-                :model-value="condition.condition"
-                dialect="expr"
-                :scope="exprScope"
-                :placeholder="$t('block.record.fieldConditions.placeholder')"
-                class="flex-1"
-                @update:model-value="updateCondition(i, 'condition', $event)"
-              />
-              <div class="flex items-center gap-1">
-                <Checkbox
-                  :model-value="condition.clearOnHide || false"
-                  binary
-                  :input-id="`clearOnHide-${i}`"
-                  @update:model-value="updateCondition(i, 'clearOnHide', $event)"
-                />
-                <label :for="`clearOnHide-${i}`" class="text-xs text-muted-color">
-                  {{ $t('block.record.fieldConditions.clearOnHide') }}
-                </label>
-              </div>
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                size="small"
-                @click="removeCondition(i)"
-              />
-            </div>
-          </div>
-
           <Button
             :label="$t('general.label.add')"
             icon="pi pi-plus"
@@ -173,6 +132,48 @@
             class="self-start"
             @click="addCondition"
           />
+
+          <CFormList
+            :model-value="fieldConditions"
+            :columns="conditionColumns"
+            :empty-message="$t('block.record.fieldConditions.empty')"
+            @change="onConditionsChange"
+          >
+            <template #row="{ item: condition, index }">
+              <Select
+                :model-value="condition.field"
+                :options="conditionFieldOptions"
+                option-label="text"
+                option-value="value"
+                :placeholder="$t('block.record.fieldConditions.selectPlaceholder')"
+                class="w-full"
+                size="small"
+                filter
+                @update:model-value="updateCondition(index, 'field', $event)"
+              />
+
+              <CInputExpression
+                :model-value="condition.condition"
+                dialect="expr"
+                :scope="exprScope"
+                :min-lines="1"
+                size="small"
+                :placeholder="$t('block.record.fieldConditions.placeholder')"
+                @update:model-value="updateCondition(index, 'condition', $event)"
+              />
+
+              <div
+                class="flex justify-center"
+                v-tooltip.top="$t('block.record.fieldConditions.clearOnHideTooltip')"
+              >
+                <Checkbox
+                  :model-value="condition.clearOnHide || false"
+                  binary
+                  @update:model-value="updateCondition(index, 'clearOnHide', $event)"
+                />
+              </div>
+            </template>
+          </CFormList>
 
           <small class="text-muted-color">
             {{ $t('block.record.fieldConditions.description') }}
@@ -386,6 +387,17 @@ const fieldConditions = computed(() => {
   return block.value.options?.fieldConditions || []
 })
 
+const conditionColumns = computed(() => [
+  { label: t('block.record.fieldConditions.field'), width: 'minmax(160px, 1fr)' },
+  { label: t('block.record.fieldConditions.condition'), width: 'minmax(220px, 1.6fr)' },
+  {
+    label: t('block.record.fieldConditions.clearOnHide'),
+    tooltip: t('block.record.fieldConditions.clearOnHideTooltip'),
+    width: '9.5rem',
+    headerClass: 'text-center',
+  },
+])
+
 const conditionFieldOptions = computed(() => {
   const fields = block.value.options?.fields || []
   if (!fieldPickerModule.value) return []
@@ -411,10 +423,10 @@ function addCondition() {
   updateOptions('fieldConditions', conditions)
 }
 
-function removeCondition(index) {
-  const conditions = [...fieldConditions.value]
-  conditions.splice(index, 1)
-  updateOptions('fieldConditions', conditions)
+// CFormList removes a row by splicing the array it was handed; copying it back
+// through the patch keeps every write to the options on the one path.
+function onConditionsChange() {
+  updateOptions('fieldConditions', [...(block.value.options?.fieldConditions || [])])
 }
 
 // Every part of a condition is written the same way — through the options patch,

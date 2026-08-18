@@ -46,6 +46,9 @@ const props = defineProps({
   minLines: { type: Number, default: 2 },
   // Grows with the content up to this many lines, then scrolls.
   maxLines: { type: Number, default: 8 },
+  // 'small' draws the box to PrimeVue's small form-field metrics, so a
+  // one-line editor stands beside a `size="small"` input at the same height.
+  size: { type: String, default: 'normal' },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -54,6 +57,25 @@ const host = ref(null)
 const context = new Compartment()
 let view = null
 let applying = false
+
+// The two sizes the box comes in. 'small' reads PrimeVue's own small
+// form-field tokens, so the editor follows the theme rather than a copy of it.
+const SIZES = {
+  normal: { fontSize: '13px', paddingY: '0.5rem', paddingX: '0.75rem' },
+  small: {
+    fontSize: 'var(--p-form-field-sm-font-size, 0.875rem)',
+    paddingY: 'var(--p-form-field-sm-padding-y, 0.375rem)',
+    paddingX: 'var(--p-form-field-sm-padding-x, 0.625rem)',
+  },
+}
+
+const metrics = SIZES[props.size] || SIZES.normal
+
+// Height of n lines of text plus the box's own padding, which is border-box
+// on `.cm-content` and so has to be added on.
+function lines(n) {
+  return `calc(${n} * 1.5 * ${metrics.fontSize} + 2 * ${metrics.paddingY})`
+}
 
 const holeMark = Decoration.mark({ class: 'c-expression__hole' })
 const marks = {
@@ -173,14 +195,14 @@ function extensions() {
     }),
     EditorView.theme({
       '&': {
-        fontSize: '13px',
+        fontSize: metrics.fontSize,
         fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
       },
       '&.cm-focused': { outline: 'none' },
       '.cm-line': { padding: '0' },
       '.cm-scroller': {
         lineHeight: '1.5',
-        maxHeight: `calc(${props.maxLines} * 1.5 * 13px + 1rem)`,
+        maxHeight: lines(props.maxLines),
       },
       // The box's padding lives here rather than on the wrapper: the editable
       // node is what a click has to land on, so anything between it and the
@@ -189,8 +211,8 @@ function extensions() {
       // minLines counts lines of text, and the padding is border-box here, so
       // it is added on rather than eaten out of the height those lines need.
       '.cm-content': {
-        padding: '0.5rem 0.75rem',
-        minHeight: `calc(${props.minLines} * 1.5 * 13px + 1rem)`,
+        padding: `${metrics.paddingY} ${metrics.paddingX}`,
+        minHeight: lines(props.minLines),
       },
     }),
   ]

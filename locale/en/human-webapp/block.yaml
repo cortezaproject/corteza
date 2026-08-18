@@ -727,6 +727,7 @@ record:
     clearOnHideTooltip: Automatically clear this field's value when it becomes hidden
     condition: Condition
     description: Configure conditions to show or hide fields based on values. Re-evaluated as the record is edited, so fields appear and disappear as values change.
+    empty: No conditional fields have been configured for this block yet.
     field: Field
     label: Conditional fields
     placeholder: When should this field be displayed?
