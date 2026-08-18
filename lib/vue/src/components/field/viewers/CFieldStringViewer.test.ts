@@ -74,4 +74,32 @@ describe('CFieldStringViewer', () => {
     })
     expect(wrapper.find('p').classes()).toContain('multiline')
   })
+
+  it('shows markup in a plain field as text, not HTML', () => {
+    const wrapper = mount(CFieldStringViewer, {
+      props: { field: field(), record: record({ title: '<b>bold</b>' }) },
+    })
+    expect(wrapper.find('p').find('b').exists()).toBe(false)
+    expect(wrapper.find('p').text()).toBe('<b>bold</b>')
+  })
+
+  it('renders markup in a rich-text field', () => {
+    const wrapper = mount(CFieldStringViewer, {
+      props: {
+        field: field({ options: { useRichTextEditor: true } }),
+        record: record({ title: '<b>bold</b>' }),
+      },
+    })
+    expect(wrapper.find('p').find('b').exists()).toBe(true)
+  })
+
+  it('does not build an element out of a plain field value', () => {
+    const wrapper = mount(CFieldStringViewer, {
+      props: {
+        field: field(),
+        record: record({ title: '<img src=x onerror="throw new Error()">' }),
+      },
+    })
+    expect(wrapper.find('img').exists()).toBe(false)
+  })
 })

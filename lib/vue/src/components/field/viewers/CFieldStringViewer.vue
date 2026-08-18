@@ -1,6 +1,9 @@
 <template>
   <div>
-    <p v-if="formatted" :class="viewerClasses" v-html="formatted" />
+    <!-- Only a rich-text field holds markup; anything else is text, and
+         rendering it as HTML lets a stored value bring its own tags. -->
+    <p v-if="formatted && isRichText" :class="viewerClasses" v-html="formatted" />
+    <p v-else-if="formatted" :class="viewerClasses">{{ formatted }}</p>
   </div>
 </template>
 
@@ -53,6 +56,8 @@ const formatted = computed(() => {
 
   return String(v)
 })
+
+const isRichText = computed(() => !!props.field.options?.useRichTextEditor)
 
 const viewerClasses = computed(() => {
   const classes = []
