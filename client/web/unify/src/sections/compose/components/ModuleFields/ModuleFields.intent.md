@@ -37,7 +37,10 @@ to offer role-restricted user pickers.
 
 Contract for kind panels: file name must exactly equal the field `kind` (dynamic
 import `./kinds/${kind}.vue`); a missing file is legal and simply hides the kind
-tab. Panels take no props — they `inject('fieldDraft')` and mutate the draft
-directly. Cancel must discard everything, which works only because the draft is a
-clone; never hand the original field to the dialog. The multi tab shows only when
+tab. A panel renders only its own kind's options — the shared tabs are the one
+place their controls appear, and `Tabs` is not lazy, so a panel that repeats one
+puts the same control (and the same input ids) in the document twice. Panels
+take no props — they `inject('fieldDraft')` and mutate the draft directly.
+Cancel must discard everything, which works only because the draft is a clone;
+never hand the original field to the dialog. The multi tab shows only when
 `field.cap.multi` and enables only when `isMulti`.

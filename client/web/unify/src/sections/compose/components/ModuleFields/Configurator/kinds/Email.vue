@@ -6,14 +6,11 @@
         {{ $t('field.kind.email.preventToLink') }}
       </label>
     </div>
-
-    <CConfiguratorMultiDelimiter />
   </div>
 </template>
 
 <script setup>
 import { inject } from 'vue'
-import CConfiguratorMultiDelimiter from '../CConfiguratorMultiDelimiter.vue'
 
 const field = inject('fieldDraft')
 </script>

@@ -300,15 +300,12 @@
         </div>
       </div>
     </div>
-
-    <CConfiguratorMultiDelimiter />
   </div>
 </template>
 
 <script setup>
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import CConfiguratorMultiDelimiter from '../CConfiguratorMultiDelimiter.vue'
 import { components } from '@planetcrust/human-vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
