@@ -270,6 +270,12 @@
                           option-value="value"
                           size="small"
                         />
+                        <InputGroupAddon v-if="field.expressions?.value">
+                          <i
+                            class="pi pi-calculator text-muted-color"
+                            v-tooltip.top="$t('field.valueExpr.indicator')"
+                          />
+                        </InputGroupAddon>
                         <InputGroupAddon>
                           <Button
                             icon="pi pi-cog"
@@ -281,10 +287,7 @@
                         </InputGroupAddon>
                       </InputGroup>
 
-                      <div
-                        class="flex justify-center"
-                        v-tooltip.top="requiredDisabledReason(field)"
-                      >
+                      <div class="flex justify-center" v-tooltip.top="requiredTooltip(field)">
                         <Checkbox
                           v-model="field.isRequired"
                           :binary="true"
@@ -674,8 +677,15 @@ function capsOf(field) {
 // the dialog forbids. Returns the reason, or '' when the box is usable.
 function requiredDisabledReason(field) {
   if (!capsOf(field).required) return t('field.disabled.requiredUnsupported')
-  if (field.expressions?.value) return t('field.disabled.requiredWithValueExpr')
   return ''
+}
+
+// On an expression field, required still holds — it asks the formula to produce
+// a value rather than the person filling the form to type one.
+function requiredTooltip(field) {
+  const disabled = requiredDisabledReason(field)
+  if (disabled) return disabled
+  return field.expressions?.value ? t('field.valueExpr.requiredMeaning') : ''
 }
 
 function multiDisabledReason(field) {

@@ -7,9 +7,11 @@
           v-model="field.isRequired"
           inputId="isRequired"
           :binary="true"
-          :disabled="!field.cap?.required || showValueExpr"
+          :disabled="!field.cap?.required"
         />
-        <label for="isRequired" class="cursor-pointer">{{ $t('general.label.required') }}</label>
+        <label for="isRequired" class="cursor-pointer">
+          {{ showValueExpr ? $t('field.valueExpr.requiredLabel') : $t('general.label.required') }}
+        </label>
       </div>
 
       <div class="flex items-center gap-2">
@@ -27,7 +29,7 @@
           v-model="showValueExpr"
           inputId="showValueExpr"
           :binary="true"
-          :disabled="field.isRequired || defaultValueEnabled"
+          :disabled="defaultValueEnabled"
         />
         <label for="showValueExpr" class="cursor-pointer">
           {{ $t('field.valueExpr.label') }}

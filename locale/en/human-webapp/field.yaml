@@ -19,7 +19,6 @@ defaultValue: Default value
 disabled:
   multiUnsupported: This field type cannot hold more than one value
   requiredUnsupported: This field type cannot be made required
-  requiredWithValueExpr: A field whose value comes from an expression cannot also be required — clear the value expression in the field settings first
 general:
   label:
     zoom: Zoom
@@ -329,5 +328,8 @@ validators:
   label: Value validation
 valueExpr:
   description: Insert a formula or expression that calculates numeric values or combines and manipulates text values
+  indicator: The value of this field is calculated by an expression
   label: Field value expression
+  requiredLabel: The expression must produce a value
+  requiredMeaning: Required on a calculated field means the expression must produce a value, not that someone has to type one
   placeholder: ((floor(numField1) + numField2) / 10) + 0.5
