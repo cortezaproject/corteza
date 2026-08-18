@@ -144,8 +144,17 @@
   </Form>
 
   <!-- No blocks -->
-  <div v-else-if="page" class="flex items-center justify-center h-full">
-    <p class="text-muted-color">{{ $t('page.noBlock') }}</p>
+  <div v-else-if="page" class="flex flex-col items-center justify-center gap-3 h-full">
+    <p class="text-muted-color">
+      {{ emptyStateMessage }}
+    </p>
+    <Button
+      v-if="hasNoLayouts && page.canUpdatePage"
+      :label="$t('page.page-layout.add')"
+      icon="pi pi-plus"
+      size="small"
+      @click="goToEditPage"
+    />
   </div>
 
   <!-- Page not found -->
@@ -158,7 +167,12 @@
 
 <script setup>
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
-import { fetchBlockID, usePageVisibility } from '@/sections/compose/composables/usePageVisibility'
+import {
+  clearRefusal,
+  fetchBlockID,
+  refuseOnce,
+  usePageVisibility,
+} from '@/sections/compose/composables/usePageVisibility'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
@@ -225,6 +239,8 @@ const serverErrors = ref({})
 
 const loading = ref(false)
 const invisibleBlockIDs = ref(new Set())
+// True once this page has been refused and we stayed anyway (see refuseOnce)
+const noLayoutMatched = ref(false)
 
 const recordNavigation = computed(() => {
   const recordID = props.inModal ? props.modalRecordID : route.params.recordID
@@ -359,10 +375,10 @@ provide('$fileUploadContext', {
 // what visibility is evaluated over: a block no layout places is never rendered,
 // so its condition would only add an expression that can fail for nothing.
 const layoutBlocks = computed(() => {
+  // No layout, no blocks. A layout is what decides which blocks a viewer sees,
+  // so falling back to the page's raw set would show everything precisely when
+  // the rules meant to narrow it did not apply.
   if (!page.value || !layout.value) {
-    if (page.value?.blocks?.length) {
-      return page.value.blocks
-    }
     return []
   }
 
@@ -386,6 +402,18 @@ const positionedBlocks = computed(() =>
   // invisibleBlockIDs are blocks hidden by visibility expressions/roles — remove entirely
   layoutBlocks.value.filter(b => !invisibleBlockIDs.value.has(fetchBlockID(b))),
 )
+
+// A page nobody has given a layout yet is unfinished, not withheld — it says so
+// and offers the way to finish it, rather than leaving as a no-match does.
+const hasNoLayouts = computed(
+  () => !!page.value && pageLayoutStore.getByPageID(page.value.pageID).length === 0,
+)
+
+const emptyStateMessage = computed(() => {
+  if (hasNoLayouts.value) return t('page.noLayouts')
+  if (noLayoutMatched.value) return t('notification.page.noMatchingLayout')
+  return t('page.noBlock')
+})
 
 const navigating = ref(null) // 'prev' | 'next' | null
 
@@ -428,9 +456,48 @@ async function resolveLayout() {
 
   // A superseded resolution (rapid record swap, mode toggle mid-load) must not
   // overwrite the layout picked for the record now on screen
-  if (seq === _layoutSeq) {
-    layout.value = resolved
+  if (seq !== _layoutSeq) return
+
+  layout.value = resolved
+
+  // The request has been spent, so it leaves the URL: keeping it would re-pin
+  // this layout on every later resolution, and the address would name a layout
+  // that may no longer be the one on screen.
+  if (requestedLayoutID) dropLayoutQuery()
+
+  // Layouts exist but this record matches none of them: there is no honest
+  // block set to fall back to, so say so and leave rather than render the
+  // page's raw set, which is everything the layouts were there to narrow.
+  // The builder is exempt — an author editing a layout has to be able to see it
+  // whether or not its own condition holds right now.
+  if (layouts.length && !resolved && route.name !== 'admin.pages.builder') {
+    noLayoutMatched.value = true
+    if (refuseOnce(page.value.pageID)) {
+      $toast?.toastWarning(t('notification.page.noMatchingLayout'))
+      if (props.inModal) emit('close')
+      else leaveUnshowablePage()
+    }
+    return
   }
+
+  noLayoutMatched.value = false
+  clearRefusal()
+}
+
+/**
+ * Leaves for the namespace's page list rather than through history: the page
+ * behind this one can be the namespace's landing page, which redirects to the
+ * very page that matched nothing — so going back lands straight on it again.
+ */
+function leaveUnshowablePage() {
+  router.push({ name: 'pages', params: { slug: route.params.slug } })
+}
+
+function dropLayoutQuery() {
+  if (!route.query.layoutID) return
+  const query = { ...route.query }
+  delete query.layoutID
+  router.replace({ query })
 }
 
 async function loadRecord(recordID) {
@@ -941,6 +1008,16 @@ watch(
     }
   },
   { immediate: true },
+)
+
+// A navigation block linking to the layout of the record already open changes
+// only this parameter. Acting on a truthy value alone keeps the strip that
+// follows from reading as a second request.
+watch(
+  () => route.query.layoutID,
+  layoutID => {
+    if (layoutID && page.value && !props.inModal) resolveLayout()
+  },
 )
 
 const offRefetch = $eventBus?.on('refetch-records', () => loadPage())

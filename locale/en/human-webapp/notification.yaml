@@ -339,6 +339,7 @@ page:
   invalidBlock: Not a valid page block
   listFailed: Could not load page list
   loadFailed: Could not load page
+  noMatchingLayout: No layout matches the current conditions, so this page has nothing to show
   noPages: No pages found
   notFound: Page not found
   page-layout:

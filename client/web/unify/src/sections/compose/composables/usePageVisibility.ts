@@ -49,7 +49,26 @@ function getBreakpoint(): string {
   return 'xxs'
 }
 
-export { fetchBlockID, getBreakpoint }
+// A page no layout matches sends the viewer away, but there is nowhere inside a
+// namespace guaranteed not to lead back: `pages` is the landing route, and it
+// redirects to the namespace's home page — which may be that very page. So the
+// attempt is made once. Arriving a second time, the page stands its ground and
+// says why it is empty rather than bouncing forever.
+let lastRefusedPageID = ''
+
+function refuseOnce(pageID: string): boolean {
+  if (lastRefusedPageID === pageID) return false
+  lastRefusedPageID = pageID
+  return true
+}
+
+// Any page that does resolve a layout ends the streak, so returning to a page
+// that once refused is a fresh attempt rather than a silent empty screen.
+function clearRefusal(): void {
+  lastRefusedPageID = ''
+}
+
+export { fetchBlockID, getBreakpoint, refuseOnce, clearRefusal }
 
 export function usePageVisibility(
   $SystemAPI: {

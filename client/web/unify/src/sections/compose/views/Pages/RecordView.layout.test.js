@@ -28,6 +28,8 @@ function applyLocation(loc) {
 }
 
 const router = { push: vi.fn(), replace: vi.fn(applyLocation) }
+const goBack = vi.fn()
+const toastWarning = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRoute: () => route,
@@ -72,7 +74,7 @@ vi.mock('@planetcrust/human-vue', () => ({
   usePageStore: () => pageStore,
   usePageLayoutStore: () => pageLayoutStore,
   useRecordStore: () => recordStore,
-  useHistoryBack: () => vi.fn(),
+  useHistoryBack: () => goBack,
   components: { CInputDelete: { template: '<div />' } },
 }))
 
@@ -140,7 +142,7 @@ async function mountView() {
       directives: { tooltip: {}, focus: {} },
       mocks: { $t: k => k },
       provide: {
-        $toast: { toastSuccess: vi.fn(), toastErrorHandler: () => vi.fn() },
+        $toast: { toastSuccess: vi.fn(), toastWarning, toastErrorHandler: () => vi.fn() },
         $ComposeAPI: {},
         $SystemAPI: { expressionEvaluate },
         $Auth: { user: { userID: 'U1', roles: [] } },
@@ -169,6 +171,9 @@ beforeEach(() => {
     Promise.resolve(Object.fromEntries(Object.keys(expressions).map(k => [k, true]))),
   )
   recordStore.findByID.mockClear()
+  goBack.mockClear()
+  router.push.mockClear()
+  toastWarning.mockClear()
   page = {
     pageID: 'P1',
     title: 'Record page',
@@ -287,6 +292,39 @@ describe('RecordView layout resolution', () => {
     expect(blockEvaluations().at(-1).record.recordID).toBe('R2')
   })
 
+  describe('when no layout matches', () => {
+    beforeEach(() => {
+      page.blocks = [{ blockID: 'B1', kind: 'Content', meta: {} }]
+      expressionEvaluate.mockImplementation(({ expressions }) =>
+        Promise.resolve(Object.fromEntries(Object.keys(expressions).map(k => [k, false]))),
+      )
+    })
+
+    it('leaves with a warning rather than falling back to every page block', async () => {
+      await mountView()
+
+      // The page's raw block set is what the layouts were there to narrow, so
+      // showing it when none of them applied is the opposite of the intent.
+      expect(wrapper.findComponent(Grid).exists()).toBe(false)
+      expect(toastWarning).toHaveBeenCalledWith('notification.page.noMatchingLayout')
+      // The page list, not history: going back can land on the namespace's
+      // landing page, which redirects straight to the page we just left.
+      expect(router.push).toHaveBeenCalledWith({ name: 'pages', params: { slug: 'ns' } })
+      expect(goBack).not.toHaveBeenCalled()
+    })
+
+    it('stays put when the page simply has no layouts at all', async () => {
+      layouts = []
+      await mountView()
+
+      // Nothing was narrowed, so nothing was withheld — this is an unfinished
+      // page, not a viewer who was kept out of one.
+      expect(goBack).not.toHaveBeenCalled()
+      expect(toastWarning).not.toHaveBeenCalled()
+      expect(wrapper.findComponent(Grid).exists()).toBe(false)
+    })
+  })
+
   describe('with a layout requested via ?layoutID', () => {
     beforeEach(() => {
       layouts = [
@@ -316,6 +354,30 @@ describe('RecordView layout resolution', () => {
       await mountView()
 
       expect(wrapper.vm.layout.pageLayoutID).toBe('L1')
+    })
+
+    it('spends the request and drops it from the URL', async () => {
+      expressionEvaluate.mockImplementation(() => Promise.resolve({ L1: true, L2: true }))
+      await mountView()
+
+      // Left in place it would re-pin L2 on every later resolution, and the
+      // address would keep naming a layout that need not be the one on screen.
+      expect(route.query.layoutID).toBeUndefined()
+      expect(wrapper.vm.layout.pageLayoutID).toBe('L2')
+    })
+
+    it('honours a new request arriving while the page stays open', async () => {
+      expressionEvaluate.mockImplementation(() => Promise.resolve({ L1: true, L2: true }))
+      route.query = {}
+      await mountView()
+      expect(wrapper.vm.layout.pageLayoutID).toBe('L1')
+
+      // What a navigation block linking to another layout of this same page does
+      route.query = { layoutID: 'L2' }
+      await flushPromises()
+
+      expect(wrapper.vm.layout.pageLayoutID).toBe('L2')
+      expect(route.query.layoutID).toBeUndefined()
     })
   })
 

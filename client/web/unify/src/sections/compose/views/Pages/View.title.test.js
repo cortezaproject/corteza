@@ -13,6 +13,7 @@ const route = reactive({
 })
 
 const router = { push: vi.fn(), replace: vi.fn() }
+const goBack = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRoute: () => route,
@@ -25,9 +26,12 @@ let layouts
 const pageStore = { getByID: () => page }
 const pageLayoutStore = { getByPageID: () => layouts }
 
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
+
 vi.mock('@planetcrust/human-vue', () => ({
   usePageStore: () => pageStore,
   usePageLayoutStore: () => pageLayoutStore,
+  useHistoryBack: () => goBack,
 }))
 
 vi.mock('@planetcrust/human-js', () => ({
@@ -52,6 +56,8 @@ vi.mock('@planetcrust/human-js', () => ({
 
 vi.mock('@/sections/compose/composables/usePageVisibility', () => ({
   fetchBlockID: b => b.blockID,
+  refuseOnce: () => true,
+  clearRefusal: () => {},
   usePageVisibility: () => ({
     buildExpressionVariables: () => ({}),
     determineLayout: () => Promise.resolve(layouts[0]),

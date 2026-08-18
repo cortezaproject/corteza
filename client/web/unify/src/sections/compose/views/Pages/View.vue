@@ -42,8 +42,17 @@
   </div>
 
   <!-- No blocks -->
-  <div v-else-if="page" class="flex items-center justify-center h-full">
-    <p class="text-muted-color">{{ $t('page.noBlock') }}</p>
+  <div v-else-if="page" class="flex flex-col items-center justify-center gap-3 h-full">
+    <p class="text-muted-color">
+      {{ emptyStateMessage }}
+    </p>
+    <Button
+      v-if="hasNoLayouts && page.canUpdatePage"
+      :label="$t('page.page-layout.add')"
+      icon="pi pi-plus"
+      size="small"
+      @click="goToEditPage"
+    />
   </div>
 
   <!-- Page not found -->
@@ -60,9 +69,15 @@ import PageTranslator from '@/sections/compose/components/Admin/Page/PageTransla
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
 import { computed, inject, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { compose, NoID } from '@planetcrust/human-js'
-import { fetchBlockID, usePageVisibility } from '@/sections/compose/composables/usePageVisibility'
+import {
+  clearRefusal,
+  fetchBlockID,
+  refuseOnce,
+  usePageVisibility,
+} from '@/sections/compose/composables/usePageVisibility'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 import { evaluatePrefilter, usesRecordVariables } from '@/sections/compose/lib/record-filter'
 
@@ -79,6 +94,8 @@ const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 const $SystemAPI = inject('$SystemAPI', null)
 const $Auth = inject('$Auth', null)
+const $toast = inject('$toast', null)
+const { t } = useI18n()
 
 const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility(
   $SystemAPI,
@@ -90,10 +107,22 @@ const loading = ref(false)
 const page = ref(null)
 const layout = ref(null)
 const invisibleBlockIDs = ref(new Set())
+// True once this page has been refused and we stayed anyway (see refuseOnce)
+const noLayoutMatched = ref(false)
 
 const pageLayouts = computed(() =>
   page.value ? pageLayoutStore.getByPageID(page.value.pageID) : [],
 )
+
+// A page nobody has given a layout yet is unfinished, not withheld — it says so
+// and offers the way to finish it, rather than leaving as a no-match does.
+const hasNoLayouts = computed(() => !!page.value && pageLayouts.value.length === 0)
+
+const emptyStateMessage = computed(() => {
+  if (hasNoLayouts.value) return t('page.noLayouts')
+  if (noLayoutMatched.value) return t('notification.page.noMatchingLayout')
+  return t('page.noBlock')
+})
 
 /**
  * The page's displayed title. A layout may override the page title with its own,
@@ -130,11 +159,10 @@ const pageTitle = computed(() => {
 // never rendered, so its condition would only add an expression that can fail
 // for nothing.
 const layoutBlocks = computed(() => {
+  // No layout, no blocks. A layout is what decides which blocks a viewer sees,
+  // so falling back to the page's raw set would show everything precisely when
+  // the rules meant to narrow it did not apply.
   if (!page.value || !layout.value) {
-    // No layout — fall back to page blocks with their default xywh
-    if (page.value?.blocks?.length) {
-      return page.value.blocks
-    }
     return []
   }
 
@@ -170,26 +198,70 @@ async function loadPage() {
     page.value = pageStore.getByID(pageID) || null
 
     if (page.value) {
-      const layouts = pageLayoutStore.getByPageID(pageID)
-      const vars = buildExpressionVariables()
-
-      // An explicitly requested layout (?layoutID=, e.g. from a navigation
-      // block) wins over automatic selection.
-      const requested = route.query.layoutID
-      layout.value = await determineLayout(
-        layouts,
-        vars,
-        typeof requested === 'string' ? requested : undefined,
-      )
-
-      // Evaluate block visibility after layout is resolved
-      if (layoutBlocks.value.length) {
-        invisibleBlockIDs.value = await evaluateBlocks(layoutBlocks.value, vars)
-      }
+      await applyLayout()
     }
   } finally {
     loading.value = false
   }
+}
+
+/**
+ * Picks the layout and settles block visibility under it.
+ *
+ * A page that has layouts but matches none of them is not a page with nothing
+ * on it — it is a page this viewer was not meant to reach, so it says so and
+ * leaves rather than rendering an empty grid.
+ */
+async function applyLayout() {
+  const layouts = pageLayoutStore.getByPageID(page.value.pageID)
+  const vars = buildExpressionVariables()
+
+  // An explicitly requested layout (?layoutID=, e.g. from a navigation block)
+  // wins over automatic selection.
+  const requested = route.query.layoutID
+  const requestedLayoutID = typeof requested === 'string' ? requested : undefined
+
+  layout.value = await determineLayout(layouts, vars, requestedLayoutID)
+
+  // The request has been spent, so it leaves the URL: keeping it would re-pin
+  // this layout on every later resolution, and the address would name a layout
+  // that may no longer be the one on screen.
+  if (requestedLayoutID) dropLayoutQuery()
+
+  // The builder is exempt — an author editing a layout has to be able to see it
+  // whether or not its own condition holds right now.
+  if (layouts.length && !layout.value && route.name !== 'admin.pages.builder') {
+    noLayoutMatched.value = true
+    if (refuseOnce(page.value.pageID)) {
+      $toast?.toastWarning(t('notification.page.noMatchingLayout'))
+      leaveUnshowablePage()
+    }
+    return
+  }
+
+  noLayoutMatched.value = false
+  clearRefusal()
+
+  // Evaluate block visibility after layout is resolved
+  if (layoutBlocks.value.length) {
+    invisibleBlockIDs.value = await evaluateBlocks(layoutBlocks.value, vars)
+  }
+}
+
+function dropLayoutQuery() {
+  if (!route.query.layoutID) return
+  const query = { ...route.query }
+  delete query.layoutID
+  router.replace({ query })
+}
+
+/**
+ * Leaves for the namespace's page list rather than through history: the page
+ * behind this one can be the namespace's landing page, which redirects to the
+ * very page that matched nothing — so going back lands straight on it again.
+ */
+function leaveUnshowablePage() {
+  router.push({ name: 'pages', params: { slug: route.params.slug } })
 }
 
 function goToBuilder() {
@@ -215,5 +287,15 @@ watch(
   () => route.params.pageID,
   () => loadPage(),
   { immediate: true },
+)
+
+// A navigation block linking to the layout of the page already open changes
+// only this parameter. Acting on a truthy value alone keeps the strip that
+// follows from reading as a second request.
+watch(
+  () => route.query.layoutID,
+  layoutID => {
+    if (layoutID && page.value) applyLayout()
+  },
 )
 </script>
