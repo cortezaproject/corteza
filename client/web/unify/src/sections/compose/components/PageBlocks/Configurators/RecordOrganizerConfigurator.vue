@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
-    <CFormGroup :label="$t('block.general.module')">
+    <CFormGroup :label="$t('block.general.module')" required>
       <CInputModule
         v-model="moduleID"
         :namespaceID="namespace?.namespaceID"

@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-3">
     <Fieldset :legend="$t('block.recordList.record.generalLabel')">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <CFormGroup :label="$t('block.general.module')">
+        <CFormGroup :label="$t('block.general.module')" required>
           <CInputModule
             v-model="moduleID"
             :namespaceID="namespace?.namespaceID"

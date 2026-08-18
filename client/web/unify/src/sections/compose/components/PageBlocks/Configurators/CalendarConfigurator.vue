@@ -115,7 +115,7 @@
             <!-- Module and field mapping describe a record feed; a reminder
                  feed carries its own dates and title. -->
             <template v-if="isRecordFeed(feed)">
-              <CFormGroup :label="$t('block.calendar.recordFeed.moduleLabel')">
+              <CFormGroup :label="$t('block.calendar.recordFeed.moduleLabel')" required>
                 <CInputModule
                   :model-value="feed.options?.moduleID"
                   :namespaceID="namespace?.namespaceID"
@@ -134,7 +134,7 @@
                 />
               </CFormGroup>
 
-              <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')">
+              <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')" required>
                 <CInputModuleField
                   v-model="feed.startField"
                   :module-i-d="feed.options?.moduleID"

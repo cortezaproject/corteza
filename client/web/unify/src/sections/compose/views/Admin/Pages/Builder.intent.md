@@ -31,6 +31,7 @@ positions a subset of them.
 - Block configurator dialog with three tabs: General (title, description, custom ID/CSS class, header style, magnify, wrap/border, refresh rate, visibility expression + roles), a per-kind configurator (registry of ~18 kinds; draft shared via `blockDraft` provide), and Automation (RecordList selection buttons only). Its Save refuses a malformed custom ID or CSS class, returning to the General tab where they are already marked.
 - Tabs blocks manage child blocks through the provided `$pageBuilder` API (edit/remove/clone tab entries); children are kept `meta.hidden` in sync so they render only inside their tab.
 - Saving a record page is blocked (error toast, no request) while required module fields are not covered by any Record block.
+- Block-level requirements come from the block class (`PageBlock.validate()` in lib/js), read once here: the configurator warns about what the open block still needs, the grid badges every block with an issue, and page save is blocked naming each unfinished block and what it needs. Marking a control `required` in a configurator is the visual half only — the rule that refuses the save lives on the model.
 - Leaving with staged edits — a block added, configured, cloned, removed, dragged or resized, or an orphan deletion staged — confirms first; an untouched builder leaves silently.
 
 ## Routes

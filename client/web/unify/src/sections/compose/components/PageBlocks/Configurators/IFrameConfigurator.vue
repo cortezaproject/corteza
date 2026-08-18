@@ -16,6 +16,7 @@
     <CFormGroup
       :label="$t('block.iframe.srcLabel')"
       :description="isRecordPage ? $t('block.iframe.srcDesc') : ''"
+      :required="!srcField"
     >
       <CInputExpression
         ref="srcUrlInput"

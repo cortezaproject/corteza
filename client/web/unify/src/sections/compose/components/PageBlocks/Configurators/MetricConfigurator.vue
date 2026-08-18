@@ -46,7 +46,7 @@
                 />
               </CFormGroup>
 
-              <CFormGroup :label="$t('block.metric.edit.moduleLabel')">
+              <CFormGroup :label="$t('block.metric.edit.moduleLabel')" required>
                 <CInputModule
                   :model-value="metric.moduleID"
                   :namespaceID="namespace?.namespaceID"

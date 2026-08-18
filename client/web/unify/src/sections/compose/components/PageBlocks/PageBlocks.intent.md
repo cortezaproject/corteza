@@ -47,7 +47,9 @@ themselves. Auth is injected under the key `$Auth` (not `$auth`).
 
 A new block kind needs all three: Block component + registry entry + Configurator
 (plus its import/case in Builder.vue) — miss one and the kind renders the
-"no configuration" fallback or is unconfigurable. Block IDs may be temp
+"no configuration" fallback or is unconfigurable. A kind that cannot render
+without an option states so in its class's `validate()` (lib/js) and marks the
+control `required`; the builder does the rest. Block IDs may be temp
 (`meta.tempID`) before save; Grid keys/rebuilds on `getBlockId`, so keep it stable.
 `meta.hidden` blocks are filtered out before layout. Grid CSS comments encode
 hard-won gridstack workarounds — read them before restyling.

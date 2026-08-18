@@ -80,6 +80,11 @@
             <i class="pi pi-bars text-base" />
           </div>
           <div class="block-toolbox bg-emphasis flex items-center">
+            <i
+              v-if="issuesFor(item.i).length"
+              v-tooltip.top="issueSummary(issuesFor(item.i))"
+              class="pi pi-exclamation-triangle text-orange-500 text-sm px-2"
+            />
             <ButtonGroup>
               <Button
                 :title="$t('page.tooltip.edit.block')"
@@ -268,6 +273,16 @@
       footer: { class: 'border-t border-surface p-3' },
     }"
   >
+    <Message
+      v-if="editingBlockIssues.length"
+      severity="warn"
+      size="small"
+      variant="simple"
+      class="mx-3 mt-3 shrink-0"
+    >
+      {{ $t('block.issue.summary', { needs: issueSummary(editingBlockIssues) }) }}
+    </Message>
+
     <Tabs v-if="editingBlock" v-model:value="configuratorTab" class="flex flex-col flex-1 min-h-0">
       <TabList class="shrink-0 z-10">
         <Tab value="general">{{ $t('block.general.label.general') }}</Tab>
@@ -1317,6 +1332,35 @@ async function handleSaveAsCopy() {
   }
 }
 
+// What each block still needs, keyed by block id. The block classes own the
+// rule; this is the one read of it, so the grid badge, the configurator and
+// the save refusal cannot disagree.
+const blockIssues = computed(() => {
+  const byBlock = new Map()
+  for (const block of blocks.value) {
+    const issues = block.validate?.() || []
+    if (issues.length) byBlock.set(String(getBlockId(block)), issues)
+  }
+  return byBlock
+})
+
+// The draft is not in `blocks` until it is saved, so the dialog asks it directly.
+const editingBlockIssues = computed(() => editingBlock.value?.validate?.() || [])
+
+function issueSummary(issues) {
+  return issues.map(i => t(i.labelKey)).join(', ')
+}
+
+function issuesFor(blockId) {
+  return blockIssues.value.get(String(blockId)) || []
+}
+
+function blockLabel(block) {
+  return (
+    block.title || availableBlockTypes.value.find(b => b.kind === block.kind)?.label || block.kind
+  )
+}
+
 function validateRequiredFields() {
   if (!page.value?.isRecordPage) return true
 
@@ -1388,6 +1432,22 @@ async function handleSave() {
   // block would render a form users can't complete — refuse to save it.
   if (!validateRequiredFields()) {
     $toast.toastDanger(t('notification.page.saveFailedRequired'))
+    return
+  }
+
+  // A block missing what it cannot render without would ship to the live page
+  // as empty chrome. Name the blocks rather than just refusing.
+  if (blockIssues.value.size) {
+    const named = blocks.value
+      .filter(b => issuesFor(getBlockId(b)).length)
+      .map(
+        b =>
+          `${blockLabel(b)} — ${issuesFor(getBlockId(b))
+            .map(i => t(i.labelKey))
+            .join(', ')}`,
+      )
+      .join('; ')
+    $toast.toastDanger(t('notification.page.saveFailedBlockConfig', { blocks: named }))
     return
   }
 

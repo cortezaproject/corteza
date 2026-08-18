@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
-    <CFormGroup :label="$t('block.chart.display')">
+    <CFormGroup :label="$t('block.chart.display')" required>
       <div class="flex gap-2">
         <CInputChart
           v-model="chartID"

@@ -365,6 +365,7 @@ page:
   requiredFields:
     missing: Some required module fields are not present in any Record block
   saveFailed: Could not save this page
+  saveFailedBlockConfig: 'Could not save this page, some blocks are not finished: {blocks}'
   saveFailedRequired: Could not save this page, all required module fields must be present
   saved: Page saved
 permissions:

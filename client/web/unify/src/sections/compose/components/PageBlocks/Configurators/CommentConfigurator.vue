@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-4">
-    <CFormGroup :label="$t('block.general.module')">
+    <CFormGroup :label="$t('block.general.module')" required>
       <CInputModule
         v-model="options.moduleID"
         :namespaceID="namespace?.namespaceID"
@@ -38,6 +38,7 @@
         <CFormGroup
           :label="$t('block.comment.contentField.label')"
           :description="$t('block.comment.contentField.footnote')"
+          required
         >
           <CInputModuleField
             v-model="options.contentField"

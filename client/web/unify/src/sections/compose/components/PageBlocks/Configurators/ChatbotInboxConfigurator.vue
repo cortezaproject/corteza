@@ -3,6 +3,7 @@
     <CFormGroup
       :label="$t('block.chatbotInbox.config.chatbots')"
       :description="$t('block.chatbotInbox.config.chatbotsHint')"
+      required
     >
       <MultiSelect
         v-model="chatbotIDs"

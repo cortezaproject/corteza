@@ -480,6 +480,26 @@ iframe:
   srcFieldDesc: Only available on record pages and on modules with existing "url" field kind
   srcFieldLabel: Field (URL) from record to use for the iframe
   srcLabel: URL to show in the iframe
+issue:
+  chart: A chart to display
+  commentContentField: The field holding each comment's text
+  contentBody: Some content to show
+  feedGeometryField: A geometry field to place markers from
+  feedModule: A module for the feed to read records from
+  feedStartField: A field holding the date each event starts on
+  iframeSource: A page address, or a field holding one
+  metricModule: A module for the metric to count over
+  module: A module to read records from
+  noAgents: At least one agent people are allowed to chat with
+  noAutomationButtons: At least one button
+  noChatbots: At least one chatbot to watch for handoffs
+  noFeeds: At least one feed
+  noMetrics: At least one metric
+  noNavigationItems: At least one navigation item
+  noTabs: At least one tab
+  progressValue: A value for the bar to show
+  summary: 'This block still needs: {needs}. It renders as an empty card until it has them.'
+  unconfiguredAutomationButton: A workflow, automation or script for the button to run
 metric:
   add: Add
   comparison:

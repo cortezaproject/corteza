@@ -110,7 +110,7 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <CFormGroup :label="$t('block.geometry.feedModule')">
+            <CFormGroup :label="$t('block.geometry.feedModule')" required>
               <CInputModule
                 :model-value="feed.options?.moduleID || ''"
                 :namespaceID="namespace?.namespaceID"
@@ -119,7 +119,7 @@
               />
             </CFormGroup>
 
-            <CFormGroup :label="$t('block.geometry.feedGeometryField')">
+            <CFormGroup :label="$t('block.geometry.feedGeometryField')" required>
               <CInputModuleField
                 :model-value="feed.geometryField || ''"
                 :module-i-d="feed.options?.moduleID"

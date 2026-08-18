@@ -3,6 +3,7 @@
     <CFormGroup
       :label="$t('block.agentChat.config.allowedAgents')"
       :description="$t('block.agentChat.config.allowedAgentsHint')"
+      required
     >
       <MultiSelect
         v-model="allowedAgentIDs"
