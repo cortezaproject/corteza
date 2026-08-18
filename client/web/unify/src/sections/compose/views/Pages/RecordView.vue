@@ -29,9 +29,15 @@
     </ButtonGroup>
   </Teleport>
 
-  <!-- Loading state -->
-  <div v-if="loading" class="flex items-center justify-center h-full">
-    <ProgressSpinner style="width: 32px; height: 32px" />
+  <!-- Loading state. The branch itself is what withholds the page — a load
+       rebuilds the record from nothing and the layout it was shown under is
+       still the previous one, so there is nothing here worth rendering. Whether
+       that wait is worth a spinner is a separate question, and usually no.
+       The branch outlives `loading` by whatever the cover has left to run: a
+       spinner that leaves the moment the work does is the same blink as one
+       that arrives the moment it starts. -->
+  <div v-if="loading || pageCover" class="flex items-center justify-center h-full">
+    <ProgressSpinner v-if="pageCover" style="width: 32px; height: 32px" />
   </div>
 
   <!-- Page content with record context -->
@@ -245,6 +251,10 @@ const formRef = ref(null)
 const serverErrors = ref({})
 
 const loading = ref(false)
+
+// A load that beats the delay leaves the page area empty for those few frames
+// rather than flashing a spinner through them — the same bargain a swap makes.
+const pageCover = useDeferredBusy(loading)
 const invisibleBlockIDs = ref(new Set())
 // True once this page has been refused and we stayed anyway (see refuseOnce)
 const noLayoutMatched = ref(false)
