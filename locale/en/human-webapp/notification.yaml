@@ -322,6 +322,7 @@ page:
   block:
     calendar:
       eventFetchFailed: Could not fetch  list of events
+  blockSaveFailedInvalid: Could not save this block, the custom ID and the custom CSS class must be valid
   blockWaiting: There is a page block awaiting
   cloneFailed: Could not clone this page
   cloneSuccess: Block has been cloned to the bottom of the page

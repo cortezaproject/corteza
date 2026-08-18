@@ -1207,9 +1207,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.vue": {
-      "h": "4370ec32f874",
+      "h": "85bc1d7954ac",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.intent.md",
-      "t": "2026-08-17"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.vue": {
       "h": "ddf338cc3480",

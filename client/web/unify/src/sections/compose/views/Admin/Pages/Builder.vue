@@ -1124,6 +1124,14 @@ function openBlockTranslation(block) {
 }
 
 function saveBlockConfig() {
+  // The general tab already marks these red; committing them anyway would
+  // persist an ID or class the page cannot use.
+  if (customIDInvalid.value || customCSSClassInvalid.value) {
+    configuratorTab.value = 'general'
+    $toast.toastDanger(t('notification.page.blockSaveFailedInvalid'))
+    return
+  }
+
   if (isNewBlock.value) {
     addEditingAsNewBlock()
   } else {
