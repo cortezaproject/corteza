@@ -602,15 +602,6 @@ function nodeHasTrace(node) {
   return false
 }
 
-// End and loop are structural markers: the executor runs nothing for them, so no
-// frame ever names one and reaching one has to be inferred from its source. A
-// branch picks a single arm and the trace does not record which, so a marker
-// hanging off a gateway stays unlit rather than claiming an arm that may not
-// have been taken.
-function markerReached(sourceNode) {
-  return sourceNode.type !== 'branch'
-}
-
 function isEdgeTraversed(edgeProps) {
   if (!isTraceActive.value) return false
   const sourceNode = editor.nodes.value.find(n => n.id === edgeProps.source)
@@ -619,9 +610,13 @@ function isEdgeTraversed(edgeProps) {
   // Control leaves a step only when it ran and did not fail there.
   if (!nodeHasTrace(sourceNode)) return false
   if (getTraceFrame(sourceNode)?.error) return false
-  if (targetNode.type === 'end' || targetNode.type === 'loop') {
-    return markerReached(sourceNode)
-  }
+  // An End or loop marker the parser invents to close a dangling arm has no
+  // backend step behind it, so no frame can ever name one and reaching it
+  // follows from its source — except off a branch, where the trace does not say
+  // which arm ran. A persisted marker carries a stepID and resolves by frame
+  // like any other step.
+  const isMarker = targetNode.type === 'end' || targetNode.type === 'loop'
+  if (isMarker && !targetNode.data?.stepID) return sourceNode.type !== 'branch'
   return nodeHasTrace(targetNode)
 }
 
