@@ -1950,12 +1950,24 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 }
 
 func (svc record) Validate(ctx context.Context, rec *types.Record) error {
-	if m, err := loadModuleWithFields(ctx, svc.store, rec.NamespaceID, rec.ModuleID); err != nil {
+	m, err := loadModuleWithFields(ctx, svc.store, rec.NamespaceID, rec.ModuleID)
+	if err != nil {
 		return err
-	} else {
-		rec.Values = values.Sanitizer().Run(m, rec.Values)
-		return values.Validator().Run(ctx, svc.store, m, rec)
 	}
+
+	// Values arrive from an automation script, where nothing marks them
+	// updated; both the sanitizer and the validator skip values that are not.
+	rec.Values.SetUpdatedFlag(true)
+	rec.Values = svc.sanitizer.Run(m, rec.Values)
+
+	// svc.validator carries the unique and reference checkers; a bare
+	// values.Validator() skips every reference check and discards the whole
+	// error set the moment the module has a unique field.
+	if rve := svc.validator.Run(ctx, svc.store, m, rec); !rve.IsValid() {
+		return rve
+	}
+
+	return nil
 }
 
 // TriggerScript loads requested record sanitizes and validates values and passes all to the automation script

@@ -247,13 +247,13 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 func (h recordsHandler) validate(ctx context.Context, args *recordsValidateArgs) (*recordsValidateResults, error) {
 	results := &recordsValidateResults{Valid: true}
 	if err := h.rec.Validate(ctx, args.Record); err != nil {
-		results.Valid = false
+		// Only a value error set means "the record is invalid"; anything else
+		// is a failed check, and reporting that as invalid hides it.
+		if _, is := err.(*types.RecordValueErrorSet); !is {
+			return nil, err
+		}
 
-		//if rves, is := err.(*types.RecordValueErrorSet); is {
-		//	results.Errors = rves
-		//} else {
-		//	return nil, err
-		//}
+		results.Valid = false
 	}
 
 	return results, nil
