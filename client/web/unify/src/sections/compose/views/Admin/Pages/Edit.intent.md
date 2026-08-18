@@ -9,7 +9,8 @@ depends-on:
   - client/web/unify/src/sections/compose/components/Admin/Page/PageTranslator.vue
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/views/Admin/Pages/Edit.layout-title.test.js
 ---
 
 # Page Edit view
@@ -39,7 +40,8 @@ record-toolbar configuration. Blocks are the builder's job.
 - Seeded layouts must use the `compose.PageLayout` type (default toolbar buttons enabled) and — when cloning — carry the page's blocks; an empty layout hides every block in the public view.
 - The layout config dialog edits a deep clone; nothing applies until its Save splices the clone back and marks `_updated`.
 - Layout builder links pass `?layoutID`; deleting layouts is deferred to the main save (they accumulate in `removedLayouts`).
-- `meta.title` does double duty: the layout's name in this editor (required) and, when `useTitle` is on, the page's interpolated title. Changing one changes the other.
+- `meta.title` does double duty: the layout's name in this editor (required) and, when `useTitle` is on, the page's interpolated title. Changing one changes the other — so both places that edit it, the list row and the config dialog, swap to the expression input on that flag, with one hint under the list serving the row last focused.
+- `CInputExpression` carries the required-title `invalid` state itself; this list checks its own rule against `validationTriggered` rather than through the Form resolver, so the flag has to reach whichever input is rendered.
 - `useTitle` is offered on every page kind; what varies is the scope `useExpressionScope` hands the input and its hint — record variables only where there is a record.
 
 - The record-page condition hint (`record.values.fieldName`) is accurate only because `RecordView.vue`/`View.vue` resolve the record before picking a layout (see their sidecars) — keep hint copy and actual evaluation timing in sync.

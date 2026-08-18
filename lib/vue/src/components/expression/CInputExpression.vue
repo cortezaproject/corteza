@@ -2,7 +2,7 @@
   <div
     ref="host"
     class="c-expression"
-    :class="{ 'c-expression--disabled': disabled }"
+    :class="{ 'c-expression--disabled': disabled, 'c-expression--invalid': invalid }"
     :data-dialect="dialect"
   />
 </template>
@@ -39,6 +39,9 @@ const props = defineProps({
   queryFields: { type: Array, default: () => [] },
   placeholder: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
+  // Draws the box the way PrimeVue draws a failed input, for the forms that
+  // check their own rules rather than going through a Form resolver.
+  invalid: { type: Boolean, default: false },
   // Opens this tall, so a filter has room to read as one.
   minLines: { type: Number, default: 2 },
   // Grows with the content up to this many lines, then scrolls.
@@ -257,6 +260,11 @@ defineExpose({ insert, focus: () => view?.focus() })
 .c-expression--disabled {
   background: var(--p-content-hover-background);
   opacity: 0.6;
+}
+
+.c-expression--invalid,
+.c-expression--invalid:focus-within {
+  border-color: var(--p-inputtext-invalid-border-color, var(--p-red-400));
 }
 
 /* CodeMirror paints the caret black unless the editor declares itself dark, and

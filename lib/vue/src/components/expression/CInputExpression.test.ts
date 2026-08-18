@@ -48,6 +48,11 @@ describe('CInputExpression', () => {
     expect(w.emitted('update:modelValue')).toBeUndefined()
   })
 
+  it('draws the failed state for a form that checks its own rules', () => {
+    expect(mountInput({ invalid: true }).find('.c-expression--invalid').exists()).toBe(true)
+    expect(mountInput({}).find('.c-expression--invalid').exists()).toBe(false)
+  })
+
   it('marks ${} holes so they are visually distinct', () => {
     const w = mountInput({ modelValue: 'id = ${recordID}' })
     expect(w.find('.c-expression__hole').exists()).toBe(true)

@@ -160,7 +160,24 @@
           >
             <template #row="{ item, index }">
               <div class="flex flex-col gap-1">
+                <!-- With useTitle on this string is the page's own title, read as
+                     a `${}` template — so it is authored the way the config
+                     dialog authors it. focusin, not a component event: the hint
+                     under the list inserts into whichever row was last edited,
+                     and CodeMirror has no focus event of its own. -->
+                <div v-if="item.config?.useTitle" @focusin="activeLayoutRow = index">
+                  <CInputExpression
+                    :ref="el => (layoutRowInputs[index] = el)"
+                    v-model="item.meta.title"
+                    dialect="interpolation"
+                    :scope="scope"
+                    :min-lines="1"
+                    :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
+                    @update:model-value="item._updated = true"
+                  />
+                </div>
                 <InputText
+                  v-else
                   v-model="item.meta.title"
                   class="w-full"
                   size="small"
@@ -216,6 +233,12 @@
               />
             </template>
           </CFormList>
+
+          <CExpressionHint
+            v-if="anyLayoutUsesTitle"
+            :scope="scope"
+            @insert="layoutRowInputs[activeLayoutRow]?.insert($event)"
+          />
         </Panel>
       </div>
     </div>
@@ -719,6 +742,12 @@ const isRecordPage = computed(() => {
 })
 
 const layoutTitleInput = ref(null)
+const layoutRowInputs = ref([])
+// The row a hint chip lands in. Starts at the first, so a chip clicked before
+// any title has been focused appends there rather than nowhere.
+const activeLayoutRow = ref(0)
+// The hint only earns its space once some layout titles the page itself.
+const anyLayoutUsesTitle = computed(() => layouts.value.some(l => l.config?.useTitle))
 const { scope, exprScope } = useExpressionScope({
   page: computed(() => page.value),
   hasRecord: isRecordPage,
