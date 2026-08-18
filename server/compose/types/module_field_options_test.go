@@ -30,3 +30,22 @@ func TestModuleFieldOptions_Int64Def(t *testing.T) {
 		})
 	}
 }
+
+func TestModuleFieldOptions_Precision(t *testing.T) {
+	tt := []struct {
+		name string
+		opt  ModuleFieldOptions
+		want uint
+	}{
+		{"unset falls back to the webapp default", ModuleFieldOptions{}, 3},
+		{"an explicit zero stays zero", ModuleFieldOptions{"precision": 0}, 0},
+		{"an explicit value wins", ModuleFieldOptions{"precision": 2}, 2},
+		{"above the maximum clamps", ModuleFieldOptions{"precision": 9}, 6},
+	}
+
+	for _, c := range tt {
+		if got := c.opt.Precision(); got != c.want {
+			t.Errorf("%s: got %d, want %d", c.name, got, c.want)
+		}
+	}
+}

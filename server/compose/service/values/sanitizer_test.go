@@ -127,11 +127,11 @@ func Test_sanitizer_Run(t *testing.T) {
 			output:  "42.4",
 		},
 		{
-			name:    "number precision; default to 0",
+			name:    "number precision; unset keeps decimals",
 			kind:    "Number",
 			options: map[string]interface{}{},
 			input:   "42.4",
-			output:  "42",
+			output:  "42.4",
 		},
 		{
 			name:    "number precision; clamped between [0, 6]",
