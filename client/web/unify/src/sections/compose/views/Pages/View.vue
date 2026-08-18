@@ -1,7 +1,7 @@
 <template>
   <!-- Page title in topbar -->
   <Teleport to="#topbar-title" :defer="true">
-    <span v-if="page">{{ page.title }}</span>
+    <span v-if="page">{{ pageTitle }}</span>
   </Teleport>
 
   <!-- Page builder button in topbar tools -->
@@ -61,9 +61,10 @@ import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
 import { computed, inject, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { compose } from '@planetcrust/human-js'
+import { compose, NoID } from '@planetcrust/human-js'
 import { fetchBlockID, usePageVisibility } from '@/sections/compose/composables/usePageVisibility'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
+import { evaluatePrefilter, usesRecordVariables } from '@/sections/compose/lib/record-filter'
 
 defineProps({
   namespace: {
@@ -93,6 +94,36 @@ const invisibleBlockIDs = ref(new Set())
 const pageLayouts = computed(() =>
   page.value ? pageLayoutStore.getByPageID(page.value.pageID) : [],
 )
+
+/**
+ * The page's displayed title. A layout may override the page title with its own,
+ * interpolated against the signed-in user (`config.useTitle`) — so a layout can
+ * title the screen `Welcome, ${user.name}` rather than the static page title.
+ * Mirrors `RecordView.vue`, minus the record: there is none here, so a template
+ * reading one cannot be evaluated and the page title stands, as it does
+ * whenever the override is off, empty, or the template is malformed.
+ */
+const pageTitle = computed(() => {
+  if (!page.value) return ''
+
+  const { config = {}, meta = {} } = layout.value || {}
+  if (!config.useTitle || !meta.title) return page.value.title
+  if (usesRecordVariables(meta.title)) return page.value.title
+
+  try {
+    return (
+      evaluatePrefilter(meta.title, {
+        record: undefined,
+        user: $Auth?.user || {},
+        recordID: NoID,
+        ownerID: NoID,
+        userID: $Auth?.user?.userID || NoID,
+      }) || page.value.title
+    )
+  } catch {
+    return page.value.title
+  }
+})
 
 const positionedBlocks = computed(() => {
   const blocks = (() => {

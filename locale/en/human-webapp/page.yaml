@@ -67,6 +67,8 @@ icon:
 import: 'Import page(s):'
 instructions: Drag and drop pages to adjust the order and hierarchy
 invalid: Invalid configuration
+issue:
+  noBlocks: This page has no blocks yet
 label:
   cancel: Cancel
   createPage: Create page
@@ -157,7 +159,8 @@ page-layout:
       requiredFields: Using required fields will impact performance
     title: Display title shown for this layout
   useTitle: Use layout title
-  useTitleDescription: Use a custom title for this layout instead of the default record page title
+  useTitleDescription: Show a custom title for this layout instead of the page title. The title
+    may interpolate the signed-in user, and on a record page the record that is open.
   visibility: Visibility
 pageMoveFailed: Could not move this page
 placeholder:

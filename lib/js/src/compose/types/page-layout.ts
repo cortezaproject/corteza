@@ -17,7 +17,7 @@ interface PageLayoutConfig {
     submit: Button
   }
   actions: Action[]
-  // Only used for record pages
+  // Show meta.title instead of the page title
   useTitle: boolean
   validation: Validation
 }

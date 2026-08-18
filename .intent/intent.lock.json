@@ -1227,9 +1227,9 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.vue": {
-      "h": "ddf338cc3480",
+      "h": "94a695bb88c8",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/List.vue": {
       "h": "3d3675cfa5fa",
@@ -1281,10 +1281,15 @@
       "doc": "client/web/unify/src/sections/compose/views/Pages/RecordView.intent.md",
       "t": "2026-08-14"
     },
+    "client/web/unify/src/sections/compose/views/Pages/View.title.test.js": {
+      "h": "9a7670aa7f9f",
+      "doc": "client/web/unify/src/sections/compose/views/Pages/Pages.intent.md",
+      "t": "2026-08-18"
+    },
     "client/web/unify/src/sections/compose/views/Pages/View.vue": {
-      "h": "98bce210887a",
+      "h": "b185fd67e21f",
       "doc": "client/web/unify/src/sections/compose/views/Pages/View.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/home/composables/useColumnResize.js": {
       "h": "e4eda64001c4",
@@ -3027,9 +3032,9 @@
       "t": "2026-07-23"
     },
     "lib/js/src/compose/types/page-layout.ts": {
-      "h": "a1d51d01d1b2",
+      "h": "dd595b76191b",
       "doc": "lib/js/src/compose/compose.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-18"
     },
     "lib/js/src/compose/types/page.test.ts": {
       "h": "c5cae07ecfe0",

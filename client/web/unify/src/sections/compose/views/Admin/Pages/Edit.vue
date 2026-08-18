@@ -277,7 +277,7 @@
     <template v-if="configLayout">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <CFormGroup :label="$t('page.page-layout.title')">
-          <template v-if="isRecordPage && configLayout.config.useTitle">
+          <template v-if="configLayout.config.useTitle">
             <CInputExpression
               ref="layoutTitleInput"
               v-model="configLayout.meta.title"
@@ -294,9 +294,7 @@
         </CFormGroup>
       </div>
 
-      <!-- Use Title (record pages only) -->
       <CInputToggleCard
-        v-if="isRecordPage"
         v-model="configLayout.config.useTitle"
         :label="$t('page.page-layout.useTitle')"
         :description="$t('page.page-layout.useTitleDescription')"
