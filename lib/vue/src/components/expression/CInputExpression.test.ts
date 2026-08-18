@@ -122,6 +122,41 @@ describe('CInputExpression completion wiring', () => {
     expect(view.state.selection.main.head).toBe(9)
   })
 
+  it('opens the template snippets on an empty free-text input', async () => {
+    const w = mountInput({ modelValue: '', dialect: 'interpolation' })
+    const view = await typeInto(w, '')
+
+    startCompletion(view)
+    await new Promise(r => setTimeout(r, 60))
+    expect(labelsOf(view)).toEqual([
+      '${recordID}',
+      '${ownerID}',
+      '${userID}',
+      '${record.',
+      '${user.',
+    ])
+
+    const opt = currentCompletions(view.state).find((c: any) => c.label === '${recordID}')
+    opt.apply(view, opt, 0, 0)
+    await nextTick()
+    expect(view.state.doc.toString()).toBe('${recordID}')
+  })
+
+  it('drops a snippet in at the cursor, leaving the prose around it', async () => {
+    const w = mountInput({ modelValue: '', dialect: 'interpolation' })
+    const view = await typeInto(w, 'Invoice for ')
+
+    startCompletion(view)
+    await new Promise(r => setTimeout(r, 60))
+    const opt = currentCompletions(view.state).find((c: any) => c.label === '${record.')
+    opt.apply(view, opt, 12, 12)
+    await nextTick()
+
+    expect(view.state.doc.toString()).toBe('Invoice for ${record.}')
+    // Caret between the dot and the brace, ready for the member name.
+    expect(view.state.selection.main.head).toBe(21)
+  })
+
   it('keeps Escape from reaching the dialog while the suggestion list is open', async () => {
     const w = mountInput({ modelValue: '', queryFields: orders.fields, attachTo: document.body })
     const view = await typeInto(w, 'sta')

@@ -315,6 +315,84 @@ describe('completionAt', () => {
   it('treats a $ inside a hole-embedded string as part of the hole', () => {
     expect(complete("x = ${a || 'b'} AND c = $")?.options.map(o => o.label)).toContain('recordID')
   })
+
+  // Free text — a block title, a tab label — has no `$` to hang a list off, so
+  // Ctrl-Space on an empty one used to answer nothing at all.
+  describe('template snippets in free text', () => {
+    const snippets = (text: string, explicit: boolean) =>
+      completionAt(text, text.length, recordScope, 'interpolation', [], explicit)
+
+    it('offers every snippet when asked on an empty input', () => {
+      expect(snippets('', true)?.options.map(o => o.label)).toEqual([
+        '${recordID}',
+        '${ownerID}',
+        '${userID}',
+        '${record.',
+        '${user.',
+      ])
+    })
+
+    it('labels a snippet as the text it writes', () => {
+      const opts = snippets('', true)!.options
+      const at = (l: string) => opts.find(o => o.label === l)!
+
+      expect(at('${recordID}').insert).toBe('${recordID}')
+      expect(at('${record.').insert).toBe('${record.}')
+      // Caret between the dot and the closing brace, ready for the member.
+      expect(at('${record.').cursor).toBe('${record.'.length)
+      expect(at('${record.').retrigger).toBe(true)
+      expect(at('${recordID}').retrigger).toBeFalsy()
+    })
+
+    it('writes at the cursor rather than over the prose before it', () => {
+      const res = snippets('Invoice for ', true)!
+      expect(res.from).toBe('Invoice for '.length)
+      expect(res.to).toBe('Invoice for '.length)
+    })
+
+    it('stays shut while prose is being typed', () => {
+      expect(snippets('', false)).toBeNull()
+      expect(snippets('Invoice for ', false)).toBeNull()
+    })
+
+    it('leaves the typed-$ list labelled bare, since the $ is already there', () => {
+      expect(complete('x = $', 'interpolation')?.options.map(o => o.label)).toEqual([
+        'recordID',
+        'ownerID',
+        'userID',
+        'record',
+        'user',
+      ])
+    })
+  })
+
+  // A filter is interpolated before it is sent, so the variables belong in its
+  // list too — under the module's own fields, which is what a filter is mostly
+  // about.
+  describe('template snippets in a filter', () => {
+    it('offers them alongside the fields and keywords', () => {
+      const labels = completionAt('', 0, recordScope, 'ql', orders.fields, true)?.options.map(
+        o => o.label,
+      )
+      expect(labels).toEqual(expect.arrayContaining(['status', 'AND', '${recordID}', '${record.']))
+    })
+
+    it('ranks them under every identifier and keyword', () => {
+      const res = completionAt('', 0, recordScope, 'ql', orders.fields, true)!
+      const at = (l: string) => res.options.findIndex(o => o.label === l)
+
+      expect(at('AND')).toBeLessThan(at('${recordID}'))
+      expect(at('${recordID}')).toBeLessThan(at('${record.'))
+    })
+
+    it('narrows them by the word being typed, replacing only that word', () => {
+      const res = completionAt('ownerID = rec', 13, recordScope, 'ql', orders.fields)!
+      expect(res.options.map(o => o.label)).toEqual(
+        expect.arrayContaining(['recordID', '${recordID}', '${record.']),
+      )
+      expect(res.from).toBe(10)
+    })
+  })
 })
 
 // The server-evaluated dialect. Severities here were measured against

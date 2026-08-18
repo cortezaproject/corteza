@@ -3556,6 +3556,21 @@
       "doc": "lib/vue/src/components/components.intent.md",
       "t": "2026-07-23"
     },
+    "lib/vue/src/components/expression/CInputExpression.test.ts": {
+      "h": "bd39169b5088",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-08-18"
+    },
+    "lib/vue/src/components/expression/syntax.test.ts": {
+      "h": "3f573a52312e",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-08-18"
+    },
+    "lib/vue/src/components/expression/syntax.ts": {
+      "h": "b9a91709c1e1",
+      "doc": "lib/vue/vue.intent.md",
+      "t": "2026-08-18"
+    },
     "lib/vue/src/components/field/CFieldEditor.formfield.test.ts": {
       "h": "3caa53b0fc11",
       "doc": "lib/vue/src/components/field/field.intent.md",

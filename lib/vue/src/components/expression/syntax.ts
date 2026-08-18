@@ -425,6 +425,11 @@ export const QL_SYSTEM_FIELDS = [
 // lands above the record's own bookkeeping, and language keywords last.
 const BOOST = { field: 50, system: 25, keyword: 0 }
 
+// Subtracted from a `${…}` snippet's boost where it shares the list with QL
+// identifiers: a filter is usually about the module's own fields, so the
+// snippets sit under them while keeping their order among themselves.
+const TEMPLATE_RANK = -100
+
 export interface CompletionOption {
   label: string
   detail?: string
@@ -448,6 +453,24 @@ export interface CompletionResult {
 
 function detailOf(entry: ScopeEntry): string {
   return entry.label && entry.label !== entry.name ? `${entry.type} · ${entry.label}` : entry.type
+}
+
+// The `${…}` snippets that open a template: a leaf writes itself complete, an
+// object writes the opening and reopens the list on its own members. `braced`
+// labels them as what they insert, for the lists reached without a typed `$`
+// where nothing else on screen says braces are coming.
+function templateSnippets(scope: ScopeEntry[], word: string, braced: boolean): CompletionOption[] {
+  return membersAt(scope, [])
+    .filter(e => startsWith(e.name, word))
+    .map(e => ({
+      label: braced ? (e.fields ? `\${${e.name}.` : `\${${e.name}}`) : e.name,
+      detail: detailOf(e),
+      insert: e.fields ? `\${${e.name}.}` : `\${${e.name}}`,
+      // Land inside the braces when there is more path to type.
+      cursor: e.fields ? e.name.length + 3 : undefined,
+      retrigger: !!e.fields,
+      boost: e.fields ? BOOST.system : BOOST.field,
+    }))
 }
 
 // The hole the cursor sits inside, if any.
@@ -497,10 +520,11 @@ function ranked(options: CompletionOption[]): CompletionOption[] {
 
 // What to offer at `pos`.
 //
-// Three places can complete: inside a `${…}` hole, immediately after a bare `$`
-// (which offers the same scope but writes the braces), and — in QL only — on a
-// bare identifier, where the module's fields and the record's system columns
-// are named. QL identifiers are never reported as *wrong*, since the language's
+// Four places can complete: inside a `${…}` hole, immediately after a bare `$`
+// (which offers the same scope but writes the braces), in free text where the
+// list was asked for and the `${…}` snippets are all there is to offer, and —
+// in QL only — on a bare identifier, where the module's fields and the record's
+// system columns are named alongside those snippets. QL identifiers are never reported as *wrong*, since the language's
 // own functions and literals are indistinguishable from a mistyped field here.
 //
 // `explicit` is set when the author asked for the list (Ctrl-Space) rather than
@@ -598,21 +622,21 @@ export function completionAt(
   const dollar = /\$([A-Za-z_$][\w$]*)?$/.exec(text.slice(0, pos))
   if (dollar && !inStringLiteral(text, pos, dialect)) {
     const word = dollar[1] || ''
-    const options = membersAt(scope, [])
-      .filter(e => startsWith(e.name, word))
-      .map(e => ({
-        label: e.name,
-        detail: detailOf(e),
-        insert: e.fields ? `\${${e.name}.}` : `\${${e.name}}`,
-        // Land inside the braces when there is more path to type.
-        cursor: e.fields ? e.name.length + 3 : undefined,
-        retrigger: !!e.fields,
-        boost: e.fields ? BOOST.system : BOOST.field,
-      }))
+    const options = templateSnippets(scope, word, false)
 
     return options.length
       ? { from: pos - word.length - 1, to: pos, options: ranked(options) }
       : null
+  }
+
+  // Asked for the list with no hole open and no `$` typed — free text, most
+  // often an empty title. Offer the snippets that start a template. Explicit
+  // only: a list that opened itself while prose is being typed is noise.
+  if (dialect === 'interpolation') {
+    if (!explicit) return null
+
+    const options = templateSnippets(scope, '', true)
+    return options.length ? { from: pos, to: pos, options: ranked(options) } : null
   }
 
   if (dialect !== 'ql') return null
@@ -641,6 +665,13 @@ export function completionAt(
       label: k,
       detail: 'keyword',
       boost: BOOST.keyword,
+    })),
+    // A filter is interpolated before it is sent, so the same snippets belong
+    // here — labelled with their braces, since the module may hold a field of
+    // the same name and the two are not the same thing.
+    ...templateSnippets(scope, word, true).map(o => ({
+      ...o,
+      boost: (o.boost ?? 0) + TEMPLATE_RANK,
     })),
   ]
 
