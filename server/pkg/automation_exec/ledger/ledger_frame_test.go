@@ -74,3 +74,45 @@ func TestRecordFrame_UnknownExecution_Errors(t *testing.T) {
 		t.Error("expected error for unknown execution")
 	}
 }
+
+// TL;DR: GetTrace hands back a copy, so a caller working on the result cannot rewrite the stored trace.
+// Example: a consumer filtering frames in place (out := frames[:0]) would otherwise compact the
+// ledger's own slice, and the next read of the same execution would return something else.
+func TestGetTrace_ReturnsCopy(t *testing.T) {
+	l, xID, eID := setupExecution(t)
+	// The dropped frame sits in the middle on purpose: compacting in place only
+	// overwrites what follows it, so a trailing one would leave the array intact
+	// and the test would pass against the aliasing bug it is here to catch.
+	for _, kind := range []string{"trigger", "termination", "function"} {
+		f := types.StackFrame{ID: nextID(), StepID: nextID(), Kind: kind}
+		if err := l.RecordFrame(ctx, xID, eID, 1, f); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+
+	first, err := l.GetTrace(ctx, xID, eID, 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Exactly what an in-place filter does to the returned slice.
+	compacted := first[:0]
+	for _, f := range first {
+		if f.Kind != "termination" {
+			compacted = append(compacted, f)
+		}
+	}
+
+	second, err := l.GetTrace(ctx, xID, eID, 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(second) != 3 {
+		t.Fatalf("expected the stored trace to keep 3 frames, got %d", len(second))
+	}
+	for i, kind := range []string{"trigger", "termination", "function"} {
+		if second[i].Kind != kind {
+			t.Errorf("frame %d: expected kind %q, got %q", i, kind, second[i].Kind)
+		}
+	}
+}

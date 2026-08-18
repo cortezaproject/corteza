@@ -157,7 +157,13 @@ func (l *ledger) GetTrace(ctx context.Context, executableID, executionID id.ID, 
 		return nil, fmt.Errorf("execution not found")
 	}
 
-	return ex.Trace, nil
+	// A copy: the stored trace stays live for the execution's lifetime, and a
+	// caller that filters or sorts the returned slice in place would be
+	// rewriting it.
+	out := make([]types.StackFrame, len(ex.Trace))
+	copy(out, ex.Trace)
+
+	return out, nil
 }
 
 func (l *ledger) logStep(executableID, executionID id.ID, revision int, event types.StepEvent) error {
