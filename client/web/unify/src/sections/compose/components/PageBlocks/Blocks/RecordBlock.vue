@@ -1,6 +1,6 @@
 <template>
   <PageBlock :block="block" :record="activeRecord">
-    <div v-if="loading" class="flex items-center justify-center h-full p-5">
+    <div v-if="loading || conditionsPending" class="flex items-center justify-center h-full p-5">
       <ProgressSpinner style="width: 28px; height: 28px" />
     </div>
 
@@ -254,6 +254,16 @@ const hasActiveInlineEdits = computed(() => activeEditFieldNames.value.length > 
 const hiddenConditions = ref([]) // array of fieldIDs/names that should be hidden
 // False until an evaluation has answered for the conditioned fields
 const conditionsResolved = ref(false)
+
+/**
+ * Set while a record that replaced another waits for its own field conditions.
+ *
+ * The first record a block ever shows withholds only its conditioned fields —
+ * there is nothing else on screen to protect. A replacement is different: the
+ * fields already carry the previous record's answers, so the block covers
+ * itself until it knows the new ones, and the whole form changes at once.
+ */
+const conditionsPending = ref(false)
 
 // ResizeObserver state
 const resizeObserver = ref(null)
@@ -647,6 +657,7 @@ async function runFieldConditions() {
 
 function resolveConditions() {
   conditionsResolved.value = true
+  conditionsPending.value = false
 }
 
 /**
@@ -872,12 +883,17 @@ watch(
 // Evaluate field conditions when record loaded or changes. Arriving at a record
 // is the first-paint case, so it skips the debounce; with no record to evaluate
 // against there is nothing to wait for and the fields are released.
+let renderedRecordID = null
 watch(
   () => activeRecord.value,
   rec => {
     if (rec) {
+      const swapped = renderedRecordID !== null && rec.recordID !== renderedRecordID
+      if (swapped && conditionedFieldIDs.value.length) conditionsPending.value = true
+      renderedRecordID = rec.recordID
       evaluateExpressions({ immediate: true })
     } else {
+      renderedRecordID = null
       resolveConditions()
     }
   },

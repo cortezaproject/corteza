@@ -109,7 +109,7 @@ vi.mock('@planetcrust/human-js', () => {
 })
 
 vi.mock('@/sections/compose/components/PageBlocks/Grid.vue', () => ({
-  default: { props: ['blocks', 'namespace', 'page', 'record'], template: '<div />' },
+  default: { props: ['blocks', 'namespace', 'page', 'record', 'loading'], template: '<div />' },
 }))
 
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
@@ -282,14 +282,49 @@ describe('RecordView layout resolution', () => {
     route.params = { ...route.params, recordID: 'R2' }
     await flushPromises()
 
-    // Mid-swap the grid is gone rather than showing R2 under R1's visibility
-    expect(wrapper.findComponent(Grid).exists()).toBe(false)
+    // The page keeps its geometry through a swap — the blocks cover themselves
+    // instead, and still hold R1 rather than showing R2 under R1's visibility
+    const grid = wrapper.findComponent(Grid)
+    expect(grid.exists()).toBe(true)
+    expect(grid.props('loading')).toBe(true)
+    expect(grid.props('record').recordID).toBe('R1')
 
     release()
     await flushPromises()
 
-    expect(wrapper.findComponent(Grid).exists()).toBe(true)
+    expect(wrapper.findComponent(Grid).props('loading')).toBe(false)
+    expect(wrapper.findComponent(Grid).props('record').recordID).toBe('R2')
     expect(blockEvaluations().at(-1).record.recordID).toBe('R2')
+  })
+
+  it('applies a mode switch only once its conditions have answered', async () => {
+    page.blocks = [
+      { blockID: 'B1', kind: 'Content', meta: { visibility: { expression: 'isEdit' } } },
+    ]
+    layouts[0].blocks = [{ blockID: 'B1' }]
+    layouts[0].config.visibility.expression = ''
+    await mountView()
+
+    let release
+    expressionEvaluate.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          release = () => resolve({ B1: true })
+        }),
+    )
+
+    route.query = { edit: '1' }
+    await flushPromises()
+
+    // The route says edit; the page is still in view mode, because the blocks a
+    // mode condition governs have not answered yet
+    expect(wrapper.vm.mode).toBe('view')
+
+    release()
+    await flushPromises()
+
+    expect(wrapper.vm.mode).toBe('edit')
+    expect(blockEvaluations().at(-1).isEdit).toBe(true)
   })
 
   describe('when no layout matches', () => {

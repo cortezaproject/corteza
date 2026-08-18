@@ -11,6 +11,9 @@
         :page="page"
         :record="record"
       />
+      <div v-if="loading" class="block-busy">
+        <ProgressSpinner style="width: 28px; height: 28px" />
+      </div>
     </div>
   </div>
 
@@ -53,6 +56,9 @@
                 <div>{{ block.kind || $t('block.noConfiguration') }}</div>
               </div>
             </div>
+            <div v-if="loading" class="block-busy">
+              <ProgressSpinner style="width: 28px; height: 28px" />
+            </div>
           </div>
         </div>
       </div>
@@ -64,6 +70,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { GridStack } from 'gridstack'
 import 'gridstack/dist/gridstack.min.css'
+import ProgressSpinner from 'primevue/progressspinner'
 import { resolveBlock } from './registry'
 
 const COLS = 48
@@ -86,6 +93,13 @@ const props = defineProps({
     default: undefined,
   },
   editable: {
+    type: Boolean,
+    default: false,
+  },
+  // Covers each block where it stands, rather than the page blanking. The
+  // blocks keep their geometry and their current render underneath, so what is
+  // on screen is only ever a settled state.
+  loading: {
     type: Boolean,
     default: false,
   },
@@ -295,5 +309,17 @@ defineExpose({ rebuildLayout })
   position: relative;
   height: 100%;
   isolation: isolate;
+}
+
+/* Sits over the block's own render, which stays mounted: remounting it would
+ * cost every block its state and reload what it had already fetched. */
+.block-busy {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--p-content-background);
 }
 </style>

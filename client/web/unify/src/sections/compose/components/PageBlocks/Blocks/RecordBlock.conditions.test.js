@@ -68,7 +68,12 @@ beforeEach(() => {
   expressionEvaluate = vi.fn(() => deferred.promise)
 })
 
+// The record the block is handed, reassignable so a test can swap it the way a
+// record page does when it navigates to the next record.
+let ctxRecord
+
 function mountBlock({ mode = 'view', clearOnHide = false, condition = 'false', adoptSaved } = {}) {
+  ctxRecord = ref(record)
   return mount(RecordBlock, {
     props: {
       block: {
@@ -100,7 +105,7 @@ function mountBlock({ mode = 'view', clearOnHide = false, condition = 'false', a
         $toast: { toastSuccess: vi.fn(), toastErrorHandler: () => vi.fn() },
         recordViewContext: {
           mode: computed(() => mode),
-          record: ref(record),
+          record: ctxRecord,
           isNew: computed(() => false),
           isSaving: ref(false),
           adoptSaved,
@@ -126,6 +131,47 @@ describe('RecordBlock field conditions', () => {
     await flushPromises()
 
     expect(renders(w, 'secret')).toBe(true)
+  })
+
+  it('covers itself while a replacement record waits for its own answers', async () => {
+    const w = mountBlock({ condition: 'true' })
+    deferred.resolve({ [SECRET]: true })
+    await flushPromises()
+    expect(renders(w, 'title')).toBe(true)
+
+    // A second record arrives and its evaluation is held open
+    deferred = {}
+    deferred.promise = new Promise(resolve => {
+      deferred.resolve = resolve
+    })
+    expressionEvaluate.mockImplementation(() => deferred.promise)
+
+    ctxRecord.value = {
+      recordID: 'R2',
+      values: { title: 'Hello', secret: 'ALSO CLASSIFIED' },
+      serialize: () => ({ recordID: 'R2', values: {} }),
+    }
+    await flushPromises()
+
+    // Not one field is on screen: the fields already carry R1's answers, so the
+    // block covers itself rather than showing R2 under them
+    expect(renders(w, 'title')).toBe(false)
+    expect(renders(w, 'secret')).toBe(false)
+
+    deferred.resolve({ [SECRET]: false })
+    await flushPromises()
+
+    expect(renders(w, 'title')).toBe(true)
+    expect(renders(w, 'secret')).toBe(false)
+  })
+
+  it('shows the first record it is given without covering itself', async () => {
+    // Nothing on screen to protect yet, so only the conditioned field waits
+    const w = mountBlock()
+    await flushPromises()
+
+    expect(renders(w, 'title')).toBe(true)
+    expect(renders(w, 'secret')).toBe(false)
   })
 
   it('evaluates immediately rather than behind the typing debounce', async () => {

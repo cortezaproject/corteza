@@ -43,7 +43,13 @@
     class="flex flex-col h-full"
   >
     <div class="flex-1 overflow-auto">
-      <Grid :blocks="positionedBlocks" :namespace="namespace" :page="page" :record="record" />
+      <Grid
+        :blocks="positionedBlocks"
+        :namespace="namespace"
+        :page="page"
+        :record="record"
+        :loading="swapping"
+      />
     </div>
 
     <!-- Record Toolbar (only on record pages) -->
@@ -309,12 +315,19 @@ const pristineRecord = ref(null)
 const navigatingAfterSave = ref(false)
 
 // Mode derived from route or props
-const mode = computed(() => {
+const routeMode = computed(() => {
   const recordID = props.inModal ? props.modalRecordID : route.params.recordID
   if (recordID === '0') return 'create'
   if (route.query.edit === '1') return 'edit'
   return 'view'
 })
+
+// The mode the page is rendered in. It lags routeMode by one staged evaluation
+// so that the form, the toolbar and every block a mode condition governs change
+// on the same frame: isView/isCreate/isEdit are condition variables, and
+// flipping the mode first put the page on screen under the previous mode's
+// answers until the evaluation caught up.
+const mode = ref(routeMode.value)
 
 const isNew = computed(() => mode.value === 'create')
 
@@ -374,17 +387,15 @@ provide('$fileUploadContext', {
 // selection intersected with the page's definitions. This, not page.blocks, is
 // what visibility is evaluated over: a block no layout places is never rendered,
 // so its condition would only add an expression that can fail for nothing.
-const layoutBlocks = computed(() => {
+function blocksFor(pg, lay) {
   // No layout, no blocks. A layout is what decides which blocks a viewer sees,
   // so falling back to the page's raw set would show everything precisely when
   // the rules meant to narrow it did not apply.
-  if (!page.value || !layout.value) {
-    return []
-  }
+  if (!pg || !lay) return []
 
-  return layout.value.blocks
+  return lay.blocks
     .map(layoutBlock => {
-      const pageBlock = page.value.blocks.find(b => b.blockID === layoutBlock.blockID)
+      const pageBlock = pg.blocks.find(b => b.blockID === layoutBlock.blockID)
       if (!pageBlock) return null
 
       // PageBlockMaker, not a spread: blocks reach their renderer with the
@@ -395,7 +406,9 @@ const layoutBlocks = computed(() => {
       })
     })
     .filter(Boolean)
-})
+}
+
+const layoutBlocks = computed(() => blocksFor(page.value, layout.value))
 
 const positionedBlocks = computed(() =>
   // meta.hidden is handled by Grid (tab children must still reach TabsBlock via props.blocks)
@@ -417,6 +430,11 @@ const emptyStateMessage = computed(() => {
 
 const navigating = ref(null) // 'prev' | 'next' | null
 
+// A record swap on the page already on screen: the blocks cover themselves
+// rather than the page blanking. `loading` stays for the loads that build the
+// page from nothing.
+const swapping = ref(false)
+
 // Cancels the in-flight record load when we navigate to another record / leave.
 let recordLoadAbort = null
 function abortRecordLoad() {
@@ -436,14 +454,14 @@ function abortRecordLoad() {
  * page is about — a different record, or a move between view/edit/create.
  */
 let _layoutSeq = 0
-async function resolveLayout() {
-  if (!page.value) return
 
+/** Picks the layout for a record and mode. Writes nothing. */
+async function pickLayout({ forRecord, forMode }) {
   const layouts = pageLayoutStore.getByPageID(page.value.pageID)
   const vars = buildExpressionVariables({
-    record: record.value,
+    record: forRecord,
     isRecordPage: true,
-    mode: mode.value,
+    mode: forMode,
   })
 
   // An explicitly requested layout (?layoutID=, e.g. from a navigation block)
@@ -452,11 +470,19 @@ async function resolveLayout() {
   const requestedLayoutID = typeof requested === 'string' ? requested : undefined
 
   const seq = ++_layoutSeq
-  const resolved = await determineLayout(layouts, vars, requestedLayoutID)
+  return {
+    seq,
+    layouts,
+    requestedLayoutID,
+    resolved: await determineLayout(layouts, vars, requestedLayoutID),
+  }
+}
 
+/** Applies a picked layout. False means nothing more should be applied. */
+function commitLayout({ seq, layouts, requestedLayoutID, resolved }) {
   // A superseded resolution (rapid record swap, mode toggle mid-load) must not
   // overwrite the layout picked for the record now on screen
-  if (seq !== _layoutSeq) return
+  if (seq !== _layoutSeq) return false
 
   layout.value = resolved
 
@@ -477,11 +503,17 @@ async function resolveLayout() {
       if (props.inModal) emit('close')
       else leaveUnshowablePage()
     }
-    return
+    return false
   }
 
   noLayoutMatched.value = false
   clearRefusal()
+  return true
+}
+
+async function resolveLayout() {
+  if (!page.value) return
+  commitLayout(await pickLayout({ forRecord: record.value, forMode: mode.value }))
 }
 
 /**
@@ -511,7 +543,13 @@ async function loadRecord(recordID) {
   const ac = new AbortController()
   recordLoadAbort = ac
 
-  loading.value = true
+  // Swapping to another record of the page already on screen does not blank it.
+  // The page keeps its chrome and its geometry, the blocks show a spinner over
+  // the record they are still holding, and the new record, its layout and its
+  // block conditions are all evaluated before any of it is applied — so the
+  // values change once, settled. Blanking to the page spinner is what read as a
+  // flash. A first load still gets that spinner, in loadPage().
+  swapping.value = true
 
   try {
     const loaded = await recordStore.findByID({
@@ -521,16 +559,18 @@ async function loadRecord(recordID) {
       force: true,
       signal: ac.signal,
     })
-    pristineRecord.value = loaded
-    record.value = loaded
-    serverErrors.value = {}
     // Fast-swapping to another record skips loadPage(), so the layout has to be
     // re-picked here or the previous record's layout would stay on screen.
-    await resolveLayout()
-    // Awaited, not debounced: a swap is a discrete event, and letting the new
-    // record reach the screen first would show it under the previous record's
-    // block visibility.
-    await runBlockVisibility()
+    const forMode = routeMode.value
+    const apply = await stageTransition({ forRecord: loaded, forMode })
+    if (ac.signal.aborted) return
+
+    pristineRecord.value = loaded
+    record.value = loaded
+    mode.value = forMode
+    serverErrors.value = {}
+    apply()
+    await dropPendingVisibility()
   } catch (e) {
     if (ac.signal.aborted) return
     console.error('Failed to load record:', e)
@@ -538,7 +578,7 @@ async function loadRecord(recordID) {
   } finally {
     if (recordLoadAbort === ac) recordLoadAbort = null
     if (!ac.signal.aborted) {
-      loading.value = false
+      swapping.value = false
       navigating.value = null
     }
   }
@@ -554,6 +594,10 @@ async function loadPage() {
   recordLoadAbort = ac
 
   loading.value = true
+  // Nothing of the previous record survives this load, so the rendered mode
+  // catches up with the route at once rather than lagging: what follows builds
+  // the record from it.
+  mode.value = routeMode.value
   record.value = null
   pristineRecord.value = null
   invisibleBlockIDs.value = new Set()
@@ -659,32 +703,74 @@ async function loadPage() {
 let _blockVisibilityTimer = null
 let _blockVisibilitySeq = 0
 
-async function runBlockVisibility() {
+/** Evaluates block conditions for a block set, record and mode. Writes nothing. */
+async function pickBlockVisibility(blocks, { forRecord, forMode }) {
   clearTimeout(_blockVisibilityTimer)
-  if (!layoutBlocks.value.length) return
-
-  const vars = buildExpressionVariables({
-    record: record.value,
-    isRecordPage: true,
-    mode: mode.value,
-  })
   const seq = ++_blockVisibilitySeq
-  const invisible = await evaluateBlocks(layoutBlocks.value, vars)
+  if (!blocks.length) return { seq, invisible: null }
+
+  const vars = buildExpressionVariables({ record: forRecord, isRecordPage: true, mode: forMode })
+  return { seq, invisible: await evaluateBlocks(blocks, vars) }
+}
+
+function commitBlockVisibility({ seq, invisible }) {
   // A slower earlier response must not overwrite a newer one
-  if (seq === _blockVisibilitySeq) {
-    invisibleBlockIDs.value = invisible
+  if (seq !== _blockVisibilitySeq || !invisible) return
+  invisibleBlockIDs.value = invisible
+}
+
+async function runBlockVisibility() {
+  commitBlockVisibility(
+    await pickBlockVisibility(layoutBlocks.value, {
+      forRecord: record.value,
+      forMode: mode.value,
+    }),
+  )
+}
+
+/**
+ * Evaluates a whole transition — layout, then the blocks that layout places —
+ * and hands back the one call that puts all of it on screen.
+ *
+ * Applying each answer as it arrives is what read as a flash: the layout lands,
+ * the page repaints, and the blocks a condition governs appear or vanish a
+ * round-trip later. Staged this way the page changes once, already settled.
+ */
+async function stageTransition({ forRecord, forMode }) {
+  if (!page.value) return () => {}
+
+  const picked = await pickLayout({ forRecord, forMode })
+  const visibility = await pickBlockVisibility(blocksFor(page.value, picked.resolved), {
+    forRecord,
+    forMode,
+  })
+
+  return () => {
+    if (!commitLayout(picked)) return
+    commitBlockVisibility(visibility)
   }
 }
 
-// Debounce rapid changes (e.g. typing in a field, mode switch)
+/**
+ * The values watcher fires on whatever a staged commit just assigned and would
+ * re-run the evaluation that commit already made — with the same answer, one
+ * round-trip later. The staged answer is the newer one, so its timer goes.
+ */
+async function dropPendingVisibility() {
+  await nextTick()
+  clearTimeout(_blockVisibilityTimer)
+}
+
+// Debounce rapid changes (e.g. typing in a field)
 function evaluateBlockVisibility() {
   clearTimeout(_blockVisibilityTimer)
   _blockVisibilityTimer = setTimeout(runBlockVisibility, 300)
 }
 
 // Block conditions follow the record as it is edited: re-evaluate on value
-// changes as well as on mode switches and record swaps.
-watch([() => record.value?.values, mode], evaluateBlockVisibility, { deep: true })
+// changes. Mode switches and record swaps are staged instead, so they do not
+// come through here.
+watch(() => record.value?.values, evaluateBlockVisibility, { deep: true })
 
 function resolver() {
   const errors = {}
@@ -947,20 +1033,27 @@ onBeforeRouteLeave(() => {
 })
 
 // Handle view↔edit transitions in-place without reloading
-watch(
-  () => mode.value,
-  (newMode, oldMode) => {
-    if (newMode === 'edit' && oldMode === 'view' && pristineRecord.value) {
-      record.value = pristineRecord.value.clone()
-    } else if (newMode === 'view' && oldMode === 'edit') {
-      record.value = pristineRecord.value
-    }
+watch(routeMode, async (newMode, oldMode) => {
+  // A transition that also changes which record is on screen belongs to the
+  // load watcher below: it fetches the record and applies the mode with it, and
+  // a second staging here would race that one.
+  const routeRecordID = props.inModal ? props.modalRecordID : route.params.recordID
+  if (routeRecordID !== record.value?.recordID) return
 
-    // isView/isCreate/isEdit are layout condition variables, so a mode switch
-    // is one of the transitions that can change which layout applies.
-    resolveLayout()
-  },
-)
+  if (newMode === 'edit' && oldMode === 'view' && pristineRecord.value) {
+    record.value = pristineRecord.value.clone()
+  } else if (newMode === 'view' && oldMode === 'edit') {
+    record.value = pristineRecord.value
+  }
+
+  // isView/isCreate/isEdit are layout and block condition variables, so a mode
+  // switch changes what the page shows. Evaluated whole and applied with the
+  // mode itself, so the form, the toolbar and the blocks change together.
+  const apply = await stageTransition({ forRecord: record.value, forMode: newMode })
+  mode.value = newMode
+  apply()
+  await dropPendingVisibility()
+})
 
 // Clear server errors as soon as the user edits anything
 watch(
