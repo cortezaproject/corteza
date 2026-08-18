@@ -219,6 +219,7 @@ kind:
         textColor: Text color
       value: Value
     optionsLabel: Options to select from
+    optionsRequired: A select field with no options cannot be filled in — add at least one.
     placeholder: Select an option by clicking here
     showAsBadge: Show as badge
   string:

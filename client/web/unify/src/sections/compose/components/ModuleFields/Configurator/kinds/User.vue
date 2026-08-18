@@ -13,10 +13,7 @@
     </div>
 
     <!-- Role filter -->
-    <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">
-        {{ $t('field.kind.user.roles.label') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.user.roles.label')">
       <MultiSelect
         v-model="selectedRoles"
         :options="roleOptions"
@@ -28,14 +25,11 @@
         class="w-full"
         @update:model-value="field.options.roles = $event"
       />
-    </div>
+    </CFormGroup>
 
     <!-- Multi-value select type -->
     <template v-if="field.isMulti">
-      <div>
-        <label class="font-medium text-muted-color text-sm block mb-3">
-          {{ $t('field.kind.select.optionType.label') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.select.optionType.label')">
         <div class="flex flex-col gap-2">
           <div v-for="opt in selectTypeOptions" :key="opt.value" class="flex items-center gap-2">
             <RadioButton
@@ -49,7 +43,7 @@
             </label>
           </div>
         </div>
-      </div>
+      </CFormGroup>
 
       <div v-if="showAllowDuplicates" class="flex items-center gap-2">
         <Checkbox

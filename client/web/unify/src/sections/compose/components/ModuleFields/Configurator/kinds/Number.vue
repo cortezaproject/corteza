@@ -1,10 +1,7 @@
 <template>
   <div class="flex flex-col gap-6">
     <!-- Display type -->
-    <div>
-      <label class="font-medium text-muted-color text-sm block mb-3">
-        {{ $t('field.kind.number.displayType.label') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.number.displayType.label')">
       <SelectButton
         :model-value="field.options.display"
         :options="displayOptions"
@@ -12,23 +9,20 @@
         option-value="value"
         @update:model-value="field.options.display = $event"
       />
-    </div>
+    </CFormGroup>
 
     <!-- Precision + Step (side by side) -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
+      <CFormGroup>
+        <template #label>
           {{ $t('field.kind.number.precisionLabel') }} ({{ field.options.precision ?? 0 }})
-        </label>
+        </template>
         <Slider v-model="field.options.precision" :min="0" :max="6" class="w-full mt-2" />
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.number.step.label') }}
-        </label>
+      </CFormGroup>
+      <CFormGroup :label="$t('field.kind.number.step.label')">
         <InputNumber v-model="field.options.step" :max-fraction-digits="6" class="w-full" />
         <small class="text-muted-color">{{ $t('field.kind.number.step.description') }}</small>
-      </div>
+      </CFormGroup>
     </div>
 
     <Divider />
@@ -37,26 +31,17 @@
     <template v-if="!isProgress">
       <!-- Prefix / Suffix -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-muted-color text-sm">
-            {{ $t('field.kind.number.prefixLabel') }}
-          </label>
+        <CFormGroup :label="$t('field.kind.number.prefixLabel')">
           <InputText v-model="field.options.prefix" placeholder="$" class="w-full" />
-        </div>
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-muted-color text-sm">
-            {{ $t('field.kind.number.suffixLabel') }}
-          </label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.number.suffixLabel')">
           <InputText v-model="field.options.suffix" placeholder="USD" class="w-full" />
-        </div>
+        </CFormGroup>
       </div>
 
       <!-- Preset format + Custom format -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-muted-color text-sm">
-            {{ $t('field.kind.number.presetFormats.label') }}
-          </label>
+        <CFormGroup :label="$t('field.kind.number.presetFormats.label')">
           <Select
             v-model="field.options.presetFormat"
             :options="formatOptions"
@@ -65,58 +50,43 @@
             class="w-full"
           />
           <small class="text-muted-color">{{ presetDescription }}</small>
-        </div>
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-muted-color text-sm">
-            {{ $t('field.kind.number.formatLabel') }}
-          </label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.number.formatLabel')">
           <InputText
             v-model="field.options.format"
             :disabled="field.options.presetFormat !== 'custom'"
             placeholder="0.00"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
       </div>
 
       <!-- Format examples table -->
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.number.examplesLabel') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.number.examplesLabel')">
         <DataTable :value="formatExamples" size="small" class="text-sm">
           <Column field="input" :header="$t('field.kind.number.exampleInput')" />
           <Column field="format" :header="$t('field.kind.number.exampleFormat')" />
           <Column field="result" :header="$t('field.kind.number.exampleResult')" />
         </DataTable>
-      </div>
+      </CFormGroup>
     </template>
 
     <!-- Progress bar options -->
     <template v-else>
       <!-- Min / Max -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('field.kind.number.progress.minimumValue') }}
-          </label>
+        <CFormGroup :label="$t('field.kind.number.progress.minimumValue')">
           <InputNumber v-model="field.options.min" show-buttons fluid />
-        </div>
-        <div class="flex flex-col gap-2">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('field.kind.number.progress.maximumValue') }}
-          </label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.number.progress.maximumValue')">
           <InputNumber v-model="field.options.max" show-buttons fluid />
-        </div>
+        </CFormGroup>
       </div>
 
       <!-- Variant + Display options (two columns) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Variant (left) -->
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('field.kind.number.progress.variants.default') }}
-          </label>
+        <CFormGroup :label="$t('field.kind.number.progress.variants.default')">
           <Select
             v-model="field.options.variant"
             :options="variantOptions"
@@ -143,13 +113,10 @@
               />
             </template>
           </Select>
-        </div>
+        </CFormGroup>
 
         <!-- Display options (right) -->
-        <div class="flex flex-col gap-2">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('field.kind.number.progress.show.value') }}
-          </label>
+        <CFormGroup :label="$t('field.kind.number.progress.show.value')">
           <div class="flex items-center gap-2">
             <Checkbox v-model="field.options.showValue" inputId="showValue" :binary="true" />
             <label for="showValue" class="text-sm cursor-pointer">
@@ -178,16 +145,13 @@
               </label>
             </div>
           </template>
-        </div>
+        </CFormGroup>
       </div>
 
       <!-- Thresholds -->
       <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-2">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('field.kind.number.progress.thresholds.label') }}
-            </label>
+          <CFormGroup :label="$t('field.kind.number.progress.thresholds.label')">
             <Button
               :label="$t('general.label.add')"
               icon="pi pi-plus"
@@ -195,7 +159,7 @@
               severity="secondary"
               @click="addThreshold"
             />
-          </div>
+          </CFormGroup>
           <small class="text-muted-color">
             {{ $t('field.kind.number.progress.thresholds.description') }}
           </small>
@@ -274,10 +238,7 @@
     <Divider />
 
     <!-- Live example -->
-    <div class="flex flex-col gap-2">
-      <label class="text-primary font-medium text-sm">
-        {{ $t('field.kind.number.liveExample') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.number.liveExample')">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
         <InputNumber
           v-model="liveExampleInput"
@@ -299,7 +260,7 @@
           {{ liveExampleOutput }}
         </div>
       </div>
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

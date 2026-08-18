@@ -1,10 +1,7 @@
 <template>
   <div class="flex flex-col gap-6">
     <!-- Module selector -->
-    <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">
-        {{ $t('field.kind.record.moduleLabel') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.record.moduleLabel')" required>
       <Select
         v-model="field.options.moduleID"
         :options="moduleOptions"
@@ -15,13 +12,10 @@
         class="w-full"
         @update:model-value="onModuleChange"
       />
-    </div>
+    </CFormGroup>
 
     <template v-if="selectedModule">
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.record.moduleField') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.record.moduleField')">
         <Select
           v-model="field.options.labelField"
           :options="fieldOptions"
@@ -32,13 +26,13 @@
           class="w-full"
           @update:model-value="onLabelFieldChange"
         />
-      </div>
+      </CFormGroup>
 
       <!-- Record label field (when label field is a Record field itself) -->
-      <div v-if="labelField && labelField.kind === 'Record'" class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.record.fieldFromModuleField') }}
-        </label>
+      <CFormGroup
+        :label="$t('field.kind.record.fieldFromModuleField')"
+        v-if="labelField && labelField.kind === 'Record'"
+      >
         <Select
           v-model="field.options.recordLabelField"
           :options="labelFieldOptions"
@@ -49,13 +43,10 @@
           show-clear
           class="w-full"
         />
-      </div>
+      </CFormGroup>
 
       <!-- Query fields -->
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.record.queryFieldsLabel') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.record.queryFieldsLabel')">
         <MultiSelect
           v-model="field.options.queryFields"
           :options="queryFieldOptions"
@@ -65,13 +56,10 @@
           filter
           class="w-full"
         />
-      </div>
+      </CFormGroup>
 
       <!-- Prefilter -->
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.record.prefilterLabel') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.record.prefilterLabel')">
         <CInputExpression
           ref="prefilterInput"
           v-model="field.options.prefilter"
@@ -81,15 +69,12 @@
           :placeholder="$t('field.kind.record.prefilterPlaceholder')"
         />
         <CExpressionHint :scope="scope" @insert="prefilterInput?.insert($event)" />
-      </div>
+      </CFormGroup>
     </template>
 
     <!-- Multi-value select type -->
     <template v-if="field.isMulti">
-      <div>
-        <label class="font-medium text-muted-color text-sm block mb-3">
-          {{ $t('field.kind.select.optionType.label') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.select.optionType.label')">
         <div class="flex flex-col gap-2">
           <div v-for="opt in selectTypeOptions" :key="opt.value" class="flex items-center gap-2">
             <RadioButton
@@ -103,7 +88,7 @@
             </label>
           </div>
         </div>
-      </div>
+      </CFormGroup>
 
       <div v-if="showAllowDuplicates" class="flex items-center gap-2">
         <Checkbox

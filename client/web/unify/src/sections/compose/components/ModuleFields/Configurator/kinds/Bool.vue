@@ -1,43 +1,31 @@
 <template>
   <div class="flex flex-col gap-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- True value label -->
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.bool.checkedValueLabel') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.bool.checkedValueLabel')">
         <InputText
           v-model="field.options.trueLabel"
           :placeholder="$t('field.kind.bool.checkedValuePlaceholder')"
           class="w-full"
         />
-      </div>
+      </CFormGroup>
 
-      <!-- False value label -->
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-muted-color text-sm">
-          {{ $t('field.kind.bool.uncheckedValueLabel') }}
-        </label>
+      <CFormGroup :label="$t('field.kind.bool.uncheckedValueLabel')">
         <InputText
           v-model="field.options.falseLabel"
           :placeholder="$t('field.kind.bool.uncheckedValuePlaceholder')"
           class="w-full"
         />
-      </div>
+      </CFormGroup>
     </div>
 
-    <!-- Switch / Checkbox type -->
-    <div>
-      <label class="font-medium text-muted-color text-sm block mb-3">
-        {{ $t('field.kind.bool.toggleTypeLabel') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.bool.toggleTypeLabel')">
       <div class="flex items-center gap-2">
         <Checkbox v-model="field.options.switch" inputId="boolSwitch" :binary="true" />
-        <label for="boolSwitch" class="cursor-pointer">
+        <label for="boolSwitch" class="cursor-pointer text-sm">
           {{ $t('field.kind.bool.toggleType') }}
         </label>
       </div>
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

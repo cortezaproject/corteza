@@ -1,10 +1,7 @@
 <template>
   <div class="flex flex-col gap-6">
     <!-- View mode -->
-    <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">
-        {{ $t('field.kind.file.view.modeLabel') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.file.view.modeLabel')">
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <RadioButton inputId="modeList" v-model="field.options.mode" value="list" />
@@ -18,13 +15,10 @@
         </div>
       </div>
       <small class="text-muted-color">{{ $t('field.kind.file.view.modeFootnote') }}</small>
-    </div>
+    </CFormGroup>
 
     <!-- Max size -->
-    <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">
-        {{ $t('field.kind.file.view.maxSizeLabel') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.file.view.maxSizeLabel')">
       <InputNumber v-model="field.options.maxSize" :min="0" show-buttons class="w-full md:w-1/2" />
       <small class="text-muted-color">
         {{
@@ -33,19 +27,16 @@
             : $t('field.kind.file.view.maxSizeFootnoteUnlimited')
         }}
       </small>
-    </div>
+    </CFormGroup>
 
     <!-- MIME types -->
-    <div class="flex flex-col gap-2">
-      <label class="font-medium text-muted-color text-sm">
-        {{ $t('field.kind.file.view.mimetypesLabel') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.file.view.mimetypesLabel')">
       <InputText v-model="field.options.mimetypes" class="w-full" />
       <small class="text-muted-color">{{ $t('field.kind.file.view.mimetypesFootnote') }}</small>
       <small v-if="globalMimetypes" class="text-muted-color">
         {{ $t('field.kind.file.view.mimetypesGlobalFootnote', { types: globalMimetypes }) }}
       </small>
-    </div>
+    </CFormGroup>
 
     <!-- General options -->
     <div class="flex flex-col gap-3">

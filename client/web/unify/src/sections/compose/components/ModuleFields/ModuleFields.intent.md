@@ -31,7 +31,7 @@ to offer role-restricted user pickers.
 
 - index.vue — Dialog + tabs; owns the draft, `provide('fieldDraft', ref)`; emits `save` with the whole draft (caller persists), `update:visible`
 - CConfiguratorBasic.vue / CConfiguratorMultiDelimiter.vue / CConfiguratorValidation.vue — fixed tabs
-- kinds/<Kind>.vue — kind-specific options panel, dynamically imported by field kind. `kinds/Geometry.vue` is the field-side twin of the page-block Geometry configurator and is expected to stay in step with it: same starting-view preview, same lock-bounds behaviour (capture the viewport on lock, update it to the current view on demand, clear `options.bounds` on unlock, preview bounded by the saved area). Only the options each side actually stores differ.
+- kinds/<Kind>.vue — kind-specific options panel, dynamically imported by field kind. Labels go through `CFormGroup` (its `required` prop draws the asterisk), so the two dialogs read the same; a hand-written `<label>` is for a checkbox's own text or a repeated row's column header, not for a form control. `kinds/Geometry.vue` is the field-side twin of the page-block Geometry configurator and is expected to stay in step with it: same starting-view preview, same lock-bounds behaviour (capture the viewport on lock, update it to the current view on demand, clear `options.bounds` on unlock, preview bounded by the saved area). Only the options each side actually stores differ.
 
 ## When changing this
 

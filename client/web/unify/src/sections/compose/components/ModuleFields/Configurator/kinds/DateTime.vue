@@ -1,10 +1,7 @@
 <template>
   <div class="flex flex-col gap-6">
     <!-- Input type (date+time / date only / time only) -->
-    <div>
-      <label class="font-medium text-muted-color text-sm block mb-3">
-        {{ $t('field.kind.dateTime.type.label') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.dateTime.type.label')">
       <SelectButton
         :model-value="inputType"
         :options="inputTypeOptions"
@@ -12,13 +9,10 @@
         option-value="value"
         @update:model-value="onInputTypeChange"
       />
-    </div>
+    </CFormGroup>
 
     <!-- Constraints (not shown when time-only) -->
-    <div v-if="!field.options.onlyTime">
-      <label class="font-medium text-muted-color text-sm block mb-3">
-        {{ $t('field.kind.dateTime.constraints.label') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.dateTime.constraints.label')" v-if="!field.options.onlyTime">
       <div class="flex flex-col gap-2">
         <div v-for="opt in constraintOptions" :key="opt.value" class="flex items-center gap-2">
           <RadioButton
@@ -30,13 +24,10 @@
           <label :for="`constraint-${opt.value}`" class="cursor-pointer">{{ opt.label }}</label>
         </div>
       </div>
-    </div>
+    </CFormGroup>
 
     <!-- Output format -->
-    <div>
-      <label class="font-medium text-muted-color text-sm block mb-3">
-        {{ $t('field.kind.dateTime.outputFormat') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.dateTime.outputFormat')">
       <div class="flex items-center gap-2 mb-3">
         <Checkbox v-model="field.options.outputRelative" inputId="outputRelative" :binary="true" />
         <label for="outputRelative" class="cursor-pointer">
@@ -49,7 +40,7 @@
           {{ $t('field.kind.dateTime.outputFormatFootnote', ['Moment.js']) }}
         </small>
       </template>
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

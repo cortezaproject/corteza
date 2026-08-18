@@ -1,10 +1,7 @@
 <template>
   <div class="flex flex-col gap-6">
     <!-- Select type -->
-    <div>
-      <label class="font-medium text-muted-color text-sm block mb-3">
-        {{ $t('field.kind.select.optionType.label') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.select.optionType.label')">
       <div class="flex flex-col gap-2">
         <div v-for="opt in selectTypeOptions" :key="opt.value" class="flex items-center gap-2">
           <RadioButton
@@ -15,7 +12,7 @@
           <label :for="`selectType-${opt.value}`" class="cursor-pointer">{{ opt.label }}</label>
         </div>
       </div>
-    </div>
+    </CFormGroup>
 
     <!-- Allow duplicates (only for types that allow it) -->
     <div v-if="showAllowDuplicates" class="flex items-center gap-2">
@@ -31,10 +28,7 @@
     </div>
 
     <!-- Display type -->
-    <div>
-      <label class="font-medium text-muted-color text-sm block mb-3">
-        {{ $t('field.kind.select.displayType.label') }}
-      </label>
+    <CFormGroup :label="$t('field.kind.select.displayType.label')">
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <RadioButton inputId="displayText" v-model="field.options.displayType" value="text" />
@@ -49,11 +43,18 @@
           </label>
         </div>
       </div>
-    </div>
+    </CFormGroup>
 
     <!-- Options list -->
     <div class="flex flex-col gap-4">
-      <h4 class="font-semibold text-base m-0">{{ $t('field.kind.select.optionsLabel') }}</h4>
+      <h4 class="font-semibold text-base m-0">
+        {{ $t('field.kind.select.optionsLabel') }}
+        <span class="text-red-500">*</span>
+      </h4>
+
+      <Message v-if="!optionsList.length" severity="warn" size="small" variant="simple">
+        {{ $t('field.kind.select.optionsRequired') }}
+      </Message>
 
       <div
         v-for="(opt, index) in optionsList"

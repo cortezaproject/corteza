@@ -3,7 +3,9 @@
     <!-- Sanitizers -->
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <label class="font-medium">{{ $t('field.sanitizers.label') }}</label>
+        <label class="font-medium text-muted-color text-sm uppercase tracking-wide">
+          {{ $t('field.sanitizers.label') }}
+        </label>
         <Button
           icon="pi pi-plus"
           :label="$t('general.label.add')"
@@ -39,7 +41,9 @@
     <!-- Validators -->
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <label class="font-medium">{{ $t('field.validators.label') }}</label>
+        <label class="font-medium text-muted-color text-sm uppercase tracking-wide">
+          {{ $t('field.validators.label') }}
+        </label>
         <Button
           icon="pi pi-plus"
           :label="$t('general.label.add')"

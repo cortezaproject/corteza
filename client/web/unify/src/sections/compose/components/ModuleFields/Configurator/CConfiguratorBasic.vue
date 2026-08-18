@@ -86,26 +86,23 @@
     />
 
     <!-- Description (View / Edit) -->
-    <div class="flex flex-col gap-5 mt-2">
-      <div class="flex flex-col gap-2">
-        <FloatLabel variant="on">
-          <InputText id="desc-default" v-model="field.options.description.view" class="w-full" />
-          <label for="desc-default">
-            {{ $t(`field.options.description.label.${sameDescription ? 'default' : 'view'}`) }}
-          </label>
-        </FloatLabel>
-      </div>
+    <div class="flex flex-col gap-3">
+      <CFormGroup
+        input-id="desc-default"
+        :label="$t(`field.options.description.label.${sameDescription ? 'default' : 'view'}`)"
+      >
+        <InputText id="desc-default" v-model="field.options.description.view" class="w-full" />
+      </CFormGroup>
 
-      <div v-if="!sameDescription" class="flex flex-col gap-2">
-        <FloatLabel variant="on">
-          <InputText id="desc-edit" v-model="field.options.description.edit" class="w-full" />
-          <label for="desc-edit">
-            {{ $t('field.options.description.label.edit') }}
-          </label>
-        </FloatLabel>
-      </div>
+      <CFormGroup
+        v-if="!sameDescription"
+        input-id="desc-edit"
+        :label="$t('field.options.description.label.edit')"
+      >
+        <InputText id="desc-edit" v-model="field.options.description.edit" class="w-full" />
+      </CFormGroup>
 
-      <div class="flex items-center gap-2 mt-1">
+      <div class="flex items-center gap-2">
         <Checkbox v-model="sameDescription" inputId="sameDesc" :binary="true" />
         <label for="sameDesc" class="text-sm cursor-pointer">
           {{ $t('field.options.description.same') }}
@@ -116,26 +113,23 @@
     <Divider layout="horizontal" />
 
     <!-- Hint (View / Edit) -->
-    <div class="flex flex-col gap-5 mt-2">
-      <div class="flex flex-col gap-2">
-        <FloatLabel variant="on">
-          <InputText id="hint-default" v-model="field.options.hint.view" class="w-full" />
-          <label for="hint-default">
-            {{ $t(`field.options.hint.label.${sameHint ? 'default' : 'view'}`) }}
-          </label>
-        </FloatLabel>
-      </div>
+    <div class="flex flex-col gap-3">
+      <CFormGroup
+        input-id="hint-default"
+        :label="$t(`field.options.hint.label.${sameHint ? 'default' : 'view'}`)"
+      >
+        <InputText id="hint-default" v-model="field.options.hint.view" class="w-full" />
+      </CFormGroup>
 
-      <div v-if="!sameHint" class="flex flex-col gap-2">
-        <FloatLabel variant="on">
-          <InputText id="hint-edit" v-model="field.options.hint.edit" class="w-full" />
-          <label for="hint-edit">
-            {{ $t('field.options.hint.label.edit') }}
-          </label>
-        </FloatLabel>
-      </div>
+      <CFormGroup
+        v-if="!sameHint"
+        input-id="hint-edit"
+        :label="$t('field.options.hint.label.edit')"
+      >
+        <InputText id="hint-edit" v-model="field.options.hint.edit" class="w-full" />
+      </CFormGroup>
 
-      <div class="flex items-center gap-2 mt-1">
+      <div class="flex items-center gap-2">
         <Checkbox v-model="sameHint" inputId="sameHint" :binary="true" />
         <label for="sameHint" class="text-sm cursor-pointer">
           {{ $t('field.options.hint.same') }}
