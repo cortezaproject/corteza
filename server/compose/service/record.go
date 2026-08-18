@@ -230,17 +230,49 @@ func Record(opts RecordOptions) *record {
 	return svc
 }
 
-func defaultValidator(svc RecordService) recordValuesValidator {
+func defaultValidator(svc *record) recordValuesValidator {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
-	validator.UniqueChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (uint64, error) {
-		if v.Ref == 0 {
+	// Answers with the ID of another record already holding this value, or 0.
+	//
+	// The search runs under the DAL rather than the record service: a duplicate
+	// the person saving is not allowed to read is still a duplicate, and a
+	// uniqueness check that quietly skipped those would let it through.
+	validator.UniqueChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module, r *types.Record) (uint64, error) {
+		if svc == nil || v == nil || v.Value == "" {
 			return 0, nil
 		}
 
-		// @todo re-implement record-value ref lookup through DAL
-		panic("implement me")
+		// A multi-value field's uniqueness is isUniqueMultiValue's business —
+		// within one record's own set, not across the module.
+		if f.Multi {
+			return 0, nil
+		}
+
+		// The stored column is typed, so the comparison goes in as the field's
+		// own type rather than the string the value is carried as.
+		cast, err := v.Cast(f)
+		if err != nil {
+			return 0, err
+		}
+
+		dd, err := dalutils.ComposeRecordsFindByValue(ctx, svc.dal, m, f.Name, cast)
+		if err != nil {
+			return 0, err
+		}
+
+		for _, d := range dd {
+			// The record being saved already holds this value; that is not a
+			// duplicate of itself.
+			if r != nil && d.ID == r.ID {
+				continue
+			}
+
+			return d.ID, nil
+		}
+
+		return 0, nil
 	})
 
 	validator.RecordRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {

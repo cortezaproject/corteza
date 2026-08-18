@@ -26,7 +26,9 @@ import (
 // is no need for such level of interaction and dynamic we require on the frontend
 
 type (
-	UniqueChecker    func(context.Context, store.Storer, *types.RecordValue, *types.ModuleField, *types.Module) (uint64, error)
+	// The record is passed so a checker can leave it out of its own search:
+	// on an update the value it is checking is usually already stored against it.
+	UniqueChecker    func(context.Context, store.Storer, *types.RecordValue, *types.ModuleField, *types.Module, *types.Record) (uint64, error)
 	ReferenceChecker func(context.Context, store.Storer, *types.RecordValue, *types.ModuleField, *types.Module) (bool, error)
 
 	localeService interface {
@@ -86,10 +88,13 @@ func makeDuplicateValueInSetErr(ctx context.Context, field *types.ModuleField, v
 	}
 }
 
-func makeDuplicateValueErr(ctx context.Context, field *types.ModuleField, recordID uint64, ls localeService) types.RecordValueError {
+func makeDuplicateValueErr(ctx context.Context, field *types.ModuleField, value string, recordID uint64, ls localeService) types.RecordValueError {
 	return types.RecordValueError{
-		Kind:    "duplicateValue",
-		Meta:    map[string]interface{}{"field": field.Name, "recordID": recordID},
+		Kind: "duplicateValue",
+		// The message carries a {{value}} placeholder that is filled from here,
+		// as its in-set sibling does; without it the reader is shown the
+		// placeholder and never learns which value was taken.
+		Meta:    map[string]interface{}{"field": field.Name, "value": value, "recordID": recordID},
 		Message: ls.T(ctx, "compose", "record-field.errors.duplicateValue"),
 	}
 }
@@ -284,11 +289,11 @@ fields:
 			continue
 		}
 
-		duplicateRecordID, err := vldtr.uniqueCheckerFn(ctx, s, v, f, m)
+		duplicateRecordID, err := vldtr.uniqueCheckerFn(ctx, s, v, f, m, r)
 		if err != nil {
 			out.Push(makeInternalErr(f, err))
 		} else if duplicateRecordID > 0 && duplicateRecordID != r.ID {
-			out.Push(makeDuplicateValueErr(ctx, f, duplicateRecordID, vldtr.localeSvc))
+			out.Push(makeDuplicateValueErr(ctx, f, v.Value, duplicateRecordID, vldtr.localeSvc))
 		}
 	}
 

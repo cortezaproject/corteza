@@ -81,6 +81,32 @@ func ComposeRecordsFind(ctx context.Context, l lookuper, mod *types.Module, reco
 	return
 }
 
+// ComposeRecordsFindByValue returns up to two records whose `attr` holds
+// `value`, ignoring deleted ones.
+//
+// Two, because the caller is usually checking a value it is about to save: one
+// match may be the record being saved, and a second is what proves the value is
+// already taken elsewhere. The value is bound as a filter constraint rather
+// than written into a query string, so nothing about it needs escaping.
+func ComposeRecordsFindByValue(ctx context.Context, s searcher, mod *types.Module, attr string, value any) (set types.RecordSet, err error) {
+	f := types.RecordFilter{NamespaceID: mod.NamespaceID, ModuleID: mod.ID}
+	f.Limit = 2
+
+	dalFilter := filter.Generic(
+		filter.WithConstraints(map[string][]any{attr: {value}}),
+		filter.WithStateConstraint("deletedAt", filter.StateExcluded),
+		filter.WithLimit(2),
+	)
+
+	iter, err := s.Search(ctx, mod.ModelRef(), recSearchOperations(mod, f), dalFilter)
+	if err != nil {
+		return
+	}
+
+	set, _, _, err = drainIterator(ctx, iter, mod, f)
+	return
+}
+
 func ComposeRecordsCount(ctx context.Context, c counter, mod *types.Module, filter types.RecordFilter) (cnt uint, err error) {
 	constraints := map[string][]interface{}{
 		"namespaceID": {mod.NamespaceID},

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/store"
 	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
@@ -330,4 +331,63 @@ func Test_validator_missingUniqueCheckerKeepsErrors(t *testing.T) {
 	out := vldtr.Run(context.Background(), nil, m, r)
 	req.NotNil(out, "unique field with no checker discarded the whole error set")
 	req.Equal("empty", out.Set[0].Kind)
+}
+
+func Test_validator_uniqueCheckerSeesTheRecord(t *testing.T) {
+	// The checker has to exclude the record being saved from its own search:
+	// on an update the value it is checking is already stored against it.
+	var (
+		req = require.New(t)
+
+		m = &types.Module{ID: 1, Fields: types.ModuleFieldSet{
+			&types.ModuleField{Name: "uniq", Kind: "String", Options: types.ModuleFieldOptions{"isUnique": true}},
+		}}
+
+		r = &types.Record{ID: 42, Values: types.RecordValueSet{
+			&types.RecordValue{Name: "uniq", Value: "x", Updated: true},
+		}}
+
+		gotRecord *types.Record
+
+		vldtr = validator{
+			localeSvc: makeLocaleService(),
+			uniqueCheckerFn: func(_ context.Context, _ store.Storer, _ *types.RecordValue, _ *types.ModuleField, _ *types.Module, rec *types.Record) (uint64, error) {
+				gotRecord = rec
+				return 0, nil
+			},
+		}
+	)
+
+	req.Nil(vldtr.Run(context.Background(), nil, m, r))
+	req.NotNil(gotRecord, "the checker was not told which record is being saved")
+	req.Equal(uint64(42), gotRecord.ID)
+}
+
+func Test_validator_duplicateValueErrorCarriesTheValue(t *testing.T) {
+	// The message is a template with a {{value}} placeholder filled from meta;
+	// without the value the reader is shown the placeholder itself.
+	var (
+		req = require.New(t)
+
+		m = &types.Module{ID: 1, Fields: types.ModuleFieldSet{
+			&types.ModuleField{Name: "uniq", Kind: "String", Options: types.ModuleFieldOptions{"isUnique": true}},
+		}}
+
+		r = &types.Record{ID: 42, Values: types.RecordValueSet{
+			&types.RecordValue{Name: "uniq", Value: "taken", Updated: true},
+		}}
+
+		vldtr = validator{
+			localeSvc: makeLocaleService(),
+			uniqueCheckerFn: func(_ context.Context, _ store.Storer, _ *types.RecordValue, _ *types.ModuleField, _ *types.Module, _ *types.Record) (uint64, error) {
+				return 7, nil
+			},
+		}
+	)
+
+	out := vldtr.Run(context.Background(), nil, m, r)
+	req.NotNil(out)
+	req.Equal("duplicateValue", out.Set[0].Kind)
+	req.Equal("taken", out.Set[0].Meta["value"])
+	req.Equal(uint64(7), out.Set[0].Meta["recordID"])
 }
