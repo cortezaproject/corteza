@@ -281,12 +281,23 @@
                         </InputGroupAddon>
                       </InputGroup>
 
-                      <div class="flex justify-center">
-                        <Checkbox v-model="field.isRequired" :binary="true" />
+                      <div
+                        class="flex justify-center"
+                        v-tooltip.top="requiredDisabledReason(field)"
+                      >
+                        <Checkbox
+                          v-model="field.isRequired"
+                          :binary="true"
+                          :disabled="!!requiredDisabledReason(field)"
+                        />
                       </div>
 
-                      <div class="flex justify-center">
-                        <Checkbox v-model="field.isMulti" :binary="true" />
+                      <div class="flex justify-center" v-tooltip.top="multiDisabledReason(field)">
+                        <Checkbox
+                          v-model="field.isMulti"
+                          :binary="true"
+                          :disabled="!!multiDisabledReason(field)"
+                        />
                       </div>
 
                       <div class="flex items-center justify-end gap-1">
@@ -652,6 +663,24 @@ const resolver = ref(({ values }) => {
 
   return { errors }
 })
+
+// Capabilities read from the kind currently selected in the row, not from the
+// row's class instance — picking a new kind in the Select does not re-make it.
+function capsOf(field) {
+  return compose.ModuleFieldMaker({ kind: field.kind }).cap
+}
+
+// The same two guards the field configurator applies, so a row cannot set what
+// the dialog forbids. Returns the reason, or '' when the box is usable.
+function requiredDisabledReason(field) {
+  if (!capsOf(field).required) return t('field.disabled.requiredUnsupported')
+  if (field.expressions?.value) return t('field.disabled.requiredWithValueExpr')
+  return ''
+}
+
+function multiDisabledReason(field) {
+  return capsOf(field).multi ? '' : t('field.disabled.multiUnsupported')
+}
 
 // Valid field name: starts with a letter, then letters/numbers/underscores.
 // Field names are identifiers (the server runs handle.IsValid over them);

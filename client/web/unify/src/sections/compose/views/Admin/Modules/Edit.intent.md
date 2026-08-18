@@ -26,7 +26,7 @@ module's whole lifecycle.
 ## UX capabilities
 
 - Tabs: Fields (name/handle + draggable field list), DAL, unique values, record revisions, and an Issues tab shown only when the server reports module issues (opening it triggers the schema-alterations dialog).
-- Per-field row: name/label/kind, required/multi flags, kind-specific configurator modal (shares the draft via `moduleDraft` provide), field permissions, and translation actions (label, select options, bool labels) behind the translator gate; system fields shown read-only below.
+- Per-field row: name/label/kind, required/multi flags, kind-specific configurator modal (shares the draft via `moduleDraft` provide), field permissions, and translation actions (label, select options, bool labels) behind the translator gate; system fields shown read-only below. The two flags carry the configurator's own guards — a kind that cannot hold them, or a value expression that owns the field's value, disables the box and says why.
 - Validation: module name required (free text — no pattern), handle matches the handle pattern, field names valid identifiers and unique, field labels required — errors surface on the Fields tab and block save.
 - Related-page actions (`canManageNamespace`): open-or-create the module's record page and record-list page (created pages get a seeded `primary` layout; record page parents under the list page), edit in builder.
 - Discovery/federation settings modals gated by `$Settings` feature flags; export JSON; permissions menu covering module, all fields, and all records wildcards.

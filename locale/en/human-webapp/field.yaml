@@ -16,6 +16,10 @@ constraints:
   valueModifiers: Value modifiers
 defaultFieldValue: Default field value
 defaultValue: Default value
+disabled:
+  multiUnsupported: This field type cannot hold more than one value
+  requiredUnsupported: This field type cannot be made required
+  requiredWithValueExpr: A field whose value comes from an expression cannot also be required — clear the value expression in the field settings first
 general:
   label:
     zoom: Zoom
