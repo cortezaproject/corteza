@@ -180,11 +180,6 @@ fields:
 			continue
 		}
 
-		if f.Expressions.ValueExpr != "" {
-			// do not do any validation if field has value expression!
-			continue
-		}
-
 		if !(f.Expressions.DisableDefaultValidators && len(f.Expressions.Validators) > 0) {
 			if v.Value == "" {
 				// Nothing to do with empty value.

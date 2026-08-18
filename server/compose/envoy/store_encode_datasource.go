@@ -208,7 +208,7 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 				return rve
 			}
 			//
-			rve = service.RecordPreparer(ctx, s, rvSanitizer, rvValidator, rvFormatter, mod, &rec)
+			rve = service.RecordPreparer(ctx, s, rvSanitizer, rvValidator, rvFormatter, mod, &rec, nil)
 			if !rve.IsValid() {
 				return rve
 			}

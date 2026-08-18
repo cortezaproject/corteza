@@ -27,6 +27,7 @@ const (
 var (
 	// value resembles something that can be true
 	truthy = regexp.MustCompile(`^(t(rue)?|y(es)?|1)$`)
+	falsy  = regexp.MustCompile(`^(f(alse)?|n(o)?|0)$`)
 
 	// value resembles something that can be a reference
 	refy = regexp.MustCompile(`^[1-9](\d*)$`)

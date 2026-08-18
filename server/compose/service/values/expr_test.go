@@ -176,4 +176,81 @@ func TestExpressions(t *testing.T) {
 		req.True(rve.IsValid())
 		req.Empty(r.Values)
 	})
+
+	t.Run("old is in scope on an update", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			m   = makeModule("f1", "String", `old.values.t1 + "->" + new.values.t1`)
+			old = &types.Record{}
+			new = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		m.Fields = append(m.Fields, &types.ModuleField{Name: "t1", Kind: "String"})
+		old.Values = old.Values.Replace("t1", "before")
+		new.Values = new.Values.Replace("t1", "after")
+
+		Expression(ctx, m, new, old, rve)
+		req.Truef(rve.IsValid(), "%v", rve.Set)
+		req.Equal("before->after", new.Values.Get("f1", 0).Value)
+	})
+
+	t.Run("old resolves to an empty record on a create", func(t *testing.T) {
+		// Reading the previous value on a first save is a legitimate thing to
+		// write; it must answer empty rather than refusing to resolve, which
+		// would make the record unsavable.
+		var (
+			req = require.New(t)
+			m   = makeModule("f1", "String", `old.values.t1 == null ? "first" : "again"`)
+			r   = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		m.Fields = append(m.Fields, &types.ModuleField{Name: "t1", Kind: "String"})
+
+		Expression(ctx, m, r, nil, rve)
+		req.Truef(rve.IsValid(), "%v", rve.Set)
+		req.Equal("first", r.Values.Get("f1", 0).Value)
+	})
+
+	t.Run("a result the field kind cannot hold is an error, not a default", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			m   = makeModule("f1", "Number", `"not-a-number"`)
+			r   = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		Expression(ctx, m, r, nil, rve)
+		req.False(rve.IsValid())
+		req.Contains(rve.Set[0].Message, "not a number")
+		// The old behaviour stored 0 and told nobody
+		req.Empty(r.Values)
+	})
+
+	t.Run("a numeric result still converts", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			m   = makeModule("f1", "Number", `"42"`)
+			r   = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		Expression(ctx, m, r, nil, rve)
+		req.Truef(rve.IsValid(), "%v", rve.Set)
+		req.Equal("42", r.Values.Get("f1", 0).Value)
+	})
+
+	t.Run("a non-boolean result for a Bool field is an error", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			m   = makeModule("f1", "Bool", `"banana"`)
+			r   = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		Expression(ctx, m, r, nil, rve)
+		req.False(rve.IsValid())
+		req.Contains(rve.Set[0].Message, "not a boolean")
+	})
 }

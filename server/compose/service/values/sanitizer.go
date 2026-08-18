@@ -75,11 +75,6 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			continue
 		}
 
-		if f.Expressions.ValueExpr != "" {
-			// do not do any sanitization if field has value expression!
-			continue
-		}
-
 		if v.IsDeleted() || !v.Updated {
 			// Ignore unchanged and deleted
 			continue
@@ -265,6 +260,47 @@ func sString(str interface{}) string {
 	}
 
 	return xss.RichText(base)
+}
+
+// sanitizeStrict casts the value the way sanitize does, but reports one the
+// field's kind cannot hold instead of quietly standing a default in its place.
+//
+// A typed-in value is forgiven its shape because there is a person to show the
+// correction to. A value expression's result has no one: a Number field whose
+// formula produced a word became 0, and the author was never told. Only the
+// kinds sanitize() substitutes for are checked here — the rest are the per-kind
+// validators' business.
+func sanitizeStrict(f *types.ModuleField, v interface{}) (string, error) {
+	raw := fmt.Sprintf("%v", v)
+
+	switch strings.ToLower(f.Kind) {
+	case "bool":
+		if _, ok := v.(bool); ok {
+			break
+		}
+		if raw != "" && !truthy.MatchString(strings.ToLower(raw)) && !falsy.MatchString(strings.ToLower(raw)) {
+			return "", fmt.Errorf("%q is not a boolean", raw)
+		}
+
+	case "number":
+		if raw != "" {
+			if _, err := strconv.ParseFloat(raw, 64); err != nil {
+				return "", fmt.Errorf("%q is not a number", raw)
+			}
+		}
+
+	case "datetime":
+		if raw != "" && sDatetime(v, f.Options.Bool("onlyDate"), f.Options.Bool("onlyTime")) == "" {
+			return "", fmt.Errorf("%q is not a date/time", raw)
+		}
+
+	case "string":
+		if _, err := cast.ToStringE(v); err != nil {
+			return "", fmt.Errorf("%v cannot be read as text", err)
+		}
+	}
+
+	return sanitize(f, v), nil
 }
 
 // sanitize casts value to field kind format

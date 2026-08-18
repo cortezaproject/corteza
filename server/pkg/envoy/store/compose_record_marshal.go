@@ -437,7 +437,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 				return rve
 			}
 
-			rve = service.RecordPreparer(ctx, pl.s, rvSanitizer, rvValidator, rvFormatter, mod, rec)
+			rve = service.RecordPreparer(ctx, pl.s, rvSanitizer, rvValidator, rvFormatter, mod, rec, nil)
 			if !rve.IsValid() {
 				return rve
 			}

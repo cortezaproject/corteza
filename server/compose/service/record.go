@@ -1133,18 +1133,25 @@ func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessControlle
 	return rve
 }
 
-func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitizer, vv recordValuesValidator, ff recordValuesFormatter, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
+// `old` is the record as stored before this save, or nil on a create; value
+// expressions read it, and it is what tells one apart from the other.
+func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitizer, vv recordValuesValidator, ff recordValuesFormatter, m *types.Module, new *types.Record, old *types.Record) *types.RecordValueErrorSet {
 	// Before values are processed further and
 	// sent to automation scripts (if any)
 	// we need to make sure it does not get un-sanitized data
 	new.Values = ss.Run(m, new.Values)
 
 	rve := &types.RecordValueErrorSet{}
-	values.Expression(ctx, m, new, nil, rve)
+	values.Expression(ctx, m, new, old, rve)
 
 	if !rve.IsValid() {
 		return rve
 	}
+
+	// Computed values have only just been assigned, so they go through the same
+	// sanitization every other value already had — which is also what resolves a
+	// reference field's value into the ref the validators check.
+	new.Values = ss.Run(m, new.Values)
 
 	// Run validation of the updated records
 	rve = vv.Run(ctx, s, m, new)
@@ -1433,7 +1440,7 @@ func (svc record) procCreate(ctx context.Context, invokerID, agentID uint64, m *
 		return
 	}
 
-	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, new)
+	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, new, nil)
 	return rve
 }
 
@@ -1498,7 +1505,7 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 		return
 	}
 
-	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd)
+	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd, old)
 	return
 }
 

@@ -32,6 +32,14 @@ func makeValueExprIncompErr(field *types.ModuleField) types.RecordValueError {
 	}
 }
 
+func makeValueExprKindErr(field *types.ModuleField, err error) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "evaluatedValueIncompatible",
+		Message: fmt.Sprintf("evaluated result does not fit a %s field: %v", field.Kind, err),
+		Meta:    map[string]interface{}{"field": field.Name},
+	}
+}
+
 // Expression evaluates expression in ModuleField.Expressions.Value and
 // assigns results to the record on that field
 func Expression(ctx context.Context, m *types.Module, r *types.Record, old *types.Record, rve *types.RecordValueErrorSet) {
@@ -53,13 +61,17 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 	r.SetModule(m)
 	scope["new"] = r.Dict()
 
-	if old != nil {
-		// old values on record (before update)
-		// this will not be set for new records
-		old.SetModule(m)
-		scope["old"] = old.Dict()
+	// `old` is always in scope. On a create there is no previous record, so it
+	// stands in as an empty one of the same module: every field resolves to nil
+	// rather than failing to resolve, which is what an author comparing against
+	// the previous value means on a first save.
+	if old == nil {
+		old = &types.Record{ModuleID: m.ID, NamespaceID: m.NamespaceID}
 	}
+	old.SetModule(m)
+	scope["old"] = old.Dict()
 
+fields:
 	for _, f := range m.Fields {
 		if f.Expressions.ValueExpr == "" {
 			continue
@@ -91,7 +103,10 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 
 				strings = make([]string, len(values))
 				for i, value := range values {
-					strings[i] = sanitize(f, value)
+					if strings[i], err = sanitizeStrict(f, value); err != nil {
+						rve.Push(makeValueExprKindErr(f, err))
+						continue fields
+					}
 				}
 			} else {
 				if f.Multi {
@@ -99,7 +114,12 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 					continue
 				}
 
-				strings = []string{sanitize(f, tmp)}
+				var str string
+				if str, err = sanitizeStrict(f, tmp); err != nil {
+					rve.Push(makeValueExprKindErr(f, err))
+					continue fields
+				}
+				strings = []string{str}
 			}
 		}
 
