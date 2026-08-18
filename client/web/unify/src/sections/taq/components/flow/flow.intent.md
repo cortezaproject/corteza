@@ -28,12 +28,13 @@ the passed `nodes` array, never from VueFlow's (possibly stale) props.
 - `IteratorNode.vue` — loop-over-collection step with two outputs: body (ends in a loop node) and done.
 - `EndNode.vue` — non-selectable leaf; persisted as a termination step.
 - `LoopNode.vue` — non-selectable marker closing an iterator body.
-- `AddableEdge.vue` — every edge type; hoverable "+" emits `add {edgeId, source, target}` for mid-edge insertion; renders branch/iterator path labels, ancestor-highlight and trace-traversed styling.
+- `AddableEdge.vue` — every edge type; a "+" emits `add {edgeId, source, target}` for mid-edge insertion, and stays available while a trace is on screen so a run can be read and edited at once; renders branch/iterator path labels, ancestor-highlight and trace-traversed styling.
 - `StepPreviewPopover.vue` — read-only config summary of a node: resolves the catalog definition and renders argument values via `form/viewers/registry` (references shown as chips, conditions via `conditionToSegments`).
 
 ## When changing this
 
-- Trace props (`traceFrame`, `traceActive`) are display-only; executed-state
-  matching by handle/stepID lives in Builder.vue.
+- Trace props (`traceFrame`, `traceActive`) are display-only and gate styling
+  alone, never whether an affordance is offered; which nodes and edges count as
+  executed is decided by `utils/trace-path.ts`.
 - Node dimensions must stay in sync with `NODE_DIMENSIONS` — dagre layout and
   viewport centering assume them.
