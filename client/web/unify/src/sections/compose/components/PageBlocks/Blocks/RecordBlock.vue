@@ -252,6 +252,8 @@ const hasActiveInlineEdits = computed(() => activeEditFieldNames.value.length > 
 
 // Field condition tracking
 const hiddenConditions = ref([]) // array of fieldIDs/names that should be hidden
+// False until an evaluation has answered for the conditioned fields
+const conditionsResolved = ref(false)
 
 // ResizeObserver state
 const resizeObserver = ref(null)
@@ -484,8 +486,11 @@ async function saveInlineEdits() {
       record.setValue(fieldName, value)
     })
     const saved = await recordStore.update(record)
-    // Update local record ref if we own it (not via ctx)
-    if (!ctx) localRecord.value = saved
+    // The response carries what the server computed (value expressions,
+    // formatters); handing it to the record view keeps conditions and layout
+    // reading the saved record rather than the one we sent.
+    if (ctx?.adoptSaved) ctx.adoptSaved(saved)
+    else if (!ctx) localRecord.value = saved
     activeEditFieldNames.value = []
     Object.keys(localDirtyValues).forEach(k => delete localDirtyValues[k])
   } catch (e) {
@@ -533,9 +538,21 @@ function setFieldValue(field, value) {
 }
 
 // --- Field conditions ---
+
+// Fields a condition speaks for, by the id canDisplay matches on
+const conditionedFieldIDs = computed(() =>
+  (options.value.fieldConditions || []).map(({ field }) => field).filter(Boolean),
+)
+
+/**
+ * A conditioned field is hidden until the first evaluation answers for it:
+ * showing it and taking it away once the result lands reads as a glitch, and
+ * briefly puts a value on screen the condition means to withhold.
+ */
 function canDisplay({ fieldID, name }) {
-  if (hiddenConditions.value.length === 0) return true
   const id = fieldID && fieldID !== '0' ? fieldID : name
+  if (!conditionsResolved.value) return !conditionedFieldIDs.value.includes(id)
+  if (hiddenConditions.value.length === 0) return true
   return !hiddenConditions.value.includes(id)
 }
 
@@ -545,19 +562,26 @@ let _fieldConditionSeq = 0
 /**
  * Field conditions follow the record as it is edited — they re-evaluate on
  * every value change, debounced so that typing does not fire a request per
- * keystroke.
+ * keystroke. The first pass runs at once instead: it is what decides whether a
+ * conditioned field appears at all, so the debounce would only delay the form.
  */
-function evaluateExpressions() {
+function evaluateExpressions({ immediate = false } = {}) {
   clearTimeout(_fieldConditionTimer)
+  if (immediate) {
+    runFieldConditions()
+    return
+  }
   _fieldConditionTimer = setTimeout(runFieldConditions, 300)
 }
 
 async function runFieldConditions() {
   const fieldConditions = options.value.fieldConditions || []
-  if (!fieldConditions.length) return
+  // Nothing will answer for the conditioned fields on these paths, so release
+  // them rather than leaving them hidden on a first-paint that never resolves.
+  if (!fieldConditions.length) return resolveConditions()
   // Don't evaluate in builder mode
-  if (route.name === 'admin.pages.builder') return
-  if (!$SystemAPI) return
+  if (route.name === 'admin.pages.builder') return resolveConditions()
+  if (!$SystemAPI) return resolveConditions()
 
   const expressions = {}
   const record = activeRecord.value
@@ -591,7 +615,7 @@ async function runFieldConditions() {
     }
   })
 
-  if (Object.keys(expressions).length === 0) return
+  if (Object.keys(expressions).length === 0) return resolveConditions()
 
   const seq = ++_fieldConditionSeq
 
@@ -610,15 +634,30 @@ async function runFieldConditions() {
     })
 
     hiddenConditions.value = newHidden
+    resolveConditions()
 
     // Clear values for newly hidden fields
     clearValuesForHiddenFields(previousConditions)
   } catch (e) {
     console.error('Failed to evaluate field conditions:', e)
+    // A failed evaluation must not leave the conditioned fields hidden for good
+    resolveConditions()
   }
 }
 
+function resolveConditions() {
+  conditionsResolved.value = true
+}
+
+/**
+ * Clearing writes to the record every block on the page shares, so it is
+ * confined to the modes that lead to a save. In view mode there is nothing to
+ * submit and the write would only take the value off the screen — including
+ * out of other blocks showing the same field.
+ */
 function clearValuesForHiddenFields(previousConditions) {
+  if (!isOnEditPage.value) return
+
   const newlyHidden = hiddenConditions.value.filter(id => !previousConditions.includes(id))
   if (newlyHidden.length === 0) return
 
@@ -830,12 +869,16 @@ watch(
   },
 )
 
-// Evaluate field conditions when record loaded or changes
+// Evaluate field conditions when record loaded or changes. Arriving at a record
+// is the first-paint case, so it skips the debounce; with no record to evaluate
+// against there is nothing to wait for and the fields are released.
 watch(
   () => activeRecord.value,
   rec => {
     if (rec) {
-      evaluateExpressions()
+      evaluateExpressions({ immediate: true })
+    } else {
+      resolveConditions()
     }
   },
   { immediate: true },
