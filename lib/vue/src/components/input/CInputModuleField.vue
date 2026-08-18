@@ -8,6 +8,7 @@
     :placeholder="placeholder"
     :disabled="disabled || !options.length"
     :show-clear="showClear"
+    :size="size"
     class="w-full"
     display="chip"
     filter
@@ -29,6 +30,7 @@
     :placeholder="placeholder"
     :disabled="disabled || !options.length"
     :show-clear="showClear"
+    :size="size"
     class="w-full"
     filter
     :filter-fields="['label', 'name']"
@@ -122,6 +124,11 @@ const props = defineProps({
   showClear: {
     type: Boolean,
     default: true,
+  },
+  // PrimeVue field size ('small' | 'large'); unset draws the default.
+  size: {
+    type: String,
+    default: undefined,
   },
 })
 

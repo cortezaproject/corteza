@@ -40,6 +40,7 @@ vi.mock('@/sections/compose/composables/useExpressionScope', () => ({
   useExpressionScope: () => ({ scope: {}, queryFields: [] }),
 }))
 
+import RecordConfigurator from './RecordConfigurator.vue'
 import RecordOrganizerConfigurator from './RecordOrganizerConfigurator.vue'
 import CommentConfigurator from './CommentConfigurator.vue'
 import IFrameConfigurator from './IFrameConfigurator.vue'
@@ -48,7 +49,17 @@ const passthrough = (name, props = []) => ({ name, props, template: '<div><slot 
 
 const FieldPicker = {
   name: 'CInputModuleField',
-  props: ['modelValue', 'module', 'moduleID', 'kinds', 'excludeMulti', 'valueKey', 'includeSystem'],
+  props: [
+    'modelValue',
+    'module',
+    'moduleID',
+    'kinds',
+    'excludeMulti',
+    'valueKey',
+    'includeSystem',
+    'filter',
+    'size',
+  ],
   template: '<div />',
 }
 
@@ -66,7 +77,8 @@ function mountConfigurator(Component, kind, options, page = { pageID: 'P0' }) {
   return mount(Component, {
     props: { namespace: { namespaceID: 'N1' }, page },
     global: {
-      provide: { blockDraft },
+      provide: { blockDraft, $ComposeAPI: {} },
+      directives: { tooltip: {} },
       mocks: { $t: k => k },
       stubs: {
         CInputModuleField: FieldPicker,
@@ -77,8 +89,17 @@ function mountConfigurator(Component, kind, options, page = { pageID: 'P0' }) {
         Button: passthrough('Button', ['label', 'icon']),
         InputText: { name: 'InputText', props: ['modelValue'], template: '<input />' },
         Select: { name: 'Select', props: ['modelValue', 'options'], template: '<div />' },
-        CInputExpression: passthrough('CInputExpression', ['modelValue']),
+        CInputExpression: passthrough('CInputExpression', ['modelValue', 'minLines', 'size']),
         CExpressionHint: passthrough('CExpressionHint'),
+        CInputToggleCard: passthrough('CInputToggleCard', ['modelValue', 'label', 'description']),
+        CFieldPicker: passthrough('CFieldPicker', ['allFields', 'modelValue']),
+        CFormList: {
+          name: 'CFormList',
+          props: ['modelValue', 'columns', 'emptyMessage'],
+          template:
+            '<div><slot name="row" v-for="(item, index) in modelValue" :item="item" :index="index" /></div>',
+        },
+        Checkbox: { name: 'Checkbox', props: ['modelValue'], template: '<input />' },
       },
     },
   })
@@ -143,6 +164,36 @@ describe('configurator field pickers', () => {
 
     expect(wiring(recordPage)).toEqual({ link: ['Url'] })
     expect(plainPage.findAllComponents(FieldPicker)).toHaveLength(0)
+  })
+
+  it('picks a conditioned field by ID, from the fields the block draws', () => {
+    const configured = mountConfigurator(
+      RecordConfigurator,
+      'Record',
+      {
+        fields: ['title', 'weight'],
+        fieldConditions: [{ field: 'F1', condition: 'true' }],
+      },
+      { moduleID: MODULE_ID },
+    )
+
+    const picker = configured.findAllComponents(FieldPicker).at(-1)
+    expect(picker.props('valueKey')).toBe('fieldID')
+    expect(MODULE.fields.filter(picker.props('filter')).map(f => f.name)).toEqual([
+      'title',
+      'weight',
+    ])
+  })
+
+  it('offers every module field when the block configures none', () => {
+    const all = mountConfigurator(
+      RecordConfigurator,
+      'Record',
+      { fields: [], fieldConditions: [{ field: '', condition: '' }] },
+      { moduleID: MODULE_ID },
+    )
+
+    expect(all.findAllComponents(FieldPicker).at(-1).props('filter')).toBe(null)
   })
 
   it('gives every picker a module to read its fields from', () => {

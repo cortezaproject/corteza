@@ -140,15 +140,13 @@
             @change="onConditionsChange"
           >
             <template #row="{ item: condition, index }">
-              <Select
+              <CInputModuleField
                 :model-value="condition.field"
-                :options="conditionFieldOptions"
-                option-label="text"
-                option-value="value"
+                :module="fieldPickerModule"
+                :filter="conditionFieldFilter"
+                value-key="fieldID"
                 :placeholder="$t('block.record.fieldConditions.selectPlaceholder')"
-                class="w-full"
                 size="small"
-                filter
                 @update:model-value="updateCondition(index, 'field', $event)"
               />
 
@@ -398,21 +396,12 @@ const conditionColumns = computed(() => [
   },
 ])
 
-const conditionFieldOptions = computed(() => {
-  const fields = block.value.options?.fields || []
-  if (!fieldPickerModule.value) return []
-
-  // Use configured fields if available, otherwise all module fields
-  const moduleFields = fieldPickerModule.value.fields || []
-  const sourceFields =
-    fields.length > 0
-      ? moduleFields.filter(f => fields.map(ff => ff.name ?? ff).includes(f.name))
-      : moduleFields
-
-  return sourceFields.map(f => ({
-    value: f.fieldID || f.name,
-    text: f.label || f.name,
-  }))
+// A condition speaks for a field the block draws, so the picker offers the
+// configured ones; a block with no field list configured draws them all.
+const conditionFieldFilter = computed(() => {
+  const configured = (block.value.options?.fields || []).map(f => f.name ?? f)
+  if (!configured.length) return null
+  return f => configured.includes(f.name)
 })
 
 function addCondition() {
