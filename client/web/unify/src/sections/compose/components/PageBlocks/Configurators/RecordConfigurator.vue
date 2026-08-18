@@ -127,27 +127,29 @@
           <div class="flex flex-col gap-2">
             <div v-for="(condition, i) in fieldConditions" :key="i" class="flex items-center gap-2">
               <Select
-                v-model="condition.field"
+                :model-value="condition.field"
                 :options="conditionFieldOptions"
                 option-label="text"
                 option-value="value"
                 :placeholder="$t('block.record.fieldConditions.selectPlaceholder')"
                 class="flex-1"
                 filter
+                @update:model-value="updateCondition(i, 'field', $event)"
               />
               <CInputExpression
-                v-model="condition.condition"
+                :model-value="condition.condition"
                 dialect="expr"
                 :scope="exprScope"
                 :placeholder="$t('block.record.fieldConditions.placeholder')"
                 class="flex-1"
+                @update:model-value="updateCondition(i, 'condition', $event)"
               />
               <div class="flex items-center gap-1">
                 <Checkbox
                   :model-value="condition.clearOnHide || false"
                   binary
                   :input-id="`clearOnHide-${i}`"
-                  @update:model-value="updateConditionClearOnHide(i, $event)"
+                  @update:model-value="updateCondition(i, 'clearOnHide', $event)"
                 />
                 <label :for="`clearOnHide-${i}`" class="text-xs text-muted-color">
                   {{ $t('block.record.fieldConditions.clearOnHide') }}
@@ -415,9 +417,11 @@ function removeCondition(index) {
   updateOptions('fieldConditions', conditions)
 }
 
-function updateConditionClearOnHide(index, value) {
+// Every part of a condition is written the same way — through the options patch,
+// never onto the options object the getter handed back.
+function updateCondition(index, key, value) {
   const conditions = [...fieldConditions.value]
-  conditions[index] = { ...conditions[index], clearOnHide: value }
+  conditions[index] = { ...conditions[index], [key]: value }
   updateOptions('fieldConditions', conditions)
 }
 
