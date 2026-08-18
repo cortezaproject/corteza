@@ -2296,10 +2296,20 @@
       "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
       "t": "2026-08-13"
     },
+    "client/web/unify/src/sections/taq/utils/trace-path.test.ts": {
+      "h": "b92d4b910bfa",
+      "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
+      "t": "2026-08-18"
+    },
+    "client/web/unify/src/sections/taq/utils/trace-path.ts": {
+      "h": "cb76c6f1c7b5",
+      "doc": "client/web/unify/src/sections/taq/utils/utils.intent.md",
+      "t": "2026-08-18"
+    },
     "client/web/unify/src/sections/taq/views/Builder.vue": {
-      "h": "f9e8f52b9285",
+      "h": "d6238e7346c1",
       "doc": "client/web/unify/src/sections/taq/views/Builder.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/taq/views/List.vue": {
       "h": "db9af6f122de",

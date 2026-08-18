@@ -460,6 +460,7 @@ import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 
 import { useFlowEditor } from '@/sections/taq/composables/useFlowEditor'
+import { isEdgeTraversed as edgeTraversed, traceFrameFor } from '@/sections/taq/utils/trace-path'
 import { useAutomationStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 
@@ -574,50 +575,21 @@ provide('activeReferenceArgument', activeReferenceArgument)
 // Trace helpers
 const isTraceActive = computed(() => editor.traceStatus.value !== 'idle')
 
-// Look up trace frame for a step node by matching its data.ref (handle) to the traceByHandle map
-// Falls back to matching by stepID if handle-based lookup fails
+// The canvas reads the run through utils/trace-path; this only supplies the
+// reactive state and the idle guard.
+const trace = computed(() => ({
+  frames: editor.traceFrames.value,
+  byHandle: editor.traceByHandle.value,
+}))
+
 function getTraceFrame(nodeProps) {
   if (!isTraceActive.value) return null
-  const handle = nodeProps.data?.ref
-  if (handle) {
-    const frame = editor.traceByHandle.value.get(handle)
-    if (frame) return frame
-  }
-  // Fallback: match by stepID
-  const stepID = nodeProps.data?.stepID
-  if (stepID) {
-    return editor.traceFrames.value.find(f => f.stepID === stepID) || null
-  }
-  return null
-}
-
-// Helper to check if a node has a matching trace frame
-function nodeHasTrace(node) {
-  if (!node) return false
-  if (node.type === 'trigger') return true // triggers always count as traced
-  const handle = node.data?.ref
-  if (handle && editor.traceByHandle.value.get(handle)) return true
-  const stepID = node.data?.stepID
-  if (stepID && editor.traceFrames.value.some(f => f.stepID === stepID)) return true
-  return false
+  return traceFrameFor(nodeProps, trace.value)
 }
 
 function isEdgeTraversed(edgeProps) {
   if (!isTraceActive.value) return false
-  const sourceNode = editor.nodes.value.find(n => n.id === edgeProps.source)
-  const targetNode = editor.nodes.value.find(n => n.id === edgeProps.target)
-  if (!sourceNode || !targetNode) return false
-  // Control leaves a step only when it ran and did not fail there.
-  if (!nodeHasTrace(sourceNode)) return false
-  if (getTraceFrame(sourceNode)?.error) return false
-  // An End or loop marker the parser invents to close a dangling arm has no
-  // backend step behind it, so no frame can ever name one and reaching it
-  // follows from its source — except off a branch, where the trace does not say
-  // which arm ran. A persisted marker carries a stepID and resolves by frame
-  // like any other step.
-  const isMarker = targetNode.type === 'end' || targetNode.type === 'loop'
-  if (isMarker && !targetNode.data?.stepID) return sourceNode.type !== 'branch'
-  return nodeHasTrace(targetNode)
+  return edgeTraversed(edgeProps, editor.nodes.value, trace.value)
 }
 
 // Get the trace frame for the currently selected node

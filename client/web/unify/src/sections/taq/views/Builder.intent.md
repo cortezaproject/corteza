@@ -5,6 +5,7 @@ owner: fe
 depends-on:
   - client/web/unify/src/sections/taq/composables/useFlowEditor.ts
   - client/web/unify/src/sections/taq/utils/taq-parser.ts
+  - client/web/unify/src/sections/taq/utils/trace-path.ts
   - lib/vue/src/stores/useAutomationStore.js
 touched-by:
   - client/web/unify/src/sections/taq/index.js
@@ -50,8 +51,10 @@ here in a new tab; back returns to `/taq`.
 
 - The catalog must be loaded before parsing a flow — icons, forms and
   upstream results all resolve against it.
-- End nodes are real termination steps on save; they are non-selectable and
-  must never open the config sidebar or be deletable directly.
+- End nodes are real termination steps on save; that is what lets a reached
+  End resolve from its own trace frame (`utils/trace-path.ts` owns the rule —
+  the view only supplies its reactive state). They are non-selectable and must
+  never open the config sidebar or be deletable directly.
 - `provide('activeReferenceArgument')` is the contract deep inputs
   (DynamicInput, CInputFieldValueMap, condition rows) rely on for active-link
   state — keep it when restructuring.
