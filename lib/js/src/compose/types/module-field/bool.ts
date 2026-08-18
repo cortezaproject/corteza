@@ -42,6 +42,11 @@ export class ModuleFieldBool extends ModuleField {
     return {
       ...super.cap,
       multi: false,
+
+      // A checkbox is ticked or it is not; it has no unanswered state for
+      // required to demand an answer to. Marking one required only ever meant
+      // "must be ticked", which a validator expression says out loud.
+      required: false,
     }
   }
 }

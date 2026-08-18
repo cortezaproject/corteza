@@ -157,7 +157,10 @@ export class ModuleField {
 
     // Make sure field is align with it's capabilities
     if (!this.cap.multi) this.isMulti = false
-    if (!this.cap.required) this.isRequired = false
+
+    // A kind that cannot be required must not strip the flag off a field that
+    // already carries it — only one that does not exist yet is corrected here.
+    if (!this.cap.required && this.fieldID === NoID) this.isRequired = false
 
     // Check if kind sortable
     if (unsortableFieldKinds.includes(this.kind)) {
