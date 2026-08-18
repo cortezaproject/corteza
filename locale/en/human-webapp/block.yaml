@@ -515,6 +515,7 @@ metric:
     empty: No metrics yet. Add one to get started.
     filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported.
     filterLabel: Filter
+    filterPlaceholder: field1 = 1 AND field2 = 232
     labelLabel: Label
     labelPlaceholder: Label
     listTitle: Metrics

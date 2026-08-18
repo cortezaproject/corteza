@@ -115,7 +115,7 @@
                   dialect="ql"
                   :scope="scope"
                   :query-fields="moduleFields(metric.moduleID)"
-                  placeholder="field1 = 1 AND field2 > 0"
+                  :placeholder="$t('block.metric.edit.filterPlaceholder')"
                 />
                 <CExpressionHint :scope="scope" @insert="filterInputs[i]?.insert($event)" />
               </CFormGroup>
@@ -195,11 +195,18 @@
                   </CFormGroup>
 
                   <CFormGroup :label="$t('block.metric.comparison.customFilter')">
-                    <InputText
+                    <CInputExpression
+                      :ref="el => (comparisonFilterInputs[i] = el)"
                       :model-value="metric.comparison?.customFilter || ''"
-                      class="w-full"
-                      placeholder="field1 = 1 AND field2 > 0"
+                      dialect="ql"
+                      :scope="scope"
+                      :query-fields="moduleFields(metric.moduleID)"
+                      :placeholder="$t('block.metric.edit.filterPlaceholder')"
                       @update:model-value="onComparisonChange(metric, 'customFilter', $event)"
+                    />
+                    <CExpressionHint
+                      :scope="scope"
+                      @insert="comparisonFilterInputs[i]?.insert($event)"
                     />
                   </CFormGroup>
                 </div>
@@ -260,6 +267,7 @@ const props = defineProps({
 })
 
 const filterInputs = ref([])
+const comparisonFilterInputs = ref([])
 const { scope } = useExpressionScope({ page: computed(() => props.page) })
 
 // Fields of the module this row queries — bare identifiers in its filter.
