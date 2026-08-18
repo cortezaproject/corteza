@@ -7,6 +7,7 @@ interface Options {
   chatbotIDs: string[]
   statusFilter: string[]
   refreshRate: number
+  showRefresh: boolean
   autoOpenFirst: boolean
   showFilter: boolean
 }
@@ -15,6 +16,7 @@ const defaults: Readonly<Options> = Object.freeze({
   chatbotIDs: [],
   statusFilter: ['handoff_requested', 'handoff_active'],
   refreshRate: 5,
+  showRefresh: false,
   autoOpenFirst: false,
   showFilter: false,
 })
@@ -40,6 +42,7 @@ export class PageBlockChatbotInbox extends PageBlock {
     }
 
     Apply(this.options, o, Number, 'refreshRate')
+    Apply(this.options, o, Boolean, 'showRefresh')
     Apply(this.options, o, Boolean, 'autoOpenFirst')
     Apply(this.options, o, Boolean, 'showFilter')
   }
@@ -53,6 +56,7 @@ function cloneDefaults(): Options {
     chatbotIDs: [...defaults.chatbotIDs],
     statusFilter: [...defaults.statusFilter],
     refreshRate: defaults.refreshRate,
+    showRefresh: defaults.showRefresh,
     autoOpenFirst: defaults.autoOpenFirst,
     showFilter: defaults.showFilter,
   }

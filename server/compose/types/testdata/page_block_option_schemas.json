@@ -71,6 +71,7 @@
     "chatbotIDs": [],
     "statusFilter": [],
     "refreshRate": 0,
+    "showRefresh": false,
     "autoOpenFirst": false,
     "showFilter": false
   },

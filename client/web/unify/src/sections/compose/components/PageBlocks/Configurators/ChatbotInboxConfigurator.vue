@@ -28,13 +28,6 @@
       </div>
     </CFormGroup>
 
-    <CFormGroup
-      :label="$t('block.chatbotInbox.config.refresh')"
-      :description="$t('block.chatbotInbox.config.refreshHint')"
-    >
-      <InputNumber v-model="refreshRate" :min="1" :step="1" show-buttons class="w-full" />
-    </CFormGroup>
-
     <div class="flex items-center gap-2">
       <Checkbox v-model="autoOpenFirst" :binary="true" input-id="cb-inbox-auto" />
       <label for="cb-inbox-auto" class="text-sm">
@@ -84,13 +77,6 @@ const statusFilter = computed({
   get: () => opts.value.statusFilter,
   set: v => {
     opts.value.statusFilter = v
-  },
-})
-
-const refreshRate = computed({
-  get: () => opts.value.refreshRate,
-  set: v => {
-    opts.value.refreshRate = Number(v) || opts.value.refreshRate
   },
 })
 

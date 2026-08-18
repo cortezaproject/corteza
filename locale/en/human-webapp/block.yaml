@@ -197,8 +197,6 @@ chatbotInbox:
     chatbots: Chatbots
     chatbotsHint: Sessions from these chatbots show up in the inbox.
     chatbotsPlaceholder: Select chatbots to monitor
-    refresh: Refresh interval (seconds)
-    refreshHint: How often the list polls for new pending handoffs.
     showFilter: Show filter
     status: Status filter
   confirmAcceptHeader: Accept handoff

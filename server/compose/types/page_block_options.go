@@ -447,6 +447,7 @@ type (
 		ChatbotIDs    []string `json:"chatbotIDs"`
 		StatusFilter  []string `json:"statusFilter"`
 		RefreshRate   int      `json:"refreshRate"`
+		ShowRefresh   bool     `json:"showRefresh"`
 		AutoOpenFirst bool     `json:"autoOpenFirst"`
 		ShowFilter    bool     `json:"showFilter"`
 	}
