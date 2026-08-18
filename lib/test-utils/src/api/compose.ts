@@ -26,7 +26,11 @@ export type MockComposeAPI = {
   pageUpdate: MockFn
   pageDelete: MockFn
   pageLayoutList: MockFn
+  pageLayoutListNamespace: MockFn
   pageLayoutRead: MockFn
+  pageLayoutCreate: MockFn
+  pageLayoutUpdate: MockFn
+  pageLayoutDelete: MockFn
   chartList: MockFn
   chartRead: MockFn
   permissionsEffective: MockFn
@@ -62,7 +66,11 @@ export function createMockComposeAPI(overrides: Partial<MockComposeAPI> = {}): M
     pageUpdate: vi.fn().mockResolvedValue({}),
     pageDelete: vi.fn().mockResolvedValue({}),
     pageLayoutList: vi.fn().mockResolvedValue(listResult()),
+    pageLayoutListNamespace: vi.fn().mockResolvedValue(listResult()),
     pageLayoutRead: vi.fn().mockResolvedValue({}),
+    pageLayoutCreate: vi.fn().mockResolvedValue({}),
+    pageLayoutUpdate: vi.fn().mockResolvedValue({}),
+    pageLayoutDelete: vi.fn().mockResolvedValue({}),
     chartList: vi.fn().mockResolvedValue(listResult()),
     chartRead: vi.fn().mockResolvedValue({}),
     permissionsEffective: vi.fn().mockResolvedValue([]),

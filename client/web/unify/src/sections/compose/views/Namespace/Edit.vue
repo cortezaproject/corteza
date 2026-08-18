@@ -307,20 +307,16 @@ async function loadNamespace() {
 
   loading.value = true
   try {
-    // Find by slug or ID
-    const found = namespaceStore.getByUrlPart(slug)
-    if (found) {
-      namespace.value = new compose.Namespace(found)
+    // Fetched, never taken from the cached set: the editor is where the
+    // namespace is authored, and the slug is resolved against the list rather
+    // than an ID, so the list is what has to be current.
+    await namespaceStore.load()
+    const ns = namespaceStore.getByUrlPart(slug)
+    if (ns) {
+      namespace.value = new compose.Namespace(ns)
     } else {
-      // Load from API
-      await namespaceStore.load()
-      const ns = namespaceStore.getByUrlPart(slug)
-      if (ns) {
-        namespace.value = new compose.Namespace(ns)
-      } else {
-        $toast.toastDanger(t('notification.namespace.loadFailed'))
-        router.push({ name: 'namespace.list' })
-      }
+      $toast.toastDanger(t('notification.namespace.loadFailed'))
+      router.push({ name: 'namespace.list' })
     }
     capture()
   } catch (e) {

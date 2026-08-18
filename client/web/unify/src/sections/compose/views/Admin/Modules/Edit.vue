@@ -764,16 +764,15 @@ async function loadModule() {
 
   loading.value = true
   try {
-    const found = moduleStore.getByID(moduleID)
-    if (found) {
-      module.value = new compose.Module({ ...found })
-    } else {
-      const m = await moduleStore.findByID({
-        namespaceID: props.namespace?.namespaceID,
-        moduleID,
-      })
-      module.value = new compose.Module({ ...m })
-    }
+    // Fetched, never taken from the namespace's cached set: the editor is where
+    // the module is authored, and one loaded from a set that went stale saves
+    // over whatever changed since.
+    const m = await moduleStore.findByID({
+      namespaceID: props.namespace?.namespaceID,
+      moduleID,
+      force: true,
+    })
+    module.value = new compose.Module({ ...m })
     capture()
 
     // Auto-trigger schema alterations check if module has issues (matching Human behavior)

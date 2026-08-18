@@ -401,7 +401,7 @@ async function fetchChart() {
     processing.value = true
 
     try {
-      const raw = await chartStore.findByID({ namespaceID, chartID: cID })
+      const raw = await chartStore.findByID({ namespaceID, chartID: cID, force: true })
       chart.value = chartConstructor(raw)
       capture()
       editReportIndex.value = 0

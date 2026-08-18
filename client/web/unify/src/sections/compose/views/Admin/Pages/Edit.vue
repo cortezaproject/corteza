@@ -925,16 +925,15 @@ async function loadPage() {
 
   loading.value = true
   try {
-    const found = pageStore.getByID(pageID)
-    if (found) {
-      page.value = new compose.Page({ ...found })
-    } else {
-      const p = await pageStore.findByID({
-        namespaceID: props.namespace?.namespaceID,
-        pageID,
-      })
-      page.value = new compose.Page({ ...p })
-    }
+    // Fetched, never taken from the namespace's cached set: a page authored
+    // elsewhere since the namespace loaded would otherwise be edited and saved
+    // in its stale shape.
+    const fetched = await pageStore.findByID({
+      namespaceID: props.namespace?.namespaceID,
+      pageID,
+      force: true,
+    })
+    page.value = new compose.Page({ ...fetched })
 
     // Load layouts for this page
     await loadLayouts()
