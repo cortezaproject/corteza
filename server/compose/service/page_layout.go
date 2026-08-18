@@ -441,6 +441,12 @@ func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) erro
 			return err
 		}
 
+		// Create has no generated wrapper to hook svc.guard onto, so the
+		// project-state lock is applied here.
+		if err = svc.guard(ctx, new); err != nil {
+			return err
+		}
+
 		if !svc.ac.CanCreatePageLayoutOnPage(ctx, pg) {
 			if new.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
 				return PageLayoutErrNotAllowedToCreate()

@@ -80,6 +80,12 @@ func (svc *chart) onCreate(ctx context.Context, new *types.Chart) error {
 			return err
 		}
 
+		// Create has no generated wrapper to hook svc.guard onto, so the
+		// project-state lock is applied here.
+		if err = svc.guard(ctx, new); err != nil {
+			return err
+		}
+
 		if !svc.ac.CanCreateChartOnNamespace(ctx, ns) {
 			return ChartErrNotAllowedToCreate()
 		}
