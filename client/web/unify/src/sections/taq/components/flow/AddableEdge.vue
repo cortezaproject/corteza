@@ -153,9 +153,8 @@ function handleAdd() {
       {{ edgeLabel }}
     </span>
 
-    <!-- Add button (centered, hidden during trace) -->
+    <!-- Add button (centered) -->
     <div
-      v-if="!traceActive"
       class="edge-button"
       :style="{
         position: 'absolute',
