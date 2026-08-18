@@ -90,7 +90,6 @@ export class ModuleField {
   public label = ''
 
   public defaultValue: Array<DefaultValue> = []
-  public maxLength = 0
 
   public isRequired = false
   public isMulti = false
@@ -154,7 +153,6 @@ export class ModuleField {
 
     Apply(this, f, HumanID, 'fieldID')
     Apply(this, f, String, 'name', 'label', 'kind')
-    Apply(this, f, Number, 'maxLength')
     Apply(this, f, Boolean, 'isRequired', 'isMulti', 'isSystem')
 
     // Make sure field is align with it's capabilities
