@@ -59,8 +59,9 @@ const records = {
 
 const pageStore = { getByID: () => page }
 const pageLayoutStore = { getByPageID: () => layouts }
+let recordModule
 const moduleStore = {
-  getByID: () => ({ moduleID: 'M1', namespaceID: 'N1', fields: [{ name: 'status' }] }),
+  getByID: () => recordModule,
 }
 const recordStore = {
   paginationRecordIDs: [],
@@ -106,7 +107,9 @@ vi.mock('@planetcrust/human-js', () => {
       PageBlockMaker: i =>
         i.kind === 'RecordRevisions' ? Object.assign(new PageBlockRecordRevisions(), i) : { ...i },
     },
-    validator: { IsEmpty: () => false },
+    validator: {
+      IsEmpty: v => v === undefined || v === null || v === '',
+    },
   }
 })
 
@@ -172,6 +175,11 @@ beforeEach(() => {
   expressionEvaluate = vi.fn(({ expressions }) =>
     Promise.resolve(Object.fromEntries(Object.keys(expressions).map(k => [k, true]))),
   )
+  recordModule = {
+    moduleID: 'M1',
+    namespaceID: 'N1',
+    fields: [{ fieldID: 'F-status', name: 'status' }],
+  }
   recordStore.findByID.mockClear()
   goBack.mockClear()
   router.push.mockClear()
@@ -359,6 +367,67 @@ describe('RecordView layout resolution', () => {
       expect(goBack).not.toHaveBeenCalled()
       expect(toastWarning).not.toHaveBeenCalled()
       expect(wrapper.findComponent(Grid).exists()).toBe(false)
+    })
+  })
+
+  describe("a layout's own required fields", () => {
+    beforeEach(() => {
+      recordModule.fields = [
+        { fieldID: 'F-status', name: 'status' },
+        // optional on the module — only a layout asks for it
+        { fieldID: 'F-reason', name: 'reason' },
+      ]
+      layouts[0].config.validation = {
+        requiredFields: [{ field: 'F-reason', condition: 'record.values.status == "closed"' }],
+      }
+    })
+
+    it('requires the field when its condition holds', async () => {
+      await mountView()
+
+      expect(wrapper.vm.resolver().errors.reason).toBeTruthy()
+    })
+
+    it('leaves it optional when the condition does not hold', async () => {
+      expressionEvaluate.mockImplementation(({ expressions }) =>
+        Promise.resolve(
+          Object.fromEntries(Object.keys(expressions).map(k => [k, !k.startsWith('F-')])),
+        ),
+      )
+      await mountView()
+
+      expect(wrapper.vm.resolver().errors.reason).toBeUndefined()
+    })
+
+    it('requires it outright when the rule carries no condition', async () => {
+      layouts[0].config.validation.requiredFields = [{ field: 'F-reason', condition: '' }]
+      await mountView()
+
+      // No condition to evaluate, so nothing is asked of the server for it
+      expect(wrapper.vm.resolver().errors.reason).toBeTruthy()
+    })
+
+    it('does not block the save when the condition cannot be evaluated', async () => {
+      // Only the required-field batch fails: rejecting everything would stop a
+      // layout matching at all, and the page would leave before ever asking.
+      expressionEvaluate.mockImplementation(({ expressions }) => {
+        if (Object.keys(expressions).some(k => k.startsWith('F-'))) {
+          return Promise.reject(new Error('boom'))
+        }
+        return Promise.resolve(Object.fromEntries(Object.keys(expressions).map(k => [k, true])))
+      })
+      await mountView()
+
+      // Otherwise the field is marked required with nothing to show for it
+      expect(wrapper.vm.resolver().errors.reason).toBeUndefined()
+    })
+
+    it('never makes a field the module requires optional', async () => {
+      recordModule.fields[1].isRequired = true
+      layouts[0].config.validation.requiredFields = []
+      await mountView()
+
+      expect(wrapper.vm.resolver().errors.reason).toBeTruthy()
     })
   })
 

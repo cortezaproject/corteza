@@ -258,6 +258,8 @@ const pageCover = useDeferredBusy(loading)
 const invisibleBlockIDs = ref(new Set())
 // True once this page has been refused and we stayed anyway (see refuseOnce)
 const noLayoutMatched = ref(false)
+// Fields the active layout asks for on top of the module's own required ones
+const layoutRequiredFields = ref([])
 
 const recordNavigation = computed(() => {
   const recordID = props.inModal ? props.modalRecordID : route.params.recordID
@@ -552,7 +554,15 @@ function commitLayout({ seq, layouts, requestedLayoutID, resolved }) {
 
 async function resolveLayout() {
   if (!page.value) return
-  commitLayout(await pickLayout({ forRecord: record.value, forMode: mode.value }))
+
+  const forRecord = record.value
+  const forMode = mode.value
+  const picked = await pickLayout({ forRecord, forMode })
+  if (!commitLayout(picked)) return
+
+  // Required fields belong to the layout, so every path that settles one
+  // settles them with it.
+  commitRequiredFields(await pickRequiredFields(picked.resolved, { forRecord, forMode }))
 }
 
 /**
@@ -758,6 +768,50 @@ function commitBlockVisibility({ seq, invisible }) {
   invisibleBlockIDs.value = invisible
 }
 
+let _requiredFieldsSeq = 0
+
+/**
+ * Evaluates the layout's conditional required fields. Writes nothing.
+ *
+ * A layout may ask for a field the module leaves optional — "a reason is
+ * required once the status is rejected". An empty condition asks for it
+ * outright. This only ever adds: a field the module already requires stays
+ * required on every layout.
+ */
+async function pickRequiredFields(lay, { forRecord, forMode }) {
+  const seq = ++_requiredFieldsSeq
+  const rules = (lay?.config?.validation?.requiredFields || []).filter(({ field }) => field)
+  if (!rules.length) return { seq, fields: [] }
+
+  const always = rules.filter(({ condition }) => !condition?.trim()).map(({ field }) => field)
+  const conditional = rules.filter(({ condition }) => condition?.trim())
+  if (!conditional.length || !$SystemAPI) return { seq, fields: always }
+
+  const expressions = {}
+  for (const { field, condition } of conditional) expressions[field] = condition
+
+  const variables = buildExpressionVariables({
+    record: forRecord,
+    isRecordPage: true,
+    mode: forMode,
+  })
+
+  try {
+    const res = await $SystemAPI.expressionEvaluate({ variables, expressions })
+    return { seq, fields: [...always, ...Object.keys(res).filter(k => res[k])] }
+  } catch (e) {
+    // A rule that cannot be evaluated must not block the save: the person is
+    // left with a field marked required and no way to see what asked for it.
+    console.error('Failed to evaluate layout required fields:', e)
+    return { seq, fields: always }
+  }
+}
+
+function commitRequiredFields({ seq, fields }) {
+  if (seq !== _requiredFieldsSeq) return
+  layoutRequiredFields.value = fields
+}
+
 async function runBlockVisibility() {
   commitBlockVisibility(
     await pickBlockVisibility(layoutBlocks.value, {
@@ -783,6 +837,7 @@ async function stageTransition({ forRecord, forMode }) {
     forRecord,
     forMode,
   })
+  const required = await pickRequiredFields(picked.resolved, { forRecord, forMode })
   // A block that fails to settle must not hold up the ones that did, nor leave
   // the page on the record it was showing before.
   const settled = await Promise.all(
@@ -797,6 +852,7 @@ async function stageTransition({ forRecord, forMode }) {
   return () => {
     if (!commitLayout(picked)) return
     commitBlockVisibility(visibility)
+    commitRequiredFields(required)
     settled.forEach(apply => apply())
   }
 }
@@ -812,15 +868,24 @@ async function dropPendingVisibility() {
 }
 
 // Debounce rapid changes (e.g. typing in a field)
-function evaluateBlockVisibility() {
+function evaluateConditions() {
   clearTimeout(_blockVisibilityTimer)
-  _blockVisibilityTimer = setTimeout(runBlockVisibility, 300)
+  _blockVisibilityTimer = setTimeout(() => {
+    runBlockVisibility()
+    runRequiredFields()
+  }, 300)
 }
 
-// Block conditions follow the record as it is edited: re-evaluate on value
-// changes. Mode switches and record swaps are staged instead, so they do not
-// come through here.
-watch(() => record.value?.values, evaluateBlockVisibility, { deep: true })
+async function runRequiredFields() {
+  commitRequiredFields(
+    await pickRequiredFields(layout.value, { forRecord: record.value, forMode: mode.value }),
+  )
+}
+
+// Block conditions and the layout's required fields both follow the record as
+// it is edited: re-evaluate on value changes. Mode switches and record swaps
+// are staged instead, so they do not come through here.
+watch(() => record.value?.values, evaluateConditions, { deep: true })
 
 function resolver() {
   const errors = {}
@@ -831,8 +896,13 @@ function resolver() {
 
   const recordModule = page.value ? moduleStore.getByID(page.value.moduleID) : null
   if (!record.value || !recordModule) return { errors }
+  // The layout can only add: a field the module requires is required whichever
+  // layout is on screen.
+  const requiredByLayout = f =>
+    layoutRequiredFields.value.includes(f.fieldID) || layoutRequiredFields.value.includes(f.name)
+
   for (const field of recordModule.fields) {
-    if (field.isRequired) {
+    if (field.isRequired || requiredByLayout(field)) {
       const val = record.value.values[field.name]
       if (validator.IsEmpty(val)) {
         errors[field.name] = [{ message: t('field.required-field') }]

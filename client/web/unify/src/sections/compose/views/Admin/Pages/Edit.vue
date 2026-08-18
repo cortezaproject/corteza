@@ -375,6 +375,60 @@
       <template v-if="isRecordPage">
         <Divider />
 
+        <CFormGroup class="mb-4">
+          <template #label>
+            <span class="flex items-center gap-2">
+              {{ $t('page.page-layout.requiredFields.label') }}
+              <i
+                class="pi pi-exclamation-triangle text-orange-500 text-sm"
+                v-tooltip="$t('page.page-layout.tooltip.performance.requiredFields')"
+              />
+            </span>
+          </template>
+
+          <Button
+            :label="$t('general.label.add')"
+            icon="pi pi-plus"
+            severity="secondary"
+            size="small"
+            class="self-start mb-2"
+            @click="addRequiredField"
+          />
+
+          <CFormList
+            :model-value="configLayout.config.validation?.requiredFields || []"
+            :columns="requiredFieldColumns"
+            @change="onRequiredFieldsChange"
+          >
+            <template #row="{ item: rule, index }">
+              <CInputModuleField
+                :model-value="rule.field"
+                :module-i-d="page.moduleID"
+                value-key="fieldID"
+                size="small"
+                :placeholder="$t('page.page-layout.requiredFields.selectPlaceholder')"
+                @update:model-value="updateRequiredField(index, 'field', $event)"
+              />
+
+              <CInputExpression
+                :model-value="rule.condition"
+                dialect="expr"
+                :scope="exprScope"
+                :min-lines="1"
+                size="small"
+                :placeholder="$t('page.page-layout.requiredFields.conditionPlaceholder')"
+                @update:model-value="updateRequiredField(index, 'condition', $event)"
+              />
+            </template>
+          </CFormList>
+
+          <template #description>
+            {{ $t('page.page-layout.requiredFields.description') }}
+          </template>
+        </CFormGroup>
+
+        <Divider />
+
         <CFormGroup :label="$t('page.page-layout.recordToolbar.buttons.label')" class="mb-4">
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-3">
@@ -742,6 +796,38 @@ const isRecordPage = computed(() => {
 })
 
 const layoutTitleInput = ref(null)
+
+// A layout's required fields are only ever added to what the module already
+// requires, so a rule with no condition simply asks for the field outright.
+function requiredFieldRules() {
+  const validation = (configLayout.value.config.validation ??= {})
+  return (validation.requiredFields ??= [])
+}
+
+function addRequiredField() {
+  requiredFieldRules().push({ field: undefined, condition: '' })
+}
+
+function removeRequiredField(index) {
+  requiredFieldRules().splice(index, 1)
+}
+
+function updateRequiredField(index, key, value) {
+  const rules = requiredFieldRules()
+  rules[index] = { ...rules[index], [key]: value }
+}
+
+// CFormList reorders and removes in place; this re-seats the array so the
+// layout draft sees it change.
+function onRequiredFieldsChange() {
+  const validation = (configLayout.value.config.validation ??= {})
+  validation.requiredFields = [...(validation.requiredFields || [])]
+}
+
+const requiredFieldColumns = computed(() => [
+  { label: t('page.page-layout.requiredFields.field'), width: 'minmax(160px, 1fr)' },
+  { label: t('page.page-layout.requiredFields.condition'), width: 'minmax(220px, 1.6fr)' },
+])
 const layoutRowInputs = ref([])
 // The row a hint chip lands in. Starts at the first, so a chip clicked before
 // any title has been focused appends there rather than nowhere.
