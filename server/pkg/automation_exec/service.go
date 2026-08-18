@@ -134,20 +134,9 @@ func (s *automationService) ExecuteAndWait(
 }
 
 func (s *automationService) GetExecutionTrace(ctx context.Context, exeID id.ID, rev int, executionID id.ID) ([]types.StackFrame, error) {
-	frames, err := s.led.GetTrace(ctx, exeID, executionID, rev)
-	if err != nil {
-		return nil, err
-	}
-
-	// Exclude termination frames — they are internal runtime bookkeeping
-	// and not meaningful to the caller.
-	out := frames[:0]
-	for _, f := range frames {
-		if f.Kind != "termination" {
-			out = append(out, f)
-		}
-	}
-	return out, nil
+	// Every recorded frame, terminations included: a termination frame is how a
+	// caller tells which branch arm ran, since only a reached one has a frame.
+	return s.led.GetTrace(ctx, exeID, executionID, rev)
 }
 
 func (s *automationService) ListExecutions(ctx context.Context, exeID id.ID, rev int) ([]*types.ExecutionResult, error) {

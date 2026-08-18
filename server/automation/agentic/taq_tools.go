@@ -97,8 +97,10 @@ func (h *taqHandler) register() {
 					"automation_taq_exec, so you cannot test one until you enable it. "+
 					"Storing is not proof of working. Run it with automation_taq_exec and then read "+
 					"automation_taq_execution_trace, because exec reports status only: a 'completed' status with "+
-					"no step frames in the trace — nothing, or only the trigger frame — is a failure, it means "+
-					"no step ran. A frame with a populated 'args' proves the arguments bound and nothing more — "+
+					"no working frames in the trace — nothing, or only frames of kind 'trigger' and "+
+					"'termination' — is a failure, it means no step ran. A termination frame records the flow "+
+					"reaching that end, which is how you tell which branch arm ran, but it is not work done. "+
+					"A frame with a populated 'args' proves the arguments bound and nothing more — "+
 					"where the step has a visible effect, check for that effect separately.",
 			),
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier, unique among TAQs in the same project. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed. This is what automation_taq_lookup searches and what automation_taq_exec resolves, so a TAQ without one can only ever be reached by its numeric ID.")),
