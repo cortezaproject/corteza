@@ -201,7 +201,7 @@ export function AreEqual(v1: string | string[], v2: string | string[]): boolean 
       return false
     }
 
-    return !!v1.find((v, i) => v !== v2[i])
+    return v1.every((v, i) => v === v2[i])
   } else {
     return v1 === v2
   }

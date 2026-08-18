@@ -1,5 +1,11 @@
 import { expect } from 'chai'
-import { IsEmpty, NormalizeValidatorResults, Validated, ValidatorError } from './validator'
+import {
+  AreEqual,
+  IsEmpty,
+  NormalizeValidatorResults,
+  Validated,
+  ValidatorError,
+} from './validator'
 
 describe('validator', () => {
   describe('ValidatorError class', () => {
@@ -86,5 +92,28 @@ describe('validator', () => {
       v.applyMeta({ field })
       expect(v.get()).deep.equal([new ValidatorError({ kind, meta: { field } })])
     })
+  })
+})
+
+describe('AreEqual()', () => {
+  it('matching arrays are equal', () => {
+    expect(AreEqual(['a', 'b'], ['a', 'b'])).to.equal(true)
+  })
+
+  it('differing arrays are not equal', () => {
+    expect(AreEqual(['a', 'b'], ['a', 'c'])).to.equal(false)
+  })
+
+  it('a falsy difference is still a difference', () => {
+    expect(AreEqual(['a', ''], ['a', 'b'])).to.equal(false)
+  })
+
+  it('arrays of unequal length are not equal', () => {
+    expect(AreEqual(['a'], ['a', 'b'])).to.equal(false)
+  })
+
+  it('compares plain strings', () => {
+    expect(AreEqual('a', 'a')).to.equal(true)
+    expect(AreEqual('a', 'b')).to.equal(false)
   })
 })
