@@ -47,25 +47,20 @@
               </CFormGroup>
 
               <CFormGroup :label="$t('block.metric.edit.moduleLabel')">
-                <Select
+                <CInputModule
                   :model-value="metric.moduleID"
-                  :options="modules"
-                  option-label="name"
-                  option-value="moduleID"
+                  :namespaceID="namespace?.namespaceID"
                   :placeholder="$t('block.metric.edit.modulePlaceholder')"
-                  class="w-full"
-                  filter
                   @update:model-value="onModuleChange(metric, $event)"
                 />
               </CFormGroup>
 
               <CFormGroup :label="$t('block.metric.edit.metricFieldLabel')">
-                <Select
+                <CInputModuleField
                   :model-value="metric.metricField"
-                  :options="getMetricFields(metric.moduleID)"
-                  option-label="label"
-                  option-value="name"
-                  class="w-full"
+                  :module-i-d="metric.moduleID"
+                  :kinds="['Number']"
+                  :extra-options="countOption"
                   :placeholder="$t('block.metric.edit.metricFieldSelect')"
                   :disabled="!metric.moduleID"
                   @update:model-value="onMetricFieldChange(metric, $event)"
@@ -279,8 +274,6 @@ const block = inject('blockDraft')
 
 const expandedMetric = ref(0)
 
-const modules = computed(() => moduleStore.set || [])
-
 function toggleMetric(i) {
   expandedMetric.value = expandedMetric.value === i ? -1 : i
 }
@@ -314,19 +307,8 @@ const comparisonPeriods = computed(() => [
  * Returns the metric fields for a given module.
  * Includes 'Count' as a special option plus all Number fields.
  */
-function getMetricFields(moduleID) {
-  if (!moduleID) return []
-
-  const mod = moduleStore.getByID(moduleID)
-  if (!mod) return []
-
-  const numberFields = mod.fields
-    .filter(f => f.kind === 'Number')
-    .map(f => ({ name: f.name, label: f.label || f.name }))
-    .sort((a, b) => a.label.localeCompare(b.label))
-
-  return [{ name: 'count', label: 'Count' }, ...numberFields]
-}
+// Counting rows is an aggregate, not a field, but it is picked in the same box.
+const countOption = computed(() => [{ name: 'count', label: t('block.metric.edit.countField') }])
 
 function updateOptions(key, value) {
   if (!block.value.options) block.value.options = {}

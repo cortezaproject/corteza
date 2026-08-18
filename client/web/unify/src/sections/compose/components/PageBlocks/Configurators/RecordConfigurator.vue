@@ -10,14 +10,13 @@
           :label="$t('block.record.referenceRecordField')"
           :description="$t('block.record.referenceRecordFieldDescription')"
         >
-          <Select
+          <CInputModuleField
             v-model="referenceField"
-            :options="recordSelectorFields"
-            :option-label="f => f.label || f.name"
-            option-value="fieldID"
+            :module="selectedModule"
+            :kinds="['Record']"
+            exclude-multi
+            value-key="fieldID"
             :placeholder="$t('block.record.referenceRecordFieldPlaceholder')"
-            class="w-full"
-            show-clear
             :disabled="!selectedModule"
           />
         </CFormGroup>
@@ -269,10 +268,10 @@ const layoutMode = computed({
 // --- Reference field ---
 
 // All single-value Record-kind fields on the page's module (for reference field selector)
-const recordSelectorFields = computed(() => {
-  if (!selectedModule.value) return []
-  return (selectedModule.value.fields || []).filter(f => f.kind === 'Record' && !f.isMulti)
-})
+// The picker hands back a fieldID; the reference module hangs off that field.
+function fieldByID(fieldID) {
+  return (selectedModule.value?.fields || []).find(f => f.fieldID === fieldID)
+}
 
 const referenceField = computed({
   get: () => localReferenceFieldID.value,
@@ -308,8 +307,7 @@ function updateReferenceModule(fieldID) {
 
   localReferenceFieldID.value = fieldID
 
-  const field = recordSelectorFields.value.find(f => f.fieldID === fieldID)
-  const moduleID = field?.options?.moduleID
+  const moduleID = fieldByID(fieldID)?.options?.moduleID
 
   if (moduleID && moduleID !== '0') {
     const cached = moduleStore.getByID(moduleID)
@@ -342,8 +340,7 @@ watch(
       if (!fieldID) referenceModule.value = null
       return
     }
-    const field = recordSelectorFields.value.find(f => f.fieldID === fieldID)
-    resolveReferenceModule(field?.options?.moduleID)
+    resolveReferenceModule(fieldByID(fieldID)?.options?.moduleID)
   },
   { immediate: true },
 )

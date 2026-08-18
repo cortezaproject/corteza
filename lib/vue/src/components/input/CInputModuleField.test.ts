@@ -105,4 +105,45 @@ describe('CInputModuleField options', () => {
   it('offers nothing when no module is resolved', () => {
     expect(optionsOf({})).toEqual([])
   })
+
+  it('appends the technical name under showName, and never doubles it up', () => {
+    const opts = optionsOf({
+      module: moduleWith([
+        field({ name: 'total', label: 'Total' }),
+        field({ name: 'bare', label: '' }),
+      ]),
+      showName: true,
+    })
+
+    expect(opts.map(o => o.label).sort()).toEqual(['Total (total)', 'bare'])
+  })
+
+  it('applies a caller predicate on top of the built-in narrowing', () => {
+    const opts = optionsOf({
+      module: moduleWith([
+        field({ name: 'parent', label: 'Parent', kind: 'Record', options: { moduleID: 'M1' } }),
+        field({ name: 'other', label: 'Other', kind: 'Record', options: { moduleID: 'M2' } }),
+      ]),
+      kinds: ['Record'],
+      filter: (f: { options?: { moduleID?: string } }) => f.options?.moduleID === 'M1',
+    })
+
+    expect(opts.map(o => o.name)).toEqual(['parent'])
+  })
+
+  it('puts extra options above the module’s fields, unfiltered', () => {
+    const opts = optionsOf({
+      module: moduleWith([field({ name: 'amount', label: 'Amount', kind: 'Number' })]),
+      kinds: ['Number'],
+      extraOptions: [{ name: 'count', label: 'Count' }],
+    })
+
+    expect(opts.map(o => o.name)).toEqual(['count', 'amount'])
+  })
+
+  it('still offers extra options with no module', () => {
+    expect(
+      optionsOf({ extraOptions: [{ name: 'count', label: 'Count' }] }).map(o => o.name),
+    ).toEqual(['count'])
+  })
 })

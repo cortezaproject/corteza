@@ -1,15 +1,10 @@
 <template>
   <div class="flex flex-col gap-3">
-    <CFormGroup :label="$t('block.recordOrganizer.module.placeholder')">
-      <Select
+    <CFormGroup :label="$t('block.general.module')">
+      <CInputModule
         v-model="moduleID"
-        :options="modules"
-        option-label="name"
-        option-value="moduleID"
+        :namespaceID="namespace?.namespaceID"
         :placeholder="$t('block.recordOrganizer.module.placeholder')"
-        class="w-full"
-        filter
-        show-clear
       />
     </CFormGroup>
 
@@ -18,45 +13,25 @@
         :label="$t('block.recordOrganizer.labelField.label')"
         :description="$t('block.recordOrganizer.labelField.footnote')"
       >
-        <Select
-          v-model="labelField"
-          :options="fieldOptions"
-          option-label="label"
-          option-value="name"
-          class="w-full"
-          filter
-          show-clear
-        />
+        <CInputModuleField v-model="labelField" :module="selectedModule" />
       </CFormGroup>
 
       <CFormGroup
         :label="$t('block.recordOrganizer.descriptionField.label')"
         :description="$t('block.recordOrganizer.descriptionField.footnote')"
       >
-        <Select
-          v-model="descriptionField"
-          :options="fieldOptions"
-          option-label="label"
-          option-value="name"
-          class="w-full"
-          filter
-          show-clear
-        />
+        <CInputModuleField v-model="descriptionField" :module="selectedModule" />
       </CFormGroup>
 
       <CFormGroup
         :label="$t('block.recordOrganizer.positionField.label')"
         :description="$t('block.recordOrganizer.positionField.footnote')"
       >
-        <Select
+        <CInputModuleField
           v-model="positionField"
-          :options="numberFieldOptions"
-          option-label="label"
-          option-value="name"
+          :module="selectedModule"
+          :kinds="['Number']"
           :placeholder="$t('block.recordOrganizer.positionField.placeholder')"
-          class="w-full"
-          filter
-          show-clear
         />
       </CFormGroup>
 
@@ -64,15 +39,7 @@
         :label="$t('block.recordOrganizer.groupField.label')"
         :description="$t('block.recordOrganizer.groupField.footnote')"
       >
-        <Select
-          v-model="groupField"
-          :options="fieldOptions"
-          option-label="label"
-          option-value="name"
-          class="w-full"
-          filter
-          show-clear
-        />
+        <CInputModuleField v-model="groupField" :module="selectedModule" />
       </CFormGroup>
 
       <CFormGroup
@@ -127,8 +94,6 @@ const props = defineProps({
 
 const block = inject('blockDraft')
 
-const modules = computed(() => moduleStore.set || [])
-
 const selectedModule = computed(() => {
   if (!moduleID.value) return null
   return moduleStore.getByID(moduleID.value) || null
@@ -138,21 +103,6 @@ const prefilterInput = ref(null)
 const { scope, queryFields } = useExpressionScope({
   page: computed(() => props.page),
   queryModule: computed(() => selectedModule.value),
-})
-
-const fieldOptions = computed(() => {
-  if (!selectedModule.value) return []
-  return (selectedModule.value.fields || []).map(f => ({
-    name: f.name,
-    label: f.label || f.name,
-  }))
-})
-
-const numberFieldOptions = computed(() => {
-  if (!selectedModule.value) return []
-  return (selectedModule.value.fields || [])
-    .filter(f => f.kind === 'Number')
-    .map(f => ({ name: f.name, label: f.label || f.name }))
 })
 
 function updateOptions(key, value) {

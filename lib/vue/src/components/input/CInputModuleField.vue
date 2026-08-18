@@ -4,7 +4,7 @@
     :model-value="modelValue || []"
     :options="options"
     option-label="label"
-    option-value="name"
+    :option-value="valueKey"
     :placeholder="placeholder"
     :disabled="disabled || !options.length"
     :show-clear="showClear"
@@ -25,7 +25,7 @@
     :model-value="modelValue || null"
     :options="options"
     option-label="label"
-    option-value="name"
+    :option-value="valueKey"
     :placeholder="placeholder"
     :disabled="disabled || !options.length"
     :show-clear="showClear"
@@ -83,6 +83,30 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // What the v-model holds. Names address a field in block options; the
+  // record block addresses one by `fieldID` instead.
+  valueKey: {
+    type: String,
+    default: 'name',
+  },
+  // Extra predicate for a narrowing the kind/multi/queryable props cannot
+  // express — a Record field pointing at one particular module, say.
+  filter: {
+    type: Function,
+    default: null,
+  },
+  // Append the technical field name to each label — sorting and filtering are
+  // by column, so two fields sharing a label still have to be told apart.
+  showName: {
+    type: Boolean,
+    default: false,
+  },
+  // Synthetic entries offered above the module's own fields, as `{ name, label }`
+  // — an aggregate like "count" is picked here but is not a field.
+  extraOptions: {
+    type: Array,
+    default: () => [],
+  },
   multiple: {
     type: Boolean,
     default: false,
@@ -116,9 +140,16 @@ function labelOf(field) {
   return field.label || field.name
 }
 
+function decorate(field) {
+  const label = field.isSystem ? t(`field.system.${field.name}`, labelOf(field)) : labelOf(field)
+  return props.showName && label !== field.name ? `${label} (${field.name})` : label
+}
+
 const options = computed(() => {
+  const extra = props.extraOptions.map(o => ({ ...o, isSystem: false, isExtra: true }))
+
   const mod = resolvedModule.value
-  if (!mod) return []
+  if (!mod) return extra
 
   const own = mod.fields || []
   // systemFields() is the one list of them; a hand-written copy drifts.
@@ -126,16 +157,20 @@ const options = computed(() => {
     ? (mod.systemFields?.() || []).map(f => ({ ...f, isSystem: true }))
     : []
 
-  return [...own, ...system]
+  const fields = [...own, ...system]
     .filter(f => !props.kinds.length || props.kinds.includes(f.kind))
     .filter(f => !props.excludeMulti || !f.isMulti)
     .filter(f => !props.queryableOnly || f.isQueryable)
+    .filter(f => !props.filter || props.filter(f))
     .map(f => ({
       name: f.name,
+      fieldID: f.fieldID,
       kind: f.kind,
       isSystem: !!f.isSystem,
-      label: f.isSystem ? t(`field.system.${f.name}`, labelOf(f)) : labelOf(f),
+      label: decorate(f),
     }))
     .sort((a, b) => Number(a.isSystem) - Number(b.isSystem) || a.label.localeCompare(b.label))
+
+  return [...extra, ...fields]
 })
 </script>

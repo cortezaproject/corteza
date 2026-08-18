@@ -1,14 +1,10 @@
 <template>
   <div class="flex flex-col gap-4">
     <CFormGroup :label="$t('block.general.module')">
-      <Select
+      <CInputModule
         v-model="options.moduleID"
-        :options="modules"
-        option-label="name"
-        option-value="moduleID"
+        :namespaceID="namespace?.namespaceID"
         :placeholder="$t('block.comment.module.placeholder')"
-        filter
-        class="w-full"
       />
     </CFormGroup>
 
@@ -30,14 +26,12 @@
           :label="$t('block.comment.titleField.label')"
           :description="$t('block.comment.titleField.footnote')"
         >
-          <Select
+          <CInputModuleField
             v-model="options.titleField"
-            :options="stringFields"
-            :option-label="fieldLabel"
-            option-value="name"
+            :module="selectedModule"
+            :kinds="['String']"
+            exclude-multi
             :placeholder="$t('general.label.none')"
-            show-clear
-            class="w-full"
           />
         </CFormGroup>
 
@@ -45,14 +39,12 @@
           :label="$t('block.comment.contentField.label')"
           :description="$t('block.comment.contentField.footnote')"
         >
-          <Select
+          <CInputModuleField
             v-model="options.contentField"
-            :options="stringFields"
-            :option-label="fieldLabel"
-            option-value="name"
+            :module="selectedModule"
+            :kinds="['String']"
+            exclude-multi
             :placeholder="$t('general.label.none')"
-            show-clear
-            class="w-full"
           />
         </CFormGroup>
 
@@ -60,14 +52,11 @@
           :label="$t('block.comment.replyField.label')"
           :description="$t('block.comment.replyField.footnote')"
         >
-          <Select
+          <CInputModuleField
             v-model="options.replyField"
-            :options="recordFields"
-            :option-label="fieldLabel"
-            option-value="name"
+            :module="selectedModule"
+            :kinds="['Record']"
             :placeholder="$t('general.label.none')"
-            show-clear
-            class="w-full"
           />
         </CFormGroup>
 
@@ -75,14 +64,11 @@
           :label="$t('block.comment.referenceField.label')"
           :description="$t('block.comment.referenceField.footnote')"
         >
-          <Select
+          <CInputModuleField
             v-model="options.referenceField"
-            :options="recordFields"
-            :option-label="fieldLabel"
-            option-value="name"
+            :module="selectedModule"
+            :kinds="['Record']"
             :placeholder="$t('general.label.none')"
-            show-clear
-            class="w-full"
           />
         </CFormGroup>
 
@@ -90,14 +76,11 @@
           :label="$t('block.comment.attachmentField.label')"
           :description="$t('block.comment.attachmentField.footnote')"
         >
-          <Select
+          <CInputModuleField
             v-model="options.attachmentField"
-            :options="fileFields"
-            :option-label="fieldLabel"
-            option-value="name"
+            :module="selectedModule"
+            :kinds="['File']"
             :placeholder="$t('general.label.none')"
-            show-clear
-            class="w-full"
           />
         </CFormGroup>
 
@@ -118,14 +101,12 @@
           :label="$t('block.comment.reactionsField.label')"
           :description="$t('block.comment.reactionsField.footnote')"
         >
-          <Select
+          <CInputModuleField
             v-model="options.reactionsField"
-            :options="stringFields"
-            :option-label="fieldLabel"
-            option-value="name"
+            :module="selectedModule"
+            :kinds="['String']"
+            exclude-multi
             :placeholder="$t('general.label.none')"
-            show-clear
-            class="w-full"
           />
         </CFormGroup>
       </div>
@@ -165,29 +146,12 @@ const { scope, queryFields } = useExpressionScope({
   queryModule: computed(() => selectedModule.value),
 })
 
-const moduleFields = computed(() => {
-  if (!selectedModule.value) return []
-  return [...selectedModule.value.fields].sort((a, b) =>
-    (a.label || a.name).localeCompare(b.label || b.name),
-  )
-})
-
-const stringFields = computed(() =>
-  moduleFields.value.filter(f => f.kind === 'String' && !f.isMulti),
-)
-
-const recordFields = computed(() => moduleFields.value.filter(f => f.kind === 'Record'))
-
-const fileFields = computed(() => moduleFields.value.filter(f => f.kind === 'File'))
+const moduleFields = computed(() => selectedModule.value?.fields || [])
 
 const sortDirections = computed(() => [
   { label: t('block.comment.sortDirection.asc'), value: 'asc' },
   { label: t('block.comment.sortDirection.desc'), value: 'desc' },
 ])
-
-function fieldLabel(f) {
-  return `${f.label || f.name} (${f.kind})`
-}
 
 // Auto-detect common field names when module changes
 watch(

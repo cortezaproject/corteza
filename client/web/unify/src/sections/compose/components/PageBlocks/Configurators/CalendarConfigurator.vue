@@ -116,50 +116,44 @@
                  feed carries its own dates and title. -->
             <template v-if="isRecordFeed(feed)">
               <CFormGroup :label="$t('block.calendar.recordFeed.moduleLabel')">
-                <Select
+                <CInputModule
                   :model-value="feed.options?.moduleID"
-                  :options="modules"
-                  option-label="name"
-                  option-value="moduleID"
+                  :namespaceID="namespace?.namespaceID"
                   :placeholder="$t('block.calendar.recordFeed.modulePlaceholder')"
-                  class="w-full"
-                  filter
                   @update:model-value="onModuleChange(feed, $event)"
                 />
               </CFormGroup>
 
               <CFormGroup :label="$t('block.calendar.recordFeed.titleLabel')">
-                <Select
+                <CInputModuleField
                   v-model="feed.titleField"
-                  :options="getTitleFields(feed.options?.moduleID)"
-                  option-label="label"
-                  option-value="name"
+                  :module-i-d="feed.options?.moduleID"
+                  :kinds="['String', 'Email', 'Url']"
                   :placeholder="$t('block.calendar.recordFeed.titlePlaceholder')"
-                  class="w-full"
                   :disabled="!feed.options?.moduleID"
                 />
               </CFormGroup>
 
               <CFormGroup :label="$t('block.calendar.recordFeed.eventStartFieldLabel')">
-                <Select
+                <CInputModuleField
                   v-model="feed.startField"
-                  :options="getDateFields(feed.options?.moduleID)"
-                  option-label="label"
-                  option-value="name"
+                  :module-i-d="feed.options?.moduleID"
+                  :kinds="['DateTime']"
+                  exclude-multi
+                  include-system
                   :placeholder="$t('block.calendar.recordFeed.eventStartFieldPlaceholder')"
-                  class="w-full"
                   :disabled="!feed.options?.moduleID"
                 />
               </CFormGroup>
 
               <CFormGroup :label="$t('block.calendar.recordFeed.eventEndFieldLabel')">
-                <Select
+                <CInputModuleField
                   v-model="feed.endField"
-                  :options="getDateFields(feed.options?.moduleID)"
-                  option-label="label"
-                  option-value="name"
+                  :module-i-d="feed.options?.moduleID"
+                  :kinds="['DateTime']"
+                  exclude-multi
+                  include-system
                   :placeholder="$t('block.calendar.recordFeed.eventEndFieldPlaceholder')"
-                  class="w-full"
                   :disabled="!feed.options?.moduleID || feed.allDay"
                 />
                 <div class="flex items-center gap-2 mt-1">
@@ -237,8 +231,6 @@ function moduleFields(moduleID) {
 
 const block = inject('blockDraft')
 
-const modules = computed(() => moduleStore.set || [])
-
 const localOptions = computed(() => block.value.options || {})
 
 const availableViews = computed(() => compose.PageBlockCalendar.availableViews())
@@ -312,43 +304,6 @@ function updateHeader(key, value) {
 function updateOption(key, value) {
   if (!block.value.options) block.value.options = {}
   block.value.options[key] = value
-}
-
-/**
- * Returns String/Email/Url fields for event title.
- */
-function getTitleFields(moduleID) {
-  if (!moduleID) return []
-  const mod = moduleStore.getByID(moduleID)
-  if (!mod) return []
-
-  return mod.fields
-    .filter(f => ['String', 'Email', 'Url'].includes(f.kind))
-    .map(f => ({ name: f.name, label: f.label || f.name }))
-    .sort((a, b) => a.label.localeCompare(b.label))
-}
-
-/**
- * Returns DateTime fields (non-multi) for start/end date.
- * Also includes system date fields (createdAt, updatedAt).
- */
-function getDateFields(moduleID) {
-  if (!moduleID) return []
-  const mod = moduleStore.getByID(moduleID)
-  if (!mod) return []
-
-  const moduleFields = mod.fields
-    .filter(f => f.kind === 'DateTime' && !f.isMulti)
-    .map(f => ({ name: f.name, label: f.label || f.name }))
-    .sort((a, b) => a.label.localeCompare(b.label))
-
-  const systemFields = [
-    { name: 'createdAt', label: t('block.calendar.recordFeed.systemField.createdAt') },
-    { name: 'updatedAt', label: t('block.calendar.recordFeed.systemField.updatedAt') },
-    { name: 'deletedAt', label: t('block.calendar.recordFeed.systemField.deletedAt') },
-  ]
-
-  return [...moduleFields, ...systemFields]
 }
 
 function addFeed() {

@@ -3,14 +3,10 @@
     <Fieldset :legend="$t('block.recordList.record.generalLabel')">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <CFormGroup :label="$t('block.general.module')">
-          <Select
+          <CInputModule
             v-model="moduleID"
-            :options="modules"
-            option-label="name"
-            option-value="moduleID"
+            :namespaceID="namespace?.namespaceID"
             :placeholder="$t('block.recordList.modulePlaceholder')"
-            class="w-full"
-            filter
           />
         </CFormGroup>
 
@@ -27,14 +23,12 @@
           :description="$t('block.recordList.refField.footnote')"
           class="md:col-span-2"
         >
-          <Select
+          <CInputModuleField
             v-model="refField"
-            :options="parentFields"
-            option-label="label"
-            option-value="name"
+            :module="recordListModule"
+            :kinds="['Record']"
+            :filter="pointsAtParentModule"
             :placeholder="$t('general.label.none')"
-            class="w-full"
-            show-clear
           />
         </CFormGroup>
       </div>
@@ -212,15 +206,14 @@
               :key="i"
               class="flex items-center gap-2 flex-nowrap"
             >
-              <Select
+              <CInputModuleField
                 :model-value="item.field"
-                :options="sortableFields"
-                option-label="label"
-                option-value="name"
+                :module="recordListModule"
+                include-system
+                exclude-multi
+                show-name
                 :placeholder="$t('block.recordList.record.presortPlaceholder')"
                 class="flex-1 min-w-0"
-                filter
-                show-clear
                 @update:model-value="updatePresortItem(i, 'field', $event)"
               />
               <Select
@@ -560,8 +553,6 @@ const props = defineProps({
 const block = inject('blockDraft')
 
 const moduleStore = useModuleStore()
-const modules = computed(() => moduleStore.set || [])
-
 const recordListModule = computed(() => {
   if (!moduleID.value) return null
   return moduleStore.getByID(moduleID.value) || null
@@ -712,13 +703,11 @@ const refField = computed({
   set: v => updateOptions('refField', v || undefined),
 })
 
-const parentFields = computed(() => {
-  if (!recordListModule.value || !parentModule.value) return []
-  const parentID = parentModule.value.moduleID
-  return (recordListModule.value.fields || [])
-    .filter(f => f.kind === 'Record' && f.options?.moduleID === parentID)
-    .map(f => ({ name: f.name, label: f.label || f.name }))
-})
+// The reference has to point back at the page's own module for a child list
+// to know which parent it belongs to.
+function pointsAtParentModule(field) {
+  return !!parentModule.value && field.options?.moduleID === parentModule.value.moduleID
+}
 
 // --- Field picker ---
 
@@ -787,13 +776,6 @@ const allModuleFields = computed(() => {
 const queryableFields = computed(() => {
   if (!allModuleFields.value) return []
   return allModuleFields.value.filter(f => f.isQueryable)
-})
-
-const sortableFields = computed(() => {
-  if (!allModuleFields.value) return []
-  return allModuleFields.value
-    .filter(f => !f.isMulti)
-    .map(f => ({ name: f.name, label: `${f.label || f.name} (${f.name})` }))
 })
 
 function onFieldPickerUpdate(names) {

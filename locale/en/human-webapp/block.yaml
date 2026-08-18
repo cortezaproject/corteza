@@ -90,10 +90,6 @@ calendar:
     optionLabel: Records
     prefilterLabel: Prefilter events
     prefilterPlaceholder: field1 = 1 AND field2 = 232
-    systemField:
-      createdAt: Created at
-      deletedAt: Deleted at
-      updatedAt: Updated at
     titleLabel: Event title
     titlePlaceholder: Field used as event title
   reminderFeed:
@@ -508,6 +504,7 @@ metric:
   edit:
     bucketLabel: Bucket size
     bucketPlaceholder: Select a bucket size
+    countField: Count of records
     dateFormat: Date format
     dimensionFieldLabel: Field
     dimensionFieldPlaceholder: Dimension field

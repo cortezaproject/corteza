@@ -29,27 +29,22 @@
             :label="$t('block.progress.source.module.label')"
             :description="$t('block.progress.source.module.description')"
           >
-            <Select
+            <CInputModule
               v-model="valueModuleID"
-              :options="modules"
-              option-label="name"
-              option-value="moduleID"
+              :namespaceID="namespace?.namespaceID"
               :placeholder="$t('block.progress.module.select')"
               class="w-full md:w-1/2"
-              filter
-              show-clear
             />
           </CFormGroup>
 
           <template v-if="valueModuleID">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Select
+              <CInputModuleField
                 v-model="valueField"
-                :options="getNumberFields(valueModuleID)"
-                option-label="label"
-                option-value="name"
+                :module-i-d="valueModuleID"
+                :kinds="['Number']"
+                :extra-options="countOption"
                 :placeholder="$t('block.progress.value.fieldPlaceholder')"
-                class="w-full"
               />
               <Select
                 v-model="valueOperation"
@@ -104,27 +99,22 @@
             :label="$t('block.progress.source.module.label')"
             :description="$t('block.progress.source.module.description')"
           >
-            <Select
+            <CInputModule
               v-model="minValueModuleID"
-              :options="modules"
-              option-label="name"
-              option-value="moduleID"
+              :namespaceID="namespace?.namespaceID"
               :placeholder="$t('block.progress.module.select')"
               class="w-full md:w-1/2"
-              filter
-              show-clear
             />
           </CFormGroup>
 
           <template v-if="minValueModuleID">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Select
+              <CInputModuleField
                 v-model="minValueField"
-                :options="getNumberFields(minValueModuleID)"
-                option-label="label"
-                option-value="name"
+                :module-i-d="minValueModuleID"
+                :kinds="['Number']"
+                :extra-options="countOption"
                 :placeholder="$t('block.progress.value.fieldPlaceholder')"
-                class="w-full"
               />
               <Select
                 v-model="minValueOperation"
@@ -179,27 +169,22 @@
             :label="$t('block.progress.source.module.label')"
             :description="$t('block.progress.source.module.description')"
           >
-            <Select
+            <CInputModule
               v-model="maxValueModuleID"
-              :options="modules"
-              option-label="name"
-              option-value="moduleID"
+              :namespaceID="namespace?.namespaceID"
               :placeholder="$t('block.progress.module.select')"
               class="w-full md:w-1/2"
-              filter
-              show-clear
             />
           </CFormGroup>
 
           <template v-if="maxValueModuleID">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Select
+              <CInputModuleField
                 v-model="maxValueField"
-                :options="getNumberFields(maxValueModuleID)"
-                option-label="label"
-                option-value="name"
+                :module-i-d="maxValueModuleID"
+                :kinds="['Number']"
+                :extra-options="countOption"
                 :placeholder="$t('block.progress.value.fieldPlaceholder')"
-                class="w-full"
               />
               <Select
                 v-model="maxValueOperation"
@@ -438,8 +423,6 @@ const previewFetchKey = computed(() => {
   ].join('\0')
 })
 
-const modules = computed(() => moduleStore.set || [])
-
 const operationOptions = [
   { value: 'sum', label: t('block.progress.operation.sum') },
   { value: 'max', label: t('block.progress.operation.max') },
@@ -467,17 +450,8 @@ const variantSeverityMap = {
 
 const mapVariantSeverity = key => variantSeverityMap[key]
 
-function getNumberFields(moduleID) {
-  const countOption = { name: 'count', label: t('block.progress.count') }
-  if (!moduleID) return [countOption]
-  const mod = moduleStore.getByID(moduleID)
-  if (!mod) return [countOption]
-  const numberFields = (mod.fields || [])
-    .filter(f => f.kind === 'Number')
-    .map(f => ({ name: f.name, label: f.label || f.name }))
-    .sort((a, b) => a.label.localeCompare(b.label))
-  return [countOption, ...numberFields]
-}
+// Counting rows is an aggregate, not a field, but it is picked in the same box.
+const countOption = computed(() => [{ name: 'count', label: t('block.progress.count') }])
 
 function updateOptions(key, value) {
   if (!block.value.options) block.value.options = {}

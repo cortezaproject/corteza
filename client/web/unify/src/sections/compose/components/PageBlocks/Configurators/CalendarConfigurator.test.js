@@ -31,6 +31,19 @@ const SelectStub = {
   template: '<div />',
 }
 
+// The feed's module and field mapping go through the shared pickers.
+const PickerStub = {
+  name: 'CInputModule',
+  props: ['modelValue', 'placeholder', 'disabled'],
+  template: '<div />',
+}
+
+const FieldPickerStub = {
+  name: 'CInputModuleField',
+  props: ['modelValue', 'moduleID', 'kinds', 'placeholder', 'disabled'],
+  template: '<div />',
+}
+
 function mountConfigurator(feed = {}) {
   const blockDraft = ref(
     new compose.PageBlockCalendar({
@@ -51,6 +64,8 @@ function mountConfigurator(feed = {}) {
         Button: stub('Button', ['label', 'icon']),
         Checkbox: { name: 'Checkbox', props: ['modelValue'], template: '<input />' },
         CFormGroup: stub('CFormGroup', ['label']),
+        CInputModule: PickerStub,
+        CInputModuleField: FieldPickerStub,
         CInputExpression: stub('CInputExpression', ['modelValue']),
         CExpressionHint: stub('CExpressionHint'),
       },
@@ -108,8 +123,7 @@ describe('CalendarConfigurator event source', () => {
     const reminder = mountConfigurator({ resource: 'system:reminder' })
 
     const placeholders = w =>
-      w
-        .findAllComponents(SelectStub)
+      [...w.findAllComponents(SelectStub), ...w.findAllComponents(PickerStub)]
         .map(s => s.props('placeholder'))
         .filter(Boolean)
 

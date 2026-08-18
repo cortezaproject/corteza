@@ -111,41 +111,30 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <CFormGroup :label="$t('block.geometry.feedModule')">
-              <Select
+              <CInputModule
                 :model-value="feed.options?.moduleID || ''"
-                :options="modules"
-                option-label="name"
-                option-value="moduleID"
+                :namespaceID="namespace?.namespaceID"
                 :placeholder="$t('block.geometry.feedModulePlaceholder')"
-                class="w-full"
-                filter
-                show-clear
                 @update:model-value="updateFeedOption(i, 'moduleID', $event || '')"
               />
             </CFormGroup>
 
             <CFormGroup :label="$t('block.geometry.feedGeometryField')">
-              <Select
+              <CInputModuleField
                 :model-value="feed.geometryField || ''"
-                :options="getGeometryFields(feed.options?.moduleID)"
-                option-label="label"
-                option-value="name"
-                class="w-full"
+                :module-i-d="feed.options?.moduleID"
+                :kinds="['Geometry']"
                 :disabled="!feed.options?.moduleID"
-                show-clear
                 @update:model-value="updateFeed(i, 'geometryField', $event || '')"
               />
             </CFormGroup>
 
             <CFormGroup :label="$t('block.geometry.feedTitleField')">
-              <Select
+              <CInputModuleField
                 :model-value="feed.titleField || ''"
-                :options="getStringFields(feed.options?.moduleID)"
-                option-label="label"
-                option-value="name"
-                class="w-full"
+                :module-i-d="feed.options?.moduleID"
+                :kinds="['String', 'Email', 'Url']"
                 :disabled="!feed.options?.moduleID"
-                show-clear
                 @update:model-value="updateFeed(i, 'titleField', $event || '')"
               />
             </CFormGroup>
@@ -223,8 +212,6 @@ const { scope } = useExpressionScope({ page: computed(() => props.page) })
 
 const block = inject('blockDraft')
 
-const modules = computed(() => moduleStore.set || [])
-
 const displayOptions = [
   { value: 'sameTab', label: t('block.geometry.displayOption.sameTab') },
   { value: 'newTab', label: t('block.geometry.displayOption.newTab') },
@@ -245,18 +232,6 @@ function getFields(moduleID) {
   if (!moduleID) return []
   const mod = moduleStore.getByID(moduleID)
   return mod?.fields || []
-}
-
-function getGeometryFields(moduleID) {
-  return getFields(moduleID)
-    .filter(f => f.kind === 'Geometry')
-    .map(f => ({ name: f.name, label: f.label || f.name }))
-}
-
-function getStringFields(moduleID) {
-  return getFields(moduleID)
-    .filter(f => ['String', 'Email', 'Url'].includes(f.kind))
-    .map(f => ({ name: f.name, label: f.label || f.name }))
 }
 
 function updateOptions(patch) {
