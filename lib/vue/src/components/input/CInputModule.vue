@@ -47,7 +47,13 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { NoID } from '@planetcrust/human-js'
 import { useModuleStore } from '../../stores/useModuleStore'
+
+// An unset module reads as NoID once it has been through a block's options, and
+// fetching '0' is a request the server rejects — a console error for a picker
+// that simply has nothing selected yet.
+const isUnset = id => !id || String(id) === NoID
 
 defineOptions({ inheritAttrs: false })
 
@@ -115,7 +121,7 @@ function onSelect(value) {
 }
 
 async function loadModuleById(moduleID) {
-  if (!moduleID || !props.namespaceID) return
+  if (isUnset(moduleID) || !props.namespaceID) return
 
   const existing = options.value.find(m => m.moduleID === moduleID)
   if (existing) {
@@ -151,6 +157,7 @@ async function loadModulesById(moduleIDs) {
 
   const resolved = []
   for (const id of moduleIDs) {
+    if (isUnset(id)) continue
     let mod = options.value.find(m => m.moduleID === id || m.moduleID === String(id))
     if (!mod) {
       try {
