@@ -103,13 +103,20 @@
       </template>
 
       <template #body-title="{ data }">
-        <InputText
-          :model-value="data.title || ''"
-          :placeholder="`${$t('block.tabs.tab')} ${data._index + 1}`"
-          class="w-full"
-          size="small"
-          @update:model-value="updateTab(data._index, 'title', $event)"
-        />
+        <!-- focusin, not a component event: the hint under the table inserts
+             into whichever row was last edited, and CodeMirror has no focus
+             event of its own. -->
+        <div @focusin="activeTitleRow = data._index">
+          <CInputExpression
+            :ref="el => (titleInputs[data._index] = el)"
+            :model-value="data.title || ''"
+            dialect="interpolation"
+            :scope="scope"
+            :min-lines="1"
+            :placeholder="`${$t('block.tabs.tab')} ${data._index + 1}`"
+            @update:model-value="updateTab(data._index, 'title', $event)"
+          />
+        </div>
       </template>
 
       <template #body-blockID="{ data }">
@@ -200,13 +207,16 @@
         </template>
       </Column>
     </CResourceTable>
+
+    <CExpressionHint :scope="scope" @insert="titleInputs[activeTitleRow]?.insert($event)" />
   </div>
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
+import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 
 const { t } = useI18n()
 const { CResourceTable } = components
@@ -220,6 +230,13 @@ const props = defineProps({
 const block = inject('blockDraft')
 
 const emit = defineEmits(['edit-tab-block', 'create-tab-block'])
+
+const { scope } = useExpressionScope({ page: computed(() => props.page) })
+
+const titleInputs = ref([])
+// The row a hint chip lands in. Starts at the first, so a chip clicked before
+// any title has been focused appends there rather than nowhere.
+const activeTitleRow = ref(0)
 
 const appearanceOptions = [
   { value: 'tabs', label: t('block.tabs.style.appearanceTabs') },

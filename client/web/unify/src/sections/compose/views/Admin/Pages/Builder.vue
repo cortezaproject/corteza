@@ -296,21 +296,27 @@
           <div class="flex flex-col gap-3">
             <!-- Title -->
             <CFormGroup :label="$t('block.general.titleLabel')">
-              <InputText
+              <CInputExpression
+                ref="titleInput"
                 v-model="editingBlock.title"
+                dialect="interpolation"
+                :scope="scope"
+                :min-lines="1"
                 :placeholder="$t('block.general.titlePlaceholder')"
-                class="w-full"
               />
+              <CExpressionHint :scope="scope" @insert="titleInput?.insert($event)" />
             </CFormGroup>
 
             <!-- Description -->
             <CFormGroup :label="$t('block.general.descriptionLabel')">
-              <Textarea
+              <CInputExpression
+                ref="descriptionInput"
                 v-model="editingBlock.description"
+                dialect="interpolation"
+                :scope="scope"
                 :placeholder="$t('block.general.descriptionPlaceholder')"
-                rows="2"
-                class="w-full"
               />
+              <CExpressionHint :scope="scope" @insert="descriptionInput?.insert($event)" />
             </CFormGroup>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -622,6 +628,8 @@ const magnifyOptions = computed(() => [
 
 const isRecordPage = computed(() => !!page.value?.isRecordPage)
 
+const titleInput = ref(null)
+const descriptionInput = ref(null)
 const visibilityInput = ref(null)
 const { scope, exprScope } = useExpressionScope({
   page: computed(() => page.value),

@@ -88,7 +88,15 @@
                   :description="$t('block.metric.edit.transformFunctionDescription')"
                   class="md:col-span-2"
                 >
-                  <InputText v-model="metric.transformFx" class="w-full" placeholder="v" />
+                  <CInputExpression
+                    :ref="el => (transformInputs[i] = el)"
+                    v-model="metric.transformFx"
+                    dialect="interpolation"
+                    :scope="scope"
+                    :min-lines="1"
+                    placeholder="v"
+                  />
+                  <CExpressionHint :scope="scope" @insert="transformInputs[i]?.insert($event)" />
                 </CFormGroup>
 
                 <CFormGroup :label="$t('block.metric.edit.numberFormat')">
@@ -267,6 +275,7 @@ const props = defineProps({
 })
 
 const filterInputs = ref([])
+const transformInputs = ref([])
 const comparisonFilterInputs = ref([])
 const { scope } = useExpressionScope({ page: computed(() => props.page) })
 
