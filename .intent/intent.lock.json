@@ -1016,10 +1016,15 @@
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-08-13"
     },
-    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/TabsConfigurator.vue": {
-      "h": "89ff86bf5db4",
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/TabsConfigurator.test.js": {
+      "h": "248f75cafb9c",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-18"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/TabsConfigurator.vue": {
+      "h": "23f9f4d2fedf",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Grid.vue": {
       "h": "2c2ca1f02bfa",

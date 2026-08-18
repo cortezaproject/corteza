@@ -254,7 +254,7 @@ const tabsTableRows = computed(() =>
   tabs.value.map((tab, index) => ({
     ...tab,
     _index: index,
-    _rowKey: `${index}-${tab.blockID || ''}-${tab.title || ''}`,
+    _rowKey: `${index}-${tab.blockID || ''}`,
   })),
 )
 
