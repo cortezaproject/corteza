@@ -309,3 +309,25 @@ func Test_validator_emptyValueKeepsEarlierErrors(t *testing.T) {
 		req.Nil(vldtr.Run(context.Background(), nil, m, r))
 	})
 }
+
+func Test_validator_missingUniqueCheckerKeepsErrors(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		m = &types.Module{ID: 1, Fields: types.ModuleFieldSet{
+			&types.ModuleField{Name: "req", Kind: "String", Required: true},
+			&types.ModuleField{Name: "uniq", Kind: "String", Options: types.ModuleFieldOptions{"isUnique": true}},
+		}}
+
+		r = &types.Record{Values: types.RecordValueSet{
+			&types.RecordValue{Name: "uniq", Value: "x", Updated: true},
+		}}
+
+		// no UniqueChecker registered
+		vldtr = validator{localeSvc: makeLocaleService()}
+	)
+
+	out := vldtr.Run(context.Background(), nil, m, r)
+	req.NotNil(out, "unique field with no checker discarded the whole error set")
+	req.Equal("empty", out.Set[0].Kind)
+}

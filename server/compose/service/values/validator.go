@@ -281,8 +281,14 @@ fields:
 		}
 
 		if vldtr.uniqueCheckerFn == nil {
-			return nil
+			// Nothing to compare against.
+			//
+			// Skip this value only: returning here would report the record as
+			// valid on the strength of a check that never ran, discarding every
+			// error gathered so far.
+			continue
 		}
+
 		duplicateRecordID, err := vldtr.uniqueCheckerFn(ctx, s, v, f, m)
 		if err != nil {
 			out.Push(makeInternalErr(f, err))
