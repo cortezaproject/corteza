@@ -3,9 +3,10 @@
     <div class="font-semibold text-color">
       {{ notification.config?.title || '' }}
     </div>
-    <div class="mt-1 text-sm text-muted-color">
-      {{ notification.config?.description || '' }}
-    </div>
+    <div
+      class="rt-content mt-1 text-sm text-muted-color"
+      v-html="notification.config?.description || ''"
+    />
   </div>
 </template>
 
