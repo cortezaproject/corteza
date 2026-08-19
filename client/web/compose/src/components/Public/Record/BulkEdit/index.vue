@@ -107,7 +107,7 @@
 
 <script>
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 import record from 'corteza-webapp-compose/src/mixins/record.js'
 
 export default {
@@ -182,7 +182,7 @@ export default {
           (a.label || a.name).localeCompare(b.label || b.name),
         ),
         ...this.module.systemFields().filter(({ name }) => name === 'ownedBy'),
-      ].filter((field) => this.isFieldEditable(field))
+      ].filter((field) => this.isFieldEditable(field)).map((field) => this.ignorePrefilter(field))
     },
 
     getFieldSelectorPlaceholder () {
@@ -246,6 +246,18 @@ export default {
     onReset () {
       this.record = new compose.Record(this.module, this.initialRecord)
       this.fields = this.selectedFields
+    },
+
+    // Prefilters are evaluated against the edited record; when editing multiple
+    // records at once there is none, so they would discard all of the options
+    ignorePrefilter (field) {
+      const { recordID = NoID } = this.record || {}
+
+      if (recordID !== NoID || field.kind !== 'Record' || !field.options.prefilter) {
+        return field
+      }
+
+      return compose.ModuleFieldMaker({ ...field, options: { ...field.options, prefilter: '' } })
     },
 
     getField (fieldName) {
