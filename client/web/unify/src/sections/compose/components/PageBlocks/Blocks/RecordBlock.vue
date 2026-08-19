@@ -108,6 +108,14 @@
                     <Message v-if="invalid" severity="error" size="small" variant="simple">
                       {{ error?.message }}
                     </Message>
+                    <Message
+                      v-else-if="inlineErrors[field.name]"
+                      severity="error"
+                      size="small"
+                      variant="simple"
+                    >
+                      {{ inlineErrors[field.name] }}
+                    </Message>
                   </FormField>
                 </template>
 
@@ -180,6 +188,14 @@
                   <Message v-if="invalid" severity="error" size="small" variant="simple">
                     {{ error?.message }}
                   </Message>
+                  <Message
+                    v-else-if="inlineErrors[field.name]"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                  >
+                    {{ inlineErrors[field.name] }}
+                  </Message>
                 </FormField>
               </template>
 
@@ -204,6 +220,11 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, provide, reactive, ref, watch, nextTick } from 'vue'
+import {
+  fieldLabeller,
+  partitionSaveErrors,
+  saveWarnings,
+} from '@/sections/compose/lib/record-errors'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
@@ -251,6 +272,10 @@ const fieldContainer = ref(null)
 const activeEditFieldNames = ref([])
 const localDirtyValues = reactive({})
 const localSaving = ref(false)
+// Server complaints about the fields being inline-edited, kept beside them.
+// The page's form resolver does not reach this path — it saves one record on
+// its own, outside any submit — so the messages are held here.
+const inlineErrors = reactive({})
 const hasActiveInlineEdits = computed(() => activeEditFieldNames.value.length > 0)
 
 // Field condition tracking
@@ -363,6 +388,24 @@ const visibleFields = computed(() => {
 const displayedFields = computed(() => {
   return visibleFields.value.filter(field => canDisplay(field))
 })
+
+/**
+ * Tells the record view which fields it can put an error beside.
+ *
+ * A layout places a selection of blocks and each block a selection of fields,
+ * with conditions narrowing that again — so the set is only knowable here.
+ * Registered as a getter rather than a value: a save reads it at the moment it
+ * fails, by which time a condition may have moved a field off screen.
+ *
+ * Only the ones with an editor count. A field shown through its viewer has no
+ * FormField wrapping it and so no slot a message could render in — a value
+ * expression's field is exactly that, and exactly the one the server complains
+ * about most.
+ */
+const stopDisplayedFields = ctx?.registerDisplayedFields?.(() =>
+  displayedFields.value.filter(f => isFieldEditable(f)).map(f => f.name),
+)
+onBeforeUnmount(() => stopDisplayedFields?.())
 
 // Layout class based on block options
 const layoutClass = computed(() => {
@@ -519,12 +562,32 @@ async function saveInlineEdits() {
     else if (!ctx) localRecord.value = saved
     activeEditFieldNames.value = []
     Object.keys(localDirtyValues).forEach(k => delete localDirtyValues[k])
+    Object.keys(inlineErrors).forEach(k => delete inlineErrors[k])
+
+    // A duplicate-detection rule that is not strict lets the save through and
+    // reports on it. The record is stored, so this warns rather than refuses.
+    const warnings = saveWarnings(saved, { labelOf: fieldLabeller(fieldModule.value) })
+    if (warnings.length) $toast?.toastWarning(warnings.join('\n'))
   } catch (e) {
     console.error('Failed to save inline edits:', e)
-    $toast?.toastErrorHandler(
-      t('block.record.inlineEdit.saveError'),
-      t('block.record.inlineEdit.saveErrorSummary'),
-    )(e)
+    // Only the fields being edited have an editor to sit under; the rest of the
+    // block is read-only, so their complaints are named in the toast instead.
+    const { fieldErrors, general } = partitionSaveErrors(e, {
+      canShow: name => activeEditFieldNames.value.includes(name),
+      labelOf: fieldLabeller(fieldModule.value),
+    })
+
+    Object.keys(inlineErrors).forEach(k => delete inlineErrors[k])
+    Object.assign(inlineErrors, fieldErrors)
+
+    if (general.length) {
+      $toast?.toastDanger(general.join('\n'), t('block.record.inlineEdit.saveErrorSummary'))
+    } else if (!Object.keys(fieldErrors).length) {
+      $toast?.toastErrorHandler(
+        t('block.record.inlineEdit.saveError'),
+        t('block.record.inlineEdit.saveErrorSummary'),
+      )(e)
+    }
   } finally {
     localSaving.value = false
   }
@@ -532,6 +595,7 @@ async function saveInlineEdits() {
 
 function cancelInlineEdits() {
   Object.keys(localDirtyValues).forEach(k => delete localDirtyValues[k])
+  Object.keys(inlineErrors).forEach(k => delete inlineErrors[k])
   activeEditFieldNames.value = []
 }
 
@@ -554,6 +618,7 @@ function getFieldValue(field) {
 }
 
 function setFieldValue(field, value) {
+  delete inlineErrors[field.name]
   if (isOnEditPage.value || isBuilder.value) {
     const r = ctx?.record?.value || builderRecord.value
     if (!r) return

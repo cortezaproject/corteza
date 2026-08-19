@@ -200,6 +200,12 @@ import {
   mergeAttachmentIDs,
   uploadRecordAttachment,
 } from '@/sections/compose/lib/record-attachments'
+import {
+  displayedFieldRegistry,
+  fieldLabeller,
+  partitionSaveErrors,
+  saveWarnings,
+} from '@/sections/compose/lib/record-errors'
 
 const { CInputDelete } = components
 
@@ -397,6 +403,10 @@ function registerSettler(fn) {
   return () => settlers.delete(fn)
 }
 
+// Which fields the layout actually has on screen, for placing a failed save's
+// errors. Only the blocks know.
+const displayedFields = displayedFieldRegistry()
+
 const pendingByField = reactive(new Map())
 
 // Provide context so child blocks (RecordBlock) can inject it
@@ -407,6 +417,7 @@ provide('recordViewContext', {
   isSaving,
   cover,
   registerSettler,
+  registerDisplayedFields: displayedFields.register,
 
   /**
    * A block that saved the record on its own (RecordBlock's inline edit) hands
@@ -912,14 +923,19 @@ function resolver() {
   return { errors }
 }
 
+/** Bring the first complaint into view — the failing field is often off it. */
+function scrollToFirstError() {
+  nextTick(() => {
+    document
+      .querySelector('.p-message-error')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
 async function handleSave({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
-    nextTick(() => {
-      document
-        .querySelector('.p-message-error')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
+    scrollToFirstError()
     return
   }
   if (!record.value || !page.value) return
@@ -950,6 +966,13 @@ async function handleSave({ valid }) {
     $toast.toastSuccess(
       t(isNew.value ? 'notification.record.createSuccess' : 'notification.record.updateSuccess'),
     )
+
+    // A duplicate-detection rule that is not strict lets the save through and
+    // reports on it. The record is stored, so this warns rather than refuses.
+    const warnings = saveWarnings(saved, {
+      labelOf: fieldLabeller(moduleStore.getByID(page.value.moduleID)),
+    })
+    if (warnings.length > 0) $toast.toastWarning(warnings.join('\n'))
 
     // Adopt the response rather than the record we sent: it carries what the
     // server computed, and conditions read those values. Saving always leaves
@@ -990,18 +1013,25 @@ async function handleSave({ valid }) {
     }
   } catch (e) {
     console.error('Failed to save record:', e)
-    const details = e?.details ?? []
-    const fieldErrors = {}
-    for (const detail of details) {
-      if (detail.meta?.field) {
-        fieldErrors[detail.meta.field] = detail.message
-      }
-    }
+    const shown = displayedFields.names()
+    const { fieldErrors, general } = partitionSaveErrors(e, {
+      canShow: name => shown.has(name),
+      labelOf: fieldLabeller(moduleStore.getByID(page.value.moduleID)),
+    })
+
     if (Object.keys(fieldErrors).length > 0) {
       serverErrors.value = fieldErrors
       await nextTick()
       formRef.value?.validate()
-    } else {
+      $toast.toastWarning(t('general.notification.formErrors'))
+      scrollToFirstError()
+    }
+
+    // What no field on this layout can carry — an issue naming no field, or one
+    // naming a field the layout does not place — is left to say itself.
+    if (general.length > 0) {
+      $toast.toastDanger(general.join('\n'))
+    } else if (Object.keys(fieldErrors).length === 0) {
       $toast.toastErrorHandler(
         t(isNew.value ? 'notification.record.createFailed' : 'notification.record.updateFailed'),
       )(e)

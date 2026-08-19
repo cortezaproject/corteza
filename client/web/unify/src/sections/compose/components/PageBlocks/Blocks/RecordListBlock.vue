@@ -635,6 +635,11 @@ import {
   mergeAttachmentIDs,
   uploadRecordAttachment,
 } from '@/sections/compose/lib/record-attachments'
+import {
+  fieldLabeller,
+  partitionSaveErrors,
+  saveWarnings,
+} from '@/sections/compose/lib/record-errors'
 import AutomationButtons from '../Shared/AutomationButtons.vue'
 import RecordListFilter from '../../Common/RecordListFilter.vue'
 import RecordImporter from '../../Public/Record/Importer/index.vue'
@@ -1037,29 +1042,28 @@ function missingRequiredValues(record) {
 function reportSaveFailure(record, e, fallbackKey) {
   const key = getRecordKey(record)
   const shown = new Set(columns.value.map(c => c.name))
-  const errors = {}
-  const unshown = []
+  const { fieldErrors, general } = partitionSaveErrors(e, {
+    canShow: name => shown.has(name),
+    labelOf: fieldLabeller(recordListModule.value),
+  })
 
-  for (const detail of e?.details ?? []) {
-    const field = detail.meta?.field
-    if (!field || !detail.message) continue
-    if (shown.has(field)) {
-      errors[field] = detail.message
-    } else {
-      const label = recordListModule.value?.fields.find(f => f.name === field)?.label || field
-      unshown.push(`${label}: ${detail.message}`)
-    }
+  if (Object.keys(fieldErrors).length) {
+    rowErrors[key] = fieldErrors
+    $toast?.toastWarning(t('general.notification.formErrors'))
   }
 
-  if (Object.keys(errors).length) rowErrors[key] = errors
-
-  if (unshown.length) {
-    $toast?.toastDanger(unshown.join('\n'))
-  } else if (Object.keys(errors).length) {
-    $toast?.toastWarning(t('general.notification.formErrors'))
-  } else {
+  if (general.length) {
+    $toast?.toastDanger(general.join('\n'))
+  } else if (!Object.keys(fieldErrors).length) {
     $toast?.toastErrorHandler(t(fallbackKey))(e)
   }
+}
+
+// A duplicate-detection rule that is not strict lets the save through and
+// reports on it. The row is stored, so this warns rather than marking a cell.
+function reportSaveWarnings(saved) {
+  const warnings = saveWarnings(saved, { labelOf: fieldLabeller(recordListModule.value) })
+  if (warnings.length) $toast?.toastWarning(warnings.join('\n'))
 }
 
 function onInlineFieldUpdate(record, fieldName, value) {
@@ -1182,6 +1186,7 @@ async function handleSaveInline(record, index) {
   try {
     const uploaded = await applyStagedFiles(record)
     const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
+    reportSaveWarnings(saved)
     delete dirtyRecords[key]
     stagedFiles.delete(key)
     clearRowErrors(record)
@@ -1264,6 +1269,7 @@ async function handleSaveDirtyRecords() {
     try {
       const uploaded = await applyStagedFiles(record)
       const saved = isNew ? await recordStore.create(record) : await recordStore.update(record)
+      reportSaveWarnings(saved)
       delete dirtyRecords[key]
       stagedFiles.delete(key)
       clearRowErrors(record)

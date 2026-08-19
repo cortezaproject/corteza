@@ -86,6 +86,12 @@ import {
   mergeAttachmentIDs,
   uploadRecordAttachment,
 } from '@/sections/compose/lib/record-attachments'
+import {
+  displayedFieldRegistry,
+  fieldLabeller,
+  partitionSaveErrors,
+  saveWarnings,
+} from '@/sections/compose/lib/record-errors'
 
 const { CRouterLinkButton } = components
 
@@ -137,12 +143,17 @@ const isMultiField = fieldName =>
 const mode = ref('create')
 const isNew = ref(true)
 
+// Which fields are on screen, for placing a failed save's errors. Only the
+// blocks drawing them know — field conditions can take one out of reach.
+const displayedFields = displayedFieldRegistry()
+
 // Provide recordViewContext so RecordBlock can inject it
 provide('recordViewContext', {
   mode,
   record,
   isNew,
   isSaving,
+  registerDisplayedFields: displayedFields.register,
 })
 
 const blocks = computed(() => [
@@ -255,14 +266,19 @@ function resolver() {
   return { errors }
 }
 
+/** Bring the first complaint into view — the failing field is often off it. */
+function scrollToFirstError() {
+  nextTick(() => {
+    document
+      .querySelector('.p-message-error')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
 async function handleSave({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
-    nextTick(() => {
-      document
-        .querySelector('.p-message-error')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
+    scrollToFirstError()
     return
   }
   if (!record.value) return
@@ -290,6 +306,11 @@ async function handleSave({ valid }) {
 
     const saved = await recordStore.create(record.value)
     $toast.toastSuccess(t('notification.record.createSuccess'))
+
+    // A duplicate-detection rule that is not strict lets the save through and
+    // reports on it. The record is stored, so this warns rather than refuses.
+    const warnings = saveWarnings(saved, { labelOf: fieldLabeller(recordModule.value) })
+    if (warnings.length > 0) $toast.toastWarning(warnings.join('\n'))
     markSaved()
     router.replace({
       name: 'admin.modules.record.view',
@@ -297,18 +318,25 @@ async function handleSave({ valid }) {
     })
   } catch (e) {
     console.error('Failed to create record:', e)
-    const details = e?.details ?? []
-    const fieldErrors = {}
-    for (const detail of details) {
-      if (detail.meta?.field) {
-        fieldErrors[detail.meta.field] = detail.message
-      }
-    }
+    const shown = displayedFields.names()
+    const { fieldErrors, general } = partitionSaveErrors(e, {
+      canShow: name => shown.has(name),
+      labelOf: fieldLabeller(recordModule.value),
+    })
+
     if (Object.keys(fieldErrors).length > 0) {
       serverErrors.value = fieldErrors
       await nextTick()
       formRef.value?.validate()
-    } else {
+      $toast.toastWarning(t('general.notification.formErrors'))
+      scrollToFirstError()
+    }
+
+    // What no field on this form can carry — an issue naming no field, or one
+    // naming a field the form does not show — is left to say itself.
+    if (general.length > 0) {
+      $toast.toastDanger(general.join('\n'))
+    } else if (Object.keys(fieldErrors).length === 0) {
       $toast.toastErrorHandler(t('notification.record.createFailed'))(e)
     }
   } finally {
