@@ -193,6 +193,11 @@ func TestSession_disconnected(t *testing.T) {
 	req.Nil(raw)
 	req.ErrorIs(err, net.ErrClosed)
 
+	// Handle() starts the read loop in a goroutine of its own, so it can be
+	// scheduled after the unidentified-connection timer has already closed the
+	// session; its prologue touches the connection before the first read.
+	req.ErrorIs(s.readLoop(), net.ErrClosed)
+
 	req.ErrorIs(s.write(websocket.TextMessage, []byte("foo")), net.ErrClosed)
 
 	n, err := s.Write([]byte("foo"))

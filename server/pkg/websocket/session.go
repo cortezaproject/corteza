@@ -156,16 +156,42 @@ func (s *session) Close() {
 	})
 }
 
-func (s *session) readLoop() (err error) {
-	if err = s.conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout)); err != nil {
-		return
+// initRead arms the read deadline and pong handler on the connection.
+//
+// Handle() runs the read loop in its own goroutine, so disconnect() can nil the
+// connection before the loop is ever scheduled — the unidentified-connection
+// timer does exactly that. Hence the same guard read() and write() carry, under
+// the write lock because the remote address is recorded here too.
+func (s *session) initRead() error {
+	s.l.Lock()
+	defer s.l.Unlock()
+
+	// Check if connection was closed by disconnect()
+	if s.conn == nil {
+		return net.ErrClosed
 	}
 
-	s.conn.SetPongHandler(func(string) error {
-		return s.conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout))
+	conn := s.conn
+
+	if err := conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout)); err != nil {
+		return err
+	}
+
+	// The handler holds the connection it was armed for, rather than reading
+	// the field again from whatever goroutine gorilla calls it on.
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout))
 	})
 
-	s.remoteAddr = s.conn.RemoteAddr().String()
+	s.remoteAddr = conn.RemoteAddr().String()
+
+	return nil
+}
+
+func (s *session) readLoop() (err error) {
+	if err = s.initRead(); err != nil {
+		return
+	}
 
 	var (
 		raw []byte
