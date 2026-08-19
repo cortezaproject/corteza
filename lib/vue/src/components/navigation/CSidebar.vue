@@ -18,8 +18,8 @@
     :style="{ width: 'var(--sidebar-width)' }"
   >
     <template #header>
-      <div class="px-2 pt-2 pb-1 h-14 grow">
-        <img :src="logo" class="flex-1 object-contain" />
+      <div class="px-2 pt-2 pb-1 h-14 grow flex items-center">
+        <img :src="logo" class="max-h-full max-w-full object-contain" />
       </div>
     </template>
 

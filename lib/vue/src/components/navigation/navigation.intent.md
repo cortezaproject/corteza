@@ -23,7 +23,7 @@ so branding/visibility changes need no code.
 
 - `CTopbar.vue` — header: title/tools teleport targets, page buttons, home /
   app-selector / agent / notifications / help / profile menus.
-- `CSidebar.vue` — collapsible sidebar shell (v-model expanded, `$Settings` logo).
+- `CSidebar.vue` — collapsible sidebar shell (v-model expanded, `$Settings` logo, scaled down to the header slot whatever the uploaded image measures).
 - `CSidebarNav.vue` / `CSidebarNavItem.vue` — generic nav tree; item id/parent/
   label/icon/weight fields are configurable via `*Key` props (defaults are the
   compose-page shape: `pageID`/`selfID`/`title`/`weight`); emits `select`.
