@@ -51,7 +51,7 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) (err error) {
 		}
 	}
 
-	req.Data["emailConfirmationRequired"] = !u.EmailConfirmed && h.Settings.EmailConfirmationRequired
+	req.Data["emailUnconfirmed"] = !u.EmailConfirmed
 	req.Data["avatarEnabled"] = h.Settings.ProfileAvatarEnabled
 
 	if h.Settings.ProfileAvatarEnabled {

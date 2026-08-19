@@ -104,7 +104,7 @@ func (h *AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 		return nil
 	}
 
-	if !req.AuthUser.User.EmailConfirmed {
+	if h.emailBlocksClientAuthorization(req.AuthUser.User) {
 		req.Data["invalidUser"] = true
 		req.Data["disabled"] = true
 	} else if client.Trusted {
@@ -153,6 +153,15 @@ func (h *AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err erro
 // Verifies weather current user can authorize this client or not
 func (h *AuthHandlers) canAuthorizeClient(ctx context.Context, c *types.AuthClient) bool {
 	return systemService.DefaultAccessControl.CanAuthorizeAuthClient(ctx, c)
+}
+
+// Reports whether an unconfirmed email address stops the authorization flow.
+//
+// Only a deployment that requires email confirmation blocks on it; where
+// confirmation is not required the address is never asked for, so an
+// unconfirmed one is not a reason to hold the user at the consent screen.
+func (h *AuthHandlers) emailBlocksClientAuthorization(u *types.User) bool {
+	return h.Settings.EmailConfirmationRequired && !u.EmailConfirmed
 }
 
 func (h *AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {

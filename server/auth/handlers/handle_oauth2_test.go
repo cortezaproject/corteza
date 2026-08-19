@@ -137,6 +137,32 @@ func Test_oauth2AuthorizeSuccessSetParams(t *testing.T) {
 	rq.Equal(nil, authReq.Data["error"])
 }
 
+func Test_emailBlocksClientAuthorization(t *testing.T) {
+	tcc := []struct {
+		name      string
+		required  bool
+		confirmed bool
+		blocks    bool
+	}{
+		{name: "required, unconfirmed", required: true, confirmed: false, blocks: true},
+		{name: "required, confirmed", required: true, confirmed: true, blocks: false},
+		{name: "not required, unconfirmed", required: false, confirmed: false, blocks: false},
+		{name: "not required, confirmed", required: false, confirmed: true, blocks: false},
+	}
+
+	for _, tc := range tcc {
+		t.Run(tc.name, func(t *testing.T) {
+			h := &AuthHandlers{
+				Settings: &settings.Settings{EmailConfirmationRequired: tc.required},
+			}
+
+			require.Equal(t, tc.blocks, h.emailBlocksClientAuthorization(
+				&types.User{EmailConfirmed: tc.confirmed},
+			))
+		})
+	}
+}
+
 func Test_generateIdToken(t *testing.T) {
 	var (
 		req = require.New(t)

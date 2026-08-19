@@ -33,7 +33,7 @@
                 aria-label="{{ tr "profile.template.form.email.label" }}"
             >
             <div>
-                {{ if .emailConfirmationRequired }}
+                {{ if .emailUnconfirmed }}
                 <div class="form-text text-danger">
                 	{{ tr "profile.template.form.email.resend-confirmation-link" "link" links.PendingEmailConfirmation }}
                 </div>

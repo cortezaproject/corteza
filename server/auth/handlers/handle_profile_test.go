@@ -65,7 +65,7 @@ func Test_profileForm(t *testing.T) {
 	rq.NoError(err)
 	rq.Equal(TmplProfile, authReq.Template)
 	rq.Equal(authReq.Data["form"], userForm)
-	rq.Equal(authReq.Data["emailConfirmationRequired"], false)
+	rq.Equal(authReq.Data["emailUnconfirmed"], true)
 }
 
 func Test_profileFormProc(t *testing.T) {
