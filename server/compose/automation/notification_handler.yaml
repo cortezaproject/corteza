@@ -25,6 +25,7 @@ functions:
           - { wf: String }
         required: false
         description: Optional description for the record notification
+        meta: { visual: { input: { type: richtext } } }
       module:
         required: true
         types:

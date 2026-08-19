@@ -25,3 +25,4 @@ functions:
           - { wf: String }
         required: false
         description: Optional description for the simple notification
+        meta: { visual: { input: { type: richtext } } }

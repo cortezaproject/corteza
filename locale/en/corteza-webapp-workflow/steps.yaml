@@ -53,6 +53,8 @@ function:
     select-function: Select function
     type: Type
     type*: Type*
+    ok: Ok
+    urlPlaceholder: https://example.tld
   label: Function
   short: Function
   tooltip: Execute the chosen predefined function

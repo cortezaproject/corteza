@@ -158,6 +158,17 @@
                     @input="$root.$emit('change-detected')"
                   />
 
+                  <c-rich-text-input
+                    v-else-if="a.input.type === 'richtext'"
+                    v-model="a.value"
+                    :labels="{
+                      urlPlaceholder: $t('steps:function.configurator.urlPlaceholder'),
+                      ok: $t('steps:function.configurator.ok'),
+                    }"
+                    min-body-height="6rem"
+                    @input="$root.$emit('change-detected')"
+                  />
+
                   <b-form-checkbox
                     v-else-if="a.type === 'Boolean'"
                     v-model="a.value"
@@ -337,9 +348,12 @@ import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
 import { objectSearchMaker, stringSearchMaker } from '../../lib/filter'
 import { getDocumentationURL } from '../../lib/version'
+import { components } from '@cortezaproject/corteza-vue'
+const { CRichTextInput } = components
 
 export default {
   components: {
+    CRichTextInput,
     ExpressionEditor,
     ExpressionTable,
   },
