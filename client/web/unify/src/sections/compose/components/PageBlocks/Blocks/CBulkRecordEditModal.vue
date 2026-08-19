@@ -87,7 +87,7 @@
 
 <script setup>
 import { ref, computed, watch, inject } from 'vue'
-import { compose } from '@planetcrust/human-js'
+import { compose, NoID } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
 
@@ -141,7 +141,7 @@ const moduleFields = computed(() => {
     : null
   if (ownedBy) mFields.push(ownedBy)
 
-  return mFields.filter(f => isFieldEditable(f))
+  return mFields.filter(f => isFieldEditable(f)).map(f => ignorePrefilter(f))
 })
 
 const availableModuleFields = computed(() => {
@@ -168,6 +168,21 @@ function onModalHide() {
 function getFieldLabel(f) {
   if (!f) return ''
   return f.label || t(`field.system.${f.name}`, f.name || f.kind)
+}
+
+// A record field prefilter resolves against a single record; a bulk edit has
+// none, so it would discard every option of the field.
+function ignorePrefilter(field) {
+  const recordID = record.value?.recordID || NoID
+
+  if (recordID !== NoID || field.kind !== 'Record' || !field.options?.prefilter) {
+    return field
+  }
+
+  return compose.ModuleFieldMaker({
+    ...field,
+    options: { ...field.options, prefilter: '' },
+  })
 }
 
 function getField(fieldName) {
