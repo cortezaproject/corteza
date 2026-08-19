@@ -25,6 +25,10 @@ const RECORD_TITLES = ['Kickoff meeting', 'Design review']
 // feed that drops everything still to come.
 const REMINDER_TITLES = { past: 'Reminder already passed', future: 'Reminder still to come' }
 
+// A block loads its feeds when its date range renders, so a reminder saved
+// after that shows only if something tells the block to load them again.
+const ADDED_TITLE = 'Reminder added while open'
+
 // Everything this check needs, created through the app's own API clients.
 async function build(page) {
   return page.evaluate(
@@ -259,5 +263,68 @@ drive('each event source renders what it reads', async page => {
       (await firstEventClass(page)).includes('event-reminder'),
       '',
     )
+  })
+})
+
+drive('a reminder added while the block is open shows without a reload', async page => {
+  await withFixture(page, async built => {
+    await page.open(`/compose/namespace/${SLUG}/pages/${built.reminderPage}`, { settle: 3500 })
+
+    const before = await eventTitles(page)
+    check(
+      'the feed starts without it',
+      !before.some(t => t.includes(ADDED_TITLE)),
+      JSON.stringify(before),
+    )
+
+    // Saved through the store the sidebar saves through, not the API under it:
+    // the store is what compose holds as the truth about a user's reminders.
+    const added = await page.evaluate(async title => {
+      const store = window.__human.stores()['compose-reminder']
+      if (!store) return { error: 'reminder store not initialised' }
+
+      const at = new Date()
+      at.setHours(12, 0, 0, 0)
+
+      await store.saveReminder({
+        resource: 'agent:calendar-feeds',
+        assignedTo: window.__human.globals().$Auth.user.userID,
+        payload: { title },
+        remindAt: at.toISOString(),
+      })
+
+      const { reminderID } = store.reminders.find(r => r.payload?.title === title) || {}
+      return { reminderID }
+    }, ADDED_TITLE)
+
+    try {
+      check('the app saves it', !added.error, added.error || '')
+
+      const appeared = await page
+        .locator('.fc-event', { hasText: ADDED_TITLE })
+        .first()
+        .waitFor({ state: 'visible', timeout: 15000 })
+        .then(
+          () => true,
+          () => false,
+        )
+
+      check(
+        'the block loads its feeds again and renders it',
+        appeared,
+        JSON.stringify(await eventTitles(page)),
+      )
+    } finally {
+      if (added.reminderID) {
+        await page.evaluate(
+          reminderID =>
+            window.__human
+              .globals()
+              .$SystemAPI.reminderDelete({ reminderID })
+              .catch(() => {}),
+          added.reminderID,
+        )
+      }
+    }
   })
 })
