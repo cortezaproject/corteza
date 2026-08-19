@@ -9,6 +9,7 @@
     <span
       :role="hasMenu ? 'button' : undefined"
       :tabindex="hasMenu ? 0 : undefined"
+      data-title-exclude
       class="inline-flex shrink-0 items-center gap-1 rounded px-1"
       :class="hasMenu ? 'cursor-pointer hover:bg-emphasis' : ''"
       :aria-label="hasMenu ? $t('project.wizard.revisionSwitcher.trigger') : undefined"

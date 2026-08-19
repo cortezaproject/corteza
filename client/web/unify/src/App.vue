@@ -125,6 +125,7 @@ import { RouterView, useRoute } from 'vue-router'
 
 import { useModuleStore, useNamespaceStore, useUserStore } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
+import { useDocumentTitle } from '@/utils/documentTitle'
 
 const {
   CTopbar,
@@ -280,13 +281,9 @@ let realtimeClient
 
 const logoUrl = computed(() => $Settings.attachment('ui.mainLogo'))
 
-const baseTitle = import.meta.env.VITE_APP_TITLE || 'Human'
-watch(
-  () => notificationsStore.unreadCount,
-  count => {
-    document.title = count > 0 ? `(${count}) ${baseTitle}` : baseTitle
-  },
-)
+// Tab title = the heading the active view teleports into the topbar, with the
+// unread count kept in front of it.
+useDocumentTitle(() => notificationsStore.unreadCount)
 
 onMounted(async () => {
   window.addEventListener('resize', handleResize)
