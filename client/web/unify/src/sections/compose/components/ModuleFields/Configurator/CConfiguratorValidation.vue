@@ -22,6 +22,7 @@
           :scope="sanitizerScope"
           class="flex-1"
           :min-lines="1"
+          :invalid="isBlank(sanitizers[index])"
           :placeholder="$t('field.sanitizers.expression.placeholder')"
           @update:model-value="syncSanitizers"
         />
@@ -59,12 +60,14 @@
           :scope="validatorScope"
           class="flex-1"
           :min-lines="1"
+          :invalid="isBlank(v.test)"
           :placeholder="$t('field.validators.expression.placeholder')"
           @update:model-value="syncValidators"
         />
         <InputText
           v-model="v.error"
           class="flex-1"
+          :invalid="isBlank(v.error)"
           :placeholder="$t('field.validators.error.placeholder')"
           @update:model-value="syncValidators"
         />
@@ -94,6 +97,7 @@
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
 import { buildFieldExprScope } from '@planetcrust/human-vue'
+import { isBlankExpressionRow as isBlank } from './expressionRows'
 
 const field = inject('fieldDraft')
 

@@ -64,10 +64,12 @@
 
 <script setup>
 import { compose } from '@planetcrust/human-js'
-import { computed, provide, ref, shallowRef, watch } from 'vue'
+import { computed, inject, provide, ref, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CConfiguratorBasic from './CConfiguratorBasic.vue'
 import CConfiguratorValidation from './CConfiguratorValidation.vue'
 import CConfiguratorMultiDelimiter from './CConfiguratorMultiDelimiter.vue'
+import { incompleteExpressionRows } from './expressionRows'
 
 const props = defineProps({
   visible: {
@@ -91,6 +93,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:visible', 'save'])
+
+const { t } = useI18n()
+const $toast = inject('$toast')
 
 const activeTab = ref('basic')
 const mockField = ref(null)
@@ -142,7 +147,19 @@ const header = computed(() => {
   return mockField.value.label || mockField.value.name || mockField.value.kind
 })
 
+// The validation tab already marks these red; committing them anyway would
+// leave the module with an expression the server cannot run.
+const hasIncompleteExpressions = computed(() =>
+  incompleteExpressionRows(mockField.value?.expressions),
+)
+
 function handleSave() {
+  if (hasIncompleteExpressions.value) {
+    activeTab.value = 'validation'
+    $toast.toastDanger(t('field.expressions.incomplete'))
+    return
+  }
+
   emit('save', mockField.value)
   emit('update:visible', false)
 }

@@ -19,6 +19,8 @@ defaultValue: Default value
 disabled:
   multiUnsupported: This field type cannot hold more than one value
   requiredUnsupported: This field type cannot be made required
+expressions:
+  incomplete: Every sanitization and validation rule must be filled in. Enter an expression for each row, and an error message for each validation rule, or remove the rows you do not need.
 general:
   label:
     zoom: Zoom
