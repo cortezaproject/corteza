@@ -246,6 +246,7 @@ comment:
     editFailed: Could not save the change to this comment
     postFailed: Could not post the comment
     reactionFailed: Could not save the reaction
+    uploadFailed: Could not attach the file
   fieldMapping: Field mapping
   invalidOwnerVar: 'Can not use {0} variable in non-record pages'
   invalidRecordVar: 'Can not use {0} variable in non-record pages'

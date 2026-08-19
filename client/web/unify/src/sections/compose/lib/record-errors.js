@@ -10,6 +10,26 @@
 // in the detail's own meta. Filling them here is what makes the message read.
 const PLACEHOLDER = /{{\s*(\w+)\s*}}/g
 
+/**
+ * The Error behind a failure the API reported in the body of a 200, or null if
+ * the body reported none.
+ *
+ * A generated client method runs this for its caller. An upload does not: it
+ * posts its form data through the raw axios instance, so it never reaches
+ * `stdResolve` and has to read the body itself — and `error` is an object, so
+ * handing it straight to `new Error` yields the literal '[object Object]'
+ * where the server's own sentence should be.
+ */
+export function apiError(data, fallback = 'unknown error') {
+  const err = data?.error
+  if (!err) return null
+  if (typeof err === 'string') return new Error(err)
+
+  const out = new Error(err.message || fallback)
+  if (Array.isArray(err.details) && err.details.length > 0) out.details = err.details
+  return out
+}
+
 /** One issue's message, with its placeholders filled from its meta. */
 export function detailMessage(detail) {
   const message = detail?.message

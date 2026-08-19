@@ -243,7 +243,7 @@ import CommentReply from './Comment/CommentReply.vue'
 import { components } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
 import { evaluatePrefilter, getFieldFilter } from '../../../lib/record-filter'
-import { fieldLabeller, partitionSaveErrors } from '../../../lib/record-errors'
+import { apiError, fieldLabeller, partitionSaveErrors } from '../../../lib/record-errors'
 
 const { CRichTextInput } = components
 
@@ -890,7 +890,9 @@ async function uploadFile(file) {
       .api()
       .post(url, formData, { headers: { 'Content-Type': undefined } })
 
-    if (data?.error) throw new Error(data.error)
+    const failed = apiError(data, `Upload failed for "${file.name}"`)
+    if (failed) throw failed
+
     const attachment = data?.response ?? data
     if (!attachment?.attachmentID) throw new Error('Upload failed: no attachmentID')
 
@@ -901,6 +903,7 @@ async function uploadFile(file) {
     }
   } catch (e) {
     console.error('Failed to upload file:', e)
+    $toast?.toastErrorHandler(t('block.comment.error.uploadFailed'))(e)
   }
 }
 

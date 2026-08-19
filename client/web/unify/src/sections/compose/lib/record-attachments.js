@@ -1,3 +1,5 @@
+import { apiError } from './record-errors'
+
 // File fields defer their upload to record save: the editor only stages the
 // File objects, and whoever saves the record uploads them and writes the
 // returned attachment IDs into the value. Every saving view needs the same two
@@ -24,7 +26,8 @@ export async function uploadRecordAttachment(
     .api()
     .post(url, formData, { headers: { 'Content-Type': undefined } })
 
-  if (data?.error) throw new Error(data.error)
+  const failed = apiError(data, `Upload failed for "${file.name}"`)
+  if (failed) throw failed
 
   const attachment = data?.response ?? data
   if (!attachment?.attachmentID) {

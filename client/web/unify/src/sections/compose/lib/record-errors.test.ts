@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { detailMessage, partitionSaveErrors, saveWarnings, fieldLabeller } from './record-errors.js'
+import {
+  apiError,
+  detailMessage,
+  partitionSaveErrors,
+  saveWarnings,
+  fieldLabeller,
+} from './record-errors.js'
 
 // The shapes here are copied from what the dev server actually answers with —
 // `POST /compose/namespace/:ns/module/:mod/record/` reports every failure in
@@ -21,6 +27,46 @@ const required = {
   message: 'This field is required',
   meta: { field: 'title', id: 'parent:0' },
 }
+
+describe('apiError', () => {
+  // An upload posts through the raw axios instance, so it never passes
+  // stdResolve and reads the body itself. `new Error(data.error)` on the object
+  // the server sends is what put '[object Object]' in front of users.
+  it('takes the message off the error object', () => {
+    const e = apiError({
+      error: {
+        message: 'not allowed to upload this type of file',
+        meta: { resource: 'compose:attachment', type: 'notAllowedToUploadThisType' },
+      },
+    })
+
+    expect(e).to.be.instanceOf(Error)
+    expect(e?.message).to.equal('not allowed to upload this type of file')
+    expect(String(e)).to.not.contain('[object Object]')
+  })
+
+  it('handles a bare string error too', () => {
+    expect(apiError({ error: 'nope' })?.message).to.equal('nope')
+  })
+
+  it('falls back when the error object carries no message', () => {
+    const e = apiError({ error: { meta: {} } }, 'Upload failed for "a.png"')
+
+    expect(e?.message).to.equal('Upload failed for "a.png"')
+    expect(String(e)).to.not.contain('[object Object]')
+  })
+
+  it('carries details where the API sends them', () => {
+    const e = apiError({ error: { message: '1 issue(s) found', details: [required] } })
+
+    expect((e as Error & { details?: unknown[] })?.details).to.deep.equal([required])
+  })
+
+  it('is null for a body that reported no failure', () => {
+    expect(apiError({ response: { attachmentID: '1' } })).to.equal(null)
+    expect(apiError(undefined)).to.equal(null)
+  })
+})
 
 describe('detailMessage', () => {
   it('fills a placeholder from the detail meta', () => {
