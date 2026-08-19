@@ -70,6 +70,9 @@ func (h namespacesHandler) Lookup() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 		},
 

@@ -4,6 +4,7 @@ imports:
 
 params:
   lookup: &lookup
+    meta: { label: Lookup }
     required: true
     types:
       - { wf: ID,       }
@@ -17,24 +18,31 @@ params:
     wf: UnsignedInteger
   filterParams: &filterParams
     resource:
+      meta: { label: Resource }
       types:
         - { wf: String }
     assignedTo:
+      meta: { label: Assigned to }
       types:
         - { wf: ID }
     excludeDismissed:
+      meta: { label: Exclude dismissed }
       types:
         - { wf: Boolean }
     scheduledOnly:
+      meta: { label: Scheduled only }
       types:
         - { wf: Boolean }
     sort:
+      meta: { label: Sort }
       types:
         - { wf: String }
     limit:
+      meta: { label: Limit }
       types:
         - { wf: UnsignedInteger }
     pageCursor:
+      meta: { label: Page cursor }
       types:
         - { wf: String }
 labels: &labels
@@ -78,19 +86,24 @@ functions:
       create: "step"
     params:
       resource:
+        meta: { label: Resource }
         types:
           - { wf: String}
       assignedTo:
+        meta: { label: Assigned to }
         types:
           - { wf: ID }
       assignedBy:
+        meta: { label: Assigned by }
         types:
           - { wf: ID }
       remindAt:
+        meta: { label: Remind at }
         types:
           - { wf: DateTime}
         required: true
       payload:
+        meta: { label: Payload }
         types:
           - { wf: Bytes }
     results:
@@ -104,18 +117,23 @@ functions:
     params:
       lookup: *lookup
       resource:
+        meta: { label: Resource }
         types:
           - { wf: String}
       assignedTo:
+        meta: { label: Assigned to }
         types:
           - { wf: ID }
       assignedBy:
+        meta: { label: Assigned by }
         types:
           - { wf: ID }
       remindAt:
+        meta: { label: Remind at }
         types:
           - { wf: DateTime}
       payload:
+        meta: { label: Payload }
         types:
           - { wf: Bytes }
     results:
@@ -137,6 +155,7 @@ functions:
     params:
       lookup: *lookup
       remindAt:
+        meta: { label: Remind at }
         types:
           - { wf: DateTime }
         required: true

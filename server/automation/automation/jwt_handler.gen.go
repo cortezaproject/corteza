@@ -89,18 +89,30 @@ func (h jwtHandler) Generate() *atypes.Function {
 			{
 				Name:  "scope",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Scope",
+				},
 			},
 			{
 				Name:  "header",
 				Types: []string{"Vars", "String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Header",
+				},
 			},
 			{
 				Name:  "payload",
 				Types: []string{"Vars", "String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Payload",
+				},
 			},
 			{
 				Name:  "secret",
 				Types: []string{"String", "Reader"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Secret",
+				},
 			},
 		},
 

@@ -5,6 +5,7 @@ imports:
 
 params:
   lookup: &lookup
+    meta: { label: Lookup }
     required: true
     types:
       - { wf: ID,     }
@@ -12,6 +13,7 @@ params:
       - { wf: Role,   suffix: res }
 
   role: &role
+    meta: { label: Role }
     types:
       - { wf: Role }
 
@@ -28,6 +30,7 @@ params:
     wf: String
 
   lookupUser: &lookupUser
+    meta: { label: User }
     required: true
     types:
       - { wf: ID     }
@@ -37,39 +40,51 @@ params:
 
   filterParams: &filterParams
     query:
+      meta: { label: Query }
       types:
         - { wf: String }
     memberID:
+      meta: { label: Member ID }
       types:
         - { wf: ID }
     handle:
+      meta: { label: Handle }
       types:
         - { wf: String }
     name:
+      meta: { label: Name }
       types:
         - { wf: String }
     labels:
+      meta: { label: Labels }
       types:
         - { wf: LabelValue }
     deleted:
+      meta: { label: Deleted }
       types:
         - { wf: UnsignedInteger }
     archived:
+      meta: { label: Archived }
       types:
         - { wf: UnsignedInteger }
     sort:
+      meta: { label: Sort }
       types:
         - { wf: String }
     limit:
+      meta: { label: Limit }
       types:
         - { wf: UnsignedInteger }
     incTotal:
+      meta: { label: Include total }
       types:
         - { wf: Boolean }
     incPageNavigation:
+      meta: { label: Include page navigation }
       types:
         - { wf: Boolean }
     pageCursor:
+      meta: { label: Page cursor }
       types:
         - { wf: String }
 
@@ -120,7 +135,9 @@ functions:
     labels:
       <<: *labels
     params:
-      role: *lookup
+      role:
+        <<: *lookup
+        meta: { label: Role }
       user: *lookupUser
 
   removeMember:
@@ -129,7 +146,9 @@ functions:
     labels:
       <<: *labels
     params:
-      role: *lookup
+      role:
+        <<: *lookup
+        meta: { label: Role }
       user: *lookupUser
 
   search:
@@ -162,6 +181,7 @@ functions:
     params:
       role:
         <<: *role
+        meta: { label: Role }
         required: true
     results:
       role: *rvRole
@@ -175,6 +195,7 @@ functions:
     params:
       role:
         <<: *role
+        meta: { label: Role }
         required: true
     results:
       role: *rvRole

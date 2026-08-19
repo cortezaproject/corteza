@@ -63,10 +63,16 @@ func (h logHandler) Debug() *atypes.Function {
 			{
 				Name:  "message",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Message",
+				},
 			},
 			{
 				Name:  "fields",
 				Types: []string{"KV"},
+				Meta: &atypes.ParamMeta{
+					Label: "Fields",
+				},
 			},
 		},
 
@@ -117,10 +123,16 @@ func (h logHandler) Info() *atypes.Function {
 			{
 				Name:  "message",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Message",
+				},
 			},
 			{
 				Name:  "fields",
 				Types: []string{"KV"},
+				Meta: &atypes.ParamMeta{
+					Label: "Fields",
+				},
 			},
 		},
 
@@ -171,10 +183,16 @@ func (h logHandler) Warn() *atypes.Function {
 			{
 				Name:  "message",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Message",
+				},
 			},
 			{
 				Name:  "fields",
 				Types: []string{"KV"},
+				Meta: &atypes.ParamMeta{
+					Label: "Fields",
+				},
 			},
 		},
 
@@ -225,10 +243,16 @@ func (h logHandler) Error() *atypes.Function {
 			{
 				Name:  "message",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Message",
+				},
 			},
 			{
 				Name:  "fields",
 				Types: []string{"KV"},
+				Meta: &atypes.ParamMeta{
+					Label: "Fields",
+				},
 			},
 		},
 

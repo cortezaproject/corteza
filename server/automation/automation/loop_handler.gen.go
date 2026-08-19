@@ -73,14 +73,23 @@ func (h loopHandler) Sequence() *atypes.Function {
 			{
 				Name:  "first",
 				Types: []string{"Integer"},
+				Meta: &atypes.ParamMeta{
+					Label: "First",
+				},
 			},
 			{
 				Name:  "last",
 				Types: []string{"Integer"},
+				Meta: &atypes.ParamMeta{
+					Label: "Last",
+				},
 			},
 			{
 				Name:  "step",
 				Types: []string{"Integer"},
+				Meta: &atypes.ParamMeta{
+					Label: "Step",
+				},
 			},
 		},
 
@@ -203,6 +212,9 @@ func (h loopHandler) Each() *atypes.Function {
 			{
 				Name:  "items",
 				Types: []string{"Array"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Items",
+				},
 			},
 		},
 
@@ -262,6 +274,9 @@ func (h loopHandler) Lines() *atypes.Function {
 			{
 				Name:  "stream",
 				Types: []string{"Reader"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Stream",
+				},
 			},
 		},
 

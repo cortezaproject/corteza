@@ -65,10 +65,16 @@ func (h corredorHandler) Exec() *atypes.Function {
 			{
 				Name:  "script",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Script",
+				},
 			},
 			{
 				Name:  "args",
 				Types: []string{"Vars"},
+				Meta: &atypes.ParamMeta{
+					Label: "Arguments",
+				},
 			},
 		},
 

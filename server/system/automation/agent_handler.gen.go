@@ -69,14 +69,23 @@ func (h agentHandler) Run() *atypes.Function {
 			{
 				Name:  "agentID",
 				Types: []string{"ID"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Agent ID",
+				},
 			},
 			{
 				Name:  "input",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Input",
+				},
 			},
 			{
 				Name:  "conversationID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Conversation ID",
+				},
 			},
 		},
 

@@ -9,14 +9,17 @@ functions:
       agent: "step,workflow"
     params:
       agentID:
+        meta: { label: Agent ID }
         required: true
         types:
           - { wf: ID }
       input:
+        meta: { label: Input }
         required: true
         types:
           - { wf: String }
       conversationID:
+        meta: { label: Conversation ID }
         types:
           - { wf: ID }
     results:

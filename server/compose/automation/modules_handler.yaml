@@ -5,6 +5,7 @@ imports:
 
 params:
   moduleLookup: &moduleLookup
+    meta: { label: Module }
     required: true
     types:
       - { wf: ID,     }
@@ -12,6 +13,7 @@ params:
       - { wf: ComposeModule,     suffix: res }
 
   namespaceLookup: &namespaceLookup
+    meta: { label: Namespace }
     required: true
     types:
       - { wf: ID,     }

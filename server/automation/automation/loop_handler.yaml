@@ -9,9 +9,9 @@ functions:
     meta:
       short: Iterates over sequence of numbers
     params:
-      first: { types: [ { wf: Integer } ] }
-      last:  { types: [ { wf: Integer } ] }
-      step:  { types: [ { wf: Integer } ] }
+      first: { meta: { label: First }, types: [ { wf: Integer } ] }
+      last:  { meta: { label: Last }, types: [ { wf: Integer } ] }
+      step:  { meta: { label: Step }, types: [ { wf: Integer } ] }
     results:
       counter:
         wf: Integer
@@ -40,6 +40,7 @@ functions:
       description: Iterates over set of items
     params:
       items:
+        meta: { label: Items }
         required: true
         types: [ { wf: Array } ]
     results:
@@ -54,6 +55,7 @@ functions:
       description: Iterates over lines from stream
     params:
       stream:
+        meta: { label: Stream }
         required: true
         types: [ { wf: Reader, go: "io.Reader" } ]
     results:

@@ -2,6 +2,7 @@ name: notification
 
 snippets:
   lookupUser: &lookupUser
+    meta: { label: Recipient }
     required: true
     types:
       - { wf: ID     }
@@ -16,6 +17,7 @@ functions:
     params:
       recipient: *lookupUser
       title:
+        meta: { label: Title }
         types:
           - { wf: String }
         required: true
@@ -25,4 +27,4 @@ functions:
           - { wf: String }
         required: false
         description: Optional description for the simple notification
-        meta: { visual: { input: { type: richtext } } }
+        meta: { label: Description, visual: { input: { type: richtext } } }
