@@ -108,7 +108,7 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 func (h *AuthHandlers) pendingEmailConfirmation(req *request.AuthReq) error {
 	req.Template = TmplPendingEmailConfirmation
 
-	if _, has := req.Request.URL.Query()["resend"]; has && req.AuthUser.User != nil {
+	if _, has := req.Request.URL.Query()["resend"]; has && req.AuthUser != nil && req.AuthUser.User != nil {
 		err := h.AuthService.SendEmailAddressConfirmationToken(req.Context(), req.AuthUser.User)
 		if err != nil {
 			return err
