@@ -716,6 +716,7 @@ defineExpose({ focus, clear, editor, allEmojis })
 .c-rich-text-input {
   display: flex;
   flex-direction: column;
+  background-color: var(--p-content-background);
 }
 
 .c-rich-text-input .rt-toolbar {
