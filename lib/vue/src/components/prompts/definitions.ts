@@ -22,17 +22,18 @@ export const prompts = Object.freeze(
       ref: 'redirect',
       meta: { short: 'Redirect user to an outside URL' },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'url', types: ['String'], required: true },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'url', types: ['String'], required: true, meta: { label: 'URL' } },
         {
           name: 'delay',
           types: ['Integer'],
-          meta: { description: 'Redirection delay in seconds' },
+          meta: { label: 'Delay', description: 'Redirection delay in seconds' },
         },
         {
           name: 'openMode',
           types: ['String'],
           meta: {
+            label: 'Open mode',
             visual: {
               input: {
                 type: 'select',
@@ -48,19 +49,20 @@ export const prompts = Object.freeze(
       ref: 'reroute',
       meta: { short: 'Redirect user to an internal application route' },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'name', types: ['String'], required: true },
-        { name: 'params', types: ['KV'] },
-        { name: 'query', types: ['KV'] },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'name', types: ['String'], required: true, meta: { label: 'Name' } },
+        { name: 'params', types: ['KV'], meta: { label: 'Parameters' } },
+        { name: 'query', types: ['KV'], meta: { label: 'Query' } },
         {
           name: 'delay',
           types: ['Integer'],
-          meta: { description: 'Redirection delay in seconds' },
+          meta: { label: 'Delay', description: 'Redirection delay in seconds' },
         },
         {
           name: 'openMode',
           types: ['String'],
           meta: {
+            label: 'Open mode',
             visual: {
               input: {
                 type: 'select',
@@ -76,25 +78,30 @@ export const prompts = Object.freeze(
       ref: 'recordPage',
       meta: { short: 'Redirect user to the record page', webapps: ['compose'] },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'module', types: ['ID', 'Handle', 'ComposeModule'] },
-        { name: 'namespace', types: ['ID', 'Handle', 'ComposeNamespace'] },
-        { name: 'record', types: ['ID', 'ComposeRecord'] },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'module', types: ['ID', 'Handle', 'ComposeModule'], meta: { label: 'Module' } },
+        {
+          name: 'namespace',
+          types: ['ID', 'Handle', 'ComposeNamespace'],
+          meta: { label: 'Namespace' },
+        },
+        { name: 'record', types: ['ID', 'ComposeRecord'], meta: { label: 'Record' } },
         {
           name: 'values',
           types: ['KV'],
-          meta: { description: 'Prefilled record values for new records' },
+          meta: { label: 'Values', description: 'Prefilled record values for new records' },
         },
-        { name: 'edit', types: ['Boolean'] },
+        { name: 'edit', types: ['Boolean'], meta: { label: 'Edit' } },
         {
           name: 'delay',
           types: ['Integer'],
-          meta: { description: 'Redirection delay in seconds' },
+          meta: { label: 'Delay', description: 'Redirection delay in seconds' },
         },
         {
           name: 'openMode',
           types: ['String'],
           meta: {
+            label: 'Open mode',
             visual: {
               input: {
                 type: 'select',
@@ -116,13 +123,14 @@ export const prompts = Object.freeze(
       ref: 'notification',
       meta: { short: 'Show non-blocking message to user' },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'title', types: ['String'] },
-        { name: 'message', types: ['String'], required: true },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'title', types: ['String'], meta: { label: 'Title' } },
+        { name: 'message', types: ['String'], required: true, meta: { label: 'Message' } },
         {
           name: 'variant',
           types: ['String'],
           meta: {
+            label: 'Variant',
             visual: {
               input: { type: 'select', properties: { options: variants }, default: 'primary' },
             },
@@ -131,7 +139,10 @@ export const prompts = Object.freeze(
         {
           name: 'timeout',
           types: ['Integer'],
-          meta: { description: 'How long do we show the notification in seconds' },
+          meta: {
+            label: 'Timeout',
+            description: 'How long do we show the notification in seconds',
+          },
         },
       ],
     },
@@ -139,14 +150,15 @@ export const prompts = Object.freeze(
       ref: 'alert',
       meta: { short: 'Prompt user with an alert' },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'title', types: ['String'] },
-        { name: 'message', types: ['String'], required: true },
-        { name: 'buttonLabel', types: ['String'] },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'title', types: ['String'], meta: { label: 'Title' } },
+        { name: 'message', types: ['String'], required: true, meta: { label: 'Message' } },
+        { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
         {
           name: 'buttonVariant',
           types: ['String'],
           meta: {
+            label: 'Button variant',
             visual: {
               input: { type: 'select', properties: { options: variants }, default: 'primary' },
             },
@@ -158,31 +170,33 @@ export const prompts = Object.freeze(
       ref: 'choice',
       meta: { short: 'Prompt user with choice' },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'title', types: ['String'] },
-        { name: 'message', types: ['String'], required: true },
-        { name: 'confirmButtonLabel', types: ['String'] },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'title', types: ['String'], meta: { label: 'Title' } },
+        { name: 'message', types: ['String'], required: true, meta: { label: 'Message' } },
+        { name: 'confirmButtonLabel', types: ['String'], meta: { label: 'Confirm button label' } },
         {
           name: 'confirmButtonVariant',
           types: ['String'],
           meta: {
+            label: 'Confirm button variant',
             visual: {
               input: { type: 'select', properties: { options: variants }, default: 'primary' },
             },
           },
         },
-        { name: 'confirmButtonValue', types: ['Any'] },
-        { name: 'rejectButtonLabel', types: ['String'] },
+        { name: 'confirmButtonValue', types: ['Any'], meta: { label: 'Confirm button value' } },
+        { name: 'rejectButtonLabel', types: ['String'], meta: { label: 'Reject button label' } },
         {
           name: 'rejectButtonVariant',
           types: ['String'],
           meta: {
+            label: 'Reject button variant',
             visual: {
               input: { type: 'select', properties: { options: variants }, default: 'danger' },
             },
           },
         },
-        { name: 'rejectButtonValue', types: ['Any'] },
+        { name: 'rejectButtonValue', types: ['Any'], meta: { label: 'Reject button value' } },
       ],
       results: [{ name: 'value', types: ['Any'] }],
     },
@@ -193,17 +207,27 @@ export const prompts = Object.freeze(
         webapps: ['compose', 'workflow', 'admin'],
       },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'title', types: ['String'] },
-        { name: 'message', types: ['String'], required: true },
-        { name: 'namespace', types: ['ID', 'Handle', 'ComposeNamespace'], required: true },
-        { name: 'module', types: ['ID', 'Handle', 'ComposeModule'], required: true },
-        { name: 'labelField', types: ['Handle'], required: true },
-        { name: 'queryFields', types: ['Array'] },
-        { name: 'prefilter', types: ['String'] },
-        { name: 'label', types: ['String'] },
-        { name: 'placeholder', types: ['String'] },
-        { name: 'buttonLabel', types: ['String'] },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'title', types: ['String'], meta: { label: 'Title' } },
+        { name: 'message', types: ['String'], required: true, meta: { label: 'Message' } },
+        {
+          name: 'namespace',
+          types: ['ID', 'Handle', 'ComposeNamespace'],
+          required: true,
+          meta: { label: 'Namespace' },
+        },
+        {
+          name: 'module',
+          types: ['ID', 'Handle', 'ComposeModule'],
+          required: true,
+          meta: { label: 'Module' },
+        },
+        { name: 'labelField', types: ['Handle'], required: true, meta: { label: 'Label field' } },
+        { name: 'queryFields', types: ['Array'], meta: { label: 'Query fields' } },
+        { name: 'prefilter', types: ['String'], meta: { label: 'Prefilter' } },
+        { name: 'label', types: ['String'], meta: { label: 'Label' } },
+        { name: 'placeholder', types: ['String'], meta: { label: 'Placeholder' } },
+        { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
       ],
       results: [{ name: 'value', types: ['ComposeRecord'] }],
     },
@@ -211,23 +235,25 @@ export const prompts = Object.freeze(
       ref: 'input',
       meta: { short: 'Prompt user with a single input' },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'title', types: ['String'] },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'title', types: ['String'], meta: { label: 'Title' } },
         {
           name: 'variant',
           types: ['String'],
           meta: {
+            label: 'Variant',
             visual: {
               input: { type: 'select', properties: { options: variants }, default: 'primary' },
             },
           },
         },
-        { name: 'message', types: ['String'], required: true },
-        { name: 'label', types: ['String'] },
+        { name: 'message', types: ['String'], required: true, meta: { label: 'Message' } },
+        { name: 'label', types: ['String'], meta: { label: 'Label' } },
         {
           name: 'type',
           types: ['String'],
           meta: {
+            label: 'Type',
             visual: {
               input: {
                 type: 'select',
@@ -248,8 +274,8 @@ export const prompts = Object.freeze(
             },
           },
         },
-        { name: 'inputValue', types: ['String'] },
-        { name: 'buttonLabel', types: ['String'] },
+        { name: 'inputValue', types: ['String'], meta: { label: 'Input value' } },
+        { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
       ],
       results: [{ name: 'value', types: ['Any'] }],
     },
@@ -257,23 +283,25 @@ export const prompts = Object.freeze(
       ref: 'options',
       meta: { short: 'Prompt user with options' },
       parameters: [
-        { name: 'owner', types: ['User', 'ID'], required: false },
-        { name: 'title', types: ['String'] },
+        { name: 'owner', types: ['User', 'ID'], required: false, meta: { label: 'Owner' } },
+        { name: 'title', types: ['String'], meta: { label: 'Title' } },
         {
           name: 'variant',
           types: ['String'],
           meta: {
+            label: 'Variant',
             visual: {
               input: { type: 'select', properties: { options: variants }, default: 'primary' },
             },
           },
         },
-        { name: 'message', types: ['String'], required: true },
-        { name: 'label', types: ['String'] },
+        { name: 'message', types: ['String'], required: true, meta: { label: 'Message' } },
+        { name: 'label', types: ['String'], meta: { label: 'Label' } },
         {
           name: 'type',
           types: ['String'],
           meta: {
+            label: 'Type',
             visual: {
               input: {
                 type: 'select',
@@ -288,11 +316,11 @@ export const prompts = Object.freeze(
             },
           },
         },
-        { name: 'value', types: ['String', 'Array'] },
-        { name: 'placeholder', types: ['String'] },
-        { name: 'options', types: ['KV'] },
-        { name: 'multiselect', types: ['Boolean'] },
-        { name: 'buttonLabel', types: ['String'] },
+        { name: 'value', types: ['String', 'Array'], meta: { label: 'Value' } },
+        { name: 'placeholder', types: ['String'], meta: { label: 'Placeholder' } },
+        { name: 'options', types: ['KV'], meta: { label: 'Options' } },
+        { name: 'multiselect', types: ['Boolean'], meta: { label: 'Multiselect' } },
+        { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
       ],
       results: [{ name: 'value', types: ['Any'] }],
     },
