@@ -11,6 +11,7 @@ import (
 	"github.com/crusttech/human/server/compose/dalutils"
 	"github.com/crusttech/human/server/compose/rest/request"
 	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/tests/helpers"
 	"github.com/steinfletcher/apitest"
@@ -96,6 +97,114 @@ func TestRecordExecOrganizeDropsOntoAnOccupiedPosition(t *testing.T) {
 		End()
 
 	h.a.Equal("acb", order())
+}
+
+// A drop is an update to the record, so the automation an author bound to
+// record update has to hear it: organize used to dispatch only its own events,
+// leaving a card moved on a board invisible to every update handler.
+func TestRecordExecOrganizeFiresRecordUpdate(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read", "update")
+
+	module := h.repoMakeRecordModuleWithFields(
+		"organize update events",
+		&types.ModuleField{Name: "position", Kind: "Number"},
+		&types.ModuleField{Name: "handle"},
+	)
+
+	makeRecord := func(position int, handle string) *types.Record {
+		return h.makeRecord(module,
+			&types.RecordValue{Name: "position", Value: strconv.Itoa(position)},
+			&types.RecordValue{Name: "handle", Value: handle},
+		)
+	}
+
+	_ = makeRecord(1, "a")
+	_ = makeRecord(2, "b")
+	cRec := makeRecord(3, "c")
+
+	var seen []string
+	watch := func(event string) uintptr {
+		return eventBus.Register(
+			func(ctx context.Context, ev eventbus.Event) error {
+				rec := ev.(interface{ Record() *types.Record }).Record()
+				seen = append(seen, event+":"+rec.Values.FilterByName("handle")[0].Value)
+				return nil
+			},
+			eventbus.For("compose:record"),
+			eventbus.On(event),
+		)
+	}
+	defer eventBus.Unregister(watch("beforeUpdate"), watch("afterUpdate"))
+
+	// 'c' is dropped in front of 'b', which pushes 'b' to a new position too.
+	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
+		{Name: "recordID", Value: strconv.FormatUint(cRec.ID, 10)},
+		{Name: "positionField", Value: "position"},
+		{Name: "position", Value: "2"}}).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	// Both halves of the update contract, and only for the record that was
+	// dragged — 'b' was renumbered by the same call and must stay quiet, or one
+	// move on a full column becomes a run per card.
+	h.a.Equal([]string{"beforeUpdate:c", "afterUpdate:c"}, seen)
+}
+
+// A beforeUpdate handler gates a save, so it gates a drop: the record must be
+// left where it was when one refuses.
+func TestRecordExecOrganizeRefusedByBeforeUpdate(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read", "update")
+
+	module := h.repoMakeRecordModuleWithFields(
+		"organize update veto",
+		&types.ModuleField{Name: "position", Kind: "Number"},
+		&types.ModuleField{Name: "handle"},
+	)
+
+	makeRecord := func(position int, handle string) *types.Record {
+		return h.makeRecord(module,
+			&types.RecordValue{Name: "position", Value: strconv.Itoa(position)},
+			&types.RecordValue{Name: "handle", Value: handle},
+		)
+	}
+
+	_ = makeRecord(1, "a")
+	cRec := makeRecord(2, "c")
+
+	ptr := eventBus.Register(
+		func(ctx context.Context, ev eventbus.Event) error {
+			return fmt.Errorf("not on my board")
+		},
+		eventbus.For("compose:record"),
+		eventbus.On("beforeUpdate"),
+	)
+	defer eventBus.Unregister(ptr)
+
+	payload, err := json.Marshal(request.RecordExec{Args: request.ProcedureArgs{
+		{Name: "recordID", Value: strconv.FormatUint(cRec.ID, 10)},
+		{Name: "positionField", Value: "position"},
+		{Name: "position", Value: "0"},
+	}})
+	h.noError(err)
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/exec/organize", module.NamespaceID, module.ID)).
+		Header("Accept", "application/json").
+		JSON(string(payload)).
+		Expect(h.t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not on my board")).
+		End()
+
+	lRec := h.lookupRecordByID(module, cRec.ID)
+	h.a.Equal("2", lRec.Values.FilterByName("position")[0].Value)
 }
 
 func TestRecordExecOrganize(t *testing.T) {

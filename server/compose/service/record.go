@@ -1907,6 +1907,21 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 
 		svc.recordInfoUpdate(ctx, r)
 
+		// A drop changes the record, so it is an update as well as an organize.
+		// Fired with the new position and group already on the record and before
+		// anything is written, so a handler reads what the drop set and can still
+		// refuse it — the same contract the save path offers.
+		//
+		// Only this record: the reorder below rewrites the position of every
+		// record the drop displaced, and firing an update for each would turn one
+		// move into a run per card in the column.
+		rve := &types.RecordValueErrorSet{}
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(r, old, m, ns, rve, nil)); err != nil {
+			return err
+		} else if !rve.IsValid() {
+			return RecordErrValueInput().Wrap(rve)
+		}
+
 		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 			if err = dalutils.ComposeRecordUpdate(ctx, svc.dal, m, r); err != nil {
 				return err
@@ -1981,6 +1996,10 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 					}
 				}
 			}
+
+			// The record is written; an update handler is told, and cannot
+			// refuse what already happened.
+			_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(r, old, m, ns, nil, nil))
 
 			// Dispatch afterOrganize event
 			if err = svc.eventbus.WaitFor(ctx, event.RecordAfterOrganize(r, old, m, ns, nil, nil)); err != nil {
