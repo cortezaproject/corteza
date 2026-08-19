@@ -26,7 +26,9 @@ export interface RawRevisionPayload {
     revision: number
     operation: string
     userID: string
-    changes: Array<RevisionChange>
+
+    // revisions without field changes (soft-deleted, undeleted) carry a null delta
+    changes: Array<RevisionChange> | null
     comment: string
   }>
 }
@@ -75,6 +77,6 @@ export function convertRevisionPayloadToRevision(
     userID: raw.userID,
     user: null,
     comment: raw.comment,
-    changes: filterChanges(raw.changes),
+    changes: filterChanges(Array.isArray(raw.changes) ? raw.changes : []),
   }))
 }
