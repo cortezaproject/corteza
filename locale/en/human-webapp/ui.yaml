@@ -8,18 +8,18 @@ settings:
       colorPicker: Choose a color
       custom-css: Custom CSS
       iconLogo:
-        title: Icon logo
+        title: Icon
         uploader:
-          instructions: Click or drop icon logo image here to upload
-          uploading: Uploading icon logo
+          instructions: Click or drop icon image here to upload
+          uploading: Uploading icon
       installSassDocs: docs here
       label:
         default: Default
       mainLogo:
-        title: Main logo
+        title: Logo
         uploader:
-          instructions: Click or drop main logo here to upload
-          uploading: Uploading main logo
+          instructions: Click or drop logo here to upload
+          uploading: Uploading logo
       sassNotInstalled: No dart-sass binaries were detected. For guidance on how to set it up, refer to
       tabs:
         dark: Dark
