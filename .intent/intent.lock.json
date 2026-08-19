@@ -4386,10 +4386,15 @@
       "doc": "lib/vue/src/plugins/plugins.intent.md",
       "t": "2026-08-13"
     },
-    "lib/vue/src/plugins/settings.ts": {
-      "h": "6581aa90a868",
+    "lib/vue/src/plugins/settings.test.ts": {
+      "h": "b460edfd2594",
       "doc": "lib/vue/src/plugins/plugins.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-19"
+    },
+    "lib/vue/src/plugins/settings.ts": {
+      "h": "c31e23b9016c",
+      "doc": "lib/vue/src/plugins/plugins.intent.md",
+      "t": "2026-08-19"
     },
     "lib/vue/src/plugins/toast.ts": {
       "h": "3a89cc9b5e89",

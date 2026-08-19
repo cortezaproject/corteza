@@ -28,7 +28,12 @@ export class Settings {
   async fetch() {
     try {
       const response = await this.api.settingsCurrent()
-      this.current = reactive(response || {})
+
+      // The contents are replaced in place: `current` is the one reactive
+      // object every consumer's effect is tracking, so a fresh one would leave
+      // them all reading a discarded proxy.
+      Object.keys(this.current).forEach(k => delete this.current[k])
+      Object.assign(this.current, response || {})
 
       return response
     } catch (error) {

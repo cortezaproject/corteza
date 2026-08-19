@@ -10,6 +10,7 @@ touched-by:
   - client/web/unify/src/plugins
 tests:
   - lib/vue/src/plugins/primevue-locale.test.ts
+  - lib/vue/src/plugins/settings.test.ts
 ---
 
 # App bootstrap plugins
@@ -30,7 +31,7 @@ registry. Together they define the injection surface (`$Auth`, `$SystemAPI`,
 - i18n.ts — creates vue-i18n (Composition mode) from a pre-loaded translations bundle, `en` fallback.
 - primevue-components.ts — globally registers PrimeVue components plus shared C\* inputs/permission components so SFCs skip per-file imports.
 - primevue-locale.ts — derives PrimeVue's calendar locale (day/month names, date format, first day of week) from `Intl`, so translations never hand-maintain calendar strings. It returns a PARTIAL config that PrimeVue deep-merges over its defaults: a key the engine can't answer for — `firstDayOfWeek` on runtimes without week-info — is omitted rather than sent as undefined, so the built-in value survives. Button/aria strings stay in the i18n bundle; they are chrome, not locale data.
-- settings.ts — `Settings` service around `settingsCurrent()`: dot-path `get(k, d)` and attachment-URL resolution; provides `$Settings`.
+- settings.ts — `Settings` service around `settingsCurrent()`: dot-path `get(k, d)` and attachment-URL resolution; provides `$Settings`. `fetch()` refreshes one reactive object in place, so a re-fetch re-renders whatever reads a setting.
 - toast.ts — wraps PrimeVue toast into `$toast` helpers (`toastSuccess/Warning/Info/Danger`, `toastErrorHandler`).
 
 ## When changing this
