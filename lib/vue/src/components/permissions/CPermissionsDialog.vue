@@ -40,10 +40,10 @@
         <div class="flex border-y bg-emphasis sticky top-[37px] z-10">
           <!-- Left: Role picker -->
           <div class="perm-col-left p-3">
-            <div class="flex flex-col gap-1">
-              <label for="permissions-role-selector" class="text-sm font-medium text-primary">
-                {{ $t('permissions.ui.edit.label') }}
-              </label>
+            <CFormGroup
+              :label="$t('permissions.ui.edit.label')"
+              input-id="permissions-role-selector"
+            >
               <CInputRole
                 id="permissions-role-selector"
                 v-model="currentRoleID"
@@ -52,7 +52,7 @@
                 :exclude-roles="['super-admin']"
                 @select="onRoleChange"
               />
-            </div>
+            </CFormGroup>
           </div>
 
           <!-- Right: Evaluation columns headers -->
@@ -190,10 +190,7 @@
     :style="{ width: '28rem' }"
   >
     <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1">
-        <label for="eval-role-selector" class="text-sm font-medium text-primary">
-          {{ $t('permissions.ui.add.role.label') }}
-        </label>
+      <CFormGroup :label="$t('permissions.ui.add.role.label')" input-id="eval-role-selector">
         <CInputRole
           id="eval-role-selector"
           v-model="addEval.roleIDs"
@@ -201,19 +198,16 @@
           multiple
           :disabled="!!addEval.userID"
         />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label for="eval-user-selector" class="text-sm font-medium text-primary">
-          {{ $t('permissions.ui.add.user.label') }}
-        </label>
+      <CFormGroup :label="$t('permissions.ui.add.user.label')" input-id="eval-user-selector">
         <CInputUser
           id="eval-user-selector"
           v-model="addEval.userID"
           :placeholder="$t('permissions.ui.add.user.placeholder')"
           :disabled="addEval.roleIDs?.length > 0"
         />
-      </div>
+      </CFormGroup>
     </div>
 
     <template #footer>

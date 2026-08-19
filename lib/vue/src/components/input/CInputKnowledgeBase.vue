@@ -78,29 +78,20 @@
     >
       <div class="flex flex-col gap-4">
         <!-- Title -->
-        <div class="flex flex-col gap-1">
-          <label for="kb-title" class="font-medium text-primary text-sm">
-            {{ titleLabel }}
-          </label>
+        <CFormGroup :label="titleLabel" input-id="kb-title">
           <InputText id="kb-title" v-model="dialogForm.title" />
-        </div>
+        </CFormGroup>
 
         <!-- Description -->
-        <div class="flex flex-col gap-1">
-          <label for="kb-description" class="font-medium text-primary text-sm">
-            {{ descriptionLabel }}
-          </label>
+        <CFormGroup :label="descriptionLabel" input-id="kb-description">
           <Textarea id="kb-description" v-model="dialogForm.description" rows="4" autoResize />
           <small class="text-muted-color">
             {{ descriptionHelp }}
           </small>
-        </div>
+        </CFormGroup>
 
         <!-- Compose Context -->
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-primary text-sm">
-            {{ composeContextLabel }}
-          </label>
+        <CFormGroup :label="composeContextLabel">
           <div class="flex flex-col gap-3">
             <div
               v-for="(nsCtx, idx) in dialogForm.context.namespaces"
@@ -146,7 +137,7 @@
               @click="addNamespaceContext"
             />
           </div>
-        </div>
+        </CFormGroup>
       </div>
 
       <template #footer>

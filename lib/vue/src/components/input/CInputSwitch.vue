@@ -1,11 +1,5 @@
 <template>
-  <div class="flex flex-col gap-1">
-    <label v-if="label" class="font-medium text-sm text-primary">
-      {{ label }}
-    </label>
-    <span v-if="description" class="text-xs text-muted-color">
-      {{ description }}
-    </span>
+  <CFormGroup :label="label" :description="description">
     <div class="flex items-center gap-2">
       <span class="text-sm text-muted-color">{{ computedNoLabel }}</span>
       <ToggleSwitch
@@ -15,7 +9,7 @@
       />
       <span class="text-sm text-muted-color">{{ computedYesLabel }}</span>
     </div>
-  </div>
+  </CFormGroup>
 </template>
 
 <script setup>

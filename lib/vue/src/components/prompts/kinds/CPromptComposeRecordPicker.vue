@@ -2,48 +2,48 @@
   <div class="flex flex-col gap-4">
     <p v-if="message" class="m-0 whitespace-pre-wrap" v-html="message" />
 
-    <label v-if="label" class="text-sm font-medium text-color">{{ label }}</label>
+    <CFormGroup :label="label">
+      <Message v-if="resolveError" severity="error" :closable="false" class="text-sm">
+        {{ resolveError }}
+      </Message>
 
-    <Message v-if="resolveError" severity="error" :closable="false" class="text-sm">
-      {{ resolveError }}
-    </Message>
-
-    <Select
-      v-else
-      v-model="selectedRecordID"
-      :options="options"
-      option-label="label"
-      option-value="recordID"
-      :placeholder="placeholder"
-      class="w-full"
-      filter
-      :loading="processing"
-      :disabled="loading"
-      empty-message=""
-      append-to="self"
-      @filter="onFilter"
-    >
-      <template #footer>
-        <div v-if="showPagination" class="flex gap-1 p-1">
-          <Button
-            class="flex-1"
-            severity="secondary"
-            size="small"
-            icon="pi pi-chevron-left"
-            :disabled="!hasPrevPage || processing"
-            @click="goToPage(false)"
-          />
-          <Button
-            class="flex-1"
-            severity="secondary"
-            size="small"
-            icon="pi pi-chevron-right"
-            :disabled="!hasNextPage || processing"
-            @click="goToPage(true)"
-          />
-        </div>
-      </template>
-    </Select>
+      <Select
+        v-else
+        v-model="selectedRecordID"
+        :options="options"
+        option-label="label"
+        option-value="recordID"
+        :placeholder="placeholder"
+        class="w-full"
+        filter
+        :loading="processing"
+        :disabled="loading"
+        empty-message=""
+        append-to="self"
+        @filter="onFilter"
+      >
+        <template #footer>
+          <div v-if="showPagination" class="flex gap-1 p-1">
+            <Button
+              class="flex-1"
+              severity="secondary"
+              size="small"
+              icon="pi pi-chevron-left"
+              :disabled="!hasPrevPage || processing"
+              @click="goToPage(false)"
+            />
+            <Button
+              class="flex-1"
+              severity="secondary"
+              size="small"
+              icon="pi pi-chevron-right"
+              :disabled="!hasNextPage || processing"
+              @click="goToPage(true)"
+            />
+          </div>
+        </template>
+      </Select>
+    </CFormGroup>
 
     <div class="flex justify-end">
       <Button

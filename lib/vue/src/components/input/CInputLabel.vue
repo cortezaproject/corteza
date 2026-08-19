@@ -44,15 +44,9 @@
         @submit="onDialogSubmit"
       >
         <div class="flex flex-col gap-4">
-          <FormField name="name" class="flex flex-col gap-1">
-            <label for="label-name" class="font-medium text-primary text-sm">
-              {{ nameLabel }}
-            </label>
+          <CFormGroup name="name" :label="nameLabel" input-id="label-name">
             <InputText id="label-name" name="name" v-model="dialogForm.name" />
-            <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-              {{ $form.name.error?.message }}
-            </Message>
-          </FormField>
+          </CFormGroup>
         </div>
       </Form>
 

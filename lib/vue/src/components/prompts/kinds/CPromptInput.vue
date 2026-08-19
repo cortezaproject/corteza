@@ -2,18 +2,24 @@
   <div class="flex flex-col gap-4">
     <p v-if="message" class="m-0 whitespace-pre-wrap" v-html="message" />
 
-    <label v-if="label" class="text-sm font-medium text-color">{{ label }}</label>
+    <CFormGroup :label="label">
+      <CInputDateTime
+        v-if="fieldType === 'date' || fieldType === 'time' || fieldType === 'datetime'"
+        v-model="value"
+        :disabled="loading"
+        :time-only="fieldType === 'time'"
+        :only-date="fieldType === 'date'"
+        :show-time="fieldType === 'datetime'"
+      />
 
-    <CInputDateTime
-      v-if="fieldType === 'date' || fieldType === 'time' || fieldType === 'datetime'"
-      v-model="value"
-      :disabled="loading"
-      :time-only="fieldType === 'time'"
-      :only-date="fieldType === 'date'"
-      :show-time="fieldType === 'datetime'"
-    />
-
-    <InputText v-else v-model="value" :type="fieldType" :disabled="loading" @keyup.enter="submit" />
+      <InputText
+        v-else
+        v-model="value"
+        :type="fieldType"
+        :disabled="loading"
+        @keyup.enter="submit"
+      />
+    </CFormGroup>
 
     <div class="flex justify-end">
       <Button

@@ -2,43 +2,43 @@
   <div class="flex flex-col gap-4">
     <p v-if="message" class="m-0 whitespace-pre-wrap" v-html="message" />
 
-    <label v-if="label" class="text-sm font-medium text-color">{{ label }}</label>
+    <CFormGroup :label="label">
+      <MultiSelect
+        v-if="inputType === 'select' && multiple"
+        v-model="value"
+        :options="itemOptions"
+        option-label="text"
+        option-value="value"
+        :placeholder="placeholder"
+        class="w-full"
+        :disabled="loading"
+        display="chip"
+        append-to="self"
+      />
 
-    <MultiSelect
-      v-if="inputType === 'select' && multiple"
-      v-model="value"
-      :options="itemOptions"
-      option-label="text"
-      option-value="value"
-      :placeholder="placeholder"
-      class="w-full"
-      :disabled="loading"
-      display="chip"
-      append-to="self"
-    />
+      <Select
+        v-else-if="inputType === 'select'"
+        v-model="value"
+        :options="itemOptions"
+        option-label="text"
+        option-value="value"
+        :placeholder="placeholder"
+        class="w-full"
+        :disabled="loading"
+        append-to="self"
+      />
 
-    <Select
-      v-else-if="inputType === 'select'"
-      v-model="value"
-      :options="itemOptions"
-      option-label="text"
-      option-value="value"
-      :placeholder="placeholder"
-      class="w-full"
-      :disabled="loading"
-      append-to="self"
-    />
-
-    <div v-else class="flex flex-col gap-2">
-      <div v-for="option in itemOptions" :key="option.value" class="flex items-center gap-2">
-        <RadioButton
-          v-model="value"
-          :input-id="`prompt-option-${option.value}`"
-          :value="option.value"
-        />
-        <label :for="`prompt-option-${option.value}`">{{ option.text }}</label>
+      <div v-else class="flex flex-col gap-2">
+        <div v-for="option in itemOptions" :key="option.value" class="flex items-center gap-2">
+          <RadioButton
+            v-model="value"
+            :input-id="`prompt-option-${option.value}`"
+            :value="option.value"
+          />
+          <label :for="`prompt-option-${option.value}`">{{ option.text }}</label>
+        </div>
       </div>
-    </div>
+    </CFormGroup>
 
     <div class="flex justify-end">
       <Button

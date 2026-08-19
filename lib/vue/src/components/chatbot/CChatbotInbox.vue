@@ -20,8 +20,7 @@
 
       <Popover ref="filterMenu">
         <div class="flex flex-col gap-3 w-72 p-1">
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-primary">{{ l('filterStatus') }}</label>
+          <CFormGroup :label="l('filterStatus')">
             <div class="flex flex-col gap-1">
               <div v-for="s in filterStatusChoices" :key="s.value" class="flex items-center gap-2">
                 <Checkbox
@@ -32,10 +31,9 @@
                 <label :for="`cb-inbox-flt-st-${s.value}`" class="text-sm">{{ s.label }}</label>
               </div>
             </div>
-          </div>
+          </CFormGroup>
 
-          <div v-if="filterChatbotChoices.length > 1" class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-primary">{{ l('filterChatbot') }}</label>
+          <CFormGroup v-if="filterChatbotChoices.length > 1" :label="l('filterChatbot')">
             <div class="flex flex-col gap-1 max-h-32 overflow-y-auto">
               <div v-for="c in filterChatbotChoices" :key="c.value" class="flex items-center gap-2">
                 <Checkbox
@@ -48,10 +46,9 @@
                 </label>
               </div>
             </div>
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-primary">{{ l('filterSource') }}</label>
+          <CFormGroup :label="l('filterSource')">
             <div class="flex flex-wrap gap-3">
               <div v-for="s in filterSourceChoices" :key="s.value" class="flex items-center gap-2">
                 <Checkbox
@@ -62,7 +59,7 @@
                 <label :for="`cb-inbox-flt-src-${s.value}`" class="text-sm">{{ s.label }}</label>
               </div>
             </div>
-          </div>
+          </CFormGroup>
 
           <div class="flex justify-end gap-1">
             <Button
@@ -218,8 +215,7 @@
         </div>
 
         <Popover ref="aliasMenu">
-          <div class="flex flex-col gap-2 w-64 p-1">
-            <label class="text-xs font-medium text-primary">{{ l('aliasLabel') }}</label>
+          <CFormGroup :label="l('aliasLabel')" class="w-64 p-1">
             <InputText
               v-model="aliasDraft"
               :placeholder="defaultOperatorName"
@@ -237,7 +233,7 @@
               />
               <Button :label="l('aliasSave')" size="small" @click="saveAlias" />
             </div>
-          </div>
+          </CFormGroup>
         </Popover>
 
         <div class="flex-1 flex flex-col min-h-0">
