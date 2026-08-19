@@ -445,6 +445,20 @@ select.form-control {
 }
 
 
+/* The auth pages sit on a deployment-supplied background image, so the header
+   cannot borrow contrast from the page behind it — every control carries its
+   own surface. Only the controls do: the "logged in as" wording rides inside
+   the profile button, muted, so a pill always means something is clickable. */
+.auth-topbar {
+  gap: 0.5rem;
+}
+
+.auth-topbar-label {
+  color: var(--auth-text-muted);
+  font-family: var(--auth-font-family);
+}
+
+
 /* ============================================================
    Badges
    ============================================================ */

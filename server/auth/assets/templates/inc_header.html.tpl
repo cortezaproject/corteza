@@ -29,19 +29,16 @@
 <body>
 	<header>
 		{{ if .user }}
-		<div class="d-flex justify-content-end align-items-center text-white m-2">
-			<a class="text-white font-weight-bold" href="{{ links.Base }}">
+		<div class="d-flex justify-content-end align-items-center m-2 auth-topbar">
+			<a class="btn btn-light btn-sm" href="{{ links.Base }}">
 				{{ tr "inc_header.menu" }}
 			</a>
-			<span class="mx-2">
-			|
-			</span>
-			{{ tr "inc_header.logged-in-as" }}
-			<a data-test-id="link-redirect-to-profile" class="font-weight-bold text-white mx-2"
-			 href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}
+			<a data-test-id="link-redirect-to-profile" class="btn btn-light btn-sm"
+			 href="{{ links.Profile }}">
+				<span class="auth-topbar-label">{{ tr "inc_header.logged-in-as" }}</span>
+				{{ coalesce .user.Name .user.Handle .user.Email }}
 			</a>
-			|
-			<a data-test-id="link-logout" class="font-weight-bold text-white ml-2" href="{{ links.Logout }}">
+			<a data-test-id="link-logout" class="btn btn-light btn-sm" href="{{ links.Logout }}">
 			 {{ tr "inc_header.logout" }}
 			</a>
 		</div>
