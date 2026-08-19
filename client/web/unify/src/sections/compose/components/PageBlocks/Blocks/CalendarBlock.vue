@@ -70,6 +70,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { compose } from '@planetcrust/human-js'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
+import { useReminderStore } from '@/sections/compose/stores/reminder'
 import PageBlock from './PageBlock.vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -92,6 +93,7 @@ const route = useRoute()
 const router = useRouter()
 const moduleStore = useModuleStore()
 const pageStore = usePageStore()
+const reminderStore = useReminderStore()
 
 const calendarRef = ref(null)
 const containerRef = ref(null)
@@ -320,6 +322,23 @@ watch(
     }
   },
 )
+
+// A reminder feed reads the API rather than the store, so what the store holds
+// is its signal that there is something else to show: which reminders exist,
+// when they fire, whether they are dismissed, what they are called.
+const reminderSignature = computed(() =>
+  reminderStore.reminders
+    .map(r => [r.reminderID, r.remindAt, r.dismissedAt, r.payload?.title].join(':'))
+    .join('|'),
+)
+
+watch(reminderSignature, () => {
+  const { reminder } = compose.PageBlockCalendar.feedResources
+
+  if ((options.value.feeds || []).some(feed => feed.resource === reminder)) {
+    refresh()
+  }
+})
 
 let resizeObserver = null
 
