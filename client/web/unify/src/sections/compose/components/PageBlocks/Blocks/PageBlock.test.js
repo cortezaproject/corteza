@@ -7,9 +7,12 @@ import PageBlock from './PageBlock.vue'
 // prefilter is — the card chrome, the magnify dialog header and the iframe's
 // accessible name all read the same string.
 
+// Surfaces what the real card root gets: `id` falls through as an attribute,
+// the classes ride the pass-through `pt.root`.
 const CardStub = {
   name: 'CardStub',
-  template: `<div>
+  props: ['pt'],
+  template: `<div :class="pt?.root?.class">
     <div class="card-title"><slot name="title" /></div>
     <div class="card-subtitle"><slot name="subtitle" /></div>
     <slot name="content" />
@@ -85,5 +88,37 @@ describe('PageBlock title and description', () => {
 
     expect(title(w)).toBe('Open leads')
     expect(subtitle(w)).toBe('All of them')
+  })
+})
+
+// The block root is the only hook a stylesheet written in admin > theming has:
+// the author's ID and classes from the configurator, plus `page-block` and the
+// kind so a rule can reach a whole class of blocks.
+describe('PageBlock custom CSS hooks', () => {
+  const root = w => w.get('.page-block')
+
+  it('puts the authored ID and classes on the block root', () => {
+    const w = mountBlock({
+      kind: 'Chart',
+      blockID: '12',
+      meta: { customID: 'sales-chart', customCSSClass: 'wide highlight' },
+    })
+
+    expect(root(w).attributes('id')).toBe('sales-chart')
+    expect(root(w).classes()).toEqual(
+      expect.arrayContaining(['page-block', 'Chart', 'wide', 'highlight']),
+    )
+  })
+
+  it('falls back to the block ID when none is authored', () => {
+    const w = mountBlock({ kind: 'Content', blockID: '12' })
+
+    expect(root(w).attributes('id')).toBe('12')
+  })
+
+  it('leaves an unsaved block without an ID', () => {
+    const w = mountBlock({ kind: 'Content', blockID: '0', meta: { tempID: 'abc' } })
+
+    expect(root(w).attributes('id')).toBeUndefined()
   })
 })

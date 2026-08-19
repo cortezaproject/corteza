@@ -1,5 +1,5 @@
 <template>
-  <Card class="h-full overflow-hidden" :pt="cardPt">
+  <Card :id="elementID" class="h-full overflow-hidden" :pt="cardPt">
     <template v-if="showHeader" #title>
       <div class="flex items-center gap-2">
         <div class="flex-1 truncate">
@@ -94,6 +94,7 @@
 
 <script setup>
 import { computed, inject, ref, useSlots, watch, onBeforeUnmount } from 'vue'
+import { NoID } from '@planetcrust/human-js'
 import { interpolateDisplayString } from '../../../lib/record-filter'
 
 defineOptions({ inheritAttrs: false })
@@ -165,11 +166,28 @@ const showHeaderActions = computed(() => {
   return props.block.options?.showRefresh || showMagnifyButton.value
 })
 
+// The block root's custom-CSS hooks. The author's ID from the configurator,
+// falling back to the block's own ID — which an unsaved block does not have, and
+// several NoID blocks in the builder would all answer to the same id.
+const elementID = computed(() => {
+  const customID = props.block.meta?.customID
+  if (customID) return customID
+
+  const { blockID } = props.block
+  return blockID && blockID !== NoID ? blockID : undefined
+})
+
 const cardPt = computed(() => ({
   root: {
     class: [
+      // Reach every block, or every block of one kind, without the author
+      // naming each one. `page-block` rather than Corteza's `block`, which
+      // here is a tailwind utility and would lay the card out as display:block.
+      'page-block',
+      props.block.kind,
       isPlain.value ? 'bg-transparent shadow-none' : '',
       hasBorder.value ? 'border border-surface' : '',
+      props.block.meta?.customCSSClass,
     ],
   },
   body: { class: 'p-0 flex-1 flex flex-col overflow-hidden gap-0' },
