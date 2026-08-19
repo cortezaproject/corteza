@@ -304,8 +304,11 @@ function createNewRecord() {
 // from a board over another module before the pointer ever lands.
 //
 // The move itself is local — the card leaves one column's list and enters the
-// other's — so neither of the two columns you are watching refetches anything.
-// The server is told afterwards, and only a rejection moves the card back.
+// other's — and the server is told afterwards. The receiving column then
+// re-reads itself: the card arrives holding the values it had in the column it
+// left, including the key the drop has just changed, and the server's reorder
+// has shifted the positions of the cards it landed among. The column it came
+// from lost a card and nothing else, so it is left alone.
 const blockKey = computed(() => String(props.block.blockID ?? ''))
 
 // Repositioning needs a position field; regrouping needs a group field. With
@@ -371,6 +374,9 @@ async function organize(record, index, fromKey) {
       moduleID,
       args,
     })
+    // What the card shows, and what the next drop's position is measured
+    // against, are the values this column last read — so read them again.
+    await pullRecords({ silent: true })
     $eventBus?.emit('refetch-records', { organized })
   } catch (err) {
     console.error('Failed to organize record:', err)
@@ -393,8 +399,9 @@ watch(
 )
 
 // A bare refetch — a record was saved somewhere — reloads the column as before.
-// One carrying an organized move is narrower: the two columns it moved between
-// already show it, everyone else swaps their cards in silently.
+// One carrying an organized move is narrower: the receiving column has already
+// re-read itself and the one the card left needs nothing, so the rest of the
+// board swaps its cards in silently.
 const offRefetch = $eventBus?.on('refetch-records', payload => {
   const organized = payload?.organized
   if (!organized) return pullRecords()

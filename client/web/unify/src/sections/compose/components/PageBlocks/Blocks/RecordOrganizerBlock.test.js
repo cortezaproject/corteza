@@ -29,7 +29,7 @@ vi.mock('@planetcrust/human-vue', () => ({
   usePageStore: () => ({ set: [] }),
   components: {
     CInputConfirm: { template: '<div />' },
-    CFieldViewer: { props: ['field', 'record'], template: '<span />' },
+    CFieldViewer: { name: 'CFieldViewer', props: ['field', 'record'], template: '<span />' },
     // Stands in for the shared draggable: renders its items and lets a test
     // emit the moves SortableJS would, which jsdom cannot produce.
     CDraggableList: {
@@ -91,6 +91,8 @@ async function mountWith(options, records = []) {
 }
 
 const dragList = w => w.findComponent({ name: 'CDraggableList' })
+// The records the column is actually rendering, read off the card's viewer.
+const cardRecords = w => w.findAllComponents({ name: 'CFieldViewer' }).map(c => c.props('record'))
 const organizeArgs = call => Object.fromEntries(call.args.map(a => [a.name, a.value]))
 
 const lastQuery = () => list.mock.calls.at(-1)[0].query
@@ -225,6 +227,24 @@ describe('RecordOrganizerBlock as a board', () => {
     await flushPromises()
 
     expect(organizeArgs(recordExec.mock.calls[0][0]).group).toBe('')
+  })
+
+  it('re-reads the column after the move, so the card shows what the server stored', async () => {
+    const w = await mountWith(board, cards)
+
+    // The card arrives holding the key it had in the column it left; the
+    // column that took it only knows better once it has read the record back.
+    const stale = { recordID: 'R9', values: { title: 'Nine', status: 'todo' } }
+    list.mockClear()
+    list.mockResolvedValueOnce({
+      set: [{ recordID: 'R9', values: { title: 'Nine', status: 'done', pos: '0' } }],
+    })
+
+    dragList(w).vm.$emit('add', { item: stale, index: 0, fromKey: '7' })
+    await flushPromises()
+
+    expect(list).toHaveBeenCalledTimes(1)
+    expect(cardRecords(w).map(r => r.values.status)).toEqual(['done'])
   })
 
   it('tells the board which two columns the card moved between', async () => {
