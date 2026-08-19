@@ -243,6 +243,7 @@ import CommentReply from './Comment/CommentReply.vue'
 import { components } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
 import { evaluatePrefilter, getFieldFilter } from '../../../lib/record-filter'
+import { fieldLabeller, partitionSaveErrors } from '../../../lib/record-errors'
 
 const { CRichTextInput } = components
 
@@ -256,6 +257,7 @@ const props = defineProps({
 const $ComposeAPI = inject('$ComposeAPI')
 const $Auth = inject('$Auth')
 const $eventBus = inject('$eventBus', null)
+const $toast = inject('$toast', null)
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 const userStore = useUserStore()
@@ -712,10 +714,28 @@ async function submitComment() {
     }
   } catch (e) {
     console.error('Failed to submit comment:', e)
+    reportCommentFailure(e, 'block.comment.error.postFailed')
   } finally {
     submitting.value = false
     nextTick(() => scrollToLatest())
   }
+}
+
+/**
+ * Say what went wrong with a comment.
+ *
+ * A comment is composed in a title and a content box, not a field form, so
+ * there is nothing on screen for a field-specific complaint to sit beside —
+ * each is named by its field's label in the message instead.
+ */
+function reportCommentFailure(e, fallbackKey) {
+  const { general } = partitionSaveErrors(e, {
+    canShow: () => false,
+    labelOf: fieldLabeller(roModule.value),
+  })
+
+  if (general.length) $toast?.toastDanger(general.join('\n'))
+  else $toast?.toastErrorHandler(t(fallbackKey))(e)
 }
 
 // ---- Edit ----
@@ -750,6 +770,7 @@ async function onEditComment(comment, { title, content }) {
     })
   } catch (e) {
     console.error('Failed to update comment:', e)
+    reportCommentFailure(e, 'block.comment.error.editFailed')
   }
 }
 
@@ -809,6 +830,7 @@ async function onReact(comment, emoji) {
     })
   } catch (e) {
     console.error('Failed to update reaction:', e)
+    reportCommentFailure(e, 'block.comment.error.reactionFailed')
   }
 }
 

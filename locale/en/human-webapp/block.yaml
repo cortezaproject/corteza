@@ -242,6 +242,10 @@ comment:
   contentField:
     footnote: Field value will be used as record content
     label: Content field
+  error:
+    editFailed: Could not save the change to this comment
+    postFailed: Could not post the comment
+    reactionFailed: Could not save the reaction
   fieldMapping: Field mapping
   invalidOwnerVar: 'Can not use {0} variable in non-record pages'
   invalidRecordVar: 'Can not use {0} variable in non-record pages'
