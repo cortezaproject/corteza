@@ -1930,11 +1930,17 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 				// We are interested only in records that have value of a sorting field greater than
 				// the place we're moving our record to.
 				// and sort the set with sorting field
+				//
+				// The moved record is excluded: it already holds the place being
+				// made for it, so sweeping it up with the records it displaced
+				// leaves the two tied on one value and the iterator deciding
+				// which comes first — half the time the card is renumbered
+				// behind the record it was dropped in front of.
 				reorderFilter := types.RecordFilter{
 					ModuleID:    moduleID,
 					NamespaceID: namespaceID,
 				}
-				reorderFilter.Query = fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace)
+				reorderFilter.Query = fmt.Sprintf("%s(%s >= %d) AND (recordID != %d)", filter, posField, recordOrderPlace, recordID)
 				if err = reorderFilter.Sort.Set(posField); err != nil {
 					return err
 				}
