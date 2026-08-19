@@ -80,8 +80,7 @@
           @row-clicked="item=>$set(item, '_showDetails', !item._showDetails)"
         >
           <template #cell(target)="{ item: a }">
-            <var>{{ `${a.label || a.target}${a.required ? '*' : ''}` }}</var>
-            <samp v-if="a.label"> {{ a.target }}</samp>
+            <strong>{{ `${a.label || a.target}${a.required ? '*' : ''}` }}</strong>
             <samp v-if="!isWhileIterator"> ({{ a.type }})</samp>
           </template>
 
