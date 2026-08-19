@@ -18,6 +18,25 @@ interface UploadResult {
   [key: string]: any
 }
 
+function parseJSON(body: string): any {
+  try {
+    return JSON.parse(body)
+  } catch {
+    return undefined
+  }
+}
+
+/** The message an upload failed with, whichever shape the response took. */
+function failureMessage(data: any, body: string): string {
+  if (data?.error) {
+    return typeof data.error === 'string' ? data.error : data.error.message || ''
+  }
+
+  // A plain-text error is the server's formatted output; its first line is the
+  // message, the rest is the resource/type detail block.
+  return (body.split('\n')[0] || '').replace(/^Error:\s*/, '').trim()
+}
+
 /**
  * Composable for handling file uploads with drag-and-drop support.
  *
@@ -130,16 +149,22 @@ export function useFileUpload() {
         body: formData,
         credentials: 'include',
         headers: {
+          // Without it a dev server answers failures in formatted plain text.
+          Accept: 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       })
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(errData?.error?.message || `Upload failed for ${file.name}`)
+      const body = await response.text()
+      const data = parseJSON(body)
+
+      // The API reports failure as an `error` payload under HTTP 200, so the
+      // status alone says nothing about whether the upload happened; a body
+      // that does not parse is an error the server wrote as plain text.
+      if (!response.ok || data === undefined || data.error) {
+        throw new Error(failureMessage(data, body) || `Upload failed for ${file.name}`)
       }
 
-      const data = await response.json()
       return data.response || data
     } catch (err: any) {
       uploadError.value = err.message || 'Upload failed'

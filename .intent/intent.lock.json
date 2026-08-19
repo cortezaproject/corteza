@@ -4241,10 +4241,15 @@
       "doc": "lib/vue/src/composables/composables.intent.md",
       "t": "2026-08-17"
     },
-    "lib/vue/src/composables/useFileUpload.ts": {
-      "h": "869a01322ce8",
+    "lib/vue/src/composables/useFileUpload.test.ts": {
+      "h": "aa8b8ec09a83",
       "doc": "lib/vue/src/composables/composables.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-19"
+    },
+    "lib/vue/src/composables/useFileUpload.ts": {
+      "h": "0815bc94b8d9",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-08-19"
     },
     "lib/vue/src/composables/useHistoryBack.test.ts": {
       "h": "8b5016c7959a",

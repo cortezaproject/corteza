@@ -14,6 +14,7 @@ tests:
   - lib/vue/src/composables/useRBAC.test.ts
   - lib/vue/src/composables/useResourceList.test.ts
   - lib/vue/src/composables/useDraftGuard.test.ts
+  - lib/vue/src/composables/useFileUpload.test.ts
   - lib/vue/src/composables/useUnsavedGuard.test.ts
   - lib/vue/src/composables/useUserResolver.test.ts
 ---
@@ -30,7 +31,7 @@ Sections use these instead of re-implementing per-app variants.
 
 - useAgentRouteContextProvider.ts — default route-snapshot context provider for CAgentSidebar; apps layer richer context on top.
 - useConfirmDelete.ts — standardized PrimeVue delete-confirmation dialog (labels, severities).
-- useFileUpload.ts — drag-and-drop + FormData upload via an API client's axios instance (auth + base URL).
+- useFileUpload.ts — drag-and-drop + FormData upload, either through an API client's axios instance (auth + base URL) or by raw fetch against an endpoint URL + token. Both treat an `error` payload as a failure whatever the HTTP status, because the API reports one under 200; the raw path asks for JSON and falls back to reading a plain-text error's first line.
 - useHistoryBack.ts — a Back that always lands somewhere: the previous screen when the history holds one, otherwise a fallback route the caller names.
 - useInternalLink.ts — router-aware links: client-side nav for internal shell routes, native nav otherwise.
 - useMinDuration.ts — minimum-duration wrapper for async work so spinners don't flash.
