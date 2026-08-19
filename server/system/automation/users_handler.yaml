@@ -5,6 +5,7 @@ imports:
 
 snippets:
   lookup: &lookup
+    meta: { label: Lookup }
     required: true
     types:
       - { wf: ID     }
@@ -13,6 +14,7 @@ snippets:
       - { wf: User,   suffix: res }
 
   lookupRole: &lookupRole
+    meta: { label: Role }
     required: true
     types:
       - { wf: ID,     }
@@ -40,36 +42,47 @@ snippets:
 
   filterParams: &filterParams
     query:
+      meta: { label: Query }
       types:
         - { wf: String }
     email:
+      meta: { label: Email }
       types:
         - { wf: String }
     handle:
+      meta: { label: Handle }
       types:
         - { wf: String }
     labels:
+      meta: { label: Labels }
       types:
         - { wf: LabelValue }
     deleted:
+      meta: { label: Deleted }
       types:
         - { wf: UnsignedInteger }
     suspended:
+      meta: { label: Suspended }
       types:
         - { wf: UnsignedInteger }
     sort:
+      meta: { label: Sort }
       types:
         - { wf: String }
     limit:
+      meta: { label: Limit }
       types:
         - { wf: UnsignedInteger }
     incTotal:
+      meta: { label: Include total }
       types:
         - { wf: Boolean }
     incPageNavigation:
+      meta: { label: Include page navigation }
       types:
         - { wf: Boolean }
     pageCursor:
+      meta: { label: Page cursor }
       types:
         - { wf: String }
 
@@ -107,7 +120,9 @@ functions:
       short: User membership check
       description: Find user role membership by ID, handle or string
     params:
-      user: *lookup
+      user:
+        <<: *lookup
+        meta: { label: User }
       role: *lookupRole
     labels:
       <<: *labels
@@ -145,6 +160,7 @@ functions:
     params:
       user:
         <<: *user
+        meta: { label: User }
         required: true
     results:
       user: *rvUser
@@ -157,6 +173,7 @@ functions:
     params:
       user:
         <<: *user
+        meta: { label: User }
         required: true
     results:
       user: *rvUser

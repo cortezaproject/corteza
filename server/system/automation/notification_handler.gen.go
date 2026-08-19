@@ -71,15 +71,22 @@ func (h notificationHandler) Send() *atypes.Function {
 			{
 				Name:  "recipient",
 				Types: []string{"ID", "Handle", "String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Recipient",
+				},
 			},
 			{
 				Name:  "title",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Title",
+				},
 			},
 			{
 				Name:  "description",
 				Types: []string{"String"},
 				Meta: &atypes.ParamMeta{
+					Label:  "Description",
 					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "richtext"}},
 				},
 			},

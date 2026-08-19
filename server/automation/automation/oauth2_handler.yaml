@@ -4,18 +4,22 @@ functions:
       short: "Authentication: OAUTH2"
     params:
       client:
+        meta: { label: Client }
         required: true
         types:
           - { wf: String }
       secret:
+        meta: { label: Secret }
         required: true
         types:
           - { wf: String }
       scope:
+        meta: { label: Scope }
         required: true
         types:
           - { wf: String }
       tokenUrl:
+        meta: { label: Token URL }
         required: true
         types:
           - { wf: String }

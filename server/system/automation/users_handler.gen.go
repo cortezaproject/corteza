@@ -82,6 +82,9 @@ func (h usersHandler) Lookup() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -185,6 +188,9 @@ func (h usersHandler) SearchMembership() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -323,10 +329,16 @@ func (h usersHandler) CheckMembership() *atypes.Function {
 			{
 				Name:  "user",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "User",
+				},
 			},
 			{
 				Name:  "role",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 		},
 
@@ -465,46 +477,79 @@ func (h usersHandler) Search() *atypes.Function {
 			{
 				Name:  "query",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Query",
+				},
 			},
 			{
 				Name:  "email",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Email",
+				},
 			},
 			{
 				Name:  "handle",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Handle",
+				},
 			},
 			{
 				Name:  "labels",
 				Types: []string{"LabelValue"},
+				Meta: &atypes.ParamMeta{
+					Label: "Labels",
+				},
 			},
 			{
 				Name:  "deleted",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Deleted",
+				},
 			},
 			{
 				Name:  "suspended",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Suspended",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -650,46 +695,79 @@ func (h usersHandler) Each() *atypes.Function {
 			{
 				Name:  "query",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Query",
+				},
 			},
 			{
 				Name:  "email",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Email",
+				},
 			},
 			{
 				Name:  "handle",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Handle",
+				},
 			},
 			{
 				Name:  "labels",
 				Types: []string{"LabelValue"},
+				Meta: &atypes.ParamMeta{
+					Label: "Labels",
+				},
 			},
 			{
 				Name:  "deleted",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Deleted",
+				},
 			},
 			{
 				Name:  "suspended",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Suspended",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -763,6 +841,9 @@ func (h usersHandler) Create() *atypes.Function {
 			{
 				Name:  "user",
 				Types: []string{"User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "User",
+				},
 			},
 		},
 
@@ -841,6 +922,9 @@ func (h usersHandler) Update() *atypes.Function {
 			{
 				Name:  "user",
 				Types: []string{"User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "User",
+				},
 			},
 		},
 
@@ -923,6 +1007,9 @@ func (h usersHandler) Delete() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -992,6 +1079,9 @@ func (h usersHandler) Recover() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -1061,6 +1151,9 @@ func (h usersHandler) Suspend() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -1130,6 +1223,9 @@ func (h usersHandler) Unsuspend() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 

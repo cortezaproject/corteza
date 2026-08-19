@@ -64,6 +64,9 @@ func (h apigwBodyHandler) Read() *atypes.Function {
 			{
 				Name:  "request",
 				Types: []string{"HttpRequest"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Request",
+				},
 			},
 		},
 
@@ -147,10 +150,16 @@ func (h apigwBodyHandler) ReadFile() *atypes.Function {
 			{
 				Name:  "request",
 				Types: []string{"HttpRequest"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Request",
+				},
 			},
 			{
 				Name:  "name",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Name",
+				},
 			},
 		},
 

@@ -10,6 +10,7 @@ functions:
       description: Get ENV variable for the specified key. If the key doesn't correspond to any value, nil is returned
     params:
       key: 
+        meta: { label: Key }
         required: true
         types:
           - { wf: String }

@@ -72,18 +72,30 @@ func (h oauth2Handler) Authenticate() *atypes.Function {
 			{
 				Name:  "client",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Client",
+				},
 			},
 			{
 				Name:  "secret",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Secret",
+				},
 			},
 			{
 				Name:  "scope",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Scope",
+				},
 			},
 			{
 				Name:  "tokenUrl",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Token URL",
+				},
 			},
 		},
 

@@ -18,6 +18,7 @@ functions:
       <<: *labels
     params:
       attachment:
+        meta: { label: Attachment }
         required: true
         types: [ { wf: ID } ]
     results:
@@ -31,19 +32,23 @@ functions:
       create: "step"
     params:
       name:
+        meta: { label: Name }
         types:
           - { wf: String }
 
       resource:
+        meta: { label: Resource }
         required: true
         types:
           - { wf: ComposeRecord }
 
       fieldName:
+        meta: { label: Field name }
         types:
           - { wf: String }
 
       content:
+        meta: { label: Content }
         required: true
         types:
           - { wf: String, suffix: String }
@@ -61,6 +66,7 @@ functions:
       delete: "step"
     params:
       attachment:
+        meta: { label: Attachment }
         required: true
         types: [ { wf: ID } ]
 
@@ -72,6 +78,7 @@ functions:
       original-attachment: "step"
     params:
       attachment:
+        meta: { label: Attachment }
         required: true
         types: [ { wf: ID }, { wf: Attachment } ]
     results:
@@ -85,6 +92,7 @@ functions:
       preview-attachment: "step"
     params:
       attachment:
+        meta: { label: Attachment }
         required: true
         types: [ { wf: ID }, { wf: Attachment } ]
     results:

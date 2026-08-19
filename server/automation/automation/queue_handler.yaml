@@ -7,11 +7,13 @@ functions:
       short: Queue message send
     params:
       payload:
+        meta: { label: Payload }
         required: true
         types:
           - { wf: String,   suffix: String }
           - { wf: Reader,   suffix: Stream }
       queue:
+        meta: { label: Queue }
         required: true
         types:
           - { wf: String }

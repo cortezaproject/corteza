@@ -62,6 +62,9 @@ func (h valuestoreHandler) Env() *atypes.Function {
 			{
 				Name:  "key",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Key",
+				},
 			},
 		},
 

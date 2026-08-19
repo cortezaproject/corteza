@@ -74,10 +74,16 @@ func (h jsenvHandler) Execute() *atypes.Function {
 			{
 				Name:  "scope",
 				Types: []string{"Any", "Reader"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Scope",
+				},
 			},
 			{
 				Name:  "source",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Source",
+				},
 			},
 		},
 

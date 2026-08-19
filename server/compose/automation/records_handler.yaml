@@ -18,6 +18,7 @@ params:
         modules can be located in different stores.
 
   namespaceLookup: &namespaceLookup
+    meta: { label: Namespace }
     required: true
     types:
       - { wf: ID,               }
@@ -25,12 +26,14 @@ params:
       - { wf: ComposeNamespace, suffix: res }
 
   recordLookup: &recordLookup
+    meta: { label: Record }
     required: true
     types:
       - { wf: ID,               }
       - { wf: ComposeRecord,    suffix: res }
 
   record: &record
+    meta: { label: Record }
     required: true
     types:
       - { wf: ComposeRecord,    }
@@ -64,27 +67,35 @@ params:
     namespace: *namespaceLookup
     module: *moduleLookup
     query:
+      meta: { label: Query }
       types:
         - { wf: String }
     meta:
+      meta: { label: Meta }
       types:
         - { wf: Meta }
     deleted:
+      meta: { label: Deleted }
       types:
         - { wf: UnsignedInteger }
     sort:
+      meta: { label: Sort }
       types:
         - { wf: String }
     limit:
+      meta: { label: Limit }
       types:
         - { wf: UnsignedInteger }
     incTotal:
+      meta: { label: Include total }
       types:
         - { wf: Boolean }
     incPageNavigation:
+      meta: { label: Include page navigation }
       types:
         - { wf: Boolean }
     pageCursor:
+      meta: { label: Page cursor }
       types:
         - { wf: String }
 
@@ -189,6 +200,7 @@ functions:
     params:
       record:
         <<: *record
+        meta: { label: Record }
         required: true
     results:
       record: *rvRecord
@@ -202,6 +214,7 @@ functions:
     params:
       record:
         <<: *record
+        meta: { label: Record }
         required: true
     results:
       record: *rvRecord
@@ -218,6 +231,7 @@ functions:
         required: false
       namespace:
         <<: *namespaceLookup
+        meta: { label: Namespace }
         required: false
       record: *recordLookup
 

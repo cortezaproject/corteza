@@ -98,40 +98,60 @@ func (h notificationHandler) SendRecord() *atypes.Function {
 			{
 				Name:  "recipient",
 				Types: []string{"ID", "Handle", "String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Recipient",
+				},
 			},
 			{
 				Name:  "title",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Title",
+				},
 			},
 			{
 				Name:  "description",
 				Types: []string{"String"},
 				Meta: &atypes.ParamMeta{
+					Label:  "Description",
 					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "richtext"}},
 				},
 			},
 			{
 				Name:  "module",
 				Types: []string{"ID", "Handle"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Module",
+				},
 			},
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "record",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Record",
+				},
 			},
 			{
 				Name:  "openMode",
 				Types: []string{"String"},
 				Meta: &atypes.ParamMeta{
+					Label:  "Open mode",
 					Visual: map[string]interface{}{"input": map[string]interface{}{"default": "modal", "properties": map[string]interface{}{"options": []interface{}{map[string]interface{}{"text": "Open link in the same tab", "value": "sameTab"}, map[string]interface{}{"text": "Open link in a new tab", "value": "newTab"}, map[string]interface{}{"text": "Open in a modal", "value": "modal"}}}, "type": "select"}},
 				},
 			},
 			{
 				Name:  "edit",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Edit",
+				},
 			},
 		},
 

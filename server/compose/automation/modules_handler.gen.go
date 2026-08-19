@@ -80,10 +80,16 @@ func (h modulesHandler) Lookup() *atypes.Function {
 			{
 				Name:  "module",
 				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Module",
+				},
 			},
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 		},
 

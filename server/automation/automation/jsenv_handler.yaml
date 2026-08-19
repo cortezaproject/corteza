@@ -7,11 +7,13 @@ functions:
       short: Process arbitrary data in jsenv
     params:
       scope:
+        meta: { label: Scope }
         required: true
         types:
           - { wf: Any }
           - { wf: Reader,  suffix: Stream }
       source:
+        meta: { label: Source }
         required: true
         types:
           - { wf: String }

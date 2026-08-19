@@ -78,6 +78,9 @@ func (h templatesHandler) Lookup() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Template"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -197,42 +200,72 @@ func (h templatesHandler) Search() *atypes.Function {
 			{
 				Name:  "handle",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Handle",
+				},
 			},
 			{
 				Name:  "type",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Type",
+				},
 			},
 			{
 				Name:  "ownerID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Owner ID",
+				},
 			},
 			{
 				Name:  "partial",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Partial",
+				},
 			},
 			{
 				Name:  "labels",
 				Types: []string{"LabelValue"},
+				Meta: &atypes.ParamMeta{
+					Label: "Labels",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -374,42 +407,72 @@ func (h templatesHandler) Each() *atypes.Function {
 			{
 				Name:  "handle",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Handle",
+				},
 			},
 			{
 				Name:  "type",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Type",
+				},
 			},
 			{
 				Name:  "ownerID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Owner ID",
+				},
 			},
 			{
 				Name:  "partial",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Partial",
+				},
 			},
 			{
 				Name:  "labels",
 				Types: []string{"LabelValue"},
+				Meta: &atypes.ParamMeta{
+					Label: "Labels",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -482,6 +545,9 @@ func (h templatesHandler) Create() *atypes.Function {
 			{
 				Name:  "template",
 				Types: []string{"Template"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Template",
+				},
 			},
 		},
 
@@ -560,6 +626,9 @@ func (h templatesHandler) Update() *atypes.Function {
 			{
 				Name:  "template",
 				Types: []string{"Template"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Template",
+				},
 			},
 		},
 
@@ -641,6 +710,9 @@ func (h templatesHandler) Delete() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Template"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -707,6 +779,9 @@ func (h templatesHandler) Recover() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Template"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -833,18 +908,30 @@ func (h templatesHandler) Render() *atypes.Function {
 			{
 				Name:  "documentName",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Document name",
+				},
 			},
 			{
 				Name:  "documentType",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Document type",
+				},
 			},
 			{
 				Name:  "variables",
 				Types: []string{"Vars"},
+				Meta: &atypes.ParamMeta{
+					Label: "Variables",
+				},
 			},
 			{
 				Name:  "options",
 				Types: []string{"RenderOptions"},
+				Meta: &atypes.ParamMeta{
+					Label: "Options",
+				},
 			},
 		},
 

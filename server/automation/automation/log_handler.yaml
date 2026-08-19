@@ -1,9 +1,11 @@
 params:
   message: &message
+    meta: { label: Message }
     required: true
     types:
       - { wf: String }
   fields: &fields
+    meta: { label: Fields }
     types:
       - { wf: KV }
 

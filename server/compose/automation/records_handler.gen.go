@@ -100,6 +100,9 @@ func (h recordsHandler) Lookup() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -112,6 +115,9 @@ func (h recordsHandler) Lookup() *atypes.Function {
 			{
 				Name:  "record",
 				Types: []string{"ID", "ComposeRecord"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Record",
+				},
 			},
 		},
 
@@ -274,6 +280,9 @@ func (h recordsHandler) Search() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -286,34 +295,58 @@ func (h recordsHandler) Search() *atypes.Function {
 			{
 				Name:  "query",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Query",
+				},
 			},
 			{
 				Name:  "meta",
 				Types: []string{"Meta"},
+				Meta: &atypes.ParamMeta{
+					Label: "Meta",
+				},
 			},
 			{
 				Name:  "deleted",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Deleted",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -528,6 +561,9 @@ func (h recordsHandler) First() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -658,6 +694,9 @@ func (h recordsHandler) Last() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -814,6 +853,9 @@ func (h recordsHandler) Each() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -826,34 +868,58 @@ func (h recordsHandler) Each() *atypes.Function {
 			{
 				Name:  "query",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Query",
+				},
 			},
 			{
 				Name:  "meta",
 				Types: []string{"Meta"},
+				Meta: &atypes.ParamMeta{
+					Label: "Meta",
+				},
 			},
 			{
 				Name:  "deleted",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Deleted",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -983,6 +1049,9 @@ func (h recordsHandler) New() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -1096,6 +1165,9 @@ func (h recordsHandler) Validate() *atypes.Function {
 			{
 				Name:  "record",
 				Types: []string{"ComposeRecord"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Record",
+				},
 			},
 		},
 
@@ -1177,6 +1249,9 @@ func (h recordsHandler) Create() *atypes.Function {
 			{
 				Name:  "record",
 				Types: []string{"ComposeRecord"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Record",
+				},
 			},
 		},
 
@@ -1255,6 +1330,9 @@ func (h recordsHandler) Update() *atypes.Function {
 			{
 				Name:  "record",
 				Types: []string{"ComposeRecord"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Record",
+				},
 			},
 		},
 
@@ -1363,10 +1441,16 @@ func (h recordsHandler) Delete() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"},
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "record",
 				Types: []string{"ID", "ComposeRecord"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Record",
+				},
 			},
 		},
 
@@ -1483,6 +1567,9 @@ func (h recordsHandler) Report() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -1654,6 +1741,9 @@ func (h recordsHandler) Clone() *atypes.Function {
 			{
 				Name:  "namespace",
 				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Namespace",
+				},
 			},
 			{
 				Name:  "module",
@@ -1666,6 +1756,9 @@ func (h recordsHandler) Clone() *atypes.Function {
 			{
 				Name:  "record",
 				Types: []string{"ID", "ComposeRecord"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Record",
+				},
 			},
 		},
 

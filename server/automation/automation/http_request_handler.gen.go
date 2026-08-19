@@ -112,6 +112,7 @@ func (h httpRequestHandler) Send() *atypes.Function {
 				Name:  "url",
 				Types: []string{"String"}, Required: true,
 				Meta: &atypes.ParamMeta{
+					Label:  "URL",
 					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "url"}},
 				},
 			},
@@ -119,51 +120,80 @@ func (h httpRequestHandler) Send() *atypes.Function {
 				Name:  "method",
 				Types: []string{"String"}, Required: true,
 				Meta: &atypes.ParamMeta{
+					Label:  "Method",
 					Visual: map[string]interface{}{"input": map[string]interface{}{"properties": map[string]interface{}{"options": []interface{}{map[string]interface{}{"text": "GET", "value": "GET"}, map[string]interface{}{"text": "HEAD", "value": "HEAD"}, map[string]interface{}{"text": "POST", "value": "POST"}, map[string]interface{}{"text": "PUT", "value": "PUT"}, map[string]interface{}{"text": "PATCH", "value": "PATCH"}, map[string]interface{}{"text": "DELETE", "value": "DELETE"}, map[string]interface{}{"text": "CONNECT", "value": "CONNECT"}, map[string]interface{}{"text": "OPTIONS", "value": "OPTIONS"}, map[string]interface{}{"text": "TRACE", "value": "TRACE"}}}, "type": "select"}},
 				},
 			},
 			{
 				Name:  "params",
 				Types: []string{"KVV"},
+				Meta: &atypes.ParamMeta{
+					Label: "Parameters",
+				},
 			},
 			{
 				Name:  "headers",
 				Types: []string{"KVV"},
 				Meta: &atypes.ParamMeta{
+					Label:  "Headers",
 					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "http-headers"}},
 				},
 			},
 			{
 				Name:  "headerAuthBearer",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Bearer token",
+				},
 			},
 			{
 				Name:  "headerAuthUsername",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Basic auth username",
+				},
 			},
 			{
 				Name:  "headerAuthPassword",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Basic auth password",
+				},
 			},
 			{
 				Name:  "headerUserAgent",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "User agent",
+				},
 			},
 			{
 				Name:  "headerContentType",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Content type",
+				},
 			},
 			{
 				Name:  "timeout",
 				Types: []string{"Duration"},
+				Meta: &atypes.ParamMeta{
+					Label: "Timeout",
+				},
 			},
 			{
 				Name:  "form",
 				Types: []string{"KVV"},
+				Meta: &atypes.ParamMeta{
+					Label: "Form",
+				},
 			},
 			{
 				Name:  "body",
 				Types: []string{"String", "Reader", "Any"},
+				Meta: &atypes.ParamMeta{
+					Label: "Body",
+				},
 			},
 		},
 
