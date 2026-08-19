@@ -5,20 +5,19 @@
       :key="row.target"
       class="rounded-lg border bg-[--p-content-background] p-3"
     >
-      <div class="flex items-center gap-1 mb-2">
-        <label class="text-sm font-medium text-color mb-0 flex-1">
-          {{ t('builder.arrayInput.item') }} {{ index + 1 }}
-        </label>
-        <CInputDelete
-          text
-          size="small"
-          :message="
-            t('builder.arrayInput.deleteConfirm', 'Are you sure you want to remove this item?')
-          "
-          :header="t('builder.arrayInput.itemHead', 'Item')"
-          @confirm="removeRow(index)"
-        />
-      </div>
+      <CFormGroup :label="`${t('builder.arrayInput.item')} ${index + 1}`" class="mb-2">
+        <template #actions>
+          <CInputDelete
+            text
+            size="small"
+            :message="
+              t('builder.arrayInput.deleteConfirm', 'Are you sure you want to remove this item?')
+            "
+            :header="t('builder.arrayInput.itemHead', 'Item')"
+            @confirm="removeRow(index)"
+          />
+        </template>
+      </CFormGroup>
 
       <!-- Reference chip mode -->
       <CReferenceChip

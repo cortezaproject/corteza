@@ -17,12 +17,9 @@
       >
         <!-- Search + Filters -->
         <div class="flex flex-col gap-4 mb-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('automation.scripts.list.filter.searchQuery') }}
-            </label>
+          <CFormGroup :label="$t('automation.scripts.list.filter.searchQuery')">
             <InputText v-model="filter.query" class="w-full md:w-1/2" />
-          </div>
+          </CFormGroup>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <CInputSwitch

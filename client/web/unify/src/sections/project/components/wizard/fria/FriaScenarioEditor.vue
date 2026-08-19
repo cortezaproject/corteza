@@ -34,13 +34,13 @@
              and a project can hold several, so a scenario with no system
              assesses nothing in particular. It is the one field Save blocks
              on (see friaScenarioSaveable). -->
-        <section
-          class="rounded-xl border p-4 flex flex-col gap-2"
+        <CFormGroup
+          :label="$t('fria.editor.aiSystem.label')"
+          :description="$t('fria.editor.aiSystem.hint')"
+          input-id="fria-ai-system"
+          class="rounded-xl border p-4"
           :class="draft.aiSystemID ? 'border-surface bg-surface' : 'border-primary/40 bg-primary/5'"
         >
-          <label class="text-sm font-medium" for="fria-ai-system">
-            {{ $t('fria.editor.aiSystem.label') }}
-          </label>
           <Select
             id="fria-ai-system"
             :model-value="draft.aiSystemID"
@@ -53,8 +53,7 @@
             fluid
             @update:model-value="v => update({ aiSystemID: v })"
           />
-          <small class="text-muted-color">{{ $t('fria.editor.aiSystem.hint') }}</small>
-        </section>
+        </CFormGroup>
 
         <FriaHarmSection :number="1" :scenario="draft" :update="update" :disabled="disabled" />
         <FriaTriggerSection :number="2" :scenario="draft" :update="update" :disabled="disabled" />

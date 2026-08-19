@@ -6,50 +6,36 @@
     />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.oidc.handle') }}
-        </label>
+      <CFormGroup :label="$t('system.settings.editor.external.oidc.handle')">
         <InputText v-model="model.handle" :disabled="!fresh" class="w-full" />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.oidc.issuer') }}
-        </label>
-        <span class="text-xs text-muted-color">
-          {{ $t('system.settings.editor.external.oidc.issuerHint') }}
-        </span>
+      <CFormGroup
+        :label="$t('system.settings.editor.external.oidc.issuer')"
+        :description="$t('system.settings.editor.external.oidc.issuerHint')"
+      >
         <InputText v-model="model.issuer" placeholder="https://issuer.tld" class="w-full" />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.oidc.clientKey') }}
-        </label>
+      <CFormGroup :label="$t('system.settings.editor.external.oidc.clientKey')">
         <InputText v-model="model.key" class="w-full" />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.oidc.clientSecret') }}
-        </label>
+      <CFormGroup :label="$t('system.settings.editor.external.oidc.clientSecret')">
         <InputText v-model="model.secret" class="w-full" />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1 md:col-span-2">
-        <label class="font-medium text-sm">
-          {{ $t('system.settings.editor.external.oidc.scope') }}
-        </label>
-        <span class="text-xs text-muted-color">
-          {{ $t('system.settings.editor.external.oidc.scopeHint') }}
-        </span>
+      <CFormGroup
+        :label="$t('system.settings.editor.external.oidc.scope')"
+        :description="$t('system.settings.editor.external.oidc.scopeHint')"
+        class="md:col-span-2"
+      >
         <InputText
           v-model="model.scope"
           :placeholder="$t('system.settings.editor.external.oidc.scopePlaceholder')"
           class="w-full"
         />
-      </div>
+      </CFormGroup>
     </div>
 
     <ExternalSecurity v-model="model.security" />

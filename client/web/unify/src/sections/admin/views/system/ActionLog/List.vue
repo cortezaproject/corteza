@@ -19,41 +19,29 @@
     >
       <template #header>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 w-full">
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.from') }}
-            </label>
+          <CFormGroup :label="$t('system.actionlog.list.filter.from')">
             <CInputDateTime
               v-model="filter.from"
               value-type="date"
               size="small"
               @update:model-value="reload"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.to') }}
-            </label>
+          <CFormGroup :label="$t('system.actionlog.list.filter.to')">
             <CInputDateTime
               v-model="filter.to"
               value-type="date"
               size="small"
               @update:model-value="reload"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.actor') }}
-            </label>
+          <CFormGroup :label="$t('system.actionlog.list.filter.actor')">
             <CInputUser v-model="filter.actorID" size="small" @update:modelValue="reload" />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.origin') }}
-            </label>
+          <CFormGroup :label="$t('system.actionlog.list.filter.origin')">
             <Select
               v-model="filter.origin"
               :options="originOptions"
@@ -64,12 +52,9 @@
               size="small"
               @update:modelValue="reload"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.resource') }}
-            </label>
+          <CFormGroup :label="$t('system.actionlog.list.filter.resource')">
             <Select
               v-model="filter.resource"
               :options="resourceOptions"
@@ -80,12 +65,9 @@
               size="small"
               @update:modelValue="reload"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.action') }}
-            </label>
+          <CFormGroup :label="$t('system.actionlog.list.filter.action')">
             <Select
               v-model="filter.action"
               :options="actionOptions"
@@ -96,7 +78,7 @@
               size="small"
               @update:modelValue="reload"
             />
-          </div>
+          </CFormGroup>
         </div>
       </template>
 

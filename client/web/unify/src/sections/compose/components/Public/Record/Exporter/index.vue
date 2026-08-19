@@ -18,10 +18,7 @@
     >
       <div class="flex flex-col gap-5">
         <!-- Field selection -->
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.export.selectFields') }}
-          </label>
+        <CFormGroup :label="$t('block.recordList.export.selectFields')">
           <CFieldPicker
             v-model="selectedFieldNames"
             :all-fields="allFields"
@@ -30,13 +27,10 @@
           <small class="text-muted-color">
             {{ $t('block.recordList.export.limitations') }}
           </small>
-        </div>
+        </CFormGroup>
 
         <!-- Range type -->
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.export.inRange') }}
-          </label>
+        <CFormGroup :label="$t('block.recordList.export.inRange')">
           <div class="flex flex-wrap gap-x-6 gap-y-2">
             <div class="flex items-center gap-2">
               <RadioButton v-model="rangeType" input-id="range-all" value="all" />
@@ -57,14 +51,11 @@
               </label>
             </div>
           </div>
-        </div>
+        </CFormGroup>
 
         <!-- Date range (only when rangeType = range) -->
         <div v-if="rangeType === 'range'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('block.recordList.export.rangeBy') }}
-            </label>
+          <CFormGroup :label="$t('block.recordList.export.rangeBy')">
             <Select
               v-model="rangeBy"
               :options="rangeByOptions"
@@ -73,12 +64,9 @@
               class="w-full"
               @change="fetchCount"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('block.recordList.export.dateRange') }}
-            </label>
+          <CFormGroup :label="$t('block.recordList.export.dateRange')">
             <Select
               v-model="rangePreset"
               :options="dateRangeOptions"
@@ -86,38 +74,32 @@
               option-value="value"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('block.recordList.export.filter.from') }}
-            </label>
+          <CFormGroup :label="$t('block.recordList.export.filter.from')">
             <CInputDateTime
               v-model="startDate"
               value-type="date"
               only-date
               :max-date="endDate || undefined"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('block.recordList.export.filter.to') }}
-            </label>
+          <CFormGroup :label="$t('block.recordList.export.filter.to')">
             <CInputDateTime
               v-model="endDate"
               value-type="date"
               only-date
               :min-date="startDate || undefined"
             />
-          </div>
+          </CFormGroup>
         </div>
 
         <!-- Free-form filter (when not exporting a selection) -->
-        <div v-if="rangeType !== 'selection'" class="flex flex-col gap-2">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.export.filter.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.recordList.export.filter.label')"
+          v-if="rangeType !== 'selection'"
+        >
           <Textarea
             v-model="extraFilter"
             :placeholder="$t('block.recordList.export.filter.placeholder')"
@@ -128,7 +110,7 @@
           <small class="text-muted-color">
             {{ $t('block.recordList.export.filter.footnote') }}
           </small>
-        </div>
+        </CFormGroup>
 
         <!-- Timezone -->
         <div class="flex flex-col gap-2">
@@ -149,10 +131,10 @@
         </div>
 
         <!-- Multi-value delimiter -->
-        <div v-if="hasMultiValueField" class="flex flex-col gap-2">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.export.multiValueDelimiter.label') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.recordList.export.multiValueDelimiter.label')"
+          v-if="hasMultiValueField"
+        >
           <Select
             v-model="multiValueDelimiter"
             :options="delimiterOptions"
@@ -160,7 +142,7 @@
             option-value="value"
             class="w-full"
           />
-        </div>
+        </CFormGroup>
 
         <!-- Resolve refs -->
         <div class="flex flex-col gap-1">

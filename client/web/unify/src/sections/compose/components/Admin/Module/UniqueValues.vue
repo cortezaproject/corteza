@@ -16,18 +16,20 @@
       :key="index"
       class="border rounded-lg p-4 bg-surface shadow-sm"
     >
-      <div class="flex items-center justify-between mb-4 pb-3 border-b border-surface">
-        <label class="font-bold text-primary">
-          {{ $t('module.edit.config.uniqueValues.uniqueValueConstraint', { index: index + 1 }) }}
-        </label>
-        <Button
-          icon="pi pi-trash"
-          severity="danger"
-          size="small"
-          text
-          @click="rules.splice(index, 1)"
-        />
-      </div>
+      <CFormGroup
+        :label="$t('module.edit.config.uniqueValues.uniqueValueConstraint', { index: index + 1 })"
+        class="mb-4 pb-3 border-b border-surface"
+      >
+        <template #actions>
+          <Button
+            icon="pi pi-trash"
+            severity="danger"
+            size="small"
+            text
+            @click="rules.splice(index, 1)"
+          />
+        </template>
+      </CFormGroup>
 
       <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
         <CFormGroup :name="`rule_${index}_field`" class="flex-grow max-w-sm">

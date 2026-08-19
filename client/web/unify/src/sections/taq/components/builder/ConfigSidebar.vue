@@ -111,10 +111,7 @@
       <!-- Branch configuration (only for branch nodes) -->
       <div v-if="node.type === 'branch'" class="mb-4">
         <!-- Gateway type -->
-        <div class="mb-4">
-          <label class="text-sm font-medium text-color block mb-2">
-            {{ $t('builder.branch.gatewayType') }}
-          </label>
+        <CFormGroup :label="$t('builder.branch.gatewayType')" class="mb-4">
           <Select
             :model-value="gatewayType"
             :options="gatewayOptions"
@@ -133,7 +130,7 @@
               </div>
             </template>
           </Select>
-        </div>
+        </CFormGroup>
 
         <!-- Branch outputs -->
         <div class="text-sm font-medium text-color mb-2">

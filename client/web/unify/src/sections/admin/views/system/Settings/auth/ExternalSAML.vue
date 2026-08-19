@@ -5,37 +5,28 @@
       :label="$t('system.settings.editor.external.saml.enabled')"
     />
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.name') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.name') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.name')"
+      :description="$t('system.settings.editor.external.saml.desc.name')"
+    >
       <InputText v-model="model.name" class="w-full" />
-    </div>
+    </CFormGroup>
 
     <Divider />
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.cert.public') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.cert.public') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.cert.public')"
+      :description="$t('system.settings.editor.external.saml.desc.cert.public')"
+    >
       <Textarea v-model="model.cert" rows="4" class="w-full" />
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.cert.private') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.cert.private') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.cert.private')"
+      :description="$t('system.settings.editor.external.saml.desc.cert.private')"
+    >
       <Textarea v-model="model.key" rows="4" class="w-full" />
-    </div>
+    </CFormGroup>
 
     <Divider />
 
@@ -45,13 +36,10 @@
       :description="$t('system.settings.editor.external.saml.desc.requests.sign-requests')"
     />
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.requests.sign-method') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.requests.sign-method') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.requests.sign-method')"
+      :description="$t('system.settings.editor.external.saml.desc.requests.sign-method')"
+    >
       <Select
         v-model="model['sign-method']"
         :options="signMethods"
@@ -60,15 +48,12 @@
         :placeholder="$t('general.label.selectOption')"
         class="w-full"
       />
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.requests.binding') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.requests.binding') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.requests.binding')"
+      :description="$t('system.settings.editor.external.saml.desc.requests.binding')"
+    >
       <Select
         v-model="model['binding']"
         :options="httpBindings"
@@ -77,49 +62,37 @@
         :placeholder="$t('general.label.selectOption')"
         class="w-full"
       />
-    </div>
+    </CFormGroup>
 
     <Divider />
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.idp.url') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.idp.url') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.idp.url')"
+      :description="$t('system.settings.editor.external.saml.desc.idp.url')"
+    >
       <InputText v-model="model.idp.url" class="w-full" />
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.idp.ident-name') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.idp.ident-name') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.idp.ident-name')"
+      :description="$t('system.settings.editor.external.saml.desc.idp.ident-name')"
+    >
       <InputText v-model="model.idp['ident-name']" class="w-full" />
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.idp.ident-handle') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.idp.ident-handle') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.idp.ident-handle')"
+      :description="$t('system.settings.editor.external.saml.desc.idp.ident-handle')"
+    >
       <InputText v-model="model.idp['ident-handle']" class="w-full" />
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.saml.idp.ident-identifier') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.saml.desc.idp.ident-identifier') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.saml.idp.ident-identifier')"
+      :description="$t('system.settings.editor.external.saml.desc.idp.ident-identifier')"
+    >
       <InputText v-model="model.idp['ident-identifier']" class="w-full" />
-    </div>
+    </CFormGroup>
 
     <ExternalSecurity v-model="model.security" />
   </div>

@@ -1,10 +1,5 @@
 <template>
-  <div class="flex flex-col gap-1">
-    <label v-if="label" class="text-sm font-medium text-primary">
-      {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
-    </label>
-
+  <CFormGroup :label="label" :required="required">
     <!-- Reference chip mode (only for non-aggregate inputs) -->
     <CReferenceChip
       v-if="isReference && !isAggregate"
@@ -43,7 +38,7 @@
         />
       </div>
     </div>
-  </div>
+  </CFormGroup>
 </template>
 
 <script setup>

@@ -79,16 +79,16 @@
                     </div>
                   </div>
 
-                  <div class="flex flex-col gap-2">
-                    <label class="font-medium text-sm text-primary" for="taq-filter-automationID">
-                      {{ $t('automation.sessions.list.taqColumns.automationID') }}
-                    </label>
+                  <CFormGroup
+                    :label="$t('automation.sessions.list.taqColumns.automationID')"
+                    input-id="taq-filter-automationID"
+                  >
                     <InputText
                       id="taq-filter-automationID"
                       v-model="taqFilter.automationID"
                       size="small"
                     />
-                  </div>
+                  </CFormGroup>
                 </div>
               </Popover>
             </TabPanel>
@@ -194,29 +194,29 @@
                     </div>
                   </div>
 
-                  <div class="flex flex-col gap-2">
-                    <label class="font-medium text-sm text-primary" for="filter-sessionID">
-                      {{ $t('automation.sessions.list.columns.sessionID') }}
-                    </label>
+                  <CFormGroup
+                    :label="$t('automation.sessions.list.columns.sessionID')"
+                    input-id="filter-sessionID"
+                  >
                     <InputText
                       id="filter-sessionID"
                       v-model="workflowFilter.sessionID"
                       size="small"
                       @input="workflowFilterList"
                     />
-                  </div>
+                  </CFormGroup>
 
-                  <div class="flex flex-col gap-2">
-                    <label class="font-medium text-sm text-primary" for="filter-workflowID">
-                      {{ $t('automation.sessions.list.columns.workflowID') }}
-                    </label>
+                  <CFormGroup
+                    :label="$t('automation.sessions.list.columns.workflowID')"
+                    input-id="filter-workflowID"
+                  >
                     <InputText
                       id="filter-workflowID"
                       v-model="workflowFilter.workflowID"
                       size="small"
                       @input="workflowFilterList"
                     />
-                  </div>
+                  </CFormGroup>
                 </div>
               </Popover>
             </TabPanel>

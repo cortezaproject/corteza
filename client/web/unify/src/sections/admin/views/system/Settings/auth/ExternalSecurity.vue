@@ -5,50 +5,41 @@
       {{ $t('system.settings.editor.external.security.title') }}
     </h5>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.security.permitted-roles.label') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.security.permitted-roles.description') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.security.permitted-roles.label')"
+      :description="$t('system.settings.editor.external.security.permitted-roles.description')"
+    >
       <CInputRole
         :multiple="true"
         :model-value="modelValue.permittedRoles || []"
         filter-context-roles
         @update:model-value="updateList('permittedRoles', $event)"
       />
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.security.prohibited-roles.label') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.security.prohibited-roles.description') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.security.prohibited-roles.label')"
+      :description="$t('system.settings.editor.external.security.prohibited-roles.description')"
+    >
       <CInputRole
         :multiple="true"
         :model-value="modelValue.prohibitedRoles || []"
         filter-context-roles
         @update:model-value="updateList('prohibitedRoles', $event)"
       />
-    </div>
+    </CFormGroup>
 
-    <div class="flex flex-col gap-1">
-      <label class="font-medium text-sm">
-        {{ $t('system.settings.editor.external.security.forced-roles.label') }}
-      </label>
-      <span class="text-xs text-muted-color">
-        {{ $t('system.settings.editor.external.security.forced-roles.description') }}
-      </span>
+    <CFormGroup
+      :label="$t('system.settings.editor.external.security.forced-roles.label')"
+      :description="$t('system.settings.editor.external.security.forced-roles.description')"
+    >
       <CInputRole
         :multiple="true"
         :model-value="modelValue.forcedRoles || []"
         filter-context-roles
         @update:model-value="updateList('forcedRoles', $event)"
       />
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

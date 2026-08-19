@@ -17,11 +17,7 @@
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Main Logo -->
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('ui.settings.editor.human-studio.mainLogo.title') }}
-            </label>
-
+          <CFormGroup :label="$t('ui.settings.editor.human-studio.mainLogo.title')">
             <CFileDropZone
               accept="image/*"
               :uploading="mainLogoUploading"
@@ -37,14 +33,10 @@
               @select="onMainLogoSelect"
               @clear="onMainLogoClear"
             />
-          </div>
+          </CFormGroup>
 
           <!-- Icon Logo -->
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('ui.settings.editor.human-studio.iconLogo.title') }}
-            </label>
-
+          <CFormGroup :label="$t('ui.settings.editor.human-studio.iconLogo.title')">
             <CFileDropZone
               accept="image/*"
               :uploading="iconLogoUploading"
@@ -60,7 +52,7 @@
               @select="onIconLogoSelect"
               @clear="onIconLogoClear"
             />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -82,13 +74,14 @@
             <TabPanel v-for="theme in themes" :key="theme.id" :value="theme.id">
               <!-- Color variables for light/dark tabs only -->
               <div v-if="theme.id !== 'general'" class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <div v-for="key in themeVariableKeys" :key="key" class="flex flex-col gap-1">
-                  <label class="font-medium text-sm text-primary">
-                    {{ $t(`ui.settings.editor.human-studio.theme.variables.${key}.label`) }}
-                  </label>
-                  <span class="text-xs text-muted-color">
-                    {{ $t(`ui.settings.editor.human-studio.theme.variables.${key}.description`) }}
-                  </span>
+                <CFormGroup
+                  v-for="key in themeVariableKeys"
+                  :key="key"
+                  :label="$t(`ui.settings.editor.human-studio.theme.variables.${key}.label`)"
+                  :description="
+                    $t(`ui.settings.editor.human-studio.theme.variables.${key}.description`)
+                  "
+                >
                   <div class="flex items-center gap-2">
                     <CInputColorPicker
                       :model-value="'#' + (theme.variables[key] || '')"
@@ -108,16 +101,13 @@
                       @click="theme.variables[key] = theme.defaultVariables[key]"
                     />
                   </div>
-                </div>
+                </CFormGroup>
               </div>
 
               <!-- Custom CSS for all tabs -->
-              <div class="flex flex-col gap-1">
-                <label class="font-medium text-sm text-primary">
-                  {{ $t('ui.settings.editor.human-studio.custom-css') }}
-                </label>
+              <CFormGroup :label="$t('ui.settings.editor.human-studio.custom-css')">
                 <Textarea v-model="theme.customCSS" rows="16" class="w-full font-mono text-sm" />
-              </div>
+              </CFormGroup>
             </TabPanel>
           </TabPanels>
         </Tabs>

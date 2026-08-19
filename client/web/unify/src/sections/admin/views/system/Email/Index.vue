@@ -29,70 +29,55 @@
       >
         <div class="flex flex-col gap-4">
           <!-- Host : Port -->
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.email.editor.server.host.label') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('system.email.editor.server.host.description') }}
-            </span>
+          <CFormGroup
+            :label="$t('system.email.editor.server.host.label')"
+            :description="$t('system.email.editor.server.host.description')"
+          >
             <InputGroup>
               <InputText v-model="server.host" placeholder="host.domain.tld" class="flex-1" />
               <InputGroupAddon>:</InputGroupAddon>
               <InputNumber v-model="server.port" :use-grouping="false" class="w-24" />
             </InputGroup>
-          </div>
+          </CFormGroup>
 
           <Divider />
 
           <!-- User / Password -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-sm">
-                {{ $t('system.email.editor.server.user.label') }}
-              </label>
-              <span class="text-xs text-muted-color">
-                {{ $t('system.email.editor.server.user.description') }}
-              </span>
+            <CFormGroup
+              :label="$t('system.email.editor.server.user.label')"
+              :description="$t('system.email.editor.server.user.description')"
+            >
               <InputText v-model="server.user" autocomplete="off" class="w-full" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-sm">
-                {{ $t('system.email.editor.server.password.label') }}
-              </label>
-              <span class="text-xs text-muted-color">
-                {{ $t('system.email.editor.server.password.description') }}
-              </span>
+            </CFormGroup>
+            <CFormGroup
+              :label="$t('system.email.editor.server.password.label')"
+              :description="$t('system.email.editor.server.password.description')"
+            >
               <InputText v-model="server.pass" type="password" autocomplete="off" class="w-full" />
-            </div>
+            </CFormGroup>
           </div>
 
           <Divider />
 
           <!-- From address -->
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.email.editor.server.from.label') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('system.email.editor.server.from.description') }}
-            </span>
+          <CFormGroup
+            :label="$t('system.email.editor.server.from.label')"
+            :description="$t('system.email.editor.server.from.description')"
+          >
             <InputText v-model="server.from" type="email" class="w-full" />
-          </div>
+          </CFormGroup>
 
           <Divider />
 
           <!-- TLS -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="font-medium text-sm">
-                {{ $t('system.email.editor.server.tlsServerName.label') }}
-              </label>
-              <span class="text-xs text-muted-color">
-                {{ $t('system.email.editor.server.tlsServerName.description') }}
-              </span>
+            <CFormGroup
+              :label="$t('system.email.editor.server.tlsServerName.label')"
+              :description="$t('system.email.editor.server.tlsServerName.description')"
+            >
               <InputText v-model="server.tlsServerName" class="w-full" />
-            </div>
+            </CFormGroup>
             <CInputSwitch
               v-model="server.tlsInsecure"
               :label="$t('system.email.editor.server.tlsInsecure.label')"

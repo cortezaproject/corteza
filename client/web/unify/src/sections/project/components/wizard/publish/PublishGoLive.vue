@@ -57,13 +57,12 @@
          actually lost. A dialog that appears every time is dismissed every
          time; typing the handle is a deliberate act, and it keeps the
          consequences above on screen while you make it. -->
-    <div
+    <CFormGroup
       v-if="requiresTypedConfirmation"
+      :label="$t('project.publish.goLive.typeToConfirm', { handle })"
+      :input-id="confirmInputId"
       class="rounded-lg border border-red-500/40 bg-red-500/5 p-3"
     >
-      <label :for="confirmInputId" class="block text-sm mb-2">
-        {{ $t('project.publish.goLive.typeToConfirm', { handle }) }}
-      </label>
       <InputText
         :id="confirmInputId"
         :model-value="typed"
@@ -73,7 +72,7 @@
         autocomplete="off"
         @update:model-value="$emit('update:typed', $event)"
       />
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

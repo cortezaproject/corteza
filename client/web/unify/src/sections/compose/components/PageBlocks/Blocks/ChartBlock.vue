@@ -58,17 +58,11 @@
       :style="{ width: '600px' }"
     >
       <div class="flex flex-col gap-4">
-        <div v-if="originalFilter" class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.filter.modal.originalFilter.label') }}
-          </label>
+        <CFormGroup :label="$t('chart.filter.modal.originalFilter.label')" v-if="originalFilter">
           <Textarea :model-value="originalFilter" readonly rows="2" class="w-full" />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="text-primary font-medium text-sm">
-            {{ $t('chart.filter.modal.liveFilter.label') }}
-          </label>
+        <CFormGroup :label="$t('chart.filter.modal.liveFilter.label')">
           <Select
             v-model="liveFilterModalValue"
             :options="predefinedFilterOptions"
@@ -78,22 +72,16 @@
             class="w-full"
             show-clear
           />
-        </div>
+        </CFormGroup>
 
         <div v-if="originalFilter && liveFilterModalValue" class="flex flex-col gap-4">
           <Divider />
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.filter.modal.filterPreview.label') }}
-            </label>
+          <CFormGroup :label="$t('chart.filter.modal.filterPreview.label')">
             <Textarea :model-value="liveFilterPreview" readonly rows="2" class="w-full" />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="text-primary font-medium text-sm">
-              {{ $t('chart.filter.modal.options.label') }}
-            </label>
+          <CFormGroup :label="$t('chart.filter.modal.options.label')">
             <div class="flex flex-col gap-2">
               <div
                 v-for="opt in filterCombineOptions"
@@ -110,7 +98,7 @@
                 </label>
               </div>
             </div>
-          </div>
+          </CFormGroup>
         </div>
       </div>
 

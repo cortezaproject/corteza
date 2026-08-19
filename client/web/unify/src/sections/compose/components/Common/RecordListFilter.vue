@@ -211,17 +211,14 @@
       :style="{ width: '400px' }"
     >
       <div class="flex flex-col gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-color">
-            {{ $t('block.recordList.filter.name.label') }}
-          </label>
+        <CFormGroup :label="$t('block.recordList.filter.name.label')">
           <InputText
             v-model="presetName"
             :placeholder="$t('block.recordList.filter.name.placeholder')"
             autofocus
             @keyup.enter="confirmSavePreset"
           />
-        </div>
+        </CFormGroup>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">

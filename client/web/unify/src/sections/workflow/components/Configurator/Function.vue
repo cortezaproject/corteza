@@ -24,14 +24,14 @@
 
     <Divider v-if="showFunctionList && args.length" />
 
-    <div v-if="args.length">
-      <label class="text-xs font-semibold uppercase tracking-wider text-muted-color mb-2 block">
-        {{
-          $te('steps.function.configurator.parameters')
-            ? $t('steps.function.configurator.parameters')
-            : 'Parameters'
-        }}
-      </label>
+    <CFormGroup
+      v-if="args.length"
+      :label="
+        $te('steps.function.configurator.parameters')
+          ? $t('steps.function.configurator.parameters')
+          : 'Parameters'
+      "
+    >
       <div
         v-for="(a, index) in args"
         :key="index"
@@ -163,22 +163,19 @@
           </div>
         </div>
       </div>
-    </div>
+    </CFormGroup>
 
     <Divider v-if="args.length && (expressionResults || results.length)" />
 
-    <div v-if="expressionResults || results.length">
-      <div
-        v-if="results.length || expressionResults"
-        class="flex items-center justify-between mb-2"
-      >
-        <label class="text-xs font-semibold uppercase tracking-wider text-muted-color">
-          {{
-            $te('steps.function.configurator.results')
-              ? $t('steps.function.configurator.results')
-              : 'Results'
-          }}
-        </label>
+    <CFormGroup
+      v-if="expressionResults || results.length"
+      :label="
+        $te('steps.function.configurator.results')
+          ? $t('steps.function.configurator.results')
+          : 'Results'
+      "
+    >
+      <template #actions>
         <Button
           v-if="expressionResults"
           :label="$t('steps.function.configurator.add-result')"
@@ -186,7 +183,7 @@
           size="small"
           @click="addResult()"
         />
-      </div>
+      </template>
       <div v-if="results.length">
         <expression-table
           v-if="expressionResults"
@@ -233,7 +230,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </CFormGroup>
 
     <Dialog
       :visible="!!expressionEditor.currentExpression"

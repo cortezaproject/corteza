@@ -6,18 +6,16 @@
       @submit.prevent="$emit('save', localReminder)"
     >
       <div class="space-y-4">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-color">{{ $t('reminder.edit.titleLabel') }}</label>
+        <CFormGroup :label="$t('reminder.edit.titleLabel')">
           <InputText
             v-model="localReminder.payload.title"
             data-test-id="input-title"
             class="w-full"
             :placeholder="$t('reminder.edit.titlePlaceholder')"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-color">{{ $t('reminder.edit.notesLabel') }}</label>
+        <CFormGroup :label="$t('reminder.edit.notesLabel')">
           <Textarea
             v-model="localReminder.payload.notes"
             data-test-id="textarea-notes"
@@ -26,32 +24,25 @@
             class="w-full"
             :placeholder="$t('reminder.edit.notesPlaceholder')"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-color">
-            {{ $t('reminder.edit.remindAtLabel') }}
-          </label>
+        <CFormGroup :label="$t('reminder.edit.remindAtLabel')">
           <CInputDateTime
             v-model="localReminder.remindAt"
             data-test-id="select-remind-at"
             only-future
           />
-        </div>
+        </CFormGroup>
 
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-color">
-            {{ $t('reminder.edit.assigneeLabel') }}
-          </label>
+        <CFormGroup :label="$t('reminder.edit.assigneeLabel')">
           <CInputUser
             v-model="localReminder.assignedTo"
             data-test-id="select-assignee"
             :placeholder="$t('reminder.edit.assigneePlaceholder')"
           />
-        </div>
+        </CFormGroup>
 
-        <div v-if="localReminder.payload?.link" class="space-y-2">
-          <label class="text-sm font-medium text-color">{{ $t('reminder.routesTo') }}</label>
+        <CFormGroup :label="$t('reminder.routesTo')" v-if="localReminder.payload?.link">
           <div class="flex items-center gap-2">
             <InputText
               v-model="localReminder.payload.link.label"
@@ -67,7 +58,7 @@
               @click.prevent="router.push(recordRoute)"
             />
           </div>
-        </div>
+        </CFormGroup>
 
         <div v-if="localReminder.reminderID !== NoID" class="space-y-3">
           <div class="flex items-center gap-2">

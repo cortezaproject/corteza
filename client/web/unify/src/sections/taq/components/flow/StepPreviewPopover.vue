@@ -15,13 +15,16 @@
         <!-- Branch configuration preview -->
         <div v-if="node?.type === 'branch'" class="flex flex-col gap-3">
           <!-- Gateway type -->
-          <div class="flex flex-col gap-0.5 text-xs">
-            <label class="text-primary font-medium">{{ $t('builder.branch.gatewayType') }}</label>
+          <CFormGroup :label="$t('builder.branch.gatewayType')" class="text-xs">
             <span class="text-color-emphasis">{{ gatewayLabel }}</span>
-          </div>
+          </CFormGroup>
           <!-- Branch paths -->
-          <div v-for="path in branchPaths" :key="path.edgeId" class="flex flex-col gap-1 text-xs">
-            <label class="text-primary font-medium">{{ path.label }}</label>
+          <CFormGroup
+            :label="path.label"
+            v-for="path in branchPaths"
+            :key="path.edgeId"
+            class="text-xs"
+          >
             <span v-if="!path.segments.length" class="italic text-muted-color">
               {{ path.defaultLabel }}
             </span>
@@ -37,14 +40,17 @@
                 <span v-else>{{ seg.value }}</span>
               </template>
             </span>
-          </div>
+          </CFormGroup>
         </div>
 
         <!-- Configuration preview list (steps / triggers) -->
         <div v-else-if="previewItems.length" class="flex flex-col gap-3">
-          <div v-for="item in previewItems" :key="item.key" class="flex flex-col gap-0.5 text-xs">
-            <label class="text-primary font-medium">{{ item.label }}</label>
-
+          <CFormGroup
+            :label="item.label"
+            v-for="item in previewItems"
+            :key="item.key"
+            class="text-xs"
+          >
             <!-- Reference value -->
             <CViewReference
               v-if="item.isReference"
@@ -61,7 +67,7 @@
               :model-value="item.value"
               v-bind="item.viewerProps"
             />
-          </div>
+          </CFormGroup>
         </div>
 
         <!-- No config: hide preview entirely instead of showing a message -->

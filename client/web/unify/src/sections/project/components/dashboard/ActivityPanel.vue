@@ -102,41 +102,29 @@
 
       <Popover ref="filterPanel">
         <div class="flex flex-col gap-3 w-72">
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.from') }}
-            </span>
+          <CFormGroup :label="$t('system.actionlog.list.filter.from')">
             <CInputDateTime
               v-model="filter.from"
               value-type="date"
               size="small"
               @update:model-value="reload"
             />
-          </label>
+          </CFormGroup>
 
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.to') }}
-            </span>
+          <CFormGroup :label="$t('system.actionlog.list.filter.to')">
             <CInputDateTime
               v-model="filter.to"
               value-type="date"
               size="small"
               @update:model-value="reload"
             />
-          </label>
+          </CFormGroup>
 
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.actor') }}
-            </span>
+          <CFormGroup :label="$t('system.actionlog.list.filter.actor')">
             <CInputUser v-model="filter.actorID" size="small" @update:modelValue="reload" />
-          </label>
+          </CFormGroup>
 
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.origin') }}
-            </span>
+          <CFormGroup :label="$t('system.actionlog.list.filter.origin')">
             <Select
               v-model="filter.origin"
               :options="originOptions"
@@ -147,12 +135,9 @@
               size="small"
               @update:modelValue="reload"
             />
-          </label>
+          </CFormGroup>
 
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.resource') }}
-            </span>
+          <CFormGroup :label="$t('system.actionlog.list.filter.resource')">
             <Select
               v-model="filter.resource"
               :options="resourceOptions"
@@ -163,12 +148,9 @@
               size="small"
               @update:modelValue="reload"
             />
-          </label>
+          </CFormGroup>
 
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-muted-color">
-              {{ $t('system.actionlog.list.filter.action') }}
-            </span>
+          <CFormGroup :label="$t('system.actionlog.list.filter.action')">
             <Select
               v-model="filter.action"
               :options="actionOptions"
@@ -179,7 +161,7 @@
               size="small"
               @update:modelValue="reload"
             />
-          </label>
+          </CFormGroup>
         </div>
       </Popover>
     </div>

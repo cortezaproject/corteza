@@ -48,22 +48,16 @@
           :label="$t('system.code-snippets.editor.code-snippets.enabled')"
         />
 
-        <div class="flex flex-col gap-1">
-          <label class="font-medium text-sm">
-            {{ $t('system.code-snippets.editor.code-snippets.form.name.label') }}
-          </label>
+        <CFormGroup :label="$t('system.code-snippets.editor.code-snippets.form.name.label')">
           <InputText v-model="modal.data.name" class="w-full" />
-        </div>
+        </CFormGroup>
 
-        <div class="flex flex-col gap-1">
-          <label class="font-medium text-sm">
-            {{ $t('system.code-snippets.editor.code-snippets.form.code.label') }}
-          </label>
-          <span class="text-xs text-muted-color">
-            {{ $t('system.code-snippets.editor.code-snippets.form.code.description') }}
-          </span>
+        <CFormGroup
+          :label="$t('system.code-snippets.editor.code-snippets.form.code.label')"
+          :description="$t('system.code-snippets.editor.code-snippets.form.code.description')"
+        >
           <Textarea v-model="modal.data.script" rows="12" class="w-full font-mono text-sm" />
-        </div>
+        </CFormGroup>
       </div>
 
       <template #footer>

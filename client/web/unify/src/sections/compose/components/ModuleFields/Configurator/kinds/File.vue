@@ -72,32 +72,24 @@
       <small class="text-muted-color -mt-2">{{ $t('field.kind.file.view.description') }}</small>
 
       <div class="grid grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.height') }}</label>
+        <CFormGroup :label="$t('field.kind.file.view.height')">
           <InputText v-model="field.options.height" placeholder="200px" class="w-full" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.width') }}</label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.file.view.width')">
           <InputText v-model="field.options.width" placeholder="200px" class="w-full" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.maxHeight') }}</label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.file.view.maxHeight')">
           <InputText v-model="field.options.maxHeight" placeholder="300px" class="w-full" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.maxWidth') }}</label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.file.view.maxWidth')">
           <InputText v-model="field.options.maxWidth" placeholder="300px" class="w-full" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">
-            {{ $t('field.kind.file.view.borderRadius') }}
-          </label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.file.view.borderRadius')">
           <InputText v-model="field.options.borderRadius" placeholder="4px" class="w-full" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm text-muted-color">{{ $t('field.kind.file.view.margin') }}</label>
+        </CFormGroup>
+        <CFormGroup :label="$t('field.kind.file.view.margin')">
           <InputText v-model="field.options.margin" placeholder="auto" class="w-full" />
-        </div>
+        </CFormGroup>
       </div>
 
       <div class="flex items-center gap-3">

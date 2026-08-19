@@ -1,8 +1,5 @@
 <template>
-  <div v-if="field.isMulti" class="flex flex-col gap-2">
-    <label class="font-medium text-muted-color text-sm uppercase tracking-wide">
-      {{ $t('field.options.multiDelimiter.label') }}
-    </label>
+  <CFormGroup :label="$t('field.options.multiDelimiter.label')" v-if="field.isMulti">
     <div class="flex flex-col gap-2">
       <div class="flex items-center gap-2">
         <RadioButton
@@ -46,7 +43,7 @@
       size="small"
       @update:model-value="field.options.multiDelimiter = $event"
     />
-  </div>
+  </CFormGroup>
 </template>
 
 <script setup>

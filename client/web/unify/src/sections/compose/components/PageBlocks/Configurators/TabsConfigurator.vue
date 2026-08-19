@@ -65,16 +65,17 @@
       empty-message="—"
     >
       <template #header>
-        <div class="flex items-center justify-between w-full">
-          <label class="text-primary font-medium text-sm">{{ $t('block.tabs.title') }}</label>
-          <Button
-            :label="$t('general.label.add')"
-            icon="pi pi-plus"
-            size="small"
-            severity="secondary"
-            @click="addTab"
-          />
-        </div>
+        <CFormGroup :label="$t('block.tabs.title')" class="w-full">
+          <template #actions>
+            <Button
+              :label="$t('general.label.add')"
+              icon="pi pi-plus"
+              size="small"
+              severity="secondary"
+              @click="addTab"
+            />
+          </template>
+        </CFormGroup>
       </template>
 
       <template #empty>

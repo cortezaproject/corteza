@@ -21,21 +21,15 @@
           {{ $t('compose.settings.editor.basic.attachments.page') }}
         </h5>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('compose.settings.editor.basic.attachments.max-size') }}
-            </label>
+          <CFormGroup :label="$t('compose.settings.editor.basic.attachments.max-size')">
             <InputNumber v-model="settings['compose.page.attachments.max-size']" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('compose.settings.editor.basic.attachments.type.description') }}
-            </span>
+          </CFormGroup>
+          <CFormGroup
+            :label="$t('compose.settings.editor.basic.attachments.type.whitelist')"
+            :description="$t('compose.settings.editor.basic.attachments.type.description')"
+          >
             <InputText v-model="pageAttachmentWhitelist" class="w-full" />
-          </div>
+          </CFormGroup>
         </div>
 
         <Divider />
@@ -45,21 +39,15 @@
           {{ $t('compose.settings.editor.basic.attachments.record') }}
         </h5>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('compose.settings.editor.basic.attachments.max-size') }}
-            </label>
+          <CFormGroup :label="$t('compose.settings.editor.basic.attachments.max-size')">
             <InputNumber v-model="settings['compose.record.attachments.max-size']" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('compose.settings.editor.basic.attachments.type.description') }}
-            </span>
+          </CFormGroup>
+          <CFormGroup
+            :label="$t('compose.settings.editor.basic.attachments.type.whitelist')"
+            :description="$t('compose.settings.editor.basic.attachments.type.description')"
+          >
             <InputText v-model="recordAttachmentWhitelist" class="w-full" />
-          </div>
+          </CFormGroup>
         </div>
 
         <Divider />
@@ -69,21 +57,15 @@
           {{ $t('compose.settings.editor.basic.attachments.icon') }}
         </h5>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('compose.settings.editor.basic.attachments.max-size') }}
-            </label>
+          <CFormGroup :label="$t('compose.settings.editor.basic.attachments.max-size')">
             <InputNumber v-model="settings['compose.icon.attachments.max-size']" class="w-full" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('compose.settings.editor.basic.attachments.type.whitelist') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('compose.settings.editor.basic.attachments.type.description') }}
-            </span>
+          </CFormGroup>
+          <CFormGroup
+            :label="$t('compose.settings.editor.basic.attachments.type.whitelist')"
+            :description="$t('compose.settings.editor.basic.attachments.type.description')"
+          >
             <InputText v-model="iconAttachmentWhitelist" class="w-full" />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 

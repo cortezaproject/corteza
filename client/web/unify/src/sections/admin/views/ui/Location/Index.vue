@@ -16,13 +16,10 @@
         class="shadow"
       >
         <div class="flex flex-col gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('ui.settings.editor.location.geosearch.provider.label') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('ui.settings.editor.location.geosearch.provider.description') }}
-            </span>
+          <CFormGroup
+            :label="$t('ui.settings.editor.location.geosearch.provider.label')"
+            :description="$t('ui.settings.editor.location.geosearch.provider.description')"
+          >
             <Select
               v-model="location.geoSearchProvider"
               :options="providerOptions"
@@ -31,18 +28,18 @@
               class="w-full md:w-1/2"
               @change="location.geoSearchApiKey = ''"
             />
-          </div>
+          </CFormGroup>
 
-          <div v-if="requiresApiKey" class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('ui.settings.editor.location.geosearch.apiKey.label') }}
-            </label>
+          <CFormGroup
+            :label="$t('ui.settings.editor.location.geosearch.apiKey.label')"
+            v-if="requiresApiKey"
+          >
             <InputText
               v-model="location.geoSearchApiKey"
               :placeholder="$t('ui.settings.editor.location.geosearch.apiKey.placeholder')"
               class="w-full md:w-1/2"
             />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
     </CViewContainer>

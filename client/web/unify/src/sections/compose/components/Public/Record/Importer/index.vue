@@ -29,10 +29,7 @@
         />
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('block.recordList.import.onError') }}
-            </label>
+          <CFormGroup :label="$t('block.recordList.import.onError')">
             <Select
               v-model="onError"
               :options="onErrorOptions"
@@ -40,12 +37,9 @@
               option-value="value"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('block.recordList.import.multiValueDelimiter.label') }}
-            </label>
+          <CFormGroup :label="$t('block.recordList.import.multiValueDelimiter.label')">
             <Select
               v-model="multiValueDelimiter"
               :options="delimiterOptions"
@@ -53,20 +47,17 @@
               option-value="value"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
         </div>
       </div>
 
       <!-- Step 1: Field Mapping -->
       <div v-else-if="step === 1" class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.import.matchFields') }}
-          </label>
+        <CFormGroup :label="$t('block.recordList.import.matchFields')">
           <p v-if="hasUnmappedRequired" class="text-xs text-red-500">
             {{ $t('block.recordList.import.hasRequiredFileFields') }}: {{ unmappedRequiredNames }}
           </p>
-        </div>
+        </CFormGroup>
 
         <DataTable :value="rows" size="small" scrollable scroll-height="50vh" class="text-sm">
           <Column style="width: 3rem">
@@ -120,10 +111,7 @@
 
       <!-- Step 3: Error Report -->
       <div v-else-if="step === 3" class="flex flex-col gap-5">
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.import.report.title') }}
-          </label>
+        <CFormGroup :label="$t('block.recordList.import.report.title')">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm pl-1">
             <div>
               <span class="text-muted-color">
@@ -156,12 +144,12 @@
               <span class="font-medium ml-1 text-red-500">{{ progress.failed }}</span>
             </div>
           </div>
-        </div>
+        </CFormGroup>
 
-        <div v-if="errorRows.length" class="flex flex-col gap-2">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.import.report.detectedErrors') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.recordList.import.report.detectedErrors')"
+          v-if="errorRows.length"
+        >
           <DataTable :value="errorRows" size="small" class="text-sm">
             <Column :header="$t('block.recordList.import.report.error')" field="message" />
             <Column
@@ -170,12 +158,12 @@
               style="width: 8rem"
             />
           </DataTable>
-        </div>
+        </CFormGroup>
 
-        <div v-if="failedEntries.length" class="flex flex-col gap-2">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('block.recordList.import.report.failedEntries') }}
-          </label>
+        <CFormGroup
+          :label="$t('block.recordList.import.report.failedEntries')"
+          v-if="failedEntries.length"
+        >
           <div class="flex flex-col gap-1 text-sm pl-1">
             <div v-for="(ee, ix) in failedEntries" :key="ix">
               <template v-if="ee.length === 1 || ee[0] === ee[1]">
@@ -192,7 +180,7 @@
               </template>
             </div>
           </div>
-        </div>
+        </CFormGroup>
       </div>
 
       <template #footer>

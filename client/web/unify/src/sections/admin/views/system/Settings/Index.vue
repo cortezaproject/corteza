@@ -64,110 +64,89 @@
         </Message>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.internal.password-constraints.min-length') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-length-description',
-                )
-              }}
-            </span>
+          <CFormGroup
+            :label="$t('system.settings.editor.auth.internal.password-constraints.min-length')"
+            :description="
+              $t('system.settings.editor.auth.internal.password-constraints.min-length-description')
+            "
+          >
             <InputNumber
               v-model="settings['auth.internal.password-constraints.min-length']"
               :min="8"
               placeholder="8"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.internal.password-constraints.min-num-count') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-num-count-description',
-                )
-              }}
-            </span>
+          <CFormGroup
+            :label="$t('system.settings.editor.auth.internal.password-constraints.min-num-count')"
+            :description="
+              $t(
+                'system.settings.editor.auth.internal.password-constraints.min-num-count-description',
+              )
+            "
+          >
             <InputNumber
               v-model="settings['auth.internal.password-constraints.min-num-count']"
               :min="0"
               placeholder="0"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-upper-case-length',
-                )
-              }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-upper-case-description',
-                )
-              }}
-            </span>
+          <CFormGroup
+            :label="
+              $t('system.settings.editor.auth.internal.password-constraints.min-upper-case-length')
+            "
+            :description="
+              $t(
+                'system.settings.editor.auth.internal.password-constraints.min-upper-case-description',
+              )
+            "
+          >
             <InputNumber
               v-model="settings['auth.internal.password-constraints.min-upper-case']"
               :min="0"
               placeholder="0"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-lower-case-length',
-                )
-              }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-lower-case-description',
-                )
-              }}
-            </span>
+          <CFormGroup
+            :label="
+              $t('system.settings.editor.auth.internal.password-constraints.min-lower-case-length')
+            "
+            :description="
+              $t(
+                'system.settings.editor.auth.internal.password-constraints.min-lower-case-description',
+              )
+            "
+          >
             <InputNumber
               v-model="settings['auth.internal.password-constraints.min-lower-case']"
               :min="0"
               placeholder="0"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{
-                $t('system.settings.editor.auth.internal.password-constraints.min-special-count')
-              }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.password-constraints.min-special-count-description',
-                )
-              }}
-            </span>
+          <CFormGroup
+            :label="
+              $t('system.settings.editor.auth.internal.password-constraints.min-special-count')
+            "
+            :description="
+              $t(
+                'system.settings.editor.auth.internal.password-constraints.min-special-count-description',
+              )
+            "
+          >
             <InputNumber
               v-model="settings['auth.internal.password-constraints.min-special-count']"
               :min="0"
               placeholder="0"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -185,13 +164,10 @@
             @update:modelValue="onEmailOtpToggle"
           />
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.label') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('system.settings.editor.auth.mfa.emailOTP.expires.description') }}
-            </span>
+          <CFormGroup
+            :label="$t('system.settings.editor.auth.mfa.emailOTP.expires.label')"
+            :description="$t('system.settings.editor.auth.mfa.emailOTP.expires.description')"
+          >
             <InputGroup>
               <InputNumber
                 v-model="settings['auth.multi-factor.email-otp.expires']"
@@ -199,7 +175,7 @@
               />
               <InputGroupAddon>{{ $t('general.label.seconds') }}</InputGroupAddon>
             </InputGroup>
-          </div>
+          </CFormGroup>
 
           <CInputSwitch
             v-if="settings['auth.multi-factor.email-otp.enabled']"
@@ -217,19 +193,16 @@
             @update:modelValue="onTotpToggle"
           />
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.label') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('system.settings.editor.auth.mfa.TOTP.issuer.description') }}
-            </span>
+          <CFormGroup
+            :label="$t('system.settings.editor.auth.mfa.TOTP.issuer.label')"
+            :description="$t('system.settings.editor.auth.mfa.TOTP.issuer.description')"
+          >
             <InputText
               v-model="settings['auth.multi-factor.totp.issuer']"
               placeholder="Human"
               class="w-full"
             />
-          </div>
+          </CFormGroup>
 
           <CInputSwitch
             v-if="settings['auth.multi-factor.totp.enabled']"
@@ -247,19 +220,13 @@
         class="shadow"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mail.from-address') }}
-            </label>
+          <CFormGroup :label="$t('system.settings.editor.auth.mail.from-address')">
             <InputText v-model="settings['auth.mail.from-address']" type="email" class="w-full" />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.mail.from-name') }}
-            </label>
+          <CFormGroup :label="$t('system.settings.editor.auth.mail.from-name')">
             <InputText v-model="settings['auth.mail.from-name']" class="w-full" />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -279,22 +246,17 @@
             "
           />
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.internal.send-user-invite-email.expires.label') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{
-                $t(
-                  'system.settings.editor.auth.internal.send-user-invite-email.expires.description',
-                )
-              }}
-            </span>
+          <CFormGroup
+            :label="$t('system.settings.editor.auth.internal.send-user-invite-email.expires.label')"
+            :description="
+              $t('system.settings.editor.auth.internal.send-user-invite-email.expires.description')
+            "
+          >
             <InputGroup>
               <InputNumber v-model="settings['auth.internal.send-user-invite-email.expires']" />
               <InputGroupAddon>{{ $t('general.label.hours') }}</InputGroupAddon>
             </InputGroup>
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -312,18 +274,15 @@
             :description="$t('system.settings.editor.auth.auto-logout.enabled.description')"
           />
 
-          <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">
-              {{ $t('system.settings.editor.auth.auto-logout.timeout.label') }}
-            </label>
-            <span class="text-xs text-muted-color">
-              {{ $t('system.settings.editor.auth.auto-logout.timeout.description') }}
-            </span>
+          <CFormGroup
+            :label="$t('system.settings.editor.auth.auto-logout.timeout.label')"
+            :description="$t('system.settings.editor.auth.auto-logout.timeout.description')"
+          >
             <InputGroup>
               <InputNumber v-model="settings['auth.auto-logout.timeout']" />
               <InputGroupAddon>{{ $t('general.label.seconds') }}</InputGroupAddon>
             </InputGroup>
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 
@@ -385,10 +344,7 @@
         class="shadow"
       >
         <div class="flex flex-col gap-6">
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('system.settings.editor.bgScreen.image.uploader.label') }}
-            </label>
+          <CFormGroup :label="$t('system.settings.editor.bgScreen.image.uploader.label')">
             <CFileDropZone
               accept="image/*"
               :uploading="bgUploading"
@@ -401,18 +357,15 @@
               @select="onBgImageSelect"
               @clear="onBgImageClear"
             />
-          </div>
+          </CFormGroup>
 
-          <div class="flex flex-col gap-2">
-            <label class="font-medium text-sm text-primary">
-              {{ $t('system.settings.editor.bgScreen.image.editor.label') }}
-            </label>
+          <CFormGroup :label="$t('system.settings.editor.bgScreen.image.editor.label')">
             <Textarea
               v-model="settings['auth.ui.styles']"
               rows="16"
               class="w-full font-mono text-sm"
             />
-          </div>
+          </CFormGroup>
         </div>
       </Panel>
 

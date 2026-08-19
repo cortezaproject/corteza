@@ -30,10 +30,7 @@
       class="flex flex-col gap-2 border border-surface rounded p-2"
     >
       <div class="flex items-start gap-2">
-        <div class="flex-1 min-w-0">
-          <label class="text-xs text-muted-color block mb-1">
-            {{ $t('builder.inputSchema.name') }}
-          </label>
+        <CFormGroup :label="$t('builder.inputSchema.name')" class="flex-1 min-w-0">
           <InputText
             :model-value="row.name"
             size="small"
@@ -45,12 +42,9 @@
           <div v-if="nameErrors[index]" class="text-xs text-red-500 mt-1">
             {{ nameErrors[index] }}
           </div>
-        </div>
+        </CFormGroup>
 
-        <div class="w-32 shrink-0">
-          <label class="text-xs text-muted-color block mb-1">
-            {{ $t('builder.inputSchema.type') }}
-          </label>
+        <CFormGroup :label="$t('builder.inputSchema.type')" class="w-32 shrink-0">
           <Select
             :model-value="row.type"
             :options="typeOptions"
@@ -60,19 +54,16 @@
             class="w-full"
             @update:model-value="updateRow(index, { type: $event })"
           />
-        </div>
+        </CFormGroup>
 
-        <div class="shrink-0 flex flex-col items-center">
-          <label class="text-xs text-muted-color block mb-1">
-            {{ $t('builder.inputSchema.required') }}
-          </label>
+        <CFormGroup :label="$t('builder.inputSchema.required')" class="shrink-0 items-center">
           <Checkbox
             :model-value="!!row.required"
             binary
             class="mt-1"
             @update:model-value="updateRow(index, { required: $event })"
           />
-        </div>
+        </CFormGroup>
 
         <Button
           icon="pi pi-trash"
@@ -85,10 +76,7 @@
         />
       </div>
 
-      <div>
-        <label class="text-xs text-muted-color block mb-1">
-          {{ $t('builder.inputSchema.description') }}
-        </label>
+      <CFormGroup :label="$t('builder.inputSchema.description')">
         <InputText
           :model-value="row.description"
           size="small"
@@ -96,7 +84,7 @@
           :placeholder="$t('builder.inputSchema.descriptionPlaceholder')"
           @update:model-value="updateRow(index, { description: $event })"
         />
-      </div>
+      </CFormGroup>
     </div>
   </div>
 </template>

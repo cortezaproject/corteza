@@ -1,11 +1,11 @@
 <template>
   <div class="flex flex-col gap-3">
     <!-- Sanitizers -->
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center justify-between">
-        <label class="font-medium text-muted-color text-sm uppercase tracking-wide">
-          {{ $t('field.sanitizers.label') }}
-        </label>
+    <CFormGroup
+      :label="$t('field.sanitizers.label')"
+      :description="$t('field.sanitizers.description')"
+    >
+      <template #actions>
         <Button
           icon="pi pi-plus"
           :label="$t('general.label.add')"
@@ -13,8 +13,7 @@
           text
           @click="addSanitizer"
         />
-      </div>
-      <small class="text-muted-color">{{ $t('field.sanitizers.description') }}</small>
+      </template>
 
       <div v-for="(_, index) in sanitizers" :key="'san-' + index" class="flex items-center gap-2">
         <CInputExpression
@@ -34,16 +33,16 @@
           @click="removeSanitizer(index)"
         />
       </div>
-    </div>
+    </CFormGroup>
 
     <Divider layout="horizontal" />
 
     <!-- Validators -->
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center justify-between">
-        <label class="font-medium text-muted-color text-sm uppercase tracking-wide">
-          {{ $t('field.validators.label') }}
-        </label>
+    <CFormGroup
+      :label="$t('field.validators.label')"
+      :description="$t('field.validators.description')"
+    >
+      <template #actions>
         <Button
           icon="pi pi-plus"
           :label="$t('general.label.add')"
@@ -51,8 +50,7 @@
           text
           @click="addValidator"
         />
-      </div>
-      <small class="text-muted-color">{{ $t('field.validators.description') }}</small>
+      </template>
 
       <div v-for="(v, index) in validators" :key="'val-' + index" class="flex items-center gap-2">
         <CInputExpression
@@ -89,7 +87,7 @@
           {{ $t('field.validators.disableBuiltIn') }}
         </label>
       </div>
-    </div>
+    </CFormGroup>
   </div>
 </template>
 

@@ -1,17 +1,14 @@
 <template>
   <div>
-    <div class="configurator-section">
-      <div class="flex items-center justify-between mb-2">
-        <label class="text-xs font-semibold uppercase tracking-wider text-muted-color">
-          {{ $t('steps.expressions.label') }}
-        </label>
+    <CFormGroup :label="$t('steps.expressions.label')" class="configurator-section">
+      <template #actions>
         <Button
           :label="$t('steps.expressions.configurator.add-expression')"
           severity="secondary"
           size="small"
           @click="addArgument()"
         />
-      </div>
+      </template>
 
       <div v-if="hasArguments">
         <expression-table
@@ -24,7 +21,7 @@
           @open-editor="openInEditor"
         />
       </div>
-    </div>
+    </CFormGroup>
 
     <Dialog
       :visible="!!expressionEditor.currentExpression"

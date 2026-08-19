@@ -31,17 +31,11 @@
     <section class="rounded-xl border border-surface bg-surface p-4 flex flex-col gap-4">
       <h3 class="font-medium">{{ $t('fria.aiSystems.sections.identity') }}</h3>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm text-muted-color" for="ais-name">
-          {{ $t('fria.aiSystems.fields.name') }}
-        </label>
+      <CFormGroup :label="$t('fria.aiSystems.fields.name')" input-id="ais-name">
         <InputText id="ais-name" v-model="draft.name" :disabled="disabled" fluid />
-      </div>
+      </CFormGroup>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm text-muted-color" for="ais-purpose">
-          {{ $t('fria.aiSystems.fields.intendedPurpose') }}
-        </label>
+      <CFormGroup :label="$t('fria.aiSystems.fields.intendedPurpose')" input-id="ais-purpose">
         <!-- Intended purpose is not decoration: Art. 3(12) makes it the thing
              a system's whole classification turns on. -->
         <Textarea
@@ -53,7 +47,7 @@
           fluid
           :placeholder="$t('fria.aiSystems.fields.intendedPurposePlaceholder')"
         />
-      </div>
+      </CFormGroup>
     </section>
 
     <!-- 2. Risk classification -->
@@ -94,10 +88,11 @@
 
       <!-- Annex III only becomes a question once the system is high-risk;
            asking it otherwise implies a classification nobody made. -->
-      <div v-if="draft.riskClass === 'high'" class="flex flex-col gap-1">
-        <label class="text-sm text-muted-color" for="ais-annex">
-          {{ $t('fria.aiSystems.fields.annexIIIPoint') }}
-        </label>
+      <CFormGroup
+        :label="$t('fria.aiSystems.fields.annexIIIPoint')"
+        input-id="ais-annex"
+        v-if="draft.riskClass === 'high'"
+      >
         <Select
           id="ais-annex"
           v-model="draft.annexIIIPoint"
@@ -112,7 +107,7 @@
         <small class="text-muted-color">
           {{ $t('fria.aiSystems.fields.annexIIINotPersisted') }}
         </small>
-      </div>
+      </CFormGroup>
     </section>
 
     <!-- 3. Membership -->

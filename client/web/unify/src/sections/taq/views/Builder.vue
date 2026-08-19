@@ -5,7 +5,14 @@
       @click="showConfigDialog = true"
     >
       {{ editor.name.value }}
-      <Button icon="pi pi-pencil" text rounded size="small" class="!w-5 !h-5 !p-0 shrink-0" />
+      <Button
+        icon="pi pi-pencil"
+        text
+        rounded
+        size="small"
+        class="!w-5 !h-5 !p-0 shrink-0"
+        data-title-exclude
+      />
     </div>
   </Teleport>
 

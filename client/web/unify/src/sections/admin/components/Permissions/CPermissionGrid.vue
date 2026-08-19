@@ -164,10 +164,7 @@
           }}
         </p>
 
-        <div class="flex flex-col gap-1">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('permissions.ui.add.role.label') }}
-          </label>
+        <CFormGroup :label="$t('permissions.ui.add.role.label')">
           <CInputRole
             v-model="add.roleID"
             :placeholder="$t('permissions.ui.add.role.placeholder')"
@@ -189,12 +186,9 @@
               @remove="removeSelectedRole(role.roleID)"
             />
           </div>
-        </div>
+        </CFormGroup>
 
-        <div v-if="add.mode === 'eval'" class="flex flex-col gap-1">
-          <label class="font-medium text-sm text-primary">
-            {{ $t('permissions.ui.add.user.label') }}
-          </label>
+        <CFormGroup :label="$t('permissions.ui.add.user.label')" v-if="add.mode === 'eval'">
           <AutoComplete
             v-model="add.userID"
             :suggestions="userSuggestions"
@@ -205,7 +199,7 @@
             dropdown
             @complete="searchUsers"
           />
-        </div>
+        </CFormGroup>
       </div>
 
       <template #footer>
