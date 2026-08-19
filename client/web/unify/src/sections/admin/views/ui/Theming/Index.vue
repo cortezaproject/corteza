@@ -230,6 +230,9 @@ function stripHash(color) {
   return color.replace(/^#/, '')
 }
 
+// Logos are read back from the structured settings payload, which is JSON-cased
+// (`ui.mainLogo`); writes address the setting itself, which is kebab-cased
+// (`ui.main-logo`).
 function refreshLogoUrls() {
   mainLogoUrl.value = $Settings.attachment('ui.mainLogo') || ''
   iconLogoUrl.value = $Settings.attachment('ui.iconLogo') || ''
@@ -246,7 +249,7 @@ async function onMainLogoSelect(files) {
   if (!file) return
 
   try {
-    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.mainLogo' })
+    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.main-logo' })
     const token = $SystemAPI.accessTokenFn ? $SystemAPI.accessTokenFn() : ''
     await uploadMainLogoRaw(file, { url: endpoint, token })
     await $Settings.fetch()
@@ -262,7 +265,7 @@ async function onIconLogoSelect(files) {
   if (!file) return
 
   try {
-    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.iconLogo' })
+    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.icon-logo' })
     const token = $SystemAPI.accessTokenFn ? $SystemAPI.accessTokenFn() : ''
     await uploadIconLogoRaw(file, { url: endpoint, token })
     await $Settings.fetch()
@@ -276,7 +279,7 @@ async function onIconLogoSelect(files) {
 async function onMainLogoClear() {
   try {
     await $SystemAPI.settingsUpdate({
-      values: [{ name: 'ui.mainLogo', value: null }],
+      values: [{ name: 'ui.main-logo', value: null }],
     })
     await $Settings.fetch()
     refreshLogoUrls()
@@ -290,7 +293,7 @@ async function onMainLogoClear() {
 async function onIconLogoClear() {
   try {
     await $SystemAPI.settingsUpdate({
-      values: [{ name: 'ui.iconLogo', value: null }],
+      values: [{ name: 'ui.icon-logo', value: null }],
     })
     await $Settings.fetch()
     refreshLogoUrls()
