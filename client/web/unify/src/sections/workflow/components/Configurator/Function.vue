@@ -114,6 +114,13 @@
                 @change="emitChange"
               />
 
+              <c-rich-text-input
+                v-else-if="a.input.type === 'richtext'"
+                v-model="a.value"
+                min-body-height="6rem"
+                @update:modelValue="emitChange"
+              />
+
               <div v-else-if="a.type === 'Boolean'" class="flex items-center gap-2">
                 <Checkbox
                   v-model="a.value"
@@ -266,9 +273,12 @@ import base from './base.vue'
 import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
 import eventBus from '../../lib/eventBus'
+import { components } from '@planetcrust/human-vue'
+const { CRichTextInput } = components
 
 export default {
   components: {
+    CRichTextInput,
     ExpressionEditor,
     ExpressionTable,
   },

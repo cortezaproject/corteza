@@ -106,6 +106,9 @@ func (h notificationHandler) SendRecord() *atypes.Function {
 			{
 				Name:  "description",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "richtext"}},
+				},
 			},
 			{
 				Name:  "module",
