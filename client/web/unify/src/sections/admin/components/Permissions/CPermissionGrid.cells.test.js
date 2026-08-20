@@ -32,6 +32,9 @@ const api = {
 
 const stub = (name, props = []) => ({ name, props, template: '<div><slot /></div>' })
 
+const EDIT_COLUMN = { mode: 'edit', ID: 'edit-R1', roleID: 'R1', name: ['Auditor'] }
+const EVAL_COLUMN = { mode: 'eval', ID: 'eval-R1', roleID: ['R1'], userID: null, name: ['Auditor'] }
+
 async function mountGrid(column) {
   localStorage.setItem('permissionList.roles', JSON.stringify([column]))
 
@@ -64,22 +67,37 @@ async function mountGrid(column) {
 }
 
 // One cell per operation row; the icon is the whole of the cell's content.
+const cells = wrapper => wrapper.findAll('div.w-48.text-lg')
+
 const cellIcons = wrapper =>
-  wrapper.findAll('div.w-48.text-lg').map(c => {
+  cells(wrapper).map(c => {
     const i = c.find('i')
     return i.exists() ? i.attributes('class') : ''
   })
+
+// What a cell says it is: its icon, or 'blank' where the rule is inherited.
+const state = cell => {
+  const i = cell.find('i')
+  if (!i.exists()) return 'blank'
+  return i.attributes('class').includes('pi-check') ? 'allow' : 'deny'
+}
+
+const isChanged = cell => cell.attributes('class').includes('bg-amber-500/15')
+
+const clickThrough = async (cell, times) => {
+  const seen = []
+  for (let n = 0; n < times; n++) {
+    await cell.trigger('click')
+    seen.push(state(cell))
+  }
+  return seen
+}
 
 describe('CPermissionGrid cell states', () => {
   beforeEach(() => localStorage.clear())
 
   it('renders an edit column as green allow, red deny and a blank inherit', async () => {
-    const wrapper = await mountGrid({
-      mode: 'edit',
-      ID: 'edit-R1',
-      roleID: 'R1',
-      name: ['Auditor'],
-    })
+    const wrapper = await mountGrid(EDIT_COLUMN)
 
     const [read, update, del] = cellIcons(wrapper)
     expect(read).toContain('pi-check')
@@ -90,18 +108,52 @@ describe('CPermissionGrid cell states', () => {
   })
 
   it('never leaves an evaluation column blank: inherit evaluates to a deny', async () => {
-    const wrapper = await mountGrid({
-      mode: 'eval',
-      ID: 'eval-R1',
-      roleID: ['R1'],
-      userID: null,
-      name: ['Auditor'],
-    })
+    const wrapper = await mountGrid(EVAL_COLUMN)
 
     const icons = cellIcons(wrapper)
     expect(icons).toHaveLength(3)
     expect(icons.every(c => c !== '')).toBe(true)
     expect(icons[2]).toContain('pi-times')
     expect(icons[2]).toContain('text-red-500')
+  })
+
+  it('cycles a cell inherit -> allow -> deny -> inherit', async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN)
+    const [, , del] = cells(wrapper)
+
+    expect(state(del)).toBe('blank')
+    expect(await clickThrough(del, 4)).toEqual(['allow', 'deny', 'blank', 'allow'])
+  })
+
+  it('cycles a cell that starts on an explicit rule from where it stands', async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN)
+    const [read] = cells(wrapper)
+
+    expect(state(read)).toBe('allow')
+    expect(await clickThrough(read, 3)).toEqual(['deny', 'blank', 'allow'])
+  })
+
+  it('tints a cell amber while it differs from what was loaded', async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN)
+    const [, , del] = cells(wrapper)
+
+    expect(isChanged(del)).toBe(false)
+
+    await del.trigger('click') // allow
+    expect(isChanged(del)).toBe(true)
+    await del.trigger('click') // deny
+    expect(isChanged(del)).toBe(true)
+
+    // Round-tripped back to the loaded value: no longer a pending change.
+    await del.trigger('click') // inherit
+    expect(isChanged(del)).toBe(false)
+  })
+
+  it('leaves an evaluation column inert', async () => {
+    const wrapper = await mountGrid(EVAL_COLUMN)
+    const [, , del] = cells(wrapper)
+
+    expect(await clickThrough(del, 2)).toEqual(['deny', 'deny'])
+    expect(isChanged(del)).toBe(false)
   })
 })

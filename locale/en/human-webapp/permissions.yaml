@@ -1043,7 +1043,7 @@ ui:
       label: Users
       placeholder: Search or select a user
   cancel: Cancel
-  click-on-cell-to-allow: Click on permission/role cell to allow a specific operation
+  click-on-cell-to-cycle: Click a cell to cycle that operation through allow, deny and inherit.
   clone:
     clone: Clone
     description: This will clone all the permissions of the current role and apply them  to the selected

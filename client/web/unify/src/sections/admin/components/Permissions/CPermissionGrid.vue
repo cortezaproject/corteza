@@ -25,7 +25,7 @@
             <!-- Header with roles (sticky inside scroll container) -->
             <div class="flex border-b bg-surface sticky top-0 z-20">
               <div class="w-1/3 p-3 text-sm text-muted-color">
-                {{ $t('permissions.ui.click-on-cell-to-allow') }}
+                {{ $t('permissions.ui.click-on-cell-to-cycle') }}
               </div>
               <div class="flex">
                 <div
@@ -96,7 +96,7 @@
                     :class="{
                       'cursor-pointer hover:bg-emphasis': role.mode === 'edit',
                       'cursor-not-allowed bg-emphasis': role.mode === 'eval',
-                      'bg-highlight': checkChange(role.ID, permissions[type].any, operation),
+                      'bg-amber-500/15': checkChange(role.ID, permissions[type].any, operation),
                     }"
                     :title="
                       getRuleTooltip(
@@ -327,6 +327,9 @@ function setIncludedRoles(rr) {
 }
 
 // Permission checks
+// Where a click takes a cell: granting stays the first click on an unset one
+const NEXT_ACCESS = { inherit: 'allow', allow: 'deny', deny: 'inherit' }
+
 // Cell access: allow, deny, unknown-context, or inherit — inherit has no rule and renders blank
 function ruleAccess(ID, res, op) {
   const rp = rolePermissions.value.find(r => r.ID === ID)
@@ -345,8 +348,6 @@ function ruleChange(ID, res, op) {
   const rp = rolePermissions.value.find(r => r.ID === ID)
   if (!rp) return
 
-  let access = rp.rules[key]
-
   // Track initial value
   let pc = permissionChanges.value.find(r => r.ID === ID)
   if (!pc) {
@@ -354,11 +355,10 @@ function ruleChange(ID, res, op) {
     permissionChanges.value.push(pc)
   }
   if (!pc.rules[key]) {
-    pc.rules[key] = access || 'inherit'
+    pc.rules[key] = rp.rules[key] || 'inherit'
   }
 
-  // Toggle
-  rp.rules[key] = access === 'allow' ? 'inherit' : 'allow'
+  rp.rules[key] = NEXT_ACCESS[ruleAccess(ID, res, op)] || 'allow'
 }
 
 function roleRules(rules, mode = 'edit') {
