@@ -49,6 +49,14 @@
                     {{ $t(`permissions.ui.${role.mode === 'edit' ? 'edit' : 'evaluate'}.title`) }}
                   </span>
 
+                  <span
+                    v-if="role.inactive"
+                    class="text-xs mt-1 px-1.5 py-0.5 rounded border text-muted-color"
+                    :title="$t('permissions.ui.inactive.tooltip')"
+                  >
+                    {{ $t('permissions.ui.inactive.label') }}
+                  </span>
+
                   <i
                     class="pi pi-times text-muted-color text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   />
@@ -94,8 +102,8 @@
                     :key="role.ID"
                     class="w-48 flex items-center justify-center border-l p-3 text-lg"
                     :class="{
-                      'cursor-pointer hover:bg-emphasis': role.mode === 'edit',
-                      'cursor-not-allowed bg-emphasis': role.mode === 'eval',
+                      'cursor-pointer hover:bg-emphasis': isEditable(role),
+                      'cursor-not-allowed bg-emphasis': !isEditable(role),
                       'bg-amber-500/15': checkChange(role.ID, permissions[type].any, operation),
                     }"
                     :title="
@@ -105,7 +113,7 @@
                       )
                     "
                     @click="
-                      role.mode === 'edit'
+                      isEditable(role)
                         ? ruleChange(role.ID, permissions[type].any, operation)
                         : undefined
                     "
@@ -322,7 +330,9 @@ function getIncludedRoles() {
 }
 
 function setIncludedRoles(rr) {
-  const filtered = rr.filter(r => !['1', '2'].includes(String(r.roleID)))
+  const filtered = rr
+    .filter(r => !['1', '2'].includes(String(r.roleID)))
+    .map(({ mode, ID, roleID, userID, name }) => ({ mode, ID, roleID, userID, name }))
   localStorage.setItem(LS_KEY, JSON.stringify(filtered))
 }
 
@@ -410,6 +420,23 @@ function getTranslation(resource, operation = '') {
   return te(i18nKey) ? t(i18nKey) : humanize(key)
 }
 
+// A role that has been deleted or archived is no longer part of anyone's
+// security context, so its column is shown for what it holds and nothing more.
+// Its rules stay in place and apply again once the role is restored.
+async function isInactiveRole(roleID) {
+  try {
+    const r = await $SystemAPI.roleRead({ roleID })
+    return !!(r.deletedAt || r.archivedAt)
+  } catch {
+    // unreadable role: whatever the reason, it can not be granted through here
+    return true
+  }
+}
+
+function isEditable(role) {
+  return role.mode === 'edit' && !role.inactive
+}
+
 function getRuleTooltip(isUnknown = false, isUser = false) {
   if (!isUnknown) return ''
   return t(`permissions.ui.tooltip.unknown-context.${isUser ? 'user' : 'role'}`)
@@ -419,10 +446,13 @@ function getRuleTooltip(isUnknown = false, isUser = false) {
 async function readPermissions({ name, roleID }) {
   const resource = [...resources.value]
   try {
-    const rr = await props.api.permissionsRead({ resource, roleID })
+    const [rr, inactive] = await Promise.all([
+      props.api.permissionsRead({ resource, roleID }),
+      isInactiveRole(roleID),
+    ])
     const ID = `edit-${roleID}`
     rolePermissions.value.push({ resource: '', ID, rules: roleRules(rr, 'edit') })
-    roles.value.push({ mode: 'edit', ID, roleID, name })
+    roles.value.push({ mode: 'edit', ID, roleID, name, inactive })
   } catch (e) {
     $toast.toastErrorHandler(t('permissions.ui.notification.save.failed'))(e)
   }
@@ -431,10 +461,13 @@ async function readPermissions({ name, roleID }) {
 async function evaluatePermissions({ name, roleID, userID }) {
   const resource = [...resources.value]
   try {
-    const rr = await props.api.permissionsTrace({ resource, roleID, userID })
+    const [rr, states] = await Promise.all([
+      props.api.permissionsTrace({ resource, roleID, userID }),
+      userID ? [] : Promise.all((roleID || []).map(isInactiveRole)),
+    ])
     const ID = userID ? `eval-${userID}` : `eval-${roleID.join('-')}`
     rolePermissions.value.push({ resource: '', ID, rules: roleRules(rr, 'eval') })
-    roles.value.push({ mode: 'eval', ID, roleID, userID, name })
+    roles.value.push({ mode: 'eval', ID, roleID, userID, name, inactive: states.some(Boolean) })
   } catch (e) {
     $toast.toastErrorHandler(t('permissions.ui.notification.save.failed'))(e)
   }
@@ -486,7 +519,8 @@ async function checkGrantPermission() {
 async function onSubmit() {
   saving.value = true
   try {
-    const editRoles = rolePermissions.value.filter(({ ID }) => ID.includes('edit'))
+    const editable = new Set(roles.value.filter(isEditable).map(({ ID }) => ID))
+    const editRoles = rolePermissions.value.filter(({ ID }) => editable.has(ID))
     await Promise.all(
       editRoles.map(({ ID, rules }) => {
         const roleID = ID.split('-')[1]

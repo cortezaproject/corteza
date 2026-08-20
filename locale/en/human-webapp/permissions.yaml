@@ -1059,6 +1059,10 @@ ui:
   evaluate:
     description: Evaluate applied permissions
     title: Evaluate permissions
+  inactive:
+    label: Inactive role
+    tooltip: This role has been deleted or archived, so it is not part of anyone's permissions
+      and can not be edited here. Its rules are kept and apply again once the role is restored.
   label: Permissions
   loading: Loading permissions
   no-rules: No permissions available for this resource

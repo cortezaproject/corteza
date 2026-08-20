@@ -43,14 +43,14 @@ const stub = (name, props = []) => ({ name, props, template: '<div><slot /></div
 const EDIT_COLUMN = { mode: 'edit', ID: 'edit-R1', roleID: 'R1', name: ['Auditor'] }
 const EVAL_COLUMN = { mode: 'eval', ID: 'eval-R1', roleID: ['R1'], userID: null, name: ['Auditor'] }
 
-async function mountGrid(column) {
+async function mountGrid(column, role = { roleID: 'R1' }) {
   localStorage.setItem('permissionList.roles', JSON.stringify([column]))
 
   const wrapper = mount(CPermissionGrid, {
     props: { api, component: 'system' },
     global: {
       provide: {
-        $SystemAPI: { userList: async () => ({ set: [] }) },
+        $SystemAPI: { userList: async () => ({ set: [] }), roleRead: async () => role },
         $toast: { toastSuccess() {}, toastErrorHandler: () => () => {} },
       },
       mocks: { $t: k => k },
@@ -187,6 +187,38 @@ describe('CPermissionGrid cell states', () => {
     await del.trigger('click') // -> inherit, clean again on its own
     expect(isChanged(del)).toBe(false)
     expect(guard.isDirty()).toBe(true)
+  })
+
+  it("leaves a deleted role's column read-only and says why", async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN, {
+      roleID: 'R1',
+      deletedAt: '2026-08-20T10:00:00Z',
+    })
+    const [, , del] = cells(wrapper)
+
+    expect(wrapper.text()).toContain('permissions.ui.inactive.label')
+
+    // the rules it holds still show; clicking one changes nothing
+    expect(state(cells(wrapper)[0])).toBe('allow')
+    expect(await clickThrough(del, 2)).toEqual(['blank', 'blank'])
+    expect(guard.isDirty()).toBe(false)
+  })
+
+  it('treats an archived role the same as a deleted one', async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN, {
+      roleID: 'R1',
+      archivedAt: '2026-08-20T10:00:00Z',
+    })
+
+    expect(wrapper.text()).toContain('permissions.ui.inactive.label')
+    expect(await clickThrough(cells(wrapper)[2], 1)).toEqual(['blank'])
+  })
+
+  it("leaves a live role's column alone", async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN)
+
+    expect(wrapper.text()).not.toContain('permissions.ui.inactive.label')
+    expect(await clickThrough(cells(wrapper)[2], 1)).toEqual(['allow'])
   })
 
   it('leaves an evaluation column inert', async () => {
