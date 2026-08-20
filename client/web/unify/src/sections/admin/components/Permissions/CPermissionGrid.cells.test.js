@@ -3,9 +3,17 @@ import { mount, flushPromises } from '@vue/test-utils'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k, te: () => false }) }))
 
+// The guard is the grid's only route-leave behaviour, so the predicate it is
+// handed IS the contract worth asserting; there is no router under a mount.
+let guard = null
+
 vi.mock('@planetcrust/human-vue', () => ({
   components: {
     CInputRole: { name: 'CInputRole', props: ['modelValue'], template: '<div />' },
+  },
+  useUnsavedGuard: options => {
+    guard = options
+    return { markSaved: () => {} }
   },
 }))
 
@@ -94,7 +102,10 @@ const clickThrough = async (cell, times) => {
 }
 
 describe('CPermissionGrid cell states', () => {
-  beforeEach(() => localStorage.clear())
+  beforeEach(() => {
+    localStorage.clear()
+    guard = null
+  })
 
   it('renders an edit column as green allow, red deny and a blank inherit', async () => {
     const wrapper = await mountGrid(EDIT_COLUMN)
@@ -147,6 +158,35 @@ describe('CPermissionGrid cell states', () => {
     // Round-tripped back to the loaded value: no longer a pending change.
     await del.trigger('click') // inherit
     expect(isChanged(del)).toBe(false)
+  })
+
+  it('warns about leaving only while a cell differs from what was loaded', async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN)
+    const [, , del] = cells(wrapper)
+
+    expect(guard.messageKey).toBe('general.editor.unsavedChanges')
+    expect(guard.isDirty()).toBe(false)
+
+    await del.trigger('click') // allow
+    expect(guard.isDirty()).toBe(true)
+    await del.trigger('click') // deny
+    expect(guard.isDirty()).toBe(true)
+
+    // Cycled back to its loaded value: nothing to warn about.
+    await del.trigger('click') // inherit
+    expect(guard.isDirty()).toBe(false)
+  })
+
+  it('warns on any dirty cell, not just the last one touched', async () => {
+    const wrapper = await mountGrid(EDIT_COLUMN)
+    const [read, , del] = cells(wrapper)
+
+    await read.trigger('click') // allow -> deny, stays dirty
+    await del.trigger('click') // inherit -> allow
+    await del.trigger('click') // -> deny
+    await del.trigger('click') // -> inherit, clean again on its own
+    expect(isChanged(del)).toBe(false)
+    expect(guard.isDirty()).toBe(true)
   })
 
   it('leaves an evaluation column inert', async () => {

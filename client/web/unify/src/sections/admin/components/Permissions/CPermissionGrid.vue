@@ -231,7 +231,7 @@
 <script setup>
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@planetcrust/human-vue'
+import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { kebabCase } from 'lodash-es'
 
 const { CInputRole } = components
@@ -336,12 +336,28 @@ function ruleAccess(ID, res, op) {
   return (rp && rp.rules[`${op}@${res}`]) || 'inherit'
 }
 
-function checkChange(ID, res, op) {
-  const key = `${op}@${res}`
+// A cell differs from the access it was loaded with. Cycled back around to
+// where it started, it is clean again — the ring makes that reachable.
+function changedFromLoaded(ID, key) {
   const current = (rolePermissions.value.find(r => r.ID === ID) || { rules: {} }).rules[key]
   const initial = (permissionChanges.value.find(r => r.ID === ID) || { rules: {} }).rules?.[key]
   return initial ? current !== initial : false
 }
+
+function checkChange(ID, res, op) {
+  return changedFromLoaded(ID, `${op}@${res}`)
+}
+
+// What the guard asks: is any cell tinted? Same test, so the warning and the
+// tint can never disagree.
+function isDirty() {
+  if (saving.value) return false
+  return permissionChanges.value.some(({ ID, rules }) =>
+    Object.keys(rules).some(key => changedFromLoaded(ID, key)),
+  )
+}
+
+useUnsavedGuard({ isDirty, messageKey: 'general.editor.unsavedChanges' })
 
 function ruleChange(ID, res, op) {
   const key = `${op}@${res}`
