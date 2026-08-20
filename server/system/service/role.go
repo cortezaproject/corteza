@@ -346,7 +346,12 @@ func (svc *role) onUpdate(ctx context.Context, _ store.Storer, upd *types.Role, 
 		return err
 	}
 
-	svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, res))
+	// res is still the pre-update role here and the generated wrapper writes it
+	// after this returns, so the event's old side is cloned before it changes.
+	old := res.Clone()
+	store.AfterCommit(ctx, func() {
+		svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, old))
+	})
 	return nil
 }
 
@@ -368,7 +373,9 @@ func (svc *role) onDelete(ctx context.Context, s store.Storer, res *types.Role, 
 		return err
 	}
 
-	svc.services.eventbus.Dispatch(ctx, event.RoleAfterDelete(nil, res))
+	store.AfterCommit(ctx, func() {
+		svc.services.eventbus.Dispatch(ctx, event.RoleAfterDelete(nil, res))
+	})
 	return nil
 }
 
@@ -391,7 +398,9 @@ func (svc *role) onUndelete(ctx context.Context, s store.Storer, res *types.Role
 		return err
 	}
 
-	svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, res))
+	store.AfterCommit(ctx, func() {
+		svc.services.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, res))
+	})
 	return nil
 }
 
