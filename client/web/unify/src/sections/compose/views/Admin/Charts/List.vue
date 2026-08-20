@@ -49,9 +49,9 @@
             @click="exportAllCharts"
           />
           <CPermissionsButton
-            v-if="canGrant"
+            v-if="namespace?.canGrant"
             v-tooltip.bottom="$t('general.label.permissions')"
-            resource="corteza::compose:chart/*"
+            :resource="`corteza::compose:chart/${namespace.namespaceID}/*`"
           />
         </div>
       </template>
@@ -102,11 +102,10 @@ import {
   filters,
   useConfirmDelete,
   usePermissions,
-  useRBACStore,
   useResourceList,
 } from '@planetcrust/human-vue'
 import { useChartStore } from '@planetcrust/human-vue'
-import { computed, inject, ref } from 'vue'
+import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -124,8 +123,6 @@ const router = useRouter()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const { open: openPermissions } = usePermissions()
-const rbac = useRBACStore()
-const canGrant = computed(() => rbac.can('compose/', 'grant'))
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 const chartStore = useChartStore()
