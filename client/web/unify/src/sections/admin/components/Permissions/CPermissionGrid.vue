@@ -100,7 +100,7 @@
                     }"
                     :title="
                       getRuleTooltip(
-                        checkRule(role.ID, permissions[type].any, operation, 'unknown-context'),
+                        ruleAccess(role.ID, permissions[type].any, operation) === 'unknown-context',
                         !!role.userID,
                       )
                     "
@@ -111,14 +111,19 @@
                     "
                   >
                     <i
-                      v-if="checkRule(role.ID, permissions[type].any, operation, 'unknown-context')"
+                      v-if="
+                        ruleAccess(role.ID, permissions[type].any, operation) === 'unknown-context'
+                      "
                       class="pi pi-question text-muted-color"
                     />
                     <i
-                      v-else-if="checkRule(role.ID, permissions[type].any, operation, 'allow')"
-                      class="pi pi-check text-primary"
+                      v-else-if="ruleAccess(role.ID, permissions[type].any, operation) === 'allow'"
+                      class="pi pi-check text-green-500"
                     />
-                    <i v-else class="pi pi-times text-muted-color" />
+                    <i
+                      v-else-if="ruleAccess(role.ID, permissions[type].any, operation) === 'deny'"
+                      class="pi pi-times text-red-500"
+                    />
                   </div>
 
                   <div v-if="roles.length < 8" class="w-32 border-l p-3" />
@@ -322,10 +327,10 @@ function setIncludedRoles(rr) {
 }
 
 // Permission checks
-function checkRule(ID, res, op, access) {
-  const key = `${op}@${res}`
+// Cell access: allow, deny, unknown-context, or inherit — inherit has no rule and renders blank
+function ruleAccess(ID, res, op) {
   const rp = rolePermissions.value.find(r => r.ID === ID)
-  return rp ? rp.rules[key] === access : false
+  return (rp && rp.rules[`${op}@${res}`]) || 'inherit'
 }
 
 function checkChange(ID, res, op) {
