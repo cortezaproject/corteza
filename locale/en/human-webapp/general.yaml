@@ -17,6 +17,7 @@ disable: Disable
 disabled: Disabled
 edit-workflow: Edit Workflow
 editor:
+  readOnly: You do not have permission to edit this resource, so no changes made here can be saved. Contact your administrator if you need to make changes.
   unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 enable: Enable
 enabled: Enabled

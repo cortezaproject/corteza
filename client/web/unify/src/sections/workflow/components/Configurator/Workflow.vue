@@ -174,7 +174,7 @@
         @click="handleDeleteClick"
       />
       <Button
-        v-else-if="isDeleted"
+        v-else-if="isDeleted && workflow.canUndeleteWorkflow"
         :label="$t('editor.undelete')"
         severity="secondary"
         text

@@ -328,6 +328,9 @@
           </div>
         </div>
       </Panel>
+      <Message v-if="isEdit && !authClient.canUpdateAuthClient" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.authClients' }">
@@ -339,7 +342,13 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || authClient.canUpdateAuthClient"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 </template>

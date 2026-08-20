@@ -126,6 +126,9 @@
       >
         <CTemplatePreview :template="template" />
       </Panel>
+      <Message v-if="isEdit && !template.canUpdateTemplate" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.templates' }">
@@ -137,7 +140,13 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || template.canUpdateTemplate"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 </template>

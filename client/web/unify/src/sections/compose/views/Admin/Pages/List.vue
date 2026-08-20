@@ -6,16 +6,22 @@
   <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
     <Card class="flex-1 overflow-auto min-w-0" :pt="{ body: { class: 'p-0' } }">
       <template #header>
-        <!-- Header: Create button + Search -->
+        <!-- Header: Create + permissions on the left, search on the right -->
         <div class="flex items-center justify-between gap-3 p-3 border-b">
-          <CRouterLinkButton
-            v-if="namespace?.canCreatePage"
-            :to="{ name: 'admin.pages.create' }"
-            :label="$t('page.createLabel')"
-            icon="pi pi-plus"
-            size="small"
-          />
-          <div v-else />
+          <div class="flex items-center gap-2">
+            <CRouterLinkButton
+              v-if="namespace?.canCreatePage"
+              :to="{ name: 'admin.pages.create' }"
+              :label="$t('page.createLabel')"
+              icon="pi pi-plus"
+              size="small"
+            />
+            <CPermissionsButton
+              v-if="namespace?.canGrant"
+              v-tooltip.bottom="$t('general.label.permissions')"
+              :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
+            />
+          </div>
 
           <CInputSearch
             v-model="filterValue"
@@ -35,8 +41,8 @@
           :filter-value="filterValue"
           filter-mode="lenient"
           filter-by="label"
-          draggable-nodes
-          droppable-nodes
+          :draggable-nodes="canReorder"
+          :droppable-nodes="canReorder"
           :pt="treePT"
           selection-mode="single"
           class="p-0"
@@ -63,12 +69,12 @@
 <script setup>
 import { compose } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
-import { inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { usePageStore } from '@planetcrust/human-vue'
 
-const { CInputSearch, CRouterLinkButton } = components
+const { CInputSearch, CPermissionsButton, CRouterLinkButton } = components
 const { t } = useI18n()
 const router = useRouter()
 const $toast = inject('$toast')
@@ -85,6 +91,11 @@ const treeNodes = ref([])
 const expandedKeys = ref({})
 const filterValue = ref('')
 const loading = ref(false)
+
+// A drop reorders the pages under a parent, which the backend answers with the
+// namespace's page-create permission at the root level (onReorder) — without it
+// no drop can land, so the tree is not draggable at all.
+const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
 const treePT = {
   rootChildren: { class: 'flex flex-col gap-3' },

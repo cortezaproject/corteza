@@ -57,6 +57,7 @@ export class Workflow {
   public canGrant = false
   public canUpdateWorkflow = false
   public canDeleteWorkflow = false
+  public canUndeleteWorkflow = false
   public canExecuteWorkflow = false
 
   constructor(w?: PartialWorkflow) {
@@ -80,6 +81,7 @@ export class Workflow {
       'canGrant',
       'canUpdateWorkflow',
       'canDeleteWorkflow',
+      'canUndeleteWorkflow',
       'canExecuteWorkflow',
     )
 

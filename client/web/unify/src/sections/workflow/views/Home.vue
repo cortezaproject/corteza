@@ -498,7 +498,9 @@ function getActionsMenuItems(workflow) {
     },
   })
 
-  if (!workflow.deletedAt) {
+  // Enable/disable writes the workflow, so it needs the update permission —
+  // the same flags the admin section's workflow list already gates on.
+  if (!workflow.deletedAt && workflow.canUpdateWorkflow) {
     items.push({
       label: workflow.enabled ? t('general.disable') : t('general.enable'),
       icon: workflow.enabled ? 'pi pi-power-off' : 'pi pi-check-circle',
@@ -512,21 +514,23 @@ function getActionsMenuItems(workflow) {
     command: () => handleExportWorkflow(workflow),
   })
 
-  items.push({ separator: true })
+  if (workflow.deletedAt ? workflow.canUndeleteWorkflow : workflow.canDeleteWorkflow) {
+    items.push({ separator: true })
 
-  if (workflow.deletedAt) {
-    items.push({
-      label: t('general.undelete'),
-      icon: 'pi pi-undo',
-      command: () => handleUndelete(workflow),
-    })
-  } else {
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(workflow),
-    })
+    if (workflow.deletedAt) {
+      items.push({
+        label: t('general.undelete'),
+        icon: 'pi pi-undo',
+        command: () => handleUndelete(workflow),
+      })
+    } else {
+      items.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(workflow),
+      })
+    }
   }
 
   return items

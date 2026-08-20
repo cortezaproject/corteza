@@ -38,7 +38,7 @@
                   <Tab value="history" v-if="!isCreate">{{ $t('agent.editor.tabs.history') }}</Tab>
                 </TabList>
                 <div
-                  v-if="!isCreate"
+                  v-if="!isCreate && agent.canGrant"
                   class="shrink-0 px-2 border-b border-surface self-stretch flex items-center"
                 >
                   <CPermissionsButton
@@ -753,6 +753,10 @@
       </template>
     </Dialog>
 
+    <Message v-if="!canEdit" severity="warn" :closable="false">
+      {{ $t('general.editor.readOnly') }}
+    </Message>
+
     <CEditorActions :back-to="true" @back="goBack({ name: 'agentic' })">
       <CInputDelete
         v-if="!isCreate && agent.canDeleteAgent"
@@ -762,6 +766,7 @@
         @confirm="handleDelete"
       />
       <Button
+        v-if="canEdit"
         type="button"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -854,6 +859,9 @@ watch(
 )
 
 const isCreate = computed(() => !route.params.agentID)
+
+// Whether the backend would accept a write to this agent at all.
+const canEdit = computed(() => isCreate.value || !!agent.value?.canUpdateAgent)
 
 const temperatureEnabled = computed(
   () =>

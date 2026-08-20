@@ -15,7 +15,7 @@
     class="flex flex-col h-full"
   >
     <CViewContainer scroll>
-      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+      <div v-if="isEdit && queue.canGrant" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
           :resource="`corteza::system:queue/${queue.queueID}`"
@@ -57,6 +57,9 @@
           </CFormGroup>
         </div>
       </Panel>
+      <Message v-if="isEdit && !queue.canUpdateQueue" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.queues' }">
@@ -68,7 +71,13 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || queue.canUpdateQueue"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 </template>

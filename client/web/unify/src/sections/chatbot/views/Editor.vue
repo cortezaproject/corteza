@@ -32,7 +32,7 @@
                   </Tab>
                 </TabList>
                 <div
-                  v-if="!isCreate"
+                  v-if="!isCreate && chatbot.canGrant"
                   class="shrink-0 px-2 border-b border-surface self-stretch flex items-center"
                 >
                   <CPermissionsButton
@@ -77,6 +77,10 @@
       </div>
     </div>
 
+    <Message v-if="!canEdit" severity="warn" :closable="false">
+      {{ $t('general.editor.readOnly') }}
+    </Message>
+
     <CEditorActions :back-to="true" @back="goBack({ name: 'chatbot' })">
       <CInputDelete
         v-if="!isCreate && chatbot.canDeleteChatbot"
@@ -86,6 +90,7 @@
         @confirm="handleDelete"
       />
       <Button
+        v-if="canEdit"
         type="button"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -142,6 +147,10 @@ const { capture, markSaved } = useDraftGuard({
 const agents = ref([])
 
 const isCreate = computed(() => !route.params.chatbotID)
+
+// Permission to write at all, kept apart from canSave: that one asks whether
+// the draft is valid, this one whether the backend would take it from you.
+const canEdit = computed(() => isCreate.value || !!chatbot.value?.canUpdateChatbot)
 
 const canSave = computed(() => {
   if (!chatbot.value) return false

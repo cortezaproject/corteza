@@ -34,6 +34,7 @@
     >
       <template #header>
         <Button
+          v-if="canCreate"
           icon="pi pi-plus"
           :label="$t('project.list.newProject')"
           size="small"
@@ -110,9 +111,9 @@ import RenameProjectDialog from '@/sections/project/components/project/RenamePro
 import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import { chainHasPublished } from '@/sections/project/config/publishState'
 import { system } from '@planetcrust/human-js'
-import { components, useResourceList } from '@planetcrust/human-vue'
+import { components, useRBACStore, useResourceList } from '@planetcrust/human-vue'
 import { useConfirm } from 'primevue/useconfirm'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 const { CResourceList, CViewContainer } = components
@@ -122,6 +123,11 @@ const router = useRouter()
 const confirm = useConfirm()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+
+// Creating a project is a component-level operation — there is no project yet
+// to carry a flag — so it comes from the effective rule set rather than a row.
+const rbac = useRBACStore()
+const canCreate = computed(() => rbac.can('system/', 'project.create'))
 
 // Backend-driven list: fetch/filter/sort/paginate all happen server-side via
 // the shared composable (same pattern as every other resource list). Raw
@@ -341,25 +347,38 @@ const confirmDelete = project => {
   })
 }
 
-const actionItemsFor = project => [
-  {
-    label: t('project.list.actions.rename'),
-    icon: 'pi pi-pencil',
-    command: () => openRename(project),
-  },
-  {
-    label: project.archivedAt
-      ? t('project.list.actions.unarchive')
-      : t('project.list.actions.archive'),
-    icon: 'pi pi-inbox',
-    command: () => toggleArchive(project),
-  },
-  { separator: true },
-  {
-    label: t('general.label.delete'),
-    icon: 'pi pi-trash',
-    class: 'text-red-500',
-    command: () => confirmDelete(project),
-  },
-]
+// Rename and archive are both project updates on the backend (Update and
+// setArchived each check CanUpdateProject); delete is its own permission. The
+// flags ride on every project in the list payload, so a row offers only what
+// that project would actually accept.
+const actionItemsFor = project => {
+  const items = []
+
+  if (project.canUpdateProject) {
+    items.push({
+      label: t('project.list.actions.rename'),
+      icon: 'pi pi-pencil',
+      command: () => openRename(project),
+    })
+    items.push({
+      label: project.archivedAt
+        ? t('project.list.actions.unarchive')
+        : t('project.list.actions.archive'),
+      icon: 'pi pi-inbox',
+      command: () => toggleArchive(project),
+    })
+  }
+
+  if (project.canDeleteProject) {
+    if (items.length > 0) items.push({ separator: true })
+    items.push({
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      class: 'text-red-500',
+      command: () => confirmDelete(project),
+    })
+  }
+
+  return items
+}
 </script>
