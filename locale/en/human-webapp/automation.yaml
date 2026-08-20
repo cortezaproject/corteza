@@ -147,7 +147,6 @@ workflows:
       title: Basic information
       trace: Trace
       traceHint: Enable trace logging for debugging
-      undelete: Undelete
       updatedAt: Updated at
     new: New Workflow
     permissions: Permissions
@@ -193,5 +192,4 @@ workflows:
       filters:
         deleted: Deleted
     title: Workflows
-    undelete: Undelete
     yaml: YAML

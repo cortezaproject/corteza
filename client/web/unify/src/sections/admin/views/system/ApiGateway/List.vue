@@ -234,12 +234,20 @@ function getActionsMenuItems(item) {
   }
 
   if (item.canDeleteApigwRoute) {
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(item),
-    })
+    if (item.deletedAt) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(item),
+      })
+    } else {
+      items.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(item),
+      })
+    }
   }
 
   return items
@@ -261,6 +269,18 @@ async function handleDelete(item) {
     filterList()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.gateway.delete.error'))(e)
+  }
+}
+
+async function handleRestore(item) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    await $SystemAPI.apigwRouteUndelete({ routeID: item.routeID })
+    $toast.toastSuccess(t('notification.gateway.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore route:', e)
+    $toast.toastErrorHandler(t('notification.gateway.restore.error'))(e)
   }
 }
 

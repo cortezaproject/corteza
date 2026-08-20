@@ -88,12 +88,21 @@
 
     <CEditorActions :back-to="{ name: 'system.applications' }">
       <CInputDelete
-        v-if="isEdit && application.canDeleteApplication"
+        v-if="isEdit && application.canDeleteApplication && !application.deletedAt"
         :label="$t('system.applications.editor.info.delete')"
         :message="$t('general.confirm.delete')"
         :header="application.name"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && application.canDeleteApplication && application.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button
         v-if="!isEdit || application.canUpdateApplication"
@@ -133,6 +142,7 @@ const applicationsStore = useApplicationsStore()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const application = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: application,
@@ -261,6 +271,20 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.application.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await applicationsStore.restore(application.value.applicationID)
+    await loadApplication()
+    $toast.toastSuccess(t('notification.application.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore application:', e)
+    $toast.toastErrorHandler(t('notification.application.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

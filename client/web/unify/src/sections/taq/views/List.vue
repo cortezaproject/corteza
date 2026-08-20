@@ -234,7 +234,16 @@ function getActionsMenuItems(automation) {
     })
   }
 
-  if (automation.canDeleteNgAutomation) {
+  if (automation.deletedAt) {
+    if (automation.canUndeleteNgAutomation) {
+      if (items.length > 0) items.push({ separator: true })
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(automation),
+      })
+    }
+  } else if (automation.canDeleteNgAutomation) {
     if (items.length > 0) items.push({ separator: true })
     items.push({
       label: t('general.label.delete'),
@@ -264,6 +273,21 @@ async function handleDelete(automation) {
   } catch (e) {
     console.error('Failed to delete automation:', e)
     $toast.toastErrorHandler(t('notification.automation.delete.error'))(e)
+  }
+}
+
+async function handleRestore(automation) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    const restored = await $AutomationAPI.ngAutomationUndelete({
+      automationID: automation.automationID,
+    })
+    automationStore.updateInList(restored || { ...automation, deletedAt: null })
+    $toast.toastSuccess(t('notification.taq.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore automation:', e)
+    $toast.toastErrorHandler(t('notification.taq.restore.error'))(e)
   }
 }
 </script>

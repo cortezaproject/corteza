@@ -245,7 +245,6 @@ label:
   title: Title
   today: Today
   type: Type
-  undelete: Undelete
   unsavedChanges: Unsaved Changes
   updatedAt: Updated at
   uploading: Uploading
@@ -308,7 +307,6 @@ today: Today
 tooltip:
   dragAndDrop: Drag and drop to change order
   permissions: Workflow permissions
-undelete: Undelete
 variants:
   danger: Danger
   dark: Dark

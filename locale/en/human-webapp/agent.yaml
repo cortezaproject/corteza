@@ -194,7 +194,6 @@ editor:
 list:
   actions:
     duplicate: Duplicate
-    undelete: Restore
   columns:
     description: Description
     handle: Handle

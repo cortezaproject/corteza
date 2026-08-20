@@ -164,11 +164,13 @@ function getActionsMenuItems(cb) {
     })
   }
   if (cb.deletedAt) {
-    items.push({
-      label: t('chatbot.list.actions.undelete'),
-      icon: 'pi pi-undo',
-      command: () => handleUndelete(cb),
-    })
+    if (cb.canDeleteChatbot) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(cb),
+      })
+    }
   } else if (cb.canDeleteChatbot) {
     if (items.length > 0) items.push({ separator: true })
     items.push({
@@ -227,7 +229,7 @@ async function handleDuplicate(cb) {
   }
 }
 
-async function handleUndelete(cb) {
+async function handleRestore(cb) {
   resourceListRef.value.hideActionsMenu()
   try {
     const restored = await $SystemAPI.chatbotUndelete({ chatbotID: cb.chatbotID })

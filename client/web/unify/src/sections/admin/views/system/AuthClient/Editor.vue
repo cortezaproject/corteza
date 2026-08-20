@@ -335,12 +335,21 @@
 
     <CEditorActions :back-to="{ name: 'system.authClients' }">
       <CInputDelete
-        v-if="isEdit && authClient.canDeleteAuthClient"
+        v-if="isEdit && authClient.canDeleteAuthClient && !authClient.deletedAt"
         :label="$t('system.authclients.editor.info.delete')"
         :message="$t('general.confirm.delete')"
         :header="authClient.meta?.name || authClient.handle"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && authClient.canDeleteAuthClient && authClient.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button
         v-if="!isEdit || authClient.canUpdateAuthClient"
@@ -382,6 +391,7 @@ const $Auth = inject('$Auth')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const authClient = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: authClient,
@@ -689,6 +699,20 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.authclient.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $SystemAPI.authClientUndelete({ clientID: authClient.value.authClientID })
+    await loadAuthClient()
+    $toast.toastSuccess(t('notification.authclient.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore auth client:', e)
+    $toast.toastErrorHandler(t('notification.authclient.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

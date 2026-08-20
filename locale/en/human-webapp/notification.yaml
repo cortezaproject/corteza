@@ -21,7 +21,7 @@ application:
     success: Application deleted
   fetch:
     error: Application fetch failed
-  undelete:
+  restore:
     error: Application restore failed
     success: Application restored
   update:
@@ -36,7 +36,7 @@ authclient:
     success: Auth Client deleted
   fetch:
     error: Auth Client fetch failed
-  undelete:
+  restore:
     error: Auth Client restore failed
     success: Auth Client restored
   update:
@@ -106,7 +106,7 @@ connection:
   fetch:
     error: Connection fetch failed
   read-failed: Failed to read connection
-  undelete:
+  restore:
     error: Connection restore failed
     success: Connection restored
   update:
@@ -121,7 +121,7 @@ data-source:
     success: Data source deleted
   fetch:
     error: Data source fetch failed
-  undelete:
+  restore:
     error: Data source restore failed
     success: Data source restored
   update:
@@ -162,7 +162,7 @@ federation:
   pair:
     error: Failed to pair node
     success: Node paired
-  undelete:
+  restore:
     error: Node restore failed
     success: Node restored
   update:
@@ -215,7 +215,7 @@ gateway:
     purge:
       error: Requests purge failed
       success: Requests purged
-  undelete:
+  restore:
     error: Route restore failed
     success: Route restored
   update:
@@ -390,7 +390,7 @@ queue:
     success: Queue deleted
   fetch:
     error: Queue fetch failed
-  undelete:
+  restore:
     error: Queue restore failed
     success: Queue restored
   update:
@@ -461,12 +461,12 @@ role:
   membershipUpdate:
     error: Membership update failed
     success: Membership updated
+  restore:
+    error: Role restore failed
+    success: Role restored
   unarchive:
     error: Role unarchive failed
     success: Role unarchived
-  undelete:
-    error: Role restore failed
-    success: Role restored
   update:
     error: Role update failed
     success: Role updated
@@ -483,7 +483,7 @@ sensitivityLevel:
   fetch:
     error: Sensitivity level fetch failed
     success: Sensitivity level fetched
-  undelete:
+  restore:
     error: Sensitivity level restore failed
     success: Sensitivity level restored
   update:
@@ -571,6 +571,9 @@ taq:
     success: TAQ deleted
   fetch:
     error: TAQ fetch failed
+  restore:
+    error: TAQ restore failed
+    success: TAQ restored
   update:
     error: TAQ update failed
     success: TAQ updated
@@ -589,7 +592,7 @@ template:
     error: Partial templates fetch failed
   preview:
     error: Template preview fetch failed
-  undelete:
+  restore:
     error: Template restore failed
     success: Template restored
   update:
@@ -603,9 +606,6 @@ translations:
   saveFailed: Could not save translations
   saved: Translations saved
 trigger-paths-changed: Trigger paths changed
-undelete:
-  failed: Failed to restore workflow
-  success: Workflow restored
 update:
   failed: Failed to update workflow
   success: Workflow updated
@@ -651,6 +651,9 @@ user:
   passwordChange:
     error: Password change failed
     success: Password changed
+  restore:
+    error: User restore failed
+    success: User restored
   roles:
     error: Role fetch failed
   sessionsRevoke:
@@ -659,9 +662,6 @@ user:
   suspend:
     error: User suspension failed
     success: User suspended
-  undelete:
-    error: User restore failed
-    success: User restored
   unsuspend:
     error: User suspension failed
     success: User unsuspended
@@ -680,11 +680,11 @@ userGroup:
   membershipUpdate:
     error: User group membership update failed
     success: User group membership updated
-  roles:
-    error: User group roles fetch failed
-  undelete:
+  restore:
     error: User group restore failed
     success: User group restored
+  roles:
+    error: User group roles fetch failed
   update:
     error: User group update failed
     success: User group updated
@@ -697,11 +697,11 @@ workflow:
     success: Workflow deleted
   fetch:
     error: Workflow fetch failed
-  trigger:
-    error: Trigger fetch failed
-  undelete:
+  restore:
     error: Workflow restore failed
     success: Workflow restored
+  trigger:
+    error: Trigger fetch failed
   update:
     error: Workflow update failed
     success: Workflow updated

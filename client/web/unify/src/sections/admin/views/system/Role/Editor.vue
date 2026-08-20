@@ -146,12 +146,13 @@
           @confirm="handleDelete"
         />
         <Button
-          v-if="isEdit && role.deletedAt && !role.isSystem"
-          :label="$t('system.roles.editor.info.undelete')"
-          icon="pi pi-refresh"
-          severity="success"
+          v-if="isEdit && role.canDeleteRole && role.deletedAt && !role.isSystem"
+          :label="$t('general.label.restore')"
+          icon="pi pi-replay"
+          severity="warn"
+          :loading="restoring"
           :disabled="saving"
-          @click="handleUndelete"
+          @click="handleRestore"
         />
         <Button
           v-if="!role.isSystem || role.canUpdateRole"
@@ -196,6 +197,7 @@ const confirm = useConfirm()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const role = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: role,
@@ -385,18 +387,17 @@ async function handleDelete() {
   }
 }
 
-async function handleUndelete() {
-  saving.value = true
+async function handleRestore() {
+  restoring.value = true
   try {
     await $SystemAPI.roleUndelete({ roleID: role.value.roleID })
-    const raw = await $SystemAPI.roleRead({ roleID: role.value.roleID })
-    role.value = new system.Role(raw)
-    $toast.toastSuccess(t('notification.role.undelete.success'))
+    await loadRole()
+    $toast.toastSuccess(t('notification.role.restore.success'))
   } catch (e) {
-    console.error('Failed to undelete role:', e)
-    $toast.toastErrorHandler(t('notification.role.undelete.error'))(e)
+    console.error('Failed to restore role:', e)
+    $toast.toastErrorHandler(t('notification.role.restore.error'))(e)
   } finally {
-    saving.value = false
+    restoring.value = false
   }
 }
 

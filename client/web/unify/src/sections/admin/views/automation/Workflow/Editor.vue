@@ -87,6 +87,15 @@
         @confirm="handleDelete"
       />
       <Button
+        v-if="isEdit && workflow.canUndeleteWorkflow && workflow.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
+      />
+      <Button
         v-if="!isEdit || workflow.canUpdateWorkflow"
         type="submit"
         :label="$t('general.label.save')"
@@ -119,6 +128,7 @@ const workflowStore = useWorkflowStore()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const workflow = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: workflow,
@@ -235,6 +245,21 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.workflow.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $AutomationAPI.workflowUndelete({ workflowID: workflow.value.workflowID })
+    await loadWorkflow()
+    workflowStore.updateInList(workflow.value)
+    $toast.toastSuccess(t('notification.workflow.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore workflow:', e)
+    $toast.toastErrorHandler(t('notification.workflow.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

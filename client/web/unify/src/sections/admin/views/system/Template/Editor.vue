@@ -133,12 +133,21 @@
 
     <CEditorActions :back-to="{ name: 'system.templates' }">
       <CInputDelete
-        v-if="isEdit && template.canDeleteTemplate"
+        v-if="isEdit && template.canDeleteTemplate && !template.deletedAt"
         :label="$t('system.templates.editor.info.delete')"
         :message="$t('general.confirm.delete')"
         :header="template.meta?.short || template.handle"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && template.canDeleteTemplate && template.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button
         v-if="!isEdit || template.canUpdateTemplate"
@@ -173,6 +182,7 @@ const $SystemAPI = inject('$SystemAPI')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const template = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: template,
@@ -333,6 +343,20 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.template.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $SystemAPI.templateUndelete({ templateID: template.value.templateID })
+    await loadTemplate()
+    $toast.toastSuccess(t('notification.template.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore template:', e)
+    $toast.toastErrorHandler(t('notification.template.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

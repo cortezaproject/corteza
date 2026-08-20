@@ -101,7 +101,7 @@ const ACTION_LABELS = {
   update: 'Update',
   patch: 'Patch',
   delete: 'Delete',
-  undelete: 'Undelete',
+  undelete: 'Restore',
   archive: 'Archive',
   unarchive: 'Unarchive',
   enable: 'Enable',
@@ -177,7 +177,7 @@ const ACTION_LABELS = {
   iteratorClone: 'Iterator clone',
   iteratorUpdate: 'Iterator update',
   iteratorDelete: 'Iterator delete',
-  iteratorUndelete: 'Iterator undelete',
+  iteratorUndelete: 'Iterator restore',
 
   // Misc data ops
   clone: 'Clone',

@@ -519,9 +519,9 @@ function getActionsMenuItems(workflow) {
 
     if (workflow.deletedAt) {
       items.push({
-        label: t('general.undelete'),
-        icon: 'pi pi-undo',
-        command: () => handleUndelete(workflow),
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(workflow),
       })
     } else {
       items.push({
@@ -559,18 +559,22 @@ async function handleDelete(workflow) {
   }
 }
 
-async function handleUndelete(workflow) {
+async function handleRestore(workflow) {
   resourceListRef.value.hideActionsMenu()
   try {
     const restored = await $AutomationAPI.workflowUndelete({
       workflowID: workflow.workflowID,
     })
     workflowStore.updateInList(restored)
-    toast.add({ severity: 'success', summary: t('notification.undelete.success'), life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: t('notification.workflow.restore.success'),
+      life: 3000,
+    })
     filterList()
   } catch (e) {
     console.error('Failed to restore workflow:', e)
-    toast.add({ severity: 'error', summary: t('notification.undelete.failed'), life: 5000 })
+    toast.add({ severity: 'error', summary: t('notification.workflow.restore.error'), life: 5000 })
   }
 }
 </script>

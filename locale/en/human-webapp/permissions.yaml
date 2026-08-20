@@ -43,8 +43,8 @@ resources:
           specific: Read automation "{target}"
           title: Read any automation
         undelete:
-          specific: Undelete automation "{target}"
-          title: Undelete any automation
+          specific: Restore automation "{target}"
+          title: Restore any automation
         update:
           specific: Update automation "{target}"
           title: Update any automation
@@ -78,8 +78,8 @@ resources:
             title: Manage all triggers
         undelete:
           description: 'Default: deny'
-          specific: Undelete this workflow
-          title: Undelete any workflow
+          specific: Restore this workflow
+          title: Restore any workflow
         update:
           description: 'Default: deny'
           specific: Update this workflow

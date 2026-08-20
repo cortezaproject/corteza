@@ -122,7 +122,6 @@ apigw:
       method: Method
       title: Basic information
       tooltip: Endpoint must begin with a slash "/" and can not contain any special characters except for the underscore "_" and hyphen "-"
-      undelete: Undelete
       updatedAt: Updated at
       validation:
         invalidCharacters: Endpoint contains invalid characters
@@ -170,7 +169,6 @@ apigw:
       filters:
         deleted: Deleted
     title: Routes
-    undelete: Undelete
     yaml: YAML
   profiler:
     columns:
@@ -252,7 +250,6 @@ applications:
       id: ID
       name: Name
       title: Basic information
-      undelete: Undelete
       updatedAt: Updated at
       weight: Weight
     new: New Application
@@ -308,7 +305,6 @@ applications:
       filters:
         deleted: Deleted
     title: Applications
-    undelete: Undelete
     yaml: YAML
 authclients:
   editor:
@@ -384,7 +380,6 @@ authclients:
       trusted:
         description: When client is trusted users do not see authorization step
         label: Trusted
-      undelete: Undelete
       unnamed: Unnamed role
       updatedAt: Updated at
       uri: URI
@@ -430,7 +425,6 @@ authclients:
       filters:
         deleted: Deleted
     title: Auth Clients
-    undelete: Undelete
     yaml: YAML
 code-snippets:
   editor:
@@ -528,7 +522,6 @@ connections:
     title:
       create: New connection
       edit: Edit connection
-    undelete: Undelete
     updatedAt: Updated at
   list:
     columns:
@@ -671,7 +664,6 @@ data-sources:
         placeholder: Filter data sources by name
     loading: Loading Data Sources
     title: Data Sources
-    undelete: Undelete
   primary:
     handle: Handle
     location: Location
@@ -839,7 +831,6 @@ queues:
       poll_delay_invalid: Invalid duration format. Use Go duration format (e.g. 1h, 5m, 30s, 1h30m)
       poll_delay_set: Poll delay will be used; if empty, it will not be used.
       title: Basic information
-      undelete: Undelete
       updatedAt: Updated at
     new: New Queue
     title:
@@ -874,7 +865,6 @@ queues:
       filters:
         deleted: Deleted
     title: Messaging queues
-    undelete: Undelete
 roles:
   editor:
     clone:
@@ -905,7 +895,6 @@ roles:
       title: Basic information
       unarchive: Unarchive
       unarchiveConfirm: Are you sure you want to unarchive this role?
-      undelete: Undelete
       updatedAt: Updated at
     members:
       empty: No members in this role
@@ -950,7 +939,6 @@ roles:
         deleted: Deleted
     title: Roles
     unarchive: Unarchive
-    undelete: Undelete
     yaml: YAML
 sensitivityLevel:
   editor:
@@ -969,7 +957,6 @@ sensitivityLevel:
         label: Level {level}
       name: Name
       title: Basic Information
-      undelete: Undelete
       updatedAt: Updated at
     new: New Sensitivity Level
     title:
@@ -1003,7 +990,6 @@ sensitivityLevel:
       filters:
         deleted: Deleted
     title: Sensitivity Levels
-    undelete: Undelete
 settings:
   editor:
     auth:
@@ -1222,7 +1208,6 @@ templates:
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
       title: Basic information
       type: Template type
-      undelete: Undelete
       updatedAt: Updated at
     new: New Template
     permissions: Permissions
@@ -1264,7 +1249,6 @@ templates:
       filters:
         deleted: Deleted
     title: Templates
-    undelete: Undelete
     yaml: YAML
 user-groups:
   editor:
@@ -1290,7 +1274,6 @@ user-groups:
         title: This user group reports to
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
       title: Basic information
-      undelete: Undelete
       updatedAt: Updated at
     members:
       addError: Failed to add member
@@ -1353,7 +1336,6 @@ user-groups:
       filters:
         deleted: Deleted
     title: User Groups
-    undelete: Undelete
 users:
   editor:
     avatar:
@@ -1398,7 +1380,6 @@ users:
       suspendConfirm: Are you sure you want to suspend this user?
       suspendedAt: Suspended at
       title: Basic information
-      undelete: Undelete
       unsuspend: Unsuspend
       unsuspendConfirm: Are you sure you want to unsuspend this user?
       updatedAt: Updated at
@@ -1500,6 +1481,5 @@ users:
     single: user
     suspend: Suspend
     title: Users
-    undelete: Undelete
     unsuspend: Unsuspend
     yaml: YAML

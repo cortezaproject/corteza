@@ -226,12 +226,20 @@ function getActionsMenuItems(connection) {
   }
 
   if (connection.canDeleteConnection) {
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(connection),
-    })
+    if (connection.deletedAt) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(connection),
+      })
+    } else {
+      items.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(connection),
+      })
+    }
   }
 
   return items
@@ -257,6 +265,18 @@ async function handleDelete(connection) {
   } catch (e) {
     console.error('Failed to delete connection:', e)
     $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+  }
+}
+
+async function handleRestore(connection) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    await $SystemAPI.connectionUndelete({ connectionID: connection.connectionID })
+    $toast.toastSuccess(t('notification.connection.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore connection:', e)
+    $toast.toastErrorHandler(t('notification.connection.restore.error'))(e)
   }
 }
 </script>

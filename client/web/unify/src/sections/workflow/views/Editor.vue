@@ -236,10 +236,18 @@ function undeleteWorkflow() {
       .then(() => {
         workflow.value.deletedAt = undefined
         workflow.value.deletedBy = undefined
-        toast.add({ severity: 'success', summary: t('notification.undelete.success'), life: 3000 })
+        toast.add({
+          severity: 'success',
+          summary: t('notification.workflow.restore.success'),
+          life: 3000,
+        })
       })
       .catch(() => {
-        toast.add({ severity: 'error', summary: t('notification.undelete.failed'), life: 5000 })
+        toast.add({
+          severity: 'error',
+          summary: t('notification.workflow.restore.error'),
+          life: 5000,
+        })
       })
       .finally(() => {
         processingDelete.value = false

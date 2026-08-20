@@ -136,12 +136,21 @@
 
     <CEditorActions :back-to="{ name: 'system.users' }">
       <CInputDelete
-        v-if="isEdit && user.canDeleteUser"
+        v-if="isEdit && user.canDeleteUser && !user.deletedAt"
         :label="$t('system.users.editor.info.delete')"
         :message="$t('system.users.editor.info.deleteConfirm')"
         :header="user.name || user.handle || user.email || user.userID"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && user.canDeleteUser && user.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
@@ -177,6 +186,7 @@ const userStore = useUserStore()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const suspending = ref(false)
 const revoking = ref(false)
 const user = ref(null)
@@ -383,6 +393,21 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.user.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $SystemAPI.userUndelete({ userID: user.value.userID })
+    await loadUser()
+    userStore.storeUsers([user.value])
+    $toast.toastSuccess(t('notification.user.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore user:', e)
+    $toast.toastErrorHandler(t('notification.user.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

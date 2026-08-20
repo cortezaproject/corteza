@@ -120,12 +120,13 @@
         @confirm="handleDelete"
       />
       <Button
-        v-if="isEdit && userGroup.deletedAt"
-        :label="$t('system.user-groups.editor.info.undelete')"
-        icon="pi pi-refresh"
-        severity="success"
+        v-if="isEdit && userGroup.canDeleteUserGroup && userGroup.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
         :disabled="saving"
-        @click="handleUndelete"
+        @click="handleRestore"
       />
       <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
@@ -154,6 +155,7 @@ const $SystemAPI = inject('$SystemAPI')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const userGroup = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: userGroup,
@@ -292,18 +294,17 @@ async function handleDelete() {
   }
 }
 
-async function handleUndelete() {
-  saving.value = true
+async function handleRestore() {
+  restoring.value = true
   try {
     await $SystemAPI.userGroupUndelete({ userGroupID: userGroup.value.userGroupID })
-    const raw = await $SystemAPI.userGroupRead({ userGroupID: userGroup.value.userGroupID })
-    userGroup.value = new system.UserGroup(raw)
-    $toast.toastSuccess(t('notification.userGroup.undelete.success'))
+    await loadUserGroup()
+    $toast.toastSuccess(t('notification.userGroup.restore.success'))
   } catch (e) {
-    console.error('Failed to undelete user group:', e)
-    $toast.toastErrorHandler(t('notification.userGroup.undelete.error'))(e)
+    console.error('Failed to restore user group:', e)
+    $toast.toastErrorHandler(t('notification.userGroup.restore.error'))(e)
   } finally {
-    saving.value = false
+    restoring.value = false
   }
 }
 

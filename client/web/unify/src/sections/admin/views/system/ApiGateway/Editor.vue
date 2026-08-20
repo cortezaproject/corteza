@@ -178,12 +178,21 @@
 
     <CEditorActions :back-to="{ name: 'system.apiGateway' }">
       <CInputDelete
-        v-if="isEdit && route_.canDeleteApigwRoute"
+        v-if="isEdit && route_.canDeleteApigwRoute && !route_.deletedAt"
         :label="$t('system.apigw.editor.delete')"
         :message="$t('general.confirm.delete')"
         :header="route_.endpoint || route_.routeID"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && route_.canDeleteApigwRoute && route_.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button
         v-if="!isEdit || route_.canUpdateApigwRoute"
@@ -217,6 +226,7 @@ const $SystemAPI = inject('$SystemAPI')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const route_ = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: route_,
@@ -588,6 +598,20 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.gateway.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $SystemAPI.apigwRouteUndelete({ routeID: route_.value.routeID })
+    await loadRoute()
+    $toast.toastSuccess(t('notification.gateway.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore route:', e)
+    $toast.toastErrorHandler(t('notification.gateway.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

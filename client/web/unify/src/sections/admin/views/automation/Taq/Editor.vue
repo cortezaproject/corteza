@@ -102,6 +102,15 @@
         :disabled="deleting"
         @confirm="handleDelete"
       />
+      <Button
+        v-if="isEdit && taq.canUndeleteNgAutomation && taq.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
+      />
       <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
   </Form>
@@ -129,6 +138,7 @@ const automationStore = useAutomationStore()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const taq = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: taq,
@@ -246,6 +256,21 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.taq.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $AutomationAPI.ngAutomationUndelete({ automationID: taq.value.automationID })
+    await loadTaq()
+    automationStore.updateInList(taq.value)
+    $toast.toastSuccess(t('notification.taq.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore automation:', e)
+    $toast.toastErrorHandler(t('notification.taq.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

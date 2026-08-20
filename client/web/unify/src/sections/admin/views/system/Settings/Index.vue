@@ -619,8 +619,8 @@ function getProviderActions(data) {
   if (data.canDelete) {
     items.push({ separator: true })
     items.push({
-      label: data.deleted ? t('general.undelete') : t('general.label.delete'),
-      icon: data.deleted ? 'pi pi-undo' : 'pi pi-trash',
+      label: data.deleted ? t('general.label.restore') : t('general.label.delete'),
+      icon: data.deleted ? 'pi pi-replay' : 'pi pi-trash',
       class: data.deleted ? '' : 'text-red-500',
       command: () => data.toggleDelete(),
     })

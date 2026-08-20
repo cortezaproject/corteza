@@ -145,12 +145,21 @@
 
     <CEditorActions :back-to="{ name: 'system.connections' }">
       <CInputDelete
-        v-if="isEdit && connection.canDeleteConnection"
+        v-if="isEdit && connection.canDeleteConnection && !connection.deletedAt"
         :label="$t('system.connections.editor.delete')"
         :message="$t('system.connections.editor.deleteConfirm')"
         :header="connection.meta?.short || connection.handle"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && connection.canDeleteConnection && connection.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
@@ -180,6 +189,7 @@ const { confirmDelete: confirmAction } = useConfirmDelete()
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const enabling = ref(false)
 const connection = ref(null)
 const { capture, markSaved } = useDraftGuard({
@@ -383,6 +393,20 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $SystemAPI.connectionUndelete({ connectionID: connection.value.connectionID })
+    await loadConnection()
+    $toast.toastSuccess(t('notification.connection.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore connection:', e)
+    $toast.toastErrorHandler(t('notification.connection.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

@@ -77,7 +77,7 @@ function mountHome() {
 
 const EXPORT = 'general.export'
 const DELETE = 'general.label.delete'
-const UNDELETE = 'general.undelete'
+const RESTORE = 'general.label.restore'
 const DISABLE = 'general.disable'
 const ENABLE = 'general.enable'
 
@@ -113,22 +113,22 @@ describe('workflow list row actions', () => {
     expect(labels).toContain(DELETE)
   })
 
-  it('hides undelete on a deleted workflow without undelete permission', () => {
+  it('hides restore on a deleted workflow without undelete permission', () => {
     const labels = labelsFor({
       workflowID: 'W1',
       deletedAt: '2026-01-01T00:00:00Z',
       canUndeleteWorkflow: false,
     })
-    expect(labels).not.toContain(UNDELETE)
+    expect(labels).not.toContain(RESTORE)
   })
 
-  it('offers undelete on a deleted workflow with undelete permission', () => {
+  it('offers restore on a deleted workflow with undelete permission', () => {
     const labels = labelsFor({
       workflowID: 'W1',
       deletedAt: '2026-01-01T00:00:00Z',
       canUndeleteWorkflow: true,
     })
-    expect(labels).toContain(UNDELETE)
+    expect(labels).toContain(RESTORE)
   })
 
   it('always keeps edit and export, which need no write permission', () => {

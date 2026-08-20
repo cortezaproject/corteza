@@ -41,7 +41,6 @@ nodes:
         label: Tags
         placeholder: +Add
       title: Basic information
-      undelete: Undelete
       updatedAt: Updated at
       url: Server URL
     title:

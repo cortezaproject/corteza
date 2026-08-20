@@ -195,13 +195,16 @@ function getActionsMenuItems(agent) {
     })
   }
 
-  // Show either delete or undelete depending on state
+  // Show either delete or restore depending on state. The server authorises an
+  // undelete with the delete permission, so both answer to the same flag.
   if (agent.deletedAt) {
-    items.push({
-      label: t('agent.list.actions.undelete'),
-      icon: 'pi pi-undo',
-      command: () => handleUndelete(agent),
-    })
+    if (agent.canDeleteAgent) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(agent),
+      })
+    }
   } else if (agent.canDeleteAgent) {
     if (items.length > 0) {
       items.push({ separator: true })
@@ -272,7 +275,7 @@ async function handleDuplicate(agent) {
   }
 }
 
-async function handleUndelete(agent) {
+async function handleRestore(agent) {
   resourceListRef.value.hideActionsMenu()
   try {
     await $SystemAPI.agentUndelete({

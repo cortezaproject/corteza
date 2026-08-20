@@ -64,12 +64,21 @@
 
     <CEditorActions :back-to="{ name: 'system.queues' }">
       <CInputDelete
-        v-if="isEdit && queue.canDeleteQueue"
+        v-if="isEdit && queue.canDeleteQueue && !queue.deletedAt"
         :label="$t('system.queues.editor.delete')"
         :message="$t('general.confirm.delete')"
         :header="queue.queue || queue.queueID"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && queue.canDeleteQueue && queue.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button
         v-if="!isEdit || queue.canUpdateQueue"
@@ -100,6 +109,7 @@ const $SystemAPI = inject('$SystemAPI')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const queue = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: queue,
@@ -235,6 +245,20 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.queue.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $SystemAPI.queuesUndelete({ queueID: queue.value.queueID })
+    await loadQueue()
+    $toast.toastSuccess(t('notification.queue.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore queue:', e)
+    $toast.toastErrorHandler(t('notification.queue.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

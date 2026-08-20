@@ -260,12 +260,20 @@ function getActionsMenuItems(item) {
   const items = []
 
   if (item.canDeleteConnection) {
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(item),
-    })
+    if (item.deletedAt) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(item),
+      })
+    } else {
+      items.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(item),
+      })
+    }
   }
 
   return items
@@ -287,6 +295,18 @@ async function handleDelete(item) {
     filterList()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.data-source.delete.error'))(e)
+  }
+}
+
+async function handleRestore(item) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    await $SystemAPI.dalConnectionUndelete({ connectionID: item.connectionID })
+    $toast.toastSuccess(t('notification.data-source.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore data source:', e)
+    $toast.toastErrorHandler(t('notification.data-source.restore.error'))(e)
   }
 }
 

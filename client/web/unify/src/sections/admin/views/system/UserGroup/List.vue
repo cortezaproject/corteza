@@ -235,12 +235,20 @@ function getActionsMenuItems(userGroup) {
 
   if (userGroup.canDeleteUserGroup) {
     if (items.length > 0) items.push({ separator: true })
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(userGroup),
-    })
+    if (userGroup.deletedAt) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(userGroup),
+      })
+    } else {
+      items.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(userGroup),
+      })
+    }
   }
 
   return items
@@ -265,6 +273,18 @@ async function handleDelete(userGroup) {
   } catch (e) {
     console.error('Failed to delete user group:', e)
     $toast.toastErrorHandler(t('notification.userGroup.delete.error'))(e)
+  }
+}
+
+async function handleRestore(userGroup) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    await $SystemAPI.userGroupUndelete({ userGroupID: userGroup.userGroupID })
+    $toast.toastSuccess(t('notification.userGroup.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore user group:', e)
+    $toast.toastErrorHandler(t('notification.userGroup.restore.error'))(e)
   }
 }
 </script>

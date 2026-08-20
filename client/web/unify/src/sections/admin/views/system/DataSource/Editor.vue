@@ -217,12 +217,21 @@
 
     <CEditorActions :back-to="{ name: 'system.dataSources' }">
       <CInputDelete
-        v-if="isEdit && dataSource.canDeleteConnection"
+        v-if="isEdit && dataSource.canDeleteConnection && !dataSource.deletedAt"
         :label="$t('system.data-sources.editor.delete')"
         :message="$t('general.confirm.delete')"
         :header="dataSource.meta?.name || dataSource.handle"
         :disabled="deleting"
         @confirm="handleDelete"
+      />
+      <Button
+        v-if="isEdit && dataSource.canDeleteConnection && dataSource.deletedAt"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
+        :loading="restoring"
+        :disabled="saving"
+        @click="handleRestore"
       />
       <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
     </CEditorActions>
@@ -249,6 +258,7 @@ const $SystemAPI = inject('$SystemAPI')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const dataSource = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: dataSource,
@@ -449,6 +459,20 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.data-source.delete.error'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  restoring.value = true
+  try {
+    await $SystemAPI.dalConnectionUndelete({ connectionID: dataSource.value.connectionID })
+    await loadDataSource()
+    $toast.toastSuccess(t('notification.data-source.restore.success'))
+  } catch (e) {
+    console.error('Failed to restore data source:', e)
+    $toast.toastErrorHandler(t('notification.data-source.restore.error'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

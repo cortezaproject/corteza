@@ -193,12 +193,20 @@ function getActionsMenuItems(item) {
 
   if (item.canDeleteTemplate) {
     if (menuItems.length > 0) menuItems.push({ separator: true })
-    menuItems.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(item),
-    })
+    if (item.deletedAt) {
+      menuItems.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(item),
+      })
+    } else {
+      menuItems.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(item),
+      })
+    }
   }
 
   return menuItems
@@ -220,6 +228,18 @@ async function handleDelete(item) {
     filterList()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.template.delete.error'))(e)
+  }
+}
+
+async function handleRestore(item) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    await $SystemAPI.templateUndelete({ templateID: item.templateID })
+    $toast.toastSuccess(t('notification.template.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore template:', e)
+    $toast.toastErrorHandler(t('notification.template.restore.error'))(e)
   }
 }
 </script>

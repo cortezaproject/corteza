@@ -175,8 +175,9 @@
       />
       <Button
         v-else-if="isDeleted && workflow.canUndeleteWorkflow"
-        :label="$t('editor.undelete')"
-        severity="secondary"
+        :label="$t('general.label.restore')"
+        icon="pi pi-replay"
+        severity="warn"
         text
         size="small"
         :loading="processingDelete"

@@ -236,12 +236,20 @@ function getActionsMenuItems(role) {
 
   if (role.canDeleteRole) {
     if (items.length > 0) items.push({ separator: true })
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(role),
-    })
+    if (role.deletedAt) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(role),
+      })
+    } else {
+      items.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(role),
+      })
+    }
   }
 
   return items
@@ -266,6 +274,18 @@ async function handleDelete(role) {
   } catch (e) {
     console.error('Failed to delete role:', e)
     $toast.toastErrorHandler(t('notification.role.delete.error'))(e)
+  }
+}
+
+async function handleRestore(role) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    await $SystemAPI.roleUndelete({ roleID: role.roleID })
+    $toast.toastSuccess(t('notification.role.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore role:', e)
+    $toast.toastErrorHandler(t('notification.role.restore.error'))(e)
   }
 }
 </script>

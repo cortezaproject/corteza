@@ -249,7 +249,6 @@ inbox:
 list:
   actions:
     duplicate: Duplicate
-    undelete: Restore
   columns:
     enabled: Status
     handle: Handle

@@ -280,12 +280,20 @@ function getActionsMenuItems(user) {
     if (items.length > 0) {
       items.push({ separator: true })
     }
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      class: 'text-red-500',
-      command: () => onConfirmDelete(user),
-    })
+    if (user.deletedAt) {
+      items.push({
+        label: t('general.label.restore'),
+        icon: 'pi pi-replay',
+        command: () => handleRestore(user),
+      })
+    } else {
+      items.push({
+        label: t('general.label.delete'),
+        icon: 'pi pi-trash',
+        class: 'text-red-500',
+        command: () => onConfirmDelete(user),
+      })
+    }
   }
 
   return items
@@ -309,6 +317,19 @@ async function handleDelete(user) {
   } catch (e) {
     console.error('Failed to delete user:', e)
     $toast.toastErrorHandler(t('notification.user.delete.error'))(e)
+  }
+}
+
+async function handleRestore(user) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    await $SystemAPI.userUndelete({ userID: user.userID })
+    userStore.storeUsers([{ ...user, deletedAt: null }])
+    $toast.toastSuccess(t('notification.user.restore.success'))
+    filterList()
+  } catch (e) {
+    console.error('Failed to restore user:', e)
+    $toast.toastErrorHandler(t('notification.user.restore.error'))(e)
   }
 }
 
