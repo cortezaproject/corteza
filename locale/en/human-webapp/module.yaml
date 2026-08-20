@@ -238,7 +238,7 @@ edit:
     required: Required field
     title: The name displayed in form input / data lists
 federated: Federated
-fieldPermissions: Field Permissions
+fieldPermissions: Field permissions
 forModule:
   recordPage: '{name} - Record Page'
 general:
@@ -273,7 +273,7 @@ recordListPage:
 recordPage:
   create: Create record page
   edit: Edit record page
-recordPermissions: Record Permissions
+recordPermissions: Record permissions
 related-pages: Related Pages
 searchPlaceholder: Search modules in this namespace
 title: List of Modules
