@@ -76,7 +76,7 @@
 
             <!-- Add column button -->
             <div
-              v-if="evaluate.length < 4"
+              v-if="evaluate.length < MAX_EVAL_COLUMNS"
               class="flex-1 flex flex-col items-center justify-center p-3 border-l cursor-pointer hover:bg-surface-hover transition-colors"
               @click="showAddEval = true"
             >
@@ -142,7 +142,7 @@
             </div>
 
             <!-- Empty column for the "Add" slot -->
-            <div v-if="evaluate.length < 4" class="flex-1 border-l" />
+            <div v-if="evaluate.length < MAX_EVAL_COLUMNS" class="flex-1 border-l" />
           </div>
         </div>
 
@@ -254,6 +254,7 @@ const rules = ref([])
 const initialRules = ref({})
 
 // Evaluation columns state
+const MAX_EVAL_COLUMNS = 4
 const evaluate = ref([])
 const showAddEval = ref(false)
 const addEval = ref({ roleIDs: [], userID: null })
@@ -274,6 +275,38 @@ function readLastRoleID() {
 function storeLastRoleID(roleID) {
   try {
     localStorage.setItem(LAST_ROLE_KEY, String(roleID))
+  } catch {
+    // localStorage not available
+  }
+}
+
+// The evaluation columns, sticky the same way and for the same reason. What is
+// kept is who a column compares against, never what it showed: the accesses are
+// a property of the resource the dialog was opened for, and are re-traced
+// against whichever one that is.
+const EVAL_COLUMNS_KEY = 'permissionsDialog.evalColumns'
+
+function readStoredEvalColumns() {
+  try {
+    // Anything that is not a list of columns reaches the catch below — a
+    // non-array has no map, and a bad parse throws before that.
+    const stored = JSON.parse(localStorage.getItem(EVAL_COLUMNS_KEY) || '[]')
+    return stored
+      .map(c => ({
+        roleIDs: Array.isArray(c?.roleIDs) ? c.roleIDs.map(String) : [],
+        userID: c?.userID ? String(c.userID) : null,
+      }))
+      .filter(c => c.roleIDs.length || c.userID)
+      .slice(0, MAX_EVAL_COLUMNS)
+  } catch {
+    return []
+  }
+}
+
+function storeEvalColumns() {
+  try {
+    const identities = evaluate.value.map(({ roleIDs, userID }) => ({ roleIDs, userID }))
+    localStorage.setItem(EVAL_COLUMNS_KEY, JSON.stringify(identities))
   } catch {
     // localStorage not available
   }
@@ -350,13 +383,16 @@ watch(
       initialRules.value = {}
       evaluate.value = []
       try {
+        // The operation catalog first: both the editor's rows and a restored
+        // column's accesses are built from it.
         await fetchPermissions()
         if (opts.roleID) {
           currentRoleID.value = String(opts.roleID)
-          await fetchRules(currentRoleID.value)
-        } else {
-          await selectInitialRole()
         }
+        await Promise.all([
+          opts.roleID ? fetchRules(currentRoleID.value) : selectInitialRole(),
+          restoreEvalColumns(),
+        ])
       } finally {
         processing.value = false
       }
@@ -527,55 +563,68 @@ function getEvalAccess(evalCol, operation) {
 
 function getEvalName(evalCol) {
   if (evalCol.userName) return [evalCol.userName]
-  return evalCol.roleNames || ['Unknown']
+  if (evalCol.roleNames?.length) return evalCol.roleNames
+  // A name that would not resolve leaves the column headerless; the raw ID at
+  // least says which one it is.
+  if (evalCol.userID) return [evalCol.userID]
+  return evalCol.roleIDs?.length ? evalCol.roleIDs : ['Unknown']
 }
 
-function removeEvalColumn(index) {
-  evaluate.value.splice(index, 1)
-}
-
-async function onAddEvalColumn() {
-  const { roleIDs = [], userID } = addEval.value
+// A column, traced against the resource the dialog is currently open for.
+// Shared by adding one and by restoring a stored one, so both resolve names
+// and accesses the same way.
+async function buildEvalColumn({ roleIDs = [], userID = null }) {
   const roleIDList = Array.isArray(roleIDs)
     ? roleIDs.map(r => (typeof r === 'object' ? r.roleID : r))
     : []
 
-  const evalRules = await evaluatePermissions({
-    roleID: roleIDList,
-    userID,
-  })
+  const [rules, roleNames, userName] = await Promise.all([
+    evaluatePermissions({ roleID: roleIDList, userID }),
+    readRoleNames(roleIDList),
+    readUserName(userID),
+  ])
 
-  // Get role names for display
-  let roleNames = []
-  if (roleIDList.length) {
-    try {
-      const results = await Promise.all(
-        roleIDList.map(id => $SystemAPI.roleRead({ roleID: id }).catch(() => null)),
-      )
-      roleNames = results.filter(Boolean).map(r => r.name || r.handle || r.roleID)
-    } catch {
-      roleNames = roleIDList
-    }
-  }
+  return { roleIDs: roleIDList, userID, roleNames, userName, rules }
+}
 
-  // Get user name for display
-  let userName = null
-  if (userID) {
-    try {
-      const user = await $SystemAPI.userRead({ userID })
-      userName = user?.name || user?.username || user?.email || userID
-    } catch {
-      userName = userID
-    }
-  }
+async function readRoleNames(roleIDList) {
+  if (!roleIDList.length || !$SystemAPI) return []
+  const results = await Promise.all(
+    roleIDList.map(id => $SystemAPI.roleRead({ roleID: id }).catch(() => null)),
+  )
+  return results.filter(Boolean).map(r => r.name || r.handle || r.roleID)
+}
 
-  evaluate.value.push({
-    roleIDs: roleIDList,
-    userID,
-    roleNames,
-    userName,
-    rules: evalRules,
-  })
+async function readUserName(userID) {
+  if (!userID || !$SystemAPI) return null
+  const user = await $SystemAPI.userRead({ userID }).catch(() => null)
+  return user ? user.name || user.username || user.email || user.userID : null
+}
+
+// Whether the people a column compares against still exist.
+function evalColumnResolves(col) {
+  return col.userID ? !!col.userName : col.roleNames.length > 0
+}
+
+async function restoreEvalColumns() {
+  const stored = readStoredEvalColumns()
+  if (!stored.length) return
+
+  const built = await Promise.all(stored.map(c => buildEvalColumn(c).catch(() => null)))
+  evaluate.value = built.filter(c => c && evalColumnResolves(c))
+
+  // A role or user that has since been deleted shouldn't keep being asked for.
+  if (evaluate.value.length !== stored.length) storeEvalColumns()
+}
+
+function removeEvalColumn(index) {
+  evaluate.value.splice(index, 1)
+  storeEvalColumns()
+}
+
+async function onAddEvalColumn() {
+  evaluate.value.push(await buildEvalColumn(addEval.value))
+  storeEvalColumns()
 
   // Reset add form
   addEval.value = { roleIDs: [], userID: null }
