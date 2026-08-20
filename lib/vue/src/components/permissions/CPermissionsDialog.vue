@@ -56,11 +56,12 @@
           </div>
 
           <!-- Right: Evaluation columns headers -->
-          <div class="flex-1 hidden lg:flex">
+          <div class="flex-1 min-w-0 hidden lg:flex">
             <div
               v-for="(e, i) in evaluate"
               :key="i"
-              class="flex-1 flex flex-col items-center justify-center p-3 border-l cursor-pointer hover:bg-surface-hover transition-colors overflow-hidden"
+              :style="evalColumnStyle(e)"
+              class="flex flex-col items-center justify-center min-w-0 p-3 border-l cursor-pointer hover:bg-surface-hover transition-colors overflow-hidden"
               @click="removeEvalColumn(i)"
             >
               <span
@@ -77,12 +78,16 @@
             <!-- Add column button -->
             <div
               v-if="evaluate.length < MAX_EVAL_COLUMNS"
-              class="flex-1 flex flex-col items-center justify-center p-3 border-l cursor-pointer hover:bg-surface-hover transition-colors"
+              :style="{ width: ADD_COLUMN_WIDTH }"
+              class="flex flex-col items-center justify-center p-3 border-l cursor-pointer hover:bg-surface-hover transition-colors"
               @click="showAddEval = true"
             >
               <span class="text-primary">{{ $t('permissions.ui.add.label') }}</span>
               <i class="pi pi-plus text-green-500 mt-1" />
             </div>
+
+            <!-- Whatever the columns did not need -->
+            <div class="flex-1 border-l" />
           </div>
         </div>
 
@@ -123,11 +128,12 @@
           </div>
 
           <!-- Right: Evaluation results -->
-          <div class="flex-1 hidden lg:flex">
+          <div class="flex-1 min-w-0 hidden lg:flex">
             <div
               v-for="(e, i) in evaluate"
               :key="i"
-              class="flex-1 flex items-center justify-center border-l bg-emphasis cursor-not-allowed"
+              :style="evalColumnStyle(e)"
+              class="flex items-center justify-center min-w-0 border-l bg-emphasis cursor-not-allowed"
             >
               <i
                 v-if="getEvalAccess(e, rule.operation) === 'unknown-context'"
@@ -141,8 +147,13 @@
               <i v-else class="pi pi-times text-red-500" />
             </div>
 
-            <!-- Empty column for the "Add" slot -->
-            <div v-if="evaluate.length < MAX_EVAL_COLUMNS" class="flex-1 border-l" />
+            <!-- Empty column for the "Add" slot, and for the slack after it -->
+            <div
+              v-if="evaluate.length < MAX_EVAL_COLUMNS"
+              :style="{ width: ADD_COLUMN_WIDTH }"
+              class="border-l"
+            />
+            <div class="flex-1 border-l" />
           </div>
         </div>
 
@@ -255,6 +266,14 @@ const initialRules = ref({})
 
 // Evaluation columns state
 const MAX_EVAL_COLUMNS = 4
+
+// A column is a name over a column of ticks, so it needs only the width of the
+// name. The header and the rule rows are separate rows, though, and each would
+// size itself independently — so the width is decided once, from the longest
+// name, and handed to both.
+const EVAL_COLUMN_MIN = '6rem'
+const EVAL_COLUMN_MAX = '14rem'
+const ADD_COLUMN_WIDTH = '6rem'
 const evaluate = ref([])
 const showAddEval = ref(false)
 const addEval = ref({ roleIDs: [], userID: null })
@@ -559,6 +578,15 @@ function normalizeEvalRules(rr) {
 function getEvalAccess(evalCol, operation) {
   const rule = (evalCol.rules || []).find(r => r.operation === operation)
   return rule?.access || 'deny'
+}
+
+// `ch` is the width of a "0", so this reads a touch wide for narrow text and a
+// touch narrow for wide — near enough between a floor and a ceiling, and the
+// names truncate with the full one on hover either way. The 2rem covers the
+// cell's own padding.
+function evalColumnStyle(evalCol) {
+  const longest = getEvalName(evalCol).reduce((n, name) => Math.max(n, String(name).length), 0)
+  return { width: `clamp(${EVAL_COLUMN_MIN}, calc(${longest}ch + 2rem), ${EVAL_COLUMN_MAX})` }
 }
 
 function getEvalName(evalCol) {

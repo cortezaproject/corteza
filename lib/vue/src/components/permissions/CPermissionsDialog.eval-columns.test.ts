@@ -54,7 +54,13 @@ const roleRead = vi.fn(async ({ roleID }: { roleID: string }) => {
 const userRead = vi.fn(async ({ userID }: { userID: string }) => ({ userID, name: 'Ada' }))
 
 const $SystemAPI = {
-  permissionsList: vi.fn(async () => [{ op: 'read' }, { op: 'update' }]),
+  // The dialog keeps only the entries whose `type` matches the open resource,
+  // and builds both its rule rows and a column's accesses from what is left.
+  permissionsList: vi.fn(async () => [
+    { type: 'corteza::compose:module', op: 'read' },
+    { type: 'corteza::compose:module', op: 'update' },
+    { type: 'corteza::system:user', op: 'read' },
+  ]),
   permissionsRead: vi.fn(async () => []),
   permissionsTrace,
   permissionsUpdate: vi.fn(),
@@ -187,5 +193,53 @@ describe('CPermissionsDialog evaluation columns', () => {
     await openDialog('corteza::compose:module/NS1/M1')
 
     expect(vm().evaluate).toEqual([])
+  })
+})
+
+describe('CPermissionsDialog evaluation column widths', () => {
+  it('sizes a column from its longest name, between a floor and a ceiling', async () => {
+    await openDialog('corteza::compose:module/NS1/M1')
+    const style = (vm() as unknown as { evalColumnStyle: (_c: unknown) => { width: string } })
+      .evalColumnStyle
+
+    expect(style({ roleNames: ['Administrator'] }).width).toBe(
+      'clamp(6rem, calc(13ch + 2rem), 14rem)',
+    )
+    // several roles in one column: the longest decides
+    expect(style({ roleNames: ['Ada', 'Security administrator'] }).width).toBe(
+      'clamp(6rem, calc(22ch + 2rem), 14rem)',
+    )
+  })
+
+  // The header names and the rule ticks are separate rows. Nothing but an equal
+  // width keeps them in one column, so this is the invariant to guard: a stray
+  // `flex-1` on either side and the table silently stops lining up.
+  it('gives the header cell and every rule cell the same width', async () => {
+    localStorage.setItem(
+      EVAL_KEY,
+      JSON.stringify([
+        { roleIDs: ['R1'], userID: null },
+        { roleIDs: ['R2'], userID: null },
+      ]),
+    )
+    await openDialog('corteza::compose:module/NS1/M1')
+
+    // The header row followed by one row per rule.
+    const [header, ...ruleRows] = [...document.querySelectorAll('.flex-1.min-w-0')]
+    expect(ruleRows.length).toBe(2)
+
+    // jsdom's CSS serialiser mangles clamp(), so compare the rows against each
+    // other rather than against a literal — that equality is the invariant, and
+    // the clamp itself is pinned by the test above.
+    const widthsOf = (row: Element) =>
+      [...row.children].map(c => (c as HTMLElement).style.width || 'flex')
+
+    const widths = widthsOf(header)
+    expect(widths).toHaveLength(4) // two columns, Add, and the slack
+    expect(widths[2]).toBe('6rem')
+    expect(widths[3]).toBe('flex')
+    expect(widths[0]).not.toBe(widths[1]) // Administrator is wider than Tester
+
+    for (const row of ruleRows) expect(widthsOf(row)).toEqual(widths)
   })
 })
