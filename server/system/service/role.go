@@ -472,6 +472,10 @@ func (svc *role) onCloneRules(ctx context.Context, _ *roleActionProps, roleID ui
 //
 // A caller reading their own memberships is always permitted — that is the
 // self-service case the webapp relies on.
+//
+// Deleted and archived roles are left out: neither is part of a security
+// context, so listing one would claim access the user does not have. The
+// membership rows outlive the role, so restoring it restores the membership.
 func (svc *role) onMembership(ctx context.Context, _ *roleActionProps, userID uint64) (types.RoleMemberSet, error) {
 	if userID == 0 {
 		return nil, RoleErrInvalidID()
@@ -488,9 +492,19 @@ func (svc *role) onMembership(ctx context.Context, _ *roleActionProps, userID ui
 		}
 	}
 
+	// Same query the login path builds a session from, so the two can not disagree
 	resource := fmt.Sprintf("corteza::system:user/%d", userID)
-	mm, _, err := store.SearchRoleMembers(ctx, svc.store, types.RoleMemberFilter{Resource: resource})
-	return mm, err
+	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{Resource: resource})
+	if err != nil {
+		return nil, err
+	}
+
+	mm := make(types.RoleMemberSet, 0, len(rr))
+	for _, r := range rr {
+		mm = append(mm, &types.RoleMember{RoleID: r.ID, Resource: resource})
+	}
+
+	return mm, nil
 }
 
 func (svc *role) onMemberList(ctx context.Context, _ *roleActionProps, roleID uint64) (mm types.RoleMemberSet, err error) {

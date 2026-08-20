@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -134,4 +135,36 @@ func TestRole_ChangeIsAnnouncedOnlyOnceItIsWritten(t *testing.T) {
 		require.NoError(t, svc.UndeleteByID(ctx, r.ID))
 		require.Equal(t, []announcedRole{{event: "afterUpdate", handle: "back"}}, spy.seen)
 	})
+}
+
+// Membership answers "which roles does this user hold" for the user editor, so
+// it has to agree with the session the login path builds.
+func TestRole_MembershipSkipsDeletedAndArchivedRoles(t *testing.T) {
+	svc, _, s, ctx := newRoleTestService(t)
+
+	var (
+		req      = require.New(t)
+		userID   = nextID()
+		resource = "corteza::system:user/" + strconv.FormatUint(userID, 10)
+
+		active   = seedTestRole(t, s, &types.Role{Handle: "active", Name: "Active"})
+		deleted  = seedTestRole(t, s, &types.Role{Handle: "gone", Name: "Gone", DeletedAt: now()})
+		archived = seedTestRole(t, s, &types.Role{Handle: "parked", Name: "Parked", ArchivedAt: now()})
+	)
+
+	req.NoError(store.CreateUser(ctx, s, &types.User{ID: userID, Email: "held@us.er", CreatedAt: *now()}))
+
+	for _, r := range []*types.Role{active, deleted, archived} {
+		req.NoError(store.CreateRoleMember(ctx, s, &types.RoleMember{RoleID: r.ID, Resource: resource}))
+	}
+
+	mm, err := svc.onMembership(ctx, &roleActionProps{}, userID)
+	req.NoError(err)
+
+	held := make([]uint64, 0, len(mm))
+	for _, m := range mm {
+		held = append(held, m.RoleID)
+	}
+
+	req.Equal([]uint64{active.ID}, held)
 }
