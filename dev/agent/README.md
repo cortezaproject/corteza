@@ -175,6 +175,16 @@ DOM as it is; use a visibility assertion when visibility is the question.
   a lib change:
   `curl -s 'localhost:5173/@fs<abs-path-to-file>' | head`.
   Only a vite restart clears it — ask the human, never restart it yourself.
+- **A same-origin `/api/…` fetch from inside a drive check hits the SPA, not
+  the API.** Vite proxies exactly two paths (`/custom.css`,
+  `/code-snippets.js`, `client/web/unify/vite.config.js`); everything else
+  falls through to the history fallback, so `fetch('/api/…')` comes back
+  **HTTP 200 with `index.html`**. `r.json()` then throws on the doctype, and a
+  check reading `r.ok` or `r.status` instead calls a nonexistent endpoint
+  healthy. The webapp itself talks to an absolute origin (`window.HumanAPI`,
+  `public/config.js`), which a page probe can use — but the API state a check
+  wants to assert is cheaper read from the shell with `api.sh` after the run.
+
 - **`performance.getEntriesByType('resource')` overflows before your XHR.**
   The buffer holds 250 entries by default and a cold vite page fills it with
   module scripts, so a probe asking "was this request made" comes back empty
