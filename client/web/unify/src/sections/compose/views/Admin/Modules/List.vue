@@ -53,10 +53,23 @@
             :namespace="namespace"
             @imported="filterList"
           />
-          <CPermissionsButton
-            v-if="canGrant"
+          <Button
+            v-if="namespace?.canGrant"
+            type="button"
+            icon="pi pi-lock"
             v-tooltip.bottom="$t('general.label.permissions')"
-            resource="corteza::compose:module/*"
+            size="small"
+            severity="secondary"
+            outlined
+            aria-haspopup="true"
+            aria-controls="permissions_menu"
+            @click="togglePermissionsMenu"
+          />
+          <Menu
+            ref="permissionsMenu"
+            id="permissions_menu"
+            :model="permissionsMenuItems"
+            :popup="true"
           />
         </div>
       </template>
@@ -90,7 +103,6 @@ import {
   filters,
   useConfirmDelete,
   usePermissions,
-  useRBACStore,
   useResourceList,
   useModuleStore,
 } from '@planetcrust/human-vue'
@@ -113,13 +125,12 @@ const router = useRouter()
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const { open: openPermissions } = usePermissions()
-const rbac = useRBACStore()
-const canGrant = computed(() => rbac.can('compose/', 'grant'))
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 const moduleStore = useModuleStore()
 
 const resourceListRef = ref()
+const permissionsMenu = ref()
 
 // Column definitions
 const moduleFields = [
@@ -182,23 +193,71 @@ function handleRowClick({ data }) {
   })
 }
 
+// Permissions
+function togglePermissionsMenu(event) {
+  permissionsMenu.value?.toggle(event)
+}
+
+// The namespace's every module, field and record — the same three targets the
+// module editor offers for one module.
+const permissionsMenuItems = computed(() => {
+  const namespaceID = props.namespace.namespaceID
+  return [
+    {
+      label: t('module.tooltip.permissions'),
+      command: () => openPermissions({ resource: `corteza::compose:module/${namespaceID}/*` }),
+    },
+    {
+      label: t('module.fieldPermissions'),
+      command: () =>
+        openPermissions({ resource: `corteza::compose:module-field/${namespaceID}/*/*` }),
+    },
+    {
+      label: t('module.recordPermissions'),
+      command: () => openPermissions({ resource: `corteza::compose:record/${namespaceID}/*/*` }),
+    },
+  ]
+})
+
 // Actions menu methods
 function getActionsMenuItems(module) {
   const items = []
 
   if (module.canGrant) {
-    items.push({
-      label: t('general.label.permissions'),
-      icon: 'pi pi-lock',
-      command: () => {
-        resourceListRef.value.hideActionsMenu()
-        openPermissions({
-          resource: `corteza::compose:module/${props.namespace.namespaceID}/${module.moduleID}`,
-          title: module.name || module.handle || module.moduleID,
-          target: module.name || module.handle || module.moduleID,
-        })
+    const namespaceID = props.namespace.namespaceID
+    const target = module.name || module.handle || module.moduleID
+
+    const openFor = opts => {
+      resourceListRef.value.hideActionsMenu()
+      openPermissions({ title: target, target, ...opts })
+    }
+
+    items.push(
+      {
+        label: t('module.tooltip.permissions'),
+        icon: 'pi pi-lock',
+        command: () =>
+          openFor({ resource: `corteza::compose:module/${namespaceID}/${module.moduleID}` }),
       },
-    })
+      {
+        label: t('module.fieldPermissions'),
+        icon: 'pi pi-lock',
+        command: () =>
+          openFor({
+            resource: `corteza::compose:module-field/${namespaceID}/${module.moduleID}/*`,
+            allSpecific: true,
+          }),
+      },
+      {
+        label: t('module.recordPermissions'),
+        icon: 'pi pi-lock',
+        command: () =>
+          openFor({
+            resource: `corteza::compose:record/${namespaceID}/${module.moduleID}/*`,
+            allSpecific: true,
+          }),
+      },
+    )
   }
 
   if (props.namespace?.canExportModules) {
