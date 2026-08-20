@@ -299,13 +299,23 @@
       />
 
       <Button
-        v-if="canDeleteSelected"
+        v-if="canDeleteSelected && !showingDeletedRecords"
         v-tooltip.bottom="$t('block.recordList.tooltip.deleteSelected')"
         icon="pi pi-trash"
         severity="danger"
         text
         size="small"
         @click="deleteSelected"
+      />
+
+      <Button
+        v-if="canRestoreSelected"
+        v-tooltip.bottom="$t('block.recordList.tooltip.restoreSelected')"
+        icon="pi pi-replay"
+        severity="warn"
+        text
+        size="small"
+        @click="restoreSelected"
       />
 
       <CBulkRecordEditModal
@@ -841,6 +851,9 @@ const paginationRangeText = computed(() => {
 // Permission-based helpers
 const canSelectRecords = computed(() => options.value.selectable !== false)
 const canDeleteSelected = computed(() => selectedRecords.value.some(r => r.canDeleteRecord))
+const canRestoreSelected = computed(
+  () => showingDeletedRecords.value && selectedRecords.value.some(r => r.canUndeleteRecord),
+)
 const canUpdateSelected = computed(() =>
   selectedRecords.value.some(r => r.canUpdateRecordValue !== false),
 )
@@ -860,6 +873,9 @@ const hasRowActions = computed(() => {
 const rowMenuItems = computed(() => {
   const record = activeRowRecord.value
   const items = []
+  // A deleted record is read-only until restored, so the row offers reading it
+  // and putting it back — nothing that writes to it.
+  const rowDeleted = !!record?.deletedAt
 
   if (recordPageID.value && record?.canReadRecord && !options.value.hideRecordViewButton) {
     items.push({
@@ -877,7 +893,12 @@ const rowMenuItems = computed(() => {
     })
   }
 
-  if (recordPageID.value && record?.canUpdateRecord && !options.value.hideRecordEditButton) {
+  if (
+    recordPageID.value &&
+    record?.canUpdateRecord &&
+    !rowDeleted &&
+    !options.value.hideRecordEditButton
+  ) {
     items.push({
       label: t('block.recordList.record.tooltip.edit'),
       icon: 'pi pi-pencil',
@@ -899,6 +920,7 @@ const rowMenuItems = computed(() => {
   if (
     recordPageID.value &&
     recordListModule.value?.canCreateRecord &&
+    !rowDeleted &&
     !options.value.hideRecordCloneButton
   ) {
     items.push({
@@ -908,7 +930,7 @@ const rowMenuItems = computed(() => {
     })
   }
 
-  if (record?.recordID && !options.value.hideRecordReminderButton) {
+  if (record?.recordID && !rowDeleted && !options.value.hideRecordReminderButton) {
     items.push({
       label: t('reminder.add'),
       icon: 'pi pi-clock',
@@ -933,7 +955,7 @@ const rowMenuItems = computed(() => {
     })
   }
 
-  if (record?.canDeleteRecord && !options.value.hideRecordDeleteButton) {
+  if (!rowDeleted && record?.canDeleteRecord && !options.value.hideRecordDeleteButton) {
     if (items.length > 0) {
       items.push({ separator: true })
     }
@@ -943,6 +965,18 @@ const rowMenuItems = computed(() => {
       icon: 'pi pi-trash',
       class: 'text-red-500',
       command: () => confirmDeleteRecord(record),
+    })
+  }
+
+  if (rowDeleted && record?.canUndeleteRecord && !options.value.hideRecordDeleteButton) {
+    if (items.length > 0) {
+      items.push({ separator: true })
+    }
+
+    items.push({
+      label: t('block.recordList.record.tooltip.restore'),
+      icon: 'pi pi-replay',
+      command: () => restoreRecord(record),
     })
   }
 
@@ -972,6 +1006,8 @@ function isInlineEditField(col) {
 }
 
 function shouldShowEditor(data, col) {
+  // A deleted record is read-only until restored
+  if (data.deletedAt) return false
   if (options.value.editable && isInlineEditField(col)) {
     return !data.recordID || data.recordID === '0' || data.canUpdateRecord !== false
   }
@@ -1827,6 +1863,54 @@ function confirmDeleteRecord(record) {
       }
     },
   })
+}
+
+async function restoreRecord(record) {
+  if (!record?.recordID) return
+
+  try {
+    await recordStore.undelete({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: recordListModule.value.moduleID,
+      recordID: record.recordID,
+    })
+    $toast?.toastSuccess(t('notification.record.restoreSuccess'))
+    fetchRecords(true)
+  } catch (e) {
+    console.error('Failed to restore record:', e)
+    $toast?.toastErrorHandler(t('notification.record.restoreFailed'))(e)
+  }
+}
+
+async function restoreSelected() {
+  if (!selectedRecords.value.length && !selectedAllRecords.value) return
+  loading.value = true
+  try {
+    if (selectedAllRecords.value) {
+      await $ComposeAPI.recordBulkUndelete({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: recordListModule.value.moduleID,
+        query: activeBulkQuery.value,
+      })
+      selectedAllRecords.value = false
+    } else {
+      for (const record of selectedRecords.value) {
+        await recordStore.undelete({
+          namespaceID: props.namespace.namespaceID,
+          moduleID: recordListModule.value.moduleID,
+          recordID: record.recordID,
+        })
+      }
+    }
+    selectedRecords.value = []
+    $toast?.toastSuccess(t('notification.record.restoreBulkSuccess'))
+    fetchRecords(true)
+  } catch (e) {
+    console.error('Failed to restore selected records:', e)
+    $toast?.toastErrorHandler(t('notification.record.restoreBulkFailed'))(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function deleteSelected() {

@@ -45,6 +45,13 @@
     @submit="handleSave"
     class="flex flex-col h-full"
   >
+    <!-- A soft-deleted record still opens and still reads like a live one. The
+         banner is the only thing on the page that says otherwise, so it sits
+         outside the scroller and stays put. -->
+    <Message v-if="isDeleted" severity="warn" :closable="false" class="shrink-0 mx-3 mt-3 mb-0">
+      {{ $t('block.record.recordDeleted') }}
+    </Message>
+
     <div class="flex-1 overflow-auto">
       <Grid :blocks="blocks" :namespace="namespace" :page="syntheticPage" :record="record" />
     </div>
@@ -79,7 +86,7 @@
         <!-- Right: Delete / Edit / Save -->
         <div class="flex gap-2">
           <CInputDelete
-            v-if="record.canDeleteRecord"
+            v-if="record.canDeleteRecord && !isDeleted"
             :label="$t('general.label.delete')"
             :message="$t('page.public.record.toolbar.deleteConfirm')"
             :header="recordModule.name"
@@ -87,8 +94,20 @@
             @confirm="handleDelete"
           />
 
+          <!-- Restore — takes the delete button's place on a deleted record.
+               Unconfirmed: it undoes a delete and a delete undoes it. -->
           <Button
-            v-if="!isEditMode && record.canUpdateRecord"
+            v-if="isDeleted && record.canUndeleteRecord"
+            :label="$t('general.label.restore')"
+            icon="pi pi-replay"
+            severity="warn"
+            :loading="restoring"
+            :disabled="isSaving"
+            @click="handleRestore"
+          />
+
+          <Button
+            v-if="!isEditMode && record.canUpdateRecord && !isDeleted"
             :label="$t('general.label.edit')"
             icon="pi pi-pencil"
             @click="goToEdit"
@@ -150,6 +169,7 @@ const serverErrors = ref({})
 const loading = ref(false)
 const isSaving = ref(false)
 const deleting = ref(false)
+const restoring = ref(false)
 const record = ref(null)
 const pristineRecord = ref(null)
 const navigatingAfterSave = ref(false)
@@ -168,7 +188,11 @@ const recordModule = computed(() => (moduleID.value ? moduleStore.getByID(module
 
 const isMultiField = fieldName =>
   !!recordModule.value?.fields.find(f => f.name === fieldName)?.isMulti
-const isEditMode = computed(() => route.name === 'admin.modules.record.edit')
+// A soft-deleted record still reads and still opens. Nothing that changes it is
+// offered until it is restored — the server would take the write, and the page
+// would be saying one thing while doing another.
+const isDeleted = computed(() => !!record.value?.deletedAt)
+const isEditMode = computed(() => route.name === 'admin.modules.record.edit' && !isDeleted.value)
 const mode = computed(() => (isEditMode.value ? 'edit' : 'view'))
 const isNew = computed(() => false)
 
@@ -350,6 +374,28 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.record.deleteFailed'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  if (!record.value) return
+
+  restoring.value = true
+  try {
+    await recordStore.undelete({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: record.value.moduleID,
+      recordID: record.value.recordID,
+    })
+    $toast.toastSuccess(t('notification.record.restoreSuccess'))
+    // Read back rather than clearing deletedAt here: the restore also changes
+    // what the record may do, and the toolbar reads those flags.
+    await loadRecord()
+  } catch (e) {
+    console.error('Failed to restore record:', e)
+    $toast.toastErrorHandler(t('notification.record.restoreFailed'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 

@@ -78,6 +78,8 @@ const blocks = computed(() => [
       perPage: 20,
       selectable: true,
       allowExport: true,
+      // The admin list is the module's whole record set, deleted rows included
+      showDeletedRecordsOption: true,
     },
     xywh: [0, 0, 48, 36],
     meta: { tempID: '_admin_record_list' },

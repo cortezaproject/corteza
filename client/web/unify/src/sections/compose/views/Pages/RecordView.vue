@@ -48,6 +48,13 @@
     @submit="handleSave"
     class="flex flex-col h-full"
   >
+    <!-- A soft-deleted record still opens and still reads like a live one. The
+         banner is the only thing on the page that says otherwise, so it sits
+         outside the scroller and stays put. -->
+    <Message v-if="isDeleted" severity="warn" :closable="false" class="shrink-0 mx-3 mt-3 mb-0">
+      {{ $t('block.record.recordDeleted') }}
+    </Message>
+
     <div class="flex-1 overflow-auto">
       <Grid
         :blocks="positionedBlocks"
@@ -115,9 +122,21 @@
             @confirm="handleDelete"
           />
 
+          <!-- Restore — takes the delete button's place on a deleted record.
+               Unconfirmed: it undoes a delete and a delete undoes it. -->
+          <Button
+            v-if="showRestoreButton"
+            :label="$t('general.label.restore')"
+            icon="pi pi-replay"
+            severity="warn"
+            :loading="restoring"
+            :disabled="isSaving"
+            @click="handleRestore"
+          />
+
           <!-- Clone / Save as copy (view mode, existing record) -->
           <Button
-            v-if="mode === 'view' && !isNew && record && layoutButtons.clone"
+            v-if="mode === 'view' && !isNew && record && !isDeleted && layoutButtons.clone"
             :label="$t('general.label.saveAsCopy')"
             icon="pi pi-copy"
             severity="secondary"
@@ -126,7 +145,7 @@
 
           <!-- New record button (view mode) -->
           <Button
-            v-if="mode === 'view' && layoutButtons.new"
+            v-if="mode === 'view' && !isDeleted && layoutButtons.new"
             :label="$t('general.label.add')"
             icon="pi pi-plus"
             severity="secondary"
@@ -135,7 +154,7 @@
 
           <!-- Edit button (view mode only) -->
           <Button
-            v-if="mode === 'view' && record?.canUpdateRecord && layoutButtons.edit"
+            v-if="mode === 'view' && record?.canUpdateRecord && !isDeleted && layoutButtons.edit"
             :label="$t('general.label.edit')"
             icon="pi pi-pencil"
             severity="primary"
@@ -293,6 +312,7 @@ function navigateToRecord(targetRecordID, direction) {
   }
 }
 const deleting = ref(false)
+const restoring = ref(false)
 const isSaving = ref(false)
 const page = ref(null)
 const layout = ref(null)
@@ -333,11 +353,18 @@ const pageTitle = computed(() => {
 const pristineRecord = ref(null)
 const navigatingAfterSave = ref(false)
 
+// A soft-deleted record still reads and still opens. Nothing that changes it is
+// offered until it is restored — the server would take the write, and the page
+// would be saying one thing while doing another.
+const isDeleted = computed(() => !!record.value?.deletedAt)
+
 // Mode derived from route or props
 const routeMode = computed(() => {
   const recordID = props.inModal ? props.modalRecordID : route.params.recordID
   if (recordID === '0') return 'create'
-  if (route.query.edit === '1') return 'edit'
+  // An ?edit=1 that outlived the delete — a bookmark, a back button — does not
+  // open a deleted record for editing.
+  if (route.query.edit === '1' && !isDeleted.value) return 'edit'
   return 'view'
 })
 
@@ -367,9 +394,17 @@ const layoutButtons = computed(() => {
 const showDeleteButton = computed(() => {
   if (!record.value) return false
   if (!layoutButtons.value.delete) return false
+  if (isDeleted.value) return false
   if (mode.value === 'view') return record.value.canDeleteRecord
   if (mode.value === 'edit') return record.value.canDeleteRecord
   return false
+})
+
+// Restore stands in the delete button's slot, and answers to the same layout toggle
+const showRestoreButton = computed(() => {
+  if (!record.value) return false
+  if (!layoutButtons.value.delete) return false
+  return isDeleted.value && record.value.canUndeleteRecord
 })
 
 // A record swap on the page already on screen: the blocks cover themselves
@@ -1141,6 +1176,28 @@ async function handleDelete() {
     $toast.toastErrorHandler(t('notification.record.deleteFailed'))(e)
   } finally {
     deleting.value = false
+  }
+}
+
+async function handleRestore() {
+  if (!record.value || !page.value) return
+
+  restoring.value = true
+  try {
+    await recordStore.undelete({
+      namespaceID: record.value.namespaceID,
+      moduleID: record.value.moduleID,
+      recordID: record.value.recordID,
+    })
+    $toast.toastSuccess(t('notification.record.restoreSuccess'))
+    // Read back rather than clearing deletedAt here: the restore also changes
+    // what the record may do, and the toolbar reads those flags.
+    await loadRecord(record.value.recordID)
+  } catch (e) {
+    console.error('Failed to restore record:', e)
+    $toast.toastErrorHandler(t('notification.record.restoreFailed'))(e)
+  } finally {
+    restoring.value = false
   }
 }
 
