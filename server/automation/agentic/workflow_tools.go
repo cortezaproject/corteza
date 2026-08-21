@@ -23,7 +23,7 @@ const (
 		`arguments match that construct's parameters by "target", results copy its outputs into scope as {"target":"<variable>","expr":"<result name>","type":"<type>"}, at most one outbound path. ` +
 		`"iterator" — like function but the ref must be an iterating construct (composeRecordsEach and friends), and it needs exactly two outbound paths. ` +
 		`"gateway" — "ref" is "fork" (run every branch), "join" (wait for branches to meet), "excl" (take the first matching branch) or "incl" (take every matching branch); no arguments and no results. ` +
-		`"termination" — no ref, no arguments, no outbound path; ends the workflow, and takes ONE inbound path: the editor caps a termination at a single arrival and simply does not draw a second, so give each branch arm its own rather than pointing them all at one. ` +
+		`"termination" — no ref, no arguments, no outbound path; ends the workflow, and takes ONE inbound path: the editor refuses a connection into a termination that already has one, and applies that rule to stored paths as well as drawn ones, so two arms aimed at the same termination make each other invalid and BOTH vanish from the canvas. Give every branch arm its own termination. ` +
 		`"error" — a single {"target":"message","type":"String","value":"..."} argument and no outbound path; fails the run. ` +
 		`"error-handler" — no ref, one or two outbound paths. ` +
 		`"delay" — exactly one argument, either {"target":"timestamp","type":"DateTime"} or {"target":"offset","type":"Duration"}. ` +
