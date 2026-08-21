@@ -154,7 +154,7 @@ func (res {{ camelCase .ResourceIdent "base" }}) EncodeVars() (out *expr.Vars, e
 
 	{{ range $r.Properties }}
 	{{- if .ExprType }}
-	if v, err = automation.{{ export "new" .ExprType }}(res.{{ .Name }}); err == nil {
+	if v, err = {{ .ExprTypePkg }}.{{ export "new" .ExprType }}(res.{{ .Name }}); err == nil {
 		err = out.Set({{ printf "%q" .Name }},v)
 	}
 
@@ -216,8 +216,8 @@ func (res *{{ camelCase .ResourceIdent "base" }}) DecodeVars(vars *expr.Vars) (e
 	{{- else }}
 	{{- if .ExprType }}
 	if res.{{ .Name }} != nil && vars.Has({{ printf "%q" .Name }}) {
-		var aux *automation.{{ export .ExprType }}
-		aux, err = automation.{{ export "new" .ExprType }}(expr.Must(vars.Select({{ printf "%q" .Name }})))
+		var aux *{{ .ExprTypePkg }}.{{ export .ExprType }}
+		aux, err = {{ .ExprTypePkg }}.{{ export "new" .ExprType }}(expr.Must(vars.Select({{ printf "%q" .Name }})))
 		if err != nil {
 			return
 		}

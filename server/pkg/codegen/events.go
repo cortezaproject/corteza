@@ -50,6 +50,10 @@ type (
 		Type     string
 		ExprType string
 
+		// Package the expression type is defined in — the app's own
+		// `automation` for its resource types, `expr` for the primitives.
+		ExprTypePkg string
+
 		// Import path for prop type, use package's type by default (see importTypePathTpl)
 		Import string
 
@@ -166,11 +170,13 @@ func expandEventTypes(ee []*eventsDef, tt []*exprTypesDef) {
 	// index of all known types
 	expTypes := make(map[string]*exprTypeDef)
 	goTypes := make(map[string]string)
+	typePkg := make(map[string]string)
 
 	for _, t := range tt {
 		for typ, d := range t.Types {
 			expTypes[typ] = d
 			goTypes[d.As] = typ
+			typePkg[typ] = t.Package
 		}
 	}
 
@@ -183,6 +189,10 @@ func expandEventTypes(ee []*eventsDef, tt []*exprTypesDef) {
 
 				if p.ExprType == "" && goTypes[p.Type] != "" {
 					p.ExprType = goTypes[p.Type]
+				}
+
+				if p.ExprTypePkg == "" {
+					p.ExprTypePkg = typePkg[p.ExprType]
 				}
 			}
 		}
