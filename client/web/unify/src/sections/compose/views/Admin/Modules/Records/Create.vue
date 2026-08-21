@@ -86,6 +86,7 @@ import {
   mergeAttachmentIDs,
   uploadRecordAttachment,
 } from '@/sections/compose/lib/record-attachments'
+import { adminRecordBlocks } from '@/sections/compose/lib/record-blocks'
 import {
   displayedFieldRegistry,
   fieldLabeller,
@@ -156,20 +157,13 @@ provide('recordViewContext', {
   registerDisplayedFields: displayedFields.register,
 })
 
-const blocks = computed(() => [
-  {
-    blockID: '_admin_record_create',
-    kind: 'Record',
-    title: '',
-    description: '',
-    style: { wrap: { kind: 'card' } },
-    options: {
-      fields: [],
-    },
-    xywh: [0, 0, 48, 18],
-    meta: { tempID: '_admin_record_create' },
-  },
-])
+const blocks = computed(() =>
+  adminRecordBlocks(recordModule.value, {
+    idPrefix: '_admin_record_create',
+    systemTitle: t('module.allRecords.systemFields'),
+    isNew: true,
+  }),
+)
 
 const syntheticPage = computed(() => ({
   pageID: '0',

@@ -9,6 +9,7 @@ allRecords:
   label: All records
   list:
     title: All records for module "{name}"
+  systemFields: System fields
   tooltip:
     configureColumns: Selecting a large number of fields or displaying record/user fields will impact performance
   view:
