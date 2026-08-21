@@ -12,6 +12,7 @@ import { createRequire } from 'node:module'
 import { mkdirSync, existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { pruneShots, shotName } from './shots.mjs'
 
 const input = JSON.parse(process.argv[2] || '{}')
 const root = input.root
@@ -262,13 +263,18 @@ try {
   finalize()
 
   if (input.screenshot !== false) {
-    // One file per call. A fixed name is one file per repo, and a peer
-    // session's page then arrives under your URL.
-    const stamp = `${process.pid}-${Date.now().toString(36)}`
-    const shot = join(root, 'dev', 'mcp', '.state', 'shots', `ui-verify-${stamp}.png`)
-    mkdirSync(dirname(shot), { recursive: true })
+    const shots = join(root, 'dev', 'mcp', '.state', 'shots')
+    const shot = join(shots, shotName())
+    mkdirSync(shots, { recursive: true })
     await page.screenshot({ path: shot, fullPage: false })
     out.screenshot = shot
+
+    // Swept after the write, so this call's own picture is the newest and never
+    // the one that goes. A directory that cannot be swept fills up; a sweep
+    // that ends the run costs the caller the answer it came for.
+    try {
+      pruneShots(shots)
+    } catch {}
   }
 
   mkdirSync(dirname(statePath), { recursive: true })
