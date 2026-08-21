@@ -325,8 +325,18 @@ function drillDown(metric, value) {
   if (!drillDownOpts.enabled) return
 
   const drillDownValue = metric.label || value?.label || value?.value || ''
-  // Raw filter — the child RecordListBlock evaluates the prefilter itself.
-  const prefilter = metric.filter ? `(${metric.filter})` : ''
+
+  // Evaluated here, against this block's record and user: a record list
+  // interpolates the prefilter it was configured with, never the one it is
+  // handed, so an uninterpolated ${...} would reach the server as a token it
+  // refuses.
+  let prefilter
+  try {
+    prefilter = metric.filter ? `(${interpolateTemplateOption(metric.filter)})` : ''
+  } catch (e) {
+    console.warn('Skipping drill-down: interpolation failed', e)
+    return
+  }
 
   if (drillDownOpts.blockID) {
     $eventBus?.emit(`drill-down-recordList:${drillDownOpts.blockID}`, {
