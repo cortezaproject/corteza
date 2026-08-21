@@ -93,9 +93,12 @@ In this order, because each one can invalidate the next:
 3. `dev_intent_check` — reports your drift separately from the repo's
    pre-existing baseline. Reconcile the docs listed under `yours`. Leave the
    baseline alone.
-4. `dev_intent_affected` — e2e specs go to the human to run
-   (`npx playwright test <specs>`); never run them yourself, they are slow.
-   Anything under `unitTests` you run with `dev_test_run`.
+4. `dev_intent_affected` — anything under `unitTests` you run with
+   `dev_test_run`. **In a worktree, run the e2e specs it names** as well: the
+   worktree has its own server and its own database, so a slow suite there
+   disturbs nobody. **In the primary, name them and stop** — that server is
+   shared, and the rule against running them was always about the sharing
+   rather than the slowness.
 
 ## 6. Prove the test has teeth
 

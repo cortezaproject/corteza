@@ -203,6 +203,8 @@ Review means exercising the claims, not reading the diff.
 - **Prove the tests have teeth**: break what they cover, watch them fail, put it
   back.
 - **Verify at the layer the bug lives in** — pick the instrument as in step 3.
+  In a worktree that includes the e2e specs `dev_intent_affected` names; in the
+  primary those go to the human, because that server is shared.
 - **Re-run anything a subagent claimed.** Their transcripts are evidence, not
   proof.
 - For substantial work, consider a cold adversarial pass: a fresh agent, no
