@@ -82,8 +82,8 @@ const blocks = computed(() =>
     metricLabels: {
       total: t('module.allRecords.metric.total'),
       createdRecently: t('module.allRecords.metric.createdRecently'),
-      updatedRecently: t('module.allRecords.metric.updatedRecently'),
       ownedByMe: t('module.allRecords.metric.ownedByMe'),
+      deleted: t('module.allRecords.metric.deleted'),
     },
   }),
 )

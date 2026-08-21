@@ -135,43 +135,56 @@ describe('adminRecordListBlocks', () => {
       metricLabels: {
         total: 'Total records',
         createdRecently: 'New',
-        updatedRecently: 'Touched',
         ownedByMe: 'Mine',
+        deleted: 'Deleted',
       },
     })
 
-  it('lays the tiles out across one row', () => {
+  it('shares the row out among the tiles', () => {
     const { tiles } = built()
+    const width = tiles[0].xywh[2]
 
-    expect(tiles).toHaveLength(4)
-    expect(tiles.map(t => t.xywh[0])).toEqual([0, 12, 24, 36])
-    expect(tiles.every(t => t.xywh[1] === 0 && t.xywh[2] === 12)).toBe(true)
+    expect(tiles.every(t => t.xywh[1] === 0 && t.xywh[2] === width)).toBe(true)
+    expect(tiles.map(t => t.xywh[0])).toEqual(tiles.map((_, i) => i * width))
+    // The row is filled, give or take what does not divide
+    expect(tiles.length * width).toBeGreaterThan(48 - tiles.length)
   })
 
   it('labels each tile and points it at the module', () => {
     const { tiles } = built()
     const metrics = tiles.map(t => t.options.metrics[0])
 
-    expect(metrics.map(m => m.label)).toEqual(['Total records', 'New', 'Touched', 'Mine'])
+    expect(metrics.map(m => m.label)).toEqual(['Total records', 'New', 'Mine', 'Deleted'])
     expect(metrics.every(m => m.moduleID === '510151835201437697')).toBe(true)
   })
 
   it('counts the whole module on the first tile and narrows on the rest', () => {
     const [total, ...rest] = built().tiles.map(t => t.options.metrics[0])
 
-    // An empty filter is both "count everything" and what clears the table
     expect(total.filter).toBe('')
-    expect(rest.every(m => !!m.filter)).toBe(true)
+    expect(total.deleted).toBeFalsy()
+    // Every other tile narrows by a filter or by the deleted state
+    expect(rest.every(m => !!m.filter || !!m.deleted)).toBe(true)
   })
 
-  it('drills every tile into the table beside it', () => {
-    const { tiles, list } = built()
-
-    for (const tile of tiles) {
+  it('drills every tile into a dialog of its own', () => {
+    for (const tile of built().tiles) {
       const { drillDown } = tile.options.metrics[0]
       expect(drillDown.enabled).toBe(true)
-      expect(drillDown.blockID).toBe(list.blockID)
+      // A blockID would filter the table on screen instead of opening a dialog
+      expect(drillDown.blockID).toBeFalsy()
     }
+  })
+
+  it('counts deleted records on the last tile and nowhere else', () => {
+    const metrics = built().tiles.map(t => t.options.metrics[0])
+    const deleted = metrics[metrics.length - 1]
+
+    // The report drops deleted records before a filter runs, so this is a
+    // state constraint rather than a `deletedAt IS NOT NULL`
+    expect(deleted.deleted).toBe(2)
+    expect(deleted.filter).toBe('')
+    expect(metrics.slice(0, -1).every(m => !m.deleted)).toBe(true)
   })
 
   it('keeps the table configurable and showing deleted records', () => {

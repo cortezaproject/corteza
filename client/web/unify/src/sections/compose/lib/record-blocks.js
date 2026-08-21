@@ -9,7 +9,6 @@ import { compose } from '@planetcrust/human-js'
 // Grid geometry, from Grid.vue: 48 columns, 10px cells, and a 6px margin that
 // insets an item's content on every side.
 const GRID_COLUMNS = 48
-const GRID_QUARTER = GRID_COLUMNS / 4
 const CELL_HEIGHT = 10
 const ITEM_MARGIN = 6
 
@@ -49,15 +48,20 @@ const EDITABLE_SYSTEM_FIELD = 'ownedBy'
 const ASSIGNED_ON_SAVE = ['recordID', 'revision']
 
 // Metric tiles, in the order they sit across the top of the record list. An
-// empty filter counts the module; it is also what clears the table's drill-down
-// filter, since the list applies the filter it is handed and an empty one is no
-// filter at all.
+// empty filter counts the whole module.
+//
+// `deleted` is the record report's own state constraint: 0 leaves deleted
+// records out, 2 counts nothing else. It is not expressible as a filter — the
+// report drops deleted records before a filter is ever applied — which is why
+// the last tile carries it rather than a `deletedAt IS NOT NULL`.
+const DELETED_ONLY = 2
+
 const LIST_METRICS = [
   { key: 'total', filter: '' },
   { key: 'createdRecently', filter: 'createdAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)' },
-  { key: 'updatedRecently', filter: 'updatedAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)' },
   // Interpolated by MetricBlock against the signed-in user
   { key: 'ownedByMe', filter: 'ownedBy = ${userID}' },
+  { key: 'deleted', filter: '', deleted: DELETED_ONLY },
 ]
 
 /** A field the compact multi-column layout cannot hold. */
@@ -168,8 +172,8 @@ export function adminRecordBlocks(
 
 /**
  * The blocks the "all records" screen renders: a row of metric tiles, and the
- * table under them. A tile filters the table in place rather than opening its
- * own — the table it would drill into is the one already on screen.
+ * table under them. A tile opens what it counted in a dialog of its own, which
+ * leaves the table below it as the user left it.
  *
  * They are returned apart because the screen lays them out apart: the tiles are
  * a fixed-height row and the table takes whatever is left, which is a thing
@@ -182,7 +186,10 @@ export function adminRecordBlocks(
 export function adminRecordListBlocks({ moduleID, idPrefix, metricLabels = {} }) {
   const listID = `${idPrefix}_list`
 
-  const tiles = LIST_METRICS.map(({ key, filter }, i) =>
+  // The tiles share the row, so their width is the row divided among them
+  const tileWidth = Math.floor(GRID_COLUMNS / LIST_METRICS.length)
+
+  const tiles = LIST_METRICS.map(({ key, filter, deleted = 0 }, i) =>
     makeBlock({
       id: `${idPrefix}_metric_${key}`,
       kind: 'Metric',
@@ -194,11 +201,13 @@ export function adminRecordListBlocks({ moduleID, idPrefix, metricLabels = {} })
             metricField: 'count',
             operation: 'count',
             filter,
-            drillDown: { enabled: true, blockID: listID, recordListOptions: { fields: [] } },
+            deleted,
+            // No blockID: the records open in the tile's own dialog
+            drillDown: { enabled: true, recordListOptions: { fields: [] } },
           },
         ],
       },
-      xywh: [i * GRID_QUARTER, 0, GRID_QUARTER, TILE_HEIGHT],
+      xywh: [i * tileWidth, 0, tileWidth, TILE_HEIGHT],
     }),
   )
 

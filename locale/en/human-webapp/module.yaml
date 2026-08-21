@@ -11,9 +11,9 @@ allRecords:
     title: All records for module "{name}"
   metric:
     createdRecently: Created in the last 7 days
+    deleted: Deleted records
     ownedByMe: Owned by me
     total: Total records
-    updatedRecently: Updated in the last 7 days
   revisions: Record revisions
   systemFields: System fields
   tooltip:
