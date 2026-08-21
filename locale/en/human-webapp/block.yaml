@@ -799,6 +799,7 @@ record:
 # Shown on a disabled "add record" button, in both the record list and the
 # record organizer: the block's module has no record page, so there is nowhere
 # for the button to go.
+noPermission: You do not have permission to view this content. Contact your administrator if you need access.
 noRecordPage: This module has no record page, so new records cannot be opened from here.
 recordList:
   addRecord: New Record

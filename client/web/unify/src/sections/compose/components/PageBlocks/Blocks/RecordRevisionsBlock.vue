@@ -1,9 +1,17 @@
 <template>
   <PageBlock :block="block" :record="record" @refreshBlock="loadRevisions">
     <div class="flex flex-col h-full overflow-hidden">
+      <!-- Reading revisions is its own permission on the record -->
+      <div
+        v-if="!canSearchRevisions"
+        class="flex items-center justify-center h-full p-3 text-muted-color italic"
+      >
+        {{ $t('block.noPermission') }}
+      </div>
+
       <!-- Revisions disabled on module -->
       <div
-        v-if="revisionsDisabled"
+        v-else-if="revisionsDisabled"
         class="flex items-center justify-center h-full p-3 text-muted-color italic"
       >
         {{ $t('block.recordRevisions.viewer.errors.disabled-on-module') }}
@@ -143,6 +151,7 @@ const selectedRevision = ref(null)
 const options = computed(() => props.block.options || {})
 const preloadRevisions = computed(() => options.value.preload)
 const revisionsDisabled = computed(() => false) // Would check module config
+const canSearchRevisions = computed(() => props.record?.canSearchRevisions !== false)
 
 function formatTimestamp(ts) {
   if (!ts) return '-'
@@ -162,6 +171,10 @@ function onRowClick({ data }) {
 
 async function loadRevisions() {
   if (!$ComposeAPI || !props.record?.recordID || props.record.recordID === '0') {
+    return
+  }
+
+  if (!canSearchRevisions.value) {
     return
   }
 
