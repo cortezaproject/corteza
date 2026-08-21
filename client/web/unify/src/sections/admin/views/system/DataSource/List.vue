@@ -100,10 +100,17 @@
         <template #header>
           <div class="flex gap-2">
             <Button
+              v-if="canCreate"
               :label="$t('system.data-sources.list.add-button')"
               icon="pi pi-plus"
               size="small"
               @click="$router.push({ name: 'system.dataSources.create' })"
+            />
+
+            <CPermissionsButton
+              v-if="canGrant"
+              v-tooltip.bottom="$t('general.label.permissions')"
+              resource="corteza::system:dal-connection/*"
             />
           </div>
         </template>
@@ -173,13 +180,24 @@
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components, filters, useConfirmDelete, useResourceList } from '@planetcrust/human-vue'
+import {
+  components,
+  filters,
+  useConfirmDelete,
+  useResourceList,
+  useRBACStore,
+  usePermissions,
+} from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
+const canCreate = computed(() => rbac.can('system/', 'dal-connection.create'))
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
@@ -258,6 +276,21 @@ async function loadPrimary() {
 
 function getActionsMenuItems(item) {
   const items = []
+
+  if (item.canGrant) {
+    items.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value.hideActionsMenu()
+        openPermissions({
+          resource: `corteza::system:dal-connection/${item.connectionID}`,
+          title: item.meta?.name || item.handle || item.connectionID,
+          target: item.meta?.name || item.handle || item.connectionID,
+        })
+      },
+    })
+  }
 
   if (item.canDeleteConnection) {
     if (item.deletedAt) {

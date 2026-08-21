@@ -29,10 +29,17 @@
       <template #header>
         <div class="flex gap-2">
           <Button
+            v-if="canCreate"
             :label="$t('system.llmProviders.list.new')"
             icon="pi pi-plus"
             size="small"
             @click="$router.push({ name: 'system.llmProviders.create' })"
+          />
+
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::system:llm-provider/*"
           />
         </div>
       </template>
@@ -86,15 +93,25 @@
 </template>
 
 <script setup>
-import { inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components, filters, useConfirmDelete } from '@planetcrust/human-vue'
+import {
+  components,
+  filters,
+  useConfirmDelete,
+  useRBACStore,
+  usePermissions,
+} from '@planetcrust/human-vue'
 
 const { CResourceList, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
+const { open: openPermissions } = usePermissions()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
+const canCreate = computed(() => rbac.can('system/', 'llm-provider.create'))
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
@@ -148,6 +165,21 @@ async function fetchList() {
 
 function getActionsMenuItems(item) {
   const menuItems = []
+
+  if (item.canGrant) {
+    menuItems.push({
+      label: t('general.label.permissions'),
+      icon: 'pi pi-lock',
+      command: () => {
+        resourceListRef.value.hideActionsMenu()
+        openPermissions({
+          resource: `corteza::system:llm-provider/${item.llmProviderID}`,
+          title: item.meta?.short || item.handle || item.llmProviderID,
+          target: item.meta?.short || item.handle || item.llmProviderID,
+        })
+      },
+    })
+  }
 
   if (item.canDeleteLlmProvider) {
     menuItems.push({

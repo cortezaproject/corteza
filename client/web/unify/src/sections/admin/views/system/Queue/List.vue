@@ -37,6 +37,7 @@
       <template #header>
         <div class="flex gap-2">
           <Button
+            v-if="canCreate"
             :label="$t('system.queues.list.new')"
             icon="pi pi-plus"
             size="small"
@@ -117,6 +118,7 @@ const $SystemAPI = inject('$SystemAPI')
 
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
+const canCreate = computed(() => rbac.can('system/', 'queue.create'))
 const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()

@@ -37,6 +37,7 @@
       <template #header>
         <div class="flex gap-2">
           <Button
+            v-if="canCreate"
             :label="$t('system.templates.list.new')"
             icon="pi pi-plus"
             size="small"
@@ -125,6 +126,7 @@ const { confirmDelete } = useConfirmDelete()
 const { open: openPermissions } = usePermissions()
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
+const canCreate = computed(() => rbac.can('system/', 'template.create'))
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')

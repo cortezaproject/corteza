@@ -34,6 +34,7 @@
       <template #header>
         <div class="flex gap-2">
           <Button
+            v-if="canCreate"
             :label="$t('list.new')"
             icon="pi pi-plus"
             size="small"
@@ -162,6 +163,7 @@ const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $AutomationAPI = inject('$AutomationAPI')
 const rbac = useRBACStore()
+const canCreate = computed(() => rbac.can('automation/', 'ng-automation.create'))
 const canGrant = computed(() => rbac.can('automation/', 'grant'))
 const { open: openPermissions } = usePermissions()
 

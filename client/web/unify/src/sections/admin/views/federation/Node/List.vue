@@ -37,12 +37,14 @@
         <template #header>
           <div class="flex gap-2">
             <Button
+              v-if="canCreate"
               :label="$t('federation.nodes.list.new')"
               icon="pi pi-plus"
               size="small"
               @click="$router.push({ name: 'federation.nodes.create' })"
             />
             <Button
+              v-if="canCreate"
               :label="$t('federation.nodes.list.pair')"
               icon="pi pi-link"
               size="small"
@@ -118,6 +120,7 @@ const $FederationAPI = inject('$FederationAPI')
 
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('federation/', 'grant'))
+const canCreate = computed(() => rbac.can('federation/', 'node.create'))
 const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
