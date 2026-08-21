@@ -41,7 +41,7 @@ reproduced at the user's layer before and after; tests proven to bite
 ➡️ NEXT
 commit the three files — asked below
 
-🔗 wt-alpha · http://localhost:5176 · ~/Human/human-worktrees/wt-alpha
+🔗 wt-alpha · http://localhost:5176 · ~/Human/human-worktrees/wt-alpha · not merged (branch wt-alpha)
 ```
 
 ### Status line
@@ -57,12 +57,15 @@ never have to ask which port this work is on, or reconstruct it from a slot
 number.
 
 ```
-🔗 <checkout> · <webapp URL> · <path>
+🔗 <checkout> · <webapp URL> · <path> · <landed?>
 ```
 
 - **The checkout this turn's work lives in**, whether that is a worktree or the
   primary. Add a second line only for another checkout the turn actually
   touched — never a listing of every worktree on the machine.
+- **Say where it stands against main, every time.** A worktree is
+  `merged to main` or `not merged (branch <name>)`; the primary is `on main` or
+  `on <branch>`. Never leave the human to guess whether the work has landed.
 - **Say when it is not serving.** A URL that answers nothing is worse than no
   URL: `http://localhost:5176 (down — 'worktree.sh up wt-alpha')`.
 - **The path is there to be diffed**, so give the real one:
