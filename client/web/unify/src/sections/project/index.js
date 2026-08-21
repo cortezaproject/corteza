@@ -6,6 +6,9 @@ import { useProjectsStore } from './stores/projects'
 
 export default {
   id: 'project',
+  // Registry application gating entry to this section: the user must hold
+  // `access` on it. See sections.intent.md.
+  app: 'project/',
   // Run by the shell when this section becomes active (app load or navigation
   // into it), so the projects list feeding the sidebar tree is ready regardless
   // of whether the lazily-mounted sidebar drawer has been opened.

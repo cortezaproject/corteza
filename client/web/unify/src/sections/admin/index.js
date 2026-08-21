@@ -9,6 +9,9 @@ const PREFIX = '/admin'
 
 export default {
   id: 'admin',
+  // Registry application gating entry to this section: the user must hold
+  // `access` on it. See sections.intent.md.
+  app: 'admin/',
   routes: adminRoutes.map(route => ({
     ...route,
     path: route.path === '/' ? PREFIX : PREFIX + route.path,

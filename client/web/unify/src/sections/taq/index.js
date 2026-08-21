@@ -5,6 +5,9 @@ import TaqSidebar from './sidebar/TaqSidebar.vue'
 
 export default {
   id: 'taq',
+  // Registry application gating entry to this section: the user must hold
+  // `access` on it. See sections.intent.md.
+  app: 'taq/',
   routes: [
     {
       path: '/taq',

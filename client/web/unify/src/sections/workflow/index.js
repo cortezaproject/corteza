@@ -5,6 +5,9 @@ import WorkflowSidebar from './sidebar/WorkflowSidebar.vue'
 
 export default {
   id: 'workflow',
+  // Registry application gating entry to this section: the user must hold
+  // `access` on it. See sections.intent.md.
+  app: 'workflow/',
   routes: [
     {
       path: '/workflow',

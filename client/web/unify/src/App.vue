@@ -289,7 +289,9 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
 
   const fetchPromise = Promise.all([
-    applicationsStore.fetchApplications(),
+    // ready(), not fetchApplications(): the router gate already asked for the
+    // list before this mounted, and re-fetching would double the request.
+    applicationsStore.ready(),
     notificationsStore.fetchNotifications(),
     workflowPromptsStore.update(currentWebapp.value),
     rbacStore.load(),

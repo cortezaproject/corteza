@@ -5,6 +5,9 @@ import AgenticSidebar from './sidebar/AgenticSidebar.vue'
 
 export default {
   id: 'agentic',
+  // Registry application gating entry to this section: the user must hold
+  // `access` on it. See sections.intent.md.
+  app: 'agentic/',
   routes: [
     {
       path: '/agentic',

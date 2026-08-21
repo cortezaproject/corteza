@@ -94,6 +94,9 @@ function profileItems(t) {
 
 export default {
   id: 'compose',
+  // Registry application gating entry to this section: the user must hold
+  // `access` on it. See sections.intent.md.
+  app: 'compose/',
   routes: [
     {
       // Layout route is intentionally unnamed; the index child carries the

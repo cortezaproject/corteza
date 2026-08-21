@@ -11,6 +11,10 @@
         <CInputSearch v-model="appsQuery" size="small" class="w-full" />
       </div>
 
+      <Message v-if="deniedSection" severity="warn" class="mx-3 mb-2 shrink-0">
+        {{ $t('home.apps.denied', { app: deniedSection }) }}
+      </Message>
+
       <div class="flex-1 overflow-y-auto px-3 pb-3">
         <CAppList
           variant="list"
@@ -55,11 +59,17 @@ import {
 } from '@planetcrust/human-vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useColumnResize } from '../composables/useColumnResize'
 
 const { CInputSearch, CAppList, CAgentChat, CNotificationsPanel } = components
 
 const appsQuery = ref('')
+
+// The section the router refused before sending the user here. Without it a
+// denied deep link looks like the app simply ignored the address.
+const route = useRoute()
+const deniedSection = computed(() => String(route.query.denied || '').replace(/^\//, ''))
 
 // ── Notifications column ─────────────────────────────────────
 useNotificationsStore()

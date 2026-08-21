@@ -3,6 +3,10 @@
 // agent + notification toggles for this section.
 export default {
   id: 'home',
+  // No gate: home is where a user with no applications lands, so it stays
+  // reachable whatever they hold. Every other section names its registry
+  // application, and one naming none is denied (sections.intent.md).
+  app: null,
   routes: [
     {
       path: '/',
