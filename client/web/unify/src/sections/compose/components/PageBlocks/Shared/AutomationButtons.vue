@@ -64,6 +64,9 @@ function evaluatedLabel(btn) {
   }
 }
 
+// Every entry is a typed envelope: the exec endpoint decodes `input` into
+// expr.Vars, which reads only {"@type":…,"@value":…} and rejects the whole
+// request over a bare value.
 function buildInput() {
   const input = {}
   if (props.namespace?.namespaceID) {
@@ -79,10 +82,10 @@ function buildInput() {
     input.record = { '@type': 'ComposeRecord', '@value': props.record }
   }
   if (props.records?.length) {
-    input.selected = props.records
+    input.selected = { '@type': 'Array', '@value': props.records }
   }
   if (props.filter) {
-    input.filter = props.filter
+    input.filter = { '@type': 'String', '@value': props.filter }
   }
   return input
 }
