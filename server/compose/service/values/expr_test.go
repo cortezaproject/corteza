@@ -253,4 +253,42 @@ func TestExpressions(t *testing.T) {
 		req.False(rve.IsValid())
 		req.Contains(rve.Set[0].Message, "not a boolean")
 	})
+
+	t.Run("a field named after a function reads as the field", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			m   = makeModule(
+				"split", "String", ``,
+				"sum", "Number", ``,
+				"f1", "String", `split + "/" + sum`,
+			)
+			r   = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		r.Values = r.Values.Set(&types.RecordValue{Name: "split", Value: "a b"})
+		r.Values = r.Values.Set(&types.RecordValue{Name: "sum", Value: "7"})
+
+		Expression(ctx, m, r, nil, rve)
+		req.Truef(rve.IsValid(), "%v", rve.Set)
+		req.Equal("a b/7", r.Values.Get("f1", 0).Value)
+	})
+
+	t.Run("the function is still callable beside the field", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			m   = makeModule(
+				"split", "String", ``,
+				"f1", "String", `join(split(split, " "), "-")`,
+			)
+			r   = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		r.Values = r.Values.Set(&types.RecordValue{Name: "split", Value: "a b"})
+
+		Expression(ctx, m, r, nil, rve)
+		req.Truef(rve.IsValid(), "%v", rve.Set)
+		req.Equal("a-b", r.Values.Get("f1", 0).Value)
+	})
 }

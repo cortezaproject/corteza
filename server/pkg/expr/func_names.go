@@ -6,13 +6,10 @@ import "sort"
 // expression language (see NumericFunctions, StringFunctions, ArrayFunctions,
 // TimeFunctions, GenericFunctions and gvalFunc registrations).
 //
-// A scope variable that shares a name with one of these is effectively
-// unreadable: a bare reference in an expression resolves to the function, not
-// the variable, silently yielding the function's zero value. Consumers use
-// IsBuiltInFunction to flag such shadowing.
-//
-// Keep this in sync with the gval.Function registrations; TestBuiltInFunctionNames
-// guards against entries that are no longer reserved.
+// A name is the function only where an expression calls it: `split(a, b)` is
+// the function, a bare `split` is a scope variable. The expression editor
+// mirrors this list to colour calls and to flag an unknown one, and
+// TestBuiltInFunctionNames holds it to what the language registers.
 var builtInFunctionNames = map[string]struct{}{
 	"abs": {}, "average": {}, "base64encode": {}, "camelize": {}, "ceil": {},
 	"coalesce": {}, "count": {}, "earliest": {}, "filter": {}, "find": {},
@@ -30,14 +27,7 @@ var builtInFunctionNames = map[string]struct{}{
 	"trimRight": {}, "untitle": {},
 }
 
-// IsBuiltInFunction reports whether name is a reserved expression-language
-// function. A scope variable with such a name cannot be read back reliably.
-func IsBuiltInFunction(name string) bool {
-	_, ok := builtInFunctionNames[name]
-	return ok
-}
-
-// BuiltInFunctionNames returns the reserved function names, sorted.
+// BuiltInFunctionNames returns the registered function names, sorted.
 func BuiltInFunctionNames() []string {
 	out := make([]string, 0, len(builtInFunctionNames))
 	for n := range builtInFunctionNames {

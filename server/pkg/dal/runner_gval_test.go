@@ -39,6 +39,36 @@ func TestRowEvaluatorTest(t *testing.T) {
 	}
 }
 
+// TestRowEvaluatorFunctionNamedAttribute covers an attribute named after one of
+// the pipeline's functions — `year`, `date` and `has` are ordinary field names.
+// The name is the function only where the expression calls it.
+func TestRowEvaluatorFunctionNamedAttribute(t *testing.T) {
+	ctx := context.Background()
+
+	row := (&Row{}).
+		WithValue("year", 0, 2024).
+		WithValue("date", 0, "2024-12-31").
+		WithValue("has", 0, "yes")
+
+	for _, c := range []struct {
+		name string
+		expr string
+	}{
+		{"attribute named year", `year == 2024`},
+		{"attribute named date", `date == '2024-12-31'`},
+		{"attribute named has", `has == 'yes'`},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			evl, err := newRunnerGval(c.expr)
+			require.NoError(t, err)
+
+			tt, err := evl.Test(ctx, row)
+			require.NoError(t, err)
+			require.True(t, tt)
+		})
+	}
+}
+
 func TestHandlers(t *testing.T) {
 	yr := time.Now().Year()
 	mnt := int(time.Now().Month())
