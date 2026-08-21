@@ -270,6 +270,15 @@ cmd_up() {
     (cd "$path" && pnpm install --silent)
   fi
 
+  # gin runs the binary immediately and does not retry a failed exec, so a
+  # fresh checkout with no build/gin-bin leaves it proxying to a server that
+  # never starts. Building first means the immediate start has something to
+  # run.
+  if [[ ! -x "$path/server/build/gin-bin" ]]; then
+    echo "building the server (first run in this worktree) …"
+    (cd "$path/server" && go build -o build/gin-bin ./cmd/human)
+  fi
+
   if port_busy "$gin"; then
     orphan_warning "$gin" "$path/.run/server.pid" server
   else
