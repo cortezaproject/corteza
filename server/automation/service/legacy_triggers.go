@@ -34,19 +34,79 @@ func recordProperties() []types.ConstructTriggerProperty {
 	}
 }
 
-// manualProperties are the record properties plus the page the run was started
-// from. Only the manual trigger gets it: a record created through the API or by
-// another automation has no page behind it, so advertising `page` on the record
-// CRUD triggers would offer authors a reference that is always empty.
+// manualProperties are what a page's automation button puts in scope: the
+// namespace and page it was pressed on, the record it sits beside, and — from a
+// record list's selection buttons — the module, the ticked records and the
+// filter the list was showing. The record CRUD triggers advertise none of these
+// page-side values, and this one advertises none of theirs: a manual run has no
+// old record and no value errors to report.
 func manualProperties() []types.ConstructTriggerProperty {
-	return append(recordProperties(), types.ConstructTriggerProperty{
-		Name: "page",
-		Type: "ComposePage",
-		Meta: types.ConstructTriggerPropertyMeta{
-			Short:       "Page",
-			Description: "The compose page the automation was started from, when it was started by a page button",
+	return []types.ConstructTriggerProperty{
+		{Name: "record", Type: "ComposeRecord"},
+		{Name: "module", Type: "ComposeModule"},
+		{Name: "namespace", Type: "ComposeNamespace"},
+		{
+			Name: "page",
+			Type: "ComposePage",
+			Meta: types.ConstructTriggerPropertyMeta{
+				Short:       "Page",
+				Description: "The compose page the automation was started from",
+			},
 		},
-	})
+		{
+			Name: "selected",
+			Type: "Array",
+			Meta: types.ConstructTriggerPropertyMeta{
+				Short:       "Selected records",
+				Description: "The records ticked in the record list the button was pressed in",
+			},
+		},
+		{
+			Name: "filter",
+			Type: "String",
+			Meta: types.ConstructTriggerPropertyMeta{
+				Short:       "Filter",
+				Description: "The query the record list was showing when the button was pressed",
+			},
+		},
+	}
+}
+
+// manualConstraints narrow the record pickers the builder offers while the
+// automation is being written. None of them is required: a manual automation is
+// started by its ID from a page button rather than routed off the event bus, so
+// a constraint decides nothing at run time.
+func manualConstraints() []types.ConstructTriggerConstraint {
+	return []types.ConstructTriggerConstraint{
+		{Name: "namespace", Types: []string{"ID", "Handle", "ComposeNamespace"}},
+		{Name: "module", Types: []string{"ID", "Handle", "ComposeModule"}},
+		{Name: "record", Types: []string{"ID", "ComposeRecord"}},
+	}
+}
+
+func manualSegments() []types.ConstructSegment {
+	return []types.ConstructSegment{{
+		Sections: []types.ConstructSection{{
+			Elements: []types.SectionElement{{
+				Input: types.SectionElementInput{
+					Type:     "NamespaceSelector",
+					Label:    "Namespace",
+					Argument: "namespace",
+				},
+			}, {
+				Input: types.SectionElementInput{
+					Type:     "ModuleSelector",
+					Label:    "Module",
+					Argument: "module",
+					Context: types.SectionElementInputContext{
+						DependsOn: map[string]string{
+							"namespaceID": "namespace",
+						},
+					},
+				},
+			}},
+		}},
+	}}
 }
 
 func recordSegments() []types.ConstructSegment {
@@ -147,8 +207,8 @@ func init() {
 				Icon:        &types.NgAutomationIcon{Type: "name", Value: "play"},
 			},
 			Properties:  manualProperties(),
-			Segments:    recordSegments(),
-			Constraints: recordConstraints(),
+			Segments:    manualSegments(),
+			Constraints: manualConstraints(),
 		},
 		types.ConstructTrigger{
 			ResourceType: "system",
