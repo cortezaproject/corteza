@@ -181,13 +181,12 @@ func (svc *Service) Delete(ctx context.Context, providerID uint64, deletedBy uin
 	return store.UpdateLlmProvider(ctx, svc.store, existing)
 }
 
-func (svc *Service) Search(ctx context.Context, f sysTypes.LlmProviderFilter) (sysTypes.LlmProviderSet, error) {
+func (svc *Service) Search(ctx context.Context, f sysTypes.LlmProviderFilter) (sysTypes.LlmProviderSet, sysTypes.LlmProviderFilter, error) {
 	if !svc.ac.CanSearchLlmProviders(ctx) {
-		return nil, fmt.Errorf("not allowed to search LLM providers")
+		return nil, f, fmt.Errorf("not allowed to search LLM providers")
 	}
 
-	set, _, err := store.SearchLlmProviders(ctx, svc.store, f)
-	return set, err
+	return store.SearchLlmProviders(ctx, svc.store, f)
 }
 
 func (svc *Service) Validate(ctx context.Context, providerID uint64) error {

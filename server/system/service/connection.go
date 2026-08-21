@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -847,7 +848,7 @@ func labelFromName(name string) string {
 
 	upper := func(r rune) bool { return r >= 'A' && r <= 'Z' }
 	lower := func(r rune) bool { return r >= 'a' && r <= 'z' }
-	sep   := func(r rune) bool { return r == '_' || r == '-' }
+	sep := func(r rune) bool { return r == '_' || r == '-' }
 
 	flush := func(end int) {
 		if end > start {
@@ -923,29 +924,16 @@ func connectionSortKey(c *types.Connection, col string) string {
 
 // sortConnectionSet sorts the merged set in-memory using the same columns as the
 // DB query so catalog-appended entries land in the correct position.
-// Only name, handle, status, and source are supported; unknown columns are ignored.
-// When no sort is specified it falls back to name ascending.
+// Only name, handle, status, source and the timestamps are supported; unknown
+// columns are ignored. When no sort is specified it falls back to name ascending.
 func sortConnectionSet(set types.ConnectionSet, ss filter.SortExprSet) {
 	if len(ss) == 0 {
 		ss = filter.SortExprSet{{Column: "name", Descending: false}}
 	}
 
 	sort.SliceStable(set, func(i, j int) bool {
-		a, b := set[i], set[j]
 		for _, s := range ss {
-			var va, vb string
-			switch strings.ToLower(s.Column) {
-			case "name":
-				va, vb = strings.ToLower(a.Meta.Short), strings.ToLower(b.Meta.Short)
-			case "handle":
-				va, vb = strings.ToLower(a.Handle), strings.ToLower(b.Handle)
-			case "status":
-				va, vb = a.Status, b.Status
-			case "source":
-				va, vb = a.Source, b.Source
-			default:
-				continue
-			}
+			va, vb := connectionSortValue(set[i], s), connectionSortValue(set[j], s)
 			if va == vb {
 				continue
 			}
@@ -956,4 +944,48 @@ func sortConnectionSet(set types.ConnectionSet, ss filter.SortExprSet) {
 		}
 		return false
 	})
+}
+
+// connectionSortValue renders one sort expression into a comparable string.
+// A coalesce expression takes the first of its columns that has a value, which
+// is what the store's COALESCE does.
+func connectionSortValue(c *types.Connection, s *filter.SortExpr) string {
+	for _, col := range s.Columns() {
+		if v := connectionSortColumn(c, col); v != "" {
+			return v
+		}
+	}
+
+	return ""
+}
+
+func connectionSortColumn(c *types.Connection, col string) string {
+	switch strings.ToLower(col) {
+	case "name":
+		return strings.ToLower(c.Meta.Short)
+	case "handle":
+		return strings.ToLower(c.Handle)
+	case "status":
+		return c.Status
+	case "source":
+		return c.Source
+	case "createdat", "created_at":
+		return connectionTimeSortKey(&c.CreatedAt)
+	case "updatedat", "updated_at":
+		return connectionTimeSortKey(c.UpdatedAt)
+	case "deletedat", "deleted_at":
+		return connectionTimeSortKey(c.DeletedAt)
+	}
+
+	return ""
+}
+
+// connectionTimeSortKey renders a timestamp so that string comparison matches
+// time comparison: fixed width, UTC, empty when there is no value.
+func connectionTimeSortKey(t *time.Time) string {
+	if t == nil || t.IsZero() {
+		return ""
+	}
+
+	return t.UTC().Format("2006-01-02T15:04:05.000000000")
 }

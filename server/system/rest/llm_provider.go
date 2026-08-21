@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/types"
@@ -19,13 +20,14 @@ type (
 	llmProviderPayload struct {
 		*types.LlmProvider
 
-		CanGrant              bool `json:"canGrant"`
-		CanUpdateLlmProvider  bool `json:"canUpdateLlmProvider"`
-		CanDeleteLlmProvider  bool `json:"canDeleteLlmProvider"`
+		CanGrant             bool `json:"canGrant"`
+		CanUpdateLlmProvider bool `json:"canUpdateLlmProvider"`
+		CanDeleteLlmProvider bool `json:"canDeleteLlmProvider"`
 	}
 
 	llmProviderSetPayload struct {
-		Set []*llmProviderPayload `json:"set"`
+		Filter types.LlmProviderFilter `json:"filter"`
+		Set    []*llmProviderPayload   `json:"set"`
 	}
 
 	llmProviderService interface {
@@ -33,7 +35,7 @@ type (
 		FindByID(ctx context.Context, id uint64) (*types.LlmProvider, error)
 		Update(ctx context.Context, p *types.LlmProvider, apiKey string) (*types.LlmProvider, error)
 		Delete(ctx context.Context, id uint64, deletedBy uint64) error
-		Search(ctx context.Context, f types.LlmProviderFilter) (types.LlmProviderSet, error)
+		Search(ctx context.Context, f types.LlmProviderFilter) (types.LlmProviderSet, types.LlmProviderFilter, error)
 		ListModels(ctx context.Context, providerID uint64) ([]string, error)
 		Validate(ctx context.Context, providerID uint64) error
 	}
@@ -51,11 +53,32 @@ func (LlmProvider) New() LlmProvider {
 }
 
 func (ctrl LlmProvider) List(ctx context.Context, r *request.LlmProviderList) (interface{}, error) {
-	set, err := ctrl.svc.Search(ctx, types.LlmProviderFilter{
+	f, err := ctrl.makeFilter(r)
+	if err != nil {
+		return nil, err
+	}
+
+	set, f, err := ctrl.svc.Search(ctx, f)
+	return ctrl.makeFilterPayload(ctx, set, f, err)
+}
+
+func (ctrl LlmProvider) makeFilter(r *request.LlmProviderList) (f types.LlmProviderFilter, err error) {
+	f = types.LlmProviderFilter{
 		Provider: r.Provider,
 		Status:   r.Status,
-	})
-	return ctrl.makeFilterPayload(ctx, set, err)
+	}
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return f, err
+	}
+
+	f.IncTotal = r.IncTotal
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return f, err
+	}
+
+	return f, nil
 }
 
 func (ctrl LlmProvider) Create(ctx context.Context, r *request.LlmProviderCreate) (interface{}, error) {
@@ -123,12 +146,12 @@ func (ctrl LlmProvider) makePayload(ctx context.Context, p *types.LlmProvider, e
 	}, nil
 }
 
-func (ctrl LlmProvider) makeFilterPayload(ctx context.Context, set types.LlmProviderSet, err error) (*llmProviderSetPayload, error) {
+func (ctrl LlmProvider) makeFilterPayload(ctx context.Context, set types.LlmProviderSet, f types.LlmProviderFilter, err error) (*llmProviderSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	pp := &llmProviderSetPayload{Set: make([]*llmProviderPayload, len(set))}
+	pp := &llmProviderSetPayload{Filter: f, Set: make([]*llmProviderPayload, len(set))}
 	for i := range set {
 		pp.Set[i], _ = ctrl.makePayload(ctx, set[i], nil)
 	}

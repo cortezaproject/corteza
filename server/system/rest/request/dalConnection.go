@@ -60,6 +60,11 @@ type (
 		//
 		// Include total counter
 		IncTotal bool
+
+		// Sort GET parameter
+		//
+		// Sort items
+		Sort string
 	}
 
 	DalConnectionCreate struct {
@@ -151,6 +156,7 @@ func (r DalConnectionList) Auditable() map[string]interface{} {
 		"type":         r.Type,
 		"deleted":      r.Deleted,
 		"incTotal":     r.IncTotal,
+		"sort":         r.Sort,
 	}
 }
 
@@ -177,6 +183,11 @@ func (r DalConnectionList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionList) GetIncTotal() bool {
 	return r.IncTotal
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionList) GetSort() string {
+	return r.Sort
 }
 
 // Fill processes request and fills internal variables
@@ -217,6 +228,12 @@ func (r *DalConnectionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
 			r.IncTotal, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
 			if err != nil {
 				return err
 			}

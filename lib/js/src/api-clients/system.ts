@@ -3210,7 +3210,7 @@ export default class System {
 
   // Search connections (Directory)
   async dalConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, handle, type, deleted, incTotal } = (a as KV) || {}
+    const { connectionID, handle, type, deleted, incTotal, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -3222,6 +3222,7 @@ export default class System {
       type,
       deleted,
       incTotal,
+      sort,
     }
 
     return this.api()
@@ -10513,7 +10514,7 @@ export default class System {
 
   // List LLM providers
   async llmProviderList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { provider, status } = (a as KV) || {}
+    const { provider, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -10522,6 +10523,10 @@ export default class System {
     cfg.params = {
       provider,
       status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
     }
 
     return this.api()

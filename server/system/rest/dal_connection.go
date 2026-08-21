@@ -2,8 +2,11 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	federationService "github.com/crusttech/human/server/federation/service"
@@ -71,8 +74,8 @@ func (DalConnection) New() *DalConnection {
 }
 
 // makeFilter builds the search filter for the generated List controller.
-func (ctrl DalConnection) makeFilter(ctx context.Context, r *request.DalConnectionList) (types.DalConnectionFilter, error) {
-	f := types.DalConnectionFilter{
+func (ctrl DalConnection) makeFilter(ctx context.Context, r *request.DalConnectionList) (f types.DalConnectionFilter, err error) {
+	f = types.DalConnectionFilter{
 		DalConnectionID: r.ConnectionID,
 		Handle:          r.Handle,
 		Type:            r.Type,
@@ -85,6 +88,10 @@ func (ctrl DalConnection) makeFilter(ctx context.Context, r *request.DalConnecti
 	}
 
 	f.IncTotal = r.IncTotal
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return f, err
+	}
 
 	return f, nil
 }
@@ -205,8 +212,79 @@ func (ctrl DalConnection) collectConnections(ctx context.Context, dalConnections
 	}
 
 	out = ctrl.filterConnections(out, f)
+	sortDalConnectionSet(out, f.Sort)
 
 	return out, f, nil
+}
+
+// sortDalConnectionSet orders the merged set in memory with the same expression
+// the store was given, so federation-appended entries land in the right place.
+// Unknown columns are skipped and an empty expression set leaves the order alone.
+func sortDalConnectionSet(set types.DalConnectionSet, ss filter.SortExprSet) {
+	if len(ss) == 0 {
+		return
+	}
+
+	sort.SliceStable(set, func(i, j int) bool {
+		for _, s := range ss {
+			va, vb := dalConnectionSortKey(set[i], s), dalConnectionSortKey(set[j], s)
+			if va == vb {
+				continue
+			}
+
+			if s.Descending {
+				return va > vb
+			}
+
+			return va < vb
+		}
+
+		return false
+	})
+}
+
+// dalConnectionSortKey renders one sort expression into a comparable string.
+// A coalesce expression takes the first of its columns that has a value, which
+// is what the store's COALESCE does.
+func dalConnectionSortKey(c *types.DalConnection, s *filter.SortExpr) string {
+	for _, col := range s.Columns() {
+		if v := dalConnectionSortColumn(c, col); v != "" {
+			return v
+		}
+	}
+
+	return ""
+}
+
+func dalConnectionSortColumn(c *types.DalConnection, col string) string {
+	switch strings.ToLower(col) {
+	case "name":
+		return strings.ToLower(c.Meta.Name)
+	case "handle":
+		return strings.ToLower(c.Handle)
+	case "type":
+		return c.Type
+	case "createdat", "created_at":
+		return timeSortKey(&c.CreatedAt)
+	case "updatedat", "updated_at":
+		return timeSortKey(c.UpdatedAt)
+	case "deletedat", "deleted_at":
+		return timeSortKey(c.DeletedAt)
+	case "id":
+		return fmt.Sprintf("%020d", c.ID)
+	}
+
+	return ""
+}
+
+// timeSortKey renders a timestamp so that string comparison matches time
+// comparison: fixed width, UTC, empty when there is no value.
+func timeSortKey(t *time.Time) string {
+	if t == nil || t.IsZero() {
+		return ""
+	}
+
+	return t.UTC().Format("2006-01-02T15:04:05.000000000")
 }
 
 func (ctrl DalConnection) filterConnections(baseConnections types.DalConnectionSet, f types.DalConnectionFilter) (out types.DalConnectionSet) {

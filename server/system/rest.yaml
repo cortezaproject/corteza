@@ -1397,6 +1397,9 @@ endpoints:
             - type: bool
               name: incTotal
               title: Include total counter
+            - type: string
+              name: sort
+              title: Sort items
       - name: create
         method: POST
         title: Create connection
@@ -4270,6 +4273,10 @@ endpoints:
           get:
             - { type: string, name: provider, title: Filter by provider type }
             - { type: string, name: status, title: Filter by status }
+            - { type: 'uint', name: 'limit', title: 'Limit' }
+            - { name: 'incTotal', type: 'bool', title: 'Include total counter' }
+            - { type: 'string', name: 'pageCursor', title: 'Page cursor' }
+            - { type: 'string', name: 'sort', title: 'Sort items' }
       - name: create
         method: POST
         title: Create LLM provider
