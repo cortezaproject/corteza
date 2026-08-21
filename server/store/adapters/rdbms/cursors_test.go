@@ -21,8 +21,8 @@ func Test_buildCursorCond(t *testing.T) {
 				c.Set("f1", 1, false)
 				return c
 			}(),
-			"((f1 IS NOT NULL AND FALSE) OR (f1 > ?))",
-			`((("f1" IS NOT NULL) AND FALSE) OR ("f1" > ?))`,
+			"((f1 IS NOT NULL AND 1=0) OR (f1 > ?))",
+			`((("f1" IS NOT NULL) AND 1=0) OR ("f1" > ?))`,
 			[]any{1},
 		},
 		{
@@ -32,8 +32,8 @@ func Test_buildCursorCond(t *testing.T) {
 				c.Set("f2", 3, false)
 				return c
 			}(),
-			"(((f1 IS NOT NULL AND FALSE) OR (f1 > ?)) OR (((f1 IS NULL AND FALSE) OR f1 = ?) AND ((f2 IS NOT NULL AND FALSE) OR (f2 > ?))))",
-			`(((("f1" IS NOT NULL) AND FALSE) OR ("f1" > ?)) OR (((("f1" IS NULL) AND FALSE) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND FALSE) OR ("f2" > ?))))`,
+			"(((f1 IS NOT NULL AND 1=0) OR (f1 > ?)) OR (((f1 IS NULL AND 1=0) OR f1 = ?) AND ((f2 IS NOT NULL AND 1=0) OR (f2 > ?))))",
+			`(((("f1" IS NOT NULL) AND 1=0) OR ("f1" > ?)) OR (((("f1" IS NULL) AND 1=0) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND 1=0) OR ("f2" > ?))))`,
 			[]any{2, 2, 3},
 		},
 		{
@@ -43,8 +43,8 @@ func Test_buildCursorCond(t *testing.T) {
 				c.LThen = true
 				return c
 			}(),
-			"((f1 IS NOT NULL AND FALSE) OR (f1 > ?))",
-			`((("f1" IS NOT NULL) AND FALSE) OR ("f1" > ?))`,
+			"((f1 IS NOT NULL AND 1=0) OR (f1 > ?))",
+			`((("f1" IS NOT NULL) AND 1=0) OR ("f1" > ?))`,
 			[]any{4},
 		},
 		{
@@ -55,8 +55,8 @@ func Test_buildCursorCond(t *testing.T) {
 				c.LThen = true
 				return c
 			}(),
-			"(((f1 IS NOT NULL AND FALSE) OR (f1 > ?)) OR (((f1 IS NULL AND FALSE) OR f1 = ?) AND ((f2 IS NOT NULL AND FALSE) OR (f2 > ?))))",
-			`(((("f1" IS NOT NULL) AND FALSE) OR ("f1" > ?)) OR (((("f1" IS NULL) AND FALSE) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND FALSE) OR ("f2" > ?))))`,
+			"(((f1 IS NOT NULL AND 1=0) OR (f1 > ?)) OR (((f1 IS NULL AND 1=0) OR f1 = ?) AND ((f2 IS NOT NULL AND 1=0) OR (f2 > ?))))",
+			`(((("f1" IS NOT NULL) AND 1=0) OR ("f1" > ?)) OR (((("f1" IS NULL) AND 1=0) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND 1=0) OR ("f2" > ?))))`,
 			[]any{5, 5, 6},
 		},
 		{
@@ -66,8 +66,8 @@ func Test_buildCursorCond(t *testing.T) {
 				c.Set("f2", nil, false)
 				return c
 			}(),
-			"(((f1 IS NOT NULL AND FALSE) OR (f1 > ?)) OR (((f1 IS NULL AND FALSE) OR f1 = ?) AND ((f2 IS NOT NULL AND TRUE) OR (f2 > ?))))",
-			`(((("f1" IS NOT NULL) AND FALSE) OR ("f1" > ?)) OR (((("f1" IS NULL) AND FALSE) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND TRUE) OR ("f2" > ?))))`,
+			"(((f1 IS NOT NULL AND 1=0) OR (f1 > ?)) OR (((f1 IS NULL AND 1=0) OR f1 = ?) AND ((f2 IS NOT NULL AND 1=1) OR (f2 > ?))))",
+			`(((("f1" IS NOT NULL) AND 1=0) OR ("f1" > ?)) OR (((("f1" IS NULL) AND 1=0) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND 1=1) OR ("f2" > ?))))`,
 			[]any{7, 7, nil},
 		},
 		{
@@ -77,8 +77,8 @@ func Test_buildCursorCond(t *testing.T) {
 				c.Set("f2", 8, false)
 				return c
 			}(),
-			"(((f1 IS NOT NULL AND TRUE) OR (f1 > ?)) OR (((f1 IS NULL AND TRUE) OR f1 = ?) AND ((f2 IS NOT NULL AND FALSE) OR (f2 > ?))))",
-			`(((("f1" IS NOT NULL) AND TRUE) OR ("f1" > ?)) OR (((("f1" IS NULL) AND TRUE) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND FALSE) OR ("f2" > ?))))`,
+			"(((f1 IS NOT NULL AND 1=1) OR (f1 > ?)) OR (((f1 IS NULL AND 1=1) OR f1 = ?) AND ((f2 IS NOT NULL AND 1=0) OR (f2 > ?))))",
+			`(((("f1" IS NOT NULL) AND 1=1) OR ("f1" > ?)) OR (((("f1" IS NULL) AND 1=1) OR ("f1" = ?)) AND ((("f2" IS NOT NULL) AND 1=0) OR ("f2" > ?))))`,
 			[]any{nil, nil, 8},
 		},
 	}
