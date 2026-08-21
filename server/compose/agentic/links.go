@@ -2,6 +2,7 @@ package agentic
 
 import (
 	"context"
+	"strconv"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -17,22 +18,35 @@ import (
 // The alternative is a write that succeeded reported as a failure because a
 // slug lookup did not.
 
-// nsSlug resolves a namespace's slug, which every compose link is built on.
-func nsSlug(ctx context.Context, nsID uint64) string {
+// nsURLPart is what goes in the :slug segment of every compose route.
+//
+// The webapp resolves that segment by slug OR by namespaceID
+// (lib/vue/src/stores/useNamespaceStore.js getByUrlPart), and a slug is
+// optional on a namespace — plenty of real ones have none. Falling back to the
+// ID is what keeps those linkable at all; keying on the slug alone silently
+// produced no link for them.
+func nsURLPart(ctx context.Context, nsID uint64) string {
 	ns, err := cmpService.DefaultNamespace.FindByID(ctx, nsID)
 	if err != nil || ns == nil {
 		return ""
 	}
-	return ns.Slug
+	if ns.Slug != "" {
+		return ns.Slug
+	}
+	return strconv.FormatUint(ns.ID, 10)
 }
 
 func namespaceLinks(ns *cmpTypes.Namespace) map[string]string {
 	if ns == nil {
 		return nil
 	}
+	part := ns.Slug
+	if part == "" {
+		part = strconv.FormatUint(ns.ID, 10)
+	}
 	return map[string]string{
-		"url":     weburl.ComposeNamespace(ns.Slug),
-		"editUrl": weburl.ComposeNamespaceEdit(ns.Slug),
+		"url":     weburl.ComposeNamespace(part),
+		"editUrl": weburl.ComposeNamespaceEdit(part),
 	}
 }
 
@@ -42,7 +56,7 @@ func pageLinks(ctx context.Context, pg *cmpTypes.Page) map[string]string {
 	if pg == nil {
 		return nil
 	}
-	slug := nsSlug(ctx, pg.NamespaceID)
+	slug := nsURLPart(ctx, pg.NamespaceID)
 	return map[string]string{
 		"url":     weburl.ComposePage(slug, pg.ID),
 		"editUrl": weburl.ComposePageBuilder(slug, pg.ID),
@@ -55,21 +69,21 @@ func layoutLinks(ctx context.Context, layout *cmpTypes.PageLayout) map[string]st
 	if layout == nil {
 		return nil
 	}
-	return map[string]string{"url": weburl.ComposePageBuilder(nsSlug(ctx, layout.NamespaceID), layout.PageID)}
+	return map[string]string{"url": weburl.ComposePageBuilder(nsURLPart(ctx, layout.NamespaceID), layout.PageID)}
 }
 
 func moduleLinks(ctx context.Context, mod *cmpTypes.Module) map[string]string {
 	if mod == nil {
 		return nil
 	}
-	return map[string]string{"url": weburl.ComposeModuleEdit(nsSlug(ctx, mod.NamespaceID), mod.ID)}
+	return map[string]string{"url": weburl.ComposeModuleEdit(nsURLPart(ctx, mod.NamespaceID), mod.ID)}
 }
 
 func chartLinks(ctx context.Context, chart *cmpTypes.Chart) map[string]string {
 	if chart == nil {
 		return nil
 	}
-	return map[string]string{"url": weburl.ComposeChartEdit(nsSlug(ctx, chart.NamespaceID), chart.ID)}
+	return map[string]string{"url": weburl.ComposeChartEdit(nsURLPart(ctx, chart.NamespaceID), chart.ID)}
 }
 
 // recordLinks use the module admin view, the one screen every record has. A
@@ -79,5 +93,5 @@ func recordLinks(ctx context.Context, rec *cmpTypes.Record) map[string]string {
 	if rec == nil {
 		return nil
 	}
-	return map[string]string{"url": weburl.ComposeRecord(nsSlug(ctx, rec.NamespaceID), rec.ModuleID, rec.ID)}
+	return map[string]string{"url": weburl.ComposeRecord(nsURLPart(ctx, rec.NamespaceID), rec.ModuleID, rec.ID)}
 }
