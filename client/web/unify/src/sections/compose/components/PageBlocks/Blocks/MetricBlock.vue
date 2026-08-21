@@ -352,9 +352,14 @@ function drillDown(metric, value) {
       record: props.record,
       user: $Auth?.user || {},
     }) || metric.label
-  drillDownModalTitle.value = title ? `${title} - "${drillDownValue}"` : drillDownValue
+  drillDownModalTitle.value =
+    title && title !== drillDownValue ? `${title} - "${drillDownValue}"` : drillDownValue
 
   const fields = drillDownOpts.recordListOptions?.fields || []
+
+  // The list opens on what the metric counted: a metric reading only deleted
+  // records drills into deleted records, with the toggle there to come back.
+  const countsDeleted = metric.deleted === 2
 
   drillDownTargetBlock.value = new compose.PageBlockRecordList({
     blockID: `drillDown-${props.block.blockID}-${metric.moduleID}`,
@@ -372,6 +377,11 @@ function drillDown(metric, value) {
       allowExport: true,
       perPage: 14,
       showTotalCount: true,
+      showDeletedRecordsOption: countsDeleted,
+      showDeletedRecordsInitially: countsDeleted,
+      // A record made here would land among the existing ones, which is not
+      // what this list is showing
+      hideAddButton: countsDeleted,
       recordDisplayOption: 'modal',
     },
     style: {

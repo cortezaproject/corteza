@@ -716,7 +716,9 @@ const sortOrder = ref(null)
 // Record list filter state
 const recordListFilter = ref([])
 const presetMenuRef = ref(null)
-const showingDeletedRecords = ref(false)
+// Read off the block rather than the options computed: an initial value is
+// wanted before anything reactive has run.
+const showingDeletedRecords = ref(!!props.block.options?.showDeletedRecordsInitially)
 const selectedRecords = ref([])
 const showBulkEditModal = ref(false)
 

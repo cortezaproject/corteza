@@ -25,6 +25,7 @@ interface ReporterParams {
   filter?: string
   metrics?: string
   dimensions: string
+  deleted?: number
 }
 
 interface Style {
@@ -39,6 +40,10 @@ interface Metric {
   dimensionField: string
   dateFormat?: string
   filter?: string
+  // Exclude (0, default), include (1) or return only (2) deleted records. The
+  // report excludes them unless asked, so a count of deleted records is the
+  // only way to get one.
+  deleted?: number
   bucketSize?: string
   metricField: string
   operation: string
@@ -59,6 +64,7 @@ const defaultMetric: Readonly<Metric> = Object.freeze({
   dimensionField: '',
   dateFormat: '',
   filter: '',
+  deleted: 0,
   bucketSize: '',
   metricField: '',
   operation: '',
@@ -151,7 +157,13 @@ export class PageBlockMetric extends PageBlock {
   /**
    * Helper to construct reporter's params
    */
-  private formatParams({ moduleID, filter, metricField, operation = '' }: Metric): ReporterParams {
+  private formatParams({
+    moduleID,
+    filter,
+    metricField,
+    operation = '',
+    deleted = 0,
+  }: Metric): ReporterParams {
     let metrics = ''
 
     if (operation && metricField && metricField !== 'count') {
@@ -162,6 +174,7 @@ export class PageBlockMetric extends PageBlock {
       moduleID,
       filter,
       metrics,
+      deleted,
       // Since metric produces one value we want one dataset, deletedAt is the same for all existing records
       dimensions: 'deletedAt',
     }

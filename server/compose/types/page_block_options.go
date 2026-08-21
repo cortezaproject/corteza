@@ -66,18 +66,20 @@ type (
 		HideRecordPermissionsButton bool `json:"hideRecordPermissionsButton"`
 		HideRecordDeleteButton      bool `json:"hideRecordDeleteButton"`
 
-		AllowExport                bool     `json:"allowExport"`
-		EnableRecordPageNavigation bool     `json:"enableRecordPageNavigation"`
-		FullPageNavigation         bool     `json:"fullPageNavigation"`
-		ShowTotalCount             bool     `json:"showTotalCount"`
-		ShowRecordPerPageOption    bool     `json:"showRecordPerPageOption"`
-		ShowDeletedRecordsOption   bool     `json:"showDeletedRecordsOption"`
-		SearchableFields           []string `json:"searchableFields"`
-		SearchSubmitMode           string   `json:"searchSubmitMode"`
-		LinkToParent               bool     `json:"linkToParent"`
-		OpenInNewTab               bool     `json:"openInNewTab"`
-		PositionField              string   `json:"positionField"`
-		RefField                   string   `json:"refField"`
+		AllowExport                bool `json:"allowExport"`
+		EnableRecordPageNavigation bool `json:"enableRecordPageNavigation"`
+		FullPageNavigation         bool `json:"fullPageNavigation"`
+		ShowTotalCount             bool `json:"showTotalCount"`
+		ShowRecordPerPageOption    bool `json:"showRecordPerPageOption"`
+		ShowDeletedRecordsOption   bool `json:"showDeletedRecordsOption"`
+		// Open the list already showing deleted records rather than existing ones
+		ShowDeletedRecordsInitially bool     `json:"showDeletedRecordsInitially"`
+		SearchableFields            []string `json:"searchableFields"`
+		SearchSubmitMode            string   `json:"searchSubmitMode"`
+		LinkToParent                bool     `json:"linkToParent"`
+		OpenInNewTab                bool     `json:"openInNewTab"`
+		PositionField               string   `json:"positionField"`
+		RefField                    string   `json:"refField"`
 
 		RecordDisplayOption         string `json:"recordDisplayOption"`
 		RecordSelectorDisplayOption string `json:"recordSelectorDisplayOption"`
@@ -323,9 +325,11 @@ type (
 	}
 
 	MetricItem struct {
-		Label          string           `json:"label"`
-		ModuleID       string           `json:"moduleID"`
-		Filter         string           `json:"filter"`
+		Label    string `json:"label"`
+		ModuleID string `json:"moduleID"`
+		Filter   string `json:"filter"`
+		// Exclude (0, default), include (1) or return only (2) deleted records
+		Deleted        uint             `json:"deleted"`
 		MetricField    string           `json:"metricField"`
 		Operation      string           `json:"operation"`
 		Prefix         string           `json:"prefix"`
