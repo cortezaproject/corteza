@@ -196,7 +196,10 @@ Review means exercising the claims, not reading the diff.
 - **Prove the environment is running the fix before you believe the re-run.**
   `dev_server_status` decides staleness from the running process's start time.
   gin only rebuilds when its proxy is hit (`curl -s localhost:3001/api/`);
-  requests to the API port never trigger it.
+  requests to the API port never trigger it. A finished build is not a restart —
+  gin can compile the change and leave the old process serving — so judge by the
+  process start time, and when it still predates your edit, ask the human to
+  relaunch `make watch` rather than poking on.
 - Run `/dev-change`'s verify sequence: tests, format, intent drift, affected
   specs.
 - **Check against the step-6 criteria**, one at a time, out loud.
