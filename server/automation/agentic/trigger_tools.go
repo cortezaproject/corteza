@@ -77,7 +77,7 @@ func (h *triggerHandler) register() {
 			mcp.WithString("workflow", mcp.Required(), mcp.Description("Workflow to run, as an ID string (to prevent precision loss) or a handle. This is the workflow that will start responding to the event.")),
 			mcp.WithString("eventType", mcp.Required(), mcp.Description("Event that fires the workflow, e.g. \"onManual\" or \"afterCreate\". Must be a value automation_event_type_lookup reports for this resourceType.")),
 			mcp.WithString("resourceType", mcp.Required(), mcp.Description("Resource the event happens on, e.g. \"compose:record\" or \"system:user\". Must be paired with 'eventType' as automation_event_type_lookup reports it.")),
-			mcp.WithString("stepID", mcp.Description("ID as a string of the workflow step to start at. Omit only when the workflow has exactly one starting step; otherwise starting it fails at run time.")),
+			mcp.WithString("stepID", mcp.Description("ID as a string of the workflow step to start at. Omit only when the workflow has exactly one starting step; otherwise starting it fails at run time. It also decides where the trigger is drawn: the Start node is placed one row above this step and connected to it.")),
 			mcp.WithBoolean("enabled", mcp.Description("Whether the trigger fires. Defaults to true. A disabled trigger is stored but never registered.")),
 			mcp.WithString("description", mcp.Description("Human-readable note on what this trigger is for. Shown in the workflow editor.")),
 			mcp.WithString("input", mcp.Description("JSON object of fixed input variables merged into the workflow's scope on every run. Omit when the event's own properties are all the workflow needs.")),

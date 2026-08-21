@@ -23,14 +23,16 @@ const (
 		`arguments match that construct's parameters by "target", results copy its outputs into scope as {"target":"<variable>","expr":"<result name>","type":"<type>"}, at most one outbound path. ` +
 		`"iterator" — like function but the ref must be an iterating construct (composeRecordsEach and friends), and it needs exactly two outbound paths. ` +
 		`"gateway" — "ref" is "fork" (run every branch), "join" (wait for branches to meet), "excl" (take the first matching branch) or "incl" (take every matching branch); no arguments and no results. ` +
-		`"termination" — no ref, no arguments, no outbound path; ends the workflow. ` +
+		`"termination" — no ref, no arguments, no outbound path; ends the workflow, and takes ONE inbound path: the editor caps a termination at a single arrival and simply does not draw a second, so give each branch arm its own rather than pointing them all at one. ` +
 		`"error" — a single {"target":"message","type":"String","value":"..."} argument and no outbound path; fails the run. ` +
 		`"error-handler" — no ref, one or two outbound paths. ` +
 		`"delay" — exactly one argument, either {"target":"timestamp","type":"DateTime"} or {"target":"offset","type":"Duration"}. ` +
 		`"prompt" — "ref" names a prompt construct such as "notification". ` +
 		`"exec-workflow" — no ref, a required {"target":"workflow","type":"Handle"} (or type "ID") argument naming another workflow, and an optional {"target":"scope","type":"Vars"}. ` +
 		`"break" and "continue" — inside an iterator body, nothing else set. "debug" — logs the whole scope. "visual" — a canvas note that never runs. ` +
-		`"meta.visual.xywh" is [x, y, width, height] on the workflow editor's canvas; steps without it all land on (0,0) and cover each other, so set it if a person will ever open this workflow.`
+		`"meta.visual.xywh" is [x, y, width, height] on the workflow editor's canvas. Omit it and the graph is laid out for you, which is what you usually want: a node is 200x80, a step sits 160 below the one it follows, and a branch opens a column 280 to its right. ` +
+		`The first path out of a step carries its column straight down and every later path takes a new column, so a gateway's arms and an error handler's catch branch separate on their own; an iterator inverts that, sending its body (the first path) into the new column and carrying its exit (the second) down. ` +
+		`Set the field only to place a node deliberately — a step that carries coordinates is left exactly where you put it, and the computed graph is laid out clear of it.`
 
 	workflowPathsDoc = `JSON array of connections between steps: [{"parentID":"1","childID":"2","expr":"","meta":{"visual":{"id":"e1","parent":"1","points":[],"style":""}}}]. ` +
 		`"parentID" and "childID" are the QUOTED stepIDs from 'steps'. Omit paths entirely for a single-step workflow — a step with no outbound path ends the run. ` +

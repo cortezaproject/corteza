@@ -167,6 +167,9 @@ func (h *workflowHandler) create(ctx context.Context, req mcp.CallToolRequest) (
 		return nil, err
 	}
 
+	layoutWorkflowSteps(wf.Steps, wf.Paths)
+	layoutWorkflowPaths(wf.Paths, wf.Steps)
+
 	entryNote := noteMultipleEntryPoints(wf.Steps, wf.Paths)
 
 	res, err := autoService.DefaultWorkflow.Create(ctx, wf)
@@ -264,6 +267,9 @@ func (h *workflowHandler) update(ctx context.Context, req mcp.CallToolRequest) (
 			}
 		}
 	}
+
+	layoutWorkflowSteps(upd.Steps, upd.Paths)
+	layoutWorkflowPaths(upd.Paths, upd.Steps)
 
 	entryNote := noteMultipleEntryPoints(upd.Steps, upd.Paths)
 

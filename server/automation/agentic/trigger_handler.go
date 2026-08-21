@@ -177,11 +177,30 @@ func (h *triggerHandler) create(ctx context.Context, req mcp.CallToolRequest) (*
 		return nil, err
 	}
 
+	if t.Meta == nil {
+		t.Meta = &autoTypes.TriggerMeta{}
+	}
+	t.Meta.Visual = layoutTriggerVisual(t.Meta.Visual, h.triggerCount(ctx, wf.ID), eventType, stepID, wf.Steps)
+
 	res, err := autoService.DefaultTrigger.Create(ctx, t)
 	if err != nil {
 		return nil, toolkit.Errf("trigger create", err)
 	}
 	return toolkit.JSONResult(res)
+}
+
+// triggerCount is how many triggers the workflow already carries, which is what
+// keeps a new one's canvas id out of the ones already drawn. A failed search
+// answers zero: a trigger placed on top of another still reads better than one
+// the editor cannot draw at all.
+func (h *triggerHandler) triggerCount(ctx context.Context, workflowID uint64) int {
+	tt, _, err := autoService.DefaultTrigger.Search(ctx, autoTypes.TriggerFilter{
+		WorkflowID: []string{strconv.FormatUint(workflowID, 10)},
+	})
+	if err != nil {
+		return 0
+	}
+	return len(tt)
 }
 
 // update is read-modify-write, and has to be.
