@@ -9,6 +9,12 @@ allRecords:
   label: All records
   list:
     title: All records for module "{name}"
+  metric:
+    createdRecently: Created in the last 7 days
+    ownedByMe: Owned by me
+    total: Total records
+    updatedRecently: Updated in the last 7 days
+  revisions: Record revisions
   systemFields: System fields
   tooltip:
     configureColumns: Selecting a large number of fields or displaying record/user fields will impact performance

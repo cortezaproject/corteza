@@ -215,6 +215,8 @@ const blocks = computed(() =>
   adminRecordBlocks(recordModule.value, {
     idPrefix: '_admin_record_view',
     systemTitle: t('module.allRecords.systemFields'),
+    revisionsTitle: t('module.allRecords.revisions'),
+    withRevisions: true,
   }),
 )
 

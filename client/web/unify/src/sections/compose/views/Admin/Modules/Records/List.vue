@@ -23,18 +23,27 @@
     </Message>
   </div>
 
-  <!-- Record list — renders RecordListBlock via Grid just like a public page -->
-  <div v-else class="h-full">
-    <Grid :blocks="blocks" :namespace="namespace" :page="syntheticPage" />
+  <!-- Record list — renders RecordListBlock via Grid just like a public page.
+       The tiles keep their own height and the table takes the rest, so it is
+       drawn as the one block of its own grid. -->
+  <div v-else class="flex flex-col h-full">
+    <div class="shrink-0">
+      <Grid :blocks="blocks.tiles" :namespace="namespace" :page="syntheticPage" />
+    </div>
+    <div class="flex-1 min-h-0">
+      <Grid :blocks="[blocks.list]" :namespace="namespace" :page="syntheticPage" />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, provide } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
+import { adminRecordListBlocks } from '@/sections/compose/lib/record-blocks'
 
 const { CRouterLinkButton } = components
 
@@ -46,6 +55,7 @@ defineProps({
 })
 
 const route = useRoute()
+const { t } = useI18n()
 const moduleStore = useModuleStore()
 
 const moduleID = computed(() => route.params.moduleID)
@@ -64,27 +74,19 @@ provide('$recordRoutes', {
   }),
 })
 
-// Single RecordList block spanning the full grid width
-const blocks = computed(() => [
-  {
-    blockID: '_admin_record_list',
-    kind: 'RecordList',
-    title: '',
-    description: '',
-    style: { wrap: { kind: 'card' } },
-    options: {
-      moduleID: moduleID.value,
-      fields: [],
-      perPage: 20,
-      selectable: true,
-      allowExport: true,
-      // The admin list is the module's whole record set, deleted rows included
-      showDeletedRecordsOption: true,
+// Metric tiles over the module's whole record set
+const blocks = computed(() =>
+  adminRecordListBlocks({
+    moduleID: moduleID.value,
+    idPrefix: '_admin_record',
+    metricLabels: {
+      total: t('module.allRecords.metric.total'),
+      createdRecently: t('module.allRecords.metric.createdRecently'),
+      updatedRecently: t('module.allRecords.metric.updatedRecently'),
+      ownedByMe: t('module.allRecords.metric.ownedByMe'),
     },
-    xywh: [0, 0, 48, 36],
-    meta: { tempID: '_admin_record_list' },
-  },
-])
+  }),
+)
 
 const syntheticPage = computed(() => ({
   pageID: '0',
