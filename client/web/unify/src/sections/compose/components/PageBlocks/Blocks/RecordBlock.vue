@@ -552,7 +552,8 @@ async function saveInlineEdits() {
   localSaving.value = true
   try {
     Object.entries(localDirtyValues).forEach(([fieldName, value]) => {
-      record.setValue(fieldName, value)
+      const field = visibleFields.value.find(f => f.name === fieldName)
+      if (field) writeField(record, field, value)
     })
     const saved = await recordStore.update(record)
     // The response carries what the server computed (value expressions,
@@ -600,12 +601,25 @@ function cancelInlineEdits() {
 }
 
 // --- Field value helpers ---
+
+// A system field is a property of the record, not one of its values — the same
+// split the viewers make. Reading it out of `values` finds nothing, and writing
+// it there stores it under a name the save never looks at.
+function readField(record, field) {
+  const val = field.isSystem ? record[field.name] : record.values[field.name]
+  return val === undefined || val === null ? (field.isMulti ? [] : '') : val
+}
+
+function writeField(record, field, value) {
+  if (field.isSystem) record[field.name] = value
+  else record.setValue(field.name, value)
+}
+
 function getFieldValue(field) {
   if (isOnEditPage.value || isBuilder.value) {
     const r = ctx?.record?.value || builderRecord.value
     if (!r) return field.isMulti ? [] : ''
-    const val = r.values[field.name]
-    return val === undefined || val === null ? (field.isMulti ? [] : '') : val
+    return readField(r, field)
   }
   // Local inline edit: serve dirty value if present, else record value
   if (field.name in localDirtyValues) {
@@ -613,8 +627,7 @@ function getFieldValue(field) {
   }
   const r = activeRecord.value
   if (!r) return field.isMulti ? [] : ''
-  const val = r.values[field.name]
-  return val === undefined || val === null ? (field.isMulti ? [] : '') : val
+  return readField(r, field)
 }
 
 function setFieldValue(field, value) {
@@ -622,7 +635,7 @@ function setFieldValue(field, value) {
   if (isOnEditPage.value || isBuilder.value) {
     const r = ctx?.record?.value || builderRecord.value
     if (!r) return
-    r.setValue(field.name, value)
+    writeField(r, field, value)
   } else {
     localDirtyValues[field.name] = value
   }
