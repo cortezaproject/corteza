@@ -15,8 +15,8 @@ type mockStore struct{}
 func (m *mockStore) LookupDalConnectionByID(ctx context.Context, id uint64) (*types.DalConnection, error) {
 	return &types.DalConnection{
 		ID: id,
-		Config: types.ConnectionConfig{
-			DAL: &types.ConnectionConfigDAL{
+		Config: types.DalConnectionConfig{
+			DAL: &types.DalConnectionConfigDAL{
 				Params: map[string]any{
 					"auth": map[string]any{
 						"method": "oauth2_client_credentials",
