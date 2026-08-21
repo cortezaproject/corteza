@@ -54,7 +54,12 @@ DEV_MAILHOG_HTTP_ADDR ?= 8025
 
 GIN_ARG_LADDR ?= localhost
 GIN_ARG_PORT  ?= 3001
-GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --build cmd/human --immediate --bin build/gin-bin
+# Where the server itself listens, read from the env file gin will hand it.
+# gin's own default for this is 3001, which is also GIN_ARG_PORT — leaving it
+# unset makes gin proxy to the port it is listening on and answer its own
+# requests until the ephemeral port range runs out.
+GIN_ARG_APP_PORT ?= $(shell sed -nE 's/^HTTP_ADDR=:?([0-9]+).*/\1/p' $(GIN_HUMAN_ENV_FILE) 2>/dev/null | head -1)
+GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --appPort $(GIN_ARG_APP_PORT) --build cmd/human --immediate --bin build/gin-bin
 
 GIN_HUMAN_ENV_FILE ?= .env
 GIN_HUMAN_BIN_ARGS ?= --env-file $(GIN_HUMAN_ENV_FILE)
