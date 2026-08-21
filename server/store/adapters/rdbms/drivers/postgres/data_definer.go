@@ -91,9 +91,10 @@ func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) e
 
 func (dd *dataDefiner) ColumnDrop(ctx context.Context, t, col string) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.DropColumn{
-		Dialect: dd.d,
-		Table:   t,
-		Column:  col,
+		Dialect:  dd.d,
+		Table:    t,
+		Column:   col,
+		IfExists: true,
 	})
 }
 

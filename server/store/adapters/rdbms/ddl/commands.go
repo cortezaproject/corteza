@@ -49,6 +49,11 @@ type (
 		Dialect dialect
 		Table   string
 		Column  string
+
+		// Emits DROP COLUMN IF EXISTS, making the drop a no-op on a column
+		// that is already gone. Only dialects that accept the clause set it:
+		// MySQL and SQLite have no such form.
+		IfExists bool
 	}
 
 	RenameColumn struct {
@@ -274,9 +279,15 @@ func (c *AddColumn) ToSQL() (sql string, aa []interface{}, err error) {
 }
 
 func (c *DropColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	guard := ""
+	if c.IfExists {
+		guard = "IF EXISTS "
+	}
+
 	return fmt.Sprintf(
-		`ALTER TABLE %s DROP COLUMN %s`,
+		`ALTER TABLE %s DROP COLUMN %s%s`,
 		c.Dialect.QuoteIdent(c.Table),
+		guard,
 		c.Dialect.QuoteIdent(c.Column),
 	), nil, nil
 }

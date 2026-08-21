@@ -161,3 +161,43 @@ CREATE INDEX IF NOT EXISTS "second_idx" ON "simple" ("null_ID", (LOWER("some_txt
 		})
 	}
 }
+
+// TestDropColumnIfExists pins the guard that makes an upgrade fix survive a
+// lost race. Two server instances starting together both look up the table,
+// both see the column, and one drops it first — the loser's ALTER then fails
+// and aborts store upgrade, so the second instance never starts. IF EXISTS
+// turns that failure into a no-op. MySQL and SQLite have no such clause, so
+// their dialects must keep emitting the bare form.
+func TestDropColumnIfExists(t *testing.T) {
+	cases := []struct {
+		name     string
+		ifExists bool
+		want     string
+	}{
+		{
+			name:     "guarded, for dialects that accept the clause",
+			ifExists: true,
+			want:     `ALTER TABLE "projects" DROP COLUMN IF EXISTS "mode"`,
+		},
+		{
+			name:     "bare, for dialects that do not",
+			ifExists: false,
+			want:     `ALTER TABLE "projects" DROP COLUMN "mode"`,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			sql, args, err := (&DropColumn{
+				Dialect:  mockDriver{},
+				Table:    "projects",
+				Column:   "mode",
+				IfExists: c.ifExists,
+			}).ToSQL()
+
+			require.NoError(t, err)
+			require.Nil(t, args)
+			require.Equal(t, c.want, sql)
+		})
+	}
+}
