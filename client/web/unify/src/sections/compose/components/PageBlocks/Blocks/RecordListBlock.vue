@@ -113,13 +113,7 @@
     >
       <!-- What a metric tile put on the list. It is the tile's whole filter, so
            it is one chip rather than a group the user can take apart. -->
-      <Chip
-        v-if="drillDown"
-        removable
-        class="text-sm"
-        style="border-radius: var(--p-border-radius)"
-        @remove="clearDrillDown"
-      >
+      <Chip v-if="drillDown" removable class="text-sm rounded-border" @remove="clearDrillDown">
         <span class="font-semibold text-primary">{{ drillDown.label }}</span>
       </Chip>
 
