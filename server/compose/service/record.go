@@ -118,7 +118,7 @@ type (
 	RecordService interface {
 		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, *types.RecordValueErrorSet, error)
 
-		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (any, error)
+		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, f string, deleted filter.State) (any, error)
 		Search(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		FindN(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, stats map[string]types.RecordSummary, f types.RecordFilter, err error)
 		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
@@ -362,7 +362,7 @@ func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID 
 
 // Report generates report for a given module using metrics, dimensions and filter
 // @note will eventually be removed in favor of the system report endpoints
-func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, f string) (_ any, err error) {
+func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, f string, deleted filter.State) (_ any, err error) {
 	var (
 		ns     *types.Namespace
 		m      *types.Module
@@ -384,7 +384,7 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 			return RecordErrNotAllowedToSearch()
 		}
 
-		pp, agg, err := recordReportToDalPipeline(m, metrics, dimensions, f)
+		pp, agg, err := recordReportToDalPipeline(m, metrics, dimensions, f, deleted)
 		if err != nil {
 			return err
 		}
@@ -943,7 +943,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 			return
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil, nil, "")); err != nil {
 			return
 		} else if !rve.IsValid() {
 			return nil, dd, RecordErrValueInput().Wrap(rve)
@@ -990,7 +990,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 
 	{
 		new.Values = svc.formatter.Run(m, new.Values)
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil, nil, nil, ""))
 	}
 
 	return
@@ -1292,7 +1292,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		//
 		// rve (record-validation-errorset) struct is passed so it can be
 		// used & filled by automation scripts
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve, nil, nil, "")); err != nil {
 			return
 		} else if !rve.IsValid() {
 			return nil, nil, nil, dd, RecordErrValueInput().Wrap(rve)
@@ -1344,7 +1344,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	{
 		// Before we pass values to automation scripts, they should be formatted
 		upd.Values = svc.formatter.Run(m, upd.Values)
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil, nil, nil, ""))
 	}
 	return
 }
@@ -1597,7 +1597,7 @@ func (svc record) processDelete(ctx context.Context, del *types.Record, namespac
 
 	{
 		// Calling before-record-delete scripts
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, module, namespace, nil, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, module, namespace, nil, nil, nil, "")); err != nil {
 			return nil, err
 		}
 	}
@@ -1617,7 +1617,7 @@ func (svc record) processDelete(ctx context.Context, del *types.Record, namespac
 	del.SetModule(module)
 
 	{
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, module, namespace, nil, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, module, namespace, nil, nil, nil, ""))
 	}
 
 	return del, nil
@@ -1658,7 +1658,7 @@ func (svc record) processUndelete(ctx context.Context, undel *types.Record, name
 
 	{
 		// Calling before-record-undelete scripts
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUndelete(nil, undel, module, namespace, nil, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUndelete(nil, undel, module, namespace, nil, nil, nil, "")); err != nil {
 			return nil, err
 		}
 	}
@@ -1678,7 +1678,7 @@ func (svc record) processUndelete(ctx context.Context, undel *types.Record, name
 	undel.SetModule(module)
 
 	{
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUndeleteImmutable(nil, undel, module, namespace, nil, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUndeleteImmutable(nil, undel, module, namespace, nil, nil, nil, ""))
 	}
 
 	return undel, nil
@@ -1836,7 +1836,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 		old := r.Clone()
 
 		// Dispatch beforeOrganize event
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeOrganize(r, old, m, ns, nil, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeOrganize(r, old, m, ns, nil, nil, nil, "")); err != nil {
 			return err
 		}
 
@@ -1916,7 +1916,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 		// record the drop displaced, and firing an update for each would turn one
 		// move into a run per card in the column.
 		rve := &types.RecordValueErrorSet{}
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(r, old, m, ns, rve, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(r, old, m, ns, rve, nil, nil, "")); err != nil {
 			return err
 		} else if !rve.IsValid() {
 			return RecordErrValueInput().Wrap(rve)
@@ -1999,10 +1999,10 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 
 			// The record is written; an update handler is told, and cannot
 			// refuse what already happened.
-			_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(r, old, m, ns, nil, nil))
+			_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(r, old, m, ns, nil, nil, nil, ""))
 
 			// Dispatch afterOrganize event
-			if err = svc.eventbus.WaitFor(ctx, event.RecordAfterOrganize(r, old, m, ns, nil, nil)); err != nil {
+			if err = svc.eventbus.WaitFor(ctx, event.RecordAfterOrganize(r, old, m, ns, nil, nil, nil, "")); err != nil {
 				return err
 			}
 
@@ -2055,7 +2055,7 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 	r.Values = values.Sanitizer().Run(m, rvs, nil)
 	validated := values.Validator().Run(ctx, svc.store, m, r)
 
-	err = corredor.Service().Exec(ctx, script, event.RecordOnManual(r, original, m, ns, validated, nil))
+	err = corredor.Service().Exec(ctx, script, event.RecordOnManual(r, original, m, ns, validated, nil, nil, ""))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2151,7 +2151,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 			}
 
 			err = func() error {
-				if err = fn(ctx, event.RecordOnIteration(rec, nil, m, ns, nil, nil)); err != nil {
+				if err = fn(ctx, event.RecordOnIteration(rec, nil, m, ns, nil, nil, nil, "")); err != nil {
 					if errors.Is(err, corredor.ScriptExecAborted) {
 						// When script was softly aborted (return false),
 						// proceed with iteration but do not clone, update or delete
@@ -2579,7 +2579,7 @@ func loadRecordScoped(ctx context.Context, s store.Storer, namespaceID, moduleID
 	return
 }
 
-func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (pp dal.Pipeline, _ *dal.Aggregate, err error) {
+func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string, deleted filter.State) (pp dal.Pipeline, _ *dal.Aggregate, err error) {
 	// Map dimension to the aggregate group
 	// @note we only ever used a single dimension so this is ok
 	auxDim := dal.AggregateAttr{
@@ -2641,7 +2641,7 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 	pp = dal.Pipeline{
 		&dal.Datasource{
 			Ident:  "ds",
-			Filter: filter.Generic(filter.WithExpression(f), filter.WithStateConstraint("deletedAt", filter.StateExcluded)),
+			Filter: filter.Generic(filter.WithExpression(f), filter.WithStateConstraint("deletedAt", deleted)),
 			ModelRef: dal.ModelRef{
 				ConnectionID: m.Config.DAL.ConnectionID,
 				ResourceID:   m.ID,

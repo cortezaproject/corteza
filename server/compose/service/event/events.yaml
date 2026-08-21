@@ -94,6 +94,13 @@ compose:record:
     - name: 'selected'
       type: '[]interface{}'
       immutable: true
+    - name: 'page'
+      type: '*types.Page'
+      immutable: true
+    - name: 'filter'
+      type: 'string'
+      exprtype: 'String'
+      immutable: true
 
   constraints:
     - name: namespace.handle

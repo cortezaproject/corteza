@@ -1259,6 +1259,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "",
 					Immutable: true,
 				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1334,6 +1346,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "selected",
 					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
 					Immutable: true,
 				},
 			},
@@ -1413,6 +1437,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "",
 					Immutable: true,
 				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1488,6 +1524,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "selected",
 					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
 					Immutable: true,
 				},
 			},
@@ -1567,6 +1615,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "",
 					Immutable: true,
 				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1642,6 +1702,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "selected",
 					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
 					Immutable: true,
 				},
 			},
@@ -1721,6 +1793,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "",
 					Immutable: true,
 				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1796,6 +1880,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "selected",
 					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
 					Immutable: true,
 				},
 			},
@@ -1875,6 +1971,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "",
 					Immutable: true,
 				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1950,6 +2058,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "selected",
 					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
 					Immutable: true,
 				},
 			},
@@ -2029,6 +2149,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "",
 					Immutable: true,
 				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -2104,6 +2236,18 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "selected",
 					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "page",
+					Type:      "ComposePage",
+					Immutable: true,
+				},
+
+				{
+					Name:      "filter",
+					Type:      "String",
 					Immutable: true,
 				},
 			},
