@@ -66,8 +66,10 @@ number.
 - **Say when it is not serving.** A URL that answers nothing is worse than no
   URL: `http://localhost:5176 (down — 'worktree.sh up wt-alpha')`.
 - **The path is there to be diffed**, so give the real one:
-  `git -C <path> diff main` is what shows a worktree's work, committed and
-  uncommitted both. `git diff main...<branch>` shows nothing until it commits.
+  `git -C <path> diff $(git -C <path> merge-base main HEAD)` shows a worktree's
+  own work, committed and uncommitted, however far main has moved since.
+  `git diff main...<branch>` shows nothing until it commits, and a plain
+  `diff main` reports main's newer commits as deletions.
 - Add the API URL only when the turn's own verification went through it.
 
 `dev/agent/worktree.sh list` has the ports; the URL is `http://localhost:<vite>`.

@@ -6,7 +6,15 @@ description: The mechanics of making one change — orient, check contracts, bas
 # /dev-change
 
 The `human-dev` MCP server provides the primitives; this skill is the order to
-use them in. If a tool below is not available, the server is not connected —
+use them in.
+
+**In a worktree, pass `worktree: <name>` to every repo-acting tool** —
+`dev_branch_status`, `dev_test_run`, `dev_format_run`, `dev_intent_check`,
+`dev_intent_governing`, `dev_intent_affected`, `dev_commit_create`. The server
+is one process per session rooted at the checkout it was launched from, so
+without the argument a tool reports on the primary while you are editing a
+worktree: green tests for a tree you did not change, and a commit on the wrong
+branch, both reporting success. If a tool below is not available, the server is not connected —
 tell the human to restart their MCP client, and fall back to the shell
 equivalents (`git status`, `go test`, `gofmt`).
 

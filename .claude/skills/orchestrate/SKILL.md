@@ -95,6 +95,11 @@ Each lane's agent gets a brief that names the issue, its files, its worktree
 path and ports, and **what is already known to be wrong**. It runs the
 `/dev-task` flow inside its lane.
 
+**Tell each lane to pass `worktree: <its lane name>` to every repo-acting MCP
+tool.** Lanes share one MCP process, rooted at the orchestrator's checkout —
+the primary. A lane that omits it tests the primary's tree and commits to the
+primary's branch, and both come back saying they succeeded.
+
 Every agent returns, as structured data:
 
 - what changed, and the commit(s) on its branch
