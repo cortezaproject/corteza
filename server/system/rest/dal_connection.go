@@ -2,28 +2,19 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
-	"sort"
-	"strings"
 	"time"
 
-	federationService "github.com/crusttech/human/server/federation/service"
-	federationTypes "github.com/crusttech/human/server/federation/types"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/handle"
-	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/types"
-	"github.com/modern-go/reflect2"
 )
 
 type (
 	DalConnection struct {
-		svc           dalConnectionService
-		federationSvc federationNodeService
+		svc dalConnectionService
 
 		connectionAc dalConnectionAccessController
 	}
@@ -58,16 +49,11 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.DalConnectionFilter) (types.DalConnectionSet, types.DalConnectionFilter, error)
 	}
-
-	federationNodeService interface {
-		Search(ctx context.Context, filter federationTypes.NodeFilter) (set federationTypes.NodeSet, f federationTypes.NodeFilter, err error)
-	}
 )
 
 func (DalConnection) New() *DalConnection {
 	return &DalConnection{
-		svc:           service.DefaultDalConnection,
-		federationSvc: federationService.DefaultNode,
+		svc: service.DefaultDalConnection,
 
 		connectionAc: service.DefaultAccessControl,
 	}
@@ -85,6 +71,10 @@ func (ctrl DalConnection) makeFilter(ctx context.Context, r *request.DalConnecti
 
 	if f.Deleted == 0 {
 		f.Deleted = filter.StateExcluded
+	}
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return f, err
 	}
 
 	f.IncTotal = r.IncTotal
@@ -119,12 +109,6 @@ func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections typ
 		return nil, err
 	}
 
-	// Merge federation nodes into the base (service-searched) set and apply
-	// the in-memory filtering, preserving the original List behavior.
-	if connections, f, err = ctrl.collectConnections(ctx, connections, f); err != nil {
-		return nil, err
-	}
-
 	out := &dalConnectionSetPayload{
 		Filter: f,
 		Set:    make([]*dalConnectionPayload, 0, len(connections)),
@@ -156,177 +140,6 @@ func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnectio
 		CanDeleteConnection: ctrl.connectionAc.CanDeleteDalConnection(ctx, c),
 		CanManageDalConfig:  ctrl.connectionAc.CanManageDalConfigOnDalConnection(ctx, c),
 	}, nil
-}
-
-func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *types.DalConnection {
-	h, _ := handle.Cast(nil, f.Name)
-
-	return &types.DalConnection{
-		ID: f.ID,
-
-		Meta: types.DalConnectionMeta{
-			Name:      f.Name,
-			Ownership: f.Contact,
-		},
-
-		Handle: h,
-		Type:   federationTypes.NodeResourceType,
-
-		//Config: types.ConnectionConfig{
-		//	Connection: dal.NewFederatedNodeConnection(f.BaseURL, f.PairToken, f.AuthToken),
-		//},
-
-		CreatedAt: f.CreatedAt,
-		CreatedBy: f.CreatedBy,
-		UpdatedAt: f.UpdatedAt,
-		UpdatedBy: f.UpdatedBy,
-		DeletedAt: f.DeletedAt,
-		DeletedBy: f.DeletedBy,
-	}
-}
-
-// collectConnections merges federation nodes into the base (already
-// service-searched) connection set and applies the in-memory filtering.
-func (ctrl DalConnection) collectConnections(ctx context.Context, dalConnections types.DalConnectionSet, f types.DalConnectionFilter) (out types.DalConnectionSet, _ types.DalConnectionFilter, err error) {
-	var (
-		federatedNodes federationTypes.NodeSet
-	)
-
-	if !reflect2.IsNil(ctrl.federationSvc) {
-		if federatedNodes, _, err = ctrl.federationSvc.Search(ctx, federationTypes.NodeFilter{
-			// @todo IDs?
-			Deleted: f.Deleted,
-		}); err != nil {
-			return nil, f, err
-		}
-	}
-
-	out = append(out, dalConnections...)
-
-	// We're converting federation nodes to DAL connection structs so that we have
-	// a unified output.
-	//
-	// Eventually federation nodes will become connections, so this is ok
-	for _, nn := range federatedNodes {
-		out = append(out, ctrl.federatedNodeToConnection(nn))
-	}
-
-	out = ctrl.filterConnections(out, f)
-	sortDalConnectionSet(out, f.Sort)
-
-	return out, f, nil
-}
-
-// sortDalConnectionSet orders the merged set in memory with the same expression
-// the store was given, so federation-appended entries land in the right place.
-// Unknown columns are skipped and an empty expression set leaves the order alone.
-func sortDalConnectionSet(set types.DalConnectionSet, ss filter.SortExprSet) {
-	if len(ss) == 0 {
-		return
-	}
-
-	sort.SliceStable(set, func(i, j int) bool {
-		for _, s := range ss {
-			va, vb := dalConnectionSortKey(set[i], s), dalConnectionSortKey(set[j], s)
-			if va == vb {
-				continue
-			}
-
-			if s.Descending {
-				return va > vb
-			}
-
-			return va < vb
-		}
-
-		return false
-	})
-}
-
-// dalConnectionSortKey renders one sort expression into a comparable string.
-// A coalesce expression takes the first of its columns that has a value, which
-// is what the store's COALESCE does.
-func dalConnectionSortKey(c *types.DalConnection, s *filter.SortExpr) string {
-	for _, col := range s.Columns() {
-		if v := dalConnectionSortColumn(c, col); v != "" {
-			return v
-		}
-	}
-
-	return ""
-}
-
-func dalConnectionSortColumn(c *types.DalConnection, col string) string {
-	switch strings.ToLower(col) {
-	case "name":
-		return strings.ToLower(c.Meta.Name)
-	case "handle":
-		return strings.ToLower(c.Handle)
-	case "type":
-		return c.Type
-	case "createdat", "created_at":
-		return timeSortKey(&c.CreatedAt)
-	case "updatedat", "updated_at":
-		return timeSortKey(c.UpdatedAt)
-	case "deletedat", "deleted_at":
-		return timeSortKey(c.DeletedAt)
-	case "id":
-		return fmt.Sprintf("%020d", c.ID)
-	}
-
-	return ""
-}
-
-// timeSortKey renders a timestamp so that string comparison matches time
-// comparison: fixed width, UTC, empty when there is no value.
-func timeSortKey(t *time.Time) string {
-	if t == nil || t.IsZero() {
-		return ""
-	}
-
-	return t.UTC().Format("2006-01-02T15:04:05.000000000")
-}
-
-func (ctrl DalConnection) filterConnections(baseConnections types.DalConnectionSet, f types.DalConnectionFilter) (out types.DalConnectionSet) {
-	for _, conn := range baseConnections {
-		include := true
-
-		if len(f.DalConnectionID) > 0 {
-			include = include && ctrl.inIDSet(id.Uints(f.DalConnectionID...), conn.ID)
-		}
-
-		if f.Handle != "" {
-			include = include && f.Handle == conn.Handle
-		}
-
-		if f.Type != "" {
-			include = include && f.Type == conn.Type
-		}
-
-		{
-			if f.Deleted == filter.StateExcluded {
-				include = include && conn.DeletedAt == nil
-			}
-
-			if f.Deleted == filter.StateExclusive {
-				include = include && conn.DeletedAt != nil
-			}
-		}
-
-		if include {
-			out = append(out, conn)
-		}
-	}
-
-	return
-}
-
-func (ctrl DalConnection) inIDSet(set []uint64, target uint64) (out bool) {
-	for _, id := range set {
-		out = out || id == target
-	}
-
-	return
 }
 
 func (ctrl DalConnection) serve(ctx context.Context, fn string, archive io.ReadSeeker, err error) (interface{}, error) {

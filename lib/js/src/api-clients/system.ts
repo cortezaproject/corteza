@@ -3210,7 +3210,8 @@ export default class System {
 
   // Search connections (Directory)
   async dalConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, handle, type, deleted, incTotal, sort } = (a as KV) || {}
+    const { connectionID, handle, type, deleted, incTotal, limit, pageCursor, sort } =
+      (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -3222,6 +3223,8 @@ export default class System {
       type,
       deleted,
       incTotal,
+      limit,
+      pageCursor,
       sort,
     }
 

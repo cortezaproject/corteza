@@ -61,6 +61,16 @@ type (
 		// Include total counter
 		IncTotal bool
 
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+
+		// PageCursor GET parameter
+		//
+		// Page cursor
+		PageCursor string
+
 		// Sort GET parameter
 		//
 		// Sort items
@@ -156,6 +166,8 @@ func (r DalConnectionList) Auditable() map[string]interface{} {
 		"type":         r.Type,
 		"deleted":      r.Deleted,
 		"incTotal":     r.IncTotal,
+		"limit":        r.Limit,
+		"pageCursor":   r.PageCursor,
 		"sort":         r.Sort,
 	}
 }
@@ -183,6 +195,16 @@ func (r DalConnectionList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionList) GetIncTotal() bool {
 	return r.IncTotal
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionList) GetLimit() uint {
+	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionList) GetPageCursor() string {
+	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -228,6 +250,18 @@ func (r *DalConnectionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
 			r.IncTotal, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}

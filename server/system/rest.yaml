@@ -1397,6 +1397,8 @@ endpoints:
             - type: bool
               name: incTotal
               title: Include total counter
+            - { type: 'uint', name: 'limit', title: 'Limit' }
+            - { type: 'string', name: 'pageCursor', title: 'Page cursor' }
             - type: string
               name: sort
               title: Sort items

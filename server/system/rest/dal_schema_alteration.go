@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 
+	federationTypes "github.com/crusttech/human/server/federation/types"
 	"github.com/crusttech/human/server/pkg/api"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/id"
@@ -12,6 +13,10 @@ import (
 )
 
 type (
+	federationNodeService interface {
+		Search(ctx context.Context, filter federationTypes.NodeFilter) (set federationTypes.NodeSet, f federationTypes.NodeFilter, err error)
+	}
+
 	DalSchemaAlteration struct {
 		svc           alterationService
 		federationSvc federationNodeService

@@ -37,5 +37,12 @@ connections — see where records live, add or remove external sources.
 
 - The primary/external type split is the screen's core contract; keep the
   type filter hard-wired in the list fetch and the primary fetch separate.
+  The type is the full resource string (`corteza::system:dal-connection`), not
+  the short name — the store compares the column verbatim.
+- `/system/dal/connections/` sorts, filters and pages entirely in the store.
+  It used to merge federation nodes into the response after the query and
+  re-apply the filters in memory, which is why it could not page; nothing
+  consumed them (the converted node carried no DAL config), so the merge is
+  gone and the endpoint behaves like every other list.
 - Not the integration-connections screen — same `:connectionID` param name,
   different API (`dalConnection*`).
