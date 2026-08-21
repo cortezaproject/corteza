@@ -52,6 +52,28 @@ skills. Neither replaces the other.
 Naming follows `RESOURCES.md`: `dev_<resource>_<verb>`, snake_case, singular.
 All in group `development`.
 
+### Which checkout a tool acts on
+
+The server is a stdio child launched once per client session from that session's
+working directory, and that directory is its root for the life of the process. A
+session working in the repo root wants exactly that. A session sitting in the
+primary checkout while its work lives in a git worktree — an orchestrated lane,
+or any task driving a branch checked out elsewhere — does not: with no answer
+per call, every tool here runs against the primary, so the lane's tests pass on
+the wrong tree and its commit lands on the wrong branch, both reporting success.
+
+Every tool that acts on the repository therefore takes an optional `worktree`: a
+directory name, a branch, or an absolute path, resolved against `git worktree
+list` and refused when it names no checkout of this repository. Stateless on
+purpose — a "current checkout" the session could set would be read by every lane
+in that session at once, so one lane switching it would redirect another lane's
+commit.
+
+The tools that drive the dev server and the webapp do not take it. Their answer
+depends on the ports that checkout's server was started on, and `devServerURL`
+reads a tracked file naming 1043 for every checkout, so accepting a worktree
+there would report the primary's server under a worktree's name.
+
 ### Investigate
 
 | Tool                   | Risk | Does                                                                                      |
