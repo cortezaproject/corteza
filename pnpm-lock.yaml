@@ -229,6 +229,9 @@ importers:
       '@playwright/test':
         specifier: ^1.61.1
         version: 1.61.1
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.1
 
   lib/js:
     dependencies:

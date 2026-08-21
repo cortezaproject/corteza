@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@planetcrust/human-test-utils": "workspace:*",
-    "@playwright/test": "^1.61.1"
+    "@playwright/test": "^1.61.1",
+    "js-yaml": "^4.1.0"
   }
 }
