@@ -17,6 +17,9 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   `cleanup.sh`. Pages/charts are built via `dev/agent/pagebuild.py` (never
   via envoy YAML — block refs don't resolve).
 - Building whole systems (datamodel + pages) in Human: `/sys-design` skill.
+- Several independent issues at once: `/orchestrate` — parallel lanes, one per
+  worktree. Invoking it is what authorises spawning subagents; nothing else
+  does.
 - Everything an agent creates on the dev server is recorded in
   `dev/agent/.state/created.jsonl`, and `cleanup.sh` deletes only what that
   ledger holds for the current session. No name prefix is needed or wanted;
