@@ -96,6 +96,8 @@ export class DalConnection {
   public updatedBy = NoID
   public deletedBy = NoID
 
+  public canGrant = false
+  public canUpdateConnection = false
   public canDeleteConnection = false
   public canManageDalConfig = false
 
@@ -108,7 +110,15 @@ export class DalConnection {
     Apply(this, dc, String, 'handle', 'type')
     Apply(this, dc, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, dc, HumanID, 'createdBy', 'updatedBy', 'deletedBy')
-    Apply(this, dc, Boolean, 'canDeleteConnection', 'canManageDalConfig')
+    Apply(
+      this,
+      dc,
+      Boolean,
+      'canGrant',
+      'canUpdateConnection',
+      'canDeleteConnection',
+      'canManageDalConfig',
+    )
 
     if (IsOf(dc, 'meta')) {
       this.meta = merge(this.meta, dc.meta)

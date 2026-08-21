@@ -38,6 +38,7 @@ export class Template {
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
   public lastUsedAt?: Date = undefined
+  public canGrant = false
   public canUpdateTemplate = false
   public canDeleteTemplate = false
 
@@ -49,7 +50,7 @@ export class Template {
     Apply(this, r, HumanID, 'templateID', 'ownerID')
 
     Apply(this, r, String, 'handle', 'language', 'type', 'template')
-    Apply(this, r, Boolean, 'partial', 'canUpdateTemplate', 'canDeleteTemplate')
+    Apply(this, r, Boolean, 'partial', 'canGrant', 'canUpdateTemplate', 'canDeleteTemplate')
 
     if (r && IsOf(r, 'meta')) {
       this.meta = r.meta
