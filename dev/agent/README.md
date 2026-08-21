@@ -220,6 +220,7 @@ worktree.sh new  NAME [--base REF]   checkout + DB clone + ports + env files
 worktree.sh up   [NAME]              start its server and webapp
 worktree.sh down [NAME] [--force]    stop them
 worktree.sh list                     every slot and what is running
+worktree.sh land NAME [--keep]       rebase onto main, merge, remove
 worktree.sh rm   NAME                stop, drop the DB, remove the checkout
 ```
 
@@ -232,6 +233,21 @@ worktree's `git status`.
 The whole flow works in there — unit tests, API, browser, and e2e. Playwright
 reads `E2E_BASE_URL` from the worktree's `.env.e2e`, so `npx playwright test`
 run from the worktree hits the worktree.
+
+### Getting the work onto main
+
+A worktree commits to its **own branch**, never to main. `land` is the whole
+sequence: rebase onto current main, merge fast-forward, remove the worktree.
+
+It is mostly refusals, and deliberately so — main lives in the primary's
+working tree, which usually holds another session's uncommitted work. `land`
+stops before touching anything if the worktree is dirty, if there is nothing to
+land, if the branch does not rebase cleanly, or **if the primary has
+uncommitted changes in a file the branch also touches**. `--keep` merges but
+leaves the worktree running, for landing an increment and carrying on.
+
+If you `rm` before landing, the branch survives with your commits and `rm`
+says so, with the command to merge it.
 
 What catches people out:
 

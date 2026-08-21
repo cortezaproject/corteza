@@ -14,6 +14,7 @@
 #   worktree.sh down [NAME]              stop them
 #   worktree.sh list                     every slot, with what is running
 #   worktree.sh info [NAME]              ports, DB and paths for one worktree
+#   worktree.sh land NAME [--keep]       rebase onto main, merge, remove
 #   worktree.sh rm   NAME [--keep-branch]  stop, drop DB, remove checkout
 #
 # Ports are derived from the slot, so two worktrees can never collide:
@@ -376,6 +377,68 @@ cmd_info() {
   cat "$(meta "$name")"
 }
 
+# --------------------------------------------------------------- land --------
+
+# Put a worktree's commits on main and take the worktree away.
+#
+# Everything here is a refusal looking for a reason. main lives in the primary's
+# working tree, which on this machine usually holds another session's
+# uncommitted work — merging into it blind is how someone else's afternoon gets
+# a conflict it did not ask for. So: check first, mutate second.
+cmd_land() {
+  local name="${1:-}" keep=""
+  shift || true
+  [[ "${1:-}" == "--keep" ]] && keep=1
+  [[ -n "$name" ]] || die "usage: worktree.sh land NAME [--keep]"
+
+  local path primary branch_head
+  path="$(read_meta "$name" path)"
+  primary="$(primary_repo)"
+
+  branch_head="$(git -C "$primary" symbolic-ref --short HEAD 2>/dev/null || echo '')"
+  [[ "$branch_head" == "main" ]] ||
+    die "the primary is on '$branch_head', not main — land merges into whatever main is checked out as"
+
+  local dirty
+  dirty="$(git -C "$path" status --porcelain | grep -v 'dev/agent/\.state$' || true)"
+  [[ -n "$dirty" ]] && {
+    echo "$dirty" >&2
+    die "'$name' has uncommitted work — commit it in the worktree first"
+  }
+
+  local ahead
+  ahead="$(git -C "$primary" rev-list --count "main..$name")"
+  [[ "$ahead" -eq 0 ]] && die "'$name' has no commits main does not already have"
+
+  # The refusal that matters: the branch's files against the primary's dirt.
+  local theirs mine overlap
+  theirs="$(git -C "$primary" diff --name-only "main...$name")"
+  mine="$(git -C "$primary" status --porcelain | awk '{print $2}')"
+  overlap="$(comm -12 <(echo "$theirs" | sort -u) <(echo "$mine" | sort -u))"
+  [[ -n "$overlap" ]] && {
+    echo "the primary has uncommitted changes in files this branch also touches:" >&2
+    echo "$overlap" | sed 's/^/  /' >&2
+    die "landing would collide with work already in the primary — resolve that first"
+  }
+
+  echo "landing '$name' ($ahead commit(s))"
+  git -C "$path" rebase main >/dev/null 2>&1 || {
+    git -C "$path" rebase --abort 2>/dev/null || true
+    die "'$name' does not rebase cleanly onto main — resolve it in $path"
+  }
+  echo "  rebased onto main"
+
+  git -C "$primary" merge --ff-only "$name" >/dev/null ||
+    die "fast-forward refused — main moved again; re-run land"
+  echo "  merged (fast-forward, no merge commit)"
+
+  if [[ -n "$keep" ]]; then
+    echo "  worktree kept — it is now level with main"
+  else
+    cmd_rm "$name"
+  fi
+}
+
 # ----------------------------------------------------------------- rm --------
 
 cmd_rm() {
@@ -449,6 +512,10 @@ case "${1:-}" in
   info)
     shift
     cmd_info "$@"
+    ;;
+  land)
+    shift
+    cmd_land "$@"
     ;;
   rm)
     shift
