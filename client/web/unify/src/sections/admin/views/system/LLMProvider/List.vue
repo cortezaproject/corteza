@@ -85,8 +85,8 @@
         <span v-else>—</span>
       </template>
 
-      <template #body-createdAt="{ data }">
-        {{ locFullDateTime(data.createdAt) }}
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
       </template>
     </CResourceList>
   </CViewContainer>
@@ -96,15 +96,15 @@
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  changedAtText,
+  changedAtField,
   components,
-  filters,
   useConfirmDelete,
-  useRBACStore,
   usePermissions,
+  useRBACStore,
 } from '@planetcrust/human-vue'
 
 const { CResourceList, CViewContainer } = components
-const { locFullDateTime } = filters
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
@@ -141,13 +141,10 @@ const fields = [
     sortable: false,
     header: t('system.llmProviders.list.columns.status'),
   },
-  {
-    key: 'createdAt',
-    sortable: false,
-    header: t('system.llmProviders.list.columns.createdAt'),
-    class: 'text-right',
-    pt: { columnHeaderContent: 'justify-end' },
-  },
+  // This list is a single full fetch with no `useResourceList` behind it, so a
+  // sortable header would have nothing to emit to — the endpoint takes a sort,
+  // the view does not send one.
+  changedAtField(t('general.columns.changedAt'), { sortable: false }),
 ]
 
 async function fetchList() {

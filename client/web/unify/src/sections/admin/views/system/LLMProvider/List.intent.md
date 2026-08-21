@@ -23,6 +23,10 @@ status — and reach the editor or remove providers.
 - Status column renders a severity tag: active / unauthorized / other.
 - Provider column maps raw kind to display name (OpenAI/Anthropic/Mistral/Other).
 - Delete via row action menu, gated by `canDeleteLlmProvider`.
+- The last column is the shared "Last change" column (`changedAtField`), but
+  not sortable here: the view is a single full fetch with no `useResourceList`,
+  so there is nothing to emit a sort to. `/system/llm-providers/` does accept
+  `sort`/`limit`/`pageCursor` — the view has yet to use them.
 
 ## Routes
 

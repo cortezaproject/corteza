@@ -253,7 +253,6 @@ list:
     enabled: Status
     handle: Handle
     name: Name
-    updatedAt: Updated
   create: Create chatbot
   delete: Are you sure you want to delete this chatbot?
   duplicateNameSuffix: '{name} (Copy)'

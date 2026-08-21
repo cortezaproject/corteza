@@ -21,7 +21,7 @@ and delete modules, and open their permission dialogs.
 
 ## UX capabilities
 
-- Paginated, searchable, sortable table (name/handle/changedAt) scoped to the namespace; rows open the editor only when the module is updatable or deletable.
+- Paginated, searchable, sortable table (name/handle/changedAt) scoped to the namespace; rows open the editor only when the module is updatable or deletable. `changedAt` is the shared last column and sorts by COALESCE(deletedAt, updatedAt, createdAt).
 - Federated modules (label `federation`) carry a badge.
 - Header: create (`canCreateModule`), export-all JSON (`canExportModules`), importer (re-fetches on success), wildcard permissions (`compose/` `grant`).
 - Row menu: per-module permissions (`canGrant`), export, delete (confirm, store delete, refetch).

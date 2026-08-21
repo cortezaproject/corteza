@@ -26,6 +26,8 @@ const Menu = {
 }
 
 vi.mock('@planetcrust/human-vue', () => ({
+  changedAtField: header => ({ key: 'changedAt', header }),
+  changedAtText: () => '',
   useConfirmDelete: () => ({ confirmDelete: vi.fn() }),
   usePermissions: () => ({ open: openPermissions }),
   useResourceList: () => ({

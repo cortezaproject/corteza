@@ -65,8 +65,8 @@
         />
       </template>
 
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
       </template>
     </CResourceList>
   </div>
@@ -74,12 +74,13 @@
 
 <script setup>
 import {
+  changedAtText,
+  changedAtField,
   components,
-  filters,
   useConfirmDelete,
+  usePermissions,
   useRBACStore,
   useResourceList,
-  usePermissions,
 } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -87,7 +88,6 @@ import { useRouter } from 'vue-router'
 import { useAgentStore } from '@planetcrust/human-vue'
 
 const { CResourceList, CRouterLinkButton } = components
-const { locFullDateTime } = filters
 
 const router = useRouter()
 const { t } = useI18n()
@@ -119,15 +119,7 @@ const agentFields = [
     sortable: true,
     header: t('agent.list.columns.status'),
   },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('agent.list.columns.updatedAt'),
-    class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 // Resource list composable

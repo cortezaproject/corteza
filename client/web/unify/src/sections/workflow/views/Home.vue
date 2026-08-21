@@ -106,8 +106,8 @@
         {{ (data.steps || []).length }}
       </template>
 
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
       </template>
 
       <template #filter>
@@ -188,8 +188,9 @@
 
 <script setup>
 import {
+  changedAtText,
+  changedAtField,
   components,
-  filters,
   useConfirmDelete,
   useRBACStore,
   useResourceList,
@@ -206,7 +207,6 @@ import Export from '../components/Export.vue'
 import NamespaceModuleSelector from '../components/NamespaceModuleSelector.vue'
 
 const { CResourceList, CRouterLinkButton } = components
-const { locFullDateTime } = filters
 
 const router = useRouter()
 const { t } = useI18n()
@@ -265,15 +265,7 @@ const workflowFields = [
     header: t('general.columns.steps'),
     class: 'text-center w-20',
   },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('general.columns.changedAt'),
-    class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 // Resource list composable

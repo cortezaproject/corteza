@@ -204,6 +204,10 @@
           </div>
         </div>
       </template>
+
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
+      </template>
     </CResourceList>
   </div>
 
@@ -222,6 +226,8 @@
 import NamespaceImporter from '@/sections/compose/components/Namespaces/NamespaceImporter.vue'
 import { useNamespaceStore } from '@planetcrust/human-vue'
 import {
+  changedAtText,
+  changedAtField,
   components,
   useConfirmDelete,
   usePermissions,
@@ -304,6 +310,7 @@ const namespaceFields = [
     sortable: true,
     header: t('namespace.manage.table.columns.slug'),
   },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 const {

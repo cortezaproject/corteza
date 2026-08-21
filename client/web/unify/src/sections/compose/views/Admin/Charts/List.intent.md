@@ -20,7 +20,7 @@ choosing its category; manage export, permissions, and deletion from the list.
 
 ## UX capabilities
 
-- Paginated, searchable, sortable table (name/handle/changedAt) scoped to the namespace; rows open the editor only when the chart is updatable or deletable.
+- Paginated, searchable, sortable table (name/handle/changedAt) scoped to the namespace; rows open the editor only when the chart is updatable or deletable. `changedAt` is the shared last column and sorts by COALESCE(deletedAt, updatedAt, createdAt).
 - Create opens a category picker dialog (generic, funnel, gauge, radar) and forwards the choice as `?category` to the create route.
 - Export as JSON: per-chart from the row menu or all listed charts, gated by namespace `canExportCharts`; wildcard permissions button gated by `compose/` `grant`.
 - Row menu: permissions (per-chart `canGrant`), export, delete (confirm + store delete + list refetch).

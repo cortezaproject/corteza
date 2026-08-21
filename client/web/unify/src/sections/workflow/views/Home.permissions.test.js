@@ -10,6 +10,8 @@ const h = vi.hoisted(() => ({ capturedActionItems: null }))
 vi.mock('@planetcrust/human-vue', async () => {
   const { ref, reactive } = await import('vue')
   return {
+    changedAtField: header => ({ key: 'changedAt', header }),
+    changedAtText: () => '',
     components: {
       CResourceList: {
         name: 'CResourceList',

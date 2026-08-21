@@ -69,8 +69,8 @@
         <code class="text-sm">{{ data.handle || '-' }}</code>
       </template>
 
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
       </template>
     </CResourceList>
 
@@ -98,8 +98,9 @@
 
 <script setup>
 import {
+  changedAtText,
+  changedAtField,
   components,
-  filters,
   useConfirmDelete,
   usePermissions,
   useResourceList,
@@ -110,7 +111,6 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { CResourceList } = components
-const { locFullDateTime } = filters
 
 const props = defineProps({
   namespace: {
@@ -149,15 +149,7 @@ const chartFields = [
     sortable: true,
     header: t('chart.list.columns.handle'),
   },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('chart.list.columns.changedAt'),
-    class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 // Resource list composable

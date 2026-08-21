@@ -266,7 +266,6 @@ general:
 import: Module import
 list:
   columns:
-    changedAt: Last change
     handle: Handle
     name: Name
   delete: Delete

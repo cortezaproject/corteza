@@ -21,8 +21,8 @@ remove a client.
 
 - Search, sort, paginate via `useResourceList`; deleted-state filter
   popover.
-- Columns: name (meta.name + description), handle, enabled tag, grant type,
-  createdAt (most recent of deleted/updated/created).
+- Columns: name (meta.name + description), handle, enabled tag, grant type.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - New button; wildcard permissions (system grant) and per-client
   permissions + delete via row actions (RBAC-gated per item).
 - Row click opens the editor.

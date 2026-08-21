@@ -61,8 +61,8 @@
         </div>
       </template>
 
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
       </template>
 
       <template #filter>
@@ -132,8 +132,9 @@
 
 <script setup>
 import {
+  changedAtText,
+  changedAtField,
   components,
-  filters,
   useConfirmDelete,
   usePermissions,
   useRBACStore,
@@ -144,7 +145,6 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { CResourceList, CRouterLinkButton, CViewContainer } = components
-const { locFullDateTime } = filters
 
 const router = useRouter()
 const { t } = useI18n()
@@ -176,15 +176,7 @@ const userGroupListFields = [
     sortable: true,
     header: t('system.user-groups.list.columns.handle'),
   },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('system.user-groups.editor.info.updatedAt'),
-    class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 // Resource list composable

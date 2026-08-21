@@ -113,9 +113,9 @@
             </div>
           </template>
 
-          <template #body-updatedAt="{ data }">
-            <span v-if="data.updatedAt" class="text-sm text-muted-color">
-              {{ formatDate(data.updatedAt) }}
+          <template #body-changedAt="{ data }">
+            <span v-if="changedAt(data)" class="text-sm text-muted-color">
+              {{ formatDate(changedAt(data)) }}
             </span>
           </template>
         </CResourceTable>
@@ -127,7 +127,7 @@
 <script setup>
 import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@planetcrust/human-vue'
+import { changedAt, changedAtField, components } from '@planetcrust/human-vue'
 
 const { CResourceTable, CViewContainer } = components
 const { t } = useI18n()
@@ -146,15 +146,17 @@ const filter = reactive({
   incScriptsWithSecurity: false,
 })
 
+// Corredor scripts are listed in memory from the server's script bundle, so the
+// column cannot be sorted the way a stored resource's can. CResourceTable takes
+// header/body classes rather than the shared `class`.
 const scriptFields = [
   { key: 'name', header: t('automation.scripts.list.columns.name') },
-  {
-    key: 'updatedAt',
-    header: t('automation.scripts.list.columns.updatedAt'),
+  changedAtField(t('general.columns.changedAt'), {
+    sortable: false,
     headerStyle: 'width: 12rem',
     headerClass: 'text-right',
     bodyClass: 'text-right',
-  },
+  }),
 ]
 
 const filtered = computed(() => {

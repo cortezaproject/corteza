@@ -15,6 +15,8 @@ const h = vi.hoisted(() => ({
 }))
 
 vi.mock('@planetcrust/human-vue', () => ({
+  changedAt: r => r?.deletedAt || r?.updatedAt || r?.createdAt,
+  changedAtField: header => ({ key: 'changedAt', header }),
   components: {
     CResourceList: {
       name: 'CResourceList',

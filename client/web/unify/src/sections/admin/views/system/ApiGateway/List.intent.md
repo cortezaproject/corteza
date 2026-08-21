@@ -25,6 +25,7 @@ editing, and profiling routes.
 - Paged/sortable/filterable route list (`useResourceList`) with
   deleted-state filter popover; row click opens the editor; New creates;
   wildcard and per-route permissions; delete via row actions.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - Profiler button appears only when the profiler is not disabled.
 
 ## Routes

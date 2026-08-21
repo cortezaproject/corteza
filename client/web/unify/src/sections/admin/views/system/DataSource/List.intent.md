@@ -25,6 +25,7 @@ connections — see where records live, add or remove external sources.
 - External list fixed to type `dal-connection`: search, sort, paginate via
   `useResourceList`; deleted-state filter popover; New button; delete via
   row actions; row click opens the editor.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 
 ## Routes
 

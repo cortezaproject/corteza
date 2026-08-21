@@ -21,8 +21,8 @@ create a new one, or remove/permission an existing one.
 
 - Search, sort, paginate via `useResourceList`; deleted-state filter
   popover (excluded / inclusive / exclusive).
-- Name column shows name + meta description; enabled state as a tag;
-  createdAt shows the most recent of deleted/updated/created.
+- Name column shows name + meta description; enabled state as a tag.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - New button; wildcard permissions (with system grant) and per-application
   permissions + delete via row actions (RBAC-gated per item).
 - Row click opens the editor.

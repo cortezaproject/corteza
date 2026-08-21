@@ -13,6 +13,7 @@ tests:
   - lib/vue/src/composables/useMinDuration.test.ts
   - lib/vue/src/composables/useRBAC.test.ts
   - lib/vue/src/composables/useResourceList.test.ts
+  - lib/vue/src/composables/useChangedAt.test.ts
   - lib/vue/src/composables/useDraftGuard.test.ts
   - lib/vue/src/composables/useFileUpload.test.ts
   - lib/vue/src/composables/useUnsavedGuard.test.ts
@@ -37,6 +38,7 @@ Sections use these instead of re-implementing per-app variants.
 - useMinDuration.ts — minimum-duration wrapper for async work so spinners don't flash.
 - usePermissions.ts — provide/inject context for the app-level permission dialog (`providePermissions` once in App).
 - useRBAC.ts — `useRBACStore`: effective permission rules from all APIs; `can(resource, op)` defaults to deny.
+- useChangedAt.ts — the one "last change" column every resource list ends with: `changedAtField(header)` for the field, `changedAt`/`changedAtText` for the cell. The value is the most recent of deletedAt/updatedAt/createdAt, read from either a wire row (strings) or a lib/js model (Dates), and Go's zero time counts as no timestamp.
 - useResourceList.ts — full list-view state machine: filter/sort/cursor pagination synced to route query, abortable requests.
 - useRightSidebarResize.ts — mouse-drag resize state for the right sidebar (280–800px clamp).
 - useTheme.ts — PrimeVue preset construction from theme variables, light/dark handling.
@@ -50,6 +52,13 @@ Sections use these instead of re-implementing per-app variants.
   it; `can()` must stay deny-by-default.
 - `useResourceList` owns the URL query contract of list views (limit, cursor,
   sort, filters); changing serialization breaks bookmarked lists.
+- `changedAt` is the one column key `useResourceList` rewrites: it sends
+  `coalesce(deletedAt, updatedAt, createdAt)` so the column orders by the value
+  it displays. Sorting such a column on `updatedAt` alone gives every
+  never-updated row a NULL key, which the database groups at one end.
+- `changedAtText` returns '' for a resource with no timestamp. The date filters
+  parse through moment, which reads a missing value as *now* — an unguarded
+  call renders today for a record that was never written.
 - `usePermissions` throws when no provider exists — keep `providePermissions`
   in the app root.
 - `useHistoryBack` reads the router's `state.back`, never `history.length`:

@@ -19,7 +19,8 @@ manage lifecycle (delete) and permissions from the list.
 
 ## UX capabilities
 
-- Paginated, searchable, sortable list (name/handle/enabled/createdAt); rows open the editor. Display name comes from `meta.short`.
+- Paginated, searchable, sortable list (name/handle/enabled/changedAt); rows open the editor. Display name comes from `meta.short`.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - Tri-state disabled/deleted filters (excluded/inclusive/exclusive) in a popover; defaults include disabled, exclude deleted.
 - Wildcard permissions button gated by `automation/` grant; per-row permissions/delete gated by item `canGrant` / `canDeleteNgAutomation`.
 - Delete confirms, syncs `useAutomationStore`, and refetches the list.

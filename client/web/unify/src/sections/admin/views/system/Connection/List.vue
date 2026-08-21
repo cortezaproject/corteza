@@ -76,6 +76,10 @@
         />
       </template>
 
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
+      </template>
+
       <template #filter>
         <Button
           icon="pi pi-filter"
@@ -119,11 +123,13 @@
 
 <script setup>
 import {
+  changedAtField,
+  changedAtText,
   components,
   useConfirmDelete,
-  useResourceList,
-  useRBACStore,
   usePermissions,
+  useRBACStore,
+  useResourceList,
 } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -167,6 +173,7 @@ const connectionListFields = [
     sortable: true,
     header: t('system.connections.list.columns.source'),
   },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 // Resource list composable

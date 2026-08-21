@@ -33,7 +33,8 @@ the editor or queue permissions.
 
 ## When changing this
 
-- The date column intentionally shows deletedAt ?? updatedAt ?? createdAt —
-  the most recent lifecycle event, not plain creation time.
+- The date column intentionally shows the most recent lifecycle event, not
+  plain creation time; `changedAtField` and the COALESCE sort keep the order
+  and the displayed value the same.
 - Deleted-filter values are strings '0'/'1'/'2' expected by the API; do not
   convert to booleans.

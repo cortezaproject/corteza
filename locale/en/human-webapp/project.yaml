@@ -16,7 +16,6 @@ list:
   newProject: New Project
   untitled: Untitled project
   columns:
-    updatedAt: Last modified
   actions:
     rename: Rename
     archive: Archive

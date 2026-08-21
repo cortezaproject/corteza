@@ -2,7 +2,6 @@ scripts:
   list:
     columns:
       name: Name
-      updatedAt: Last update
     filter:
       absoluteTime: Show absolute time
       incScriptsWithErrors: Errors ({count})
@@ -111,7 +110,6 @@ taq:
       edit: Edit TAQ
   list:
     columns:
-      createdAt: Created
       enabled: Enabled
       handle: Handle
       name: Name
@@ -164,7 +162,6 @@ workflows:
   list:
     columns:
       actions: ''
-      createdAt: Created
       enabled: Enabled
       handle: Handle
       name: Name

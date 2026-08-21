@@ -36,4 +36,5 @@ language, and reach the editor, permissions, or delete.
 - Display name is `meta.short`, not a top-level name field — keep fallbacks
   (`meta.short || handle || templateID`) consistent across list, confirm
   dialogs, and permissions titles.
-- The date column shows the latest of deletedAt/updatedAt/createdAt.
+- The date column shows the latest of deletedAt/updatedAt/createdAt, and
+  sorts by the same COALESCE expression (`changedAtField`).

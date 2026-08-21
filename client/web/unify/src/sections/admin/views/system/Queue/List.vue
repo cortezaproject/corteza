@@ -51,8 +51,8 @@
         </div>
       </template>
 
-      <template #body-createdAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
       </template>
 
       <template #filter>
@@ -100,15 +100,15 @@
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  changedAtText,
+  changedAtField,
   components,
-  filters,
   useConfirmDelete,
-  useResourceList,
-  useRBACStore,
   usePermissions,
+  useRBACStore,
+  useResourceList,
 } from '@planetcrust/human-vue'
 const { CResourceList, CViewContainer } = components
-const { locFullDateTime } = filters
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
@@ -139,13 +139,7 @@ const fields = [
     sortable: true,
     header: t('system.queues.list.columns.consumer'),
   },
-  {
-    key: 'createdAt',
-    sortable: true,
-    header: t('system.queues.list.columns.createdAt'),
-    class: 'text-right',
-    pt: { columnHeaderContent: 'justify-end' },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =

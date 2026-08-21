@@ -23,7 +23,10 @@ archived or deleted.
 ## UX capabilities
 
 - Server-side searched, sorted and paginated project list (name + description,
-  lifecycle status tag, updated date); mutations re-list from the backend.
+  lifecycle status tag, last-change date); mutations re-list from the backend.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
+  Rows are `system.Project` models, whose constructor casts the timestamps to
+  Date; `changedAt` reads that shape as well as the raw wire strings.
 - Filter by lifecycle status from the toolbar. It is a user-facing filter and
   rides the reactive filter state; the chain-head constraint below is not —
   that one is structural and must never be clearable from the UI.

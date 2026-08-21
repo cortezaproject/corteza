@@ -26,6 +26,9 @@ definition editor for local ones, the configure page for catalog ones.
   and per-connection permissions; delete via row actions.
 - Row click: catalog → configure view; local → editor, but only when the
   admin can update or delete it (otherwise inert).
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
+  A catalog entry that is not a stored record yet carries no timestamp, so its
+  cell is blank and it sorts to the empty end.
 
 ## Routes
 

@@ -71,6 +71,9 @@
             "
           />
         </template>
+        <template #body-changedAt="{ data }">
+          {{ changedAtText(data) }}
+        </template>
       </CResourceList>
     </div>
   </div>
@@ -108,7 +111,14 @@
 </template>
 
 <script setup>
-import { components, useResourceList, useRBACStore, usePermissions } from '@planetcrust/human-vue'
+import {
+  changedAtText,
+  changedAtField,
+  components,
+  usePermissions,
+  useRBACStore,
+  useResourceList,
+} from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -132,13 +142,7 @@ const fields = [
   { key: 'name', sortable: true, header: t('federation.nodes.list.columns.name') },
   { key: 'status', sortable: true, header: t('federation.nodes.list.columns.status') },
   { key: 'baseURL', header: t('federation.nodes.list.columns.baseURL') },
-  {
-    key: 'createdAt',
-    sortable: true,
-    header: t('federation.nodes.list.columns.createdAt'),
-    formatter: v => (v ? new Date(v).toLocaleDateString() : ''),
-  },
-  { key: 'actions', header: '', class: 'text-right w-24' },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =

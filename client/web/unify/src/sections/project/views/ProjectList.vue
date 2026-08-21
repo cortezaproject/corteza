@@ -56,8 +56,8 @@
         <span v-else>-</span>
       </template>
 
-      <template #body-updatedAt="{ data }">
-        <span class="text-sm text-muted-color">{{ formatDate(data.updatedAt) }}</span>
+      <template #body-changedAt="{ data }">
+        <span class="text-sm text-muted-color">{{ formatDate(changedAt(data)) }}</span>
       </template>
       <template #filter>
         <Button
@@ -111,7 +111,13 @@ import RenameProjectDialog from '@/sections/project/components/project/RenamePro
 import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import { chainHasPublished } from '@/sections/project/config/publishState'
 import { system } from '@planetcrust/human-js'
-import { components, useRBACStore, useResourceList } from '@planetcrust/human-vue'
+import {
+  changedAt,
+  changedAtField,
+  components,
+  useRBACStore,
+  useResourceList,
+} from '@planetcrust/human-vue'
 import { useConfirm } from 'primevue/useconfirm'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -163,7 +169,7 @@ const {
   },
   {
     filter: { query: '' },
-    sorting: { sortBy: 'updatedAt', sortDesc: true },
+    sorting: { sortBy: 'changedAt', sortDesc: true },
     pagination: { limit: 50 },
   },
 )
@@ -192,13 +198,7 @@ const renameTarget = ref(null)
 const fields = [
   { key: 'name', sortable: false, header: t('general.label.name') },
   { key: 'status', sortable: true, header: t('general.label.status') },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('project.list.columns.updatedAt'),
-    class: 'text-right',
-    pt: { columnHeaderContent: 'justify-end' },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 // Filter menu
 const filterMenu = ref()

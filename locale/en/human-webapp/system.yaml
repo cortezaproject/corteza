@@ -139,7 +139,6 @@ apigw:
   list:
     columns:
       actions: ''
-      createdAt: Created
       enabled: Enabled
       endpoint: Endpoint
       group: Group
@@ -280,7 +279,6 @@ applications:
     columns:
       actions: ''
       appListName: App selector name
-      createdAt: Created
       enabled: Enabled
       name: Name
       state: State
@@ -398,7 +396,6 @@ authclients:
   list:
     columns:
       actions: ''
-      createdAt: Created
       enabled: Enabled
       handle: Handle
       meta:
@@ -789,7 +786,6 @@ llmProviders:
   list:
     columns:
       actions: ''
-      createdAt: Created
       handle: Handle
       meta:
         short: Name
@@ -841,7 +837,6 @@ queues:
     columns:
       actions: ''
       consumer: Consumer
-      createdAt: Created At
       createdBy: Created by
       queue: Queue
       state: State
@@ -895,7 +890,6 @@ roles:
       title: Basic information
       unarchive: Unarchive
       unarchiveConfirm: Are you sure you want to unarchive this role?
-      updatedAt: Updated at
     members:
       empty: No members in this role
       placeholder: Search and add users...
@@ -1221,7 +1215,6 @@ templates:
   list:
     columns:
       actions: ''
-      createdAt: Created
       handle: Handle
       language: Language
       meta:
@@ -1274,7 +1267,6 @@ user-groups:
         title: This user group reports to
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
       title: Basic information
-      updatedAt: Updated at
     members:
       addError: Failed to add member
       empty: No members assigned to this user group yet.
@@ -1448,7 +1440,6 @@ users:
   list:
     columns:
       actions: ''
-      createdAt: Created
       email: Email
       enabled: Enabled
       handle: Handle

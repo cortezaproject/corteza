@@ -21,6 +21,7 @@ namespace lifecycle (create, import, export, permissions, delete) from one place
 ## UX capabilities
 
 - Two switchable modes: card grid (default; renders the whole store set with client-side name/slug search) and a server-backed paginated table.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression. Table mode only — the card grid has no columns.
 - Clicking a namespace enters it at the `pages` route (slug, falling back to namespaceID).
 - Create and import buttons gated by `compose/` `namespace.create`; wildcard permissions button gated by `compose/` `grant`.
 - Per-namespace actions menu (card hover ⋮ / table row): edit, export (opens JWT-signed download URL), permissions dialog, delete — each gated by that item's `can*` flags.

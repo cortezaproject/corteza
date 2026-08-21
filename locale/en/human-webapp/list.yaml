@@ -5,7 +5,6 @@ button:
 columns:
   enabled: Enabled
   name: Name
-  updatedAt: Last update
 delete: Delete
 dialog:
   create:

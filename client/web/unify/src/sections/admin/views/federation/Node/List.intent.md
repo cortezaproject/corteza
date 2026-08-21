@@ -20,6 +20,7 @@ where each pairing handshake stands, and initiate/confirm pairing.
 ## UX capabilities
 
 - Paginated, searchable, sortable node list with pairing-status tags (`paired` / `pair_requested` / unknown); rows open the node editor.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - "Pair" dialog: paste a federation URI generated on another instance — creates the node and starts the handshake (`nodeCreate` + `nodePair`).
 - Per-row actions: permissions (gated by grant), and confirm-pending-pair when status is `pair_requested` (`nodeHandshakeConfirm`).
 - Wildcard permissions button gated by `federation/` grant; resource `corteza::federation:node/<id|*>`.

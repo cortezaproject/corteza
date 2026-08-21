@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { CHANGED_AT_KEY, CHANGED_AT_SORT } from './useChangedAt'
 
 interface PaginationState {
   limit: number
@@ -142,8 +143,8 @@ export function useResourceList<T = any>(
     let { sortBy, sortDesc } = sorting
     const { limit, pageCursor } = pagination
 
-    if (sortBy === 'changedAt') {
-      sortBy = 'coalesce(deletedAt, updatedAt, createdAt)'
+    if (sortBy === CHANGED_AT_KEY) {
+      sortBy = CHANGED_AT_SORT
     }
 
     const sort = sortBy ? `${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined

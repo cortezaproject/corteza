@@ -199,7 +199,6 @@ list:
     handle: Handle
     name: Name
     status: Status
-    updatedAt: Updated
   create: Create agent
   delete: Are you sure you want to delete this agent?
   searchPlaceholder: Search agents

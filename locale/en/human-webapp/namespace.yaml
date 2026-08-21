@@ -54,7 +54,6 @@ manage:
   list-view: Back to namespace list
   table:
     columns:
-      changedAt: Last change
       enabled: Enabled
       name: Name
       slug: Short name

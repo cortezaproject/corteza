@@ -181,6 +181,32 @@ describe('useResourceList', () => {
       await flushPromises()
       expect(api).not.toHaveBeenCalled()
     })
+
+    it('sends the changedAt column as a COALESCE expression', async () => {
+      const api = makeAPI([])
+      const { list } = mountList(api)
+      await flushPromises()
+      api.mockClear()
+
+      list.handleSort({ sortField: 'changedAt', sortOrder: -1 })
+      await flushPromises()
+
+      expect(api).toHaveBeenCalledWith(
+        expect.objectContaining({ sort: 'coalesce(deletedAt, updatedAt, createdAt) DESC' }),
+      )
+    })
+
+    it('leaves any other column as its own name', async () => {
+      const api = makeAPI([])
+      const { list } = mountList(api)
+      await flushPromises()
+      api.mockClear()
+
+      list.handleSort({ sortField: 'updatedAt', sortOrder: 1 })
+      await flushPromises()
+
+      expect(api).toHaveBeenCalledWith(expect.objectContaining({ sort: 'updatedAt ASC' }))
+    })
   })
 
   describe('handlePageChange()', () => {

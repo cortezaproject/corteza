@@ -267,7 +267,6 @@ handle: Handle
 import: 'Import chart(s):'
 list:
   columns:
-    changedAt: Last change
     handle: Handle
     name: Name
   delete: Delete this chart?

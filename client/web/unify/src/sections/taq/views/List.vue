@@ -65,8 +65,8 @@
         />
       </template>
 
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
       </template>
 
       <template #filter>
@@ -139,12 +139,13 @@
 
 <script setup>
 import {
+  changedAtText,
+  changedAtField,
   components,
-  filters,
   useConfirmDelete,
+  usePermissions,
   useRBACStore,
   useResourceList,
-  usePermissions,
 } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -153,7 +154,6 @@ import TaqConfigModal from '../components/common/TaqConfigModal.vue'
 import { useAutomationStore } from '@planetcrust/human-vue'
 
 const { CResourceList } = components
-const { locFullDateTime } = filters
 
 const router = useRouter()
 const { t } = useI18n()
@@ -187,15 +187,7 @@ const listFields = [
     sortable: false,
     header: t('list.columns.enabled'),
   },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('list.columns.updatedAt'),
-    class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 // Resource list composable

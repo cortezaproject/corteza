@@ -20,6 +20,7 @@ Browse and manage RBAC roles, and reach the role editor or role permissions.
 
 - Search + tri-state deleted AND archived filters (popover); sort/paginate
   via `useResourceList`; description shown under the name.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - Create button gated by `role.create`; wildcard permissions button
   (`role/*`) gated by system `grant`.
 - Row action menu: per-role permissions (row `canGrant`), delete

@@ -21,7 +21,7 @@ graph itself is always built in the Builder.
 
 ## UX capabilities
 
-- Paginated, searchable `CResourceList` keyed by `automationID`: name (with description subtitle, "Untitled" fallback), enabled/disabled tag, last-change timestamp (deleted > updated > created).
+- Paginated, searchable `CResourceList` keyed by `automationID`: name (with description subtitle, "Untitled" fallback), enabled/disabled tag, last-change timestamp (deleted > updated > created). It sorts by that same COALESCE expression (`changedAtField`), so the order matches the value shown.
 - Filter popover with tri-state deleted/disabled filters ('0' exclude / '1' include / '2' only).
 - "New" opens `TaqConfigModal` in create mode (creates the record, then navigates into the builder).
 - Row click navigates to `/taq/builder/<automationID>`.

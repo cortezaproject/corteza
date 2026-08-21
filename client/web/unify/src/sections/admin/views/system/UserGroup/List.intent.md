@@ -20,6 +20,7 @@ Browse user groups and reach the group editor, permissions, or delete.
 
 - Search + tri-state deleted AND archived filters (popover); sort/paginate
   via `useResourceList`; name column shows `meta.short` with description.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - Create button gated by `user-group.create`; wildcard permissions
   (`user-group/*`) gated by system `grant`.
 - Row action menu: per-group permissions (row `canGrant`), delete

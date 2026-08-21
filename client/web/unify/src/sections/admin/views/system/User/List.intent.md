@@ -22,6 +22,7 @@ without opening the editor, and reach per-user permissions.
 
 - Search + tri-state suspended AND deleted filters (popover); sort/paginate
   via `useResourceList`; state column badges: suspended / deleted / enabled.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - Create button gated by `user.create`; wildcard permissions (`user/*`)
   gated by system `grant`.
 - Row action menu: permissions (row `canGrant`), suspend/unsuspend

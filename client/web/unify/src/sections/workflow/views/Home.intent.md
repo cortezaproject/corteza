@@ -26,6 +26,7 @@ export/import) without opening the editor; entry point to the canvas.
   subWorkflow / disabled / deleted radios + namespace/module label filter
   (`ref_namespace=[…]` / `ref_module=[…]` label queries); rows resolve
   namespace/module tags through the labels store.
+- The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - Create + Import gated by automation `workflow.create`; wildcard permissions
   gated by `grant`. Row actions: edit, enable/disable, single export
   (workflow + triggers JSON), delete with confirm, undelete.
