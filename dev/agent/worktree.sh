@@ -400,13 +400,33 @@ cmd_rm() {
     die "commit it or remove the checkout by hand — this script will not discard it"
   fi
 
+  # Unmerged commits are the one thing here that cannot be rebuilt, so say what
+  # happened to them. `branch -d` refuses to delete unmerged work, and swallowing
+  # that refusal is how a clean-looking "removed" hides a branch still holding
+  # the only copy of a commit.
+  local ahead
+  ahead="$(git -C "$primary" rev-list --count "main..$name" 2>/dev/null || echo 0)"
+
   cmd_down "$name" || true
   git -C "$primary" worktree remove "$path" --force
-  [[ -z "$keep_branch" ]] && git -C "$primary" branch -d "$name" 2>/dev/null || true
   pg dropdb --if-exists "$db"
   rm -f "$(meta "$name")"
   release_slot "$slot"
-  echo "removed '$name' (checkout, database $db, slot freed)"
+
+  if [[ -n "$keep_branch" ]]; then
+    echo "removed '$name' (checkout, database $db, slot freed); branch kept"
+  elif [[ "$ahead" -gt 0 ]]; then
+    echo "removed '$name' (checkout, database $db, slot freed)"
+    echo
+    echo "branch '$name' KEPT — it holds $ahead commit(s) that are not on main:" >&2
+    git -C "$primary" log --oneline "main..$name" >&2
+    echo >&2
+    echo "  land them:  git merge $name        (from $primary)" >&2
+    echo "  or discard: git branch -D $name" >&2
+  else
+    git -C "$primary" branch -d "$name" >/dev/null 2>&1 || true
+    echo "removed '$name' (checkout, database $db, branch, slot freed)"
+  fi
 }
 
 case "${1:-}" in
