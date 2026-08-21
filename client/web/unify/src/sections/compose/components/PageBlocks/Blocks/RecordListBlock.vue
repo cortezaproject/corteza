@@ -76,7 +76,7 @@
               ? $t('block.recordList.showRecords.existing')
               : $t('block.recordList.showRecords.deleted')
           "
-          :icon="showingDeletedRecords ? 'pi pi-eye' : 'pi pi-trash'"
+          icon="pi pi-trash"
           :severity="showingDeletedRecords ? 'warn' : 'secondary'"
           :outlined="!showingDeletedRecords"
           size="small"
