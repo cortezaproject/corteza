@@ -221,6 +221,7 @@ worktree.sh up   [NAME]              start its server and webapp
 worktree.sh down [NAME] [--force]    stop them
 worktree.sh list                     every slot and what is running
 worktree.sh land NAME [--keep]       rebase onto main, merge, remove
+worktree.sh gc   [--reap]            find abandoned worktrees and databases
 worktree.sh rm   NAME                stop, drop the DB, remove the checkout
 ```
 
@@ -233,6 +234,19 @@ worktree's `git status`.
 The whole flow works in there — unit tests, API, browser, and e2e. Playwright
 reads `E2E_BASE_URL` from the worktree's `.env.e2e`, so `npx playwright test`
 run from the worktree hits the worktree.
+
+### Nothing cleans itself up
+
+Closing a tab reaps none of this. The checkout, branch, database and slot all
+survive, and the servers are their own process group, so they outlive the
+terminal too. Only `rm` and `land` remove anything, and a session that ends
+mid-task calls neither.
+
+`worktree.sh gc` is what finds the leftovers — an entry whose checkout is gone,
+a database no entry claims, a worktree that is clean and fully merged and
+serving nothing. It reports; `--reap` removes. A worktree holding uncommitted
+work or unmerged commits is reported in full and never touched: that work
+exists nowhere else.
 
 ### Getting the work onto main
 

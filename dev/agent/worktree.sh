@@ -15,6 +15,7 @@
 #   worktree.sh list                     every slot, with what is running
 #   worktree.sh info [NAME]              ports, DB and paths for one worktree
 #   worktree.sh land NAME [--keep]       rebase onto main, merge, remove
+#   worktree.sh gc   [--reap]            find abandoned worktrees and databases
 #   worktree.sh rm   NAME [--keep-branch]  stop, drop DB, remove checkout
 #
 # Ports are derived from the slot, so two worktrees can never collide:
@@ -439,6 +440,108 @@ cmd_land() {
   fi
 }
 
+# ------------------------------------------------------------------ gc -------
+
+# Find what nothing is going to clean up on its own.
+#
+# Closing a tab reaps none of this: the checkout, the branch, the database and
+# the slot all survive, and the servers are their own process group so they
+# outlive the terminal too. Only rm and land remove anything, and a session
+# that ends mid-task calls neither.
+#
+# Reports by default. --reap removes only what cannot lose anything: an entry
+# whose checkout is gone, a database no entry claims, and a worktree that is
+# clean, fully merged and not serving. Uncommitted work is never touched — it
+# is the only thing here that exists nowhere else.
+cmd_gc() {
+  local reap=""
+  [[ "${1:-}" == "--reap" ]] && reap=1
+
+  local primary base found=0 held=0
+  primary="$(primary_repo)"
+  base="$(db_name_base)"
+
+  for f in "$WT_DIR"/*.json; do
+    [[ -f "$f" ]] || continue
+    local name path db slot dirty ahead running
+    name="$(json_get name <"$f")"
+    path="$(json_get path <"$f")"
+    db="$(json_get db <"$f")"
+    slot="$(json_get slot <"$f")"
+
+    # Checkout gone: nothing left to lose, only residue to drop.
+    if [[ ! -d "$path" ]]; then
+      found=$((found + 1))
+      if [[ -n "$reap" ]]; then
+        pg dropdb --if-exists "$db" 2>/dev/null || true
+        git -C "$primary" worktree prune 2>/dev/null || true
+        rm -f "$f"
+        release_slot "$slot"
+        echo "reaped  $name — checkout was already gone (database $db, slot $slot)"
+      else
+        echo "stale   $name — checkout gone, database $db and slot $slot still held"
+      fi
+      continue
+    fi
+
+    running=""
+    port_busy "$(json_get gin <"$f")" && running="serving"
+    port_busy "$(json_get vite <"$f")" && running="serving"
+
+    dirty="$(git -C "$path" status --porcelain 2>/dev/null |
+      grep -v 'dev/agent/\.state$' || true)"
+    ahead="$(git -C "$primary" rev-list --count "main..$name" 2>/dev/null || echo 0)"
+
+    if [[ -n "$dirty" || "$ahead" -gt 0 || -n "$running" ]]; then
+      held=$((held + 1))
+      echo "HOLD    $name — $(
+        [[ -n "$running" ]] && printf 'servers up; '
+        [[ "$ahead" -gt 0 ]] && printf '%s unmerged commit(s); ' "$ahead"
+        [[ -n "$dirty" ]] && printf '%s uncommitted file(s); ' "$(echo "$dirty" | wc -l)"
+        true
+      )not touched"
+      [[ -n "$dirty" ]] && echo "$dirty" | sed 's/^/          /'
+      [[ "$ahead" -gt 0 ]] && git -C "$primary" log --oneline "main..$name" | sed 's/^/          /'
+      echo "          $path  ·  http://localhost:$(json_get vite <"$f")"
+      continue
+    fi
+
+    found=$((found + 1))
+    if [[ -n "$reap" ]]; then
+      cmd_rm "$name" >/dev/null && echo "reaped  $name — clean and fully merged"
+    else
+      echo "reapable $name — clean, fully merged, not serving"
+    fi
+  done
+
+  # A database whose worktree nobody records. Costs disk and a name forever.
+  local d
+  while read -r d; do
+    [[ -n "$d" ]] || continue
+    local claimed=""
+    for f in "$WT_DIR"/*.json; do
+      [[ -f "$f" ]] || continue
+      [[ "$(json_get db <"$f")" == "$d" ]] && claimed=1 && break
+    done
+    [[ -n "$claimed" ]] && continue
+    found=$((found + 1))
+    if [[ -n "$reap" ]]; then
+      pg dropdb --if-exists "$d" && echo "reaped  database $d — no worktree claims it"
+    else
+      echo "orphan  database $d — no worktree claims it"
+    fi
+  done < <(pg psql -tAc "select datname from pg_database where datname like '${base}_wt%'" 2>/dev/null || true)
+
+  report_orphans
+
+  if [[ "$found" -eq 0 && "$held" -eq 0 ]]; then
+    echo "nothing to collect"
+  elif [[ -z "$reap" && "$found" -gt 0 ]]; then
+    echo
+    echo "$found item(s) safe to remove — 'worktree.sh gc --reap'"
+  fi
+}
+
 # ----------------------------------------------------------------- rm --------
 
 cmd_rm() {
@@ -512,6 +615,10 @@ case "${1:-}" in
   info)
     shift
     cmd_info "$@"
+    ;;
+  gc)
+    shift
+    cmd_gc "$@"
     ;;
   land)
     shift
