@@ -42,9 +42,11 @@ type (
 	userPayload struct {
 		*types.User
 
-		CanGrant      bool `json:"canGrant"`
-		CanUpdateUser bool `json:"canUpdateUser"`
-		CanDeleteUser bool `json:"canDeleteUser"`
+		CanGrant         bool `json:"canGrant"`
+		CanUpdateUser    bool `json:"canUpdateUser"`
+		CanDeleteUser    bool `json:"canDeleteUser"`
+		CanSuspendUser   bool `json:"canSuspendUser"`
+		CanUnsuspendUser bool `json:"canUnsuspendUser"`
 	}
 
 	userSetPayload struct {
@@ -78,6 +80,8 @@ type (
 		CanCreateUser(context.Context) bool
 		CanUpdateUser(context.Context, *types.User) bool
 		CanDeleteUser(context.Context, *types.User) bool
+		CanSuspendUser(context.Context, *types.User) bool
+		CanUnsuspendUser(context.Context, *types.User) bool
 	}
 )
 
@@ -564,8 +568,10 @@ func (ctrl User) makePayload(ctx context.Context, res *types.User, err error) (*
 
 		CanGrant: ctrl.userAc.CanGrant(ctx),
 
-		CanUpdateUser: ctrl.userAc.CanUpdateUser(ctx, res),
-		CanDeleteUser: ctrl.userAc.CanDeleteUser(ctx, res),
+		CanUpdateUser:    ctrl.userAc.CanUpdateUser(ctx, res),
+		CanDeleteUser:    ctrl.userAc.CanDeleteUser(ctx, res),
+		CanSuspendUser:   ctrl.userAc.CanSuspendUser(ctx, res),
+		CanUnsuspendUser: ctrl.userAc.CanUnsuspendUser(ctx, res),
 	}
 
 	return pl, nil
