@@ -197,9 +197,21 @@ func leftRequestedPath(out uiResult) bool {
 	return trim(out.RequestedPath) != trim(out.LandedPath)
 }
 
-// webappURL is where vite serves the app.
+// webappURL is where vite serves the app for THIS checkout.
+//
+// .env.e2e first: every worktree gets one naming its own vite port, and the
+// literal in playwright.config.ts is that file's fallback rather than its
+// value — reading the config alone answers 5173 for every worktree, so a check
+// run inside a worktree would silently exercise the primary's webapp.
 func webappURL(root string) string {
-	if raw, err := readFirstMatch(filepath.Join(root, "client", "web", "unify", "playwright.config.ts"),
+	unify := filepath.Join(root, "client", "web", "unify")
+
+	if raw, err := readFirstMatch(filepath.Join(unify, ".env.e2e"),
+		"E2E_BASE_URL=", "\n"); err == nil && strings.TrimSpace(raw) != "" {
+		return strings.TrimSpace(raw)
+	}
+
+	if raw, err := readFirstMatch(filepath.Join(unify, "playwright.config.ts"),
 		"E2E_BASE_URL || '", "'"); err == nil && raw != "" {
 		return raw
 	}
