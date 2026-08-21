@@ -97,6 +97,60 @@ capi POST "/system/users/$ui_uid/password" \
   -d "{\"password\":\"$(cat "$STATE_DIR/ui-password")\"}" >/dev/null
 echo "UI login ready: $ui_email / \$(cat dev/agent/.state/ui-password)"
 
+# Read-only browser-login user, for checking what a user WITHOUT permission
+# sees: the admin sidebar drops what it cannot reach, and an editor opened by
+# deep link renders read-only. The role allows a deliberate SUBSET — users and
+# roles, read only — so a gate that has stopped working shows up as entries
+# that should have gone and fields that should have been disabled.
+#
+# It has no user group, so everything not allowed below resolves to deny.
+ro_email="agent-ro@local.dev"
+# NOT `?handle=` — the roles list accepts that param and ignores it, handing
+# back the first role of all (super-admin), which would then be granted the
+# fixture's rules and members.
+ro_role=$(capi GET "/system/roles/?limit=500" | json_pick response.set handle agent_readonly roleID) || ro_role=""
+if [[ -z "$ro_role" ]]; then
+  ro_role=$(capi POST /system/roles/ \
+    -d '{"name":"Dev Agent read-only (RBAC fixture)","handle":"agent_readonly"}' |
+    json_get response.roleID)
+  echo "role agent_readonly created (ID $ro_role)"
+fi
+
+# Guard: never write the fixture's rules or members onto another role.
+ro_role_handle=$(capi GET "/system/roles/$ro_role" | json_get response.handle) || ro_role_handle=""
+[[ "$ro_role_handle" == "agent_readonly" ]] || {
+  echo "refusing to configure role $ro_role — its handle is '$ro_role_handle', not agent_readonly" >&2
+  exit 1
+}
+
+# `corteza::system/` is the component resource; `corteza::system:component` is
+# refused. Application access is what admits the section at all — without it the
+# shell bounces every admin route to /?denied=admin.
+capi PATCH "/system/permissions/$ro_role/rules" -d '{"rules":[
+  {"resource":"corteza::system/","operation":"users.search","access":"allow"},
+  {"resource":"corteza::system/","operation":"roles.search","access":"allow"},
+  {"resource":"corteza::system:user/*","operation":"read","access":"allow"},
+  {"resource":"corteza::system:role/*","operation":"read","access":"allow"},
+  {"resource":"corteza::system:application/*","operation":"read","access":"allow"},
+  {"resource":"corteza::system:application/*","operation":"access","access":"allow"}
+]}' >/dev/null
+echo "role agent_readonly rules applied"
+
+ro_uid=$(capi GET "/system/users/?email=$ro_email" | json_get response.set.0.userID) || ro_uid=""
+if [[ -z "$ro_uid" ]]; then
+  ro_uid=$(capi POST /system/users/ \
+    -d "{\"email\":\"$ro_email\",\"name\":\"Dev Agent RO (read-only browser login)\",\"handle\":\"agent_ro\"}" |
+    json_get response.userID)
+  echo "user $ro_email created"
+fi
+capi POST "/system/roles/$ro_role/member/$ro_uid" >/dev/null 2>&1 || true
+if [[ ! -f "$STATE_DIR/ro-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; then
+  openssl rand -hex 12 >"$STATE_DIR/ro-password"
+fi
+capi POST "/system/users/$ro_uid/password" \
+  -d "{\"password\":\"$(cat "$STATE_DIR/ro-password")\"}" >/dev/null
+echo "read-only login ready: $ro_email / \$(cat dev/agent/.state/ro-password)"
+
 rm -f "$STATE_DIR/token" "$STATE_DIR/token-exp"
 if ! "$AGENT_DIR/token.sh" >/dev/null; then
   echo "oauth client_credentials flow failed for client '$AGENT_CLIENT'" >&2

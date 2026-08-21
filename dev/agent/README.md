@@ -54,6 +54,28 @@ dev/agent/api.sh GET '/system/users/?limit=5'
 dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_demo"}'
 ```
 
+## Two browser logins
+
+`bootstrap.sh` provisions both, idempotently; the passwords live in
+`.state/` and are gitignored.
+
+| user                 | password file        | sees                                                         |
+| -------------------- | -------------------- | ------------------------------------------------------------ |
+| `agent-ui@local.dev` | `.state/ui-password` | everything — super-admin; the default for UI checks          |
+| `agent-ro@local.dev` | `.state/ro-password` | users and roles, read only — role `agent_readonly`, no group |
+
+The read-only user exists to check what someone **without** permission gets,
+which a super-admin account cannot show: the admin sidebar drops the entries it
+cannot reach (5 of 30 remain), and an editor opened by deep link renders its
+banner with every field disabled. A list row does not open the editor at all
+for such a user, so deep-link to it.
+
+Its role allows a deliberate SUBSET, so a gate that has stopped working shows up
+as entries that should have gone. Two things about the rules are easy to get
+wrong: the component resource is `corteza::system/` (`corteza::system:component`
+is refused), and without `access` on `corteza::system:application/*` the shell
+bounces every admin route to `/?denied=admin`.
+
 ## Checking the webapp
 
 `verify-ui.mjs` answers "did this path render clean". Anything needing a second

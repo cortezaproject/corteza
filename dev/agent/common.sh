@@ -31,6 +31,33 @@ command -v python3 >/dev/null || {
   exit 1
 }
 
+# json_pick LIST.PATH KEY VALUE FIELD — read JSON on stdin, find the element of
+# the list at LIST.PATH whose KEY equals VALUE, print its FIELD; exit 1 if none.
+# Filtering here rather than in a query param is deliberate: several list
+# endpoints accept a filter they never apply (`/system/roles/?handle=` echoes an
+# empty handle and returns every role), so trusting one silently returns the
+# WRONG record rather than nothing.
+json_pick() {
+  python3 -c '
+import json, sys
+path, key, want, field = sys.argv[1].split("."), sys.argv[2], sys.argv[3], sys.argv[4]
+try:
+    d = json.load(sys.stdin)
+    for p in path:
+        d = d[int(p)] if isinstance(d, list) else d[p]
+except Exception:
+    sys.exit(1)
+for item in d or []:
+    if str(item.get(key)) == want:
+        v = item.get(field)
+        if v is None:
+            sys.exit(1)
+        print(v)
+        sys.exit(0)
+sys.exit(1)
+' "$@"
+}
+
 # json_get DOTTED.PATH — read JSON on stdin, print value at path; exit 1 if absent.
 json_get() {
   python3 -c '
