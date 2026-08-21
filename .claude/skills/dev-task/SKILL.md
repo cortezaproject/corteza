@@ -7,33 +7,41 @@ description: The task-level workflow — triage, write the task, scout, clarify,
 
 The procedure for taking a piece of work from a sentence to something landed.
 
-Three rules govern everything below:
+Four rules govern everything below:
 
 - **Questions are for decisions, not status.** Ask when two readings of the task
   would produce materially different work. Never ask "shall I proceed" — that is
-  the human doing your job.
+  the human doing your job. `➡️ NEXT` follows the same test — offer the moves
+  when there is something to weigh, name the next one when there is not.
 - **Nothing is true because a report said so.** Not a subagent's transcript, not
   a green test, not your own earlier reasoning. Claims get re-run.
 - **A statement about what the software does is a claim, and a claim needs the
   file open.** Not the call site skimmed, not the function's name read, not the
   argument list inferred from.
+- **Every turn reports in the standard block, and every open thing is asked.**
+  Not just the final one — a scouting turn and a verification turn report in the
+  same eight sections, sized to what they have.
 
-## How to ask
+## How to report
 
-Every question round in this skill is an interview, and a question is not an
-interview just because it uses AskUserQuestion.
+**The format is `.claude/reporting.md`** — read it before your first report and
+follow it verbatim: the status line, the eight sections in order, the five-bullet
+cap, the confidence rubric, and the rule that anything needed from the human is
+an `AskUserQuestion` rather than a sentence.
 
-- **Explain the question and each option well enough to decide on.** An option
-  is a sentence about what it means and what it costs, never a bare label.
-- **Recommendation first**, marked as such, with the reason.
-- **Order by what blocks the most.** The pressing decision leads; the cosmetic
-  one can wait or go unasked.
-- **Put the evidence in the question.** What was measured, what failed, what the
-  investigation turned up.
-- **End the turn with the questions.** If decisions are open, the last thing in
-  the turn is the interview — not a summary that buries them.
-- Batch the round: several related decisions together beats dripping one at a
-  time.
+Count the status line's steps out of 9, and name the step by what it is doing:
+`ordinary · step 5/9 · investigating`.
+
+What this skill adds to it:
+
+- **Steps 4 and 6 are interview rounds by name.** If a round turns up nothing
+  worth asking, say so in `❓ OPEN` and move on — do not invent a question, and
+  do not skip the round silently.
+- **`🔍 FOUND` is where step 5's three mandatory checks land** — the governing
+  contracts, the baseline, the prior art. All three appear, including the ones
+  that came back empty; "no intent doc governs this path" is a finding.
+- **`📊 CONFIDENCE` is graded against the step-6 criteria**, not against a
+  feeling that the change is sound. Criteria unchecked means Medium at best.
 
 ## 0. Triage — pick a lane, say which
 
@@ -142,6 +150,10 @@ slice is a mechanical sweep.
 **A brief is only good enough if it says what is already known to be wrong** —
 specific enough for the agent to come back and falsify it.
 
+**Require the standard block back from every subagent**, confidence included.
+Their grade is theirs: it comes down one step in your report until you have
+re-run the claim yourself.
+
 **Consolidation is yours, and it is a named step, not a hope.** After every
 fan-out, read the diffs together and factor what duplicated.
 
@@ -172,10 +184,11 @@ Anything that fails here goes back to step 7 — or further, per the loop rules.
 
 ## 9. Present, and record what surprised you
 
-Report what changed, what you verified and how, and what you deliberately did
-not do. Failures and skipped work get stated plainly, with the output. The
-report is where a task ends: the issue tracker is never yours to close, comment
-on, or ask about (CLAUDE.md § Commit convention).
+**The full block, every section, per `.claude/reporting.md`.** Failures and
+skipped work go in `⚠️ NOT DONE` plainly, with the output — a task that half
+worked reports as a task that half worked. The report is where a task ends: the
+issue tracker is never yours to close, comment on, or ask about (CLAUDE.md
+§ Commit convention).
 
 **Remove what you created.** `dev_fixture_cleanup` (or `dev/agent/cleanup.sh`)
 deletes what this session's ledger records and nothing else — data the session
@@ -186,7 +199,10 @@ Then **write down what surprised you**, in the repo, where the next session will
 find it: a wrong assumption in a brief, an endpoint that is not what its name
 suggests, a check that reported success without checking.
 
-Finally, offer the next decision. If more questions are needed, loop:
+Finally, `➡️ NEXT`. Anything the human could weigh in on — a decision, a
+preference, which of the moves below — is an `AskUserQuestion`, never a written
+question. If there is genuinely nothing, name the next move and stop. Where more
+is needed, loop:
 
 - **New information changes the plan** → back to step 5.
 - **The plan was wrong** → back to step 6.

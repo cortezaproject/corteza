@@ -15,6 +15,7 @@ config.js
 # .claude is shared via git (hooks config + team skills); local-only files stay ignored
 .claude/*
 !.claude/settings.json
+!.claude/reporting.md
 !.claude/skills/
 .claude/settings.local.json
 .env.e2e

@@ -10,6 +10,25 @@ use them in. If a tool below is not available, the server is not connected —
 tell the human to restart their MCP client, and fall back to the shell
 equivalents (`git status`, `go test`, `gofmt`).
 
+## How to report
+
+**The format is `.claude/reporting.md`** — read it before your first report and
+follow it verbatim: the status line, the eight sections in order, the five-bullet
+cap, the confidence rubric, and the rule that anything needed from the human is
+an `AskUserQuestion` rather than a sentence. It holds whether this skill was
+invoked directly or called by `/dev-task`.
+
+Count the status line's steps out of 7: `dev-change · step 3/7 · baseline`.
+
+What this skill adds to it:
+
+- **`🔍 FOUND` carries step 2's answer verbatim** when a contract or WIP marker
+  is in scope. A contract restated in your own words has stopped being the
+  contract, and paraphrasing it into a bullet is how it stops being one.
+- **A change whose test was never broken to prove it asserts is Medium**, per
+  step 6, however green the suite is.
+- **`⚠️ NOT DONE` holds the second problem** you found and did not fold in.
+
 ## 1. Orient
 
 `dev_branch_status` — branch, base, how far ahead, what is already dirty.
@@ -93,8 +112,8 @@ before staging) and warns on the rest.
 What this skill adds is only what "verified and nothing open" means here:
 steps 4–6 actually ran — tests green, the change exercised at its own layer,
 the test proven to have teeth — and nothing you turned up in them is still
-waiting. If the human asks for a commit anyway, say plainly what is still open,
-then do as they asked.
+waiting. If the human asks for a commit anyway, say plainly what is still open
+in `⚠️ NOT DONE`, then do as they asked.
 
 ## What this skill is not
 

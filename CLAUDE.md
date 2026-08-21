@@ -30,6 +30,9 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   pointer to the decision that produced the line. History is git's job and
   rationale is the intent doc's; a comment earns its place only by saying
   something the code next to it cannot.
+- **Reporting**: `/dev-task` and `/dev-change` reply in the standard block —
+  sections, confidence grade, open things asked as an interview. The format is
+  `.claude/reporting.md`.
 - **Commits**: see **[Commit convention](#commit-convention)** below — the one
   statement of it. Skills and `dev_commit_create` point here rather than
   restating it.
