@@ -118,7 +118,7 @@ const RECORD_PERMISSIONS: ScopeEntry[] = [
   { name: 'canReadRecord', type: 'Bool' },
   { name: 'canUndeleteRecord', type: 'Bool', suggest: false },
   { name: 'canManageOwnerOnRecord', type: 'Bool', suggest: false },
-  { name: 'canSearchRevision', type: 'Bool', suggest: false },
+  { name: 'canSearchRevisions', type: 'Bool', suggest: false },
   { name: 'canGrant', type: 'Bool', suggest: false },
 ]
 

@@ -81,7 +81,7 @@ export class Record {
   public canDeleteRecord = false
   public canUndeleteRecord = false
   public canManageOwnerOnRecord = false
-  public canSearchRevision = false
+  public canSearchRevisions = false
   public canGrant = false
 
   // @ts-ignore
@@ -174,6 +174,7 @@ export class Record {
       'canDeleteRecord',
       'canUndeleteRecord',
       'canManageOwnerOnRecord',
+      'canSearchRevisions',
       'canGrant',
     )
 
@@ -458,7 +459,7 @@ export class Record {
       'canDeleteRecord',
       'canUndeleteRecord',
       'canManageOwnerOnRecord',
-      'canSearchRevision',
+      'canSearchRevisions',
       'canGrant',
     ]
   }
