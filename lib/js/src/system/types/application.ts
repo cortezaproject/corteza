@@ -35,6 +35,7 @@ export class Application {
   }
 
   public canGrant: boolean = true
+  public canAccessApplication: boolean = true
   public canUpdateApplication: boolean = true
   public canDeleteApplication: boolean = true
   public createdAt?: Date = undefined
@@ -50,7 +51,16 @@ export class Application {
     Apply(this, r, String, 'name')
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, r, Number, 'weight', 'ownerID')
-    Apply(this, r, Boolean, 'enabled', 'canGrant', 'canUpdateApplication', 'canDeleteApplication')
+    Apply(
+      this,
+      r,
+      Boolean,
+      'enabled',
+      'canGrant',
+      'canAccessApplication',
+      'canUpdateApplication',
+      'canDeleteApplication',
+    )
 
     if (r && IsOf(r, 'unify')) {
       this.unify = { ...this.unify, ...r.unify }

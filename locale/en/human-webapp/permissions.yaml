@@ -424,6 +424,10 @@ resources:
       all: all applications
       label: Applications
       operations:
+        access:
+          description: 'Default: deny'
+          specific: Open and use {target}
+          title: Open and use any application
         delete:
           description: 'Default: deny'
           specific: Delete {target}

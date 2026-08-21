@@ -114,6 +114,8 @@ application: {
 		operations: {
 			read:
 				description: "Read application"
+			access:
+				description: "Access application"
 			update:
 				description: "Update application"
 			delete:

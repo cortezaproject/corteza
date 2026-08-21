@@ -184,6 +184,11 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ApplicationResourceType,
 			"any":  types.ApplicationRbacResource(0),
+			"op":   "access",
+		},
+		{
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
 			"op":   "update",
 		},
 		{
@@ -1218,6 +1223,13 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 // This function is auto-generated
 func (svc accessControl) CanReadApplication(ctx context.Context, r *types.Application) bool {
 	return svc.can(ctx, "read", r)
+}
+
+// CanAccessApplication checks if current user can access application
+//
+// This function is auto-generated
+func (svc accessControl) CanAccessApplication(ctx context.Context, r *types.Application) bool {
+	return svc.can(ctx, "access", r)
 }
 
 // CanUpdateApplication checks if current user can update application
@@ -2905,6 +2917,7 @@ func rbacResourceOperations(r string) map[string]bool {
 	case types.ApplicationResourceType:
 		return map[string]bool{
 			"read":   true,
+			"access": true,
 			"update": true,
 			"delete": true,
 		}

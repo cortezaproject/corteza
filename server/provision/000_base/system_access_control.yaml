@@ -8,6 +8,12 @@ allow:
     corteza::system:auth-client/*:
       - authorize
 
+    # The app menu. Every result is filtered per application by `read`, so on
+    # its own this reveals nothing; without it the shell cannot fetch the list
+    # it gates section entry on, and would have to fail open.
+    corteza::system/:
+      - applications.search
+
   admin:
     corteza::system/:
       - grant
@@ -75,6 +81,7 @@ allow:
 
     corteza::system:application/*:
       - read
+      - access
       - update
       - delete
 
@@ -259,6 +266,7 @@ allow:
 
     corteza::system:application/*:
       - read
+      - access
       - update
       - delete
 
@@ -288,3 +296,28 @@ allow:
 
     corteza::system/:
       - data-privacy-requests.search
+
+deny:
+  # Grants an earlier baseline gave every logged-in user. Provisioning only ever
+  # adds rules, so an install that once carried them keeps them for good; an
+  # explicit deny is what takes them back. Role holders are unaffected: role
+  # kinds resolve in priority order and a common or context role returns on its
+  # own allow before the authenticated tier is read (pkg/rbac/ruleset_checks.go).
+  # A deployment that genuinely wants one of these for everybody grants it to a
+  # role instead.
+  authenticated:
+    corteza::system/:
+      - auth-clients.search
+      - users.search
+      - roles.search
+
+    corteza::system:user/*:
+      - read
+      - email.unmask
+      - name.unmask
+
+    corteza::system:application/*:
+      - read
+
+    corteza::system:role/*:
+      - read

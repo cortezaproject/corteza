@@ -37,6 +37,7 @@ type (
 	applicationAccessController interface {
 		CanGrant(context.Context) bool
 
+		CanAccessApplication(context.Context, *types.Application) bool
 		CanUpdateApplication(context.Context, *types.Application) bool
 		CanDeleteApplication(context.Context, *types.Application) bool
 	}
@@ -45,6 +46,7 @@ type (
 		*types.Application
 
 		CanGrant             bool `json:"canGrant"`
+		CanAccessApplication bool `json:"canAccessApplication"`
 		CanUpdateApplication bool `json:"canUpdateApplication"`
 		CanDeleteApplication bool `json:"canDeleteApplication"`
 	}
@@ -217,6 +219,7 @@ func (ctrl Application) makePayload(ctx context.Context, m *types.Application, e
 
 		CanGrant: ctrl.ac.CanGrant(ctx),
 
+		CanAccessApplication: ctrl.ac.CanAccessApplication(ctx, m),
 		CanUpdateApplication: ctrl.ac.CanUpdateApplication(ctx, m),
 		CanDeleteApplication: ctrl.ac.CanDeleteApplication(ctx, m),
 	}, nil

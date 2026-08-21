@@ -49,19 +49,40 @@ func provisionPartialBase(ctx context.Context, s store.Storer, log *zap.Logger) 
 		return true
 	}
 
-	// Deliberately keyed on the project resource type alone rather than on
-	// every type the base config mentions: a re-import restates the whole
-	// file, so a deployment that has removed one of the base grants would get
-	// it back. Once per newly-introduced resource type is a defensible price
+	// Deliberately keyed on a named few of the types and operations the base
+	// config mentions rather than on all of them: a re-import restates the
+	// whole file, so a deployment that has removed one of the base grants
+	// would get it back. Once per newly-introduced model is a defensible price
 	// for the feature being reachable at all; once per anything would not be.
+	var (
+		hasProject   bool
+		hasAppAccess bool
+	)
+
 	for _, r := range pp {
-		if rbac.ResourceType(r.Resource) == types.ProjectResourceType {
-			return false
+		switch rbac.ResourceType(r.Resource) {
+		case types.ProjectResourceType:
+			hasProject = true
+		case types.ApplicationResourceType:
+			// The operation, not the type: applications predate webapp access
+			// control, so every install already holds application rules.
+			if r.Operation == "access" {
+				hasAppAccess = true
+			}
 		}
 	}
 
-	log.Info("base config carries project permissions this install has never seen; re-importing it")
-	return true
+	if !hasProject {
+		log.Info("base config carries project permissions this install has never seen; re-importing it")
+		return true
+	}
+
+	if !hasAppAccess {
+		log.Info("base config carries webapp access permissions this install has never seen; re-importing it")
+		return true
+	}
+
+	return false
 }
 
 // provisionPartialAuthClients checks for a specific set of auth client rbac rules
