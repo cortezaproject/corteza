@@ -2350,7 +2350,7 @@ export default class Compose {
 
   // Generates report from module records
   async recordReport(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, metrics, dimensions, filter } = (a as KV) || {}
+    const { namespaceID, moduleID, metrics, dimensions, filter, deleted } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2372,6 +2372,7 @@ export default class Compose {
       metrics,
       dimensions,
       filter,
+      deleted,
     }
 
     return this.api()

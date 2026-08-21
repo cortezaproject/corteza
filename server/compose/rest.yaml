@@ -1097,6 +1097,10 @@ endpoints:
         name: filter
         required: false
         title: 'Filter (eg: ''DATE(foo) > 2010'')'
+      - type: uint
+        name: deleted
+        required: false
+        title: "Exclude (0, default), include (1) or return only (2) deleted records"
   - name: list
     method: GET
     title: List/read records from module section

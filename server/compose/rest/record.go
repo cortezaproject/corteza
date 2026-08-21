@@ -97,7 +97,7 @@ func (Record) New() *Record {
 }
 
 func (ctrl *Record) Report(ctx context.Context, r *request.RecordReport) (interface{}, error) {
-	return ctrl.record.Report(ctx, r.NamespaceID, r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
+	return ctrl.record.Report(ctx, r.NamespaceID, r.ModuleID, r.Metrics, r.Dimensions, r.Filter, filter.State(r.Deleted))
 }
 
 func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{}, error) {

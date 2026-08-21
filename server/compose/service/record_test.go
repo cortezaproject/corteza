@@ -7,6 +7,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/store/adapters/rdbms"
 
 	"github.com/crusttech/human/server/compose/service/values"
@@ -1034,7 +1035,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 	}
 
 	t.Run("no additional metrics", func(t *testing.T) {
-		pp, _, err := recordReportToDalPipeline(mod, "", "created_at", "")
+		pp, _, err := recordReportToDalPipeline(mod, "", "created_at", "", filter.StateExcluded)
 		require.NoError(t, err)
 
 		require.Len(t, pp, 2)
@@ -1045,7 +1046,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 	})
 
 	t.Run("additional metrics with alias", func(t *testing.T) {
-		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers) AS   something", "created_at", "")
+		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers) AS   something", "created_at", "", filter.StateExcluded)
 		require.NoError(t, err)
 
 		require.Len(t, pp, 2)
@@ -1057,7 +1058,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 	})
 
 	t.Run("additional metrics without alias", func(t *testing.T) {
-		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers)", "created_at", "")
+		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers)", "created_at", "", filter.StateExcluded)
 		require.NoError(t, err)
 
 		require.Len(t, pp, 2)
@@ -1066,6 +1067,19 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 		require.Len(t, agg.OutAttributes, 2)
 		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Identifier)
 		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].RawExpr)
+	})
+
+	// A report cannot reach deleted records through its filter: the datasource
+	// drops them before the filter is applied. The caller's state is the only
+	// way to count them, so it has to reach the datasource unchanged.
+	t.Run("deleted state reaches the datasource", func(t *testing.T) {
+		for _, state := range []filter.State{filter.StateExcluded, filter.StateInclusive, filter.StateExclusive} {
+			pp, _, err := recordReportToDalPipeline(mod, "", "created_at", "", state)
+			require.NoError(t, err)
+
+			ds := pp[0].(*dal.Datasource)
+			require.Equal(t, state, ds.Filter.StateConstraints()["deletedAt"])
+		}
 	})
 }
 

@@ -60,6 +60,11 @@ type (
 		//
 		// Filter (eg: 'DATE(foo) > 2010')
 		Filter string
+
+		// Deleted GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) deleted records
+		Deleted uint
 	}
 
 	RecordList struct {
@@ -557,6 +562,7 @@ func (r RecordReport) Auditable() map[string]interface{} {
 		"metrics":     r.Metrics,
 		"dimensions":  r.Dimensions,
 		"filter":      r.Filter,
+		"deleted":     r.Deleted,
 	}
 }
 
@@ -585,6 +591,11 @@ func (r RecordReport) GetFilter() string {
 	return r.Filter
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r RecordReport) GetDeleted() uint {
+	return r.Deleted
+}
+
 // Fill processes request and fills internal variables
 func (r *RecordReport) Fill(req *http.Request) (err error) {
 
@@ -606,6 +617,12 @@ func (r *RecordReport) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["filter"]; ok && len(val) > 0 {
 			r.Filter, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
+			r.Deleted, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}
