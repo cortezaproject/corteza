@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-2">
+  <div :class="containerClass">
     <Button
       v-for="(btn, i) in buttons"
       :key="i"
@@ -7,7 +7,8 @@
       :severity="mapVariant(btn.variant)"
       :loading="processingIDs.includes(i)"
       :disabled="processingIDs.includes(i)"
-      size="small"
+      :size="size"
+      :class="buttonClass"
       @click.prevent="handleButton(btn, i)"
     />
   </div>
@@ -28,6 +29,9 @@ const props = defineProps({
   record: { type: Object, default: undefined },
   records: { type: Array, default: () => [] },
   filter: { type: String, default: '' },
+  containerClass: { type: String, default: 'flex gap-2' },
+  buttonClass: { type: String, default: '' },
+  size: { type: String, default: null },
 })
 
 const emit = defineEmits(['refresh'])
@@ -41,6 +45,8 @@ const processingIDs = ref([])
 const variantSeverityMap = {
   primary: undefined,
   secondary: 'secondary',
+  light: 'secondary',
+  dark: 'contrast',
   success: 'success',
   danger: 'danger',
   warning: 'warn',

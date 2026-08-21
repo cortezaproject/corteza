@@ -259,6 +259,7 @@
           :module="recordListModule"
           :records="selectedRecords"
           :filter="currentQuery"
+          size="small"
           @refresh="fetchRecords(true)"
         />
         <Divider layout="vertical" class="!mx-1 !my-0 h-6" />
