@@ -317,6 +317,16 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	// Blocks are the documented merge exception: incoming blocks are matched by
 	// blockID against the existing set instead of replacing it, so a caller can
 	// add or amend one block without resending the page's whole layout.
+	var (
+		// The page's blockIDs before the merge, so the layout step can tell a
+		// block genuinely new to the page from one that was only amended.
+		blocksBefore = make(map[uint64]bool, len(pg.Blocks))
+		placeOn      *cmpTypes.PageLayout
+	)
+	for _, b := range pg.Blocks {
+		blocksBefore[b.BlockID] = true
+	}
+
 	if rawBlocks, ok := args["blocks"]; ok && rawBlocks != nil {
 		blocks, sent, err := parsePageBlocks(rawBlocks)
 		if err != nil {
@@ -337,6 +347,19 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		}
 
 		pg.Blocks = autoLayoutBlocks(pg.Blocks)
+
+		// A new block carries no blockID until the service assigns one, so this
+		// is what marks the page as gaining blocks. The layout is resolved here,
+		// before the page is written, so an ambiguous placement refuses a call
+		// that has not happened yet rather than one that half did.
+		for _, b := range pg.Blocks {
+			if b.BlockID == 0 {
+				if placeOn, err = resolvePlacementLayout(ctx, nsID, pg.ID, args); err != nil {
+					return nil, err
+				}
+				break
+			}
+		}
 	}
 
 	// Config and meta replace wholesale: present-and-empty clears them.
@@ -355,6 +378,12 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	pg, err = cmpService.DefaultPage.Update(ctx, pg)
 	if err != nil {
 		return nil, toolkit.Errf("page update", err)
+	}
+
+	if placeOn != nil {
+		if err = placeBlocks(ctx, placeOn, pg, blocksBefore); err != nil {
+			return nil, err
+		}
 	}
 
 	return toolkit.JSONResult(pg)
@@ -425,7 +454,7 @@ func (h *pageHandler) removeBlocks(ctx context.Context, req mcp.CallToolRequest)
 		return nil, err
 	}
 
-	_, pg, err := h.resolvePage(ctx, args)
+	nsID, pg, err := h.resolvePage(ctx, args)
 	if err != nil {
 		return nil, err
 	}
@@ -479,6 +508,10 @@ func (h *pageHandler) removeBlocks(ctx context.Context, req mcp.CallToolRequest)
 	pg, err = cmpService.DefaultPage.Update(ctx, pg)
 	if err != nil {
 		return nil, toolkit.Errf("page block removal", err)
+	}
+
+	if err = unplaceBlocks(ctx, nsID, pg.ID, remove); err != nil {
+		return nil, err
 	}
 
 	return toolkit.JSONResult(pg)
@@ -619,6 +652,129 @@ func findPageByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTyp
 	}
 
 	return nil, fmt.Errorf("page %q not found", ref)
+}
+
+// resolvePlacementLayout picks the layout a page update's new blocks are placed
+// on. A page holds what its blocks ARE; a layout holds where they go, and a
+// block no layout names is never drawn — so a new block with nowhere to go is a
+// call that succeeds and shows nothing.
+func resolvePlacementLayout(ctx context.Context, nsID, pageID uint64, args map[string]any) (*cmpTypes.PageLayout, error) {
+	set, err := pageLayouts(ctx, nsID, pageID)
+	if err != nil {
+		return nil, err
+	}
+
+	return pickPlacementLayout(set, toolkit.Str(args, "layout"))
+}
+
+// pickPlacementLayout resolves the named layout, or the only one there is.
+//
+// A page with several layouts has no default worth guessing: each is a
+// deliberately different subset of the page's blocks, so picking one would put
+// the block somewhere the caller did not ask for and hide it everywhere else.
+// It refuses instead, and lists what it could have meant.
+func pickPlacementLayout(set cmpTypes.PageLayoutSet, ref string) (*cmpTypes.PageLayout, error) {
+	if ref != "" {
+		for _, l := range set {
+			if ref == strconv.FormatUint(l.ID, 10) || (l.Handle != "" && ref == l.Handle) {
+				return l, nil
+			}
+		}
+		return nil, fmt.Errorf("page layout %q not found on this page", ref)
+	}
+
+	switch len(set) {
+	case 0:
+		return nil, fmt.Errorf("page has no layout to place a new block on; create one with compose_page_layout_create")
+	case 1:
+		return set[0], nil
+	}
+
+	names := make([]string, 0, len(set))
+	for _, l := range set {
+		if l.Handle != "" {
+			names = append(names, l.Handle)
+			continue
+		}
+		names = append(names, strconv.FormatUint(l.ID, 10))
+	}
+
+	return nil, fmt.Errorf(
+		"page has %d layouts (%s) and a new block must be placed on one of them: pass 'layout'",
+		len(set), strings.Join(names, ", "),
+	)
+}
+
+// placeBlocks adds the blocks new to the page onto layout, at the positions the
+// page assigned them.
+func placeBlocks(ctx context.Context, layout *cmpTypes.PageLayout, pg *cmpTypes.Page, before map[uint64]bool) error {
+	placed, changed := withNewBlocks(layout.Blocks, pg.Blocks, before)
+	if !changed {
+		return nil
+	}
+
+	layout.Blocks = placed
+	if _, err := cmpService.DefaultPageLayout.Update(ctx, layout); err != nil {
+		return toolkit.Errf("page layout update", err)
+	}
+
+	return nil
+}
+
+// withNewBlocks appends every page block that is neither already placed nor in
+// the before set, keeping the xywh the page gave it.
+func withNewBlocks(placed cmpTypes.PageLayoutBlocks, blocks cmpTypes.PageBlocks, before map[uint64]bool) (cmpTypes.PageLayoutBlocks, bool) {
+	seen := make(map[uint64]bool, len(placed))
+	for _, lb := range placed {
+		seen[lb.BlockID] = true
+	}
+
+	out, changed := placed, false
+	for _, b := range blocks {
+		if before[b.BlockID] || seen[b.BlockID] {
+			continue
+		}
+		out = append(out, cmpTypes.PageLayoutBlock{BlockID: b.BlockID, XYWH: b.XYWH})
+		changed = true
+	}
+
+	return out, changed
+}
+
+// unplaceBlocks drops blockIDs from every layout of the page. Removal needs no
+// layout argument: a block the page no longer has cannot be drawn anywhere, so
+// there is no choice for the caller to make.
+func unplaceBlocks(ctx context.Context, nsID, pageID uint64, removed map[uint64]bool) error {
+	set, err := pageLayouts(ctx, nsID, pageID)
+	if err != nil {
+		return err
+	}
+
+	for _, layout := range set {
+		kept, changed := withoutBlocks(layout.Blocks, removed)
+		if !changed {
+			continue
+		}
+
+		layout.Blocks = kept
+		if _, err = cmpService.DefaultPageLayout.Update(ctx, layout); err != nil {
+			return toolkit.Errf("page layout update", err)
+		}
+	}
+
+	return nil
+}
+
+// withoutBlocks drops every placement naming a removed block.
+func withoutBlocks(placed cmpTypes.PageLayoutBlocks, removed map[uint64]bool) (cmpTypes.PageLayoutBlocks, bool) {
+	kept := make(cmpTypes.PageLayoutBlocks, 0, len(placed))
+	for _, lb := range placed {
+		if !removed[lb.BlockID] {
+			kept = append(kept, lb)
+		}
+	}
+
+	return kept, len(kept) != len(placed)
 }
 
 // inheritBlockLayout copies the stored xywh onto every incoming block that

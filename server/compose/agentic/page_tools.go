@@ -55,7 +55,7 @@ func (h *pageHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_create",
-			mcp.WithDescription(`Create a new page in a namespace. A page is a screen in the namespace's navigation; it holds blocks that render records, charts and content. There are two distinct page types:
+			mcp.WithDescription(`Create a new page in a namespace — the page holds what its blocks ARE (kind, options, title) and a LAYOUT holds where they go, so create seeds the page's primary layout from the blocks you send. A page is a screen in the namespace's navigation; it holds blocks that render records, charts and content. There are two distinct page types:
 
 1. Record list page — shows all records in a table. Do NOT set the module parameter at page level. Add a RecordList block with moduleID in its options.
 2. Record detail page — the form for viewing or editing a single record. Set the module parameter at page level. Add a Record block with the fields to display. Only one record detail page can exist per module, and creating a second one for the same module is rejected.
@@ -85,7 +85,10 @@ Call compose_page_block_schema with the block kind to get its options before cre
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_update",
 			mcp.WithDescription(
-				"Update an existing page. An argument you omit is left unchanged. Sending an empty string "+
+				"Update an existing page — the page holds what its blocks ARE and a LAYOUT is what places them, "+
+					"so a block added here is also placed on a layout: name it with 'layout', or omit that on a "+
+					"page that has only one. "+
+					"An argument you omit is left unchanged. Sending an empty string "+
 					"clears the value: 'parent' moves the page to the root, 'module' unlinks the module, "+
 					"'handle' and 'description' are emptied. 'title' is the exception — a page without one is "+
 					"unusable, so an empty title is ignored rather than applied. "+
@@ -103,6 +106,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID (as string to prevent precision loss)")),
+			mcp.WithString("layout", mcp.Description("Layout handle or ID (as string) that blocks NEW to the page are placed on. Only read when 'blocks' introduces a block. Omit it on a page with a single layout and that layout is used; on a page with several, omitting it is refused rather than guessed. Existing blocks are never re-placed.")),
 			mcp.WithString("title", mcp.Description("New title. An empty string is ignored — a page cannot be left without a title.")),
 			mcp.WithString("handle", mcp.Description("New handle. Pass an empty string to clear it. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed.")),
 			mcp.WithString("description", mcp.Description("New description. Pass an empty string to clear it.")),
@@ -175,9 +179,11 @@ Call compose_page_block_schema with the block kind to get its options before cre
 					"page: compose_page_update MERGES the blocks it is given by blockID, so it can add a block "+
 					"or overwrite one but never drop one. Use that tool to change a block and this one to "+
 					"delete it. "+
-					"This edits a page's layout, it does not delete the page — that is compose_page_delete — "+
-					"and it touches nothing a block pointed at: the module, records or chart a block rendered "+
-					"are left exactly as they were, because a block is only a view onto them. "+
+					"This takes a block off the page, it does not delete the page — that is compose_page_delete "+
+					"— and it touches nothing a block pointed at: the module, records or chart a block "+
+					"rendered are left exactly as they were, because a block is only a view onto them. "+
+					"A removed block is also dropped from every layout of the page, because a block the page "+
+					"no longer has cannot be placed anywhere; no 'layout' argument is needed for that. "+
 					"Call compose_page_lookup with 'page' first to read the current blocks and their blockIDs; "+
 					"blockIDs are assigned per page as blocks are created, so they mean nothing on another "+
 					"page. Every ID you pass must exist on this page — an unknown blockID is rejected and "+

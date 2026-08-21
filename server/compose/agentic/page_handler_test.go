@@ -1,6 +1,7 @@
 package agentic
 
 import (
+	"strings"
 	"testing"
 
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -314,5 +315,95 @@ func TestMergePageBlocksAppendsBlocksWithoutAnID(t *testing.T) {
 	}
 	if len(out) != 2 || out[1].Kind != "Metric" || out[0].Kind != "Content" {
 		t.Fatalf("got %+v, want the new block appended after the existing one", out)
+	}
+}
+
+func TestPickPlacementLayoutTakesTheOnlyLayout(t *testing.T) {
+	set := cmpTypes.PageLayoutSet{{ID: 7, Handle: "primary"}}
+
+	l, err := pickPlacementLayout(set, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if l.ID != 7 {
+		t.Errorf("got layout %d, want 7", l.ID)
+	}
+}
+
+func TestPickPlacementLayoutRefusesToGuessBetweenSeveral(t *testing.T) {
+	// Each layout is a deliberately different subset of the page's blocks, so
+	// choosing one would hide the block in the others.
+	set := cmpTypes.PageLayoutSet{
+		{ID: 7, Handle: "primary"},
+		{ID: 8, Handle: "closed"},
+	}
+
+	_, err := pickPlacementLayout(set, "")
+	if err == nil {
+		t.Fatal("expected a refusal, got none")
+	}
+	for _, want := range []string{"primary, closed", "pass 'layout'"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error %q does not mention %q", err, want)
+		}
+	}
+}
+
+func TestPickPlacementLayoutResolvesByHandleAndID(t *testing.T) {
+	set := cmpTypes.PageLayoutSet{
+		{ID: 7, Handle: "primary"},
+		{ID: 8, Handle: "closed"},
+	}
+
+	byHandle, err := pickPlacementLayout(set, "closed")
+	if err != nil || byHandle.ID != 8 {
+		t.Errorf("by handle: got %v, %v; want layout 8", byHandle, err)
+	}
+
+	byID, err := pickPlacementLayout(set, "7")
+	if err != nil || byID.ID != 7 {
+		t.Errorf("by id: got %v, %v; want layout 7", byID, err)
+	}
+
+	if _, err = pickPlacementLayout(set, "nope"); err == nil {
+		t.Error("expected an unknown layout to be rejected")
+	}
+}
+
+func TestWithNewBlocksPlacesOnlyBlocksNewToThePage(t *testing.T) {
+	placed := cmpTypes.PageLayoutBlocks{{BlockID: 1, XYWH: [4]int{0, 0, 24, 20}}}
+	blocks := cmpTypes.PageBlocks{
+		{BlockID: 1, XYWH: [4]int{0, 0, 24, 20}},
+		{BlockID: 2, XYWH: [4]int{0, 20, 24, 20}},
+	}
+
+	out, changed := withNewBlocks(placed, blocks, map[uint64]bool{1: true})
+	if !changed || len(out) != 2 {
+		t.Fatalf("got %d placements (changed=%v), want 2 and true", len(out), changed)
+	}
+	if out[1].BlockID != 2 || out[1].XYWH != [4]int{0, 20, 24, 20} {
+		t.Errorf("got %v, want block 2 at [0 20 24 20]", out[1])
+	}
+}
+
+func TestWithNewBlocksLeavesAnOptionsOnlyEditAlone(t *testing.T) {
+	placed := cmpTypes.PageLayoutBlocks{{BlockID: 1, XYWH: [4]int{0, 0, 24, 20}}}
+	blocks := cmpTypes.PageBlocks{{BlockID: 1, XYWH: [4]int{0, 0, 24, 20}}}
+
+	if out, changed := withNewBlocks(placed, blocks, map[uint64]bool{1: true}); changed || len(out) != 1 {
+		t.Errorf("got %d placements (changed=%v), want 1 and false", len(out), changed)
+	}
+}
+
+func TestWithoutBlocksDropsRemovedPlacements(t *testing.T) {
+	placed := cmpTypes.PageLayoutBlocks{{BlockID: 1}, {BlockID: 2}, {BlockID: 3}}
+
+	kept, changed := withoutBlocks(placed, map[uint64]bool{2: true})
+	if !changed || len(kept) != 2 || kept[0].BlockID != 1 || kept[1].BlockID != 3 {
+		t.Errorf("got %v (changed=%v), want blocks 1 and 3", kept, changed)
+	}
+
+	if _, changed = withoutBlocks(placed, map[uint64]bool{9: true}); changed {
+		t.Error("removing a block the layout does not place should change nothing")
 	}
 }
