@@ -1,10 +1,9 @@
 allow:
   # No compose access is granted to the platform-wide "authenticated" role: a
   # plain logged-in user can't read any namespace, module, record, page or chart
-  # by default. All data access is governed per project — project roles are
-  # auto-granted their own namespace baseline on creation (see the role service's
-  # grantProjectNamespaceAccess), and per-resource read/write is toggled in the
-  # project permission matrix.
+  # by default. All data access is governed per project, by the rules the
+  # project permission matrix writes against that project's own namespace.
+  # Nothing grants a project role anything on its own.
   admin:
     corteza::compose/:
       - grant
