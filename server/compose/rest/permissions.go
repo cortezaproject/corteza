@@ -16,6 +16,7 @@ type (
 
 	permissionsAccessController interface {
 		Effective(context.Context, ...rbac.Resource) rbac.EffectiveSet
+		EffectiveFor(context.Context, string) (rbac.EffectiveSet, error)
 		Trace(context.Context, uint64, []uint64, ...string) ([]*rbac.Trace, error)
 		List() []map[string]string
 		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
@@ -31,7 +32,13 @@ func (Permissions) New() *Permissions {
 }
 
 func (ctrl Permissions) Effective(ctx context.Context, r *request.PermissionsEffective) (interface{}, error) {
-	return ctrl.ac.Effective(ctx, types.Component{}), nil
+	// Without a resource the answer is the component's own operations — the
+	// ones a caller asks about before it has anything to point at.
+	if r.Resource == "" {
+		return ctrl.ac.Effective(ctx, types.Component{}), nil
+	}
+
+	return ctrl.ac.EffectiveFor(ctx, r.Resource)
 }
 
 func (ctrl Permissions) Trace(ctx context.Context, r *request.PermissionsTrace) (interface{}, error) {
