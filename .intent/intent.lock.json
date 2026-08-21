@@ -807,9 +807,9 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/AutomationBlock.vue": {
-      "h": "b69968a0c1cd",
+      "h": "a35ac678e3bf",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-18"
+      "t": "2026-08-21"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CalendarBlock.vue": {
       "h": "28f6de2f4eae",
@@ -907,9 +907,9 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordListBlock.vue": {
-      "h": "496677c78e87",
+      "h": "e5ba39f55856",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-08-18"
+      "t": "2026-08-21"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordOrganizerBlock.vue": {
       "h": "135e07046aa1",
@@ -1036,10 +1036,15 @@
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/registry.intent.md",
       "t": "2026-08-13"
     },
-    "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.vue": {
-      "h": "9167a38d0a8a",
+    "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.test.js": {
+      "h": "1082b2c89f80",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-08-21"
+    },
+    "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.vue": {
+      "h": "3db85cb9b942",
+      "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
+      "t": "2026-08-21"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtonsEditor.vue": {
       "h": "275bde23d362",
