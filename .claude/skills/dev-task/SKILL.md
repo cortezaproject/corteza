@@ -40,6 +40,8 @@ What this skill adds to it:
 - **`🔍 FOUND` is where step 5's three mandatory checks land** — the governing
   contracts, the baseline, the prior art. All three appear, including the ones
   that came back empty; "no intent doc governs this path" is a finding.
+- **The footer names the checkout this task is in**, so the human can open it
+  without asking. In a worktree that is its own URL, not the primary's.
 - **`📊 CONFIDENCE` is graded against the step-6 criteria**, not against a
   feeling that the change is sound. Criteria unchecked means Medium at best.
 

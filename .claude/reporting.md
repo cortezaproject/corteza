@@ -40,6 +40,8 @@ reproduced at the user's layer before and after; tests proven to bite
 
 ➡️ NEXT
 commit the three files — asked below
+
+🔗 wt-alpha · http://localhost:5176 · ~/Human/human-worktrees/wt-alpha
 ```
 
 ### Status line
@@ -47,6 +49,28 @@ commit the three files — asked below
 `lane · step N/total · what is running right now`. `/dev-task` counts steps out
 of 9, `/dev-change` out of 7. It is one line and it is never omitted: a
 mid-task turn has to say where in the flow it is without being read.
+
+### The footer
+
+**One line, last, every time: where the human can go and look.** They should
+never have to ask which port this work is on, or reconstruct it from a slot
+number.
+
+```
+🔗 <checkout> · <webapp URL> · <path>
+```
+
+- **The checkout this turn's work lives in**, whether that is a worktree or the
+  primary. Add a second line only for another checkout the turn actually
+  touched — never a listing of every worktree on the machine.
+- **Say when it is not serving.** A URL that answers nothing is worse than no
+  URL: `http://localhost:5176 (down — 'worktree.sh up wt-alpha')`.
+- **The path is there to be diffed**, so give the real one:
+  `git -C <path> diff main` is what shows a worktree's work, committed and
+  uncommitted both. `git diff main...<branch>` shows nothing until it commits.
+- Add the API URL only when the turn's own verification went through it.
+
+`dev/agent/worktree.sh list` has the ports; the URL is `http://localhost:<vite>`.
 
 ### What each section holds
 

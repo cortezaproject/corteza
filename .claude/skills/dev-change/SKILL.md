@@ -29,6 +29,8 @@ What this skill adds to it:
   step 6, however green the suite is.
 - **`⚠️ NOT DONE` holds the second problem** you found and did not fold in —
   and it goes to `backlog.sh` at the same time, or it is forgotten.
+- **The footer names the checkout and its URL** — after a change, that is where
+  the human goes to look at it.
 - **A change that needs the server** belongs in its own worktree
   (`dev/agent/worktree.sh new`), not in a checkout another session is editing.
 
