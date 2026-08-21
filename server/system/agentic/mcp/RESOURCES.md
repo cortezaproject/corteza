@@ -97,6 +97,12 @@ the webapp's theme — rather than derived from a resource that does not exist.
 Any later settings-backed family should follow the same rule and be recorded
 here, so the next author finds a precedent instead of inventing one.
 
+`system_skill` follows that rule. It maps to no REST resource either: the
+skills are markdown files embedded from `system/agentic/skills/library`, read
+by the agentic runtime and — through `system_skill_lookup` — by any MCP client.
+The segment is named for what the caller reads. It is a `lookup` only; a skill
+is changed by editing the repository, not the instance.
+
 ## Prefix shadowing
 
 Two families produce names where one resource's prefix is another's:

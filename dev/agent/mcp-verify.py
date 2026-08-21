@@ -190,11 +190,13 @@ def verify_schema(_sid):
                     bad_lookup.append(f"{name} requires its own ref {ref}")
             # A lookup must be bounded, not necessarily paged. The exemptions
             # mirror server/tests/mcp/registry_test.go and are claims about the
-            # data source: event types are a compile-time slice, not a store,
-            # and a theme lookup reads three fixed variants.
+            # data source: event types are a compile-time slice, not a store, a
+            # theme lookup reads three fixed variants, and the skill library is
+            # markdown embedded at build time.
             if "limit" not in props and name not in (
                 "automation_event_type_lookup",
                 "system_theme_lookup",
+                "system_skill_lookup",
             ):
                 bad_lookup.append(f"{name} declares no limit")
 

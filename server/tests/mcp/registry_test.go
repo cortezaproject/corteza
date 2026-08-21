@@ -26,6 +26,7 @@ import (
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
 	sysAgentic "github.com/crusttech/human/server/system/agentic"
 	"github.com/crusttech/human/server/system/agentic/policy"
+	"github.com/crusttech/human/server/system/agentic/skills"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -65,9 +66,19 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	sysAgentic.AuthClientHandler(reg)
 	sysAgentic.ApplicationHandler(reg)
 	sysAgentic.ThemeHandler(reg)
+	sysAgentic.SkillHandler(reg, skillLibrary(t))
 	sysAgentic.DiscoveryHandler(reg, "http://discovery.invalid", stubSigner{})
 
 	return reg
+}
+
+// skillLibrary loads the embedded skill library the same way boot does. A
+// failure here is a malformed markdown file in the library, not a test problem.
+func skillLibrary(t *testing.T) skills.Registry {
+	t.Helper()
+	lib, err := skills.LoadLibrary()
+	require.NoError(t, err)
+	return lib
 }
 
 // legacyNames are the three shipped tool names that predate the grammar and are
@@ -246,6 +257,10 @@ func TestLookupContract(t *testing.T) {
 		// provisioning. There is no store behind it to page through, and the
 		// whole palette is a few hundred bytes.
 		"system_theme_lookup": true,
+		// An embedded markdown library, compiled in. Listing it returns a name
+		// and a one-line description each, and reading one is deliberately the
+		// whole file.
+		"system_skill_lookup": true,
 	}
 
 	// Of those, the ones that cannot meaningfully bound either. discovery_search
@@ -253,6 +268,7 @@ func TestLookupContract(t *testing.T) {
 	noLimit := map[string]bool{
 		"automation_event_type_lookup": true,
 		"system_theme_lookup":          true,
+		"system_skill_lookup":          true,
 	}
 
 	for _, tool := range buildRegistry(t).Tools() {
@@ -344,7 +360,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"RecordHandler(", "NamespaceHandler(", "ModuleHandler(", "PageHandler(",
 		"ChartHandler(", "PageLayoutHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ReminderHandler(",
 		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
-		"AuthClientHandler(", "ApplicationHandler(", "ThemeHandler(",
+		"AuthClientHandler(", "ApplicationHandler(", "ThemeHandler(", "SkillHandler(",
 	} {
 		assert.Containsf(t, src, ctor,
 			"buildRegistry wires %s but boot_levels.go does not; one of them is wrong", ctor)
@@ -359,6 +375,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"ReminderHandler": true, "DiscoveryHandler": true,
 		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
 		"AuthClientHandler": true, "ApplicationHandler": true, "ThemeHandler": true,
+		"SkillHandler": true,
 	}
 	for _, line := range strings.Split(src, "\n") {
 		for _, prefix := range []string{"cmpAgentic.", "autoAgentic.", "sysAgentic."} {

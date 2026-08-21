@@ -282,6 +282,11 @@ var resourceScopeExempt = map[string]bool{
 	"system_theme_lookup": true,
 	"system_theme_update": true,
 
+	// The skill library is an embedded set of markdown files, identical for
+	// every caller and read-only. There is no namespace, module or record for
+	// checkAllow to narrow on.
+	"system_skill_lookup": true,
+
 	// TAQ authoring. Classified with lookup rather than with exec for the same
 	// reason undelete is: it changes what an automation is, not which one runs.
 	// A TAQ carries no compose namespace or module dimension for checkAllow to

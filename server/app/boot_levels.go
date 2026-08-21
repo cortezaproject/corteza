@@ -49,6 +49,7 @@ import (
 	"github.com/crusttech/human/server/store"
 	sysAgentic "github.com/crusttech/human/server/system/agentic"
 	"github.com/crusttech/human/server/system/agentic/observability"
+	agenticSkills "github.com/crusttech/human/server/system/agentic/skills"
 	"github.com/crusttech/human/server/system/service"
 	sysService "github.com/crusttech/human/server/system/service"
 	sysEvent "github.com/crusttech/human/server/system/service/event"
@@ -459,6 +460,16 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	sysAgentic.AuthClientHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ApplicationHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ThemeHandler(sysService.DefaultMCPRegistry)
+
+	// The skill library is embedded, so a failure to load it is a build-time
+	// mistake in a markdown file rather than a runtime condition. The tool is
+	// skipped rather than registered empty: a skill lookup that always answers
+	// "nothing" reads as "this instance has no guidance" instead of as a fault.
+	if skillLib, err := agenticSkills.LoadLibrary(); err != nil {
+		app.Log.Error("could not load the agentic skill library", zap.Error(err))
+	} else {
+		sysAgentic.SkillHandler(sysService.DefaultMCPRegistry, skillLib)
+	}
 	if app.Opt.Discovery.Enabled && app.Opt.Discovery.BaseUrl != "" && app.Opt.Discovery.JwtSecret != "" {
 		discoverySigner, err := auth.NewTokenIssuer(auth.WithSecretSigner(app.Opt.Discovery.JwtSecret))
 		if err != nil {
