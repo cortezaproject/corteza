@@ -136,6 +136,32 @@ describe('MetricBlock drill-down', () => {
     expect(drill().payload.prefilter).toBe('(createdAt >= DATE_SUB(NOW(), INTERVAL 7 DAY))')
   })
 
+  it('asks the list for the record state the metric counted', async () => {
+    const w = await settle(mountBlock('', { deleted: 2 }))
+
+    await w.find('.metric-item').trigger('click')
+
+    // No filter can stand in for this: the list fetches deleted records or it
+    // does not, and the report the tile counted with did the same
+    expect(drill().payload.deleted).toBe(2)
+  })
+
+  it('leaves the list on existing records for an ordinary metric', async () => {
+    const w = await settle(mountBlock('ownedBy = ${userID}'))
+
+    await w.find('.metric-item').trigger('click')
+
+    expect(drill().payload.deleted).toBe(0)
+  })
+
+  it('names the tile so the list can say what narrowed it', async () => {
+    const w = await settle(mountBlock('ownedBy = ${userID}'))
+
+    await w.find('.metric-item').trigger('click')
+
+    expect(drill().payload.name).toBe('Owned by me')
+  })
+
   it('sends no filter at all for the metric that counts everything', async () => {
     const w = await settle(mountBlock(''))
 

@@ -341,6 +341,9 @@ function drillDown(metric, value) {
   if (drillDownOpts.blockID) {
     $eventBus?.emit(`drill-down-recordList:${drillDownOpts.blockID}`, {
       prefilter,
+      // A metric reading deleted records asks the list for the same state: it
+      // is what the report counted, and no filter can stand in for it.
+      deleted: metric.deleted || 0,
       name: drillDownValue,
       value: drillDownValue,
     })

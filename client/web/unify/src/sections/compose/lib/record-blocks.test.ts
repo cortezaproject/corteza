@@ -167,12 +167,14 @@ describe('adminRecordListBlocks', () => {
     expect(rest.every(m => !!m.filter || !!m.deleted)).toBe(true)
   })
 
-  it('drills every tile into a dialog of its own', () => {
-    for (const tile of built().tiles) {
+  it('drills every tile into the table beside it', () => {
+    const { tiles, list } = built()
+
+    for (const tile of tiles) {
       const { drillDown } = tile.options.metrics[0]
       expect(drillDown.enabled).toBe(true)
-      // A blockID would filter the table on screen instead of opening a dialog
-      expect(drillDown.blockID).toBeFalsy()
+      // Names the table, so the tile narrows it rather than opening its own
+      expect(drillDown.blockID).toBe(list.blockID)
     }
   })
 

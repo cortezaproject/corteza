@@ -3,8 +3,10 @@
     <!-- Toolbar -->
     <div v-if="recordListModule" class="flex items-center gap-2 p-3 border-b">
       <!-- Add Record button (inline mode: prepend new row; otherwise: navigate) -->
+      <!-- Not while the list is on deleted records: what it made would land
+           among the existing ones, where this view cannot show it. -->
       <span
-        v-if="!options.hideAddButton && recordListModule?.canCreateRecord"
+        v-if="!options.hideAddButton && recordListModule?.canCreateRecord && !showingDeletedRecords"
         v-tooltip.bottom="addRecordDisabled ? $t('block.noRecordPage') : ''"
       >
         <Button
@@ -50,21 +52,6 @@
         @click="$refs.presetMenuRef?.toggle($event)"
       />
 
-      <!-- Show deleted records toggle -->
-      <Button
-        v-if="options.showDeletedRecordsOption"
-        :label="
-          showingDeletedRecords
-            ? $t('block.recordList.showRecords.existing')
-            : $t('block.recordList.showRecords.deleted')
-        "
-        :icon="showingDeletedRecords ? 'pi pi-eye' : 'pi pi-trash'"
-        :severity="showingDeletedRecords ? 'warn' : 'secondary'"
-        :outlined="!showingDeletedRecords"
-        size="small"
-        @click="toggleDeletedRecords"
-      />
-
       <!-- Configure Fields button -->
       <Button
         v-if="!options.hideConfigureFieldsButton"
@@ -79,8 +66,22 @@
       <!-- Spacer -->
       <div class="flex-1" />
 
-      <!-- Filter button + Search -->
+      <!-- Which records, then how they are narrowed: the deleted toggle picks
+           the set the filter and search then work on. -->
       <div class="flex items-center gap-1 flex-1 max-w-xl">
+        <Button
+          v-if="options.showDeletedRecordsOption"
+          v-tooltip.bottom="
+            showingDeletedRecords
+              ? $t('block.recordList.showRecords.existing')
+              : $t('block.recordList.showRecords.deleted')
+          "
+          :icon="showingDeletedRecords ? 'pi pi-eye' : 'pi pi-trash'"
+          :severity="showingDeletedRecords ? 'warn' : 'secondary'"
+          :outlined="!showingDeletedRecords"
+          size="small"
+          @click="toggleDeletedRecords"
+        />
         <RecordListFilter
           v-if="showFilterButton"
           :module="recordListModule"
@@ -107,9 +108,21 @@
 
     <!-- Active filters bar -->
     <div
-      v-if="activeFilterDisplay.length"
+      v-if="activeFilterDisplay.length || drillDown"
       class="flex items-center flex-wrap gap-2 px-3 py-2 border-b"
     >
+      <!-- What a metric tile put on the list. It is the tile's whole filter, so
+           it is one chip rather than a group the user can take apart. -->
+      <Chip
+        v-if="drillDown"
+        removable
+        class="text-sm"
+        style="border-radius: var(--p-border-radius)"
+        @remove="clearDrillDown"
+      >
+        <span class="font-semibold text-primary">{{ drillDown.label }}</span>
+      </Chip>
+
       <template v-for="(segment, si) in groupedActiveFilters" :key="si">
         <div class="flex items-center flex-wrap gap-1 border border-surface rounded-border p-1">
           <template v-for="(fg, fgi) in segment.groups" :key="fg.originalIndex">
@@ -718,7 +731,12 @@ const recordListFilter = ref([])
 const presetMenuRef = ref(null)
 // Read off the block rather than the options computed: an initial value is
 // wanted before anything reactive has run.
-const showingDeletedRecords = ref(!!props.block.options?.showDeletedRecordsInitially)
+// The record state a list fetches: 0 leaves deleted records out, 2 shows
+// nothing else. Mirrors the report and the record list endpoints.
+const DELETED_ONLY = 2
+
+const initiallyShowingDeleted = !!props.block.options?.showDeletedRecordsInitially
+const showingDeletedRecords = ref(initiallyShowingDeleted)
 const selectedRecords = ref([])
 const showBulkEditModal = ref(false)
 
@@ -1426,8 +1444,8 @@ function buildPrefilter() {
     }
   }
 
-  if (drillDownPrefilter.value) {
-    filterParts.push(`(${drillDownPrefilter.value})`)
+  if (drillDown.value?.prefilter) {
+    filterParts.push(`(${drillDown.value.prefilter})`)
   }
 
   return filterParts.filter(Boolean).join(' AND ')
@@ -1563,7 +1581,7 @@ async function fetchRecords(resetCursor = false) {
       limit: currentPerPage.value,
       pageCursor,
       // deleted: 0 = only existing, 2 = only deleted
-      deleted: showingDeletedRecords.value ? 2 : 0,
+      deleted: showingDeletedRecords.value ? DELETED_ONLY : 0,
       // incTotal is only supported on the first page (no cursor); sending it with a
       // cursor causes a server error. Keep the total from the first page on subsequent pages.
       incTotal: !pageCursor,
@@ -1618,12 +1636,32 @@ watch(searchInput, newVal => {
   searchDebounceTimer = setTimeout(commitSearch, 300)
 })
 
-// Drill down event listener
-const drillDownPrefilter = ref(null)
+// What a metric tile asked this list to show: its filter, the record state it
+// counted, and the label to say so with. Held whole so the list can draw a chip
+// for it and put itself back when the chip goes.
+const drillDown = ref(null)
+
 const offDrillDown = $eventBus?.on(`drill-down-recordList:${props.block.blockID}`, payload => {
-  drillDownPrefilter.value = payload?.prefilter
+  const prefilter = payload?.prefilter || ''
+  const deleted = payload?.deleted || 0
+
+  // A tile that narrows by nothing is asking for the whole module, which is
+  // what clearing does — the "all records" tile reads as a reset.
+  if (!prefilter && !deleted) {
+    clearDrillDown()
+    return
+  }
+
+  drillDown.value = { label: payload?.name || payload?.value || '', prefilter, deleted }
+  showingDeletedRecords.value = deleted === DELETED_ONLY
   fetchRecords(true)
 })
+
+function clearDrillDown() {
+  drillDown.value = null
+  showingDeletedRecords.value = initiallyShowingDeleted
+  fetchRecords(true)
+}
 
 // Cleanup on unmount
 onBeforeUnmount(() => {
@@ -2101,12 +2139,23 @@ function onFilterChange(newFilter) {
 function onFilterReset() {
   recordListFilter.value = []
   persistFilter()
+
+  if (drillDown.value) {
+    clearDrillDown()
+    return
+  }
+
   fetchRecords(true)
 }
 
 // --- Deleted records toggle ---
 function toggleDeletedRecords() {
   showingDeletedRecords.value = !showingDeletedRecords.value
+
+  // A chip that asked for deleted records no longer describes what is on
+  // screen once the mode is changed by hand.
+  if (drillDown.value?.deleted) drillDown.value = null
+
   fetchRecords(true)
 }
 

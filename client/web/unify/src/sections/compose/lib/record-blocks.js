@@ -48,7 +48,8 @@ const EDITABLE_SYSTEM_FIELD = 'ownedBy'
 const ASSIGNED_ON_SAVE = ['recordID', 'revision']
 
 // Metric tiles, in the order they sit across the top of the record list. An
-// empty filter counts the whole module.
+// empty filter counts the whole module; narrowing by neither a filter nor a
+// record state is what the table reads as "clear what a tile put on me".
 //
 // `deleted` is the record report's own state constraint: 0 leaves deleted
 // records out, 2 counts nothing else. It is not expressible as a filter — the
@@ -172,8 +173,8 @@ export function adminRecordBlocks(
 
 /**
  * The blocks the "all records" screen renders: a row of metric tiles, and the
- * table under them. A tile opens what it counted in a dialog of its own, which
- * leaves the table below it as the user left it.
+ * table under them. A tile narrows the table to what it counted, which the
+ * table then shows as a chip the user can remove.
  *
  * They are returned apart because the screen lays them out apart: the tiles are
  * a fixed-height row and the table takes whatever is left, which is a thing
@@ -202,8 +203,9 @@ export function adminRecordListBlocks({ moduleID, idPrefix, metricLabels = {} })
             operation: 'count',
             filter,
             deleted,
-            // No blockID: the records open in the tile's own dialog
-            drillDown: { enabled: true, recordListOptions: { fields: [] } },
+            // Narrows the table below rather than opening a list of its own;
+            // the table draws a chip for it and clears on the chip's remove.
+            drillDown: { enabled: true, blockID: listID, recordListOptions: { fields: [] } },
           },
         ],
       },
