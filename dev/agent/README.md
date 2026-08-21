@@ -109,6 +109,18 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `/system/users` is a 404 (chi routing).
 - **Errors come back as HTTP 200** with `{"error":{"message":…}}` — `api.sh`
   detects this and exits non-zero.
+- **Automation `input` takes only typed envelopes.** `ngAutomationExec`,
+  `workflowExec` and session resume decode `input` into `expr.Vars`, which reads
+  `{"@type":…,"@value":…}` and nothing else, so one bare string or array rejects
+  the whole request before the automation is looked up — as an HTTP 200 carrying
+  `json: cannot unmarshal … into expr.typedValueWrap`. A list goes as
+  `{"@type":"Array","@value":[…]}` with its items raw; wrapping an item in its
+  own envelope turns it into a `Vars` with the keys `@type` and `@value`.
+- **A workflow trigger is its own resource, and its step field is
+  `workflowStepID`.** `workflowCreate`/`workflowUpdate` ignore a nested
+  `triggers` array, so POST `/automation/triggers/` separately — and `stepID`
+  there is accepted, ignored, and echoed back as `0`, which reads exactly like
+  the server refusing the value.
 - Auth clients must leave `validFrom`/`expiresAt` unset —
   `AuthClient.Verify()` has inverted comparisons and treats set values as
   expired/not-yet-valid.
