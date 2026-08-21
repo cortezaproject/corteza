@@ -20,9 +20,15 @@ if [[ -f "$TOKEN_FILE" && -f "$EXP_FILE" ]] && (($(cat "$EXP_FILE") > now + 60))
 fi
 
 save() { # $1=token $2=expires-in
-  printf '%s' "$1" >"$TOKEN_FILE"
-  chmod 600 "$TOKEN_FILE"
-  echo $((now + $2)) >"$EXP_FILE"
+  # Write-then-rename, not truncate-then-write: .state is shared by every
+  # worktree, so a reader mid-refresh would otherwise get an empty or partial
+  # token and fail as if it were unauthorised.
+  local tmp="$TOKEN_FILE.$$"
+  printf '%s' "$1" >"$tmp"
+  chmod 600 "$tmp"
+  mv -f "$tmp" "$TOKEN_FILE"
+  printf '%s' $((now + $2)) >"$EXP_FILE.$$"
+  mv -f "$EXP_FILE.$$" "$EXP_FILE"
   printf '%s\n' "$1"
 }
 

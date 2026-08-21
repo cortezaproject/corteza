@@ -27,7 +27,7 @@
 //  - screenshots only on failure, because reading one costs more than the
 //    assertion it replaces
 import { readFileSync, readdirSync, mkdirSync, existsSync, writeFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
@@ -37,7 +37,7 @@ const STATE_DIR = join(AGENT_DIR, '.state')
 // Scratch is per-session: .state is shared across worktrees, so a fixed name
 // here means a peer session's screenshot arrives under your filename.
 const SESSION = process.env.CLAUDE_CODE_SESSION_ID || 'unknown'
-const SCRATCH = join(STATE_DIR, 'sessions', SESSION)
+const SCRATCH = join(STATE_DIR, 'sessions', SESSION, basename(REPO_DIR))
 const SHOT_DIR = join(SCRATCH, 'drive')
 const STORAGE = join(SCRATCH, 'ui-storage.json')
 

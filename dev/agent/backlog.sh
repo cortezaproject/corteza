@@ -61,10 +61,13 @@ cmd_add() {
   # Append-only, one JSON object per line: two sessions writing at once
   # interleave lines, they do not corrupt each other's.
   py '
-import json, os, sys, time
+import json, os, secrets, sys, time
 text, why, files, task, session, head, branch, path = sys.argv[1:9]
 item = {
-    "id": "b" + format(int(time.time() * 1000) % 100000000, "08d"),
+    # Random, not a truncated clock: two sessions queueing in the same
+    # millisecond got the same id, and list() folds same-id records together,
+    # so the second item vanished silently.
+    "id": "b" + secrets.token_hex(4),
     "text": text, "why": why or None,
     "files": [f for f in files.split(",") if f] or None,
     "task": task or None, "status": "open",

@@ -14,7 +14,7 @@
 // toolkit field tests caught real bugs only through this kind of check.
 
 import { readFileSync, readdirSync, mkdirSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
@@ -45,7 +45,7 @@ const { chromium } = require(join(pnpmDir, pwDir, 'node_modules', 'playwright-co
 
 const args = process.argv.slice(2)
 const SESSION = process.env.CLAUDE_CODE_SESSION_ID || 'unknown'
-let outDir = join(AGENT_DIR, '.state', 'sessions', SESSION, 'ui')
+let outDir = join(AGENT_DIR, '.state', 'sessions', SESSION, basename(REPO_DIR), 'ui')
 const paths = []
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--out') outDir = args[++i]

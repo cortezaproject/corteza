@@ -78,17 +78,47 @@ resolve_name() {
   fi
 }
 
-free_slot() {
-  local n used
+# claim_slot NAME — reserve the lowest free slot and print it.
+#
+# The reservation has to be atomic and it has to happen BEFORE the slow work.
+# Picking a slot by reading the registry and only recording it at the end
+# leaves seconds in which a second `new` reads the same registry, picks the
+# same slot, and writes the same ports and database name into a second
+# checkout. Both then look correct and one silently serves the other's data.
+#
+# noclobber makes the create-or-fail one operation, so exactly one caller wins
+# each slot.
+claim_slot() {
+  local n f
+  # A registry entry is a claim even when no reservation file backs it — the
+  # worktrees that existed before reservations did, and any restored .state.
+  for f in "$WT_DIR"/*.json; do
+    [[ -f "$f" ]] || continue
+    : >>"$WT_DIR/.slot-$(json_get slot <"$f")"
+  done
   for ((n = 1; n <= MAX_SLOTS; n++)); do
-    used=""
-    for f in "$WT_DIR"/*.json; do
-      [[ -f "$f" ]] || continue
-      [[ "$(json_get slot <"$f")" == "$n" ]] && used=1 && break
-    done
-    [[ -z "$used" ]] && echo "$n" && return 0
+    if (
+      set -o noclobber
+      echo "$1" >"$WT_DIR/.slot-$n" 
+    ) 2>/dev/null; then
+      echo "$n"
+      return 0
+    fi
   done
   die "all $MAX_SLOTS slots are in use — remove one first"
+}
+
+release_slot() { rm -f "$WT_DIR/.slot-$1"; }
+
+# worktree_rollback NAME PATH DB SLOT — undo a partial `new`.
+worktree_rollback() {
+  echo "worktree: '$1' failed to build — unwinding" >&2
+  [[ -d "$2" ]] && git -C "$(primary_repo)" worktree remove "$2" --force 2>/dev/null
+  git -C "$(primary_repo)" branch -D "$1" 2>/dev/null
+  pg dropdb --if-exists "$3" 2>/dev/null
+  rm -f "$(meta "$1")"
+  release_slot "$4"
+  exit 1
 }
 
 port_busy() { ss -ltn "sport = :$1" 2>/dev/null | grep -q LISTEN; }
@@ -126,7 +156,7 @@ cmd_new() {
   local primary root slot path api gin vite db srcdb
   primary="$(primary_repo)"
   root="$(worktrees_root)"
-  slot="$(free_slot)"
+  slot="$(claim_slot "$name")"
   path="$root/$name"
   api="$(slot_api "$slot")"
   gin="$(slot_gin "$slot")"
@@ -135,8 +165,17 @@ cmd_new() {
   db="$(slot_db "$slot")"
 
   for p in "$api" "$gin" "$vite"; do
-    port_busy "$p" && die "port $p is already listening — slot $slot is not free after all"
+    port_busy "$p" && {
+      release_slot "$slot"
+      die "port $p is already listening — slot $slot is not free after all"
+    }
   done
+
+  # Anything that dies past this point unwinds. A checkout left behind carries a
+  # server/.env naming the slot's ports and database, so the next `new` to win
+  # that slot would share them with a directory nothing tracks.
+  # shellcheck disable=SC2064
+  trap "worktree_rollback '$name' '$path' '$db' '$slot'" ERR
 
   local carried
   carried="$(git -C "$primary" status --porcelain | wc -l)"
@@ -190,6 +229,8 @@ json.dump({
     "session": session, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
 }, open(out, "w"), indent=2)
 ' "$name" "$path" "$slot" "$api" "$gin" "$vite" "$db" "$base" "$AGENT_SESSION" "$(meta "$name")"
+
+  trap - ERR
 
   cat <<EOF
 
@@ -310,6 +351,23 @@ cmd_list() {
       "$(json_get gin <"$f")" "$(json_get vite <"$f")" \
       "$(json_get db <"$f")" "${s:-down}"
   done
+  report_orphans
+}
+
+# A checkout under the worktrees root with no metadata is unmanaged: `rm` cannot
+# see it, and its server/.env names a slot someone else may now own.
+report_orphans() {
+  local root primary p n found=""
+  primary="$(primary_repo)"
+  root="$(worktrees_root)"
+  [[ -d "$root" ]] || return 0
+  for p in "$root"/*; do
+    [[ -d "$p" ]] || continue
+    n="$(basename "$p")"
+    [[ -f "$(meta "$n")" ]] && continue
+    [[ -z "$found" ]] && echo && found=1
+    echo "orphan: $p has no registry entry — 'git worktree remove $p --force'" >&2
+  done
 }
 
 cmd_info() {
@@ -326,9 +384,10 @@ cmd_rm() {
   [[ "${1:-}" == "--keep-branch" ]] && keep_branch=1
   [[ -n "$name" ]] || die "usage: worktree.sh rm NAME [--keep-branch]"
 
-  local path db primary
+  local path db slot primary
   path="$(read_meta "$name" path)"
   db="$(read_meta "$name" db)"
+  slot="$(read_meta "$name" slot)"
   primary="$(primary_repo)"
 
   # The .state symlink is this script's own doing, not the human's work.
@@ -346,6 +405,7 @@ cmd_rm() {
   [[ -z "$keep_branch" ]] && git -C "$primary" branch -d "$name" 2>/dev/null || true
   pg dropdb --if-exists "$db"
   rm -f "$(meta "$name")"
+  release_slot "$slot"
   echo "removed '$name' (checkout, database $db, slot freed)"
 }
 
