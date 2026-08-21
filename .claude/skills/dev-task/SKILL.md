@@ -236,6 +236,12 @@ Finally, `➡️ NEXT`. Anything the human could weigh in on — a decision, a
 preference, which of the moves below — is an `AskUserQuestion`, never a written
 question. If there is genuinely nothing, name the next move and stop.
 
+**In a worktree, landing is one of the options** — `worktree.sh land <name>`
+rebases onto main, merges fast-forward and takes the worktree away; `--keep`
+lands an increment and leaves it running. Never land unasked: it puts commits
+on the branch every other session is working from. Pushing is not on the menu
+at all.
+
 **Once the task is fully finished, the open queue is part of that question.**
 Read `backlog.sh list` and offer the items as options so the human picks which
 one continues — never pick for them, and never start one unasked. Where more is
