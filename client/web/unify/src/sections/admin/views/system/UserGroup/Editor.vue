@@ -128,7 +128,13 @@
         :disabled="saving"
         @click="handleRestore"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || userGroup.canUpdateUserGroup"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 </template>

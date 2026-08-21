@@ -77,7 +77,7 @@
 
         <!-- Standalone permissions button -->
         <CPermissionsButton
-          v-if="editor.automationId.value"
+          v-if="editor.automationId.value && canGrant"
           v-tooltip.bottom="$t('general.label.permissions')"
           :resource="`corteza::automation:ng-automation/${editor.automationId.value}`"
           :title="editor.name.value"
@@ -468,7 +468,7 @@ import '@vue-flow/core/dist/theme-default.css'
 
 import { useFlowEditor } from '@/sections/taq/composables/useFlowEditor'
 import { isEdgeTraversed as edgeTraversed, traceFrameFor } from '@/sections/taq/utils/trace-path'
-import { useAutomationStore } from '@planetcrust/human-vue'
+import { useAutomationStore, useRBACStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 
 const { CToolbar, CInputUser } = components
@@ -498,6 +498,8 @@ import RunModal from '@/sections/taq/components/builder/RunModal.vue'
 import TaqConfigModal from '@/sections/taq/components/common/TaqConfigModal.vue'
 
 const route = useRoute()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('automation/', 'grant'))
 const router = useRouter()
 const store = useAutomationStore()
 const $AutomationAPI = inject('$AutomationAPI')

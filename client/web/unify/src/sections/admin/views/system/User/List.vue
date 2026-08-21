@@ -259,7 +259,7 @@ function getActionsMenuItems(user) {
     })
   }
 
-  if (user.canUpdateUser) {
+  if (user.suspendedAt ? user.canUnsuspendUser : user.canSuspendUser) {
     if (items.length > 0) items.push({ separator: true })
     if (user.suspendedAt) {
       items.push({

@@ -21,7 +21,7 @@
     class="flex flex-col h-full"
   >
     <CViewContainer scroll>
-      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+      <div v-if="isEdit && canGrant" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
           :resource="`corteza::federation:node/${node.nodeID}`"
@@ -79,7 +79,7 @@
 
     <CEditorActions :back-to="{ name: 'federation.nodes' }">
       <CInputDelete
-        v-if="isEdit && !node.deletedAt"
+        v-if="isEdit && node.canManageNode && !node.deletedAt"
         :label="$t('federation.nodes.editor.delete.label')"
         :message="$t('general.confirm.delete')"
         :header="node.name || node.nodeID"
@@ -87,14 +87,20 @@
         @confirm="handleDelete"
       />
       <Button
-        v-if="isEdit"
+        v-if="isEdit && node.canManageNode"
         :label="$t('federation.nodes.editor.generateURI.label')"
         icon="pi pi-qrcode"
         severity="secondary"
         outlined
         @click="handleGenerateURI"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || node.canManageNode"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 
@@ -140,11 +146,13 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useDraftGuard } from '@planetcrust/human-vue'
+import { components, useDraftGuard, useRBACStore } from '@planetcrust/human-vue'
 
 const { CInputDelete, CViewContainer } = components
 
 const vueRoute = useRoute()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('federation/', 'grant'))
 const router = useRouter()
 const { t } = useI18n()
 const $toast = inject('$toast')

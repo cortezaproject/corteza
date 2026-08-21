@@ -28,6 +28,7 @@
           @click="handleEnableClick"
         />
         <CPermissionsButton
+          v-if="canGrant"
           v-tooltip.bottom="$t('general.label.permissions')"
           :resource="`corteza::system:connection/${connection.connectionID}`"
           :title="connection.meta?.short || connection.handle || connection.connectionID"
@@ -161,7 +162,13 @@
         :disabled="saving"
         @click="handleRestore"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || connection.canUpdateConnection"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 </template>
@@ -171,12 +178,14 @@ import { computed, inject, nextTick, onMounted, ref, watch, reactive } from 'vue
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useConfirmDelete, useDraftGuard } from '@planetcrust/human-vue'
+import { components, useConfirmDelete, useDraftGuard, useRBACStore } from '@planetcrust/human-vue'
 import ConfiguredConnectionsPanel from './ConfiguredConnectionsPanel.vue'
 
 const { CInputDelete } = components
 
 const route = useRoute()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
 const router = useRouter()
 const { t } = useI18n()
 

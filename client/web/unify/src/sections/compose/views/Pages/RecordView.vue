@@ -163,7 +163,7 @@
 
           <!-- Save button (edit/create mode) -->
           <Button
-            v-if="mode !== 'view' && layoutButtons.submit"
+            v-if="mode !== 'view' && (isNew || record?.canUpdateRecord) && layoutButtons.submit"
             type="submit"
             :label="$t('general.label.save')"
             icon="pi pi-check"

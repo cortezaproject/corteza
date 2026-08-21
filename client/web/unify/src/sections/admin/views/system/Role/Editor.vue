@@ -19,7 +19,7 @@
     <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end gap-2">
         <Button
-          v-if="!role.archivedAt && !role.isSystem && !role.isClosed"
+          v-if="!role.archivedAt && role.canUpdateRole && !role.isSystem && !role.isClosed"
           :label="$t('system.roles.editor.info.archive')"
           icon="pi pi-box"
           severity="secondary"
@@ -29,7 +29,7 @@
           @click="confirmArchive"
         />
         <Button
-          v-if="role.archivedAt && !role.isSystem && !role.isClosed"
+          v-if="role.archivedAt && role.canDeleteRole && !role.isSystem && !role.isClosed"
           :label="$t('system.roles.editor.info.unarchive')"
           icon="pi pi-box"
           severity="secondary"
@@ -155,7 +155,7 @@
           @click="handleRestore"
         />
         <Button
-          v-if="!role.isSystem || role.canUpdateRole"
+          v-if="!isEdit || role.canUpdateRole"
           type="submit"
           :label="$t('general.label.save')"
           icon="pi pi-save"

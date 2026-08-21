@@ -18,37 +18,36 @@
   >
     <CViewContainer scroll gap="5">
       <div v-if="isEdit" class="flex justify-end gap-2">
-        <template v-if="user.canUpdateUser">
-          <Button
-            v-if="!user.suspendedAt"
-            :label="$t('system.users.editor.info.suspend')"
-            icon="pi pi-pause"
-            severity="secondary"
-            size="small"
-            outlined
-            :disabled="suspending"
-            @click="confirmSuspend"
-          />
-          <Button
-            v-else
-            :label="$t('system.users.editor.info.unsuspend')"
-            icon="pi pi-play"
-            severity="secondary"
-            size="small"
-            outlined
-            :disabled="suspending"
-            @click="confirmUnsuspend"
-          />
-          <Button
-            :label="$t('system.users.editor.info.revokeAllSession')"
-            icon="pi pi-sign-out"
-            severity="secondary"
-            size="small"
-            outlined
-            :disabled="revoking || isSelf"
-            @click="confirmRevokeSessions"
-          />
-        </template>
+        <Button
+          v-if="!user.suspendedAt && user.canSuspendUser"
+          :label="$t('system.users.editor.info.suspend')"
+          icon="pi pi-pause"
+          severity="secondary"
+          size="small"
+          outlined
+          :disabled="suspending"
+          @click="confirmSuspend"
+        />
+        <Button
+          v-else-if="user.suspendedAt && user.canUnsuspendUser"
+          :label="$t('system.users.editor.info.unsuspend')"
+          icon="pi pi-play"
+          severity="secondary"
+          size="small"
+          outlined
+          :disabled="suspending"
+          @click="confirmUnsuspend"
+        />
+        <Button
+          v-if="user.canUpdateUser"
+          :label="$t('system.users.editor.info.revokeAllSession')"
+          icon="pi pi-sign-out"
+          severity="secondary"
+          size="small"
+          outlined
+          :disabled="revoking || isSelf"
+          @click="confirmRevokeSessions"
+        />
 
         <CPermissionsButton
           v-if="user.canGrant"
@@ -152,7 +151,13 @@
         :disabled="saving"
         @click="handleRestore"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || user.canUpdateUser"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 </template>

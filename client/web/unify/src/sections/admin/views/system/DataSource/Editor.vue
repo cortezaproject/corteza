@@ -15,7 +15,7 @@
     class="flex flex-col h-full"
   >
     <CViewContainer scroll>
-      <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
+      <div v-if="isEdit && canGrant" class="flex justify-end gap-2 shrink-0">
         <CPermissionsButton
           v-tooltip.bottom="$t('general.label.permissions')"
           :resource="`corteza::system:dal-connection/${dataSource.connectionID}`"
@@ -233,7 +233,13 @@
         :disabled="saving"
         @click="handleRestore"
       />
-      <Button type="submit" :label="$t('general.label.save')" icon="pi pi-save" :loading="saving" />
+      <Button
+        v-if="!isEdit || dataSource.canManageDalConfig"
+        type="submit"
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :loading="saving"
+      />
     </CEditorActions>
   </Form>
 </template>
@@ -243,12 +249,14 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useDraftGuard } from '@planetcrust/human-vue'
+import { components, useDraftGuard, useRBACStore } from '@planetcrust/human-vue'
 import { kebabCase } from 'lodash-es'
 
 const { CInputDelete, CInputLocation, CInputToggleCard, CViewContainer } = components
 
 const route = useRoute()
+const rbac = useRBACStore()
+const canGrant = computed(() => rbac.can('system/', 'grant'))
 const router = useRouter()
 const { t } = useI18n()
 
