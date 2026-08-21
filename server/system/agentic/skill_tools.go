@@ -27,7 +27,10 @@ func (h *skillHandler) register() {
 			),
 			mcp.WithString("skill", mcp.Description("Name of one skill to read whole, e.g. \"page_layout\". Omit to list them.")),
 			mcp.WithString("tool", mcp.Description("Tool name, e.g. \"compose_page_update\". Returns every skill that applies to that tool, each with its full text. A tool with no skill returns an empty list, which is not an error.")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
+			// Both groups on purpose: this documents the tool surface rather
+			// than belonging to one half of it, and a usage-scoped session needs
+			// record_handling as much as a configuring one needs page_layout.
+			hmcp.InGroup(hmcp.GroupConfiguring, hmcp.GroupUsage),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup skill",

@@ -289,8 +289,17 @@ def verify_scope():
     names = names - meta
     check(cfg and use, f"group endpoints list subsets (configuring {len(cfg)}, usage {len(use)})")
     check(cfg < names and use < names, "each group is a strict subset of the full list")
-    check(not (cfg & use), "configuring and usage do not overlap",
-          ", ".join(sorted(cfg & use)))
+    # CONVENTIONS.md §3 allows a tool in more than one group and says to prefer
+    # one, because a tool that feels like both is usually two tools. The
+    # exception is a tool that is ABOUT the surface rather than part of it:
+    # system_skill_lookup documents configuring and usage tools alike, and one
+    # group would hide the guidance from exactly the sessions it was written
+    # for. An entry here is a claim that the tool is cross-cutting, not a way
+    # to quiet a tagging mistake.
+    cross_cutting = {"system_skill_lookup"}
+    overlap = (cfg & use) - cross_cutting
+    check(not overlap, "configuring and usage overlap only where intended",
+          ", ".join(sorted(overlap)))
     check(cfg | use == names, "the groups together account for every tool",
           "missing: " + ", ".join(sorted(names - (cfg | use))))
 

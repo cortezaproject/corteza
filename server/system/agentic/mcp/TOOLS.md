@@ -95,7 +95,7 @@ tools are held to are in `CONVENTIONS.md`.
 | `system_role_unarchive` | configuring | write | both |
 | `system_role_undelete` | configuring | write | both |
 | `system_role_update` | configuring | write | both |
-| `system_skill_lookup` | configuring | read | both |
+| `system_skill_lookup` | configuring, usage | read | both |
 | `system_theme_lookup` | configuring | read | both |
 | `system_theme_update` | configuring | write | both |
 | `system_user_create` | configuring | write | both |
@@ -118,7 +118,8 @@ tools are held to are in `CONVENTIONS.md`.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 83 |
+| group | configuring | 82 |
+| group | configuring, usage | 1 |
 | group | usage | 17 |
 | risk | destructive | 16 |
 | risk | read | 24 |

@@ -248,6 +248,13 @@ usage.
 A tool may carry more than one group. Prefer one: a tool that feels like both
 is usually two tools.
 
+The exception is a tool that is *about* the surface rather than part of it.
+`system_skill_lookup` returns the guidance written for other tools, and those
+span both groups — one tag would hide `record_handling` from exactly the
+`usage` sessions it was written for. `dev/agent/mcp-verify.py` names the
+cross-cutting tools rather than asserting the groups never overlap, so a
+tagging mistake still fails.
+
 `development` is currently empty, defined so L1 tooling has a home without a
 later retrofit.
 
