@@ -41,6 +41,20 @@ func applicationLinks(app *sysTypes.Application) map[string]string {
 	return map[string]string{"url": weburl.Application(app.ID)}
 }
 
+func agentLinks(a *sysTypes.Agent) map[string]string {
+	if a == nil {
+		return nil
+	}
+	return map[string]string{"url": weburl.Agent(a.ID)}
+}
+
+func chatbotLinks(c *sysTypes.Chatbot) map[string]string {
+	if c == nil {
+		return nil
+	}
+	return map[string]string{"url": weburl.Chatbot(c.ID)}
+}
+
 func authClientLinks(c *sysTypes.AuthClient) map[string]string {
 	if c == nil {
 		return nil

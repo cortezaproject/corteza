@@ -67,6 +67,8 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	sysAgentic.ApplicationHandler(reg)
 	sysAgentic.ThemeHandler(reg)
 	sysAgentic.SkillHandler(reg, skillLibrary(t))
+	sysAgentic.AgentHandler(reg)
+	sysAgentic.ChatbotHandler(reg)
 	sysAgentic.DiscoveryHandler(reg, "http://discovery.invalid", stubSigner{})
 
 	return reg
@@ -361,6 +363,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"ChartHandler(", "PageLayoutHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ReminderHandler(",
 		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
 		"AuthClientHandler(", "ApplicationHandler(", "ThemeHandler(", "SkillHandler(",
+		"AgentHandler(", "ChatbotHandler(",
 	} {
 		assert.Containsf(t, src, ctor,
 			"buildRegistry wires %s but boot_levels.go does not; one of them is wrong", ctor)
@@ -375,7 +378,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"ReminderHandler": true, "DiscoveryHandler": true,
 		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
 		"AuthClientHandler": true, "ApplicationHandler": true, "ThemeHandler": true,
-		"SkillHandler": true,
+		"SkillHandler": true, "AgentHandler": true, "ChatbotHandler": true,
 	}
 	for _, line := range strings.Split(src, "\n") {
 		for _, prefix := range []string{"cmpAgentic.", "autoAgentic.", "sysAgentic."} {

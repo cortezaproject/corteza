@@ -9,7 +9,7 @@ cd server && go test ./tests/mcp/ -run TestToolsMatrix -update
 Resource-to-tool naming is fixed by `RESOURCES.md`; the rules these
 tools are held to are in `CONVENTIONS.md`.
 
-## Registered tools (100)
+## Registered tools (111)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
@@ -65,6 +65,11 @@ tools are held to are in `CONVENTIONS.md`.
 | `compose_record_undelete` | usage | write | both |
 | `compose_record_update` | usage | write | both |
 | `discovery_search` | usage | read | both |
+| `system_agent_create` | configuring | write | both |
+| `system_agent_delete` | configuring | destructive | both |
+| `system_agent_lookup` | configuring | read | both |
+| `system_agent_undelete` | configuring | write | both |
+| `system_agent_update` | configuring | write | both |
 | `system_application_create` | configuring | write | both |
 | `system_application_delete` | configuring | destructive | both |
 | `system_application_flag` | configuring | write | both |
@@ -77,6 +82,12 @@ tools are held to are in `CONVENTIONS.md`.
 | `system_auth_client_lookup` | configuring | read | both |
 | `system_auth_client_undelete` | configuring | write | both |
 | `system_auth_client_update` | configuring | write | both |
+| `system_chatbot_create` | configuring | write | both |
+| `system_chatbot_delete` | configuring | destructive | both |
+| `system_chatbot_lookup` | configuring | read | both |
+| `system_chatbot_regenerate_key` | configuring | write | both |
+| `system_chatbot_undelete` | configuring | write | both |
+| `system_chatbot_update` | configuring | write | both |
 | `system_reminder_create` | usage | write | both |
 | `system_reminder_delete` | usage | destructive | both |
 | `system_reminder_dismiss` | usage | write | both |
@@ -118,9 +129,9 @@ tools are held to are in `CONVENTIONS.md`.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 82 |
+| group | configuring | 93 |
 | group | configuring, usage | 1 |
 | group | usage | 17 |
-| risk | destructive | 16 |
-| risk | read | 24 |
-| risk | write | 60 |
+| risk | destructive | 18 |
+| risk | read | 26 |
+| risk | write | 67 |

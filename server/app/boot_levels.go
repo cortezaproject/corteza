@@ -460,6 +460,8 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	sysAgentic.AuthClientHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ApplicationHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ThemeHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.AgentHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.ChatbotHandler(sysService.DefaultMCPRegistry)
 
 	// The skill library is embedded, so a failure to load it is a build-time
 	// mistake in a markdown file rather than a runtime condition. The tool is

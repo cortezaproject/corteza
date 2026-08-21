@@ -287,6 +287,27 @@ var resourceScopeExempt = map[string]bool{
 	// checkAllow to narrow on.
 	"system_skill_lookup": true,
 
+	// Agents and chatbots carry no compose namespace or module dimension for
+	// checkAllow to narrow on, and every service method gates itself —
+	// CanReadAgent / CanUpdateAgent / CanDeleteAgent, and the Chatbot
+	// equivalents, including the widget-key rotation.
+	//
+	// Worth stating rather than assuming: system_agent_update can rewrite an
+	// agent's own tool allow-list, so an agent granted it can re-grant itself
+	// anything. That is a real escalation path and it is bounded by RBAC on the
+	// invoking identity, not by this map.
+	"system_agent_lookup":           true,
+	"system_agent_create":           true,
+	"system_agent_update":           true,
+	"system_agent_delete":           true,
+	"system_agent_undelete":         true,
+	"system_chatbot_lookup":         true,
+	"system_chatbot_create":         true,
+	"system_chatbot_update":         true,
+	"system_chatbot_delete":         true,
+	"system_chatbot_undelete":       true,
+	"system_chatbot_regenerate_key": true,
+
 	// TAQ authoring. Classified with lookup rather than with exec for the same
 	// reason undelete is: it changes what an automation is, not which one runs.
 	// A TAQ carries no compose namespace or module dimension for checkAllow to
