@@ -298,11 +298,21 @@ The queue of things a task decided not to do, so they survive the turn that
 found them.
 
 ```
-backlog.sh add TEXT [--why W] [--files F,F] [--task T]
-backlog.sh list [--all] [--files F]
+backlog.sh add TEXT [--why W] [--files F,F] [--task T] [--shared]
+backlog.sh promote ID
+backlog.sh list [--mine|--shared|--orphaned|--all] [--files F]
 backlog.sh show ID
 backlog.sh done ID [--note N]   /   backlog.sh drop ID [--note N]
 ```
+
+**An item is yours until you promote it.** A session's own findings stay out of
+everyone else's way while it is still holding opinions about them and its files
+are still live; what it genuinely wants someone else to pick up, it promotes.
+`list` shows yours and the shared pool, never another session's private ones.
+
+`--orphaned` is the recovery path: private items whose session has ended, which
+would otherwise be lost with it. Items filed before scoping existed count as
+shared.
 
 It lives in the shared `.state`, which every worktree symlinks, so it is one
 queue for every session on this machine. Append-only JSONL: two sessions
