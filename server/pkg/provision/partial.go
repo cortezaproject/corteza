@@ -82,6 +82,9 @@ var baseMarkers = []baseMarker{
 	// Applications predate webapp access control, so every install already holds
 	// `read` — `access` is the operation that dates this one.
 	{"webapp access permissions", "admin", "corteza::system:application/*", "access"},
+	// User groups, connections and data sources have admin screens that were
+	// never granted to the role those screens belong to.
+	{"connection permissions", "admin", "corteza::system/", "connections.search"},
 }
 
 // baseMarkerMissing reports whether the base config should be re-imported,

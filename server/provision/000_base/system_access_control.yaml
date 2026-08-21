@@ -73,6 +73,18 @@ allow:
       - project-fria-scenario.create
       - project-fria-scenarios.search
 
+      # User groups, connections and data sources have admin screens but were
+      # never granted to anyone, so the screens answered "not allowed" to the
+      # role that owns them.
+      - user-group.create
+      - user-groups.search
+      - connection.create
+      - connections.search
+      - configured-connection.create
+      - configured-connections.search
+      - dal-connection.create
+      - dal-connections.search
+
     corteza::system:auth-client/*:
       - read
       - update
@@ -99,6 +111,24 @@ allow:
       - update
       - delete
       - members.manage
+
+    corteza::system:user-group/*:
+      - read
+      - update
+      - delete
+      - members.manage
+
+    corteza::system:connection/*:
+      - read
+      - update
+      - delete
+      - install
+
+    corteza::system:dal-connection/*:
+      - read
+      - update
+      - delete
+      - dal-config.manage
 
     corteza::system:template/*:
       - read
@@ -200,6 +230,12 @@ allow:
       - delete
 
   security-admin:
+    corteza::system:user-group/*:
+      - read
+      - update
+      - delete
+      - members.manage
+
     corteza::compose/:
       - grant
       - action-log.read
@@ -230,6 +266,8 @@ allow:
       - templates.search
       - role.create
       - roles.search
+      - user-group.create
+      - user-groups.search
       - reminder.assign
       - queue.create
       - queues.search

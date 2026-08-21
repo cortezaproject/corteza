@@ -6,6 +6,10 @@ allow:
       - workflows.search
       - triggers.search
       - sessions.search
+      # The TAQ builder's own resource; its admin screen was reachable but its
+      # list endpoint was not.
+      - ng-automation.create
+      - ng-automations.search
 
     corteza::automation:workflow/*:
       - read
@@ -23,6 +27,10 @@ allow:
       - workflows.search
       - triggers.search
       - sessions.search
+      # The TAQ builder's own resource; its admin screen was reachable but its
+      # list endpoint was not.
+      - ng-automation.create
+      - ng-automations.search
 
     corteza::automation:workflow/*:
       - read
