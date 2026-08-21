@@ -124,8 +124,7 @@
               v-for="(f, fi) in fg.filter"
               :key="fi"
               removable
-              class="text-sm"
-              style="border-radius: var(--p-border-radius)"
+              class="text-sm rounded-border"
               @remove="removeFilter(fg.originalIndex, fi)"
             >
               <span class="font-medium">{{ getFieldLabel(f) }}</span>
