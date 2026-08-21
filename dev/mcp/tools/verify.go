@@ -43,6 +43,7 @@ func registerFormat(reg *mcpkit.Registry, root string) {
 			mcp.WithString("files", mcp.Description(
 				"Space-separated repo-relative paths. Omit to format every file git reports as modified, "+
 					"staged or untracked.")),
+			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskWrite),
 		),
@@ -53,14 +54,19 @@ func registerFormat(reg *mcpkit.Registry, root string) {
 				return nil, err
 			}
 
+			at, err := checkoutFor(ctx, root, req)
+			if err != nil {
+				return nil, err
+			}
+
 			files := strings.Fields(toolkit.Str(args, "files"))
 			if len(files) == 0 {
-				if files, err = changedFiles(ctx, root); err != nil {
+				if files, err = changedFiles(ctx, at); err != nil {
 					return nil, err
 				}
 			}
 
-			return toolkit.JSONResult(formatFiles(ctx, root, files))
+			return toolkit.JSONResult(formatFiles(ctx, at, files))
 		},
 	)
 }
@@ -133,6 +139,7 @@ func registerIntentCheck(reg *mcpkit.Registry, root string) {
 			mcp.WithBoolean("all", mcp.Description(
 				"Return every drifted file rather than just the ones your working tree touches. Useful for an "+
 					"audit, noisy for ordinary work.")),
+			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskRead),
 		),
@@ -143,7 +150,12 @@ func registerIntentCheck(reg *mcpkit.Registry, root string) {
 				return nil, err
 			}
 
-			return intentCheck(ctx, root, toolkit.Bool(args, "all"))
+			at, err := checkoutFor(ctx, root, req)
+			if err != nil {
+				return nil, err
+			}
+
+			return intentCheck(ctx, at, toolkit.Bool(args, "all"))
 		},
 	)
 }

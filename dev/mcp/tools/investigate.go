@@ -60,6 +60,7 @@ func registerIntentGoverning(reg *mcpkit.Registry, root string) {
 			),
 			mcp.WithString("files", mcp.Required(), mcp.Description(
 				"Space-separated repo-relative paths you intend to change.")),
+			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskRead),
 		),
@@ -75,7 +76,12 @@ func registerIntentGoverning(reg *mcpkit.Registry, root string) {
 				return nil, err
 			}
 
-			return toolkit.JSONResult(governingDocs(root, strings.Fields(raw)))
+			at, err := checkoutFor(ctx, root, req)
+			if err != nil {
+				return nil, err
+			}
+
+			return toolkit.JSONResult(governingDocs(at, strings.Fields(raw)))
 		},
 	)
 }
@@ -287,6 +293,7 @@ func registerIntentAffected(reg *mcpkit.Registry, root string) {
 			),
 			mcp.WithString("files", mcp.Description(
 				"Space-separated repo-relative paths. Omit to use whatever git reports as changed.")),
+			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskRead),
 		),
@@ -297,9 +304,14 @@ func registerIntentAffected(reg *mcpkit.Registry, root string) {
 				return nil, err
 			}
 
+			at, err := checkoutFor(ctx, root, req)
+			if err != nil {
+				return nil, err
+			}
+
 			files := strings.Fields(toolkit.Str(args, "files"))
 			if len(files) == 0 {
-				if files, err = changedFiles(ctx, root); err != nil {
+				if files, err = changedFiles(ctx, at); err != nil {
 					return nil, err
 				}
 			}
@@ -308,7 +320,7 @@ func registerIntentAffected(reg *mcpkit.Registry, root string) {
 				return toolkit.JSONResult(affectedReport{Specs: []string{}, Note: "nothing changed"})
 			}
 
-			stdout, _ := runAllowFail(ctx, root, "node", append([]string{".intent/intent.mjs", "affected"}, files...)...)
+			stdout, _ := runAllowFail(ctx, at, "node", append([]string{".intent/intent.mjs", "affected"}, files...)...)
 
 			// The intent CLI answers with every test file it associates with the
 			// input, which is not all e2e: a server change comes back with

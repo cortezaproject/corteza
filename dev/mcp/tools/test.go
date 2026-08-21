@@ -70,6 +70,7 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 			mcp.WithString("run", mcp.Description(
 				"Only run tests whose name matches this. Go passes it to -run, vitest to -t. Use it to "+
 					"re-run one failure without paying for the whole package.")),
+			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskRead),
 		),
@@ -85,15 +86,20 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 				return nil, err
 			}
 
+			at, err := checkoutFor(ctx, root, req)
+			if err != nil {
+				return nil, err
+			}
+
 			var report testReport
-			switch runnerFor(root, target) {
+			switch runnerFor(at, target) {
 			case "go":
 				module, _ := goModuleFor(target)
-				report, err = runGoTests(ctx, root, module, target, toolkit.Str(args, "run"))
+				report, err = runGoTests(ctx, at, module, target, toolkit.Str(args, "run"))
 			case "mocha":
-				report, err = runMocha(ctx, root, target, toolkit.Str(args, "run"))
+				report, err = runMocha(ctx, at, target, toolkit.Str(args, "run"))
 			default:
-				report, err = runVitest(ctx, root, target, toolkit.Str(args, "run"))
+				report, err = runVitest(ctx, at, target, toolkit.Str(args, "run"))
 			}
 			if err != nil {
 				return nil, err

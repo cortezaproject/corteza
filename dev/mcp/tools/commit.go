@@ -74,6 +74,7 @@ func registerCommit(reg *mcpkit.Registry, root string) {
 			mcp.WithBoolean("skipFormat", mcp.Description(
 				"Skip formatting before staging. Off by default; formatting after staging is how an "+
 					"unformatted file reaches history.")),
+			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskWrite),
 		),
@@ -89,7 +90,12 @@ func registerCommit(reg *mcpkit.Registry, root string) {
 				return nil, err
 			}
 
-			return commit(ctx, root, commitInput{
+			at, err := checkoutFor(ctx, root, req)
+			if err != nil {
+				return nil, err
+			}
+
+			return commit(ctx, at, commitInput{
 				Subject:    subject,
 				Body:       toolkit.Str(args, "body"),
 				Files:      strings.Fields(toolkit.Str(args, "files")),

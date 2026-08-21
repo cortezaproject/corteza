@@ -35,12 +35,18 @@ func registerBranchStatus(reg *mcpkit.Registry, root string) {
 					"it will merge into, and what is staged, modified or untracked. Read this before committing "+
 					"or reviewing, rather than running git status and reading the output.",
 			),
+			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskRead),
 		),
 		"Branch status",
-		func(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			return branchStatusResult(ctx, root)
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			at, err := checkoutFor(ctx, root, req)
+			if err != nil {
+				return nil, err
+			}
+
+			return branchStatusResult(ctx, at)
 		},
 	)
 }
