@@ -91,6 +91,9 @@ component: schema.#component & {
 
 		"dal-sensitivity-level.manage": description: "Can manage DAL sensitivity levels"
 
+		"labels.search": description:           "List, search or filter labels"
+		"corredor-scripts.search": description: "List, search or filter Corredor scripts"
+
 		"application.create": description:      "Create applications"
 		"applications.search": description:     "List, search or filter auth clients"
 		"application.flag.self": description:   "Manage private flags for applications"

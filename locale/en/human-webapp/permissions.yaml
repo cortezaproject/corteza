@@ -603,6 +603,9 @@ resources:
         connections:
           search:
             title: Search connections
+        corredor-scripts:
+          search:
+            title: List and search Corredor scripts
         dal-connection:
           create:
             title: Create data sources
@@ -629,6 +632,9 @@ resources:
         knowledge-bases:
           search:
             title: List and search knowledge bases
+        labels:
+          search:
+            title: List and search labels
         llm-provider:
           create:
             title: Create new LLM provider

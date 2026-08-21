@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/crusttech/human/server/pkg/api"
+	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
@@ -12,6 +13,11 @@ import (
 type (
 	Label struct {
 		label service.LabelService
+		ac    labelAccessController
+	}
+
+	labelAccessController interface {
+		CanSearchLabels(context.Context) bool
 	}
 
 	LabelListEntry struct {
@@ -28,10 +34,15 @@ type (
 func (Label) New() *Label {
 	return &Label{
 		label: service.Label(),
+		ac:    service.DefaultAccessControl,
 	}
 }
 
 func (ctrl Label) List(ctx context.Context, r *request.LabelList) (interface{}, error) {
+	if !ctrl.ac.CanSearchLabels(ctx) {
+		return nil, errors.Unauthorized("not allowed to search or list labels")
+	}
+
 	var (
 		err error
 		set types.LabelSet

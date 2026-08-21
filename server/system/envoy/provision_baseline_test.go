@@ -106,6 +106,8 @@ func TestProvisionBaseAccessControl(t *testing.T) {
 		{"admin", "corteza::system:user-group/*", "members.manage"},
 		{"admin", "corteza::system:connection/*", "install"},
 		{"admin", "corteza::system:dal-connection/*", "dal-config.manage"},
+		{"admin", "corteza::system/", "labels.search"},
+		{"admin", "corteza::system/", "corredor-scripts.search"},
 		{"security-admin", "corteza::system/", "user-groups.search"},
 	} {
 		require.Equal(t, "allow", access(held), "expected an allow for %v", held)

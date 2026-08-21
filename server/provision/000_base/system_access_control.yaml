@@ -84,6 +84,8 @@ allow:
       - configured-connections.search
       - dal-connection.create
       - dal-connections.search
+      - labels.search
+      - corredor-scripts.search
 
     corteza::system:auth-client/*:
       - read

@@ -839,6 +839,16 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
+			"op":   "labels.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "corredor-scripts.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
 			"op":   "application.create",
 		},
 		{
@@ -2157,6 +2167,22 @@ func (svc accessControl) CanManageDalSensitivityLevel(ctx context.Context) bool 
 	return svc.can(ctx, "dal-sensitivity-level.manage", r)
 }
 
+// CanSearchLabels checks if current user can list, search or filter labels
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchLabels(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "labels.search", r)
+}
+
+// CanSearchCorredorScripts checks if current user can list, search or filter corredor scripts
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchCorredorScripts(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "corredor-scripts.search", r)
+}
+
 // CanCreateApplication checks if current user can create applications
 //
 // This function is auto-generated
@@ -3141,6 +3167,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"dal-connection.create":           true,
 			"dal-connections.search":          true,
 			"dal-sensitivity-level.manage":    true,
+			"labels.search":                   true,
+			"corredor-scripts.search":         true,
 			"application.create":              true,
 			"applications.search":             true,
 			"application.flag.self":           true,

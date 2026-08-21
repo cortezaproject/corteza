@@ -27,13 +27,6 @@ const federationEnabled = computed(() => $Settings?.get('federation.enabled', fa
 
 const can = (component, operation) => rbac.can(component, operation)
 
-// Labels and corredor scripts are served by endpoints that carry no operation
-// of their own, so there is nothing to ask about them. Reading system settings
-// is the nearest true statement — it is held by system administrators and
-// nobody else — and erring towards them is the right direction for a screen
-// that has no gate at all otherwise.
-const canAdministerSystem = computed(() => can('system/', 'settings.read'))
-
 // Every entry that leads somewhere states the permission that reveals it in
 // `_can`; a group header states none and survives only while it still has a
 // child. Entries the user cannot reach are dropped rather than disabled: the
@@ -96,7 +89,7 @@ const navItems = computed(() =>
       _label: 'Projects (Labels)',
       _icon: 'pi pi-tags',
       _route: { name: 'system.labels' },
-      _can: canAdministerSystem.value,
+      _can: can('system/', 'labels.search'),
     },
     {
       _id: 'llm-providers',
@@ -272,7 +265,7 @@ const navItems = computed(() =>
       _label: t('navigation.automation.items.scripts'),
       _icon: 'pi pi-file-edit',
       _route: { name: 'automation.scripts' },
-      _can: canAdministerSystem.value,
+      _can: can('system/', 'corredor-scripts.search'),
     },
     {
       _id: 'automation-permissions',
