@@ -32,13 +32,14 @@
             required
             class="md:col-span-2"
           >
-            <InputText id="name" name="name" v-model="application.name" />
+            <InputText id="name" name="name" v-model="application.name" :disabled="!canEdit" />
           </CFormGroup>
 
           <CInputToggleCard
             v-model="application.enabled"
             :label="$t('system.applications.editor.info.enabled')"
             :description="$t('system.applications.editor.info.enabledDescription')"
+            :disabled="!canEdit"
           />
         </div>
       </Panel>
@@ -49,11 +50,11 @@
             :label="$t('system.applications.editor.unify.name.label')"
             input-id="unifyName"
           >
-            <InputText id="unifyName" v-model="application.unify.name" />
+            <InputText id="unifyName" v-model="application.unify.name" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup :label="$t('system.applications.editor.unify.url.label')" input-id="unifyUrl">
-            <InputText id="unifyUrl" v-model="application.unify.url" />
+            <InputText id="unifyUrl" v-model="application.unify.url" :disabled="!canEdit" />
           </CFormGroup>
 
           <CInputToggleCard
@@ -61,6 +62,7 @@
             :label="$t('system.applications.editor.unify.listed')"
             :description="$t('system.applications.editor.unify.listedDescription')"
             class="self-start"
+            :disabled="!canEdit"
           />
 
           <div class="flex flex-col gap-2">
@@ -81,7 +83,7 @@
           </div>
         </div>
       </Panel>
-      <Message v-if="isEdit && !application.canUpdateApplication" severity="warn" :closable="false">
+      <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
     </CViewContainer>
@@ -105,7 +107,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || application.canUpdateApplication"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -172,6 +174,10 @@ const isCustomLogo = computed(() => {
 })
 
 const isEdit = computed(() => !!route.params.applicationID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!application.value?.canUpdateApplication)
 
 const pageTitle = computed(() =>
   isEdit.value

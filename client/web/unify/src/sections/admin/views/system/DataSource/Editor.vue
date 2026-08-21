@@ -36,6 +36,7 @@
               name="name"
               v-model="dataSource.meta.name"
               :placeholder="$t('system.data-sources.editor.basic.form.name.placeholder')"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -48,6 +49,7 @@
               name="handle"
               v-model="dataSource.handle"
               :placeholder="$t('system.data-sources.editor.basic.form.handle.placeholder')"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -60,6 +62,7 @@
               id="locationName"
               v-model="dataSource.meta.location.properties.name"
               :placeholder="$t('system.data-sources.editor.basic.form.location-name.placeholder')"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -75,6 +78,7 @@
                 $t('system.data-sources.editor.basic.form.location-geometry.label')
               "
               @update:model-value="onLocationUpdate"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -87,6 +91,7 @@
               id="ownership"
               v-model="dataSource.meta.ownership"
               :placeholder="$t('system.data-sources.editor.basic.form.ownership.placeholder')"
+              :disabled="!canEdit"
             />
           </CFormGroup>
         </div>
@@ -115,6 +120,7 @@
                     `system.data-sources.editor.properties.form.${kebabCase(prop)}.checkbox.description`,
                   )
                 "
+                :disabled="!canEdit"
               />
               <CFormGroup
                 :label="
@@ -133,6 +139,7 @@
                   v-model="dataSource.meta.properties[prop].notes"
                   rows="3"
                   autoResize
+                  :disabled="!canEdit"
                 />
               </CFormGroup>
             </div>
@@ -172,6 +179,7 @@
               id="modelIdent"
               v-model="dataSource.config.dal.modelIdent"
               :placeholder="$t('system.data-sources.editor.dal.form.model-ident.placeholder')"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -186,6 +194,7 @@
               id="dalType"
               v-model="dataSource.config.dal.type"
               :placeholder="$t('system.data-sources.editor.dal.form.type.placeholder')"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -205,12 +214,13 @@
               class="font-mono text-sm"
               :placeholder="$t('system.data-sources.editor.dal.form.params.placeholder')"
               @blur="parseDalParams"
+              :disabled="!canEdit"
             />
           </CFormGroup>
         </div>
       </Panel>
 
-      <Message v-if="isEdit && !canManageDal" severity="warn" :closable="false">
+      <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('system.data-sources.editor.dal.no-access-warning') }}
       </Message>
     </CViewContainer>
@@ -234,7 +244,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || dataSource.canManageDalConfig"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -283,6 +293,10 @@ const propertyKeys = [
 ]
 
 const isEdit = computed(() => !!route.params.connectionID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || canManageDal.value)
 
 const canManageDal = computed(() => !!dataSource.value?.canManageDalConfig)
 

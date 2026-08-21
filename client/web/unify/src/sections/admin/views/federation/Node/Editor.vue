@@ -43,6 +43,7 @@
                 name="name"
                 v-model="node.name"
                 :placeholder="$t('federation.nodes.editor.info.name')"
+                :disabled="!canEdit"
               />
             </CFormGroup>
 
@@ -57,6 +58,7 @@
                 name="baseURL"
                 v-model="node.baseURL"
                 placeholder="https://..."
+                :disabled="!canEdit"
               />
             </CFormGroup>
 
@@ -70,11 +72,16 @@
                 v-model="node.contact"
                 type="email"
                 placeholder="contact@example.com"
+                :disabled="!canEdit"
               />
             </CFormGroup>
           </div>
         </template>
       </Card>
+
+      <Message v-if="!canEdit" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'federation.nodes' }">
@@ -95,7 +102,7 @@
         @click="handleGenerateURI"
       />
       <Button
-        v-if="!isEdit || node.canManageNode"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -120,7 +127,13 @@
           {{ $t('federation.nodes.editor.generatedURI.description') }}
         </p>
         <div class="flex flex-col gap-2">
-          <Textarea :value="generatedURI" readonly rows="4" class="font-mono text-sm w-full" />
+          <Textarea
+            :value="generatedURI"
+            readonly
+            rows="4"
+            class="font-mono text-sm w-full"
+            :disabled="!canEdit"
+          />
         </div>
         <div class="flex justify-end gap-2">
           <Button
@@ -172,6 +185,10 @@ const generatingURI = ref(false)
 const generatedURI = ref('')
 
 const isEdit = computed(() => !!vueRoute.params.nodeID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!node.value?.canManageNode)
 
 const initialValues = computed(() => ({
   name: node.value?.name || '',

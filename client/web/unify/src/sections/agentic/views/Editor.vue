@@ -59,14 +59,14 @@
                         :description="$t('agent.editor.name.help')"
                         input-id="name"
                       >
-                        <InputText id="name" v-model="agent.meta.short" />
+                        <InputText id="name" v-model="agent.meta.short" :disabled="!canEdit" />
                       </CFormGroup>
                       <CFormGroup
                         :label="$t('agent.editor.handle.label')"
                         :description="$t('agent.editor.handle.help')"
                         input-id="handle"
                       >
-                        <InputText id="handle" v-model="agent.handle" />
+                        <InputText id="handle" v-model="agent.handle" :disabled="!canEdit" />
                       </CFormGroup>
                       <CFormGroup
                         class="md:col-span-2"
@@ -79,6 +79,7 @@
                           v-model="agent.meta.description"
                           rows="3"
                           autoResize
+                          :disabled="!canEdit"
                         />
                       </CFormGroup>
                       <CFormGroup
@@ -92,6 +93,7 @@
                           :options="statusOptions"
                           optionLabel="label"
                           optionValue="value"
+                          :disabled="!canEdit"
                         />
                       </CFormGroup>
                       <CFormGroup
@@ -106,6 +108,7 @@
                           :name-label="$t('agent.editor.labels.name')"
                           :save-btn-label="$t('general.label.save')"
                           :cancel-btn-label="$t('general.label.cancel')"
+                          :disabled="!canEdit"
                         />
                       </CFormGroup>
                     </div>
@@ -124,6 +127,7 @@
                           id="provider"
                           v-model="agent.execution.model.llmProviderID"
                           @update:model-value="revalidateField('llmProvider')"
+                          :disabled="!canEdit"
                         />
                       </CFormGroup>
                       <CFormGroup
@@ -138,11 +142,13 @@
                           v-model="agent.execution.model.model"
                           :llmProviderID="agent.execution.model.llmProviderID"
                           @update:model-value="revalidateField('llmModel')"
+                          :disabled="!canEdit"
                         />
                       </CFormGroup>
                       <CInputToggleCard
                         :model-value="temperatureEnabled"
                         @update:model-value="toggleTemperature"
+                        :disabled="!canEdit"
                       >
                         <template #label>
                           {{ $t('agent.editor.temperature.label') }}
@@ -161,6 +167,7 @@
                             :step="0.1"
                             class="w-full mt-3"
                             @click.stop.prevent
+                            :disabled="!canEdit"
                           />
                         </template>
                       </CInputToggleCard>
@@ -180,6 +187,7 @@
                               :useGrouping="false"
                               :min="1"
                               :max="50"
+                              :disabled="!canEdit"
                             />
                           </CFormGroup>
                           <CFormGroup
@@ -192,6 +200,7 @@
                               v-model="agent.execution.limits.contextWindow"
                               mode="decimal"
                               :useGrouping="false"
+                              :disabled="!canEdit"
                             />
                           </CFormGroup>
                           <CFormGroup
@@ -204,6 +213,7 @@
                               v-model="agent.execution.limits.outputTokens"
                               mode="decimal"
                               :useGrouping="false"
+                              :disabled="!canEdit"
                             />
                           </CFormGroup>
                           <CFormGroup
@@ -215,6 +225,7 @@
                               id="timeout"
                               v-model="agent.execution.limits.timeout"
                               placeholder="30s"
+                              :disabled="!canEdit"
                             />
                           </CFormGroup>
                         </div>
@@ -236,6 +247,7 @@
                           v-model="agent.behavior.systemPrompt"
                           rows="6"
                           autoResize
+                          :disabled="!canEdit"
                         />
                       </CFormGroup>
 
@@ -253,13 +265,14 @@
                             @click="addGuardrail"
                           />
                         </template>
-                        <CFormList v-model="agent.behavior.guardrails">
+                        <CFormList v-model="agent.behavior.guardrails" :disabled="!canEdit">
                           <template #row="{ index }">
                             <InputText
                               v-model="agent.behavior.guardrails[index]"
                               size="small"
                               class="w-full"
                               :placeholder="$t('agent.editor.guardrails.placeholder')"
+                              :disabled="!canEdit"
                             />
                           </template>
                         </CFormList>
@@ -273,6 +286,7 @@
                         v-model="agent.behavior.treatyCLEnabled"
                         :label="$t('agent.editor.tcl.enabledLabel')"
                         :description="$t('agent.editor.tcl.enabledHelp')"
+                        :disabled="!canEdit"
                       />
 
                       <template v-if="agent.behavior.treatyCLEnabled">
@@ -288,6 +302,7 @@
                             :max="10"
                             :step="1"
                             class="w-full mt-2"
+                            :disabled="!canEdit"
                           />
                         </CFormGroup>
 
@@ -312,7 +327,7 @@
                             :modelValue="agent.behavior.tclArticles.includes(article.id)"
                             :label="article.label"
                             :description="article.interpretation"
-                            :disabled="article.hardwired"
+                            :disabled="!canEdit || article.hardwired"
                             dimWhenOff
                             @update:modelValue="toggleTclArticle(article.id, $event)"
                           />
@@ -346,6 +361,7 @@
                           :add-namespace-label="$t('agent.editor.knowledgeBases.addNamespace')"
                           :save-label="$t('general.label.save')"
                           :cancel-label="$t('general.label.cancel')"
+                          :disabled="!canEdit"
                         />
                       </CFormGroup>
 
@@ -354,6 +370,7 @@
                         v-model="agent.behavior.injectSystemContext"
                         :label="$t('agent.editor.injectSystemContext.label')"
                         :description="$t('agent.editor.injectSystemContext.help')"
+                        :disabled="!canEdit"
                       />
                     </div>
                   </Panel>
@@ -375,6 +392,7 @@
                         fluid
                         showClear
                         @update:model-value="onToolPickerSelect"
+                        :disabled="!canEdit"
                       >
                         <template #option="{ option }">
                           <span>{{ option.title }}</span>
@@ -385,6 +403,7 @@
                         :items="selectedTools"
                         item-key="name"
                         @remove="tool => removeTool(tool)"
+                        :disabled="!canEdit"
                       >
                         <template #default="{ item: tool }">
                           <span class="font-medium text-color text-sm truncate">
@@ -450,6 +469,7 @@
                         v-model="taqPickerSelection"
                         :placeholder="$t('agent.editor.taqs.selectPlaceholder')"
                         @update:model-value="onTaqPickerSelect"
+                        :disabled="!canEdit"
                       />
 
                       <CFormItemList
@@ -457,6 +477,7 @@
                         :items="agent.access.taqs"
                         item-key="id"
                         @remove="(_, idx) => removeTaq(idx)"
+                        :disabled="!canEdit"
                       >
                         <template #default="{ item, index }">
                           <span class="font-medium text-color text-sm truncate block">
@@ -467,6 +488,7 @@
                             class="w-full mt-1"
                             size="small"
                             :placeholder="$t('agent.editor.taqs.descriptionPlaceholder')"
+                            :disabled="!canEdit"
                           />
                         </template>
                       </CFormItemList>
@@ -483,6 +505,7 @@
                         v-model="workflowPickerSelection"
                         :placeholder="$t('agent.editor.workflows.selectPlaceholder')"
                         @update:model-value="onWorkflowPickerSelect"
+                        :disabled="!canEdit"
                       />
 
                       <CFormItemList
@@ -490,6 +513,7 @@
                         :items="agent.access.workflows"
                         item-key="id"
                         @remove="(_, idx) => removeWorkflow(idx)"
+                        :disabled="!canEdit"
                       >
                         <template #default="{ item, index }">
                           <span class="font-medium text-color text-sm truncate block">
@@ -500,6 +524,7 @@
                             class="w-full mt-1"
                             size="small"
                             :placeholder="$t('agent.editor.workflows.descriptionPlaceholder')"
+                            :disabled="!canEdit"
                           />
                         </template>
                       </CFormItemList>
@@ -514,6 +539,7 @@
                           v-model="agent.invocation.user.enabled"
                           :label="$t('agent.editor.userEnabled.label')"
                           :description="$t('agent.editor.userEnabled.help')"
+                          :disabled="!canEdit"
                         />
 
                         <CFormGroup
@@ -528,7 +554,7 @@
                             id="sidebarRoles"
                             v-model="agent.meta.sidebarRoles"
                             :multiple="true"
-                            :disabled="!agent.invocation.user.enabled"
+                            :disabled="!canEdit || !agent.invocation.user.enabled"
                           />
                         </CFormGroup>
                       </div>
@@ -539,6 +565,7 @@
                           v-model="agent.invocation.system.enabled"
                           :label="$t('agent.editor.systemEnabled.label')"
                           :description="$t('agent.editor.systemEnabled.help')"
+                          :disabled="!canEdit"
                         />
 
                         <CFormGroup
@@ -552,7 +579,7 @@
                           <CInputUser
                             id="serviceAccount"
                             v-model="agent.invocation.system.serviceAccount"
-                            :disabled="!agent.invocation.system.enabled"
+                            :disabled="!canEdit || !agent.invocation.system.enabled"
                           />
                         </CFormGroup>
                       </div>
@@ -688,6 +715,7 @@
           <InputText
             v-model="editingToolForm.hints"
             :placeholder="$t('agent.editor.tools.descriptionPlaceholder')"
+            :disabled="!canEdit"
           />
         </CFormGroup>
 
@@ -698,6 +726,7 @@
             :label="$t('agent.editor.tools.configureAccess')"
             :description="$t('agent.editor.tools.configureAccessHelp')"
             @update:modelValue="toggleToolAllow(editingToolForm, $event)"
+            :disabled="!canEdit"
           />
 
           <!-- Namespace / Module rows -->
@@ -711,13 +740,14 @@
                 @click="addToolAllowEntry(editingToolForm)"
               />
             </template>
-            <CFormList v-model="editingToolForm.allow">
+            <CFormList v-model="editingToolForm.allow" :disabled="!canEdit">
               <template #row="{ item }">
                 <div class="flex flex-col gap-2 w-full">
                   <CInputNamespace
                     :model-value="item.namespaceID"
                     @update:model-value="onToolAllowNamespaceChange(item, $event)"
                     :placeholder="$t('agent.editor.tools.namespacePlaceholder')"
+                    :disabled="!canEdit"
                   />
                   <CInputModule
                     v-if="item.namespaceID"
@@ -726,6 +756,7 @@
                     :namespace-i-d="item.namespaceID"
                     :placeholder="$t('agent.editor.tools.modulesPlaceholder')"
                     :multiple="true"
+                    :disabled="!canEdit"
                   />
                 </div>
               </template>

@@ -30,7 +30,7 @@
         ref="fileInput"
         type="file"
         accept="image/png,image/jpeg"
-        :disabled="uploading"
+        :disabled="disabled || uploading"
         class="block w-full text-sm text-muted-color file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-contrast hover:file:opacity-90 cursor-pointer"
         @change="handleFileChange"
       />
@@ -39,7 +39,7 @@
     <!-- Removal is for an uploaded avatar only: every other user wears a
          generated initials avatar, which the server re-creates the moment it is
          deleted, so the button would promise something it cannot do. -->
-    <div v-if="hasUploadedAvatar">
+    <div v-if="hasUploadedAvatar && !disabled">
       <Button
         :label="$t('system.users.editor.avatar.remove')"
         icon="pi pi-trash"
@@ -59,6 +59,7 @@ import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
 
 const props = defineProps({
+  disabled: { type: Boolean, default: false },
   user: {
     type: Object,
     required: true,

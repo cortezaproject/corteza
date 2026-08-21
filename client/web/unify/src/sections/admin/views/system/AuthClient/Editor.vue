@@ -34,11 +34,11 @@
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('system.authclients.editor.info.name')" required>
-            <InputText id="name" name="name" v-model="authClient.meta.name" />
+            <InputText id="name" name="name" v-model="authClient.meta.name" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup name="handle" :label="$t('system.authclients.editor.info.handle.label')">
-            <InputText id="handle" name="handle" v-model="authClient.handle" />
+            <InputText id="handle" name="handle" v-model="authClient.handle" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup
@@ -58,6 +58,7 @@
               v-model="redirectURIs"
               :columns="[{ label: $t('system.authclients.editor.info.uri'), width: '1fr' }]"
               @change="syncRedirectURIs"
+              :disabled="!canEdit"
             >
               <template #row="{ index }">
                 <InputText
@@ -66,6 +67,7 @@
                   class="w-full"
                   :placeholder="$t('system.authclients.editor.info.redirectURIPlaceholder')"
                   @update:modelValue="syncRedirectURIs"
+                  :disabled="!canEdit"
                 />
               </template>
             </CFormList>
@@ -82,6 +84,7 @@
                 readonly
                 class="flex-1"
                 :type="secretVisible ? 'text' : 'password'"
+                :disabled="!canEdit"
               />
               <Button
                 :icon="secretVisible ? 'pi pi-eye-slash' : 'pi pi-eye'"
@@ -110,6 +113,7 @@
                   v-model="authClient.validGrant"
                   :inputId="`grant-${opt.value}`"
                   :value="opt.value"
+                  :disabled="!canEdit"
                 />
                 <label :for="`grant-${opt.value}`" class="cursor-pointer">{{ opt.label }}</label>
               </div>
@@ -119,25 +123,45 @@
           <CFormGroup :label="$t('system.authclients.editor.info.scope')">
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
-                <Checkbox inputId="scope-profile" v-model="scopeProfile" :binary="true" />
+                <Checkbox
+                  inputId="scope-profile"
+                  v-model="scopeProfile"
+                  :binary="true"
+                  :disabled="!canEdit"
+                />
                 <label for="scope-profile" class="cursor-pointer">
                   {{ $t('system.authclients.editor.info.profile') }}
                 </label>
               </div>
               <div class="flex items-center gap-2">
-                <Checkbox inputId="scope-api" v-model="scopeApi" :binary="true" />
+                <Checkbox
+                  inputId="scope-api"
+                  v-model="scopeApi"
+                  :binary="true"
+                  :disabled="!canEdit"
+                />
                 <label for="scope-api" class="cursor-pointer">
                   {{ $t('system.authclients.editor.info.api') }}
                 </label>
               </div>
               <div class="flex items-center gap-2">
-                <Checkbox inputId="scope-openid" v-model="scopeOpenid" :binary="true" />
+                <Checkbox
+                  inputId="scope-openid"
+                  v-model="scopeOpenid"
+                  :binary="true"
+                  :disabled="!canEdit"
+                />
                 <label for="scope-openid" class="cursor-pointer">
                   {{ $t('system.authclients.editor.info.openid') }}
                 </label>
               </div>
               <div class="flex items-center gap-2">
-                <Checkbox inputId="scope-discovery" v-model="scopeDiscovery" :binary="true" />
+                <Checkbox
+                  inputId="scope-discovery"
+                  v-model="scopeDiscovery"
+                  :binary="true"
+                  :disabled="!canEdit"
+                />
                 <label for="scope-discovery" class="cursor-pointer">
                   {{ $t('system.authclients.editor.info.discovery') }}
                 </label>
@@ -149,26 +173,28 @@
             :label="$t('system.authclients.editor.info.validFrom')"
             :description="$t('system.authclients.editor.info.validFromDescription')"
           >
-            <CInputDateTime v-model="authClient.validFrom" value-type="date" />
+            <CInputDateTime v-model="authClient.validFrom" value-type="date" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup
             :label="$t('system.authclients.editor.info.expiresAt')"
             :description="$t('system.authclients.editor.info.expiresAtDescription')"
           >
-            <CInputDateTime v-model="authClient.expiresAt" value-type="date" />
+            <CInputDateTime v-model="authClient.expiresAt" value-type="date" :disabled="!canEdit" />
           </CFormGroup>
 
           <CInputToggleCard
             v-model="authClient.enabled"
             :label="$t('system.authclients.editor.info.enabled.label')"
             :description="$t('system.authclients.editor.info.enabled.description')"
+            :disabled="!canEdit"
           />
 
           <CInputToggleCard
             v-model="authClient.trusted"
             :label="$t('system.authclients.editor.info.trusted.label')"
             :description="$t('system.authclients.editor.info.trusted.description')"
+            :disabled="!canEdit"
           />
         </div>
       </Panel>
@@ -190,11 +216,13 @@
               clear-on-select
               filter-context-roles
               @select="role => addRoleToList('permittedRoles', role)"
+              :disabled="!canEdit"
             />
             <CFormItemList
               :items="permittedRoles"
               item-key="roleID"
               @remove="role => removeRoleFromList('permittedRoles', role)"
+              :disabled="!canEdit"
             >
               <template #default="{ item }">
                 <span class="text-muted-color font-medium">
@@ -213,11 +241,13 @@
               clear-on-select
               filter-context-roles
               @select="role => addRoleToList('prohibitedRoles', role)"
+              :disabled="!canEdit"
             />
             <CFormItemList
               :items="prohibitedRoles"
               item-key="roleID"
               @remove="role => removeRoleFromList('prohibitedRoles', role)"
+              :disabled="!canEdit"
             >
               <template #default="{ item }">
                 <span class="text-muted-color font-medium">
@@ -236,11 +266,13 @@
               clear-on-select
               filter-context-roles
               @select="role => addRoleToList('forcedRoles', role)"
+              :disabled="!canEdit"
             />
             <CFormItemList
               :items="forcedRoles"
               item-key="roleID"
               @remove="role => removeRoleFromList('forcedRoles', role)"
+              :disabled="!canEdit"
             >
               <template #default="{ item }">
                 <span class="text-muted-color font-medium">
@@ -261,6 +293,7 @@
                 $t('system.authclients.editor.info.security.impersonateUser.placeholder')
               "
               class="w-full"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -271,6 +304,7 @@
                 $t('system.authclients.editor.info.security.defaultUserGroup.placeholder')
               "
               class="w-full"
+              :disabled="!canEdit"
             />
           </CFormGroup>
         </div>
@@ -295,7 +329,13 @@
                 @click="copyToClipboard(curlExample)"
               />
             </template>
-            <Textarea :value="curlExample" readonly rows="3" class="font-mono text-sm" />
+            <Textarea
+              :value="curlExample"
+              readonly
+              rows="3"
+              class="font-mono text-sm"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <div class="flex flex-col gap-2">
@@ -312,7 +352,13 @@
                   @click="copyToClipboard(tokenRequest.token)"
                 />
               </template>
-              <Textarea :value="tokenRequest.token" readonly rows="4" class="font-mono text-sm" />
+              <Textarea
+                :value="tokenRequest.token"
+                readonly
+                rows="4"
+                class="font-mono text-sm"
+                :disabled="!canEdit"
+              />
             </CFormGroup>
             <div>
               <Button
@@ -328,7 +374,7 @@
           </div>
         </div>
       </Panel>
-      <Message v-if="isEdit && !authClient.canUpdateAuthClient" severity="warn" :closable="false">
+      <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
     </CViewContainer>
@@ -352,7 +398,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || authClient.canUpdateAuthClient"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -414,6 +460,10 @@ const redirectURIs = ref([])
 const tokenRequest = ref({ token: '', error: '', loading: false })
 
 const isEdit = computed(() => !!route.params.authClientID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!authClient.value?.canUpdateAuthClient)
 
 const pageTitle = computed(() =>
   isEdit.value

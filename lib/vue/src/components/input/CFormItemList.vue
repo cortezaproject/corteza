@@ -12,7 +12,7 @@
     v-model="ordered"
     class="flex flex-col gap-4"
     handle=".c-drag-handle"
-    :disabled="!draggable"
+    :disabled="!draggable || disabled"
   >
     <div
       v-for="(item, index) in items"
@@ -25,7 +25,7 @@
       @click="$emit('select', item, index)"
     >
       <i
-        v-if="draggable"
+        v-if="draggable && !disabled"
         class="c-drag-handle pi pi-bars text-muted-color cursor-grab shrink-0 mx-2"
       />
       <div class="flex-1 min-w-0 min-h-10 flex flex-col justify-center">
@@ -55,7 +55,7 @@
         >
           <slot name="hover-actions" :item="item" :index="index" />
           <Button
-            v-if="!hideRemove"
+            v-if="!hideRemove && !disabled"
             icon="pi pi-trash"
             severity="danger"
             text
@@ -85,6 +85,9 @@ const props = defineProps({
   loadingKey: { type: [String, Number, null], default: null },
   removeLabel: { type: String, default: '' },
   draggable: { type: Boolean, default: false },
+  // Read-only: no reordering and no remove button. The rows still render and
+  // stay selectable, so a list the user may look at but not change is legible.
+  disabled: { type: Boolean, default: false },
   // Key of the currently selected item — compared against getKey(item, index).
   // When matched, the row gets bg-highlight styling. Pass null/undefined for no selection.
   selectedKey: { type: [String, Number, null], default: null },

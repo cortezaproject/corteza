@@ -48,14 +48,20 @@
                   <General
                     :chatbot="chatbot"
                     :is-create="isCreate"
+                    :disabled="!canEdit"
                     @regenerate-key="handleRegenerateKey"
                   />
                   <Scenarios
                     :scenarios="chatbot.scenarios"
                     :agents="agents"
                     :handoff="chatbot.handoff"
+                    :disabled="!canEdit"
                   />
-                  <Styling :styling="chatbot.styling" :chatbot-id="chatbot.chatbotID" />
+                  <Styling
+                    :styling="chatbot.styling"
+                    :chatbot-id="chatbot.chatbotID"
+                    :disabled="!canEdit"
+                  />
                 </TabPanel>
                 <TabPanel value="sessions" class="h-full overflow-hidden p-0 flex flex-col">
                   <CChatbotInbox

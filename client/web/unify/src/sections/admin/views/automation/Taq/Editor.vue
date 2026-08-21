@@ -35,11 +35,11 @@
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('automation.taq.editor.info.name')" required>
-            <InputText id="name" name="name" v-model="taq.meta.short" />
+            <InputText id="name" name="name" v-model="taq.meta.short" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup name="handle" :label="$t('automation.taq.editor.info.handle')">
-            <InputText id="handle" name="handle" v-model="taq.handle" />
+            <InputText id="handle" name="handle" v-model="taq.handle" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup
@@ -47,11 +47,17 @@
             :label="$t('automation.taq.editor.info.description')"
             class="md:col-span-2"
           >
-            <Textarea id="description" name="description" v-model="taq.meta.description" rows="3" />
+            <Textarea
+              id="description"
+              name="description"
+              v-model="taq.meta.description"
+              rows="3"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <CFormGroup :label="$t('automation.taq.editor.info.enabled')">
-            <ToggleSwitch v-model="taq.enabled" />
+            <ToggleSwitch v-model="taq.enabled" :disabled="!canEdit" />
           </CFormGroup>
         </div>
       </Panel>
@@ -84,6 +90,10 @@
           </div>
         </div>
       </Panel>
+
+      <Message v-if="!canEdit" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'automation.taq' }">
@@ -112,7 +122,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || taq.canUpdateNgAutomation"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -152,6 +162,10 @@ const { capture, markSaved } = useDraftGuard({
 })
 
 const isEdit = computed(() => !!route.params.automationID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!taq.value?.canUpdateNgAutomation)
 
 const pageTitle = computed(() => {
   return isEdit.value

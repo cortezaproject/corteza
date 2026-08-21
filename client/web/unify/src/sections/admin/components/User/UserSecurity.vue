@@ -13,6 +13,7 @@
             :inputProps="{ autocomplete: 'new-password' }"
             inputClass="w-full"
             class="w-full relative"
+            :disabled="disabled"
           />
         </CFormGroup>
 
@@ -26,6 +27,7 @@
             :inputProps="{ autocomplete: 'new-password' }"
             inputClass="w-full"
             class="w-full"
+            :disabled="disabled"
           />
         </CFormGroup>
       </div>
@@ -38,11 +40,12 @@
         :label="$t('system.users.editor.mfa.emailOTP.label')"
         :description="$t('system.users.editor.mfa.emailOTP.description')"
         @update:modelValue="val => $emit('update:mfa', 'enforcedEmailOTP', val)"
+        :disabled="disabled"
       />
 
       <CInputToggleCard
         :modelValue="user.meta.securityPolicy.mfa.enforcedTOTP"
-        :disabled="!user.meta.securityPolicy.mfa.enforcedTOTP"
+        :disabled="disabled || !user.meta.securityPolicy.mfa.enforcedTOTP"
         :label="$t('system.users.editor.mfa.TOTP.label')"
         :description="$t('system.users.editor.mfa.TOTP.description')"
         dim-when-off
@@ -58,6 +61,7 @@ import { components } from '@planetcrust/human-vue'
 const { CInputToggleCard } = components
 
 defineProps({
+  disabled: { type: Boolean, default: false },
   user: {
     type: Object,
     required: true,

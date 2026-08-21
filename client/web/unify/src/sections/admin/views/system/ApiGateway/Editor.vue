@@ -37,6 +37,7 @@
               name="endpoint"
               v-model="route_.endpoint"
               placeholder="/api/v1/..."
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -47,6 +48,7 @@
               :options="methodOptions"
               option-label="label"
               option-value="value"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -55,6 +57,7 @@
             :label="$t('system.apigw.editor.info.enabled')"
             :description="$t('system.apigw.editor.info.enabledDescription')"
             class="self-end"
+            :disabled="!canEdit"
           />
 
           <CFormGroup
@@ -62,7 +65,12 @@
             input-id="description"
             class="md:col-span-2"
           >
-            <Textarea id="description" v-model="route_.meta.description" rows="2" />
+            <Textarea
+              id="description"
+              v-model="route_.meta.description"
+              rows="2"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <CInputToggleCard
@@ -70,6 +78,7 @@
             :label="$t('system.apigw.editor.info.async')"
             :description="$t('system.apigw.editor.info.asyncDescription')"
             class="self-start"
+            :disabled="!canEdit"
           />
         </div>
       </Panel>
@@ -114,6 +123,7 @@
             draggable
             @remove="filter => onRemoveFilter(filter)"
             @reorder="onReorderFilters"
+            :disabled="!canEdit"
           >
             <template #default="{ item: filter }">
               <button
@@ -138,7 +148,7 @@
           </CFormItemList>
         </div>
       </Panel>
-      <Message v-if="isEdit && !route_.canUpdateApigwRoute" severity="warn" :closable="false">
+      <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
     </CViewContainer>
@@ -155,7 +165,11 @@
         <CFilterParamsEditor :filter="modalFilter" />
 
         <div class="flex items-center gap-3">
-          <ToggleSwitch id="modalFilterEnabled" v-model="modalFilter.enabled" />
+          <ToggleSwitch
+            id="modalFilterEnabled"
+            v-model="modalFilter.enabled"
+            :disabled="!canEdit"
+          />
           <label for="modalFilterEnabled" class="font-medium text-primary cursor-pointer">
             {{ $t('system.apigw.editor.filters.enabled') }}
           </label>
@@ -195,7 +209,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || route_.canUpdateApigwRoute"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -254,6 +268,10 @@ const methodOptions = [
 ]
 
 const isEdit = computed(() => !!vueRoute.params.routeID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!route_.value?.canUpdateApigwRoute)
 
 const pageTitle = computed(() =>
   isEdit.value ? t('system.apigw.editor.title.edit') : t('system.apigw.editor.title.create'),

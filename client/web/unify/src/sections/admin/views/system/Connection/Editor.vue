@@ -61,11 +61,21 @@
                       :label="$t('system.connections.editor.info.name')"
                       required
                     >
-                      <InputText id="name" name="name" v-model="connection.meta.short" />
+                      <InputText
+                        id="name"
+                        name="name"
+                        v-model="connection.meta.short"
+                        :disabled="!canEdit"
+                      />
                     </CFormGroup>
 
                     <CFormGroup name="handle" :label="$t('system.connections.editor.info.handle')">
-                      <InputText id="handle" name="handle" v-model="connection.handle" />
+                      <InputText
+                        id="handle"
+                        name="handle"
+                        v-model="connection.handle"
+                        :disabled="!canEdit"
+                      />
                     </CFormGroup>
 
                     <CFormGroup
@@ -73,7 +83,12 @@
                       input-id="description"
                       class="md:col-span-2"
                     >
-                      <Textarea id="description" v-model="connection.meta.description" rows="3" />
+                      <Textarea
+                        id="description"
+                        v-model="connection.meta.description"
+                        rows="3"
+                        :disabled="!canEdit"
+                      />
                     </CFormGroup>
                   </div>
 
@@ -86,6 +101,7 @@
                       autoResize
                       class="font-mono text-sm"
                       @change="() => parseJSONField('service')"
+                      :disabled="!canEdit"
                     />
                   </CFormGroup>
                 </div>
@@ -107,6 +123,7 @@
                         rows="10"
                         class="font-mono text-sm max-h-[50vh] overflow-y-auto"
                         @change="() => parseJSONField('resources')"
+                        :disabled="!canEdit"
                       />
                     </CFormGroup>
                   </Panel>
@@ -125,6 +142,7 @@
                         rows="10"
                         class="font-mono text-sm max-h-[50vh] overflow-y-auto"
                         @change="() => parseJSONField('operations')"
+                        :disabled="!canEdit"
                       />
                     </CFormGroup>
                   </Panel>
@@ -142,6 +160,10 @@
           </Tabs>
         </template>
       </Card>
+
+      <Message v-if="!canEdit" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </div>
 
     <CEditorActions :back-to="{ name: 'system.connections' }">
@@ -163,7 +185,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || connection.canUpdateConnection"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -217,6 +239,10 @@ const rawJSON = reactive({
 
 // Computed
 const isEdit = computed(() => !!route.params.connectionID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!connection.value?.canUpdateConnection)
 
 const canEnable = computed(
   () =>

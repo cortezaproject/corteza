@@ -59,11 +59,21 @@
       <Panel :header="$t('system.roles.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('system.roles.editor.info.name')" required>
-            <InputText id="name" name="name" v-model="role.name" :disabled="role.isClosed" />
+            <InputText
+              id="name"
+              name="name"
+              v-model="role.name"
+              :disabled="!canEdit || role.isClosed"
+            />
           </CFormGroup>
 
           <CFormGroup name="handle" :label="$t('system.roles.editor.info.handle')">
-            <InputText id="handle" name="handle" v-model="role.handle" :disabled="role.isClosed" />
+            <InputText
+              id="handle"
+              name="handle"
+              v-model="role.handle"
+              :disabled="!canEdit || role.isClosed"
+            />
           </CFormGroup>
 
           <CFormGroup
@@ -76,13 +86,14 @@
               name="description"
               v-model="role.meta.description"
               rows="3"
-              :disabled="role.isClosed"
+              :disabled="!canEdit || role.isClosed"
             />
           </CFormGroup>
 
           <CInputToggleCard
             v-if="!role.isClosed"
             v-model="isContextual"
+            :disabled="!canEdit"
             :label="$t('system.roles.editor.info.context.label')"
             :description="$t('system.roles.editor.info.context.description')"
             class="self-start"
@@ -101,7 +112,7 @@
             :label="$t('system.roles.editor.info.context.expression-label')"
             class="md:col-span-2"
           >
-            <InputText v-model="role.meta.context.expr" />
+            <InputText v-model="role.meta.context.expr" :disabled="!canEdit" />
           </CFormGroup>
           <CFormGroup
             :label="$t('system.roles.editor.info.context.resource-types-label')"
@@ -113,6 +124,7 @@
                   :inputId="rt.value"
                   v-model="role.meta.context.resourceTypes"
                   :value="rt.value"
+                  :disabled="!canEdit"
                 />
                 <label :for="rt.value" class="cursor-pointer text-sm">{{ rt.label }}</label>
               </div>
@@ -131,8 +143,13 @@
           :role="role"
           :initialMemberIDs="initialMemberIDs"
           v-model:memberIDs="memberIDs"
+          :disabled="!canEdit"
         />
       </Panel>
+
+      <Message v-if="!canEdit" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.roles' }">
@@ -155,7 +172,7 @@
           @click="handleRestore"
         />
         <Button
-          v-if="!isEdit || role.canUpdateRole"
+          v-if="canEdit"
           type="submit"
           :label="$t('general.label.save')"
           icon="pi pi-save"
@@ -210,6 +227,10 @@ const showCloneDialog = ref(false)
 
 // Computed
 const isEdit = computed(() => !!route.params.roleID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!role.value?.canUpdateRole)
 
 const isContextual = ref(false)
 

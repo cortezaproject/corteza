@@ -7,6 +7,7 @@
       filter-context-roles
       :exclude-roles="Array.from(membershipIDs)"
       @select="onRoleSelect"
+      :disabled="disabled"
     />
 
     <CFormItemList
@@ -16,6 +17,7 @@
       :remove-label="$t('system.users.editor.roles.remove')"
       item-key="roleID"
       @remove="removeRole"
+      :disabled="disabled"
     >
       <template #default="{ item }">
         <span class="font-medium">{{ item.name || item.handle || item.roleID }}</span>
@@ -38,6 +40,7 @@ const { CInputRole } = components
 const { t } = useI18n()
 
 defineProps({
+  disabled: { type: Boolean, default: false },
   user: {
     type: Object,
     required: true,

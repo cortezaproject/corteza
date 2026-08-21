@@ -15,7 +15,7 @@
       v-model="items"
       :class="listClass"
       handle=".c-drag-handle"
-      :disabled="!draggable"
+      :disabled="!draggable || disabled"
       @update="() => emit('reorder', items)"
     >
       <!-- Column headers (the `cform-list-header` class is a stable hook for
@@ -56,11 +56,11 @@
       >
         <div :style="gridStyle" class="grid gap-2 items-center">
           <i
-            v-if="draggable"
+            v-if="draggable && !disabled"
             class="c-drag-handle pi pi-bars text-muted-color cursor-grab text-center"
           />
           <slot name="row" :item="item" :index="index" />
-          <div v-if="!hideRemove" class="w-10 flex justify-end">
+          <div v-if="!hideRemove && !disabled" class="w-10 flex justify-end">
             <CInputDelete
               v-if="items.length > minItems && confirmRemove"
               icon="pi pi-trash"
@@ -105,6 +105,9 @@ const props = defineProps({
   minItems: { type: Number, default: 0 },
   hideRemove: { type: Boolean, default: false },
   draggable: { type: Boolean, default: false },
+  // Read-only: no reordering, no remove. Rows still render, and the `row`
+  // slot's own inputs are the caller's to disable.
+  disabled: { type: Boolean, default: false },
   // When set, removing a row asks for confirmation with this message
   confirmRemove: { type: String, default: '' },
   // Makes the list its own scroll region with the column headers pinned to its

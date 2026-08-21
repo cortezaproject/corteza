@@ -34,3 +34,10 @@ view sidecars.
 ## When changing this
 
 - Route names/paths are registered in `sections/admin/routes.js` (prefixed with `/admin` by the section index) — keep folder structure and route names in sync when adding/moving views.
+- **Read-only editors**: every Editor derives one `canEdit` computed —
+  `!isEdit.value || !!resource.value?.<the flag that gates Save>` — and uses it
+  for three things: the `general.editor.readOnly` banner, the Save button, and
+  `:disabled` on every field. A form the user cannot save must not invite them
+  to fill it in, so hiding Save alone is not enough. Sub-components holding
+  fields (User's Security/Roles/Avatar, Role's Members, chatbot's
+  General/Scenarios/Styling) take a `disabled` prop and pass it down.

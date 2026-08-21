@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col gap-4">
     <CInputUser
+      v-if="!disabled"
       class="w-full"
       :placeholder="$t('system.roles.editor.members.placeholder')"
       clear-on-select
@@ -14,6 +15,7 @@
       :empty-message="$t('system.roles.editor.members.empty')"
       :remove-label="$t('system.roles.editor.members.remove')"
       item-key="userID"
+      :disabled="disabled"
       @remove="removeMember"
     >
       <template #default="{ item }">
@@ -49,6 +51,10 @@ defineProps({
   initialMemberIDs: {
     type: Object, // Set
     required: true,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 })
 

@@ -28,11 +28,11 @@
       <Panel :header="$t('system.templates.editor.tabs.basic')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('system.templates.editor.info.meta.short')" required>
-            <InputText id="name" name="name" v-model="template.meta.short" />
+            <InputText id="name" name="name" v-model="template.meta.short" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup name="handle" :label="$t('system.templates.editor.info.handle')">
-            <InputText id="handle" name="handle" v-model="template.handle" />
+            <InputText id="handle" name="handle" v-model="template.handle" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup :label="$t('system.templates.editor.info.type')" input-id="type">
@@ -42,11 +42,17 @@
               :options="typeOptions"
               option-label="label"
               option-value="value"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
           <CFormGroup :label="$t('system.templates.editor.info.language')" input-id="language">
-            <InputText id="language" v-model="template.language" placeholder="en" />
+            <InputText
+              id="language"
+              v-model="template.language"
+              placeholder="en"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <CFormGroup
@@ -54,7 +60,12 @@
             input-id="description"
             class="md:col-span-2"
           >
-            <Textarea id="description" v-model="template.meta.description" rows="2" />
+            <Textarea
+              id="description"
+              v-model="template.meta.description"
+              rows="2"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <CInputToggleCard
@@ -62,6 +73,7 @@
             :label="$t('system.templates.editor.info.partial')"
             :description="$t('system.templates.editor.info.partialDescription')"
             class="self-start"
+            :disabled="!canEdit"
           />
         </div>
       </Panel>
@@ -81,6 +93,7 @@
               option-value="value"
               filter
               show-clear
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -97,6 +110,7 @@
               option-value="value"
               filter
               show-clear
+              :disabled="!canEdit"
             />
           </CFormGroup>
         </div>
@@ -126,7 +140,7 @@
       >
         <CTemplatePreview :template="template" />
       </Panel>
-      <Message v-if="isEdit && !template.canUpdateTemplate" severity="warn" :closable="false">
+      <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
     </CViewContainer>
@@ -150,7 +164,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || template.canUpdateTemplate"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -197,6 +211,10 @@ const typeOptions = computed(() => [
 ])
 
 const isEdit = computed(() => !!route.params.templateID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!template.value?.canUpdateTemplate)
 
 const pageTitle = computed(() =>
   isEdit.value

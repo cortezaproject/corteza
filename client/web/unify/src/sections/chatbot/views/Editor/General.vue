@@ -6,7 +6,7 @@
         :description="$t('chatbot.editor.name.help')"
         input-id="name"
       >
-        <InputText id="name" v-model="chatbot.name" />
+        <InputText id="name" v-model="chatbot.name" :disabled="disabled" />
       </CFormGroup>
 
       <CFormGroup
@@ -14,7 +14,7 @@
         :description="$t('chatbot.editor.handle.help')"
         input-id="handle"
       >
-        <InputText id="handle" v-model="chatbot.handle" />
+        <InputText id="handle" v-model="chatbot.handle" :disabled="disabled" />
       </CFormGroup>
 
       <CInputToggleCard
@@ -22,6 +22,7 @@
         :label="$t('chatbot.editor.enabled.label')"
         :description="$t('chatbot.editor.enabled.help')"
         class="self-start"
+        :disabled="disabled"
       />
 
       <div class="hidden lg:block" />
@@ -35,6 +36,7 @@
             readonly
             rows="2"
             class="flex-1 font-mono text-xs"
+            :disabled="disabled"
           />
           <Button
             v-tooltip.bottom="$t('chatbot.editor.embed.copy')"
@@ -53,6 +55,7 @@
               :model-value="chatbot.widgetKey || $t('chatbot.editor.widgetKey.notGenerated')"
               readonly
               class="font-mono"
+              :disabled="disabled"
             />
             <Button
               v-tooltip.bottom="$t('chatbot.editor.widgetKey.regenerate')"
@@ -89,6 +92,7 @@
           v-model="chatbot.allowedOrigins"
           :columns="[{ label: '', width: '1fr' }]"
           :empty-message="$t('chatbot.editor.origins.empty')"
+          :disabled="disabled"
         >
           <template #row="{ index }">
             <InputText
@@ -96,6 +100,7 @@
               placeholder="https://example.com"
               size="small"
               class="w-full"
+              :disabled="disabled"
             />
           </template>
         </CFormList>
@@ -106,7 +111,7 @@
         :description="$t('chatbot.editor.sessionTTL.help')"
         class="self-start"
       >
-        <InputText v-model="chatbot.sessionTTL" placeholder="2h" />
+        <InputText v-model="chatbot.sessionTTL" placeholder="2h" :disabled="disabled" />
       </CFormGroup>
     </div>
   </Panel>
@@ -123,6 +128,7 @@ const { CInputToggleCard } = components
 const props = defineProps({
   chatbot: { type: Object, required: true },
   isCreate: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['regenerate-key'])

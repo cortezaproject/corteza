@@ -26,7 +26,7 @@
       <Panel :header="$t('system.queues.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="queue" :label="$t('system.queues.editor.info.name')" required>
-            <InputText id="queue" name="queue" v-model="queue.queue" />
+            <InputText id="queue" name="queue" v-model="queue.queue" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup name="consumer" :label="$t('system.queues.editor.info.consumer')" required>
@@ -36,6 +36,7 @@
               :options="consumerOptions"
               option-label="label"
               option-value="value"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -53,11 +54,12 @@
               name="pollDelay"
               v-model="queue.meta.poll_delay"
               placeholder="1h / 1m15s / 1h90s"
+              :disabled="!canEdit"
             />
           </CFormGroup>
         </div>
       </Panel>
-      <Message v-if="isEdit && !queue.canUpdateQueue" severity="warn" :closable="false">
+      <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
     </CViewContainer>
@@ -81,7 +83,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || queue.canUpdateQueue"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -124,6 +126,10 @@ const consumerOptions = computed(() => [
 ])
 
 const isEdit = computed(() => !!route.params.queueID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!queue.value?.canUpdateQueue)
 
 const pageTitle = computed(() =>
   isEdit.value ? t('system.queues.editor.title.edit') : t('system.queues.editor.title.create'),

@@ -5,7 +5,7 @@
         :label="$t('chatbot.editor.styling.title.label')"
         :description="$t('chatbot.editor.styling.title.help')"
       >
-        <InputText v-model="styling.launcher.label" />
+        <InputText v-model="styling.launcher.label" :disabled="disabled" />
       </CFormGroup>
 
       <CFormGroup
@@ -54,13 +54,27 @@
           :label="$t('chatbot.editor.styling.fontSize.heading')"
           :description="$t('chatbot.editor.styling.fontSizeHelp.heading')"
         >
-          <InputNumber v-model="fontHeadingPx" :min="8" :max="48" suffix=" px" fluid />
+          <InputNumber
+            v-model="fontHeadingPx"
+            :min="8"
+            :max="48"
+            suffix=" px"
+            fluid
+            :disabled="disabled"
+          />
         </CFormGroup>
         <CFormGroup
           :label="$t('chatbot.editor.styling.fontSize.base')"
           :description="$t('chatbot.editor.styling.fontSizeHelp.base')"
         >
-          <InputNumber v-model="fontBasePx" :min="8" :max="48" suffix=" px" fluid />
+          <InputNumber
+            v-model="fontBasePx"
+            :min="8"
+            :max="48"
+            suffix=" px"
+            fluid
+            :disabled="disabled"
+          />
         </CFormGroup>
       </div>
     </Fieldset>
@@ -74,7 +88,7 @@
             :label="$t('chatbot.editor.styling.button.label.label')"
             :description="$t('chatbot.editor.styling.button.label.help')"
           >
-            <InputText v-model="styling.launcher.buttonLabel" />
+            <InputText v-model="styling.launcher.buttonLabel" :disabled="disabled" />
           </CFormGroup>
 
           <CFormGroup
@@ -116,6 +130,7 @@
               ]"
               optionLabel="label"
               optionValue="value"
+              :disabled="disabled"
             />
           </CFormGroup>
         </div>
@@ -133,6 +148,7 @@
               ]"
               optionLabel="label"
               optionValue="value"
+              :disabled="disabled"
             />
           </CFormGroup>
 
@@ -140,7 +156,14 @@
             :label="$t('chatbot.editor.styling.button.size.label')"
             :description="$t('chatbot.editor.styling.button.size.help')"
           >
-            <InputNumber v-model="launcherSizePx" :min="32" :max="96" suffix=" px" fluid />
+            <InputNumber
+              v-model="launcherSizePx"
+              :min="32"
+              :max="96"
+              suffix=" px"
+              fluid
+              :disabled="disabled"
+            />
           </CFormGroup>
         </div>
 
@@ -158,6 +181,7 @@
               v-model="styling.launcher.iconVisible"
               :label="$t('chatbot.editor.styling.button.icon.label')"
               :description="$t('chatbot.editor.styling.button.icon.help')"
+              :disabled="disabled"
             />
             <CFileDropZone
               v-if="styling.launcher.iconVisible"
@@ -186,6 +210,7 @@
               v-model="styling.launcher.startOpen"
               :label="$t('chatbot.editor.styling.button.startOpen.label')"
               :description="$t('chatbot.editor.styling.button.startOpen.help')"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -204,6 +229,7 @@ const { CInputColorPicker, CFileDropZone, CInputToggleCard } = components
 const props = defineProps({
   styling: { type: Object, required: true },
   chatbotId: { type: String, default: '' },
+  disabled: { type: Boolean, default: false },
 })
 
 const $SystemAPI = inject('$SystemAPI')

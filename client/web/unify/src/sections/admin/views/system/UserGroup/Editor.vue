@@ -29,11 +29,11 @@
       <Panel :header="$t('system.user-groups.editor.info.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="name" :label="$t('system.user-groups.editor.info.meta.short')" required>
-            <InputText id="name" name="name" v-model="userGroup.meta.short" />
+            <InputText id="name" name="name" v-model="userGroup.meta.short" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup name="handle" :label="$t('system.user-groups.editor.info.handle')">
-            <InputText id="handle" name="handle" v-model="userGroup.handle" />
+            <InputText id="handle" name="handle" v-model="userGroup.handle" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup
@@ -46,6 +46,7 @@
               name="description"
               v-model="userGroup.meta.description"
               rows="3"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -73,17 +74,20 @@
                 { label: $t('system.user-groups.editor.info.parents.parent.label'), width: '1fr' },
                 { label: $t('system.user-groups.editor.info.parents.name.label'), width: '1fr' },
               ]"
+              :disabled="!canEdit"
             >
               <template #row="{ item }">
                 <CInputUserGroup
                   v-model="item.selfID"
                   class="w-full"
                   :placeholder="$t('system.user-groups.editor.info.parents.parent.placeholder')"
+                  :disabled="!canEdit"
                 />
                 <InputText
                   v-model="item.name"
                   :placeholder="$t('system.user-groups.editor.info.parents.name.placeholder')"
                   class="w-full"
+                  :disabled="!canEdit"
                 />
               </template>
             </CFormList>
@@ -108,6 +112,10 @@
       >
         <UserGroupRoles :userGroupID="userGroup.userGroupID" />
       </Panel>
+
+      <Message v-if="!canEdit" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.userGroups' }">
@@ -129,7 +137,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || userGroup.canUpdateUserGroup"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -170,6 +178,10 @@ const { capture, markSaved } = useDraftGuard({
 
 // Computed
 const isEdit = computed(() => !!route.params.userGroupID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!userGroup.value?.canUpdateUserGroup)
 
 const pageTitle = computed(() => {
   return isEdit.value

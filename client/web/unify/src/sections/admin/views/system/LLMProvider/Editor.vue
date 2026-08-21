@@ -47,11 +47,21 @@
       <Panel :header="$t('system.llmProviders.editor.tabs.basic')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="short" :label="$t('system.llmProviders.editor.info.short')">
-            <InputText id="short" name="short" v-model="llmProvider.meta.short" />
+            <InputText
+              id="short"
+              name="short"
+              v-model="llmProvider.meta.short"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <CFormGroup name="handle" :label="$t('system.llmProviders.editor.info.handle')">
-            <InputText id="handle" name="handle" v-model="llmProvider.handle" />
+            <InputText
+              id="handle"
+              name="handle"
+              v-model="llmProvider.handle"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <CFormGroup
@@ -64,6 +74,7 @@
               v-model="llmProvider.meta.description"
               rows="3"
               auto-resize
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -81,6 +92,7 @@
               :options="providerOptions"
               option-label="label"
               option-value="value"
+              :disabled="!canEdit"
             />
           </CFormGroup>
 
@@ -89,7 +101,7 @@
             :description="$t('system.llmProviders.editor.config.promptURLHelp')"
             input-id="promptURL"
           >
-            <InputText id="promptURL" v-model="llmProvider.config.promptURL" />
+            <InputText id="promptURL" v-model="llmProvider.config.promptURL" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup
@@ -98,11 +110,11 @@
             :label="$t('system.llmProviders.editor.info.apiKey')"
             required
           >
-            <InputText id="apiKey" name="apiKey" v-model="apiKey" />
+            <InputText id="apiKey" name="apiKey" v-model="apiKey" :disabled="!canEdit" />
           </CFormGroup>
         </div>
       </Panel>
-      <Message v-if="isEdit && !llmProvider.canUpdateLlmProvider" severity="warn" :closable="false">
+      <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
     </CViewContainer>
@@ -117,7 +129,7 @@
         @confirm="handleDelete"
       />
       <Button
-        v-if="!isEdit || llmProvider.canUpdateLlmProvider"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -133,7 +145,7 @@
     class="w-full max-w-lg"
   >
     <CFormGroup :label="$t('system.llmProviders.editor.info.apiKey')" input-id="dialogApiKey">
-      <InputText id="dialogApiKey" v-model="apiKey" autocomplete="off" />
+      <InputText id="dialogApiKey" v-model="apiKey" autocomplete="off" :disabled="!canEdit" />
     </CFormGroup>
 
     <template #footer>
@@ -186,6 +198,10 @@ const { capture, markSaved } = useDraftGuard({
 const apiKey = ref('')
 
 const isEdit = computed(() => !!route.params.llmProviderID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!llmProvider.value?.canUpdateLlmProvider)
 
 const pageTitle = computed(() =>
   isEdit.value

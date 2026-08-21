@@ -27,6 +27,7 @@
           @select="(_item, index) => (selectedIdx = index)"
           @remove="onScenarioRemove"
           @reorder="onScenariosReorder"
+          :disabled="disabled"
         >
           <template #default="{ item, index }">
             <span
@@ -43,10 +44,10 @@
         <template v-if="current">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <CFormGroup :label="$t('chatbot.editor.scenarios.name')">
-              <InputText v-model="current.name" />
+              <InputText v-model="current.name" :disabled="disabled" />
             </CFormGroup>
             <CFormGroup :label="$t('chatbot.editor.scenarios.handle')">
-              <InputText v-model="current.id" :invalid="handleIsDuplicate" />
+              <InputText v-model="current.id" :invalid="handleIsDuplicate" :disabled="disabled" />
               <small v-if="handleIsDuplicate" class="text-red-500">
                 {{ $t('chatbot.editor.scenarios.handleDuplicate') }}
               </small>
@@ -61,6 +62,7 @@
                 optionLabel="label"
                 optionValue="value"
                 @change="ensureScenarioConfig"
+                :disabled="disabled"
               />
             </CFormGroup>
           </div>
@@ -80,7 +82,11 @@
                   />
                 </CFormGroup>
                 <CFormGroup :label="$t('chatbot.editor.scenarios.static.autoAdvance')">
-                  <InputNumber v-model="current.config.autoAdvanceMs" :min="0" />
+                  <InputNumber
+                    v-model="current.config.autoAdvanceMs"
+                    :min="0"
+                    :disabled="disabled"
+                  />
                 </CFormGroup>
               </template>
 
@@ -99,6 +105,7 @@
                       :placeholder="$t('chatbot.editor.scenarios.agent.placeholder')"
                       filter
                       class="flex-1"
+                      :disabled="disabled"
                     />
                     <Button
                       v-if="current.agentID"
@@ -121,13 +128,13 @@
                   :description="$t('chatbot.editor.scenarios.conversation.placeholderHelp')"
                   class="xl:col-span-2"
                 >
-                  <InputText v-model="current.config.placeholder" />
+                  <InputText v-model="current.config.placeholder" :disabled="disabled" />
                 </CFormGroup>
                 <CFormGroup
                   :label="$t('chatbot.editor.scenarios.conversation.initialPrompt')"
                   class="xl:col-span-2"
                 >
-                  <Textarea v-model="current.config.initialPrompt" :rows="2" />
+                  <Textarea v-model="current.config.initialPrompt" :rows="2" :disabled="disabled" />
                 </CFormGroup>
                 <CInputToggleCard
                   v-model="current.config.typingIndicator"
@@ -136,6 +143,7 @@
                     $t('chatbot.editor.scenarios.conversation.typingIndicatorDescription')
                   "
                   class="col-span-2"
+                  :disabled="disabled"
                 />
               </template>
 
@@ -173,10 +181,21 @@
                       },
                     ]"
                     :empty-message="$t('chatbot.editor.scenarios.form.empty')"
+                    :disabled="disabled"
                   >
                     <template #row="{ item }">
-                      <InputText v-model="item.name" size="small" class="w-full" />
-                      <InputText v-model="item.label" size="small" class="w-full" />
+                      <InputText
+                        v-model="item.name"
+                        size="small"
+                        class="w-full"
+                        :disabled="disabled"
+                      />
+                      <InputText
+                        v-model="item.label"
+                        size="small"
+                        class="w-full"
+                        :disabled="disabled"
+                      />
                       <Select
                         v-model="item.type"
                         :options="fieldTypeOptions"
@@ -184,15 +203,16 @@
                         optionValue="value"
                         size="small"
                         class="w-full"
+                        :disabled="disabled"
                       />
                       <div class="flex items-center justify-center">
-                        <ToggleSwitch v-model="item.required" />
+                        <ToggleSwitch v-model="item.required" :disabled="disabled" />
                       </div>
                     </template>
                   </CFormList>
                 </CFormGroup>
                 <CFormGroup :label="$t('chatbot.editor.scenarios.form.submitLabel')">
-                  <InputText v-model="current.config.submitLabel" />
+                  <InputText v-model="current.config.submitLabel" :disabled="disabled" />
                 </CFormGroup>
               </template>
 
@@ -217,6 +237,7 @@
                   <InputText
                     v-model="current.config.acceptLabel"
                     :placeholder="$t('chatbot.editor.scenarios.consent.acceptLabel.placeholder')"
+                    :disabled="disabled"
                   />
                 </CFormGroup>
                 <CFormGroup
@@ -226,6 +247,7 @@
                   <InputText
                     v-model="current.config.rejectLabel"
                     :placeholder="$t('chatbot.editor.scenarios.consent.rejectLabel.placeholder')"
+                    :disabled="disabled"
                   />
                 </CFormGroup>
               </template>
@@ -243,6 +265,7 @@
                 :model-value="automationID(current.automation?.before?.automation)"
                 :placeholder="$t('chatbot.editor.scenarios.automation.placeholder')"
                 @update:model-value="setAutomation('before', $event)"
+                :disabled="disabled"
               />
             </CFormGroup>
             <CFormGroup
@@ -253,6 +276,7 @@
                 :model-value="automationID(current.automation?.after?.automation)"
                 :placeholder="$t('chatbot.editor.scenarios.automation.placeholder')"
                 @update:model-value="setAutomation('after', $event)"
+                :disabled="disabled"
               />
             </CFormGroup>
           </div>
@@ -271,6 +295,7 @@
           v-model="handoff.enabled"
           :label="$t('chatbot.editor.handoff.enabled.label')"
           :description="$t('chatbot.editor.handoff.enabled.help')"
+          :disabled="disabled"
         />
 
         <template v-if="handoff.enabled">
@@ -283,6 +308,7 @@
                 :model-value="automationID(handoff.automation?.onRequested?.automation)"
                 :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
                 @update:model-value="setHandoffAutomation('onRequested', $event)"
+                :disabled="disabled"
               />
             </CFormGroup>
             <CFormGroup
@@ -293,6 +319,7 @@
                 :model-value="automationID(handoff.automation?.onAccepted?.automation)"
                 :placeholder="$t('chatbot.editor.handoff.automation.placeholder')"
                 @update:model-value="setHandoffAutomation('onAccepted', $event)"
+                :disabled="disabled"
               />
             </CFormGroup>
           </div>
@@ -340,6 +367,7 @@ const props = defineProps({
   scenarios: { type: Array, required: true },
   agents: { type: Array, default: () => [] },
   handoff: { type: Object, required: true },
+  disabled: { type: Boolean, default: false },
 })
 
 function setHandoffAutomation(phase, id) {

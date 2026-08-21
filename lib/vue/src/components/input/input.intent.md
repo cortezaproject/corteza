@@ -60,5 +60,9 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 
 ## When changing this
 
+- `CFormList` and `CFormItemList` carry their own controls — a remove button and
+  a drag handle — so an editor cannot make them read-only by disabling its own
+  fields. Both take `disabled`: rows still render, reordering and remove go.
+
 Keep the selector contract (ID-valued v-model, self-fetching) uniform — the TAQ
 registry and field editors instantiate these interchangeably by type.

@@ -66,15 +66,21 @@
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup name="email" :label="$t('system.users.editor.info.email')" required>
-            <InputText id="email" name="email" v-model="user.email" type="email" />
+            <InputText
+              id="email"
+              name="email"
+              v-model="user.email"
+              type="email"
+              :disabled="!canEdit"
+            />
           </CFormGroup>
 
           <CFormGroup name="name" :label="$t('system.users.editor.info.name')">
-            <InputText id="name" name="name" v-model="user.name" />
+            <InputText id="name" name="name" v-model="user.name" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup name="handle" :label="$t('system.users.editor.info.handle')">
-            <InputText id="handle" name="handle" v-model="user.handle" />
+            <InputText id="handle" name="handle" v-model="user.handle" :disabled="!canEdit" />
           </CFormGroup>
 
           <CFormGroup name="userGroupID" :label="$t('system.users.editor.info.userGroup.label')">
@@ -83,6 +89,7 @@
               v-model="user.userGroupID"
               :clearable="false"
               class="w-full"
+              :disabled="!canEdit"
             />
           </CFormGroup>
         </div>
@@ -97,6 +104,7 @@
         <UserSecurity
           :user="user"
           v-model:passwords="passwords"
+          :disabled="!canEdit"
           @update:mfa="(key, val) => (user.meta.securityPolicy.mfa[key] = val)"
         />
       </Panel>
@@ -111,6 +119,7 @@
           :user="user"
           v-model:membershipIDs="membershipIDs"
           :initialMembershipIDs="initialMembershipIDs"
+          :disabled="!canEdit"
         />
       </Panel>
 
@@ -120,7 +129,7 @@
         toggleable
         class="shadow"
       >
-        <UserAvatar :user="user" @update:user="u => (user = u)" />
+        <UserAvatar :user="user" :disabled="!canEdit" @update:user="u => (user = u)" />
       </Panel>
 
       <Panel
@@ -131,6 +140,10 @@
       >
         <UserExternalAuth ref="externalAuthRef" :userID="user.userID" />
       </Panel>
+
+      <Message v-if="!canEdit" severity="warn" :closable="false">
+        {{ $t('general.editor.readOnly') }}
+      </Message>
     </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.users' }">
@@ -152,7 +165,7 @@
         @click="handleRestore"
       />
       <Button
-        v-if="!isEdit || user.canUpdateUser"
+        v-if="canEdit"
         type="submit"
         :label="$t('general.label.save')"
         icon="pi pi-save"
@@ -212,6 +225,10 @@ const membershipIDs = ref(new Set())
 
 // Computed
 const isEdit = computed(() => !!route.params.userID)
+
+// Read-only is one condition, used by the fields, the banner and Save alike —
+// a form the user cannot save must not invite them to fill it in.
+const canEdit = computed(() => !isEdit.value || !!user.value?.canUpdateUser)
 
 const isSelf = computed(() => !!user.value && $Auth?.user?.userID === user.value.userID)
 
