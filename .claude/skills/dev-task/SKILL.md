@@ -238,11 +238,19 @@ Finally, `➡️ NEXT`. Anything the human could weigh in on — a decision, a
 preference, which of the moves below — is an `AskUserQuestion`, never a written
 question. If there is genuinely nothing, name the next move and stop.
 
-**In a worktree, landing is one of the options** — `worktree.sh land <name>`
-rebases onto main, merges fast-forward and takes the worktree away; `--keep`
-lands an increment and leaves it running. Never land unasked: it puts commits
-on the branch every other session is working from. Pushing is not on the menu
-at all.
+**In a worktree, the confidence grade decides whether landing is a question.**
+`worktree.sh land <name>` rebases onto main, merges fast-forward and takes the
+worktree away; `--keep` lands an increment and leaves it running.
+
+- **High, with every step-6 criterion checked** → land, and say in `🔧 CHANGED`
+  that you did. No question.
+- **Medium or Low** → offer it in the interview instead. The grade exists to
+  flag work whose verification has a hole in it, and main is the branch every
+  other session builds from.
+- **`land` refuses** → report its reason verbatim and stop. Never work around a
+  refusal; each one is protecting somebody's uncommitted work.
+
+Pushing is not on the menu at any grade.
 
 **Once the task is fully finished, the open queue is part of that question.**
 Read `backlog.sh list` and offer the items as options so the human picks which

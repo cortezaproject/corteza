@@ -136,6 +136,9 @@ Rules on the grade:
   never broken to prove it asserts.
 - **A subagent's grade is not yours.** Take it one step down until you have
   re-run the claim yourself.
+- **The grade decides whether work lands unasked**, so grade the evidence and
+  not the mood. High in a worktree merges to main without a question; every
+  reason to round a Medium up is a reason to look harder at what is missing.
 
 ## The interview
 

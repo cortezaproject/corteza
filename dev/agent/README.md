@@ -246,6 +246,9 @@ land, if the branch does not rebase cleanly, or **if the primary has
 uncommitted changes in a file the branch also touches**. `--keep` merges but
 leaves the worktree running, for landing an increment and carrying on.
 
+An agent lands a High-confidence change itself and says so; at Medium or Low
+it asks first. A refusal is always reported, never worked around.
+
 If you `rm` before landing, the branch survives with your commits and `rm`
 says so, with the command to merge it.
 
