@@ -98,6 +98,8 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 				report, err = runGoTests(ctx, at, module, target, toolkit.Str(args, "run"))
 			case "mocha":
 				report, err = runMocha(ctx, at, target, toolkit.Str(args, "run"))
+			case "node":
+				report, err = runNode(ctx, at, target, toolkit.Str(args, "run"))
 			default:
 				report, err = runVitest(ctx, at, target, toolkit.Str(args, "run"))
 			}
@@ -150,6 +152,12 @@ func goModuleFor(target string) (dir string, ok bool) {
 // Which JS runner a workspace uses is read off disk rather than listed here,
 // because it is a fact about the workspace and drifts with it.
 func runnerFor(root, target string) string {
+	// Ahead of the Go check on purpose: dev/mcp is a Go module that also holds
+	// .mjs suites, so the suffix is the only thing separating them.
+	if strings.HasSuffix(target, ".mjs") {
+		return "node"
+	}
+
 	if _, ok := goModuleFor(target); ok {
 		return "go"
 	}
@@ -375,6 +383,55 @@ func runGoTests(ctx context.Context, root, module, target, run string) (testRepo
 			"'run' argument excluding the failing test to see the rest."
 	case out.Passed && out.Packages == 0:
 		out.Note = "no test packages matched " + pkg + " — check the target path"
+	}
+
+	return out, nil
+}
+
+// runNode runs node's own test runner, for the .mjs suites that sit beside Go
+// code in dev/mcp and belong to no JS workspace — there is no package.json to
+// read a runner off, so the suffix names it.
+//
+// Node reports TAP. A green run needs nothing kept; a red one is summarised by
+// its "not ok" lines, which carry the test name a caller acts on.
+func runNode(ctx context.Context, root, target, run string) (testReport, error) {
+	out := testReport{Suite: "node", Target: target}
+
+	argv := []string{"--test"}
+	if run != "" {
+		argv = append(argv, "--test-name-pattern", run)
+	}
+	argv = append(argv, target)
+
+	cmd := exec.CommandContext(ctx, "node", argv...)
+	cmd.Dir = root
+
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	stdout, runErr := cmd.Output()
+	combined := string(stdout) + stderr.String()
+
+	if runErr == nil {
+		out.Passed = true
+		return out, nil
+	}
+
+	for _, line := range strings.Split(combined, "\n") {
+		rest, ok := strings.CutPrefix(strings.TrimSpace(line), "not ok ")
+		if !ok {
+			continue
+		}
+		if _, title, found := strings.Cut(rest, "- "); found {
+			out.Failures = append(out.Failures, testFail{File: target, Test: strings.TrimSpace(title)})
+		}
+	}
+
+	if len(out.Failures) == 0 {
+		msg := strings.TrimSpace(combined)
+		if msg == "" {
+			msg = runErr.Error()
+		}
+		return out, fmt.Errorf("node --test %s produced no report: %s", target, firstLines(msg, 20))
 	}
 
 	return out, nil

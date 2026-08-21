@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -82,5 +83,65 @@ func mustWrite(t *testing.T, path, content string) {
 	}
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatalf("write %s: %v", path, err)
+	}
+}
+
+// TestRunnerForNodeSuites pins the one case the suffix has to settle: dev/mcp
+// is a Go module that also holds .mjs suites, so a target under it matches the
+// Go prefix and would run `go test` on a file go tooling cannot see.
+func TestRunnerForNodeSuites(t *testing.T) {
+	cases := []struct {
+		target string
+		want   string
+	}{
+		{"dev/mcp/shots.test.mjs", "node"},
+		{"dev/mcp", "go"},
+		{"dev/mcp/tools", "go"},
+		{"server/store/adapters/rdbms", "go"},
+		{"lib/vue", "vitest"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.target, func(t *testing.T) {
+			if got := runnerFor(t.TempDir(), c.target); got != c.want {
+				t.Fatalf("runnerFor(%q) = %q, want %q", c.target, got, c.want)
+			}
+		})
+	}
+}
+
+// TestRunNodeReportsFailures runs node's real test runner over a fixture, so
+// the TAP parsing is exercised rather than assumed.
+func TestRunNodeReportsFailures(t *testing.T) {
+	root := t.TempDir()
+	suite := "fixture.test.mjs"
+	body := `
+import { test } from 'node:test'
+import assert from 'node:assert'
+test('this one holds', () => assert.equal(1, 1))
+test('this one does not', () => assert.equal(1, 2))
+`
+	if err := os.WriteFile(filepath.Join(root, suite), []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	report, err := runNode(context.Background(), root, suite, "")
+	if err != nil {
+		t.Fatalf("runNode: %v", err)
+	}
+	if report.Passed {
+		t.Fatal("report says passed; the fixture has a failing test")
+	}
+	if len(report.Failures) != 1 || report.Failures[0].Test != "this one does not" {
+		t.Fatalf("failures = %+v, want the one failing test named", report.Failures)
+	}
+
+	// The green half: filtering to the passing test must report a pass.
+	green, err := runNode(context.Background(), root, suite, "this one holds")
+	if err != nil {
+		t.Fatalf("runNode filtered: %v", err)
+	}
+	if !green.Passed {
+		t.Fatalf("filtered run should pass, got %+v", green.Failures)
 	}
 }
