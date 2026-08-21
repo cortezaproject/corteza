@@ -49,36 +49,70 @@ func provisionPartialBase(ctx context.Context, s store.Storer, log *zap.Logger) 
 		return true
 	}
 
-	// Deliberately keyed on a named few of the types and operations the base
-	// config mentions rather than on all of them: a re-import restates the
-	// whole file, so a deployment that has removed one of the base grants
-	// would get it back. Once per newly-introduced model is a defensible price
-	// for the feature being reachable at all; once per anything would not be.
-	var (
-		hasProject   bool
-		hasAppAccess bool
-	)
+	return baseMarkerMissing(rr, pp, log)
+}
+
+// baseMarker is a grant the base config makes to one of its own roles, chosen
+// so that its absence dates the install.
+//
+// It is scoped to the role on purpose. "Does any rule of this shape exist" is
+// satisfied by any ad-hoc role a deployment happens to have made — a probe
+// role carrying one user-group rule was enough to convince this check that an
+// install had permissions it had never been given — and then the re-import it
+// is supposed to trigger never happens.
+type baseMarker struct {
+	what      string
+	role      string
+	resource  string
+	operation string
+}
+
+// Deliberately a named few of the grants the base config makes rather than all
+// of them: a re-import restates the whole file, so a deployment that has
+// removed one of the base grants would get it back. Once per newly-introduced
+// model is a defensible price for the feature being reachable at all; once per
+// anything would not be.
+//
+// Adding a grant to the base config means adding a row here, or it reaches new
+// installs only.
+var baseMarkers = []baseMarker{
+	// The whole project feature shipped without a single rule, so it was usable
+	// only by super-admin, which bypasses RBAC entirely.
+	{"project permissions", "admin", "corteza::system:project/*", "read"},
+	// Applications predate webapp access control, so every install already holds
+	// `read` — `access` is the operation that dates this one.
+	{"webapp access permissions", "admin", "corteza::system:application/*", "access"},
+}
+
+// baseMarkerMissing reports whether the base config should be re-imported,
+// which it should exactly when one of its markers is not already granted.
+func baseMarkerMissing(rr types.RoleSet, pp rbac.RuleSet, log *zap.Logger) bool {
+	held := make(map[baseMarker]bool, len(pp))
 
 	for _, r := range pp {
-		switch rbac.ResourceType(r.Resource) {
-		case types.ProjectResourceType:
-			hasProject = true
-		case types.ApplicationResourceType:
-			// The operation, not the type: applications predate webapp access
-			// control, so every install already holds application rules.
-			if r.Operation == "access" {
-				hasAppAccess = true
-			}
+		if r.Access != rbac.Allow {
+			continue
 		}
+
+		role := rr.FindByID(r.RoleID)
+		if role == nil {
+			continue
+		}
+
+		held[baseMarker{role: role.Handle, resource: r.Resource, operation: r.Operation}] = true
 	}
 
-	if !hasProject {
-		log.Info("base config carries project permissions this install has never seen; re-importing it")
-		return true
-	}
+	for _, m := range baseMarkers {
+		probe := baseMarker{role: m.role, resource: m.resource, operation: m.operation}
+		if held[probe] {
+			continue
+		}
 
-	if !hasAppAccess {
-		log.Info("base config carries webapp access permissions this install has never seen; re-importing it")
+		log.Info("base config carries "+m.what+" this install has never seen; re-importing it",
+			zap.String("role", m.role),
+			zap.String("resource", m.resource),
+			zap.String("operation", m.operation))
+
 		return true
 	}
 
