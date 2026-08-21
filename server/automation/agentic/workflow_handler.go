@@ -70,7 +70,7 @@ func (h *workflowHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (
 		if err != nil {
 			return nil, err
 		}
-		return toolkit.JSONResult(wf)
+		return toolkit.JSONResultWith(wf, workflowLinks(wf))
 	}
 
 	page := toolkit.Page(args)
@@ -441,7 +441,7 @@ func workflowWriteResult(wf *autoTypes.Workflow, notes ...string) (*mcp.CallTool
 		)
 	}
 
-	return toolkit.JSONResult(out)
+	return toolkit.JSONResultWith(out, workflowLinks(wf))
 }
 
 // workflowScope turns the 'scope' argument into the variables every run starts

@@ -107,7 +107,7 @@ func (h *namespaceHandler) lookup(ctx context.Context, req mcp.CallToolRequest) 
 		})
 	}
 
-	return toolkit.JSONResult(ns)
+	return toolkit.JSONResultWith(ns, namespaceLinks(ns))
 }
 
 func (h *namespaceHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -136,7 +136,7 @@ func (h *namespaceHandler) create(ctx context.Context, req mcp.CallToolRequest) 
 		return nil, toolkit.Errf("namespace creation", err)
 	}
 
-	return toolkit.JSONResult(ns)
+	return toolkit.JSONResultWith(ns, namespaceLinks(ns))
 }
 
 func (h *namespaceHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -173,7 +173,7 @@ func (h *namespaceHandler) update(ctx context.Context, req mcp.CallToolRequest) 
 		return nil, toolkit.Errf("namespace update", err)
 	}
 
-	return toolkit.JSONResult(ns)
+	return toolkit.JSONResultWith(ns, namespaceLinks(ns))
 }
 
 func (h *namespaceHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

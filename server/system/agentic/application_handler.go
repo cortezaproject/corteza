@@ -60,7 +60,7 @@ func (h *applicationHandler) lookup(ctx context.Context, req mcp.CallToolRequest
 		if err != nil {
 			return nil, err
 		}
-		return toolkit.JSONResult(app)
+		return toolkit.JSONResultWith(app, applicationLinks(app))
 	}
 
 	f := sysTypes.ApplicationFilter{
@@ -135,7 +135,7 @@ func (h *applicationHandler) create(ctx context.Context, req mcp.CallToolRequest
 	if err != nil {
 		return nil, toolkit.Errf("application creation", err)
 	}
-	return toolkit.JSONResult(app)
+	return toolkit.JSONResultWith(app, applicationLinks(app))
 }
 
 func (h *applicationHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -184,7 +184,7 @@ func (h *applicationHandler) update(ctx context.Context, req mcp.CallToolRequest
 	if err != nil {
 		return nil, toolkit.Errf("application update", err)
 	}
-	return toolkit.JSONResult(app)
+	return toolkit.JSONResultWith(app, applicationLinks(app))
 }
 
 func (h *applicationHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

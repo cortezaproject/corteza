@@ -60,7 +60,7 @@ func (h *taqHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 		if err != nil {
 			return nil, err
 		}
-		return toolkit.JSONResult(taq)
+		return toolkit.JSONResultWith(taq, taqLinks(taq))
 	}
 
 	query := toolkit.Str(args, "query")
@@ -209,7 +209,7 @@ func (h *taqHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 		return nil, toolkit.Errf("TAQ create", err)
 	}
 
-	return toolkit.JSONResult(taqWriteResultOf(taq, submitted))
+	return toolkit.JSONResultWith(taqWriteResultOf(taq, submitted), taqLinks(taq))
 }
 
 func (h *taqHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -295,7 +295,7 @@ func (h *taqHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 		return nil, toolkit.Errf("TAQ update", err)
 	}
 
-	return toolkit.JSONResult(taqWriteResultOf(taq, submitted))
+	return toolkit.JSONResultWith(taqWriteResultOf(taq, submitted), taqLinks(taq))
 }
 
 // undelete takes an ID rather than the ID-or-handle 'taq' reference every other

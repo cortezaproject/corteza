@@ -64,7 +64,7 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		if err != nil {
 			return nil, toolkit.Errf("record lookup", err)
 		}
-		return toolkit.JSONResult(rec)
+		return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
 	}
 
 	f := cmpTypes.RecordFilter{
@@ -120,7 +120,7 @@ func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("record creation", err)
 	}
-	return toolkit.JSONResult(rec)
+	return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
 }
 
 func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -150,7 +150,7 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("record update", err)
 	}
-	return toolkit.JSONResult(rec)
+	return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
 }
 
 func (h *recordHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

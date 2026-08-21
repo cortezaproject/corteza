@@ -268,6 +268,43 @@ func JSONResult(v any) (*mcp.CallToolResult, error) {
 	return mcp.NewToolResultText(string(out)), nil
 }
 
+// JSONResultWith is JSONResult with extra top-level fields — a link to the
+// resource in the webapp, typically.
+//
+// The fields are added beside what v marshals to, never nested under it, so a
+// caller reading a field it already knew keeps reading it. An empty value is
+// dropped: a key whose value is "" reads as "there is one and it is blank",
+// where absence reads as "there is none", and for a link those are different
+// answers.
+//
+// v must marshal to a JSON object. A slice or a scalar has nowhere to put a
+// sibling key, and silently returning it unchanged would drop the link without
+// saying so.
+func JSONResultWith(v any, extra map[string]string) (*mcp.CallToolResult, error) {
+	out, err := json.Marshal(v)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal result: %w", err)
+	}
+
+	var obj map[string]json.RawMessage
+	if err = json.Unmarshal(out, &obj); err != nil {
+		return nil, fmt.Errorf("result must be a JSON object to carry extra fields: %w", err)
+	}
+
+	for k, val := range extra {
+		if val == "" {
+			continue
+		}
+		enc, err := json.Marshal(val)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal %s: %w", k, err)
+		}
+		obj[k] = enc
+	}
+
+	return JSONResult(obj)
+}
+
 // TextResult returns a plain-text tool result. Used where JSON would be noise —
 // delete handlers acknowledging an action, for instance.
 func TextResult(format string, a ...any) *mcp.CallToolResult {

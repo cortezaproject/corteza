@@ -111,7 +111,7 @@ func (h *pageHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		if err != nil {
 			return nil, err
 		}
-		return toolkit.JSONResult(pg)
+		return toolkit.JSONResultWith(pg, pageLinks(ctx, pg))
 	}
 
 	// Tree mode is deliberately unpaged. A cursor slices an ordered row set, and
@@ -247,7 +247,7 @@ func (h *pageHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		return nil, toolkit.Errf("page creation", err)
 	}
 
-	return toolkit.JSONResult(pg)
+	return toolkit.JSONResultWith(pg, pageLinks(ctx, pg))
 }
 
 func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -386,7 +386,7 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		}
 	}
 
-	return toolkit.JSONResult(pg)
+	return toolkit.JSONResultWith(pg, pageLinks(ctx, pg))
 }
 
 func (h *pageHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -514,7 +514,7 @@ func (h *pageHandler) removeBlocks(ctx context.Context, req mcp.CallToolRequest)
 		return nil, err
 	}
 
-	return toolkit.JSONResult(pg)
+	return toolkit.JSONResultWith(pg, pageLinks(ctx, pg))
 }
 
 func (h *pageHandler) reorder(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

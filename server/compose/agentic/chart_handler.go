@@ -53,7 +53,7 @@ func (h *chartHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mc
 		if err != nil {
 			return nil, err
 		}
-		return toolkit.JSONResult(c)
+		return toolkit.JSONResultWith(c, chartLinks(ctx, c))
 	}
 
 	f := cmpTypes.ChartFilter{NamespaceID: nsID}
@@ -123,7 +123,7 @@ func (h *chartHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, toolkit.Errf("chart creation", err)
 	}
 
-	return toolkit.JSONResult(c)
+	return toolkit.JSONResultWith(c, chartLinks(ctx, c))
 }
 
 func (h *chartHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -180,7 +180,7 @@ func (h *chartHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, toolkit.Errf("chart update", err)
 	}
 
-	return toolkit.JSONResult(c)
+	return toolkit.JSONResultWith(c, chartLinks(ctx, c))
 }
 
 func (h *chartHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

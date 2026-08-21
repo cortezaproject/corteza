@@ -76,7 +76,7 @@ func (h *roleHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		if err != nil {
 			return nil, toolkit.Errf("role lookup", err)
 		}
-		return toolkit.JSONResult(newRoleDetail(r))
+		return toolkit.JSONResultWith(newRoleDetail(r), roleLinks(r))
 	}
 
 	f := sysTypes.RoleFilter{
@@ -184,7 +184,7 @@ func (h *roleHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err != nil {
 		return nil, toolkit.Errf("role creation", err)
 	}
-	return toolkit.JSONResult(newRoleDetail(r))
+	return toolkit.JSONResultWith(newRoleDetail(r), roleLinks(r))
 }
 
 func (h *roleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -235,7 +235,7 @@ func (h *roleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err != nil {
 		return nil, toolkit.Errf("role update", err)
 	}
-	return toolkit.JSONResult(newRoleDetail(res))
+	return toolkit.JSONResultWith(newRoleDetail(res), roleLinks(res))
 }
 
 func (h *roleHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

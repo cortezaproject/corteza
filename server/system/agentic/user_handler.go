@@ -65,7 +65,7 @@ func (h *userHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		if err != nil {
 			return nil, toolkit.Errf("user lookup", err)
 		}
-		return toolkit.JSONResult(u)
+		return toolkit.JSONResultWith(u, userLinks(u))
 	}
 
 	kind := sysTypes.UserKind(toolkit.Str(args, "kind"))
@@ -165,7 +165,7 @@ func (h *userHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err != nil {
 		return nil, toolkit.Errf("user creation", err)
 	}
-	return toolkit.JSONResult(u)
+	return toolkit.JSONResultWith(u, userLinks(u))
 }
 
 func (h *userHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -213,7 +213,7 @@ func (h *userHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	if err != nil {
 		return nil, toolkit.Errf("user update", err)
 	}
-	return toolkit.JSONResult(u)
+	return toolkit.JSONResultWith(u, userLinks(u))
 }
 
 func (h *userHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

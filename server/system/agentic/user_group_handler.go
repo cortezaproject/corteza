@@ -75,7 +75,7 @@ func (h *userGroupHandler) lookup(ctx context.Context, req mcp.CallToolRequest) 
 		if err != nil {
 			return nil, err
 		}
-		return toolkit.JSONResult(g)
+		return toolkit.JSONResultWith(g, userGroupLinks(g))
 	}
 
 	f := sysTypes.UserGroupFilter{
@@ -136,7 +136,7 @@ func (h *userGroupHandler) create(ctx context.Context, req mcp.CallToolRequest) 
 	if err != nil {
 		return nil, toolkit.Errf("user group creation", err)
 	}
-	return toolkit.JSONResult(g)
+	return toolkit.JSONResultWith(g, userGroupLinks(g))
 }
 
 func (h *userGroupHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -192,7 +192,7 @@ func (h *userGroupHandler) update(ctx context.Context, req mcp.CallToolRequest) 
 	if err != nil {
 		return nil, toolkit.Errf("user group update", err)
 	}
-	return toolkit.JSONResult(upd)
+	return toolkit.JSONResultWith(upd, userGroupLinks(upd))
 }
 
 func (h *userGroupHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

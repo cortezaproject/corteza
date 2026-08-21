@@ -65,7 +65,7 @@ func (h *moduleHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		if err != nil {
 			return nil, toolkit.Errf("module lookup", err)
 		}
-		return toolkit.JSONResult(mod)
+		return toolkit.JSONResultWith(mod, moduleLinks(ctx, mod))
 	}
 
 	f := cmpTypes.ModuleFilter{NamespaceID: ns.ID}
@@ -147,7 +147,7 @@ func (h *moduleHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("module creation", err)
 	}
-	return toolkit.JSONResult(mod)
+	return toolkit.JSONResultWith(mod, moduleLinks(ctx, mod))
 }
 
 func (h *moduleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -207,7 +207,7 @@ func (h *moduleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("module update", err)
 	}
-	return toolkit.JSONResult(mod)
+	return toolkit.JSONResultWith(mod, moduleLinks(ctx, mod))
 }
 
 func (h *moduleHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

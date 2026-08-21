@@ -96,7 +96,7 @@ func (h *pageLayoutHandler) lookup(ctx context.Context, req mcp.CallToolRequest)
 		if err != nil {
 			return nil, err
 		}
-		return toolkit.JSONResult(layout)
+		return toolkit.JSONResultWith(layout, layoutLinks(ctx, layout))
 	}
 
 	set, err := pageLayouts(ctx, nsID, pg.ID)
@@ -153,7 +153,7 @@ func (h *pageLayoutHandler) create(ctx context.Context, req mcp.CallToolRequest)
 		return nil, toolkit.Errf("page layout creation", err)
 	}
 
-	return toolkit.JSONResult(layout)
+	return toolkit.JSONResultWith(layout, layoutLinks(ctx, layout))
 }
 
 func (h *pageLayoutHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -195,7 +195,7 @@ func (h *pageLayoutHandler) update(ctx context.Context, req mcp.CallToolRequest)
 		return nil, toolkit.Errf("page layout update", err)
 	}
 
-	return toolkit.JSONResult(layout)
+	return toolkit.JSONResultWith(layout, layoutLinks(ctx, layout))
 }
 
 func (h *pageLayoutHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

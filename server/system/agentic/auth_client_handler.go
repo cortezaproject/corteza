@@ -65,7 +65,7 @@ func (h *authClientHandler) lookup(ctx context.Context, req mcp.CallToolRequest)
 		// Secret before it returns, and Search walks its set doing the same.
 		// Nothing here reloads the client from the store, which is the only way
 		// the credential could come back.
-		return toolkit.JSONResult(client)
+		return toolkit.JSONResultWith(client, authClientLinks(client))
 	}
 
 	f := sysTypes.AuthClientFilter{Handle: toolkit.Str(args, "handle")}
@@ -180,7 +180,7 @@ func (h *authClientHandler) update(ctx context.Context, req mcp.CallToolRequest)
 	if res != nil {
 		res.Secret = ""
 	}
-	return toolkit.JSONResult(res)
+	return toolkit.JSONResultWith(res, authClientLinks(res))
 }
 
 func (h *authClientHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

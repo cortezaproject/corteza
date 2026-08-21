@@ -64,7 +64,7 @@ func (h *triggerHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*
 		if err != nil {
 			return nil, toolkit.Errf("trigger lookup", err)
 		}
-		return toolkit.JSONResult(t)
+		return toolkit.JSONResultWith(t, triggerLinks(t))
 	}
 
 	f := autoTypes.TriggerFilter{
@@ -186,7 +186,7 @@ func (h *triggerHandler) create(ctx context.Context, req mcp.CallToolRequest) (*
 	if err != nil {
 		return nil, toolkit.Errf("trigger create", err)
 	}
-	return toolkit.JSONResult(res)
+	return toolkit.JSONResultWith(res, triggerLinks(res))
 }
 
 // triggerCount is how many triggers the workflow already carries, which is what
@@ -303,7 +303,7 @@ func (h *triggerHandler) update(ctx context.Context, req mcp.CallToolRequest) (*
 	if err != nil {
 		return nil, toolkit.Errf("trigger update", err)
 	}
-	return toolkit.JSONResult(res)
+	return toolkit.JSONResultWith(res, triggerLinks(res))
 }
 
 func (h *triggerHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

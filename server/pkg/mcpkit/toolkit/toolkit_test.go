@@ -1,9 +1,11 @@
 package toolkit
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
+	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -138,4 +140,52 @@ func TestRef(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "required")
 	})
+}
+
+func TestJSONResultWithAddsSiblingsWithoutNesting(t *testing.T) {
+	type page struct {
+		ID     string   `json:"pageID"`
+		Blocks []string `json:"blocks"`
+	}
+
+	res, err := JSONResultWith(page{ID: "7", Blocks: []string{"a"}}, map[string]string{
+		"url":     "http://localhost/compose/namespace/crm/pages/7",
+		"editUrl": "",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	text, ok := mcp.AsTextContent(res.Content[0])
+	if !ok {
+		t.Fatal("result carries no text content")
+	}
+
+	var out map[string]any
+	if err = json.Unmarshal([]byte(text.Text), &out); err != nil {
+		t.Fatalf("result is not JSON: %v", err)
+	}
+
+	// Everything the value already had must still be readable where it was.
+	if out["pageID"] != "7" {
+		t.Errorf("pageID is %v, want 7 — the value was nested rather than extended", out["pageID"])
+	}
+	if _, ok := out["blocks"]; !ok {
+		t.Error("blocks went missing")
+	}
+	if out["url"] != "http://localhost/compose/namespace/crm/pages/7" {
+		t.Errorf("url is %v", out["url"])
+	}
+
+	// An empty link is no link. A blank key would read as "there is one, and it
+	// is empty", which is a different and wrong answer.
+	if _, ok := out["editUrl"]; ok {
+		t.Error("an empty value was emitted as a key")
+	}
+}
+
+func TestJSONResultWithRefusesAValueThatIsNotAnObject(t *testing.T) {
+	if _, err := JSONResultWith([]string{"a"}, map[string]string{"url": "x"}); err == nil {
+		t.Error("a slice has nowhere to put a sibling key; that must be an error, not a silent drop")
+	}
 }
