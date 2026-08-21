@@ -14,14 +14,14 @@
         v-for="app in filteredApps"
         :key="app.applicationID"
         data-drag-item
-        :data-app-disabled="app.enabled ? undefined : ''"
-        :href="app.enabled ? getAppUrl(app) : '#'"
+        :data-app-disabled="isOpenable(app) ? undefined : ''"
+        :href="isOpenable(app) ? getAppUrl(app) : '#'"
         target="_self"
         :class="[
           itemClass,
           {
-            'cursor-grab': canReorder && app.enabled,
-            'cursor-not-allowed opacity-50': !app.enabled,
+            'cursor-grab': canReorder && isOpenable(app),
+            'cursor-not-allowed opacity-50': !isOpenable(app),
             '!border-primary bg-primary/5': variant === 'list' && isActiveApp(app),
           },
         ]"
@@ -49,7 +49,7 @@
             }"
             :class="[
               'group w-80 min-h-72 overflow-hidden transition-all duration-100',
-              app.enabled
+              isOpenable(app)
                 ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:text-primary'
                 : 'cursor-not-allowed',
             ]"
@@ -90,6 +90,15 @@ import { resolveAppLogoUrl } from '../../utils/appIcons'
 
 const $appIconMap = inject('$appIconMap', {})
 
+// The host app decides which entries it can actually open; without one every
+// entry is openable, which is what a registry with no access control means.
+const $appReachable = inject('$appReachable', null)
+
+// An entry the user cannot open reads the same as a switched-off one: shown,
+// greyed, inert. Hiding it instead would leave the menu silently shorter than
+// the registry, with nothing saying why.
+const isOpenable = app => app.enabled && ($appReachable ? $appReachable(app) : true)
+
 const props = defineProps({
   query: {
     type: String,
@@ -127,7 +136,7 @@ const { onAnchorClick } = useInternalLink()
 // (no reload, no splash). Anything else (other app, external, modified click)
 // falls through to the anchor's native navigation, preserving prior behavior.
 const onItemClick = (event, app) => {
-  if (!app.enabled) {
+  if (!isOpenable(app)) {
     event.preventDefault()
     return
   }

@@ -125,6 +125,7 @@ import { RouterView, useRoute } from 'vue-router'
 
 import { useModuleStore, useNamespaceStore, useUserStore } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
+import { useAppReachable } from '@/utils/appReachable'
 import { useDocumentTitle } from '@/utils/documentTitle'
 
 const {
@@ -160,6 +161,8 @@ const usersStore = useUserStore()
 const namespaceStore = useNamespaceStore()
 const moduleStore = useModuleStore()
 provide('$appIconMap', appIconMap)
+// The app menu offers exactly what the router's section gate will admit.
+provide('$appReachable', useAppReachable())
 
 const route = useRoute()
 

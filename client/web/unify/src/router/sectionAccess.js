@@ -11,6 +11,16 @@
 //
 // Both collaborators are passed in rather than imported so the rule can be
 // exercised without a store, a pinia and a router around it.
+// Who may enter a section. The one statement of the rule: the router asks it on
+// arrival and the app menu asks it before offering a tile, so what is offered
+// and what is admitted cannot drift apart.
+export function sectionAllows(section, applications) {
+  if (!section) return false
+  // The ungated section (home) is reachable whatever the user holds.
+  if (section.app === null) return true
+  return applications.canAccessApp(section.app)
+}
+
 export function makeSectionAccessGuard({ useApplications, sectionById, fallback = 'home' }) {
   return async to => {
     const section = sectionById(to.meta.section)
@@ -21,7 +31,7 @@ export function makeSectionAccessGuard({ useApplications, sectionById, fallback 
     // application list itself rather than the shell's fetch of it.
     await applications.ready()
 
-    if (section && applications.canAccessApp(section.app)) return true
+    if (sectionAllows(section, applications)) return true
 
     // Carry what was refused, so the landing page can say what happened
     // instead of looking like a mis-click.
