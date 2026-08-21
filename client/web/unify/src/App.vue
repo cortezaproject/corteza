@@ -288,7 +288,12 @@ useDocumentTitle(() => notificationsStore.unreadCount)
 onMounted(async () => {
   window.addEventListener('resize', handleResize)
 
-  const fetchPromise = Promise.all([
+  // allSettled, not all: every one of these is an optional cache, and being
+  // refused one is an ordinary state now that permissions are deny-by-default —
+  // a user with no roles may list neither users nor namespaces. Promise.all
+  // rejects on the first refusal and the chain below has no catch, so the shell
+  // booted with an uncaught error for exactly the users it is meant to serve.
+  const fetchPromise = Promise.allSettled([
     // ready(), not fetchApplications(): the router gate already asked for the
     // list before this mounted, and re-fetching would double the request.
     applicationsStore.ready(),
@@ -300,7 +305,13 @@ onMounted(async () => {
     // on-demand and populate their shared store lazily.
     namespaceStore.load(),
     usersStore.load({ limit: 500 }),
-  ])
+  ]).then(results => {
+    // Refused is expected; failed for any other reason is not, and silence
+    // would make a broken preload look like empty data.
+    results
+      .filter(r => r.status === 'rejected')
+      .forEach(r => console.warn('shell preload skipped:', r.reason?.message || r.reason))
+  })
 
   // Brief splash floor so the logo doesn't flash-and-vanish on fast loads,
   // without forcing a long wait when data is ready sooner.
