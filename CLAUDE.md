@@ -30,6 +30,12 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   pointer to the decision that produced the line. History is git's job and
   rationale is the intent doc's; a comment earns its place only by saying
   something the code next to it cannot.
+- **Task isolation**: a task that runs the server or spans files gets its own
+  checkout, server, webapp and database — `dev/agent/worktree.sh new <name>`,
+  then `up`/`down`/`rm`. The primary is slot 0 and is never reassigned.
+- **Deferred work**: `dev/agent/backlog.sh add` queues anything named in
+  `⚠️ NOT DONE` that should outlive the turn. Shared across every worktree,
+  read at triage and offered back when a task finishes.
 - **Reporting**: `/dev-task` and `/dev-change` reply in the standard block —
   sections, confidence grade, open things asked as an interview. The format is
   `.claude/reporting.md`.

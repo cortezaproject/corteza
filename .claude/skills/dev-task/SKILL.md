@@ -56,6 +56,32 @@ State the lane in one line and proceed. The human can override in one word.
 Under-triaging is the dangerous direction: if scouting turns up a locked
 contract or a second cause, re-triage upward and say so.
 
+Then two things before you read a single file.
+
+### Claim a space
+
+`dev/agent/worktree.sh new <name>` gives the task its own checkout, its own
+server, its own webapp and its own database — cloned from the dev DB, on ports
+derived from its slot, so nothing it does can reach another session and nothing
+another session does can change what it is testing. `up` starts it, `down`
+stops it, `rm` takes the lot away including the database.
+
+- **substantial** → always. It will run the server, and it will span files.
+- **ordinary** → when it needs the server or e2e, or when `dev_branch_status`
+  shows the primary already dirty with work that is not yours.
+- **trivial** → the primary is fine.
+
+Two things about a worktree that catch people out: it checks out **HEAD**, so
+uncommitted work in the primary does not come with it, and its own `up` builds
+Go and installs node modules the first time, which is minutes, not seconds.
+
+### Read the queue
+
+`dev/agent/backlog.sh list` — and `--files <path>` for the files you are about
+to change. A queued item against one of them is either the task you are
+actually doing, or a warning that someone deferred something there on purpose.
+Say which in `🔍 FOUND`.
+
 ## 1. Write the task
 
 Before investigating, write down three things. Two sentences each is plenty.
@@ -190,10 +216,15 @@ worked reports as a task that half worked. The report is where a task ends: the
 issue tracker is never yours to close, comment on, or ask about (CLAUDE.md
 § Commit convention).
 
+**Queue what you are not doing.** Every `⚠️ NOT DONE` entry that should outlive
+the turn goes to `dev/agent/backlog.sh add`, with `--why`, `--files` and
+`--task`, before you write the report — not after, and not "I'll remember".
+
 **Remove what you created.** `dev_fixture_cleanup` (or `dev/agent/cleanup.sh`)
 deletes what this session's ledger records and nothing else — data the session
 did not create is off-limits whatever it is called, and data it did create goes
-whatever it is named.
+whatever it is named. A worktree needs none of this: `worktree.sh rm` drops its
+whole database, so nothing it made can outlive it.
 
 Then **write down what surprised you**, in the repo, where the next session will
 find it: a wrong assumption in a brief, an endpoint that is not what its name
@@ -201,8 +232,12 @@ suggests, a check that reported success without checking.
 
 Finally, `➡️ NEXT`. Anything the human could weigh in on — a decision, a
 preference, which of the moves below — is an `AskUserQuestion`, never a written
-question. If there is genuinely nothing, name the next move and stop. Where more
-is needed, loop:
+question. If there is genuinely nothing, name the next move and stop.
+
+**Once the task is fully finished, the open queue is part of that question.**
+Read `backlog.sh list` and offer the items as options so the human picks which
+one continues — never pick for them, and never start one unasked. Where more is
+needed, loop:
 
 - **New information changes the plan** → back to step 5.
 - **The plan was wrong** → back to step 6.

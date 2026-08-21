@@ -27,7 +27,10 @@ What this skill adds to it:
   contract, and paraphrasing it into a bullet is how it stops being one.
 - **A change whose test was never broken to prove it asserts is Medium**, per
   step 6, however green the suite is.
-- **`⚠️ NOT DONE` holds the second problem** you found and did not fold in.
+- **`⚠️ NOT DONE` holds the second problem** you found and did not fold in —
+  and it goes to `backlog.sh` at the same time, or it is forgotten.
+- **A change that needs the server** belongs in its own worktree
+  (`dev/agent/worktree.sh new`), not in a checkout another session is editing.
 
 ## 1. Orient
 
@@ -72,7 +75,9 @@ before writing one in `client/web/unify` — otherwise you ship a second copy th
 drifts from the first.
 
 Scope discipline: do what was asked. If you find a second, real problem, finish
-the first, then say what you found — do not fold it in silently.
+the first, then queue it — `dev/agent/backlog.sh add "…" --why … --files …` —
+and name it in `⚠️ NOT DONE`. Do not fold it in silently, and do not leave it
+as a sentence in a report nobody re-reads.
 
 ## 5. Verify
 

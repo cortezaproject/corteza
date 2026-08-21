@@ -209,7 +209,76 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `server_cli export compose-namespace <handle>` (see `common.sh` for
   `server_cli`).
 
+## Your own space: `worktree.sh`
+
+One task, one checkout, one server, one webapp, one database. Nothing a
+worktree does reaches another session, and nothing another session does can
+change what it is testing.
+
+```
+worktree.sh new  NAME [--base REF]   checkout + DB clone + ports + env files
+worktree.sh up   [NAME]              start its server and webapp
+worktree.sh down [NAME] [--force]    stop them
+worktree.sh list                     every slot and what is running
+worktree.sh rm   NAME                stop, drop the DB, remove the checkout
+```
+
+Ports come from the slot, so two worktrees cannot collide — API `1043+slot*100`,
+gin `3001+slot*100`, vite `5173+slot`. The primary is slot 0 and is never
+reassigned. `new` writes `server/.env`, `public/config.js` and `.env.e2e`
+pointed at those ports; all three are gitignored, so nothing shows up in the
+worktree's `git status`.
+
+The whole flow works in there — unit tests, API, browser, and e2e. Playwright
+reads `E2E_BASE_URL` from the worktree's `.env.e2e`, so `npx playwright test`
+run from the worktree hits the worktree.
+
+What catches people out:
+
+- **A worktree checks out HEAD.** Uncommitted work in the primary does not come
+  with it. `new` warns and names the count.
+- **First `up` is minutes, not seconds** — `pnpm install` and a Go build. After
+  that it is seconds.
+- **gin builds on the first request to its proxy.** `curl -s localhost:<gin>/api/`
+  before believing any check, exactly as on the primary.
+- **The shared token works against every worktree** — same JWT secret, and the
+  cloned DB has the same user IDs. No re-bootstrap.
+- **`rm` refuses while the checkout is dirty.** It will not discard your work.
+- **A worktree needs no `cleanup.sh`** — `rm` drops its whole database, so
+  nothing it created can outlive it.
+
+## Deferred work: `backlog.sh`
+
+The queue of things a task decided not to do, so they survive the turn that
+found them.
+
+```
+backlog.sh add TEXT [--why W] [--files F,F] [--task T]
+backlog.sh list [--all] [--files F]
+backlog.sh show ID
+backlog.sh done ID [--note N]   /   backlog.sh drop ID [--note N]
+```
+
+It lives in the shared `.state`, which every worktree symlinks, so it is one
+queue for every session on this machine. Append-only JSONL: two sessions
+writing at once interleave lines rather than corrupting each other, and closing
+an item is another append, not a rewrite.
+
+Each item records where it came from — the task, the session, the commit HEAD
+was on. `--files` is what makes it findable later: `list --files <path>` is what
+triage runs before touching anything.
+
 ## State
 
-`.state/` (gitignored): client secret, cached token. Delete it any time;
-`bootstrap.sh` regenerates.
+`.state/` (gitignored): client secret, cached token, the backlog, and the
+worktree registry. Delete the secret and token any time; `bootstrap.sh`
+regenerates them.
+
+Scratch inside it is **per session** — `.state/sessions/<session>/` holds
+screenshots, browser storage and drive output. A fixed name there means a peer
+session's screenshot arrives under your filename, which has happened.
+
+A worktree's `dev/agent/.state` is a **symlink** to the primary's, so token,
+ledger and backlog are shared while scratch stays split. That is why
+`dev/agent/.gitignore` says `.state` and not `.state/` — a trailing slash
+matches directories only, and git sees a symlink as a file.

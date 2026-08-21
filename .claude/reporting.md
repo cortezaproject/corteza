@@ -73,6 +73,22 @@ The section headings do the explaining. A sentence introducing a section, a
 sentence summarising it afterwards, and a closing paragraph restating the block
 are all the wall of text growing back.
 
+## The queue
+
+**Anything in `⚠️ NOT DONE` that should outlive the turn goes to the backlog as
+you write it** — `dev/agent/backlog.sh add "…" --why … --files … --task …`. So
+does the second, real problem you found and did not fold in. Deferring without
+queueing is how a thing gets forgotten, which is the whole reason the queue
+exists.
+
+Not everything: a declared non-goal is not a todo, and neither is something
+ruled against. Queue what someone would want done later.
+
+The queue is shared by every session and worktree on this machine, and it is
+read back at exactly two moments — triage, where a queued item against a file
+you are about to change is a warning, and `➡️ NEXT`, where the open items
+become interview options once the current task is fully finished.
+
 ## Confidence
 
 One grade for the turn, chosen by this rubric — not by how the work feels.

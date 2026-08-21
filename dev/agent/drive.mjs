@@ -34,8 +34,12 @@ import { createRequire } from 'node:module'
 const AGENT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_DIR = resolve(AGENT_DIR, '..', '..')
 const STATE_DIR = join(AGENT_DIR, '.state')
-const SHOT_DIR = join(STATE_DIR, 'drive')
-const STORAGE = join(STATE_DIR, 'ui-storage.json')
+// Scratch is per-session: .state is shared across worktrees, so a fixed name
+// here means a peer session's screenshot arrives under your filename.
+const SESSION = process.env.CLAUDE_CODE_SESSION_ID || 'unknown'
+const SCRATCH = join(STATE_DIR, 'sessions', SESSION)
+const SHOT_DIR = join(SCRATCH, 'drive')
+const STORAGE = join(SCRATCH, 'ui-storage.json')
 
 const WEBAPP = process.env.HUMAN_WEBAPP || 'http://localhost:5173'
 const API_BASE = (process.env.HUMAN_API || 'http://localhost:1043/api').replace(/\/api$/, '')
@@ -193,8 +197,7 @@ function drivePage(page, state, context) {
         page
           .waitForFunction(
             () =>
-              !!document.querySelector('input[name="email"]') &&
-              location.href.includes('/auth/'),
+              !!document.querySelector('input[name="email"]') && location.href.includes('/auth/'),
             null,
             { timeout: 30000 },
           )
@@ -282,12 +285,10 @@ function drivePage(page, state, context) {
      *  of a failure. `missing` distinguishes the two for a caller that cares. */
     async text(selector, { timeout = RENDER_TIMEOUT, missing = '' } = {}) {
       const loc = page.locator(selector).first()
-      const there = await loc
-        .waitFor({ state: 'visible', timeout })
-        .then(
-          () => true,
-          () => false,
-        )
+      const there = await loc.waitFor({ state: 'visible', timeout }).then(
+        () => true,
+        () => false,
+      )
       if (!there) return missing
       return (await loc.innerText()).trim()
     },

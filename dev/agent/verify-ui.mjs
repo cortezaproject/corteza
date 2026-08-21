@@ -44,7 +44,8 @@ const require = createRequire(
 const { chromium } = require(join(pnpmDir, pwDir, 'node_modules', 'playwright-core'))
 
 const args = process.argv.slice(2)
-let outDir = join(AGENT_DIR, '.state', 'ui')
+const SESSION = process.env.CLAUDE_CODE_SESSION_ID || 'unknown'
+let outDir = join(AGENT_DIR, '.state', 'sessions', SESSION, 'ui')
 const paths = []
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--out') outDir = args[++i]

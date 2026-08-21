@@ -32,7 +32,10 @@ if (!chromium) {
   process.exit(0)
 }
 const baseURL = input.baseURL || 'http://localhost:5173'
-const statePath = join(root, 'dev', 'mcp', '.state', 'ui-session.json')
+// Keyed on the origin: each worktree runs its own server against its own
+// database, so a session minted against one is worthless against another.
+const originKey = baseURL.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')
+const statePath = join(root, 'dev', 'mcp', '.state', `ui-session-${originKey}.json`)
 
 const out = {
   url: null,
@@ -259,7 +262,10 @@ try {
   finalize()
 
   if (input.screenshot !== false) {
-    const shot = join(root, 'dev', 'mcp', '.state', 'ui-verify.png')
+    // One file per call. A fixed name is one file per repo, and a peer
+    // session's page then arrives under your URL.
+    const stamp = `${process.pid}-${Date.now().toString(36)}`
+    const shot = join(root, 'dev', 'mcp', '.state', 'shots', `ui-verify-${stamp}.png`)
     mkdirSync(dirname(shot), { recursive: true })
     await page.screenshot({ path: shot, fullPage: false })
     out.screenshot = shot
