@@ -218,7 +218,7 @@ func (s *Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ex
 	}
 
 	{{ else }}
-	set, _, err = s.Query{{ .expIdentPlural }}(ctx, f)
+	set, _, _, err = s.Query{{ .expIdentPlural }}(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -266,6 +266,13 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 		hasNext bool
 
 		tryFilter {{ .goFilterType }}
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *{{ .goType }}
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*{{ .goType }}, 0, DefaultSliceCapacity)
@@ -274,6 +281,7 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -281,14 +289,19 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.Query{{ .expIdentPlural }}(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.Query{{ .expIdentPlural }}(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.{{ .api.collectCursorValues.fnIdent }}(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -301,28 +314,33 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.{{ .api.collectCursorValues.fnIdent }}(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -365,7 +383,7 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 func (s *Store) Query{{ .expIdentPlural }}(
 	ctx context.Context,
 	f {{ .goFilterType }},
-) (_ []*{{ .goType }}, more bool, err error) {
+) (_ []*{{ .goType }}, more bool, last *{{ .goType }}, err error) {
 	var (
 	{{ if .features.checkFn }}
 		ok          bool
@@ -468,6 +486,10 @@ func (s *Store) Query{{ .expIdentPlural }}(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		{{ if .features.checkFn }}
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
@@ -484,9 +506,9 @@ func (s *Store) Query{{ .expIdentPlural }}(
 	}
 
 	{{ if .features.paging }}
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 	{{ else }}
-	return set, false, err
+	return set, false, last, err
 	{{ end }}
 }
 

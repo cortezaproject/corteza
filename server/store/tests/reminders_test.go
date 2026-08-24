@@ -135,6 +135,89 @@ func testReminders(t *testing.T, s store.Reminders) {
 			req.Equal(prefill[0].ID, set[0].ID)
 		})
 
+		t.Run("paging with check", func(t *testing.T) {
+			// hide every third reminder from the check fn
+			hide := func(prefill types.ReminderSet) (map[uint64]bool, int) {
+				hidden, visible := make(map[uint64]bool), 0
+				for i, r := range prefill {
+					if i%3 == 0 {
+						hidden[r.ID] = true
+					} else {
+						visible++
+					}
+				}
+				return hidden, visible
+			}
+
+			t.Run("page holds no more than the limit and no duplicates", func(t *testing.T) {
+				req, prefill := truncAndFill(t, 20)
+				hidden, _ := hide(prefill)
+
+				set, _, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 5},
+					Check:  func(r *types.Reminder) (bool, error) { return !hidden[r.ID], nil },
+				})
+				req.NoError(err)
+				req.Len(set, 5)
+
+				seen := make(map[uint64]bool)
+				for _, r := range set {
+					req.False(seen[r.ID], "reminder %d returned twice", r.ID)
+					seen[r.ID] = true
+				}
+			})
+
+			t.Run("walking every page yields each visible item once", func(t *testing.T) {
+				req, prefill := truncAndFill(t, 20)
+				hidden, visible := hide(prefill)
+
+				var (
+					cursor *filter.PagingCursor
+					seen   = make(map[uint64]int)
+				)
+
+				for page := 0; page < 30; page++ {
+					set, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+						Paging: filter.Paging{Limit: 3, PageCursor: cursor},
+						Check:  func(r *types.Reminder) (bool, error) { return !hidden[r.ID], nil },
+					})
+					req.NoError(err)
+
+					for _, r := range set {
+						req.False(hidden[r.ID], "hidden reminder %d was returned", r.ID)
+						seen[r.ID]++
+					}
+
+					if f.NextPage == nil {
+						break
+					}
+					cursor = f.NextPage
+				}
+
+				req.Len(seen, visible)
+				for id, times := range seen {
+					req.Equal(1, times, "reminder %d returned %d times", id, times)
+				}
+			})
+
+			t.Run("fills a page past a long run of rejected items", func(t *testing.T) {
+				req, prefill := truncAndFill(t, 200)
+
+				// hide everything but the last 5
+				hidden := make(map[uint64]bool)
+				for _, r := range prefill[:len(prefill)-5] {
+					hidden[r.ID] = true
+				}
+
+				set, _, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 3},
+					Check:  func(r *types.Reminder) (bool, error) { return !hidden[r.ID], nil },
+				})
+				req.NoError(err)
+				req.Len(set, 3)
+			})
+		})
+
 		t.Run("total", func(t *testing.T) {
 			t.Run("omitted when not requested", func(t *testing.T) {
 				req, _ := truncAndFill(t, 5)
@@ -189,6 +272,20 @@ func testReminders(t *testing.T, s store.Reminders) {
 				req.NoError(err)
 				req.Len(set, 2)
 				req.Equal(uint(5), f.Total)
+			})
+
+			t.Run("counts only what check keeps", func(t *testing.T) {
+				req, prefill := truncAndFill(t, 5)
+
+				set, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 2, IncTotal: true},
+					Check: func(r *types.Reminder) (bool, error) {
+						return r.ID != prefill[0].ID && r.ID != prefill[1].ID, nil
+					},
+				})
+				req.NoError(err)
+				req.Len(set, 2)
+				req.Equal(uint(3), f.Total)
 			})
 
 			t.Run("refused with a page cursor", func(t *testing.T) {
