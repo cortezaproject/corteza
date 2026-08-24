@@ -27,7 +27,7 @@ func jsonPath(pp ...any) (string, error) {
 		switch path := p.(type) {
 		case string:
 			sql.WriteString(".")
-			sql.WriteString(strings.ReplaceAll(path, "'", `\'`))
+			sql.WriteString(strings.ReplaceAll(path, "'", `''`))
 		case int:
 			sql.WriteString("[")
 			sql.WriteString(strconv.Itoa(path))
