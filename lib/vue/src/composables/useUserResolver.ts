@@ -32,7 +32,7 @@ export function useUserResolver() {
 
     try {
       const user = await $SystemAPI.userRead({ userID })
-      userStore.storeUsers([user])
+      cacheUsers([user])
       return user
     } catch {
       return null
@@ -44,9 +44,15 @@ export function useUserResolver() {
     await userStore.resolveUsers(userIDs)
   }
 
+  // Caching is best-effort: the store rebuilds each user through the system.User
+  // model, which rejects anything it cannot parse. That must never cost a caller
+  // the answer it already has in hand.
   function cacheUsers(users: UserLike[]): void {
-    if (users.length) {
+    if (!users.length) return
+    try {
       userStore.storeUsers(users)
+    } catch {
+      // an unparseable user simply goes uncached
     }
   }
 

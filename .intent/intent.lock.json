@@ -4407,14 +4407,14 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/composables/useUserResolver.test.ts": {
-      "h": "7a3526b42df7",
+      "h": "ef165b52875d",
       "doc": "lib/vue/src/composables/composables.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
     },
     "lib/vue/src/composables/useUserResolver.ts": {
-      "h": "fae608129e09",
+      "h": "74212eff0de4",
       "doc": "lib/vue/src/composables/composables.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
     },
     "lib/vue/src/filters/date.ts": {
       "h": "4ee074b441fe",

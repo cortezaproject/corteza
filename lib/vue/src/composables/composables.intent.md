@@ -44,7 +44,7 @@ Sections use these instead of re-implementing per-app variants.
 - useTheme.ts — PrimeVue preset construction from theme variables, light/dark handling.
 - useDraftGuard.ts — the unsaved-changes guard for a screen editing one resource: owns the baseline, the deep comparison and the busy suppression; `capture()` marks the current state saved, `extra` covers state held beside the draft.
 - useUnsavedGuard.ts — dirty-state route-leave + tab-close confirmation; `markSaved()` to bypass after save. The primitive under `useDraftGuard`, used directly when dirtiness is already a flag rather than a comparison.
-- useUserResolver.ts — userID → display name via useUserStore (cache-first, single read fallback).
+- useUserResolver.ts — userID → display name via useUserStore (cache-first, single read fallback; caching is best-effort, so a user the store cannot model is still returned to the caller, just uncached).
 
 ## When changing this
 

@@ -141,6 +141,22 @@ describe('useUserResolver', () => {
       const { resolveUser } = mountResolver({ systemAPI: api })
       expect(await resolveUser('u1')).toBeNull()
     })
+
+    // The store rebuilds each user through the system.User model, which rejects
+    // an ID it cannot parse. A caller that already holds the answer must not
+    // lose it to a failed cache write.
+    it('still answers when the user cannot be cached', async () => {
+      const api = createMockSystemAPI({
+        userRead: vi.fn().mockResolvedValue({ userID: 'not-an-id', name: 'Ada' }),
+      })
+      createTestPinia({ $SystemAPI: api })
+
+      const { resolveUser, findCached } = mountResolver({ systemAPI: api })
+      const result = await resolveUser('not-an-id')
+
+      expect(result?.name).toBe('Ada')
+      expect(findCached('not-an-id')).toBeNull()
+    })
   })
 
   describe('resolveUsers (batch)', () => {
