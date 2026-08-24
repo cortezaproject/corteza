@@ -41,6 +41,10 @@ params:
       meta: { label: Limit }
       types:
         - { wf: UnsignedInteger }
+    incTotal:
+      meta: { label: Include total }
+      types:
+        - { wf: Boolean }
     pageCursor:
       meta: { label: Page cursor }
       types:
