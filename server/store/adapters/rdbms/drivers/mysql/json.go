@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+// MySQL honours backslash escapes inside string literals so backslashes need to
+// be escaped alongside the quotes
+var jsonPathEscaper = strings.NewReplacer(`\`, `\\`, "'", `''`)
+
 func jsonPathExpr(pp ...any) (exp.LiteralExpression, error) {
 	if path, err := jsonPath(pp...); err != nil {
 		return nil, err
@@ -26,7 +30,7 @@ func jsonPath(pp ...any) (string, error) {
 		switch path := p.(type) {
 		case string:
 			sql.WriteString(".")
-			sql.WriteString(strings.ReplaceAll(path, "'", `''`))
+			sql.WriteString(jsonPathEscaper.Replace(path))
 		case int:
 			sql.WriteString("[")
 			sql.WriteString(strconv.Itoa(path))

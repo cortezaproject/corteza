@@ -25,6 +25,14 @@ func Test_jsonPath(t *testing.T) {
 				input: []any{"tw'o"},
 				path:  `$.tw''o`,
 			},
+			{
+				input: []any{`tw\o`},
+				path:  `$.tw\\o`,
+			},
+			{
+				input: []any{`tw\'o`},
+				path:  `$.tw\\''o`,
+			},
 		}
 	)
 
