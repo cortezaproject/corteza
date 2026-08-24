@@ -50,9 +50,15 @@
           @node-drop="onNodeDrop"
         >
           <template #default="{ node }">
-            <div class="flex items-center gap-3">
+            <div class="flex flex-col">
               <span :class="{ 'text-muted-color font-medium': node.data.selfID === '0' }">
                 {{ node.label }}
+              </span>
+              <span
+                v-if="node.data.description"
+                class="text-xs text-muted-color truncate max-w-full"
+              >
+                {{ node.data.description }}
               </span>
             </div>
           </template>

@@ -20,6 +20,8 @@ restructure it: reorder siblings and re-parent pages by drag and drop.
 ## UX capabilities
 
 - Tree from `pageStore.loadTree`, sorted by weight, all parents expanded initially; root-level pages (`selfID === '0'`) are visually distinguishable from nested ones.
+- A node is two lines when the page has a description: the title, then the
+  description muted beneath. Filtering still matches on the title alone.
 - Client-side lenient filtering by title; clicking a node opens the page editor.
 - Drag and drop persists the full new structure: re-parented pages get their `selfID` updated first, then each level is reordered, recursively; afterwards both the tree and the flat page list are re-fetched so the sidebar reflects the change.
 - Create button gated by `canCreatePage`.

@@ -20,6 +20,8 @@ status — and reach the editor or remove providers.
 ## UX capabilities
 
 - Single full fetch, no search, no pagination (`hide-search`).
+- The short-name column carries `meta.description` beneath it: `meta.short`
+  names the provider, the description says what it is for.
 - Status column renders a severity tag: active / unauthorized / other.
 - Provider column maps raw kind to display name (OpenAI/Anthropic/Mistral/Other).
 - Delete via row action menu, gated by `canDeleteLlmProvider`.

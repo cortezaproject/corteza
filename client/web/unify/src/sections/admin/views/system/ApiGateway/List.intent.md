@@ -22,6 +22,8 @@ editing, and profiling routes.
 
 - Settings panel: profiler tri-state (disabled / filter / global) and proxy
   follow-redirects toggle, persisted only on explicit Save.
+- The endpoint column shows the route's `meta.description` under the path —
+  the editor has always saved it and nothing read it back.
 - Paged/sortable/filterable route list (`useResourceList`) with
   deleted-state filter popover; row click opens the editor; New creates;
   wildcard and per-route permissions; delete via row actions.

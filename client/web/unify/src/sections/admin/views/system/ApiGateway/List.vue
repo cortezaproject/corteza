@@ -97,6 +97,15 @@
         </div>
       </template>
 
+      <template #body-endpoint="{ data }">
+        <div class="flex flex-col">
+          <span>{{ data.endpoint || '—' }}</span>
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+            {{ data.meta.description }}
+          </span>
+        </div>
+      </template>
+
       <template #body-method="{ data }">
         <Tag :value="data.method" severity="info" />
       </template>
