@@ -316,8 +316,24 @@ function cmdAffected(argv) {
 
 const [cmd, ...argv] = process.argv.slice(2)
 const commands = { check: cmdCheck, sync: cmdSync, status: cmdStatus, coverage: cmdCoverage, affected: cmdAffected }
+
+// Every option each command answers to. Commands taking only paths list none.
+const options = { check: ['--staged', '--changed'], sync: [], status: [], coverage: [], affected: [] }
+
 if (!commands[cmd]) {
   console.error('usage: intent.mjs <check|sync|status|coverage|affected> [args]')
   process.exit(2)
 }
+
+// An unrecognised option is refused rather than dropped. The commands that take
+// paths read "no paths" as "every enforced file", so a silently discarded
+// option widens the scope to the whole repo instead of narrowing it.
+const unknown = argv.filter((a) => a.startsWith('-') && !options[cmd].includes(a))
+if (unknown.length) {
+  console.error(`intent.mjs ${cmd}: unknown option ${unknown[0]}`)
+  if (options[cmd].length) console.error(`  ${cmd} accepts: ${options[cmd].join(', ')}`)
+  else console.error(`  ${cmd} takes file paths only`)
+  process.exit(2)
+}
+
 commands[cmd](argv)
