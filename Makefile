@@ -118,8 +118,7 @@ setup:
 	@echo ""
 	@echo "Setup done. Remaining manual steps:"
 	@echo "  1. Fill client/web/unify/.env.e2e (dev URL + test login) — created if it was missing"
-	@echo "  2. First Claude Code session: approve the project hooks"
-	@echo "  3. Optional stricter local commit gate: make intent-hooks"
+	@echo "  2. Optional stricter local commit gate: make intent-hooks"
 
 # E2E (Playwright) — needs the dev stack running and client/web/unify/.env.e2e filled.
 e2e:
