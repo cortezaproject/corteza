@@ -209,7 +209,7 @@ func (s *Store) TruncateActionlogs(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchActionlogs(ctx context.Context, f actionlogType.Filter) (set actionlogType.ActionSet, _ actionlogType.Filter, err error) {
 
-	set, _, err = s.QueryActionlogs(ctx, f)
+	set, _, _, err = s.QueryActionlogs(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -226,7 +226,7 @@ func (s *Store) SearchActionlogs(ctx context.Context, f actionlogType.Filter) (s
 func (s *Store) QueryActionlogs(
 	ctx context.Context,
 	f actionlogType.Filter,
-) (_ []*actionlogType.Action, more bool, err error) {
+) (_ []*actionlogType.Action, more bool, last *actionlogType.Action, err error) {
 	var (
 		set         = make([]*actionlogType.Action, 0, DefaultSliceCapacity)
 		res         *actionlogType.Action
@@ -306,10 +306,14 @@ func (s *Store) QueryActionlogs(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -646,6 +650,13 @@ func (s *Store) fetchFullPageOfAgents(
 		hasNext bool
 
 		tryFilter systemType.AgentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Agent
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Agent, 0, DefaultSliceCapacity)
@@ -654,6 +665,7 @@ func (s *Store) fetchFullPageOfAgents(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -661,14 +673,19 @@ func (s *Store) fetchFullPageOfAgents(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAgents(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAgents(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAgentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -681,28 +698,33 @@ func (s *Store) fetchFullPageOfAgents(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAgentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -744,7 +766,7 @@ func (s *Store) fetchFullPageOfAgents(
 func (s *Store) QueryAgents(
 	ctx context.Context,
 	f systemType.AgentFilter,
-) (_ []*systemType.Agent, more bool, err error) {
+) (_ []*systemType.Agent, more bool, last *systemType.Agent, err error) {
 	var (
 		ok bool
 
@@ -835,6 +857,10 @@ func (s *Store) QueryAgents(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -848,7 +874,7 @@ func (s *Store) QueryAgents(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -1287,6 +1313,13 @@ func (s *Store) fetchFullPageOfAiConversations(
 		hasNext bool
 
 		tryFilter systemType.AiConversationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.AiConversation
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.AiConversation, 0, DefaultSliceCapacity)
@@ -1295,6 +1328,7 @@ func (s *Store) fetchFullPageOfAiConversations(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -1302,14 +1336,19 @@ func (s *Store) fetchFullPageOfAiConversations(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAiConversations(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAiConversations(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAiConversationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -1322,28 +1361,33 @@ func (s *Store) fetchFullPageOfAiConversations(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAiConversationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -1385,7 +1429,7 @@ func (s *Store) fetchFullPageOfAiConversations(
 func (s *Store) QueryAiConversations(
 	ctx context.Context,
 	f systemType.AiConversationFilter,
-) (_ []*systemType.AiConversation, more bool, err error) {
+) (_ []*systemType.AiConversation, more bool, last *systemType.AiConversation, err error) {
 	var (
 		ok bool
 
@@ -1476,6 +1520,10 @@ func (s *Store) QueryAiConversations(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -1489,7 +1537,7 @@ func (s *Store) QueryAiConversations(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -1840,6 +1888,13 @@ func (s *Store) fetchFullPageOfApigwFilters(
 		hasNext bool
 
 		tryFilter systemType.ApigwFilterFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ApigwFilter
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ApigwFilter, 0, DefaultSliceCapacity)
@@ -1848,6 +1903,7 @@ func (s *Store) fetchFullPageOfApigwFilters(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -1855,14 +1911,19 @@ func (s *Store) fetchFullPageOfApigwFilters(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryApigwFilters(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryApigwFilters(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectApigwFilterCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -1875,28 +1936,33 @@ func (s *Store) fetchFullPageOfApigwFilters(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectApigwFilterCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -1938,7 +2004,7 @@ func (s *Store) fetchFullPageOfApigwFilters(
 func (s *Store) QueryApigwFilters(
 	ctx context.Context,
 	f systemType.ApigwFilterFilter,
-) (_ []*systemType.ApigwFilter, more bool, err error) {
+) (_ []*systemType.ApigwFilter, more bool, last *systemType.ApigwFilter, err error) {
 	var (
 		ok bool
 
@@ -2029,6 +2095,10 @@ func (s *Store) QueryApigwFilters(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -2042,7 +2112,7 @@ func (s *Store) QueryApigwFilters(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -2442,6 +2512,13 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 		hasNext bool
 
 		tryFilter systemType.ApigwRouteFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ApigwRoute
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ApigwRoute, 0, DefaultSliceCapacity)
@@ -2450,6 +2527,7 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -2457,14 +2535,19 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryApigwRoutes(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryApigwRoutes(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectApigwRouteCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -2477,28 +2560,33 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectApigwRouteCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -2540,7 +2628,7 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 func (s *Store) QueryApigwRoutes(
 	ctx context.Context,
 	f systemType.ApigwRouteFilter,
-) (_ []*systemType.ApigwRoute, more bool, err error) {
+) (_ []*systemType.ApigwRoute, more bool, last *systemType.ApigwRoute, err error) {
 	var (
 		ok bool
 
@@ -2631,6 +2719,10 @@ func (s *Store) QueryApigwRoutes(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -2644,7 +2736,7 @@ func (s *Store) QueryApigwRoutes(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -3048,6 +3140,13 @@ func (s *Store) fetchFullPageOfApplications(
 		hasNext bool
 
 		tryFilter systemType.ApplicationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Application
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Application, 0, DefaultSliceCapacity)
@@ -3056,6 +3155,7 @@ func (s *Store) fetchFullPageOfApplications(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -3063,14 +3163,19 @@ func (s *Store) fetchFullPageOfApplications(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryApplications(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryApplications(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectApplicationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -3083,28 +3188,33 @@ func (s *Store) fetchFullPageOfApplications(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectApplicationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -3146,7 +3256,7 @@ func (s *Store) fetchFullPageOfApplications(
 func (s *Store) QueryApplications(
 	ctx context.Context,
 	f systemType.ApplicationFilter,
-) (_ []*systemType.Application, more bool, err error) {
+) (_ []*systemType.Application, more bool, last *systemType.Application, err error) {
 	var (
 		ok bool
 
@@ -3237,6 +3347,10 @@ func (s *Store) QueryApplications(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -3250,7 +3364,7 @@ func (s *Store) QueryApplications(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -3607,6 +3721,13 @@ func (s *Store) fetchFullPageOfAttachments(
 		hasNext bool
 
 		tryFilter systemType.AttachmentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Attachment
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Attachment, 0, DefaultSliceCapacity)
@@ -3615,6 +3736,7 @@ func (s *Store) fetchFullPageOfAttachments(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -3622,14 +3744,19 @@ func (s *Store) fetchFullPageOfAttachments(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAttachments(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAttachments(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAttachmentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -3642,28 +3769,33 @@ func (s *Store) fetchFullPageOfAttachments(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAttachmentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -3705,7 +3837,7 @@ func (s *Store) fetchFullPageOfAttachments(
 func (s *Store) QueryAttachments(
 	ctx context.Context,
 	f systemType.AttachmentFilter,
-) (_ []*systemType.Attachment, more bool, err error) {
+) (_ []*systemType.Attachment, more bool, last *systemType.Attachment, err error) {
 	var (
 		ok bool
 
@@ -3796,6 +3928,10 @@ func (s *Store) QueryAttachments(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -3809,7 +3945,7 @@ func (s *Store) QueryAttachments(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -4161,6 +4297,13 @@ func (s *Store) fetchFullPageOfAuthClients(
 		hasNext bool
 
 		tryFilter systemType.AuthClientFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.AuthClient
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.AuthClient, 0, DefaultSliceCapacity)
@@ -4169,6 +4312,7 @@ func (s *Store) fetchFullPageOfAuthClients(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -4176,14 +4320,19 @@ func (s *Store) fetchFullPageOfAuthClients(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAuthClients(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAuthClients(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAuthClientCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -4196,28 +4345,33 @@ func (s *Store) fetchFullPageOfAuthClients(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAuthClientCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -4259,7 +4413,7 @@ func (s *Store) fetchFullPageOfAuthClients(
 func (s *Store) QueryAuthClients(
 	ctx context.Context,
 	f systemType.AuthClientFilter,
-) (_ []*systemType.AuthClient, more bool, err error) {
+) (_ []*systemType.AuthClient, more bool, last *systemType.AuthClient, err error) {
 	var (
 		ok bool
 
@@ -4350,6 +4504,10 @@ func (s *Store) QueryAuthClients(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -4363,7 +4521,7 @@ func (s *Store) QueryAuthClients(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -4708,7 +4866,7 @@ func (s *Store) TruncateAuthConfirmedClients(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchAuthConfirmedClients(ctx context.Context, f systemType.AuthConfirmedClientFilter) (set systemType.AuthConfirmedClientSet, _ systemType.AuthConfirmedClientFilter, err error) {
 
-	set, _, err = s.QueryAuthConfirmedClients(ctx, f)
+	set, _, _, err = s.QueryAuthConfirmedClients(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -4725,7 +4883,7 @@ func (s *Store) SearchAuthConfirmedClients(ctx context.Context, f systemType.Aut
 func (s *Store) QueryAuthConfirmedClients(
 	ctx context.Context,
 	f systemType.AuthConfirmedClientFilter,
-) (_ []*systemType.AuthConfirmedClient, more bool, err error) {
+) (_ []*systemType.AuthConfirmedClient, more bool, last *systemType.AuthConfirmedClient, err error) {
 	var (
 		set         = make([]*systemType.AuthConfirmedClient, 0, DefaultSliceCapacity)
 		res         *systemType.AuthConfirmedClient
@@ -4793,10 +4951,14 @@ func (s *Store) QueryAuthConfirmedClients(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -5042,7 +5204,7 @@ func (s *Store) TruncateAuthOa2tokens(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchAuthOa2tokens(ctx context.Context, f systemType.AuthOa2tokenFilter) (set systemType.AuthOa2tokenSet, _ systemType.AuthOa2tokenFilter, err error) {
 
-	set, _, err = s.QueryAuthOa2tokens(ctx, f)
+	set, _, _, err = s.QueryAuthOa2tokens(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -5059,7 +5221,7 @@ func (s *Store) SearchAuthOa2tokens(ctx context.Context, f systemType.AuthOa2tok
 func (s *Store) QueryAuthOa2tokens(
 	ctx context.Context,
 	f systemType.AuthOa2tokenFilter,
-) (_ []*systemType.AuthOa2token, more bool, err error) {
+) (_ []*systemType.AuthOa2token, more bool, last *systemType.AuthOa2token, err error) {
 	var (
 		set         = make([]*systemType.AuthOa2token, 0, DefaultSliceCapacity)
 		res         *systemType.AuthOa2token
@@ -5127,10 +5289,14 @@ func (s *Store) QueryAuthOa2tokens(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -5495,7 +5661,7 @@ func (s *Store) TruncateAuthSessions(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchAuthSessions(ctx context.Context, f systemType.AuthSessionFilter) (set systemType.AuthSessionSet, _ systemType.AuthSessionFilter, err error) {
 
-	set, _, err = s.QueryAuthSessions(ctx, f)
+	set, _, _, err = s.QueryAuthSessions(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -5512,7 +5678,7 @@ func (s *Store) SearchAuthSessions(ctx context.Context, f systemType.AuthSession
 func (s *Store) QueryAuthSessions(
 	ctx context.Context,
 	f systemType.AuthSessionFilter,
-) (_ []*systemType.AuthSession, more bool, err error) {
+) (_ []*systemType.AuthSession, more bool, last *systemType.AuthSession, err error) {
 	var (
 		set         = make([]*systemType.AuthSession, 0, DefaultSliceCapacity)
 		res         *systemType.AuthSession
@@ -5580,10 +5746,14 @@ func (s *Store) QueryAuthSessions(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -5925,6 +6095,13 @@ func (s *Store) fetchFullPageOfAutomationNgAutomations(
 		hasNext bool
 
 		tryFilter automationType.NgAutomationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *automationType.NgAutomation
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*automationType.NgAutomation, 0, DefaultSliceCapacity)
@@ -5933,6 +6110,7 @@ func (s *Store) fetchFullPageOfAutomationNgAutomations(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -5940,14 +6118,19 @@ func (s *Store) fetchFullPageOfAutomationNgAutomations(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAutomationNgAutomations(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAutomationNgAutomations(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAutomationNgAutomationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -5960,28 +6143,33 @@ func (s *Store) fetchFullPageOfAutomationNgAutomations(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAutomationNgAutomationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -6023,7 +6211,7 @@ func (s *Store) fetchFullPageOfAutomationNgAutomations(
 func (s *Store) QueryAutomationNgAutomations(
 	ctx context.Context,
 	f automationType.NgAutomationFilter,
-) (_ []*automationType.NgAutomation, more bool, err error) {
+) (_ []*automationType.NgAutomation, more bool, last *automationType.NgAutomation, err error) {
 	var (
 		ok bool
 
@@ -6114,6 +6302,10 @@ func (s *Store) QueryAutomationNgAutomations(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -6127,7 +6319,7 @@ func (s *Store) QueryAutomationNgAutomations(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -6569,6 +6761,13 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 		hasNext bool
 
 		tryFilter automationType.SessionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *automationType.Session
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*automationType.Session, 0, DefaultSliceCapacity)
@@ -6577,6 +6776,7 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -6584,14 +6784,19 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAutomationSessions(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAutomationSessions(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAutomationSessionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -6604,28 +6809,33 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAutomationSessionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -6667,7 +6877,7 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 func (s *Store) QueryAutomationSessions(
 	ctx context.Context,
 	f automationType.SessionFilter,
-) (_ []*automationType.Session, more bool, err error) {
+) (_ []*automationType.Session, more bool, last *automationType.Session, err error) {
 	var (
 		ok bool
 
@@ -6758,6 +6968,10 @@ func (s *Store) QueryAutomationSessions(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -6771,7 +6985,7 @@ func (s *Store) QueryAutomationSessions(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -7138,6 +7352,13 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 		hasNext bool
 
 		tryFilter automationType.TriggerFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *automationType.Trigger
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*automationType.Trigger, 0, DefaultSliceCapacity)
@@ -7146,6 +7367,7 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -7153,14 +7375,19 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAutomationTriggers(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAutomationTriggers(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAutomationTriggerCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -7173,28 +7400,33 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAutomationTriggerCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -7236,7 +7468,7 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 func (s *Store) QueryAutomationTriggers(
 	ctx context.Context,
 	f automationType.TriggerFilter,
-) (_ []*automationType.Trigger, more bool, err error) {
+) (_ []*automationType.Trigger, more bool, last *automationType.Trigger, err error) {
 	var (
 		ok bool
 
@@ -7327,6 +7559,10 @@ func (s *Store) QueryAutomationTriggers(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -7340,7 +7576,7 @@ func (s *Store) QueryAutomationTriggers(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -7703,6 +7939,13 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 		hasNext bool
 
 		tryFilter automationType.WorkflowFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *automationType.Workflow
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*automationType.Workflow, 0, DefaultSliceCapacity)
@@ -7711,6 +7954,7 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -7718,14 +7962,19 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAutomationWorkflows(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAutomationWorkflows(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAutomationWorkflowCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -7738,28 +7987,33 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAutomationWorkflowCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -7801,7 +8055,7 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 func (s *Store) QueryAutomationWorkflows(
 	ctx context.Context,
 	f automationType.WorkflowFilter,
-) (_ []*automationType.Workflow, more bool, err error) {
+) (_ []*automationType.Workflow, more bool, last *automationType.Workflow, err error) {
 	var (
 		ok bool
 
@@ -7892,6 +8146,10 @@ func (s *Store) QueryAutomationWorkflows(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -7905,7 +8163,7 @@ func (s *Store) QueryAutomationWorkflows(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -8341,6 +8599,13 @@ func (s *Store) fetchFullPageOfChatbots(
 		hasNext bool
 
 		tryFilter systemType.ChatbotFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Chatbot
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Chatbot, 0, DefaultSliceCapacity)
@@ -8349,6 +8614,7 @@ func (s *Store) fetchFullPageOfChatbots(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -8356,14 +8622,19 @@ func (s *Store) fetchFullPageOfChatbots(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryChatbots(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryChatbots(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectChatbotCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -8376,28 +8647,33 @@ func (s *Store) fetchFullPageOfChatbots(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectChatbotCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -8439,7 +8715,7 @@ func (s *Store) fetchFullPageOfChatbots(
 func (s *Store) QueryChatbots(
 	ctx context.Context,
 	f systemType.ChatbotFilter,
-) (_ []*systemType.Chatbot, more bool, err error) {
+) (_ []*systemType.Chatbot, more bool, last *systemType.Chatbot, err error) {
 	var (
 		ok bool
 
@@ -8530,6 +8806,10 @@ func (s *Store) QueryChatbots(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -8543,7 +8823,7 @@ func (s *Store) QueryChatbots(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -9054,6 +9334,13 @@ func (s *Store) fetchFullPageOfChatbotSessions(
 		hasNext bool
 
 		tryFilter systemType.ChatbotSessionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ChatbotSession
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ChatbotSession, 0, DefaultSliceCapacity)
@@ -9062,6 +9349,7 @@ func (s *Store) fetchFullPageOfChatbotSessions(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -9069,14 +9357,19 @@ func (s *Store) fetchFullPageOfChatbotSessions(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryChatbotSessions(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryChatbotSessions(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectChatbotSessionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -9089,28 +9382,33 @@ func (s *Store) fetchFullPageOfChatbotSessions(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectChatbotSessionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -9152,7 +9450,7 @@ func (s *Store) fetchFullPageOfChatbotSessions(
 func (s *Store) QueryChatbotSessions(
 	ctx context.Context,
 	f systemType.ChatbotSessionFilter,
-) (_ []*systemType.ChatbotSession, more bool, err error) {
+) (_ []*systemType.ChatbotSession, more bool, last *systemType.ChatbotSession, err error) {
 	var (
 		ok bool
 
@@ -9243,6 +9541,10 @@ func (s *Store) QueryChatbotSessions(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -9256,7 +9558,7 @@ func (s *Store) QueryChatbotSessions(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -9653,6 +9955,13 @@ func (s *Store) fetchFullPageOfChatbotSessionHandoffs(
 		hasNext bool
 
 		tryFilter systemType.ChatbotSessionHandoffFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ChatbotSessionHandoff
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ChatbotSessionHandoff, 0, DefaultSliceCapacity)
@@ -9661,6 +9970,7 @@ func (s *Store) fetchFullPageOfChatbotSessionHandoffs(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -9668,14 +9978,19 @@ func (s *Store) fetchFullPageOfChatbotSessionHandoffs(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryChatbotSessionHandoffs(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryChatbotSessionHandoffs(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectChatbotSessionHandoffCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -9688,28 +10003,33 @@ func (s *Store) fetchFullPageOfChatbotSessionHandoffs(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectChatbotSessionHandoffCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -9751,7 +10071,7 @@ func (s *Store) fetchFullPageOfChatbotSessionHandoffs(
 func (s *Store) QueryChatbotSessionHandoffs(
 	ctx context.Context,
 	f systemType.ChatbotSessionHandoffFilter,
-) (_ []*systemType.ChatbotSessionHandoff, more bool, err error) {
+) (_ []*systemType.ChatbotSessionHandoff, more bool, last *systemType.ChatbotSessionHandoff, err error) {
 	var (
 		ok bool
 
@@ -9842,6 +10162,10 @@ func (s *Store) QueryChatbotSessionHandoffs(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -9855,7 +10179,7 @@ func (s *Store) QueryChatbotSessionHandoffs(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -10306,6 +10630,13 @@ func (s *Store) fetchFullPageOfChatbotSessionSteps(
 		hasNext bool
 
 		tryFilter systemType.ChatbotSessionStepFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ChatbotSessionStep
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ChatbotSessionStep, 0, DefaultSliceCapacity)
@@ -10314,6 +10645,7 @@ func (s *Store) fetchFullPageOfChatbotSessionSteps(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -10321,14 +10653,19 @@ func (s *Store) fetchFullPageOfChatbotSessionSteps(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryChatbotSessionSteps(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryChatbotSessionSteps(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectChatbotSessionStepCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -10341,28 +10678,33 @@ func (s *Store) fetchFullPageOfChatbotSessionSteps(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectChatbotSessionStepCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -10404,7 +10746,7 @@ func (s *Store) fetchFullPageOfChatbotSessionSteps(
 func (s *Store) QueryChatbotSessionSteps(
 	ctx context.Context,
 	f systemType.ChatbotSessionStepFilter,
-) (_ []*systemType.ChatbotSessionStep, more bool, err error) {
+) (_ []*systemType.ChatbotSessionStep, more bool, last *systemType.ChatbotSessionStep, err error) {
 	var (
 		ok bool
 
@@ -10495,6 +10837,10 @@ func (s *Store) QueryChatbotSessionSteps(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -10508,7 +10854,7 @@ func (s *Store) QueryChatbotSessionSteps(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -10951,6 +11297,13 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 		hasNext bool
 
 		tryFilter composeType.AttachmentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Attachment
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Attachment, 0, DefaultSliceCapacity)
@@ -10959,6 +11312,7 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -10966,14 +11320,19 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeAttachments(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeAttachments(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeAttachmentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -10986,28 +11345,33 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeAttachmentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -11049,7 +11413,7 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 func (s *Store) QueryComposeAttachments(
 	ctx context.Context,
 	f composeType.AttachmentFilter,
-) (_ []*composeType.Attachment, more bool, err error) {
+) (_ []*composeType.Attachment, more bool, last *composeType.Attachment, err error) {
 	var (
 		ok bool
 
@@ -11140,6 +11504,10 @@ func (s *Store) QueryComposeAttachments(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -11153,7 +11521,7 @@ func (s *Store) QueryComposeAttachments(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -11509,6 +11877,13 @@ func (s *Store) fetchFullPageOfComposeCharts(
 		hasNext bool
 
 		tryFilter composeType.ChartFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Chart
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Chart, 0, DefaultSliceCapacity)
@@ -11517,6 +11892,7 @@ func (s *Store) fetchFullPageOfComposeCharts(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -11524,14 +11900,19 @@ func (s *Store) fetchFullPageOfComposeCharts(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeCharts(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeCharts(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeChartCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -11544,28 +11925,33 @@ func (s *Store) fetchFullPageOfComposeCharts(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeChartCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -11607,7 +11993,7 @@ func (s *Store) fetchFullPageOfComposeCharts(
 func (s *Store) QueryComposeCharts(
 	ctx context.Context,
 	f composeType.ChartFilter,
-) (_ []*composeType.Chart, more bool, err error) {
+) (_ []*composeType.Chart, more bool, last *composeType.Chart, err error) {
 	var (
 		ok bool
 
@@ -11698,6 +12084,10 @@ func (s *Store) QueryComposeCharts(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -11711,7 +12101,7 @@ func (s *Store) QueryComposeCharts(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -12110,6 +12500,13 @@ func (s *Store) fetchFullPageOfComposeModules(
 		hasNext bool
 
 		tryFilter composeType.ModuleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Module
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Module, 0, DefaultSliceCapacity)
@@ -12118,6 +12515,7 @@ func (s *Store) fetchFullPageOfComposeModules(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -12125,14 +12523,19 @@ func (s *Store) fetchFullPageOfComposeModules(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeModules(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeModules(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeModuleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -12145,28 +12548,33 @@ func (s *Store) fetchFullPageOfComposeModules(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeModuleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -12208,7 +12616,7 @@ func (s *Store) fetchFullPageOfComposeModules(
 func (s *Store) QueryComposeModules(
 	ctx context.Context,
 	f composeType.ModuleFilter,
-) (_ []*composeType.Module, more bool, err error) {
+) (_ []*composeType.Module, more bool, last *composeType.Module, err error) {
 	var (
 		ok bool
 
@@ -12299,6 +12707,10 @@ func (s *Store) QueryComposeModules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -12312,7 +12724,7 @@ func (s *Store) QueryComposeModules(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -12687,7 +13099,7 @@ func (s *Store) TruncateComposeModuleFields(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchComposeModuleFields(ctx context.Context, f composeType.ModuleFieldFilter) (set composeType.ModuleFieldSet, _ composeType.ModuleFieldFilter, err error) {
 
-	set, _, err = s.QueryComposeModuleFields(ctx, f)
+	set, _, _, err = s.QueryComposeModuleFields(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -12704,7 +13116,7 @@ func (s *Store) SearchComposeModuleFields(ctx context.Context, f composeType.Mod
 func (s *Store) QueryComposeModuleFields(
 	ctx context.Context,
 	f composeType.ModuleFieldFilter,
-) (_ []*composeType.ModuleField, more bool, err error) {
+) (_ []*composeType.ModuleField, more bool, last *composeType.ModuleField, err error) {
 	var (
 		set         = make([]*composeType.ModuleField, 0, DefaultSliceCapacity)
 		res         *composeType.ModuleField
@@ -12772,10 +13184,14 @@ func (s *Store) QueryComposeModuleFields(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -13212,6 +13628,13 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 		hasNext bool
 
 		tryFilter composeType.NamespaceFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Namespace
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Namespace, 0, DefaultSliceCapacity)
@@ -13220,6 +13643,7 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -13227,14 +13651,19 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeNamespaces(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeNamespaces(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeNamespaceCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -13247,28 +13676,33 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeNamespaceCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -13310,7 +13744,7 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 func (s *Store) QueryComposeNamespaces(
 	ctx context.Context,
 	f composeType.NamespaceFilter,
-) (_ []*composeType.Namespace, more bool, err error) {
+) (_ []*composeType.Namespace, more bool, last *composeType.Namespace, err error) {
 	var (
 		ok bool
 
@@ -13401,6 +13835,10 @@ func (s *Store) QueryComposeNamespaces(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -13414,7 +13852,7 @@ func (s *Store) QueryComposeNamespaces(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -13841,6 +14279,13 @@ func (s *Store) fetchFullPageOfComposePages(
 		hasNext bool
 
 		tryFilter composeType.PageFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Page
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Page, 0, DefaultSliceCapacity)
@@ -13849,6 +14294,7 @@ func (s *Store) fetchFullPageOfComposePages(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -13856,14 +14302,19 @@ func (s *Store) fetchFullPageOfComposePages(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposePages(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposePages(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposePageCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -13876,28 +14327,33 @@ func (s *Store) fetchFullPageOfComposePages(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposePageCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -13939,7 +14395,7 @@ func (s *Store) fetchFullPageOfComposePages(
 func (s *Store) QueryComposePages(
 	ctx context.Context,
 	f composeType.PageFilter,
-) (_ []*composeType.Page, more bool, err error) {
+) (_ []*composeType.Page, more bool, last *composeType.Page, err error) {
 	var (
 		ok bool
 
@@ -14030,6 +14486,10 @@ func (s *Store) QueryComposePages(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -14043,7 +14503,7 @@ func (s *Store) QueryComposePages(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -14493,6 +14953,13 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 		hasNext bool
 
 		tryFilter composeType.PageLayoutFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.PageLayout
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.PageLayout, 0, DefaultSliceCapacity)
@@ -14501,6 +14968,7 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -14508,14 +14976,19 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposePageLayouts(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposePageLayouts(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposePageLayoutCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -14528,28 +15001,33 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposePageLayoutCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -14591,7 +15069,7 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 func (s *Store) QueryComposePageLayouts(
 	ctx context.Context,
 	f composeType.PageLayoutFilter,
-) (_ []*composeType.PageLayout, more bool, err error) {
+) (_ []*composeType.PageLayout, more bool, last *composeType.PageLayout, err error) {
 	var (
 		ok bool
 
@@ -14682,6 +15160,10 @@ func (s *Store) QueryComposePageLayouts(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -14695,7 +15177,7 @@ func (s *Store) QueryComposePageLayouts(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -15147,6 +15629,13 @@ func (s *Store) fetchFullPageOfConfiguredConnections(
 		hasNext bool
 
 		tryFilter systemType.ConfiguredConnectionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ConfiguredConnection
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ConfiguredConnection, 0, DefaultSliceCapacity)
@@ -15155,6 +15644,7 @@ func (s *Store) fetchFullPageOfConfiguredConnections(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -15162,14 +15652,19 @@ func (s *Store) fetchFullPageOfConfiguredConnections(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryConfiguredConnections(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryConfiguredConnections(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectConfiguredConnectionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -15182,28 +15677,33 @@ func (s *Store) fetchFullPageOfConfiguredConnections(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectConfiguredConnectionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -15245,7 +15745,7 @@ func (s *Store) fetchFullPageOfConfiguredConnections(
 func (s *Store) QueryConfiguredConnections(
 	ctx context.Context,
 	f systemType.ConfiguredConnectionFilter,
-) (_ []*systemType.ConfiguredConnection, more bool, err error) {
+) (_ []*systemType.ConfiguredConnection, more bool, last *systemType.ConfiguredConnection, err error) {
 	var (
 		ok bool
 
@@ -15336,6 +15836,10 @@ func (s *Store) QueryConfiguredConnections(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -15349,7 +15853,7 @@ func (s *Store) QueryConfiguredConnections(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -15707,6 +16211,13 @@ func (s *Store) fetchFullPageOfConnections(
 		hasNext bool
 
 		tryFilter systemType.ConnectionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Connection
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Connection, 0, DefaultSliceCapacity)
@@ -15715,6 +16226,7 @@ func (s *Store) fetchFullPageOfConnections(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -15722,14 +16234,19 @@ func (s *Store) fetchFullPageOfConnections(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryConnections(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryConnections(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectConnectionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -15742,28 +16259,33 @@ func (s *Store) fetchFullPageOfConnections(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectConnectionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -15805,7 +16327,7 @@ func (s *Store) fetchFullPageOfConnections(
 func (s *Store) QueryConnections(
 	ctx context.Context,
 	f systemType.ConnectionFilter,
-) (_ []*systemType.Connection, more bool, err error) {
+) (_ []*systemType.Connection, more bool, last *systemType.Connection, err error) {
 	var (
 		ok bool
 
@@ -15896,6 +16418,10 @@ func (s *Store) QueryConnections(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -15909,7 +16435,7 @@ func (s *Store) QueryConnections(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -16245,7 +16771,7 @@ func (s *Store) TruncateCredentials(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchCredentials(ctx context.Context, f systemType.CredentialFilter) (set systemType.CredentialSet, _ systemType.CredentialFilter, err error) {
 
-	set, _, err = s.QueryCredentials(ctx, f)
+	set, _, _, err = s.QueryCredentials(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -16262,7 +16788,7 @@ func (s *Store) SearchCredentials(ctx context.Context, f systemType.CredentialFi
 func (s *Store) QueryCredentials(
 	ctx context.Context,
 	f systemType.CredentialFilter,
-) (_ []*systemType.Credential, more bool, err error) {
+) (_ []*systemType.Credential, more bool, last *systemType.Credential, err error) {
 	var (
 		set         = make([]*systemType.Credential, 0, DefaultSliceCapacity)
 		res         *systemType.Credential
@@ -16330,10 +16856,14 @@ func (s *Store) QueryCredentials(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -16689,6 +17219,13 @@ func (s *Store) fetchFullPageOfDalConnections(
 		hasNext bool
 
 		tryFilter systemType.DalConnectionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DalConnection
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DalConnection, 0, DefaultSliceCapacity)
@@ -16697,6 +17234,7 @@ func (s *Store) fetchFullPageOfDalConnections(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -16704,14 +17242,19 @@ func (s *Store) fetchFullPageOfDalConnections(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDalConnections(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDalConnections(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDalConnectionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -16724,28 +17267,33 @@ func (s *Store) fetchFullPageOfDalConnections(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDalConnectionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -16787,7 +17335,7 @@ func (s *Store) fetchFullPageOfDalConnections(
 func (s *Store) QueryDalConnections(
 	ctx context.Context,
 	f systemType.DalConnectionFilter,
-) (_ []*systemType.DalConnection, more bool, err error) {
+) (_ []*systemType.DalConnection, more bool, last *systemType.DalConnection, err error) {
 	var (
 		ok bool
 
@@ -16878,6 +17426,10 @@ func (s *Store) QueryDalConnections(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -16891,7 +17443,7 @@ func (s *Store) QueryDalConnections(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -17324,6 +17876,13 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 		hasNext bool
 
 		tryFilter systemType.DalSchemaAlterationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DalSchemaAlteration
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DalSchemaAlteration, 0, DefaultSliceCapacity)
@@ -17332,6 +17891,7 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -17339,14 +17899,19 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDalSchemaAlterations(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDalSchemaAlterations(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDalSchemaAlterationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -17359,28 +17924,33 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDalSchemaAlterationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -17422,7 +17992,7 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 func (s *Store) QueryDalSchemaAlterations(
 	ctx context.Context,
 	f systemType.DalSchemaAlterationFilter,
-) (_ []*systemType.DalSchemaAlteration, more bool, err error) {
+) (_ []*systemType.DalSchemaAlteration, more bool, last *systemType.DalSchemaAlteration, err error) {
 	var (
 		set         = make([]*systemType.DalSchemaAlteration, 0, DefaultSliceCapacity)
 		res         *systemType.DalSchemaAlteration
@@ -17511,10 +18081,14 @@ func (s *Store) QueryDalSchemaAlterations(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -17869,6 +18443,13 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 		hasNext bool
 
 		tryFilter systemType.DalSensitivityLevelFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DalSensitivityLevel
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DalSensitivityLevel, 0, DefaultSliceCapacity)
@@ -17877,6 +18458,7 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -17884,14 +18466,19 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDalSensitivityLevels(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDalSensitivityLevels(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDalSensitivityLevelCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -17904,28 +18491,33 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDalSensitivityLevelCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -17967,7 +18559,7 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 func (s *Store) QueryDalSensitivityLevels(
 	ctx context.Context,
 	f systemType.DalSensitivityLevelFilter,
-) (_ []*systemType.DalSensitivityLevel, more bool, err error) {
+) (_ []*systemType.DalSensitivityLevel, more bool, last *systemType.DalSensitivityLevel, err error) {
 	var (
 		ok bool
 
@@ -18058,6 +18650,10 @@ func (s *Store) QueryDalSensitivityLevels(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -18071,7 +18667,7 @@ func (s *Store) QueryDalSensitivityLevels(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -18426,6 +19022,13 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 		hasNext bool
 
 		tryFilter systemType.DataPrivacyRequestFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DataPrivacyRequest
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DataPrivacyRequest, 0, DefaultSliceCapacity)
@@ -18434,6 +19037,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -18441,14 +19045,19 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDataPrivacyRequests(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDataPrivacyRequests(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDataPrivacyRequestCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -18461,28 +19070,33 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDataPrivacyRequestCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -18524,7 +19138,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 func (s *Store) QueryDataPrivacyRequests(
 	ctx context.Context,
 	f systemType.DataPrivacyRequestFilter,
-) (_ []*systemType.DataPrivacyRequest, more bool, err error) {
+) (_ []*systemType.DataPrivacyRequest, more bool, last *systemType.DataPrivacyRequest, err error) {
 	var (
 		ok bool
 
@@ -18615,6 +19229,10 @@ func (s *Store) QueryDataPrivacyRequests(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -18628,7 +19246,7 @@ func (s *Store) QueryDataPrivacyRequests(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -18990,6 +19608,13 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 		hasNext bool
 
 		tryFilter systemType.DataPrivacyRequestCommentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DataPrivacyRequestComment
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DataPrivacyRequestComment, 0, DefaultSliceCapacity)
@@ -18998,6 +19623,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -19005,14 +19631,19 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDataPrivacyRequestComments(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDataPrivacyRequestComments(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDataPrivacyRequestCommentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -19025,28 +19656,33 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDataPrivacyRequestCommentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -19088,7 +19724,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 func (s *Store) QueryDataPrivacyRequestComments(
 	ctx context.Context,
 	f systemType.DataPrivacyRequestCommentFilter,
-) (_ []*systemType.DataPrivacyRequestComment, more bool, err error) {
+) (_ []*systemType.DataPrivacyRequestComment, more bool, last *systemType.DataPrivacyRequestComment, err error) {
 	var (
 		ok bool
 
@@ -19179,6 +19815,10 @@ func (s *Store) QueryDataPrivacyRequestComments(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -19192,7 +19832,7 @@ func (s *Store) QueryDataPrivacyRequestComments(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -19496,6 +20136,13 @@ func (s *Store) fetchFullPageOfDmlConnections(
 		hasNext bool
 
 		tryFilter systemType.DmlConnectionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DmlConnection
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DmlConnection, 0, DefaultSliceCapacity)
@@ -19504,6 +20151,7 @@ func (s *Store) fetchFullPageOfDmlConnections(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -19511,14 +20159,19 @@ func (s *Store) fetchFullPageOfDmlConnections(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDmlConnections(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDmlConnections(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDmlConnectionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -19531,28 +20184,33 @@ func (s *Store) fetchFullPageOfDmlConnections(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDmlConnectionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -19594,7 +20252,7 @@ func (s *Store) fetchFullPageOfDmlConnections(
 func (s *Store) QueryDmlConnections(
 	ctx context.Context,
 	f systemType.DmlConnectionFilter,
-) (_ []*systemType.DmlConnection, more bool, err error) {
+) (_ []*systemType.DmlConnection, more bool, last *systemType.DmlConnection, err error) {
 	var (
 		ok bool
 
@@ -19685,6 +20343,10 @@ func (s *Store) QueryDmlConnections(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -19698,7 +20360,7 @@ func (s *Store) QueryDmlConnections(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -20121,6 +20783,13 @@ func (s *Store) fetchFullPageOfDmlImportRuns(
 		hasNext bool
 
 		tryFilter systemType.DmlImportRunFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DmlImportRun
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DmlImportRun, 0, DefaultSliceCapacity)
@@ -20129,6 +20798,7 @@ func (s *Store) fetchFullPageOfDmlImportRuns(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -20136,14 +20806,19 @@ func (s *Store) fetchFullPageOfDmlImportRuns(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDmlImportRuns(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDmlImportRuns(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDmlImportRunCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -20156,28 +20831,33 @@ func (s *Store) fetchFullPageOfDmlImportRuns(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDmlImportRunCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -20219,7 +20899,7 @@ func (s *Store) fetchFullPageOfDmlImportRuns(
 func (s *Store) QueryDmlImportRuns(
 	ctx context.Context,
 	f systemType.DmlImportRunFilter,
-) (_ []*systemType.DmlImportRun, more bool, err error) {
+) (_ []*systemType.DmlImportRun, more bool, last *systemType.DmlImportRun, err error) {
 	var (
 		ok bool
 
@@ -20310,6 +20990,10 @@ func (s *Store) QueryDmlImportRuns(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -20323,7 +21007,7 @@ func (s *Store) QueryDmlImportRuns(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -20702,6 +21386,13 @@ func (s *Store) fetchFullPageOfDmlMappings(
 		hasNext bool
 
 		tryFilter systemType.DmlMappingFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DmlMapping
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DmlMapping, 0, DefaultSliceCapacity)
@@ -20710,6 +21401,7 @@ func (s *Store) fetchFullPageOfDmlMappings(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -20717,14 +21409,19 @@ func (s *Store) fetchFullPageOfDmlMappings(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDmlMappings(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDmlMappings(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDmlMappingCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -20737,28 +21434,33 @@ func (s *Store) fetchFullPageOfDmlMappings(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDmlMappingCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -20800,7 +21502,7 @@ func (s *Store) fetchFullPageOfDmlMappings(
 func (s *Store) QueryDmlMappings(
 	ctx context.Context,
 	f systemType.DmlMappingFilter,
-) (_ []*systemType.DmlMapping, more bool, err error) {
+) (_ []*systemType.DmlMapping, more bool, last *systemType.DmlMapping, err error) {
 	var (
 		ok bool
 
@@ -20891,6 +21593,10 @@ func (s *Store) QueryDmlMappings(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -20904,7 +21610,7 @@ func (s *Store) QueryDmlMappings(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -21302,6 +22008,13 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 		hasNext bool
 
 		tryFilter federationType.ExposedModuleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.ExposedModule
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.ExposedModule, 0, DefaultSliceCapacity)
@@ -21310,6 +22023,7 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -21317,14 +22031,19 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationExposedModules(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationExposedModules(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationExposedModuleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -21337,28 +22056,33 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationExposedModuleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -21400,7 +22124,7 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 func (s *Store) QueryFederationExposedModules(
 	ctx context.Context,
 	f federationType.ExposedModuleFilter,
-) (_ []*federationType.ExposedModule, more bool, err error) {
+) (_ []*federationType.ExposedModule, more bool, last *federationType.ExposedModule, err error) {
 	var (
 		ok bool
 
@@ -21491,6 +22215,10 @@ func (s *Store) QueryFederationExposedModules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -21504,7 +22232,7 @@ func (s *Store) QueryFederationExposedModules(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -21854,6 +22582,13 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 		hasNext bool
 
 		tryFilter federationType.ModuleMappingFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.ModuleMapping
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.ModuleMapping, 0, DefaultSliceCapacity)
@@ -21862,6 +22597,7 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -21869,14 +22605,19 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationModuleMappings(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationModuleMappings(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationModuleMappingCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -21889,28 +22630,33 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationModuleMappingCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -21952,7 +22698,7 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 func (s *Store) QueryFederationModuleMappings(
 	ctx context.Context,
 	f federationType.ModuleMappingFilter,
-) (_ []*federationType.ModuleMapping, more bool, err error) {
+) (_ []*federationType.ModuleMapping, more bool, last *federationType.ModuleMapping, err error) {
 	var (
 		ok bool
 
@@ -22043,6 +22789,10 @@ func (s *Store) QueryFederationModuleMappings(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -22056,7 +22806,7 @@ func (s *Store) QueryFederationModuleMappings(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -22446,6 +23196,13 @@ func (s *Store) fetchFullPageOfFederationNodes(
 		hasNext bool
 
 		tryFilter federationType.NodeFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.Node
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.Node, 0, DefaultSliceCapacity)
@@ -22454,6 +23211,7 @@ func (s *Store) fetchFullPageOfFederationNodes(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -22461,14 +23219,19 @@ func (s *Store) fetchFullPageOfFederationNodes(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationNodes(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationNodes(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationNodeCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -22481,28 +23244,33 @@ func (s *Store) fetchFullPageOfFederationNodes(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationNodeCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -22544,7 +23312,7 @@ func (s *Store) fetchFullPageOfFederationNodes(
 func (s *Store) QueryFederationNodes(
 	ctx context.Context,
 	f federationType.NodeFilter,
-) (_ []*federationType.Node, more bool, err error) {
+) (_ []*federationType.Node, more bool, last *federationType.Node, err error) {
 	var (
 		ok bool
 
@@ -22635,6 +23403,10 @@ func (s *Store) QueryFederationNodes(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -22648,7 +23420,7 @@ func (s *Store) QueryFederationNodes(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -23089,6 +23861,13 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 		hasNext bool
 
 		tryFilter federationType.NodeSyncFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.NodeSync
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.NodeSync, 0, DefaultSliceCapacity)
@@ -23097,6 +23876,7 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -23104,14 +23884,19 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationNodeSyncs(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationNodeSyncs(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationNodeSyncCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -23124,28 +23909,33 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationNodeSyncCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -23187,7 +23977,7 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 func (s *Store) QueryFederationNodeSyncs(
 	ctx context.Context,
 	f federationType.NodeSyncFilter,
-) (_ []*federationType.NodeSync, more bool, err error) {
+) (_ []*federationType.NodeSync, more bool, last *federationType.NodeSync, err error) {
 	var (
 		ok bool
 
@@ -23278,6 +24068,10 @@ func (s *Store) QueryFederationNodeSyncs(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -23291,7 +24085,7 @@ func (s *Store) QueryFederationNodeSyncs(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -23685,6 +24479,13 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 		hasNext bool
 
 		tryFilter federationType.SharedModuleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.SharedModule
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.SharedModule, 0, DefaultSliceCapacity)
@@ -23693,6 +24494,7 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -23700,14 +24502,19 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationSharedModules(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationSharedModules(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationSharedModuleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -23720,28 +24527,33 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationSharedModuleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -23783,7 +24595,7 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 func (s *Store) QueryFederationSharedModules(
 	ctx context.Context,
 	f federationType.SharedModuleFilter,
-) (_ []*federationType.SharedModule, more bool, err error) {
+) (_ []*federationType.SharedModule, more bool, last *federationType.SharedModule, err error) {
 	var (
 		ok bool
 
@@ -23874,6 +24686,10 @@ func (s *Store) QueryFederationSharedModules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -23887,7 +24703,7 @@ func (s *Store) QueryFederationSharedModules(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -24150,7 +24966,7 @@ func (s *Store) TruncateFlags(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchFlags(ctx context.Context, f flagType.FlagFilter) (set flagType.FlagSet, _ flagType.FlagFilter, err error) {
 
-	set, _, err = s.QueryFlags(ctx, f)
+	set, _, _, err = s.QueryFlags(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -24167,7 +24983,7 @@ func (s *Store) SearchFlags(ctx context.Context, f flagType.FlagFilter) (set fla
 func (s *Store) QueryFlags(
 	ctx context.Context,
 	f flagType.FlagFilter,
-) (_ []*flagType.Flag, more bool, err error) {
+) (_ []*flagType.Flag, more bool, last *flagType.Flag, err error) {
 	var (
 		set         = make([]*flagType.Flag, 0, DefaultSliceCapacity)
 		res         *flagType.Flag
@@ -24235,10 +25051,14 @@ func (s *Store) QueryFlags(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -24601,6 +25421,13 @@ func (s *Store) fetchFullPageOfKnowledgeBases(
 		hasNext bool
 
 		tryFilter systemType.KnowledgeBaseFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.KnowledgeBase
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.KnowledgeBase, 0, DefaultSliceCapacity)
@@ -24609,6 +25436,7 @@ func (s *Store) fetchFullPageOfKnowledgeBases(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -24616,14 +25444,19 @@ func (s *Store) fetchFullPageOfKnowledgeBases(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryKnowledgeBases(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryKnowledgeBases(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectKnowledgeBaseCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -24636,28 +25469,33 @@ func (s *Store) fetchFullPageOfKnowledgeBases(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectKnowledgeBaseCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -24699,7 +25537,7 @@ func (s *Store) fetchFullPageOfKnowledgeBases(
 func (s *Store) QueryKnowledgeBases(
 	ctx context.Context,
 	f systemType.KnowledgeBaseFilter,
-) (_ []*systemType.KnowledgeBase, more bool, err error) {
+) (_ []*systemType.KnowledgeBase, more bool, last *systemType.KnowledgeBase, err error) {
 	var (
 		ok bool
 
@@ -24790,6 +25628,10 @@ func (s *Store) QueryKnowledgeBases(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -24803,7 +25645,7 @@ func (s *Store) QueryKnowledgeBases(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -25129,7 +25971,7 @@ func (s *Store) TruncateLabels(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set labelsType.LabelSet, _ labelsType.LabelFilter, err error) {
 
-	set, _, err = s.QueryLabels(ctx, f)
+	set, _, _, err = s.QueryLabels(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -25146,7 +25988,7 @@ func (s *Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set
 func (s *Store) QueryLabels(
 	ctx context.Context,
 	f labelsType.LabelFilter,
-) (_ []*labelsType.Label, more bool, err error) {
+) (_ []*labelsType.Label, more bool, last *labelsType.Label, err error) {
 	var (
 		set         = make([]*labelsType.Label, 0, DefaultSliceCapacity)
 		res         *labelsType.Label
@@ -25214,10 +26056,14 @@ func (s *Store) QueryLabels(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -25570,6 +26416,13 @@ func (s *Store) fetchFullPageOfLlmProviders(
 		hasNext bool
 
 		tryFilter systemType.LlmProviderFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.LlmProvider
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.LlmProvider, 0, DefaultSliceCapacity)
@@ -25578,6 +26431,7 @@ func (s *Store) fetchFullPageOfLlmProviders(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -25585,14 +26439,19 @@ func (s *Store) fetchFullPageOfLlmProviders(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryLlmProviders(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryLlmProviders(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectLlmProviderCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -25605,28 +26464,33 @@ func (s *Store) fetchFullPageOfLlmProviders(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectLlmProviderCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -25668,7 +26532,7 @@ func (s *Store) fetchFullPageOfLlmProviders(
 func (s *Store) QueryLlmProviders(
 	ctx context.Context,
 	f systemType.LlmProviderFilter,
-) (_ []*systemType.LlmProvider, more bool, err error) {
+) (_ []*systemType.LlmProvider, more bool, last *systemType.LlmProvider, err error) {
 	var (
 		ok bool
 
@@ -25759,6 +26623,10 @@ func (s *Store) QueryLlmProviders(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -25772,7 +26640,7 @@ func (s *Store) QueryLlmProviders(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -26208,6 +27076,13 @@ func (s *Store) fetchFullPageOfNotifications(
 		hasNext bool
 
 		tryFilter systemType.NotificationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Notification
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Notification, 0, DefaultSliceCapacity)
@@ -26216,6 +27091,7 @@ func (s *Store) fetchFullPageOfNotifications(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -26223,14 +27099,19 @@ func (s *Store) fetchFullPageOfNotifications(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryNotifications(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryNotifications(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectNotificationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -26243,28 +27124,33 @@ func (s *Store) fetchFullPageOfNotifications(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectNotificationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -26306,7 +27192,7 @@ func (s *Store) fetchFullPageOfNotifications(
 func (s *Store) QueryNotifications(
 	ctx context.Context,
 	f systemType.NotificationFilter,
-) (_ []*systemType.Notification, more bool, err error) {
+) (_ []*systemType.Notification, more bool, last *systemType.Notification, err error) {
 	var (
 		ok bool
 
@@ -26397,6 +27283,10 @@ func (s *Store) QueryNotifications(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -26410,7 +27300,7 @@ func (s *Store) QueryNotifications(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -26763,6 +27653,13 @@ func (s *Store) fetchFullPageOfProjects(
 		hasNext bool
 
 		tryFilter systemType.ProjectFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Project
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Project, 0, DefaultSliceCapacity)
@@ -26771,6 +27668,7 @@ func (s *Store) fetchFullPageOfProjects(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -26778,14 +27676,19 @@ func (s *Store) fetchFullPageOfProjects(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjects(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjects(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -26798,28 +27701,33 @@ func (s *Store) fetchFullPageOfProjects(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -26861,7 +27769,7 @@ func (s *Store) fetchFullPageOfProjects(
 func (s *Store) QueryProjects(
 	ctx context.Context,
 	f systemType.ProjectFilter,
-) (_ []*systemType.Project, more bool, err error) {
+) (_ []*systemType.Project, more bool, last *systemType.Project, err error) {
 	var (
 		ok bool
 
@@ -26952,6 +27860,10 @@ func (s *Store) QueryProjects(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -26965,7 +27877,7 @@ func (s *Store) QueryProjects(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -27407,6 +28319,13 @@ func (s *Store) fetchFullPageOfProjectAiSystems(
 		hasNext bool
 
 		tryFilter systemType.ProjectAiSystemFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectAiSystem
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectAiSystem, 0, DefaultSliceCapacity)
@@ -27415,6 +28334,7 @@ func (s *Store) fetchFullPageOfProjectAiSystems(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -27422,14 +28342,19 @@ func (s *Store) fetchFullPageOfProjectAiSystems(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectAiSystems(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectAiSystems(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectAiSystemCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -27442,28 +28367,33 @@ func (s *Store) fetchFullPageOfProjectAiSystems(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectAiSystemCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -27505,7 +28435,7 @@ func (s *Store) fetchFullPageOfProjectAiSystems(
 func (s *Store) QueryProjectAiSystems(
 	ctx context.Context,
 	f systemType.ProjectAiSystemFilter,
-) (_ []*systemType.ProjectAiSystem, more bool, err error) {
+) (_ []*systemType.ProjectAiSystem, more bool, last *systemType.ProjectAiSystem, err error) {
 	var (
 		ok bool
 
@@ -27596,6 +28526,10 @@ func (s *Store) QueryProjectAiSystems(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -27609,7 +28543,7 @@ func (s *Store) QueryProjectAiSystems(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -27936,7 +28870,7 @@ func (s *Store) TruncateProjectAiSystemEntrys(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchProjectAiSystemEntrys(ctx context.Context, f systemType.ProjectAiSystemEntryFilter) (set systemType.ProjectAiSystemEntrySet, _ systemType.ProjectAiSystemEntryFilter, err error) {
 
-	set, _, err = s.QueryProjectAiSystemEntrys(ctx, f)
+	set, _, _, err = s.QueryProjectAiSystemEntrys(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -27953,7 +28887,7 @@ func (s *Store) SearchProjectAiSystemEntrys(ctx context.Context, f systemType.Pr
 func (s *Store) QueryProjectAiSystemEntrys(
 	ctx context.Context,
 	f systemType.ProjectAiSystemEntryFilter,
-) (_ []*systemType.ProjectAiSystemEntry, more bool, err error) {
+) (_ []*systemType.ProjectAiSystemEntry, more bool, last *systemType.ProjectAiSystemEntry, err error) {
 	var (
 		set         = make([]*systemType.ProjectAiSystemEntry, 0, DefaultSliceCapacity)
 		res         *systemType.ProjectAiSystemEntry
@@ -28021,10 +28955,14 @@ func (s *Store) QueryProjectAiSystemEntrys(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -28373,6 +29311,13 @@ func (s *Store) fetchFullPageOfProjectBacklogItems(
 		hasNext bool
 
 		tryFilter systemType.ProjectBacklogItemFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectBacklogItem
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectBacklogItem, 0, DefaultSliceCapacity)
@@ -28381,6 +29326,7 @@ func (s *Store) fetchFullPageOfProjectBacklogItems(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -28388,14 +29334,19 @@ func (s *Store) fetchFullPageOfProjectBacklogItems(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectBacklogItems(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectBacklogItems(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectBacklogItemCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -28408,28 +29359,33 @@ func (s *Store) fetchFullPageOfProjectBacklogItems(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectBacklogItemCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -28471,7 +29427,7 @@ func (s *Store) fetchFullPageOfProjectBacklogItems(
 func (s *Store) QueryProjectBacklogItems(
 	ctx context.Context,
 	f systemType.ProjectBacklogItemFilter,
-) (_ []*systemType.ProjectBacklogItem, more bool, err error) {
+) (_ []*systemType.ProjectBacklogItem, more bool, last *systemType.ProjectBacklogItem, err error) {
 	var (
 		ok bool
 
@@ -28562,6 +29518,10 @@ func (s *Store) QueryProjectBacklogItems(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -28575,7 +29535,7 @@ func (s *Store) QueryProjectBacklogItems(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -28946,6 +29906,13 @@ func (s *Store) fetchFullPageOfProjectFeatures(
 		hasNext bool
 
 		tryFilter systemType.ProjectFeatureFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectFeature
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectFeature, 0, DefaultSliceCapacity)
@@ -28954,6 +29921,7 @@ func (s *Store) fetchFullPageOfProjectFeatures(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -28961,14 +29929,19 @@ func (s *Store) fetchFullPageOfProjectFeatures(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectFeatures(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectFeatures(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectFeatureCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -28981,28 +29954,33 @@ func (s *Store) fetchFullPageOfProjectFeatures(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectFeatureCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -29044,7 +30022,7 @@ func (s *Store) fetchFullPageOfProjectFeatures(
 func (s *Store) QueryProjectFeatures(
 	ctx context.Context,
 	f systemType.ProjectFeatureFilter,
-) (_ []*systemType.ProjectFeature, more bool, err error) {
+) (_ []*systemType.ProjectFeature, more bool, last *systemType.ProjectFeature, err error) {
 	var (
 		ok bool
 
@@ -29135,6 +30113,10 @@ func (s *Store) QueryProjectFeatures(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -29148,7 +30130,7 @@ func (s *Store) QueryProjectFeatures(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -29532,6 +30514,13 @@ func (s *Store) fetchFullPageOfProjectFriaScenarios(
 		hasNext bool
 
 		tryFilter systemType.ProjectFriaScenarioFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectFriaScenario
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectFriaScenario, 0, DefaultSliceCapacity)
@@ -29540,6 +30529,7 @@ func (s *Store) fetchFullPageOfProjectFriaScenarios(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -29547,14 +30537,19 @@ func (s *Store) fetchFullPageOfProjectFriaScenarios(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectFriaScenarios(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectFriaScenarios(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectFriaScenarioCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -29567,28 +30562,33 @@ func (s *Store) fetchFullPageOfProjectFriaScenarios(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectFriaScenarioCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -29630,7 +30630,7 @@ func (s *Store) fetchFullPageOfProjectFriaScenarios(
 func (s *Store) QueryProjectFriaScenarios(
 	ctx context.Context,
 	f systemType.ProjectFriaScenarioFilter,
-) (_ []*systemType.ProjectFriaScenario, more bool, err error) {
+) (_ []*systemType.ProjectFriaScenario, more bool, last *systemType.ProjectFriaScenario, err error) {
 	var (
 		ok bool
 
@@ -29721,6 +30721,10 @@ func (s *Store) QueryProjectFriaScenarios(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -29734,7 +30738,7 @@ func (s *Store) QueryProjectFriaScenarios(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -30092,6 +31096,13 @@ func (s *Store) fetchFullPageOfProjectIncidents(
 		hasNext bool
 
 		tryFilter systemType.ProjectIncidentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectIncident
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectIncident, 0, DefaultSliceCapacity)
@@ -30100,6 +31111,7 @@ func (s *Store) fetchFullPageOfProjectIncidents(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -30107,14 +31119,19 @@ func (s *Store) fetchFullPageOfProjectIncidents(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectIncidents(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectIncidents(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectIncidentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -30127,28 +31144,33 @@ func (s *Store) fetchFullPageOfProjectIncidents(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectIncidentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -30190,7 +31212,7 @@ func (s *Store) fetchFullPageOfProjectIncidents(
 func (s *Store) QueryProjectIncidents(
 	ctx context.Context,
 	f systemType.ProjectIncidentFilter,
-) (_ []*systemType.ProjectIncident, more bool, err error) {
+) (_ []*systemType.ProjectIncident, more bool, last *systemType.ProjectIncident, err error) {
 	var (
 		ok bool
 
@@ -30281,6 +31303,10 @@ func (s *Store) QueryProjectIncidents(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -30294,7 +31320,7 @@ func (s *Store) QueryProjectIncidents(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -30678,6 +31704,13 @@ func (s *Store) fetchFullPageOfProjectMembers(
 		hasNext bool
 
 		tryFilter systemType.ProjectMemberFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectMember
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectMember, 0, DefaultSliceCapacity)
@@ -30686,6 +31719,7 @@ func (s *Store) fetchFullPageOfProjectMembers(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -30693,14 +31727,19 @@ func (s *Store) fetchFullPageOfProjectMembers(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectMembers(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectMembers(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectMemberCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -30713,28 +31752,33 @@ func (s *Store) fetchFullPageOfProjectMembers(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectMemberCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -30776,7 +31820,7 @@ func (s *Store) fetchFullPageOfProjectMembers(
 func (s *Store) QueryProjectMembers(
 	ctx context.Context,
 	f systemType.ProjectMemberFilter,
-) (_ []*systemType.ProjectMember, more bool, err error) {
+) (_ []*systemType.ProjectMember, more bool, last *systemType.ProjectMember, err error) {
 	var (
 		ok bool
 
@@ -30867,6 +31911,10 @@ func (s *Store) QueryProjectMembers(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -30880,7 +31928,7 @@ func (s *Store) QueryProjectMembers(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -31306,6 +32354,13 @@ func (s *Store) fetchFullPageOfProjectPrivacys(
 		hasNext bool
 
 		tryFilter systemType.ProjectPrivacyFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectPrivacy
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectPrivacy, 0, DefaultSliceCapacity)
@@ -31314,6 +32369,7 @@ func (s *Store) fetchFullPageOfProjectPrivacys(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -31321,14 +32377,19 @@ func (s *Store) fetchFullPageOfProjectPrivacys(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectPrivacys(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectPrivacys(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectPrivacyCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -31341,28 +32402,33 @@ func (s *Store) fetchFullPageOfProjectPrivacys(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectPrivacyCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -31404,7 +32470,7 @@ func (s *Store) fetchFullPageOfProjectPrivacys(
 func (s *Store) QueryProjectPrivacys(
 	ctx context.Context,
 	f systemType.ProjectPrivacyFilter,
-) (_ []*systemType.ProjectPrivacy, more bool, err error) {
+) (_ []*systemType.ProjectPrivacy, more bool, last *systemType.ProjectPrivacy, err error) {
 	var (
 		ok bool
 
@@ -31495,6 +32561,10 @@ func (s *Store) QueryProjectPrivacys(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -31508,7 +32578,7 @@ func (s *Store) QueryProjectPrivacys(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -31892,6 +32962,13 @@ func (s *Store) fetchFullPageOfProjectReviews(
 		hasNext bool
 
 		tryFilter systemType.ProjectReviewFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectReview
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectReview, 0, DefaultSliceCapacity)
@@ -31900,6 +32977,7 @@ func (s *Store) fetchFullPageOfProjectReviews(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -31907,14 +32985,19 @@ func (s *Store) fetchFullPageOfProjectReviews(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectReviews(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectReviews(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectReviewCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -31927,28 +33010,33 @@ func (s *Store) fetchFullPageOfProjectReviews(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectReviewCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -31990,7 +33078,7 @@ func (s *Store) fetchFullPageOfProjectReviews(
 func (s *Store) QueryProjectReviews(
 	ctx context.Context,
 	f systemType.ProjectReviewFilter,
-) (_ []*systemType.ProjectReview, more bool, err error) {
+) (_ []*systemType.ProjectReview, more bool, last *systemType.ProjectReview, err error) {
 	var (
 		ok bool
 
@@ -32081,6 +33169,10 @@ func (s *Store) QueryProjectReviews(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -32094,7 +33186,7 @@ func (s *Store) QueryProjectReviews(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -32471,6 +33563,13 @@ func (s *Store) fetchFullPageOfProjectTasks(
 		hasNext bool
 
 		tryFilter systemType.ProjectTaskFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ProjectTask
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ProjectTask, 0, DefaultSliceCapacity)
@@ -32479,6 +33578,7 @@ func (s *Store) fetchFullPageOfProjectTasks(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -32486,14 +33586,19 @@ func (s *Store) fetchFullPageOfProjectTasks(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryProjectTasks(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryProjectTasks(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectProjectTaskCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -32506,28 +33611,33 @@ func (s *Store) fetchFullPageOfProjectTasks(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectProjectTaskCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -32569,7 +33679,7 @@ func (s *Store) fetchFullPageOfProjectTasks(
 func (s *Store) QueryProjectTasks(
 	ctx context.Context,
 	f systemType.ProjectTaskFilter,
-) (_ []*systemType.ProjectTask, more bool, err error) {
+) (_ []*systemType.ProjectTask, more bool, last *systemType.ProjectTask, err error) {
 	var (
 		ok bool
 
@@ -32660,6 +33770,10 @@ func (s *Store) QueryProjectTasks(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -32673,7 +33787,7 @@ func (s *Store) QueryProjectTasks(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -33056,6 +34170,13 @@ func (s *Store) fetchFullPageOfQueues(
 		hasNext bool
 
 		tryFilter systemType.QueueFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Queue
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Queue, 0, DefaultSliceCapacity)
@@ -33064,6 +34185,7 @@ func (s *Store) fetchFullPageOfQueues(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -33071,14 +34193,19 @@ func (s *Store) fetchFullPageOfQueues(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryQueues(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryQueues(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectQueueCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -33091,28 +34218,33 @@ func (s *Store) fetchFullPageOfQueues(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectQueueCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -33154,7 +34286,7 @@ func (s *Store) fetchFullPageOfQueues(
 func (s *Store) QueryQueues(
 	ctx context.Context,
 	f systemType.QueueFilter,
-) (_ []*systemType.Queue, more bool, err error) {
+) (_ []*systemType.Queue, more bool, last *systemType.Queue, err error) {
 	var (
 		ok bool
 
@@ -33245,6 +34377,10 @@ func (s *Store) QueryQueues(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -33258,7 +34394,7 @@ func (s *Store) QueryQueues(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -33652,6 +34788,13 @@ func (s *Store) fetchFullPageOfQueueMessages(
 		hasNext bool
 
 		tryFilter systemType.QueueMessageFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.QueueMessage
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.QueueMessage, 0, DefaultSliceCapacity)
@@ -33660,6 +34803,7 @@ func (s *Store) fetchFullPageOfQueueMessages(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -33667,14 +34811,19 @@ func (s *Store) fetchFullPageOfQueueMessages(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryQueueMessages(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryQueueMessages(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectQueueMessageCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -33687,28 +34836,33 @@ func (s *Store) fetchFullPageOfQueueMessages(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectQueueMessageCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -33750,7 +34904,7 @@ func (s *Store) fetchFullPageOfQueueMessages(
 func (s *Store) QueryQueueMessages(
 	ctx context.Context,
 	f systemType.QueueMessageFilter,
-) (_ []*systemType.QueueMessage, more bool, err error) {
+) (_ []*systemType.QueueMessage, more bool, last *systemType.QueueMessage, err error) {
 	var (
 		set         = make([]*systemType.QueueMessage, 0, DefaultSliceCapacity)
 		res         *systemType.QueueMessage
@@ -33839,10 +34993,14 @@ func (s *Store) QueryQueueMessages(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -34042,7 +35200,7 @@ func (s *Store) TruncateRbacRules(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchRbacRules(ctx context.Context, f rbacType.RuleFilter) (set rbacType.RuleSet, _ rbacType.RuleFilter, err error) {
 
-	set, _, err = s.QueryRbacRules(ctx, f)
+	set, _, _, err = s.QueryRbacRules(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -34059,7 +35217,7 @@ func (s *Store) SearchRbacRules(ctx context.Context, f rbacType.RuleFilter) (set
 func (s *Store) QueryRbacRules(
 	ctx context.Context,
 	f rbacType.RuleFilter,
-) (_ []*rbacType.Rule, more bool, err error) {
+) (_ []*rbacType.Rule, more bool, last *rbacType.Rule, err error) {
 	var (
 		set         = make([]*rbacType.Rule, 0, DefaultSliceCapacity)
 		res         *rbacType.Rule
@@ -34127,10 +35285,14 @@ func (s *Store) QueryRbacRules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -34439,6 +35601,13 @@ func (s *Store) fetchFullPageOfReminders(
 		hasNext bool
 
 		tryFilter systemType.ReminderFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Reminder
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Reminder, 0, DefaultSliceCapacity)
@@ -34447,6 +35616,7 @@ func (s *Store) fetchFullPageOfReminders(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -34454,14 +35624,19 @@ func (s *Store) fetchFullPageOfReminders(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryReminders(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryReminders(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectReminderCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -34474,28 +35649,33 @@ func (s *Store) fetchFullPageOfReminders(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectReminderCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -34537,7 +35717,7 @@ func (s *Store) fetchFullPageOfReminders(
 func (s *Store) QueryReminders(
 	ctx context.Context,
 	f systemType.ReminderFilter,
-) (_ []*systemType.Reminder, more bool, err error) {
+) (_ []*systemType.Reminder, more bool, last *systemType.Reminder, err error) {
 	var (
 		ok bool
 
@@ -34628,6 +35808,10 @@ func (s *Store) QueryReminders(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -34641,7 +35825,7 @@ func (s *Store) QueryReminders(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -35002,6 +36186,13 @@ func (s *Store) fetchFullPageOfReports(
 		hasNext bool
 
 		tryFilter systemType.ReportFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Report
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Report, 0, DefaultSliceCapacity)
@@ -35010,6 +36201,7 @@ func (s *Store) fetchFullPageOfReports(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -35017,14 +36209,19 @@ func (s *Store) fetchFullPageOfReports(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryReports(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryReports(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectReportCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -35037,28 +36234,33 @@ func (s *Store) fetchFullPageOfReports(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectReportCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -35100,7 +36302,7 @@ func (s *Store) fetchFullPageOfReports(
 func (s *Store) QueryReports(
 	ctx context.Context,
 	f systemType.ReportFilter,
-) (_ []*systemType.Report, more bool, err error) {
+) (_ []*systemType.Report, more bool, last *systemType.Report, err error) {
 	var (
 		ok bool
 
@@ -35191,6 +36393,10 @@ func (s *Store) QueryReports(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -35204,7 +36410,7 @@ func (s *Store) QueryReports(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -35534,7 +36740,7 @@ func (s *Store) TruncateResourceActivitys(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchResourceActivitys(ctx context.Context, f discoveryType.ResourceActivityFilter) (set discoveryType.ResourceActivitySet, _ discoveryType.ResourceActivityFilter, err error) {
 
-	set, _, err = s.QueryResourceActivitys(ctx, f)
+	set, _, _, err = s.QueryResourceActivitys(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -35551,7 +36757,7 @@ func (s *Store) SearchResourceActivitys(ctx context.Context, f discoveryType.Res
 func (s *Store) QueryResourceActivitys(
 	ctx context.Context,
 	f discoveryType.ResourceActivityFilter,
-) (_ []*discoveryType.ResourceActivity, more bool, err error) {
+) (_ []*discoveryType.ResourceActivity, more bool, last *discoveryType.ResourceActivity, err error) {
 	var (
 		set         = make([]*discoveryType.ResourceActivity, 0, DefaultSliceCapacity)
 		res         *discoveryType.ResourceActivity
@@ -35619,10 +36825,14 @@ func (s *Store) QueryResourceActivitys(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -35917,6 +37127,13 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 		hasNext bool
 
 		tryFilter systemType.ResourceTranslationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ResourceTranslation
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ResourceTranslation, 0, DefaultSliceCapacity)
@@ -35925,6 +37142,7 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -35932,14 +37150,19 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryResourceTranslations(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryResourceTranslations(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectResourceTranslationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -35952,28 +37175,33 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectResourceTranslationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -36015,7 +37243,7 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 func (s *Store) QueryResourceTranslations(
 	ctx context.Context,
 	f systemType.ResourceTranslationFilter,
-) (_ []*systemType.ResourceTranslation, more bool, err error) {
+) (_ []*systemType.ResourceTranslation, more bool, last *systemType.ResourceTranslation, err error) {
 	var (
 		set         = make([]*systemType.ResourceTranslation, 0, DefaultSliceCapacity)
 		res         *systemType.ResourceTranslation
@@ -36104,10 +37332,14 @@ func (s *Store) QueryResourceTranslations(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -36454,6 +37686,13 @@ func (s *Store) fetchFullPageOfRoles(
 		hasNext bool
 
 		tryFilter systemType.RoleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Role
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Role, 0, DefaultSliceCapacity)
@@ -36462,6 +37701,7 @@ func (s *Store) fetchFullPageOfRoles(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -36469,14 +37709,19 @@ func (s *Store) fetchFullPageOfRoles(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryRoles(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryRoles(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectRoleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -36489,28 +37734,33 @@ func (s *Store) fetchFullPageOfRoles(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectRoleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -36552,7 +37802,7 @@ func (s *Store) fetchFullPageOfRoles(
 func (s *Store) QueryRoles(
 	ctx context.Context,
 	f systemType.RoleFilter,
-) (_ []*systemType.Role, more bool, err error) {
+) (_ []*systemType.Role, more bool, last *systemType.Role, err error) {
 	var (
 		ok bool
 
@@ -36643,6 +37893,10 @@ func (s *Store) QueryRoles(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -36656,7 +37910,7 @@ func (s *Store) QueryRoles(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -37165,7 +38419,7 @@ func (s *Store) TruncateRoleMembers(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchRoleMembers(ctx context.Context, f systemType.RoleMemberFilter) (set systemType.RoleMemberSet, _ systemType.RoleMemberFilter, err error) {
 
-	set, _, err = s.QueryRoleMembers(ctx, f)
+	set, _, _, err = s.QueryRoleMembers(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -37182,7 +38436,7 @@ func (s *Store) SearchRoleMembers(ctx context.Context, f systemType.RoleMemberFi
 func (s *Store) QueryRoleMembers(
 	ctx context.Context,
 	f systemType.RoleMemberFilter,
-) (_ []*systemType.RoleMember, more bool, err error) {
+) (_ []*systemType.RoleMember, more bool, last *systemType.RoleMember, err error) {
 	var (
 		set         = make([]*systemType.RoleMember, 0, DefaultSliceCapacity)
 		res         *systemType.RoleMember
@@ -37250,10 +38504,14 @@ func (s *Store) QueryRoleMembers(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -37452,7 +38710,7 @@ func (s *Store) TruncateSettingValues(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchSettingValues(ctx context.Context, f systemType.SettingsFilter) (set systemType.SettingValueSet, _ systemType.SettingsFilter, err error) {
 
-	set, _, err = s.QuerySettingValues(ctx, f)
+	set, _, _, err = s.QuerySettingValues(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -37469,7 +38727,7 @@ func (s *Store) SearchSettingValues(ctx context.Context, f systemType.SettingsFi
 func (s *Store) QuerySettingValues(
 	ctx context.Context,
 	f systemType.SettingsFilter,
-) (_ []*systemType.SettingValue, more bool, err error) {
+) (_ []*systemType.SettingValue, more bool, last *systemType.SettingValue, err error) {
 	var (
 		set         = make([]*systemType.SettingValue, 0, DefaultSliceCapacity)
 		res         *systemType.SettingValue
@@ -37537,10 +38795,14 @@ func (s *Store) QuerySettingValues(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -37888,6 +39150,13 @@ func (s *Store) fetchFullPageOfTemplates(
 		hasNext bool
 
 		tryFilter systemType.TemplateFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Template
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Template, 0, DefaultSliceCapacity)
@@ -37896,6 +39165,7 @@ func (s *Store) fetchFullPageOfTemplates(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -37903,14 +39173,19 @@ func (s *Store) fetchFullPageOfTemplates(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryTemplates(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryTemplates(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectTemplateCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -37923,28 +39198,33 @@ func (s *Store) fetchFullPageOfTemplates(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectTemplateCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -37986,7 +39266,7 @@ func (s *Store) fetchFullPageOfTemplates(
 func (s *Store) QueryTemplates(
 	ctx context.Context,
 	f systemType.TemplateFilter,
-) (_ []*systemType.Template, more bool, err error) {
+) (_ []*systemType.Template, more bool, last *systemType.Template, err error) {
 	var (
 		ok bool
 
@@ -38077,6 +39357,10 @@ func (s *Store) QueryTemplates(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -38090,7 +39374,7 @@ func (s *Store) QueryTemplates(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -38533,6 +39817,13 @@ func (s *Store) fetchFullPageOfTenants(
 		hasNext bool
 
 		tryFilter systemType.TenantFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Tenant
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Tenant, 0, DefaultSliceCapacity)
@@ -38541,6 +39832,7 @@ func (s *Store) fetchFullPageOfTenants(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -38548,14 +39840,19 @@ func (s *Store) fetchFullPageOfTenants(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryTenants(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryTenants(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectTenantCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -38568,28 +39865,33 @@ func (s *Store) fetchFullPageOfTenants(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectTenantCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -38631,7 +39933,7 @@ func (s *Store) fetchFullPageOfTenants(
 func (s *Store) QueryTenants(
 	ctx context.Context,
 	f systemType.TenantFilter,
-) (_ []*systemType.Tenant, more bool, err error) {
+) (_ []*systemType.Tenant, more bool, last *systemType.Tenant, err error) {
 	var (
 		ok bool
 
@@ -38722,6 +40024,10 @@ func (s *Store) QueryTenants(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -38735,7 +40041,7 @@ func (s *Store) QueryTenants(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -39169,6 +40475,13 @@ func (s *Store) fetchFullPageOfTenantMemberships(
 		hasNext bool
 
 		tryFilter systemType.TenantMembershipFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.TenantMembership
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.TenantMembership, 0, DefaultSliceCapacity)
@@ -39177,6 +40490,7 @@ func (s *Store) fetchFullPageOfTenantMemberships(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -39184,14 +40498,19 @@ func (s *Store) fetchFullPageOfTenantMemberships(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryTenantMemberships(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryTenantMemberships(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectTenantMembershipCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -39204,28 +40523,33 @@ func (s *Store) fetchFullPageOfTenantMemberships(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectTenantMembershipCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -39267,7 +40591,7 @@ func (s *Store) fetchFullPageOfTenantMemberships(
 func (s *Store) QueryTenantMemberships(
 	ctx context.Context,
 	f systemType.TenantMembershipFilter,
-) (_ []*systemType.TenantMembership, more bool, err error) {
+) (_ []*systemType.TenantMembership, more bool, last *systemType.TenantMembership, err error) {
 	var (
 		ok bool
 
@@ -39358,6 +40682,10 @@ func (s *Store) QueryTenantMemberships(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -39371,7 +40699,7 @@ func (s *Store) QueryTenantMemberships(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -39803,6 +41131,13 @@ func (s *Store) fetchFullPageOfUsers(
 		hasNext bool
 
 		tryFilter systemType.UserFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.User
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.User, 0, DefaultSliceCapacity)
@@ -39811,6 +41146,7 @@ func (s *Store) fetchFullPageOfUsers(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -39818,14 +41154,19 @@ func (s *Store) fetchFullPageOfUsers(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryUsers(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryUsers(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectUserCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -39838,28 +41179,33 @@ func (s *Store) fetchFullPageOfUsers(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectUserCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -39901,7 +41247,7 @@ func (s *Store) fetchFullPageOfUsers(
 func (s *Store) QueryUsers(
 	ctx context.Context,
 	f systemType.UserFilter,
-) (_ []*systemType.User, more bool, err error) {
+) (_ []*systemType.User, more bool, last *systemType.User, err error) {
 	var (
 		ok bool
 
@@ -39992,6 +41338,10 @@ func (s *Store) QueryUsers(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -40005,7 +41355,7 @@ func (s *Store) QueryUsers(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -40600,6 +41950,13 @@ func (s *Store) fetchFullPageOfUserGroups(
 		hasNext bool
 
 		tryFilter systemType.UserGroupFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.UserGroup
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.UserGroup, 0, DefaultSliceCapacity)
@@ -40608,6 +41965,7 @@ func (s *Store) fetchFullPageOfUserGroups(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -40615,14 +41973,19 @@ func (s *Store) fetchFullPageOfUserGroups(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryUserGroups(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryUserGroups(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectUserGroupCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -40635,28 +41998,33 @@ func (s *Store) fetchFullPageOfUserGroups(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectUserGroupCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -40698,7 +42066,7 @@ func (s *Store) fetchFullPageOfUserGroups(
 func (s *Store) QueryUserGroups(
 	ctx context.Context,
 	f systemType.UserGroupFilter,
-) (_ []*systemType.UserGroup, more bool, err error) {
+) (_ []*systemType.UserGroup, more bool, last *systemType.UserGroup, err error) {
 	var (
 		ok bool
 
@@ -40789,6 +42157,10 @@ func (s *Store) QueryUserGroups(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -40802,7 +42174,7 @@ func (s *Store) QueryUserGroups(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 

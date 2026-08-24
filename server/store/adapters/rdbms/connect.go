@@ -18,6 +18,10 @@ const (
 	DefaultSliceCapacity = 1000
 
 	MinEnsureFetchLimit = 10
+
+	// Upper bound for the widening fetch window used when the check fn
+	// rejects entire batches
+	MaxEnsureFetchLimit = 1000
 	MaxRefetches        = 100
 
 	MaxLimit = 1000
