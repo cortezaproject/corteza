@@ -370,3 +370,28 @@ func TestFindRulesByRoleID_ReturnsCopies(t *testing.T) {
 		}
 	}
 }
+
+// Same hazard one function over: Rules() is the whole cache rather than one
+// role's slice, and its caller (namespace export) walks every rule there is.
+func TestRules_ReturnsCopies(t *testing.T) {
+	svc := NewService(zap.NewNop(), nil)
+	svc.setRules(RuleSet{
+		AllowRule(1, "corteza::system/", "user.create"),
+		AllowRule(2, "corteza::system:user/42", "read"),
+	})
+
+	rr := svc.Rules()
+	if len(rr) != 2 {
+		t.Fatalf("expected the whole cache, got %d rule(s)", len(rr))
+	}
+
+	for _, r := range rr {
+		r.Access = Inherit
+	}
+
+	for _, r := range svc.Rules() {
+		if r.Access != Allow {
+			t.Fatalf("cached rule %s was changed through the returned set", r)
+		}
+	}
+}

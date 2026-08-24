@@ -350,11 +350,22 @@ func (svc *service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
 	return
 }
 
-// Rules return all roles
+// Rules returns every RBAC rule the service holds
+//
+// Copies, for the same reason FindRulesByRoleID returns them: the set is the
+// cache every permission check reads, and a rule flipped to Inherit through a
+// returned pointer is deleted from the store by the next flush.
 func (svc *service) Rules() (rr RuleSet) {
 	svc.l.RLock()
 	defer svc.l.RUnlock()
-	return svc.rules
+
+	rr = make(RuleSet, 0, len(svc.rules))
+	for _, r := range svc.rules {
+		var c = *r
+		rr = append(rr, &c)
+	}
+
+	return
 }
 
 // Reload store rules
