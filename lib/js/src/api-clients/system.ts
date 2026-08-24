@@ -747,6 +747,8 @@ export default class System {
   async roleList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       query,
+      handle,
+      name,
       memberID,
       userGroupID,
       projectID,
@@ -766,6 +768,8 @@ export default class System {
     }
     cfg.params = {
       query,
+      handle,
+      name,
       memberID,
       userGroupID,
       projectID,

@@ -327,6 +327,8 @@ endpoints:
         parameters:
           get:
             - { type: 'string', name: 'query', title: 'Search query' }
+            - { type: 'string', name: 'handle', title: 'Search roles by handle' }
+            - { type: 'string', name: 'name', title: 'Search roles by name' }
             - { type: 'uint64', name: 'memberID', title: 'Search roles for member' }
             - { type: 'uint64', name: 'userGroupID', title: 'Search roles for user group' }
             - { type: 'uint64', name: 'projectID', title: 'Filter by project ID' }

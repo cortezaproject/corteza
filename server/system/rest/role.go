@@ -62,6 +62,8 @@ func (ctrl Role) makeFilter(ctx context.Context, r *request.RoleList) (types.Rol
 		err error
 		f   = types.RoleFilter{
 			Query:  r.Query,
+			Handle: r.Handle,
+			Name:   r.Name,
 			Labels: r.Labels,
 			RoleID: r.RoleID,
 

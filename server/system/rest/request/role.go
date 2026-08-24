@@ -43,6 +43,16 @@ type (
 		// Search query
 		Query string
 
+		// Handle GET parameter
+		//
+		// Search roles by handle
+		Handle string
+
+		// Name GET parameter
+		//
+		// Search roles by name
+		Name string
+
 		// MemberID GET parameter
 		//
 		// Search roles for member
@@ -321,6 +331,8 @@ func NewRoleList() *RoleList {
 func (r RoleList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":       r.Query,
+		"handle":      r.Handle,
+		"name":        r.Name,
 		"memberID":    r.MemberID,
 		"userGroupID": r.UserGroupID,
 		"projectID":   r.ProjectID,
@@ -338,6 +350,16 @@ func (r RoleList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r RoleList) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleList) GetHandle() string {
+	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleList) GetName() string {
+	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -404,6 +426,18 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["handle"]; ok && len(val) > 0 {
+			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
 			if err != nil {
 				return err
 			}
