@@ -121,11 +121,6 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  roleId: {
-    // for backwards compatibility
-    type: Array,
-    default: () => [],
-  },
   excludeUsers: {
     type: Array,
     default: () => [],
@@ -184,9 +179,8 @@ async function fetchUsers(query = '', pageCursor = '') {
       params.pageCursor = pageCursor
     }
 
-    const effectiveRoleID = props.roleID?.length ? props.roleID : props.roleId
-    if (effectiveRoleID && effectiveRoleID.length > 0) {
-      params.roleID = effectiveRoleID
+    if (props.roleID.length) {
+      params.roleID = props.roleID
     }
 
     const { response, cancel } = $SystemAPI.userListCancellable(params)
