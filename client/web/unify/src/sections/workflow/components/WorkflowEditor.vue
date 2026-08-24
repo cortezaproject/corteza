@@ -494,7 +494,7 @@ import { useToast } from 'primevue/usetoast'
 
 import { decodeWorkflow, encodeWorkflow } from '../lib/codec'
 import { getStyleFromKind } from '../lib/style'
-import { buildScopeFields, buildInputFields, encodeFields } from '../lib/dry-run'
+import { buildScopeFields, buildInputFields, encodeFields, canReadTrace } from '../lib/dry-run'
 import toolbarConfig from '../lib/toolbar'
 import eventBus from '../lib/eventBus'
 import { nextId } from '../lib/id'
@@ -503,6 +503,7 @@ import { NoID } from '@planetcrust/human-js'
 import {
   buildWorkflowScope,
   components,
+  useRBACStore,
   useRightSidebarResize,
   useRightSidebarStore,
 } from '@planetcrust/human-vue'
@@ -704,6 +705,12 @@ const dryRun = ref({
   inputEdited: {},
   sessionID: undefined,
 })
+
+const rbacStore = useRBACStore()
+
+const canReadDryRunTrace = computed(() =>
+  canReadTrace(workflow.value, (r, o) => rbacStore.can(r, o)),
+)
 
 // Fields with a widget are shown in the form; the rest are auto-initialized
 // as empty variables at encode time
@@ -2038,7 +2045,7 @@ async function testWorkflow(input = {}) {
                         life: 5000,
                       })
                     }
-                    if (error) reject(new Error(error))
+                    if (error) reject(Object.assign(new Error(error), { fromWorkflow: true }))
                     else resolve()
                   } else {
                     checkSession()
@@ -2051,7 +2058,29 @@ async function testWorkflow(input = {}) {
         })
       }
 
-      return pollSession()
+      const traceNotPermitted = () =>
+        toast.add({
+          severity: 'warn',
+          summary: t('notification.test-completed'),
+          detail: t('notification.trace-not-permitted'),
+          life: 5000,
+        })
+
+      // The run itself has already succeeded here. Whether its trace can be
+      // shown is a separate permission, so a user without it is told the
+      // workflow ran rather than being polled into a failure they did not cause.
+      if (!canReadDryRunTrace.value) {
+        traceNotPermitted()
+        return
+      }
+
+      return pollSession().catch(e => {
+        // A workflow that reported its own failure is a failed test; anything
+        // else here is the session read falling over, which is not.
+        if (e?.fromWorkflow) throw e
+
+        traceNotPermitted()
+      })
     })
     .catch(e =>
       toast.add({

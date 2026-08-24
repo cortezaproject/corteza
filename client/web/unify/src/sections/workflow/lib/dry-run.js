@@ -190,3 +190,10 @@ export async function encodeFields(fields, { ComposeAPI, SystemAPI }) {
 
   return vars
 }
+
+// Reading a dry run's session takes two permissions: sessions.search on the
+// automation component and sessions.manage on the workflow. Executing takes
+// neither, so a user can be allowed to run a workflow and not to watch it.
+export function canReadTrace(workflow, can) {
+  return !!workflow?.canManageWorkflowSessions && !!can('automation/', 'sessions.search')
+}

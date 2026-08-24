@@ -600,6 +600,9 @@ template:
     success: Template updated
 test-completed: Test completed
 test-in-progress: Test in progress
+trace-not-permitted: >-
+  Workflow started successfully, but you do not have permission to view its
+  execution trace.
 trace-unavailable: Trace not available
 translations:
   loadFailed: Failed to load translations
