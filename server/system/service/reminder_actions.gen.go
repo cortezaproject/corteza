@@ -620,6 +620,38 @@ func ReminderErrNotAllowedToUndismiss(mm ...*reminderActionProps) *errors.Error 
 	return e
 }
 
+// ReminderErrNotAllowedToSnooze returns "system:reminder.notAllowedToSnooze" as *errors.Error
+//
+// This function is auto-generated.
+func ReminderErrNotAllowedToSnooze(mm ...*reminderActionProps) *errors.Error {
+	var p = &reminderActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to snooze reminders of other users", nil),
+
+		errors.Meta("type", "notAllowedToSnooze"),
+		errors.Meta("resource", "system:reminder"),
+
+		errors.Meta(reminderPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.notAllowedToSnooze"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ReminderErrNotAllowedToRead returns "system:reminder.notAllowedToRead" as *errors.Error
 //
 // This function is auto-generated.
