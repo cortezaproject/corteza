@@ -6,6 +6,7 @@ import (
 	"io"
 
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/spf13/cast"
@@ -90,8 +91,9 @@ func (h templatesHandler) search(ctx context.Context, args *templatesSearchArgs)
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.PageCursor = &filter.PagingCursor{}
+		if err = f.PageCursor.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
@@ -131,8 +133,9 @@ func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (ou
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.NextPage = &filter.PagingCursor{}
+		if err = f.NextPage.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
