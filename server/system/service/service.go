@@ -392,6 +392,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	// Register automation functions from all active configured connections
 	DefaultConfiguredConnection.RegisterAllOperations(ctx)
 
+	// Load delegated OAuth2 credentials (refresh tokens) from durable storage
+	DefaultConfiguredConnection.LoadOAuth2Credentials(ctx)
+
 	// Start background Google resource discovery refresh (every 1 hour)
 	DefaultConfiguredConnection.StartDiscoveryRefreshLoop(ctx, time.Hour)
 

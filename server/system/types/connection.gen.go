@@ -52,6 +52,7 @@ type (
 		ContentType string                        `json:"contentType"`
 		Headers     map[string]ConnectionTemplate `json:"headers,omitempty"`
 		Auth        ConnectionAuth                `json:"auth"`
+		AuthOptions []ConnectionAuth              `json:"authOptions,omitempty"`
 		Probe       *ConnectionProbe              `json:"probe,omitempty"`
 		Params      []ConnectionPlaceholder       `json:"params,omitempty"`
 	}
@@ -63,8 +64,10 @@ type (
 	}
 
 	ConnectionAuth struct {
-		Method string                        `json:"method"`
-		Params map[string]ConnectionTemplate `json:"params,omitempty"`
+		Method   string                        `json:"method"`
+		Params   map[string]ConnectionTemplate `json:"params,omitempty"`
+		OAuthApp string                        `json:"oauthApp,omitempty"`
+		Scopes   []string                      `json:"scopes,omitempty"`
 	}
 
 	ConnectionProbe struct {
@@ -356,6 +359,13 @@ func (r ConnectionService) Clone() *ConnectionService {
 
 	dup.Auth = *r.Auth.Clone()
 
+	if r.AuthOptions != nil {
+		dup.AuthOptions = make([]ConnectionAuth, len(r.AuthOptions))
+		for i := range r.AuthOptions {
+			dup.AuthOptions[i] = *r.AuthOptions[i].Clone()
+		}
+	}
+
 	if r.Probe != nil {
 		dup.Probe = r.Probe.Clone()
 	}
@@ -395,6 +405,10 @@ func (r ConnectionService) Diff(cmp *ConnectionService) []*revisions.Change {
 	for _, c := range r.Auth.Diff(&cmp.Auth) {
 		c.Key = "auth." + c.Key
 		out = append(out, c)
+	}
+
+	if !reflect.DeepEqual(r.AuthOptions, cmp.AuthOptions) {
+		out = append(out, &revisions.Change{Key: "authOptions", Old: []any{cmp.AuthOptions}, New: []any{r.AuthOptions}})
 	}
 
 	if (r.Probe == nil) != (cmp.Probe == nil) {
@@ -457,6 +471,11 @@ func (r ConnectionAuth) Clone() *ConnectionAuth {
 		}
 	}
 
+	if r.Scopes != nil {
+		dup.Scopes = make([]string, len(r.Scopes))
+		copy(dup.Scopes, r.Scopes)
+	}
+
 	return &dup
 }
 
@@ -471,6 +490,14 @@ func (r ConnectionAuth) Diff(cmp *ConnectionAuth) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.Params, cmp.Params) {
 		out = append(out, &revisions.Change{Key: "params", Old: []any{cmp.Params}, New: []any{r.Params}})
+	}
+
+	if r.OAuthApp != cmp.OAuthApp {
+		out = append(out, &revisions.Change{Key: "oauthApp", Old: []any{cmp.OAuthApp}, New: []any{r.OAuthApp}})
+	}
+
+	if !reflect.DeepEqual(r.Scopes, cmp.Scopes) {
+		out = append(out, &revisions.Change{Key: "scopes", Old: []any{cmp.Scopes}, New: []any{r.Scopes}})
 	}
 
 	return out

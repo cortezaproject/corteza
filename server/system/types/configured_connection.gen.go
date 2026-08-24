@@ -39,6 +39,7 @@ type (
 		NamespaceID     uint64                      `json:"namespaceID,string"`
 		DalConnectionID uint64                      `json:"dalConnectionID,string"`
 		CredentialID    uint64                      `json:"credentialID,string"`
+		AuthMethod      string                      `json:"authMethod,omitempty"`
 		Params          []ConfiguredConnectionParam `json:"params,omitempty"`
 		Discovery       map[string]json.RawMessage  `json:"discovery,omitempty"`
 	}
@@ -186,6 +187,10 @@ func (r ConfiguredConnectionConfig) Diff(cmp *ConfiguredConnectionConfig) []*rev
 
 	if r.CredentialID != cmp.CredentialID {
 		out = append(out, &revisions.Change{Key: "credentialID", Old: []any{cmp.CredentialID}, New: []any{r.CredentialID}})
+	}
+
+	if r.AuthMethod != cmp.AuthMethod {
+		out = append(out, &revisions.Change{Key: "authMethod", Old: []any{cmp.AuthMethod}, New: []any{r.AuthMethod}})
 	}
 
 	if !reflect.DeepEqual(r.Params, cmp.Params) {

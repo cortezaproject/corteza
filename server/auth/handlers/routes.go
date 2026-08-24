@@ -141,6 +141,14 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Get("/callback", h.externalCallback)
 		})
 
+		// Generic OAuth2 "Connect" for catalog connections. Outside the CSRF group:
+		// authorize is guarded by an authenticated session; callback is guarded by
+		// the single-use state held in the session.
+		r.Route("/auth/oauth2/connection", func(r chi.Router) {
+			r.Get("/authorize", h.handle(authOnly(h.connectionOAuth2Authorize)))
+			r.Get("/callback", h.handle(h.connectionOAuth2Callback))
+		})
+
 		r.HandleFunc("/auth/oauth2/token", h.handle(h.oauth2Token))
 		r.HandleFunc("/auth/oauth2/info", h.oauth2Info)
 		r.HandleFunc("/auth/oauth2/public-keys", h.oauth2PublicKeys)

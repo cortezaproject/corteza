@@ -173,6 +173,17 @@ type (
 			} `kv:"ui" json:"ui"`
 		} `json:"auth"`
 
+		Connection struct {
+			// OAuth apps used by catalog connections' oauth2_authorization_code flow.
+			// A separate registry from auth.external.providers (SSO login): keyed by the
+			// connector blueprint's oauthApp name, holding only client id/secret plus one
+			// shared redirect URL. Scopes/authURL/tokenURL come from the blueprint.
+			OAuth struct {
+				RedirectURL string                `kv:"redirect-url" json:"redirectURL"`
+				Apps        ConnectionOAuthAppSet `json:"apps"`
+			} `kv:"oauth" json:"oauth"`
+		} `json:"connection"`
+
 		Compose struct {
 			// Compose UI settings
 			UI struct {
@@ -602,6 +613,104 @@ func (set ExternalAuthProviderSet) FindByHandle(handle string) *ExternalAuthProv
 	}
 
 	return nil
+}
+
+type (
+	// ConnectionOAuthApp is one instance-configured OAuth app used by catalog
+	// connections' oauth2_authorization_code flow, keyed by the connector
+	// blueprint's oauthApp name. It holds the provider-level config (client
+	// id/secret, endpoints, consent params, PKCE, identity endpoint) — everything
+	// that is identical across that provider's connectors. Only the per-connector
+	// scopes come from the blueprint.
+	ConnectionOAuthApp struct {
+		Handle             string `json:"handle"`
+		ClientID           string `json:"-" kv:"client-id"`
+		ClientSecret       string `json:"-" kv:"client-secret"`
+		AuthURL            string `json:"authURL" kv:"auth-url"`
+		TokenURL           string `json:"tokenURL" kv:"token-url"`
+		AuthParams         string `json:"authParams" kv:"auth-params"` // JSON object of extra consent-URL params
+		PKCE               bool   `json:"pkce" kv:"pkce"`
+		IdentityURL        string `json:"identityURL" kv:"identity-url"`
+		IdentityEmailField string `json:"identityEmailField" kv:"identity-email-field"`
+	}
+
+	ConnectionOAuthAppSet []*ConnectionOAuthApp
+)
+
+var _ KVDecoder = &ConnectionOAuthAppSet{}
+
+func (set ConnectionOAuthAppSet) FindByHandle(handle string) *ConnectionOAuthApp {
+	for _, app := range set {
+		if app != nil && app.Handle == handle {
+			return app
+		}
+	}
+
+	return nil
+}
+
+// DecodeKV reads apps from settings keyed as connection.oauth.apps.<handle>.<field>.
+func (set *ConnectionOAuthAppSet) DecodeKV(kv SettingsKV, prefix string) (err error) {
+	if *set == nil {
+		*set = ConnectionOAuthAppSet{}
+	}
+
+	kv = kv.CutPrefix(prefix + ".")
+
+	handles := make(map[string]bool)
+	for k := range kv {
+		if dot := strings.Index(k, "."); dot > 0 {
+			handles[k[:dot]] = true
+		}
+	}
+
+	for handle := range handles {
+		app := (*set).FindByHandle(handle)
+		if app == nil {
+			app = &ConnectionOAuthApp{Handle: handle}
+			*set = append(*set, app)
+		}
+		if err = DecodeKV(kv.CutPrefix(handle+"."), app); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (app ConnectionOAuthApp) EncodeKV() (vv SettingValueSet, err error) {
+	if app.Handle == "" {
+		return nil, fmt.Errorf("cannot encode connection oauth app without handle")
+	}
+
+	prefix := "connection.oauth.apps." + app.Handle + "."
+	pairs := map[string]interface{}{
+		"client-id":            app.ClientID,
+		"client-secret":        app.ClientSecret,
+		"auth-url":             app.AuthURL,
+		"token-url":            app.TokenURL,
+		"auth-params":          app.AuthParams,
+		"pkce":                 app.PKCE,
+		"identity-url":         app.IdentityURL,
+		"identity-email-field": app.IdentityEmailField,
+	}
+
+	for key, value := range pairs {
+		v := &SettingValue{Name: prefix + key}
+		if err = v.SetSetting(value); err != nil {
+			return
+		}
+		vv = append(vv, v)
+	}
+
+	return
+}
+
+// ConnectionOAuthApp returns the configured OAuth app for the given oauthApp name
+// plus the shared redirect URL. ok is false when no app is configured for name.
+func (s *AppSettings) ConnectionOAuthApp(name string) (app *ConnectionOAuthApp, redirectURL string, ok bool) {
+	app = s.Connection.OAuth.Apps.FindByHandle(name)
+	return app, s.Connection.OAuth.RedirectURL, app != nil
 }
 
 func (set ExternalAuthProviderSet) Len() int      { return len(set) }

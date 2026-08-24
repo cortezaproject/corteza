@@ -44,6 +44,11 @@ type (
 
 		// Google service account fields
 		ServiceAccountEmail string
+
+		// OAuth2 authorization-code fields
+		AccessToken  string
+		RefreshToken string
+		ExpiresAt    time.Time
 	}
 )
 
@@ -57,6 +62,8 @@ func NewCredential(cfg CredentialConfig) (Credential, error) {
 		return NewAPIKeyCredential(cfg.ConnectionID, cfg.APIKey, "", ""), nil
 	case "oauth2_client_credentials":
 		return NewOAuth2ClientCredsCredential(cfg.ConnectionID, cfg.ClientID, cfg.ClientSecret, cfg.TokenURL), nil
+	case "oauth2_authorization_code":
+		return NewOAuth2AuthCodeCredential(cfg.ConnectionID, cfg.ClientID, cfg.ClientSecret, cfg.TokenURL, cfg.Scopes, cfg.AccessToken, cfg.RefreshToken, cfg.ExpiresAt), nil
 	case "jwt_bearer":
 		return NewJWTBearerCredential(cfg.ConnectionID, cfg.Issuer, cfg.Subject, cfg.Audience, cfg.TokenURL, cfg.PrivateKey, cfg.Scopes, cfg.TokenLifetime), nil
 	case "google_service_account":

@@ -9,6 +9,7 @@ _configured_connectionDefs: {
 						{name: "NamespaceID", type:     "uint64", json:                     "namespaceID,string"},
 						{name: "DalConnectionID", type: "uint64", json:                     "dalConnectionID,string"},
 						{name: "CredentialID", type:    "uint64", json:                     "credentialID,string"},
+						{name: "AuthMethod", type:      "string", json:                     "authMethod,omitempty"},
 						{name: "Params", slice:         true, type:                         _configured_connectionDefs.ConfiguredConnectionParam, json: "params,omitempty"},
 						{name: "Discovery", goType:     "map[string]json.RawMessage", json: "discovery,omitempty"},
 	]}

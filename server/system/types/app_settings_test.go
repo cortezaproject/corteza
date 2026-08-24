@@ -115,3 +115,58 @@ func Test_appSettingsLogoDefaults(t *testing.T) {
 	d = customBoth.WithDefaults()
 	require.Equal(t, "attachment:2", d.UI.MainLogoDark)
 }
+
+func Test_settingsConnectionOAuthAppsDecode(t *testing.T) {
+	type Dst struct {
+		Apps ConnectionOAuthAppSet
+	}
+
+	var (
+		aux = Dst{}
+		kv  = SettingsKV{
+			"apps.google.client-id":     sqlTypes.JSONText(`"g-cid"`),
+			"apps.google.client-secret": sqlTypes.JSONText(`"g-secret"`),
+			"apps.github.client-id":     sqlTypes.JSONText(`"gh-cid"`),
+		}
+	)
+
+	require.NoError(t, DecodeKV(kv, &aux))
+	require.Len(t, aux.Apps, 2)
+
+	require.Equal(t,
+		&ConnectionOAuthApp{Handle: "google", ClientID: "g-cid", ClientSecret: "g-secret"},
+		aux.Apps.FindByHandle("google"))
+
+	require.Equal(t,
+		&ConnectionOAuthApp{Handle: "github", ClientID: "gh-cid"},
+		aux.Apps.FindByHandle("github"))
+
+	require.Nil(t, aux.Apps.FindByHandle("missing"))
+}
+
+func Test_settingsConnectionOAuthAppAccessor(t *testing.T) {
+	var (
+		as AppSettings
+		kv = SettingsKV{
+			"connection.oauth.redirect-url":              sqlTypes.JSONText(`"https://app/callback"`),
+			"connection.oauth.apps.google.client-id":     sqlTypes.JSONText(`"cid"`),
+			"connection.oauth.apps.google.client-secret": sqlTypes.JSONText(`"sec"`),
+			"connection.oauth.apps.google.auth-url":      sqlTypes.JSONText(`"https://accounts.google.com/o/oauth2/v2/auth"`),
+			"connection.oauth.apps.google.token-url":     sqlTypes.JSONText(`"https://oauth2.googleapis.com/token"`),
+			"connection.oauth.apps.google.pkce":          sqlTypes.JSONText(`true`),
+		}
+	)
+
+	require.NoError(t, DecodeKV(kv, &as))
+
+	app, redirect, ok := as.ConnectionOAuthApp("google")
+	require.True(t, ok)
+	require.Equal(t, "https://app/callback", redirect)
+	require.Equal(t, "cid", app.ClientID)
+	require.Equal(t, "sec", app.ClientSecret)
+	require.Equal(t, "https://oauth2.googleapis.com/token", app.TokenURL)
+	require.True(t, app.PKCE)
+
+	_, _, ok = as.ConnectionOAuthApp("missing")
+	require.False(t, ok)
+}

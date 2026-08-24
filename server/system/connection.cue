@@ -17,6 +17,8 @@ _connectionDefs: {
 				{ name: "ContentType", type: "string", json: "contentType" },
 				{ name: "Headers", goType: "map[string]ConnectionTemplate", json: "headers,omitempty" },
 				{ name: "Auth", type: _connectionDefs.ConnectionAuth, json: "auth" },
+				// Auth methods a connector offers; the user picks one at configure time.
+				{ name: "AuthOptions", slice: true, type: _connectionDefs.ConnectionAuth, json: "authOptions,omitempty" },
 				{ name: "Probe", ptr: true, type: _connectionDefs.ConnectionProbe, json: "probe,omitempty" },
 				{ name: "Params", slice: true, type: _connectionDefs.ConnectionPlaceholder, json: "params,omitempty" },
 			]}
@@ -28,6 +30,11 @@ _connectionDefs: {
 			ConnectionAuth: { name: "ConnectionAuth", fields: [
 				{ name: "Method", type: "string", json: "method" },
 				{ name: "Params", goType: "map[string]ConnectionTemplate", json: "params,omitempty" },
+				// oauth2_authorization_code: the blueprint supplies only the provider key and
+				// the per-connector scopes. Provider-level config (endpoints, authParams, pkce,
+				// identity) lives on the instance OAuth-app record keyed by oauthApp.
+				{ name: "OAuthApp", type: "string", json: "oauthApp,omitempty" },
+				{ name: "Scopes", slice: true, type: "string", json: "scopes,omitempty" },
 			]}
 			ConnectionProbe: { name: "ConnectionProbe", fields: [
 				{ name: "Path", type: _connectionDefs.ConnectionTemplate, json: "path" },

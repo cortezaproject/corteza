@@ -366,9 +366,88 @@ func ensureGoogleCredential(ctx context.Context, s store.Storer, cc *types.Confi
 	}
 }
 
+// ensureOAuth2Credential loads a delegated oauth2_authorization_code credential
+// into the registry from durable storage: the refresh token from the Credential
+// store (via cc.Config.CredentialID), the client id/secret from the instance OAuth
+// app registry (keyed by the blueprint's oauthApp), and tokenURL/scopes from the
+// connector blueprint. It is the persisted-state analogue of ensureGoogleCredential
+// (which rebuilds from a source secret) and a no-op when the credential is already
+// loaded, the connection does not use oauth2_authorization_code, or data is missing.
+func ensureOAuth2Credential(ctx context.Context, s store.Storer, cc *types.ConfiguredConnection, conn *types.Connection) {
+	if _, err := cred_registry.Default().Get(cc.ID); err == nil {
+		return
+	}
+
+	auth := activeAuth(conn, cc)
+	if auth.Method != "oauth2_authorization_code" || cc.Config.CredentialID == 0 {
+		return
+	}
+
+	app, _, ok := CurrentSettings.ConnectionOAuthApp(auth.OAuthApp)
+	if !ok {
+		return
+	}
+
+	stored, err := store.LookupCredentialByID(ctx, s, cc.Config.CredentialID)
+	if err != nil || stored.Credentials == "" {
+		return
+	}
+
+	cred := cred_registry.NewOAuth2AuthCodeCredential(
+		cc.ID, app.ClientID, app.ClientSecret, app.TokenURL, auth.Scopes,
+		"", stored.Credentials, time.Time{},
+	)
+
+	// Persist rotated refresh tokens back to the Credential store, never to
+	// plaintext DAL params.
+	credID := cc.Config.CredentialID
+	cred.SetOnRotate(func(ctx context.Context, refreshToken string) error {
+		c, err := store.LookupCredentialByID(ctx, s, credID)
+		if err != nil {
+			return err
+		}
+		c.Credentials = refreshToken
+		return store.UpdateCredential(ctx, s, c)
+	})
+
+	_ = cred_registry.Default().Store(cred)
+}
+
+// LoadOAuth2Credentials pre-loads delegated oauth2_authorization_code credentials
+// for all active configured connections into the registry at boot, so the
+// refresher keeps them alive rather than minting them only on first use.
+func (svc *configuredConnection) LoadOAuth2Credentials(ctx context.Context) {
+	set, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		Status: []string{"active"},
+	})
+	if err != nil {
+		return
+	}
+
+	for _, cc := range set {
+		conn, err := loadConnection(ctx, svc.store, cc.ConnectionID)
+		if err != nil {
+			continue
+		}
+		ensureOAuth2Credential(ctx, svc.store, cc, conn)
+	}
+}
+
+// ensureCredential loads the credential for a configured connection into the
+// registry, dispatching on the selected auth method: delegated OAuth2 reads its
+// tokens from durable storage; Google service accounts rebuild from a source secret.
+func ensureCredential(ctx context.Context, s store.Storer, cc *types.ConfiguredConnection, conn *types.Connection) {
+	if activeAuth(conn, cc).Method == "oauth2_authorization_code" {
+		ensureOAuth2Credential(ctx, s, cc, conn)
+		return
+	}
+	ensureGoogleCredential(ctx, s, cc, conn)
+}
+
 // resolveExecutor returns the appropriate HTTP executor for the given configured
-// connection. Connections targeting googleapis.com use the Google wrapper
-// (auth + transport). All other connectors are routed through the DAL service.
+// connection. Connections using bearer-token auth (delegated OAuth2, or Google
+// service accounts on googleapis.com) use the token-injecting wrapper; all other
+// connectors are routed through the DAL service.
 func resolveExecutor(
 	ctx context.Context,
 	cc *types.ConfiguredConnection,
@@ -376,11 +455,11 @@ func resolveExecutor(
 	baseURL string,
 	dalConnectionID uint64,
 ) (func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error), error) {
-	if strings.Contains(baseURL, "googleapis.com") {
-		// Google APIs require OAuth2 token injection via the Google wrapper.
-		// This check is URL-based and works regardless of the user-defined
-		// connection handle or whether a gsheets DAL connection was provisioned.
-		ensureGoogleCredential(ctx, DefaultStore, cc, conn)
+	if activeAuth(conn, cc).Method == "oauth2_authorization_code" || strings.Contains(baseURL, "googleapis.com") {
+		// Bearer-token connections inject the access token via the wrapper (a
+		// generic cred_registry bearer injector keyed by cc.ID). ensureCredential
+		// loads the right credential source; selection is by auth method, not URL.
+		ensureCredential(ctx, DefaultStore, cc, conn)
 		gw := google.NewWrapper(baseURL, cc.ID)
 		return func(ctx context.Context, method, path string, headers map[string][]string, payload []byte) (int, map[string][]string, []byte, error) {
 			return gw.Run(ctx, method, path, payload, headers)
@@ -409,8 +488,8 @@ func (svc *configuredConnection) onCheck(ctx context.Context, _ *configuredConne
 	resolved := svc.resolveTemplates(&cc.Connection, cc.Config.Params)
 
 	var runner connectionRunner
-	if strings.Contains(resolved.Service.BaseURL.Value, "googleapis.com") {
-		ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+	if activeAuth(&cc.Connection, cc).Method == "oauth2_authorization_code" || strings.Contains(resolved.Service.BaseURL.Value, "googleapis.com") {
+		ensureCredential(ctx, svc.store, cc, &cc.Connection)
 		runner = google.NewWrapper(resolved.Service.BaseURL.Value, cc.ID)
 	} else {
 		runner, err = restDriver.RunnerFromConnection(resolved, cc.ID)
@@ -1418,7 +1497,7 @@ func (svc *configuredConnection) syncGoogleDiscovery(ctx context.Context, cc *ty
 		return nil // not a Google connector
 	}
 
-	ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+	ensureCredential(ctx, svc.store, cc, &cc.Connection)
 
 	if cc.Config.Discovery == nil {
 		cc.Config.Discovery = make(map[string]json.RawMessage)
@@ -1840,7 +1919,7 @@ func (svc *configuredConnection) SheetColumns(ctx context.Context, ID uint64, sp
 		return nil, err
 	}
 
-	ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+	ensureCredential(ctx, svc.store, cc, &cc.Connection)
 
 	rangeA1 := "1:1"
 	if tab != "" {
@@ -1879,7 +1958,7 @@ func (svc *configuredConnection) SheetTabs(ctx context.Context, ID uint64, sprea
 		return nil, err
 	}
 
-	ensureGoogleCredential(ctx, svc.store, cc, &cc.Connection)
+	ensureCredential(ctx, svc.store, cc, &cc.Connection)
 
 	w := google.NewWrapper("https://sheets.googleapis.com/v4/spreadsheets", cc.ID)
 	_, _, body, err := w.Run(ctx, "GET",

@@ -582,13 +582,20 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 		if conn.Source == "catalog" {
 			fresh := catalogConnectionToLocal(catalogConn)
 
-			changed := healCatalogAuthParams(conn, fresh.Service.Auth)
+			changed := healCatalogAuthParams(conn, fresh)
 			if !reflect.DeepEqual(conn.Operations, fresh.Operations) {
 				conn.Operations = fresh.Operations
 				changed = true
 			}
 			if !reflect.DeepEqual(conn.Resources, fresh.Resources) {
 				conn.Resources = fresh.Resources
+				changed = true
+			}
+			// authOptions are catalog-owned (the connector declares which auth
+			// methods it offers) — no user data lives on them, so re-sync wholesale
+			// to pick up newly-added methods like oauth2_authorization_code.
+			if !reflect.DeepEqual(conn.Service.AuthOptions, fresh.Service.AuthOptions) {
+				conn.Service.AuthOptions = fresh.Service.AuthOptions
 				changed = true
 			}
 
@@ -629,23 +636,43 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 	return svc.Create(ctx, conn)
 }
 
-// healCatalogAuthParams restores credential auth params whose stored value was
+// healAuthParams restores credential auth params on dst whose stored value was
 // lost (e.g. imported before the parser understood the nested token/headerName
-// shape). It only fills params that are missing or empty and never overwrites a
-// value the user or a newer import already set. Returns true if it changed anything.
-func healCatalogAuthParams(conn *types.Connection, catalogAuth types.ConnectionAuth) (healed bool) {
-	for name, catTpl := range catalogAuth.Params {
+// shape), taking them from src. It only fills params that are missing or empty and
+// never overwrites a value the user or a newer import already set. Returns true if
+// it changed anything.
+func healAuthParams(dst *types.ConnectionAuth, src types.ConnectionAuth) (healed bool) {
+	for name, catTpl := range src.Params {
 		if catTpl.Value == "" {
 			continue
 		}
-		if cur, ok := conn.Service.Auth.Params[name]; ok && cur.Value != "" {
+		if cur, ok := dst.Params[name]; ok && cur.Value != "" {
 			continue
 		}
-		if conn.Service.Auth.Params == nil {
-			conn.Service.Auth.Params = make(map[string]types.ConnectionTemplate, len(catalogAuth.Params))
+		if dst.Params == nil {
+			dst.Params = make(map[string]types.ConnectionTemplate, len(src.Params))
 		}
-		conn.Service.Auth.Params[name] = catTpl
+		dst.Params[name] = catTpl
 		healed = true
+	}
+	return
+}
+
+// healCatalogAuthParams heals the connector's single auth and each of its auth
+// options from the fresh catalog definition (options matched by method).
+func healCatalogAuthParams(conn *types.Connection, fresh *types.Connection) (healed bool) {
+	if healAuthParams(&conn.Service.Auth, fresh.Service.Auth) {
+		healed = true
+	}
+	for i := range conn.Service.AuthOptions {
+		for _, fo := range fresh.Service.AuthOptions {
+			if fo.Method == conn.Service.AuthOptions[i].Method {
+				if healAuthParams(&conn.Service.AuthOptions[i], fo) {
+					healed = true
+				}
+				break
+			}
+		}
 	}
 	return
 }
@@ -722,6 +749,20 @@ func (svc *connection) normaliseOperationTypes(c *types.Connection) {
 
 // -- validation ---------------------------------------------------------------
 
+// activeAuth returns the auth method a configured connection uses: the option from
+// Service.AuthOptions matching cc.Config.AuthMethod, else the connector's single
+// Service.Auth (legacy / single-auth connectors, and the no-selection fallback).
+func activeAuth(conn *types.Connection, cc *types.ConfiguredConnection) types.ConnectionAuth {
+	if cc != nil && cc.Config.AuthMethod != "" {
+		for _, opt := range conn.Service.AuthOptions {
+			if opt.Method == cc.Config.AuthMethod {
+				return opt
+			}
+		}
+	}
+	return conn.Service.Auth
+}
+
 func (svc *connection) validateConnection(c *types.Connection) error {
 	if c.Meta.Short == "" {
 		return ConnectionErrMissingShortName()
@@ -729,7 +770,7 @@ func (svc *connection) validateConnection(c *types.Connection) error {
 	if c.Service.BaseURL.Value == "" {
 		return ConnectionErrMissingBaseURL()
 	}
-	if c.Service.Auth.Method == "" {
+	if c.Service.Auth.Method == "" && len(c.Service.AuthOptions) == 0 {
 		return ConnectionErrMissingAuthMethod()
 	}
 
@@ -789,6 +830,14 @@ func (svc *connection) deriveParams(c *types.Connection) {
 	}
 	for _, p := range c.Service.Auth.Params {
 		tt = append(tt, scopedTemplate{[]string{"service", "auth"}, p})
+	}
+	// Multi-auth connectors carry per-method params under authOptions; expose them
+	// too (deduped by scope+name below) so the configure UI has metadata for
+	// whichever method the user picks.
+	for _, opt := range c.Service.AuthOptions {
+		for _, p := range opt.Params {
+			tt = append(tt, scopedTemplate{[]string{"service", "auth"}, p})
+		}
 	}
 
 	// Extract unique params (keyed by scope+name)

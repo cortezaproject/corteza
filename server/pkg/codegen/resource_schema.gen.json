@@ -608,7 +608,15 @@
         "headers": "map[string]ConnectionTemplate",
         "auth": {
           "method": "string",
-          "params": "map[string]ConnectionTemplate"
+          "params": "map[string]ConnectionTemplate",
+          "oauthApp": "string",
+          "scopes": "string"
+        },
+        "authOptions": {
+          "method": "string",
+          "params": "map[string]ConnectionTemplate",
+          "oauthApp": "string",
+          "scopes": "string"
         },
         "probe": {
           "path": {
@@ -671,6 +679,7 @@
         "namespaceID": "uint64",
         "dalConnectionID": "uint64",
         "credentialID": "uint64",
+        "authMethod": "string",
         "params": {
           "scope": "string",
           "name": "string",
