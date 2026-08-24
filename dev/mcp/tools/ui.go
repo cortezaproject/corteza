@@ -60,7 +60,7 @@ func registerUIVerify(reg *mcpkit.Registry, root string) {
 					"failed requests, and a screenshot. This is the only tool that exercises frontend code — "+
 					"the Human MCP tools reach the REST API and never load the app, so an MCP-green result "+
 					"says nothing about a defect a user clicks into. Use it to reproduce a UI bug before "+
-					"diagnosing it, and to verify the fix afterwards. It logs in as the agent-dev user; run "+
+					"diagnosing it, and to verify the fix afterwards. It logs in as the agent@local.dev user; run "+
 					"dev/agent/bootstrap.sh once if it reports no password.",
 			),
 			mcp.WithString("path", mcp.Description(

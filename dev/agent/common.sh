@@ -12,8 +12,7 @@ HUMAN_AUTH="${HUMAN_AUTH:-${HUMAN_API%/api}/auth}"
 HUMAN_BASE="${HUMAN_API%/api}"
 
 AGENT_EMAIL="agent@local.dev"
-AGENT_HANDLE="agent-dev"
-AGENT_CLIENT="dev-agent"
+AGENT_CLIENT="dev_agent"
 AGENT_SCOPE="profile api"
 
 case "$HUMAN_API" in

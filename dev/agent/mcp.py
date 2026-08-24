@@ -6,7 +6,7 @@ Usage:
   mcp.py schema <tool>             # full input schema of one tool
   mcp.py call <tool> ['<json>']    # call a tool with JSON arguments
 
-Auth: bearer token from token.sh (agent-dev identity). Local-only.
+Auth: bearer token from token.sh (agent@local.dev identity). Local-only.
 Sessions are per-invocation (initialize → call), which is fine for CLI use.
 """
 

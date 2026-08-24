@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Idempotent, self-healing setup of the agent dev toolkit:
 #  1. verify the local dev server is up
-#  2. ensure the agent-dev user exists (envoy import) with the super-admin role
-#  3. ensure the dev-agent client_credentials auth client exists and is
+#  2. ensure the agent@local.dev user exists (envoy import) with super-admin
+#  3. ensure the dev_agent client_credentials auth client exists and is
 #     correctly configured (managed via REST — envoy YAML cannot set
 #     validGrant / resolve impersonateUser reliably)
 #  4. cache the server-generated client secret in .state/ (gitignored),
@@ -17,7 +17,13 @@ if ! curl -sf -m 5 "$HUMAN_BASE/version" >/dev/null; then
   exit 1
 fi
 
-server_cli import --skip-existing "$AGENT_DIR/seed/dev-agent.yaml"
+# `--skip-existing` keys on the YAML identifier, which IS the handle, so it
+# cannot recognise a user provisioned under an earlier handle and tries to
+# create a second one with the same email. Probe by email instead: the CLI
+# reads the database directly and needs no token.
+if ! server_cli auth jwt "$AGENT_EMAIL" >/dev/null 2>&1; then
+  server_cli import --skip-existing "$AGENT_DIR/seed/dev-agent.yaml"
+fi
 server_cli roles useradd super-admin "$AGENT_EMAIL" >/dev/null 2>&1 ||
   echo "note: 'roles useradd super-admin' reported existing membership (ok)"
 echo "user $AGENT_EMAIL ensured (super-admin)"
@@ -42,6 +48,14 @@ agent_uid=$(capi GET "/system/users/?email=$AGENT_EMAIL" | json_get response.set
   exit 1
 }
 
+# The seed key is the handle; rename a box provisioned under the hyphenated one.
+agent_handle=$(capi GET "/system/users/$agent_uid" | json_get response.handle) || agent_handle=""
+if [[ "$agent_handle" != "agent_dev" ]]; then
+  capi PUT "/system/users/$agent_uid" \
+    -d "{\"email\":\"$AGENT_EMAIL\",\"name\":\"Dev Agent (local tooling)\",\"handle\":\"agent_dev\"}" >/dev/null
+  echo "user handle $agent_handle -> agent_dev"
+fi
+
 client_payload() {
   cat <<EOF
 {
@@ -61,6 +75,14 @@ EOF
 
 client_id=$(capi GET "/system/auth/clients/?handle=$AGENT_CLIENT" |
   json_get response.set.0.authClientID) || client_id=""
+
+# A box provisioned under the old hyphenated handle keeps its numeric ID (and
+# therefore its cached secret) — the update path below renames it in place.
+if [[ -z "$client_id" ]]; then
+  client_id=$(capi GET "/system/auth/clients/?handle=dev-agent" |
+    json_get response.set.0.authClientID) || client_id=""
+  [[ -n "$client_id" ]] && echo "renaming auth client dev-agent -> $AGENT_CLIENT (ID $client_id)"
+fi
 
 if [[ -z "$client_id" ]]; then
   client_id=$(client_payload | capi POST /system/auth/clients/ -d @- |

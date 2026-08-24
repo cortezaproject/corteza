@@ -17,7 +17,7 @@ Requires the dev server running (`cd server && make watch`, API on
 
 - user `agent@local.dev`, member of `super-admin`, with a password in
   `.state/ui-password` — the one identity for both API and browser
-- auth client `dev-agent` (`client_credentials` grant, impersonates
+- auth client `dev_agent` (`client_credentials` grant, impersonates
   `agent@local.dev`), managed via REST; its server-generated secret is cached
   in `.state/secret` (gitignored)
 

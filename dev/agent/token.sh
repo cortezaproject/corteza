@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Print a valid bearer token for the local dev API (cached until near expiry).
-# Prefers the oauth2 client_credentials flow via the dev-agent auth client;
+# Prefers the oauth2 client_credentials flow via the dev_agent auth client;
 # falls back to minting a JWT through the server CLI.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
