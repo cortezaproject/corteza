@@ -1,0 +1,4 @@
+apps:
+  empty: No applications are available to your account. Ask an administrator to grant you access.
+  noResults: No applications match your search.
+  search: Search applications...

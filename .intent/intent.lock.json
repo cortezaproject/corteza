@@ -1327,9 +1327,24 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/index.js": {
-      "h": "d324e0e64f32",
+      "h": "a410da2118d1",
       "doc": "client/web/unify/src/sections/sections.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
+    },
+    "client/web/unify/src/sections/one/index.js": {
+      "h": "c3fc2c87862f",
+      "doc": "client/web/unify/src/sections/one/one.intent.md",
+      "t": "2026-08-24"
+    },
+    "client/web/unify/src/sections/one/one.access.test.js": {
+      "h": "a37dcc4c54dd",
+      "doc": "client/web/unify/src/sections/one/one.intent.md",
+      "t": "2026-08-24"
+    },
+    "client/web/unify/src/sections/one/views/AppList.vue": {
+      "h": "3ac7af671ff9",
+      "doc": "client/web/unify/src/sections/one/one.intent.md",
+      "t": "2026-08-24"
     },
     "client/web/unify/src/sections/project/components/agents/AgentCreateDialog.vue": {
       "h": "b7926dabdde9",

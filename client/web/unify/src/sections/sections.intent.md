@@ -30,7 +30,7 @@ consumes via a fixed contract; adding a section = drop a folder + register it in
 ## Map
 
 - `index.js` — section registry: ordered `sections` list, flattened `routes`, `sectionById()`.
-- `home`, `agentic`, `workflow`, `taq`, `admin`, `compose`, `chatbot`, `project` — the sections (order = app-list order). `project` is WIP in parts; its locked contracts live in `project/project.intent.md`.
+- `home`, `agentic`, `workflow`, `taq`, `admin`, `compose`, `chatbot`, `project`, `one` — the sections (order = app-list order). `project` is WIP in parts; its locked contracts live in `project/project.intent.md`. `one` ships switched off (see Access).
 
 ## Access
 
@@ -43,6 +43,12 @@ cannot enter.
 The gate is the router's, not a view's: it resolves before the section's view
 mounts, so a refused section issues no requests. It is a usability boundary, not
 the security one — every endpoint behind it enforces its own permissions.
+
+A third state is the application being switched off. `enabled: false` is not a
+permission: the section stays registered and routable, and entry lands on the
+disabled screen rather than the view. A section may therefore ship complete and
+unreachable, which is how `one` exists for the installations that still want it
+without offering it to the ones that do not.
 
 ## When changing this
 
