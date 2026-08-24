@@ -69,7 +69,7 @@ func (svc *reminder) onLookup(ctx context.Context, ID uint64, aProps *reminderAc
 		return nil, err
 	}
 
-	if svc.checkAssignTo(ctx, r) {
+	if !svc.canAccess(ctx, r) {
 		return nil, ReminderErrNotAllowedToRead()
 	}
 
@@ -178,7 +178,7 @@ func (svc *reminder) onDismiss(ctx context.Context, aProps *reminderActionProps,
 		return ReminderErrNotFound()
 	}
 
-	if svc.checkAssignTo(ctx, r) {
+	if !svc.canAccess(ctx, r) {
 		return ReminderErrNotAllowedToDismiss()
 	}
 
@@ -208,7 +208,7 @@ func (svc *reminder) onUndismiss(ctx context.Context, aProps *reminderActionProp
 		return ReminderErrNotFound()
 	}
 
-	if svc.checkAssignTo(ctx, r) {
+	if !svc.canAccess(ctx, r) {
 		return ReminderErrNotAllowedToUndismiss()
 	}
 
@@ -228,6 +228,10 @@ func (svc *reminder) onSnooze(ctx context.Context, aProps *reminderActionProps, 
 	r, err := store.LookupReminderByID(ctx, svc.store, ID)
 	if err != nil {
 		return ReminderErrNotFound()
+	}
+
+	if !svc.canAccess(ctx, r) {
+		return ReminderErrNotAllowedToSnooze()
 	}
 
 	aProps.setReminder(r)
@@ -256,6 +260,12 @@ func (svc *reminder) checkAssignee(ctx context.Context, rm *types.Reminder) erro
 
 func (svc *reminder) checkAssignTo(ctx context.Context, rm *types.Reminder) bool {
 	return rm.AssignedTo != svc.currentUser(ctx)
+}
+
+// canAccess returns true when reminder is assigned to the current user or when
+// the user is allowed to assign reminders to others
+func (svc *reminder) canAccess(ctx context.Context, rm *types.Reminder) bool {
+	return !svc.checkAssignTo(ctx, rm) || svc.ac.CanAssignReminder(ctx)
 }
 
 func (svc *reminder) currentUser(ctx context.Context) uint64 {
