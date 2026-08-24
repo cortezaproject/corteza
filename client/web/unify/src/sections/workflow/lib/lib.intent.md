@@ -11,6 +11,7 @@ touched-by:
 tests:
   - client/web/unify/src/sections/workflow/lib/codec.test.js
   - client/web/unify/src/sections/workflow/lib/connectionRules.test.js
+  - client/web/unify/src/sections/workflow/lib/dry-run.permissions.test.js
 ---
 
 # Workflow editor lib
@@ -25,7 +26,7 @@ mxGraph editor, so workflows created in either render and save correctly in both
 
 - `codec.js` — `decodeWorkflow(workflow, triggers)` → `{nodes, edges}`; `encodeWorkflow(nodes, edges)` → `{steps, paths, triggers}`. Canonical `HANDLE_TO_MX` map ties named handles to mx exit/entry coords (round-trip stable by construction); trigger out-edges are stored in `trigger.meta.visual.edges`, not `paths`; legacy kind `workflow` normalizes to `exec-workflow`; non-handle mx style properties from legacy edges are preserved.
 - `connectionRules.js` — shared legality: outbound caps (default 1; iterator/error-handler 2; excl/incl/fork gateways ∞; trigger 1), no inbound to triggers, no outbound from termination, ≤1 inbound to termination, one edge per handle, no self-loops, visuals unconnectable.
-- `dry-run.js` — `encodeInput`: resolves handles/IDs typed in the test dialog into full resources (namespace/module/page/record/user/role/application, old\* variants) to build the event-args payload.
+- `dry-run.js` — `buildScopeFields`/`buildInputFields` build the test dialog's rows; `encodeFields` resolves handles/IDs typed there into full resources (namespace/module/page/record/user/role/application, old\* variants) to build the event-args payload; `canReadTrace` says whether the runner may read the session the run produces.
 - `toolbar.js` — ordered drag-palette definition (kind/ref entries + separators).
 - `style.js` — kind/ref → {width, height, icon, style}; `style` is the mxGraph style name persisted server-side.
 - `editor-auto-complete.js` — expression-language completion list.

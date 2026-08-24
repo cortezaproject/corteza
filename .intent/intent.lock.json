@@ -2547,9 +2547,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/components/WorkflowEditor.vue": {
-      "h": "06cd50d615ec",
+      "h": "b8de1524bbea",
       "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-08-24"
     },
     "client/web/unify/src/sections/workflow/composables/useNodePreview.js": {
       "h": "a9196c22aec0",
@@ -2607,9 +2607,14 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/lib/dry-run.js": {
-      "h": "b5d43ba3fa53",
+      "h": "0cd19aed7227",
       "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
+    },
+    "client/web/unify/src/sections/workflow/lib/dry-run.permissions.test.js": {
+      "h": "8476b66befc3",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-08-24"
     },
     "client/web/unify/src/sections/workflow/lib/editor-auto-complete.js": {
       "h": "a8a971f42c7c",
@@ -2751,10 +2756,15 @@
       "doc": "lib/js/src/automation/automation.intent.md",
       "t": "2026-07-23"
     },
-    "lib/js/src/automation/types/workflow.ts": {
-      "h": "2dfd1ccefb70",
+    "lib/js/src/automation/types/workflow.test.ts": {
+      "h": "6d5f90c651cc",
       "doc": "lib/js/src/automation/automation.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
+    },
+    "lib/js/src/automation/types/workflow.ts": {
+      "h": "2a9bcf50b8a5",
+      "doc": "lib/js/src/automation/automation.intent.md",
+      "t": "2026-08-24"
     },
     "lib/js/src/cast.test.ts": {
       "h": "bafed836e07d",

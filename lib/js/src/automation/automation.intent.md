@@ -9,7 +9,8 @@ depends-on:
 touched-by:
   - client/web/unify
   - lib/vue
-tests: []
+tests:
+  - lib/js/src/automation/types/workflow.test.ts
 ---
 
 # Automation types
@@ -24,7 +25,7 @@ Query** (never "Task Queue").
 ## Map
 
 - `types/taq.ts` — `TAQ` + `NgAutomation` classes and the ng-automation graph model: `NgAutomationStep`/`NgAutomationPath`/`NgAutomationTrigger`, step argument/result `Expr`s, `TriggerConstraint`, and `TAQIssue`/`TAQIssueSet` validation results.
-- `types/workflow.ts` — classic workflow resource class.
+- `types/workflow.ts` — classic workflow resource class, including the full `can*` permission block the REST payload sends.
 - `types/values.ts` — `Typed`/`Vars` wire format (`{'@type', '@value'}`) and `Encode`/`IsTyped` for exchanging typed values with the automation engine.
 - `types/function.ts`, `types/param.ts` — workflow function catalog entries and their parameter definitions.
 - `types/trace.ts` — execution results/stack frames/statuses for run inspection UIs.
@@ -35,6 +36,7 @@ Query** (never "Task Queue").
 - `Expr.scope` references another step's handle and `Expr.source` a named result of that step — the mechanism behind step-output wiring in the TAQ editor (e.g. Run Workflow named I/O).
 - `Vars` values must be `Typed` (`Encode` wraps plain values); sending unwrapped values to the engine is a bug.
 - Shapes in `taq.ts` mirror server-side ng-automation types — they change together with the server, not independently.
+- A resource's `can*` flags are carried in full: the webapp gates controls on them, and one the class does not declare is dropped in `apply()` and reads `false` for everyone, hiding the control from users who hold the permission.
 
 ## When changing this
 
