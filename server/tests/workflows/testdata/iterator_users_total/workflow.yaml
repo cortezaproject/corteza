@@ -12,6 +12,7 @@ workflows:
         ref: usersEach
         arguments:
           - { "target": "incTotal", "value": "true", "type": "Boolean" }
+          - { "target": "incPageNavigation", "value": "true", "type": "Boolean" }
         results:
           - { "target": "u", "expr": "user" }
           - { "target": "i", "expr": "index" }
