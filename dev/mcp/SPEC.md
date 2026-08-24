@@ -162,7 +162,9 @@ would be two implementations of one thing, drifting.
 - Every ID-shaped parameter is a JSON string.
 - Anything created on the dev server is `agent-` prefixed and disposable;
   unprefixed data is off-limits.
-- The structural test and generated `TOOLS.md` cover this server too.
+- The structural test covers this server too. The generated `TOOLS.md` does
+  not: its generator is `server/tests/mcp/matrix_test.go`, and there is no
+  `dev/mcp/TOOLS.md` to keep in step.
 
 ## Order of work
 
