@@ -1,5 +1,50 @@
 <template>
+  <!-- Multi-select mode -->
+  <MultiSelect
+    v-if="multiple"
+    :model-value="selectedUsers"
+    @update:model-value="onMultiSelect"
+    :options="filteredOptions"
+    option-label="label"
+    option-value="userID"
+    :placeholder="placeholder"
+    :disabled="disabled"
+    :loading="loading"
+    class="w-full"
+    filter
+    :size="size"
+    :filter-fields="FILTER_FIELDS"
+    fluid
+    display="chip"
+    @filter="onFilter"
+    @show="onShow"
+  >
+    <template #footer>
+      <div
+        v-if="hasNextPage || hasPrevPage"
+        class="flex justify-between items-center px-3 py-2 border-t border-surface"
+      >
+        <Button
+          icon="pi pi-angle-left"
+          text
+          size="small"
+          :disabled="!hasPrevPage"
+          @click="goToPage(false)"
+        />
+        <Button
+          icon="pi pi-angle-right"
+          text
+          size="small"
+          :disabled="!hasNextPage"
+          @click="goToPage(true)"
+        />
+      </div>
+    </template>
+  </MultiSelect>
+
+  <!-- Single-select mode -->
   <Select
+    v-else
     :model-value="selectedUser"
     @update:model-value="onSelect"
     :options="filteredOptions"
@@ -11,7 +56,7 @@
     class="w-full"
     filter
     :size="size"
-    :filter-fields="['label', 'name', 'handle', 'email', 'username']"
+    :filter-fields="FILTER_FIELDS"
     fluid
     showClear
     @filter="onFilter"
@@ -49,7 +94,7 @@ defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   modelValue: {
-    type: [String, Number],
+    type: [String, Number, Array],
     default: null,
   },
   placeholder: {
@@ -57,6 +102,10 @@ const props = defineProps({
     default: '',
   },
   disabled: {
+    type: Boolean,
+    default: false,
+  },
+  multiple: {
     type: Boolean,
     default: false,
   },
@@ -88,8 +137,12 @@ const emit = defineEmits(['update:modelValue', 'select'])
 const $SystemAPI = inject('$SystemAPI')
 const { formatUser, resolveUser, cacheUsers } = useUserResolver()
 
+// Both branches filter on the same fields; naming it once keeps them in step.
+const FILTER_FIELDS = ['label', 'name', 'handle', 'email', 'username']
+
 const options = ref([])
 const selectedUser = ref(null)
+const selectedUsers = ref([])
 
 const filteredOptions = computed(() => {
   if (!props.excludeUsers || props.excludeUsers.length === 0) return options.value
@@ -145,11 +198,13 @@ async function fetchUsers(query = '', pageCursor = '') {
     // Add an explicit string label property for PrimeVue to easily render/filter
     options.value = users.map(u => ({ ...u, label: formatUser(u) }))
 
-    // If we have a bound ID that isn't in this new page, append it to prevent deselection
-    if (props.modelValue) {
-      if (!options.value.some(u => u.userID === props.modelValue)) {
-        loadUserById(props.modelValue)
-      }
+    // A page of results replaces the options wholesale. Anything already picked
+    // has to go back in, or the value renders as a bare ID — or, single-select,
+    // as nothing at all.
+    if (props.multiple) {
+      loadUsersByIds(selectedUsers.value)
+    } else if (props.modelValue && !options.value.some(u => u.userID === props.modelValue)) {
+      loadUserById(props.modelValue)
     }
 
     nextPage.value = result.filter?.nextPage || ''
@@ -204,6 +259,11 @@ function onSelect(userID) {
   }
 }
 
+function onMultiSelect(userIDs) {
+  selectedUsers.value = userIDs || []
+  emit('update:modelValue', selectedUsers.value)
+}
+
 async function loadUserById(userID) {
   if (!userID) return
 
@@ -223,9 +283,39 @@ async function loadUserById(userID) {
   }
 }
 
+async function loadUsersByIds(userIDs) {
+  const missing = (userIDs || []).filter(id => id && !options.value.some(u => u.userID === id))
+  if (!missing.length) return
+
+  loading.value = true
+  try {
+    const resolved = await Promise.all(missing.map(id => resolveUser(id)))
+    // Re-checked after the await: pinning runs from the watcher and from every
+    // page fetch, so by now another pass may have added the same user.
+    const have = new Set(options.value.map(u => u.userID))
+    const found = resolved
+      .filter(u => u && !have.has(u.userID))
+      .map(u => ({ ...u, label: formatUser(u) }))
+    if (found.length) {
+      options.value = [...options.value, ...found]
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
 watch(
   () => props.modelValue,
   newVal => {
+    if (props.multiple) {
+      const ids = Array.isArray(newVal) ? newVal : newVal ? [newVal] : []
+      if (JSON.stringify(ids) !== JSON.stringify(selectedUsers.value)) {
+        selectedUsers.value = ids
+        loadUsersByIds(ids)
+      }
+      return
+    }
+
     if (newVal) {
       if (newVal !== selectedUser.value) {
         selectedUser.value = newVal
@@ -240,7 +330,7 @@ watch(
 
 onMounted(() => {
   fetchUsers()
-  if (props.modelValue && props.modelValue !== selectedUser.value) {
+  if (!props.multiple && props.modelValue && props.modelValue !== selectedUser.value) {
     selectedUser.value = props.modelValue
     loadUserById(props.modelValue)
   }

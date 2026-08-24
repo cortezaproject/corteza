@@ -29,8 +29,8 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 
 ## Map
 
-- Selector contract: v-model holds the entity ID (string); props `placeholder`, `disabled`; options are self-fetched with search.
-- `CInputUser`, `CInputRole`, `CInputUserGroup`, `CInputAgent`, `CInputLLM`, `CInputLabel`, `CInputKnowledgeBase` — SystemAPI-backed selectors (User/Role support exclusion lists; Label/KnowledgeBase can create inline).
+- Selector contract: v-model holds the entity ID (string), or an array of them where the selector offers `multiple`; props `placeholder`, `disabled`; options are self-fetched with search.
+- `CInputUser`, `CInputRole`, `CInputUserGroup`, `CInputAgent`, `CInputLLM`, `CInputLabel`, `CInputKnowledgeBase` — SystemAPI-backed selectors (User/Role support exclusion lists and a `multiple` mode rendering picked entities as chips; Label/KnowledgeBase can create inline).
 - `CInputModel` — model selector scoped to an LLM provider (SystemAPI).
 - `CInputTAQ`, `CInputWorkflow` — AutomationAPI-backed selectors.
 - `CInputNamespace`, `CInputModule`, `CInputChart` — store-backed compose selectors (module/chart scoped by `namespaceID` prop).
