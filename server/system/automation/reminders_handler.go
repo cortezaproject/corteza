@@ -42,6 +42,9 @@ type(
 		// Item loader for additional chunks
 		filter types.ReminderFilter
 		loader func() error
+
+		// Total reported by the first page
+		resTotal uint
 	}
 	reminderLookup interface {
 		GetLookup() (bool, uint64, *types.Reminder)
@@ -91,7 +94,8 @@ func (h remindersHandler) search(ctx context.Context,args *remindersSearchArgs) 
 		f.Limit = uint(args.Limit)
 	}
 
-	f.IncTotal = args.IncTotal
+	// Total cannot be fetched together with a page cursor
+	f.IncTotal = args.IncTotal && f.PageCursor == nil
 
 	var auxf types.ReminderFilter
 	results.Reminders, auxf, err = h.rSvc.Find(ctx, f)
@@ -140,7 +144,15 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 		i.ptr = 0
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
+
+		// Total is fetched with the first page only; a paged query cannot carry it
+		i.filter.IncTotal = i.filter.IncTotal && i.filter.PageCursor == nil
+
 		i.buffer, i.filter, err = h.rSvc.Find(ctx, i.filter)
+		if i.filter.IncTotal {
+			i.resTotal = i.filter.Total
+		}
+
 		return
 	}
 	return i, i.loader()
@@ -266,6 +278,7 @@ func (i *reminderSetIterator) Next(context.Context, *expr.Vars) (out *expr.Vars,
 	reminder := *i.buffer[i.ptr]  // Make a copy
   	reminder.Payload = sqlxtypes.JSONText(string(i.buffer[i.ptr].Payload))
   	out.Set("reminder", Must(NewReminder(&reminder)))
+	out.Set("total", Must(NewInteger(i.resTotal)))
 
 	i.ptr++
 	return out, nil
