@@ -116,6 +116,7 @@ func (h ngRemindersHandler) Search() atypes.ConstructFunction {
 			{ArgumentName: "scheduledOnly", Types: []string{"Boolean"}},
 			{ArgumentName: "sort", Types: []string{"String"}},
 			{ArgumentName: "limit", Types: []string{"UnsignedInteger"}},
+			{ArgumentName: "incTotal", Types: []string{"Boolean"}},
 			{ArgumentName: "pageCursor", Types: []string{"String"}},
 		},
 
@@ -135,6 +136,7 @@ func (h ngRemindersHandler) Search() atypes.ConstructFunction {
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Scheduled Only", Argument: "scheduledOnly"}},
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Sort", Argument: "sort"}},
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Limit", Argument: "limit"}},
+					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Include Total", Argument: "incTotal"}},
 					{Input: atypes.SectionElementInput{Type: "Expression", Label: "Page Cursor", Argument: "pageCursor"}},
 				},
 			}},
@@ -148,6 +150,7 @@ func (h ngRemindersHandler) Search() atypes.ConstructFunction {
 				hasScheduledOnly:    in.Has("scheduledOnly"),
 				hasSort:             in.Has("sort"),
 				hasLimit:            in.Has("limit"),
+				hasIncTotal:         in.Has("incTotal"),
 				hasPageCursor:       in.Has("pageCursor"),
 			}
 
