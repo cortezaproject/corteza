@@ -26,6 +26,13 @@ set -euo pipefail
 AGENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$AGENT_DIR/common.sh"
 
+# A worktree's dev/agent/.state is a symlink into the primary, and this script
+# runs from the worktree's own copy as often as the primary's. Resolve it to
+# the directory it points at: every path under the symlink dies with the
+# checkout that `rm` deletes, and `rm -f` on a vanished path succeeds, so the
+# ledger entry and the slot outlive a removal that reported freeing them.
+STATE_DIR="$(cd "$STATE_DIR" && pwd -P)"
+
 MAX_SLOTS=8
 WT_DIR="$STATE_DIR/worktrees"
 mkdir -p "$WT_DIR"
@@ -587,6 +594,20 @@ cmd_rm() {
   pg dropdb --if-exists "$db"
   rm -f "$(meta "$name")"
   release_slot "$slot"
+
+  # The ledger entry and the slot are the two things a removal can silently not
+  # do. Check them at the primary's real path rather than through $WT_DIR: if
+  # that resolved to the deleted checkout, a check written against it asks the
+  # same broken question and answers "gone" about a file that is still there.
+  # $primary was resolved before the checkout was removed; resolving it again
+  # here would run git inside the directory this function just deleted.
+  local real_wt residue=""
+  real_wt="$primary/dev/agent/.state/worktrees"
+  if [[ -e "$real_wt/$name.json" ]]; then residue="ledger entry $real_wt/$name.json"; fi
+  if [[ -e "$real_wt/.slot-$slot" ]]; then residue="${residue:+$residue and }slot $slot"; fi
+  if [[ -n "$residue" ]]; then
+    die "checkout and database $db are gone, but $residue survived — the run cannot report this removed"
+  fi
 
   if [[ -n "$keep_branch" ]]; then
     echo "removed '$name' (checkout, database $db, slot freed); branch kept"
