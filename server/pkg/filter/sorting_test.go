@@ -130,3 +130,40 @@ func TestSortUmarshaling(t *testing.T) {
 		})
 	}
 }
+
+// TestParseSortRefusesAnUnknownModifier pins the case the old guard could not
+// reach: it tested s.modifier, which is only ever assigned in the COALESCE
+// branch, so for a fresh expression the check was dead and "nonsense(createdAt)"
+// parsed to a bare "createdAt" — a typo silently changing the ordering instead
+// of failing.
+func TestParseSortRefusesAnUnknownModifier(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		wantErr bool
+	}{
+		{name: "no modifier", in: "createdAt DESC"},
+		{name: "the one known modifier", in: "coalesce(deletedAt, updatedAt, createdAt) DESC"},
+		{name: "modifier casing is not significant", in: "COALESCE(deletedAt, createdAt)"},
+		{name: "a typo is refused, not dropped", in: "coalese(createdAt)", wantErr: true},
+		{name: "an invented modifier is refused", in: "nonsense(createdAt)", wantErr: true},
+		{name: "a bad modifier on a later term still fails", in: "createdAt, nonsense(updatedAt)", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			set, err := parseSort(tt.in)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("parseSort(%q) = %v, want an error", tt.in, set.String())
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("parseSort(%q) returned %v", tt.in, err)
+			}
+		})
+	}
+}
