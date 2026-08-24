@@ -45,6 +45,7 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return setUsersTheme(ctx, log.Named("users.theme"), s) },
 		func() error { return updateWebappTheme(ctx, log.Named("webapp.themes"), s) },
 		func() error { return setDefaultUserGroupRefs(ctx, log.Named("user-group.references"), s, authOpt) },
+		func() error { return contextRoleTypes(ctx, log.Named("roles.context"), s, provisionOpt.Path) },
 	}
 
 	for _, fn := range ffn {
