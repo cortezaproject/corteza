@@ -66,8 +66,12 @@ func (svc reminder) Find(ctx context.Context, filter types.ReminderFilter) (rr t
 		raProps = &reminderActionProps{filter: &filter}
 	)
 
-	filter.Check = func(r *types.Reminder) (bool, error) {
-		return !svc.checkAssignTo(ctx, r), nil
+	// Users that are allowed to assign reminders to others can also
+	// search through reminders of other users
+	if !svc.ac.CanAssignReminder(ctx) {
+		filter.Check = func(r *types.Reminder) (bool, error) {
+			return !svc.checkAssignTo(ctx, r), nil
+		}
 	}
 
 	err = func() (err error) {
