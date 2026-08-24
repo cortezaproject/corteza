@@ -236,8 +236,9 @@ func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (result
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.PageCursor = &filter.PagingCursor{}
+		if err = f.PageCursor.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
@@ -279,8 +280,9 @@ func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (out wfexec
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.NextPage = &filter.PagingCursor{}
+		if err = f.NextPage.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}

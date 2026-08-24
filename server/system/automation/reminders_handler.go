@@ -8,6 +8,7 @@ import (
 	intAuth "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/expr"
 	. "github.com/crusttech/human/server/pkg/expr"
+	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/wfexec"
 	"github.com/crusttech/human/server/system/types"
 	sqlxtypes "github.com/jmoiron/sqlx/types"
@@ -84,8 +85,9 @@ func (h remindersHandler) search(ctx context.Context, args *remindersSearchArgs)
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.PageCursor = &filter.PagingCursor{}
+		if err = f.PageCursor.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
@@ -117,8 +119,9 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 			return
 		}
 	}
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.NextPage = &filter.PagingCursor{}
+		if err = f.NextPage.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
