@@ -186,6 +186,7 @@ func (e YamlEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, nod
 		"deletedAt", auxDeletedAt,
 		"handle", res.Handle,
 		"chartID", res.ID,
+		"meta", res.Meta,
 		"name", res.Name,
 		"namespaceID", auxNamespaceID,
 		"projectID", res.ProjectID,

@@ -48,6 +48,9 @@
   "name": "string",
   "enabled": "bool",
   "weight": "int",
+  "meta": {
+  "description": "string"
+},
   "unify": {
   "name": "string",
   "listed": "bool",
@@ -1252,6 +1255,9 @@
   "projectID": "uint64",
   "namespaceID": "uint64",
   "name": "string",
+  "meta": {
+  "description": "string"
+},
   "config": {
   "reports": "*ChartConfigReport",
   "colorScheme": "string",

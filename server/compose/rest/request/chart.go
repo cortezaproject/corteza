@@ -91,6 +91,11 @@ type (
 		// Chart JSON
 		Config sqlxTypes.JSONText
 
+		// Meta POST parameter
+		//
+		// Chart meta data
+		Meta sqlxTypes.JSONText
+
 		// Name POST parameter
 		//
 		// Chart name
@@ -134,6 +139,11 @@ type (
 		//
 		// Chart JSON
 		Config sqlxTypes.JSONText
+
+		// Meta POST parameter
+		//
+		// Chart meta data
+		Meta sqlxTypes.JSONText
 
 		// Name POST parameter
 		//
@@ -338,6 +348,7 @@ func (r ChartCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"config":      r.Config,
+		"meta":        r.Meta,
 		"name":        r.Name,
 		"handle":      r.Handle,
 		"labels":      r.Labels,
@@ -352,6 +363,11 @@ func (r ChartCreate) GetNamespaceID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ChartCreate) GetConfig() sqlxTypes.JSONText {
 	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChartCreate) GetMeta() sqlxTypes.JSONText {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -397,6 +413,13 @@ func (r *ChartCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
+				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
 				r.Name, err = val[0], nil
 				if err != nil {
@@ -434,6 +457,13 @@ func (r *ChartCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["config"]; ok && len(val) > 0 {
 			r.Config, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
+			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}
@@ -539,6 +569,7 @@ func (r ChartUpdate) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"chartID":     r.ChartID,
 		"config":      r.Config,
+		"meta":        r.Meta,
 		"name":        r.Name,
 		"handle":      r.Handle,
 		"labels":      r.Labels,
@@ -559,6 +590,11 @@ func (r ChartUpdate) GetChartID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ChartUpdate) GetConfig() sqlxTypes.JSONText {
 	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChartUpdate) GetMeta() sqlxTypes.JSONText {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -609,6 +645,13 @@ func (r *ChartUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
+				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
 				r.Name, err = val[0], nil
 				if err != nil {
@@ -653,6 +696,13 @@ func (r *ChartUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["config"]; ok && len(val) > 0 {
 			r.Config, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
+			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}

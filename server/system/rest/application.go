@@ -99,6 +99,13 @@ func (ctrl Application) makeFilter(ctx context.Context, r *request.ApplicationLi
 func (ctrl Application) beforeCreate(ctx context.Context, res *types.Application, r *request.ApplicationCreate) error {
 	res.Labels = r.Labels
 
+	if r.Meta != nil {
+		res.Meta = &types.ApplicationMeta{}
+		if err := r.Meta.Unmarshal(res.Meta); err != nil {
+			return err
+		}
+	}
+
 	if r.Unify != nil {
 		res.Unify = &types.ApplicationUnify{}
 		if err := r.Unify.Unmarshal(res.Unify); err != nil {
@@ -114,6 +121,13 @@ func (ctrl Application) beforeCreate(ctx context.Context, res *types.Application
 // already mapped the plain-value params (and ID/UpdatedAt).
 func (ctrl Application) beforeUpdate(ctx context.Context, res *types.Application, r *request.ApplicationUpdate) error {
 	res.Labels = r.Labels
+
+	if r.Meta != nil {
+		res.Meta = &types.ApplicationMeta{}
+		if err := r.Meta.Unmarshal(res.Meta); err != nil {
+			return err
+		}
+	}
 
 	if r.Unify != nil {
 		res.Unify = &types.ApplicationUnify{}

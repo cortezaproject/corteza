@@ -14,6 +14,10 @@ import { Apply, HumanID, ISO8601Date, NoID } from '../../../cast'
 
 export type PartialChart = Partial<BaseChart>
 
+export interface ChartMeta {
+  description?: string
+}
+
 // The default dataset post processing function to use.
 // This one simply returns the current value.
 const defaultFx = 'n'
@@ -37,6 +41,8 @@ export class BaseChart {
   public canGrant = false
 
   public config: ChartConfig = {}
+
+  public meta: ChartMeta = {}
 
   constructor(def: PartialChart = {}) {
     this.merge(def)
@@ -105,7 +111,7 @@ export class BaseChart {
     Apply(this, c, String, 'name', 'handle')
     Apply(this, c, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, c, Boolean, 'canUpdateChart', 'canDeleteChart', 'canGrant')
-    Apply(this, c, Object, 'config')
+    Apply(this, c, Object, 'config', 'meta')
 
     if (typeof c.config === 'object') {
       // Verify & normalize

@@ -24,6 +24,7 @@ type (
 		Name      string                           `json:"name"`
 		Enabled   bool                             `json:"enabled"`
 		Weight    int                              `json:"weight"`
+		Meta      *ApplicationMeta                 `json:"meta,omitempty"`
 		Unify     *ApplicationUnify                `json:"unify,omitempty"`
 		OwnerID   uint64                           `json:"ownerID"`
 		CreatedAt time.Time                        `json:"createdAt,omitempty"`
@@ -31,6 +32,10 @@ type (
 		DeletedAt *time.Time                       `json:"deletedAt,omitempty"`
 		Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 		Flags     []string                         `json:"flags,omitempty"`
+	}
+
+	ApplicationMeta struct {
+		Description string `json:"description,omitempty"`
 	}
 
 	ApplicationUnify struct {
@@ -47,6 +52,10 @@ type (
 
 func (r Application) Clone() *Application {
 	dup := r
+	if r.Meta != nil {
+		dup.Meta = r.Meta.Clone()
+	}
+
 	if r.Unify != nil {
 		dup.Unify = r.Unify.Clone()
 	}
@@ -103,6 +112,15 @@ func (r Application) Diff(cmp *Application) []*revisions.Change {
 		out = append(out, &revisions.Change{Key: "weight", Old: []any{cmp.Weight}, New: []any{r.Weight}})
 	}
 
+	if (r.Meta == nil) != (cmp.Meta == nil) {
+		out = append(out, &revisions.Change{Key: "meta", Old: []any{cmp.Meta}, New: []any{r.Meta}})
+	} else if r.Meta != nil {
+		for _, c := range r.Meta.Diff(cmp.Meta) {
+			c.Key = "meta." + c.Key
+			out = append(out, c)
+		}
+	}
+
 	if (r.Unify == nil) != (cmp.Unify == nil) {
 		out = append(out, &revisions.Change{Key: "unify", Old: []any{cmp.Unify}, New: []any{r.Unify}})
 	} else if r.Unify != nil {
@@ -136,6 +154,26 @@ func (r Application) Diff(cmp *Application) []*revisions.Change {
 	}
 	return out
 }
+
+func (r ApplicationMeta) Clone() *ApplicationMeta {
+	dup := r
+	return &dup
+}
+
+func (r ApplicationMeta) Diff(cmp *ApplicationMeta) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ApplicationMeta{}
+	}
+	if r.Description != cmp.Description {
+		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	return out
+}
+
+func (r *ApplicationMeta) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ApplicationMeta) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (r ApplicationUnify) Clone() *ApplicationUnify {
 	dup := r
@@ -184,6 +222,13 @@ func (r ApplicationUnify) Diff(cmp *ApplicationUnify) []*revisions.Change {
 
 func (r *ApplicationUnify) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ApplicationUnify) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func ParseApplicationMeta(ss []string) (p ApplicationMeta, err error) {
+	if len(ss) == 0 {
+		return
+	}
+	return p, json.Unmarshal([]byte(ss[0]), &p)
+}
 
 func ParseApplicationUnify(ss []string) (p ApplicationUnify, err error) {
 	if len(ss) == 0 {

@@ -100,6 +100,10 @@ func (svc *application) beforeCreate(ctx context.Context, new *types.Application
 		return err
 	}
 
+	if new.Meta == nil {
+		new.Meta = &types.ApplicationMeta{}
+	}
+
 	if new.Unify == nil {
 		new.Unify = &types.ApplicationUnify{}
 	}
@@ -110,6 +114,10 @@ func (svc *application) beforeCreate(ctx context.Context, new *types.Application
 func (svc *application) beforeUpdate(ctx context.Context, upd, res *types.Application) error {
 	if err := svc.services.eventbus.WaitFor(ctx, event.ApplicationBeforeUpdate(upd, res)); err != nil {
 		return err
+	}
+
+	if upd.Meta != nil {
+		res.Meta = upd.Meta
 	}
 
 	if upd.Unify != nil {

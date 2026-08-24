@@ -226,6 +226,7 @@ func (e YamlEncoder) encodeApplication(ctx context.Context, p envoyx.EncodeParam
 		"deletedAt", auxDeletedAt,
 		"enabled", res.Enabled,
 		"id", res.ID,
+		"meta", res.Meta,
 		"name", res.Name,
 		"ownerID", auxOwnerID,
 		"projectID", res.ProjectID,

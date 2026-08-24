@@ -35,7 +35,7 @@ classes, never with raw API payloads.
 - `types/record.ts` — `Record`: the central class; versatile ctor accepts Record/Module/partial/value combos in either argument order.
 - `types/module.ts`, `types/module-field/` — `Module` + one field class per kind (String, Number, Record, User, …); field classes own default values and multi-value semantics.
 - `types/namespace.ts`, `types/page.ts`, `types/page-layout.ts`, `types/page-block/` — page tree; one block class per page-block kind, registered in `page-block/index.ts`. A class also owns its kind's required options: `validate()` returns a `BlockIssue` per option the block cannot render without, and the page builder is the reader.
-- `types/chart/` — chart config classes (generic, funnel, gauge, radar).
+- `types/chart/` — chart config classes (generic, funnel, gauge, radar). `BaseChart.meta.description` is the chart's blurb, separate from `config`, which stays the rendering definition.
 - `types/revision.ts` — record revision types.
 - `events.ts` — compose event/trigger constructors for the eventbus; `helpers/idgen.ts` — `tempID-…` UID generator for not-yet-saved entities; `helpers/interpolate.ts` — `interpolateTemplate` evaluates a JS template literal against record/user variables.
 

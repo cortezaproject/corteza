@@ -189,6 +189,14 @@ var Chart = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
 			Ident: "Config",
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "config"},

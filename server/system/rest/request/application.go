@@ -105,6 +105,11 @@ type (
 		// Weight for sorting
 		Weight int
 
+		// Meta POST parameter
+		//
+		// Application meta data
+		Meta sqlxTypes.JSONText
+
 		// Unify POST parameter
 		//
 		// Unify properties
@@ -141,6 +146,11 @@ type (
 		//
 		// Weight for sorting
 		Weight int
+
+		// Meta POST parameter
+		//
+		// Application meta data
+		Meta sqlxTypes.JSONText
 
 		// Unify POST parameter
 		//
@@ -419,6 +429,7 @@ func (r ApplicationCreate) Auditable() map[string]interface{} {
 		"name":    r.Name,
 		"enabled": r.Enabled,
 		"weight":  r.Weight,
+		"meta":    r.Meta,
 		"unify":   r.Unify,
 		"config":  r.Config,
 		"labels":  r.Labels,
@@ -438,6 +449,11 @@ func (r ApplicationCreate) GetEnabled() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationCreate) GetWeight() int {
 	return r.Weight
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationCreate) GetMeta() sqlxTypes.JSONText {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -492,6 +508,13 @@ func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["weight"]; ok && len(val) > 0 {
 				r.Weight, err = payload.ParseInt(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
+				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 				if err != nil {
 					return err
 				}
@@ -553,6 +576,13 @@ func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
+			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["unify"]; ok && len(val) > 0 {
 			r.Unify, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
@@ -595,6 +625,7 @@ func (r ApplicationUpdate) Auditable() map[string]interface{} {
 		"name":          r.Name,
 		"enabled":       r.Enabled,
 		"weight":        r.Weight,
+		"meta":          r.Meta,
 		"unify":         r.Unify,
 		"config":        r.Config,
 		"labels":        r.Labels,
@@ -620,6 +651,11 @@ func (r ApplicationUpdate) GetEnabled() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationUpdate) GetWeight() int {
 	return r.Weight
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationUpdate) GetMeta() sqlxTypes.JSONText {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -684,6 +720,13 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
+				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["unify"]; ok && len(val) > 0 {
 				r.Unify, err = payload.ParseJSONTextWithErr(val[0])
 				if err != nil {
@@ -742,6 +785,13 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
 			r.Weight, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
+			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}

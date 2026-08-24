@@ -1542,6 +1542,10 @@ endpoints:
               type: int
               required: false
               title: Weight for sorting
+            - name: meta
+              type: sqlxTypes.JSONText
+              required: false
+              title: Application meta data
             - name: unify
               type: sqlxTypes.JSONText
               required: false
@@ -1577,6 +1581,10 @@ endpoints:
               type: int
               required: false
               title: Weight for sorting
+            - name: meta
+              type: sqlxTypes.JSONText
+              required: false
+              title: Application meta data
             - name: unify
               type: sqlxTypes.JSONText
               required: false

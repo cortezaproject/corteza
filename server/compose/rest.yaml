@@ -1452,6 +1452,10 @@ endpoints:
         name: config
         required: true
         title: Chart JSON
+      - type: sqlxTypes.JSONText
+        name: meta
+        required: false
+        title: Chart meta data
       - name: name
         title: Chart name
         type: string
@@ -1489,6 +1493,10 @@ endpoints:
         name: config
         required: true
         title: Chart JSON
+      - type: sqlxTypes.JSONText
+        name: meta
+        required: false
+        title: Chart meta data
       - name: name
         title: Chart name
         type: string

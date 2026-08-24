@@ -3522,7 +3522,7 @@ export default class System {
 
   // Create application
   async applicationCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { name, enabled, weight, unify, config, labels } = (a as KV) || {}
+    const { name, enabled, weight, meta, unify, config, labels } = (a as KV) || {}
     if (!name) {
       throw Error('field name is empty')
     }
@@ -3535,6 +3535,7 @@ export default class System {
       name,
       enabled,
       weight,
+      meta,
       unify,
       config,
       labels,
@@ -3565,7 +3566,7 @@ export default class System {
 
   // Update user details
   async applicationUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { applicationID, name, enabled, weight, unify, config, labels, updatedAt } =
+    const { applicationID, name, enabled, weight, meta, unify, config, labels, updatedAt } =
       (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
@@ -3584,6 +3585,7 @@ export default class System {
       name,
       enabled,
       weight,
+      meta,
       unify,
       config,
       labels,

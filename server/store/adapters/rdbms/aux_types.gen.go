@@ -127,6 +127,7 @@ type (
 		Name      string                       `db:"name"`
 		Enabled   bool                         `db:"enabled"`
 		Weight    int                          `db:"weight"`
+		Meta      *systemType.ApplicationMeta  `db:"meta"`
 		Unify     *systemType.ApplicationUnify `db:"unify"`
 		OwnerID   uint64                       `db:"owner_id"`
 		CreatedAt time.Time                    `db:"created_at"`
@@ -392,6 +393,7 @@ type (
 		ProjectID   uint64                  `db:"project_id"`
 		NamespaceID uint64                  `db:"namespace_id"`
 		Name        string                  `db:"name"`
+		Meta        *composeType.ChartMeta  `db:"meta"`
 		Config      composeType.ChartConfig `db:"config"`
 		CreatedAt   time.Time               `db:"created_at"`
 		UpdatedAt   *time.Time              `db:"updated_at"`
@@ -1611,6 +1613,7 @@ func (aux *auxApplication) encode(res *systemType.Application) (_ error) {
 	aux.Name = res.Name
 	aux.Enabled = res.Enabled
 	aux.Weight = res.Weight
+	aux.Meta = res.Meta
 	aux.Unify = res.Unify
 	aux.OwnerID = res.OwnerID
 	aux.CreatedAt = res.CreatedAt
@@ -1630,6 +1633,7 @@ func (aux auxApplication) decode() (res *systemType.Application, _ error) {
 	res.Name = aux.Name
 	res.Enabled = aux.Enabled
 	res.Weight = aux.Weight
+	res.Meta = aux.Meta
 	res.Unify = aux.Unify
 	res.OwnerID = aux.OwnerID
 	res.CreatedAt = aux.CreatedAt
@@ -1649,6 +1653,7 @@ func (aux *auxApplication) scan(row scanner) error {
 		&aux.Name,
 		&aux.Enabled,
 		&aux.Weight,
+		&aux.Meta,
 		&aux.Unify,
 		&aux.OwnerID,
 		&aux.CreatedAt,
@@ -2571,6 +2576,7 @@ func (aux *auxComposeChart) encode(res *composeType.Chart) (_ error) {
 	aux.ProjectID = res.ProjectID
 	aux.NamespaceID = res.NamespaceID
 	aux.Name = res.Name
+	aux.Meta = res.Meta
 	aux.Config = res.Config
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
@@ -2589,6 +2595,7 @@ func (aux auxComposeChart) decode() (res *composeType.Chart, _ error) {
 	res.ProjectID = aux.ProjectID
 	res.NamespaceID = aux.NamespaceID
 	res.Name = aux.Name
+	res.Meta = aux.Meta
 	res.Config = aux.Config
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
@@ -2607,6 +2614,7 @@ func (aux *auxComposeChart) scan(row scanner) error {
 		&aux.ProjectID,
 		&aux.NamespaceID,
 		&aux.Name,
+		&aux.Meta,
 		&aux.Config,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,

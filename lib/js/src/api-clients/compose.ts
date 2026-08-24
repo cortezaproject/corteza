@@ -3453,7 +3453,7 @@ export default class Compose {
 
   // List/read charts
   async chartCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, config, name, handle, labels } = (a as KV) || {}
+    const { namespaceID, config, meta, name, handle, labels } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3472,6 +3472,7 @@ export default class Compose {
     }
     cfg.data = {
       config,
+      meta,
       name,
       handle,
       labels,
@@ -3546,7 +3547,7 @@ export default class Compose {
 
   // Add/update charts
   async chartUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, chartID, config, name, handle, labels, updatedAt } = (a as KV) || {}
+    const { namespaceID, chartID, config, meta, name, handle, labels, updatedAt } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3569,6 +3570,7 @@ export default class Compose {
     }
     cfg.data = {
       config,
+      meta,
       name,
       handle,
       labels,

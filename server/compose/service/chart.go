@@ -130,6 +130,10 @@ func (svc *chart) onUpdate(ctx context.Context, s store.Storer, upd, res *types.
 	res.Config = upd.Config
 	res.Config.GenerateIDs(nextID)
 
+	if upd.Meta != nil {
+		res.Meta = upd.Meta
+	}
+
 	if err := updateTranslations(ctx, svc.ac, svc.services.locale, res.EncodeTranslations()...); err != nil {
 		return err
 	}

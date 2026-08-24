@@ -90,6 +90,13 @@ func (ctrl Chart) beforeCreate(ctx context.Context, res *types.Chart, r *request
 		}
 	}
 
+	if len(r.Meta) > 2 {
+		res.Meta = &types.ChartMeta{}
+		if err := r.Meta.Unmarshal(res.Meta); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -100,6 +107,13 @@ func (ctrl Chart) beforeCreate(ctx context.Context, res *types.Chart, r *request
 func (ctrl Chart) beforeUpdate(ctx context.Context, res *types.Chart, r *request.ChartUpdate) error {
 	if len(r.Config) > 2 {
 		if err := r.Config.Unmarshal(&res.Config); err != nil {
+			return err
+		}
+	}
+
+	if len(r.Meta) > 2 {
+		res.Meta = &types.ChartMeta{}
+		if err := r.Meta.Unmarshal(res.Meta); err != nil {
 			return err
 		}
 	}

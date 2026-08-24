@@ -5,6 +5,9 @@ import (
 )
 
 _chartDefs: {
+	ChartMeta: {name: "ChartMeta", fields: [
+		{name: "Description", type: "string", json: "description,omitempty"},
+	]}
 	ChartConfig: {name: "ChartConfig", fields: [
 				{name: "Reports", goType:   "[]*ChartConfigReport", json:   "reports,omitempty"},
 				{name: "ColorScheme", type: "string", json:                 "colorScheme,omitempty"},
@@ -72,6 +75,14 @@ chart: {
 			name: {
 				sortable: true
 				dal: {}
+			}
+			meta: {
+				type: _chartDefs.ChartMeta
+				ptr:  true
+				dal: {type: "JSON", defaultEmptyObject: true}
+				omitSetter: true
+				omitGetter: true
+				json: {field: "meta", omitEmpty: true}
 			}
 			config: {
 				type: _chartDefs.ChartConfig

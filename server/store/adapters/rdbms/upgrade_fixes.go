@@ -88,6 +88,8 @@ var (
 		fix_2026_07_31_addApprovalOnProjects,
 		fix_2026_08_06_addCreatedByOnComposeNamespace,
 		fix_2026_08_14_addPrimaryLayoutToLayoutlessPages,
+		fix_2026_08_24_addMetaOnApplications,
+		fix_2026_08_24_addMetaOnComposeCharts,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -374,6 +376,17 @@ func fix_2026_04_00_addChatbotColumnToAgents(ctx context.Context, s *Store) (err
 			Store: &dal.CodecAlias{Ident: "chatbot"},
 		},
 	)
+}
+
+// Applications and charts describe themselves. Both are listed by name alone
+// today, so an admin picking between two similarly named ones has nothing to
+// go on. Existing rows get an empty meta object.
+func fix_2026_08_24_addMetaOnApplications(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s, systemModel.Application.Ident, systemModel.Application.Attributes.FindByIdent("Meta"))
+}
+
+func fix_2026_08_24_addMetaOnComposeCharts(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s, model.Chart.Ident, model.Chart.Attributes.FindByIdent("Meta"))
 }
 
 func fix_2026_05_00_addSourceOnConnections(ctx context.Context, s *Store) (err error) {

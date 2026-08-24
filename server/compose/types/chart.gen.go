@@ -24,11 +24,16 @@ type (
 		ProjectID   uint64                           `json:"projectID,string,omitempty"`
 		NamespaceID uint64                           `json:"namespaceID,string"`
 		Name        string                           `json:"name"`
+		Meta        *ChartMeta                       `json:"meta,omitempty"`
 		Config      ChartConfig                      `json:"config"`
 		CreatedAt   time.Time                        `json:"createdAt,omitempty"`
 		UpdatedAt   *time.Time                       `json:"updatedAt,omitempty"`
 		DeletedAt   *time.Time                       `json:"deletedAt,omitempty"`
 		Labels      map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+	}
+
+	ChartMeta struct {
+		Description string `json:"description,omitempty"`
 	}
 
 	ChartConfig struct {
@@ -41,6 +46,10 @@ type (
 
 func (r Chart) Clone() *Chart {
 	dup := r
+	if r.Meta != nil {
+		dup.Meta = r.Meta.Clone()
+	}
+
 	dup.Config = *r.Config.Clone()
 
 	if r.UpdatedAt != nil {
@@ -91,6 +100,15 @@ func (r Chart) Diff(cmp *Chart) []*revisions.Change {
 		out = append(out, &revisions.Change{Key: "name", Old: []any{cmp.Name}, New: []any{r.Name}})
 	}
 
+	if (r.Meta == nil) != (cmp.Meta == nil) {
+		out = append(out, &revisions.Change{Key: "meta", Old: []any{cmp.Meta}, New: []any{r.Meta}})
+	} else if r.Meta != nil {
+		for _, c := range r.Meta.Diff(cmp.Meta) {
+			c.Key = "meta." + c.Key
+			out = append(out, c)
+		}
+	}
+
 	for _, c := range r.Config.Diff(&cmp.Config) {
 		c.Key = "config." + c.Key
 		out = append(out, c)
@@ -113,6 +131,26 @@ func (r Chart) Diff(cmp *Chart) []*revisions.Change {
 	}
 	return out
 }
+
+func (r ChartMeta) Clone() *ChartMeta {
+	dup := r
+	return &dup
+}
+
+func (r ChartMeta) Diff(cmp *ChartMeta) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ChartMeta{}
+	}
+	if r.Description != cmp.Description {
+		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	return out
+}
+
+func (r *ChartMeta) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ChartMeta) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (r ChartConfig) Clone() *ChartConfig {
 	dup := r
@@ -157,3 +195,10 @@ func (r ChartConfig) Diff(cmp *ChartConfig) []*revisions.Change {
 
 func (r *ChartConfig) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ChartConfig) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func ParseChartMeta(ss []string) (p ChartMeta, err error) {
+	if len(ss) == 0 {
+		return
+	}
+	return p, json.Unmarshal([]byte(ss[0]), &p)
+}

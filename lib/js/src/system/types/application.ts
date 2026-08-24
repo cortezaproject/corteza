@@ -9,6 +9,10 @@ interface PartialApplication extends Partial<
   deletedAt?: string | number | Date
 }
 
+interface Meta {
+  description: string
+}
+
 interface Unify {
   name: string
   listed: boolean
@@ -24,6 +28,10 @@ export class Application {
   public ownerID?: number = 0
   public enabled = false
   public weight?: number = 0
+
+  public meta?: Meta = {
+    description: '',
+  }
 
   public unify?: Unify = {
     name: '',
@@ -61,6 +69,10 @@ export class Application {
       'canUpdateApplication',
       'canDeleteApplication',
     )
+
+    if (r && IsOf(r, 'meta')) {
+      this.meta = { ...this.meta, ...r.meta }
+    }
 
     if (r && IsOf(r, 'unify')) {
       this.unify = { ...this.unify, ...r.unify }

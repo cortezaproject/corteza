@@ -657,6 +657,14 @@ var Application = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
 			Ident: "Unify",
 			Type: &dal.TypeJSON{
 				DefaultValue: "{}",

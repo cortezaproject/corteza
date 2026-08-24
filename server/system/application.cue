@@ -5,6 +5,9 @@ import (
 )
 
 _applicationDefs: {
+			ApplicationMeta: { name: "ApplicationMeta", fields: [
+				{ name: "Description", type: "string", json: "description,omitempty" },
+			]}
 			ApplicationUnify: { name: "ApplicationUnify", fields: [
 				{ name: "Name", type: "string", json: "name,omitempty" },
 				{ name: "Listed", type: "bool", json: "listed" },
@@ -44,6 +47,14 @@ application: {
 				goType: "int",
 				sortable: true
 				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
+			}
+			meta: {
+				type: _applicationDefs.ApplicationMeta
+				ptr: true
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				json: { field: "meta", omitEmpty: true }
 			}
 			unify: {
 				type: _applicationDefs.ApplicationUnify
