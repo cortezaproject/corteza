@@ -245,11 +245,13 @@
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePermissions } from '../../composables/usePermissions'
+import { useUserResolver } from '../../composables/useUserResolver'
 import CInputRole from '../input/CInputRole.vue'
 import CInputUser from '../input/CInputUser.vue'
 
 const { t, te } = useI18n()
 const { visible, options, close } = usePermissions()
+const { formatUser, resolveUser } = useUserResolver()
 
 const $SystemAPI = inject('$SystemAPI', null)
 const $ComposeAPI = inject('$ComposeAPI', null)
@@ -624,9 +626,9 @@ async function readRoleNames(roleIDList) {
 }
 
 async function readUserName(userID) {
-  if (!userID || !$SystemAPI) return null
-  const user = await $SystemAPI.userRead({ userID }).catch(() => null)
-  return user ? user.name || user.username || user.email || user.userID : null
+  if (!userID) return null
+  const user = await resolveUser(userID)
+  return user ? formatUser(user) : null
 }
 
 // Whether the people a column compares against still exist.

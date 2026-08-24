@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { defineComponent } from 'vue'
 
 // The evaluation columns say who a comparison is against; the accesses they
@@ -75,6 +76,7 @@ async function openDialog(resource: string) {
   if (!wrapper) {
     wrapper = mount(Host, {
       global: {
+        plugins: [createPinia()],
         directives: { tooltip: {} },
         provide: {
           $SystemAPI,

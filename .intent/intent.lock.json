@@ -4166,10 +4166,15 @@
       "doc": "lib/vue/src/components/permissions/permissions.intent.md",
       "t": "2026-07-23"
     },
-    "lib/vue/src/components/permissions/CPermissionsDialog.vue": {
-      "h": "7f3c72b712cc",
+    "lib/vue/src/components/permissions/CPermissionsDialog.eval-columns.test.ts": {
+      "h": "c850facbf695",
       "doc": "lib/vue/src/components/permissions/permissions.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
+    },
+    "lib/vue/src/components/permissions/CPermissionsDialog.vue": {
+      "h": "9298702828eb",
+      "doc": "lib/vue/src/components/permissions/permissions.intent.md",
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/permissions/index.ts": {
       "h": "694f59f55d8b",
