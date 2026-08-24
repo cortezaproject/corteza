@@ -35,6 +35,20 @@
             <InputText id="name" name="name" v-model="application.name" :disabled="!canEdit" />
           </CFormGroup>
 
+          <CFormGroup
+            :label="$t('system.applications.editor.info.description')"
+            input-id="description"
+            class="md:col-span-2"
+          >
+            <Textarea
+              id="description"
+              v-model="application.meta.description"
+              rows="3"
+              autoResize
+              :disabled="!canEdit"
+            />
+          </CFormGroup>
+
           <CInputToggleCard
             v-model="application.enabled"
             :label="$t('system.applications.editor.info.enabled')"
@@ -237,6 +251,7 @@ async function handleSubmit({ valid }) {
       name: application.value.name,
       enabled: application.value.enabled,
       weight: application.value.weight,
+      meta: application.value.meta,
       unify: application.value.unify,
     }
 

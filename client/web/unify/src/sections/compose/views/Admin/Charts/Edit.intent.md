@@ -17,14 +17,17 @@ tests: []
 
 ## Intention
 
-Define a chart: general settings (name, handle, color scheme, animation,
-toolbox), the category-specific report (module, dimensions, metrics), and see
-the result immediately in a live preview fed by real record data.
+Define a chart: general settings (name, handle, description, color scheme,
+animation, toolbox), the category-specific report (module, dimensions,
+metrics), and see the result immediately in a live preview fed by real record
+data.
 
 ## UX capabilities
 
 - Report sub-editor chosen by chart class (generic/funnel/gauge/radar); the draft report is provided to it via `reportDraft`.
 - Live preview renders through `ChartRenderer` with `$ComposeAPI.recordReport` as reporter; manual refresh disabled until every report has a module.
+- Description is free text on `meta.description`, kept off `config` so the
+  chart's blurb and its rendering definition stay separable.
 - Name required, handle validated; save hidden when the user lacks `canUpdateChart`; save-as-copy clones with blank handle; delete returns to the list.
 - Edit mode extras: translator in the topbar, export as JSON, per-chart permissions button; unsaved-changes guard throughout.
 

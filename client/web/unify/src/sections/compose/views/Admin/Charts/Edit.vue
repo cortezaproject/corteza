@@ -71,6 +71,21 @@
                   />
                 </CFormGroup>
 
+                <CFormGroup
+                  :label="$t('chart.description')"
+                  input-id="description"
+                  class="lg:col-span-2"
+                >
+                  <Textarea
+                    id="description"
+                    v-model="chart.meta.description"
+                    :placeholder="$t('chart.general.placeholder.description')"
+                    rows="2"
+                    autoResize
+                    class="w-full"
+                  />
+                </CFormGroup>
+
                 <CFormGroup :label="$t('chart.colorScheme.label')" input-id="colorScheme">
                   <Select
                     id="colorScheme"

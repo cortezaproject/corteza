@@ -16,13 +16,14 @@ tests: []
 
 ## Intention
 
-Create or edit one application: its name/enabled state plus how it presents
-in the unified shell (display name, URL, listed flag, logo).
+Create or edit one application: its name, description and enabled state plus
+how it presents in the unified shell (display name, URL, listed flag, logo).
 
 ## UX capabilities
 
-- Name is required; enabled toggle; unify panel with display name, URL, and
-  "listed" visibility toggle.
+- Name is required; free-text description (`meta.description`, what the list
+  shows under the name); enabled toggle; unify panel with display name, URL,
+  and "listed" visibility toggle.
 - Logo via drag-and-drop upload to the application attachment endpoint;
   preview resolves through `resolveAppLogoUrl` + the built-in icon map;
   only custom logos are clearable — built-in default icons are not.

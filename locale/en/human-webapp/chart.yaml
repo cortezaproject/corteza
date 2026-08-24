@@ -258,10 +258,12 @@ general:
     permissions: Permissions
     title: Label
   placeholder:
+    description: What this chart shows and when to use it
     handle: Unique identifier (a - z, 0 - 9, underscore, dash)
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
     name: Name (e.g. "Sales by month")
   value: Value
+description: Description
 generalSettings: General settings
 handle: Handle
 import: 'Import chart(s):'

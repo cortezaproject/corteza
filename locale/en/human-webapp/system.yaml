@@ -244,6 +244,7 @@ applications:
       createdBy: Created by
       delete: Delete
       deletedAt: Deleted at
+      description: Description
       enabled: Enabled
       enabledDescription: When disabled, users cannot access this application
       id: ID

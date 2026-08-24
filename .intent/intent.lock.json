@@ -337,9 +337,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "25f8d58fe7d2",
+      "h": "f9af982ebe3c",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-08-24"
     },
     "client/web/unify/src/sections/admin/views/system/Application/List.vue": {
       "h": "f311fd02e2f5",
@@ -1202,9 +1202,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue": {
-      "h": "53d60a78f15e",
+      "h": "39ca324263ea",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.intent.md",
-      "t": "2026-08-17"
+      "t": "2026-08-24"
     },
     "client/web/unify/src/sections/compose/views/Admin/Charts/List.vue": {
       "h": "b0223d9e553a",
