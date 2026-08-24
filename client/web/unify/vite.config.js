@@ -31,6 +31,33 @@ function getServerUrl() {
   return ''
 }
 
+// Vite watches its own `root` as a directory tree, but reaches lib/js and
+// lib/vue through workspace symlinks outside it and watches those files one by
+// one. A per-file watch does not survive a git write: the first checkout,
+// merge or branch switch delivers its event and drops the watch, and every
+// later change to that file is then invisible — the module keeps serving the
+// transform it had, for the life of the server. When the frozen module is
+// lib/vue's barrel, an export added to it is missing from what the browser
+// gets and the app dies at import with a blank page.
+//
+// Watching the source directories instead is what the app's own `src` already
+// gets, and a directory watch survives what a per-file one does not.
+function watchLibSources() {
+  const dirs = ['../../../lib/js/src', '../../../lib/vue/src'].map(dir =>
+    fileURLToPath(new URL(dir, import.meta.url)),
+  )
+
+  return {
+    name: 'human:watch-lib-sources',
+    apply: 'serve',
+    configureServer(server) {
+      // Braces on purpose: vite calls whatever configureServer returns, and a
+      // returned watcher is not a function.
+      server.watcher.add(dirs)
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const isDevelopment = mode === 'development'
 
@@ -74,7 +101,7 @@ export default defineConfig(({ mode }) => {
         }
       : {},
 
-    plugins: [vue(), vueDevTools()],
+    plugins: [vue(), vueDevTools(), ...(isDevelopment ? [watchLibSources()] : [])],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

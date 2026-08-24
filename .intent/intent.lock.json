@@ -2692,9 +2692,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/vite.config.js": {
-      "h": "5e343e53349a",
+      "h": "3eafafba8b39",
       "doc": "client/web/unify/unify.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
     },
     "client/web/unify/vitest.config.js": {
       "h": "2de12b0e3777",
