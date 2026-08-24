@@ -16,7 +16,12 @@
     @show="onShow"
   >
     <template #option="{ option }">
-      <span>{{ option.name || option.handle || option.chartID }}</span>
+      <div class="flex flex-col">
+        <span>{{ option.name || option.handle || option.chartID }}</span>
+        <small v-if="option.meta?.description" class="text-muted-color truncate max-w-64">
+          {{ option.meta.description }}
+        </small>
+      </div>
     </template>
   </Select>
 </template>

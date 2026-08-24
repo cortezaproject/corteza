@@ -17,7 +17,12 @@
     @show="onShow"
   >
     <template #option="{ option }">
-      <span>{{ option.name }}</span>
+      <div class="flex flex-col">
+        <span>{{ option.name }}</span>
+        <small v-if="option.meta?.description" class="text-muted-color truncate max-w-64">
+          {{ option.meta.description }}
+        </small>
+      </div>
     </template>
   </MultiSelect>
 
@@ -40,7 +45,12 @@
     @show="onShow"
   >
     <template #option="{ option }">
-      <span>{{ option.name }}</span>
+      <div class="flex flex-col">
+        <span>{{ option.name }}</span>
+        <small v-if="option.meta?.description" class="text-muted-color truncate max-w-64">
+          {{ option.meta.description }}
+        </small>
+      </div>
     </template>
   </Select>
 </template>

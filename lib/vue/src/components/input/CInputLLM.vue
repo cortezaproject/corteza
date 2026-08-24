@@ -16,7 +16,12 @@
     @show="onShow"
   >
     <template #option="{ option }">
-      {{ getOptionLabel(option) }}
+      <div class="flex flex-col">
+        <span>{{ getOptionLabel(option) }}</span>
+        <small v-if="option.meta?.description" class="text-muted-color truncate max-w-64">
+          {{ option.meta.description }}
+        </small>
+      </div>
     </template>
     <!-- Let consumers add actions (e.g. "Add provider") inside the dropdown. -->
     <template v-if="$slots.footer" #footer>

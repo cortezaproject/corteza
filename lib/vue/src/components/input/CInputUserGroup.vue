@@ -14,8 +14,11 @@
     @show="onShow"
   >
     <template #option="{ option }">
-      <div class="flex items-center gap-2">
+      <div class="flex flex-col">
         <span>{{ getOptionLabel(option) }}</span>
+        <small v-if="option.meta?.description" class="text-muted-color truncate max-w-64">
+          {{ option.meta.description }}
+        </small>
       </div>
     </template>
   </Select>

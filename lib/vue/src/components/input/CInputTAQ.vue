@@ -14,7 +14,16 @@
     fluid
     showClear
     @show="onShow"
-  />
+  >
+    <template #option="{ option }">
+      <div class="flex flex-col">
+        <span>{{ option.label }}</span>
+        <small v-if="option.description" class="text-muted-color truncate max-w-64">
+          {{ option.description }}
+        </small>
+      </div>
+    </template>
+  </Select>
 </template>
 
 <script setup>

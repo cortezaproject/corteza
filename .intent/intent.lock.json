@@ -337,9 +337,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "f9af982ebe3c",
+      "h": "25f8d58fe7d2",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-08-21"
     },
     "client/web/unify/src/sections/admin/views/system/Application/List.vue": {
       "h": "f311fd02e2f5",
@@ -1202,9 +1202,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue": {
-      "h": "39ca324263ea",
+      "h": "53d60a78f15e",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-08-17"
     },
     "client/web/unify/src/sections/compose/views/Admin/Charts/List.vue": {
       "h": "b0223d9e553a",
@@ -2807,9 +2807,9 @@
       "t": "2026-07-27"
     },
     "lib/js/src/compose/types/chart/base.ts": {
-      "h": "89fd3df52ee1",
+      "h": "cb52e4f032cd",
       "doc": "lib/js/src/compose/compose.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-08-13"
     },
     "lib/js/src/compose/types/chart/chart.ts": {
       "h": "f7aad390cc3d",
@@ -3352,9 +3352,9 @@
       "t": "2026-08-13"
     },
     "lib/js/src/system/types/application.ts": {
-      "h": "1779aaf4d24b",
+      "h": "89b8a7006a9b",
       "doc": "lib/js/src/system/system.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-07-23"
     },
     "lib/js/src/system/types/authClient.ts": {
       "h": "8edca48cfb88",
@@ -3882,14 +3882,14 @@
       "t": "2026-08-21"
     },
     "lib/vue/src/components/input/CInputAgent.vue": {
-      "h": "e81aff546112",
+      "h": "ad07f2d9c779",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputChart.vue": {
-      "h": "1bab6317263d",
+      "h": "008550ad6413",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputColorPicker.vue": {
       "h": "b1e37ab379ff",
@@ -3932,9 +3932,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/components/input/CInputLLM.vue": {
-      "h": "1f285f9b9dba",
+      "h": "cdd44cd4831b",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-24"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputLocation.vue": {
       "h": "945e0f011980",
@@ -3947,14 +3947,19 @@
       "t": "2026-07-24"
     },
     "lib/vue/src/components/input/CInputModule.vue": {
-      "h": "d3e4a67268a4",
+      "h": "12d90a044740",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputNamespace.vue": {
-      "h": "e124a6ee5098",
+      "h": "0f664202032d",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
+    },
+    "lib/vue/src/components/input/CInputPickers.descriptions.test.ts": {
+      "h": "774736a42722",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputRecord.vue": {
       "h": "9841f53af87c",
@@ -3967,7 +3972,7 @@
       "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputRole.vue": {
-      "h": "5e24dda66802",
+      "h": "1b4959b7c7b4",
       "doc": "lib/vue/src/components/input/input.intent.md",
       "t": "2026-08-24"
     },
@@ -3987,9 +3992,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/input/CInputTAQ.vue": {
-      "h": "3f186729654c",
+      "h": "23394d908018",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputToggleCard.vue": {
       "h": "f4c740801ab5",
@@ -4007,14 +4012,14 @@
       "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputUserGroup.vue": {
-      "h": "22556c9e3e84",
+      "h": "e072f9301cce",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputWorkflow.vue": {
-      "h": "2e66bddb60e7",
+      "h": "bf753435d5d0",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CRichTextInput.vue": {
       "h": "274a3742204e",
