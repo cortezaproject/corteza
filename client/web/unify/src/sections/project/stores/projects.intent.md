@@ -36,6 +36,10 @@ state, and (temporarily) the governance workflow.
   shared connection library), automations (TAQs), agents, chatbots, access
   roles, project end-users (derived from role membership), compose pages (+
   layouts).
+- A cached connection is a projection of the configured connection, not the
+  row itself: it carries `description` off the embedded catalog `connection`
+  (`connection.meta.description`), because the configuration's own name is
+  chosen by whoever added it and is routinely the same for several of them.
 - DAL sensitivity levels (standard scheme seeded on demand).
 - Graph view state: `graphVersion` (bumped by `touch()` after every
   persisting mutation — the graph and effective-access caches invalidate on

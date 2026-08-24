@@ -363,4 +363,37 @@ describe('useProjectsStore', () => {
       })
     })
   })
+
+  // A configured connection is named by whoever added it, and two of them are
+  // routinely named the same thing. The connector's own blurb rides along on
+  // the embedded catalog connection and is what tells them apart in a list.
+  describe('loadConnections()', () => {
+    const seed = configured => {
+      api.configuredConnectionList = vi.fn().mockResolvedValue({ set: configured })
+      return useProjectsStore()
+    }
+
+    it('carries the connector description off the embedded connection', async () => {
+      const store = seed([
+        {
+          configurationID: '11',
+          connectionID: '22',
+          name: 'Test',
+          connection: { meta: { description: 'Connect to the WordPress REST API.' } },
+        },
+      ])
+
+      const [row] = await store.loadConnections('7')
+
+      expect(row.description).toBe('Connect to the WordPress REST API.')
+    })
+
+    it('leaves the description empty when the connector carries none', async () => {
+      const store = seed([{ configurationID: '11', connectionID: '22', name: 'Test' }])
+
+      const [row] = await store.loadConnections('7')
+
+      expect(row.description).toBe('')
+    })
+  })
 })

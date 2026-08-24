@@ -1287,6 +1287,9 @@ export const useProjectsStore = defineStore('projects', () => {
       connectionID: String(c.connectionID),
       catalogID: c.catalogID || '',
       name: c.name,
+      // The connector's own blurb, carried on the embedded catalog connection.
+      // It is what tells two same-named configurations apart in a list.
+      description: c.connection?.meta?.description || '',
       status: c.status || 'active',
       config: c.config,
     }))

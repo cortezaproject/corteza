@@ -22,7 +22,10 @@
           @remove="onRemove"
         >
           <template #default="{ item }">
-            <CFormItemContent :title="item.name" :subtitle="labelForConnector(item.catalogID)" />
+            <CFormItemContent
+              :title="item.name"
+              :subtitle="item.description || labelForConnector(item.catalogID)"
+            />
           </template>
 
           <template #actions>

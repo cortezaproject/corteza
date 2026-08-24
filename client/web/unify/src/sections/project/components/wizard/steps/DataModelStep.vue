@@ -44,7 +44,14 @@
                 :aria-label="$t('general.label.edit')"
                 @click="inspectResource?.('module', m.id)"
               >
-                <CFormItemContent :title="m.name" :subtitle="fieldSummary(m)" />
+                <CFormItemContent :title="m.name">
+                  <template #subtitle>
+                    <div class="text-xs text-muted-color truncate">
+                      <template v-if="m.description">{{ m.description }} ·</template>
+                      {{ fieldSummary(m) }}
+                    </div>
+                  </template>
+                </CFormItemContent>
               </button>
               <CRouterLinkButton
                 :to="{

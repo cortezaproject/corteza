@@ -67,7 +67,12 @@ only, never tab/step visibility; governance status never locks editing.
 - `steps/` — one panel per STEPS entry. Resource steps are lists that open
   the Wizard-mounted dialogs via injected `createResource(kind)` /
   `inspectResource(kind, id)` (module fields: `editField`/`createField`) —
-  a step NEVER mounts its own create/detail dialog.
+  a step NEVER mounts its own create/detail dialog. A resource row is
+  `CFormItemContent`: the name, then the resource's description as the
+  subtitle. Where the row already had a second line worth keeping (the module
+  field count, the role's member summary) the description precedes it,
+  separated by `·`; a resource with no description of its own falls back to
+  whatever that line was (the connector's label for a connection).
 
 ## Data touched
 
