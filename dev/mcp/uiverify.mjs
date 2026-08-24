@@ -4,9 +4,9 @@
 // JSON argument on argv[2], answering with one JSON object on stdout. Anything
 // diagnostic goes to stderr — stdout is the protocol.
 //
-// It logs in as the agent-dev user with the password dev/agent/bootstrap.sh
-// caches in .state/ui-password, so the browser acts as the same identity the
-// rest of the toolkit uses. The session is reused across calls via a saved
+// It logs in as agent@local.dev with the password dev/agent/bootstrap.sh caches
+// in .state/ui-password, so the browser acts as the same identity the rest of
+// the toolkit uses. The session is reused across calls via a saved
 // storage state; a stale one is detected by being bounced back to /auth/.
 import { createRequire } from 'node:module'
 import { mkdirSync, existsSync, readFileSync } from 'node:fs'
@@ -68,12 +68,10 @@ function credentials() {
     )
   }
 
-  // agent-ui, not agent — bootstrap.sh provisions a SEPARATE user for browser
-  // login (dev/agent/bootstrap.sh:84). The agent-dev user authenticates by
-  // client_credentials and has no usable password, so logging in as it fails
-  // with "invalid username and password combination".
+  // One identity for both paths: bootstrap.sh sets a password on the same user
+  // the auth client impersonates, so the browser and the API act as one actor.
   return {
-    email: input.email || 'agent-ui@local.dev',
+    email: input.email || 'agent@local.dev',
     password: readFileSync(passwordFile, 'utf8').trim(),
   }
 }

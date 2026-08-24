@@ -79,23 +79,24 @@ capi GET "/system/auth/clients/$client_id/secret" | json_get response >"$STATE_D
 }
 echo "client secret cached in .state/secret"
 
-# Browser-login user for UI verification (agent-dev itself is token-only).
+# One identity for both paths: the auth client impersonates this user for API
+# calls, and the same user logs into the webapp for browser checks. Nothing in
+# the client_credentials flow cares that it also holds a password — it loads
+# the impersonated user by ID (auth/handlers/handle_oauth2.go).
 # Password lives in .state/ui-password (gitignored).
-ui_email="agent-ui@local.dev"
-ui_uid=$(capi GET "/system/users/?email=$ui_email" | json_get response.set.0.userID) || ui_uid=""
-if [[ -z "$ui_uid" ]]; then
-  ui_uid=$(capi POST /system/users/ \
-    -d "{\"email\":\"$ui_email\",\"name\":\"Dev Agent UI (browser login)\",\"handle\":\"agent-ui\"}" |
-    json_get response.userID)
-  echo "user $ui_email created"
-fi
-server_cli roles useradd super-admin "$ui_email" >/dev/null 2>&1 || true
 if [[ ! -f "$STATE_DIR/ui-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; then
   openssl rand -hex 12 >"$STATE_DIR/ui-password"
 fi
-capi POST "/system/users/$ui_uid/password" \
+capi POST "/system/users/$agent_uid/password" \
   -d "{\"password\":\"$(cat "$STATE_DIR/ui-password")\"}" >/dev/null
-echo "UI login ready: $ui_email / \$(cat dev/agent/.state/ui-password)"
+echo "browser login ready: $AGENT_EMAIL / \$(cat dev/agent/.state/ui-password)"
+
+# Converge a box provisioned while UI login was a separate user.
+old_ui=$(capi GET "/system/users/?email=agent-ui@local.dev" | json_get response.set.0.userID) || old_ui=""
+if [[ -n "$old_ui" ]]; then
+  capi DELETE "/system/users/$old_ui" >/dev/null 2>&1 || true
+  echo "removed superseded user agent-ui@local.dev (ID $old_ui)"
+fi
 
 # Read-only browser-login user, for checking what a user WITHOUT permission
 # sees: the admin sidebar drops what it cannot reach, and an editor opened by

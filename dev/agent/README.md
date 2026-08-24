@@ -15,11 +15,11 @@ dev/agent/bootstrap.sh
 Requires the dev server running (`cd server && make watch`, API on
 `http://localhost:1043/api` — override with `HUMAN_API`). Creates:
 
-- user `agent-dev` / `agent@local.dev`, member of `super-admin` (no password,
-  token-only; keeps agent actions distinguishable in action logs)
+- user `agent@local.dev`, member of `super-admin`, with a password in
+  `.state/ui-password` — the one identity for both API and browser
 - auth client `dev-agent` (`client_credentials` grant, impersonates
-  `agent-dev`), managed via REST; its server-generated secret is cached in
-  `.state/secret` (gitignored)
+  `agent@local.dev`), managed via REST; its server-generated secret is cached
+  in `.state/secret` (gitignored)
 
 Self-healing: re-running bootstrap repairs a misconfigured client (PUT with
 the full desired config) and re-caches the secret from the expose endpoint.
@@ -39,7 +39,7 @@ Requires: `curl`, `python3` (no jq dependency), a built server binary in
 | `logs.sh [-n N] [-f] [PATTERN]`              | read the dev server log (`make watch` tees to `server/build/dev.log`)                                                                                                                        |
 | `pagebuild.py SLUG SPEC.json`                | build/refresh charts + pages via REST (spec format in its header)                                                                                                                            |
 | `mcp.py tools\|schema\|call`                 | call Human's own MCP server (`/api/mcp`: compose CRUD incl. charts, TAQ/workflow exec)                                                                                                       |
-| `verify-ui.mjs PATH…`                        | render-verify webapp paths in headless Chromium as agent-ui; screenshots + console/page errors                                                                                               |
+| `verify-ui.mjs PATH…`                        | render-verify webapp paths in headless Chromium as the agent user; screenshots + console/page errors                                                                                         |
 | `drive.mjs SUITE.mjs [--only N]`             | multi-step browser checks: navigate, click, assert where you landed. Logged in already, dialogs recorded, console/network collected per check                                                |
 | `ids.sh [SLUG…]`                             | handle → ID map for a namespace (modules/pages/charts/records) cached in `.state/ids.json`; `seed.sh` refreshes it                                                                           |
 
@@ -61,8 +61,12 @@ dev/agent/api.sh POST /compose/namespace/ -d '{"name":"Sandbox","slug":"sandbox_
 
 | user                 | password file        | sees                                                         |
 | -------------------- | -------------------- | ------------------------------------------------------------ |
-| `agent-ui@local.dev` | `.state/ui-password` | everything — super-admin; the default for UI checks          |
+| `agent@local.dev`    | `.state/ui-password` | everything — super-admin; the default for UI checks          |
 | `agent-ro@local.dev` | `.state/ro-password` | users and roles, read only — role `agent_readonly`, no group |
+
+The first is the same user the auth client impersonates, so a browser check and
+an API call are one actor. Nothing in the `client_credentials` flow objects to
+it also holding a password — it loads the impersonated user by ID.
 
 The read-only user exists to check what someone **without** permission gets,
 which a super-admin account cannot show: the admin sidebar drops the entries it

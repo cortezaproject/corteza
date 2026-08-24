@@ -4,7 +4,7 @@
 // Usage: node dev/agent/verify-ui.mjs [--out DIR] PATH [PATH...]
 //   node dev/agent/verify-ui.mjs '/compose/namespace/agent-sandbox/pages/123'
 //
-// Logs in as agent-ui@local.dev (password from .state/ui-password, created by
+// Logs in as agent@local.dev (password from .state/ui-password, created by
 // bootstrap.sh), navigates each path on the vite dev server, captures console
 // and page errors, and writes a full-page screenshot per path. Exits non-zero
 // if any path produced page errors. Local-only.
@@ -57,7 +57,7 @@ if (!paths.length) {
 }
 mkdirSync(outDir, { recursive: true })
 
-const email = 'agent-ui@local.dev'
+const email = 'agent@local.dev'
 const password = readFileSync(join(AGENT_DIR, '.state', 'ui-password'), 'utf8').trim()
 
 const browser = await chromium.launch({ headless: true })

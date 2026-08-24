@@ -23,6 +23,7 @@ hand-roll the oauth dance or guess ports — use the toolkit.
 
    Paths are relative to `http://localhost:1043/api`. Output is pretty JSON;
    API errors exit non-zero with the message on stderr.
+
 3. Raw token when needed (websockets, custom curl): `dev/agent/token.sh`.
 
 ## Rules
@@ -62,8 +63,8 @@ hand-roll the oauth dance or guess ports — use the toolkit.
 - Create responses echo the object under `response`; IDs at
   `response.moduleID` / `response.recordID` etc. DELETE responses have **no**
   `response` key (just `{"success":…}`).
-- UI verification needs a browser login: use `agent-ui@local.dev` with the
-  password in `dev/agent/.state/ui-password` (created by bootstrap;
-  `agent-dev` itself is token-only).
+- UI verification needs a browser login: use `agent@local.dev` with the
+  password in `dev/agent/.state/ui-password` (created by bootstrap). It is the
+  same identity the API calls run as.
 
 Full reference: `dev/agent/README.md`.

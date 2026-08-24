@@ -389,7 +389,7 @@ function looksLikeEnvironmentChurn(state) {
 // --- session -----------------------------------------------------------------
 
 async function login(context, page) {
-  const email = 'agent-ui@local.dev'
+  const email = 'agent@local.dev'
   const password = readFileSync(join(STATE_DIR, 'ui-password'), 'utf8').trim()
 
   // The caller has already loaded the app and seen it bounce to auth. Loading

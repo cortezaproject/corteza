@@ -96,7 +96,7 @@ func TestWebappURLPrefersTheCheckoutsOwnEnv(t *testing.T) {
 	}{
 		{
 			name:   "worktree env wins over the config fallback",
-			env:    "E2E_BASE_URL=http://localhost:5176\nE2E_USER=agent-ui@local.dev\n",
+			env:    "E2E_BASE_URL=http://localhost:5176\nE2E_USER=agent@local.dev\n",
 			config: config,
 			want:   "http://localhost:5176",
 		},
