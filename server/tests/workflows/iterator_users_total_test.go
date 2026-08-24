@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Test_iterator_users_total iterates with incTotal over more items than the
-// buffer holds; total is fetched with the first page and reported on every
-// iteration
+// Test_iterator_users_total iterates with incTotal and incPageNavigation over
+// more items than the buffer holds; total is fetched with the first page and
+// reported on every iteration
 func Test_iterator_users_total(t *testing.T) {
 	wfexec.MaxIteratorBufferSize = 2
 	defer func() {

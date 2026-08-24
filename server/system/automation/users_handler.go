@@ -234,7 +234,6 @@ func (h usersHandler) each(ctx context.Context, args *usersEachArgs) (out wfexec
 	}
 
 	f.IncTotal = args.IncTotal
-	f.IncPageNavigation = args.IncPageNavigation
 
 	if args.hasLabels {
 		f.Labels = args.Labels
