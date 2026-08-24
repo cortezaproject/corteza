@@ -32,10 +32,9 @@ command -v python3 >/dev/null || {
 
 # json_pick LIST.PATH KEY VALUE FIELD — read JSON on stdin, find the element of
 # the list at LIST.PATH whose KEY equals VALUE, print its FIELD; exit 1 if none.
-# Filtering here rather than in a query param is deliberate: several list
-# endpoints accept a filter they never apply (`/system/roles/?handle=` echoes an
-# empty handle and returns every role), so trusting one silently returns the
-# WRONG record rather than nothing.
+# Filtering here rather than in a query param is deliberate: a list endpoint
+# that accepts a filter it never applies returns the WRONG record rather than
+# nothing, and the caller cannot tell the difference.
 json_pick() {
   python3 -c '
 import json, sys

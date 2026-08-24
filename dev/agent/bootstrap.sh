@@ -128,9 +128,9 @@ fi
 #
 # It has no user group, so everything not allowed below resolves to deny.
 ro_email="agent-ro@local.dev"
-# NOT `?handle=` — the roles list accepts that param and ignores it, handing
-# back the first role of all (super-admin), which would then be granted the
-# fixture's rules and members.
+# Filtered client-side, and guarded below: the fixture's rules and members are
+# written to whatever this resolves to, so resolving to the wrong role would
+# grant them to it.
 ro_role=$(capi GET "/system/roles/?limit=500" | json_pick response.set handle agent_readonly roleID) || ro_role=""
 if [[ -z "$ro_role" ]]; then
   ro_role=$(capi POST /system/roles/ \
