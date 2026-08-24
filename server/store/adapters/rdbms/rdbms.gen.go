@@ -567,15 +567,9 @@ func (s *Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ApigwFilterSet
-			if navSet, _, _, err = s.fetchFullPageOfApigwFilters(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfApigwFilters(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -726,6 +720,100 @@ func (s *Store) fetchFullPageOfApigwFilters(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfApigwFilters counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfApigwFilters(ctx context.Context, f systemType.ApigwFilterFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ApigwFilter != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ApigwFilter(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ApigwFilterFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ApigwFilter: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxApigwFilter
+			res  *systemType.ApigwFilter
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, apigwFilterSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ApigwFilter: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ApigwFilter: %w", err)
+			}
+
+			aux = new(auxApigwFilter)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ApigwFilter: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ApigwFilter: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, apigwFilterSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ApigwFilter: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ApigwFilter: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryApigwFilters queries the database, converts and checks each row and returns collected set
@@ -1187,15 +1275,9 @@ func (s *Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ApigwRouteSet
-			if navSet, _, _, err = s.fetchFullPageOfApigwRoutes(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfApigwRoutes(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -1346,6 +1428,100 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfApigwRoutes counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfApigwRoutes(ctx context.Context, f systemType.ApigwRouteFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ApigwRoute != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ApigwRoute(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ApigwRouteFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ApigwRoute: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxApigwRoute
+			res  *systemType.ApigwRoute
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, apigwRouteSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ApigwRoute: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ApigwRoute: %w", err)
+			}
+
+			aux = new(auxApigwRoute)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ApigwRoute: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ApigwRoute: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, apigwRouteSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ApigwRoute: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ApigwRoute: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryApigwRoutes queries the database, converts and checks each row and returns collected set
@@ -1811,15 +1987,9 @@ func (s *Store) SearchApplications(ctx context.Context, f systemType.Application
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ApplicationSet
-			if navSet, _, _, err = s.fetchFullPageOfApplications(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfApplications(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -1970,6 +2140,100 @@ func (s *Store) fetchFullPageOfApplications(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfApplications counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfApplications(ctx context.Context, f systemType.ApplicationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Application != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Application(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ApplicationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Application: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxApplication
+			res  *systemType.Application
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, applicationSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Application: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Application: %w", err)
+			}
+
+			aux = new(auxApplication)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Application: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Application: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, applicationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Application: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Application: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryApplications queries the database, converts and checks each row and returns collected set
@@ -2390,15 +2654,9 @@ func (s *Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.AttachmentSet
-			if navSet, _, _, err = s.fetchFullPageOfAttachments(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAttachments(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -2549,6 +2807,100 @@ func (s *Store) fetchFullPageOfAttachments(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfAttachments counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAttachments(ctx context.Context, f systemType.AttachmentFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Attachment != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Attachment(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AttachmentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Attachment: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAttachment
+			res  *systemType.Attachment
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, attachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Attachment: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Attachment: %w", err)
+			}
+
+			aux = new(auxAttachment)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Attachment: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Attachment: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, attachmentSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Attachment: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Attachment: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryAttachments queries the database, converts and checks each row and returns collected set
@@ -2964,15 +3316,9 @@ func (s *Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.AuthClientSet
-			if navSet, _, _, err = s.fetchFullPageOfAuthClients(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAuthClients(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -3123,6 +3469,100 @@ func (s *Store) fetchFullPageOfAuthClients(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfAuthClients counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAuthClients(ctx context.Context, f systemType.AuthClientFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AuthClient != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AuthClient(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AuthClientFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AuthClient: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAuthClient
+			res  *systemType.AuthClient
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, authClientSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AuthClient: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AuthClient: %w", err)
+			}
+
+			aux = new(auxAuthClient)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AuthClient: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AuthClient: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, authClientSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AuthClient: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AuthClient: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryAuthClients queries the database, converts and checks each row and returns collected set
@@ -4737,15 +5177,9 @@ func (s *Store) SearchAutomationSessions(ctx context.Context, f automationType.S
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet automationType.SessionSet
-			if navSet, _, _, err = s.fetchFullPageOfAutomationSessions(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAutomationSessions(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -4896,6 +5330,100 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfAutomationSessions counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAutomationSessions(ctx context.Context, f automationType.SessionFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AutomationSession != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AutomationSession(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AutomationSessionFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AutomationSession: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAutomationSession
+			res  *automationType.Session
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, automationSessionSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AutomationSession: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AutomationSession: %w", err)
+			}
+
+			aux = new(auxAutomationSession)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AutomationSession: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AutomationSession: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, automationSessionSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AutomationSession: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AutomationSession: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryAutomationSessions queries the database, converts and checks each row and returns collected set
@@ -5326,15 +5854,9 @@ func (s *Store) SearchAutomationTriggers(ctx context.Context, f automationType.T
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet automationType.TriggerSet
-			if navSet, _, _, err = s.fetchFullPageOfAutomationTriggers(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAutomationTriggers(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -5485,6 +6007,100 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfAutomationTriggers counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAutomationTriggers(ctx context.Context, f automationType.TriggerFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AutomationTrigger != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AutomationTrigger(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AutomationTriggerFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AutomationTrigger: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAutomationTrigger
+			res  *automationType.Trigger
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, automationTriggerSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AutomationTrigger: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AutomationTrigger: %w", err)
+			}
+
+			aux = new(auxAutomationTrigger)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AutomationTrigger: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AutomationTrigger: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, automationTriggerSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AutomationTrigger: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AutomationTrigger: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryAutomationTriggers queries the database, converts and checks each row and returns collected set
@@ -5911,15 +6527,9 @@ func (s *Store) SearchAutomationWorkflows(ctx context.Context, f automationType.
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet automationType.WorkflowSet
-			if navSet, _, _, err = s.fetchFullPageOfAutomationWorkflows(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAutomationWorkflows(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -6070,6 +6680,100 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfAutomationWorkflows counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAutomationWorkflows(ctx context.Context, f automationType.WorkflowFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AutomationWorkflow != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AutomationWorkflow(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AutomationWorkflowFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AutomationWorkflow: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAutomationWorkflow
+			res  *automationType.Workflow
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AutomationWorkflow: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AutomationWorkflow: %w", err)
+			}
+
+			aux = new(auxAutomationWorkflow)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AutomationWorkflow: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AutomationWorkflow: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AutomationWorkflow: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AutomationWorkflow: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryAutomationWorkflows queries the database, converts and checks each row and returns collected set
@@ -6558,15 +7262,9 @@ func (s *Store) SearchComposeAttachments(ctx context.Context, f composeType.Atta
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.AttachmentSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeAttachments(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeAttachments(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -6717,6 +7415,100 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfComposeAttachments counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeAttachments(ctx context.Context, f composeType.AttachmentFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeAttachment != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeAttachment(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeAttachmentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeAttachment: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeAttachment
+			res  *composeType.Attachment
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeAttachment: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeAttachment: %w", err)
+			}
+
+			aux = new(auxComposeAttachment)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeAttachment: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeAttachment: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeAttachment: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeAttachment: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryComposeAttachments queries the database, converts and checks each row and returns collected set
@@ -7136,15 +7928,9 @@ func (s *Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilt
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.ChartSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeCharts(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeCharts(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -7295,6 +8081,100 @@ func (s *Store) fetchFullPageOfComposeCharts(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfComposeCharts counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeCharts(ctx context.Context, f composeType.ChartFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeChart != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeChart(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeChartFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeChart: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeChart
+			res  *composeType.Chart
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeChartSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeChart: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeChart: %w", err)
+			}
+
+			aux = new(auxComposeChart)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeChart: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeChart: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeChartSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeChart: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeChart: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryComposeCharts queries the database, converts and checks each row and returns collected set
@@ -7755,15 +8635,9 @@ func (s *Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.ModuleSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeModules(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeModules(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -7914,6 +8788,100 @@ func (s *Store) fetchFullPageOfComposeModules(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfComposeModules counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeModules(ctx context.Context, f composeType.ModuleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeModule != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeModule(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeModuleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeModule: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeModule
+			res  *composeType.Module
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeModule: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeModule: %w", err)
+			}
+
+			aux = new(auxComposeModule)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeModule: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeModule: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeModuleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeModule: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeModule: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryComposeModules queries the database, converts and checks each row and returns collected set
@@ -8867,15 +9835,9 @@ func (s *Store) SearchComposeNamespaces(ctx context.Context, f composeType.Names
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.NamespaceSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeNamespaces(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeNamespaces(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -9026,6 +9988,100 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfComposeNamespaces counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeNamespaces(ctx context.Context, f composeType.NamespaceFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeNamespace != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeNamespace(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeNamespaceFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeNamespace: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeNamespace
+			res  *composeType.Namespace
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeNamespace: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeNamespace: %w", err)
+			}
+
+			aux = new(auxComposeNamespace)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeNamespace: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeNamespace: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeNamespace: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeNamespace: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryComposeNamespaces queries the database, converts and checks each row and returns collected set
@@ -9511,15 +10567,9 @@ func (s *Store) SearchComposePages(ctx context.Context, f composeType.PageFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.PageSet
-			if navSet, _, _, err = s.fetchFullPageOfComposePages(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposePages(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -9670,6 +10720,100 @@ func (s *Store) fetchFullPageOfComposePages(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfComposePages counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposePages(ctx context.Context, f composeType.PageFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposePage != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposePage(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposePageFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposePage: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposePage
+			res  *composeType.Page
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composePageSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposePage: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposePage: %w", err)
+			}
+
+			aux = new(auxComposePage)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposePage: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposePage: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composePageSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposePage: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposePage: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryComposePages queries the database, converts and checks each row and returns collected set
@@ -10179,15 +11323,9 @@ func (s *Store) SearchComposePageLayouts(ctx context.Context, f composeType.Page
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.PageLayoutSet
-			if navSet, _, _, err = s.fetchFullPageOfComposePageLayouts(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposePageLayouts(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -10338,6 +11476,100 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfComposePageLayouts counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposePageLayouts(ctx context.Context, f composeType.PageLayoutFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposePageLayout != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposePageLayout(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposePageLayoutFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposePageLayout: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposePageLayout
+			res  *composeType.PageLayout
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposePageLayout: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposePageLayout: %w", err)
+			}
+
+			aux = new(auxComposePageLayout)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposePageLayout: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposePageLayout: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposePageLayout: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposePageLayout: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryComposePageLayouts queries the database, converts and checks each row and returns collected set
@@ -11192,15 +12424,9 @@ func (s *Store) SearchDalConnections(ctx context.Context, f systemType.DalConnec
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DalConnectionSet
-			if navSet, _, _, err = s.fetchFullPageOfDalConnections(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDalConnections(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -11351,6 +12577,100 @@ func (s *Store) fetchFullPageOfDalConnections(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfDalConnections counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDalConnections(ctx context.Context, f systemType.DalConnectionFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DalConnection != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DalConnection(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DalConnectionFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DalConnection: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDalConnection
+			res  *systemType.DalConnection
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dalConnectionSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DalConnection: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DalConnection: %w", err)
+			}
+
+			aux = new(auxDalConnection)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DalConnection: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DalConnection: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dalConnectionSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DalConnection: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DalConnection: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryDalConnections queries the database, converts and checks each row and returns collected set
@@ -11839,15 +13159,9 @@ func (s *Store) SearchDalSchemaAlterations(ctx context.Context, f systemType.Dal
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DalSchemaAlterationSet
-			if navSet, _, _, err = s.fetchFullPageOfDalSchemaAlterations(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDalSchemaAlterations(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -11998,6 +13312,56 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfDalSchemaAlterations counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDalSchemaAlterations(ctx context.Context, f systemType.DalSchemaAlterationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DalSchemaAlteration != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DalSchemaAlteration(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DalSchemaAlterationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DalSchemaAlteration: %w", err)
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dalSchemaAlterationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DalSchemaAlteration: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DalSchemaAlteration: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryDalSchemaAlterations queries the database, converts and checks each row and returns collected set
@@ -12404,15 +13768,9 @@ func (s *Store) SearchDalSensitivityLevels(ctx context.Context, f systemType.Dal
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DalSensitivityLevelSet
-			if navSet, _, _, err = s.fetchFullPageOfDalSensitivityLevels(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDalSensitivityLevels(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -12563,6 +13921,100 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfDalSensitivityLevels counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDalSensitivityLevels(ctx context.Context, f systemType.DalSensitivityLevelFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DalSensitivityLevel != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DalSensitivityLevel(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DalSensitivityLevelFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DalSensitivityLevel: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDalSensitivityLevel
+			res  *systemType.DalSensitivityLevel
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dalSensitivityLevelSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DalSensitivityLevel: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DalSensitivityLevel: %w", err)
+			}
+
+			aux = new(auxDalSensitivityLevel)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DalSensitivityLevel: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DalSensitivityLevel: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dalSensitivityLevelSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DalSensitivityLevel: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DalSensitivityLevel: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryDalSensitivityLevels queries the database, converts and checks each row and returns collected set
@@ -12981,15 +14433,9 @@ func (s *Store) SearchDataPrivacyRequests(ctx context.Context, f systemType.Data
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DataPrivacyRequestSet
-			if navSet, _, _, err = s.fetchFullPageOfDataPrivacyRequests(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDataPrivacyRequests(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -13140,6 +14586,100 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfDataPrivacyRequests counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDataPrivacyRequests(ctx context.Context, f systemType.DataPrivacyRequestFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DataPrivacyRequest != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DataPrivacyRequest(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DataPrivacyRequestFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DataPrivacyRequest: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDataPrivacyRequest
+			res  *systemType.DataPrivacyRequest
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dataPrivacyRequestSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DataPrivacyRequest: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DataPrivacyRequest: %w", err)
+			}
+
+			aux = new(auxDataPrivacyRequest)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DataPrivacyRequest: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DataPrivacyRequest: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dataPrivacyRequestSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DataPrivacyRequest: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DataPrivacyRequest: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryDataPrivacyRequests queries the database, converts and checks each row and returns collected set
@@ -13565,15 +15105,9 @@ func (s *Store) SearchDataPrivacyRequestComments(ctx context.Context, f systemTy
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DataPrivacyRequestCommentSet
-			if navSet, _, _, err = s.fetchFullPageOfDataPrivacyRequestComments(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDataPrivacyRequestComments(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -13724,6 +15258,100 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfDataPrivacyRequestComments counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDataPrivacyRequestComments(ctx context.Context, f systemType.DataPrivacyRequestCommentFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DataPrivacyRequestComment != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DataPrivacyRequestComment(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DataPrivacyRequestCommentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DataPrivacyRequestComment: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDataPrivacyRequestComment
+			res  *systemType.DataPrivacyRequestComment
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dataPrivacyRequestCommentSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DataPrivacyRequestComment: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DataPrivacyRequestComment: %w", err)
+			}
+
+			aux = new(auxDataPrivacyRequestComment)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DataPrivacyRequestComment: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DataPrivacyRequestComment: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dataPrivacyRequestCommentSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DataPrivacyRequestComment: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DataPrivacyRequestComment: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryDataPrivacyRequestComments queries the database, converts and checks each row and returns collected set
@@ -14093,15 +15721,9 @@ func (s *Store) SearchFederationExposedModules(ctx context.Context, f federation
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.ExposedModuleSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationExposedModules(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationExposedModules(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -14252,6 +15874,100 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfFederationExposedModules counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationExposedModules(ctx context.Context, f federationType.ExposedModuleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationExposedModule != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationExposedModule(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationExposedModuleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationExposedModule: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationExposedModule
+			res  *federationType.ExposedModule
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationExposedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationExposedModule: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationExposedModule: %w", err)
+			}
+
+			aux = new(auxFederationExposedModule)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationExposedModule: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationExposedModule: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationExposedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationExposedModule: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationExposedModule: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryFederationExposedModules queries the database, converts and checks each row and returns collected set
@@ -14665,15 +16381,9 @@ func (s *Store) SearchFederationModuleMappings(ctx context.Context, f federation
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.ModuleMappingSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationModuleMappings(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationModuleMappings(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -14824,6 +16534,100 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfFederationModuleMappings counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationModuleMappings(ctx context.Context, f federationType.ModuleMappingFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationModuleMapping != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationModuleMapping(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationModuleMappingFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationModuleMapping: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationModuleMapping
+			res  *federationType.ModuleMapping
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationModuleMapping: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationModuleMapping: %w", err)
+			}
+
+			aux = new(auxFederationModuleMapping)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationModuleMapping: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationModuleMapping: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationModuleMapping: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationModuleMapping: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryFederationModuleMappings queries the database, converts and checks each row and returns collected set
@@ -15275,15 +17079,9 @@ func (s *Store) SearchFederationNodes(ctx context.Context, f federationType.Node
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.NodeSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationNodes(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationNodes(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -15434,6 +17232,100 @@ func (s *Store) fetchFullPageOfFederationNodes(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfFederationNodes counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationNodes(ctx context.Context, f federationType.NodeFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationNode != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationNode(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationNodeFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationNode: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationNode
+			res  *federationType.Node
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationNodeSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationNode: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationNode: %w", err)
+			}
+
+			aux = new(auxFederationNode)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationNode: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationNode: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationNodeSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationNode: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationNode: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryFederationNodes queries the database, converts and checks each row and returns collected set
@@ -15934,15 +17826,9 @@ func (s *Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.NodeSyncSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationNodeSyncs(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationNodeSyncs(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -16093,6 +17979,100 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfFederationNodeSyncs counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationNodeSyncs(ctx context.Context, f federationType.NodeSyncFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationNodeSync != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationNodeSync(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationNodeSyncFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationNodeSync: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationNodeSync
+			res  *federationType.NodeSync
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationNodeSync: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationNodeSync: %w", err)
+			}
+
+			aux = new(auxFederationNodeSync)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationNodeSync: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationNodeSync: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationNodeSync: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationNodeSync: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryFederationNodeSyncs queries the database, converts and checks each row and returns collected set
@@ -16548,15 +18528,9 @@ func (s *Store) SearchFederationSharedModules(ctx context.Context, f federationT
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.SharedModuleSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationSharedModules(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationSharedModules(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -16707,6 +18681,100 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfFederationSharedModules counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationSharedModules(ctx context.Context, f federationType.SharedModuleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationSharedModule != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationSharedModule(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationSharedModuleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationSharedModule: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationSharedModule
+			res  *federationType.SharedModule
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationSharedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationSharedModule: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationSharedModule: %w", err)
+			}
+
+			aux = new(auxFederationSharedModule)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationSharedModule: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationSharedModule: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationSharedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationSharedModule: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationSharedModule: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryFederationSharedModules queries the database, converts and checks each row and returns collected set
@@ -17828,15 +19896,9 @@ func (s *Store) SearchNotifications(ctx context.Context, f systemType.Notificati
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.NotificationSet
-			if navSet, _, _, err = s.fetchFullPageOfNotifications(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfNotifications(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -17987,6 +20049,100 @@ func (s *Store) fetchFullPageOfNotifications(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfNotifications counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfNotifications(ctx context.Context, f systemType.NotificationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Notification != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Notification(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = NotificationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Notification: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxNotification
+			res  *systemType.Notification
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, notificationSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Notification: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Notification: %w", err)
+			}
+
+			aux = new(auxNotification)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Notification: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Notification: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, notificationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Notification: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Notification: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryNotifications queries the database, converts and checks each row and returns collected set
@@ -18403,15 +20559,9 @@ func (s *Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.QueueSet
-			if navSet, _, _, err = s.fetchFullPageOfQueues(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfQueues(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -18562,6 +20712,100 @@ func (s *Store) fetchFullPageOfQueues(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfQueues counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfQueues(ctx context.Context, f systemType.QueueFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Queue != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Queue(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = QueueFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Queue: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxQueue
+			res  *systemType.Queue
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, queueSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Queue: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Queue: %w", err)
+			}
+
+			aux = new(auxQueue)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Queue: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Queue: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, queueSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Queue: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Queue: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryQueues queries the database, converts and checks each row and returns collected set
@@ -19017,15 +21261,9 @@ func (s *Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessa
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.QueueMessageSet
-			if navSet, _, _, err = s.fetchFullPageOfQueueMessages(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfQueueMessages(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -19176,6 +21414,56 @@ func (s *Store) fetchFullPageOfQueueMessages(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfQueueMessages counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfQueueMessages(ctx context.Context, f systemType.QueueMessageFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.QueueMessage != nil {
+		// extended filter set
+		expr, f, err = s.Filters.QueueMessage(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = QueueMessageFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for QueueMessage: %w", err)
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, queueMessageSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count QueueMessage: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for QueueMessage: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryQueueMessages queries the database, converts and checks each row and returns collected set
@@ -19830,15 +22118,9 @@ func (s *Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ReminderSet
-			if navSet, _, _, err = s.fetchFullPageOfReminders(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfReminders(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -19989,6 +22271,100 @@ func (s *Store) fetchFullPageOfReminders(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfReminders counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfReminders(ctx context.Context, f systemType.ReminderFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Reminder != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Reminder(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ReminderFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Reminder: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxReminder
+			res  *systemType.Reminder
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, reminderSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Reminder: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Reminder: %w", err)
+			}
+
+			aux = new(auxReminder)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Reminder: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Reminder: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, reminderSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Reminder: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Reminder: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryReminders queries the database, converts and checks each row and returns collected set
@@ -20413,15 +22789,9 @@ func (s *Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (s
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ReportSet
-			if navSet, _, _, err = s.fetchFullPageOfReports(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfReports(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -20572,6 +22942,100 @@ func (s *Store) fetchFullPageOfReports(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfReports counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfReports(ctx context.Context, f systemType.ReportFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Report != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Report(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ReportFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Report: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxReport
+			res  *systemType.Report
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, reportSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Report: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Report: %w", err)
+			}
+
+			aux = new(auxReport)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Report: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Report: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, reportSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Report: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Report: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryReports queries the database, converts and checks each row and returns collected set
@@ -21341,15 +23805,9 @@ func (s *Store) SearchResourceTranslations(ctx context.Context, f systemType.Res
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ResourceTranslationSet
-			if navSet, _, _, err = s.fetchFullPageOfResourceTranslations(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfResourceTranslations(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -21500,6 +23958,56 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfResourceTranslations counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfResourceTranslations(ctx context.Context, f systemType.ResourceTranslationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ResourceTranslation != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ResourceTranslation(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ResourceTranslationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ResourceTranslation: %w", err)
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, resourceTranslationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ResourceTranslation: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ResourceTranslation: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryResourceTranslations queries the database, converts and checks each row and returns collected set
@@ -21898,15 +24406,9 @@ func (s *Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set s
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.RoleSet
-			if navSet, _, _, err = s.fetchFullPageOfRoles(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfRoles(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -22057,6 +24559,100 @@ func (s *Store) fetchFullPageOfRoles(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfRoles counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfRoles(ctx context.Context, f systemType.RoleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Role != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Role(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = RoleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Role: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxRole
+			res  *systemType.Role
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, roleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Role: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Role: %w", err)
+			}
+
+			aux = new(auxRole)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Role: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Role: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, roleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Role: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Role: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryRoles queries the database, converts and checks each row and returns collected set
@@ -23246,15 +25842,9 @@ func (s *Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.TemplateSet
-			if navSet, _, _, err = s.fetchFullPageOfTemplates(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfTemplates(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -23405,6 +25995,100 @@ func (s *Store) fetchFullPageOfTemplates(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfTemplates counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfTemplates(ctx context.Context, f systemType.TemplateFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Template != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Template(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = TemplateFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Template: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxTemplate
+			res  *systemType.Template
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, templateSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Template: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Template: %w", err)
+			}
+
+			aux = new(auxTemplate)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Template: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Template: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, templateSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Template: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Template: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryTemplates queries the database, converts and checks each row and returns collected set
@@ -23903,15 +26587,9 @@ func (s *Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set s
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.UserSet
-			if navSet, _, _, err = s.fetchFullPageOfUsers(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfUsers(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -24062,6 +26740,100 @@ func (s *Store) fetchFullPageOfUsers(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfUsers counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfUsers(ctx context.Context, f systemType.UserFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.User != nil {
+		// extended filter set
+		expr, f, err = s.Filters.User(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = UserFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for User: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxUser
+			res  *systemType.User
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, userSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query User: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query User: %w", err)
+			}
+
+			aux = new(auxUser)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for User: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode User: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, userSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count User: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for User: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryUsers queries the database, converts and checks each row and returns collected set
@@ -24705,15 +27477,9 @@ func (s *Store) SearchUserGroups(ctx context.Context, f systemType.UserGroupFilt
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.UserGroupSet
-			if navSet, _, _, err = s.fetchFullPageOfUserGroups(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfUserGroups(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -24864,6 +27630,100 @@ func (s *Store) fetchFullPageOfUserGroups(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOfUserGroups counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfUserGroups(ctx context.Context, f systemType.UserGroupFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.UserGroup != nil {
+		// extended filter set
+		expr, f, err = s.Filters.UserGroup(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = UserGroupFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for UserGroup: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxUserGroup
+			res  *systemType.UserGroup
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, userGroupSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query UserGroup: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query UserGroup: %w", err)
+			}
+
+			aux = new(auxUserGroup)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for UserGroup: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode UserGroup: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, userGroupSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count UserGroup: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for UserGroup: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 
 // QueryUserGroups queries the database, converts and checks each row and returns collected set

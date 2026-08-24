@@ -204,15 +204,9 @@ func (s *Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ex
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet {{ .goSetType }}
-			if navSet, _, _, err = s.fetchFullPageOf{{ .expIdentPlural }}(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOf{{ .expIdentPlural }}(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -371,6 +365,102 @@ func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 	}
 
 	return set, prev, next, nil
+}
+
+// countOf{{ .expIdentPlural }} counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOf{{ .expIdentPlural }}(ctx context.Context, f {{ .goFilterType }}) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.{{ .expIdent }} != nil {
+		// extended filter set
+		expr, f, err = s.Filters.{{ .expIdent }}(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = {{ .expIdent }}Filter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for {{ .expIdent }}: %w", err)
+	}
+
+	{{ if .features.checkFn }}
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *{{ .auxIdent }}
+			res  *{{ .goType }}
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, {{ .ident }}SelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query {{ .expIdent }}: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query {{ .expIdent }}: %w", err)
+			}
+
+			aux = new({{ .auxIdent }})
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for {{ .expIdent }}: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode {{ .expIdent }}: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+	{{ end }}
+
+	var (
+		counted int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, {{ .ident }}SelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count {{ .expIdent }}: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for {{ .expIdent }}: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
 }
 {{ end }}
 
