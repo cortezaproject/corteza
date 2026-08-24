@@ -51,6 +51,9 @@ type (
 		// Item loader for additional chunks
 		filter types.RoleFilter
 		loader func() error
+
+		// Total reported by the first page
+		resTotal uint
 	}
 
 	roleLookup interface {
@@ -247,6 +250,9 @@ func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (result
 		f.Limit = uint(args.Limit)
 	}
 
+	// Total cannot be fetched together with a page cursor
+	f.IncTotal = args.IncTotal && f.PageCursor == nil
+
 	var auxf types.RoleFilter
 	results.Roles, auxf, err = h.rSvc.Find(ctx, f)
 	results.Total = uint64(auxf.Total)
@@ -297,6 +303,8 @@ func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (out wfexec
 		f.Limit = wfexec.MaxIteratorBufferSize
 	}
 
+	f.IncTotal = args.IncTotal
+
 	i.filter = f
 	i.loader = func() (err error) {
 		// Edgecase
@@ -309,7 +317,14 @@ func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (out wfexec
 
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
+
+		// Total is fetched with the first page only; a paged query cannot carry it
+		i.filter.IncTotal = i.filter.IncTotal && i.filter.PageCursor == nil
+
 		i.buffer, i.filter, err = h.rSvc.Find(ctx, i.filter)
+		if i.filter.IncTotal {
+			i.resTotal = i.filter.Total
+		}
 
 		return
 	}
@@ -410,7 +425,7 @@ func (i *roleSetIterator) Next(context.Context, *Vars) (out *Vars, err error) {
 	out = &Vars{}
 	out.Set("role", Must(NewRole(i.buffer[i.ptr])))
 	out.Set("index", Must(NewInteger(i.total+i.ptr)))
-	out.Set("total", Must(NewInteger(i.filter.Total)))
+	out.Set("total", Must(NewInteger(i.resTotal)))
 
 	i.ptr++
 	return out, nil

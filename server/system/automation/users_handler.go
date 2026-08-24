@@ -46,6 +46,9 @@ type (
 		// Item loader for additional chunks
 		filter types.UserFilter
 		loader func() error
+
+		// Total reported by the first page
+		resTotal uint
 	}
 
 	userLookup interface {
@@ -196,6 +199,9 @@ func (h usersHandler) search(ctx context.Context, args *usersSearchArgs) (result
 		f.Limit = uint(args.Limit)
 	}
 
+	// Total cannot be fetched together with a page cursor
+	f.IncTotal = args.IncTotal && f.PageCursor == nil
+
 	var auxf types.UserFilter
 	results.Users, auxf, err = h.uSvc.Find(ctx, f)
 	results.Total = uint64(auxf.Total)
@@ -260,7 +266,14 @@ func (h usersHandler) each(ctx context.Context, args *usersEachArgs) (out wfexec
 
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
+
+		// Total is fetched with the first page only; a paged query cannot carry it
+		i.filter.IncTotal = i.filter.IncTotal && i.filter.PageCursor == nil
+
 		i.buffer, i.filter, err = h.uSvc.Find(ctx, i.filter)
+		if i.filter.IncTotal {
+			i.resTotal = i.filter.Total
+		}
 
 		return
 	}
@@ -362,7 +375,7 @@ func (i *userSetIterator) Next(context.Context, *Vars) (out *Vars, err error) {
 	out = &Vars{}
 	out.Set("user", Must(NewUser(i.buffer[i.ptr])))
 	out.Set("index", Must(NewInteger(i.total+i.ptr)))
-	out.Set("total", Must(NewInteger(i.filter.Total)))
+	out.Set("total", Must(NewInteger(i.resTotal)))
 
 	i.ptr++
 	return out, nil

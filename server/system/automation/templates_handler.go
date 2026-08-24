@@ -45,6 +45,9 @@ type (
 		// Item loader for additional chunks
 		filter types.TemplateFilter
 		loader func() error
+
+		// Total reported by the first page
+		resTotal uint
 	}
 
 	templateLookup interface {
@@ -101,7 +104,12 @@ func (h templatesHandler) search(ctx context.Context, args *templatesSearchArgs)
 		f.Limit = uint(args.Limit)
 	}
 
-	results.Templates, _, err = h.tSvc.Search(ctx, f)
+	// Total cannot be fetched together with a page cursor
+	f.IncTotal = args.IncTotal && f.PageCursor == nil
+
+	var auxf types.TemplateFilter
+	results.Templates, auxf, err = h.tSvc.Search(ctx, f)
+	results.Total = uint64(auxf.Total)
 	return
 }
 
@@ -147,6 +155,8 @@ func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (ou
 		f.Limit = wfexec.MaxIteratorBufferSize
 	}
 
+	f.IncTotal = args.IncTotal
+
 	i.filter = f
 	i.loader = func() (err error) {
 		// Edgecase
@@ -159,7 +169,14 @@ func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (ou
 
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
+
+		// Total is fetched with the first page only; a paged query cannot carry it
+		i.filter.IncTotal = i.filter.IncTotal && i.filter.PageCursor == nil
+
 		i.buffer, i.filter, err = h.tSvc.Search(ctx, i.filter)
+		if i.filter.IncTotal {
+			i.resTotal = i.filter.Total
+		}
 
 		return
 	}
@@ -261,7 +278,7 @@ func (i *templateSetIterator) Next(context.Context, *Vars) (out *Vars, err error
 	out = &Vars{}
 	out.Set("template", Must(NewTemplate(i.buffer[i.ptr])))
 	out.Set("index", Must(NewInteger(i.total+i.ptr)))
-	out.Set("total", Must(NewInteger(i.filter.Total)))
+	out.Set("total", Must(NewInteger(i.resTotal)))
 
 	i.ptr++
 	return out, nil
