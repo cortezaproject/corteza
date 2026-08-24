@@ -128,9 +128,13 @@ _TypeResource: {
 				let _slice = [ if f.slice {"[]"}, "" ][0]
 				name: f.name
 				goType: [ if f.goType != _|_ {f.goType}, if f.goType == _|_ {"\(_ptr)\(_slice)\(_base)"} ][0]
-				jsonTag: [
+				let _json = [
 					if f.json != _|_ {"json:\"\(f.json)\""},
 					if f.json == _|_ {"json:\"\(strings.ToCamel(f.name))\""},
+				][0]
+				jsonTag: [
+					if f.yaml != _|_ {"\(_json) yaml:\"\(f.yaml)\""},
+					if f.yaml == _|_ {_json},
 				][0]
 				doc: [ if f.doc != _|_ {f.doc}, "" ][0]
 			}]

@@ -22,6 +22,12 @@ package schema
 	// json is the full struct-tag content, verbatim ("avatarID,string"). When
 	// absent the types loader derives it by convention from name/type.
 	json?: string
+
+	// yaml is the struct-tag content for the yaml key, verbatim
+	// ("resourceType"). yaml.v3 has no json-tag fallback: without this it
+	// matches the field by its lowercased Go name, so a key that differs from
+	// that name decodes to nothing and reports no error.
+	yaml?: string
 	doc?:  string
 
 	// in-package Go type the decl template renders (no `types.` qualifier — nested

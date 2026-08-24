@@ -10,7 +10,7 @@ _roleDefs: {
 				{name: "Context", type:     _roleDefs.RoleContext, ptr: true, json: "context,omitempty"},
 	]}
 	RoleContext: {name: "RoleContext", fields: [
-				{name: "Resource", type: "string", slice: true, json: "resourceTypes,omitempty"},
+				{name: "Resource", type: "string", slice: true, json: "resourceTypes,omitempty", yaml: "resourceType"},
 				{name: "Expr", type:     "string", json:  "expr,omitempty"},
 	]}
 	RoleMetrics: {name: "RoleMetrics", fields: [

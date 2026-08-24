@@ -10,6 +10,7 @@ import (
 	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/pkg/y7s"
 	systemService "github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
@@ -200,4 +201,34 @@ func TestProvisionComposeAccessControl(t *testing.T) {
 	} {
 		require.Equal(t, "allow", access(held), "expected an allow for %v", held)
 	}
+}
+
+// A context role is skipped for every resource when its resource-type list is
+// empty (pkg/rbac/roles.go), and the list arrives through a plain yaml decode
+// into types.Role — which, without a yaml tag, matches the field by its
+// lowercased Go name rather than the key the file is written in. Nothing
+// reports the mismatch: the role imports, holds its rules, and never activates.
+func TestProvisionedContextRolesCarryResourceTypes(t *testing.T) {
+	f, err := os.ReadFile("../../provision/000_base/roles.yaml")
+	require.NoError(t, err)
+
+	var doc struct {
+		Roles map[string]*types.Role `yaml:"roles"`
+	}
+	require.NoError(t, yaml.Unmarshal(f, &doc))
+	require.NotEmpty(t, doc.Roles)
+
+	var contextual int
+
+	for handle, r := range doc.Roles {
+		if r.Meta == nil || r.Meta.Context == nil || r.Meta.Context.Expr == "" {
+			continue
+		}
+
+		contextual++
+		require.NotEmpty(t, r.Meta.Context.Resource,
+			"context role %q decodes with no resource types, so it never activates", handle)
+	}
+
+	require.NotZero(t, contextual, "no context role decoded at all")
 }
