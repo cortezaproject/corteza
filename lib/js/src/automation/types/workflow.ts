@@ -59,6 +59,8 @@ export class Workflow {
   public canDeleteWorkflow = false
   public canUndeleteWorkflow = false
   public canExecuteWorkflow = false
+  public canManageWorkflowTriggers = false
+  public canManageWorkflowSessions = false
 
   constructor(w?: PartialWorkflow) {
     this.apply(w)
@@ -83,6 +85,8 @@ export class Workflow {
       'canDeleteWorkflow',
       'canUndeleteWorkflow',
       'canExecuteWorkflow',
+      'canManageWorkflowTriggers',
+      'canManageWorkflowSessions',
     )
 
     if (IsOf(w, 'meta')) {
