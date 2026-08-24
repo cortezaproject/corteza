@@ -78,6 +78,7 @@ roles:
           - corteza::compose:module
           - corteza::compose:module-field
           - corteza::compose:record
+          - corteza::compose:chart
           - corteza::compose:page
           - corteza::compose:page-layout
 

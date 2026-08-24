@@ -6,6 +6,7 @@ allow:
       - workflows.search
       - triggers.search
       - sessions.search
+      - resource-translations.manage
       # The TAQ builder's own resource; its admin screen was reachable but its
       # list endpoint was not.
       - ng-automation.create
@@ -19,6 +20,13 @@ allow:
       - execute
       - triggers.manage
       - sessions.manage
+
+    corteza::automation:ng-automation/*:
+      - read
+      - update
+      - delete
+      - undelete
+      - execute
 
   developer:
     corteza::automation/:
@@ -27,6 +35,7 @@ allow:
       - workflows.search
       - triggers.search
       - sessions.search
+      - resource-translations.manage
       # The TAQ builder's own resource; its admin screen was reachable but its
       # list endpoint was not.
       - ng-automation.create
@@ -40,3 +49,17 @@ allow:
       - execute
       - triggers.manage
       - sessions.manage
+
+    corteza::automation:ng-automation/*:
+      - read
+      - update
+      - delete
+      - undelete
+      - execute
+
+    # Opening the webapp that carries the workflow and TAQ builders is a system
+    # operation; without it the tile is unreachable for the role the section
+    # belongs to.
+    corteza::system:application/*:
+      - read
+      - access

@@ -1,13 +1,10 @@
 package envoy
 
 import (
-	"os"
 	"testing"
 
 	"github.com/crusttech/human/server/pkg/rbac"
-	"github.com/crusttech/human/server/pkg/y7s"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 )
 
 // The base access-control config is the whole of the deny-by-default baseline:
@@ -16,52 +13,9 @@ import (
 // the rule imports and simply never matches — so decode the real file and read
 // back what it actually says.
 func TestProvisionBaseAccessControl(t *testing.T) {
-	f, err := os.ReadFile("../../provision/000_base/system_access_control.yaml")
-	require.NoError(t, err)
+	type ruleKey = provisionRuleKey
 
-	var doc yaml.Node
-	require.NoError(t, yaml.Unmarshal(f, &doc))
-
-	type ruleKey struct{ role, resource, operation string }
-	got := map[ruleKey]rbac.Access{}
-
-	require.NoError(t, y7s.EachMap(doc.Content[0], func(k, v *yaml.Node) error {
-		var (
-			key string
-			acc rbac.Access
-		)
-
-		if err := y7s.DecodeScalar(k, "key", &key); err != nil {
-			return err
-		}
-
-		switch key {
-		case "allow":
-			acc = rbac.Allow
-		case "deny":
-			acc = rbac.Deny
-		default:
-			return nil
-		}
-
-		nn, err := unmarshalRBACNode(v, acc)
-		if err != nil {
-			return err
-		}
-
-		for _, n := range nn {
-			r, ok := n.Resource.(*rbac.Rule)
-			require.True(t, ok)
-			role := ""
-			for _, ref := range n.References {
-				if len(ref.Identifiers.Slice) > 0 {
-					role = ref.Identifiers.Slice[0]
-				}
-			}
-			got[ruleKey{role, r.Resource, r.Operation}] = r.Access
-		}
-		return nil
-	}))
+	got := decodeProvisionedRules(t, "../../provision/000_base/system_access_control.yaml")
 
 	// rbac.Deny is the zero value of rbac.Access, so a rule that is simply
 	// absent reads as a denial. Every assertion below goes through this.
@@ -77,6 +31,11 @@ func TestProvisionBaseAccessControl(t *testing.T) {
 	// filtered per application, so this reveals nothing on its own.
 	require.Equal(t, "allow", access(ruleKey{"authenticated", "corteza::system/", "applications.search"}),
 		"the shell cannot gate section entry on a list it may not fetch")
+
+	// ...and pin one to their own menu, which reaches only apps they can
+	// already see. The operation is component-level; a rule written against
+	// corteza::system:application/* is never consulted.
+	require.Equal(t, "allow", access(ruleKey{"authenticated", "corteza::system/", "application.flag.self"}))
 
 	// ...but not see any application, user or role by default.
 	for _, denied := range []ruleKey{
@@ -108,6 +67,15 @@ func TestProvisionBaseAccessControl(t *testing.T) {
 		{"admin", "corteza::system:dal-connection/*", "dal-config.manage"},
 		{"admin", "corteza::system/", "labels.search"},
 		{"admin", "corteza::system/", "corredor-scripts.search"},
+		{"admin", "corteza::system/", "chatbot-sessions.search"},
+		{"admin", "corteza::system:chatbot/*", "sessions.view"},
+		{"admin", "corteza::system:chatbot/*", "sessions.handoff.manage"},
+		{"admin", "corteza::system:chatbot-session/*", "read"},
+		{"admin", "corteza::system:configured-connection/*", "read"},
+		{"admin", "corteza::system/", "dal-sensitivity-level.manage"},
+		{"admin", "corteza::system/", "resource-translations.manage"},
+		{"admin", "corteza::system:project-ai-system/*", "resources.manage"},
+		{"low-code-admin", "corteza::system:application/*", "access"},
 		{"security-admin", "corteza::system/", "user-groups.search"},
 	} {
 		require.Equal(t, "allow", access(held), "expected an allow for %v", held)
@@ -120,5 +88,5 @@ func TestProvisionBaseAccessControl(t *testing.T) {
 			authenticatedAllows = append(authenticatedAllows, k)
 		}
 	}
-	require.Len(t, authenticatedAllows, 2, "authenticated baseline grew: %v", authenticatedAllows)
+	require.Len(t, authenticatedAllows, 3, "authenticated baseline grew: %v", authenticatedAllows)
 }

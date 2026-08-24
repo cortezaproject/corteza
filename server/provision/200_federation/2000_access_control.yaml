@@ -12,10 +12,10 @@ allow:
       - manage
       - module.create
 
-    corteza::federation:exposed-module/*:
+    corteza::federation:exposed-module/*/*:
       - manage
 
-    corteza::federation:shared-module/*:
+    corteza::federation:shared-module/*/*:
       - map
 
   federation:

@@ -88,6 +88,11 @@ var baseMarkers = []baseMarker{
 	// Labels and Corredor scripts were listed by endpoints that checked nothing
 	// at all, so no rule for them existed anywhere.
 	{"label permissions", "admin", "corteza::system/", "labels.search"},
+	// Chatbot sessions, page layouts and TAQs all shipped their screens without
+	// the operations those screens run on, and the compose half of the legacy
+	// everyone-may-read baseline is revoked by the same re-import.
+	{"chatbot session permissions", "admin", "corteza::system:chatbot-session/*", "read"},
+	{"page layout permissions", "admin", "corteza::compose:page/*/*", "page-layout.create"},
 }
 
 // baseMarkerMissing reports whether the base config should be re-imported,

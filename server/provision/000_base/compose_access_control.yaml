@@ -11,6 +11,7 @@ allow:
       - settings.manage
       - namespace.create
       - namespaces.search
+      - resource-translations.manage
 
     corteza::compose:namespace/*:
       - read
@@ -20,7 +21,6 @@ allow:
       - export
       - modules.export
       - charts.export
-      - pages.export
       - page.create
       - pages.search
       - module.create
@@ -32,8 +32,8 @@ allow:
       - read
       - update
       - delete
-      - export
       - record.create
+      - owned-record.create
       - records.search
 
     corteza::compose:module-field/*/*/*:
@@ -44,19 +44,21 @@ allow:
       - read
       - update
       - delete
+      - undelete
+      - owner.manage
       - revisions.search
 
     corteza::compose:chart/*/*:
       - read
       - update
       - delete
-      - export
 
     corteza::compose:page/*/*:
       - read
       - update
       - delete
-      - export
+      - page-layout.create
+      - page-layouts.search
 
     corteza::compose:page-layout/*/*/*:
       - read
@@ -76,7 +78,6 @@ allow:
       - export
       - modules.export
       - charts.export
-      - pages.export
       - page.create
       - pages.search
       - module.create
@@ -88,8 +89,8 @@ allow:
       - read
       - update
       - delete
-      - export
       - record.create
+      - owned-record.create
       - records.search
 
     corteza::compose:module-field/*/*/*:
@@ -100,13 +101,24 @@ allow:
       - read
       - update
       - delete
+      - undelete
+      - owner.manage
       - revisions.search
+
+    # An agent may create a chart on a namespace it owns, so it holds the chart
+    # itself too; the role's context lists corteza::compose:chart for the same
+    # reason.
+    corteza::compose:chart/*/*:
+      - read
+      - update
+      - delete
 
     corteza::compose:page/*/*:
       - read
       - update
       - delete
-      - export
+      - page-layout.create
+      - page-layouts.search
 
     corteza::compose:page-layout/*/*/*:
       - read
@@ -120,6 +132,7 @@ allow:
       - settings.manage
       - namespace.create
       - namespaces.search
+      - resource-translations.manage
 
     corteza::compose:namespace/*:
       - read
@@ -129,7 +142,6 @@ allow:
       - export
       - modules.export
       - charts.export
-      - pages.export
       - page.create
       - pages.search
       - module.create
@@ -141,8 +153,8 @@ allow:
       - read
       - update
       - delete
-      - export
       - record.create
+      - owned-record.create
       - records.search
 
     corteza::compose:module-field/*/*/*:
@@ -153,15 +165,64 @@ allow:
       - read
       - update
       - delete
+      - undelete
+      - owner.manage
+      - revisions.search
 
     corteza::compose:chart/*/*:
       - read
       - update
       - delete
-      - export
 
     corteza::compose:page/*/*:
       - read
       - update
       - delete
+      - page-layout.create
+      - page-layouts.search
+
+    corteza::compose:page-layout/*/*/*:
+      - read
+      - update
+      - delete
+
+deny:
+  # The compose half of the baseline an earlier install gave every logged-in
+  # user: read on every namespace, module, record, page, chart and layout, and
+  # the namespace export that dumps all of it at once. Provisioning only ever
+  # adds rules, so an install that once carried them keeps them until something
+  # takes them back — the same reason the system config carries its own deny
+  # block. Role holders are unaffected: a common or context role returns on its
+  # own allow before the authenticated tier is read
+  # (pkg/rbac/ruleset_checks.go).
+  authenticated:
+    corteza::compose/:
+      - namespaces.search
+
+    corteza::compose:namespace/*:
+      - read
       - export
+      - modules.search
+      - modules.export
+      - charts.search
+      - charts.export
+      - pages.search
+
+    corteza::compose:module/*/*:
+      - read
+      - records.search
+
+    corteza::compose:module-field/*/*/*:
+      - record.value.read
+
+    corteza::compose:record/*/*/*:
+      - read
+
+    corteza::compose:chart/*/*:
+      - read
+
+    corteza::compose:page/*/*:
+      - read
+
+    corteza::compose:page-layout/*/*/*:
+      - read

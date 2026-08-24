@@ -14,6 +14,12 @@ allow:
     corteza::system/:
       - applications.search
 
+      # Pinning an app affects one person's own menu and reaches only apps that
+      # person may already see, so it belongs to the baseline. The operation is
+      # component-level; a rule written against corteza::system:application/*
+      # is never consulted.
+      - application.flag.self
+
   admin:
     corteza::system/:
       - grant
@@ -31,9 +37,12 @@ allow:
       - role.create
       - roles.search
       - reminder.assign
+      - notification.assign
       - queue.create
       - queues.search
       - application.flag.global
+      - application.flag.self
+      - resource-translations.manage
       - apigw-route.create
       - apigw-routes.search
       - report.create
@@ -84,8 +93,19 @@ allow:
       - configured-connections.search
       - dal-connection.create
       - dal-connections.search
+      - dal-sensitivity-level.manage
+      - dal-schema-alterations.manage
       - labels.search
       - corredor-scripts.search
+
+      # The chatbot inbox reads and advances sessions; without these the
+      # section's own list call is refused for the role that owns it.
+      - chatbot-session.create
+      - chatbot-sessions.search
+      - chatbot-session-step.create
+      - chatbot-session-steps.search
+      - chatbot-session-handoff.create
+      - chatbot-session-handoffs.search
 
     corteza::system:auth-client/*:
       - read
@@ -126,6 +146,11 @@ allow:
       - delete
       - install
 
+    corteza::system:configured-connection/*:
+      - read
+      - update
+      - delete
+
     corteza::system:dal-connection/*:
       - read
       - update
@@ -165,6 +190,24 @@ allow:
       - read
       - update
       - delete
+      - sessions.view
+      - sessions.manage
+      - sessions.handoff.manage
+
+    corteza::system:chatbot-session/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:chatbot-session-step/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:chatbot-session-handoff/*:
+      - read
+      - update
+      - delete
 
     corteza::system:ai-conversation/*:
       - read
@@ -195,6 +238,7 @@ allow:
       - read
       - update
       - delete
+      - resources.manage
 
     corteza::system:project-fria-scenario/*:
       - read
@@ -240,14 +284,13 @@ allow:
 
     corteza::compose/:
       - grant
-      - action-log.read
       - settings.read
       - settings.manage
+      - resource-translations.manage
 
     corteza::automation/:
       - grant
-      - settings.read
-      - settings.manage
+      - resource-translations.manage
 
     corteza::federation/:
       - grant
@@ -271,6 +314,9 @@ allow:
       - user-group.create
       - user-groups.search
       - reminder.assign
+      - notification.assign
+      - application.flag.self
+      - resource-translations.manage
       - queue.create
       - queues.search
       - report.create
@@ -328,6 +374,14 @@ allow:
       - update
       - delete
       - run
+
+  # Compose rules of its own live in compose_access_control.yaml; opening the
+  # webapp that carries them is a system operation, and without it the tile is
+  # unreachable for the role the section belongs to.
+  low-code-admin:
+    corteza::system:application/*:
+      - read
+      - access
 
   data-privacy-officer:
     corteza::system:data-privacy-request/*:
