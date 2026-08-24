@@ -49,6 +49,7 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 ## Cross-cutting
 
 - Selectors resolve their APIs via inject (`$SystemAPI`, `$ComposeAPI`, `$AutomationAPI`) — host app must provide them.
+- A fetch replaces a selector's options wholesale, so `CInputUser`/`CInputRole` put an already-picked entity back in afterwards; without it a value past the page or filtered out renders as a bare ID. Pinning runs from the model watcher and from every fetch, so the append de-duplicates after its await.
 - `CInputRecord` interpolates its `prefilter` prop through `compose.interpolateTemplate`
   before querying, using `inject('$recordContext', null)` (the record currently being
   edited; only present under compose's RecordBlock → CFieldEditor → CFieldRecordEditor

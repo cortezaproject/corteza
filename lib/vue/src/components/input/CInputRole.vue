@@ -149,6 +149,13 @@ async function fetchRoles() {
     } else {
       options.value = fetchedOptions
     }
+
+    // The fetch replaced the options. A picked role that is not in them — past
+    // the limit, or filtered out — loses the name its chip renders from unless
+    // it goes back in.
+    if (props.multiple) {
+      loadRolesByIds(selectedRoles.value)
+    }
   } catch (e) {
     if (e?.message !== 'canceled') {
       options.value = []
@@ -215,7 +222,10 @@ async function loadRolesByIds(roleIDs) {
       const results = await Promise.all(
         missing.map(roleID => $SystemAPI.roleRead({ roleID }).catch(() => null)),
       )
-      const loaded = results.filter(Boolean)
+      // Re-checked after the await: pinning runs from the watcher and from the
+      // fetch, so by now another pass may have added the same role.
+      const have = new Set(options.value.map(r => r.roleID))
+      const loaded = results.filter(r => r && !have.has(r.roleID))
       if (loaded.length) {
         options.value = [...options.value, ...loaded]
       }

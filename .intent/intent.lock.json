@@ -3961,10 +3961,15 @@
       "doc": "lib/vue/src/components/input/input.intent.md",
       "t": "2026-07-27"
     },
-    "lib/vue/src/components/input/CInputRole.vue": {
-      "h": "6da2f5e3e71e",
+    "lib/vue/src/components/input/CInputRole.multiple.test.ts": {
+      "h": "f276cf4e0c9f",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
+    },
+    "lib/vue/src/components/input/CInputRole.vue": {
+      "h": "5e24dda66802",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputSearch.vue": {
       "h": "d38642336143",
