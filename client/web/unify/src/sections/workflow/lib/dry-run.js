@@ -197,3 +197,21 @@ export async function encodeFields(fields, { ComposeAPI, SystemAPI }) {
 export function canReadTrace(workflow, can) {
   return !!workflow?.canManageWorkflowSessions && !!can('automation/', 'sessions.search')
 }
+
+// `prompted` (waiting on a person) and `suspended` (waiting on a delay) are
+// live, resumable states: the server sets completedAt only on completed,
+// failed and canceled, so a poll that waits for it through either one never
+// terminates. Both stop the poll instead, and the trace continues from the
+// realtime resume message.
+const SUSPENDED_STATUSES = ['prompted', 'suspended']
+
+// What a dry run's poll should do with the session it just read. `expired` is
+// the caller's wall-clock ceiling, which only ever applies to a session that
+// is still running — a suspended one is waiting on purpose and is not given up
+// on by the clock.
+export function pollOutcome(session, { expired = false } = {}) {
+  if (session?.completedAt) return 'finished'
+  if (SUSPENDED_STATUSES.includes(session?.status)) return 'suspended'
+  if (expired) return 'expired'
+  return 'running'
+}

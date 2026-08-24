@@ -600,6 +600,8 @@ template:
     success: Template updated
 test-completed: Test completed
 test-in-progress: Test in progress
+test-paused: Test paused
+test-still-running: Test still running
 trace-not-permitted: >-
   Workflow started successfully, but you do not have permission to view its
   execution trace.
@@ -709,3 +711,11 @@ workflow:
     error: Workflow update failed
     success: Workflow updated
 workflow-test-completed: Workflow test completed
+workflow-test-paused: >-
+  The workflow is waiting, either on a prompt for someone to answer or on a
+  delay step. The steps it has run so far are highlighted on the canvas, and
+  the trace will carry on filling in once the workflow resumes.
+workflow-test-still-running: >-
+  The workflow has been running for two minutes without either finishing or
+  pausing, so the editor has stopped watching it. The workflow itself is still
+  running on the server; use the stop control to end it.

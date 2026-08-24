@@ -2547,7 +2547,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/components/WorkflowEditor.vue": {
-      "h": "b8de1524bbea",
+      "h": "ab2234029a4a",
       "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
       "t": "2026-08-24"
     },
@@ -2607,12 +2607,17 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/lib/dry-run.js": {
-      "h": "0cd19aed7227",
+      "h": "9df0336ca8cd",
       "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
       "t": "2026-08-24"
     },
     "client/web/unify/src/sections/workflow/lib/dry-run.permissions.test.js": {
       "h": "8476b66befc3",
+      "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
+      "t": "2026-08-24"
+    },
+    "client/web/unify/src/sections/workflow/lib/dry-run.poll.test.js": {
+      "h": "191f69638664",
       "doc": "client/web/unify/src/sections/workflow/lib/lib.intent.md",
       "t": "2026-08-24"
     },

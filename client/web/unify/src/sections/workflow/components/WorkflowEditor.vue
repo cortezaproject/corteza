@@ -494,7 +494,13 @@ import { useToast } from 'primevue/usetoast'
 
 import { decodeWorkflow, encodeWorkflow } from '../lib/codec'
 import { getStyleFromKind } from '../lib/style'
-import { buildScopeFields, buildInputFields, encodeFields, canReadTrace } from '../lib/dry-run'
+import {
+  buildScopeFields,
+  buildInputFields,
+  encodeFields,
+  canReadTrace,
+  pollOutcome,
+} from '../lib/dry-run'
 import toolbarConfig from '../lib/toolbar'
 import eventBus from '../lib/eventBus'
 import { nextId } from '../lib/id'
@@ -533,6 +539,7 @@ const $SystemAPI = inject('$SystemAPI')
 const $ComposeAPI = inject('$ComposeAPI')
 const $AutomationAPI = inject('$AutomationAPI')
 const $Auth = inject('$Auth')
+const $eventBus = inject('$eventBus', null)
 
 /* ─── Props & Emits ─── */
 const props = defineProps({
@@ -705,6 +712,18 @@ const dryRun = ref({
   inputEdited: {},
   sessionID: undefined,
 })
+
+// How often the dry run asks after its session, and how long it keeps asking a
+// session that neither finishes nor suspends. The ceiling is the only bound a
+// runaway workflow has: it stays `started` forever, so neither completion nor
+// suspension ever stops the poll.
+const DRY_RUN_POLL_INTERVAL = 1000
+const DRY_RUN_POLL_CEILING = 120000
+
+// The session the editor is watching, held across a suspension so a resumed
+// session can be picked back up. `stateIDs` collects the prompt states this
+// session raised, because the resume message names only the state.
+let dryRunWatch = null
 
 const rbacStore = useRBACStore()
 
@@ -1031,6 +1050,7 @@ onMounted(() => {
 
   eventBus.on('trigger-updated', onTriggerUpdated)
   eventBus.on('change-detected', onEventBusChange)
+  $eventBus?.on('realtime', onRealtimeMessage)
 
   render(workflow.value, true)
 
@@ -1052,6 +1072,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   eventBus.off('trigger-updated', onTriggerUpdated)
   eventBus.off('change-detected', onEventBusChange)
+  $eventBus?.off('realtime', onRealtimeMessage)
+  stopDryRunPoll()
   document.removeEventListener('keydown', keybinds)
   if (editor.value) {
     editor.value.removeEventListener('wheel', onWheelZoom, { capture: true })
@@ -1990,6 +2012,7 @@ function onDryRunEdit(e) {
 
 async function testWorkflow(input = {}) {
   clearHighlights()
+  stopDryRunPoll()
   dryRun.value.processing = true
 
   const triggerNode = nodes.value.find(n => n.id === String(dryRun.value.cellID))
@@ -2016,56 +2039,6 @@ async function testWorkflow(input = {}) {
   $AutomationAPI
     .workflowExec(testParams)
     .then(({ sessionID }) => {
-      dryRun.value.sessionID = sessionID
-
-      const pollSession = () => {
-        return new Promise((resolve, reject) => {
-          const checkSession = () => {
-            $AutomationAPI
-              .sessionRead({ sessionID })
-              .then(session => {
-                const { completedAt, status, stacktrace, error = false } = session
-                setTimeout(() => {
-                  if (completedAt) {
-                    if (stacktrace) {
-                      renderTrace(testParams.stepID, stacktrace)
-                      if (status === 'completed') {
-                        toast.add({
-                          severity: 'success',
-                          summary: t('notification.test-completed'),
-                          detail: t('notification.workflow-test-completed'),
-                          life: 3000,
-                        })
-                      }
-                    } else {
-                      toast.add({
-                        severity: 'warn',
-                        summary: t('notification.test-completed'),
-                        detail: t('notification.trace-unavailable'),
-                        life: 5000,
-                      })
-                    }
-                    if (error) reject(Object.assign(new Error(error), { fromWorkflow: true }))
-                    else resolve()
-                  } else {
-                    checkSession()
-                  }
-                }, 1000)
-              })
-              .catch(reject)
-          }
-          checkSession()
-        })
-      }
-
-      const traceNotPermitted = () =>
-        toast.add({
-          severity: 'warn',
-          summary: t('notification.test-completed'),
-          detail: t('notification.trace-not-permitted'),
-          life: 5000,
-        })
-
       // The run itself has already succeeded here. Whether its trace can be
       // shown is a separate permission, so a user without it is told the
       // workflow ran rather than being polled into a failure they did not cause.
@@ -2074,7 +2047,17 @@ async function testWorkflow(input = {}) {
         return
       }
 
-      return pollSession().catch(e => {
+      dryRunWatch = {
+        sessionID,
+        stepID: testParams.stepID,
+        stateIDs: new Set(),
+        suspended: false,
+        aborted: false,
+        timer: undefined,
+        stop: undefined,
+      }
+
+      return watchDryRunSession(dryRunWatch).catch(e => {
         // A workflow that reported its own failure is a failed test; anything
         // else here is the session read falling over, which is not.
         if (e?.fromWorkflow) throw e
@@ -2097,30 +2080,195 @@ async function testWorkflow(input = {}) {
     })
 }
 
+function traceNotPermitted() {
+  toast.add({
+    severity: 'warn',
+    summary: t('notification.test-completed'),
+    detail: t('notification.trace-not-permitted'),
+    life: 5000,
+  })
+}
+
+// Poll one session until it finishes, suspends, is stopped or outlives the
+// ceiling, holding the spinner and the stop control for as long as it watches.
+// Rejects only when the workflow reported its own failure or the read fell over.
+function watchDryRunSession(watch) {
+  dryRun.value.sessionID = watch.sessionID
+  dryRun.value.processing = true
+
+  return pollDryRunSession(watch).finally(() => {
+    // A watch that was stopped or superseded no longer owns this state: the
+    // run that replaced it, or the cancel that ended it, resets it instead.
+    if (dryRunWatch !== watch) return
+
+    // A suspended session stays ours so a resume can pick it back up.
+    if (!watch.suspended) dryRunWatch = null
+
+    dryRun.value.processing = false
+    dryRun.value.sessionID = undefined
+  })
+}
+
+function pollDryRunSession(watch) {
+  return new Promise((resolve, reject) => {
+    const expiresAt = Date.now() + DRY_RUN_POLL_CEILING
+
+    // Lets stopDryRunPoll settle this promise, so a poll that is abandoned
+    // mid-interval still releases the spinner rather than hanging forever.
+    watch.stop = resolve
+
+    const checkSession = () => {
+      if (watch.aborted) return resolve()
+
+      $AutomationAPI
+        .sessionRead({ sessionID: watch.sessionID })
+        .then(session => {
+          if (watch.aborted) return resolve()
+
+          const { status, stacktrace, error = false } = session
+
+          switch (pollOutcome(session, { expired: Date.now() >= expiresAt })) {
+            case 'finished':
+              if (stacktrace) {
+                renderTrace(watch.stepID, stacktrace)
+                if (status === 'completed') {
+                  toast.add({
+                    severity: 'success',
+                    summary: t('notification.test-completed'),
+                    detail: t('notification.workflow-test-completed'),
+                    life: 3000,
+                  })
+                }
+              } else {
+                toast.add({
+                  severity: 'warn',
+                  summary: t('notification.test-completed'),
+                  detail: t('notification.trace-unavailable'),
+                  life: 5000,
+                })
+              }
+
+              if (error) reject(Object.assign(new Error(error), { fromWorkflow: true }))
+              else resolve()
+              return
+
+            case 'suspended':
+              // The session is alive and waiting on a person or a delay. Show
+              // what ran and stop asking; the realtime resume message is what
+              // starts the trace filling in again.
+              watch.suspended = true
+              if (stacktrace) renderTrace(watch.stepID, stacktrace)
+              toast.add({
+                severity: 'info',
+                summary: t('notification.test-paused'),
+                detail: t('notification.workflow-test-paused'),
+                life: 5000,
+              })
+              resolve()
+              return
+
+            case 'expired':
+              // Still running after the ceiling, and it never suspended, so
+              // nothing will tell us when to look again.
+              if (stacktrace) renderTrace(watch.stepID, stacktrace)
+              toast.add({
+                severity: 'warn',
+                summary: t('notification.test-still-running'),
+                detail: t('notification.workflow-test-still-running'),
+                life: 5000,
+              })
+              resolve()
+              return
+
+            default:
+              watch.timer = setTimeout(checkSession, DRY_RUN_POLL_INTERVAL)
+          }
+        })
+        .catch(reject)
+    }
+
+    checkSession()
+  })
+}
+
+function stopDryRunPoll() {
+  if (!dryRunWatch) return
+
+  dryRunWatch.aborted = true
+  clearTimeout(dryRunWatch.timer)
+  dryRunWatch.stop?.()
+  dryRunWatch = null
+}
+
+// The dry run stops polling when its session suspends, so the realtime channel
+// is what tells it to look again. `workflowSessionResumed` names only the
+// state, so the prompt messages are read for the session that state belongs to.
+function onRealtimeMessage(msg) {
+  const watch = dryRunWatch
+  if (!watch) return
+
+  const value = msg?.['@value']
+
+  switch (msg?.['@type']) {
+    case 'workflowSessionPrompt':
+      if (value?.sessionID === watch.sessionID && value?.stateID) {
+        watch.stateIDs.add(value.stateID)
+      }
+      return
+
+    case 'workflowSessionResumed':
+      if (watch.suspended && watch.stateIDs.has(value?.stateID)) resumeDryRunPoll(watch)
+  }
+}
+
+function resumeDryRunPoll(watch) {
+  watch.suspended = false
+
+  watchDryRunSession(watch).catch(e => {
+    if (e?.fromWorkflow) {
+      toast.add({
+        severity: 'error',
+        summary: t('notification.failed-test'),
+        detail: e?.message,
+        life: 5000,
+      })
+      return
+    }
+
+    traceNotPermitted()
+  })
+}
+
 function cancelWorkflow() {
   const { sessionID, processing } = dryRun.value
-  if (processing && sessionID) {
-    dryRun.value.sessionID = undefined
-    dryRun.value.processing = false
-    $AutomationAPI
-      .sessionCancel({ sessionID })
-      .then(() =>
-        toast.add({
-          severity: 'info',
-          summary: 'Stopping test',
-          detail: 'Workflow test canceled',
-          life: 3000,
-        }),
-      )
-      .catch(e =>
-        toast.add({
-          severity: 'error',
-          summary: 'Test cancel failed',
-          detail: e?.message,
-          life: 5000,
-        }),
-      )
-  }
+  if (!processing || !sessionID) return
+
+  // Stop watching before asking: the cancel can be refused (the session may
+  // already have left the server's pool) and the poll must end either way.
+  stopDryRunPoll()
+
+  $AutomationAPI
+    .sessionCancel({ sessionID })
+    .then(() =>
+      toast.add({
+        severity: 'info',
+        summary: 'Stopping test',
+        detail: 'Workflow test canceled',
+        life: 3000,
+      }),
+    )
+    .catch(e =>
+      toast.add({
+        severity: 'error',
+        summary: 'Test cancel failed',
+        detail: e?.message,
+        life: 5000,
+      }),
+    )
+    .finally(() => {
+      dryRun.value.processing = false
+      dryRun.value.sessionID = undefined
+    })
 }
 
 /* ─── Trace rendering ─── */
