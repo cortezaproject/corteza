@@ -78,8 +78,11 @@ func (svc *reminder) onLookup(ctx context.Context, ID uint64, aProps *reminderAc
 }
 
 func (svc *reminder) onSearch(ctx context.Context, filter types.ReminderFilter, aProps *reminderActionProps) (types.ReminderSet, types.ReminderFilter, error) {
-	filter.Check = func(r *types.Reminder) (bool, error) {
-		return !svc.checkAssignTo(ctx, r), nil
+	// The right to assign reminders to others carries the right to search theirs
+	if !svc.ac.CanAssignReminder(ctx) {
+		filter.Check = func(r *types.Reminder) (bool, error) {
+			return !svc.checkAssignTo(ctx, r), nil
+		}
 	}
 
 	return store.SearchReminders(ctx, svc.store, filter)

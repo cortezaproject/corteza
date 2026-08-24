@@ -166,6 +166,43 @@ func TestReminderListIncludeDeleted(t *testing.T) {
 		End()
 }
 
+// TestReminderListForbidden checks reminders of other users are not listed
+func TestReminderListForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	h.makeReminder()
+	h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Get("/reminder/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len("$.response.set", 1)).
+		End()
+}
+
+// TestReminderListAssignable checks users that can assign reminders can also
+// list reminders of other users
+func TestReminderListAssignable(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "reminder.assign")
+
+	h.makeReminder()
+	h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Get("/reminder/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len("$.response.set", 2)).
+		End()
+}
+
 func TestReminderUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearReminders()
