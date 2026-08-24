@@ -334,11 +334,20 @@ func (svc *service) RemoveNode(id id.ID) (err error) {
 }
 
 // FindRulesByRoleID returns all RBAC rules that belong to a role
+//
+// The rules are copies. The set they come from is the service's cache, read
+// under the lock by every permission check, and a caller holding the originals
+// could write to it from outside.
 func (svc *service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
 	svc.l.RLock()
 	defer svc.l.RUnlock()
 
-	return ruleByRole(svc.rules, roleID)
+	for _, r := range ruleByRole(svc.rules, roleID) {
+		var c = *r
+		rr = append(rr, &c)
+	}
+
+	return
 }
 
 // Rules return all roles

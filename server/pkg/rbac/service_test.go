@@ -343,3 +343,30 @@ func RandStringRunes(n int) string {
 	}
 	return string(b)
 }
+
+// The cache behind the service is what every permission check reads. Handing
+// out the rules themselves let a caller flip a role's whole set to Inherit
+// outside the lock, and the next flush wrote that to the store as deletes.
+func TestFindRulesByRoleID_ReturnsCopies(t *testing.T) {
+	svc := NewService(zap.NewNop(), nil)
+	svc.setRules(RuleSet{
+		AllowRule(1, "corteza::system/", "user.create"),
+		AllowRule(1, "corteza::system:user/42", "read"),
+		AllowRule(2, "corteza::system/", "role.create"),
+	})
+
+	rr := svc.FindRulesByRoleID(1)
+	if len(rr) != 2 {
+		t.Fatalf("expected 2 rules for the role, got %d", len(rr))
+	}
+
+	for _, r := range rr {
+		r.Access = Inherit
+	}
+
+	for _, r := range svc.Rules() {
+		if r.Access != Allow {
+			t.Fatalf("cached rule %s was changed through the returned set", r)
+		}
+	}
+}

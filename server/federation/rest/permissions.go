@@ -59,11 +59,22 @@ func (ctrl Permissions) Delete(ctx context.Context, r *request.PermissionsDelete
 		return nil, err
 	}
 
-	for _, r := range rr {
-		r.Access = rbac.Inherit
+	// A role's rules span every component; this endpoint, and the grant behind
+	// it, reach only as far as this one. Another component's rules are for its
+	// own endpoint to clear.
+	component := rbac.ResourceComponent(types.ComponentRbacResource())
+
+	own := make(rbac.RuleSet, 0, len(rr))
+	for _, rule := range rr {
+		if rbac.ResourceComponent(rule.Resource) != component {
+			continue
+		}
+
+		rule.Access = rbac.Inherit
+		own = append(own, rule)
 	}
 
-	return api.OK(), ctrl.ac.Grant(ctx, rr...)
+	return api.OK(), ctrl.ac.Grant(ctx, own...)
 }
 
 func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate) (interface{}, error) {
