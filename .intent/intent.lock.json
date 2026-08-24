@@ -2507,9 +2507,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/components/FlowNodes/TriggerNode.vue": {
-      "h": "20dbe81ee748",
+      "h": "cbe3a4cfe004",
       "doc": "client/web/unify/src/sections/workflow/components/FlowNodes/FlowNodes.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
     },
     "client/web/unify/src/sections/workflow/components/FlowNodes/VisualNode.vue": {
       "h": "7a5c5ef31100",
@@ -2547,7 +2547,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/components/WorkflowEditor.vue": {
-      "h": "ab2234029a4a",
+      "h": "3d0af2696202",
       "doc": "client/web/unify/src/sections/workflow/components/components.intent.md",
       "t": "2026-08-24"
     },
@@ -4546,10 +4546,15 @@
       "doc": "lib/vue/src/stores/useUserStore.intent.md",
       "t": "2026-07-23"
     },
+    "lib/vue/src/stores/useWorkflowPromptsStore.scope.test.ts": {
+      "h": "30655cb30d20",
+      "doc": "lib/vue/src/stores/stores.intent.md",
+      "t": "2026-08-24"
+    },
     "lib/vue/src/stores/useWorkflowPromptsStore.ts": {
-      "h": "985a5fce91f6",
+      "h": "6f56eb6a1a4d",
       "doc": "lib/vue/src/stores/useWorkflowPromptsStore.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
     },
     "lib/vue/src/stores/useWorkflowStore.js": {
       "h": "446d14c13837",

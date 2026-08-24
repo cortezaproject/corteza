@@ -24,7 +24,7 @@ codec maps to legacy mxGraph anchor coordinates.
 ## Map
 
 - `WorkflowNode.vue` — generic step node: kind icon + label, issues badge (opens issues modal via `open-issues`), trace success/error state, hover preview.
-- `TriggerNode.vue` — trigger node: enabled/disabled styling, play/stop actions emitting `test`/`cancel` for dry runs, at most one outgoing edge.
+- `TriggerNode.vue` — trigger node: enabled/disabled styling, play/stop actions emitting `test`/`cancel` for dry runs, at most one outgoing edge. Stop shows whenever this node's dry run still holds a session, paused included — the spinner tracks the poll, the stop control tracks the session.
 - `TerminationNode.vue` — end node: target handles only, single inbound.
 - `VisualNode.vue` — swimlane and rich-text content visuals; NodeResizer when selected; swimlane paints a drop-target highlight while a step is dragged over it.
 - `NodePreview.vue` — body-teleported hover popup (title/description/rows) positioned by `useNodePreview` to escape VueFlow's transformed stacking context.

@@ -18,6 +18,14 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
   const prompts = ref<Array<automation.Prompt>>([])
   const active = ref<automation.Prompt | boolean>(false)
 
+  // Sessions this screen started, the prompts held back for a webapp that can
+  // render them, and the ones stepped over. The prompt list is the whole
+  // user's, so a kind this webapp cannot render may still be meant for another
+  // tab; only a session started here is ours to resume past.
+  const ownedSessions = ref<Set<string>>(new Set())
+  const foreign = ref<Array<automation.Prompt>>([])
+  const skipped = ref<Array<automation.Prompt>>([])
+
   const all = computed(() => prompts.value)
   const isLoading = computed(() => loading.value)
   const isActive = computed(() => active.value !== false)
@@ -86,16 +94,63 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
   }
 
   function appendPrompts(next: Array<automation.Prompt>, webapp: string) {
-    const allowed = next.filter(({ ref }) => {
-      return promptDefinitions.some(definition => {
-        return (
-          definition.ref === ref &&
-          (!definition.meta.webapps || definition.meta.webapps.includes(webapp))
-        )
-      })
-    })
+    const allowed: Array<automation.Prompt> = []
+    const elsewhere: Array<automation.Prompt> = []
+
+    for (const prompt of next) {
+      const definition = promptDefinitions.find(({ ref }) => ref === prompt.ref)
+      if (!definition) continue
+
+      if (!definition.meta.webapps || definition.meta.webapps.includes(webapp)) {
+        allowed.push(prompt)
+      } else {
+        elsewhere.push(prompt)
+      }
+    }
 
     prompts.value.push(...allowed)
+
+    // Held rather than dropped: the session's own screen may only claim it a
+    // moment later. The prompt push beats the exec response that names the
+    // session, so deciding this once, on arrival, would always decide it too
+    // early.
+    foreign.value.push(...elsewhere)
+    drainForeign()
+  }
+
+  function drainForeign() {
+    const mine = foreign.value.filter(p => ownedSessions.value.has(p.sessionID))
+    if (!mine.length) return
+
+    foreign.value = foreign.value.filter(p => !ownedSessions.value.has(p.sessionID))
+    mine.forEach(stepOver)
+  }
+
+  // A prompt whose kind belongs to another webapp still holds its session open.
+  // Resuming without running the handler lets the workflow carry on; the step's
+  // effect is simply not something this screen can perform.
+  async function stepOver(prompt: automation.Prompt) {
+    skipped.value.push(prompt)
+    try {
+      await $AutomationAPI.sessionResumeState({
+        sessionID: prompt.sessionID,
+        stateID: prompt.stateID,
+        input: {},
+      })
+    } catch {
+      // The session may already be gone; the notice stands either way.
+    }
+  }
+
+  function ownSession(sessionID: string) {
+    ownedSessions.value.add(sessionID)
+    drainForeign()
+  }
+
+  function disownSession(sessionID: string) {
+    ownedSessions.value.delete(sessionID)
+    foreign.value = foreign.value.filter(p => p.sessionID !== sessionID)
+    skipped.value = skipped.value.filter(p => p.sessionID !== sessionID)
   }
 
   function remove(prompt: automation.Prompt) {
@@ -122,5 +177,8 @@ export const useWorkflowPromptsStore = defineStore('wfPrompts', () => {
     clear,
     clearAll,
     remove,
+    skipped,
+    ownSession,
+    disownSession,
   }
 })

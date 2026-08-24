@@ -512,6 +512,7 @@ import {
   useRBACStore,
   useRightSidebarResize,
   useRightSidebarStore,
+  useWorkflowPromptsStore,
 } from '@planetcrust/human-vue'
 const { CInputDelete, CResizeHandle } = components
 
@@ -726,6 +727,7 @@ const DRY_RUN_POLL_CEILING = 120000
 let dryRunWatch = null
 
 const rbacStore = useRBACStore()
+const promptsStore = useWorkflowPromptsStore()
 
 const canReadDryRunTrace = computed(() =>
   canReadTrace(workflow.value, (r, o) => rbacStore.can(r, o)),
@@ -2047,6 +2049,10 @@ async function testWorkflow(input = {}) {
         return
       }
 
+      // Claim it: a prompt kind this section cannot render would otherwise hold
+      // the session open with nothing on screen able to answer or end it.
+      promptsStore.ownSession(sessionID)
+
       dryRunWatch = {
         sessionID,
         stepID: testParams.stepID,
@@ -2075,6 +2081,11 @@ async function testWorkflow(input = {}) {
     )
     .finally(() => {
       dryRun.value.lookup = true
+
+      // A run parked on a prompt or a delay is still live: it keeps its session
+      // so it can be stopped, and watchDryRunSession clears these when it ends.
+      if (dryRunWatch?.suspended) return
+
       dryRun.value.processing = false
       dryRun.value.sessionID = undefined
     })
@@ -2105,7 +2116,13 @@ function watchDryRunSession(watch) {
     if (!watch.suspended) dryRunWatch = null
 
     dryRun.value.processing = false
-    dryRun.value.sessionID = undefined
+
+    // A suspended run keeps its session id: the spinner goes, but the stop
+    // control stays, because a paused test is exactly when it is wanted.
+    if (!watch.suspended) {
+      promptsStore.disownSession(watch.sessionID)
+      dryRun.value.sessionID = undefined
+    }
   })
 }
 
@@ -2240,8 +2257,8 @@ function resumeDryRunPoll(watch) {
 }
 
 function cancelWorkflow() {
-  const { sessionID, processing } = dryRun.value
-  if (!processing || !sessionID) return
+  const { sessionID } = dryRun.value
+  if (!sessionID) return
 
   // Stop watching before asking: the cancel can be refused (the session may
   // already have left the server's pool) and the poll must end either way.
@@ -2266,10 +2283,28 @@ function cancelWorkflow() {
       }),
     )
     .finally(() => {
+      promptsStore.disownSession(sessionID)
       dryRun.value.processing = false
       dryRun.value.sessionID = undefined
     })
 }
+
+// A step this section cannot perform is resumed rather than left holding the
+// session; say which, so the run finishing early is not a mystery.
+watch(
+  () => promptsStore.skipped.length,
+  () => {
+    const mine = promptsStore.skipped.filter(p => p.sessionID === dryRun.value.sessionID)
+    if (!mine.length) return
+
+    toast.add({
+      severity: 'info',
+      summary: t('notification.test-in-progress'),
+      detail: t('notification.prompt-step-skipped', { step: mine[mine.length - 1].ref }),
+      life: 5000,
+    })
+  },
+)
 
 /* ─── Trace rendering ─── */
 function renderTrace(firstStepID, trace = []) {

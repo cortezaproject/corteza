@@ -53,3 +53,4 @@ target: Target
 tooltip:
   configure-step: Configure step
   run-workflow: Run workflow
+  stop-workflow: Stop this test run

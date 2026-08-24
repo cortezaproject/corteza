@@ -598,6 +598,9 @@ template:
   update:
     error: Template update failed
     success: Template updated
+prompt-step-skipped: >-
+  The workflow reached a "{step}" step, which only applies in Compose. It has
+  been skipped so the run can continue.
 test-completed: Test completed
 test-in-progress: Test in progress
 test-paused: Test paused

@@ -22,7 +22,7 @@
 
       <div class="trigger-node__header-actions">
         <img
-          v-if="canTest && !dryRunProcessing"
+          v-if="canTest && !dryRunProcessing && !hasLiveDryRun"
           :src="getIcon('play')"
           class="trigger-node__action-btn"
           :title="$t('configurator.tooltip.run-workflow')"
@@ -30,9 +30,10 @@
         />
         <span v-if="dryRunProcessing && dryRunCellID === id" class="trigger-node__spinner" />
         <img
-          v-if="dryRunProcessing && dryRunCellID === id && dryRunSessionID"
+          v-if="hasLiveDryRun"
           :src="getIcon('stop')"
           class="trigger-node__action-btn"
+          :title="$t('configurator.tooltip.stop-workflow')"
           @click.stop="$emit('cancel')"
         />
       </div>
@@ -161,6 +162,11 @@ const props = defineProps({
 })
 
 defineEmits(['test', 'cancel', 'open-issues'])
+
+// A dry run of this node that still holds a session — polling or paused on a
+// prompt. Paused is exactly when the stop control is wanted, so it does not
+// depend on the run still being watched.
+const hasLiveDryRun = computed(() => props.dryRunCellID === props.id && !!props.dryRunSessionID)
 
 const { t } = useI18n()
 
