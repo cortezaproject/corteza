@@ -158,6 +158,9 @@ type (
 		hasLimit bool
 		Limit    uint64
 
+		hasIncTotal bool
+		IncTotal    bool
+
 		hasPageCursor bool
 		PageCursor    string
 	}
@@ -229,6 +232,13 @@ func (h remindersHandler) Search() *atypes.Function {
 				},
 			},
 			{
+				Name:  "incTotal",
+				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
+			},
+			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
 				Meta: &atypes.ParamMeta{
@@ -260,6 +270,7 @@ func (h remindersHandler) Search() *atypes.Function {
 					hasScheduledOnly:    in.Has("scheduledOnly"),
 					hasSort:             in.Has("sort"),
 					hasLimit:            in.Has("limit"),
+					hasIncTotal:         in.Has("incTotal"),
 					hasPageCursor:       in.Has("pageCursor"),
 				}
 			)
@@ -333,6 +344,9 @@ type (
 		hasLimit bool
 		Limit    uint64
 
+		hasIncTotal bool
+		IncTotal    bool
+
 		hasPageCursor bool
 		PageCursor    string
 	}
@@ -403,6 +417,13 @@ func (h remindersHandler) Each() *atypes.Function {
 				},
 			},
 			{
+				Name:  "incTotal",
+				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
+			},
+			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
 				Meta: &atypes.ParamMeta{
@@ -433,6 +454,7 @@ func (h remindersHandler) Each() *atypes.Function {
 					hasScheduledOnly:    in.Has("scheduledOnly"),
 					hasSort:             in.Has("sort"),
 					hasLimit:            in.Has("limit"),
+					hasIncTotal:         in.Has("incTotal"),
 					hasPageCursor:       in.Has("pageCursor"),
 				}
 			)

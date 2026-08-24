@@ -90,6 +90,9 @@ func (h remindersHandler) search(ctx context.Context,args *remindersSearchArgs) 
 	if args.hasLimit {
 		f.Limit = uint(args.Limit)
 	}
+
+	f.IncTotal = args.IncTotal
+
 	var auxf types.ReminderFilter
 	results.Reminders, auxf, err = h.rSvc.Find(ctx, f)
 	results.Total=uint64(auxf.Total)
@@ -115,6 +118,8 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 			return
 		}
 	}   
+	f.IncTotal = args.IncTotal
+
 	if args.hasLimit {
 		i.useIterLimit = true
 		i.iterLimit = uint(args.Limit)
