@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/rand"
 	"github.com/cortezaproject/corteza/server/store"
@@ -132,6 +133,78 @@ func testReminders(t *testing.T, s store.Reminders) {
 			req.NoError(err)
 			req.Len(set, 1)
 			req.Equal(prefill[0].ID, set[0].ID)
+		})
+
+		t.Run("total", func(t *testing.T) {
+			t.Run("omitted when not requested", func(t *testing.T) {
+				req, _ := truncAndFill(t, 5)
+
+				set, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 2},
+				})
+				req.NoError(err)
+				req.Len(set, 2)
+				req.Equal(uint(0), f.Total)
+			})
+
+			t.Run("without limit", func(t *testing.T) {
+				req, _ := truncAndFill(t, 5)
+
+				set, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{IncTotal: true},
+				})
+				req.NoError(err)
+				req.Len(set, 5)
+				req.Equal(uint(5), f.Total)
+			})
+
+			t.Run("with limit above count", func(t *testing.T) {
+				req, _ := truncAndFill(t, 5)
+
+				set, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 10, IncTotal: true},
+				})
+				req.NoError(err)
+				req.Len(set, 5)
+				req.Equal(uint(5), f.Total)
+			})
+
+			t.Run("with limit equal to count", func(t *testing.T) {
+				req, _ := truncAndFill(t, 5)
+
+				set, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 5, IncTotal: true},
+				})
+				req.NoError(err)
+				req.Len(set, 5)
+				req.Equal(uint(5), f.Total)
+			})
+
+			t.Run("with limit below count", func(t *testing.T) {
+				req, _ := truncAndFill(t, 5)
+
+				set, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 2, IncTotal: true},
+				})
+				req.NoError(err)
+				req.Len(set, 2)
+				req.Equal(uint(5), f.Total)
+			})
+
+			t.Run("refused with a page cursor", func(t *testing.T) {
+				req, _ := truncAndFill(t, 5)
+
+				_, f, err := s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 2},
+				})
+				req.NoError(err)
+				req.NotNil(f.NextPage)
+
+				_, _, err = s.SearchReminders(ctx, types.ReminderFilter{
+					Paging: filter.Paging{Limit: 2, IncTotal: true, PageCursor: f.NextPage},
+				})
+				req.Error(err)
+			})
 		})
 	})
 
