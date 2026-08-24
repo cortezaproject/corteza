@@ -31,6 +31,12 @@ so branding/visibility changes need no code.
   overridable through the `#badge` slot — the tree never learns what the
   marker means (project's status chip is the live example).
 - `CAppList.vue` / `CAppListSidebar.vue` — application switcher (grid / sidebar).
+  An entry is openable when the application is `enabled` AND the host's injected
+  `$appReachable` allows it; without that injection every entry is openable,
+  which is what a registry with no access control means. An entry that is not
+  openable is shown greyed and inert rather than hidden, so the menu is never
+  silently shorter than the registry. Hrefs come from `resolveAppUrl`, so a
+  `unify.url` naming a bare host links off-site instead of as a local path.
 - `CToolbar.vue` — slot-only bottom bar (`start`/`center`/`end`).
 - `CRouterLinkButton.vue` — Button-styled router-link.
 

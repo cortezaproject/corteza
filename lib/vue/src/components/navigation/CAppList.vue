@@ -87,6 +87,7 @@ import CDraggableList from '../drag/CDraggableList.vue'
 import { useInternalLink } from '../../composables/useInternalLink'
 import { useApplicationsStore } from '../../stores/useApplicationsStore'
 import { resolveAppLogoUrl } from '../../utils/appIcons'
+import { resolveAppUrl } from '../../utils/appUrl'
 
 const $appIconMap = inject('$appIconMap', {})
 
@@ -162,11 +163,7 @@ const areAppsVisible = computed(() => filteredApps.value.length > 0)
 
 const getAppLogoUrl = app => resolveAppLogoUrl(app, $SystemAPI.baseURL, $appIconMap)
 
-const getAppUrl = app => {
-  const url = app.unify?.url || ''
-  if (!url || url.startsWith('/') || url.startsWith('http')) return url
-  return '/' + url
-}
+const getAppUrl = app => resolveAppUrl(app.unify?.url)
 
 // The list being dragged is the filtered one, but the order being saved is the
 // whole one. The visible apps are put back into the slots they already occupy,

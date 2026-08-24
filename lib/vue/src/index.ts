@@ -56,6 +56,7 @@ export { useUnsavedGuard } from './composables/useUnsavedGuard'
 export { useDraftGuard } from './composables/useDraftGuard'
 export { useHistoryBack } from './composables/useHistoryBack'
 export { resolveAppLogoUrl } from './utils/appIcons'
+export { isAppUrlLocal, resolveAppUrl } from './utils/appUrl'
 export * as websocket from './libs/websocket'
 
 // Export filters

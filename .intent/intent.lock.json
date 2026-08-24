@@ -2676,6 +2676,16 @@
       "doc": "client/web/unify/src/utils/utils.intent.md",
       "t": "2026-07-23"
     },
+    "client/web/unify/src/utils/appReachable.js": {
+      "h": "637dc78aa121",
+      "doc": "client/web/unify/src/utils/utils.intent.md",
+      "t": "2026-08-24"
+    },
+    "client/web/unify/src/utils/appReachable.test.js": {
+      "h": "313fd7999ecc",
+      "doc": "client/web/unify/src/utils/utils.intent.md",
+      "t": "2026-08-24"
+    },
     "client/web/unify/tailwind.config.js": {
       "h": "7224bac9794f",
       "doc": "client/web/unify/unify.intent.md",
@@ -4022,9 +4032,9 @@
       "t": "2026-08-14"
     },
     "lib/vue/src/components/navigation/CAppList.vue": {
-      "h": "6a48898ed0b9",
+      "h": "f67df7151958",
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/navigation/CAppListSidebar.vue": {
       "h": "bf7271410bbe",
@@ -4387,9 +4397,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/index.ts": {
-      "h": "875b7de3dad3",
+      "h": "fb4e60d4faf6",
       "doc": "lib/vue/vue.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-08-24"
     },
     "lib/vue/src/libs/url.ts": {
       "h": "2ce73c48a4fa",
@@ -4540,6 +4550,16 @@
       "h": "f83f1709abdf",
       "doc": "lib/vue/src/utils/utils.intent.md",
       "t": "2026-07-23"
+    },
+    "lib/vue/src/utils/appUrl.test.ts": {
+      "h": "90c86ee44cd9",
+      "doc": "lib/vue/src/utils/utils.intent.md",
+      "t": "2026-08-24"
+    },
+    "lib/vue/src/utils/appUrl.ts": {
+      "h": "5379ee4ad8c5",
+      "doc": "lib/vue/src/utils/utils.intent.md",
+      "t": "2026-08-24"
     },
     "lib/vue/src/utils/internalNav.ts": {
       "h": "2e6bc8db8ce7",

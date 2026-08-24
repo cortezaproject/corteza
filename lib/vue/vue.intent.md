@@ -34,7 +34,7 @@ provide/inject (`$SystemAPI`, `$ComposeAPI`, `$Auth`, `$Settings`, `$toast`,
 - `plugins/` — app bootstrap: auth, human-api, i18n, settings, toast, event-bus, primevue-components, primevue-locale
 - `filters/` — date formatting helpers
 - `libs/` — url + websocket helpers
-- `utils/` — app icons, internal navigation helpers
+- `utils/` — app icons, app urls, internal navigation helpers
 - `assets/`, `test/` — static assets, test setup
 - `index.ts` — package entry re-exporting the public surface; `vue.d.ts` — ambient types
 
