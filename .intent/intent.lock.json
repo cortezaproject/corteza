@@ -3711,10 +3711,15 @@
       "doc": "lib/vue/src/components/field/field.intent.md",
       "t": "2026-07-23"
     },
-    "lib/vue/src/components/field/editors/CFieldUserEditor.vue": {
-      "h": "32153c5ade4c",
+    "lib/vue/src/components/field/editors/CFieldUserEditor.test.ts": {
+      "h": "29de40aa4fd4",
       "doc": "lib/vue/src/components/field/field.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-24"
+    },
+    "lib/vue/src/components/field/editors/CFieldUserEditor.vue": {
+      "h": "a40660c7ddcb",
+      "doc": "lib/vue/src/components/field/field.intent.md",
+      "t": "2026-08-24"
     },
     "lib/vue/src/components/field/index.ts": {
       "h": "a8e2e0693e36",
