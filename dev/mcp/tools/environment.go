@@ -238,14 +238,26 @@ func newestGoSource(root string) (string, time.Time) {
 }
 
 func devServerURL(root string) string {
-	// The port lives in the dev toolkit's shared config; falling back rather
-	// than failing keeps this useful on a checkout that has not bootstrapped.
-	if raw, err := os.ReadFile(filepath.Join(root, "dev", "agent", "common.sh")); err == nil {
+	// The port a checkout's server listens on is the one in its own server/.env
+	// — worktree.sh writes it per slot, so a lane answers for its own server
+	// rather than the primary's. Falling back rather than failing keeps this
+	// useful on a checkout that has not been set up yet.
+	if raw, err := os.ReadFile(filepath.Join(root, "server", ".env")); err == nil {
 		for _, line := range strings.Split(string(raw), "\n") {
-			if _, value, ok := strings.Cut(line, "HUMAN_BASE_URL="); ok {
-				if v := strings.Trim(strings.Fields(value)[0], `"'`); strings.HasPrefix(v, "http") {
-					return v
-				}
+			line = strings.TrimSpace(line)
+			if !strings.HasPrefix(line, "HTTP_ADDR=") {
+				continue
+			}
+
+			// HTTP_ADDR is a bind address: ":1543", "127.0.0.1:1543". An
+			// empty assignment has no fields at all, so do not index blindly.
+			fields := strings.Fields(strings.TrimPrefix(line, "HTTP_ADDR="))
+			if len(fields) == 0 {
+				continue
+			}
+
+			if _, port, ok := strings.Cut(strings.Trim(fields[0], `"'`), ":"); ok && port != "" {
+				return "http://localhost:" + port
 			}
 		}
 	}

@@ -128,3 +128,62 @@ func TestNewestGoSourceIgnoresTheBuildDirectory(t *testing.T) {
 		t.Fatalf("newest source time = %v, want %v", at, base.Add(time.Hour))
 	}
 }
+
+// TestDevServerURLAnswersForItsOwnCheckout pins what this has to get right.
+//
+// It used to parse HUMAN_BASE_URL out of dev/agent/common.sh — a variable that
+// is set nowhere in the repo — so every checkout fell through to the hardcoded
+// primary port. A lane asking whether its server was up was told about slot 0's,
+// and a stopped lane reported as running.
+func TestDevServerURLAnswersForItsOwnCheckout(t *testing.T) {
+	cases := []struct {
+		name string
+		env  string
+		want string
+	}{
+		{
+			name: "a worktree's own port, not the primary's",
+			env:  "DOMAIN=localhost:1543\nHTTP_ADDR=:1543\nENVIRONMENT=dev\n",
+			want: "http://localhost:1543",
+		},
+		{
+			name: "a host-qualified bind address",
+			env:  "HTTP_ADDR=127.0.0.1:1743\n",
+			want: "http://localhost:1743",
+		},
+		{
+			name: "a commented assignment is not the value",
+			env:  "#HTTP_ADDR=:9999\nHTTP_ADDR=:1343\n",
+			want: "http://localhost:1343",
+		},
+		{
+			name: "an empty assignment falls back rather than panicking",
+			env:  "HTTP_ADDR=\n",
+			want: "http://localhost:1043",
+		},
+		{
+			name: "no env file at all",
+			env:  "",
+			want: "http://localhost:1043",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			root := t.TempDir()
+
+			if c.env != "" {
+				if err := os.MkdirAll(filepath.Join(root, "server"), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(root, "server", ".env"), []byte(c.env), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			if got := devServerURL(root); got != c.want {
+				t.Errorf("devServerURL() = %q, want %q", got, c.want)
+			}
+		})
+	}
+}

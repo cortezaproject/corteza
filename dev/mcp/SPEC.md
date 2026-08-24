@@ -70,9 +70,10 @@ in that session at once, so one lane switching it would redirect another lane's
 commit.
 
 The tools that drive the dev server and the webapp do not take it. Their answer
-depends on the ports that checkout's server was started on, and `devServerURL`
-reads a tracked file naming 1043 for every checkout, so accepting a worktree
-there would report the primary's server under a worktree's name.
+depends on the ports that checkout's server was started on, which `devServerURL`
+reads from the checkout's own `server/.env` — so they answer for the checkout
+this session was launched in, and a session driving a lane from elsewhere is
+told about the wrong server rather than refused.
 
 ### Investigate
 
