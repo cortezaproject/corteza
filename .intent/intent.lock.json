@@ -146,10 +146,15 @@
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
       "t": "2026-08-13"
     },
-    "client/web/unify/src/sections/admin/components/Permissions/CPermissionGrid.vue": {
-      "h": "ee45552abb92",
+    "client/web/unify/src/sections/admin/components/Permissions/CPermissionGrid.cells.test.js": {
+      "h": "b8d701ccd4fd",
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-24"
+    },
+    "client/web/unify/src/sections/admin/components/Permissions/CPermissionGrid.vue": {
+      "h": "f39ffed1d440",
+      "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
+      "t": "2026-08-24"
     },
     "client/web/unify/src/sections/admin/components/Role/RoleMembers.vue": {
       "h": "303b857fe7d1",

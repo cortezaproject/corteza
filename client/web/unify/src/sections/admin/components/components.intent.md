@@ -26,7 +26,7 @@ via props.
 - `Template/` — template editor tooling: CCodeEditor (template body code editor), CTemplatePreview (render preview with variables/options JSON), CTemplateToolbox (snippet/partial helper).
 - `ApiGateway/` — CFilterParamsEditor (per-filter parameter form for gateway route filters: workflow picker, HTTP status, response type, …).
 - `Workflow/` — WorkflowTriggers (trigger listing panel for the workflow editor).
-- `Permissions/` — CPermissionGrid (role × resource-operation permission matrix; the shared grid behind the system, compose, automation and federation permission pages).
+- `Permissions/` — CPermissionGrid (role × resource-operation permission matrix; the shared grid behind the system, compose, automation and federation permission pages). Its role and user pickers are the shared `CInputRole`/`CInputUser`.
 
 ## Data touched
 

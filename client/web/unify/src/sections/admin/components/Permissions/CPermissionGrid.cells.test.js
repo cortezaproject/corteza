@@ -10,6 +10,7 @@ let guard = null
 vi.mock('@planetcrust/human-vue', () => ({
   components: {
     CInputRole: { name: 'CInputRole', props: ['modelValue'], template: '<div />' },
+    CInputUser: { name: 'CInputUser', props: ['modelValue'], template: '<div />' },
   },
   useUnsavedGuard: options => {
     guard = options

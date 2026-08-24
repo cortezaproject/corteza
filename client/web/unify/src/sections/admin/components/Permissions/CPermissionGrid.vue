@@ -202,15 +202,11 @@
         </CFormGroup>
 
         <CFormGroup :label="$t('permissions.ui.add.user.label')" v-if="add.mode === 'eval'">
-          <AutoComplete
+          <CInputUser
             v-model="add.userID"
-            :suggestions="userSuggestions"
             :placeholder="$t('permissions.ui.add.user.placeholder')"
-            option-label="label"
             :disabled="add.selectedRoles.length > 0"
-            class="w-full"
-            dropdown
-            @complete="searchUsers"
+            @select="onUserSelected"
           />
         </CFormGroup>
       </div>
@@ -242,7 +238,7 @@ import { useI18n } from 'vue-i18n'
 import { components, useUnsavedGuard } from '@planetcrust/human-vue'
 import { kebabCase } from 'lodash-es'
 
-const { CInputRole } = components
+const { CInputRole, CInputUser } = components
 
 const { t, te } = useI18n()
 
@@ -274,9 +270,14 @@ const permissionChanges = ref([])
 
 // Add dialog
 const addDialogVisible = ref(false)
-const add = ref({ mode: 'edit', roleID: null, userID: null, selectedRole: null, selectedRoles: [] })
-const userSuggestions = ref([])
-const fetchedUsers = ref({})
+const add = ref({
+  mode: 'edit',
+  roleID: null,
+  userID: null,
+  selectedUser: null,
+  selectedRole: null,
+  selectedRoles: [],
+})
 
 const modeOptions = [
   { label: t('permissions.ui.edit.title'), value: 'edit' },
@@ -299,6 +300,7 @@ watch(
   () => {
     add.value.roleID = null
     add.value.userID = null
+    add.value.selectedUser = null
     add.value.selectedRole = null
     add.value.selectedRoles = []
   },
@@ -314,6 +316,10 @@ function onRoleSelected(role) {
       add.value.selectedRoles.push(role)
     }
   }
+}
+
+function onUserSelected(user) {
+  add.value.selectedUser = user
 }
 
 function removeSelectedRole(roleID) {
@@ -558,7 +564,7 @@ async function onSubmit() {
 
 // Add role
 function onAdd() {
-  const { mode, selectedRole, selectedRoles, userID } = add.value
+  const { mode, selectedRole, selectedRoles, selectedUser, userID } = add.value
 
   if (mode === 'edit' && selectedRole) {
     const rid = selectedRole.roleID
@@ -578,9 +584,11 @@ function onAdd() {
     let rids = []
     let name = []
 
-    if (userID && userID.userID) {
-      uid = userID.userID
-      name = [userID.label]
+    if (userID) {
+      uid = userID
+      // The picked node carries the name; a stale one is worth less than the ID.
+      const picked = selectedUser?.userID === userID ? selectedUser : null
+      name = [picked ? picked.name || picked.username || picked.email || uid : uid]
     } else if (selectedRoles.length) {
       rids = selectedRoles.map(r => r.roleID)
       name = selectedRoles.map(r => r.name || r.handle || r.roleID)
@@ -598,7 +606,14 @@ function onAdd() {
       .catch($toast.toastErrorHandler(t('permissions.ui.notification.save.failed')))
   }
 
-  add.value = { mode: 'edit', roleID: null, userID: null, selectedRole: null, selectedRoles: [] }
+  add.value = {
+    mode: 'edit',
+    roleID: null,
+    userID: null,
+    selectedUser: null,
+    selectedRole: null,
+    selectedRoles: [],
+  }
   addDialogVisible.value = false
 }
 
@@ -607,20 +622,6 @@ function hideRole(role) {
   roles.value = roles.value.filter(r => r.ID !== role.ID)
   rolePermissions.value = rolePermissions.value.filter(r => r.ID !== role.ID)
   setIncludedRoles(roles.value)
-}
-
-// Search users for eval mode
-async function searchUsers({ query }) {
-  try {
-    const { set } = await $SystemAPI.userList({ query: query || '', limit: 15, sort: 'name ASC' })
-    userSuggestions.value = (set || []).map(({ userID, name, username, email }) => {
-      const label = name || username || email || `<@${userID}>`
-      fetchedUsers.value[userID] = label
-      return { userID, label }
-    })
-  } catch {
-    userSuggestions.value = []
-  }
 }
 
 onMounted(async () => {
