@@ -125,6 +125,12 @@ func ParseMeta(ss []string) (m map[string]any, err error) {
 				return nil, err
 			}
 
+			for k := range m {
+				if !isValidMetaKey(k) {
+					return nil, fmt.Errorf("invalid metadata key format")
+				}
+			}
+
 			continue
 		}
 
@@ -141,4 +147,12 @@ func ParseMeta(ss []string) (m map[string]any, err error) {
 	}
 
 	return m, nil
+}
+
+// isValidMetaKey rejects keys that can not be safely used as part of a JSON path
+//
+// Store layer interpolates metadata keys into JSON path expressions where an
+// unescaped quote would terminate the surrounding string literal
+func isValidMetaKey(k string) bool {
+	return !strings.Contains(k, "'")
 }
