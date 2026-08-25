@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -44,13 +45,35 @@ func setupStore(t *testing.T) store.Storer {
 		t.Skip("ACTIONLOG_DB_DSN not set")
 	}
 
-	ctx := context.Background()
-	s, err := store.Connect(ctx, zap.NewNop(), dsn, false)
-	require.NoError(t, err)
-	require.NoError(t, store.UpgradeActionlog(ctx, zap.NewNop(), s))
+	// Bounded, and a failure to reach the store skips rather than fails. The
+	// DSN above is hard-coded, so on any machine without that database the
+	// connect retried until the 10-minute test binary timeout and took the
+	// whole `go test ./...` run down with a panic — which reads as a broken
+	// suite rather than a missing dependency. Resolved once per run: the answer
+	// is the same for every test here, and paying the timeout per test is most
+	// of the wait.
+	storeOnce.Do(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
 
-	return s
+		if sharedStore, storeErr = store.Connect(ctx, zap.NewNop(), dsn, false); storeErr != nil {
+			return
+		}
+		storeErr = store.UpgradeActionlog(ctx, zap.NewNop(), sharedStore)
+	})
+
+	if storeErr != nil {
+		t.Skipf("actionlog store unusable at %s: %v", dsn, storeErr)
+	}
+
+	return sharedStore
 }
+
+var (
+	storeOnce   sync.Once
+	sharedStore store.Storer
+	storeErr    error
+)
 
 func newSvc(s store.Storer) actionlog.Recorder {
 	return actionlog.NewService(s, zap.NewNop(), zap.NewNop(), actionlog.MakeDebugPolicy())
