@@ -60,6 +60,12 @@ type (
 
 		loops []Iterator
 
+		// names of variables written on this path since it branched off
+		//
+		// The join gateway merges only these, so a path that never touched a
+		// variable can not overwrite another path's value with a stale copy.
+		dirty map[string]bool
+
 		action string
 	}
 )
@@ -98,9 +104,57 @@ func (s State) Next(current Step, scope *expr.Vars) *State {
 		errHandlerResults: s.errHandlerResults,
 		results:           s.results,
 		loops:             s.loops,
+		dirty:             s.dirty,
 
 		step:  current,
 		scope: scope,
+	}
+}
+
+// NextBranch returns next state for one of the parallel paths
+//
+// Variables written before the branching point are not part of the branch's
+// changes, so the set of written variables starts empty.
+func (s State) NextBranch(current Step, scope *expr.Vars) *State {
+	st := s.Next(current, scope)
+	st.dirty = nil
+	return st
+}
+
+// markDirty records variables written by the current step
+func (s *State) markDirty(vv *expr.Vars) {
+	if vv.IsEmpty() {
+		return
+	}
+
+	var nn []string
+	_ = vv.Each(func(k string, _ expr.TypedValue) error {
+		nn = append(nn, k)
+		return nil
+	})
+
+	s.markDirtyNames(nn...)
+}
+
+// markDirtyNames records variables written directly to the scope
+func (s *State) markDirtyNames(nn ...string) {
+	if len(nn) == 0 {
+		return
+	}
+
+	if s.dirty == nil {
+		s.dirty = make(map[string]bool)
+	} else {
+		// state's set is shared with the states it spawned; copy before write
+		dirty := make(map[string]bool, len(s.dirty)+1)
+		for k := range s.dirty {
+			dirty[k] = true
+		}
+		s.dirty = dirty
+	}
+
+	for _, n := range nn {
+		s.dirty[n] = true
 	}
 }
 
@@ -111,6 +165,7 @@ func (s State) MakeRequest() *ExecRequest {
 		Scope:     s.scope,
 		Input:     s.input,
 		Parent:    s.parent,
+		dirty:     s.dirty,
 	}
 }
 

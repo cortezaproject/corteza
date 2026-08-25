@@ -33,6 +33,7 @@ type (
 		StepIdentifier
 		paths  Steps
 		scopes map[uint64]map[Step]*expr.Vars
+		dirty  map[uint64]map[Step]map[string]bool
 		l      sync.Mutex
 	}
 )
@@ -63,6 +64,7 @@ func JoinGateway(ss ...Step) *joinGateway {
 		// but it beats hidden variables in the scope or dedicated prop in the
 		// ExecRequest
 		scopes: make(map[uint64]map[Step]*expr.Vars),
+		dirty:  make(map[uint64]map[Step]map[string]bool),
 	}
 }
 
@@ -82,25 +84,73 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 
 	if len(gw.scopes[r.SessionID]) == 0 {
 		gw.scopes[r.SessionID] = make(map[Step]*expr.Vars)
+		gw.dirty[r.SessionID] = make(map[Step]map[string]bool)
 	}
 
 	gw.scopes[r.SessionID][r.Parent] = r.Scope
+	gw.dirty[r.SessionID][r.Parent] = r.dirty
+
 	if len(gw.scopes[r.SessionID]) < len(gw.paths) {
 		return &partial{}, nil
 	}
 
-	// All collected, merge scope parent all paths in the defined order
+	// All collected; start from the first path's scope and apply what each
+	// path changed on top of it
+	//
+	// Merging whole scopes instead would let a path that never touched a
+	// variable overwrite another path's change with its own stale copy.
 	var merged *expr.Vars
+	if len(gw.paths) > 0 && gw.scopes[r.SessionID][gw.paths[0]] != nil {
+		merged = gw.scopes[r.SessionID][gw.paths[0]].MustMerge()
+	}
+
+	if merged == nil {
+		merged = &expr.Vars{}
+	}
+
+	// when more than one path changed the same variable, the last path wins
+	var changedNames []string
 	for _, p := range gw.paths {
-		if gw.scopes[r.SessionID][p] != nil {
-			merged = merged.MustMerge(gw.scopes[r.SessionID][p])
+		changed := gw.changesOf(r.SessionID, p)
+
+		if !changed.IsEmpty() {
+			merged = merged.MustMerge(changed)
+		}
+
+		_ = changed.Each(func(k string, _ expr.TypedValue) error {
+			changedNames = append(changedNames, k)
+			return nil
+		})
+	}
+
+	// all inbound paths visited, cleanup collected state for the session
+	delete(gw.scopes, r.SessionID)
+	delete(gw.dirty, r.SessionID)
+
+	// only what the paths changed counts as this path's changes; reporting the
+	// whole merged scope would make an enclosing join treat every variable as
+	// changed here
+	return &joined{scope: merged, changed: changedNames}, nil
+}
+
+// changesOf returns variables the given path wrote after it branched off
+func (gw *joinGateway) changesOf(sessionID uint64, p Step) *expr.Vars {
+	var (
+		out   = &expr.Vars{}
+		scope = gw.scopes[sessionID][p]
+	)
+
+	if scope == nil {
+		return out
+	}
+
+	for name := range gw.dirty[sessionID][p] {
+		if v, err := scope.Select(name); err == nil {
+			_ = out.Set(name, v)
 		}
 	}
 
-	// all inbound paths visited, cleanup scopes for the session
-	delete(gw.scopes, r.SessionID)
-
-	return merged, nil
+	return out
 }
 
 // forkGateway handles forking to multiple paths
