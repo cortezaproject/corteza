@@ -50,9 +50,19 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  // Show the instance's only provider when nothing is chosen. The server runs
+  // an agent on the sole configured provider when it names none, so a blank
+  // select here would say the agent has no model to run on when it has one.
+  resolveSole: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['update:modelValue'])
+// 'resolved' reports the provider being stood in for. It is deliberately not
+// 'update:modelValue': nothing was chosen, so nothing should be written to the
+// resource or mark the form edited.
+const emit = defineEmits(['update:modelValue', 'resolved'])
 
 const $SystemAPI = inject('$SystemAPI')
 
@@ -86,6 +96,11 @@ async function fetchProviders() {
     options.value = all
       .filter(p => !p.deletedAt && p.status === 'active')
       .sort((a, b) => (getOptionLabel(a) || '').localeCompare(getOptionLabel(b) || ''))
+
+    if (props.resolveSole && !selectedProvider.value && options.value.length === 1) {
+      selectedProvider.value = options.value[0]
+      emit('resolved', options.value[0].llmProviderID)
+    }
   } catch (e) {
     if (e?.message !== 'canceled') {
       options.value = []
@@ -134,6 +149,10 @@ watch(
       loadProviderById(newVal)
     } else if (!newVal || newVal === '0') {
       selectedProvider.value = null
+      if (props.resolveSole && options.value.length === 1) {
+        selectedProvider.value = options.value[0]
+        emit('resolved', options.value[0].llmProviderID)
+      }
     }
   },
   { immediate: true },

@@ -126,7 +126,9 @@
                         <CInputLLM
                           id="provider"
                           v-model="agent.execution.model.llmProviderID"
+                          resolve-sole
                           @update:model-value="revalidateField('llmProvider')"
+                          @resolved="onProviderResolved"
                           :disabled="!canEdit"
                         />
                       </CFormGroup>
@@ -140,7 +142,7 @@
                         <CInputModel
                           id="model"
                           v-model="agent.execution.model.model"
-                          :llmProviderID="agent.execution.model.llmProviderID"
+                          :llmProviderID="effectiveProviderID"
                           @update:model-value="revalidateField('llmModel')"
                           :disabled="!canEdit"
                         />
@@ -1074,6 +1076,22 @@ const initialValues = computed(() => ({
   systemPrompt: agent.value?.behavior?.systemPrompt || '',
 }))
 
+// The provider the agent will actually run on: the one it names, or — when it
+// names none and the instance has exactly one — that one. Held apart from the
+// agent so standing in for a choice never writes to the resource or marks the
+// form edited; the server resolves the same way when the field is left empty.
+const resolvedProviderID = ref('')
+
+const effectiveProviderID = computed(() => {
+  const named = agent.value?.execution?.model?.llmProviderID
+  if (named && named !== '0') return named
+  return resolvedProviderID.value
+})
+
+function onProviderResolved(llmProviderID) {
+  resolvedProviderID.value = llmProviderID || ''
+}
+
 const resolver = ref(({ values }) => {
   const errors = {}
   if (!values.systemPrompt || values.systemPrompt.trim().length === 0) {
@@ -1081,8 +1099,8 @@ const resolver = ref(({ values }) => {
   }
   // Provider/model selects are severed from form binding (novalidate), so
   // their values come from the agent itself, not from form values.
-  const { llmProviderID, model } = agent.value?.execution?.model || {}
-  if (!llmProviderID || llmProviderID === '0') {
+  const { model } = agent.value?.execution?.model || {}
+  if (!effectiveProviderID.value) {
     errors.llmProvider = [{ message: t('agent.editor.provider.required') }]
   }
   if (!model || model.trim().length === 0) {
