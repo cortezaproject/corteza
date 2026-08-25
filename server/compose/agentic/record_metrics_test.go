@@ -83,3 +83,71 @@ func TestValidateMetricsPointsAtDimension(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "SUM(price)")
 }
+
+func TestParseSortSpec(t *testing.T) {
+	assert.Nil(t, parseSortSpec(""))
+	assert.Nil(t, parseSortSpec("   "))
+
+	s := parseSortSpec("total DESC")
+	require.NotNil(t, s)
+	assert.Equal(t, "total", s.key)
+	assert.True(t, s.desc)
+
+	s = parseSortSpec("count")
+	require.NotNil(t, s)
+	assert.Equal(t, "count", s.key)
+	assert.False(t, s.desc)
+
+	assert.True(t, parseSortSpec("total desc").desc)
+	assert.False(t, parseSortSpec("total ASC").desc)
+}
+
+func TestSortAndLimitRows(t *testing.T) {
+	rows := []map[string]any{
+		{"dimension_0": "a", "total": 1.0},
+		{"dimension_0": "b", "total": 3.0},
+		{"dimension_0": "c", "total": 2.0},
+	}
+
+	t.Run("untouched when nothing is asked", func(t *testing.T) {
+		assert.Equal(t, any(rows), sortAndLimitRows(rows, nil, 0))
+	})
+
+	t.Run("top N descending", func(t *testing.T) {
+		got := sortAndLimitRows(rows, parseSortSpec("total DESC"), 2).([]map[string]any)
+		require.Len(t, got, 2)
+		assert.Equal(t, "b", got[0]["dimension_0"])
+		assert.Equal(t, "c", got[1]["dimension_0"])
+	})
+
+	t.Run("ascending", func(t *testing.T) {
+		got := sortAndLimitRows(rows, parseSortSpec("total"), 0).([]map[string]any)
+		assert.Equal(t, "a", got[0]["dimension_0"])
+	})
+
+	t.Run("a limit alone keeps the aggregation's own order", func(t *testing.T) {
+		got := sortAndLimitRows(rows, nil, 1).([]map[string]any)
+		require.Len(t, got, 1)
+		assert.Equal(t, "a", got[0]["dimension_0"])
+	})
+
+	// A group with no value must not outrank one that has a real figure.
+	t.Run("a missing value never tops a ranking", func(t *testing.T) {
+		with := []map[string]any{
+			{"dimension_0": "a", "total": nil},
+			{"dimension_0": "b", "total": 3.0},
+		}
+		got := sortAndLimitRows(with, parseSortSpec("total DESC"), 1).([]map[string]any)
+		assert.Equal(t, "b", got[0]["dimension_0"])
+	})
+}
+
+// A report with no limit returns every group; toolkit.Page's default page size
+// would have silently kept the first fifty.
+func TestReportLimit(t *testing.T) {
+	assert.Equal(t, 0, reportLimit(map[string]any{}))
+	assert.Equal(t, 0, reportLimit(map[string]any{"limit": ""}))
+	assert.Equal(t, 0, reportLimit(map[string]any{"limit": "0"}))
+	assert.Equal(t, 5, reportLimit(map[string]any{"limit": "5"}))
+	assert.Equal(t, 5, reportLimit(map[string]any{"limit": float64(5)}))
+}

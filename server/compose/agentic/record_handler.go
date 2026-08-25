@@ -201,6 +201,8 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, reportError(ctx, nsID, modID, err)
 	}
 
+	out = sortAndLimitRows(out, parseSortSpec(toolkit.Str(args, "sort")), reportLimit(args))
+
 	res := map[string]any{"rows": out}
 
 	// A bare number carries no unit, and a caller that has to guess one guesses
@@ -597,4 +599,98 @@ func (h *recordHandler) lookupByIDs(ctx context.Context, nsID, modID uint64, ids
 	}
 
 	return toolkit.JSONResult(res)
+}
+
+// sortSpec is one "column DESC" ordering over report rows.
+type sortSpec struct {
+	key  string
+	desc bool
+}
+
+func parseSortSpec(raw string) *sortSpec {
+	fields := strings.Fields(strings.TrimSpace(raw))
+	if len(fields) == 0 {
+		return nil
+	}
+
+	s := &sortSpec{key: strings.Trim(fields[0], `"'`)}
+	if len(fields) > 1 && strings.EqualFold(fields[1], "DESC") {
+		s.desc = true
+	}
+	return s
+}
+
+// sortAndLimitRows orders a report's groups and keeps the first few.
+//
+// The aggregation itself orders by the dimension and returns every group, so
+// "the five that moved most" meant handing a model every group and asking it to
+// rank them — which it does approximately, and which grows until the result
+// exceeds the size ceiling. The ranking happens here instead. It is applied to
+// the computed groups rather than pushed into the query: the database still
+// aggregates everything, and only the answer is trimmed.
+func sortAndLimitRows(rows any, spec *sortSpec, limit int) any {
+	if spec == nil && limit <= 0 {
+		return rows
+	}
+
+	enc, err := json.Marshal(rows)
+	if err != nil {
+		return rows
+	}
+	var decoded []map[string]any
+	if err = json.Unmarshal(enc, &decoded); err != nil {
+		return rows
+	}
+
+	if spec != nil {
+		sort.SliceStable(decoded, func(i, j int) bool {
+			less := rowLess(decoded[i][spec.key], decoded[j][spec.key])
+			if spec.desc {
+				return rowLess(decoded[j][spec.key], decoded[i][spec.key])
+			}
+			return less
+		})
+	}
+
+	if limit > 0 && len(decoded) > limit {
+		decoded = decoded[:limit]
+	}
+	return decoded
+}
+
+// rowLess orders two group values, numbers numerically and everything else as
+// text. A missing value sorts first so it never displaces a real one from the
+// top of a descending ranking.
+func rowLess(a, b any) bool {
+	af, aok := a.(float64)
+	bf, bok := b.(float64)
+	switch {
+	case aok && bok:
+		return af < bf
+	case aok != bok:
+		return bok
+	case a == nil || b == nil:
+		return a == nil && b != nil
+	default:
+		return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+	}
+}
+
+// reportLimit reads the limit the caller actually gave.
+//
+// toolkit.Page defaults to a page size, which is right for a list of records
+// and wrong here: a report with no limit must return every group, and silently
+// keeping the first fifty would drop data with nothing to show for it.
+func reportLimit(args map[string]any) int {
+	switch v := args["limit"].(type) {
+	case string:
+		if n, err := strconv.Atoi(strings.TrimSpace(v)); err == nil && n > 0 {
+			return n
+		}
+	case float64:
+		if v > 0 {
+			return int(v)
+		}
+	}
+	return 0
 }

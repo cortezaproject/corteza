@@ -52,7 +52,10 @@ func (h *recordHandler) register() {
 					"for plus 'count', the number of records in that group. With no 'dimension' you get a single "+
 					"row for the whole set, where dimension_0 is \"*\". "+
 					"'units' gives the prefix or suffix the module puts on each aggregated field — use it when "+
-					"stating the figure, and do not supply a currency or unit it does not name.",
+					"stating the figure, and do not supply a currency or unit it does not name. "+
+					"Grouping by a Record or User field returns 'refs', a dictionary of each group's ID to its "+
+					"name — read the labels from there rather than looking the groups up one by one. "+
+					"Do NOT list the dimension field in 'metrics': it comes back as dimension_0 on every row.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
@@ -60,6 +63,11 @@ func (h *recordHandler) register() {
 				"Comma-separated aggregate expressions over numeric fields, e.g. \"SUM(line_value) AS total, AVG(price) AS avg_price\". "+
 					"Functions: SUM, AVG, MIN, MAX, COUNT. The alias after AS is the key in the result; without one the "+
 					"expression itself is the key. 'count' is always returned and needs no metric.")),
+			mcp.WithString("sort", mcp.Description(
+				"Order the groups by one result key, e.g. \"total DESC\" — the alias you gave a metric, or 'count', "+
+					"or 'dimension_0' for the group itself. Use it with 'limit' to ask for a top-N directly instead "+
+					"of ranking the groups yourself.")),
+			mcp.WithString("limit", mcp.Description("Keep only the first N groups after sorting. Every group is still aggregated; this trims the answer.")),
 			mcp.WithString("dimension", mcp.Description(
 				"A single field name ON THIS MODULE to group by, e.g. \"rarity\" — not a dotted path through a "+
 					"Record reference: \"card.rarity\" is not a field and the call fails. To group by something held "+
