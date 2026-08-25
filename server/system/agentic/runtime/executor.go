@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -902,7 +903,7 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 				executeToolName = "automation_taq_exec"
 				executeArgs = map[string]any{
 					"taq":   idStr,
-					"input": decision.SanitizedArgs,
+					"input": pinTAQParams(agent, idStr, decision.SanitizedArgs),
 				}
 			}
 		}
@@ -1438,6 +1439,28 @@ func (r *runtime) schemaToInputSchema(schema autoTypes.NgAutomationTriggerSchema
 	}
 }
 
+// pinTAQParams applies the values the grant fixed for this TAQ.
+//
+// A grant may pin an argument so the agent runs the automation only one way —
+// a fixed queue, a fixed recipient. They overwrite rather than fill in: a
+// pinned value the model could talk its way past is not pinned at all.
+func pinTAQParams(agent *types.Agent, taqID string, args map[string]any) map[string]any {
+	for _, tac := range agent.Access.TAQs {
+		if strconv.FormatUint(tac.ID, 10) != taqID || len(tac.Params) == 0 {
+			continue
+		}
+		out := make(map[string]any, len(args)+len(tac.Params))
+		for k, v := range args {
+			out[k] = v
+		}
+		for k, v := range tac.Params {
+			out[k] = v
+		}
+		return out
+	}
+	return args
+}
+
 func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.NgAutomation, trigger *autoTypes.NgAutomationTrigger) Tool {
 	name := fmt.Sprintf("automation_%d", taq.ID)
 
@@ -1451,8 +1474,23 @@ func (r *runtime) buildMappedMCPTool(tac types.AgentAccessTAQ, taq *autoTypes.Ng
 	}
 
 	desc := fmt.Sprintf("Executes the %q TAQ.", title)
-	if taq.Meta != nil && taq.Meta.Description != "" {
+	// The grant's own description is why THIS agent may run it, which is what
+	// the model is choosing on; the TAQ's meta describes it to whoever
+	// maintains it. Prefer the first and fall back to the second.
+	switch {
+	case tac.Description != "":
+		desc += "\n\n" + tac.Description
+	case taq.Meta != nil && taq.Meta.Description != "":
 		desc += "\n\nDescription:\n" + taq.Meta.Description
+	}
+
+	if len(tac.Params) > 0 {
+		pinned := make([]string, 0, len(tac.Params))
+		for k := range tac.Params {
+			pinned = append(pinned, k)
+		}
+		sort.Strings(pinned)
+		desc += fmt.Sprintf("\n\nThe grant pins %s; anything you send for those is replaced.", strings.Join(pinned, ", "))
 	}
 
 	var inputSchema map[string]any
