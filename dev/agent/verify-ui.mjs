@@ -418,9 +418,9 @@ for (const p of paths) {
     if (b.overlayError)
       findings.push(
         `error where content belongs ${where} "${name}" — the block rendered ` +
-          `"${b.overlayError}" instead. A chart says this when the renderer rejects ` +
-          `its config; every dimension needs a "modifier" ("(no grouping / buckets)" ` +
-          `for a plain field) and every metric a "type"`,
+          `"${b.overlayError}" instead of its content. The message is the app's own; ` +
+          `a chart draws one when its config is rejected (a dimension with no ` +
+          `"modifier", a metric with no "type") or when what it points at is gone`,
       )
     if (b.listScroll.v > 8)
       notes.push(
