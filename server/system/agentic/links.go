@@ -61,3 +61,16 @@ func authClientLinks(c *sysTypes.AuthClient) map[string]string {
 	}
 	return map[string]string{"url": weburl.AuthClient(c.ID)}
 }
+
+// withNote adds a note to a result's extra fields, leaving them alone when
+// there is nothing to say.
+func withNote(extra map[string]string, note string) map[string]string {
+	if note == "" {
+		return extra
+	}
+	if extra == nil {
+		extra = make(map[string]string, 1)
+	}
+	extra["note"] = note
+	return extra
+}
