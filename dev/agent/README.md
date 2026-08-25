@@ -12,8 +12,9 @@ ever provisioned automatically — `server/provision/` must never reference
 dev/agent/bootstrap.sh
 ```
 
-Requires the dev server running (`cd server && make watch`, API on
-`http://localhost:1043/api` — override with `HUMAN_API`). Creates:
+`make setup-agent` runs this, fills `E2E_PASS` and smokes it; call the script
+directly to re-run just this part. Requires the dev server running
+(`cd server && make watch`). Creates:
 
 - user `agent@local.dev`, member of `super-admin`, with a password in
   `.state/ui-password` — the one identity for both API and browser
@@ -26,6 +27,18 @@ the full desired config) and re-caches the secret from the expose endpoint.
 
 Requires: `curl`, `python3` (no jq dependency), a built server binary in
 `server/build/` (gin's `make watch` provides one).
+
+Which server it reaches is not typed anywhere. `stack.sh` resolves it from the
+checkout's own `server/.env` and `.env.e2e`, so a worktree's scripts answer for
+the worktree; every script here sources it through `common.sh`, and the node
+ones through `stack.mjs`. Print it to see where a checkout points:
+
+```sh
+dev/agent/stack.sh   # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP · HUMAN_GIN
+```
+
+An exported `HUMAN_API` or `HUMAN_WEBAPP` still overrides it, but nothing in
+normal use needs one.
 
 ## Daily use
 
@@ -267,7 +280,8 @@ Ports come from the slot, so two worktrees cannot collide — API `1043+slot*100
 gin `3001+slot*100`, vite `5173+slot`. The primary is slot 0 and is never
 reassigned. `new` writes `server/.env`, `public/config.js` and `.env.e2e`
 pointed at those ports; all three are gitignored, so nothing shows up in the
-worktree's `git status`.
+worktree's `git status`, and they are what `stack.sh` reads back — so a
+worktree needs no `make setup` and no `HUMAN_API` in its environment.
 
 The whole flow works in there — unit tests, API, browser, and e2e. Playwright
 reads `E2E_BASE_URL` from the worktree's `.env.e2e`, so `npx playwright test`
