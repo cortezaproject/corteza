@@ -123,26 +123,41 @@ which otherwise look identical.
 
 ## 4. Launch Claude Code
 
-The `human` MCP server needs a token exported **before** Claude Code starts:
-
 ```sh
-export HUMAN_MCP_TOKEN=$(dev/agent/token.sh)   # ~2h lifetime
 claude
 ```
 
-Approve both MCP servers once in the session (`/mcp`); they are already listed
-in `.claude/settings.local.json`.
+Approve `human-dev` once in the session (`/mcp`); it is already listed in
+`.claude/settings.local.json` and needs no token. The `human` entry beside it
+does not connect — see [The MCP servers](#the-mcp-servers-and-which-human-they-reach)
+for why, and for the local route that does work.
 
 ---
 
 # Working with it
 
-## The two MCP servers
+## The MCP servers, and which Human they reach
 
-| server      | transport | needs a running Human? | what it is                             |
-| ----------- | --------- | ---------------------- | -------------------------------------- |
-| `human-dev` | stdio     | no                     | the **developer** layer — this repo    |
-| `human`     | http      | yes                    | the **configurator** — a running Human |
+| tools                     | from                             | reaches                                             |
+| ------------------------- | -------------------------------- | --------------------------------------------------- |
+| `mcp__human-dev__*`       | `.mcp.json`, stdio               | **this repo** — the developer layer                 |
+| `mcp__claude_ai_Human__*` | your claude.ai account connector | **a remote instance**, NOT this checkout            |
+| `dev/agent/mcp.py`        | the shell                        | **this checkout's** `/api/mcp`, re-auth'd each call |
+
+**The connector is not the dev server.** Its tool names read as "the Human MCP"
+and it carries the same configurator surface — compose CRUD, TAQ and workflow
+exec, users and roles — against somebody's live data. Nothing it writes is in
+`dev/agent/.state/created.jsonl`, so `cleanup.sh` cannot undo it. Local work
+goes through `dev/agent/mcp.py` or `api.sh`; reach for the connector only when
+the remote instance is the point, and say so.
+
+`.mcp.json` also declares a `human` HTTP server pointed at this checkout's
+`/api/mcp`. It does not connect: its header is `Bearer ${HUMAN_MCP_TOKEN}`, and
+nothing exports that. The server does publish OAuth discovery — a tokenless
+`POST /api/mcp` answers `401` with `WWW-Authenticate`, and both well-known
+documents resolve — but it advertises **no `registration_endpoint`**, so a
+client with no pre-registered `client_id` cannot complete the flow. Until the
+server offers dynamic client registration, `mcp.py` is the local route.
 
 ### `human-dev` — repo tools
 
