@@ -9,8 +9,10 @@ import (
 
 	autoService "github.com/crusttech/human/server/automation/service"
 	autoTypes "github.com/crusttech/human/server/automation/types"
+	execTypes "github.com/crusttech/human/server/pkg/automation_exec/types"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
 	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -55,8 +57,8 @@ func (h *taqHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	}
 
 	// Reference param is never Required, so an empty ref means "list".
-	if taqRef := toolkit.Str(args, "taq"); taqRef != "" {
-		taq, err := h.resolve(ctx, taqRef)
+	if ref := taqRef(args); ref != "" {
+		taq, err := h.resolve(ctx, ref)
 		if err != nil {
 			return nil, err
 		}
@@ -309,15 +311,18 @@ func (h *taqHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 		return nil, err
 	}
 
-	taqID, err := toolkit.ReqID(args, "taqID")
+	// Every other operation on a live TAQ takes an ID or a handle under "taq";
+	// requiring a numeric "taqID" only here made callers reach for the wrong
+	// name. "taqID" stays accepted so existing callers keep working.
+	taq, err := h.resolve(ctx, taqRef(args))
 	if err != nil {
 		return nil, err
 	}
 
-	if err := autoService.DefaultNgAutomation.DeleteByID(ctx, taqID); err != nil {
+	if err := autoService.DefaultNgAutomation.DeleteByID(ctx, taq.ID); err != nil {
 		return nil, toolkit.Errf("TAQ delete", err)
 	}
-	return toolkit.TextResult("TAQ %d deleted", taqID), nil
+	return toolkit.TextResult("TAQ %d deleted", taq.ID), nil
 }
 
 func (h *taqHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -429,7 +434,63 @@ func (h *taqHandler) executionTrace(ctx context.Context, req mcp.CallToolRequest
 	if err != nil {
 		return nil, toolkit.Errf("TAQ execution trace", err)
 	}
-	return toolkit.JSONResult(trace)
+	return toolkit.JSONResult(newTaqTraceResult(trace))
+}
+
+// taqTraceResult lifts step failures out of the frame list.
+//
+// A frame records the failure verbatim under "error" — the expression that did
+// not evaluate, the parameter that was unknown — and the run is marked failed.
+// What stays quiet is the other side: the write that triggered it succeeded and
+// returned normally, so the failure is only ever visible to someone who comes
+// looking here. The frames are long enough that an error nested in one is easy
+// to scroll past, so the failed steps are named up front.
+type taqTraceResult struct {
+	Frames []execTypes.StackFrame `json:"frames"`
+	Failed []taqTraceFailure      `json:"failedSteps,omitempty"`
+	Note   string                 `json:"note,omitempty"`
+}
+
+type taqTraceFailure struct {
+	// id.ID marshals itself to the same quoted form the frame uses; stringifying
+	// it by hand yields a value with its quotes baked into the text.
+	StepID id.ID  `json:"stepID"`
+	Handle string `json:"handle,omitempty"`
+	Kind   string `json:"kind,omitempty"`
+	Error  string `json:"error"`
+}
+
+func newTaqTraceResult(frames []execTypes.StackFrame) taqTraceResult {
+	out := taqTraceResult{Frames: frames}
+
+	for _, f := range frames {
+		if f.Error == nil {
+			continue
+		}
+		out.Failed = append(out.Failed, taqTraceFailure{
+			StepID: f.StepID,
+			Handle: f.Handle,
+			Kind:   f.Kind,
+			Error:  f.Error.Error(),
+		})
+	}
+
+	switch {
+	case len(out.Failed) > 0:
+		out.Note = "A step failed, so this run is marked failed — but whatever triggered it did " +
+			"not fail with it: a record write that fires a failing automation still saves and returns " +
+			"normally, so nothing surfaces this to whoever made the change. Each message under " +
+			"failedSteps is the exact failure; a step that could not resolve its arguments also has " +
+			"\"args\": null."
+	case len(frames) == 0:
+		out.Note = "No frames: nothing ran. The trigger did not match, or the trace has expired — " +
+			"traces are held in memory for minutes, not hours."
+	default:
+		out.Note = "No step reported an error. A frame proves the step ran with the arguments under " +
+			"\"args\", not that it had its effect — verify any visible effect separately."
+	}
+
+	return out
 }
 
 func parseInput(raw interface{}) (map[string]interface{}, error) {
@@ -572,8 +633,11 @@ func taqWriteResultOf(taq *autoTypes.NgAutomation, submitted []string) taqWriteR
 		notes = append(notes, "Registered with the automation runtime. Storing is not proof of working: run it "+
 			"with automation_taq_exec, then read automation_taq_execution_trace, because exec reports status "+
 			"only. A \"completed\" status with no step frames in the trace — nothing, or only the trigger "+
-			"frame — means no step ran, and a frame with populated \"args\" proves the arguments bound but "+
-			"not that the step had its effect: verify any visible effect separately.")
+			"frame — means no step ran. A frame carries the arguments it resolved under \"args\" and its "+
+			"results under \"output\": read \"args\" to confirm an expression evaluated to what you "+
+			"meant. It proves the step ran, not that it had its effect, so verify any visible effect "+
+			"separately. An iterator that matched nothing still records a frame; only the absence of "+
+			"body frames after it shows it looped zero times.")
 	}
 
 	out.Note = strings.Join(notes, " ")
@@ -583,6 +647,21 @@ func taqWriteResultOf(taq *autoTypes.NgAutomation, submitted []string) taqWriteR
 
 // resolve accepts a TAQ ID or a handle, because both are stable identifiers a
 // caller may hold. There is no FindByAny on this service.
+// taqRef reads the TAQ reference under the name it was sent.
+//
+// "taq" is the documented one, but a caller holding an automationID reaches for
+// that word instead — and an unread argument is dropped in silence, so a lookup
+// meant for one TAQ answered with a LIST, which has a different shape and reads
+// as an empty or broken result rather than a wrong argument name.
+func taqRef(args map[string]any) string {
+	for _, k := range []string{"taq", "taqID", "automation", "automationID"} {
+		if v := toolkit.Str(args, k); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgAutomation, error) {
 	if refStr == "" {
 		return nil, fmt.Errorf("taq identifier required")

@@ -34,6 +34,8 @@ stepID is a string of digits you choose, unique across steps AND triggers; paths
 kind is one of: function, iterator, gatewayExclusive, gatewayInclusive, termination, error. Those are the only six, and they are NOT the workflow step kinds — a TAQ has no "expressions" step. A kind outside the six is rejected before anything is written.
 ref, on a function or an iterator, names a construct-library function. List them with GET /automation/construct-library/functions — each with its parameters, their types and whether they are required; that endpoint is the authority on which refs exist. Do NOT use GET /automation/functions/: that is the workflow function registry, and most of its entries do not exist here.
 arguments bind by argumentName, which must equal one of that function's parameter argumentNames exactly; every required parameter must be present. "type" is compared literally against that parameter's "types" array and must be spelled as listed there (ID, String, Integer, Boolean, ComposeRecord, …) — omitting it is the same as sending "" and fails. Supply a literal with "value", copy an earlier step's output with "source" plus "scope" (the producing step's handle), or compute one with "expr".
+An "expr" is evaluated INSIDE its own "scope", and without one that is the trigger's: so in an iterator body the record variable is still the trigger's record, and reaching the loop item means giving the argument the iterator's handle as "scope". One expression sees one scope, so a formula needing both the trigger's record and the loop item cannot be written as a single expr — split it across arguments, or derive the value with a module field value expression instead.
+In an expression a Record-ref field holds the target's ID as a string, not a record: a filter over them reads "card = " + record.values.card (string concatenation). Writing record.values.card.recordID yields nothing, so the query matches nothing and an iterator over it runs ZERO times in silence — no error, no issue, and the execution still reports completed. The resolved query is recorded in that step's frame under "args", which is where a filter that came out wrong becomes obvious.
 A step's results cannot be set: they are derived from the function definition and anything you send is overwritten. An error step's message likewise cannot be set through the API.
 A termination step is optional — every leaf step is wired to an auto-injected one.`
 
@@ -60,7 +62,7 @@ func (h *taqHandler) register() {
 					"Disabled TAQs are omitted from the list unless you set 'includeDisabled'; deleted ones are "+
 					"always omitted.",
 			),
-			mcp.WithString("taq", mcp.Description("TAQ ID as a string (to prevent precision loss), or handle. Omit to list instead.")),
+			mcp.WithString("taq", mcp.Description("TAQ ID as a string (to prevent precision loss), or handle. Omit to list instead. 'taqID', 'automation' and 'automationID' are accepted as aliases, so a near-miss name fetches the one TAQ rather than silently returning a list.")),
 			mcp.WithString("query", mcp.Description("Case-insensitive substring of the handle. Ignored when 'taq' is given.")),
 			mcp.WithBoolean("includeDisabled", mcp.Description("Also list disabled TAQs. Ignored when 'taq' is given.")),
 			mcp.WithString("limit", mcp.Description("Maximum results, default 50, capped at 200.")),
@@ -100,8 +102,13 @@ func (h *taqHandler) register() {
 					"no working frames in the trace — nothing, or only frames of kind 'trigger' and "+
 					"'termination' — is a failure, it means no step ran. A termination frame records the flow "+
 					"reaching that end, which is how you tell which branch arm ran, but it is not work done. "+
-					"A frame with a populated 'args' proves the arguments bound and nothing more — "+
-					"where the step has a visible effect, check for that effect separately.",
+					"A frame carries the arguments it resolved under 'args' and its results under "+
+					"'output', so reading 'args' is how you confirm an expression evaluated to what "+
+					"you meant — an iterator's resolved 'query' is right there, and a filter that came "+
+					"out wrong is visible at a glance. It proves the step ran with those arguments and "+
+					"nothing more, so where the step has a visible effect, check for that effect "+
+					"separately. An iterator that matched no records still records its own frame; only "+
+					"the absence of body frames after it shows that it looped zero times.",
 			),
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier, unique among TAQs in the same project. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed. This is what automation_taq_lookup searches and what automation_taq_exec resolves, so a TAQ without one can only ever be reached by its numeric ID.")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Human-readable name, shown in listings.")),
@@ -170,7 +177,8 @@ func (h *taqHandler) register() {
 					"deleted one cannot be found at all — not by handle, not by search — and restoring it "+
 					"needs an ID you must have kept.",
 			),
-			mcp.WithString("taqID", mcp.Required(), mcp.Description("TAQ ID as a string (to prevent precision loss). Find it with automation_taq_lookup.")),
+			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as a string (to prevent precision loss), or handle — the same reference automation_taq_lookup and automation_taq_update take.")),
+			mcp.WithString("taqID", mcp.Description("Accepted as an alias for 'taq'.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskDestructive),
 		),
@@ -242,9 +250,14 @@ func (h *taqHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("automation_taq_execution_trace",
 			mcp.WithDescription(
-				"Get the step-by-step trace of one TAQ run: a stack frame per executed step, with its handle, "+
-					"kind, arguments, input, output, timings and error. This is the tool for diagnosing why a "+
-					"run failed or produced what it did. "+
+				"Get the step-by-step trace of one TAQ run: a stack frame per executed step under 'frames', "+
+					"with its handle, kind, arguments, input, output, timings and error. This is the tool for "+
+					"diagnosing why a run failed or produced what it did. "+
+					"Any step that recorded an error is also listed under 'failedSteps', with the exact "+
+					"message, so a failure nested in a long frame is not something you have to scroll for. "+
+					"A failed step does mark the run failed — but the action that triggered it still "+
+					"succeeds: a record write that fires a failing automation saves and returns normally, "+
+					"so the failure reaches nobody unless someone reads the executions or this trace. "+
 					"Get the executionID from automation_taq_executions, or from the result of "+
 					"automation_taq_exec. A long run traces every step it took, so a trace can exceed the "+
 					"result size limit.",
