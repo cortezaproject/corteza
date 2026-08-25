@@ -93,6 +93,11 @@ fi
 # valid body, so the response parses, the exit code is 0 and a TAQ the runtime
 # has rejected is indistinguishable from a working one. Treat a severity=error
 # issue as what it is: a failed write.
+#
+# The row is stored all the same — issues are a lint report on a saved draft,
+# not a rejected write — so it holds its handle, and a retried create answers
+# "handle not unique" instead of naming the real fault. The ID is reported
+# below so the retry is an update.
 if issue=$(python3 - "$body" <<'PY' 2>/dev/null
 import json, sys
 
@@ -104,7 +109,9 @@ r = d.get("response")
 issues = (r or {}).get("issues") if isinstance(r, dict) else None
 for i in issues or []:
     if isinstance(i, dict) and i.get("severity") == "error":
-        print(f"{i.get('code', 'issue')}: {i.get('message', '')}".strip())
+        msg = f"{i.get('code', 'issue')}: {i.get('message', '')}".strip()
+        rid = r.get("automationID") or r.get("workflowID") or r.get("triggerID")
+        print(f"{msg}\t{rid or ''}")
         sys.exit(0)
 sys.exit(1)
 PY
@@ -113,8 +120,13 @@ PY
     cat "$body"
     echo
   else
+    stored_id="${issue##*$'\t'}"
+    issue="${issue%%$'\t'*}"
     echo "API refused this automation (HTTP $status): $issue" >&2
     echo "The body is valid and the status is 200 — the refusal is in response.issues." >&2
+    if [[ -n "$stored_id" ]]; then
+      echo "It was stored anyway as ID $stored_id and holds its handle: fix the spec and PUT/POST to that ID. Repeating the create answers \"handle not unique\"." >&2
+    fi
   fi
   exit 1
 fi
