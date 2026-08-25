@@ -67,6 +67,36 @@ if errmsg=$(json_get error.message <"$body" 2>/dev/null); then
   exit 1
 fi
 
+# An automation write reports its own refusal in `issues` beside a 200 and a
+# valid body, so the response parses, the exit code is 0 and a TAQ the runtime
+# has rejected is indistinguishable from a working one. Treat a severity=error
+# issue as what it is: a failed write.
+if issue=$(python3 - "$body" <<'PY' 2>/dev/null
+import json, sys
+
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(1)
+r = d.get("response")
+issues = (r or {}).get("issues") if isinstance(r, dict) else None
+for i in issues or []:
+    if isinstance(i, dict) and i.get("severity") == "error":
+        print(f"{i.get('code', 'issue')}: {i.get('message', '')}".strip())
+        sys.exit(0)
+sys.exit(1)
+PY
+); then
+  if [[ -n "$json_mode" ]]; then
+    cat "$body"
+    echo
+  else
+    echo "API refused this automation (HTTP $status): $issue" >&2
+    echo "The body is valid and the status is 200 — the refusal is in response.issues." >&2
+  fi
+  exit 1
+fi
+
 # Record namespace creates so cleanup.sh knows what this session made. Only
 # creates (POST to the collection, no ID in the path) qualify — an update is a
 # POST to .../namespace/{id} and must not be logged as a new resource.
@@ -97,6 +127,15 @@ if ! python3 -m json.tool <"$body" 2>/dev/null; then
       "Paths here are absolute and need the service prefix: /system, /compose," \
       "/automation, /federation. So '/agents/' is '/system/agents/'." \
       "Collection endpoints also need the trailing slash."
+  fi
+
+  # Some endpoints — the automation ones especially — report failure as
+  # text/plain beside HTTP 200 instead of the {"error":{...}} envelope. Without
+  # this the body is printed and the exit code stays 0, so a refused write
+  # reads as a success to anything checking $?.
+  if head -c 200 "$body" | grep -qE '^Error: '; then
+    die_diag plain_error 1 "$(head -1 "$body")" \
+      "(reported as text/plain beside HTTP $status, not the usual error envelope)"
   fi
 
   if [[ -n "$json_mode" ]]; then
