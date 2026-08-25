@@ -172,8 +172,11 @@ write_config_js() {
   head_ "client/web/unify/public/config.js"
 
   if [[ -f "$CONFIG_JS" ]]; then
+    # A commented-out alternative is not the value: the shipped example carries
+    # one, and reading it reports a healthy checkout as pointed at a remote host.
     local have
-    have="$(sed -nE "s/.*HumanAPI[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" "$CONFIG_JS" | tail -1)"
+    have="$(sed -nE "\#^[[:space:]]*//#d; s/.*HumanAPI[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" \
+      "$CONFIG_JS" | tail -1)"
     if [[ "$have" == "$HUMAN_API" ]]; then
       say config.js "→ $have"
     else
