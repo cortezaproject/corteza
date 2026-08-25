@@ -71,7 +71,7 @@
           />
           <InputText
             v-model="opt.text"
-            :placeholder="$t('field.kind.select.options.label')"
+            :placeholder="opt.value || $t('field.kind.select.options.label')"
             class="flex-1"
             size="small"
             @change="updateOptions"
