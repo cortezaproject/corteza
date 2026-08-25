@@ -48,9 +48,10 @@ test in isolation.
   Owns the resource-ID string formats (`compose:module/{ns}/{mod}`,
   `compose:module-field/...`, `compose:page/...`, `compose:page-layout/...`,
   `compose:namespace/{ns}`) and the translation key names per entity.
-  `moduleFieldKeyLabel(key, t)` names one of those keys for display and returns
-  `''` for a key that is not a field's own. Key names must match what the
-  server's locale keys emit — a layout's title is `meta.title`, a page's is
+  `moduleFieldKeyLabel(key, t)` and `pageKeyLabel(key, t, blocks)` name one of
+  those keys for display, each returning `''` for a key outside its entity so
+  the translator falls back to its own formatting. Key names must match what
+  the server's locale keys emit — a layout's title is `meta.title`, a page's is
   `title`, and the page never carried a `recordToolbar.*` key.
 
 ## When changing this

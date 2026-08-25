@@ -3,6 +3,7 @@ import {
   applyPageLayoutTranslations,
   applyPageTranslations,
   moduleFieldKeyLabel,
+  pageKeyLabel,
 } from './resource-translations'
 
 // The translator shows one row per translation key. A module field's keys are
@@ -93,6 +94,69 @@ describe('applyPageLayoutTranslations', () => {
     const l = layout()
     applyPageLayoutTranslations(l, rows([['meta.title', 'Titre']]), 'sl')
     expect(l.meta.title).toBe('old title')
+  })
+})
+
+// A page's dialog holds the page, its blocks and every layout at once, so one
+// mapper names all three; a raw `pageBlock.3.button.2.label` says nothing about
+// what it labels.
+describe('pageKeyLabel', () => {
+  const blocks = [
+    {
+      blockID: '3',
+      title: 'Accounts',
+      options: { buttons: [{ buttonID: '7', label: 'Run import' }] },
+    },
+    { blockID: '4', title: '' },
+  ]
+
+  it("names the page's own keys", () => {
+    expect(pageKeyLabel('title', t, blocks)).toBe('translator.keys.page-title')
+    expect(pageKeyLabel('description', t, blocks)).toBe('translator.keys.page-description')
+  })
+
+  it("names a layout's keys, which are meta keys", () => {
+    expect(pageKeyLabel('meta.title', t, blocks)).toBe('translator.keys.layout-title')
+    expect(pageKeyLabel('meta.description', t, blocks)).toBe('translator.keys.layout-description')
+  })
+
+  it('names each toolbar button and a custom action', () => {
+    expect(pageKeyLabel('config.buttons.new.label', t, blocks)).toBe('translator.keys.toolbar-new')
+    expect(pageKeyLabel('config.buttons.back.label', t, blocks)).toBe(
+      'translator.keys.toolbar-back',
+    )
+    expect(pageKeyLabel('config.actions.12.meta.label', t, blocks)).toBe(
+      'translator.keys.action-label',
+    )
+  })
+
+  it('names a block key after the block, not its id', () => {
+    expect(pageKeyLabel('pageBlock.3.title', t, blocks)).toBe(
+      'translator.keys.block-title:Accounts',
+    )
+    expect(pageKeyLabel('pageBlock.3.content.body', t, blocks)).toBe(
+      'translator.keys.block-content:Accounts',
+    )
+  })
+
+  it('names a block button after the button it labels', () => {
+    expect(pageKeyLabel('pageBlock.3.button.7.label', t, blocks)).toBe(
+      'translator.keys.block-button:Accounts/Run import',
+    )
+  })
+
+  it('falls back to the id where there is no name to use', () => {
+    expect(pageKeyLabel('pageBlock.4.title', t, blocks)).toBe('translator.keys.block-title:#4')
+    expect(pageKeyLabel('pageBlock.9.title', t, blocks)).toBe('translator.keys.block-title:#9')
+    expect(pageKeyLabel('pageBlock.3.button.99.label', t, blocks)).toBe(
+      'translator.keys.block-button:Accounts/#99',
+    )
+  })
+
+  it("returns '' for a key that is not a page's or a layout's", () => {
+    expect(pageKeyLabel('name', t, blocks)).toBe('')
+    expect(pageKeyLabel('meta.options.new.text', t, blocks)).toBe('')
+    expect(pageKeyLabel('pageBlock.3.somethingElse', t, blocks)).toBe('')
   })
 })
 

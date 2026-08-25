@@ -227,3 +227,53 @@ export function moduleFieldKeyLabel(key: string, t: (k: string, p?: any) => stri
 
   return named[key] ? t(named[key]) : ''
 }
+
+// Human-readable name for one of a page's or page layout's translation keys.
+// Both resources appear in the same dialog, so one mapper serves them. Returns
+// '' for a key it does not recognise, so the translator falls back to its
+// generic key formatting. `blocks` names the page's blocks and their buttons —
+// a bare `pageBlock.3.button.2.label` says nothing about what it labels.
+export function pageKeyLabel(
+  key: string,
+  t: (k: string, p?: any) => string,
+  blocks: any[] = [],
+): string {
+  const named: Record<string, string> = {
+    title: 'translator.keys.page-title',
+    description: 'translator.keys.page-description',
+    'meta.title': 'translator.keys.layout-title',
+    'meta.description': 'translator.keys.layout-description',
+    'config.buttons.new.label': 'translator.keys.toolbar-new',
+    'config.buttons.edit.label': 'translator.keys.toolbar-edit',
+    'config.buttons.submit.label': 'translator.keys.toolbar-submit',
+    'config.buttons.delete.label': 'translator.keys.toolbar-delete',
+    'config.buttons.clone.label': 'translator.keys.toolbar-clone',
+    'config.buttons.back.label': 'translator.keys.toolbar-back',
+  }
+  if (named[key]) return t(named[key])
+
+  if (/^config\.actions\..+\.meta\.label$/.test(key)) return t('translator.keys.action-label')
+
+  const inBlock = key.match(/^pageBlock\.([^.]+)\.(.+)$/)
+  if (!inBlock) return ''
+
+  const [, blockID, rest] = inBlock
+  const found = blocks.find(b => String(b.blockID) === blockID)
+  const block = found?.title || `#${blockID}`
+
+  if (rest === 'title') return t('translator.keys.block-title', { block })
+  if (rest === 'description') return t('translator.keys.block-description', { block })
+  if (rest === 'content.body') return t('translator.keys.block-content', { block })
+
+  const onButton = rest.match(/^button\.([^.]+)\.label$/)
+  if (onButton) {
+    const buttons = found?.options?.buttons || found?.options?.selectionButtons || []
+    const match = buttons.find((b: any, i: number) => String(b.buttonID || i) === onButton[1])
+    return t('translator.keys.block-button', {
+      block,
+      button: match?.label || `#${onButton[1]}`,
+    })
+  }
+
+  return ''
+}

@@ -7,6 +7,7 @@
     :fetcher="fetcher"
     :updater="updater"
     :highlight="highlight"
+    :key-prettifier="keyPrettifier"
     :disabled="disabled"
   />
 </template>
@@ -16,7 +17,7 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
 import { useTranslatorStore, type TranslationTarget } from '@/sections/compose/stores/translator'
-import { applyPageTranslations } from '@/sections/compose/lib/resource-translations'
+import { applyPageTranslations, pageKeyLabel } from '@/sections/compose/lib/resource-translations'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 
 const props = defineProps<{
@@ -66,6 +67,12 @@ const titles = computed(() => {
   return tt
 })
 
+// The set spans the page, its blocks and every layout; each key reads as what
+// it labels rather than as its dotted path.
+function keyPrettifier(key: string): string {
+  return pageKeyLabel(key, t, props.page?.blocks || [])
+}
+
 function fetcher() {
   const { namespaceID, pageID } = props.page
   return $ComposeAPI.pageListTranslations({ namespaceID, pageID }).then((set: any[]) => {
@@ -84,6 +91,7 @@ function open(highlight?: TranslationTarget): void {
     resource: resource.value,
     titles: titles.value,
     highlight: highlight ?? props.highlight,
+    keyPrettifier,
     fetcher,
     updater,
   })

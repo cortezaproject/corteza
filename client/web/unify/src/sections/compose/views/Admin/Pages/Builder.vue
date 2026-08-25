@@ -543,7 +543,7 @@ import AutomationButtonsEditor from '@/sections/compose/components/PageBlocks/Sh
 import PageTranslator from '@/sections/compose/components/Admin/Page/PageTranslator.vue'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 import { useTranslatorStore } from '@/sections/compose/stores/translator'
-import { applyPageTranslations } from '@/sections/compose/lib/resource-translations'
+import { applyPageTranslations, pageKeyLabel } from '@/sections/compose/lib/resource-translations'
 
 const { t } = useI18n()
 const confirm = useConfirm()
@@ -1123,6 +1123,7 @@ function openBlockTranslation(block) {
     titles: {
       [res]: t('translator.resources.page.block.title', { title: block.title || blockID }),
     },
+    keyPrettifier: key => pageKeyLabel(key, t, page.value?.blocks || []),
     fetcher: () =>
       $ComposeAPI
         .pageListTranslations({ namespaceID, pageID })

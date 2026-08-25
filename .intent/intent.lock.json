@@ -657,7 +657,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Admin/Page/PageTranslator.vue": {
-      "h": "4501b01957dc",
+      "h": "dcdadb278c99",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
       "t": "2026-08-25"
     },
@@ -1162,12 +1162,12 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.test.ts": {
-      "h": "6d0d4d8b19e0",
+      "h": "1ec3ad93922a",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
-      "h": "bb5750c1a424",
+      "h": "70d4f447f91b",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-08-25"
     },
@@ -1262,9 +1262,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.vue": {
-      "h": "16ec15bc21c3",
+      "h": "58de1cba6773",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.intent.md",
-      "t": "2026-08-18"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.layout-title.test.js": {
       "h": "1bcb39bc97b9",

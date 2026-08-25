@@ -4,6 +4,11 @@ button:
   tooltip: Manage translations
 key: Key
 keys:
+  action-label: Custom toolbar action label
+  block-button: 'Block “{block}”: button “{button}” label'
+  block-content: 'Block “{block}”: content'
+  block-description: 'Block “{block}”: description'
+  block-title: 'Block “{block}”: title'
   bool-false: Label shown when unchecked
   bool-true: Label shown when checked
   description-edit: Description shown in edit mode
@@ -11,7 +16,17 @@ keys:
   hint-edit: Hint shown in edit mode
   hint-view: Hint shown in view mode
   label: Field label
+  layout-description: Layout description
+  layout-title: Layout title
   option: 'Option: {value}'
+  page-description: Page description
+  page-title: Page title
+  toolbar-back: Toolbar button “Back”
+  toolbar-clone: Toolbar button “Save as copy”
+  toolbar-delete: Toolbar button “Delete”
+  toolbar-edit: Toolbar button “Edit”
+  toolbar-new: Toolbar button “Add new”
+  toolbar-submit: Toolbar button “Save”
   validator-error: Validation error message
 languages: 'Languages:'
 missing: No translation
