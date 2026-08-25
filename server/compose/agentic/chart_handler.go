@@ -111,6 +111,10 @@ func (h *chartHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, err
 	}
 
+	if err = checkChartModules(ctx, nsID, cfg.Reports); err != nil {
+		return nil, err
+	}
+
 	c := &cmpTypes.Chart{
 		NamespaceID: nsID,
 		Name:        name,
@@ -170,6 +174,9 @@ func (h *chartHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mc
 	if raw, ok := args["config"]; ok && raw != nil {
 		cfg, err := parseChartConfig(raw)
 		if err != nil {
+			return nil, err
+		}
+		if err = checkChartModules(ctx, c.NamespaceID, cfg.Reports); err != nil {
 			return nil, err
 		}
 		c.Config = cfg
@@ -368,6 +375,43 @@ func checkChartReports(reports []*cmpTypes.ChartConfigReport) error {
 			if err := checkChartDimension(i+1, j+1, d, gauge); err != nil {
 				return err
 			}
+		}
+	}
+
+	return nil
+}
+
+// checkChartModules confirms each report's module is really there, in this
+// namespace.
+//
+// checkChartReports can only see that a moduleID is non-zero; it has no way to
+// ask whether one exists. A chart pointed at a module that was never created,
+// was deleted, or belongs to another namespace stores clean and draws "module
+// does not exist" where the plot belongs — and only for whoever opens the page.
+func checkChartModules(ctx context.Context, namespaceID uint64, reports []*cmpTypes.ChartConfigReport) error {
+	for i, r := range reports {
+		if r == nil || r.ModuleID == 0 {
+			// checkChartReports has already spoken for these.
+			continue
+		}
+
+		mod, err := cmpService.DefaultModule.FindByID(ctx, namespaceID, r.ModuleID)
+		if err != nil {
+			return fmt.Errorf(
+				"report %d: moduleID %d does not exist — the chart would store cleanly and draw %q where the plot belongs: %w",
+				i+1, r.ModuleID, "module does not exist", err,
+			)
+		}
+
+		// FindByID answers with the module of that ID whatever namespace it is
+		// in, so the namespace has to be compared here. The report endpoint the
+		// chart draws from does scope, and refuses a foreign module with the
+		// same "module does not exist".
+		if mod.NamespaceID != namespaceID {
+			return fmt.Errorf(
+				"report %d: moduleID %d belongs to namespace %d, not %d — a chart can only report on a module in its own namespace, and draws %q otherwise",
+				i+1, r.ModuleID, mod.NamespaceID, namespaceID, "module does not exist",
+			)
 		}
 	}
 
