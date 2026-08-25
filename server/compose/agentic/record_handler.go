@@ -139,7 +139,7 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 
 	set, out, err := cmpService.DefaultRecord.Search(ctx, f)
 	if err != nil {
-		return nil, toolkit.Errf("record list", err)
+		return nil, fieldNameError(ctx, "record list", nsID, modID, err)
 	}
 
 	// Pass the cursor itself, not its String(): String is a human-readable debug
@@ -229,28 +229,51 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 // record and adding the numbers up by hand, which is the thing this tool exists
 // to stop. Field names are cheap to list and turn the retry into the right one.
 func reportError(ctx context.Context, nsID, modID uint64, err error) error {
-	if !strings.Contains(err.Error(), "unknown attribute") {
+	names := moduleFieldNames(ctx, nsID, modID)
+	if names == "" || !strings.Contains(err.Error(), "unknown attribute") {
 		return toolkit.Errf("record report", err)
 	}
 
+	return fmt.Errorf(
+		"record report failed: %w. Metrics and dimension name fields on this module only — a dotted path through a Record reference is not one. Available: %s. To group by a field of a referenced record, aggregate that module instead",
+		err, names,
+	)
+}
+
+// fieldNameError names the module's fields when a query used one that is not
+// there.
+//
+// The usual cause is a dotted path through a reference — `card.name = 'Bolt'`
+// — which reads so naturally that a model writes it twice before giving up.
+// The store's own answer, "unknown attribute", says which name failed and
+// nothing about what would have worked.
+func fieldNameError(ctx context.Context, subject string, nsID, modID uint64, err error) error {
+	names := moduleFieldNames(ctx, nsID, modID)
+	if names == "" || !strings.Contains(err.Error(), "unknown attribute") {
+		return toolkit.Errf(subject, err)
+	}
+
+	return fmt.Errorf(
+		"%s failed: %w. A filter names fields on this module only — a dotted path through a Record reference is not one. Available: %s. To filter by a referenced record's field, look that record up first and filter on the reference field by its ID",
+		subject, err, names,
+	)
+}
+
+func moduleFieldNames(ctx context.Context, nsID, modID uint64) string {
 	if cmpService.DefaultModule == nil {
-		return toolkit.Errf("record report", err)
+		return ""
 	}
 
-	mod, mErr := cmpService.DefaultModule.FindByID(ctx, nsID, modID)
-	if mErr != nil || mod == nil {
-		return toolkit.Errf("record report", err)
+	mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID)
+	if err != nil || mod == nil {
+		return ""
 	}
 
 	names := make([]string, 0, len(mod.Fields))
 	for _, f := range mod.Fields {
 		names = append(names, f.Name)
 	}
-
-	return fmt.Errorf(
-		"record report failed: %w. Metrics and dimension name fields on this module only — a dotted path through a Record reference is not one. Available: %s. To group by a field of a referenced record, aggregate that module instead",
-		err, strings.Join(names, ", "),
-	)
+	return strings.Join(names, ", ")
 }
 
 // metricFieldRef pulls the field name out of an aggregate expression:
@@ -297,7 +320,7 @@ func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	values, err := parseValues(args["values"])
+	values, _, err := parseValues(args["values"])
 	if err != nil {
 		return nil, err
 	}
@@ -327,9 +350,15 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	values, err := parseValues(args["values"])
+	values, named, err := parseValues(args["values"])
 	if err != nil {
 		return nil, err
+	}
+
+	if !toolkit.Bool(args, "replace") {
+		if values, err = mergeOntoRecord(ctx, nsID, modID, recID, values, named); err != nil {
+			return nil, err
+		}
 	}
 
 	rec := &cmpTypes.Record{ID: recID, NamespaceID: nsID, ModuleID: modID, Values: values}
@@ -402,23 +431,26 @@ func (h *recordHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (
 // `map[coordinates:[46 14]]`; whether that surfaced as an error or as stored
 // garbage was decided by how strict the field kind's validator happened to be,
 // so String, Number, DateTime and Geometry took it silently.
-func parseValues(raw any) (cmpTypes.RecordValueSet, error) {
+// parseValues turns the values argument into a value set, and reports which
+// fields it named — which is not the same thing: a field sent as an empty list
+// contributes no values, and only the name says it was meant to be cleared.
+func parseValues(raw any) (cmpTypes.RecordValueSet, []string, error) {
 	var m map[string]any
 
 	switch v := raw.(type) {
 	case nil:
-		return nil, fmt.Errorf("values is required")
+		return nil, nil, fmt.Errorf("values is required")
 	case string:
 		if v == "" {
-			return nil, fmt.Errorf("values is required")
+			return nil, nil, fmt.Errorf("values is required")
 		}
 		if err := json.Unmarshal([]byte(v), &m); err != nil {
-			return nil, fmt.Errorf("invalid values JSON: %w", err)
+			return nil, nil, fmt.Errorf("invalid values JSON: %w", err)
 		}
 	case map[string]any:
 		m = v
 	default:
-		return nil, fmt.Errorf("invalid values: expected JSON string or object")
+		return nil, nil, fmt.Errorf("invalid values: expected JSON string or object")
 	}
 
 	// Map iteration is unordered and these become rows; fix an order so the
@@ -436,20 +468,20 @@ func parseValues(raw any) (cmpTypes.RecordValueSet, error) {
 			for i, item := range val {
 				str, err := recordValueString(name, item)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 				out = append(out, &cmpTypes.RecordValue{Name: name, Value: str, Place: uint(i)})
 			}
 		default:
 			str, err := recordValueString(name, val)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			out = append(out, &cmpTypes.RecordValue{Name: name, Value: str})
 		}
 	}
 
-	return out, nil
+	return out, names, nil
 }
 
 // recordValueString renders one value the way the store keeps it: scalars as
@@ -693,4 +725,35 @@ func reportLimit(args map[string]any) int {
 		}
 	}
 	return 0
+}
+
+// mergeOntoRecord folds the values a caller sent onto the ones the record
+// already holds.
+//
+// Compose stores a record's values as one set and an update replaces it whole,
+// so naming three fields deletes every other one. Read conversationally —
+// "put them in the binder" — that is never what was meant, and it happened: an
+// update naming quantity and price silently dropped the holding's condition,
+// language, foil flag and storage. The named fields are replaced entire, so a
+// multi-value field still takes the whole list; everything unnamed survives.
+func mergeOntoRecord(ctx context.Context, nsID, modID, recID uint64, values cmpTypes.RecordValueSet, named []string) (cmpTypes.RecordValueSet, error) {
+	cur, _, err := cmpService.DefaultRecord.FindByID(ctx, nsID, modID, recID)
+	if err != nil {
+		return nil, toolkit.Errf("record lookup for update", err)
+	}
+
+	replacing := make(map[string]struct{}, len(named))
+	for _, n := range named {
+		replacing[n] = struct{}{}
+	}
+
+	out := make(cmpTypes.RecordValueSet, 0, len(cur.Values)+len(values))
+	for _, v := range cur.Values {
+		if _, ok := replacing[v.Name]; ok {
+			continue
+		}
+		out = append(out, &cmpTypes.RecordValue{Name: v.Name, Value: v.Value, Ref: v.Ref, Place: v.Place})
+	}
+
+	return append(out, values...), nil
 }

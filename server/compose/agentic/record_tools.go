@@ -102,13 +102,16 @@ func (h *recordHandler) register() {
 		mcp.NewTool("compose_record_update",
 			mcp.WithDescription(
 				"Update an existing record. Requires a record ID — use compose_record_lookup with a filter to "+
-					"find it if unknown. 'values' REPLACES the record's whole value set: any field you leave out "+
-					"is cleared, not kept. Read the record first and send every field you intend to survive.",
+					"find it if unknown. Send only the fields you are changing: every other field on the record "+
+					"keeps its value. A field you name is replaced entire, so a multi-value field takes the whole "+
+					"list it should end up with, and sending a field as an empty string clears it. "+
+					"Pass replace=true to write the value set whole instead, clearing every field you leave out.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Required(), mcp.Description("Record ID (as string to prevent precision loss)")),
-			mcp.WithString("values", mcp.Required(), mcp.Description(recordValuesDoc+" On update these REPLACE the record's values: send the whole set a field should end up with, not just what changed. Adding one value to a multi-value field means reading the record with compose_record_lookup and writing the full list back.")),
+			mcp.WithString("values", mcp.Required(), mcp.Description(recordValuesDoc+" On update only the fields named here change; the rest of the record is left alone. A named field is replaced entire, so adding one value to a multi-value field still means reading the record and writing the full list back.")),
+			mcp.WithBoolean("replace", mcp.Description("Write the value set whole, clearing every field not named in 'values'. Off by default — leave it off unless you have read the record and are sending all of it.")),
 			hmcp.InGroup(hmcp.GroupUsage),
 			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskWrite),

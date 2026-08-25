@@ -151,3 +151,12 @@ func TestReportLimit(t *testing.T) {
 	assert.Equal(t, 5, reportLimit(map[string]any{"limit": "5"}))
 	assert.Equal(t, 5, reportLimit(map[string]any{"limit": float64(5)}))
 }
+
+// A field sent as an empty list contributes no values and would otherwise look
+// like a field that was never named — which on a patching update means "leave
+// it alone" rather than "clear it".
+func TestParseValuesReportsNamedFields(t *testing.T) {
+	_, named, err := parseValues(`{"notes":"hi","colors":[],"quantity":2}`)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"colors", "notes", "quantity"}, named)
+}
