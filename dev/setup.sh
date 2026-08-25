@@ -163,6 +163,13 @@ EOF
   [[ -n "$(env_get "$SERVER_ENV" AUTH_JWT_SECRET)" ]] ||
     hint "AUTH_JWT_SECRET unset — derived from DB_DSN, so worktrees will churn the shared token"
 
+  # `make claude` exports the token once and cannot refresh it in flight, so a
+  # short lifetime shows up as the local MCP server going quiet mid-session.
+  case "$(env_get "$SERVER_ENV" AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME)" in
+    [2-9][0-9]h | [0-9][0-9][0-9]h | [0-9][0-9][0-9][0-9]h) ;;
+    *) hint "AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME is under a day — the human-local MCP token will expire mid-session (720h suits dev)" ;;
+  esac
+
   say api "$HUMAN_API"
 }
 
@@ -368,11 +375,11 @@ case "$MODE" in
     setup_agent
     cat <<EOF
 
-Ready. For Claude Code, the 'human' MCP server needs a token exported before it
-starts (~2h lifetime):
+Ready. Launch Claude Code with 'make claude' — it mints the token the
+human-local MCP server needs, which .mcp.json cannot do for itself:
 
-  export HUMAN_MCP_TOKEN=\$(dev/agent/token.sh)
-  claude
+  make claude
+  make claude -- --dangerously-skip-permissions
 EOF
     ;;
 
