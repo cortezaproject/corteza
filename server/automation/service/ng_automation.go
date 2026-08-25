@@ -867,11 +867,15 @@ func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation,
 	for _, c := range t.Constraints {
 		name, op, values, err := svc.prepConstraintBits(c)
 		if err != nil {
-			log.Debug("failed to prepare constraint for automation trigger",
+			// Skipping the constraint registers the trigger BROADER than it was
+			// written — a compose:record trigger meant for one module would fire
+			// across every namespace — so an unusable constraint has to stop the
+			// registration rather than be passed over.
+			log.Error("refusing to register trigger with an unusable constraint",
 				zap.Any("constraint", c),
 				zap.Error(err),
 			)
-			continue
+			return
 		}
 
 		cnstr, err := eventbus.ConstraintMaker(name, op, values...)
@@ -917,6 +921,10 @@ func (svc *ngAutomation) prepConstraintBits(c types.NgTriggerConstraint) (name s
 	case "Handle":
 		name = fmt.Sprintf("%s.%s", c.Name, "handle")
 	case "ID":
+		name = fmt.Sprintf("%s.%s", c.Name, "id")
+	case "ComposeNamespace", "ComposeModule", "ComposeRecord":
+		// resource types the construct library advertises; a resource is
+		// identified by its ID
 		name = fmt.Sprintf("%s.%s", c.Name, "id")
 	default:
 		err = fmt.Errorf("unknown constraint type %s", typ)

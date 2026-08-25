@@ -533,16 +533,24 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 			eventbus.For(t.ResourceType),
 		)
 
+		unusable := false
 		for _, c := range t.Constraints {
 			if cnstr, err = eventbus.ConstraintMaker(c.Name, c.Op, c.Values...); err != nil {
-				log.Debug(
-					"failed to make constraint for workflow trigger",
+				// Same hazard as the TAQ path: a constraint that is logged and
+				// dropped leaves the trigger registered more broadly than it was
+				// authored, so refuse the registration instead.
+				log.Error(
+					"refusing to register workflow trigger with an unusable constraint",
 					zap.Any("constraint", c),
 					zap.Error(err),
 				)
-			} else {
-				ops = append(ops, eventbus.Constraint(cnstr))
+				unusable = true
+				break
 			}
+			ops = append(ops, eventbus.Constraint(cnstr))
+		}
+		if unusable {
+			continue
 		}
 
 		svc.services.reg[wf.ID][t.ID] = svc.services.eventbus.Register(handlerFn, ops...)
