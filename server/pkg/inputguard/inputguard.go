@@ -8,6 +8,7 @@ package inputguard
 
 import (
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -53,7 +54,7 @@ func CheckWithMaxLength(input string, maxLength int) Result {
 	}
 
 	for _, phrase := range instructionOverrides {
-		if strings.Contains(lower, phrase) {
+		if containsPhrase(lower, phrase) {
 			return blocked("instruction_override", "input contains instruction override phrase: "+phrase)
 		}
 	}
@@ -70,4 +71,70 @@ func CheckWithMaxLength(input string, maxLength int) Result {
 
 func blocked(category, reason string) Result {
 	return Result{Blocked: true, Category: category, Reason: reason}
+}
+
+// containsPhrase reports whether phrase occurs in s as a phrase rather than as
+// the opening of a longer word.
+//
+// A plain substring test made the list hostile to ordinary writing: "you are a"
+// matched "you are able", "you are about", "you are already" and "you are
+// always", so a question like "tell me if you are able to read the deck list"
+// was refused as an injection attempt.
+//
+// The boundary is only applied at an edge that is ASCII alphanumeric. The
+// phrase lists include Chinese and Japanese, which are written without spaces,
+// so a letter on either side of a match there is normal and demanding a
+// boundary would stop those phrases matching at all.
+func containsPhrase(s, phrase string) bool {
+	if phrase == "" {
+		return false
+	}
+
+	for off := 0; off+len(phrase) <= len(s); {
+		i := strings.Index(s[off:], phrase)
+		if i < 0 {
+			return false
+		}
+
+		start := off + i
+		end := start + len(phrase)
+
+		if edgeFree(s, start, end, phrase) {
+			return true
+		}
+
+		off = start + 1
+	}
+
+	return false
+}
+
+// edgeFree reports whether a match at [start,end) is bounded by something other
+// than more of the same word.
+func edgeFree(s string, start, end int, phrase string) bool {
+	first, _ := utf8.DecodeRuneInString(phrase)
+	if isASCIIWord(first) && start > 0 {
+		r, size := utf8.DecodeLastRuneInString(s[:start])
+		if size > 0 && isWordRune(r) {
+			return false
+		}
+	}
+
+	last, _ := utf8.DecodeLastRuneInString(phrase)
+	if isASCIIWord(last) && end < len(s) {
+		r, size := utf8.DecodeRuneInString(s[end:])
+		if size > 0 && isWordRune(r) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isASCIIWord(r rune) bool {
+	return r < utf8.RuneSelf && (unicode.IsLetter(r) || unicode.IsDigit(r))
+}
+
+func isWordRune(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r)
 }
