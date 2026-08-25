@@ -131,6 +131,10 @@ func (h *agentHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, err
 	}
 
+	if err = h.validateAgentTools(a); err != nil {
+		return nil, err
+	}
+
 	a, err = sysService.DefaultAgent.Create(ctx, a)
 	if err != nil {
 		return nil, toolkit.Errf("agent creation", err)
@@ -165,6 +169,10 @@ func (h *agentHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mc
 	}
 
 	if err = applyAgentSections(a, args); err != nil {
+		return nil, err
+	}
+
+	if err = h.validateAgentTools(a); err != nil {
 		return nil, err
 	}
 
