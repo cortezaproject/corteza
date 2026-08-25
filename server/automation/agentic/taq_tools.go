@@ -32,7 +32,7 @@ const taqStepsDoc = `JSON array of steps — what the TAQ does. One step:
 {"stepID":"1","handle":"notify","kind":"function","ref":"notificationSend","meta":{"short":"Notify the owner"},"arguments":[{"argumentName":"recipient","value":"507566326668132353","type":"ID"},{"argumentName":"title","value":"Hello","type":"String"}]}
 stepID is a string of digits you choose, unique across steps AND triggers; paths reference steps by it.
 kind is one of: function, iterator, gatewayExclusive, gatewayInclusive, termination, error. Those are the only six, and they are NOT the workflow step kinds — a TAQ has no "expressions" step. A kind outside the six is rejected before anything is written.
-ref, on a function or an iterator, names a construct-library function. List them with GET /automation/construct-library/functions — 17 entries, each with its parameters, their types and whether they are required. Do NOT use GET /automation/functions/: that is the workflow function registry, and 78 of its 93 entries do not exist here.
+ref, on a function or an iterator, names a construct-library function. List them with GET /automation/construct-library/functions — each with its parameters, their types and whether they are required; that endpoint is the authority on which refs exist. Do NOT use GET /automation/functions/: that is the workflow function registry, and most of its entries do not exist here.
 arguments bind by argumentName, which must equal one of that function's parameter argumentNames exactly; every required parameter must be present. "type" is compared literally against that parameter's "types" array and must be spelled as listed there (ID, String, Integer, Boolean, ComposeRecord, …) — omitting it is the same as sending "" and fails. Supply a literal with "value", copy an earlier step's output with "source" plus "scope" (the producing step's handle), or compute one with "expr".
 A step's results cannot be set: they are derived from the function definition and anything you send is overwritten. An error step's message likewise cannot be set through the API.
 A termination step is optional — every leaf step is wired to an auto-injected one.`
@@ -79,10 +79,10 @@ func (h *taqHandler) register() {
 					"call. A TAQ is a graph: triggers say what starts it, steps say what it does, paths "+
 					"connect them. "+
 					"Find out what a step can do before writing one. GET /automation/construct-library/functions "+
-					"lists the 17 functions a step's 'ref' may name, each with its parameters, their exact "+
+					"lists every function a step's 'ref' may name, each with its parameters, their exact "+
 					"type names and whether they are required; GET /automation/construct-library/triggers lists "+
-					"the 22 resourceType/eventType pairs a trigger may use. Do not use GET /automation/functions/ "+
-					"— that is the workflow function registry and 78 of its 93 entries are unavailable to a TAQ. "+
+					"the resourceType/eventType pairs a trigger may use. Do not use GET /automation/functions/ "+
+					"— that is the workflow function registry and most of its entries are unavailable to a TAQ. "+
 					"The smallest TAQ that runs is one trigger, one function step, and no paths at all: a lone "+
 					"unconnected trigger and a lone unconnected step are wired together for you, and termination "+
 					"is added automatically. "+
