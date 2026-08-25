@@ -50,8 +50,12 @@ import sys
 import urllib.parse
 import urllib.request
 
+import stack
+
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
-API = os.environ.get("HUMAN_API", "http://localhost:1043/api")
+# Resolved from this checkout, so a worktree talks to its own server rather
+# than the primary's; an exported HUMAN_API still wins. See stack.py.
+API = stack.api()
 
 if not urllib.parse.urlparse(API).hostname in ("localhost", "127.0.0.1", "::1"):
     sys.exit(f"pagebuild is local-only; refusing to touch {API}")

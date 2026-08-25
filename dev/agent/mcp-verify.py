@@ -29,8 +29,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import stack
+
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
-API = os.environ.get("HUMAN_API", "http://localhost:1043/api")
+# Resolved from this checkout, so a worktree talks to its own server rather
+# than the primary's; an exported HUMAN_API still wins. See stack.py.
+API = stack.api()
 MCP = API + "/mcp"
 # The listing summarises every tool by default. Auditing what tools declare
 # needs the documented tooling opt-out; agents must never use it.

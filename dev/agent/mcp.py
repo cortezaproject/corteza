@@ -19,8 +19,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import stack
+
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
-API = os.environ.get("HUMAN_API", "http://localhost:1043/api")
+# Resolved from this checkout, so a worktree talks to its own server rather
+# than the primary's; an exported HUMAN_API still wins. See stack.py.
+API = stack.api()
 
 # ?docs=full sends complete descriptions. A session normally gets every tool
 # summarised to one line and loads the detail it needs; this script exists to
