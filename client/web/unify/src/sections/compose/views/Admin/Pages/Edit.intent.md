@@ -11,6 +11,8 @@ touched-by:
   - client/web/unify/src/sections/compose/routes.js
 tests:
   - client/web/unify/src/sections/compose/views/Admin/Pages/Edit.layout-title.test.js
+  - client/web/unify/src/sections/compose/views/Admin/Pages/Edit.layout-translate.test.js
+  - client/web/unify/e2e/sections/compose/translations.spec.ts
 ---
 
 # Page Edit view

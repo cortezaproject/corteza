@@ -14,6 +14,7 @@ touched-by:
   - client/web/unify/src/sections/compose/routes.js
 tests:
   - client/web/unify/src/sections/compose/views/Admin/Modules/Edit.field-translation.test.js
+  - client/web/unify/e2e/sections/compose/translations.spec.ts
 ---
 
 # Module Edit view

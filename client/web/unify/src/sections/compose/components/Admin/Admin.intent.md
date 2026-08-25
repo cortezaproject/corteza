@@ -12,6 +12,8 @@ touched-by:
   - client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue
 tests:
   - client/web/unify/src/sections/compose/components/Admin/Module/DalSettings.draft.test.js
+  - client/web/unify/src/sections/compose/components/Admin/translator-emits.test.ts
+  - client/web/unify/e2e/sections/compose/translations.spec.ts
 ---
 
 # Compose admin panels

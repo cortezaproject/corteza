@@ -51,6 +51,11 @@
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/e2e/sections/compose/translations.spec.ts": {
+      "h": "09ee3cd39144",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-08-25"
+    },
     "client/web/unify/e2e/sections/home/home.spec.ts": {
       "h": "3d28c13581e2",
       "doc": "client/web/unify/e2e/e2e.intent.md",

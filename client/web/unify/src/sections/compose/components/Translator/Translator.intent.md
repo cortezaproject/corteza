@@ -10,7 +10,9 @@ touched-by:
   - client/web/unify/src/sections/compose/ComposeHost.vue
   - client/web/unify/src/sections/compose/components/Admin
   - client/web/unify/src/sections/compose/components/Namespaces/NamespaceTranslator.vue
-tests: []
+tests:
+  - client/web/unify/e2e/sections/compose/translations.spec.ts
+  - client/web/unify/src/sections/compose/components/Translator/CTranslatorForm.test.ts
 ---
 
 # Resource translator
