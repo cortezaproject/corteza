@@ -45,6 +45,7 @@ test.describe.serial('compose resource translations', () => {
   let namespaceSlug = ''
   let modulePath = ''
   let pagePath = ''
+  let chartPath = ''
 
   test.beforeAll(async ({ browser }) => {
     const context = await browser.newContext({ baseURL: BASE_URL, storageState: STORAGE_STATE })
@@ -82,6 +83,16 @@ test.describe.serial('compose resource translations', () => {
       await page.getByRole('button', { name: 'Save', exact: true }).first().click()
       await page.waitForURL(/\/admin\/pages\/\d+\/(edit|builder)/, { timeout: 20000 })
       pagePath = new URL(page.url()).pathname.replace(/\/builder$/, '/edit')
+
+      // A chart needs only a name and a module: the editor seeds the report a
+      // default metric, which is what carries the id-keyed translation row.
+      await page.goto(`${namespacePath}/admin/charts/create`)
+      await page.locator('input#name').fill(NAME)
+      await page.getByRole('combobox', { name: 'Pick a module' }).click()
+      await page.getByRole('option').first().click()
+      await page.getByRole('button', { name: 'Save', exact: true }).first().click()
+      await page.waitForURL(/\/admin\/charts\/\d+\/edit/, { timeout: 20000 })
+      chartPath = new URL(page.url()).pathname
     } finally {
       await context.close()
     }
@@ -178,5 +189,56 @@ test.describe.serial('compose resource translations', () => {
     const marked = dialog.locator('tbody tr.bg-highlight')
     await expect(marked).toHaveCount(1)
     await expect(marked.locator('td').first()).toHaveText('Layout title')
+  })
+
+  test("a chart's dialog names its keys and survives a save", async ({ page }) => {
+    const errors = watchForCrashes(page)
+    await page.goto(chartPath)
+
+    const translate = page.locator('button:has(.pi-language)').first()
+    await expect(page.locator('input#name')).toBeVisible({ timeout: 20000 })
+    test.skip((await translate.count()) === 0, 'resource translations are off on this stack')
+    await translate.click()
+
+    const keys = await dialogKeys(page)
+    // A metric is keyed by snowflake id; the chart says what to call it.
+    expect(keys).toContain('Y axis label')
+    expect(keys.some(k => k.includes('›'))).toBe(false)
+
+    const dialog = page.getByRole('dialog')
+    const cell = dialog.locator('tbody tr').first().locator('textarea').first()
+    const current = await cell.inputValue()
+    await cell.fill(current === 'e2e A' ? 'e2e B' : 'e2e A')
+    await dialog.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(dialog).toBeHidden({ timeout: 15000 })
+
+    // The chart editor binds `report.yAxis.formatting`, and a raw read has no
+    // `yAxis` — so a save that hands back the raw chart throws here.
+    expect(errors).toEqual([])
+    await expect(page.locator('input#name')).toBeVisible()
+  })
+
+  test("a namespace's dialog names its keys and survives a save", async ({ page }) => {
+    const errors = watchForCrashes(page)
+    await page.goto(`/compose/namespaces/edit/${namespaceSlug}`)
+
+    await expect(page.locator('input#name')).toBeVisible({ timeout: 20000 })
+    const translate = page.locator('button:has(.pi-language)').first()
+    test.skip((await translate.count()) === 0, 'resource translations are off on this stack')
+    await translate.click()
+
+    const keys = await dialogKeys(page)
+    expect(keys).toContain('Namespace name')
+    expect(keys.some(k => k.includes('›'))).toBe(false)
+
+    const dialog = page.getByRole('dialog')
+    const cell = dialog.locator('tbody tr').first().locator('textarea').first()
+    const current = await cell.inputValue()
+    await cell.fill(current === 'e2e A' ? 'e2e B' : 'e2e A')
+    await dialog.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(dialog).toBeHidden({ timeout: 15000 })
+
+    expect(errors).toEqual([])
+    await expect(page.locator('input#name')).toBeVisible()
   })
 })
