@@ -15,6 +15,7 @@ import os
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -35,6 +36,16 @@ TOKEN = subprocess.run(
 ).stdout.strip()
 
 
+def die(kind, message):
+    """One machine-readable failure on stdout, so a parser never sees prose.
+
+    Everything here is consumed by scripts; a traceback on stderr with an empty
+    stdout turns a clear server-side cause into a JSONDecodeError at the caller.
+    """
+    print(json.dumps({"error": {"kind": kind, "message": message}}))
+    sys.exit(1)
+
+
 def post(body, sid=None):
     h = {
         "Content-Type": "application/json",
@@ -44,9 +55,23 @@ def post(body, sid=None):
     if sid:
         h["Mcp-Session-Id"] = sid
     req = urllib.request.Request(MCP, data=json.dumps(body).encode(), headers=h, method="POST")
-    with urllib.request.urlopen(req, timeout=60) as r:
-        raw = r.read().decode()
-        new_sid = r.headers.get("Mcp-Session-Id")
+    # A gin rebuild answers 503 for a few seconds. Left to urllib that surfaces
+    # as an HTTPError traceback with nothing on stdout, so every caller parsing
+    # stdout dies with "Expecting value: line 1 column 1" — a message about the
+    # parser rather than about the server being mid-restart.
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                raw = r.read().decode()
+                new_sid = r.headers.get("Mcp-Session-Id")
+            break
+        except urllib.error.HTTPError as e:
+            if e.code >= 500 and attempt == 0:
+                time.sleep(5)
+                continue
+            die("http", f"HTTP {e.code} from the MCP endpoint: {e.read(200).decode(errors='replace')}")
+        except urllib.error.URLError as e:
+            die("unreachable", f"cannot reach the MCP endpoint: {e.reason}")
     # Unwrap SSE framing if present, and pick the frame that answers *this*
     # request: the server interleaves notifications/tools/list_changed with
     # responses, so taking the first data: line returns a notification with no
@@ -74,7 +99,7 @@ def post(body, sid=None):
 def rpc(method, params, sid=None, rid=1):
     resp, new_sid = post({"jsonrpc": "2.0", "id": rid, "method": method, "params": params}, sid)
     if resp and "error" in resp:
-        sys.exit(f"RPC error: {json.dumps(resp['error'])}")
+        die("rpc", json.dumps(resp["error"]))
     return (resp or {}).get("result"), new_sid
 
 
