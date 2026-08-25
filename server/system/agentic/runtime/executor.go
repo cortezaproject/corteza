@@ -1177,7 +1177,11 @@ func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsMod
 		return ""
 	}
 
-	out := "\n\n## ACCESSIBLE NAMESPACES AND MODULES\n\nUse these handle/ID pairs directly in tool calls — no need to look them up. These are IDs only — they do not tell you what fields or records exist. Always call compose_module_lookup to get current fields before any module operation.\n"
+	// The last sentence is not decoration. A namespace-scoped agent asked to
+	// list the namespaces on the instance answered "the only namespace is X" —
+	// its own grant, stated as a fact about the world, to a person with no way
+	// to tell the difference.
+	out := "\n\n## ACCESSIBLE NAMESPACES AND MODULES\n\nUse these handle/ID pairs directly in tool calls — no need to look them up. These are IDs only — they do not tell you what fields or records exist. Always call compose_module_lookup to get current fields before any module operation. This list is what you have been granted, NOT an inventory of the instance: others may exist that you cannot see. Never describe it as everything that exists — say what you can reach.\n"
 
 	for nsID := range nsIDs {
 		ns, err := resolver.LookupNamespace(ctx, nsID)
