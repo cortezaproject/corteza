@@ -160,3 +160,16 @@ func TestParseValuesReportsNamedFields(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []string{"colors", "notes", "quantity"}, named)
 }
+
+// A metric that already calls something names a function the report does not
+// have. Offering to wrap it — SUM(FIRST(price)) — sends the caller in a circle.
+func TestValidateMetricsNamesTheUnknownFunction(t *testing.T) {
+	err := validateMetrics("FIRST(price) AS first_price", nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "FIRST")
+	assert.NotContains(t, err.Error(), "SUM(FIRST")
+
+	err = validateMetrics("MEDIAN(price)", nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "MEDIAN")
+}

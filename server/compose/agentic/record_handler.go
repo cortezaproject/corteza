@@ -538,6 +538,9 @@ func recordValueString(name string, val any) (string, error) {
 // functions the report understands.
 var aggregateCall = regexp.MustCompile(`(?i)^(SUM|AVG|MIN|MAX|COUNT|COUNTD)\s*\(`)
 
+// unknownCall matches a metric that calls a function this report does not have.
+var unknownCall = regexp.MustCompile(`^([A-Za-z_][A-Za-z0-9_]*)\s*\(`)
+
 // asAlias strips the "AS name" a metric may end with.
 var asAlias = regexp.MustCompile(`(?i)\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\s*$`)
 
@@ -562,6 +565,16 @@ func validateMetrics(metrics string, mod *cmpTypes.Module) error {
 			return fmt.Errorf(
 				"%q is a %s field and cannot be aggregated: pass it as 'dimension' to group by it, and keep 'metrics' to numeric aggregates",
 				expr, f.Kind,
+			)
+		}
+
+		// An expression that already calls something is a function this report
+		// does not have, not a field waiting to be wrapped — suggesting
+		// SUM(FIRST(price)) helps nobody.
+		if fn := unknownCall.FindStringSubmatch(expr); fn != nil {
+			return fmt.Errorf(
+				"%q is not an aggregate function here; metrics use SUM, AVG, MIN, MAX or COUNT only. The record count is returned as 'count' without asking, and ordering is done with 'sort' rather than by picking a row",
+				fn[1],
 			)
 		}
 
