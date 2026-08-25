@@ -21,7 +21,6 @@ var phrasesEN = []string{
 	"take on the role",
 	"simulate being",
 	"impersonate",
-	"you are a",
 	"behave as a",
 	"behave as an",
 	"behave as if",

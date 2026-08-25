@@ -52,6 +52,9 @@ func CheckWithMaxLength(input string, maxLength int) Result {
 	if markdownRoleInjection.MatchString(input) {
 		return blocked("markdown_role_injection", "input contains markdown-wrapped role injection")
 	}
+	if roleAssignment.MatchString(input) {
+		return blocked("role_assignment", "input attempts to reassign the assistant's role")
+	}
 
 	for _, phrase := range instructionOverrides {
 		if containsPhrase(lower, phrase) {
