@@ -283,37 +283,55 @@ func moduleFieldNames(ctx context.Context, nsID, modID uint64) string {
 	return strings.Join(names, ", ")
 }
 
-// metricFieldRef pulls the field name out of an aggregate expression:
+// metricFieldRef pulls what is being aggregated out of an expression:
 // "SUM(line_value) AS total" -> "line_value".
 var metricFieldRef = regexp.MustCompile(`\(([^()]*)\)`)
+
+// metricIdent picks the field names out of that, since what is aggregated is
+// often an expression rather than a bare field: SUM(quantity * unit_value).
+var metricIdent = regexp.MustCompile(`[A-Za-z_][A-Za-z0-9_]*`)
 
 // metricUnits maps each aggregated field to how the module says it should read.
 // Only fields carrying a prefix or suffix are reported — a plain number has no
 // unit to state, and listing it would only invite one to be invented.
+//
+// Every field the expression touches is reported, not just a lone one: reading
+// the whole parenthesised body as a field name meant a total over
+// "quantity_wanted * current_price" carried no unit at all, and a wishlist
+// priced in dollars came back quoted in euros.
 func metricUnits(mod *cmpTypes.Module, metrics string) map[string]any {
 	units := make(map[string]any)
 
 	for _, m := range metricFieldRef.FindAllStringSubmatch(metrics, -1) {
-		name := strings.TrimSpace(m[1])
-		f := mod.Fields.FindByName(name)
-		if f == nil {
-			continue
-		}
-
-		u := make(map[string]any)
-		if p := f.Options.String("prefix"); p != "" {
-			u["prefix"] = p
-		}
-		if sfx := f.Options.String("suffix"); sfx != "" {
-			u["suffix"] = sfx
-		}
-		if len(u) > 0 {
-			u["label"] = f.Label
-			units[name] = u
+		for _, name := range metricIdent.FindAllString(m[1], -1) {
+			addFieldUnit(units, mod, name)
 		}
 	}
 
 	return units
+}
+
+func addFieldUnit(units map[string]any, mod *cmpTypes.Module, name string) {
+	if _, seen := units[name]; seen {
+		return
+	}
+
+	f := mod.Fields.FindByName(name)
+	if f == nil {
+		return
+	}
+
+	u := make(map[string]any)
+	if p := f.Options.String("prefix"); p != "" {
+		u["prefix"] = p
+	}
+	if sfx := f.Options.String("suffix"); sfx != "" {
+		u["suffix"] = sfx
+	}
+	if len(u) > 0 {
+		u["label"] = f.Label
+		units[name] = u
+	}
 }
 
 func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

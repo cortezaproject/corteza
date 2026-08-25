@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -91,4 +92,24 @@ func TestReportError(t *testing.T) {
 		cause := errors.New("unknown attribute card.rarity")
 		require.ErrorIs(t, reportError(ctx, 1, 2, cause), cause)
 	})
+}
+
+// A total over an expression carries the units of the fields in it. Reading the
+// whole parenthesised body as one field name found none, and a wishlist priced
+// in dollars was reported back in euros.
+func TestMetricUnitsAcrossAnExpression(t *testing.T) {
+	mod := &cmpTypes.Module{Fields: cmpTypes.ModuleFieldSet{
+		{Name: "quantity_wanted", Kind: "Number", Label: "Wanted"},
+		{Name: "current_price", Kind: "Number", Label: "Current price",
+			Options: cmpTypes.ModuleFieldOptions{"prefix": "$ "}},
+		{Name: "change_pct", Kind: "Number", Label: "Change",
+			Options: cmpTypes.ModuleFieldOptions{"suffix": " %"}},
+	}}
+
+	units := metricUnits(mod, "SUM(quantity_wanted * current_price) AS total, AVG(change_pct) AS avg")
+
+	assert.Len(t, units, 2, "a field with neither prefix nor suffix has no unit to state")
+	assert.Equal(t, "$ ", units["current_price"].(map[string]any)["prefix"])
+	assert.Equal(t, " %", units["change_pct"].(map[string]any)["suffix"])
+	assert.NotContains(t, units, "quantity_wanted")
 }
