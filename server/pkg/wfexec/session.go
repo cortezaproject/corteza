@@ -721,7 +721,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 				zap.Error(st.err),
 			)
 
-			err = setErrorHandlerResultsToScope(scope, st.results, st.err, st.step.ID())
+			err = setErrorHandlerResultsToScope(scope, st.errHandlerResults, st.err, st.step.ID())
 			if err != nil {
 				return nil, err
 			}
@@ -730,6 +730,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 			// in case of another error in the error-handling branch
 			eh := st.errHandler
 			st.errHandler = nil
+			st.errHandlerResults = nil
 			st.errHandled = true
 			return []*State{st.Next(eh, scope)}, nil
 		}
@@ -766,7 +767,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 			// this step sets error handling step on current state
 			// and continues on the current path
 			st.errHandler = result.handler
-			st.results = st.results.MustMerge(result.results)
+			st.errHandlerResults = result.results
 
 			// find step that's not error handler and
 			// use it for the next step

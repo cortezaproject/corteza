@@ -48,6 +48,14 @@ type (
 		// error handling step
 		errHandler Step
 
+		// error handler result variable names
+		//
+		// Holds the error/errorMessage/errorStepID to variable-name mapping
+		// declared on the error handling step. Kept apart from results
+		// (previous step outputs) so that a normal step running between the
+		// handler and the actual error does not overwrite it.
+		errHandlerResults *expr.Vars
+
 		// error handled flag, this gets restarted on every new state!
 		errHandled bool
 
@@ -83,13 +91,14 @@ func FinalState(ses *Session, scope *expr.Vars) *State {
 
 func (s State) Next(current Step, scope *expr.Vars) *State {
 	return &State{
-		stateId:    nextID(),
-		owner:      s.owner,
-		sessionId:  s.sessionId,
-		parent:     s.step,
-		errHandler: s.errHandler,
-		results:    s.results,
-		loops:      s.loops,
+		stateId:           nextID(),
+		owner:             s.owner,
+		sessionId:         s.sessionId,
+		parent:            s.step,
+		errHandler:        s.errHandler,
+		errHandlerResults: s.errHandlerResults,
+		results:           s.results,
+		loops:             s.loops,
 
 		step:  current,
 		scope: scope,
