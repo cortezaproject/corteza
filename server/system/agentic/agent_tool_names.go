@@ -3,6 +3,7 @@ package agentic
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -81,8 +82,17 @@ func (h *agentHandler) validateAgentTools(a *sysTypes.Agent) error {
 	}
 
 	for i, t := range a.Access.Tools {
+		// A grant names one tool, or a group and a risk ceiling standing for
+		// every tool in it.
+		if t.Group != "" {
+			if err := validateGrantGroup(i, t, reg); err != nil {
+				return err
+			}
+			continue
+		}
+
 		if strings.TrimSpace(t.Name) == "" {
-			return fmt.Errorf(`access.tools[%d]: "name" is required — the MCP tool this entry grants`, i)
+			return fmt.Errorf(`access.tools[%d]: needs a "name" (one tool) or a "group" (every tool in it, capped by "maxRisk")`, i)
 		}
 		if reg.HasTool(t.Name) {
 			continue
@@ -101,6 +111,70 @@ func (h *agentHandler) validateAgentTools(a *sysTypes.Agent) error {
 
 	return nil
 }
+
+// validateGrantGroup checks a group grant names a real group and risk, and that
+// the pair actually stands for something.
+//
+// An empty expansion is refused rather than stored: it reads as a grant and
+// behaves as none, which is the failure that is hardest to see from the config.
+func validateGrantGroup(i int, t sysTypes.AgentAccessTool, reg knownTools) error {
+	if t.Name != "" {
+		return fmt.Errorf(
+			`access.tools[%d]: set "name" or "group", not both — %q would be granted twice over and it is not clear which scope wins`,
+			i, t.Name,
+		)
+	}
+
+	if !slices.Contains(grantGroups, t.Group) {
+		return fmt.Errorf(
+			"access.tools[%d]: group %q is not one of %s",
+			i, t.Group, strings.Join(quoteAll(grantGroups), ", "),
+		)
+	}
+
+	risk := t.MaxRisk
+	if risk == "" {
+		risk = defaultGrantRisk
+	}
+
+	if !slices.Contains(grantRisks, risk) {
+		return fmt.Errorf(
+			"access.tools[%d]: maxRisk %q is not one of %s",
+			i, t.MaxRisk, strings.Join(quoteAll(grantRisks), ", "),
+		)
+	}
+
+	lister, ok := reg.(groupLister)
+	if !ok {
+		return nil
+	}
+
+	if len(lister.ToolNamesIn(t.Group, risk)) == 0 {
+		return fmt.Errorf(
+			"access.tools[%d]: group %q at maxRisk %q covers no tools, so the entry grants nothing",
+			i, t.Group, risk,
+		)
+	}
+
+	return nil
+}
+
+// groupLister is the part of the registry that can expand a group grant.
+type groupLister interface {
+	ToolNamesIn(group, maxRisk string) []string
+}
+
+// What a grant may name. Mirrors mcpkit's Group and Risk without importing the
+// vocabulary, and "development" is deliberately absent: it is the developer
+// MCP's surface, not something to hand an agent.
+var (
+	grantGroups = []string{"configuring", "usage"}
+	grantRisks  = []string{"read", "write", "destructive"}
+)
+
+// defaultGrantRisk mirrors the runtime's: a grant that does not say what risk it
+// permits permits only reading.
+const defaultGrantRisk = "read"
 
 // nearestToolNames returns the registered names closest to a misspelt one.
 // Tool names are long and structured (compose_record_lookup), so a typo is

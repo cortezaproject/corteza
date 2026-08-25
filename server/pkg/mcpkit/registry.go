@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -235,4 +236,34 @@ func (r *Registry) ExecuteTool(ctx context.Context, toolName string, args map[st
 	}
 
 	return nil, nil
+}
+
+// ToolNamesIn returns the names of every registered tool in the group whose
+// risk is at or below the ceiling, sorted.
+//
+// An untagged risk never qualifies (Risk.AtOrBelow says so), so a tool that
+// forgot to declare one cannot be swept into a grant by accident. Hidden and
+// unavailable tools are left out for the same reason they are left out of a
+// listing: nothing can call them.
+func (r *Registry) ToolNamesIn(group Group, maxRisk Risk) []string {
+	out := make([]string, 0, len(r.tools))
+
+	for _, t := range r.tools {
+		if t.Hidden || (t.Available != nil && !t.Available()) {
+			continue
+		}
+
+		if !slices.Contains(GroupsOf(t.Tool), group) {
+			continue
+		}
+
+		if !RiskOf(t.Tool).AtOrBelow(maxRisk) {
+			continue
+		}
+
+		out = append(out, t.Tool.Name)
+	}
+
+	sort.Strings(out)
+	return out
 }

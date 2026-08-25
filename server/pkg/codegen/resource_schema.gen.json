@@ -684,6 +684,8 @@
 },
   "tools": {
   "name": "string",
+  "group": "string",
+  "maxRisk": "string",
   "description": "string",
   "allow": {
   "namespaceID": "uint64",

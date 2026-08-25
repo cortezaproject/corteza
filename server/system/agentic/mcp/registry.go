@@ -50,3 +50,10 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 
 	return out, nil
 }
+
+// ToolNamesIn projects mcpkit's group/risk lookup into the plain strings the
+// agentic runtime's MCPClient interface speaks, so the runtime does not have to
+// import mcpkit's vocabulary.
+func (r *Registry) ToolNamesIn(group, maxRisk string) []string {
+	return r.Registry.ToolNamesIn(mcpkit.Group(group), mcpkit.Risk(maxRisk))
+}

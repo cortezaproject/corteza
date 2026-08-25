@@ -116,6 +116,8 @@ type (
 
 	AgentAccessTool struct {
 		Name        string                 `json:"name"`
+		Group       string                 `json:"group,omitempty"`
+		MaxRisk     string                 `json:"maxRisk,omitempty"`
 		Description string                 `json:"description"`
 		Allow       []AgentAccessAllow     `json:"allow"`
 		Context     AgentAccessToolContext `json:"context,omitempty"`
@@ -694,6 +696,14 @@ func (r AgentAccessTool) Diff(cmp *AgentAccessTool) []*revisions.Change {
 	}
 	if r.Name != cmp.Name {
 		out = append(out, &revisions.Change{Key: "name", Old: []any{cmp.Name}, New: []any{r.Name}})
+	}
+
+	if r.Group != cmp.Group {
+		out = append(out, &revisions.Change{Key: "group", Old: []any{cmp.Group}, New: []any{r.Group}})
+	}
+
+	if r.MaxRisk != cmp.MaxRisk {
+		out = append(out, &revisions.Change{Key: "maxRisk", Old: []any{cmp.MaxRisk}, New: []any{r.MaxRisk}})
 	}
 
 	if r.Description != cmp.Description {

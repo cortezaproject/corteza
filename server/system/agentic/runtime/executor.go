@@ -1478,7 +1478,7 @@ func (r *runtime) loadAgent(ctx context.Context, req *AgentRequest) (*types.Agen
 		return nil, err
 	}
 
-	return agent, err
+	return expandToolGrants(agent, r.mcp), err
 }
 
 // runGuardCheck runs the built-in guard and (if configured) the provider guard.

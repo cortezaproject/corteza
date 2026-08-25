@@ -72,6 +72,10 @@ type mockMCP struct {
 	toolsErr error
 	result   any
 	execErr  error
+	// inGroup answers ToolNamesIn, keyed "group/maxRisk"; calls records what
+	// was asked, so a test can assert the risk ceiling was passed on.
+	inGroup map[string][]string
+	calls   []string
 }
 
 func (m *mockMCP) GetTools(_ context.Context, _ []string) ([]Tool, error) {
@@ -80,6 +84,12 @@ func (m *mockMCP) GetTools(_ context.Context, _ []string) ([]Tool, error) {
 
 func (m *mockMCP) ExecuteTool(_ context.Context, _ string, _ map[string]any) (any, error) {
 	return m.result, m.execErr
+}
+
+func (m *mockMCP) ToolNamesIn(group, maxRisk string) []string {
+	key := group + "/" + maxRisk
+	m.calls = append(m.calls, key)
+	return m.inGroup[key]
 }
 
 type mockStore struct{}

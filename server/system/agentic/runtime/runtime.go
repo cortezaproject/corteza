@@ -152,6 +152,9 @@ type (
 		GetTools(ctx context.Context, allowedTools []string) ([]Tool, error)
 		// ExecuteTool executes a specific tool.
 		ExecuteTool(ctx context.Context, toolName string, args map[string]any) (any, error)
+		// ToolNamesIn lists the tools in a group at or below a risk ceiling, so
+		// a grant can name a set instead of every member of it.
+		ToolNamesIn(group, maxRisk string) []string
 	}
 
 	Tool struct {

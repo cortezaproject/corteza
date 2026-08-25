@@ -178,3 +178,70 @@ func TestValidateAgentAutomations(t *testing.T) {
 		require.NoError(t, validateAgentAutomations(ctx, a))
 	})
 }
+
+// groupRegistry is fakeRegistry that can also expand groups.
+type groupRegistry struct {
+	fakeRegistry
+	sets map[string][]string
+}
+
+func (g groupRegistry) ToolNamesIn(group, maxRisk string) []string {
+	return g.sets[group+"/"+maxRisk]
+}
+
+// TL;DR: a grant may name a group instead of a tool, and a group that stands
+// for nothing is refused.
+// Example: granting read access meant naming five tools and repeating the scope
+// on each. A group grant says it once — but one that expands to nothing reads
+// as a grant and behaves as none, which is the hardest kind to spot.
+func TestValidateAgentTools_GroupGrants(t *testing.T) {
+	reg := groupRegistry{
+		fakeRegistry: fakeRegistry{names: registered},
+		sets: map[string][]string{
+			"usage/read":  {"compose_record_lookup"},
+			"usage/write": {"compose_record_lookup", "compose_record_create"},
+		},
+	}
+	h := &agentHandler{reg: reg}
+
+	grant := func(g, risk, name string) *sysTypes.Agent {
+		return &sysTypes.Agent{Access: sysTypes.AgentAccess{
+			Tools: []sysTypes.AgentAccessTool{{Group: g, MaxRisk: risk, Name: name}},
+		}}
+	}
+
+	t.Run("a real group is accepted", func(t *testing.T) {
+		require.NoError(t, h.validateAgentTools(grant("usage", "read", "")))
+		require.NoError(t, h.validateAgentTools(grant("usage", "write", "")))
+	})
+
+	t.Run("an unstated risk is allowed and means read", func(t *testing.T) {
+		require.NoError(t, h.validateAgentTools(grant("usage", "", "")))
+	})
+
+	t.Run("an unknown group is refused", func(t *testing.T) {
+		err := h.validateAgentTools(grant("everything", "read", ""))
+		require.ErrorContains(t, err, "everything")
+		require.ErrorContains(t, err, "configuring")
+	})
+
+	t.Run("an unknown risk is refused", func(t *testing.T) {
+		require.ErrorContains(t, h.validateAgentTools(grant("usage", "total", "")), "maxRisk")
+	})
+
+	t.Run("a group covering nothing is refused", func(t *testing.T) {
+		err := h.validateAgentTools(grant("configuring", "read", ""))
+		require.ErrorContains(t, err, "grants nothing")
+	})
+
+	t.Run("naming both a tool and a group is refused", func(t *testing.T) {
+		err := h.validateAgentTools(grant("usage", "read", "compose_record_lookup"))
+		require.ErrorContains(t, err, "not both")
+	})
+
+	// The development group is the developer MCP's surface, not something to
+	// hand an agent.
+	t.Run("the development group is not grantable", func(t *testing.T) {
+		require.ErrorContains(t, h.validateAgentTools(grant("development", "read", "")), "development")
+	})
+}

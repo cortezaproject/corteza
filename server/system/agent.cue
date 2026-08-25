@@ -82,6 +82,8 @@ _agentDefs: {
 
 	AgentAccessTool: {name: "AgentAccessTool", fields: [
 				{name: "Name", type:        "string", json:                          "name"},
+				{name: "Group", type:       "string", json:                          "group,omitempty"},
+				{name: "MaxRisk", type:     "string", json:                          "maxRisk,omitempty"},
 				{name: "Description", type: "string", json:                          "description"},
 				{name: "Allow", slice:      true, type:                              _agentDefs.AgentAccessAllow, json: "allow"},
 				{name: "Context", type:     _agentDefs.AgentAccessToolContext, json: "context,omitempty"},
