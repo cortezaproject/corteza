@@ -114,6 +114,12 @@ const props = defineProps({
   // top. The caller supplies the height (`flex-1 min-h-0`, a max-height, …);
   // without one the list is as tall as its rows and nothing ever scrolls.
   stickyHeader: { type: Boolean, default: false },
+  // Lets the columns share the width the list is given rather than each taking
+  // the width of its content. A row of inputs has no meaningful content width —
+  // an `<input>` reports the browser's default `size` — so by default a list of
+  // them is wider than its container and scrolls sideways from the first row.
+  // Column `width` minimums still hold, and the list still scrolls under them.
+  fitWidth: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['change', 'reorder'])
@@ -130,11 +136,11 @@ const rootClass = computed(() =>
     : 'overflow-x-auto',
 )
 
-const listClass = computed(() =>
-  props.stickyHeader
-    ? 'flex flex-col min-w-max'
-    : 'flex flex-col min-w-max rounded-border border border-surface bg-surface overflow-hidden',
-)
+const listClass = computed(() => [
+  'flex flex-col',
+  props.fitWidth ? '' : 'min-w-max',
+  props.stickyHeader ? '' : 'rounded-border border border-surface bg-surface overflow-hidden',
+])
 
 const gridStyle = computed(() => {
   const cols = props.columns.length ? props.columns.map(c => c.width || '1fr') : ['1fr']

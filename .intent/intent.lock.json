@@ -1227,12 +1227,12 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.field-translation.test.js": {
-      "h": "9b214a74c458",
+      "h": "e999ee72a61e",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Modules.intent.md",
       "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.vue": {
-      "h": "840bab8a02e5",
+      "h": "ec2303d491bf",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.intent.md",
       "t": "2026-08-25"
     },
@@ -3891,10 +3891,15 @@
       "doc": "lib/vue/src/components/input/input.intent.md",
       "t": "2026-08-21"
     },
-    "lib/vue/src/components/input/CFormList.vue": {
-      "h": "8cc4e16e43b7",
+    "lib/vue/src/components/input/CFormList.fitWidth.test.ts": {
+      "h": "a3f4a72612d2",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-08-25"
+    },
+    "lib/vue/src/components/input/CFormList.vue": {
+      "h": "eef8ae5ae38e",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-08-25"
     },
     "lib/vue/src/components/input/CFormLists.disabled.test.ts": {
       "h": "098da2091505",

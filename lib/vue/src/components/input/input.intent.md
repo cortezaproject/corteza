@@ -66,6 +66,14 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 - `CFormList` and `CFormItemList` carry their own controls — a remove button and
   a drag handle — so an editor cannot make them read-only by disabling its own
   fields. Both take `disabled`: rows still render, reordering and remove go.
+- `CFormList` sizes its grid to its content and scrolls sideways under it. That
+  is wrong for a row of inputs, whose content width is the browser's default
+  `<input>` size rather than anything a caller chose: such a list is wider than
+  its container from the first row and hides its right-hand columns. `fitWidth`
+  makes the tracks share the width the list is given instead. It is opt-in
+  because the two behaviours suit different rows, and a flexible column needs a
+  `minmax()` floor under it either way — a bare `1fr` collapses to nothing once
+  the fixed columns are paid for.
 
 Keep the selector contract (ID-valued v-model, self-fetching) uniform — the TAQ
 registry and field editors instantiate these interchangeably by type.

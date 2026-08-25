@@ -204,6 +204,7 @@
                     v-model="module.fields"
                     class="flex-1 min-h-0"
                     sticky-header
+                    fit-width
                     draggable
                     :empty-message="$t('module.edit.fields.empty')"
                     :columns="fieldFormListColumns"
@@ -584,16 +585,16 @@ const fieldFormListColumns = computed(() => [
   {
     label: t('module.edit.fields.columns.name.label'),
     tooltip: t('module.edit.tooltip.name'),
-    width: 'minmax(180px, 1.2fr)',
+    width: 'minmax(140px, 1fr)',
   },
   {
     label: t('module.edit.fields.columns.title.label'),
     tooltip: t('module.edit.tooltip.title'),
-    width: 'minmax(180px, 1.2fr)',
+    width: 'minmax(140px, 1fr)',
   },
   {
     label: t('module.edit.fields.columns.type.label'),
-    width: 'minmax(200px, 1.4fr)',
+    width: 'minmax(170px, 1.6fr)',
   },
   {
     label: t('module.edit.fields.columns.required.label'),

@@ -103,7 +103,17 @@ const field = (name, kind) => ({
 
 const FormListStub = {
   name: 'CFormList',
-  props: ['modelValue', 'columns', 'emptyMessage', 'draggable', 'stickyHeader', 'hideRemove'],
+  // Typed, not an array: a valueless attribute reaches an array-props stub as
+  // '' rather than true, and `fit-width` would read as absent.
+  props: {
+    modelValue: Array,
+    columns: Array,
+    emptyMessage: String,
+    draggable: Boolean,
+    stickyHeader: Boolean,
+    fitWidth: Boolean,
+    hideRemove: Boolean,
+  },
   template: `<div>
     <div v-for="(item, index) in modelValue" :key="index" class="field-row">
       <slot name="row" :item="item" :index="index" />
@@ -237,6 +247,20 @@ describe('module field translation', () => {
     const wrapper = await mountEdit()
     expect(wrapper.findAll('.field-row')).toHaveLength(3)
     expect(wrapper.html()).not.toContain('pi-ellipsis-v')
+  })
+
+  it('lets the field list share the width it is given', async () => {
+    // Sized to content, the six columns are wider than any laptop viewport and
+    // the row's trailing controls sit off screen behind a sideways scroll.
+    const wrapper = await mountEdit()
+    const list = wrapper.findComponent({ name: 'CFormList' })
+    expect(list.props('fitWidth')).toBe(true)
+
+    // Sharing the width only works if the flexible columns carry a floor —
+    // a bare `1fr` collapses to nothing once the fixed columns are paid for.
+    const flexible = list.props('columns').filter(c => (c.width || '').includes('fr'))
+    expect(flexible.length).toBeGreaterThan(0)
+    expect(flexible.every(c => c.width.startsWith('minmax('))).toBe(true)
   })
 
   it('gives every field the same one translate button', async () => {
