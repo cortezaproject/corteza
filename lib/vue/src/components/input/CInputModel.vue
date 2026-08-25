@@ -125,15 +125,20 @@ function restoreSelection() {
   selectedModel.value = match || null
 }
 
-// When provider changes, re-fetch models and clear selection
+// Changing provider invalidates the chosen model, since the new provider
+// serves a different set. The provider ARRIVING is a different event: on an
+// existing resource it lands after the model does, and clearing then wipes a
+// stored model the user never touched.
 watch(
   () => props.llmProviderID,
   (newVal, oldVal) => {
-    if (newVal !== oldVal) {
+    if (newVal === oldVal) return
+
+    if (oldVal && oldVal !== '0') {
       selectedModel.value = null
       emit('update:modelValue', null)
-      fetchModels()
     }
+    fetchModels()
   },
 )
 
