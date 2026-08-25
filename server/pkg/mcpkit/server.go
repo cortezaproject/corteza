@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -168,7 +169,7 @@ func (m *MCPServer) registerMetaTools() {
 					"time a call was rejected for arguments you are unsure about. Use "+toolSearchName+
 					" instead when you know what you want to do but not what it is called.",
 			),
-			mcp.WithString("names", mcp.Required(), mcp.Description("JSON array of exact tool names, e.g. [\"system_role_create\",\"system_role_member_add\"].")),
+			mcp.WithString("names", mcp.Required(), mcp.Description("Exact tool names, as a JSON array [\"system_role_create\",\"system_role_member_add\"] or separated by spaces or commas: \"system_role_create system_role_member_add\".")),
 			InGroup(GroupConfiguring, GroupUsage),
 			WithRisk(RiskRead),
 		),
@@ -191,6 +192,40 @@ func (m *MCPServer) handleToolSearch(ctx context.Context, req mcp.CallToolReques
 	return m.toolDefsResult(hits, fmt.Sprintf("no tool matches %q — try one broader word", query))
 }
 
+// parseToolNames reads the tool list in whichever shape it arrives.
+//
+// A JSON array is the documented form, but a caller holding a list of names
+// naturally writes them separated by spaces or commas — and the JSON decoder
+// answers that with "invalid character 'c' looking for beginning of value",
+// which names a character rather than the shape it wanted and reads as though
+// the tool names themselves were malformed. Both forms are unambiguous here
+// (a tool name contains neither a space nor a comma), so accept both.
+func parseToolNames(raw string) ([]string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, fmt.Errorf("names is empty: pass the tool names to load, e.g. [\"system_role_create\"] or \"system_role_create system_role_member_add\"")
+	}
+
+	if strings.HasPrefix(raw, "[") {
+		var names []string
+		if err := json.Unmarshal([]byte(raw), &names); err != nil {
+			return nil, fmt.Errorf("names looks like a JSON array but does not parse as one (%w) — either fix the JSON or pass the names separated by spaces", err)
+		}
+		return names, nil
+	}
+
+	names := strings.FieldsFunc(raw, func(r rune) bool {
+		return r == ',' || r == ' ' || r == '\t' || r == '\n' || r == '\r'
+	})
+	for i, n := range names {
+		names[i] = strings.Trim(n, `"'`)
+	}
+	if len(names) == 0 {
+		return nil, fmt.Errorf("names holds no tool names")
+	}
+	return names, nil
+}
+
 func (m *MCPServer) handleToolLoad(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
@@ -200,8 +235,9 @@ func (m *MCPServer) handleToolLoad(ctx context.Context, req mcp.CallToolRequest)
 	var names []string
 	switch v := args["names"].(type) {
 	case string:
-		if err := json.Unmarshal([]byte(v), &names); err != nil {
-			return nil, fmt.Errorf("names must be a JSON array of tool names: %w", err)
+		var err error
+		if names, err = parseToolNames(v); err != nil {
+			return nil, err
 		}
 	case []any:
 		for _, n := range v {
@@ -210,7 +246,7 @@ func (m *MCPServer) handleToolLoad(ctx context.Context, req mcp.CallToolRequest)
 			}
 		}
 	default:
-		return nil, fmt.Errorf("names must be a JSON array of tool names")
+		return nil, fmt.Errorf("names is required: the tool names to load, e.g. [\"system_role_create\"] or \"system_role_create system_role_member_add\"")
 	}
 
 	var (
