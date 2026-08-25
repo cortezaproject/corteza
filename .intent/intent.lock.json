@@ -597,7 +597,7 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/Admin/Chart/ChartTranslator.vue": {
-      "h": "2e6ea4af1dcd",
+      "h": "65505833c797",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
       "t": "2026-08-25"
     },
@@ -1167,12 +1167,12 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.test.ts": {
-      "h": "1ec3ad93922a",
+      "h": "d9797ec0850e",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
-      "h": "70d4f447f91b",
+      "h": "7f7e00e068ec",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-08-25"
     },

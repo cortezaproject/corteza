@@ -6,6 +6,7 @@
     :titles="titles"
     :fetcher="fetcher"
     :updater="updater"
+    :key-prettifier="keyPrettifier"
     :disabled="disabled"
   />
 </template>
@@ -15,6 +16,7 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
 import { chartConstructor } from '@/sections/compose/lib/charts'
+import { chartKeyLabel } from '@/sections/compose/lib/resource-translations'
 
 const props = defineProps<{
   chart: any
@@ -40,6 +42,12 @@ const titles = computed(() => ({
     handle: props.chart.name || props.chart.handle || props.chart.chartID,
   }),
 }))
+
+// A metric and a dimension step are keyed by id; the chart's reports say what
+// those ids are called.
+function keyPrettifier(key: string): string {
+  return chartKeyLabel(key, t, props.chart?.config?.reports || [])
+}
 
 function fetcher() {
   return $ComposeAPI.chartListTranslations({

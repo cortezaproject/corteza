@@ -277,3 +277,41 @@ export function pageKeyLabel(
 
   return ''
 }
+
+// Human-readable name for one of a chart's translation keys. A metric and a
+// dimension step are keyed by snowflake id, which names nothing on its own, so
+// the chart's own reports supply what to call them. Returns '' for a key that
+// is not a chart's.
+export function chartKeyLabel(
+  key: string,
+  t: (k: string, p?: any) => string,
+  reports: any[] = [],
+): string {
+  if (key === 'yAxis.label') return t('translator.keys.chart-yaxis')
+
+  const metric = key.match(/^metrics\.([^.]+)\.label$/)
+  if (metric) {
+    const found = reports
+      .flatMap(r => r?.metrics || [])
+      .find((m: any) => String(m.metricID) === metric[1])
+    return t('translator.keys.chart-metric', {
+      metric: found?.label || found?.field || `#${metric[1]}`,
+    })
+  }
+
+  const step = key.match(/^dimensions\.([^.]+)\.meta\.steps\.([^.]+)\.label$/)
+  if (step) {
+    const dimension = reports
+      .flatMap(r => r?.dimensions || [])
+      .find((d: any) => String(d.dimensionID) === step[1])
+    const found = (dimension?.meta?.steps || []).find(
+      (s: any, i: number) => String(s.stepID || i) === step[2],
+    )
+    return t('translator.keys.chart-step', {
+      step: found?.label || found?.value || `#${step[2]}`,
+      dimension: dimension?.field || `#${step[1]}`,
+    })
+  }
+
+  return ''
+}

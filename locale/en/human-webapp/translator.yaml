@@ -11,6 +11,9 @@ keys:
   block-title: 'Block “{block}”: title'
   bool-false: Label shown when unchecked
   bool-true: Label shown when checked
+  chart-metric: 'Metric “{metric}”: label'
+  chart-step: 'Step “{step}” of dimension “{dimension}”: label'
+  chart-yaxis: Y axis label
   description-edit: Description shown in edit mode
   description-view: Description shown in view mode
   hint-edit: Hint shown in edit mode

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   applyPageLayoutTranslations,
   applyPageTranslations,
+  chartKeyLabel,
   moduleFieldKeyLabel,
   pageKeyLabel,
 } from './resource-translations'
@@ -225,5 +226,64 @@ describe('applyPageTranslations', () => {
     expect(layout.config.actions[0].meta.label).toBe('Aller')
     // The second has no id yet, so the server keys it by position.
     expect(layout.config.actions[1].meta.label).toBe('Non sauvé')
+  })
+})
+
+// A chart's metrics and dimension steps are keyed by snowflake id, so a row
+// reading `metrics.510744093064232961.label` says nothing about what it labels.
+describe('chartKeyLabel', () => {
+  const reports = [
+    {
+      metrics: [
+        { metricID: '11', field: 'amount', type: 'bar' },
+        { metricID: '12', field: 'count', label: 'Deals won' },
+      ],
+      dimensions: [
+        {
+          dimensionID: '21',
+          field: 'stage',
+          meta: {
+            steps: [
+              { stepID: '31', label: 'Proposal' },
+              { stepID: '32', value: '40' },
+            ],
+          },
+        },
+      ],
+    },
+  ]
+
+  it('names the axis', () => {
+    expect(chartKeyLabel('yAxis.label', t, reports)).toBe('translator.keys.chart-yaxis')
+  })
+
+  it('names a metric by its label, falling back to its field', () => {
+    expect(chartKeyLabel('metrics.12.label', t, reports)).toBe(
+      'translator.keys.chart-metric:Deals won',
+    )
+    expect(chartKeyLabel('metrics.11.label', t, reports)).toBe(
+      'translator.keys.chart-metric:amount',
+    )
+  })
+
+  it('names a dimension step by its label or its value', () => {
+    expect(chartKeyLabel('dimensions.21.meta.steps.31.label', t, reports)).toBe(
+      'translator.keys.chart-step:Proposal/stage',
+    )
+    expect(chartKeyLabel('dimensions.21.meta.steps.32.label', t, reports)).toBe(
+      'translator.keys.chart-step:40/stage',
+    )
+  })
+
+  it('falls back to the id where the chart no longer holds it', () => {
+    expect(chartKeyLabel('metrics.99.label', t, reports)).toBe('translator.keys.chart-metric:#99')
+    expect(chartKeyLabel('dimensions.99.meta.steps.98.label', t, reports)).toBe(
+      'translator.keys.chart-step:#98/#99',
+    )
+  })
+
+  it("returns '' for a key that is not a chart's", () => {
+    expect(chartKeyLabel('title', t, reports)).toBe('')
+    expect(chartKeyLabel('meta.title', t, reports)).toBe('')
   })
 })
