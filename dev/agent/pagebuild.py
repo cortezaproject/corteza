@@ -116,6 +116,21 @@ def resolve_refs(obj, modules, charts):
     return out
 
 
+# The webapp's renderer requires a modifier on every dimension and draws
+# "Dimensions modifier not defined" over the block without one — it is not
+# optional for a plain field, only uninteresting. compose_chart_create fills it
+# in server-side; a chart written straight to REST from here gets no such help.
+CHART_NO_GROUPING = "(no grouping / buckets)"
+
+
+def fill_dimension_modifiers(config):
+    for report in config.get("reports") or []:
+        for dim in report.get("dimensions") or []:
+            if isinstance(dim, dict) and not dim.get("modifier"):
+                dim["modifier"] = CHART_NO_GROUPING
+    return config
+
+
 def upsert_chart(nsid, spec, modules):
     existing = {
         c["handle"]: c
@@ -125,7 +140,7 @@ def upsert_chart(nsid, spec, modules):
     payload = {
         "handle": spec["handle"],
         "name": spec.get("name", spec["handle"]),
-        "config": resolve_refs(spec["config"], modules, {}),
+        "config": fill_dimension_modifiers(resolve_refs(spec["config"], modules, {})),
     }
     if spec["handle"] in existing:
         cid = existing[spec["handle"]]["chartID"]
