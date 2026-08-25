@@ -300,6 +300,10 @@ func parseChartConfig(raw any) (cmpTypes.ChartConfig, error) {
 		return cmpTypes.ChartConfig{}, fmt.Errorf("config must contain at least one report")
 	}
 
+	if err := validateChartColorScheme(cfg.ColorScheme); err != nil {
+		return cmpTypes.ChartConfig{}, err
+	}
+
 	if err := checkChartReports(cfg.Reports); err != nil {
 		return cmpTypes.ChartConfig{}, err
 	}

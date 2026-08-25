@@ -19,7 +19,9 @@ A metric needs "field" and "type", and needs "aggregate" as well whenever "field
 
 A dimension is what the metric is grouped by. "field" is a module field — a Select field groups well — and "modifier" is one of "(no grouping / buckets)" (the field's own values, and the default when omitted), DATE, WEEK, MONTH, QUARTER or YEAR, the last five for bucketing a date field.
 
-moduleID is the numeric ID from compose_module_lookup; a handle here leaves the chart with nothing to query.`
+moduleID is the numeric ID from compose_module_lookup; a handle here leaves the chart with nothing to query.
+
+"colorScheme" is optional and takes a "<family>.<Name>" key from the webapp's tables — brewer, office or tableau, e.g. "tableau.Tableau10". Omit it for the default palette. The number in a name is its swatch count and is part of the name, so guessing it is the usual way to get this wrong: "tableau.ClassicOrangeBlue13" exists, "tableau.ClassicOrangeBlue7" does not. An unknown name is refused here, with the near matches, because the webapp resolves it to no palette at all and the chart then draws its legend with no visible series.`
 
 // Callers ask for a report or a dashboard; Human calls the thing a chart.
 var chartKeywords = hmcp.WithKeywords("report", "dashboard", "graph", "analytics", "visualisation")
