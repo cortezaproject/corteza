@@ -3,6 +3,7 @@ package agentic
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -22,6 +23,17 @@ import (
 // neither the field nor the rule that refused the write, and unactionable for
 // anything trying to correct itself.
 func withValueIssues(err error, dd *cmpTypes.RecordValueErrorSet) error {
+	if dd.IsValid() {
+		// Duplicate detection hands the set back as a return value, but the
+		// validation path attaches it to the error instead
+		// (RecordErrValueInput().Wrap(rve)), so the chain is the other place
+		// it lives — and that path is the one that reports a required field.
+		var wrapped *cmpTypes.RecordValueErrorSet
+		if errors.As(err, &wrapped) {
+			dd = wrapped
+		}
+	}
+
 	if dd.IsValid() {
 		return err
 	}

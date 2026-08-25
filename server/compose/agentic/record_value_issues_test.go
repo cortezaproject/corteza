@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	hErrors "github.com/crusttech/human/server/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,6 +24,20 @@ func TestWithValueIssues(t *testing.T) {
 
 		err := withValueIssues(base, dd)
 		require.ErrorIs(t, err, base, "the original error must stay in the chain")
+		require.Contains(t, err.Error(), "title")
+		require.Contains(t, err.Error(), "This field is required")
+	})
+
+	// The validation path never returns the set; it wraps it into the error, so
+	// a fix that only reads the return value leaves a missing required field
+	// reported as a bare "invalid record value input".
+	t.Run("finds the set wrapped in the error", func(t *testing.T) {
+		dd := &cmpTypes.RecordValueErrorSet{Set: []cmpTypes.RecordValueError{
+			{Kind: "empty", Message: "This field is required", Meta: map[string]interface{}{"field": "title"}},
+		}}
+		wrapped := hErrors.New(hErrors.KindInternal, "invalid record value input").Wrap(dd)
+
+		err := withValueIssues(wrapped, nil)
 		require.Contains(t, err.Error(), "title")
 		require.Contains(t, err.Error(), "This field is required")
 	})
