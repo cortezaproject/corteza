@@ -155,10 +155,25 @@ def sync_layout(nsid, pid, blocks):
     an edited xywh applies to nothing and pagebuild still reports success.
     Blocks are matched by blockID, which build_blocks assigns by position.
     """
-    layouts = api("GET", f"/compose/namespace/{nsid}/page-layout?limit=500")["set"]
-    layout = next((l for l in layouts if l["pageID"] == pid), None)
-    if not layout:
+    layouts = [
+        l
+        for l in api("GET", f"/compose/namespace/{nsid}/page-layout?limit=500")["set"]
+        if l["pageID"] == pid
+    ]
+    if not layouts:
         return None
+    # The server derives a layout handled "primary" but leaves the primary flag
+    # false, so neither signal alone finds it. Prefer the flag, then the handle,
+    # then the lowest weight — taking the first hit picks an arbitrary layout
+    # once a page has more than one.
+    layout = sorted(
+        layouts,
+        key=lambda l: (
+            not l.get("primary"),
+            l.get("handle") != "primary",
+            l.get("weight", 0),
+        ),
+    )[0]
     want = {b["blockID"]: b["xywh"] for b in blocks}
     changed = 0
     for lb in layout.get("blocks") or []:
