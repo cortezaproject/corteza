@@ -12,6 +12,12 @@
 // Why this exists: API checks cannot see rendering bugs (mis-sized grids,
 // blocks that clip to nothing, unresolved refs showing raw IDs). Both
 // toolkit field tests caught real bugs only through this kind of check.
+//
+// Each path prints a text report of the compose blocks it found — geometry,
+// clipped content, empty blocks, raw IDs, uninterpolated ${...} templates —
+// before naming the screenshot. Read the report first: it catches the common
+// layout faults on its own, and a screenshot is only worth opening when the
+// report flags something or the check is about visual design.
 
 import { readFileSync, readdirSync, mkdirSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
@@ -77,29 +83,147 @@ page.on('response', r => {
 })
 
 // login through the real auth flow
-await page.goto(WEBAPP, { waitUntil: 'domcontentloaded' })
-await page.waitForURL(/\/auth\//, { timeout: 20000 }).catch(() => {})
-if (page.url().includes('/auth/')) {
-  await page.fill('input[name="email"]', email)
-  const pw = page.locator('input[name="password"]')
-  if (!(await pw.count())) await page.click('button[type="submit"]') // two-step login
-  await page.fill('input[name="password"]', password)
-  await page.click('button[type="submit"]')
-  await page.waitForURL(u => !u.href.includes('/auth/'), { timeout: 20000 })
+async function login() {
+  await page.goto(WEBAPP, { waitUntil: 'domcontentloaded' })
+  await page.waitForURL(/\/auth\//, { timeout: 20000 }).catch(() => {})
+  if (page.url().includes('/auth/')) {
+    await page.fill('input[name="email"]', email)
+    const pw = page.locator('input[name="password"]')
+    if (!(await pw.count())) await page.click('button[type="submit"]') // two-step login
+    await page.fill('input[name="password"]', password)
+    await page.click('button[type="submit"]')
+    await page.waitForURL(u => !u.href.includes('/auth/'), { timeout: 20000 })
+  }
+  problems.length = 0 // ignore login-phase noise
 }
-problems.length = 0 // ignore login-phase noise
+await login()
 
 let failed = false
+
+// What the page actually rendered, read out of the live DOM.
+//
+// Compose lays blocks out with gridstack: .grid-stack-item carries the
+// configured cell geometry in gs-*, and its .grid-stack-item-content is
+// overflow:auto — so content taller than the block does not spill, it
+// silently scrolls. That is exactly what a "clipped" block looks like, and
+// it is invisible to every API check. A single-block page skips the grid.
+const PAGE_REPORT = () => {
+  // Two different faults, measured apart because only one is a defect.
+  //
+  // The grid cell (.grid-stack-item-content) is overflow:auto, so a block
+  // shorter than its content does not spill — it silently scrolls, and the
+  // last field of a Record block simply is not there. That is the fault.
+  // A datatable viewport inside a list block scrolls too, but that is how a
+  // list pages and it carries a paginator saying so; only its *horizontal*
+  // overflow matters, because that is a column cut off the right edge.
+  //
+  // Only auto/scroll counts. PrimeVue icon buttons are overflow:hidden and
+  // report a phantom ~21px, which is what makes a naive scan pure noise.
+  const measure = root => {
+    // Content the reader cannot reach, vs a table viewport paging normally.
+    // The distinction is the element doing the scrolling, not how deep it is:
+    // a datatable viewport carries a paginator that says there is more, so its
+    // vertical scroll is by design. Anything else scrolling vertically — a
+    // Record block taller than its cell — has simply lost its last fields.
+    // Horizontal overflow is a cut-off column wherever it happens.
+    const lost = { v: 0, h: 0 }
+    const listScroll = { v: 0 }
+    const isListViewport = el => /p-datatable|p-virtualscroller/.test(String(el.className))
+    const consider = el => {
+      const st = getComputedStyle(el)
+      if (['auto', 'scroll'].includes(st.overflowY)) {
+        const dv = el.scrollHeight - el.clientHeight
+        if (isListViewport(el)) listScroll.v = Math.max(listScroll.v, dv)
+        else lost.v = Math.max(lost.v, dv)
+      }
+      if (['auto', 'scroll'].includes(st.overflowX))
+        lost.h = Math.max(lost.h, el.scrollWidth - el.clientWidth)
+    }
+    consider(root)
+    for (const el of root.querySelectorAll('*')) {
+      // PrimeVue icon buttons are overflow:hidden and report a phantom ~21px;
+      // only real content areas are worth measuring
+      if (el.clientWidth < 150 || el.clientHeight < 50) continue
+      consider(el)
+    }
+    return { lost, listScroll }
+  }
+
+  const items = [...document.querySelectorAll('.grid-stack-item')]
+  const boxes = items.length
+    ? items.map(el => ({
+        content: el.querySelector('.grid-stack-item-content'),
+        xywh: ['x', 'y', 'w', 'h'].map(a => Number(el.getAttribute('gs-' + a))),
+      }))
+    : [...document.querySelectorAll('.single-block-wrapper')].map(el => ({
+        content: el,
+        xywh: null,
+      }))
+
+  const blocks = boxes
+    .filter(b => b.content)
+    .map(b => {
+      const text = (b.content.innerText || '').trim()
+      return {
+        xywh: b.xywh,
+        label: text.split('\n')[0].slice(0, 38),
+        empty: !text,
+        ...measure(b.content),
+      }
+    })
+
+  // A snowflake ID rendered where a label belongs — the signature of a ref
+  // the webapp could not resolve.
+  const rawIds = new Set()
+  const templates = new Set()
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    const t = (n.nodeValue || '').trim()
+    if (/^\d{15,20}$/.test(t)) rawIds.add(t)
+    if (t.includes('${')) templates.add(t.slice(0, 60))
+  }
+  return { blocks, rawIds: [...rawIds].slice(0, 6), templates: [...templates].slice(0, 4) }
+}
+
+// fullPage stops at the viewport because compose scrolls an inner container,
+// not the document — so grow the viewport to the page's own scroll height
+// before capturing, or every block below the fold goes unverified.
+const fitViewport = async () => {
+  const needed = await page.evaluate(() => {
+    let node = document.querySelector('.grid-stack, .single-block-wrapper')
+    while (node && node !== document.body) {
+      const st = getComputedStyle(node)
+      if (['auto', 'scroll'].includes(st.overflowY) && node.scrollHeight > node.clientHeight + 4)
+        return Math.ceil(node.getBoundingClientRect().top + node.scrollHeight + 24)
+      node = node.parentElement
+    }
+    return Math.ceil(document.documentElement.scrollHeight)
+  })
+  const height = Math.min(Math.max(needed, 900), 5000)
+  if (height > 900) {
+    await page.setViewportSize({ width: 1440, height })
+    await page.waitForTimeout(400) // gridstack relayouts on resize
+  }
+  return height
+}
+
 for (const p of paths) {
   // stale vite optimized-dep chunks make first loads fail with
-  // "App setup failed … app.use" — a reload fixes it, so retry once
+  // "App setup failed … app.use"; a expired session answers 401 to every
+  // request and renders an empty shell. Both survive exactly one retry.
   for (let attempt = 0; attempt < 2; attempt++) {
     problems.length = 0
+    await page.setViewportSize({ width: 1440, height: 900 })
     await page
       .goto(WEBAPP + p, { waitUntil: 'networkidle', timeout: 30000 })
       .catch(e => problems.push(`nav: ${e.message}`))
     await page.waitForTimeout(1500) // charts/metrics fetch after load
-    if (attempt === 0 && problems.some(x => x.includes('App setup failed'))) continue
+    if (attempt === 1) break
+    if (problems.some(x => x.includes('App setup failed'))) continue
+    if (problems.some(x => x.includes('401'))) {
+      await login() // session expired mid-run
+      continue
+    }
     break
   }
   // Where the app ended up. An unmatched path is not an error anywhere — the
@@ -115,12 +239,53 @@ for (const p of paths) {
     )
   }
 
+  const report = await page.evaluate(PAGE_REPORT).catch(() => null)
+  const height = await fitViewport()
   const shot = join(outDir, p.replace(/[^a-z0-9-]+/gi, '_').replace(/^_+|_+$/g, '') + '.png')
   await page.screenshot({ path: shot, fullPage: true })
-  const status = problems.length ? 'FAIL' : 'OK'
+
+  // Findings are defects the DOM can prove; they are reported loudly but do
+  // not fail the run, which stays reserved for page/HTTP errors.
+  const findings = []
+  const notes = []
+  for (const b of report?.blocks || []) {
+    const where = b.xywh ? `[${b.xywh.join(',')}]` : '[single]'
+    const name = b.label || '(no text)'
+    if (b.empty) {
+      findings.push(`empty block ${where} — rendered nothing`)
+      continue
+    }
+    if (b.lost.v > 8)
+      findings.push(
+        `clipped ${where} "${name}" — ${b.lost.v}px of content unreachable; ` +
+          `raise h by ~${Math.ceil(b.lost.v / 10)}`,
+      )
+    if (b.lost.h > 8)
+      findings.push(
+        `columns cut off ${where} "${name}" — ${b.lost.h}px hidden; ` +
+          `drop a field or widen the block`,
+      )
+    if (b.listScroll.v > 8)
+      notes.push(`${where} "${name}" scrolls internally (list longer than the block)`)
+  }
+  for (const id of report?.rawIds || [])
+    findings.push(`raw ID rendered: ${id} — a ref the webapp could not resolve to a label`)
+  for (const t of report?.templates || []) findings.push(`uninterpolated template: ${t}`)
+
+  const status = problems.length ? 'FAIL' : findings.length ? 'WARN' : 'OK'
   if (problems.length) failed = true
   console.log(`${status}  ${p}`)
   problems.forEach(x => console.log(`      ${x}`))
+  findings.forEach(x => console.log(`      ${x}`))
+  notes.forEach(x => console.log(`      note: ${x}`))
+  if (report) {
+    const n = report.blocks.length
+    console.log(
+      `      ${n} block${n === 1 ? '' : 's'} rendered` +
+        (findings.length ? '' : ', none clipped or empty') +
+        `; captured ${height}px`,
+    )
+  }
   console.log(`      screenshot: ${shot}`)
 }
 
