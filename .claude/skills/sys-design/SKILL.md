@@ -34,11 +34,27 @@ breaks. Neither the API nor the webapp validator stops you creating one
 2. Modules: `POST /compose/namespace/{ns}/module/` with
    `{"name", "handle", "fields": [...]}` — fields is an **array**:
    `{"name", "label", "kind", "options": {}}`.
-   Field kinds: `String` (default), `Email`, `Url`, `Number`, `DateTime`,
-   `Bool`, `Select` (`options: {"options": [{"value","text"}]}`),
-   `Record` (`options: {"moduleID": "<id-as-string>"}`), `User`, `File`.
-   Multi-value: `"multi": true` on the field.
+   Field kinds and the options that matter:
+
+   | kind                               | options                                                                                                        |
+   | ---------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+   | `String` (default), `Email`, `Url` | —                                                                                                              |
+   | `Number`                           | `{"precision": 0}`                                                                                             |
+   | `DateTime`                         | `{"onlyDate": true}` (or `onlyTime`)                                                                           |
+   | `Bool`                             | —                                                                                                              |
+   | `Select`                           | `{"selectType": "default", "options": [{"value","text"}]}`                                                     |
+   | `Record`                           | `{"moduleID": "<id-as-string>", "labelField": "<field>", "queryFields": ["<field>"], "selectType": "default"}` |
+   | `User`                             | `{"selectType": "default"}`                                                                                    |
+   | `File`                             | —                                                                                                              |
+
+   `selectType` is one of `default` \| `multiple` \| `each` for Select, Record
+   and User. On a Record field, **set `labelField`** — without it the picker
+   and every viewer fall back to showing the raw record ID.
+   Flags are `isRequired` and `isMulti` — spelled that way, not `required` /
+   `multi` (`server/compose/types/module_field.go:40`). A misspelt flag is
+   accepted and silently ignored.
    REST-created modules register DAL models live — records work immediately.
+
 3. Verify: GET the modules back; POST one probe record per module, then
    delete it, before bulk-creating data.
 
@@ -48,6 +64,18 @@ breaks. Neither the API nor the webapp validator stops you creating one
 `{"values": [{"name": "<field>", "value": "<string>"}]}` — every value a
 string; Record-ref values are the target recordID string. Create referenced
 records first, keep an ident→recordID map for refs.
+
+**Reading values back: a falsy value has no `value` key at all.** A `Bool`
+set to `"0"` returns `{"name": "done"}` — the key is absent, not empty. So
+`{v["name"]: v["value"] for v in record["values"]}` raises `KeyError` on the
+first false checkbox and takes the whole run down mid-way. Use `v.get("value")`.
+
+**Filtering records: the list endpoint takes `query`, not `filter`.** Only
+`/record/report` takes `filter` (`server/compose/rest/request/record.go:590`
+vs `:691`). Passing `filter` to the list endpoint is not an error — unknown
+params are dropped, so the call returns **the whole module** and reads as a
+filter that matched everything. Confirm any filter with a negative control:
+a query that should match nothing must come back empty.
 
 ## Alternative surface: Human's own MCP tools
 
@@ -75,6 +103,12 @@ dev/agent/mcp.py schema compose_chart_create   # chart config contract
 dev/agent/mcp.py schema compose_page_create    # grid + page-type guidance
 ```
 
+A Metric block's tile is one entry in `options.metrics`, needing at least
+`{"moduleID", "metricField", "operation", "filter"}`. `operation` is `sum` \|
+`max` \| `min` \| `avg`; counting records is `"metricField": "count"` with
+`operation` left `""`. The block's own `title` and the metric's `label` both
+render, so setting both prints the tile's name twice.
+
 What the schemas cannot express (layout semantics):
 
 - **48-column grid**, cell height 10px; `xywh` required in pagebuild specs.
@@ -91,6 +125,19 @@ What the schemas cannot express (layout semantics):
   for a human to upload in the page editor.
 - In pagebuild specs, `{"module"/"chart": "<handle>"}` are resolved to
   `moduleID`/`chartID`; via MCP/REST you pass real IDs yourself.
+- **The page's primary layout owns the geometry, not `page.blocks`.** The
+  server derives a layout on first create, so a new page agrees with its spec;
+  a later page write does not touch the layout, so an edited `xywh` applies to
+  nothing. `pagebuild.py` syncs both and says `N block(s) re-placed`. Building
+  pages through MCP/REST instead means writing the layout yourself:
+  `POST /compose/namespace/{ns}/page/{pageID}/layout/{pageLayoutID}`.
+- A page with **one** block ignores `xywh` entirely — it renders through a
+  flex wrapper that fills the view, so height there is neither honoured nor
+  worth tuning.
+- Related lists on a record page filter with `prefilter`, and the record
+  variable is `${recordID}` — `${record.values.<field>}` and `${ownerID}`
+  also interpolate. `${record.recordID}` is **not** a thing and silently
+  yields nothing.
 
 **Never create pages via envoy YAML import** — block refs stay unresolved
 (handles instead of IDs) and the pages are broken in the UI.
@@ -148,7 +195,7 @@ TAQ gotchas that cost real time:
   `record.createdBy`.
 
 Always fire a real probe record and confirm the effect (the notification row,
-the updated field), then check a near-miss case does *not* fire. Delete the
+the updated field), then check a near-miss case does _not_ fire. Delete the
 probe records afterwards.
 
 **Render-verify the graph too** — a correct-at-runtime automation can still be
@@ -160,11 +207,21 @@ screenshot and confirm one connected chain from trigger to `End`.
 
 - Re-fetch pages/charts/records via API; confirm every block option holds a
   real ID (a handle string left in options = broken).
+- Prove filters bind rather than assuming: every prefilter and metric filter
+  needs a case that must **not** match, checked to come back empty.
 - **Render-verify in a real browser** (standard final gate — API checks
   cannot see clipped blocks, broken charts, or raw IDs in the UI):
-  `node dev/agent/verify-ui.mjs '/compose/namespace/<slug>/pages/<pageID>'`
-  then Read the screenshot it prints and check every block renders with
-  data. Fix and re-run until OK.
+  `node dev/agent/verify-ui.mjs '/compose/namespace/<slug>/pages/<pageID>'`.
+  It prints a **text report per path** before naming the screenshot: block
+  geometry, blocks whose content is clipped (with the `h` to add), tables with
+  columns cut off, empty blocks, raw IDs where a label belongs, and
+  uninterpolated `${...}`. Iterate on that report — it is the cheap loop, and
+  it catches the faults that actually recur. `OK` with no findings means the
+  page is sound; **read the screenshot when it reports a finding, when the
+  check is about visual design, or once at the end** to confirm the thing
+  looks right. Passing several paths in one call is one browser launch.
+  `note:` lines are informational — a list scrolling inside its block is
+  normal paging, not a defect.
 - Tell the human what to eyeball in the webapp (namespace name, pages).
 - If the system should persist as a fixture: put modules+records in
   `dev/fixtures/<slug>/def.yaml` + CSVs, presentation in `ui.json`
