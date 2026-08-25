@@ -307,7 +307,7 @@
                         <Button
                           v-if="canGrantField(field)"
                           icon="pi pi-lock"
-                          text
+                          outlined
                           severity="secondary"
                           size="small"
                           v-tooltip.top="$t('general.label.permissions')"
