@@ -36,7 +36,11 @@ Anywhere in chart configs / block options, {"module": "<handle>"} and
 {"chart": "<handle>"} are replaced with resolved {"moduleID"}/{"chartID"}.
 Unknown handles are an error. Every block must have xywh (48-col grid,
 cell height 10px; blocks CLIP when too short — Metric needs h>=20,
-RecordList/Chart h>=30). Blocks sit side by side by stepping x and keeping
+RecordList/Chart h>=30). A per-row estimate only holds for single-line
+cells: a multi-value field renders one line per value, so those rows run
+several times taller and a list sized by estimate hides most of them behind
+an inner scrollbar. Size lists from what verify-ui.mjs measures, not from
+the estimate. Blocks sit side by side by stepping x and keeping
 y — a row of four tiles is [0,0,12,20], [12,0,12,20], [24,0,12,20],
 [36,0,12,20] — so lay a page out as rows and give the full 48 only to
 lists and forms. Pages get no nav icon: the webapp draws one as an image,

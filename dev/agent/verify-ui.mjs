@@ -390,7 +390,15 @@ for (const p of paths) {
     if (b.ink.length && b.ink.every(i => i === 0))
       findings.push(`blank canvas ${where} "${name}" — a chart block that drew nothing`)
     if (b.listScroll.v > 8)
-      notes.push(`${where} "${name}" scrolls internally (list longer than the block)`)
+      notes.push(
+        `${where} "${name}" scrolls internally — ${b.listScroll.v}px of rows hidden; ` +
+          // A lone block renders through a flex wrapper that fills the view, so
+          // its xywh is never read and "raise h" would be advice that cannot work.
+          (b.xywh
+            ? `raise h by ~${Math.ceil(b.listScroll.v / 10)} unless the list really holds ` +
+              `more rows than its perPage`
+            : `this block sets the page height itself, so lower perPage if those rows matter`),
+      )
   }
   if (flow) {
     if (flow.unreachable.length)
