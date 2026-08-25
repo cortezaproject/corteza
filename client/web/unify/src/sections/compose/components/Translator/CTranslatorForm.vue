@@ -69,7 +69,11 @@
             <tr
               v-for="key in section.keys"
               :key="`${section.resource}:${key}`"
-              :class="{ 'bg-amber-50 dark:bg-amber-950': isRowDirty(section.resource, key) }"
+              :ref="el => setRowEl(key, el)"
+              :class="{
+                'bg-highlight': key === highlightKey,
+                'bg-amber-50 dark:bg-amber-950': isRowDirty(section.resource, key),
+              }"
             >
               <td
                 class="px-3 py-2 border-b border-surface text-muted-color font-mono text-xs align-top leading-relaxed whitespace-nowrap"
@@ -109,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import type { Language } from '@/sections/compose/stores/languages'
 import type { ResourceTranslation } from '@/sections/compose/stores/translator'
 
@@ -169,6 +173,19 @@ watch(
 const visibleLanguages = computed(() => intLanguages.filter(l => l.visible))
 const hiddenLanguages = computed(() => intLanguages.filter(l => !l.visible))
 
+// The row a caller asked to be taken to. Kept so the table can scroll to it
+// once it has rendered — a key deep in a long set is otherwise off screen.
+const highlightedRow = ref<HTMLElement | null>(null)
+
+function setRowEl(key: string, el: unknown): void {
+  if (key === props.highlightKey && el) highlightedRow.value = el as HTMLElement
+}
+
+onMounted(() => {
+  if (!props.highlightKey) return
+  nextTick(() => highlightedRow.value?.scrollIntoView({ block: 'center' }))
+})
+
 const pendingAdd = ref<string>('')
 
 function setVisible(tag: string, visible: boolean): void {
@@ -209,8 +226,11 @@ function msg(resource: string, key: string, lang: string): string {
   return find(resource, key, lang)?.message ?? ''
 }
 
+// A prettifier that does not recognise a key returns '', and the key falls
+// back to the generic dotted-path formatting.
 function prettyKey(key: string): string {
-  if (props.keyPrettifier) return props.keyPrettifier(key)
+  const named = props.keyPrettifier?.(key)
+  if (named) return named
   return key
     .replace(/([A-Z])/g, ' $1')
     .toLowerCase()

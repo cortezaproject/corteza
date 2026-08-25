@@ -1106,10 +1106,15 @@
       "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
       "t": "2026-08-13"
     },
-    "client/web/unify/src/sections/compose/components/Translator/CTranslatorForm.vue": {
-      "h": "33f910760426",
+    "client/web/unify/src/sections/compose/components/Translator/CTranslatorForm.test.ts": {
+      "h": "082f447a9194",
       "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-25"
+    },
+    "client/web/unify/src/sections/compose/components/Translator/CTranslatorForm.vue": {
+      "h": "25b77bfd63d3",
+      "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/composables/usePageVisibility.test.ts": {
       "h": "6cd8087979bd",

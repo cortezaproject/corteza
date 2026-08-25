@@ -32,7 +32,7 @@ in the per-resource wrappers. Visibility is gated by `useResourceTranslations`
 
 - CTranslatorButton.vue — the entry point wrappers render; on click passes `{resource, titles, fetcher, updater, highlightKey?, keyPrettifier?}` to `translatorStore.open()`
 - CTranslatorDialog.vue — singleton dialog mounted in ComposeHost; opens whenever the store holds a config
-- CTranslatorForm.vue — language-column manager + key × language editing table; emits dirty rows via `change`, the dialog is what calls the config's `updater`
+- CTranslatorForm.vue — language-column manager + key × language editing table; emits dirty rows via `change`, the dialog is what calls the config's `updater`. Names each key through the config's `keyPrettifier`, falling back to generic dotted-path formatting wherever the prettifier returns `''`; marks and scrolls to the `highlightKey` row when one is given
 
 ## When changing this
 
@@ -41,6 +41,6 @@ The store-config shape (`TranslatorConfig`) is the contract every wrapper
 backward-compatibly. Never mount a second dialog. The default language column is
 not removable.
 
-> **DRIFT:** `highlightKey` is threaded store → dialog → form for the
-> "translate this field" entry points, but the form never reads it — no row is
-> scrolled to or marked. Either implement it or drop it from the config shape.
+A `keyPrettifier` returning `''` means "not mine" and must stay a fallback
+rather than a blank cell — one prettifier serves every section of a set, and a
+module's own keys sit beside its fields' in the same table.
