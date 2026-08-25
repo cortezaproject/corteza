@@ -69,9 +69,9 @@ func RecordHandler(reg toolRegistrar) *recordHandler {
 }
 
 func (h *recordHandler) resolveNsMod(ctx context.Context, args map[string]any) (nsID, modID uint64, err error) {
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	ns, err := lookupNamespaceArg(ctx, args)
 	if err != nil {
-		return 0, 0, toolkit.Errf("namespace lookup", err)
+		return 0, 0, err
 	}
 
 	mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, args["module"])

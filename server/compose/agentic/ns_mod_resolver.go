@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
+	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
 )
 
@@ -54,4 +56,24 @@ func (r *nsModResolver) LookupModule(ctx context.Context, nsID, modID uint64) (a
 		modHandle = mod.Name
 	}
 	return agenticRuntime.ModHandle{ID: mod.ID, NamespaceID: mod.NamespaceID, Handle: modHandle, Name: mod.Name, CreatedByAgent: mod.CreatedByAgent}, nil
+}
+
+// lookupNamespaceArg resolves the "namespace" argument, naming it when it is
+// simply absent.
+//
+// FindByAny is given the raw argument, so a missing one arrives as nil and
+// comes back as "invalid ID" — which reads as though a namespace was supplied
+// and rejected. A model told that supplies an ID it invented, rather than the
+// namespace it forgot.
+func lookupNamespaceArg(ctx context.Context, args map[string]any) (*cmpTypes.Namespace, error) {
+	if v, ok := args["namespace"]; !ok || v == nil || v == "" {
+		return nil, fmt.Errorf("namespace is required — its handle, slug, name, or ID as a string")
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	if err != nil {
+		return nil, toolkit.Errf("namespace lookup", err)
+	}
+
+	return ns, nil
 }

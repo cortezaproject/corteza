@@ -30,9 +30,9 @@ func ModuleHandler(reg toolRegistrar, agents agentService) *moduleHandler {
 // all take. The module ref is required here — the lookup tool, which may omit
 // it, resolves the namespace on its own.
 func (h *moduleHandler) resolveModule(ctx context.Context, args map[string]any) (*cmpTypes.Module, error) {
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	ns, err := lookupNamespaceArg(ctx, args)
 	if err != nil {
-		return nil, toolkit.Errf("namespace lookup", err)
+		return nil, err
 	}
 
 	modRef, err := toolkit.ReqStr(args, "module")
@@ -54,9 +54,9 @@ func (h *moduleHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	ns, err := lookupNamespaceArg(ctx, args)
 	if err != nil {
-		return nil, toolkit.Errf("namespace lookup", err)
+		return nil, err
 	}
 
 	// Single-module mode returns the raw service type, fields and config included.
@@ -117,9 +117,9 @@ func (h *moduleHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	ns, err := lookupNamespaceArg(ctx, args)
 	if err != nil {
-		return nil, toolkit.Errf("namespace lookup", err)
+		return nil, err
 	}
 
 	mod := &cmpTypes.Module{

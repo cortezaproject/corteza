@@ -27,9 +27,9 @@ func ChartHandler(reg toolRegistrar) *chartHandler {
 }
 
 func (h *chartHandler) resolveNs(ctx context.Context, args map[string]any) (uint64, error) {
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, args["namespace"])
+	ns, err := lookupNamespaceArg(ctx, args)
 	if err != nil {
-		return 0, toolkit.Errf("namespace lookup", err)
+		return 0, err
 	}
 
 	return ns.ID, nil
