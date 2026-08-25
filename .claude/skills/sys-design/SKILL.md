@@ -274,7 +274,8 @@ TAQ gotchas that cost real time:
   as the probe that produced it. That endpoint also answers **`text/plain` on
   error**, unlike every other one, so use `api.sh --json` for it. And
   `GET .../executions` returns a **bare array** in `response`, not the
-  `{"set": [...]}` every compose list endpoint returns.
+  `{"set": [...]}` every compose list endpoint returns, ordered newest first —
+  so the run a probe just caused is `response[0]`.
 
 Always fire a real probe record and confirm the effect (the notification row,
 the updated field), then check a near-miss case does _not_ fire. Delete the
