@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
@@ -112,6 +113,14 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		return toolkit.JSONResultWithAny(rec, extra)
 	}
 
+	// A caller holding several IDs — the group keys of a report, say — asks for
+	// them all at once or not at all, and the query language has no IN over
+	// recordID to write that with. Both bracketed and parenthesised attempts
+	// come back as parser noise, so the batch is a parameter instead.
+	if ids := parseIDList(toolkit.Str(args, "recordIDs")); len(ids) > 0 {
+		return h.lookupByIDs(ctx, nsID, modID, ids)
+	}
+
 	f := cmpTypes.RecordFilter{
 		NamespaceID: nsID,
 		ModuleID:    modID,
@@ -168,7 +177,14 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 	}
 
 	metrics := toolkit.Str(args, "metrics")
-	if err = validateMetrics(metrics); err != nil {
+	dimension := toolkit.Str(args, "dimension")
+
+	var mod *cmpTypes.Module
+	if cmpService.DefaultModule != nil {
+		mod, _ = cmpService.DefaultModule.FindByID(ctx, nsID, modID)
+	}
+
+	if err = validateMetrics(metrics, mod); err != nil {
 		return nil, err
 	}
 
@@ -177,7 +193,7 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 		nsID,
 		modID,
 		metrics,
-		toolkit.Str(args, "dimension"),
+		dimension,
 		toolkit.Str(args, "filter"),
 		filter.StateExcluded,
 	)
@@ -191,11 +207,12 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 	// wrong — a total off a field prefixed "$ " came back reported in euros.
 	// The prefix is on the field, so it travels with the answer rather than
 	// costing a second lookup nobody remembers to make.
-	if cmpService.DefaultModule != nil {
-		if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil && mod != nil {
-			if units := metricUnits(mod, metrics); len(units) > 0 {
-				res["units"] = units
-			}
+	if mod != nil {
+		if units := metricUnits(mod, metrics); len(units) > 0 {
+			res["units"] = units
+		}
+		if refs := dimensionRefs(ctx, mod, dimension, out); refs != nil {
+			res["refs"] = refs
 		}
 	}
 
@@ -472,18 +489,41 @@ var asAlias = regexp.MustCompile(`(?i)\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\s*$`)
 // "compose_record.values" must appear in the GROUP BY clause` — which names
 // neither the metric at fault nor anything the caller wrote. It is a plain
 // mistake with a plain correction, so make it here.
-func validateMetrics(metrics string) error {
+func validateMetrics(metrics string, mod *cmpTypes.Module) error {
 	for _, m := range splitMetrics(metrics) {
 		expr := strings.TrimSpace(asAlias.ReplaceAllString(m, ""))
 		if expr == "" || aggregateCall.MatchString(expr) {
 			continue
 		}
+
+		// A bare field listed as a metric is usually one meant to label the
+		// groups, not to be summed — the same mistake as writing a column into
+		// a GROUP BY query. Say so when the field cannot be aggregated at all.
+		if f := fieldOf(mod, expr); f != nil && !aggregatableKind(f.Kind) {
+			return fmt.Errorf(
+				"%q is a %s field and cannot be aggregated: pass it as 'dimension' to group by it, and keep 'metrics' to numeric aggregates",
+				expr, f.Kind,
+			)
+		}
+
 		return fmt.Errorf(
 			"metric %q is not an aggregate: wrap it in a function, e.g. %q. Every metric must be SUM, AVG, MIN, MAX or COUNT of a field; the record count is returned as 'count' without asking",
 			expr, "SUM("+expr+") AS "+expr,
 		)
 	}
 	return nil
+}
+
+func fieldOf(mod *cmpTypes.Module, name string) *cmpTypes.ModuleField {
+	if mod == nil {
+		return nil
+	}
+	return mod.Fields.FindByName(name)
+}
+
+// aggregatableKind is the set SUM and AVG mean anything over.
+func aggregatableKind(kind string) bool {
+	return kind == "Number"
 }
 
 // splitMetrics splits on the commas between metrics, leaving the ones inside a
@@ -517,4 +557,44 @@ func splitMetrics(metrics string) []string {
 		out = append(out, s)
 	}
 	return out
+}
+
+// parseIDList reads a comma-separated list of record IDs, ignoring whatever
+// punctuation a caller wrapped it in.
+func parseIDList(raw string) map[uint64]struct{} {
+	raw = strings.Trim(strings.TrimSpace(raw), "[]()")
+	if raw == "" {
+		return nil
+	}
+
+	out := map[uint64]struct{}{}
+	for _, part := range strings.Split(raw, ",") {
+		part = strings.Trim(strings.TrimSpace(part), `"'`)
+		if id, err := strconv.ParseUint(part, 10, 64); err == nil && id > 0 {
+			out[id] = struct{}{}
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// lookupByIDs answers a batch the way the list path answers a page, so a caller
+// reads one shape either way.
+func (h *recordHandler) lookupByIDs(ctx context.Context, nsID, modID uint64, ids map[uint64]struct{}) (*mcp.CallToolResult, error) {
+	set := findRecordsByID(ctx, nsID, modID, ids)
+
+	res := map[string]any{"records": set}
+	if len(set) < len(ids) {
+		res["note"] = fmt.Sprintf("%d of %d requested records were found; the rest do not exist in this module or are deleted", len(set), len(ids))
+	}
+
+	if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
+		if refs := refLabels(ctx, mod, set); refs != nil {
+			res["refs"] = refs
+		}
+	}
+
+	return toolkit.JSONResult(res)
 }

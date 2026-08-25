@@ -28,6 +28,7 @@ func (h *recordHandler) register() {
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("recordID", mcp.Description("Record ID (as string to prevent precision loss). Omit to list or filter instead.")),
+			mcp.WithString("recordIDs", mcp.Description("Comma-separated record IDs to fetch in one call, e.g. \"101,102,103\" — use this instead of one call per ID, and instead of an IN expression in 'filter', which the query language does not support. Takes precedence over 'filter'.")),
 			mcp.WithString("filter", mcp.Description("Filter expression when no recordID is given, e.g. \"name = 'John'\" or \"status = 'open'\".")),
 			mcp.WithString("limit", mcp.Description("Maximum records to return, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),

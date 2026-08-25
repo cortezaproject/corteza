@@ -2,6 +2,7 @@ package agentic
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -207,4 +208,80 @@ func userLabel(u *sysTypes.User) string {
 		}
 	}
 	return ""
+}
+
+// dimensionRefs resolves the group keys of a report grouped by a reference.
+//
+// A breakdown by a Record field comes back keyed by the target's bare ID —
+// "dimension_0": "510764704641581057" — and reading five of those as names cost
+// five more calls, one per row. The dictionary is the same one a record lookup
+// returns, so a caller reads both the same way.
+func dimensionRefs(ctx context.Context, mod *cmpTypes.Module, dimension string, rows any) map[string]string {
+	if mod == nil || dimension == "" {
+		return nil
+	}
+
+	f := mod.Fields.FindByName(dimension)
+	if f == nil {
+		return nil
+	}
+
+	ids := map[uint64]struct{}{}
+	for _, raw := range dimensionValues(rows) {
+		if id, err := strconv.ParseUint(raw, 10, 64); err == nil && id > 0 {
+			ids[id] = struct{}{}
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+
+	out := map[string]string{}
+	switch f.Kind {
+	case "Record":
+		refMod, err := strconv.ParseUint(f.Options.String("moduleID"), 10, 64)
+		if err != nil || refMod == 0 {
+			return nil
+		}
+		addRecordLabels(ctx, out, mod.NamespaceID, refMod, &refTarget{
+			ids:        ids,
+			labelField: f.Options.String("labelField"),
+		})
+	case "User":
+		addUserLabels(ctx, out, ids)
+	default:
+		return nil
+	}
+
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// dimensionValues pulls dimension_0 out of report rows.
+//
+// The report is typed as `any` by the service and its row type is unexported,
+// so the rows are read back through their JSON form — the same form they are
+// about to be returned in.
+func dimensionValues(rows any) []string {
+	enc, err := json.Marshal(rows)
+	if err != nil {
+		return nil
+	}
+
+	var decoded []map[string]any
+	if err = json.Unmarshal(enc, &decoded); err != nil {
+		return nil
+	}
+
+	out := make([]string, 0, len(decoded))
+	for _, row := range decoded {
+		if v, ok := row["dimension_0"]; ok {
+			if s, ok := v.(string); ok && s != "" {
+				out = append(out, s)
+			}
+		}
+	}
+	return out
 }
