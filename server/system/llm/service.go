@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/errors"
@@ -267,13 +268,9 @@ func (svc *Service) ValidateTemperature(ctx context.Context, providerID uint64, 
 // Prompt resolves the provider and its credential, then forwards the conversation to the LLM.
 // If model is non-empty it overrides the provider's configured model without changing the DB record.
 func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string, temperature *float64, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
-	provider, err := store.LookupLlmProviderByID(ctx, svc.store, providerID)
+	provider, err := svc.resolveProvider(ctx, providerID)
 	if err != nil {
-		return nil, fmt.Errorf("could not resolve LLM provider: %w", err)
-	}
-
-	if provider.Status != "active" {
-		return nil, fmt.Errorf("LLM provider %q is not active", provider.Handle)
+		return nil, err
 	}
 
 	cred, err := store.LookupCredentialByID(ctx, svc.store, provider.CredentialID)
@@ -284,11 +281,64 @@ func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string,
 	return svc.callProvider(ctx, provider, cred, model, temperature, outputTokens, messages, tools)
 }
 
+// resolveProvider finds the provider a request should go to, standing in for
+// the caller when it named none.
+//
+// An agent with no llmProviderID is the normal shape of one created through the
+// API — the field is not required and nothing asks for it — and it used to fail
+// at run time with "not found", which reads as a broken ID rather than a
+// missing one. With a single configured provider there is no choice to make, so
+// it is made here; with several there is, and the error names them.
+func (svc *Service) resolveProvider(ctx context.Context, providerID uint64) (*sysTypes.LlmProvider, error) {
+	if providerID == 0 {
+		return svc.soleActiveProvider(ctx)
+	}
+
+	provider, err := store.LookupLlmProviderByID(ctx, svc.store, providerID)
+	if err != nil {
+		return nil, fmt.Errorf("could not resolve LLM provider %d: %w", providerID, err)
+	}
+
+	if provider.Status != "active" {
+		return nil, fmt.Errorf("LLM provider %q is not active", provider.Handle)
+	}
+
+	return provider, nil
+}
+
+func (svc *Service) soleActiveProvider(ctx context.Context) (*sysTypes.LlmProvider, error) {
+	set, _, err := store.SearchLlmProviders(ctx, svc.store, sysTypes.LlmProviderFilter{Status: "active"})
+	if err != nil {
+		return nil, fmt.Errorf("could not list LLM providers: %w", err)
+	}
+
+	switch len(set) {
+	case 0:
+		return nil, fmt.Errorf("no LLM provider is configured; add one before running an agent")
+	case 1:
+		return set[0], nil
+	}
+
+	names := make([]string, 0, len(set))
+	for _, p := range set {
+		names = append(names, fmt.Sprintf("%d (%s)", p.ID, p.Meta.Short))
+	}
+	return nil, fmt.Errorf("no LLM provider was named and there are several to choose from: %s — set execution.model.llmProviderID", strings.Join(names, ", "))
+}
+
 func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysTypes.Credential, model string, temperature *float64, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
 	// Agent-level temperature overrides provider default; fall back to provider if not set.
 	temp := temperature
 	if temp == nil {
 		temp = provider.Config.Temperature
+	}
+
+	// A provider is reached with no model when neither the caller nor the
+	// provider names one, and every provider answers that the same unhelpful
+	// way — a 400 after the round trip, naming a parameter the caller never
+	// sent. Say which of the two places to set it instead.
+	if model == "" && provider.Config.Model == "" {
+		return nil, fmt.Errorf("no model named for LLM provider %d (%s): set execution.model.model on the agent, or config.model on the provider", provider.ID, provider.Provider)
 	}
 
 	switch provider.Provider {
