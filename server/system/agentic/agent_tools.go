@@ -27,10 +27,11 @@ const (
 
 	agentExecutionDoc = `JSON object: which model runs it and how far it may go. ` +
 		`{"model":{"llmProviderID":"<id>","model":"claude-sonnet-5","temperature":0.2},"limits":{"maxIterations":10,"timeout":"5m","softLimitRatio":0.8,"contextWindow":200000,"outputTokens":8192}}. ` +
-		`'timeout' is a Go duration string. Sending a 'temperature' makes the server call the provider to check it, which also validates 'llmProviderID' and the model name — so a temperature with no llmProviderID fails with "could not resolve LLM provider", and an unrecognised model fails with the provider's own error. Omit temperature and none of that is checked: the model name is stored as given.`
+		`'timeout' is a Go duration string. Omitting 'llmProviderID' picks the instance's provider when there is exactly one, and fails naming the candidates when there are several. ` +
+		`Sending a 'temperature' makes the server call the provider to check it, which also validates 'llmProviderID' and the model name — an unrecognised model fails with the provider's own error. Omit temperature and none of that is checked: the model name is stored as given.`
 
 	agentAccessDoc = `JSON object: what the agent may reach. ` +
-		`{"context":{"namespace":"crm","module":"leads","defaults":{}},"tools":[{"name":"compose_record_lookup","description":"Read leads","allow":[{"namespaceID":"<id>","moduleIDs":["<id>"]}]}],"taqs":[{"id":"<taqID>","description":"Escalate"}],"workflows":[{"id":"<workflowID>","description":"Notify"}]}. ` +
+		`{"tools":[{"name":"compose_record_lookup","description":"Read leads","allow":[{"namespaceID":"<id>","moduleIDs":["<id>"]}]}],"taqs":[{"id":"<taqID>","description":"Escalate"}],"workflows":[{"id":"<workflowID>","description":"Notify"}]}. ` +
 		`'tools' is an allow-list of tool names from this same registry and is deny-by-default: an agent can call nothing that is not listed. It NARROWS only — RBAC on the agent's own identity still applies on top. Granting an agent system_agent_update lets it re-grant itself any tool, so treat that entry the way you would a permission change. ` +
 		`Every name is checked against the registry when you write it, and an unknown one is refused with the near matches: the runtime resolves the allow-list as a whole, so a single typo would stop the agent running at all rather than cost it one tool. ` +
 		`An entry's "moduleIDs" narrows it to those modules; leave it EMPTY to mean every module in that namespace, now and in future. Prefer empty unless you actually need to withhold a module: an enumerated list has to be edited on every tool entry each time a module is added, and until it is the agent cannot see the new module and nothing says so. ` +
@@ -74,7 +75,8 @@ func (h *agentHandler) register() {
 				"Create an AI agent. "+agentSectionDoc+" "+
 					"A new agent is 'active' unless you say otherwise, and starts able to call NOTHING: "+
 					"access.tools is deny-by-default, so an agent created without it can run but has no "+
-					"tools. Give it 'execution.model' too, or it has no model to run on. "+
+					"tools. Name a model in 'execution.model' unless this instance has exactly one LLM "+
+					"provider, which is then used. "+
 					"To let people talk to it in a widget, create a chatbot with a conversation scenario "+
 					"pointing at this agent — system_chatbot_create.",
 			),
