@@ -240,8 +240,13 @@ const settleCanvases = async () => {
 // A TAQ builder (and anything else drawn with vue-flow) has no compose blocks,
 // so the block report finds nothing there. Read the graph instead: the failure
 // this catches is a severed chain — an automation that runs correctly while its
-// canvas draws two disconnected halves, each ending in its own End, which is
-// what an empty `paths` array produces.
+// canvas draws a step no trigger reaches, which is what an empty `paths` array
+// produces.
+//
+// Reachability is the test, not the shape. A gatewayExclusive draws one End per
+// branch and a TAQ may carry several triggers, so counting Ends or triggers
+// calls a correct branching graph broken — and tells its author to go fix
+// `paths` that were right.
 const FLOW_REPORT = () => {
   const nodes = [...document.querySelectorAll('.vue-flow__node')].map(n => ({
     id: n.getAttribute('data-id') || '',
@@ -258,12 +263,45 @@ const FLOW_REPORT = () => {
     e => e.getAttribute('data-id') || '',
   )
   const touches = id => id && edges.some(e => e.startsWith(id + '_') || e.endsWith('_' + id))
+
+  // Which node an edge end names, longest id first: ids are not prefix-free,
+  // so "1" would claim an edge belonging to "1001" if the short one won.
+  const byLength = [...nodes].sort((a, b) => b.id.length - a.id.length)
+  const source = e => byLength.find(n => n.id && e.startsWith(n.id + '_'))
+  const target = e => byLength.find(n => n.id && e.endsWith('_' + n.id))
+
+  const next = new Map()
+  for (const e of edges) {
+    const s = source(e)
+    const t = target(e)
+    if (!s || !t) continue
+    if (!next.has(s.id)) next.set(s.id, [])
+    next.get(s.id).push(t.id)
+  }
+
+  // A severed chain is a step no trigger can reach. Counting Ends cannot see
+  // it: a gateway legitimately ends in one End per branch, and a TAQ may carry
+  // several triggers, so both are normal shapes rather than defects.
+  const seen = new Set()
+  const queue = nodes.filter(n => n.kind === 'trigger').map(n => n.id)
+  queue.forEach(id => seen.add(id))
+  while (queue.length) {
+    for (const to of next.get(queue.shift()) || []) {
+      if (seen.has(to)) continue
+      seen.add(to)
+      queue.push(to)
+    }
+  }
+
   return {
     nodeCount: nodes.length,
     edgeCount: edges.length,
     triggers: nodes.filter(n => n.kind === 'trigger').length,
     ends: nodes.filter(n => n.kind === 'end').length,
     isolated: nodes.filter(n => !touches(n.id)).map(n => n.label || n.id),
+    unreachable: nodes
+      .filter(n => n.kind !== 'trigger' && touches(n.id) && !seen.has(n.id))
+      .map(n => n.label || n.id),
   }
 }
 
@@ -355,13 +393,12 @@ for (const p of paths) {
       notes.push(`${where} "${name}" scrolls internally (list longer than the block)`)
   }
   if (flow) {
-    if (flow.ends > 1)
+    if (flow.unreachable.length)
       findings.push(
-        `graph splits into ${flow.ends} chains, each ending in its own End — ` +
-          `one connected chain expected; an empty "paths" array draws exactly this`,
+        `no trigger reaches ${flow.unreachable.map(n => `"${n}"`).join(', ')} — ` +
+          `a severed chain; check "paths" wires each step to a trigger`,
       )
-    if (flow.triggers !== 1)
-      findings.push(`graph has ${flow.triggers} trigger nodes — expected exactly one`)
+    if (!flow.triggers) findings.push(`graph has no trigger node — nothing can start it`)
     for (const n of flow.isolated) findings.push(`node "${n}" is joined to nothing`)
   }
   for (const id of report?.rawIds || [])
@@ -379,8 +416,8 @@ for (const p of paths) {
     if (!n && flow) {
       console.log(
         `      graph: ${flow.nodeCount} nodes, ${flow.edgeCount} edges, ` +
-          `${flow.ends} End` +
-          (findings.length ? '' : ' — one connected chain'),
+          `${flow.triggers} trigger, ${flow.ends} End` +
+          (findings.length ? '' : ' — every step reachable from a trigger'),
       )
     } else if (!n) {
       // No compose blocks here (a TAQ builder, an admin screen). Saying
