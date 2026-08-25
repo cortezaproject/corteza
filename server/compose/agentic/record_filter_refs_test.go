@@ -79,8 +79,15 @@ func TestRefPathTermMatches(t *testing.T) {
 func TestLiteralRanges(t *testing.T) {
 	assert.Nil(t, literalRanges("a = b"))
 	assert.Equal(t, [][2]int{{4, 9}}, literalRanges("a = 'bolt'"))
-	// A doubled quote escapes rather than closing.
-	assert.Equal(t, [][2]int{{4, 13}}, literalRanges("a = 'O''Bri'"+"'"))
+
+	// A backslash escapes the quote; the literal runs to the closing one.
+	assert.Equal(t, [][2]int{{4, 11}}, literalRanges(`a = 'O\'Bri'`))
+
+	// Doubling does NOT escape here, whatever SQL habit suggests: it closes one
+	// literal and opens the next, which is why `'Urza''s Saga'` matches nothing
+	// instead of erroring.
+	assert.Len(t, literalRanges("a = 'O''Bri'"), 2)
+
 	// An unterminated literal runs to the end rather than being ignored.
 	assert.Equal(t, [][2]int{{4, 7}}, literalRanges("a = 'bo"))
 }
@@ -97,7 +104,7 @@ func TestInRanges(t *testing.T) {
 // A path written inside a string literal is data being compared against, not an
 // expression; rewriting it would corrupt the value.
 func TestResolveRefPathsIgnoresPathsInsideLiterals(t *testing.T) {
-	expr := "notes = 'about card.name = ''x'''"
+	expr := "notes = 'see card.name = ' AND storage = 'Binder'"
 	got, err := resolveRefPaths(nil, refMod(), expr)
 	require.NoError(t, err)
 	assert.Equal(t, expr, got)

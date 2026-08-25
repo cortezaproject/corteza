@@ -34,7 +34,9 @@ func (h *recordHandler) register() {
 					"Field names, comparisons, AND/OR — not SQL: there are no subqueries and no joins. "+
 					"A Record field holds the target's ID, so filter it by ID (\"card = '510764704641581057'\") "+
 					"after looking the target up; a path like \"card.name = 'Bolt'\" is resolved for you only for "+
-					"'=' and LIKE, and any other operator on a path is an error.")),
+					"'=' and LIKE, and any other operator on a path is an error. "+
+					"Escape an apostrophe inside a literal with a BACKSLASH — \"name = 'Urza\\'s Saga'\". Doubling "+
+					"it the way SQL does is not an escape here and quietly matches nothing.")),
 			mcp.WithString("limit", mcp.Description("Maximum records to return, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),
 			hmcp.InGroup(hmcp.GroupUsage),

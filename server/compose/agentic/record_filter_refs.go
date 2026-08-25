@@ -18,7 +18,7 @@ import (
 // Only '=' and LIKE are matched. Negation would have to become a conjunction
 // over every non-matching ID rather than a disjunction over matching ones, and
 // silently getting that backwards is worse than saying it is not supported.
-var refPathTerm = regexp.MustCompile(`(?i)\b([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*(=|LIKE)\s*'((?:[^']|'')*)'`)
+var refPathTerm = regexp.MustCompile(`(?i)\b([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*(=|LIKE)\s*'((?:[^'\\]|\\.)*)'`)
 
 // refPathAnyOp catches a path compared with an operator that is NOT rewritten,
 // so the caller is told rather than left with "unknown attribute".
@@ -107,8 +107,11 @@ func resolveRefPaths(ctx context.Context, mod *cmpTypes.Module, expr string) (st
 }
 
 // literalRanges reports where the single-quoted strings are, so a rewrite never
-// reaches inside one. A doubled quote is an escaped quote and does not end the
-// literal.
+// reaches inside one.
+//
+// The query language escapes with a backslash (ql/token_consumers.go), NOT by
+// doubling the quote the way SQL does — and a doubled quote does not error, it
+// ends the literal early and quietly matches nothing.
 func literalRanges(expr string) [][2]int {
 	var (
 		out  [][2]int
@@ -116,19 +119,16 @@ func literalRanges(expr string) [][2]int {
 	)
 
 	for i := 0; i < len(expr); i++ {
-		if expr[i] != '\'' {
-			continue
-		}
-		if open < 0 {
-			open = i
-			continue
-		}
-		if i+1 < len(expr) && expr[i+1] == '\'' {
+		switch {
+		case open >= 0 && expr[i] == '\\':
 			i++
-			continue
+		case expr[i] != '\'':
+		case open < 0:
+			open = i
+		default:
+			out = append(out, [2]int{open, i})
+			open = -1
 		}
-		out = append(out, [2]int{open, i})
-		open = -1
 	}
 
 	if open >= 0 {
