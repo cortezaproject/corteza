@@ -50,9 +50,16 @@ func Str(args map[string]any, key string) string {
 }
 
 // ReqStr reads a required string argument.
+//
+// A value of nothing but whitespace counts as missing. It satisfies every
+// required check that only compares against "", so it reaches the store and
+// creates a resource whose name renders as blank — findable by nobody, and
+// indistinguishable in a listing from one that failed to load. The value itself
+// is returned untouched: rejecting a name is this function's business, tidying
+// one is not.
 func ReqStr(args map[string]any, key string) (string, error) {
 	s, _ := args[key].(string)
-	if s == "" {
+	if strings.TrimSpace(s) == "" {
 		return "", fmt.Errorf("%s is required", key)
 	}
 	return s, nil
