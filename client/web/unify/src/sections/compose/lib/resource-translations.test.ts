@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { moduleFieldKeyLabel } from './resource-translations'
+import { applyPageLayoutTranslations, moduleFieldKeyLabel } from './resource-translations'
 
 // The translator shows one row per translation key. A module field's keys are
 // dotted paths the person translating never wrote, so each one is named; a key
@@ -36,5 +36,58 @@ describe('moduleFieldKeyLabel', () => {
     expect(moduleFieldKeyLabel('name', t)).toBe('')
     expect(moduleFieldKeyLabel('title', t)).toBe('')
     expect(moduleFieldKeyLabel('pageBlock.3.title', t)).toBe('')
+  })
+})
+
+// A page's title is `title`; a layout's is `meta.title`. Reading the page's key
+// off a layout resource finds nothing, so a saved layout translation never
+// reached the editor and the row kept showing the old title until a reload.
+describe('applyPageLayoutTranslations', () => {
+  const layout = () => ({
+    namespaceID: '1',
+    pageID: '2',
+    pageLayoutID: '3',
+    meta: { title: 'old title', description: 'old description' },
+    config: { buttons: { back: { label: 'Back' } } },
+  })
+
+  const rows = (pairs: Array<[string, string]>) =>
+    pairs.map(([key, message]) => ({
+      resource: 'compose:page-layout/1/2/3',
+      key,
+      lang: 'fr',
+      message,
+    }))
+
+  it('reads the layout title and description off their meta keys', () => {
+    const l = layout()
+    applyPageLayoutTranslations(
+      l,
+      rows([
+        ['meta.title', 'Titre'],
+        ['meta.description', 'Description'],
+      ]),
+      'fr',
+    )
+    expect(l.meta.title).toBe('Titre')
+    expect(l.meta.description).toBe('Description')
+  })
+
+  it("ignores a page's own title key on a layout", () => {
+    const l = layout()
+    applyPageLayoutTranslations(l, rows([['title', 'Titre de la page']]), 'fr')
+    expect(l.meta.title).toBe('old title')
+  })
+
+  it('still applies the toolbar button labels', () => {
+    const l = layout()
+    applyPageLayoutTranslations(l, rows([['config.buttons.back.label', 'Retour']]), 'fr')
+    expect(l.config.buttons.back.label).toBe('Retour')
+  })
+
+  it('leaves a language it was not asked for alone', () => {
+    const l = layout()
+    applyPageLayoutTranslations(l, rows([['meta.title', 'Titre']]), 'sl')
+    expect(l.meta.title).toBe('old title')
   })
 })

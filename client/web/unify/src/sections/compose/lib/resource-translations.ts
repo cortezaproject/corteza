@@ -107,10 +107,11 @@ export function applyPageLayoutTranslations(
   const res = `compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`
   const g = (key: string) => get(translations, res, key, lang)
 
-  const title = g('title')
+  // A layout's title and description are `meta.` keys; a page's are not.
+  const title = g('meta.title')
   if (title !== undefined && layout.meta) layout.meta.title = title
 
-  const desc = g('description')
+  const desc = g('meta.description')
   if (desc !== undefined && layout.meta) layout.meta.description = desc
 
   for (const btn of ['new', 'edit', 'submit', 'delete', 'clone', 'back']) {
