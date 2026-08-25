@@ -148,12 +148,6 @@ func allowedDecision(agent *types.Agent, entry *types.AgentAccessTool, args Valu
 		sanitized[k] = v
 	}
 
-	for k, v := range agent.Access.Context.Defaults {
-		if _, exists := sanitized[k]; !exists {
-			sanitized[k] = v
-		}
-	}
-
 	if entry != nil {
 		for k, v := range entry.Context.Defaults {
 			if _, exists := sanitized[k]; !exists {

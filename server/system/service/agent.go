@@ -28,10 +28,6 @@ type (
 
 	agentServices struct {
 		llm agentLLMValidator
-		// namespaceID resolves a compose namespace reference. Injected rather
-		// than imported: compose depends on system, so this package cannot
-		// reach the other way.
-		namespaceID func(ctx context.Context, ref string) (uint64, error)
 	}
 )
 
@@ -42,13 +38,6 @@ func Agent() *agent {
 		store:     DefaultStore,
 		services:  &agentServices{},
 	}
-}
-
-// WithNamespaceResolver supplies the compose namespace lookup used to scope a
-// new agent's default grant.
-func (svc *agent) WithNamespaceResolver(fn func(ctx context.Context, ref string) (uint64, error)) *agent {
-	svc.services.namespaceID = fn
-	return svc
 }
 
 func (svc *agent) WithLLMValidator(v agentLLMValidator) *agent {
@@ -106,10 +95,6 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 
 	prepareTCL(&new.Behavior)
 
-	if err = svc.defaultAccess(ctx, new); err != nil {
-		return
-	}
-
 	if err = store.CreateAgent(ctx, svc.store, new); err != nil {
 		return
 	}
@@ -117,53 +102,6 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 	if err = label.Create(ctx, svc.store, new); err != nil {
 		return
 	}
-
-	return nil
-}
-
-// defaultAccess gives a new agent something to do.
-//
-// Access is deny-by-default, so an agent created without a single grant can
-// call nothing: it answers every question with a refusal, which reads as broken
-// rather than as unconfigured. When the author has said which namespace the
-// agent is for and granted nothing, the useful reading of that is "let it read
-// this namespace" — the one posture that is immediately useful and cannot
-// damage anything. Anything more than reading stays a deliberate act.
-//
-// Nothing is assumed when no namespace is named: there would be nothing to
-// scope the grant to, and a grant with no scope is denied anyway.
-func (svc *agent) defaultAccess(ctx context.Context, a *types.Agent) error {
-	if len(a.Access.Tools) > 0 || len(a.Access.TAQs) > 0 || len(a.Access.Workflows) > 0 {
-		return nil
-	}
-
-	if a.Access.Context.Namespace == "" {
-		return nil
-	}
-
-	if svc.services.namespaceID == nil {
-		return nil
-	}
-
-	ns, err := svc.services.namespaceID(ctx, a.Access.Context.Namespace)
-	if err != nil || ns == 0 {
-		// An unresolvable namespace is the caller's to fix; failing the create
-		// over a convenience default would be worse than leaving it ungranted.
-		return nil
-	}
-
-	a.Access.Tools = []types.AgentAccessTool{{
-		Group:       "usage",
-		MaxRisk:     "read",
-		Description: "Read and aggregate data in this namespace",
-		Allow:       []types.AgentAccessAllow{{NamespaceID: ns}},
-	}}
-
-	// The grant is only worth anything if the agent is told what it reaches.
-	// Without the platform context there is no list of namespaces and modules,
-	// so it guesses handles and reports that they do not exist. Set together or
-	// not at all — this runs only for an agent that arrived with no access.
-	a.Behavior.InjectSystemContext = true
 
 	return nil
 }

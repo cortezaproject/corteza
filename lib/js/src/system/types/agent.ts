@@ -47,7 +47,10 @@ interface AgentAccessAllow {
 }
 
 interface AgentAccessTool {
+  // A grant names one tool, or a whole group capped by risk. Never both.
   name: string
+  group?: string
+  maxRisk?: string
   description: string
   allow: AgentAccessAllow[] | null
   context?: {
@@ -67,14 +70,7 @@ interface AgentAccessWorkflow {
   description: string
 }
 
-interface AgentAccessContext {
-  namespace: string
-  module: string
-  defaults?: Record<string, unknown>
-}
-
 interface AgentAccess {
-  context: AgentAccessContext
   tools: AgentAccessTool[]
   taqs: AgentAccessTAQ[]
   workflows: AgentAccessWorkflow[]
@@ -141,10 +137,6 @@ export class Agent {
   }
 
   public access: AgentAccess = {
-    context: {
-      namespace: '',
-      module: '',
-    },
     tools: [],
     taqs: [],
     workflows: [],
@@ -232,7 +224,6 @@ export class Agent {
 
     if (IsOf(o, 'access')) {
       this.access = {
-        context: { ...this.access.context, ...(o.access?.context || {}) },
         tools: Array.isArray(o.access?.tools) ? o.access.tools : this.access.tools,
         taqs: Array.isArray(o.access?.taqs) ? o.access.taqs : this.access.taqs,
         workflows: Array.isArray(o.access?.workflows) ? o.access.workflows : this.access.workflows,

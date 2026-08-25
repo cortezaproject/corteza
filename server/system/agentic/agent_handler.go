@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	cmpService "github.com/crusttech/human/server/compose/service"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	sysService "github.com/crusttech/human/server/system/service"
@@ -131,6 +132,8 @@ func (h *agentHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, err
 	}
 
+	seeded := seedNamespaceAccess(ctx, a, toolkit.Str(args, "namespace"))
+
 	if err = h.validateAgentAccess(ctx, a); err != nil {
 		return nil, err
 	}
@@ -140,7 +143,52 @@ func (h *agentHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, toolkit.Errf("agent creation", err)
 	}
 
-	return toolkit.JSONResultWith(a, agentLinks(a))
+	return toolkit.JSONResultWith(a, withNote(agentLinks(a), seeded))
+}
+
+// seedNamespaceAccess gives a new agent something to do, and says so.
+//
+// Access is deny-by-default, so an agent created without a grant can call
+// nothing: it refuses every question, which reads as broken rather than as
+// unconfigured. Naming a namespace on create is the common case, and the useful
+// reading of it is "let this agent read that namespace" — the one posture that
+// is immediately useful and cannot damage anything.
+//
+// The namespace is not stored. What is stored is the grant it produced, so
+// there is no second place where scope appears to live.
+func seedNamespaceAccess(ctx context.Context, a *sysTypes.Agent, ref string) string {
+	if ref == "" {
+		return ""
+	}
+
+	if len(a.Access.Tools) > 0 || len(a.Access.TAQs) > 0 || len(a.Access.Workflows) > 0 {
+		return ""
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, ref)
+	if err != nil || ns == nil {
+		return fmt.Sprintf(
+			"Namespace %q could not be resolved, so no access was granted. This agent can call nothing until you give it one.",
+			ref,
+		)
+	}
+
+	a.Access.Tools = []sysTypes.AgentAccessTool{{
+		Group:       "usage",
+		MaxRisk:     "read",
+		Description: "Read and aggregate data in this namespace",
+		Allow:       []sysTypes.AgentAccessAllow{{NamespaceID: ns.ID}},
+	}}
+
+	// The grant is only worth anything if the agent is told what it reaches;
+	// without the platform context it guesses handles and reports they do not
+	// exist.
+	a.Behavior.InjectSystemContext = true
+
+	return fmt.Sprintf(
+		"Granted read-only access to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' granted nothing. Edit access to widen or narrow it.",
+		ns.Slug,
+	)
 }
 
 func (h *agentHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

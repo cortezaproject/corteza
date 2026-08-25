@@ -84,6 +84,12 @@ func (h *agentHandler) register() {
 			mcp.WithString("behavior", mcp.Description(agentBehaviorDoc)),
 			mcp.WithString("execution", mcp.Description(agentExecutionDoc)),
 			mcp.WithString("access", mcp.Description(agentAccessDoc)),
+			mcp.WithString("namespace", mcp.Description(
+				"Compose namespace this agent is for, by handle, slug or ID. A convenience for the common case: "+
+					"when 'access' grants nothing, this seeds a read-only grant over that namespace and turns on "+
+					"the platform context, so the new agent can answer questions immediately instead of refusing "+
+					"everything. Ignored when 'access' already grants something. It is not stored — what is stored "+
+					"is the grant it produced, which you can then edit.")),
 			mcp.WithString("invocation", mcp.Description(agentInvocationDoc)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),

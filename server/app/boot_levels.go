@@ -460,17 +460,6 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	sysAgentic.AuthClientHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ApplicationHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ThemeHandler(sysService.DefaultMCPRegistry)
-	// A new agent scoped to a namespace but granted nothing can call nothing,
-	// which reads as broken rather than unconfigured. The service fills in a
-	// read-only grant for that namespace, and needs compose to resolve it.
-	sysService.DefaultAgent.WithNamespaceResolver(func(ctx context.Context, ref string) (uint64, error) {
-		ns, err := cmpService.DefaultNamespace.FindByAny(ctx, ref)
-		if err != nil {
-			return 0, err
-		}
-		return ns.ID, nil
-	})
-
 	sysAgentic.AgentHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ChatbotHandler(sysService.DefaultMCPRegistry)
 

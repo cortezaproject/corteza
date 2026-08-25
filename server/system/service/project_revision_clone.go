@@ -134,9 +134,7 @@ type (
 
 		ids projectCloneIDs
 
-		// The parent namespace's slug and the clone's. Agent access context
-		// names a namespace by slug as readily as by ID (see
-		// remapNamespaceIdent), and the clone renames it.
+		// The parent namespace's slug and the clone's; the clone renames it.
 		parentNsSlug, draftNsSlug string
 
 		// owned answers "is this resource part of the revision being
@@ -1200,9 +1198,6 @@ func (c *projectClone) remapRbacResource(res string) string {
 // remapAgentAccess repoints one copied agent's access model at the draft, and
 // reports the references it could not carry.
 func (c *projectClone) remapAgentAccess(ctx context.Context, s store.Storer, cp *types.Agent) (dropped []droppedRef, err error) {
-	cp.Access.Context.Namespace = c.remapNamespaceIdent(cp.Access.Context.Namespace)
-	cp.Access.Context.Module = c.remapModuleIdent(cp.Access.Context.Module)
-
 	for i := range cp.Access.Tools {
 		tool := &cp.Access.Tools[i]
 
@@ -1287,49 +1282,6 @@ func (c *projectClone) remapAgentAccess(ctx context.Context, s store.Storer, cp 
 	}
 
 	return dropped, nil
-}
-
-// remapNamespaceIdent rewrites an access-context namespace identifier. The
-// field is a free-form string and both forms occur in stored configs, so both
-// are handled: an ID goes through the id map, a slug is compared against the
-// parent's.
-func (c *projectClone) remapNamespaceIdent(ident string) string {
-	if ident == "" {
-		return ident
-	}
-
-	if id, err := strconv.ParseUint(ident, 10, 64); err == nil {
-		if mapped, ok := c.ids.get(resourceref.KindComposeNamespace, id); ok {
-			return strconv.FormatUint(mapped, 10)
-		}
-		return ident
-	}
-
-	// Slug form. CreateRevision gives the clone a suffixed slug, so the
-	// parent's slug names the LIVE namespace and has to be rewritten; any
-	// other slug names a namespace outside this revision and stays put.
-	if ident == c.parentNsSlug {
-		return c.draftNsSlug
-	}
-
-	return ident
-}
-
-// remapModuleIdent rewrites an access-context module identifier. Module
-// handles survive the clone unchanged -- that is what makes the module id map
-// buildable at all -- so only the numeric form needs rewriting.
-func (c *projectClone) remapModuleIdent(ident string) string {
-	if ident == "" {
-		return ident
-	}
-
-	if id, err := strconv.ParseUint(ident, 10, 64); err == nil {
-		if mapped, ok := c.ids.get(resourceref.KindComposeModule, id); ok {
-			return strconv.FormatUint(mapped, 10)
-		}
-	}
-
-	return ident
 }
 
 // reportDropped surfaces the references a copy could not carry into the draft.

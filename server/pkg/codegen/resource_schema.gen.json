@@ -677,11 +677,6 @@
 }
 },
   "access": {
-  "context": {
-  "namespace": "string",
-  "module": "string",
-  "defaults": "map[string]any"
-},
   "tools": {
   "name": "string",
   "group": "string",

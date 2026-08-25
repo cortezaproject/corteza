@@ -41,16 +41,9 @@ _agentDefs: {
 	]}
 
 	AgentAccess: {name: "AgentAccess", fields: [
-				{name: "Context", type:     _agentDefs.AgentAccessContext, json: "context"},
 				{name: "Tools", goType:     "[]AgentAccessTool", json:           "tools,omitempty"},
 				{name: "TAQs", goType:      "[]AgentAccessTAQ", json:            "taqs,omitempty"},
 				{name: "Workflows", goType: "[]AgentAccessWorkflow", json:       "workflows,omitempty"},
-	]}
-
-	AgentAccessContext: {name: "AgentAccessContext", fields: [
-					{name: "Namespace", type:  "string", json:         "namespace,omitempty"},
-					{name: "Module", type:     "string", json:         "module,omitempty"},
-					{name: "Defaults", goType: "map[string]any", json: "defaults,omitempty"},
 	]}
 
 	AgentInvocation: {name: "AgentInvocation", fields: [

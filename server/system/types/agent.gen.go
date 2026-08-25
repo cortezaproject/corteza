@@ -75,16 +75,9 @@ type (
 	}
 
 	AgentAccess struct {
-		Context   AgentAccessContext    `json:"context"`
 		Tools     []AgentAccessTool     `json:"tools,omitempty"`
 		TAQs      []AgentAccessTAQ      `json:"taqs,omitempty"`
 		Workflows []AgentAccessWorkflow `json:"workflows,omitempty"`
-	}
-
-	AgentAccessContext struct {
-		Namespace string         `json:"namespace,omitempty"`
-		Module    string         `json:"module,omitempty"`
-		Defaults  map[string]any `json:"defaults,omitempty"`
 	}
 
 	AgentInvocation struct {
@@ -445,8 +438,6 @@ func (r AgentExecutionLimits) Value() (driver.Value, error) { return json.Marsha
 
 func (r AgentAccess) Clone() *AgentAccess {
 	dup := r
-	dup.Context = *r.Context.Clone()
-
 	if r.Tools != nil {
 		dup.Tools = make([]AgentAccessTool, len(r.Tools))
 		for i := range r.Tools {
@@ -476,11 +467,6 @@ func (r AgentAccess) Diff(cmp *AgentAccess) []*revisions.Change {
 	if cmp == nil {
 		cmp = &AgentAccess{}
 	}
-	for _, c := range r.Context.Diff(&cmp.Context) {
-		c.Key = "context." + c.Key
-		out = append(out, c)
-	}
-
 	if !reflect.DeepEqual(r.Tools, cmp.Tools) {
 		out = append(out, &revisions.Change{Key: "tools", Old: []any{cmp.Tools}, New: []any{r.Tools}})
 	}
@@ -498,41 +484,6 @@ func (r AgentAccess) Diff(cmp *AgentAccess) []*revisions.Change {
 
 func (r *AgentAccess) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r AgentAccess) Value() (driver.Value, error) { return json.Marshal(r) }
-
-func (r AgentAccessContext) Clone() *AgentAccessContext {
-	dup := r
-	if r.Defaults != nil {
-		dup.Defaults = make(map[string]any, len(r.Defaults))
-		for k, v := range r.Defaults {
-			dup.Defaults[k] = v
-		}
-	}
-
-	return &dup
-}
-
-func (r AgentAccessContext) Diff(cmp *AgentAccessContext) []*revisions.Change {
-	out := make([]*revisions.Change, 0)
-	if cmp == nil {
-		cmp = &AgentAccessContext{}
-	}
-	if r.Namespace != cmp.Namespace {
-		out = append(out, &revisions.Change{Key: "namespace", Old: []any{cmp.Namespace}, New: []any{r.Namespace}})
-	}
-
-	if r.Module != cmp.Module {
-		out = append(out, &revisions.Change{Key: "module", Old: []any{cmp.Module}, New: []any{r.Module}})
-	}
-
-	if !reflect.DeepEqual(r.Defaults, cmp.Defaults) {
-		out = append(out, &revisions.Change{Key: "defaults", Old: []any{cmp.Defaults}, New: []any{r.Defaults}})
-	}
-
-	return out
-}
-
-func (r *AgentAccessContext) Scan(src any) error          { return sql.ParseJSON(src, r) }
-func (r AgentAccessContext) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (r AgentInvocation) Clone() *AgentInvocation {
 	dup := r

@@ -43,38 +43,7 @@ func TestEvaluate(t *testing.T) {
 		assert.False(t, d.Allowed)
 	})
 
-	t.Run("global context defaults fill missing args", func(t *testing.T) {
-		agent := &types.Agent{
-			Access: types.AgentAccess{
-				Context: types.AgentAccessContext{
-					Defaults: MapValues{"namespaceID": "1"},
-				},
-				Tools: []types.AgentAccessTool{
-					{Name: "compose_record_lookup", Allow: []types.AgentAccessAllow{{NamespaceID: 1}}},
-				},
-			},
-		}
-		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1"}, nil)
-		assert.True(t, d.Allowed)
-		assert.Equal(t, "1", d.SanitizedArgs["namespaceID"])
-	})
-
-	t.Run("global context defaults do not overwrite existing args", func(t *testing.T) {
-		agent := &types.Agent{
-			Access: types.AgentAccess{
-				Context: types.AgentAccessContext{
-					Defaults: MapValues{"namespaceID": "1"},
-				},
-				Tools: []types.AgentAccessTool{
-					{Name: "compose_record_lookup", Allow: []types.AgentAccessAllow{{NamespaceID: 1}}},
-				},
-			},
-		}
-		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1"}, nil)
-		assert.Equal(t, "1", d.SanitizedArgs["namespaceID"])
-	})
-
-	t.Run("tool-level defaults fill missing args", func(t *testing.T) {
+			t.Run("tool-level defaults fill missing args", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{

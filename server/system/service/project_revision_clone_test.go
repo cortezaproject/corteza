@@ -120,7 +120,6 @@ func TestCreateRevision_AgentReferencesFollowTheDraft(t *testing.T) {
 		Meta:      types.AgentMeta{Short: "Reference carrier"},
 		Execution: types.AgentExecution{Model: types.AgentExecutionModel{LLMProviderID: sharedProviderID}},
 		Access: types.AgentAccess{
-			Context: types.AgentAccessContext{Namespace: parentNs.Slug, Module: customers.Handle},
 			Tools: []types.AgentAccessTool{
 				{
 					Name:  "compose_record_search",
@@ -163,9 +162,6 @@ func TestCreateRevision_AgentReferencesFollowTheDraft(t *testing.T) {
 	require.Equal(t, 1, cp.Revision, "a copy is a new agent on its first version")
 
 	// Compose refs: remapped onto the clone.
-	require.Equal(t, draftNs.Slug, cp.Access.Context.Namespace)
-	require.Equal(t, customers.Handle, cp.Access.Context.Module, "module handles survive the clone unchanged")
-
 	require.Equal(t, draftNs.ID, cp.Access.Tools[0].Allow[0].NamespaceID)
 	require.Equal(t,
 		types.AgentAccessIDList{draftModByHandle["customers"], draftModByHandle["invoices"]},
