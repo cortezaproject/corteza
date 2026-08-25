@@ -45,6 +45,28 @@ method="${1:?usage: api.sh [--json] METHOD PATH [curl args...]}"
 path="${2:?usage: api.sh [--json] METHOD PATH [curl args...]}"
 shift 2
 
+# A JSON body handed over as a bare argument is the easy mistake here, because
+# every other tool in this toolkit takes one that way. curl reads a non-flag
+# argument as a URL, so the request goes out with NO body and the server
+# accepts it: a create lands as an empty record and reports success. Refuse
+# instead — the body has to reach curl behind -d.
+prev=""
+for arg in "$@"; do
+  case "$arg" in
+    '{'* | '['*)
+      case "$prev" in
+        -d | --data | --data-raw | --data-binary | --data-ascii | --json) ;;
+        *)
+          die_diag usage 2 \
+            "JSON body passed as a bare argument; curl reads it as a URL and sends no body." \
+            "Put it behind -d:  api.sh $method $path -d '$arg'"
+          ;;
+      esac
+      ;;
+  esac
+  prev="$arg"
+done
+
 token="$("$AGENT_DIR/token.sh")"
 
 body=$(mktemp)
