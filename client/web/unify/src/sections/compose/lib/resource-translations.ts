@@ -120,6 +120,13 @@ export function applyPageLayoutTranslations(
       layout.config.buttons[btn].label = label
     }
   }
+
+  // The server keys an action by its own id, falling back to its position for
+  // one it has not saved yet.
+  ;(layout.config?.actions || []).forEach((action: any, i: number) => {
+    const label = g(`config.actions.${action.actionID || i}.meta.label`)
+    if (label !== undefined && action.meta) action.meta.label = label
+  })
 }
 
 // Applies translations to a namespace object in-place.
@@ -158,16 +165,7 @@ export function applyPageTranslations(
   const desc = g('description')
   if (desc !== undefined) page.description = desc
 
-  // Record-page toolbar buttons
   const zeroID = '0'
-  if (page.moduleID && page.moduleID !== zeroID) {
-    for (const btn of ['new', 'edit', 'submit', 'delete', 'clone', 'back']) {
-      const label = g(`recordToolbar.${btn}.label`)
-      if (label !== undefined && page.config?.buttons?.[btn]) {
-        page.config.buttons[btn].label = label
-      }
-    }
-  }
 
   // Block translations
   for (const block of page.blocks || []) {

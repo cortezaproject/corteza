@@ -49,7 +49,9 @@ test in isolation.
   `compose:module-field/...`, `compose:page/...`, `compose:page-layout/...`,
   `compose:namespace/{ns}`) and the translation key names per entity.
   `moduleFieldKeyLabel(key, t)` names one of those keys for display and returns
-  `''` for a key that is not a field's own.
+  `''` for a key that is not a field's own. Key names must match what the
+  server's locale keys emit — a layout's title is `meta.title`, a page's is
+  `title`, and the page never carried a `recordToolbar.*` key.
 
 ## When changing this
 
