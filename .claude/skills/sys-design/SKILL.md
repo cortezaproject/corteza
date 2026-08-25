@@ -181,6 +181,12 @@ at **`/automation/ng-automation/`** — POST to create, **PUT
 run. (The `/automation/{workflows,triggers}/` paths are the _workflow_ API and
 do not reach a TAQ.)
 
+**A TAQ's display name is `meta.short`, not `name`.** A top-level `name` is
+accepted and ignored, and the create fails with `Error: missing name` —
+text/plain beside an HTTP 200 — which reads as if the field you did send were
+missing. Same for a trigger and a step: each carries its own
+`meta: {"short": "..."}`.
+
 **Default to a TAQ. Reach for a workflow only when a TAQ provably cannot do
 it.** A TAQ create/update returns `issues`, so many malformed automations say
 so at authoring time; a workflow stores clean and fails silently at run time,
@@ -283,8 +289,9 @@ unless you look at the execution list.
 
 **Render-verify the graph too** — a correct-at-runtime automation can still be
 drawn wrong, and the API cannot see it:
-`node dev/agent/verify-ui.mjs '/taq/builder/<automationID>'`, then Read the
-screenshot and confirm one connected chain from trigger to `End`.
+`node dev/agent/verify-ui.mjs '/taq/builder/<automationID>'`. It reads the
+graph and reports `N nodes, M edges, K End` — a severed chain is a finding
+naming the cause, so the text answers this without a screenshot.
 
 ## Phase 6 — Verify + hand over
 
