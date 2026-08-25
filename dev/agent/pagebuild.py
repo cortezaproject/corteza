@@ -28,7 +28,9 @@ Spec format:
 
 Geometry is written to the page AND to its primary layout: the layout is what
 the webapp renders from, and it is not refreshed by a page write, so without
-that second step an edited xywh silently applies to nothing.
+that second step an edited xywh silently applies to nothing. The same goes for
+a block added to a page that already exists — the page write stores it and the
+layout would never learn of it, so it is appended to the layout here too.
 
 Anywhere in chart configs / block options, {"module": "<handle>"} and
 {"chart": "<handle>"} are replaced with resolved {"moduleID"}/{"chartID"}.
@@ -154,6 +156,11 @@ def sync_layout(nsid, pid, blocks):
     right and the two agree; every later write leaves the layout untouched, so
     an edited xywh applies to nothing and pagebuild still reports success.
     Blocks are matched by blockID, which build_blocks assigns by position.
+
+    A block the spec adds to a page that already exists is the same trap one
+    step further along: the page write stores it, the layout knows nothing of
+    it, and the webapp renders every block but that one. So blocks missing from
+    the layout are appended here rather than only re-placed.
     """
     layouts = [
         l
@@ -161,7 +168,7 @@ def sync_layout(nsid, pid, blocks):
         if l["pageID"] == pid
     ]
     if not layouts:
-        return None
+        return None, None
     # The server derives a layout handled "primary" but leaves the primary flag
     # false, so neither signal alone finds it. Prefer the flag, then the handle,
     # then the lowest weight — taking the first hit picks an arbitrary layout
@@ -175,14 +182,26 @@ def sync_layout(nsid, pid, blocks):
         ),
     )[0]
     want = {b["blockID"]: b["xywh"] for b in blocks}
+    lblocks = layout.get("blocks") or []
     changed = 0
-    for lb in layout.get("blocks") or []:
+    for lb in lblocks:
         xywh = want.get(lb.get("blockID"))
         if xywh and lb.get("xywh") != xywh:
             lb["xywh"] = xywh
             changed += 1
+
+    have = {lb.get("blockID") for lb in lblocks}
+    added = [
+        {"blockID": b["blockID"], "xywh": b["xywh"]}
+        for b in blocks
+        if b["blockID"] not in have
+    ]
+    lblocks.extend(added)
+    layout["blocks"] = lblocks
+    changed += len(added)
+
     if not changed:
-        return 0
+        return 0, 0
     body = {
         k: layout[k]
         for k in (
@@ -205,7 +224,7 @@ def sync_layout(nsid, pid, blocks):
         f"/compose/namespace/{nsid}/page/{pid}/layout/{layout['pageLayoutID']}",
         body,
     )
-    return changed
+    return changed - len(added), len(added)
 
 
 def upsert_page(nsid, spec, modules, charts, existing_pages, self_id="0"):
@@ -233,8 +252,13 @@ def upsert_page(nsid, spec, modules, charts, existing_pages, self_id="0"):
         pid = existing_pages[spec["handle"]]["pageID"]
         payload["updatedAt"] = existing_pages[spec["handle"]].get("updatedAt")
         api("POST", f"/compose/namespace/{nsid}/page/{pid}", payload)
-        moved = sync_layout(nsid, pid, payload["blocks"])
-        note = f", {moved} block(s) re-placed" if moved else ""
+        moved, added = sync_layout(nsid, pid, payload["blocks"])
+        bits = []
+        if moved:
+            bits.append(f"{moved} block(s) re-placed")
+        if added:
+            bits.append(f"{added} block(s) added to layout")
+        note = f", {', '.join(bits)}" if bits else ""
         print(f"page {spec['handle']} updated (ID {pid}){note}")
     else:
         pid = api("POST", f"/compose/namespace/{nsid}/page/", payload)["pageID"]
