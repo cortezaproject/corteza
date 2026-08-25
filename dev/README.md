@@ -268,6 +268,10 @@ dev/agent/stack.sh    # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP ·
 - **A checkout answers for its own stack.** `dev/agent/stack.sh` resolves the
   API and webapp from this checkout's `server/.env` and `.env.e2e`; exporting
   `HUMAN_API` still overrides it. Nothing needs the port typed in any more.
+- **`.state/` is one directory for every checkout.** `bootstrap.sh` caches the
+  secret of the auth client it made in whatever database it reached, so running
+  it against a stack on a database that was not cloned from the primary leaves
+  the primary minting tokens through the CLI fallback and nothing says so.
 - **Clean up what you created and only that.** `cleanup.sh` deletes what this
   session's ledger (`dev/agent/.state/created.jsonl`) holds. Data the session
   did not create is off-limits whatever it is called.
