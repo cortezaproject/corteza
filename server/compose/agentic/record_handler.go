@@ -121,10 +121,17 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		return h.lookupByIDs(ctx, nsID, modID, ids)
 	}
 
+	query := toolkit.Str(args, "filter")
+	if mod, mErr := cmpService.DefaultModule.FindByID(ctx, nsID, modID); mErr == nil {
+		if query, err = resolveRefPaths(ctx, mod, query); err != nil {
+			return nil, err
+		}
+	}
+
 	f := cmpTypes.RecordFilter{
 		NamespaceID: nsID,
 		ModuleID:    modID,
-		Query:       toolkit.Str(args, "filter"),
+		Query:       query,
 	}
 
 	// Records are returned in full rather than as a slim projection: unlike a
