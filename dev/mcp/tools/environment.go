@@ -242,6 +242,12 @@ func devServerURL(root string) string {
 	// — worktree.sh writes it per slot, so a lane answers for its own server
 	// rather than the primary's. Falling back rather than failing keeps this
 	// useful on a checkout that has not been set up yet.
+	// The LAST assignment wins, because that is the one the server gets:
+	// godotenv parses the whole file into a map before applying it. Stopping at
+	// the first match names a port nothing is bound to as soon as somebody
+	// appends an override at the end of the file.
+	found := ""
+
 	if raw, err := os.ReadFile(filepath.Join(root, "server", ".env")); err == nil {
 		for _, line := range strings.Split(string(raw), "\n") {
 			line = strings.TrimSpace(line)
@@ -257,9 +263,13 @@ func devServerURL(root string) string {
 			}
 
 			if _, port, ok := strings.Cut(strings.Trim(fields[0], `"'`), ":"); ok && port != "" {
-				return "http://localhost:" + port
+				found = port
 			}
 		}
+	}
+
+	if found != "" {
+		return "http://localhost:" + found
 	}
 
 	return "http://localhost:1043"

@@ -157,6 +157,13 @@ func TestDevServerURLAnswersForItsOwnCheckout(t *testing.T) {
 			want: "http://localhost:1343",
 		},
 		{
+			// godotenv parses the whole file into a map before applying it, so
+			// the server listens on the last assignment, not the first.
+			name: "the last assignment wins, as the server sees it",
+			env:  "HTTP_ADDR=:1343\nHTTP_ADDR=:1443\n",
+			want: "http://localhost:1443",
+		},
+		{
 			name: "an empty assignment falls back rather than panicking",
 			env:  "HTTP_ADDR=\n",
 			want: "http://localhost:1043",

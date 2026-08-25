@@ -58,7 +58,11 @@ GIN_ARG_PORT  ?= 3001
 # gin's own default for this is 3001, which is also GIN_ARG_PORT — leaving it
 # unset makes gin proxy to the port it is listening on and answer its own
 # requests until the ephemeral port range runs out.
-GIN_ARG_APP_PORT ?= $(shell sed -nE 's/^HTTP_ADDR=:?([0-9]+).*/\1/p' $(GIN_HUMAN_ENV_FILE) 2>/dev/null | head -1)
+#
+# The host half of the bind address is skipped rather than optional: with
+# HTTP_ADDR=127.0.0.1:1043 an optional-colon pattern captures 127. The LAST
+# assignment is the one godotenv hands the server, so it is the one to proxy to.
+GIN_ARG_APP_PORT ?= $(shell sed -nE 's/^[[:space:]]*HTTP_ADDR=["'"'"']?[^:"'"'"' ]*:([0-9]+).*/\1/p' $(GIN_HUMAN_ENV_FILE) 2>/dev/null | tail -1)
 GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --appPort $(GIN_ARG_APP_PORT) --build cmd/human --immediate --bin build/gin-bin
 
 GIN_HUMAN_ENV_FILE ?= .env
