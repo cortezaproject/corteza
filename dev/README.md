@@ -143,7 +143,7 @@ variable assignment.
 
 | tools                     | from                             | reaches                                           |
 | ------------------------- | -------------------------------- | ------------------------------------------------- |
-| `mcp__human_local__*`     | `.mcp.json`, http                | **this checkout's** `/api/mcp` — the configurator |
+| `mcp__human-local__*`     | `.mcp.json`, http                | **this checkout's** `/api/mcp` — the configurator |
 | `mcp__human-dev__*`       | `.mcp.json`, stdio               | **this repo** — the developer layer               |
 | `mcp__claude_ai_Human__*` | your claude.ai account connector | **a remote instance**, NOT this checkout          |
 | `dev/agent/mcp.py`        | the shell                        | this checkout's `/api/mcp`, re-auth'd each call   |
@@ -152,7 +152,7 @@ variable assignment.
 and it carries the same configurator surface — compose CRUD, TAQ and workflow
 exec, users and roles — against somebody's live data. Nothing it writes is in
 `dev/agent/.state/created.jsonl`, so `cleanup.sh` cannot undo it. Local work
-goes through `human_local`, `mcp.py` or `api.sh`; reach for the connector only
+goes through `human-local`, `mcp.py` or `api.sh`; reach for the connector only
 when the remote instance is the point, and say so.
 
 `human-local` is why `make claude` exists. `.mcp.json` can interpolate an
