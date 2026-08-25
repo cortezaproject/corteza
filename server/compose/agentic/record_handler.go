@@ -168,6 +168,9 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 	}
 
 	metrics := toolkit.Str(args, "metrics")
+	if err = validateMetrics(metrics); err != nil {
+		return nil, err
+	}
 
 	out, err := cmpService.DefaultRecord.Report(
 		ctx,
@@ -453,4 +456,65 @@ func recordValueString(name string, val any) (string, error) {
 			"value of %q is a %T, which is not a field value; send a string, number, "+
 				"boolean, an object, or an array of those for a multi-value field", name, val)
 	}
+}
+
+// aggregateCall matches an expression that begins with one of the aggregate
+// functions the report understands.
+var aggregateCall = regexp.MustCompile(`(?i)^(SUM|AVG|MIN|MAX|COUNT|COUNTD)\s*\(`)
+
+// asAlias strips the "AS name" a metric may end with.
+var asAlias = regexp.MustCompile(`(?i)\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\s*$`)
+
+// validateMetrics refuses a metric that is a bare field name.
+//
+// The aggregation reaches the database with such a field ungrouped, and what
+// comes back is the driver's own complaint — `pq: column
+// "compose_record.values" must appear in the GROUP BY clause` — which names
+// neither the metric at fault nor anything the caller wrote. It is a plain
+// mistake with a plain correction, so make it here.
+func validateMetrics(metrics string) error {
+	for _, m := range splitMetrics(metrics) {
+		expr := strings.TrimSpace(asAlias.ReplaceAllString(m, ""))
+		if expr == "" || aggregateCall.MatchString(expr) {
+			continue
+		}
+		return fmt.Errorf(
+			"metric %q is not an aggregate: wrap it in a function, e.g. %q. Every metric must be SUM, AVG, MIN, MAX or COUNT of a field; the record count is returned as 'count' without asking",
+			expr, "SUM("+expr+") AS "+expr,
+		)
+	}
+	return nil
+}
+
+// splitMetrics splits on the commas between metrics, leaving the ones inside a
+// function call alone.
+func splitMetrics(metrics string) []string {
+	var (
+		out   []string
+		depth int
+		cur   strings.Builder
+	)
+
+	for _, r := range metrics {
+		switch r {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				if seg := strings.TrimSpace(cur.String()); seg != "" {
+					out = append(out, seg)
+				}
+				cur.Reset()
+				continue
+			}
+		}
+		cur.WriteRune(r)
+	}
+
+	if s := strings.TrimSpace(cur.String()); s != "" {
+		out = append(out, s)
+	}
+	return out
 }
