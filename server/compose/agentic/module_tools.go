@@ -22,7 +22,13 @@ var fieldsParamDoc = fmt.Sprintf(
 		`Supported kinds: %s — these are the whole set, and a kind outside it is not a field `+
 		`type the webapp can render. `+
 		`Kind-specific options: Select→{"options":[{"value":"a","text":"A"}]}, `+
-		`Record→{"moduleID":"123","recordLabelField":"name"}, Number→{"precision":2}, `+
+		`Record→{"moduleID":"123","labelField":"name","queryFields":["name"],"selectType":"default"} `+
+		`(labelField is what the picker and every viewer show; without it they fall back to the `+
+		`module's first field. recordLabelField is only the second-level label for when labelField `+
+		`itself points at a Record field), `+
+		`Number→{"precision":2,"format":"0,0.00","prefix":"","suffix":""} `+
+		`(precision rounds what is STORED; display comes from format, so precision alone drops the `+
+		`decimals it kept), `+
 		`DateTime→{"onlyDate":false,"onlyTime":false}, Bool→{"trueLabel":"Yes","falseLabel":"No"}, `+
 		`Geometry→{"center":[46.05,14.51],"zoom":7}.`,
 	strings.Join(cmpTypes.ModuleFieldKinds, ", "),
@@ -62,7 +68,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name for the module")),
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and underscores only)")),
 			mcp.WithString("fields", mcp.Description(fieldsParamDoc)),
-			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. recordDeDup rules: {"name":"rule-name","strict":true,"constraints":[{"attribute":"fieldName","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}. recordRevisions: {"enabled":true}. privacy: {"usageDisclosure":"text","sensitivityLevelID":"123"}.`)),
+			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Rules live under a "rules" array — a bare rule object is accepted and silently stored as {}. Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"text","sensitivityLevelID":"123"}}`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
 			hmcp.NeedsFullDocs(),

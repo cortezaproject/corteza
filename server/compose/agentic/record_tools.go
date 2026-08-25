@@ -54,8 +54,8 @@ func (h *recordHandler) register() {
 		mcp.NewTool("compose_record_update",
 			mcp.WithDescription(
 				"Update an existing record. Requires a record ID — use compose_record_lookup with a filter to "+
-					"find it if unknown. Only the fields present in 'values' are written; fields you omit keep "+
-					"their current value.",
+					"find it if unknown. 'values' REPLACES the record's whole value set: any field you leave out "+
+					"is cleared, not kept. Read the record first and send every field you intend to survive.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
