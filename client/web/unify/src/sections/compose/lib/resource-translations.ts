@@ -315,3 +315,14 @@ export function chartKeyLabel(
 
   return ''
 }
+
+// Human-readable name for one of a namespace's translation keys. Returns ''
+// for anything else, so the translator falls back to its generic formatting.
+export function namespaceKeyLabel(key: string, t: (k: string) => string): string {
+  const named: Record<string, string> = {
+    name: 'translator.keys.namespace-name',
+    'meta.subtitle': 'translator.keys.namespace-subtitle',
+    'meta.description': 'translator.keys.namespace-description',
+  }
+  return named[key] ? t(named[key]) : ''
+}

@@ -807,7 +807,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Namespaces/NamespaceTranslator.vue": {
-      "h": "a19d7cffae38",
+      "h": "f22a977ed302",
       "doc": "client/web/unify/src/sections/compose/components/Namespaces/Namespaces.intent.md",
       "t": "2026-08-25"
     },
@@ -1167,12 +1167,12 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.test.ts": {
-      "h": "d9797ec0850e",
+      "h": "68486f665e57",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
-      "h": "7f7e00e068ec",
+      "h": "91c25e502556",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-08-25"
     },

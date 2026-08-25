@@ -48,10 +48,12 @@ test in isolation.
   Owns the resource-ID string formats (`compose:module/{ns}/{mod}`,
   `compose:module-field/...`, `compose:page/...`, `compose:page-layout/...`,
   `compose:namespace/{ns}`) and the translation key names per entity.
-  `moduleFieldKeyLabel(key, t)`, `pageKeyLabel(key, t, blocks)` and
-  `chartKeyLabel(key, t, reports)` name one of those keys for display, each
-  returning `''` for a key outside its entity so the translator falls back to
-  its own formatting. Key names must match what
+  `moduleFieldKeyLabel`, `pageKeyLabel`, `chartKeyLabel` and
+  `namespaceKeyLabel` name one of those keys for display, each returning `''`
+  for a key outside its entity so the translator falls back to its own
+  formatting. One mapper per resource rather than one that reads the key alone:
+  `name` is both a module's key and a namespace's, and `meta.description` is
+  both a namespace's and a layout's. Key names must match what
   the server's locale keys emit — a layout's title is `meta.title`, a page's is
   `title`, and the page never carried a `recordToolbar.*` key.
 

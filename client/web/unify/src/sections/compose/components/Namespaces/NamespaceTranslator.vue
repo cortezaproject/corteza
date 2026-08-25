@@ -6,6 +6,7 @@
     :titles="titles"
     :fetcher="fetcher"
     :updater="updater"
+    :key-prettifier="keyPrettifier"
     :disabled="disabled"
   />
 </template>
@@ -15,7 +16,10 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@planetcrust/human-js'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
-import { applyNamespaceTranslations } from '@/sections/compose/lib/resource-translations'
+import {
+  applyNamespaceTranslations,
+  namespaceKeyLabel,
+} from '@/sections/compose/lib/resource-translations'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 
 const props = defineProps<{
@@ -40,6 +44,10 @@ const titles = computed(() => ({
     name: props.namespace.name || props.namespace.slug || props.namespace.namespaceID,
   }),
 }))
+
+function keyPrettifier(key: string): string {
+  return namespaceKeyLabel(key, t)
+}
 
 function fetcher() {
   return $ComposeAPI.namespaceListTranslations({

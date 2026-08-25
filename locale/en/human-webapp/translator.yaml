@@ -21,6 +21,9 @@ keys:
   label: Field label
   layout-description: Layout description
   layout-title: Layout title
+  namespace-description: Namespace description
+  namespace-name: Namespace name
+  namespace-subtitle: Namespace subtitle
   option: 'Option: {value}'
   page-description: Page description
   page-title: Page title

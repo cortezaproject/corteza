@@ -4,6 +4,7 @@ import {
   applyPageTranslations,
   chartKeyLabel,
   moduleFieldKeyLabel,
+  namespaceKeyLabel,
   pageKeyLabel,
 } from './resource-translations'
 
@@ -285,5 +286,22 @@ describe('chartKeyLabel', () => {
   it("returns '' for a key that is not a chart's", () => {
     expect(chartKeyLabel('title', t, reports)).toBe('')
     expect(chartKeyLabel('meta.title', t, reports)).toBe('')
+  })
+})
+
+describe('namespaceKeyLabel', () => {
+  it("names a namespace's own keys", () => {
+    expect(namespaceKeyLabel('name', t)).toBe('translator.keys.namespace-name')
+    expect(namespaceKeyLabel('meta.subtitle', t)).toBe('translator.keys.namespace-subtitle')
+    expect(namespaceKeyLabel('meta.description', t)).toBe('translator.keys.namespace-description')
+  })
+
+  it("returns '' for anything else", () => {
+    // `meta.description` is a namespace key AND a layout key, and `name` is a
+    // namespace key AND a module key — which is why each resource gets its own
+    // mapper rather than one that guesses from the key alone.
+    expect(namespaceKeyLabel('title', t)).toBe('')
+    expect(namespaceKeyLabel('meta.title', t)).toBe('')
+    expect(namespaceKeyLabel('label', t)).toBe('')
   })
 })
