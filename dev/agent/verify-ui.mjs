@@ -175,6 +175,31 @@ const PAGE_REPORT = () => {
       }
     })
 
+  // An error panel drawn where the block's content belongs. A chart whose
+  // config the renderer rejects draws its message like this and no canvas at
+  // all, so neither the blank-canvas check (there is no canvas to be blank)
+  // nor the empty-block check (the title is still text) can see it. Keyed on
+  // what it looks like rather than a class name: red text on an element
+  // covering the block.
+  const overlayError = root => {
+    const rb = root.getBoundingClientRect()
+    const area = rb.width * rb.height
+    if (!area) return ''
+    for (const el of root.querySelectorAll('*')) {
+      if (el.children.length) continue // innermost element holding the text
+      const text = (el.textContent || '').trim()
+      if (!text) continue
+      const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(getComputedStyle(el).color)
+      if (!m) continue
+      const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])]
+      if (!(r > 150 && g < 120 && b < 120)) continue
+      const eb = el.getBoundingClientRect()
+      if ((eb.width * eb.height) / area < 0.5) continue
+      return text.slice(0, 120)
+    }
+    return ''
+  }
+
   const blocks = boxes
     .filter(b => b.content)
     .map(b => {
@@ -186,6 +211,7 @@ const PAGE_REPORT = () => {
         label: (b.content.innerText || text).trim().split('\n')[0].slice(0, 38),
         empty: !text,
         ink: inkOf(b.content),
+        overlayError: overlayError(b.content),
         ...measure(b.content),
       }
     })
@@ -389,6 +415,13 @@ for (const p of paths) {
       )
     if (b.ink.length && b.ink.every(i => i === 0))
       findings.push(`blank canvas ${where} "${name}" — a chart block that drew nothing`)
+    if (b.overlayError)
+      findings.push(
+        `error where content belongs ${where} "${name}" — the block rendered ` +
+          `"${b.overlayError}" instead. A chart says this when the renderer rejects ` +
+          `its config; every dimension needs a "modifier" ("(no grouping / buckets)" ` +
+          `for a plain field) and every metric a "type"`,
+      )
     if (b.listScroll.v > 8)
       notes.push(
         `${where} "${name}" scrolls internally — ${b.listScroll.v}px of rows hidden; ` +
