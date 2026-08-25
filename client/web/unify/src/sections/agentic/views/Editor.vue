@@ -381,6 +381,24 @@
                         :description="$t('agent.editor.tools.help')"
                       />
 
+                      <!-- A new agent is granted nothing, so it refuses every
+                           question until something is added. Naming the
+                           namespace it is for drops a visible read-only grant
+                           into the list below, which the author can widen,
+                           narrow or remove before saving. -->
+                      <CFormGroup
+                        v-if="isCreate && !agent.access.tools.length"
+                        :label="$t('agent.editor.tools.seed.label')"
+                        :description="$t('agent.editor.tools.seed.help')"
+                      >
+                        <CInputNamespace
+                          :model-value="null"
+                          :placeholder="$t('agent.editor.tools.namespacePlaceholder')"
+                          :disabled="!canEdit"
+                          @update:model-value="seedNamespaceGrant"
+                        />
+                      </CFormGroup>
+
                       <Select
                         v-model="toolPickerSelection"
                         :options="unselectedTools"
@@ -1345,6 +1363,28 @@ function onToolPickerSelect(tool) {
   nextTick(() => {
     toolPickerSelection.value = null
   })
+}
+
+// seedNamespaceGrant turns "this agent is for namespace X" into the grant that
+// actually says so. It is added to the list rather than applied on save, so the
+// author sees what they are about to give away and can change it.
+function seedNamespaceGrant(namespaceID) {
+  if (!namespaceID || agent.value.access.tools.length) return
+
+  const option = groupToolOptions.value.find(o => o.group === 'usage' && o.maxRisk === 'read')
+  if (!option) return
+
+  agent.value.access.tools.push({
+    group: option.group,
+    maxRisk: option.maxRisk,
+    description: '',
+    allow: [{ namespaceID: String(namespaceID), moduleIDs: [] }],
+  })
+  selectedTools.value = [...selectedTools.value, option]
+
+  // The grant is only useful if the agent is told what it reaches; without the
+  // platform context it guesses handles and reports they do not exist.
+  agent.value.behavior.injectSystemContext = true
 }
 
 const loadedTaqNames = ref({})

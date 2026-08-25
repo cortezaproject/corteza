@@ -168,6 +168,12 @@ editor:
   titleCreate: Create Agent
   titleEdit: Edit Agent
   tools:
+    seed:
+      help: A new agent can call nothing until it is given a tool, so it will refuse every
+        question. Choose the namespace this agent is for and it will be granted
+        read-only access to it — shown below, where you can change or remove it before
+        saving.
+      label: What is this agent for?
     groups:
       configuring_read: All builder tools — read only
       configuring_read_help: Read namespaces, modules, pages, charts and automations. Cannot change them.
