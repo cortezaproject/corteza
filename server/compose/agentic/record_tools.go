@@ -37,6 +37,39 @@ func (h *recordHandler) register() {
 	)
 
 	h.reg.RegisterTool(
+		mcp.NewTool("compose_record_report",
+			mcp.WithDescription(
+				"Aggregate records server-side: sums, averages, extremes and counts, optionally grouped by a field. "+
+					"Use this for ANY question that is answered by a number over more than a handful of records — "+
+					"a total, an average, a count, a breakdown. Reading the records with compose_record_lookup and "+
+					"adding them up yourself is a wrong answer waiting to happen, and it silently drops everything "+
+					"past the page you were given. "+
+					"Returns {\"rows\": [...], \"units\": {...}}: one row per group, each with the metrics you asked "+
+					"for plus 'count', the number of records in that group. With no 'dimension' you get a single "+
+					"row for the whole set, where dimension_0 is \"*\". "+
+					"'units' gives the prefix or suffix the module puts on each aggregated field — use it when "+
+					"stating the figure, and do not supply a currency or unit it does not name.",
+			),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
+			mcp.WithString("metrics", mcp.Description(
+				"Comma-separated aggregate expressions over numeric fields, e.g. \"SUM(line_value) AS total, AVG(price) AS avg_price\". "+
+					"Functions: SUM, AVG, MIN, MAX, COUNT. The alias after AS is the key in the result; without one the "+
+					"expression itself is the key. 'count' is always returned and needs no metric.")),
+			mcp.WithString("dimension", mcp.Description(
+				"A single field name to group by, e.g. \"rarity\". Omit for one row covering every record. "+
+					"Date fields can be bucketed with DATE(field), and a chart's modifiers (QUARTER, YEAR) are not "+
+					"available here — group by the raw field and combine the rows yourself if you need coarser buckets.")),
+			mcp.WithString("filter", mcp.Description("Filter expression narrowing which records are aggregated, e.g. \"rarity = 'Mythic'\". Same syntax as compose_record_lookup's filter.")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			recordKeywords,
+			hmcp.WithRisk(hmcp.RiskRead),
+		),
+		"Aggregate records",
+		h.report,
+	)
+
+	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_create",
 			mcp.WithDescription("Create a new record. If you do not know the field names, call compose_module_lookup first to get them."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),

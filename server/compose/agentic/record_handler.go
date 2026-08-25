@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -131,6 +132,86 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		"records":        set,
 		"nextPageCursor": out.NextPage,
 	})
+}
+
+// report aggregates server-side.
+//
+// It exists because the alternative is arithmetic done by a language model over
+// rows it was handed, which is wrong often enough to be untrustworthy and wrong
+// differently on each run — and which silently ignores every record past the
+// first page.
+func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	nsID, modID, err := h.resolveNsMod(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	metrics := toolkit.Str(args, "metrics")
+
+	out, err := cmpService.DefaultRecord.Report(
+		ctx,
+		nsID,
+		modID,
+		metrics,
+		toolkit.Str(args, "dimension"),
+		toolkit.Str(args, "filter"),
+		filter.StateExcluded,
+	)
+	if err != nil {
+		return nil, toolkit.Errf("record report", err)
+	}
+
+	res := map[string]any{"rows": out}
+
+	// A bare number carries no unit, and a caller that has to guess one guesses
+	// wrong — a total off a field prefixed "$ " came back reported in euros.
+	// The prefix is on the field, so it travels with the answer rather than
+	// costing a second lookup nobody remembers to make.
+	if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
+		if units := metricUnits(mod, metrics); len(units) > 0 {
+			res["units"] = units
+		}
+	}
+
+	return toolkit.JSONResult(res)
+}
+
+// metricFieldRef pulls the field name out of an aggregate expression:
+// "SUM(line_value) AS total" -> "line_value".
+var metricFieldRef = regexp.MustCompile(`\(([^()]*)\)`)
+
+// metricUnits maps each aggregated field to how the module says it should read.
+// Only fields carrying a prefix or suffix are reported — a plain number has no
+// unit to state, and listing it would only invite one to be invented.
+func metricUnits(mod *cmpTypes.Module, metrics string) map[string]any {
+	units := make(map[string]any)
+
+	for _, m := range metricFieldRef.FindAllStringSubmatch(metrics, -1) {
+		name := strings.TrimSpace(m[1])
+		f := mod.Fields.FindByName(name)
+		if f == nil {
+			continue
+		}
+
+		u := make(map[string]any)
+		if p := f.Options.String("prefix"); p != "" {
+			u["prefix"] = p
+		}
+		if sfx := f.Options.String("suffix"); sfx != "" {
+			u["suffix"] = sfx
+		}
+		if len(u) > 0 {
+			u["label"] = f.Label
+			units[name] = u
+		}
+	}
+
+	return units
 }
 
 func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
