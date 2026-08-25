@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -14,6 +15,28 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
+
+// withValueIssues folds the per-field detail the record service returns beside
+// its error into the message. The set is a separate return value, so discarding
+// it leaves the caller with "invalid record value input" — a message naming
+// neither the field nor the rule that refused the write, and unactionable for
+// anything trying to correct itself.
+func withValueIssues(err error, dd *cmpTypes.RecordValueErrorSet) error {
+	if dd.IsValid() {
+		return err
+	}
+
+	issues := make([]string, 0, dd.Len())
+	for _, e := range dd.Set {
+		if field, ok := e.Meta["field"].(string); ok && field != "" {
+			issues = append(issues, fmt.Sprintf("%s: %s", field, e.Message))
+			continue
+		}
+		issues = append(issues, e.Message)
+	}
+
+	return fmt.Errorf("%w (%s)", err, strings.Join(issues, "; "))
+}
 
 type (
 	toolRegistrar interface {
@@ -116,9 +139,9 @@ func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 
 	rec := &cmpTypes.Record{NamespaceID: nsID, ModuleID: modID, Values: values}
 
-	rec, _, err = cmpService.DefaultRecord.Create(ctx, rec)
+	rec, dd, err := cmpService.DefaultRecord.Create(ctx, rec)
 	if err != nil {
-		return nil, toolkit.Errf("record creation", err)
+		return nil, toolkit.Errf("record creation", withValueIssues(err, dd))
 	}
 	return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
 }
@@ -146,9 +169,9 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 
 	rec := &cmpTypes.Record{ID: recID, NamespaceID: nsID, ModuleID: modID, Values: values}
 
-	rec, _, err = cmpService.DefaultRecord.Update(ctx, rec)
+	rec, dd, err := cmpService.DefaultRecord.Update(ctx, rec)
 	if err != nil {
-		return nil, toolkit.Errf("record update", err)
+		return nil, toolkit.Errf("record update", withValueIssues(err, dd))
 	}
 	return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
 }
