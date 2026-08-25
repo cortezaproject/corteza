@@ -5,12 +5,6 @@ editor:
     thinking: Thinking...
     toggleRawJson: Toggle raw JSON
     tokenUsage: '{input} in / {output} out / {total} total tokens'
-  contextModule:
-    help: The Module this agent has context about
-    label: Context Module
-  contextNamespace:
-    help: The Namespace this agent operates within
-    label: Context Namespace
   contextWindow:
     help: Maximum number of tokens allowed in the conversation. When the limit is exceeded, the agent will stop executing
     label: Token Limit
