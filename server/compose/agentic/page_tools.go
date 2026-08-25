@@ -233,7 +233,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_block_schema",
 			mcp.WithDescription(`Get the options structure for a page block kind — field names and types as a zero-value skeleton (not examples from live pages). Call this before creating blocks of an unfamiliar kind, and pass the result's field names into the block's "options" object in compose_page_create or compose_page_update. Semantics the skeleton cannot express: Metric items use metricField "count" with empty operation for record counts, or a numeric field with operation sum/avg/min/max; Chart blocks reference an existing chart resource by chartID, created with compose_chart_create; RecordList/Record moduleID/fields take IDs and field names from compose_module_lookup. This reads a static schema — it touches no namespace and no data.`),
-			mcp.WithString("kind", mcp.Required(), mcp.Description("Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed, ChatbotInbox")),
+			mcp.WithString("kind", mcp.Description("Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed, ChatbotInbox. Omit it to list the kinds this server supports.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),

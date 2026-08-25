@@ -576,9 +576,15 @@ func (h *pageHandler) blockSchema(_ context.Context, req mcp.CallToolRequest) (*
 		return nil, err
 	}
 
-	kind, err := toolkit.ReqStr(args, "kind")
-	if err != nil {
-		return nil, err
+	// Omitting the kind asks what the kinds are, which is the first thing a
+	// caller building a page needs; answering with a required-argument error
+	// makes them guess a kind to find out which kinds exist.
+	kind := toolkit.Str(args, "kind")
+	if kind == "" {
+		return toolkit.JSONResult(map[string]any{
+			"kinds": blockKinds(),
+			"note":  "pass one as 'kind' to get that block's options",
+		})
 	}
 
 	schema, exists := cmpTypes.PageBlockOptionSchemas[kind]
@@ -617,13 +623,17 @@ func pageNodes(set cmpTypes.PageSet) []pageNode {
 
 // supportedBlockKinds lists the known block kinds, sorted so the error message is
 // stable across calls.
-func supportedBlockKinds() string {
+func blockKinds() []string {
 	kinds := make([]string, 0, len(cmpTypes.PageBlockOptionSchemas))
 	for k := range cmpTypes.PageBlockOptionSchemas {
 		kinds = append(kinds, k)
 	}
 	sort.Strings(kinds)
-	return strings.Join(kinds, ", ")
+	return kinds
+}
+
+func supportedBlockKinds() string {
+	return strings.Join(blockKinds(), ", ")
 }
 
 // findPageByAny resolves a page reference (numeric ID, handle, or title) within a namespace.
