@@ -1,4 +1,47 @@
 workflows:
+  # 1. iterator placed inside a parallel fork/join
+  iterator_in_fork:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: gateway
+        ref: fork
+
+      # branch A: iterator; its exit path leads to the join
+      - stepID: 11
+        kind: iterator
+        ref: templatesEach
+        arguments:
+          - { target: incTotal, value: "false", type: Boolean }
+        results:
+          - { target: tpl, expr: template }
+      - stepID: 12
+        kind: continue
+
+      # branch B: plain step
+      - stepID: 13
+        kind: expressions
+        arguments: [ { target: b, type: String, value: "B" } ]
+
+      - stepID: 14
+        kind: gateway
+        ref: join
+      - stepID: 15
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 10, childID: 13 }
+      - { parentID: 11, childID: 12 }
+      - { parentID: 11, childID: 14 }
+      - { parentID: 13, childID: 14 }
+      - { parentID: 14, childID: 15 }
+
   # 2. error handler registered, then a normal step runs before the error
   errhandler_after_step:
     enabled: true

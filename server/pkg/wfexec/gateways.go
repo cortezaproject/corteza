@@ -39,6 +39,19 @@ type (
 	}
 )
 
+// AddPath registers an additional parent path
+//
+// Used while building the graph, when a parent could not be resolved at the
+// time the gateway was created.
+func (gw *joinGateway) AddPath(s Step) {
+	gw.l.Lock()
+	defer gw.l.Unlock()
+
+	if !gw.paths.Contains(s) {
+		gw.paths = append(gw.paths, s)
+	}
+}
+
 // JoinGateway fn initializes join gateway with all paths that are expected to be partial
 func JoinGateway(ss ...Step) *joinGateway {
 	return &joinGateway{
