@@ -21,3 +21,4 @@ config.js
 .env.e2e
 client/web/unify/e2e/.auth
 client/web/unify/e2e/.results
+dev/agent/__pycache__/
