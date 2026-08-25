@@ -70,6 +70,32 @@ func TestReadOnlyNamespaceScopedAgent(t *testing.T) {
 		assert.True(t, d.Allowed, d.Reason)
 	})
 
+	// An empty ModuleIDs is the maintenance-free grant: every module in the
+	// namespace, including ones that do not exist yet. The enumerated form has
+	// to be edited on every tool entry each time a module is added, and until it
+	// is the agent silently cannot see the new module — which is exactly what
+	// happened when price_point was added to a namespace-scoped assistant.
+	t.Run("empty moduleIDs grants the whole namespace", func(t *testing.T) {
+		wide := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{
+					{Name: "compose_record_lookup", Allow: []types.AgentAccessAllow{{NamespaceID: 100}}},
+				},
+			},
+		}
+
+		for _, mod := range []string{modCard, modDeck, modAway, "12345678901234567"} {
+			d := Evaluate(ctx, wide, "compose_record_lookup",
+				MapValues{"namespaceID": ns, "moduleID": mod}, nil)
+			assert.True(t, d.Allowed, "module %s should be reachable: %s", mod, d.Reason)
+		}
+
+		// Wide within its namespace is still confined to it.
+		d := Evaluate(ctx, wide, "compose_record_lookup",
+			MapValues{"namespaceID": other, "moduleID": modCard}, nil)
+		assert.False(t, d.Allowed, "another namespace must still be refused")
+	})
+
 	// Listing a resource-mapped tool with no allow entries reads as
 	// "unrestricted" and is the opposite: checkAllow denies it outright. Worth
 	// pinning, because the mistake is silent — the agent simply cannot work.

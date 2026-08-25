@@ -32,7 +32,8 @@ const (
 	agentAccessDoc = `JSON object: what the agent may reach. ` +
 		`{"context":{"namespace":"crm","module":"leads","defaults":{}},"tools":[{"name":"compose_record_lookup","description":"Read leads","allow":[{"namespaceID":"<id>","moduleIDs":["<id>"]}]}],"taqs":[{"id":"<taqID>","description":"Escalate"}],"workflows":[{"id":"<workflowID>","description":"Notify"}]}. ` +
 		`'tools' is an allow-list of tool names from this same registry and is deny-by-default: an agent can call nothing that is not listed. It NARROWS only — RBAC on the agent's own identity still applies on top. Granting an agent system_agent_update lets it re-grant itself any tool, so treat that entry the way you would a permission change. ` +
-		`Every name is checked against the registry when you write it, and an unknown one is refused with the near matches: the runtime resolves the allow-list as a whole, so a single typo would stop the agent running at all rather than cost it one tool.`
+		`Every name is checked against the registry when you write it, and an unknown one is refused with the near matches: the runtime resolves the allow-list as a whole, so a single typo would stop the agent running at all rather than cost it one tool. ` +
+		`An entry's "moduleIDs" narrows it to those modules; leave it EMPTY to mean every module in that namespace, now and in future. Prefer empty unless you actually need to withhold a module: an enumerated list has to be edited on every tool entry each time a module is added, and until it is the agent cannot see the new module and nothing says so.`
 
 	agentInvocationDoc = `JSON object: who may start it. ` +
 		`{"user":{"enabled":true},"system":{"enabled":false,"serviceAccount":"<userID>","inputSchema":{},"outputFormat":"json"}}. ` +
