@@ -1,4 +1,4 @@
-.PHONY: e2e e2e-ui setup intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
+.PHONY: e2e e2e-ui setup setup-agent doctor intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
 WEB_APPS := unify
 
@@ -104,21 +104,21 @@ intent-hooks:
 	@git config core.hooksPath .intent/hooks
 	@echo "git hooks path set to .intent/hooks (pre-commit intent check active)"
 
-# One-command onboarding for a fresh clone (idempotent).
+# Onboarding for a fresh clone. The whole procedure is dev/setup.sh; both
+# targets are idempotent and everything they write is gitignored.
+#
+# Two phases because bootstrap.sh provisions users over the API, so it cannot
+# run before the server does. `make setup` prints what to do between them.
 setup:
-	@echo "---Installing dependencies---"
-	@pnpm install
-	@echo "---Installing Playwright browser---"
-	@cd $(CURDIR)/client/web/unify && npx playwright install chromium
-	@test -f $(CURDIR)/client/web/unify/.env.e2e || cp $(CURDIR)/client/web/unify/.env.e2e.example $(CURDIR)/client/web/unify/.env.e2e
-	@command -v jq >/dev/null 2>&1 || { \
-		echo "---Installing jq---"; \
-		sudo -n apt-get install -y jq 2>/dev/null || brew install jq 2>/dev/null || \
-		echo "  ! could not auto-install jq — install it manually (e.g. sudo apt-get install jq)"; }
-	@echo ""
-	@echo "Setup done. Remaining manual steps:"
-	@echo "  1. Fill client/web/unify/.env.e2e (dev URL + test login) — created if it was missing"
-	@echo "  2. Optional stricter local commit gate: make intent-hooks"
+	@dev/setup.sh
+
+# The agent toolkit's own identities. Needs the stack up.
+setup-agent:
+	@dev/setup.sh --agent
+
+# Every check `make setup` makes, writing nothing. Non-zero if something is off.
+doctor:
+	@dev/setup.sh --check
 
 # E2E (Playwright) — needs the dev stack running and client/web/unify/.env.e2e filled.
 e2e:
