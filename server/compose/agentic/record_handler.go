@@ -163,7 +163,7 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 		filter.StateExcluded,
 	)
 	if err != nil {
-		return nil, toolkit.Errf("record report", err)
+		return nil, reportError(ctx, nsID, modID, err)
 	}
 
 	res := map[string]any{"rows": out}
@@ -172,13 +172,47 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 	// wrong — a total off a field prefixed "$ " came back reported in euros.
 	// The prefix is on the field, so it travels with the answer rather than
 	// costing a second lookup nobody remembers to make.
-	if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
-		if units := metricUnits(mod, metrics); len(units) > 0 {
-			res["units"] = units
+	if cmpService.DefaultModule != nil {
+		if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil && mod != nil {
+			if units := metricUnits(mod, metrics); len(units) > 0 {
+				res["units"] = units
+			}
 		}
 	}
 
 	return toolkit.JSONResult(res)
+}
+
+// reportError names the fields that do exist when the caller asked for one that
+// does not.
+//
+// The DAL answers "unknown attribute card.rarity" — true, and not enough to act
+// on. A model given only that guesses again, or falls back to reading every
+// record and adding the numbers up by hand, which is the thing this tool exists
+// to stop. Field names are cheap to list and turn the retry into the right one.
+func reportError(ctx context.Context, nsID, modID uint64, err error) error {
+	if !strings.Contains(err.Error(), "unknown attribute") {
+		return toolkit.Errf("record report", err)
+	}
+
+	if cmpService.DefaultModule == nil {
+		return toolkit.Errf("record report", err)
+	}
+
+	mod, mErr := cmpService.DefaultModule.FindByID(ctx, nsID, modID)
+	if mErr != nil || mod == nil {
+		return toolkit.Errf("record report", err)
+	}
+
+	names := make([]string, 0, len(mod.Fields))
+	for _, f := range mod.Fields {
+		names = append(names, f.Name)
+	}
+
+	return fmt.Errorf(
+		"record report failed: %w. Metrics and dimension name fields on this module only — a dotted path through a Record reference is not one. Available: %s. To group by a field of a referenced record, aggregate that module instead",
+		err, strings.Join(names, ", "),
+	)
 }
 
 // metricFieldRef pulls the field name out of an aggregate expression:

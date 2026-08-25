@@ -57,7 +57,10 @@ func (h *recordHandler) register() {
 					"Functions: SUM, AVG, MIN, MAX, COUNT. The alias after AS is the key in the result; without one the "+
 					"expression itself is the key. 'count' is always returned and needs no metric.")),
 			mcp.WithString("dimension", mcp.Description(
-				"A single field name to group by, e.g. \"rarity\". Omit for one row covering every record. "+
+				"A single field name ON THIS MODULE to group by, e.g. \"rarity\" — not a dotted path through a "+
+					"Record reference: \"card.rarity\" is not a field and the call fails. To group by something held "+
+					"on a referenced record, aggregate that module instead, or denormalise the field. "+
+					"Omit for one row covering every record. "+
 					"Date fields can be bucketed with DATE(field), and a chart's modifiers (QUARTER, YEAR) are not "+
 					"available here — group by the raw field and combine the rows yourself if you need coarser buckets.")),
 			mcp.WithString("filter", mcp.Description("Filter expression narrowing which records are aggregated, e.g. \"rarity = 'Mythic'\". Same syntax as compose_record_lookup's filter.")),

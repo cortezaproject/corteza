@@ -1,6 +1,7 @@
 package agentic
 
 import (
+	"errors"
 	"testing"
 
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -62,5 +63,32 @@ func TestMetricUnits(t *testing.T) {
 
 	t.Run("whitespace inside the call is tolerated", func(t *testing.T) {
 		require.Contains(t, metricUnits(mod, "SUM( line_value )"), "line_value")
+	})
+}
+
+// TL;DR: only an unknown-attribute failure gets the field list appended, and a
+// report that cannot reach the module still reports the original failure.
+// Example: the DAL says "unknown attribute card.rarity" and nothing else. A
+// model given only that guesses again or falls back to reading every record and
+// adding them up by hand — which is what this tool exists to stop.
+func TestReportError(t *testing.T) {
+	ctx := t.Context()
+
+	// DefaultModule is not wired here, so enrichment cannot happen; what must
+	// survive is the original cause either way.
+	t.Run("an unrelated failure is passed through", func(t *testing.T) {
+		err := reportError(ctx, 1, 2, errors.New("connection refused"))
+		require.ErrorContains(t, err, "connection refused")
+		require.NotContains(t, err.Error(), "Available:")
+	})
+
+	t.Run("an unknown attribute still names the attribute", func(t *testing.T) {
+		err := reportError(ctx, 1, 2, errors.New("unknown attribute card.rarity"))
+		require.ErrorContains(t, err, "card.rarity")
+	})
+
+	t.Run("the cause stays wrapped", func(t *testing.T) {
+		cause := errors.New("unknown attribute card.rarity")
+		require.ErrorIs(t, reportError(ctx, 1, 2, cause), cause)
 	})
 }
