@@ -119,7 +119,7 @@ func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{},
 	}
 
 	if !a.Invocation.User.Enabled {
-		return nil, fmt.Errorf("agent is not available for user invocation")
+		return nil, fmt.Errorf("agent %d is not available for user invocation — set invocation.user.enabled on it", a.ID)
 	}
 
 	return service.DefaultAgenticRuntime.Run(ctx, &runtime.AgentRequest{
