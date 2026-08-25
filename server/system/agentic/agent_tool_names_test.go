@@ -1,6 +1,7 @@
 package agentic
 
 import (
+	"context"
 	"testing"
 
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
@@ -134,5 +135,46 @@ func TestNearestToolNames(t *testing.T) {
 
 	t.Run("at most three", func(t *testing.T) {
 		require.LessOrEqual(t, len(nearestToolNames("compose_record_looku", tools)), 3)
+	})
+}
+
+// TL;DR: an automation entry with no ID is refused, and the check stands down
+// when the automation services are not wired up.
+// Example: unit tests and any embedding that boots without the automation
+// package must not have every agent refused out from under them; the live
+// existence check is covered against a running server.
+func TestValidateAgentAutomations(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("a TAQ entry needs an id", func(t *testing.T) {
+		a := &sysTypes.Agent{Access: sysTypes.AgentAccess{
+			TAQs: []sysTypes.AgentAccessTAQ{{Description: "no id"}},
+		}}
+		err := validateAgentAutomations(ctx, a)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "access.taqs[0]")
+	})
+
+	t.Run("a workflow entry needs an id", func(t *testing.T) {
+		a := &sysTypes.Agent{Access: sysTypes.AgentAccess{
+			Workflows: []sysTypes.AgentAccessWorkflow{{Description: "no id"}},
+		}}
+		err := validateAgentAutomations(ctx, a)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "access.workflows[0]")
+	})
+
+	t.Run("granting no automations is not an error", func(t *testing.T) {
+		require.NoError(t, validateAgentAutomations(ctx, &sysTypes.Agent{}))
+	})
+
+	// DefaultNgAutomation / DefaultWorkflow are nil here; a populated entry has
+	// to pass rather than panic.
+	t.Run("unwired services skip the existence check", func(t *testing.T) {
+		a := &sysTypes.Agent{Access: sysTypes.AgentAccess{
+			TAQs:      []sysTypes.AgentAccessTAQ{{ID: 123}},
+			Workflows: []sysTypes.AgentAccessWorkflow{{ID: 456}},
+		}}
+		require.NoError(t, validateAgentAutomations(ctx, a))
 	})
 }

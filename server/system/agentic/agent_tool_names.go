@@ -1,10 +1,12 @@
 package agentic
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 
+	autoService "github.com/crusttech/human/server/automation/service"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -26,6 +28,51 @@ type knownTools interface {
 // the system prompt, telling the model about a tool nothing can serve. Both
 // only surface when someone runs the agent, which is why the name is checked
 // where it is written.
+func (h *agentHandler) validateAgentAccess(ctx context.Context, a *sysTypes.Agent) error {
+	if err := h.validateAgentTools(a); err != nil {
+		return err
+	}
+	return validateAgentAutomations(ctx, a)
+}
+
+// validateAgentAutomations refuses a TAQ or workflow the agent cannot be given.
+//
+// Unlike a tool name, a dangling automation ID costs the agent only that one
+// capability: loadTAQInfos drops what it cannot find and getAvailableTools
+// skips it, both without a word. So the agent answers as though it were never
+// granted the thing its configuration plainly lists.
+func validateAgentAutomations(ctx context.Context, a *sysTypes.Agent) error {
+	for i, t := range a.Access.TAQs {
+		if t.ID == 0 {
+			return fmt.Errorf(`access.taqs[%d]: "id" is required — the TAQ this entry lets the agent run`, i)
+		}
+		if svc := autoService.DefaultNgAutomation; svc != nil {
+			if _, err := svc.FindByID(ctx, t.ID); err != nil {
+				return fmt.Errorf(
+					"access.taqs[%d]: no TAQ with ID %d. A TAQ the runtime cannot find is skipped in silence, so the agent would simply not have it: %w",
+					i, t.ID, err,
+				)
+			}
+		}
+	}
+
+	for i, w := range a.Access.Workflows {
+		if w.ID == 0 {
+			return fmt.Errorf(`access.workflows[%d]: "id" is required — the workflow this entry lets the agent run`, i)
+		}
+		if svc := autoService.DefaultWorkflow; svc != nil {
+			if _, err := svc.FindByID(ctx, w.ID); err != nil {
+				return fmt.Errorf(
+					"access.workflows[%d]: no workflow with ID %d. The agent is still handed automation_workflow_exec, so this fails when it calls it: %w",
+					i, w.ID, err,
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (h *agentHandler) validateAgentTools(a *sysTypes.Agent) error {
 	reg, ok := h.reg.(knownTools)
 	if !ok {

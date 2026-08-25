@@ -131,7 +131,7 @@ func (h *agentHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, err
 	}
 
-	if err = h.validateAgentTools(a); err != nil {
+	if err = h.validateAgentAccess(ctx, a); err != nil {
 		return nil, err
 	}
 
@@ -172,7 +172,7 @@ func (h *agentHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, err
 	}
 
-	if err = h.validateAgentTools(a); err != nil {
+	if err = h.validateAgentAccess(ctx, a); err != nil {
 		return nil, err
 	}
 
