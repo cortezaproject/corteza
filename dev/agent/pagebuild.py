@@ -26,6 +26,10 @@ Spec format:
   ]
 }
 
+Geometry is written to the page AND to its primary layout: the layout is what
+the webapp renders from, and it is not refreshed by a page write, so without
+that second step an edited xywh silently applies to nothing.
+
 Anywhere in chart configs / block options, {"module": "<handle>"} and
 {"chart": "<handle>"} are replaced with resolved {"moduleID"}/{"chartID"}.
 Unknown handles are an error. Every block must have xywh (48-col grid,
@@ -142,6 +146,53 @@ def build_blocks(spec_blocks, modules, charts):
     return blocks
 
 
+def sync_layout(nsid, pid, blocks):
+    """Push the spec's geometry onto the page's primary layout.
+
+    The layout — not page.blocks — is what the webapp renders from. On the
+    first create the server derives one from the blocks, so a fresh page looks
+    right and the two agree; every later write leaves the layout untouched, so
+    an edited xywh applies to nothing and pagebuild still reports success.
+    Blocks are matched by blockID, which build_blocks assigns by position.
+    """
+    layouts = api("GET", f"/compose/namespace/{nsid}/page-layout?limit=500")["set"]
+    layout = next((l for l in layouts if l["pageID"] == pid), None)
+    if not layout:
+        return None
+    want = {b["blockID"]: b["xywh"] for b in blocks}
+    changed = 0
+    for lb in layout.get("blocks") or []:
+        xywh = want.get(lb.get("blockID"))
+        if xywh and lb.get("xywh") != xywh:
+            lb["xywh"] = xywh
+            changed += 1
+    if not changed:
+        return 0
+    body = {
+        k: layout[k]
+        for k in (
+            "pageLayoutID",
+            "pageID",
+            "namespaceID",
+            "handle",
+            "blocks",
+            "config",
+            "meta",
+            "weight",
+            "primary",
+            "ownedBy",
+        )
+        if k in layout
+    }
+    body["updatedAt"] = layout.get("updatedAt")
+    api(
+        "POST",
+        f"/compose/namespace/{nsid}/page/{pid}/layout/{layout['pageLayoutID']}",
+        body,
+    )
+    return changed
+
+
 def upsert_page(nsid, spec, modules, charts, existing_pages, self_id="0"):
     payload = {
         "selfID": self_id,
@@ -167,9 +218,12 @@ def upsert_page(nsid, spec, modules, charts, existing_pages, self_id="0"):
         pid = existing_pages[spec["handle"]]["pageID"]
         payload["updatedAt"] = existing_pages[spec["handle"]].get("updatedAt")
         api("POST", f"/compose/namespace/{nsid}/page/{pid}", payload)
-        print(f"page {spec['handle']} updated (ID {pid})")
+        moved = sync_layout(nsid, pid, payload["blocks"])
+        note = f", {moved} block(s) re-placed" if moved else ""
+        print(f"page {spec['handle']} updated (ID {pid}){note}")
     else:
         pid = api("POST", f"/compose/namespace/{nsid}/page/", payload)["pageID"]
+        sync_layout(nsid, pid, payload["blocks"])
         print(f"page {spec['handle']} created (ID {pid})")
 
     for child in spec.get("children", []):
