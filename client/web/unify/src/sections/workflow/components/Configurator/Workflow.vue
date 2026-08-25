@@ -133,6 +133,7 @@
           :columns="ioColumns"
           :empty-message="section.emptyMessage"
           :confirm-remove="section.removeConfirm"
+          fit-width
         >
           <template #row="{ item }">
             <InputText

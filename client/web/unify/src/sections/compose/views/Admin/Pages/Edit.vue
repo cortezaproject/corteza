@@ -398,6 +398,7 @@
           <CFormList
             :model-value="configLayout.config.validation?.requiredFields || []"
             :columns="requiredFieldColumns"
+            fit-width
             @change="onRequiredFieldsChange"
           >
             <template #row="{ item: rule, index }">

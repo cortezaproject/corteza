@@ -71,9 +71,11 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
   `<input>` size rather than anything a caller chose: such a list is wider than
   its container from the first row and hides its right-hand columns. `fitWidth`
   makes the tracks share the width the list is given instead. It is opt-in
-  because the two behaviours suit different rows, and a flexible column needs a
-  `minmax()` floor under it either way — a bare `1fr` collapses to nothing once
-  the fixed columns are paid for.
+  because a flexible column can only share a width if it declares a `minmax()`
+  floor: a bare `1fr` collapses to nothing once the fixed columns are paid for,
+  and content sizing is the only thing holding such a list up. Opt in a list
+  whose columns carry floors and whose grid is measurably wider than its box;
+  leave the rest sized to content.
 
 Keep the selector contract (ID-valued v-model, self-fetching) uniform — the TAQ
 registry and field editors instantiate these interchangeably by type.

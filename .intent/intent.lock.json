@@ -1272,9 +1272,9 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.vue": {
-      "h": "32cb9df2529e",
+      "h": "8e2ff23b816f",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.intent.md",
-      "t": "2026-08-18"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/List.vue": {
       "h": "3624ab2b5343",
@@ -2492,9 +2492,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/workflow/components/Configurator/Workflow.vue": {
-      "h": "634ea94a77bf",
+      "h": "ccc64371dec2",
       "doc": "client/web/unify/src/sections/workflow/components/Configurator/Configurator.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/workflow/components/DryRunField.vue": {
       "h": "e691539e1412",
