@@ -117,4 +117,9 @@ const recordValuesDoc = `JSON object of field name to value: {"title":"Kickoff",
 	`A MULTI-VALUE field takes an array, and each element becomes one of the record's values in the ` +
 	`order given: {"tags":["red","blue"]}. A field whose value is itself structured takes an object, ` +
 	`stored as its JSON — a Geometry point is {"geo":{"coordinates":[46.05,14.51]}} (latitude first). ` +
-	`Anything else is refused rather than guessed at.`
+	`Anything else is refused rather than guessed at. ` +
+	`A field you leave out is stored as no value at all, which is a different state from a false or ` +
+	`an empty one and does not match a query for it: omitting a Bool rather than sending false means ` +
+	`"done = false" finds none of those records, and the same goes for a prefilter or a Metric block ` +
+	`filter built on that field. Send every field a filter or chart will group on, including the ` +
+	`false ones.`
