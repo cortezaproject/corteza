@@ -1,0 +1,93 @@
+workflows:
+  # 2. error handler registered, then a normal step runs before the error
+  errhandler_after_step:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: error-handler
+        results:
+          - { target: eM, type: String, expr: errorMessage }
+
+      # normal continuation (out[0])
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: noise, type: String, value: "noise" } ]
+      - stepID: 3
+        kind: error
+        arguments: [ { target: message, type: String, value: "Boom" } ]
+
+      # error handler (out[1])
+      - stepID: 4
+        kind: expressions
+        arguments: [ { target: caught, type: String, expr: eM } ]
+
+    paths:
+      - { parentID: 1, childID: 2 }
+      - { parentID: 1, childID: 4 }
+      - { parentID: 2, childID: 3 }
+
+  # 3c. a nested parallel section must not claim variables it never changed
+  join_nested:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 9
+
+    steps:
+      - stepID: 9
+        kind: expressions
+        arguments: [ { target: foo, type: String, value: "base" } ]
+
+      - stepID: 10
+        kind: gateway
+        ref: fork
+
+      # branch A -> paths[0], changes foo mid-branch
+      - stepID: 11
+        kind: expressions
+        arguments: [ { target: foo, type: String, value: "fromA" } ]
+      - stepID: 12
+        kind: expressions
+        arguments: [ { target: aLast, type: String, value: "last" } ]
+
+      # branch B holds a parallel section of its own and never touches foo
+      - stepID: 13
+        kind: gateway
+        ref: fork
+      - stepID: 14
+        kind: expressions
+        arguments: [ { target: b1, type: String, value: "b1" } ]
+      - stepID: 15
+        kind: expressions
+        arguments: [ { target: b2, type: String, value: "b2" } ]
+      - stepID: 16
+        kind: gateway
+        ref: join
+
+      - stepID: 20
+        kind: gateway
+        ref: join
+      - stepID: 21
+        kind: termination
+
+    paths:
+      - { parentID: 9, childID: 10 }
+
+      - { parentID: 10, childID: 11 }
+      - { parentID: 11, childID: 12 }
+
+      - { parentID: 10, childID: 13 }
+      - { parentID: 13, childID: 14 }
+      - { parentID: 13, childID: 15 }
+      - { parentID: 14, childID: 16 }
+      - { parentID: 15, childID: 16 }
+
+      - { parentID: 12, childID: 20 }
+      - { parentID: 16, childID: 20 }
+      - { parentID: 20, childID: 21 }
