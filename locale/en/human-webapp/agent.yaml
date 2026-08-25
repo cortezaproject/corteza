@@ -168,6 +168,21 @@ editor:
   titleCreate: Create Agent
   titleEdit: Edit Agent
   tools:
+    groups:
+      configuring_read: All builder tools — read only
+      configuring_read_help: Read namespaces, modules, pages, charts and automations. Cannot change them.
+      configuring_write: All builder tools — read and write
+      configuring_write_help:
+        Build and change the data model and its pages. Cannot delete. Give this only to
+        an agent whose job is building.
+      usage_read: All data tools — read only
+      usage_read_help:
+        Look up and aggregate records, and read the definitions needed to interpret them.
+        Cannot change anything. Picks up new tools as they are added.
+      usage_write: All data tools — read and write
+      usage_write_help:
+        Everything above, plus creating and updating records. Cannot delete, and cannot
+        change the data model.
     addNamespace: Add namespace
     allModules: all modules accessible
     configure: Configure tool

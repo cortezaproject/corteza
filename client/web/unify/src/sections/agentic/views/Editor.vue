@@ -1287,24 +1287,59 @@ async function fetchAvailableTools() {
   initToolSelection()
 }
 
+// A grant names one tool, or a whole group capped by a risk level. The server
+// expands a group when the agent runs, so a grant keeps working as tools are
+// added. These are offered alongside the individual tools rather than instead
+// of them: picking tools one at a time is still right when an agent should have
+// exactly three of them.
+const GROUP_GRANTS = [
+  { group: 'usage', maxRisk: 'read' },
+  { group: 'usage', maxRisk: 'write' },
+  { group: 'configuring', maxRisk: 'read' },
+  { group: 'configuring', maxRisk: 'write' },
+]
+
+// Every helper here finds a grant by `name`, which a group grant does not have.
+// One synthetic key keeps that lookup working without a second code path.
+function accessKey(entry) {
+  return entry?.group ? `group:${entry.group}/${entry.maxRisk || 'read'}` : entry?.name
+}
+
+const groupToolOptions = computed(() =>
+  GROUP_GRANTS.map(g => ({
+    name: accessKey(g),
+    group: g.group,
+    maxRisk: g.maxRisk,
+    title: t(`agent.editor.tools.groups.${g.group}_${g.maxRisk}`),
+    description: t(`agent.editor.tools.groups.${g.group}_${g.maxRisk}_help`),
+  })),
+)
+
+const pickableTools = computed(() => [...groupToolOptions.value, ...availableTools.value])
+
 function initToolSelection() {
   // Wait for both agent and tools to be loaded
   if (!availableTools.value.length || loading.value) return
 
-  const enabledNames = new Set((agent.value?.access?.tools || []).map(t => t.name))
-  selectedTools.value = availableTools.value.filter(t => enabledNames.has(t.name))
+  const enabled = new Set((agent.value?.access?.tools || []).map(accessKey))
+  selectedTools.value = pickableTools.value.filter(t => enabled.has(t.name))
 }
 
 const unselectedTools = computed(() => {
   const selectedNames = new Set(selectedTools.value.map(t => t.name))
-  return availableTools.value.filter(t => !selectedNames.has(t.name))
+  return pickableTools.value.filter(t => !selectedNames.has(t.name))
 })
 
 function onToolPickerSelect(tool) {
   if (!tool) return
   selectedTools.value = [...selectedTools.value, tool]
-  // Add to agent.access.tools with empty hints
-  agent.value.access.tools.push({ name: tool.name, hints: '' })
+
+  agent.value.access.tools.push(
+    tool.group
+      ? { group: tool.group, maxRisk: tool.maxRisk, description: '', allow: [] }
+      : { name: tool.name, hints: '' },
+  )
+
   // Clear in nextTick so the Select component sees the v-model change
   // after the current update cycle completes
   nextTick(() => {
@@ -1360,7 +1395,7 @@ watch(
 
 function removeTool(tool) {
   selectedTools.value = selectedTools.value.filter(t => t.name !== tool.name)
-  agent.value.access.tools = agent.value.access.tools.filter(t => t.name !== tool.name)
+  agent.value.access.tools = agent.value.access.tools.filter(t => accessKey(t) !== tool.name)
 }
 
 const taqPickerSelection = ref(null)
@@ -1401,7 +1436,7 @@ function removeWorkflow(idx) {
 }
 
 function getToolHints(name) {
-  const tool = agent.value.access.tools.find(t => t.name === name)
+  const tool = agent.value.access.tools.find(t => accessKey(t) === name)
   return tool?.hints || ''
 }
 
@@ -1410,7 +1445,7 @@ function getToolHints(name) {
 function openToolDialog(toolIdx) {
   const tool = selectedTools.value[toolIdx]
   if (!tool) return
-  const accessIdx = agent.value.access.tools.findIndex(t => t.name === tool.name)
+  const accessIdx = agent.value.access.tools.findIndex(t => accessKey(t) === tool.name)
   if (accessIdx < 0) return
 
   // Deep copy so edits don't leak until Save
@@ -1480,12 +1515,12 @@ watch(
 )
 
 function hasToolAllowFromName(toolName) {
-  const tool = agent.value.access.tools.find(t => t.name === toolName)
+  const tool = agent.value.access.tools.find(t => accessKey(t) === toolName)
   return Array.isArray(tool?.allow)
 }
 
 function getToolAllowDetails(toolName) {
-  const tool = agent.value.access.tools.find(t => t.name === toolName)
+  const tool = agent.value.access.tools.find(t => accessKey(t) === toolName)
   if (!tool?.allow?.length) return []
 
   return tool.allow.map(r => ({
