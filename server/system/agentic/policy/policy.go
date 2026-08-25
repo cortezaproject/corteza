@@ -68,6 +68,18 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 		}
 		return allowedDecision(agent, nil, args)
 	}
+	// A TAQ is granted through access.taqs, the way a workflow is through
+	// access.workflows. Reaching this tool through access.tools instead — a
+	// group grant naming "usage" at write risk contains it — used to be enough
+	// to run ANY automation on the instance: the resource it builds is not a
+	// compose one, and checkAllow waved every non-compose resource through.
+	if tool == "automation_taq_exec" {
+		ref, _ := args.Get("taq")
+		if findTAQ(agent, fmt.Sprintf("%v", ref)) == nil {
+			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute TAQ %q — grant it in access.taqs, by ID", ref)}
+		}
+		return allowedDecision(agent, nil, args)
+	}
 	if tool == "automation_taq_lookup" && len(agent.Access.TAQs) > 0 {
 		return allowedDecision(agent, nil, args)
 	}
@@ -442,8 +454,14 @@ func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
 		return Decision{Allowed: false, Reason: "tool has no allow entries"}
 	}
 
+	// An allow entry describes a compose namespace and its modules, and can say
+	// nothing about a resource of any other kind. Answering "allowed" for one
+	// was how a namespace-scoped grant came to cover every TAQ on the instance:
+	// the tool asked to be narrowed, the narrowing did not apply, and nothing
+	// said so. A tool whose resource cannot be checked here is gated before it
+	// arrives — and one that is not should fail loudly rather than run wide.
 	if !strings.HasPrefix(resource, "corteza::compose:") {
-		return Decision{Allowed: true}
+		return Decision{Allowed: false, Reason: fmt.Sprintf("an allow entry cannot narrow %q; this tool needs its own grant", resource)}
 	}
 
 	parts := strings.Split(resource, "/")

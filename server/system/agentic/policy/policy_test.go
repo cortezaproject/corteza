@@ -43,7 +43,7 @@ func TestEvaluate(t *testing.T) {
 		assert.False(t, d.Allowed)
 	})
 
-			t.Run("tool-level defaults fill missing args", func(t *testing.T) {
+	t.Run("tool-level defaults fill missing args", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{
@@ -168,44 +168,66 @@ func TestEvaluate(t *testing.T) {
 func TestStaticAutomationToolsAreNotReadAsTAQIDs(t *testing.T) {
 	ctx := context.Background()
 
-	// automation_taq_exec maps to a real resource via buildResource — that case
-	// was unreachable behind the old trap — so it legitimately requires an allow
-	// entry. The other two are scope-exempt and need none. What matters for the
+	// automation_taq_exec is gated on access.taqs, like its workflow twin; the
+	// other two are scope-exempt and need nothing. What matters for the
 	// regression is that none of them is mistaken for a TAQ ID.
-	cases := map[string][]types.AgentAccessAllow{
-		"automation_taq_exec":            {{NamespaceID: 1}},
-		"automation_taq_executions":      nil,
-		"automation_taq_execution_trace": nil,
+	cases := map[string]types.AgentAccess{
+		"automation_taq_exec": {
+			Tools: []types.AgentAccessTool{{Name: "automation_taq_exec"}},
+			TAQs:  []types.AgentAccessTAQ{{ID: 1}},
+		},
+		"automation_taq_executions":      {Tools: []types.AgentAccessTool{{Name: "automation_taq_executions"}}},
+		"automation_taq_execution_trace": {Tools: []types.AgentAccessTool{{Name: "automation_taq_execution_trace"}}},
 	}
 
-	for tool, allow := range cases {
+	for tool, access := range cases {
 		t.Run(tool, func(t *testing.T) {
-			agent := &types.Agent{
-				Access: types.AgentAccess{
-					Tools: []types.AgentAccessTool{{Name: tool, Allow: allow}},
-				},
-			}
-			d := Evaluate(ctx, agent, tool, MapValues{"taq": "1"}, nil)
+			d := Evaluate(ctx, &types.Agent{Access: access}, tool, MapValues{"taq": "1"}, nil)
 			assert.True(t, d.Allowed, "reason: %s", d.Reason)
 			assert.NotContains(t, d.Reason, "not allowed to execute automation")
 		})
 	}
 }
 
-// TestTaqExecStillRequiresAllowEntry pins the consequence of un-shadowing the
-// buildResource case: with the trap gone, automation_taq_exec is resource-scoped
-// and an agent without allow entries is denied on that basis — not on the old
-// bogus TAQ-ID basis.
-func TestTaqExecStillRequiresAllowEntry(t *testing.T) {
+// TestTaqExecNeedsTheTAQGranted pins what an allow entry can and cannot do for
+// automation_taq_exec.
+//
+// A compose allow entry describes a namespace and its modules and says nothing
+// about an automation, so it must not stand in for one: an agent granted the
+// tool and a namespace could otherwise run every TAQ on the instance, which is
+// what a "usage" group grant at write risk quietly bought.
+func TestTaqExecNeedsTheTAQGranted(t *testing.T) {
 	ctx := context.Background()
-	agent := &types.Agent{
-		Access: types.AgentAccess{
-			Tools: []types.AgentAccessTool{{Name: "automation_taq_exec"}},
-		},
-	}
-	d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "1"}, nil)
-	assert.False(t, d.Allowed)
-	assert.Contains(t, d.Reason, "no allow entries")
+
+	t.Run("a namespace allow entry does not cover a TAQ", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{{
+					Name:  "automation_taq_exec",
+					Allow: []types.AgentAccessAllow{{NamespaceID: 100}},
+				}},
+			},
+		}
+		d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "999"}, nil)
+		assert.False(t, d.Allowed)
+		assert.Contains(t, d.Reason, "access.taqs")
+	})
+
+	t.Run("a granted TAQ runs", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{TAQs: []types.AgentAccessTAQ{{ID: 999}}},
+		}
+		d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "999"}, nil)
+		assert.True(t, d.Allowed, d.Reason)
+	})
+
+	t.Run("another TAQ does not", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{TAQs: []types.AgentAccessTAQ{{ID: 999}}},
+		}
+		d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "1000"}, nil)
+		assert.False(t, d.Allowed)
+	})
 }
 
 func TestDynamicTAQRef(t *testing.T) {
