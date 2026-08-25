@@ -3,6 +3,7 @@ package values
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -189,6 +190,27 @@ func sBool(v interface{}) string {
 	return strBoolFalseAlt
 }
 
+// monotonicReading matches the trailing "m=±<seconds>" field that
+// time.Time.String() appends whenever the value carries a monotonic clock
+// reading. No layout below parses it, so a time taken from time.Now() — which
+// always carries one — fails to read as a date at all.
+var monotonicReading = regexp.MustCompile(`\s+m=[+-][0-9.]+$`)
+
+// stripMonotonic drops the monotonic clock reading from a time value. The
+// reading is meaningful only inside the process that took it, so it has no
+// business reaching stored data.
+func stripMonotonic(v interface{}) interface{} {
+	switch t := v.(type) {
+	case time.Time:
+		return t.Round(0)
+	case *time.Time:
+		if t != nil {
+			return t.Round(0)
+		}
+	}
+	return v
+}
+
 func sDatetime(v interface{}, onlyDate, onlyTime bool) string {
 	var (
 		// input format set
@@ -197,7 +219,7 @@ func sDatetime(v interface{}, onlyDate, onlyTime bool) string {
 		// output format
 		internalFormat string
 
-		datetime = fmt.Sprintf("%v", v)
+		datetime = strings.TrimSpace(monotonicReading.ReplaceAllString(fmt.Sprintf("%v", stripMonotonic(v)), ""))
 	)
 
 	if onlyTime {
