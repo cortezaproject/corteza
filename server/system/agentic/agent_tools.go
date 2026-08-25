@@ -27,7 +27,8 @@ const (
 
 	agentExecutionDoc = `JSON object: which model runs it and how far it may go. ` +
 		`{"model":{"llmProviderID":"<id>","model":"claude-sonnet-5","temperature":0.2},"limits":{"maxIterations":10,"timeout":"5m","softLimitRatio":0.8,"contextWindow":200000,"outputTokens":8192}}. ` +
-		`'timeout' is a Go duration string. Omitting 'llmProviderID' picks the instance's provider when there is exactly one, and fails naming the candidates when there are several. ` +
+		`'timeout' is a Go duration string. 'contextWindow' is NOT the model's window: it is a cumulative token budget for the whole conversation, checked after each iteration and across turns, and 'softLimitRatio' is the fraction of it at which the agent is told to wrap up. ` +
+		`Omitting 'llmProviderID' picks the instance's provider when there is exactly one, and fails naming the candidates when there are several. ` +
 		`Sending a 'temperature' makes the server call the provider to check it, which also validates 'llmProviderID' and the model name — an unrecognised model fails with the provider's own error. Omit temperature and none of that is checked: the model name is stored as given.`
 
 	agentAccessDoc = `JSON object: what the agent may reach. ` +
