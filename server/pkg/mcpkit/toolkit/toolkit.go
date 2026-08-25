@@ -288,6 +288,20 @@ func JSONResult(v any) (*mcp.CallToolResult, error) {
 // sibling key, and silently returning it unchanged would drop the link without
 // saying so.
 func JSONResultWith(v any, extra map[string]string) (*mcp.CallToolResult, error) {
+	wide := make(map[string]any, len(extra))
+	for k, val := range extra {
+		if val == "" {
+			continue
+		}
+		wide[k] = val
+	}
+	return JSONResultWithAny(v, wide)
+}
+
+// JSONResultWithAny is JSONResultWith for a sibling field that is not a string
+// — a dictionary of resolved references, say. A nil or empty value is dropped
+// on the same reasoning: absence says there is none.
+func JSONResultWithAny(v any, extra map[string]any) (*mcp.CallToolResult, error) {
 	out, err := json.Marshal(v)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal result: %w", err)
@@ -299,7 +313,7 @@ func JSONResultWith(v any, extra map[string]string) (*mcp.CallToolResult, error)
 	}
 
 	for k, val := range extra {
-		if val == "" {
+		if val == nil || val == "" {
 			continue
 		}
 		enc, err := json.Marshal(val)

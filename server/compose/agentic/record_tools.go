@@ -20,7 +20,10 @@ func (h *recordHandler) register() {
 					"search or check for existing records. "+
 					"Records are returned in full, including their values, so use 'limit' and narrow with "+
 					"'filter' rather than listing a whole module: a large module will exceed the result size "+
-					"limit and the call will fail.",
+					"limit and the call will fail. "+
+					"A Record or User value is stored as the bare ID of what it points at. The response carries "+
+					"'refs', a dictionary of every such ID to the name a person would see — read the name from "+
+					"there rather than looking each reference up one by one.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),

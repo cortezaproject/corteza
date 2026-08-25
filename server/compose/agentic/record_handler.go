@@ -100,7 +100,16 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		if err != nil {
 			return nil, toolkit.Errf("record lookup", err)
 		}
-		return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
+		extra := map[string]any{}
+		for k, v := range recordLinks(ctx, rec) {
+			extra[k] = v
+		}
+		if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
+			if refs := refLabels(ctx, mod, cmpTypes.RecordSet{rec}); refs != nil {
+				extra["refs"] = refs
+			}
+		}
+		return toolkit.JSONResultWithAny(rec, extra)
 	}
 
 	f := cmpTypes.RecordFilter{
@@ -128,10 +137,17 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 	// rendering ("<id: 123, [FWD]>") while parseCursor expects base64 of the
 	// cursor JSON, which is what MarshalJSON emits. json.Marshal renders a nil
 	// pointer as null, so the last page is safe.
-	return toolkit.JSONResult(map[string]any{
+	res := map[string]any{
 		"records":        set,
 		"nextPageCursor": out.NextPage,
-	})
+	}
+	if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
+		if refs := refLabels(ctx, mod, set); refs != nil {
+			res["refs"] = refs
+		}
+	}
+
+	return toolkit.JSONResult(res)
 }
 
 // report aggregates server-side.
