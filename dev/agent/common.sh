@@ -7,9 +7,9 @@ REPO_DIR="$(cd "$AGENT_DIR/../.." && pwd)"
 SERVER_DIR="$REPO_DIR/server"
 STATE_DIR="$AGENT_DIR/.state"
 
-HUMAN_API="${HUMAN_API:-http://localhost:1043/api}"
-HUMAN_AUTH="${HUMAN_AUTH:-${HUMAN_API%/api}/auth}"
-HUMAN_BASE="${HUMAN_API%/api}"
+# HUMAN_API / HUMAN_BASE / HUMAN_AUTH / HUMAN_WEBAPP / HUMAN_GIN, resolved from
+# this checkout's own files so a worktree answers for its own server.
+source "$AGENT_DIR/stack.sh"
 
 AGENT_EMAIL="agent@local.dev"
 AGENT_CLIENT="dev_agent"

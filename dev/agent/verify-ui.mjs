@@ -23,11 +23,11 @@ import { readFileSync, readdirSync, mkdirSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
+import { stack } from './stack.mjs'
 
 const AGENT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_DIR = resolve(AGENT_DIR, '..', '..')
-const WEBAPP = process.env.HUMAN_WEBAPP || 'http://localhost:5173'
-const API_BASE = (process.env.HUMAN_API || 'http://localhost:1043/api').replace(/\/api$/, '')
+const { HUMAN_WEBAPP: WEBAPP, HUMAN_BASE: API_BASE } = stack()
 
 for (const u of [WEBAPP, API_BASE]) {
   const host = new URL(u).hostname
