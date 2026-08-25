@@ -111,7 +111,7 @@ if [[ ! -f "$STATE_DIR/ui-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; the
 fi
 capi POST "/system/users/$agent_uid/password" \
   -d "{\"password\":\"$(cat "$STATE_DIR/ui-password")\"}" >/dev/null
-echo "browser login ready: $AGENT_EMAIL / \$(cat dev/agent/.state/ui-password)"
+echo "browser login ready: $AGENT_EMAIL / password in dev/agent/.state/ui-password"
 
 # Converge a box provisioned while UI login was a separate user.
 old_ui=$(capi GET "/system/users/?email=agent-ui@local.dev" | json_get response.set.0.userID) || old_ui=""
@@ -172,7 +172,7 @@ if [[ ! -f "$STATE_DIR/ro-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; the
 fi
 capi POST "/system/users/$ro_uid/password" \
   -d "{\"password\":\"$(cat "$STATE_DIR/ro-password")\"}" >/dev/null
-echo "read-only login ready: $ro_email / \$(cat dev/agent/.state/ro-password)"
+echo "read-only login ready: $ro_email / password in dev/agent/.state/ro-password"
 
 rm -f "$STATE_DIR/token" "$STATE_DIR/token-exp"
 if ! "$AGENT_DIR/token.sh" >/dev/null; then
