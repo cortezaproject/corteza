@@ -237,6 +237,36 @@ const settleCanvases = async () => {
   }
 }
 
+// A TAQ builder (and anything else drawn with vue-flow) has no compose blocks,
+// so the block report finds nothing there. Read the graph instead: the failure
+// this catches is a severed chain — an automation that runs correctly while its
+// canvas draws two disconnected halves, each ending in its own End, which is
+// what an empty `paths` array produces.
+const FLOW_REPORT = () => {
+  const nodes = [...document.querySelectorAll('.vue-flow__node')].map(n => ({
+    id: n.getAttribute('data-id') || '',
+    kind: ([...n.classList].find(c => c.startsWith('vue-flow__node-')) || '').replace(
+      'vue-flow__node-',
+      '',
+    ),
+    label: (n.textContent || '').trim().slice(0, 30),
+  }))
+  if (!nodes.length) return null
+  // vue-flow names an edge "<sourceID>_<targetID>"; node ids contain
+  // underscores of their own, so test membership rather than splitting
+  const edges = [...document.querySelectorAll('.vue-flow__edge')].map(
+    e => e.getAttribute('data-id') || '',
+  )
+  const touches = id => id && edges.some(e => e.startsWith(id + '_') || e.endsWith('_' + id))
+  return {
+    nodeCount: nodes.length,
+    edgeCount: edges.length,
+    triggers: nodes.filter(n => n.kind === 'trigger').length,
+    ends: nodes.filter(n => n.kind === 'end').length,
+    isolated: nodes.filter(n => !touches(n.id)).map(n => n.label || n.id),
+  }
+}
+
 // fullPage stops at the viewport because compose scrolls an inner container,
 // not the document — so grow the viewport to the page's own scroll height
 // before capturing, or every block below the fold goes unverified.
@@ -293,6 +323,7 @@ for (const p of paths) {
 
   await settleCanvases()
   const report = await page.evaluate(PAGE_REPORT).catch(() => null)
+  const flow = await page.evaluate(FLOW_REPORT).catch(() => null)
   const height = await fitViewport()
   const shot = join(outDir, p.replace(/[^a-z0-9-]+/gi, '_').replace(/^_+|_+$/g, '') + '.png')
   await page.screenshot({ path: shot, fullPage: true })
@@ -323,6 +354,16 @@ for (const p of paths) {
     if (b.listScroll.v > 8)
       notes.push(`${where} "${name}" scrolls internally (list longer than the block)`)
   }
+  if (flow) {
+    if (flow.ends > 1)
+      findings.push(
+        `graph splits into ${flow.ends} chains, each ending in its own End — ` +
+          `one connected chain expected; an empty "paths" array draws exactly this`,
+      )
+    if (flow.triggers !== 1)
+      findings.push(`graph has ${flow.triggers} trigger nodes — expected exactly one`)
+    for (const n of flow.isolated) findings.push(`node "${n}" is joined to nothing`)
+  }
   for (const id of report?.rawIds || [])
     findings.push(`raw ID rendered: ${id} — a ref the webapp could not resolve to a label`)
   for (const t of report?.templates || []) findings.push(`uninterpolated template: ${t}`)
@@ -335,7 +376,13 @@ for (const p of paths) {
   notes.forEach(x => console.log(`      note: ${x}`))
   if (report) {
     const n = report.blocks.length
-    if (!n) {
+    if (!n && flow) {
+      console.log(
+        `      graph: ${flow.nodeCount} nodes, ${flow.edgeCount} edges, ` +
+          `${flow.ends} End` +
+          (findings.length ? '' : ' — one connected chain'),
+      )
+    } else if (!n) {
       // No compose blocks here (a TAQ builder, an admin screen). Saying
       // "none clipped or empty" over one would be a health verdict drawn from
       // an empty inspection — reassuring, and true of a visibly broken page.
