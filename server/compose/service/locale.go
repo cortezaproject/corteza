@@ -423,8 +423,10 @@ func (svc resourceTranslationsManager) pageBlockButtons(tag language.Tag, res *t
 
 // Helper loaders
 
+// Fields carry most of a module's translatable keys, so they are loaded here:
+// moduleExtended walks res.Fields and emits nothing for a fields-less module.
 func (svc resourceTranslationsManager) loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (*types.Module, error) {
-	return loadModuleScoped(ctx, s, namespaceID, moduleID)
+	return loadModuleWithFields(ctx, s, namespaceID, moduleID)
 }
 
 func (svc resourceTranslationsManager) loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (*types.Namespace, error) {
