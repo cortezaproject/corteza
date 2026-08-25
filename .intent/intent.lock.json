@@ -657,9 +657,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Admin/Page/PageTranslator.vue": {
-      "h": "efbbe1d085c9",
+      "h": "4501b01957dc",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/components/Chart/ChartRenderer.vue": {
       "h": "59e1cf1ff8f2",
@@ -1097,22 +1097,22 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Translator/CTranslatorButton.vue": {
-      "h": "d3a64f1a0e5d",
+      "h": "5dcfacd819c3",
       "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/components/Translator/CTranslatorDialog.vue": {
-      "h": "ed662d36ac65",
+      "h": "1af743f62dd0",
       "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/components/Translator/CTranslatorForm.test.ts": {
-      "h": "082f447a9194",
+      "h": "88c8e8973213",
       "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
       "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/components/Translator/CTranslatorForm.vue": {
-      "h": "25b77bfd63d3",
+      "h": "4b5e2215da52",
       "doc": "client/web/unify/src/sections/compose/components/Translator/Translator.intent.md",
       "t": "2026-08-25"
     },
@@ -1212,9 +1212,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/stores/translator.ts": {
-      "h": "946016ab2251",
+      "h": "c1e802f3f55c",
       "doc": "client/web/unify/src/sections/compose/stores/translator.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue": {
       "h": "53d60a78f15e",

@@ -11,7 +11,11 @@
 </template>
 
 <script setup lang="ts">
-import { useTranslatorStore, type TranslatorConfig } from '@/sections/compose/stores/translator'
+import {
+  useTranslatorStore,
+  type TranslationTarget,
+  type TranslatorConfig,
+} from '@/sections/compose/stores/translator'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 
 const props = defineProps<{
@@ -19,7 +23,7 @@ const props = defineProps<{
   titles: Record<string, string>
   fetcher: () => Promise<any[]>
   updater: (changes: any[]) => Promise<void>
-  highlightKey?: string
+  highlight?: TranslationTarget
   keyPrettifier?: (key: string) => string
   disabled?: boolean
 }>()
@@ -31,7 +35,7 @@ function handleClick(): void {
   translatorStore.open({
     resource: props.resource,
     titles: props.titles,
-    highlightKey: props.highlightKey,
+    highlight: props.highlight,
     fetcher: props.fetcher,
     updater: props.updater,
     keyPrettifier: props.keyPrettifier,

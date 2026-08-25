@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import CTranslatorForm from './CTranslatorForm.vue'
 
-// jsdom has no scrollIntoView at all, so mounting with a highlightKey throws
+// jsdom has no scrollIntoView at all, so mounting with a highlight throws
 // without this.
 const scrollIntoView = vi.fn()
 Element.prototype.scrollIntoView = scrollIntoView
@@ -15,6 +15,7 @@ const LANGUAGES = [
 ]
 
 const RESOURCE = 'compose:module-field/1/2/3'
+const OTHER = 'compose:module-field/1/2/9'
 
 const rows = (keys: string[]) =>
   keys.map(key => ({ resource: RESOURCE, key, lang: 'en', message: '' }))
@@ -52,26 +53,47 @@ describe('CTranslatorForm key names', () => {
   })
 })
 
-describe('CTranslatorForm highlightKey', () => {
+describe('CTranslatorForm highlight', () => {
   it('marks the row a caller asked for', () => {
-    const wrapper = form({ highlightKey: 'meta.options.new.text' })
+    const wrapper = form({ highlight: { resource: RESOURCE, key: 'meta.options.new.text' } })
     const marked = wrapper.findAll('tbody tr').filter(tr => tr.classes('bg-highlight'))
     expect(marked).toHaveLength(1)
     expect(marked[0].text()).toContain('Meta › Options › New › Text')
   })
 
-  it('marks nothing when no key is given', () => {
+  it('marks one row where two resources share the key', () => {
+    // A page's set holds the page, its blocks and every layout, and `title`
+    // names a row under each of them.
+    const wrapper = form({
+      translations: [
+        { resource: RESOURCE, key: 'title', lang: 'en', message: 'mine' },
+        { resource: OTHER, key: 'title', lang: 'en', message: 'theirs' },
+      ],
+      titles: { [OTHER]: 'The other one' },
+      highlight: { resource: OTHER, key: 'title' },
+    })
+    const marked = wrapper.findAll('tbody tr').filter(tr => tr.classes('bg-highlight'))
+    expect(marked).toHaveLength(1)
+    expect(marked[0].find('textarea').element.value).toBe('theirs')
+  })
+
+  it('marks nothing when the resource does not match', () => {
+    const wrapper = form({ highlight: { resource: OTHER, key: 'label' } })
+    expect(wrapper.findAll('tbody tr.bg-highlight')).toHaveLength(0)
+  })
+
+  it('marks nothing when no target is given', () => {
     expect(form().findAll('tbody tr.bg-highlight')).toHaveLength(0)
   })
 
   it('scrolls the marked row into view', async () => {
     scrollIntoView.mockClear()
-    form({ highlightKey: 'label' })
+    form({ highlight: { resource: RESOURCE, key: 'label' } })
     await flushPromises()
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' })
   })
 
-  it('scrolls nothing when no key is given', async () => {
+  it('scrolls nothing when no target is given', async () => {
     scrollIntoView.mockClear()
     form()
     await flushPromises()

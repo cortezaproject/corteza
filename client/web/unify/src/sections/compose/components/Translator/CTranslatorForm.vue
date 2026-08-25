@@ -69,9 +69,9 @@
             <tr
               v-for="key in section.keys"
               :key="`${section.resource}:${key}`"
-              :ref="el => setRowEl(key, el)"
+              :ref="el => setRowEl(section.resource, key, el)"
               :class="{
-                'bg-highlight': key === highlightKey,
+                'bg-highlight': isHighlighted(section.resource, key),
                 'bg-amber-50 dark:bg-amber-950': isRowDirty(section.resource, key),
               }"
             >
@@ -115,7 +115,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import type { Language } from '@/sections/compose/stores/languages'
-import type { ResourceTranslation } from '@/sections/compose/stores/translator'
+import type { ResourceTranslation, TranslationTarget } from '@/sections/compose/stores/translator'
 
 const LS_KEY = 'compose:resource-translator:languages'
 
@@ -134,7 +134,7 @@ const props = defineProps<{
   primaryResource: string
   translations: ResourceTranslation[]
   titles?: Record<string, string>
-  highlightKey?: string
+  highlight?: TranslationTarget
   keyPrettifier?: (key: string) => string
 }>()
 
@@ -173,16 +173,22 @@ watch(
 const visibleLanguages = computed(() => intLanguages.filter(l => l.visible))
 const hiddenLanguages = computed(() => intLanguages.filter(l => !l.visible))
 
-// The row a caller asked to be taken to. Kept so the table can scroll to it
-// once it has rendered — a key deep in a long set is otherwise off screen.
+// The row a caller asked to be taken to. Matched on resource as well as key:
+// a set spans several resources and `title` names a row under each of them.
 const highlightedRow = ref<HTMLElement | null>(null)
 
-function setRowEl(key: string, el: unknown): void {
-  if (key === props.highlightKey && el) highlightedRow.value = el as HTMLElement
+function isHighlighted(resource: string, key: string): boolean {
+  return props.highlight?.resource === resource && props.highlight?.key === key
 }
 
+function setRowEl(resource: string, key: string, el: unknown): void {
+  if (el && isHighlighted(resource, key)) highlightedRow.value = el as HTMLElement
+}
+
+// Kept so the table can scroll to it once it has rendered — a row deep in a
+// long set is otherwise off screen.
 onMounted(() => {
-  if (!props.highlightKey) return
+  if (!props.highlight) return
   nextTick(() => highlightedRow.value?.scrollIntoView({ block: 'center' }))
 })
 

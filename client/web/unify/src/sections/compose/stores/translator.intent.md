@@ -21,8 +21,9 @@ with a `TranslatorConfig`, the dialog renders whatever config is current.
 ## State owned
 
 `visible` flag and the active `TranslatorConfig`: resource ID, per-key
-`titles`, optional `highlightKey`, and — crucially — the caller-supplied
-`fetcher()` / `updater(changes)` callbacks plus optional `keyPrettifier`.
+`titles`, an optional `highlight` (a `{resource, key}` pair — the row to mark
+and scroll to), and — crucially — the caller-supplied `fetcher()` /
+`updater(changes)` callbacks plus optional `keyPrettifier`.
 
 ## API surface consumed
 

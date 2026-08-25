@@ -30,9 +30,9 @@ in the per-resource wrappers. Visibility is gated by `useResourceTranslations`
 
 ## Map
 
-- CTranslatorButton.vue — the entry point wrappers render; on click passes `{resource, titles, fetcher, updater, highlightKey?, keyPrettifier?}` to `translatorStore.open()`
+- CTranslatorButton.vue — the entry point wrappers render; on click passes `{resource, titles, fetcher, updater, highlight?, keyPrettifier?}` to `translatorStore.open()`
 - CTranslatorDialog.vue — singleton dialog mounted in ComposeHost; opens whenever the store holds a config
-- CTranslatorForm.vue — language-column manager + key × language editing table; emits dirty rows via `change`, the dialog is what calls the config's `updater`. Names each key through the config's `keyPrettifier`, falling back to generic dotted-path formatting wherever the prettifier returns `''`; marks and scrolls to the `highlightKey` row when one is given
+- CTranslatorForm.vue — language-column manager + key × language editing table; emits dirty rows via `change`, the dialog is what calls the config's `updater`. Names each key through the config's `keyPrettifier`, falling back to generic dotted-path formatting wherever the prettifier returns `''`; marks and scrolls to the `highlight` row when one is given, matching on resource as well as key
 
 ## When changing this
 
@@ -44,3 +44,7 @@ not removable.
 A `keyPrettifier` returning `''` means "not mine" and must stay a fallback
 rather than a blank cell — one prettifier serves every section of a set, and a
 module's own keys sit beside its fields' in the same table.
+
+`highlight` is a `{resource, key}` pair, not a key: a set spans several
+resources and `title` names a row under each of them, so a key on its own marks
+every one of them.

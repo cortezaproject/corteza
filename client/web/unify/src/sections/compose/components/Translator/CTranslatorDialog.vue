@@ -21,7 +21,7 @@
       :primary-resource="translatorStore.config?.resource || ''"
       :translations="translations"
       :titles="translatorStore.config?.titles"
-      :highlight-key="translatorStore.config?.highlightKey"
+      :highlight="translatorStore.config?.highlight"
       :key-prettifier="translatorStore.config?.keyPrettifier"
       class="flex-1 overflow-hidden flex flex-col"
       @change="pendingChanges = $event"

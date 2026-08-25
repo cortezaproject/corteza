@@ -6,7 +6,7 @@
     :titles="titles"
     :fetcher="fetcher"
     :updater="updater"
-    :highlight-key="highlightKey"
+    :highlight="highlight"
     :disabled="disabled"
   />
 </template>
@@ -15,6 +15,7 @@
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
+import { useTranslatorStore, type TranslationTarget } from '@/sections/compose/stores/translator'
 import { applyPageTranslations } from '@/sections/compose/lib/resource-translations'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 
@@ -25,7 +26,7 @@ const props = defineProps<{
   layouts?: any[]
   /** When set, restrict fetcher to only this block's keys */
   block?: any
-  highlightKey?: string
+  highlight?: TranslationTarget
   disabled?: boolean
 }>()
 
@@ -37,6 +38,7 @@ const emit = defineEmits<{
 const $ComposeAPI = inject('$ComposeAPI') as any
 const { t } = useI18n()
 const { currentLanguage } = useResourceTranslations()
+const translatorStore = useTranslatorStore()
 
 const isEdit = computed(() => props.page?.pageID && props.page.pageID !== '0')
 
@@ -73,6 +75,21 @@ function fetcher() {
     return set
   })
 }
+
+// The page's translations are one set spanning the page, its blocks and its
+// layouts, so the wrapper that knows how to fetch and persist them is also the
+// one that opens the dialog aimed at a particular row.
+function open(highlight?: TranslationTarget): void {
+  translatorStore.open({
+    resource: resource.value,
+    titles: titles.value,
+    highlight: highlight ?? props.highlight,
+    fetcher,
+    updater,
+  })
+}
+
+defineExpose({ open })
 
 async function updater(changes: any[]) {
   const { namespaceID, pageID } = props.page

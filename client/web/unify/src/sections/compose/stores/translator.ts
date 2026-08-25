@@ -9,10 +9,17 @@ export interface ResourceTranslation {
   message: string
 }
 
+// One row of the translation table. A key alone does not name a row: a set
+// spans several resources and the same key (`title`) appears under each.
+export interface TranslationTarget {
+  resource: string
+  key: string
+}
+
 export interface TranslatorConfig {
   resource: string
   titles: Record<string, string>
-  highlightKey?: string
+  highlight?: TranslationTarget
   fetcher: () => Promise<ResourceTranslation[]>
   updater: (changes: ResourceTranslation[]) => Promise<void>
   keyPrettifier?: (key: string) => string
