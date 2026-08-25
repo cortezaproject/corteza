@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -280,7 +281,7 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 	now := time.Now()
 	systemPrompt := fmt.Sprintf("Current date and time: %s\n\n", now.Format("2006-01-02 15:04:05 MST")) + agent.Behavior.SystemPrompt
 	if agent.Behavior.InjectSystemContext {
-		systemPrompt = humanSystemContext + "\n\n" + systemPrompt
+		systemPrompt = systemContextFor(agent) + "\n\n" + systemPrompt
 	}
 	for _, t := range agent.Access.Tools {
 		if t.Description != "" {
@@ -1153,6 +1154,48 @@ func annotateToolResult(result any, toolName string, serialized []byte) string {
 			toolName, maxToolResultBytes)
 	}
 	return ""
+}
+
+// buildSection is the part of the platform context that tells an agent to
+// design and create data structures when asked. It is delimited in human.md so
+// it can be left out.
+var (
+	buildSection = regexp.MustCompile(`(?s)<!-- build:start -->.*?<!-- build:end -->\n*`)
+	buildMarker  = regexp.MustCompile(`<!-- build:(start|end) -->\n*`)
+)
+
+// systemContextFor returns the platform context an agent can actually act on.
+//
+// The build guidance says, in as many words, not to tell the user something
+// cannot be done when creating a namespace, module or record would do it. Given
+// to an agent with no tool that creates anything, that is an instruction to
+// attempt what the policy will refuse — the denial handler already has to argue
+// against it — and it dilutes the author's own prompt with a page the agent
+// cannot use.
+func systemContextFor(agent *types.Agent) string {
+	out := humanSystemContext
+	if agentCanBuild(agent) {
+		// Keep the section, drop the delimiters: they are for this function,
+		// not for the model.
+		out = buildMarker.ReplaceAllString(out, "")
+	} else {
+		out = buildSection.ReplaceAllString(out, "")
+	}
+
+	return strings.TrimRight(out, "\n") + "\n"
+}
+
+// agentCanBuild reports whether the agent holds any tool that creates something.
+func agentCanBuild(agent *types.Agent) bool {
+	if agent == nil {
+		return false
+	}
+	for _, t := range agent.Access.Tools {
+		if strings.HasSuffix(t.Name, "_create") {
+			return true
+		}
+	}
+	return false
 }
 
 func buildComposeContext(ctx context.Context, agent *types.Agent, resolver NsModResolver) string {
