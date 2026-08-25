@@ -16,117 +16,88 @@ server option that matters, with what breaks if you omit it).
 | Go            | 1.24+   | deps are vendored — no `go mod download`  |
 | Node          | 22+     | `engines` in the root `package.json`      |
 | pnpm          | 10+     | npm and yarn are refused                  |
-| PostgreSQL    | 14+     | or SQLite, see step 2                     |
+| PostgreSQL    | 14+     | or SQLite, see step 1                     |
 | python3, curl | any     | the agent toolkit uses them instead of jq |
 | jq            | any     | `make setup` installs it if it can        |
 
 Linux, macOS or WSL2. No submodules, nothing to `git clone --recursive`.
+`make setup` checks every row and says which are missing.
 
-## 1. Install
+## 1. Set it up
 
 ```sh
 make setup
 ```
 
-pnpm install, the playwright chromium browser, `client/web/unify/.env.e2e` from
-its example, and jq if it is missing.
+Idempotent, and it never edits a file you already have — anything it finds, it
+checks and leaves alone. What it does:
 
-## 2. Create the database
+| does                                | detail                                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| dependencies                        | `pnpm install`, the playwright chromium browser, jq                                   |
+| `server/.env`                       | from `.env.min.example`, with a pinned `AUTH_JWT_SECRET`                              |
+| `client/web/unify/public/config.js` | `window.HumanAPI` pointed at this checkout's own API port                             |
+| `client/web/unify/.env.e2e`         | base URL, and `agent@local.dev` as the test login                                     |
+| the database                        | creates the role and database in `DB_DSN`, or prints the two commands to run yourself |
 
-Postgres is what the team runs. Create the database; the server creates its own
-tables on first boot.
+All three files are gitignored. `server/.env.min.example` is short and explains
+every value in it; the ones `make setup` will not let you get wrong are
+`ENVIRONMENT=dev` (anything else is production, and the server then refuses to
+provision super users), `DOMAIN` agreeing with `HTTP_ADDR` (a mismatch gives you
+logins that appear to work and then bounce), `HTTP_API_BASE_URL=/api` (both
+`dev/agent/*` and the webapp assume it), and `AUTH_REQUEST_RATE_LIMIT=0`
+(a playwright run trips the default per-IP limit and fails on blank 429 pages).
 
-```sh
-sudo -u postgres createuser -P human      # password: human
-sudo -u postgres createdb -O human human
-```
-
-SQLite works too if you want zero infrastructure — see the commented `DB_DSN` in
-`server/.env.min.example`. With **no** `DB_DSN` at all the server still boots,
-on an in-memory database that vanishes on restart: fine for a smoke test, no
-good for development.
-
-## 3. `server/.env`
-
-```sh
-cd server && cp .env.min.example .env
-```
-
-Read it — it is short and it explains each value. Three lines decide whether the
-rest of this guide works:
-
-- **`ENVIRONMENT=dev`** — anything else is treated as production, and the server
-  then refuses to provision super users. Without it `dev/agent/bootstrap.sh`
-  cannot create its user and the agent toolkit can never authenticate.
-- **`DOMAIN` must agree with `HTTP_ADDR`** — it goes into generated links,
-  cookies and OAuth redirects, so a mismatch gives you logins that appear to
-  work and then bounce.
-- **`HTTP_API_BASE_URL=/api`** — `dev/agent/*` and the webapp both assume it.
-
-Add two more that the minimal file leaves out:
+With **no** `DB_DSN` at all the server still boots, on an in-memory database
+that vanishes on restart: fine for a smoke test, no good for development.
+SQLite works too — see the commented `DB_DSN` in `server/.env.min.example`.
 
 ```sh
-# your own login: the password is the email address itself
-AUTH_PROVISION_SUPER_USER=you@example.tld
-
-# every fresh browser context does an oauth roundtrip; the default 60/min
-# per-IP limit fails a playwright run in a way that looks like a crashed server
-AUTH_REQUEST_RATE_LIMIT=0
+make doctor
 ```
 
-The super user is created on boot, gets every bypass role, and is skipped if the
-email or handle already exists.
+is every check `make setup` makes, writing nothing, and non-zero when something
+is off. Run it when the stack behaves as though it is talking to the wrong
+thing.
 
-## 4. `client/web/unify/public/config.js`
-
-**`make setup` does not create this one, and the webapp cannot reach the API
-without it.**
-
-```sh
-cd client/web/unify && cp public/config.example.js public/config.js
-```
-
-Then point it at the local server:
-
-```js
-window.HumanAPI = 'http://localhost:1043/api'
-```
-
-`public/config.js` is gitignored, as is `.env.e2e`. `client/web/unify/.env` is
-tracked and needs no edit.
-
-## 5. Start the stack
+## 2. Start the stack, and make yourself a login
 
 Two long-running processes:
 
 ```sh
-cd server && make watch            # API on :1043, gin live-reload
-cd client/web/unify && pnpm dev    # webapp on :5173
+cd server && make watch            # API + gin live-reload
+cd client/web/unify && pnpm dev    # webapp
 ```
 
 `make dev-all` from the repo root starts both under one trap if you prefer a
-single terminal.
+single terminal. First boot takes a while — a Go build plus schema creation.
 
-First boot takes a while — a Go build plus schema creation. Then open
-http://localhost:5173 and log in as the super user from step 3 (password = the
-email address).
+Then open the webapp and **sign up**. The first non-system user in the database
+is auto-promoted to super-administrator (`system/service/auth.go`, `autoPromote`),
+and step 3 is about to create `agent@local.dev`, which would take that slot. For
+a login made later:
+
+```sh
+cd server && ./build/gin-bin --env-file .env roles useradd super-admin you@example.tld
+```
 
 Two things about `make watch` worth knowing before they confuse you: gin builds
-on the **first request** to its proxy, so `curl -s localhost:1043/api/` before
+on the **first request** to its proxy, so `curl -s localhost:3001/api/` before
 believing any check; and it never respawns on its own once the webapp bypasses
 its proxy, so a Go change needs a touched `.go` file and ~15s.
 
-## 6. Provision the agent identities
+## 3. Provision the agent identities
 
 With the server up:
 
 ```sh
-dev/agent/bootstrap.sh   # idempotent, self-healing
-dev/agent/smoke.sh       # server up? token? who am I? authed call?
+make setup-agent
 ```
 
-`bootstrap.sh` creates the `dev_agent` client-credentials auth client and three
-identities. They are not interchangeable:
+`dev/agent/bootstrap.sh` (idempotent, self-healing), then `E2E_PASS` written
+into `.env.e2e`, then `dev/agent/smoke.sh`. It creates the `dev_agent`
+client-credentials auth client and two identities, which are not
+interchangeable:
 
 | identity             | credential                           | reached by                                                                                                                  |
 | -------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
@@ -150,17 +121,7 @@ Both password files live under `dev/agent/.state/` and are gitignored.
 It distinguishes "server down" from "token stale" from "your call is wrong",
 which otherwise look identical.
 
-## 7. Finish `.env.e2e`
-
-`make setup` copied the example; fill it from the password step 6 just set:
-
-```sh
-E2E_BASE_URL=http://localhost:5173
-E2E_USER=agent@local.dev
-E2E_PASS=<contents of dev/agent/.state/ui-password>
-```
-
-## 8. Launch Claude Code
+## 4. Launch Claude Code
 
 The `human` MCP server needs a token exported **before** Claude Code starts:
 
@@ -275,10 +236,18 @@ dev/agent/worktree.sh gc           # find leftovers; --reap removes them
 ```
 
 `new` writes that slot's `server/.env`, `public/config.js` and `.env.e2e` for
-you — steps 3, 4 and 7 are a one-time cost for the primary checkout only. Ports
-derive from the slot (API `1043+slot*100`, vite `5173+slot`), the primary is
-slot 0, and nothing cleans itself up when a terminal closes: only `rm` and
-`land` remove anything.
+you, so a worktree needs no `make setup`. Ports derive from the slot (API
+`1043+slot*100`, gin `3001+slot*100`, vite `5173+slot`), the primary is slot 0,
+and nothing cleans itself up when a terminal closes: only `rm` and `land`
+remove anything.
+
+Every script reads those files rather than a literal, so a call made inside a
+worktree reaches that worktree — `dev/agent/stack.sh` is the one resolver, and
+printing it is the fastest way to see which stack a checkout is pointed at:
+
+```sh
+dev/agent/stack.sh    # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP · HUMAN_GIN
+```
 
 ## The gotchas that cost the most time
 
@@ -296,6 +265,9 @@ slot 0, and nothing cleans itself up when a terminal closes: only `rm` and
   your edit and finished after it. `touch` the file and re-check.
 - **Never start, stop or restart the dev servers yourself** — report the need
   and let the human relaunch.
+- **A checkout answers for its own stack.** `dev/agent/stack.sh` resolves the
+  API and webapp from this checkout's `server/.env` and `.env.e2e`; exporting
+  `HUMAN_API` still overrides it. Nothing needs the port typed in any more.
 - **Clean up what you created and only that.** `cleanup.sh` deletes what this
   session's ledger (`dev/agent/.state/created.jsonl`) holds. Data the session
   did not create is off-limits whatever it is called.
