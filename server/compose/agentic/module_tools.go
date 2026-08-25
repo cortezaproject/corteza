@@ -54,7 +54,10 @@ func (h *moduleHandler) register() {
 			mcp.WithString("module", mcp.Description("Module name, handle, or ID (as string to prevent precision loss). Omit to list all modules in the namespace.")),
 			mcp.WithString("limit", mcp.Description("Maximum modules to return when listing, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),
-			hmcp.InGroup(hmcp.GroupConfiguring),
+			// Reading a definition is what a data agent does before it can read the
+			// data: a "usage" grant that cannot see a module has no way to name one
+			// or to interpret the values it gets back. Writing one stays configuring.
+			hmcp.InGroup(hmcp.GroupConfiguring, hmcp.GroupUsage),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
 		"Lookup module",
