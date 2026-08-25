@@ -2582,20 +2582,35 @@ func loadRecordScoped(ctx context.Context, s store.Storer, namespaceID, moduleID
 func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string, deleted filter.State) (pp dal.Pipeline, _ *dal.Aggregate, err error) {
 	// Map dimension to the aggregate group
 	// @note we only ever used a single dimension so this is ok
+	//
+	// No dimension is not a grouping by nothing — it is one row for the whole
+	// set, which is what a plain "what does this add up to" asks for. Building
+	// the group unconditionally put an empty expression in the GROUP BY and the
+	// query failed, so the simplest aggregate there is was the one that could
+	// not be run.
+	var (
+		dim []dal.AggregateAttr
+		oo  filter.SortExprSet
+	)
+
 	auxDim := dal.AggregateAttr{
 		Identifier: "dimension_0",
 		RawExpr:    dimensions,
 		Key:        true,
 	}
 
-	ff := m.Fields.FindByName(dimensions)
-	if ff != nil {
+	if dimensions == "" {
+		// The DAL requires a group, so an ungrouped report groups by a constant
+		// instead: one bucket holding everything, which is the same answer.
+		auxDim.RawExpr = "'*'"
+		auxDim.Type = &dal.TypeText{}
+	} else if ff := m.Fields.FindByName(dimensions); ff != nil {
 		auxDim.MultiValue = ff.Multi
 		auxDim.Label = ff.Label
 	}
 
-	dim := []dal.AggregateAttr{auxDim}
-	oo := filter.SortExprSet{{Column: dim[0].Identifier}}
+	dim = []dal.AggregateAttr{auxDim}
+	oo = filter.SortExprSet{{Column: auxDim.Identifier}}
 
 	// Map metrics to the aggregate attrs
 	// - count is always present

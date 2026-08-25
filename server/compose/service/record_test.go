@@ -1069,6 +1069,31 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].RawExpr)
 	})
 
+	// "What does this add up to" names no dimension, and the group was built
+	// from it unconditionally — so the plainest report there is put an empty
+	// expression in the GROUP BY and answered HTTP 500. The DAL requires a
+	// group, so one bucket holding everything stands in for none.
+	t.Run("no dimension groups everything into one bucket", func(t *testing.T) {
+		pp, agg, err := recordReportToDalPipeline(mod, "SUM(total) AS total", "", "", filter.StateExcluded)
+		require.NoError(t, err)
+
+		require.Len(t, agg.Group, 1, "the DAL refuses an aggregate with no group at all")
+		require.Equal(t, "dimension_0", agg.Group[0].Identifier)
+		require.NotEmpty(t, agg.Group[0].RawExpr, "an empty expression is what produced the 500")
+		require.NotContains(t, agg.Group[0].RawExpr, "created_at")
+
+		// Ordering by the dimension is still valid — it is a real output column.
+		require.Len(t, pp, 2)
+	})
+
+	t.Run("a dimension is still grouped by that field", func(t *testing.T) {
+		_, agg, err := recordReportToDalPipeline(mod, "SUM(total)", "created_at", "", filter.StateExcluded)
+		require.NoError(t, err)
+
+		require.Len(t, agg.Group, 1)
+		require.Equal(t, "created_at", agg.Group[0].RawExpr)
+	})
+
 	// A report cannot reach deleted records through its filter: the datasource
 	// drops them before the filter is applied. The caller's state is the only
 	// way to count them, so it has to reach the datasource unchanged.
