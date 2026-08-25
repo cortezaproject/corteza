@@ -335,10 +335,16 @@
       />
     </div>
 
-    <!-- No module configured -->
+    <!-- No module configured, or one that cannot be resolved. The two read the
+         same from `recordListModule` and mean opposite things to whoever has to
+         fix it, so they are told apart here. -->
     <div v-if="!recordListModule" class="flex items-center justify-center flex-1 p-4">
       <span class="text-muted italic">
-        {{ $t('block.recordList.noModule') }}
+        {{
+          options.moduleID && options.moduleID !== '0'
+            ? $t('block.recordList.moduleMissing')
+            : $t('block.recordList.noModule')
+        }}
       </span>
     </div>
 

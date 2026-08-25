@@ -1001,6 +1001,8 @@ recordList:
   moduleFootnote: Modules without a {0} can only be used in a record list as an inline editor
   modulePlaceholder: Select a module
   noModule: No module selected
+  moduleMissing: This block is set to a module that could not be found. It may have been deleted, or
+    it may belong to a different namespace.
   noRecords: There are no records matching your request
   noRecordContext:
     This record list has a prefilter that reads values from the page record, so it can
