@@ -853,7 +853,6 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const $AutomationAPI = inject('$AutomationAPI')
-const $ComposeAPI = inject('$ComposeAPI')
 const agentStore = useAgentStore()
 const namespaceStore = useNamespaceStore()
 const moduleStore = useModuleStore()
@@ -1452,7 +1451,7 @@ function resolveToolAllowResources() {
         for (const modID of rule.moduleIDs) {
           if (!resolvedModNames.value[modID]) {
             moduleStore
-              .findByID($ComposeAPI, {
+              .findByID({
                 namespaceID: String(rule.namespaceID),
                 moduleID: String(modID),
               })
