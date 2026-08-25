@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"strconv"
 
 	"github.com/crusttech/human/server/pkg/label"
@@ -49,7 +50,7 @@ func (svc *chatbot) onCreate(ctx context.Context, new *types.Chatbot) (err error
 	new.ID = nextID()
 	new.CreatedAt = *now()
 
-	if err = prepareChatbotOnCreate(new); err != nil {
+	if err = prepareChatbotOnCreate(ctx, svc.store, new); err != nil {
 		return
 	}
 
@@ -79,7 +80,7 @@ func (svc *chatbot) onUpdate(ctx context.Context, s store.Storer, upd, c *types.
 	// (otherwise it would vanish from the project-scoped resource graph).
 	upd.ProjectID = c.ProjectID
 
-	if err := prepareChatbotOnUpdate(upd, c); err != nil {
+	if err := prepareChatbotOnUpdate(ctx, s, upd, c); err != nil {
 		return err
 	}
 
@@ -201,8 +202,8 @@ func (svc *chatbot) onSearch(ctx context.Context, filter types.ChatbotFilter, aP
 	return set, f, nil
 }
 
-func prepareChatbotOnCreate(c *types.Chatbot) error {
-	if err := validateChatbotScenarios(c.Scenarios); err != nil {
+func prepareChatbotOnCreate(ctx context.Context, s store.Storer, c *types.Chatbot) error {
+	if err := validateChatbotScenarios(ctx, s, c.Scenarios); err != nil {
 		return err
 	}
 	if c.WidgetKey == "" {
@@ -215,8 +216,8 @@ func prepareChatbotOnCreate(c *types.Chatbot) error {
 	return nil
 }
 
-func prepareChatbotOnUpdate(upd, existing *types.Chatbot) error {
-	if err := validateChatbotScenarios(upd.Scenarios); err != nil {
+func prepareChatbotOnUpdate(ctx context.Context, s store.Storer, upd, existing *types.Chatbot) error {
+	if err := validateChatbotScenarios(ctx, s, upd.Scenarios); err != nil {
 		return err
 	}
 	if upd.WidgetKey == "" {
@@ -232,12 +233,36 @@ func prepareChatbotOnUpdate(upd, existing *types.Chatbot) error {
 	return nil
 }
 
-func validateChatbotScenarios(ss types.ChatbotScenarios) error {
-	for _, s := range ss {
-		if s.Type == "conversation" && s.AgentID == 0 {
+// validateChatbotScenarios rejects a conversation scenario that has no agent to
+// hand the visitor to.
+//
+// The agent is resolved when a visitor first writes, not when the chatbot is
+// saved, so a scenario naming an agent that was never created or has since been
+// deleted looks entirely healthy in the admin list and fails the conversation
+// in front of whoever is using it.
+func validateChatbotScenarios(ctx context.Context, s store.Storer, ss types.ChatbotScenarios) error {
+	for _, sc := range ss {
+		if sc.Type != "conversation" {
+			continue
+		}
+
+		if sc.AgentID == 0 {
 			return ChatbotErrConversationScenarioMissingAgent()
 		}
+
+		a, err := store.LookupAgentByID(ctx, s, sc.AgentID)
+		if err != nil || a == nil {
+			return fmt.Errorf(
+				"scenario %q names agent %d, which does not exist — a conversation scenario is resolved when a visitor writes, so this fails in front of them rather than here",
+				sc.ID, sc.AgentID,
+			)
+		}
+
+		if a.DeletedAt != nil {
+			return fmt.Errorf("scenario %q names agent %d, which is deleted", sc.ID, sc.AgentID)
+		}
 	}
+
 	return nil
 }
 
