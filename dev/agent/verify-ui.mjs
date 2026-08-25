@@ -160,14 +160,32 @@ const PAGE_REPORT = () => {
         xywh: null,
       }))
 
+  // Ink on a block's canvases. A Chart block that drew nothing still carries
+  // its title as text, so the text-emptiness check can never see it.
+  const inkOf = root =>
+    [...root.querySelectorAll('canvas')].map(c => {
+      if (!c.width || !c.height) return 0
+      try {
+        const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data
+        let ink = 0
+        for (let i = 3; i < d.length; i += 4 * 16) if (d[i] > 8) ink++
+        return ink
+      } catch {
+        return -1 // tainted canvas; unknowable, so never reported as blank
+      }
+    })
+
   const blocks = boxes
     .filter(b => b.content)
     .map(b => {
-      const text = (b.content.innerText || '').trim()
+      // textContent, not innerText: innerText is layout-dependent and returns
+      // only the visible part of a subtree, so a clipped block can read empty
+      const text = (b.content.textContent || '').trim()
       return {
         xywh: b.xywh,
-        label: text.split('\n')[0].slice(0, 38),
+        label: (b.content.innerText || text).trim().split('\n')[0].slice(0, 38),
         empty: !text,
+        ink: inkOf(b.content),
         ...measure(b.content),
       }
     })
@@ -183,6 +201,40 @@ const PAGE_REPORT = () => {
     if (t.includes('${')) templates.add(t.slice(0, 60))
   }
   return { blocks, rawIds: [...rawIds].slice(0, 6), templates: [...templates].slice(0, 4) }
+}
+
+// A fixed wait cannot cover a cold vite load, a records fetch and a chart.js
+// render at once — charts came back blank often enough to make an OK verdict
+// worthless. Poll the canvases until their ink stops changing instead, so the
+// report describes a settled page rather than whatever was on screen at 1.5s.
+const settleCanvases = async () => {
+  const signature = () =>
+    page
+      .evaluate(() =>
+        [...document.querySelectorAll('canvas')]
+          .map(c => {
+            if (!c.width || !c.height) return '0'
+            try {
+              const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data
+              let ink = 0
+              for (let i = 3; i < d.length; i += 4 * 16) if (d[i] > 8) ink++
+              return String(ink)
+            } catch {
+              return 'x'
+            }
+          })
+          .join('|'),
+      )
+      .catch(() => '')
+
+  let prev = await signature()
+  if (prev === '') return // no canvases on this page
+  for (let i = 0; i < 12; i++) {
+    await page.waitForTimeout(400)
+    const now = await signature()
+    if (now === prev) return
+    prev = now
+  }
 }
 
 // fullPage stops at the viewport because compose scrolls an inner container,
@@ -239,6 +291,7 @@ for (const p of paths) {
     )
   }
 
+  await settleCanvases()
   const report = await page.evaluate(PAGE_REPORT).catch(() => null)
   const height = await fitViewport()
   const shot = join(outDir, p.replace(/[^a-z0-9-]+/gi, '_').replace(/^_+|_+$/g, '') + '.png')
@@ -265,6 +318,8 @@ for (const p of paths) {
         `columns cut off ${where} "${name}" — ${b.lost.h}px hidden; ` +
           `drop a field or widen the block`,
       )
+    if (b.ink.length && b.ink.every(i => i === 0))
+      findings.push(`blank canvas ${where} "${name}" — a chart block that drew nothing`)
     if (b.listScroll.v > 8)
       notes.push(`${where} "${name}" scrolls internally (list longer than the block)`)
   }
@@ -280,11 +335,19 @@ for (const p of paths) {
   notes.forEach(x => console.log(`      note: ${x}`))
   if (report) {
     const n = report.blocks.length
-    console.log(
-      `      ${n} block${n === 1 ? '' : 's'} rendered` +
-        (findings.length ? '' : ', none clipped or empty') +
-        `; captured ${height}px`,
-    )
+    if (!n) {
+      // No compose blocks here (a TAQ builder, an admin screen). Saying
+      // "none clipped or empty" over one would be a health verdict drawn from
+      // an empty inspection — reassuring, and true of a visibly broken page.
+      console.log(`      no compose blocks on this path — nothing the report can judge`)
+      console.log(`      read the screenshot; this check cannot vouch for it`)
+    } else {
+      console.log(
+        `      ${n} block${n === 1 ? '' : 's'} rendered` +
+          (findings.length ? '' : ', none clipped or empty') +
+          `; captured ${height}px`,
+      )
+    }
   }
   console.log(`      screenshot: ${shot}`)
 }
