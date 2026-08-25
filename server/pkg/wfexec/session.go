@@ -108,6 +108,9 @@ type (
 		// Helps with gateway join/merge steps
 		// that needs info about the step it's currently merging
 		Parent Step
+
+		// variables written on this path since it branched off
+		dirty map[string]bool
 	}
 
 	SessionStatus int
@@ -721,10 +724,13 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 				zap.Error(st.err),
 			)
 
-			err = setErrorHandlerResultsToScope(scope, st.errHandlerResults, st.err, st.step.ID())
+			var written []string
+			written, err = setErrorHandlerResultsToScope(scope, st.errHandlerResults, st.err, st.step.ID())
 			if err != nil {
 				return nil, err
 			}
+
+			st.markDirtyNames(written...)
 
 			// copy error handler & disable it on state to prevent inf. loop
 			// in case of another error in the error-handling branch
@@ -760,6 +766,14 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 			// most common (successful) result
 			// session will continue with configured child steps
 			st.results = result
+			st.markDirty(st.results)
+			scope = scope.MustMerge(st.results)
+
+		case *joined:
+			// parallel paths merged back into one
+			st.action = "joined"
+			st.results = result.scope
+			st.markDirtyNames(result.changed...)
 			scope = scope.MustMerge(st.results)
 
 		case *errHandler:
@@ -886,14 +900,19 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 	nxt = make([]*State, len(st.next))
 	for i, step := range st.next {
 		// for parallel execution, clone scope for each path
-		var stepScope *expr.Vars
+		var (
+			stepScope *expr.Vars
+			nn        *State
+		)
+
 		if len(st.next) > 1 {
 			stepScope = scope.MustMerge()
+			nn = st.NextBranch(step, stepScope)
 		} else {
 			stepScope = scope
+			nn = st.Next(step, stepScope)
 		}
 
-		nn := st.Next(step, stepScope)
 		if err = s.canEnqueue(nn); err != nil {
 			log.Error("unable to queue", zap.Error(err))
 			return
@@ -993,7 +1012,7 @@ func GetContextCallStack(ctx context.Context) []uint64 {
 	return v.([]uint64)
 }
 
-func setErrorHandlerResultsToScope(scope *expr.Vars, result *expr.Vars, e error, stepID uint64) (err error) {
+func setErrorHandlerResultsToScope(scope *expr.Vars, result *expr.Vars, e error, stepID uint64) (written []string, err error) {
 	var (
 		ehr = struct {
 			Error        string `json:"error"`
@@ -1009,12 +1028,15 @@ func setErrorHandlerResultsToScope(scope *expr.Vars, result *expr.Vars, e error,
 
 	if len(ehr.Error) > 0 {
 		_ = expr.Assign(scope, ehr.Error, expr.Must(expr.NewAny(e)))
+		written = append(written, ehr.Error)
 	}
 	if len(ehr.ErrorMessage) > 0 {
 		_ = expr.Assign(scope, ehr.ErrorMessage, expr.Must(expr.NewString(e.Error())))
+		written = append(written, ehr.ErrorMessage)
 	}
 	if len(ehr.ErrorStepID) > 0 {
 		_ = expr.Assign(scope, ehr.ErrorStepID, expr.Must(expr.NewInteger(stepID)))
+		written = append(written, ehr.ErrorStepID)
 	}
 
 	return

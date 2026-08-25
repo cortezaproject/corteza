@@ -42,6 +42,91 @@ workflows:
       - { parentID: 13, childID: 14 }
       - { parentID: 14, childID: 15 }
 
+  # 3a. variable created mid-branch in a non-first branch
+  join_new_var:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: gateway
+        ref: fork
+
+      # branch A -> paths[0]
+      - stepID: 11
+        kind: expressions
+        arguments: [ { target: a, type: String, value: "A" } ]
+
+      # branch B: sets foo mid-branch, then does something else
+      - stepID: 12
+        kind: expressions
+        arguments: [ { target: foo, type: String, value: "fromB" } ]
+      - stepID: 13
+        kind: expressions
+        arguments: [ { target: bLast, type: String, value: "last" } ]
+
+      - stepID: 14
+        kind: gateway
+        ref: join
+      - stepID: 15
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 10, childID: 12 }
+      - { parentID: 12, childID: 13 }
+      - { parentID: 11, childID: 14 }
+      - { parentID: 13, childID: 14 }
+      - { parentID: 14, childID: 15 }
+
+  # 3b. variable that already existed before the fork, changed mid-branch
+  join_existing_var:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 9
+
+    steps:
+      - stepID: 9
+        kind: expressions
+        arguments: [ { target: foo, type: String, value: "base" } ]
+
+      - stepID: 10
+        kind: gateway
+        ref: fork
+
+      # branch A -> paths[0], never touches foo
+      - stepID: 11
+        kind: expressions
+        arguments: [ { target: a, type: String, value: "A" } ]
+
+      # branch B changes foo mid-branch
+      - stepID: 12
+        kind: expressions
+        arguments: [ { target: foo, type: String, value: "fromB" } ]
+      - stepID: 13
+        kind: expressions
+        arguments: [ { target: bLast, type: String, value: "last" } ]
+
+      - stepID: 14
+        kind: gateway
+        ref: join
+      - stepID: 15
+        kind: termination
+
+    paths:
+      - { parentID: 9, childID: 10 }
+      - { parentID: 10, childID: 11 }
+      - { parentID: 10, childID: 12 }
+      - { parentID: 12, childID: 13 }
+      - { parentID: 11, childID: 14 }
+      - { parentID: 13, childID: 14 }
+      - { parentID: 14, childID: 15 }
+
   # 2. error handler registered, then a normal step runs before the error
   errhandler_after_step:
     enabled: true
