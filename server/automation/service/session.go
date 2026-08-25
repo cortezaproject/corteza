@@ -485,7 +485,9 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			frame *wfexec.Frame
 		)
 
-		if state != nil {
+		// building a frame deep-copies the whole scope, so only do it when
+		// the frames are going to be kept
+		if state != nil && svc.opt.StackTraceEnabled {
 			frame = state.MakeFrame()
 			// Stacktrace will be set to !nil if frame collection is needed
 			if len(ses.RuntimeStacktrace) > 0 {

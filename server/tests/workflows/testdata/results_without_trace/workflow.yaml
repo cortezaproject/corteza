@@ -1,0 +1,23 @@
+workflows:
+  testing:
+    enabled: true
+    trace: false
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: function
+        ref: remindersSearch
+        arguments:
+          - { target: incTotal, type: Boolean, value: "true" }
+        results:
+          - { target: total, expr: total }
+          - { target: found, expr: "length(reminders)" }
+
+      - stepID: 11
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11 }
