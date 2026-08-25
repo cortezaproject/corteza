@@ -17,6 +17,7 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
 import { useTranslatorStore, type TranslationTarget } from '@/sections/compose/stores/translator'
+import { compose } from '@planetcrust/human-js'
 import { applyPageTranslations, pageKeyLabel } from '@/sections/compose/lib/resource-translations'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 
@@ -107,7 +108,12 @@ async function updater(changes: any[]) {
   const updatedPage = JSON.parse(JSON.stringify(props.page))
   const updatedLayouts = JSON.parse(JSON.stringify(props.layouts || []))
   applyPageTranslations(updatedPage, updatedLayouts, fresh, currentLanguage.value)
-  emit('update:page', updatedPage)
-  emit('update:layouts', updatedLayouts)
+  // Reconstructed rather than handed back as the plain clones they were applied
+  // to: an editor holds the typed resource, not a copy of its data.
+  emit('update:page', new compose.Page(updatedPage))
+  emit(
+    'update:layouts',
+    updatedLayouts.map((l: any) => new compose.PageLayout(l)),
+  )
 }
 </script>

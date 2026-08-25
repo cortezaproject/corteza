@@ -13,6 +13,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { compose } from '@planetcrust/human-js'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
 import { applyNamespaceTranslations } from '@/sections/compose/lib/resource-translations'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
@@ -56,6 +57,6 @@ async function updater(changes: any[]) {
   })
   const updated = JSON.parse(JSON.stringify(props.namespace))
   applyNamespaceTranslations(updated, fresh, currentLanguage.value)
-  emit('update:namespace', updated)
+  emit('update:namespace', new compose.Namespace(updated))
 }
 </script>

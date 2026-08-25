@@ -597,9 +597,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/components/Admin/Chart/ChartTranslator.vue": {
-      "h": "44857dd9654c",
+      "h": "2e6ea4af1dcd",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/components/Admin/Module/DalFieldStoreEncoding.vue": {
       "h": "0bce09d7a5a3",
@@ -642,7 +642,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Admin/Module/ModuleTranslator.vue": {
-      "h": "b8653fc4d032",
+      "h": "4d440097687e",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
       "t": "2026-08-25"
     },
@@ -657,7 +657,12 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Admin/Page/PageTranslator.vue": {
-      "h": "dcdadb278c99",
+      "h": "82dcbc02142b",
+      "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
+      "t": "2026-08-25"
+    },
+    "client/web/unify/src/sections/compose/components/Admin/translator-emits.test.ts": {
+      "h": "50277da2e17a",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
       "t": "2026-08-25"
     },
@@ -802,9 +807,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Namespaces/NamespaceTranslator.vue": {
-      "h": "3cdb90cdb094",
+      "h": "a19d7cffae38",
       "doc": "client/web/unify/src/sections/compose/components/Namespaces/Namespaces.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/AgentChatBlock.vue": {
       "h": "be305d715139",

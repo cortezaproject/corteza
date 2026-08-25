@@ -48,3 +48,7 @@ the default, write only what the user picks. The two exceptions own their own wr
 by having their own action buttons: FederationSettings (its Save) and
 DalSchemaAlterations (apply/dismiss). Translator wrappers are the pattern to copy for a new
 translatable compose resource — the shared Translator family defines the contract.
+A wrapper's `update:*` emit must carry the **typed** resource, not the plain clone
+or raw read it applied the translation to: the editor on the other end holds a
+`compose.*` and calls its methods (`module.systemFields()`), and a raw chart read
+has no `yAxis` for the report editor to bind.

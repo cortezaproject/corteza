@@ -14,6 +14,7 @@
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
+import { chartConstructor } from '@/sections/compose/lib/charts'
 
 const props = defineProps<{
   chart: any
@@ -53,11 +54,13 @@ async function updater(changes: any[]) {
     chartID: props.chart.chartID,
     translations: changes,
   })
-  // Re-fetch the chart so backend-applied translations (nested config labels) are reflected
+  // Re-fetch the chart: the server applies the translation to the nested config
+  // labels on read. It comes back raw, and a raw report has no `yAxis` at all,
+  // so it goes back through the same constructor the editor loads with.
   const fresh = await $ComposeAPI.chartRead({
     namespaceID: props.namespace.namespaceID,
     chartID: props.chart.chartID,
   })
-  emit('update:chart', fresh)
+  emit('update:chart', chartConstructor(fresh))
 }
 </script>

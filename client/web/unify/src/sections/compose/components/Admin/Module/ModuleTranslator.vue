@@ -14,6 +14,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { compose } from '@planetcrust/human-js'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
 import {
   applyModuleTranslations,
@@ -72,8 +73,10 @@ async function updater(changes: any[]) {
   })
   // Apply to module object so field labels update immediately for current language
   const fresh = await fetcher()
+  // Reconstructed, not handed back as the plain clone it was applied to: the
+  // editor holds a compose.Module and calls its methods.
   const updated = JSON.parse(JSON.stringify(props.module))
   applyModuleTranslations(updated, fresh, currentLanguage.value)
-  emit('update:module', updated)
+  emit('update:module', new compose.Module(updated))
 }
 </script>
