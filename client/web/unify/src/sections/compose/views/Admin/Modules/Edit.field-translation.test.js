@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 // A field row carries one translate button and it covers the whole field.
 // Select and Bool used to get a second, near-empty kebab menu beside it whose
@@ -25,10 +25,10 @@ vi.mock('primevue/useconfirm', () => ({ useConfirm: () => ({ require: vi.fn() })
 
 vi.mock('@/sections/compose/composables/useResourceTranslations', () => ({
   useResourceTranslations: () => ({
-    showTranslatorButton: { value: true },
-    currentLanguage: { value: 'en' },
-    resourceTranslationsEnabled: { value: true },
-    canManageResourceTranslations: { value: true },
+    showTranslatorButton: ref(true),
+    currentLanguage: ref('en'),
+    resourceTranslationsEnabled: ref(true),
+    canManageResourceTranslations: ref(true),
   }),
 }))
 

@@ -26,7 +26,7 @@ record-toolbar configuration. Blocks are the builder's job.
 
 - Title required, handle validated; save gated by `canUpdatePage`; unsaved guard covers both page and layout edits.
 - Icon dialog: upload to the shared icon library, pick from it, or use an external link; the choice persists via `pageUpdateIcon` on save.
-- Layouts (edit mode only): add/remove/drag-reorder rows, jump to the builder per layout; a config dialog edits title (`useTitle` turns that title into the page's own, interpolated — hence the `ƒ` affordance; `RecordView` renders it against the open record, `View` against the signed-in user), visibility expression + roles, record-toolbar button toggles, and custom actions (`toLayout` / `toURL` with placement/variant/open-in).
+- Layouts (edit mode only): add/remove/drag-reorder rows, jump to the builder per layout, and — behind the translator gate, once the layout is saved — open the page's translator aimed at that layout's row; a config dialog edits title (`useTitle` turns that title into the page's own, interpolated — hence the `ƒ` affordance; `RecordView` renders it against the open record, `View` against the signed-in user), visibility expression + roles, record-toolbar button toggles, and custom actions (`toLayout` / `toURL` with placement/variant/open-in).
 - Deleting a page with children forks into rebase (children move up) or cascade; leaf pages get a plain confirm.
 - Save-as-copy (non-record pages) clones the page and seeds a `primary` layout from its blocks; create auto-creates an empty `primary` layout then redirects to edit.
 - Layout persistence on save: removed layouts deleted first, new ones created, `_updated` ones updated, then reordered via `pageLayoutReorder` and re-fetched.

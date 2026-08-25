@@ -25,6 +25,7 @@
         @click="goToViewPage"
       />
       <PageTranslator
+        ref="pageTranslator"
         v-if="page && namespace"
         :page="page"
         :namespace="namespace"
@@ -201,6 +202,18 @@
                   size="small"
                   @input="item._updated = true"
                 />
+                <InputGroupAddon
+                  v-if="showTranslatorButton && item.pageLayoutID && item.pageLayoutID !== NoID"
+                >
+                  <Button
+                    v-tooltip.top="$t('page.page-layout.tooltip.translate')"
+                    icon="pi pi-language"
+                    severity="secondary"
+                    size="small"
+                    class="w-full border-none"
+                    @click="openLayoutTranslation(item)"
+                  />
+                </InputGroupAddon>
                 <InputGroupAddon>
                   <Button
                     v-tooltip.top="$t('page.page-layout.tooltip.configure')"
@@ -739,6 +752,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
 import PageTranslator from '@/sections/compose/components/Admin/Page/PageTranslator.vue'
+import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 
 const props = defineProps({
   namespace: {
@@ -750,6 +764,7 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const { showTranslatorButton } = useResourceTranslations()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 const pageStore = usePageStore()
@@ -829,6 +844,7 @@ const requiredFieldColumns = computed(() => [
   { label: t('page.page-layout.requiredFields.field'), width: 'minmax(160px, 1fr)' },
   { label: t('page.page-layout.requiredFields.condition'), width: 'minmax(220px, 1.6fr)' },
 ])
+const pageTranslator = ref(null)
 const layoutRowInputs = ref([])
 // The row a hint chip lands in. Starts at the first, so a chip clicked before
 // any title has been focused appends there rather than nowhere.
@@ -1104,6 +1120,16 @@ function removeLayout(index) {
     removedLayouts.value.push(layout)
   }
   layouts.value.splice(index, 1)
+}
+
+// The page's translations are one set covering the page, its blocks and every
+// layout, so a layout row opens that same dialog rather than one of its own —
+// aimed at the row it was clicked from.
+function openLayoutTranslation(layout) {
+  pageTranslator.value?.open({
+    resource: `compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`,
+    key: 'meta.title',
+  })
 }
 
 // ─── Layout Config Dialog ───────────────────────────────────────────────────

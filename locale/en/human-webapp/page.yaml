@@ -158,6 +158,7 @@ page-layout:
       condition: Using visibility conditions will impact performance
       requiredFields: Using required fields will impact performance
     title: Display title shown for this layout
+    translate: Translate this layout's title and buttons
   useTitle: Use layout title
   useTitleDescription: Show a custom title for this layout instead of the page title. The title
     may interpolate the signed-in user, and on a record page the record that is open.
