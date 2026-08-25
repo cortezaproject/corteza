@@ -3,6 +3,7 @@ package ledger
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -230,6 +231,7 @@ func (l *ledger) ListExecutions(ctx context.Context) ([]*types.Execution, error)
 		}
 	}
 
+	sortExecutions(out)
 	return out, nil
 }
 
@@ -249,7 +251,23 @@ func (l *ledger) ListExecutionsByExecutable(ctx context.Context, executableID id
 		}
 	}
 
+	sortExecutions(out)
 	return out, nil
+}
+
+// sortExecutions orders executions newest first. The store is a map, so
+// without this the caller gets Go's randomised iteration order and the same
+// list comes back differently on consecutive calls — which makes out[0] the
+// latest run only by chance, and sends anyone reading a trace to an arbitrary
+// execution. ID descending breaks ties, since IDs are monotonic and two
+// executions can share a timestamp.
+func sortExecutions(ee []*types.Execution) {
+	sort.Slice(ee, func(i, j int) bool {
+		if !ee[i].CreatedAt.Equal(ee[j].CreatedAt) {
+			return ee[i].CreatedAt.After(ee[j].CreatedAt)
+		}
+		return ee[i].ID.Num() > ee[j].ID.Num()
+	})
 }
 
 func isTerminal(s types.Status) bool {

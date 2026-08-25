@@ -237,7 +237,8 @@ func (h *taqHandler) register() {
 					"Use it to check whether a TAQ ran and whether it succeeded, then pass an executionID to "+
 					"automation_taq_execution_trace for the step-by-step detail of one run. "+
 					"Every retained execution of the TAQ is returned — the service takes no filter and no "+
-					"paging — so a heavily used TAQ can exceed the result size limit.",
+					"paging — so a heavily used TAQ can exceed the result size limit. "+
+					"Newest first, so the run you just caused is the first entry.",
 			),
 			mcp.WithString("taq", mcp.Required(), mcp.Description("TAQ ID as a string (to prevent precision loss), or handle.")),
 			hmcp.InGroup(hmcp.GroupUsage),
