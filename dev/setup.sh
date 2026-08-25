@@ -379,7 +379,7 @@ Ready. Launch Claude Code with 'make claude' — it mints the token the
 human-local MCP server needs, which .mcp.json cannot do for itself:
 
   make claude
-  make claude -- --dangerously-skip-permissions
+  make claude-yolo    # --dangerously-skip-permissions
 EOF
     ;;
 

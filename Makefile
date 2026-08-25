@@ -1,4 +1,4 @@
-.PHONY: e2e e2e-ui setup setup-agent doctor claude intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
+.PHONY: e2e e2e-ui setup setup-agent doctor claude claude-yolo intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
 WEB_APPS := unify
 
@@ -138,6 +138,10 @@ endif
 
 claude:
 	@dev/claude.sh $(CLAUDE_ARGS) $(ARGS)
+
+# The one flag common enough to be worth not typing `--` for.
+claude-yolo:
+	@dev/claude.sh --dangerously-skip-permissions $(ARGS)
 
 # E2E (Playwright) — needs the dev stack running and client/web/unify/.env.e2e filled.
 e2e:

@@ -125,7 +125,8 @@ which otherwise look identical.
 
 ```sh
 make claude
-make claude -- --dangerously-skip-permissions   # flags go after `--`
+make claude-yolo                                # --dangerously-skip-permissions
+make claude -- --model opus --verbose           # any other flags, after `--`
 ```
 
 Not `claude` directly: the launcher mints the token `human-local` needs, which
