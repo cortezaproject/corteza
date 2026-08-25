@@ -186,20 +186,22 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
 		} else {
 			valErr := &RecordValueErrorSet{}
 
-			rvvValueMap := make(map[string]*RecordValue)
-			_ = rvv.Walk(func(rv *RecordValue) error {
-				if len(rv.Value) > 0 {
-					rvvValueMap[rv.Value] = rv
-				}
-				return nil
-			})
-
 			_ = existingVv.Walk(func(v *RecordValue) error {
 				if v.RecordID == rec.ID {
 					return nil
 				}
 
-				if rv, exists := rvvValueMap[v.Value]; exists && matchValue(c.Modifier, rv.Value, v.Value) {
+				// Compare against each incoming value directly. Keying a map by
+				// the raw value and requiring a hit before consulting matchValue
+				// left the modifier unable to affect anything: an exact hit
+				// matches under every modifier, and any other pair never reached
+				// the comparison — so ignore-case, fuzzy-match and sounds-like
+				// only ever matched what case-sensitive already had.
+				for _, rv := range rvv {
+					if len(rv.Value) == 0 || !matchValue(c.Modifier, rv.Value, v.Value) {
+						continue
+					}
+
 					valErr.Push(RecordValueError{
 						Kind:    rule.IssueKind(),
 						Message: ls.T(ctx, "compose", rule.IssueMessage()),
@@ -211,6 +213,8 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
 							"rule":          rule.String(),
 						},
 					})
+
+					break
 				}
 
 				// 1. multiValue is empty, then all value needs to be a match then return error/warning
