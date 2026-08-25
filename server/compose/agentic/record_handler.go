@@ -195,13 +195,18 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
+	query := toolkit.Str(args, "filter")
+	if query, err = resolveRefPaths(ctx, mod, query); err != nil {
+		return nil, err
+	}
+
 	out, err := cmpService.DefaultRecord.Report(
 		ctx,
 		nsID,
 		modID,
 		metrics,
 		dimension,
-		toolkit.Str(args, "filter"),
+		query,
 		filter.StateExcluded,
 	)
 	if err != nil {
