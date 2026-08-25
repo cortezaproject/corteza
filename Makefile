@@ -1,4 +1,4 @@
-.PHONY: e2e e2e-ui setup setup-agent doctor intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
+.PHONY: e2e e2e-ui setup setup-agent doctor claude intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
 
 WEB_APPS := unify
 
@@ -119,6 +119,25 @@ setup-agent:
 # Every check `make setup` makes, writing nothing. Non-zero if something is off.
 doctor:
 	@dev/setup.sh --check
+
+# Launch Claude Code with a token for this checkout's Human MCP server.
+#
+# Flags go after `--`: make parses a bare `--flag` as its own option and dies
+# before the recipe runs, but after `--` it lands in MAKECMDGOALS instead. The
+# stub below is what stops make then trying to BUILD each flag as a target —
+# the same trick `tag` uses for its version argument.
+#
+#   make claude
+#   make claude -- --dangerously-skip-permissions
+#   make claude ARGS="--model opus"      # for a flag containing '=', which
+#                                        # make would read as an assignment
+ifeq (claude,$(firstword $(MAKECMDGOALS)))
+  CLAUDE_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(foreach a,$(CLAUDE_ARGS),$(eval $(a):;@:))
+endif
+
+claude:
+	@dev/claude.sh $(CLAUDE_ARGS) $(ARGS)
 
 # E2E (Playwright) — needs the dev stack running and client/web/unify/.env.e2e filled.
 e2e:

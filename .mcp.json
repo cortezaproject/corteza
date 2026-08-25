@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "human": {
+    "human-local": {
       "type": "http",
       "url": "http://localhost:1043/api/mcp",
       "headers": {
