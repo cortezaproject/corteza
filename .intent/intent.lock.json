@@ -642,9 +642,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/Admin/Module/ModuleTranslator.vue": {
-      "h": "e3d330bf8d73",
+      "h": "b8653fc4d032",
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/components/Admin/Module/RecordRevisionsSettings.vue": {
       "h": "c3ed5d2f52cb",
@@ -1126,6 +1126,11 @@
       "doc": "client/web/unify/src/sections/compose/composables/composables.intent.md",
       "t": "2026-08-13"
     },
+    "client/web/unify/src/sections/compose/composables/useResourceTranslations.test.ts": {
+      "h": "36c01034c1dd",
+      "doc": "client/web/unify/src/sections/compose/composables/composables.intent.md",
+      "t": "2026-08-25"
+    },
     "client/web/unify/src/sections/compose/composables/useResourceTranslations.ts": {
       "h": "e73627cab8a2",
       "doc": "client/web/unify/src/sections/compose/composables/composables.intent.md",
@@ -1156,10 +1161,15 @@
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-08-18"
     },
-    "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
-      "h": "8fe0c8509f9e",
+    "client/web/unify/src/sections/compose/lib/resource-translations.test.ts": {
+      "h": "c926e91fec02",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-25"
+    },
+    "client/web/unify/src/sections/compose/lib/resource-translations.ts": {
+      "h": "e9a2aaf2e6c3",
+      "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/routes.js": {
       "h": "4078ab3ba099",
@@ -1216,10 +1226,15 @@
       "doc": "client/web/unify/src/sections/compose/views/Admin/Charts/List.intent.md",
       "t": "2026-08-21"
     },
+    "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.field-translation.test.js": {
+      "h": "9b214a74c458",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Modules.intent.md",
+      "t": "2026-08-25"
+    },
     "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.vue": {
-      "h": "c7e11f0f813a",
+      "h": "840bab8a02e5",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Modules/Edit.intent.md",
-      "t": "2026-08-17"
+      "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/views/Admin/Modules/List.permissions.test.js": {
       "h": "8d93d48ec678",

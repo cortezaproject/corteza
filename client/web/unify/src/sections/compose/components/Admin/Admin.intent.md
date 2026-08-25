@@ -36,7 +36,7 @@ the shared Translator components.
 - Module/RecordRevisionsSettings.vue, DiscoverySettings.vue — feature toggles on module.config
 - Module/FederationSettings.vue — standalone field-mapping modal, shown only when the global `federation.enabled` setting is on; persists through `$FederationAPI` itself and never touches `module.config`
 - Module/ModuleIssues.vue, UniqueValues.vue — issue display and unique-value constraints
-- Module/ModuleTranslator.vue, Page/PageTranslator.vue, Chart/ChartTranslator.vue — per-resource CTranslatorButton wrappers: each supplies the resource ident, titles, fetcher and updater for its resource (the page variant also covers block-level keys and, via a `layouts` prop + `update:layouts` emit, page-layout keys)
+- Module/ModuleTranslator.vue, Page/PageTranslator.vue, Chart/ChartTranslator.vue — per-resource CTranslatorButton wrappers: each supplies the resource ident, titles, fetcher and updater for its resource (the module variant's set spans every field, so it also supplies a `keyPrettifier`; the page variant also covers block-level keys and, via a `layouts` prop + `update:layouts` emit, page-layout keys)
 
 ## When changing this
 

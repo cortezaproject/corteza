@@ -314,9 +314,7 @@ system:
   updatedAt: Updated at
   updatedBy: Updated by
 translate:
-  boolLabels: Translate labels
   label: Translate field
-  selectOptions: Translate options
 unselectAll: Unselect all
 validators:
   description: Set of expressions and error pairs that test validity of the input value

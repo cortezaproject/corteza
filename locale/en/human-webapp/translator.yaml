@@ -3,6 +3,16 @@ button:
   label: Translate
   tooltip: Manage translations
 key: Key
+keys:
+  bool-false: Label shown when unchecked
+  bool-true: Label shown when checked
+  description-edit: Description shown in edit mode
+  description-view: Description shown in view mode
+  hint-edit: Hint shown in edit mode
+  hint-view: Hint shown in view mode
+  label: Field label
+  option: 'Option: {value}'
+  validator-error: Validation error message
 languages: 'Languages:'
 missing: No translation
 missing-translation: Missing translation
@@ -11,8 +21,6 @@ resources:
     title: 'Chart: {handle}'
   module:
     field:
-      boolLabels: 'Bool labels: {name}'
-      selectOptions: 'Select options: {name}'
       title: 'Field: {name}'
     title: 'Module: {handle}'
   namespace:

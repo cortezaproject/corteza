@@ -6,6 +6,7 @@
     :titles="titles"
     :fetcher="fetcher"
     :updater="updater"
+    :key-prettifier="keyPrettifier"
     :disabled="disabled"
   />
 </template>
@@ -14,7 +15,10 @@
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CTranslatorButton from '@/sections/compose/components/Translator/CTranslatorButton.vue'
-import { applyModuleTranslations } from '@/sections/compose/lib/resource-translations'
+import {
+  applyModuleTranslations,
+  moduleFieldKeyLabel,
+} from '@/sections/compose/lib/resource-translations'
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 
 const props = defineProps<{
@@ -46,6 +50,12 @@ const titles = computed(() => {
   }
   return tt
 })
+
+// The set spans the module and every one of its fields; a field key reads as
+// its own name rather than the raw dotted path.
+function keyPrettifier(key: string): string {
+  return moduleFieldKeyLabel(key, t)
+}
 
 function fetcher() {
   return $ComposeAPI.moduleListTranslations({

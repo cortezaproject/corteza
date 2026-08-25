@@ -48,6 +48,8 @@ test in isolation.
   Owns the resource-ID string formats (`compose:module/{ns}/{mod}`,
   `compose:module-field/...`, `compose:page/...`, `compose:page-layout/...`,
   `compose:namespace/{ns}`) and the translation key names per entity.
+  `moduleFieldKeyLabel(key, t)` names one of those keys for display and returns
+  `''` for a key that is not a field's own.
 
 ## When changing this
 

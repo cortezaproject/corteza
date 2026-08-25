@@ -313,14 +313,6 @@
                           v-tooltip.top="$t('general.label.permissions')"
                           @click="openFieldPermissions(field)"
                         />
-                        <Button
-                          v-if="fieldActionsMenuItems(field, index).length"
-                          icon="pi pi-ellipsis-v"
-                          text
-                          severity="secondary"
-                          size="small"
-                          @click="showFieldActionsMenu($event, field, index)"
-                        />
                       </div>
                     </template>
 
@@ -360,9 +352,6 @@
                       </div>
                     </template>
                   </CFormList>
-
-                  <!-- One popup shared by every field row's actions button -->
-                  <Menu ref="fieldActionsMenuRef" :model="currentFieldMenuItems" popup />
                 </TabPanel>
 
                 <TabPanel value="dal" class="h-full overflow-y-auto">
@@ -465,6 +454,7 @@ import {
   applyFieldTranslations,
   applySelectTranslations,
   applyBoolTranslations,
+  moduleFieldKeyLabel,
 } from '@/sections/compose/lib/resource-translations'
 
 const { CInputDelete, CRouterLinkButton } = components
@@ -508,10 +498,6 @@ const creatingRecordListPage = ref(false)
 const configuratorVisible = ref(false)
 const activeConfiguratorField = ref(null)
 const activeConfiguratorFieldIndex = ref(-1)
-
-// Field row action menu
-const fieldActionsMenuRef = ref(null)
-const currentFieldMenuItems = ref([])
 
 // App State Defaults
 const $SystemAPI = inject('$SystemAPI')
@@ -619,7 +605,8 @@ const fieldFormListColumns = computed(() => [
     width: '6rem',
     headerClass: 'text-center',
   },
-  { width: '5rem' },
+  // Field permissions — the row's only action button.
+  { width: '3rem' },
 ])
 
 const systemFieldsForDisplay = computed(() => {
@@ -813,6 +800,8 @@ function onIssuesTabClick() {
   checkSchemaAlterations()
 }
 
+// One dialog per field, carrying every key that field has: label, descriptions,
+// hints, validator messages, and — by kind — its select options or bool labels.
 function openFieldTranslation(field) {
   const nsID = props.namespace.namespaceID
   const modID = module.value.moduleID
@@ -822,14 +811,11 @@ function openFieldTranslation(field) {
     titles: {
       [fieldRes]: t('translator.resources.module.field.title', { name: field.label || field.name }),
     },
+    keyPrettifier: key => moduleFieldKeyLabel(key, t),
     fetcher: () =>
       $ComposeAPI
         .moduleListTranslations({ namespaceID: nsID, moduleID: modID })
-        .then(set =>
-          set
-            .filter(tr => tr.resource === fieldRes)
-            .filter(tr => !tr.key.startsWith('meta.options') && !tr.key.startsWith('meta.bool')),
-        ),
+        .then(set => set.filter(tr => tr.resource === fieldRes)),
     updater: async changes => {
       await $ComposeAPI.moduleUpdateTranslations({
         namespaceID: nsID,
@@ -838,6 +824,12 @@ function openFieldTranslation(field) {
       })
       const fresh = await $ComposeAPI.moduleListTranslations({ namespaceID: nsID, moduleID: modID })
       applyFieldTranslations(field, fresh, currentLanguage.value, fieldRes)
+      if (field.kind === 'Select') {
+        applySelectTranslations(field, fresh, currentLanguage.value, fieldRes)
+      }
+      if (field.kind === 'Bool') {
+        applyBoolTranslations(field, fresh, currentLanguage.value, fieldRes)
+      }
     },
   })
 }
@@ -858,105 +850,6 @@ function openFieldPermissions(field) {
     resource: `corteza::compose:module-field/${module.value.namespaceID}/${module.value.moduleID}/${field.fieldID}`,
     title: field.label || field.name || field.fieldID,
   })
-}
-
-function fieldActionsMenuItems(field, index) {
-  if (!field || field.isSystem) return []
-
-  const items = []
-
-  if (showTranslatorButton.value && isEdit.value && field.fieldID && field.fieldID !== '0') {
-    const nsID = props.namespace.namespaceID
-    const modID = module.value.moduleID
-    const fieldRes = `compose:module-field/${nsID}/${modID}/${field.fieldID}`
-
-    if (field.kind === 'Select') {
-      items.push({
-        label: t('field.translate.selectOptions'),
-        icon: 'pi pi-language',
-        command: () => {
-          translatorStore.open({
-            resource: fieldRes,
-            titles: {
-              [fieldRes]: t('translator.resources.module.field.selectOptions', {
-                name: field.label || field.name,
-              }),
-            },
-            keyPrettifier: key => {
-              const match = key.match(/^meta\.options\.(.+)\.text$/)
-              return match ? match[1] : key
-            },
-            fetcher: () =>
-              $ComposeAPI
-                .moduleListTranslations({ namespaceID: nsID, moduleID: modID })
-                .then(set =>
-                  set
-                    .filter(tr => tr.resource === fieldRes)
-                    .filter(tr => tr.key.startsWith('meta.options') && tr.key.endsWith('.text')),
-                ),
-            updater: async changes => {
-              await $ComposeAPI.moduleUpdateTranslations({
-                namespaceID: nsID,
-                moduleID: modID,
-                translations: changes,
-              })
-              const fresh = await $ComposeAPI.moduleListTranslations({
-                namespaceID: nsID,
-                moduleID: modID,
-              })
-              applySelectTranslations(field, fresh, currentLanguage.value, fieldRes)
-            },
-          })
-        },
-      })
-    }
-
-    if (field.kind === 'Bool') {
-      items.push({
-        label: t('field.translate.boolLabels'),
-        icon: 'pi pi-language',
-        command: () => {
-          translatorStore.open({
-            resource: fieldRes,
-            titles: {
-              [fieldRes]: t('translator.resources.module.field.boolLabels', {
-                name: field.label || field.name,
-              }),
-            },
-            fetcher: () =>
-              $ComposeAPI
-                .moduleListTranslations({ namespaceID: nsID, moduleID: modID })
-                .then(set =>
-                  set
-                    .filter(tr => tr.resource === fieldRes)
-                    .filter(tr => tr.key.startsWith('meta.bool') && tr.key.endsWith('.label')),
-                ),
-            updater: async changes => {
-              await $ComposeAPI.moduleUpdateTranslations({
-                namespaceID: nsID,
-                moduleID: modID,
-                translations: changes,
-              })
-              const fresh = await $ComposeAPI.moduleListTranslations({
-                namespaceID: nsID,
-                moduleID: modID,
-              })
-              applyBoolTranslations(field, fresh, currentLanguage.value, fieldRes)
-            },
-          })
-        },
-      })
-    }
-  }
-
-  return items
-}
-
-// show() rather than toggle(): one popup serves every field row, so clicking a
-// second row's button must re-anchor and open there rather than close the first.
-function showFieldActionsMenu(event, field, index) {
-  currentFieldMenuItems.value = fieldActionsMenuItems(field, index)
-  fieldActionsMenuRef.value?.show(event, event.currentTarget)
 }
 
 function openFieldConfigurator(field, index) {

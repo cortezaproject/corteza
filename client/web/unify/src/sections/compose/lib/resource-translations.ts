@@ -206,3 +206,25 @@ export function applyPageTranslations(
     applyPageLayoutTranslations(layout, translations, lang)
   }
 }
+
+// Human-readable name for one of a module field's translation keys. Returns ''
+// for anything that is not a field key (a module's own `name`, say) so the
+// translator falls back to its generic key formatting.
+export function moduleFieldKeyLabel(key: string, t: (k: string, p?: any) => string): string {
+  const option = key.match(/^meta\.options\.(.+)\.text$/)
+  if (option) return t('translator.keys.option', { value: option[1] })
+
+  if (/^expression\.validator\..+\.error$/.test(key)) return t('translator.keys.validator-error')
+
+  const named: Record<string, string> = {
+    label: 'translator.keys.label',
+    'meta.description.view': 'translator.keys.description-view',
+    'meta.description.edit': 'translator.keys.description-edit',
+    'meta.hint.view': 'translator.keys.hint-view',
+    'meta.hint.edit': 'translator.keys.hint-edit',
+    'meta.bool.true.label': 'translator.keys.bool-true',
+    'meta.bool.false.label': 'translator.keys.bool-false',
+  }
+
+  return named[key] ? t(named[key]) : ''
+}
