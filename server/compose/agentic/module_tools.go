@@ -57,6 +57,11 @@ func (h *moduleHandler) register() {
 			// Reading a definition is what a data agent does before it can read the
 			// data: a "usage" grant that cannot see a module has no way to name one
 			// or to interpret the values it gets back. Writing one stays configuring.
+			mcp.WithString("detail", mcp.Description(
+				"How much of each field to return. \"summary\" (the default) gives name, kind, label, required/multi, "+
+					"select options and any value expression — what you need to read or filter data. \"full\" adds "+
+					"field IDs, timestamps and storage config, which you only need when editing the module itself. "+
+					"Summary is a fraction of the size; a namespace of modules at full detail is tens of kilobytes.")),
 			hmcp.InGroup(hmcp.GroupConfiguring, hmcp.GroupUsage),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),

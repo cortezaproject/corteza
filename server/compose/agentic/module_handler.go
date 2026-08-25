@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -59,13 +61,17 @@ func (h *moduleHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		return nil, err
 	}
 
-	// Single-module mode returns the raw service type, fields and config included.
 	if modRef := toolkit.Str(args, "module"); modRef != "" {
 		mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, modRef)
 		if err != nil {
 			return nil, toolkit.Errf("module lookup", err)
 		}
-		return toolkit.JSONResultWith(mod, moduleLinks(ctx, mod))
+
+		if strings.EqualFold(toolkit.Str(args, "detail"), "full") {
+			return toolkit.JSONResultWith(mod, moduleLinks(ctx, mod))
+		}
+
+		return toolkit.JSONResultWith(moduleSummary(mod), moduleLinks(ctx, mod))
 	}
 
 	f := cmpTypes.ModuleFilter{NamespaceID: ns.ID}
@@ -403,4 +409,50 @@ func parseModuleFields(raw interface{}) (cmpTypes.ModuleFieldSet, error) {
 	}
 
 	return fields, nil
+}
+
+// moduleSummary is a module as something reading its data needs it.
+//
+// The stored shape repeats moduleID and namespaceID on every field and carries
+// each field's ID, timestamps and DAL storage encoding — about 500 bytes a
+// field, so learning a seven-module namespace costs tens of kilobytes of an
+// agent's context to say what a tenth of that would. None of it helps decide
+// what a field means or how to filter on it. Editing a module does need the
+// IDs, which is what detail=full is for.
+func moduleSummary(m *cmpTypes.Module) map[string]any {
+	fields := make([]map[string]any, 0, len(m.Fields))
+
+	for _, f := range m.Fields {
+		out := map[string]any{"name": f.Name, "kind": f.Kind}
+
+		if f.Label != "" && f.Label != f.Name {
+			out["label"] = f.Label
+		}
+		if f.Required {
+			out["required"] = true
+		}
+		if f.Multi {
+			out["multi"] = true
+		}
+		if len(f.Options) > 0 {
+			out["options"] = f.Options
+		}
+		// A derived field cannot be written to, and a caller that does not know
+		// that writes a value the next save overwrites.
+		if f.Expressions.ValueExpr != "" {
+			out["valueExpression"] = f.Expressions.ValueExpr
+		}
+
+		fields = append(fields, out)
+	}
+
+	return map[string]any{
+		"moduleID":    strconv.FormatUint(m.ID, 10),
+		"namespaceID": strconv.FormatUint(m.NamespaceID, 10),
+		"handle":      m.Handle,
+		"name":        m.Name,
+		"fields":      fields,
+		"detail":      "summary",
+		"note":        "Field storage detail (fieldID, timestamps, DAL config) is omitted; pass detail=\"full\" if you are editing the module rather than reading its data.",
+	}
 }
