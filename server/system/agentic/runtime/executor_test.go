@@ -412,3 +412,35 @@ func TestRun_ReportsComplete(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, StatusComplete, resp.Status)
 }
+
+// A chatbot widget or an automation-triggered run has nobody to put an approval
+// to. Stalling there produces no output and no error, so "ask" is a refusal
+// that says which setting would let it run.
+func TestRun_UnattendedRefusesInsteadOfAsking(t *testing.T) {
+	rt := newRuntime(&mockRegistry{agent: askingAgent()}, toolCallingLLM(), &mockMCP{})
+
+	resp, err := rt.Run(testCtx(), &AgentRequest{AgentID: 42, Input: "do it", Unattended: true})
+	require.NoError(t, err)
+	assert.Equal(t, StatusComplete, resp.Status, "an unattended run never pauses")
+	assert.Nil(t, resp.PendingApproval)
+
+	require.Len(t, resp.ToolCalls, 1)
+	assert.Contains(t, resp.ToolCalls[0].Error, "nobody to ask")
+	assert.Contains(t, resp.ToolCalls[0].Error, "always")
+}
+
+// An unattended run with the tool approved up front still goes through, so an
+// automation can carry an approval its operator set.
+func TestRun_UnattendedRunsAnApprovedTool(t *testing.T) {
+	rt := newRuntime(&mockRegistry{agent: askingAgent()}, toolCallingLLM(), &mockMCP{})
+
+	resp, err := rt.Run(testCtx(), &AgentRequest{
+		AgentID:       42,
+		Input:         "do it",
+		Unattended:    true,
+		ApprovedTools: []string{"test_tool"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, StatusComplete, resp.Status)
+	assert.Empty(t, resp.ToolCalls[0].Error)
+}

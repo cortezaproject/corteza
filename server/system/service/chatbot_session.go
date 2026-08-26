@@ -732,6 +732,7 @@ func (svc *chatbotSession) SubmitMessage(ctx context.Context, cb *types.Chatbot,
 	go func() {
 		resp, err := svc.runtime.Run(saCtx, &runtime.AgentRequest{
 			AgentID:        agentID,
+			Unattended:     true,
 			Input:          input,
 			ConversationID: convID,
 		})

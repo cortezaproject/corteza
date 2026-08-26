@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	atypes "github.com/crusttech/human/server/automation/types"
-	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/crusttech/human/server/pkg/expr"
+	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -278,8 +278,9 @@ func (h ngAgentHandler) Continue() atypes.ConstructFunction {
 
 func (h ngAgentHandler) prompt(ctx context.Context, args *ngAgentPromptArgs) (*ngAgentPromptResults, error) {
 	resp, err := h.runtime.Run(ctx, &agenticRuntime.AgentRequest{
-		AgentID: args.AgentID,
-		Input:   args.Input,
+		AgentID:    args.AgentID,
+		Unattended: true,
+		Input:      args.Input,
 	})
 	if err != nil {
 		return nil, err
@@ -299,6 +300,7 @@ func (h ngAgentHandler) continueConversation(ctx context.Context, args *ngAgentC
 
 	resp, err := h.runtime.Run(ctx, &agenticRuntime.AgentRequest{
 		AgentID:        conv.AgentID,
+		Unattended:     true,
 		ConversationID: args.ConversationID,
 		Input:          args.Input,
 	})

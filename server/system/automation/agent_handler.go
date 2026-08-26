@@ -56,6 +56,7 @@ func (h agentHandler) run(ctx context.Context, args *agentRunArgs) (*agentRunRes
 
 	resp, err := h.runtime.Run(ctx, &agenticRuntime.AgentRequest{
 		AgentID:        args.AgentID,
+		Unattended:     true,
 		Input:          args.Input,
 		ConversationID: args.ConversationID,
 	})

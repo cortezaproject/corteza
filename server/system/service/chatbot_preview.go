@@ -47,10 +47,10 @@ type (
 	}
 
 	ChatbotPreviewHandoff struct {
-		ID       string
-		Status   string // requested|active|closed
-		Started  time.Time
-		Closed   *time.Time
+		ID      string
+		Status  string // requested|active|closed
+		Started time.Time
+		Closed  *time.Time
 	}
 
 	chatbotPreview struct {
@@ -174,6 +174,7 @@ func (s *chatbotPreview) SubmitMessage(ctx context.Context, ps *ChatbotPreviewSe
 	go func() {
 		resp, err := s.runtime.Run(saCtx, &runtime.AgentRequest{
 			AgentID:        agentID,
+			Unattended:     true,
 			Input:          input,
 			ConversationID: cid,
 		})

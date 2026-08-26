@@ -161,7 +161,8 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	// 5. Execution Loop
 	execResult, runErr := r.runExecutionLoop(
-		ctx, agent, conversation, systemPrompt, canaryToken, tools, callerCtxMsg, approvedSet(req.ApprovedTools), tc,
+		ctx, agent, conversation, systemPrompt, canaryToken, tools, callerCtxMsg,
+		approvedSet(req.ApprovedTools), req.Unattended, tc,
 	)
 
 	// End root span
@@ -456,6 +457,7 @@ func (r *runtime) runExecutionLoop(
 	tools []Tool,
 	callerCtxMsg *types.AiConversationMessage,
 	approved map[string]bool,
+	unattended bool,
 	tc traceCtx,
 ) (*executionResult, error) {
 	limits := agent.Execution.Limits
@@ -568,7 +570,7 @@ func (r *runtime) runExecutionLoop(
 				ToolCalls: toAiToolCalls(llmResp.ToolCalls),
 			})
 
-			results, infos, pending := r.executeTools(ctx, agent, llmResp.ToolCalls, approved, tc)
+			results, infos, pending := r.executeTools(ctx, agent, llmResp.ToolCalls, approved, unattended, tc)
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
 
@@ -738,7 +740,7 @@ func (u *Usage) accumulate(other Usage) {
 }
 
 // executeTools runs each tool call and returns conversation messages + telemetry info.
-func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []ToolCall, approved map[string]bool, tc traceCtx) ([]types.AiConversationMessage, []ToolCallInfo, *PendingApproval) {
+func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []ToolCall, approved map[string]bool, unattended bool, tc traceCtx) ([]types.AiConversationMessage, []ToolCallInfo, *PendingApproval) {
 	var (
 		messages []types.AiConversationMessage
 		infos    []ToolCallInfo
@@ -886,6 +888,21 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 			policyArgs["workflow"] = r.resolveWorkflowRef(ctx, fmt.Sprintf("%v", call.Args["workflow"]))
 		}
 		decision := policy.Evaluate(ctx, agent, call.Name, policyArgs, r.agentOwnsComposeTarget)
+
+		// With nobody to put the question to, "ask" is a refusal rather than a
+		// pause: a chatbot widget or an automation-triggered run has no way to
+		// come back with an answer, and stalling it produces no output and no
+		// error. Saying which setting would let it run makes the refusal fixable.
+		if decision.Allowed && decision.Permission == policy.PermissionAsk &&
+			unattended && !approved[call.Name] {
+			decision = policy.Decision{
+				Allowed: false,
+				Reason: fmt.Sprintf(
+					"%q needs approval and this run has nobody to ask; set its permission to %q on the agent to let it run unattended",
+					call.Name, policy.PermissionAlways,
+				),
+			}
+		}
 		policySpan := observability.AgentSpan{
 			ID:             sid(),
 			ParentID:       tc.SpanID,

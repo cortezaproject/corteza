@@ -52,6 +52,11 @@ type (
 		// could not have done by clicking the prompt. Keeping them out of the
 		// database also means an approval never quietly becomes policy.
 		ApprovedTools []string `json:"approvedTools,omitempty"`
+
+		// Unattended says there is nobody to put an approval to — a chatbot
+		// widget, or a run started by an automation. A tool set to "ask" is
+		// refused rather than stalling a run nothing will ever come back to.
+		Unattended bool `json:"-"`
 	}
 
 	// Attachment represents a file or image attached to the request.
