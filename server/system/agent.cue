@@ -66,12 +66,14 @@ _agentDefs: {
 	AgentAccessTAQ: {name: "AgentAccessTAQ", fields: [
 				{name: "ID", type:          "uint64", json:            "id,string"},
 				{name: "Description", type: "string", json:            "description,omitempty"},
+				{name: "Permission", type:  "string", json:            "permission,omitempty"},
 				{name: "Params", goType:    "map[string]string", json: "params,omitempty"},
 	]}
 
 	AgentAccessWorkflow: {name: "AgentAccessWorkflow", fields: [
 					{name: "ID", type:          "uint64", json: "id,string"},
 					{name: "Description", type: "string", json: "description,omitempty"},
+					{name: "Permission", type:  "string", json: "permission,omitempty"},
 	]}
 
 	AgentAccessTool: {name: "AgentAccessTool", fields: [

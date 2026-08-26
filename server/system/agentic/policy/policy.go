@@ -78,10 +78,11 @@ func (m MapValues) Keys() []string {
 func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGetter, ownsTarget OwnershipFallback) Decision {
 	if tool == "automation_workflow_exec" {
 		ref, _ := args.Get("workflow")
-		if findWorkflow(agent, fmt.Sprintf("%v", ref)) == nil {
+		w := findWorkflow(agent, fmt.Sprintf("%v", ref))
+		if w == nil {
 			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute workflow %q", ref)}
 		}
-		return allowedDecision(agent, nil, args)
+		return withPermission(allowedDecision(agent, nil, args), w.Permission)
 	}
 	// A TAQ is granted through access.taqs, the way a workflow is through
 	// access.workflows. Reaching this tool through access.tools instead — a
@@ -90,10 +91,11 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 	// compose one, and checkAllow waved every non-compose resource through.
 	if tool == "automation_taq_exec" {
 		ref, _ := args.Get("taq")
-		if findTAQ(agent, fmt.Sprintf("%v", ref)) == nil {
+		t := findTAQ(agent, fmt.Sprintf("%v", ref))
+		if t == nil {
 			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute TAQ %q — grant it in access.taqs, by ID", ref)}
 		}
-		return allowedDecision(agent, nil, args)
+		return withPermission(allowedDecision(agent, nil, args), t.Permission)
 	}
 	if tool == "automation_taq_lookup" && len(agent.Access.TAQs) > 0 {
 		return allowedDecision(agent, nil, args)
@@ -113,10 +115,11 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 	// an exception list as a TAQ ID denies the static tools whenever the list
 	// falls behind.
 	if taqIDStr, ok := dynamicTAQRef(tool); ok {
-		if findTAQ(agent, taqIDStr) == nil {
+		t := findTAQ(agent, taqIDStr)
+		if t == nil {
 			return Decision{Allowed: false, Reason: fmt.Sprintf("agent is not allowed to execute automation %q", taqIDStr)}
 		}
-		return allowedDecision(agent, nil, args)
+		return withPermission(allowedDecision(agent, nil, args), t.Permission)
 	}
 
 	var entry *types.AgentAccessTool
@@ -209,6 +212,25 @@ func allowedDecision(agent *types.Agent, entry *types.AgentAccessTool, args Valu
 	if entry != nil {
 		d.Permission = entry.Permission
 	}
+	return d
+}
+
+// withPermission settles how an allowed automation run should be treated.
+//
+// An automation does whatever its steps do and has no dry run, so an unstated
+// mode asks — the same rule a write tool follows. Naming the grant is not the
+// approval: it says the agent MAY run it, not that it may run it unannounced.
+func withPermission(d Decision, permission string) Decision {
+	if !d.Allowed {
+		return d
+	}
+	if permission == "" {
+		permission = PermissionAsk
+	}
+	if permission == PermissionDeny {
+		return Decision{Allowed: false, Reason: "this automation is set to deny on the agent"}
+	}
+	d.Permission = permission
 	return d
 }
 

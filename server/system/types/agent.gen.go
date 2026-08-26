@@ -100,12 +100,14 @@ type (
 	AgentAccessTAQ struct {
 		ID          uint64            `json:"id,string"`
 		Description string            `json:"description,omitempty"`
+		Permission  string            `json:"permission,omitempty"`
 		Params      map[string]string `json:"params,omitempty"`
 	}
 
 	AgentAccessWorkflow struct {
 		ID          uint64 `json:"id,string"`
 		Description string `json:"description,omitempty"`
+		Permission  string `json:"permission,omitempty"`
 	}
 
 	AgentAccessTool struct {
@@ -605,6 +607,10 @@ func (r AgentAccessTAQ) Diff(cmp *AgentAccessTAQ) []*revisions.Change {
 		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
 	}
 
+	if r.Permission != cmp.Permission {
+		out = append(out, &revisions.Change{Key: "permission", Old: []any{cmp.Permission}, New: []any{r.Permission}})
+	}
+
 	if !reflect.DeepEqual(r.Params, cmp.Params) {
 		out = append(out, &revisions.Change{Key: "params", Old: []any{cmp.Params}, New: []any{r.Params}})
 	}
@@ -631,6 +637,10 @@ func (r AgentAccessWorkflow) Diff(cmp *AgentAccessWorkflow) []*revisions.Change 
 
 	if r.Description != cmp.Description {
 		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	if r.Permission != cmp.Permission {
+		out = append(out, &revisions.Change{Key: "permission", Old: []any{cmp.Permission}, New: []any{r.Permission}})
 	}
 
 	return out

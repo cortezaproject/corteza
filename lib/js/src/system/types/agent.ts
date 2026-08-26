@@ -65,12 +65,18 @@ interface AgentAccessTool {
 interface AgentAccessTAQ {
   id: string
   description: string
+  // How a run is treated: 'always' fires it, 'ask' puts it to the user first,
+  // 'deny' refuses it. Empty asks — an automation has no dry run.
+  permission?: string
   params?: Record<string, string>
 }
 
 interface AgentAccessWorkflow {
   id: string
   description: string
+  // How a run is treated: 'always' fires it, 'ask' puts it to the user first,
+  // 'deny' refuses it. Empty asks — an automation has no dry run.
+  permission?: string
 }
 
 interface AgentAccess {

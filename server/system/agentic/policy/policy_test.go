@@ -362,3 +362,46 @@ func TestScopeExemptToolIsAllowed(t *testing.T) {
 	d := Evaluate(ctx, agent, "compose_chart_lookup", MapValues{}, nil)
 	assert.True(t, d.Allowed, "reason: %s", d.Reason)
 }
+
+// An automation does whatever its steps do and has no dry run. Granting one
+// says the agent MAY run it, not that it may run it unannounced.
+func TestAutomationRunsAskByDefault(t *testing.T) {
+	ctx := context.Background()
+	agent := &types.Agent{Access: types.AgentAccess{
+		TAQs: []types.AgentAccessTAQ{
+			{ID: 1},
+			{ID: 2, Permission: PermissionAlways},
+			{ID: 3, Permission: PermissionDeny},
+		},
+		Workflows: []types.AgentAccessWorkflow{{ID: 9}},
+	}}
+
+	t.Run("an unstated mode asks", func(t *testing.T) {
+		d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "1"}, nil)
+		require.True(t, d.Allowed, d.Reason)
+		assert.Equal(t, PermissionAsk, d.Permission)
+	})
+
+	t.Run("the minted per-TAQ tool asks the same way", func(t *testing.T) {
+		d := Evaluate(ctx, agent, "automation_1", MapValues{}, nil)
+		require.True(t, d.Allowed, d.Reason)
+		assert.Equal(t, PermissionAsk, d.Permission)
+	})
+
+	t.Run("a stated mode is kept", func(t *testing.T) {
+		d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "2"}, nil)
+		require.True(t, d.Allowed, d.Reason)
+		assert.Equal(t, PermissionAlways, d.Permission)
+	})
+
+	t.Run("deny refuses the run", func(t *testing.T) {
+		d := Evaluate(ctx, agent, "automation_taq_exec", MapValues{"taq": "3"}, nil)
+		assert.False(t, d.Allowed)
+	})
+
+	t.Run("a workflow follows the same rule", func(t *testing.T) {
+		d := Evaluate(ctx, agent, "automation_workflow_exec", MapValues{"workflow": "9"}, nil)
+		require.True(t, d.Allowed, d.Reason)
+		assert.Equal(t, PermissionAsk, d.Permission)
+	})
+}

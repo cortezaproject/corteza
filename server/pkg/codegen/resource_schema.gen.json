@@ -699,11 +699,13 @@
   "taqs": {
   "id": "uint64",
   "description": "string",
+  "permission": "string",
   "params": "map[string]string"
 },
   "workflows": {
   "id": "uint64",
-  "description": "string"
+  "description": "string",
+  "permission": "string"
 }
 },
   "invocation": {
