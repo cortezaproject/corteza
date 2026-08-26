@@ -681,6 +681,7 @@
   "name": "string",
   "group": "string",
   "maxRisk": "string",
+  "permission": "string",
   "description": "string",
   "allow": {
   "namespaceID": "uint64",
@@ -690,6 +691,10 @@
   "defaults": "map[string]any",
   "overrides": "map[string]any"
 }
+},
+  "allow": {
+  "namespaceID": "uint64",
+  "moduleIDs": "AgentAccessIDList"
 },
   "taqs": {
   "id": "uint64",

@@ -76,6 +76,7 @@ type (
 
 	AgentAccess struct {
 		Tools     []AgentAccessTool     `json:"tools,omitempty"`
+		Allow     []AgentAccessAllow    `json:"allow,omitempty"`
 		TAQs      []AgentAccessTAQ      `json:"taqs,omitempty"`
 		Workflows []AgentAccessWorkflow `json:"workflows,omitempty"`
 	}
@@ -111,6 +112,7 @@ type (
 		Name        string                 `json:"name"`
 		Group       string                 `json:"group,omitempty"`
 		MaxRisk     string                 `json:"maxRisk,omitempty"`
+		Permission  string                 `json:"permission,omitempty"`
 		Description string                 `json:"description"`
 		Allow       []AgentAccessAllow     `json:"allow"`
 		Context     AgentAccessToolContext `json:"context,omitempty"`
@@ -445,6 +447,13 @@ func (r AgentAccess) Clone() *AgentAccess {
 		}
 	}
 
+	if r.Allow != nil {
+		dup.Allow = make([]AgentAccessAllow, len(r.Allow))
+		for i := range r.Allow {
+			dup.Allow[i] = *r.Allow[i].Clone()
+		}
+	}
+
 	if r.TAQs != nil {
 		dup.TAQs = make([]AgentAccessTAQ, len(r.TAQs))
 		for i := range r.TAQs {
@@ -469,6 +478,10 @@ func (r AgentAccess) Diff(cmp *AgentAccess) []*revisions.Change {
 	}
 	if !reflect.DeepEqual(r.Tools, cmp.Tools) {
 		out = append(out, &revisions.Change{Key: "tools", Old: []any{cmp.Tools}, New: []any{r.Tools}})
+	}
+
+	if !reflect.DeepEqual(r.Allow, cmp.Allow) {
+		out = append(out, &revisions.Change{Key: "allow", Old: []any{cmp.Allow}, New: []any{r.Allow}})
 	}
 
 	if !reflect.DeepEqual(r.TAQs, cmp.TAQs) {
@@ -655,6 +668,10 @@ func (r AgentAccessTool) Diff(cmp *AgentAccessTool) []*revisions.Change {
 
 	if r.MaxRisk != cmp.MaxRisk {
 		out = append(out, &revisions.Change{Key: "maxRisk", Old: []any{cmp.MaxRisk}, New: []any{r.MaxRisk}})
+	}
+
+	if r.Permission != cmp.Permission {
+		out = append(out, &revisions.Change{Key: "permission", Old: []any{cmp.Permission}, New: []any{r.Permission}})
 	}
 
 	if r.Description != cmp.Description {

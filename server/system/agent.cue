@@ -42,6 +42,7 @@ _agentDefs: {
 
 	AgentAccess: {name: "AgentAccess", fields: [
 				{name: "Tools", goType:     "[]AgentAccessTool", json:           "tools,omitempty"},
+				{name: "Allow", slice:      true, type:                          _agentDefs.AgentAccessAllow, json: "allow,omitempty"},
 				{name: "TAQs", goType:      "[]AgentAccessTAQ", json:            "taqs,omitempty"},
 				{name: "Workflows", goType: "[]AgentAccessWorkflow", json:       "workflows,omitempty"},
 	]}
@@ -77,6 +78,7 @@ _agentDefs: {
 				{name: "Name", type:        "string", json:                          "name"},
 				{name: "Group", type:       "string", json:                          "group,omitempty"},
 				{name: "MaxRisk", type:     "string", json:                          "maxRisk,omitempty"},
+				{name: "Permission", type:  "string", json:                          "permission,omitempty"},
 				{name: "Description", type: "string", json:                          "description"},
 				{name: "Allow", slice:      true, type:                              _agentDefs.AgentAccessAllow, json: "allow"},
 				{name: "Context", type:     _agentDefs.AgentAccessToolContext, json: "context,omitempty"},
@@ -199,7 +201,7 @@ agent: {
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		query: ["handle", "status"]
+		query: ["handle", "name", "status"]
 		byValue: ["agent_id", "project_id", "handle", "status"]
 		byNilState: ["deleted"]
 	}
