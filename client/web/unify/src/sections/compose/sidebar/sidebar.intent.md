@@ -34,11 +34,12 @@ one sidebar body the shell provides.
 
 - Keep it a pure composition — behavior belongs in the components under
   `components/` (owned by their own doc); this file only picks between them.
-- The sidebar scrolls in one place. The namespace switcher and the nav's search
-  box stay put; everything below them — page tree and admin panel together —
-  scrolls as one. The shell (`CSidebar`) already scrolls what this body hands
-  it, so a child that also claims the full height gives the sidebar two
-  scrollbars; children take the height their siblings leave.
+- The sidebar scrolls in one place, and it scrolls whole: the shell (`CSidebar`)
+  already scrolls what this body hands it, so nothing here keeps a scroller of
+  its own. Namespace switcher, search box and page tree all move together; the
+  admin panel is the one thing that stays, held at the foot. The column must
+  therefore be free to grow past the shell's scroller while still filling it
+  when there is little to show — that filling is what pushes the panel down.
 - The choice reads route meta, never route names, so a rename cannot silently
   swap sidebars. Routes with `meta.hideSidebar` (the namespace list) suppress
   the sidebar entirely; this component need not handle that case.

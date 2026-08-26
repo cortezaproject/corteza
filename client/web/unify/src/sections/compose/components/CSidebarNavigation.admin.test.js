@@ -108,16 +108,15 @@ describe('Compose sidebar admin panel', () => {
     expect(wrapper.text()).toContain('Home')
   })
 
-  it('scrolls as one region, not two', () => {
+  it('keeps no scroller of its own', () => {
     namespace = { namespaceID: 'N1', slug: 'ns', canManageNamespace: true }
 
     mountNav()
 
-    const scrollers = wrapper.findAll('.overflow-auto')
-    expect(scrollers).toHaveLength(1)
-    // ...and the admin panel is inside it, so it scrolls with the pages rather
-    // than sitting in a band of its own below a second scrollbar.
-    expect(scrollers[0].find('[data-testid="sidebar-admin-panel"]').exists()).toBe(true)
+    // The shell scrolls the whole sidebar, search box and namespace switcher
+    // included. One here would scroll the page tree on its own instead.
+    expect(wrapper.findAll('.overflow-auto')).toHaveLength(0)
+    expect(wrapper.findAll('.overflow-y-auto')).toHaveLength(0)
   })
 
   it('holds the panel at the foot of the sidebar', () => {
@@ -125,18 +124,18 @@ describe('Compose sidebar admin panel', () => {
 
     mountNav()
 
-    // Sticky keeps it at the bottom once the pages scroll...
+    // Sticky keeps it at the bottom while the rest scrolls past...
     const panel = wrapper.find('[data-testid="sidebar-admin-panel"]')
     expect(panel.classes()).toContain('sticky')
     expect(panel.classes()).toContain('bottom-0')
     // ...and it needs its own background, or the pages scroll visibly through it.
     expect(panel.classes()).toContain('bg-surface')
 
-    // ...and the pages growing to fill is what pushes it there when there are
-    // too few of them to scroll at all.
-    const column = wrapper.find('.overflow-auto > div')
-    expect(column.classes()).toContain('min-h-full')
-    expect(column.find('.flex-1').exists()).toBe(true)
+    // ...and the pages growing to fill is what pushes it down there when there
+    // are too few of them to scroll at all.
+    const pages = wrapper.findAll('.flex-1')
+    expect(pages).toHaveLength(1)
+    expect(pages[0].find('[data-testid="sidebar-admin-panel"]').exists()).toBe(false)
   })
 
   it('names the panel above the rule, not below it', () => {

@@ -712,7 +712,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/CSidebarNamespaceNav.vue": {
-      "h": "d5445eaf6a06",
+      "h": "361993ab439d",
       "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
       "t": "2026-08-26"
     },
@@ -722,12 +722,12 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/CSidebarNavigation.admin.test.js": {
-      "h": "ade9dcdc21c4",
+      "h": "e2e204985079",
       "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
       "t": "2026-08-26"
     },
     "client/web/unify/src/sections/compose/components/CSidebarNavigation.vue": {
-      "h": "568632b29826",
+      "h": "4a631a9df013",
       "doc": "client/web/unify/src/sections/compose/components/components.intent.md",
       "t": "2026-08-26"
     },
@@ -1192,12 +1192,12 @@
       "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/sidebar/ComposeSidebar.scroll.test.js": {
-      "h": "a66b273b89e2",
+      "h": "c253de4d1f9e",
       "doc": "client/web/unify/src/sections/compose/sidebar/sidebar.intent.md",
       "t": "2026-08-26"
     },
     "client/web/unify/src/sections/compose/sidebar/ComposeSidebar.vue": {
-      "h": "d133f7d863a4",
+      "h": "46c5cc69c443",
       "doc": "client/web/unify/src/sections/compose/sidebar/sidebar.intent.md",
       "t": "2026-08-26"
     },

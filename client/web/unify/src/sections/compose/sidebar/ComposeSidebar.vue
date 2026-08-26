@@ -1,12 +1,13 @@
 <template>
-  <div class="flex flex-col h-full">
-    <!-- The nav takes the height the switcher leaves rather than a full column
-         of its own: asking for both is what puts a second scrollbar on the
-         sidebar, one for the shell's body and one for the nav inside it. -->
-    <CSidebarNamespaceNav v-if="$route.meta.sidebar === 'namespaces'" class="flex-1 min-h-0" />
+  <div class="flex flex-col min-h-full">
+    <!-- `min-h-full`, not `h-full`: the column fills the shell's scroller when
+         there is little to show, so the nav can hold its admin panel at the
+         foot, and grows past it when there is more — the shell's scroller is
+         the only one, and everything above scrolls with the rest. -->
+    <CSidebarNamespaceNav v-if="$route.meta.sidebar === 'namespaces'" class="flex-1" />
     <template v-else>
       <CSidebarNamespaceSwitcher />
-      <CSidebarNavigation class="flex-1 min-h-0" />
+      <CSidebarNavigation class="flex-1" />
     </template>
   </div>
 </template>

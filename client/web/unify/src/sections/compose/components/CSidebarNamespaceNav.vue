@@ -8,7 +8,7 @@
       class="my-2"
     />
 
-    <div class="flex-1 overflow-auto">
+    <div class="flex-1">
       <CSidebarNav
         :items="navItems"
         id-key="_id"

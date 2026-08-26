@@ -2,10 +2,11 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 
-// The shell wraps this body in one scroller of its own. A child that asks for a
-// full column on top of the namespace switcher is taller than that scroller, so
-// the sidebar ends up with two scrollbars — the shell's and the nav's. The nav
-// takes what the switcher leaves instead.
+// The shell wraps this body in the one scroller the sidebar has, so everything
+// here scrolls together — switcher, search, pages. The column must be free to
+// grow past that scroller (`min-h-full`, never `h-full`, which would cap it and
+// leave the nav to scroll on its own) while still filling it when there is
+// little to show, since that is what pushes the admin panel to the foot.
 
 const route = reactive({ meta: {} })
 
@@ -37,13 +38,19 @@ afterEach(() => {
 })
 
 describe('Compose sidebar column', () => {
+  it('fills the shell scroller without being capped by it', () => {
+    mountSidebar()
+
+    expect(wrapper.classes()).toContain('min-h-full')
+    expect(wrapper.classes()).not.toContain('h-full')
+  })
+
   it('lets the nav take the height the switcher leaves', () => {
     mountSidebar()
 
     const nav = wrapper.findComponent({ name: 'CSidebarNavigation' })
     expect(nav.exists()).toBe(true)
     expect(nav.classes()).toContain('flex-1')
-    expect(nav.classes()).toContain('min-h-0')
     expect(nav.classes()).not.toContain('h-full')
   })
 
@@ -53,7 +60,6 @@ describe('Compose sidebar column', () => {
     const nav = wrapper.findComponent({ name: 'CSidebarNamespaceNav' })
     expect(nav.exists()).toBe(true)
     expect(nav.classes()).toContain('flex-1')
-    expect(nav.classes()).toContain('min-h-0')
     expect(nav.classes()).not.toContain('h-full')
   })
 })
