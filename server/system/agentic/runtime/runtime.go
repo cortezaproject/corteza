@@ -188,6 +188,12 @@ type (
 		Title       string         `json:"title,omitempty"`
 		Description string         `json:"description"`
 		InputSchema map[string]any `json:"inputSchema"`
+
+		// How the tool is classified, so a picker can group it and say what it
+		// costs to allow. A caller listing tools to choose from needs both;
+		// the agent runtime itself never reads them.
+		Groups []string `json:"groups,omitempty"`
+		Risk   string   `json:"risk,omitempty"`
 	}
 )
 

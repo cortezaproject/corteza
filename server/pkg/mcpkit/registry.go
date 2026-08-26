@@ -152,6 +152,12 @@ type ToolDef struct {
 	Title       string
 	Description string
 	InputSchema map[string]any
+
+	// The tool's own classification, carried so a caller choosing tools can
+	// group them and say what allowing one costs. Selecting tools to RUN does
+	// not need either; selecting tools to GRANT does.
+	Groups []Group
+	Risk   Risk
 }
 
 // Select returns the definitions for the named tools, or every non-hidden
@@ -173,6 +179,8 @@ func (r *Registry) Select(names []string) ([]ToolDef, error) {
 			Title:       t.Title,
 			Description: t.Tool.Description,
 			InputSchema: t.InputSchema,
+			Groups:      GroupsOf(t.Tool),
+			Risk:        RiskOf(t.Tool),
 		}
 	}
 

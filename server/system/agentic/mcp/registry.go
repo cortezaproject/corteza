@@ -40,11 +40,18 @@ func (r *Registry) GetTools(ctx context.Context, allowedTools []string) ([]rt.To
 
 	out := make([]rt.Tool, 0, len(defs))
 	for _, d := range defs {
+		groups := make([]string, 0, len(d.Groups))
+		for _, g := range d.Groups {
+			groups = append(groups, string(g))
+		}
+
 		out = append(out, rt.Tool{
 			Name:        d.Name,
 			Title:       d.Title,
 			Description: d.Description,
 			InputSchema: d.InputSchema,
+			Groups:      groups,
+			Risk:        string(d.Risk),
 		})
 	}
 
