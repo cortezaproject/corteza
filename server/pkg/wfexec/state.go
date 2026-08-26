@@ -197,6 +197,44 @@ func (s State) loopCurr() Iterator {
 	return nil
 }
 
+// MakeLightFrame builds a frame that describes the step without snapshotting
+// any of the state's variables
+//
+// Cloning the scope is what makes stacktrace collection expensive, and a frame
+// only needs its variables when someone is going to read them back.
+func (s State) MakeLightFrame() *Frame {
+	f := &Frame{
+		CreatedAt: s.created,
+		SessionID: s.sessionId,
+		StateID:   s.stateId,
+		NextSteps: s.next.IDs(),
+		Action:    s.action,
+	}
+
+	s.describe(f)
+	return f
+}
+
+// describe fills in the parts of a frame that do not require cloning
+func (s State) describe(f *Frame) {
+	if s.err != nil {
+		f.Error = s.err.Error()
+	}
+
+	if s.step != nil {
+		f.StepID = s.step.ID()
+	}
+
+	if s.parent != nil {
+		f.ParentID = s.parent.ID()
+	}
+
+	if s.completed != nil {
+		f.StepTime = uint(s.completed.Sub(s.created) / time.Millisecond)
+	}
+}
+
+// MakeFrame builds a frame with a full snapshot of the state's variables
 func (s State) MakeFrame() *Frame {
 	var (
 		// might not be the most optimal way but we need to
@@ -212,13 +250,7 @@ func (s State) MakeFrame() *Frame {
 		}
 	)
 
-	f := &Frame{
-		CreatedAt: s.created,
-		SessionID: s.sessionId,
-		StateID:   s.stateId,
-		NextSteps: s.next.IDs(),
-		Action:    s.action,
-	}
+	f := s.MakeLightFrame()
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -239,22 +271,6 @@ func (s State) MakeFrame() *Frame {
 	}()
 
 	wg.Wait()
-
-	if s.err != nil {
-		f.Error = s.err.Error()
-	}
-
-	if s.step != nil {
-		f.StepID = s.step.ID()
-	}
-
-	if s.parent != nil {
-		f.ParentID = s.parent.ID()
-	}
-
-	if s.completed != nil {
-		f.StepTime = uint(s.completed.Sub(s.created) / time.Millisecond)
-	}
 
 	return f
 }

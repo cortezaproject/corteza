@@ -20,6 +20,7 @@ type (
 	runtimeOptions struct {
 		disableStacktrace bool
 		fullStacktrace    bool
+		traced            bool
 	}
 
 	// Instance of single workflow execution
@@ -154,6 +155,20 @@ func (s *Session) FullStacktrace() {
 	s.runtimeOpts.fullStacktrace = true
 }
 
+// Traced marks a session that was started with tracing explicitly requested
+func (s *Session) Traced() {
+	s.runtimeOpts.traced = true
+}
+
+// KeepsFrameScope reports whether frames have to carry a snapshot of the scope
+//
+// The whole stacktrace is only ever read back for sessions that asked to be
+// traced or that record every step; for the rest it is read when the session
+// fails, where the scope that matters is the one of the step that failed.
+func (s *Session) KeepsFrameScope() bool {
+	return s.runtimeOpts.traced || s.runtimeOpts.fullStacktrace
+}
+
 func (s *Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) error {
 	return s.session.Exec(ctx, step, input)
 }
@@ -238,7 +253,7 @@ func (s *Session) AppendRuntimeStacktrace(frame *wfexec.Frame) {
 	// Sessions that explicitly asked to be traced keep every frame they collect;
 	// the rest only ever read the stacktrace back when the session fails, and
 	// the most recent frames are the ones that explain the failure.
-	if s.Stacktrace == nil {
+	if !s.runtimeOpts.traced {
 		s.capRuntimeStacktrace(maxRuntimeStacktraceFrames)
 	}
 }

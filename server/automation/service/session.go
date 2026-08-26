@@ -331,6 +331,10 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callSt
 		ses.FullStacktrace()
 	}
 
+	if trace {
+		ses.Traced()
+	}
+
 	svc.mux.Lock()
 	svc.pool[ses.ID] = ses
 	svc.mux.Unlock()
@@ -485,12 +489,19 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			frame *wfexec.Frame
 		)
 
-		// building a frame deep-copies the whole scope, so only do it when
-		// the frames are going to be kept
+		// Building a frame deep-copies the whole scope, so only do it when the
+		// variables are going to be read back: when the session is traced, or
+		// when it is settling on a status someone will want explained.
+		//
+		// ElapsedTime is calculated on append; the oldest frames can be
+		// dropped, so the session keeps track of when tracing started.
 		if state != nil && svc.opt.StackTraceEnabled {
-			frame = state.MakeFrame()
-			// ElapsedTime is calculated on append; the oldest frames can be
-			// dropped, so the session keeps track of when tracing started
+			if ses.KeepsFrameScope() || status != wfexec.SessionActive {
+				frame = state.MakeFrame()
+			} else {
+				frame = state.MakeLightFrame()
+			}
+
 			ses.AppendRuntimeStacktrace(frame)
 		}
 
