@@ -247,7 +247,7 @@ func (h *pageHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		return nil, toolkit.Errf("page creation", err)
 	}
 
-	return toolkit.JSONResultWith(pg, pageLinks(ctx, pg))
+	return toolkit.JSONResultWith(pg, withNote(pageLinks(ctx, pg), blockReadinessNote(pg.Blocks)))
 }
 
 func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -386,7 +386,7 @@ func (h *pageHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp
 		}
 	}
 
-	return toolkit.JSONResultWith(pg, pageLinks(ctx, pg))
+	return toolkit.JSONResultWith(pg, withNote(pageLinks(ctx, pg), blockReadinessNote(pg.Blocks)))
 }
 
 func (h *pageHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -592,7 +592,15 @@ func (h *pageHandler) blockSchema(_ context.Context, req mcp.CallToolRequest) (*
 		return nil, fmt.Errorf("unknown block kind %q: supported kinds are %s", kind, supportedBlockKinds())
 	}
 
-	return toolkit.JSONResult(schema)
+	// The shape alone does not say which of these the block cannot render
+	// without, and leaving one out produces an empty panel rather than an
+	// error. The page builder shows the same list as a badge on the block.
+	res := map[string]any{"options": schema}
+	if req := requiredBlockOptions[kind]; len(req) > 0 {
+		res["required"] = req
+	}
+
+	return toolkit.JSONResult(res)
 }
 
 // newPageItem projects a page onto the slim list shape.

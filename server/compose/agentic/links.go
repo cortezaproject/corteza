@@ -95,3 +95,16 @@ func recordLinks(ctx context.Context, rec *cmpTypes.Record) map[string]string {
 	}
 	return map[string]string{"url": weburl.ComposeRecord(nsURLPart(ctx, rec.NamespaceID), rec.ModuleID, rec.ID)}
 }
+
+// withNote adds a note beside a result's links. Empty means there is nothing to
+// say, and a blank key would read as "there is a note and it says nothing".
+func withNote(extra map[string]string, note string) map[string]string {
+	if note == "" {
+		return extra
+	}
+	if extra == nil {
+		extra = make(map[string]string, 1)
+	}
+	extra["note"] = note
+	return extra
+}
